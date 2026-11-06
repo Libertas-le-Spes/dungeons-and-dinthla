@@ -1,0 +1,9 @@
+{
+  "id": "dungeons-and-dinthla",
+  "name": "Dungeons & Dinthla",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Campaign notes that fill in character sheets, quests and questions.",
+  "author": "Kabelo Mosiane",
+  "isDesktopOnly": false
+}
