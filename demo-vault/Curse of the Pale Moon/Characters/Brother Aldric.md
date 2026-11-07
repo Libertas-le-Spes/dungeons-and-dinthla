@@ -1,0 +1,1 @@
+type: Medium humanoid (human)
