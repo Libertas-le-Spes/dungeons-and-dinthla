@@ -1,6 +1,6 @@
 import { readLedgerEntry, type CoinEntry } from "./ledger";
 import { findLinks, unlink } from "./link";
-import { withoutBullet } from "./marker";
+import { withoutBullet } from "./bullet";
 
 export type ItemChangeKind = "changed" | "sold" | "used" | "lost";
 
