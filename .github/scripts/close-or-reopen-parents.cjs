@@ -31,7 +31,7 @@ async function closeParentIfFinished({ github, context, core }, parent) {
 }
 
 async function reopenParentIfCompleted({ github, context, core }, parent, reopenedChild) {
-  if (parent.state === "OPEN" || parent.stateReason === "NOT_PLANNED") return false;
+  if (parent.state === "OPEN" || parent.stateReason !== "COMPLETED") return false;
   await github.rest.issues.update({ ...context.repo, issue_number: parent.number, state: "open" });
   core.info(`Reopened #${parent.number}: #${reopenedChild} was reopened.`);
   return true;
