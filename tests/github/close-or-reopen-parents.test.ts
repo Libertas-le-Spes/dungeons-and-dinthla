@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 const closeOrReopenParents = createRequire(import.meta.url)("../../.github/scripts/close-or-reopen-parents.cjs");
 
 type State = "OPEN" | "CLOSED";
-type Reason = "COMPLETED" | "NOT_PLANNED" | null;
+type Reason = "COMPLETED" | "NOT_PLANNED" | "DUPLICATE" | null;
 
 interface FakeIssue {
   state: State;
@@ -81,6 +81,13 @@ describe("closeOrReopenParents", () => {
     await act(issues, "reopened", 4);
     expect(issues[2]!.state).toBe("OPEN");
     expect(issues[1]).toMatchObject({ state: "CLOSED", stateReason: "NOT_PLANNED" });
+  });
+
+  it("leaves a parent that was closed as a duplicate closed", async () => {
+    const issues = { 1: closed("DUPLICATE"), 2: closed("COMPLETED", 1), 4: open(2) };
+    await act(issues, "reopened", 4);
+    expect(issues[2]!.state).toBe("OPEN");
+    expect(issues[1]).toMatchObject({ state: "CLOSED", stateReason: "DUPLICATE" });
   });
 
   it("does nothing for an issue without a parent", async () => {
