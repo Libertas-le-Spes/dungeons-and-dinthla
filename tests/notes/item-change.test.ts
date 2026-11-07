@@ -60,4 +60,12 @@ describe("readItemChange", () => {
     expect(readItemChange("$ Potion of healing")).toBeNull();
     expect(readItemChange("?? letter")).toBeNull();
   });
+
+  it("needs a space before the colon", () => {
+    expect(readItemChange("$$ Lantern:sold")).toBeNull();
+  });
+
+  it("reads a change word in capitals", () => {
+    expect(readItemChange("$$ Lantern :Sold")?.kind).toBe("sold");
+  });
 });
