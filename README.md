@@ -8,7 +8,7 @@ This README describes a project that grows in small steps: parts of it may still
 
 ## Install
 
-Build it, then copy `manifest.json`, `main.js` and `styles.css` into `<vault>/.obsidian/plugins/dungeons-and-dinthla/` and turn it on under Community plugins.
+Build it, then copy `manifest.json` and `main.js` into `<vault>/.obsidian/plugins/dungeons-and-dinthla/` and turn it on under Community plugins.
 
 ```
 npm install
