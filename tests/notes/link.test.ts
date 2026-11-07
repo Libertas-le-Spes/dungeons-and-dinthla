@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { blankLinks, findLinks, removeFirstLink, unlink } from "../../src/notes/link";
+import { blankLinks, findLinks, removeFirstLink, splitLinks, unlink } from "../../src/notes/link";
 
 describe("findLinks", () => {
   it("finds every linked name in order", () => {
@@ -40,5 +40,24 @@ describe("unlink", () => {
 describe("blankLinks", () => {
   it("blanks each link so the words around it keep their places", () => {
     expect(blankLinks("from [[Mira]] 5 gp")).toBe("from          5 gp");
+  });
+});
+
+describe("splitLinks", () => {
+  it("splits text into plain parts and links, each link with its shown text and target", () => {
+    expect(splitLinks("Ask [[Lady Vess|the lady]] at [[Old Mill#Wheel]]")).toEqual([
+      { text: "Ask ", target: null },
+      { text: "the lady", target: "Lady Vess" },
+      { text: " at ", target: null },
+      { text: "Old Mill", target: "Old Mill" },
+    ]);
+  });
+
+  it("keeps text with no links whole", () => {
+    expect(splitLinks("Who sent the letter")).toEqual([{ text: "Who sent the letter", target: null }]);
+  });
+
+  it("reads empty text as no parts", () => {
+    expect(splitLinks("")).toEqual([]);
   });
 });
