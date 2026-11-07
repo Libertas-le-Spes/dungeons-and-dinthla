@@ -26,7 +26,7 @@ Tasks are sub-issues of their story, and stories of their epic. Two kinds of lab
 | Every issue is labelled `epic`, `story` or `task` from its title prefix | The views filter on these. `.github/workflows/label-issues.yml` adds the label to new and edited issues, and swaps it when the prefix changes, using the shared [OptimusBoard](https://github.com/Libertas-le-Spes/OptimusBoard) action |
 | Cards are ordered top to bottom in the order to work on them | The order is the priority. Pick from the top. The Priority field isn't used; ignore the empty Priority groups in **Next iteration** |
 | **Story focus** view: tasks only, across the lanes | Choose **Group by → Parent issue** in the view menu for one row per story. GitHub keeps that for you only, unless you save the view |
-| A story closes when its last task closes, an epic when its last story does | `.github/workflows/close-parent-issues.yml`, using the shared OptimusBoard action, so nobody closes parents by hand |
+| A story closes when its last task closes, an epic when its last story does | `.github/workflows/close-parent-issues.yml`, using the shared [OptimusBoard](https://github.com/Libertas-le-Spes/OptimusBoard) action, so nobody closes parents by hand |
 | A task's pull request starts with `Closes #<task>` | Merging it closes the task, and the board's *Item closed* automation moves the card to Done |
 
 ## The board's automations
