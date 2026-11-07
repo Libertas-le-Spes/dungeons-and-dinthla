@@ -17,4 +17,4 @@ jobs:
   parents:
     runs-on: ubuntu-latest
     steps:
-      - uses: Libertas-le-Spes/OptimusBoard/close-parent-issues@165aeb5fc3eea3eb14117df2b71b61cc86f46f10
+      - uses: Libertas-le-Spes/OptimusBoard/close-parent-issues@d1ba227628018b4295ed3c2df79cef0a6d67c4d9
