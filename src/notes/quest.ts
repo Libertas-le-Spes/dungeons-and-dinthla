@@ -1,10 +1,11 @@
+import { partsBetweenCommas } from "./comma";
+
 export interface Quest {
   title: string;
   givenBy?: string;
   reward?: string;
 }
 
-const PART_BETWEEN_COMMAS = /(?:\[\[[^[\]]*\]\]|\d,(?=\d)|[^,])+/g;
 const FACT_NAME = /\b(from|reward):/g;
 
 function recordFact(quest: Quest, name: string, value: string): void {
@@ -28,7 +29,7 @@ function readPart(quest: Quest, part: string): string {
 export function readQuest(body: string): Quest {
   const quest: Quest = { title: "" };
   const titleParts: string[] = [];
-  for (const [part] of body.matchAll(PART_BETWEEN_COMMAS)) {
+  for (const part of partsBetweenCommas(body)) {
     titleParts.push(readPart(quest, part));
   }
   quest.title = titleParts
