@@ -44,6 +44,30 @@ describe("readQuest", () => {
     });
   });
 
+  it("reads fact names written capitalised", () => {
+    expect(readQuest("Find the caravan, From: [[Lady Vess]], Reward: 200 gp")).toEqual({
+      title: "Find the caravan",
+      givenBy: "[[Lady Vess]]",
+      reward: "200 gp",
+    });
+  });
+
+  it("reads fact names written in capitals", () => {
+    expect(readQuest("Find the caravan, FROM: [[Lady Vess]], REWARD: 200 gp")).toEqual({
+      title: "Find the caravan",
+      givenBy: "[[Lady Vess]]",
+      reward: "200 gp",
+    });
+  });
+
+  it("reads fact names written in mixed letter case", () => {
+    expect(readQuest("Find the caravan, fRoM: [[Lady Vess]], rEwArD: 200 gp")).toEqual({
+      title: "Find the caravan",
+      givenBy: "[[Lady Vess]]",
+      reward: "200 gp",
+    });
+  });
+
   it("ignores a fact with nothing after it", () => {
     expect(readQuest("Clear the cellar, from: ,")).toEqual({ title: "Clear the cellar" });
   });
