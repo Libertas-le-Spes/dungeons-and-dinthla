@@ -63,7 +63,7 @@ class CampaignBuilder {
     if (marker === "ledger") {
       const entry = readLedgerEntry(body);
       if (entry?.type === "coin") this.coins.push({ entry, source });
-      if (entry?.type === "item") this.itemBook.name(entry.item, entry.holder, source);
+      if (entry?.type === "item") this.itemBook.mention(entry.item, entry.holder, source);
     }
   }
 
