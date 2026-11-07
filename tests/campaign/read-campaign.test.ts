@@ -1,36 +1,9 @@
 import { describe, expect, it } from "vitest";
-import type { CachedMetadata, TFile } from "obsidian";
-import { readCampaign, type CampaignMetadata, type CampaignVault } from "../../src/campaign/read-campaign";
+import { readCampaign } from "../../src/campaign/read-campaign";
+import { FakeVault, type FakeNote } from "./fake-vault";
 
-interface FakeNote {
-  path: string;
-  text: string;
-  frontmatterEndLine?: number;
-}
-
-function fileFor(note: FakeNote): TFile {
-  const folder = note.path.slice(0, note.path.lastIndexOf("/"));
-  const name = note.path.slice(note.path.lastIndexOf("/") + 1);
-  const extension = name.slice(name.lastIndexOf(".") + 1);
-  const basename = name.slice(0, name.lastIndexOf("."));
-  return { path: note.path, basename, extension, parent: { path: folder } } as TFile;
-}
-
-function fakeVault(notes: FakeNote[]): { vault: CampaignVault; metadata: CampaignMetadata } {
-  const files = notes.map(fileFor);
-  const noteAt = (file: TFile): FakeNote => notes.find((note) => note.path === file.path)!;
-  const vault: CampaignVault = {
-    getFiles: () => files,
-    cachedRead: async (file) => noteAt(file).text,
-  };
-  const metadata: CampaignMetadata = {
-    getFileCache: (file) => {
-      const end = noteAt(file).frontmatterEndLine;
-      if (end === undefined) return {};
-      return { frontmatterPosition: { start: { line: 0 }, end: { line: end } } } as CachedMetadata;
-    },
-  };
-  return { vault, metadata };
+function fakeVault(notes: FakeNote[]): FakeVault {
+  return new FakeVault(notes);
 }
 
 describe("readCampaign", () => {
@@ -48,7 +21,7 @@ describe("readCampaign", () => {
 
   it("skips the properties at the top of a note", async () => {
     const { vault, metadata } = fakeVault([
-      { path: "Pale Moon/Sessions/Session 1.md", text: "---\n! not a quest\n---\n! Find it", frontmatterEndLine: 2 },
+      { path: "Pale Moon/Sessions/Session 1.md", text: "---\n! not a quest\n---\n! Find it", propertiesEndLine: 2 },
     ]);
     const campaign = await readCampaign(vault, metadata, "Pale Moon");
     expect(campaign.quests.map((quest) => [quest.quest.title, quest.source.line])).toEqual([["Find it", 3]]);
