@@ -1,46 +1,64 @@
-import { debounce, Plugin, type Editor, type TFile } from "obsidian";
+import { debounce, Plugin, type MarkdownFileInfo, type TFile } from "obsidian";
 import type { Source } from "./campaign/campaign";
 import { campaignFolderOf, findCampaignFolders } from "./campaign/campaign-folders";
 import { CampaignStore } from "./campaign/campaign-store";
+import { editorTextOf } from "./campaign/editor-text";
+import { openQuestionsView, openSource } from "./questions/open-questions";
 import { QUESTIONS_VIEW, QuestionsView } from "./questions/questions-view";
 
+const TYPING_PAUSE_MS = 250;
+
 export default class DungeonsAndDinthla extends Plugin {
-  private store!: CampaignStore;
+  private readonly store = new CampaignStore(this.app.vault);
 
   override async onload(): Promise<void> {
-    this.store = new CampaignStore(this.app.vault, this.app.metadataCache);
     const actions = {
-      openSource: (source: Source) => void this.openSource(source),
-      openLink: (target: string, sourcePath: string) => void this.app.workspace.openLinkText(target, sourcePath),
+      openSource: (source: Source) => void openSource(this.app, source),
+      openLink: (linktext: string, sourcePath: string) => void this.app.workspace.openLinkText(linktext, sourcePath),
     };
     this.registerView(QUESTIONS_VIEW, (leaf) => new QuestionsView(leaf, this.store, actions));
-    this.addRibbonIcon("circle-help", "Open questions", () => void this.openQuestions());
-    this.addCommand({ id: "open-questions", name: "Open questions", callback: () => void this.openQuestions() });
+    this.addRibbonIcon("circle-help", "Open questions", () => void openQuestionsView(this.app));
+    this.addCommand({ id: "open-questions", name: "Open questions", callback: () => void openQuestionsView(this.app) });
     this.app.workspace.onLayoutReady(() => void this.watchCampaign());
   }
 
   private async watchCampaign(): Promise<void> {
-    const activeFile = this.app.workspace.getActiveFile();
-    const folders = this.campaignFolders();
-    let folder = folders[0];
-    if (activeFile !== null) folder = campaignFolderOf(activeFile.path, folders) ?? folder;
-    if (folder !== undefined) await this.store.open(folder);
-    const editorChanged = debounce((editor: Editor, file: TFile) => this.readEditor(editor, file), 250, true);
-    this.registerEvent(this.app.workspace.on("editor-change", (editor, info) => {
-      if (info.file !== null) editorChanged(editor, info.file);
+    this.watchNotes();
+    const folder = this.startingCampaignFolder();
+    if (folder !== null) await this.store.open(folder);
+  }
+
+  private watchNotes(): void {
+    const editorChanged = debounce((info: MarkdownFileInfo, file: TFile) => this.readEditor(info, file), TYPING_PAUSE_MS, true);
+    this.register(() => editorChanged.cancel());
+    this.registerEvent(this.app.workspace.on("editor-change", (_editor, info) => {
+      if (info.file !== null) editorChanged(info, info.file);
     }));
-    this.registerEvent(this.app.metadataCache.on("changed", (file, text, cache) => this.store.noteChanged(file, text, cache)));
+    this.registerEvent(this.app.metadataCache.on("changed", (file, text) => this.store.noteChanged(file.path, text)));
     this.registerEvent(this.app.vault.on("delete", (file) => this.store.noteDeleted(file.path)));
     this.registerEvent(this.app.vault.on("rename", (file, oldPath) => void this.store.noteRenamed(file.path, oldPath)));
     this.registerEvent(this.app.workspace.on("file-open", (file) => void this.followCampaignOf(file)));
   }
 
-  private readEditor(editor: Editor, file: TFile): void {
-    this.store.noteChanged(file, editor.getValue(), this.app.metadataCache.getFileCache(file));
+  private readEditor(info: MarkdownFileInfo, file: TFile): void {
+    const text = editorTextOf(info, file, this.app.vault);
+    if (text !== null) this.store.noteChanged(file.path, text);
   }
 
   private campaignFolders(): string[] {
     return findCampaignFolders(this.app.vault.getFiles().map((file) => file.path));
+  }
+
+  private startingCampaignFolder(): string | null {
+    const folders = this.campaignFolders();
+    const activeFile = this.app.workspace.getActiveFile();
+    if (activeFile !== null) {
+      const folder = campaignFolderOf(activeFile.path, folders);
+      if (folder !== null) return folder;
+    }
+    const [first] = folders;
+    if (first === undefined) return null;
+    return first;
   }
 
   private async followCampaignOf(file: TFile | null): Promise<void> {
@@ -48,23 +66,5 @@ export default class DungeonsAndDinthla extends Plugin {
     const folder = campaignFolderOf(file.path, this.campaignFolders());
     if (folder === null || folder === this.store.campaignFolder) return;
     await this.store.open(folder);
-  }
-
-  private async openSource(source: Source): Promise<void> {
-    const file = this.app.vault.getFileByPath(source.path);
-    if (file === null) return;
-    await this.app.workspace.getLeaf(false).openFile(file, { eState: { line: source.line } });
-  }
-
-  private async openQuestions(): Promise<void> {
-    const [open] = this.app.workspace.getLeavesOfType(QUESTIONS_VIEW);
-    if (open !== undefined) {
-      await this.app.workspace.revealLeaf(open);
-      return;
-    }
-    const leaf = this.app.workspace.getRightLeaf(false);
-    if (leaf === null) return;
-    await leaf.setViewState({ type: QUESTIONS_VIEW, active: true });
-    await this.app.workspace.revealLeaf(leaf);
   }
 }
