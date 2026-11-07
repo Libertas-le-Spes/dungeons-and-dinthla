@@ -3,7 +3,7 @@ import { Plugin, type App, type PluginManifest } from "obsidian";
 import DungeonsAndDinthla from "../src/main";
 
 describe("DungeonsAndDinthla", () => {
-  it("is an Obsidian plugin", () => {
+  it("loads against the Obsidian stand-in", () => {
     expect(new DungeonsAndDinthla({} as App, {} as PluginManifest)).toBeInstanceOf(Plugin);
   });
 });
