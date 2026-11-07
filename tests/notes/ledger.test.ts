@@ -61,6 +61,18 @@ describe("readLedgerEntry", () => {
     expect(readLedgerEntry("[[Lady Vess]] gave us +50 gp")).toMatchObject({ copper: 5000, moneyOut: false });
   });
 
+  it("reads an amount written straight after a comma", () => {
+    expect(readLedgerEntry("10 gp,5 gp")).toMatchObject({ copper: 1500 });
+  });
+
+  it("reads money out and back in that cancel out as no money out", () => {
+    expect(readLedgerEntry("paid 5 gp, got 5 gp back")).toMatchObject({ copper: 0, moneyOut: false });
+  });
+
+  it("doesn't count a money-out word inside a linked name", () => {
+    expect(readLedgerEntry("reward from [[Lost Hollow]] 5 gp")).toMatchObject({ copper: 500, moneyOut: false });
+  });
+
   it("keeps an amount written with a thousands comma whole when paid out", () => {
     expect(readLedgerEntry("paid 1,200 gp")).toMatchObject({ copper: -120000 });
   });
@@ -105,6 +117,7 @@ describe("readLedgerEntry", () => {
     readLedgerEntry(`5${" ".repeat(100_000)}x`);
     readLedgerEntry(`-${" ".repeat(100_000)}x`);
     readLedgerEntry(`paid${",".repeat(100_000)} 5 gp`);
+    readLedgerEntry(`paid ${"[[a,".repeat(100_000)} 5 gp`);
     expect(performance.now() - started).toBeLessThan(200);
   });
 });
