@@ -167,4 +167,67 @@ describe("CampaignStore", () => {
     await opening;
     expect(questionsIn(store.current)).toEqual(["Typed"]);
   });
+
+  it("keeps a session renamed while the campaign was being read under its new name", async () => {
+    const fake = new FakeVault([{ path: "Pale Moon/Sessions/Session 1.md", text: "? Who" }]);
+    const store = new CampaignStore(fake.vault);
+    const release = fake.holdReadsOf("Pale Moon/Sessions/Session 1.md");
+    const opening = store.open("Pale Moon");
+    fake.rename("Pale Moon/Sessions/Session 1.md", "Pale Moon/Sessions/Session 2.md");
+    await store.noteRenamed("Pale Moon/Sessions/Session 2.md", "Pale Moon/Sessions/Session 1.md");
+    release();
+    await opening;
+    expect(store.current.questions.map((question) => question.source.path)).toEqual([
+      "Pale Moon/Sessions/Session 2.md",
+    ]);
+  });
+
+  it("keeps a session deleted while the campaign was being read gone", async () => {
+    const fake = new FakeVault([{ path: "Pale Moon/Sessions/Session 1.md", text: "? Who" }]);
+    const store = new CampaignStore(fake.vault);
+    const release = fake.holdReadsOf("Pale Moon/Sessions/Session 1.md");
+    const opening = store.open("Pale Moon");
+    store.noteDeleted("Pale Moon/Sessions/Session 1.md");
+    release();
+    await opening;
+    expect(store.current.questions).toEqual([]);
+  });
+
+  it("keeps an edit made while a renamed session was being read", async () => {
+    const fake = new FakeVault([{ path: "Pale Moon/Sessions/Session 1.md", text: "? Saved" }]);
+    const { store } = await openStore(fake);
+    fake.rename("Pale Moon/Sessions/Session 1.md", "Pale Moon/Sessions/Session 2.md");
+    const release = fake.holdReadsOf("Pale Moon/Sessions/Session 2.md");
+    const renamed = store.noteRenamed("Pale Moon/Sessions/Session 2.md", "Pale Moon/Sessions/Session 1.md");
+    store.noteChanged("Pale Moon/Sessions/Session 2.md", "? Typed");
+    release();
+    await renamed;
+    expect(questionsIn(store.current)).toEqual(["Typed"]);
+  });
+
+  it("never mixes the old campaign into the one being opened", async () => {
+    const fake = new FakeVault([
+      { path: "Pale Moon/Sessions/Session 1.md", text: "? From Pale Moon" },
+      { path: "Ashen Road/Sessions/Session 1.md", text: "? From Ashen Road" },
+    ]);
+    const { store, seen } = await openStore(fake);
+    const release = fake.holdReadsOf("Ashen Road/Sessions/Session 1.md");
+    const opening = store.open("Ashen Road");
+    store.noteChanged("Ashen Road/Sessions/Session 2.md", "? Typed");
+    expect(questionsIn(seen.at(-1)!)).toEqual(["Typed"]);
+    release();
+    await opening;
+    expect(questionsIn(store.current)).toEqual(["From Ashen Road", "Typed"]);
+  });
+
+  it("never carries an edit in one campaign into the next one opened", async () => {
+    const fake = new FakeVault([
+      { path: "Pale Moon/Sessions/Session 1.md", text: "? From Pale Moon" },
+      { path: "Ashen Road/Sessions/Session 1.md", text: "? From Ashen Road" },
+    ]);
+    const { store } = await openStore(fake);
+    store.noteChanged("Pale Moon/Sessions/Session 1.md", "? Edited in Pale Moon");
+    await store.open("Ashen Road");
+    expect(questionsIn(store.current)).toEqual(["From Ashen Road"]);
+  });
 });
