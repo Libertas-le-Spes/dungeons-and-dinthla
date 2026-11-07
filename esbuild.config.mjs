@@ -16,3 +16,4 @@ await esbuild.build({
 await mkdir(demoPluginFolder, { recursive: true });
 await copyFile("manifest.json", `${demoPluginFolder}/manifest.json`);
 await copyFile("main.js", `${demoPluginFolder}/main.js`);
+await copyFile("styles.css", `${demoPluginFolder}/styles.css`);
