@@ -16,10 +16,4 @@ jobs:
   label:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-        with:
-          sparse-checkout: .github/scripts
-          persist-credentials: false
-      - uses: actions/github-script@v9
-        with:
-          script: await require('./.github/scripts/label-issue-by-title.cjs')({ github, context })
+      - uses: Libertas-le-Spes/OptimusBoard/label-issues@165aeb5fc3eea3eb14117df2b71b61cc86f46f10
