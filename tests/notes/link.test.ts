@@ -44,17 +44,24 @@ describe("blankLinks", () => {
 });
 
 describe("splitLinks", () => {
-  it("splits text into plain parts and links, each link with its shown text and target", () => {
+  it("splits text into plain parts and links, each link with its shown text and where it leads", () => {
     expect(splitLinks("Ask [[Lady Vess|the lady]] at [[Old Mill#Wheel]]")).toEqual([
-      { text: "Ask ", target: null },
-      { text: "the lady", target: "Lady Vess" },
-      { text: " at ", target: null },
-      { text: "Old Mill", target: "Old Mill" },
+      { text: "Ask ", linktext: null },
+      { text: "the lady", linktext: "Lady Vess" },
+      { text: " at ", linktext: null },
+      { text: "Old Mill", linktext: "Old Mill#Wheel" },
+    ]);
+  });
+
+  it("keeps two links side by side apart", () => {
+    expect(splitLinks("[[Mira]][[Mira|her]]")).toEqual([
+      { text: "Mira", linktext: "Mira" },
+      { text: "her", linktext: "Mira" },
     ]);
   });
 
   it("keeps text with no links whole", () => {
-    expect(splitLinks("Who sent the letter")).toEqual([{ text: "Who sent the letter", target: null }]);
+    expect(splitLinks("Who sent the letter")).toEqual([{ text: "Who sent the letter", linktext: null }]);
   });
 
   it("reads empty text as no parts", () => {

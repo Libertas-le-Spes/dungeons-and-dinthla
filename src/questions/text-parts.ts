@@ -1,9 +1,13 @@
 import { splitLinks } from "../notes/link";
 
-export interface TextPart {
+export interface MarkedPiece {
   text: string;
-  link: string | null;
   marked: boolean;
+}
+
+export interface TextRun {
+  linktext: string | null;
+  pieces: MarkedPiece[];
 }
 
 function escapeForPattern(word: string): string {
@@ -16,20 +20,20 @@ function keywordPattern(keywords: string[]): RegExp | null {
   return new RegExp(longestFirst.map(escapeForPattern).join("|"), "gi");
 }
 
-function markKeywords(text: string, link: string | null, pattern: RegExp | null): TextPart[] {
-  if (pattern === null) return [{ text, link, marked: false }];
-  const parts: TextPart[] = [];
+function markKeywords(text: string, pattern: RegExp | null): MarkedPiece[] {
+  if (pattern === null) return [{ text, marked: false }];
+  const pieces: MarkedPiece[] = [];
   let plainStart = 0;
   for (const match of text.matchAll(pattern)) {
-    if (match.index > plainStart) parts.push({ text: text.slice(plainStart, match.index), link, marked: false });
-    parts.push({ text: match[0], link, marked: true });
+    if (match.index > plainStart) pieces.push({ text: text.slice(plainStart, match.index), marked: false });
+    pieces.push({ text: match[0], marked: true });
     plainStart = match.index + match[0].length;
   }
-  if (plainStart < text.length) parts.push({ text: text.slice(plainStart), link, marked: false });
-  return parts;
+  if (plainStart < text.length) pieces.push({ text: text.slice(plainStart), marked: false });
+  return pieces;
 }
 
-export function textPartsOf(text: string, keywords: string[]): TextPart[] {
+export function textRunsOf(text: string, keywords: string[]): TextRun[] {
   const pattern = keywordPattern(keywords);
-  return splitLinks(text).flatMap((part) => markKeywords(part.text, part.target, pattern));
+  return splitLinks(text).map((part) => ({ linktext: part.linktext, pieces: markKeywords(part.text, pattern) }));
 }

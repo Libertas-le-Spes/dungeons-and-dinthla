@@ -1,4 +1,5 @@
 import type { Campaign, QuestionRecord } from "../campaign/campaign";
+import { unlink } from "../notes/link";
 
 export interface QuestionList {
   open: QuestionRecord[];
@@ -12,8 +13,9 @@ export function keywordsOf(filter: string): string[] {
 }
 
 function searchableTextOf(question: QuestionRecord): string {
-  const answer = question.answer?.text ?? "";
-  return `${question.text} ${answer}`.toLowerCase();
+  const texts = [question.text];
+  if (question.answer !== null) texts.push(question.answer.text);
+  return unlink(texts.join(" ")).toLowerCase();
 }
 
 function matchesEvery(question: QuestionRecord, keywords: string[]): boolean {

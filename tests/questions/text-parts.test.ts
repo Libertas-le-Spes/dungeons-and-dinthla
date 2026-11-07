@@ -1,44 +1,55 @@
 import { describe, expect, it } from "vitest";
-import { textPartsOf } from "../../src/questions/text-parts";
+import { textRunsOf } from "../../src/questions/text-parts";
 
-describe("textPartsOf", () => {
+describe("textRunsOf", () => {
   it("keeps plain text whole when there are no keywords", () => {
-    expect(textPartsOf("Who sent the letter", [])).toEqual([{ text: "Who sent the letter", link: null, marked: false }]);
-  });
-
-  it("splits out a linked name, showing its alias and pointing at its note", () => {
-    expect(textPartsOf("Ask [[Lady Vess|the lady]] why", [])).toEqual([
-      { text: "Ask ", link: null, marked: false },
-      { text: "the lady", link: "Lady Vess", marked: false },
-      { text: " why", link: null, marked: false },
+    expect(textRunsOf("Who sent the letter", [])).toEqual([
+      { linktext: null, pieces: [{ text: "Who sent the letter", marked: false }] },
     ]);
   });
 
+  it("gives each linked name its own run, showing its alias", () => {
+    expect(textRunsOf("Ask [[Lady Vess|the lady]] why", [])).toEqual([
+      { linktext: null, pieces: [{ text: "Ask ", marked: false }] },
+      { linktext: "Lady Vess", pieces: [{ text: "the lady", marked: false }] },
+      { linktext: null, pieces: [{ text: " why", marked: false }] },
+    ]);
+  });
+
+  it("keeps two links to the same note side by side apart", () => {
+    expect(textRunsOf("[[Mira]][[Mira]]", []).map((run) => run.linktext)).toEqual(["Mira", "Mira"]);
+  });
+
   it("marks each keyword wherever it appears, whatever its capitals", () => {
-    expect(textPartsOf("Old mill, old wheel", ["old"])).toEqual([
-      { text: "Old", link: null, marked: true },
-      { text: " mill, ", link: null, marked: false },
-      { text: "old", link: null, marked: true },
-      { text: " wheel", link: null, marked: false },
+    expect(textRunsOf("Old mill, old wheel", ["old"])[0]?.pieces).toEqual([
+      { text: "Old", marked: true },
+      { text: " mill, ", marked: false },
+      { text: "old", marked: true },
+      { text: " wheel", marked: false },
     ]);
   });
 
   it("marks a keyword inside a linked name", () => {
-    expect(textPartsOf("[[Old Mill]]", ["mill"])).toEqual([
-      { text: "Old ", link: "Old Mill", marked: false },
-      { text: "Mill", link: "Old Mill", marked: true },
+    expect(textRunsOf("[[Old Mill]]", ["mill"])).toEqual([
+      {
+        linktext: "Old Mill",
+        pieces: [
+          { text: "Old ", marked: false },
+          { text: "Mill", marked: true },
+        ],
+      },
     ]);
   });
 
   it("marks the longer of two keywords that overlap", () => {
-    expect(textPartsOf("lantern", ["lan", "lantern"])).toEqual([{ text: "lantern", link: null, marked: true }]);
+    expect(textRunsOf("lantern", ["lan", "lantern"])[0]?.pieces).toEqual([{ text: "lantern", marked: true }]);
   });
 
   it("treats a keyword's symbols as plain text", () => {
-    expect(textPartsOf("a (b) c", ["(b)"])).toEqual([
-      { text: "a ", link: null, marked: false },
-      { text: "(b)", link: null, marked: true },
-      { text: " c", link: null, marked: false },
+    expect(textRunsOf("a (b) c", ["(b)"])[0]?.pieces).toEqual([
+      { text: "a ", marked: false },
+      { text: "(b)", marked: true },
+      { text: " c", marked: false },
     ]);
   });
 });

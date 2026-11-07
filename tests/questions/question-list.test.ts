@@ -52,4 +52,12 @@ describe("listQuestions", () => {
   it("matches part of a word", () => {
     expect(textsOf(listQuestions(campaign, ["pal"]).open)).toEqual(["Who is the pale woman"]);
   });
+
+  it("searches what a link shows, not how it is written", () => {
+    const linked = buildCampaign([
+      { path: "S/Sessions/Session 1.md", number: 1, firstLine: 0, text: "? Why does [[Old Mill|the wheel]] turn" },
+    ]);
+    expect(listQuestions(linked, ["wheel"]).open).toHaveLength(1);
+    for (const keyword of ["old", "[[", "|"]) expect(listQuestions(linked, [keyword]).open).toEqual([]);
+  });
 });
