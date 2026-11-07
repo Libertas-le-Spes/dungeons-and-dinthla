@@ -1,9 +1,15 @@
 import type { ItemChange } from "../notes/item-change";
-import { unlink } from "../notes/link";
-import type { ItemRecord, Source } from "./campaign";
+import { findLinks, unlink } from "../notes/link";
+import type { ItemEvent, ItemRecord, Source } from "./campaign";
 
-function keyOf(name: string): string {
-  return unlink(name).trim().toLowerCase();
+function nameOf(item: string): string {
+  const [target] = findLinks(item);
+  if (target === undefined) return unlink(item).replace(/\s+/g, " ").trim();
+  return target.slice(target.lastIndexOf("/") + 1);
+}
+
+function keyOf(item: string): string {
+  return nameOf(item).toLowerCase();
 }
 
 export class ItemBook {
@@ -13,32 +19,27 @@ export class ItemBook {
     return [...this.byKey.values()];
   }
 
-  name(item: string, holder: string, source: Source): void {
-    const record = this.find(item);
-    if (record === undefined) {
-      this.add(item, holder, source).history.push({ kind: "named", holder, source });
-      return;
-    }
+  mention(item: string, holder: string, source: Source): void {
+    const record = this.recordFor(item, holder, source);
     if (holder !== "") record.holder = holder;
     record.gone = null;
     record.history.push({ kind: "named", holder: record.holder, source });
   }
 
   change(change: ItemChange, source: Source): void {
-    const record = this.find(change.item) ?? this.add(change.item, "", source);
+    const record = this.recordFor(change.item, "", source);
     if (change.holder !== undefined) record.holder = change.holder;
-    const event = { kind: change.kind, holder: record.holder, source };
+    const event: ItemEvent = { kind: change.kind, holder: record.holder, source };
     record.history.push(event);
+    record.gone = null;
     if (change.kind !== "changed") record.gone = event;
   }
 
-  private find(item: string): ItemRecord | undefined {
-    return this.byKey.get(keyOf(item));
-  }
-
-  private add(item: string, holder: string, source: Source): ItemRecord {
-    const record: ItemRecord = { name: unlink(item).trim(), holder, source, history: [], gone: null };
-    this.byKey.set(keyOf(item), record);
-    return record;
+  private recordFor(item: string, holder: string, source: Source): ItemRecord {
+    const found = this.byKey.get(keyOf(item));
+    if (found !== undefined) return found;
+    const added: ItemRecord = { name: nameOf(item), holder, source, history: [], gone: null };
+    this.byKey.set(keyOf(item), added);
+    return added;
   }
 }

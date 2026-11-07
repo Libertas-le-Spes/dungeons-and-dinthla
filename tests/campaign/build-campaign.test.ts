@@ -168,6 +168,30 @@ describe("buildCampaign's items", () => {
     expect(campaign.items[0]?.gone?.kind).toBe("lost");
   });
 
+  it("matches a linked name by the note it points to, through an alias or a folder", () => {
+    const campaign = buildCampaign([
+      session(1, [
+        "$ [[Mira]] [[Items/Silvered lantern]]",
+        "$$ [[Silvered lantern|the lantern]] :changed to [[Thessaly]]",
+        "$$ Silvered lantern :lost",
+      ]),
+    ]);
+    expect(campaign.items.map(({ name, holder, gone }) => [name, holder, gone?.kind])).toEqual([
+      ["Silvered lantern", "Thessaly", "lost"],
+    ]);
+  });
+
+  it("matches a plain name however its spaces are written", () => {
+    const campaign = buildCampaign([session(1, ["$ Potion  of healing", "$$ Potion   of healing :used"])]);
+    expect(campaign.items.map(({ name, gone }) => [name, gone?.kind])).toEqual([["Potion of healing", "used"]]);
+  });
+
+  it("holds an item again when it changes hands after it was gone", () => {
+    const campaign = buildCampaign([session(1, ["$ Rope", "$$ Rope :lost", "$$ Rope :changed to [[Mira]]"])]);
+    expect(campaign.items[0]?.gone).toBeNull();
+    expect(campaign.items[0]?.holder).toBe("Mira");
+  });
+
   it("records an item first named on its $$ line", () => {
     const campaign = buildCampaign([session(1, ["$$ Potion of healing :used"])]);
     expect(campaign.items.map(({ name, gone }) => [name, gone?.kind])).toEqual([["Potion of healing", "used"]]);
