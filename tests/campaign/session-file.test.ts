@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sessionLabelOf, sessionNumberOf } from "../../src/campaign/session-file";
+import { firstLineAfterProperties, sessionLabelOf, sessionNumberOf } from "../../src/campaign/session-file";
 
 describe("sessionNumberOf", () => {
   it("reads the number of a note in the campaign's Sessions folder", () => {
@@ -23,5 +23,19 @@ describe("sessionNumberOf", () => {
 describe("sessionLabelOf", () => {
   it("names a session by its note", () => {
     expect(sessionLabelOf("Pale Moon/Sessions/Session 12.md")).toBe("Session 12");
+  });
+});
+
+describe("firstLineAfterProperties", () => {
+  it("starts after the properties block", () => {
+    expect(firstLineAfterProperties("---\nplayed: 2026-03-14\ntitle: The ford\n---\n? Who")).toBe(4);
+  });
+
+  it("starts at the top of a note with no properties", () => {
+    expect(firstLineAfterProperties("? Who\n---\nnot properties\n---")).toBe(0);
+  });
+
+  it("starts after properties that end the note", () => {
+    expect(firstLineAfterProperties("---\nplayed: 2026-03-14\n---")).toBe(3);
   });
 });

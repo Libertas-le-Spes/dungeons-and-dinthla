@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { Campaign } from "../../src/campaign/campaign";
 import { CampaignStore } from "../../src/campaign/campaign-store";
-import { cacheWithProperties, FakeVault } from "./fake-vault";
+import { FakeVault } from "./fake-vault";
 
 function questionsIn(campaign: Campaign): string[] {
   return campaign.questions.map((question) => question.text);
 }
 
 async function openStore(fake: FakeVault): Promise<{ store: CampaignStore; seen: Campaign[] }> {
-  const store = new CampaignStore(fake.vault, fake.metadata);
+  const store = new CampaignStore(fake.vault);
   const seen: Campaign[] = [];
   store.subscribe((campaign) => seen.push(campaign));
   await store.open("Pale Moon");
@@ -30,7 +30,7 @@ describe("CampaignStore", () => {
       { path: "Pale Moon/Sessions/Session 2.md", text: "" },
     ]);
     const { store, seen } = await openStore(fake);
-    store.noteChanged(fake.file("Pale Moon/Sessions/Session 2.md"), "? Why", null);
+    store.noteChanged("Pale Moon/Sessions/Session 2.md", "? Why");
     expect(questionsIn(store.current)).toEqual(["Who", "Why"]);
     expect(seen).toHaveLength(2);
   });
@@ -38,22 +38,22 @@ describe("CampaignStore", () => {
   it("skips a changed note's properties", async () => {
     const fake = new FakeVault([]);
     const { store } = await openStore(fake);
-    store.noteChanged(fake.file("Pale Moon/Sessions/Session 1.md"), "---\n? Not one\n---\n? Who", cacheWithProperties(2));
+    store.noteChanged("Pale Moon/Sessions/Session 1.md", "---\n? Not one\n---\n? Who");
     expect(questionsIn(store.current)).toEqual(["Who"]);
   });
 
   it("adds a session note made after it opened", async () => {
     const fake = new FakeVault([]);
     const { store } = await openStore(fake);
-    store.noteChanged(fake.file("Pale Moon/Sessions/Session 3.md"), "? New", null);
+    store.noteChanged("Pale Moon/Sessions/Session 3.md", "? New");
     expect(questionsIn(store.current)).toEqual(["New"]);
   });
 
   it("ignores a change to a note that isn't one of its sessions", async () => {
     const fake = new FakeVault([{ path: "Pale Moon/Sessions/Session 1.md", text: "? Who" }]);
     const { store, seen } = await openStore(fake);
-    store.noteChanged(fake.file("Pale Moon/Characters/Mira.md"), "? Not a session", null);
-    store.noteChanged(fake.file("Ashen Road/Sessions/Session 1.md"), "? Another campaign", null);
+    store.noteChanged("Pale Moon/Characters/Mira.md", "? Not a session");
+    store.noteChanged("Ashen Road/Sessions/Session 1.md", "? Another campaign");
     expect(questionsIn(store.current)).toEqual(["Who"]);
     expect(seen).toHaveLength(1);
   });
@@ -111,7 +111,7 @@ describe("CampaignStore", () => {
 
   it("stops telling a listener once it unsubscribes", async () => {
     const fake = new FakeVault([]);
-    const store = new CampaignStore(fake.vault, fake.metadata);
+    const store = new CampaignStore(fake.vault);
     const seen: Campaign[] = [];
     const unsubscribe = store.subscribe((campaign) => seen.push(campaign));
     unsubscribe();
@@ -121,9 +121,50 @@ describe("CampaignStore", () => {
 
   it("reads nothing before a campaign is opened", () => {
     const fake = new FakeVault([]);
-    const store = new CampaignStore(fake.vault, fake.metadata);
-    store.noteChanged(fake.file("Pale Moon/Sessions/Session 1.md"), "? Who", null);
+    const store = new CampaignStore(fake.vault);
+    store.noteChanged("Pale Moon/Sessions/Session 1.md", "? Who");
     expect(store.current.questions).toEqual([]);
     expect(store.campaignFolder).toBeNull();
+  });
+
+  it("keeps the campaign opened last when an earlier open finishes after it", async () => {
+    const fake = new FakeVault([
+      { path: "Pale Moon/Sessions/Session 1.md", text: "? From Pale Moon" },
+      { path: "Ashen Road/Sessions/Session 1.md", text: "? From Ashen Road" },
+    ]);
+    const store = new CampaignStore(fake.vault);
+    const release = fake.holdReadsOf("Pale Moon/Sessions/Session 1.md");
+    const first = store.open("Pale Moon");
+    await store.open("Ashen Road");
+    release();
+    await first;
+    expect(store.campaignFolder).toBe("Ashen Road");
+    expect(questionsIn(store.current)).toEqual(["From Ashen Road"]);
+  });
+
+  it("drops a renamed session's read when another campaign opened meanwhile", async () => {
+    const fake = new FakeVault([
+      { path: "Pale Moon/Sessions/Session 1.md", text: "? From Pale Moon" },
+      { path: "Ashen Road/Sessions/Session 1.md", text: "? From Ashen Road" },
+    ]);
+    const { store } = await openStore(fake);
+    fake.rename("Pale Moon/Sessions/Session 1.md", "Pale Moon/Sessions/Session 2.md");
+    const release = fake.holdReadsOf("Pale Moon/Sessions/Session 2.md");
+    const renamed = store.noteRenamed("Pale Moon/Sessions/Session 2.md", "Pale Moon/Sessions/Session 1.md");
+    await store.open("Ashen Road");
+    release();
+    await renamed;
+    expect(questionsIn(store.current)).toEqual(["From Ashen Road"]);
+  });
+
+  it("keeps an edit made while the campaign was being read", async () => {
+    const fake = new FakeVault([{ path: "Pale Moon/Sessions/Session 1.md", text: "? Saved" }]);
+    const store = new CampaignStore(fake.vault);
+    const release = fake.holdReadsOf("Pale Moon/Sessions/Session 1.md");
+    const opening = store.open("Pale Moon");
+    store.noteChanged("Pale Moon/Sessions/Session 1.md", "? Typed");
+    release();
+    await opening;
+    expect(questionsIn(store.current)).toEqual(["Typed"]);
   });
 });
