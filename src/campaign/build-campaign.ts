@@ -15,7 +15,15 @@ import type {
 import { ItemBook } from "./item-book";
 import { findSubject } from "./subject";
 
-const QUESTION_FOLLOW_UPS: FollowUpKind[] = ["clue", "answer"];
+type FollowUpSubject = "question" | "quest";
+
+const SUBJECT_OF: Record<FollowUpKind, FollowUpSubject> = {
+  clue: "question",
+  answer: "question",
+  progress: "quest",
+  completed: "quest",
+  failed: "quest",
+};
 
 class CampaignBuilder {
   private readonly questions: QuestionRecord[] = [];
@@ -53,22 +61,36 @@ class CampaignBuilder {
 
   private addMarked(line: string, source: Source): void {
     const { marker, body } = readMarker(line);
-    if (marker === "question" && body !== "") {
-      this.questions.push({ text: body, source, clues: [], answer: null });
+    if (marker === "question") {
+      this.addQuestion(body, source);
+      return;
     }
     if (marker === "quest") {
-      const quest = readQuest(body);
-      if (quest.title !== "") this.quests.push({ quest, source, progress: [], outcome: null });
+      this.addQuest(body, source);
+      return;
     }
-    if (marker === "ledger") {
-      const entry = readLedgerEntry(body);
-      if (entry?.type === "coin") this.coins.push({ entry, source });
-      if (entry?.type === "item") this.itemBook.mention(entry.item, entry.holder, source);
-    }
+    if (marker === "ledger") this.addLedgerEntry(body, source);
+  }
+
+  private addQuestion(body: string, source: Source): void {
+    if (body === "") return;
+    this.questions.push({ text: body, source, clues: [], answer: null });
+  }
+
+  private addQuest(body: string, source: Source): void {
+    const quest = readQuest(body);
+    if (quest.title === "") return;
+    this.quests.push({ quest, source, progress: [], outcome: null });
+  }
+
+  private addLedgerEntry(body: string, source: Source): void {
+    const entry = readLedgerEntry(body);
+    if (entry?.type === "coin") this.coins.push({ entry, source });
+    if (entry?.type === "item") this.itemBook.mention(entry.item, entry.holder, source);
   }
 
   private addFollowUp(followUp: FollowUp, line: string, source: Source): void {
-    if (QUESTION_FOLLOW_UPS.includes(followUp.kind)) {
+    if (SUBJECT_OF[followUp.kind] === "question") {
       this.addQuestionFollowUp(followUp, line, source);
       return;
     }
