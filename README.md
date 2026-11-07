@@ -28,7 +28,7 @@ npm run build
 2. In Obsidian, choose **Open folder as vault** and pick `demo-vault`.
 3. When Obsidian asks whether you trust the vault's author, choose **Trust author and enable plugins**. Dungeons & Dinthla is then turned on under Community plugins.
 
-After the next build, reload the vault (**Reload app without saving**, or Ctrl+R on desktop) to see the newest version. When the note format changes, the demo notes change in the same pull request, and each pull request says what to look for in the demo vault.
+After the next build, reload the vault (**Reload app without saving** in the command palette, or Ctrl+R on desktop) to see the newest version. When the note format changes, the demo notes change in the same pull request, and each pull request says what to look for in the demo vault.
 
 ## Notes
 
