@@ -113,7 +113,16 @@ A quest's facts are `name: value` pairs after its title. Each one runs to the ne
 | `$ = 85 gp` | The purse counted: it holds 85 gp from here on | No: read as +85 gp |
 | `$ [[Mira]] = 40 gp` | Mira's own purse counted | No |
 
-Each amount on a line counts on its own: it is money out when it has its own minus sign, or a money-out word before it. So `$ +50 gp reward, -5 gp ferry` is +45 gp ([#68](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/issues/68)). Today one minus sign or money-out word anywhere on the line still turns every amount negative, which reads that line as −55 gp. #68 changes it.
+Each amount on a line counts on its own ([#68](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/issues/68)). An amount is money out when it has its own minus sign, or when *paid*, *spent*, *bought*, *gave* or *lost* comes before it, up to the next comma. A sign always wins over a word.
+
+| Line | Read as |
+|---|---|
+| `$ +50 gp reward, -5 gp ferry` | +45 gp |
+| `$ paid 5 gp, got 3 gp back` | −2 gp |
+| `$ Bought rope for 2 gp` | −2 gp |
+| `$ [[Lady Vess]] gave us 50 gp` | −50 gp: write `+50 gp` when someone gives the party money |
+
+The reader follows this rule once #76 merges. Until then, one minus sign or money-out word anywhere on a line makes every amount on it money out.
 
 ## Following up an earlier line
 
@@ -197,8 +206,7 @@ These are the choices this page makes that differ from the prototype or the plan
 Settled so far: answers and changes are new lines that start with the earlier line's text, written for you from the `??`, `!!` and `$$` lookups, and each amount on a `$` line counts on its own (#68).
 
 1. **A new session copies nothing in.** The plan doc copies open questions into the new note. Copying them would show each one twice, once in its own session and once in the copy. The prototype copies nothing, and the lists carry over by themselves.
-2. **Which amounts a money-out word turns negative** (#68): only the amount right after it, or every amount after it up to the next comma.
-3. **Item lines `$>` and `$x`** are new here. Neither the prototype nor the plan doc wrote item changes down.
-4. **Override and carried over** come from where a fact's line is, rather than from a marker on the value. The plan doc gives the meanings but not the syntax.
-5. **The characters gallery is a plain plugin view, not a custom Bases view.** Bases views (Obsidian 1.10, which is why `minAppVersion` is 1.10.3) list notes by their properties. The sheet values here are lines, so a Bases view would only add filtering by `type`. If it stays a plain view, `minAppVersion` can come down.
-6. **Marked lines in bullets.** `- ? Who sent the letter` isn't read today, because the marker must be the first character. Recommended: read a marker after a leading `- `, since Obsidian lists are a common way to write.
+2. **Item lines `$>` and `$x`** are new here. Neither the prototype nor the plan doc wrote item changes down.
+3. **Override and carried over** come from where a fact's line is, rather than from a marker on the value. The plan doc gives the meanings but not the syntax.
+4. **The characters gallery is a plain plugin view, not a custom Bases view.** Bases views (Obsidian 1.10, which is why `minAppVersion` is 1.10.3) list notes by their properties. The sheet values here are lines, so a Bases view would only add filtering by `type`. If it stays a plain view, `minAppVersion` can come down.
+5. **Marked lines in bullets.** `- ? Who sent the letter` isn't read today, because the marker must be the first character. Recommended: read a marker after a leading `- `, since Obsidian lists are a common way to write.
