@@ -10,6 +10,12 @@ describe("findLinks", () => {
     expect(findLinks("[[Mira|M]] and [[Old Mill#Cellar]]")).toEqual(["Mira", "Old Mill"]);
   });
 
+  it("reads a very long line of brackets quickly", () => {
+    const started = performance.now();
+    findLinks("[[".repeat(50_000));
+    expect(performance.now() - started).toBeLessThan(200);
+  });
+
   it("finds nothing in a line without links", () => {
     expect(findLinks("No names here")).toEqual([]);
   });
