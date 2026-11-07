@@ -1,4 +1,5 @@
 import { ItemView, type WorkspaceLeaf } from "obsidian";
+import type { QuestionRecord } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { addQuestionRow, type QuestionActions } from "./question-row";
 import { keywordsOf, listQuestions, type QuestionList } from "./question-list";
@@ -11,7 +12,6 @@ export class QuestionsView extends ItemView {
   private openList!: HTMLElement;
   private answeredCount!: HTMLElement;
   private answeredList!: HTMLElement;
-  private unsubscribe: (() => void) | null = null;
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -52,13 +52,8 @@ export class QuestionsView extends ItemView {
     const summary = answered.createEl("summary", { text: "Answered" });
     this.answeredCount = summary.createSpan({ cls: "dd-count" });
     this.answeredList = answered.createEl("ul", { cls: "dd-list" });
-    this.unsubscribe = this.store.subscribe(() => this.render());
+    this.register(this.store.subscribe(() => this.render()));
     this.render();
-  }
-
-  override async onClose(): Promise<void> {
-    if (this.unsubscribe !== null) this.unsubscribe();
-    this.unsubscribe = null;
   }
 
   private render(): void {
@@ -70,12 +65,12 @@ export class QuestionsView extends ItemView {
   }
 
   private showCounts(list: QuestionList): void {
-    this.openCount.setText("");
-    if (list.openCount > 0) this.openCount.setText(`${list.openCount} open`);
+    if (list.openCount === 0) this.openCount.setText("");
+    else this.openCount.setText(`${list.openCount} open`);
     this.answeredCount.setText(String(list.answeredCount));
   }
 
-  private fill(list: HTMLElement, questions: QuestionList["open"], keywords: string[], emptyText: string): void {
+  private fill(list: HTMLElement, questions: QuestionRecord[], keywords: string[], emptyText: string): void {
     list.empty();
     if (questions.length === 0) {
       list.createEl("li", { cls: "dd-empty", text: emptyText });
