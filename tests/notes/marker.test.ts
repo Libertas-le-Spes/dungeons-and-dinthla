@@ -67,4 +67,14 @@ describe("readMarker", () => {
     expect(readMarker("!! caravan").marker).toBeNull();
     expect(readMarker("$$ potion").marker).toBeNull();
   });
+
+  it("leaves a follow-up line to the follow-up reader", () => {
+    for (const line of ["?+ Who: a clue", "?= Who: Mira", "!+ Find it: tracks", "!= Find it: found", "!x Find it: burned"]) {
+      expect(readMarker(line).marker).toBeNull();
+    }
+  });
+
+  it("still reads a quest whose title starts with an x", () => {
+    expect(readMarker("!xylophone for the bard")).toEqual({ marker: "quest", body: "xylophone for the bard" });
+  });
 });
