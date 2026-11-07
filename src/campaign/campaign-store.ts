@@ -9,9 +9,10 @@ export class CampaignStore {
   private folder: string | null = null;
   private campaign: Campaign = buildCampaign([]);
   private readonly sessions = new Map<string, SessionNote>();
-  private readonly editedWhileOpening = new Set<string>();
+  private readonly changedAt = new Map<string, number>();
   private readonly listeners = new Set<CampaignListener>();
   private openings = 0;
+  private changes = 0;
 
   constructor(private readonly vault: CampaignVault) {}
 
@@ -31,27 +32,27 @@ export class CampaignStore {
   async open(folder: string): Promise<void> {
     const opening = ++this.openings;
     this.folder = folder;
-    this.editedWhileOpening.clear();
+    this.sessions.clear();
+    this.changedAt.clear();
+    const since = this.changes;
     const read = await readSessions(this.vault, folder);
     if (opening !== this.openings) return;
-    const edited = [...this.editedWhileOpening].map((path) => this.sessions.get(path));
-    this.sessions.clear();
-    for (const session of read) this.sessions.set(session.path, session);
-    for (const session of edited) {
-      if (session !== undefined) this.sessions.set(session.path, session);
+    for (const session of read) {
+      if (!this.changedSince(session.path, since)) this.sessions.set(session.path, session);
     }
     this.rebuild();
   }
 
   noteChanged(path: string, text: string): void {
+    this.markChanged(path);
     const number = this.numberInCampaign(path);
     if (number === null) return;
     this.sessions.set(path, sessionNoteOf(path, number, text));
-    this.editedWhileOpening.add(path);
     this.rebuild();
   }
 
   noteDeleted(path: string): void {
+    this.markChanged(path);
     if (this.sessions.delete(path)) this.rebuild();
   }
 
@@ -60,6 +61,8 @@ export class CampaignStore {
       await this.open(path);
       return;
     }
+    this.markChanged(oldPath);
+    this.markChanged(path);
     const wasSession = this.sessions.delete(oldPath);
     const isSession = await this.readIfSession(path);
     if (wasSession || isSession) this.rebuild();
@@ -70,10 +73,22 @@ export class CampaignStore {
     const file = this.vault.getFileByPath(path);
     if (number === null || file === null) return false;
     const opening = this.openings;
+    const since = this.changes;
     const session = await readSession(file, number, this.vault);
-    if (opening !== this.openings) return false;
+    if (opening !== this.openings || this.changedSince(path, since)) return false;
     this.sessions.set(path, session);
     return true;
+  }
+
+  private markChanged(path: string): void {
+    this.changes += 1;
+    this.changedAt.set(path, this.changes);
+  }
+
+  private changedSince(path: string, since: number): boolean {
+    const changed = this.changedAt.get(path);
+    if (changed === undefined) return false;
+    return changed > since;
   }
 
   private numberInCampaign(path: string): number | null {
