@@ -27,6 +27,8 @@ Curse of the Pale Moon/
   Characters/
     Mira.md
     Brother Aldric.md
+  Items/
+    Silvered lantern.md
 ```
 
 ```markdown
@@ -80,7 +82,7 @@ $ 35 gp 4 sp from the bandits at the ford
 
 ## Lines
 
-The plugin reads a line by its first character. A list bullet (`- `, `* ` or `+ `) and indentation before it are skipped, so `- ? Who sent the letter` is a question too (read once [#78](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/pull/78) merges). Any other line is ordinary notes, apart from [character facts](#character).
+The plugin reads a line by its first character. A list bullet (`- `, `* ` or `+ `) and indentation before it are skipped, so `- ? Who sent the letter` is a question too (read once [#78](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/pull/78) merges). A task checkbox (`- [ ] ? …`) or a numbered list item is not skipped, so those lines stay ordinary notes. Any other line is ordinary notes, apart from [character facts](#character).
 
 | Line | Read as |
 |---|---|
@@ -88,7 +90,7 @@ The plugin reads a line by its first character. A list bullet (`- `, `* ` or `+ 
 | `! Find the missing caravan, from: [[Lady Vess]], reward: 200 gp` | A quest, with who gave it and the reward |
 | `$ 35 gp 4 sp from the bandits at the ford` | Coin coming in |
 | `$ Paid 5 gp to the ferryman`, `$ -5 gp ferry` | Coin going out |
-| `$ [[Mira]] Flame Tongue longsword` | An item, held by the first linked name (see [Items](#items) for linked items) |
+| `$ [[Mira]] Flame Tongue longsword` | An item, held by the linked character (see [Items](#items)) |
 | `$ Potion of healing` | An item the party holds, with no one holding it yet |
 | `?? letter`, `!! caravan` | A lookup typed while writing, which finds an earlier question or quest. The plugin never reads it as a note |
 | `$$ Silvered lantern :sold 30gp` | Something happened to an item ([Items](#items)) |
@@ -97,7 +99,7 @@ The plugin reads a line by its first character. A list bullet (`- `, `* ` or `+ 
 
 ### Quest facts
 
-A quest's facts are `name: value` pairs after its title. Each one runs to the next fact or the next comma:
+A quest's facts are `name: value` pairs after its title. Each one runs to the next fact or the next comma. As with money, a comma between two digits or inside a `[[link]]` doesn't end it, so `reward: 1,200 gp` and `from: [[Vess, Lady]]` stay whole:
 
 | Fact | Holds | Read today |
 |---|---|---|
@@ -116,7 +118,7 @@ A quest's facts are `name: value` pairs after its title. Each one runs to the ne
 | `$ = 85 gp` | The purse counted: it holds 85 gp from here on | No: read as +85 gp |
 | `$ [[Mira]] = 40 gp` | Mira's own purse counted | No |
 
-Each amount on a line counts on its own ([#68](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/issues/68)). An amount is money out when it has its own minus sign, or when *paid*, *spent*, *bought*, *gave* or *lost* comes before it, up to the next comma. A comma between two digits is part of the number, so `paid 1,200 gp` is −1,200 gp. A sign always wins over a word.
+Each amount on a line counts on its own ([#68](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/issues/68)). An amount is money out when it has its own minus sign, or when *paid*, *spent*, *bought*, *gave* or *lost* comes before it, up to the next comma. A comma between two digits is part of the number, so `paid 1,200 gp` is −1,200 gp, and a comma inside a `[[link]]` is part of the name. A money-out word inside a link is part of a name too, so `$ reward from [[Lost Hollow]] 5 gp` is +5 gp. A sign always wins over a word.
 
 | Line | Read as |
 |---|---|
@@ -183,9 +185,9 @@ How much an item matters is shown by how you write it:
 |---|---|---|
 | `found some rope` (no marker) | Doesn't matter | Not listed. It's just notes |
 | `$ Potion of healing` | Matters for now | Listed, and folds away by itself after 3 sessions in which no line names it. Any later line about it brings it back |
-| `$ [[Silvered lantern]]` | Matters to the campaign | Pinned at the top until a `:sold`, `:used` or `:lost` line. It has its own note in the campaign's `Items` folder, for its story, and shows in Obsidian's graph |
+| `$ [[Silvered lantern]]` | Matters to the campaign | Pinned at the top until a `:sold`, `:used` or `:lost` line. It has its own note in the campaign's `Items` folder, for its story, which Obsidian creates the first time you follow the link. It shows in Obsidian's graph |
 
-An item can move up at any time: writing it once as `[[Potion of healing]]` makes it a key item from then on. `$$` lines take a linked name too: `$$ [[Silvered lantern]] :sold 30gp`.
+An item can move up at any time: writing it once as `[[Potion of healing]]` makes it a key item from then on. `$$` lines take a linked name too: `$$ [[Silvered lantern]] :sold 30gp`. A linked and a plain name for the same item match, so `$$ Silvered lantern :sold 30gp` sells the key item as well.
 
 A `$` line can hold two links, as in `$ [[Mira]] [[Flame Tongue]]`. A link to a note in the campaign's `Characters` folder is the holder, and any other link is the item. A link to a note that doesn't exist yet is the item, since anyone holding things has a sheet.
 
