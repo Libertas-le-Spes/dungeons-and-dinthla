@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findLinks, removeFirstLink, unlink } from "../../src/notes/link";
+import { blankLinks, findLinks, removeFirstLink, unlink } from "../../src/notes/link";
 
 describe("findLinks", () => {
   it("finds every linked name in order", () => {
@@ -34,5 +34,11 @@ describe("unlink", () => {
 
   it("keeps the shown name of a link that has one", () => {
     expect(unlink("Ask [[Mira Thorne|Mira]]")).toBe("Ask Mira");
+  });
+});
+
+describe("blankLinks", () => {
+  it("blanks each link so the words around it keep their places", () => {
+    expect(blankLinks("from [[Mira]] 5 gp")).toBe("from          5 gp");
   });
 });
