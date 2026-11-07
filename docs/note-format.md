@@ -2,7 +2,7 @@
 
 This page describes how a campaign is kept in plain Markdown notes. The plugin reads every note through it, and writes to notes only in the ways it lists. Every screen links here, and none invents its own storage.
 
-The project grows in small steps, so parts of this page are still planned. Whoever's change makes any of it untrue updates it in the same change. The syntax is on trial: [Open for review](#open-for-review) lists the choices this page makes that are still to be settled.
+The project grows in small steps, so parts of this page are still planned. Whoever's change makes any of it untrue updates it in the same change. The syntax is on trial and will change as it is used at the table.
 
 Three rules hold everywhere:
 
@@ -45,7 +45,7 @@ wash: balanced
 | Property | What it holds |
 |---|---|
 | `role` | `player`, `dm` or `researcher` |
-| `character` | Your own character, for a player |
+| `character` | Your own character, for a player. The dashboard links to their sheet, and the characters gallery sets them subtly apart from everyone else |
 | `party` | The party members, used by `$ split` |
 | `system` | The note that describes the game system |
 | `background` | A picture in the vault, shown behind every note of the campaign |
@@ -74,11 +74,13 @@ $ 35 gp 4 sp from the bandits at the ford
 | `played` | The date it was played, `YYYY-MM-DD` |
 | `title` | Optional. Screens show *Session 13 · The ferry at dusk* |
 
-**New session:** creates `Sessions/Session <highest + 1>.md` with `played` set to today. Nothing is copied into it. Open questions, active quests, the purse and every character carry over because the plugin reads every session, not just the latest.
+**New session:** creates `Sessions/Session <highest + 1>.md` with `played` set to today. Nothing is copied into it.
+
+**What's still open:** above its own text, every session note shows the questions and quests that were still open when it began, wherever they were written. The plugin draws this from the earlier sessions each time the note is opened, the way a character from Session 1 shows on their sheet in Session 30. It is never written into the note, so nothing appears twice, and an answer written in Session 13 shows up everywhere at once.
 
 ## Lines
 
-The plugin reads a line by its first character. Any other line is ordinary notes.
+The plugin reads a line by its first character. A list bullet (`- `, `* ` or `+ `) and indentation before it are skipped, so `- ? Who sent the letter` is a question too. Any other line is ordinary notes.
 
 | Line | Read as |
 |---|---|
@@ -88,7 +90,8 @@ The plugin reads a line by its first character. Any other line is ordinary notes
 | `$ Paid 5 gp to the ferryman`, `$ -5 gp ferry` | Coin going out |
 | `$ [[Mira]] Flame Tongue longsword` | An item, held by the first linked name |
 | `$ Potion of healing` | An item the party holds, with no one holding it yet |
-| `?? letter`, `!! caravan`, `$$ lantern` | A lookup typed while writing, which finds an earlier question, quest or item. The plugin never reads it as a note |
+| `?? letter`, `!! caravan` | A lookup typed while writing, which finds an earlier question or quest. The plugin never reads it as a note |
+| `$$ Silvered lantern :sold 30gp` | Something happened to an item ([Items](#items)) |
 
 `src/notes/` reads all of these today. [#62](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/pull/62) lists the exact rules: commas, links, signs and the five coin kinds.
 
@@ -133,13 +136,13 @@ Answers, progress and changes are new lines, written in the session where they h
 ?= Who sent the letter: [[Lady Vess]] sent it   (Session 13)
 ```
 
-You don't type the earlier line's text. Type `?? letter`, `!! caravan` or `$$ lantern`, pick the line from the suggestions, and choose what happened. The plugin then writes the follow-up line into the session you're in. You may also type one in full.
+You don't type the earlier line's text. Type `?? letter` or `!! caravan`, pick the line from the suggestions, and choose what happened. The plugin then writes the follow-up line into the session you're in. You may also type one in full.
 
-A follow-up belongs to the open question, active quest or held item whose text it starts with. When more than one starts the same way, the longest one wins, so a colon inside a question's own text does no harm. For a quest the text is its title, without `from:` or `reward:`. For an item it is the item's name, without the holder.
+A follow-up belongs to the open question or active quest whose text it starts with. When more than one starts the same way, the longest one wins, so a colon inside a question's own text does no harm. For a quest the text is its title, without `from:` or `reward:`.
 
 If an earlier line is reworded, its follow-ups no longer match it. The plugin marks a follow-up that matches nothing, so either line can be fixed.
 
-None of the lines in this section is read yet. Today `?+` and `?=` read as plain questions, `!+`, `!=` and `!x` as quests, and `$>` and `$x` as items, or as coin when they carry an amount.
+None of the lines in this section is read yet. Today `?+` and `?=` read as plain questions, `!+`, `!=` and `!x` as quests, and `$$` lines as nothing.
 
 ### Questions
 
@@ -163,14 +166,18 @@ A question is open until it has a `?=` line. Reopening it removes that `?=` line
 
 ### Items
 
+The plugin doesn't keep an inventory. It keeps the items that matter to the party, from what you write about them. An item line starts with `$$`, then the item's name, then `:` and what happened:
+
 | Line | Means |
 |---|---|
-| `$> Silvered lantern: [[Mira]]` | The item changes hands. Mira holds it from here on |
-| `$x Silvered lantern: sold, +30 gp` | Sold. The 30 gp is coin in |
-| `$x Potion of healing: used up` | Used up |
-| `$x Silvered lantern: lost` | Lost |
+| `$$ Silvered lantern :changed to [[Mira]]` | Mira holds it from here on. The funds screen shows who held it before |
+| `$$ Silvered lantern :sold 30gp` | Sold. The 30 gp goes into the purse |
+| `$$ Potion of healing :used` | Used up |
+| `$$ Silvered lantern :lost` | Lost |
 
-An item is held until it has a `$x` line, and `$x` lines fold away in the funds screen.
+A `$$` line needs no earlier line about the item. `$$ Potion of healing :used` on its own says the party had a potion and used it, whether or not anyone wrote it down when it was found. An item is held from the first line that names it until a `:sold`, `:used` or `:lost` line, and gone items fold away in the funds screen.
+
+Typing `$$ lan` suggests the items already named, so the name matches. Names match whatever their capitals. A `$$` line with no `:` yet is still being typed and is read as nothing.
 
 ## Character
 
@@ -199,14 +206,19 @@ Each value has a state, which comes from where its line is:
 
 Renaming a character's note renames it: Obsidian rewrites every `[[link]]` to it.
 
-## Open for review
+### Calling a character over
 
-These are the choices this page makes that differ from the prototype or the plan doc, or that neither settled. Each one gives the recommendation first.
+Calling a character into another campaign is a choice, made in a dialog: everything, only the groups you pick (ability scores, other values, history), or only a link. The new campaign's note for them records it in two properties:
 
-Settled so far: answers and changes are new lines that start with the earlier line's text, written for you from the `??`, `!!` and `$$` lookups, and each amount on a `$` line counts on its own (#68).
+```markdown
+---
+carried from: "[[Lost Mines/Characters/Mira]]"
+carried: [abilities, values]
+---
+```
 
-1. **A new session copies nothing in.** The plan doc copies open questions into the new note. Copying them would show each one twice, once in its own session and once in the copy. The prototype copies nothing, and the lists carry over by themselves.
-2. **Item lines `$>` and `$x`** are new here. Neither the prototype nor the plan doc wrote item changes down.
-3. **Override and carried over** come from where a fact's line is, rather than from a marker on the value. The plan doc gives the meanings but not the syntax.
-4. **The characters gallery is a plain plugin view, not a custom Bases view.** Bases views (Obsidian 1.10, which is why `minAppVersion` is 1.10.3) list notes by their properties. The sheet values here are lines, so a Bases view would only add filtering by `type`. If it stays a plain view, `minAppVersion` can come down.
-5. **Marked lines in bullets.** `- ? Who sent the letter` isn't read today, because the marker must be the first character. Recommended: read a marker after a leading `- `, since Obsidian lists are a common way to write.
+Only the groups listed in `carried` show on the sheet as carried over. The same dialog works as a library: it can call over anyone from any other campaign, or from the game system's own notes, which are there before the first campaign.
+
+### Characters gallery
+
+The gallery is a view the plugin adds to Obsidian's Bases. Each campaign gets a `Characters.base` file showing the notes in its `Characters` folder, so Bases does the filtering, sorting and refreshing, and the plugin draws each card from the lines above. If Bases is turned off in the vault, the plugin says so and asks for it to be turned on, which is why `minAppVersion` is 1.10.3.
