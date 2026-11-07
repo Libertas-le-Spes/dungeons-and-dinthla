@@ -6,7 +6,7 @@ export interface Quest {
   reward?: string;
 }
 
-const FACT_NAME = /\b(from|reward):/g;
+const FACT_NAME = /\b(from|reward):/gi;
 
 function recordFact(quest: Quest, name: string, value: string): void {
   if (value === "") return;
@@ -21,7 +21,7 @@ function readPart(quest: Quest, part: string): string {
     const valueStart = fact.index + fact[0].length;
     const nextFact = facts[position + 1];
     const value = part.slice(valueStart, nextFact?.index);
-    recordFact(quest, fact[1]!, value.trim());
+    recordFact(quest, fact[1]!.toLowerCase(), value.trim());
   });
   return part.slice(0, facts[0]!.index);
 }
