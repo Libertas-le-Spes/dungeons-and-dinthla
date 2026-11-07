@@ -1,4 +1,5 @@
-import { findLinks, removeFirstLink } from "./link";
+import { partsBetweenCommas } from "./comma";
+import { blankLinks, findLinks, removeFirstLink } from "./link";
 
 export type CoinKind = "pp" | "gp" | "ep" | "sp" | "cp";
 
@@ -32,21 +33,37 @@ const AMOUNT = /(?<![^\s(])(?:([+\-−])\s*)?(\d[\d,]*)\s*(pp|gp|ep|sp|cp)\b/gi;
 const MINUS_SIGNS = ["-", "−"];
 const MONEY_OUT_WORD = /\b(paid|spent|bought|gave|lost)\b/i;
 
-function readAmount(match: RegExpMatchArray): SignedAmount {
-  const [, sign, digits, kind] = match;
-  const count = Number.parseInt(digits!.replaceAll(",", ""), 10);
-  return {
-    coins: { count, kind: kind!.toLowerCase() as CoinKind },
-    minus: sign !== undefined && MINUS_SIGNS.includes(sign),
-  };
+function moneyOutWordAt(part: string): number {
+  return blankLinks(part).search(MONEY_OUT_WORD);
 }
 
-function readCoins(body: string, amounts: SignedAmount[]): CoinEntry {
-  const moneyOut = amounts.some((amount) => amount.minus) || MONEY_OUT_WORD.test(body);
-  const total = amounts.reduce((sum, { coins }) => sum + coins.count * COPPER_PER[coins.kind], 0);
-  let copper = total;
-  if (moneyOut) copper = -total;
-  return { type: "coin", coins: amounts.map((amount) => amount.coins), copper, moneyOut };
+function isMoneyOut(sign: string | undefined, position: number, wordAt: number): boolean {
+  if (sign !== undefined) return MINUS_SIGNS.includes(sign);
+  if (wordAt === -1) return false;
+  return position > wordAt;
+}
+
+function readAmount(match: RegExpMatchArray, wordAt: number): SignedAmount {
+  const [, sign, digits, kind] = match;
+  const count = Number.parseInt(digits!.replaceAll(",", ""), 10);
+  const minus = isMoneyOut(sign, match.index!, wordAt);
+  return { coins: { count, kind: kind!.toLowerCase() as CoinKind }, minus };
+}
+
+function readAmountsIn(part: string): SignedAmount[] {
+  const wordAt = moneyOutWordAt(part);
+  return [...part.matchAll(AMOUNT)].map((match) => readAmount(match, wordAt));
+}
+
+function copperOf({ coins, minus }: SignedAmount): number {
+  const worth = coins.count * COPPER_PER[coins.kind];
+  if (minus) return -worth;
+  return worth;
+}
+
+function readCoins(amounts: SignedAmount[]): CoinEntry {
+  const copper = amounts.reduce((sum, amount) => sum + copperOf(amount), 0);
+  return { type: "coin", coins: amounts.map((amount) => amount.coins), copper, moneyOut: copper < 0 };
 }
 
 function readItem(body: string): ItemEntry | null {
@@ -57,7 +74,7 @@ function readItem(body: string): ItemEntry | null {
 }
 
 export function readLedgerEntry(body: string): LedgerEntry | null {
-  const amounts = [...body.matchAll(AMOUNT)].map(readAmount);
-  if (amounts.length > 0) return readCoins(body, amounts);
+  const amounts = partsBetweenCommas(body).flatMap(readAmountsIn);
+  if (amounts.length > 0) return readCoins(amounts);
   return readItem(body);
 }
