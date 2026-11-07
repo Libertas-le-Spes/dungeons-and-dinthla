@@ -127,8 +127,6 @@ Each amount on a line counts on its own ([#68](https://github.com/Libertas-le-Sp
 | `$ Bought rope for 2 gp` | −2 gp |
 | `$ [[Lady Vess]] gave us 50 gp` | −50 gp: write `+50 gp` when someone gives the party money |
 
-The reader follows this rule once #76 merges. Until then, one minus sign or money-out word anywhere on a line makes every amount on it money out.
-
 ## Following up an earlier line
 
 Answers, progress and changes are new lines, written in the session where they happen. Each one starts with the earlier line's text and a colon, then says what happened:
