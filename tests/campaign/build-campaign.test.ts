@@ -181,6 +181,19 @@ describe("buildCampaign's items", () => {
     ]);
   });
 
+  it("keeps a longer name that holds a link apart from the linked item", () => {
+    const campaign = buildCampaign([session(1, ["$ [[Mira]] +1 [[Longsword]]", "$ [[Thessaly]] [[Longsword]]"])]);
+    expect(campaign.items.map(({ name, holder }) => [name, holder])).toEqual([
+      ["+1 Longsword", "Mira"],
+      ["Longsword", "Thessaly"],
+    ]);
+  });
+
+  it("matches a link written with .md", () => {
+    const campaign = buildCampaign([session(1, ["$ [[Mira]] [[Silvered lantern.md]]", "$$ Silvered lantern :lost"])]);
+    expect(campaign.items.map(({ name, gone }) => [name, gone?.kind])).toEqual([["Silvered lantern", "lost"]]);
+  });
+
   it("matches a plain name however its spaces are written", () => {
     const campaign = buildCampaign([session(1, ["$ Potion  of healing", "$$ Potion   of healing :used"])]);
     expect(campaign.items.map(({ name, gone }) => [name, gone?.kind])).toEqual([["Potion of healing", "used"]]);

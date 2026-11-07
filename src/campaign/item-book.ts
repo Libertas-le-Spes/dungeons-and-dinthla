@@ -2,10 +2,13 @@ import type { ItemChange } from "../notes/item-change";
 import { findLinks, unlink } from "../notes/link";
 import type { ItemEvent, ItemRecord, Source } from "./campaign";
 
+const ONE_LINK = /^\[\[[^[\]]+\]\]$/;
+
 function nameOf(item: string): string {
-  const [target] = findLinks(item);
-  if (target === undefined) return unlink(item).replace(/\s+/g, " ").trim();
-  return target.slice(target.lastIndexOf("/") + 1);
+  const written = item.trim();
+  if (!ONE_LINK.test(written)) return unlink(written).replace(/\s+/g, " ").trim();
+  const [target] = findLinks(written);
+  return target!.slice(target!.lastIndexOf("/") + 1).replace(/\.md$/i, "");
 }
 
 function keyOf(item: string): string {
