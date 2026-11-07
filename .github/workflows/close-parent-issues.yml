@@ -11,6 +11,7 @@ permissions:
 concurrency:
   group: close-parent-issues
   cancel-in-progress: false
+  queue: max
 
 jobs:
   parents:
@@ -19,6 +20,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           sparse-checkout: .github/scripts
+          persist-credentials: false
       - uses: actions/github-script@v9
         with:
           script: await require('./.github/scripts/close-or-reopen-parents.cjs')({ github, context, core })

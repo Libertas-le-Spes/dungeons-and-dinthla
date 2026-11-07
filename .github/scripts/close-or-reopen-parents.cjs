@@ -1,7 +1,7 @@
 const PARENT_QUERY = `query($owner: String!, $repo: String!, $number: Int!) {
   repository(owner: $owner, name: $repo) {
     issue(number: $number) {
-      parent { number state subIssues(first: 100) { nodes { state stateReason } } }
+      parent { number state stateReason subIssues(first: 100) { nodes { state stateReason } } }
     }
   }
 }`;
@@ -12,7 +12,8 @@ async function parentOf({ github, context }, number) {
 }
 
 function closeReason(children) {
-  return children.every((child) => child.stateReason === "NOT_PLANNED") ? "not_planned" : "completed";
+  if (children.every((child) => child.stateReason === "NOT_PLANNED")) return "not_planned";
+  return "completed";
 }
 
 async function closeParentIfFinished({ github, context, core }, parent) {
@@ -25,25 +26,35 @@ async function closeParentIfFinished({ github, context, core }, parent) {
     state: "closed",
     state_reason: reason,
   });
-  core.info(`Closed #${parent.number} (${reason}): all ${children.length} sub-issues are closed.`);
+  core.info(`Closed #${parent.number} (${reason}): every sub-issue is closed.`);
   return true;
 }
 
-async function reopenParentIfClosed({ github, context, core }, parent, reopenedChild) {
-  if (parent.state === "OPEN") return false;
+async function reopenParentIfCompleted({ github, context, core }, parent, reopenedChild) {
+  if (parent.state === "OPEN" || parent.stateReason === "NOT_PLANNED") return false;
   await github.rest.issues.update({ ...context.repo, issue_number: parent.number, state: "open" });
   core.info(`Reopened #${parent.number}: #${reopenedChild} was reopened.`);
   return true;
 }
 
-module.exports = async function closeOrReopenParents(actions) {
-  const closing = actions.context.payload.action === "closed";
-  let number = actions.context.issue.number;
-  for (let parent = await parentOf(actions, number); parent; parent = await parentOf(actions, number)) {
-    const changed = closing
-      ? await closeParentIfFinished(actions, parent)
-      : await reopenParentIfClosed(actions, parent, number);
-    if (!changed) return;
-    number = parent.number;
+async function closeFinishedParents(tools, number) {
+  let parent = await parentOf(tools, number);
+  while (parent && (await closeParentIfFinished(tools, parent))) {
+    parent = await parentOf(tools, parent.number);
   }
+}
+
+async function reopenCompletedParents(tools, number) {
+  let child = number;
+  let parent = await parentOf(tools, child);
+  while (parent && (await reopenParentIfCompleted(tools, parent, child))) {
+    child = parent.number;
+    parent = await parentOf(tools, child);
+  }
+}
+
+module.exports = async function closeOrReopenParents(tools) {
+  const number = tools.context.issue.number;
+  if (tools.context.payload.action === "closed") await closeFinishedParents(tools, number);
+  else await reopenCompletedParents(tools, number);
 };
