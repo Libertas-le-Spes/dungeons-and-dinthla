@@ -20,6 +20,40 @@ describe("readMarker", () => {
     expect(readMarker("$ 5 gp\r")).toEqual({ marker: "ledger", body: "5 gp" });
   });
 
+  it("reads a marker after a list bullet", () => {
+    expect(readMarker("- ? Who sent the letter")).toEqual({ marker: "question", body: "Who sent the letter" });
+    expect(readMarker("* ! Find the caravan")).toEqual({ marker: "quest", body: "Find the caravan" });
+    expect(readMarker("+ $ 5 gp")).toEqual({ marker: "ledger", body: "5 gp" });
+  });
+
+  it("reads a marker after an indented bullet", () => {
+    expect(readMarker("    - ? Who is Mira")).toEqual({ marker: "question", body: "Who is Mira" });
+  });
+
+  it("reads a marker after a bullet followed by a tab", () => {
+    expect(readMarker("-\t? Who sent the letter")).toEqual({ marker: "question", body: "Who sent the letter" });
+  });
+
+  it("skips only one bullet", () => {
+    expect(readMarker("- - ? Who is Mira")).toEqual({ marker: null, body: "- - ? Who is Mira" });
+  });
+
+  it("leaves a numbered list line unmarked", () => {
+    expect(readMarker("1. ? Who is Mira")).toEqual({ marker: null, body: "1. ? Who is Mira" });
+  });
+
+  it("leaves a bullet of plain notes unmarked and whole", () => {
+    expect(readMarker("- We reached the Old Mill.")).toEqual({ marker: null, body: "- We reached the Old Mill." });
+  });
+
+  it("leaves a doubled marker after a bullet unmarked", () => {
+    expect(readMarker("- ?? letter").marker).toBeNull();
+  });
+
+  it("needs a space after the bullet", () => {
+    expect(readMarker("-? Who sent the letter").marker).toBeNull();
+  });
+
   it("leaves a plain line unmarked", () => {
     expect(readMarker("We reached the Old Mill.")).toEqual({ marker: null, body: "We reached the Old Mill." });
   });

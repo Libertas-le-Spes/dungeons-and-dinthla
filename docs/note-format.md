@@ -82,7 +82,7 @@ $ 35 gp 4 sp from the bandits at the ford
 
 ## Lines
 
-The plugin reads a line by its first character. A list bullet (`- `, `* ` or `+ `) and indentation before it are skipped, so `- ? Who sent the letter` is a question too (read once [#78](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/pull/78) merges). A task checkbox (`- [ ] ? …`) or a numbered list item is not skipped, so those lines stay ordinary notes. Any other line is ordinary notes, apart from [character facts](#character).
+The plugin reads a line by its first character. A list bullet (`- `, `* ` or `+ `) and indentation before it are skipped, so `- ? Who sent the letter` is a question too. A task checkbox (`- [ ] ? …`) or a numbered list item is not skipped, so those lines stay ordinary notes. Any other line is ordinary notes, apart from [character facts](#character).
 
 | Line | Read as |
 |---|---|
