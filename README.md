@@ -1,4 +1,9 @@
-# Dungeons & Dinthla
+<h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="logo/wordmark-dark.svg">
+    <img alt="Dungeons & Dinthla" src="logo/wordmark-light.svg" width="420">
+  </picture>
+</h1>
 
 An Obsidian plugin for tabletop campaign notes. You write what happens at the table, and the plugin keeps track of the open questions, quests and money, and fills in sheets for the people, places, factions and items you meet.
 
