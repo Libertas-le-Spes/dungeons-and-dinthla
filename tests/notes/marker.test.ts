@@ -30,6 +30,18 @@ describe("readMarker", () => {
     expect(readMarker("    - ? Who is Mira")).toEqual({ marker: "question", body: "Who is Mira" });
   });
 
+  it("reads a marker after a bullet followed by a tab", () => {
+    expect(readMarker("-\t? Who sent the letter")).toEqual({ marker: "question", body: "Who sent the letter" });
+  });
+
+  it("skips only one bullet", () => {
+    expect(readMarker("- - ? Who is Mira")).toEqual({ marker: null, body: "- - ? Who is Mira" });
+  });
+
+  it("leaves a numbered list line unmarked", () => {
+    expect(readMarker("1. ? Who is Mira")).toEqual({ marker: null, body: "1. ? Who is Mira" });
+  });
+
   it("leaves a bullet of plain notes unmarked and whole", () => {
     expect(readMarker("- We reached the Old Mill.")).toEqual({ marker: null, body: "- We reached the Old Mill." });
   });
