@@ -44,13 +44,24 @@ describe("readQuest", () => {
     });
   });
 
-  it("reads fact names in any letter case", () => {
+  it("reads fact names written capitalised", () => {
     expect(readQuest("Find the caravan, From: [[Lady Vess]], Reward: 200 gp")).toEqual({
       title: "Find the caravan",
       givenBy: "[[Lady Vess]]",
       reward: "200 gp",
     });
+  });
+
+  it("reads fact names written in capitals", () => {
     expect(readQuest("Find the caravan, FROM: [[Lady Vess]], REWARD: 200 gp")).toEqual({
+      title: "Find the caravan",
+      givenBy: "[[Lady Vess]]",
+      reward: "200 gp",
+    });
+  });
+
+  it("reads fact names written in mixed letter case", () => {
+    expect(readQuest("Find the caravan, fRoM: [[Lady Vess]], rEwArD: 200 gp")).toEqual({
       title: "Find the caravan",
       givenBy: "[[Lady Vess]]",
       reward: "200 gp",
