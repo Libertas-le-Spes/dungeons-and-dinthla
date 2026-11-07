@@ -99,7 +99,7 @@ The plugin reads a line by its first character. A list bullet (`- `, `* ` or `+ 
 
 ### Quest facts
 
-A quest's facts are `name: value` pairs after its title. Each one runs to the next fact or the next comma. As with money, a comma between two digits or inside a `[[link]]` doesn't end it, so `reward: 1,200 gp` and `from: [[Vess, Lady]]` stay whole:
+A quest's facts are `name: value` pairs after its title, with the name in any letter case (`From:` reads like `from:`). Each one runs to the next fact or the next comma. As with money, a comma between two digits or inside a `[[link]]` doesn't end it, so `reward: 1,200 gp` and `from: [[Vess, Lady]]` stay whole:
 
 | Fact | Holds | Read today |
 |---|---|---|
