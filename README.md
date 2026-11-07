@@ -20,6 +20,16 @@ npm install
 npm run build
 ```
 
+## Demo vault
+
+`demo-vault/` is a small Obsidian vault with one made-up campaign, *Curse of the Pale Moon*, kept in the note format below. It shows what `main` can do after each merge, without touching your own vault.
+
+1. Run `npm run build`. Besides `main.js`, it copies `manifest.json` and `main.js` into the demo vault's plugin folder.
+2. In Obsidian, choose **Open folder as vault** and pick `demo-vault`.
+3. When Obsidian asks whether you trust the vault's author, choose **Trust author and enable plugins**. Dungeons & Dinthla is then turned on under Community plugins.
+
+After the next build, reload the vault (**Reload app without saving**, or Ctrl+R on desktop) to see the newest version. When the note format changes, the demo notes change in the same pull request, and each pull request says what to look for in the demo vault.
+
 ## Notes
 
 [docs/note-format.md](docs/note-format.md) says how a campaign is kept in plain notes: the folders, sessions, marked lines and character facts the plugin reads and writes.
