@@ -88,7 +88,7 @@ The plugin reads a line by its first character. A list bullet (`- `, `* ` or `+ 
 | `! Find the missing caravan, from: [[Lady Vess]], reward: 200 gp` | A quest, with who gave it and the reward |
 | `$ 35 gp 4 sp from the bandits at the ford` | Coin coming in |
 | `$ Paid 5 gp to the ferryman`, `$ -5 gp ferry` | Coin going out |
-| `$ [[Mira]] Flame Tongue longsword` | An item, held by the first linked name |
+| `$ [[Mira]] Flame Tongue longsword` | An item, held by the first linked name (see [Items](#items) for linked items) |
 | `$ Potion of healing` | An item the party holds, with no one holding it yet |
 | `?? letter`, `!! caravan` | A lookup typed while writing, which finds an earlier question or quest. The plugin never reads it as a note |
 | `$$ Silvered lantern :sold 30gp` | Something happened to an item ([Items](#items)) |
@@ -176,6 +176,20 @@ The plugin doesn't keep an inventory. It keeps the items that matter to the part
 | `$$ Silvered lantern :lost` | Lost |
 
 A `$$` line needs no earlier line about the item. `$$ Potion of healing :used` on its own says the party had a potion and used it, whether or not anyone wrote it down when it was found. An item is held from the first line that names it until a `:sold`, `:used` or `:lost` line, and gone items fold away in the funds screen.
+
+How much an item matters is shown by how you write it:
+
+| How it's written | What it is | On the funds screen |
+|---|---|---|
+| `found some rope` (no marker) | Doesn't matter | Not listed. It's just notes |
+| `$ Potion of healing` | Matters for now | Listed, and folds away by itself after 3 sessions in which no line names it. Any later line about it brings it back |
+| `$ [[Silvered lantern]]` | Matters to the campaign | Pinned at the top until a `:sold`, `:used` or `:lost` line. It has its own note in the campaign's `Items` folder, for its story, and shows in Obsidian's graph |
+
+An item can move up at any time: writing it once as `[[Potion of healing]]` makes it a key item from then on. `$$` lines take a linked name too: `$$ [[Silvered lantern]] :sold 30gp`.
+
+A `$` line can hold two links, as in `$ [[Mira]] [[Flame Tongue]]`. A link to a note in the campaign's `Characters` folder is the holder, and any other link is the item. A link to a note that doesn't exist yet is the item, since anyone holding things has a sheet.
+
+None of this is read yet. Today the first link on a `$` line is always the holder, so `$ [[Silvered lantern]]` alone reads as nothing.
 
 Typing `$$ lan` suggests the items already named, so the name matches. Names match whatever their capitals. A `$$` line with no `:` yet is still being typed and is read as nothing.
 
