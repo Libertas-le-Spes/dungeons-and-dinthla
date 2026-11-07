@@ -25,3 +25,7 @@ export function removeFirstLink(text: string): string {
 export function unlink(text: string): string {
   return text.replace(LINK, (_link, inside: string) => shownTextOf(inside));
 }
+
+export function blankLinks(text: string): string {
+  return text.replace(LINK, (link) => " ".repeat(link.length));
+}
