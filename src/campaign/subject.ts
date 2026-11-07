@@ -1,24 +1,24 @@
-export interface Subject<T> {
-  subject: T;
+export interface Match<T> {
+  candidate: T;
   rest: string;
 }
 
-function restAfter(text: string, title: string): string | null {
-  if (title === "" || !text.startsWith(title)) return null;
-  const afterTitle = text.slice(title.length).trimStart();
-  if (!afterTitle.startsWith(":")) return null;
-  return afterTitle.slice(1).trim();
+function restAfter(followUpText: string, earlierText: string): string | null {
+  if (earlierText === "" || !followUpText.startsWith(earlierText)) return null;
+  const afterEarlierText = followUpText.slice(earlierText.length).trimStart();
+  if (!afterEarlierText.startsWith(":")) return null;
+  return afterEarlierText.slice(1).trim();
 }
 
-export function findSubject<T>(text: string, candidates: T[], titleOf: (candidate: T) => string): Subject<T> | null {
-  let found: Subject<T> | null = null;
+export function findSubject<T>(followUpText: string, candidates: T[], textOf: (candidate: T) => string): Match<T> | null {
+  let found: Match<T> | null = null;
   let foundLength = -1;
   for (const candidate of candidates) {
-    const title = titleOf(candidate);
-    const rest = restAfter(text, title);
-    if (rest === null || title.length <= foundLength) continue;
-    found = { subject: candidate, rest };
-    foundLength = title.length;
+    const earlierText = textOf(candidate);
+    const rest = restAfter(followUpText, earlierText);
+    if (rest === null || earlierText.length <= foundLength) continue;
+    found = { candidate, rest };
+    foundLength = earlierText.length;
   }
   return found;
 }

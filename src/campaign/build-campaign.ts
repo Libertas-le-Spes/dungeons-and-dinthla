@@ -6,7 +6,7 @@ import { readQuest } from "../notes/quest";
 import type {
   Campaign,
   CoinRecord,
-  NoteLine,
+  SourcedText,
   QuestionRecord,
   QuestRecord,
   SessionNote,
@@ -22,7 +22,7 @@ class CampaignBuilder {
   private readonly quests: QuestRecord[] = [];
   private readonly coins: CoinRecord[] = [];
   private readonly itemBook = new ItemBook();
-  private readonly unmatched: NoteLine[] = [];
+  private readonly unmatched: SourcedText[] = [];
 
   addLine(line: string, source: Source): void {
     const followUp = readFollowUp(line);
@@ -40,13 +40,13 @@ class CampaignBuilder {
   }
 
   build(): Campaign {
-    const purse = this.coins.reduce((sum, coin) => sum + coin.entry.copper, 0);
+    const purseCopper = this.coins.reduce((sum, coin) => sum + coin.entry.copper, 0);
     return {
       questions: this.questions,
       quests: this.quests,
       coins: this.coins,
       items: this.itemBook.items,
-      purse,
+      purseCopper,
       unmatched: this.unmatched,
     };
   }
@@ -82,9 +82,9 @@ class CampaignBuilder {
       this.unmatched.push({ text: line.trim(), source });
       return;
     }
-    const note = { text: found.rest, source };
-    if (followUp.kind === "answer") found.subject.answer = note;
-    if (followUp.kind === "clue") found.subject.clues.push(note);
+    const sourcedText = { text: found.rest, source };
+    if (followUp.kind === "answer") found.candidate.answer = sourcedText;
+    if (followUp.kind === "clue") found.candidate.clues.push(sourcedText);
   }
 
   private addQuestFollowUp(followUp: FollowUp, line: string, source: Source): void {
@@ -94,10 +94,10 @@ class CampaignBuilder {
       this.unmatched.push({ text: line.trim(), source });
       return;
     }
-    const note = { text: found.rest, source };
-    if (followUp.kind === "progress") found.subject.progress.push(note);
+    const sourcedText = { text: found.rest, source };
+    if (followUp.kind === "progress") found.candidate.progress.push(sourcedText);
     if (followUp.kind === "completed" || followUp.kind === "failed") {
-      found.subject.outcome = { ...note, status: followUp.kind };
+      found.candidate.outcome = { ...sourcedText, status: followUp.kind };
     }
   }
 }
@@ -110,8 +110,8 @@ export function buildCampaign(sessions: SessionNote[]): Campaign {
   const builder = new CampaignBuilder();
   for (const session of [...sessions].sort(bySessionNumber)) {
     const lines = session.text.split("\n");
-    for (let line = session.firstLine; line < lines.length; line++) {
-      builder.addLine(lines[line]!, { path: session.path, line });
+    for (let lineNumber = session.firstLine; lineNumber < lines.length; lineNumber++) {
+      builder.addLine(lines[lineNumber]!, { path: session.path, line: lineNumber });
     }
   }
   return builder.build();

@@ -8,15 +8,21 @@ function same(title: string): string {
 describe("findSubject", () => {
   it("finds the line whose text comes right before the colon", () => {
     expect(findSubject("Who sent the letter: Lady Vess", ["Who sent the letter"], same)).toEqual({
-      subject: "Who sent the letter",
+      candidate: "Who sent the letter",
       rest: "Lady Vess",
     });
   });
 
-  it("prefers the longest text that matches", () => {
-    expect(findSubject("Who sent the letter: Lady Vess", ["Who", "Who sent the letter"], same)?.subject).toBe(
-      "Who sent the letter",
-    );
+  it("prefers the longest text that matches, in either order", () => {
+    for (const candidates of [
+      ["Ring", "Ring: who made it"],
+      ["Ring: who made it", "Ring"],
+    ]) {
+      expect(findSubject("Ring: who made it: the elves", candidates, same)).toEqual({
+        candidate: "Ring: who made it",
+        rest: "the elves",
+      });
+    }
   });
 
   it("never matches a shorter text that isn't followed by the colon", () => {
@@ -25,7 +31,7 @@ describe("findSubject", () => {
 
   it("lets a colon inside the earlier text do no harm", () => {
     expect(findSubject("Ring: who made it: the elves", ["Ring: who made it"], same)).toEqual({
-      subject: "Ring: who made it",
+      candidate: "Ring: who made it",
       rest: "the elves",
     });
   });
