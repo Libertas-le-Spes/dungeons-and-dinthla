@@ -7,10 +7,10 @@ The project grows in small steps, so parts of this page are still planned. Whoev
 Three rules hold everywhere:
 
 - **The notes are the record.** Answers, statuses, holders and sheet values are all lines in notes. The plugin keeps nothing of its own, so a vault synced to a tablet carries everything with it.
-- **Nothing you write is moved or rewritten.** A change is recorded as a new line that names the earlier one (see [Following up](#following-up-an-earlier-line)). The plugin adds lines and never edits one.
+- **Nothing you write is moved or rewritten.** A change is recorded as a new line that names the earlier one (see [Following up](#following-up-an-earlier-line)). The plugin adds lines and never edits one. The one exception is reopening a question, which deletes its answer line, and only when you ask.
 - **It reads without the plugin.** With the plugin off, every note is still plain, sensible Markdown, and the links still work.
 
-The plugin writes through `Vault.process`, so it never overwrites a note while you are typing in it. It uses only Obsidian's own vault access, so it works the same on mobile.
+The plugin writes through `Vault.process`, which reads and changes a note in one step, so nothing written in between is lost. It uses only Obsidian's own vault access, so it works the same on mobile.
 
 ## Campaign
 
@@ -80,7 +80,7 @@ $ 35 gp 4 sp from the bandits at the ford
 
 ## Lines
 
-The plugin reads a line by its first character. A list bullet (`- `, `* ` or `+ `) and indentation before it are skipped, so `- ? Who sent the letter` is a question too. Any other line is ordinary notes.
+The plugin reads a line by its first character. A list bullet (`- `, `* ` or `+ `) and indentation before it are skipped, so `- ? Who sent the letter` is a question too (read once [#78](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/pull/78) merges). Any other line is ordinary notes, apart from [character facts](#character).
 
 | Line | Read as |
 |---|---|
@@ -93,7 +93,7 @@ The plugin reads a line by its first character. A list bullet (`- `, `* ` or `+ 
 | `?? letter`, `!! caravan` | A lookup typed while writing, which finds an earlier question or quest. The plugin never reads it as a note |
 | `$$ Silvered lantern :sold 30gp` | Something happened to an item ([Items](#items)) |
 
-`src/notes/` reads all of these today. [#62](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/pull/62) lists the exact rules: commas, links, signs and the five coin kinds.
+`src/notes/` reads all of these today except the `$$` line. [#62](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/pull/62) lists the exact rules: commas, links, signs and the five coin kinds.
 
 ### Quest facts
 
@@ -116,7 +116,7 @@ A quest's facts are `name: value` pairs after its title. Each one runs to the ne
 | `$ = 85 gp` | The purse counted: it holds 85 gp from here on | No: read as +85 gp |
 | `$ [[Mira]] = 40 gp` | Mira's own purse counted | No |
 
-Each amount on a line counts on its own ([#68](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/issues/68)). An amount is money out when it has its own minus sign, or when *paid*, *spent*, *bought*, *gave* or *lost* comes before it, up to the next comma. A sign always wins over a word.
+Each amount on a line counts on its own ([#68](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/issues/68)). An amount is money out when it has its own minus sign, or when *paid*, *spent*, *bought*, *gave* or *lost* comes before it, up to the next comma. A comma between two digits is part of the number, so `paid 1,200 gp` is −1,200 gp. A sign always wins over a word.
 
 | Line | Read as |
 |---|---|
@@ -138,7 +138,7 @@ Answers, progress and changes are new lines, written in the session where they h
 
 You don't type the earlier line's text. Type `?? letter` or `!! caravan`, pick the line from the suggestions, and choose what happened. The plugin then writes the follow-up line into the session you're in. You may also type one in full.
 
-A follow-up belongs to the open question or active quest whose text it starts with. When more than one starts the same way, the longest one wins, so a colon inside a question's own text does no harm. For a quest the text is its title, without `from:` or `reward:`.
+A follow-up belongs to the open question or active quest whose text comes right before its colon: `?= Who sent the letter: …` belongs to *Who sent the letter*, never to a shorter *Who*. When the line holds more than one colon, the longest text that matches wins, so a colon inside a question's own text does no harm. For a quest the text is its title, without its facts (`from:`, `reward:`, `where:`, `due:`).
 
 If an earlier line is reworded, its follow-ups no longer match it. The plugin marks a follow-up that matches nothing, so either line can be fixed.
 
@@ -166,7 +166,7 @@ A question is open until it has a `?=` line. Reopening it removes that `?=` line
 
 ### Items
 
-The plugin doesn't keep an inventory. It keeps the items that matter to the party, from what you write about them. An item line starts with `$$`, then the item's name, then `:` and what happened:
+The plugin doesn't keep an inventory. It keeps the items that matter to the party, from what you write about them. An item line starts with `$$`, then the item's name, then a space, a colon and one of `changed to`, `sold`, `used` or `lost`. A colon inside the name (`Ring: +1`) is part of the name, because only the last ` :` before one of those words counts:
 
 | Line | Means |
 |---|---|
@@ -183,7 +183,7 @@ Typing `$$ lan` suggests the items already named, so the name matches. Names mat
 
 A character is one note in the campaign's `Characters` folder, named after them. Their sheet is a view built from lines that state facts about them. It is never stored on its own.
 
-A fact is `name: value` after a link to the character, anywhere in the campaign:
+A fact line starts with a link to the character, followed by `name: value` pairs. It has no marker: the `from:` and `reward:` on a quest line are quest facts, never character facts. Fact lines count in session notes and on the character's own note, where the link is left out (`AC: 16`). Anywhere else they are ordinary notes.
 
 ```markdown
 [[Mira]] AC: 15, class: rogue
@@ -199,7 +199,7 @@ Each value has a state, which comes from where its line is:
 | Learned | In a session note | The value, linked to that session |
 | Not known yet | No line states it | Greyed out, with `?` |
 | Override | On the character's own note, at the start of a line (`AC: 16`) | Marked so it never passes for something you saw |
-| Carried over | On a character note in another campaign, which the character's note links with `carried from: [[Lost Mines/Characters/Mira]]` | Marked with that campaign's name. Anything learned in this campaign wins over it |
+| Carried over | On a character note in another campaign, named by the character's `carried from` property (see [Calling a character over](#calling-a-character-over)) | Marked with that campaign's name. Anything learned in this campaign wins over it |
 | Changed over time | More than one line states it | The newest value, with the earlier ones and their sessions on tap. A list value (languages, say) adds them up instead |
 
 "Newest" means the highest session number, and then the lowest line in that note.
@@ -212,7 +212,7 @@ Calling a character into another campaign is a choice, made in a dialog: everyth
 
 ```markdown
 ---
-carried from: "[[Lost Mines/Characters/Mira]]"
+carried from: "[[Ashen Road/Characters/Mira]]"
 carried: [abilities, values]
 ---
 ```
