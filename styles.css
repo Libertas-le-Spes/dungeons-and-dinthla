@@ -1,4 +1,5 @@
 .dd-questions {
+  --dd-touch-min: 44px;
   padding: var(--size-4-3);
 }
 
@@ -15,7 +16,7 @@
   margin: 0;
   font-size: var(--font-ui-medium);
   font-weight: var(--font-semibold);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
 }
 
 .dd-questions .dd-count {
@@ -29,7 +30,7 @@
 .dd-questions .dd-filter {
   width: 100%;
   max-width: 320px;
-  min-height: 44px;
+  min-height: var(--dd-touch-min);
 }
 
 .dd-questions .dd-list {
@@ -45,7 +46,7 @@
 .dd-questions .dd-row {
   display: flex;
   gap: var(--size-4-3);
-  min-height: 44px;
+  min-height: var(--dd-touch-min);
   padding: var(--size-4-3) var(--size-4-2);
   border-radius: var(--radius-s);
   color: var(--text-normal);
@@ -98,11 +99,12 @@
 }
 
 .dd-questions .dd-answered summary {
-  display: flex;
-  align-items: center;
-  min-height: 44px;
+  display: list-item;
+  padding: var(--size-4-3) 0;
+  box-sizing: border-box;
+  min-height: var(--dd-touch-min);
   font-weight: var(--font-semibold);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   color: var(--text-muted);
   cursor: pointer;
 }
