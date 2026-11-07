@@ -14,7 +14,7 @@ export interface SessionNote {
   firstLine: number;
 }
 
-export interface NoteLine {
+export interface SourcedText {
   text: string;
   source: Source;
 }
@@ -22,20 +22,20 @@ export interface NoteLine {
 export interface QuestionRecord {
   text: string;
   source: Source;
-  clues: NoteLine[];
-  answer: NoteLine | null;
+  clues: SourcedText[];
+  answer: SourcedText | null;
 }
 
 export type QuestStatus = "completed" | "failed";
 
-export interface QuestOutcome extends NoteLine {
+export interface QuestOutcome extends SourcedText {
   status: QuestStatus;
 }
 
 export interface QuestRecord {
   quest: Quest;
   source: Source;
-  progress: NoteLine[];
+  progress: SourcedText[];
   outcome: QuestOutcome | null;
 }
 
@@ -65,6 +65,6 @@ export interface Campaign {
   quests: QuestRecord[];
   coins: CoinRecord[];
   items: ItemRecord[];
-  purse: number;
-  unmatched: NoteLine[];
+  purseCopper: number;
+  unmatched: SourcedText[];
 }

@@ -75,7 +75,7 @@ describe("buildCampaign", () => {
       ["Pale Moon/Sessions/Session 2.md", 0, 3540],
       ["Pale Moon/Sessions/Session 3.md", 2, 3000],
     ]);
-    expect(campaign.purse).toBe(6340);
+    expect(campaign.purseCopper).toBe(6340);
   });
 
   it("follows each item to who holds it and whether it is gone", () => {
@@ -95,7 +95,7 @@ describe("buildCampaign", () => {
       quests: [],
       coins: [],
       items: [],
-      purse: 0,
+      purseCopper: 0,
       unmatched: [],
     });
   });
@@ -134,8 +134,8 @@ describe("buildCampaign's follow-ups", () => {
   });
 
   it("matches a follow-up to the longest question it starts with", () => {
-    const campaign = buildCampaign([session(1, ["? Who", "? Who sent the letter", "?= Who sent the letter: Mira"])]);
-    expect(campaign.questions.map((question) => question.answer?.text)).toEqual([undefined, "Mira"]);
+    const campaign = buildCampaign([session(1, ["? Ring", "? Ring: who made it", "?= Ring: who made it: the elves"])]);
+    expect(campaign.questions.map((question) => question.answer?.text)).toEqual([undefined, "the elves"]);
   });
 
   it("matches a quest follow-up by title, without the quest's facts", () => {

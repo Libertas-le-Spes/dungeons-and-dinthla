@@ -69,6 +69,6 @@ describe("readCampaign", () => {
 
   it("reads a campaign with no sessions as empty", async () => {
     const { vault, metadata } = fakeVault([]);
-    expect(await readCampaign(vault, metadata, "Pale Moon")).toMatchObject({ questions: [], purse: 0 });
+    expect(await readCampaign(vault, metadata, "Pale Moon")).toMatchObject({ questions: [], purseCopper: 0 });
   });
 });
