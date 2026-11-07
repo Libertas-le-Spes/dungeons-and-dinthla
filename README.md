@@ -19,3 +19,7 @@ Build it, then copy `manifest.json` and `main.js` into `<vault>/.obsidian/plugin
 npm install
 npm run build
 ```
+
+## Planning
+
+Work is planned as epics, stories and tasks on the [Dungeons & Dinthla Backlog](https://github.com/orgs/Libertas-le-Spes/projects/1) board. [docs/project-board.md](docs/project-board.md) says how the board works and why.
