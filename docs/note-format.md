@@ -7,7 +7,7 @@ The project grows in small steps, so parts of this page are still planned. Whoev
 Three rules hold everywhere:
 
 - **The notes are the record.** Answers, statuses, holders and sheet values are all lines in notes. The plugin keeps nothing of its own, so a vault synced to a tablet carries everything with it.
-- **Nothing you write is moved or rewritten.** A change is recorded as a new line that points back to the earlier one. The only edit the plugin makes to an existing line is adding a block id to its end (see [Pointing back](#pointing-back-to-an-earlier-line)).
+- **Nothing you write is moved or rewritten.** A change is recorded as a new line that names the earlier one (see [Following up](#following-up-an-earlier-line)). The plugin adds lines and never edits one.
 - **It reads without the plugin.** With the plugin off, every note is still plain, sensible Markdown, and the links still work.
 
 The plugin writes through `Vault.process`, so it never overwrites a note while you are typing in it. It uses only Obsidian's own vault access, so it works the same on mobile.
@@ -113,48 +113,53 @@ A quest's facts are `name: value` pairs after its title. Each one runs to the ne
 | `$ = 85 gp` | The purse counted: it holds 85 gp from here on | No: read as +85 gp |
 | `$ [[Mira]] = 40 gp` | Mira's own purse counted | No |
 
-How the signs on a line with more than one amount work is still to be decided ([#68](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/issues/68)). The options are under [Open for review](#open-for-review).
+Each amount on a line counts on its own: it is money out when it has its own minus sign, or a money-out word before it. So `$ +50 gp reward, -5 gp ferry` is +45 gp ([#68](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/issues/68)). Today one minus sign or money-out word anywhere on the line still turns every amount negative, which reads that line as −55 gp. #68 changes it.
 
-## Pointing back to an earlier line
+## Following up an earlier line
 
-Answers, progress and changes are new lines that link to the line they follow. They use a block id: `^letter` at the end of the earlier line, and `[[Session 12#^letter|the letter]]` in the new one. With the plugin off, the link still opens the earlier line.
+Answers, progress and changes are new lines, written in the session where they happen. Each one starts with the earlier line's text and a colon, then says what happened:
 
 ```markdown
-? Who sent the letter ^letter
+? Who sent the letter                           (Session 12)
+?= Who sent the letter: [[Lady Vess]] sent it   (Session 13)
 ```
 
-None of the lines in this section is read yet. Today `?+` and `?=` read as plain questions and `!+`, `!=` and `!x` as quests. `$>` and `$x` read as items held by *Session 12*, the first link on the line, and a `$x` with an amount reads as coin.
+You don't type the earlier line's text. Type `?? letter`, `!! caravan` or `$$ lantern`, pick the line from the suggestions, and choose what happened. The plugin then writes the follow-up line into the session you're in. You may also type one in full.
 
-When a dialog writes a follow-up and the earlier line has no block id yet, the plugin adds one to its end, made from the line's first word that isn't a common word (`^letter`, `^caravan`) and made unique within the note. You may also type your own.
+A follow-up belongs to the open question, active quest or held item whose text it starts with. When more than one starts the same way, the longest one wins, so a colon inside a question's own text does no harm. For a quest the text is its title, without `from:` or `reward:`. For an item it is the item's name, without the holder.
+
+If an earlier line is reworded, its follow-ups no longer match it. The plugin marks a follow-up that matches nothing, so either line can be fixed.
+
+None of the lines in this section is read yet. Today `?+` and `?=` read as plain questions, `!+`, `!=` and `!x` as quests, and `$>` and `$x` as items, or as coin when they carry an amount.
 
 ### Questions
 
 | Line | Means |
 |---|---|
-| `?+ [[Session 12#^letter\|the letter]] it smelled of lantern oil` | A clue. The question stays open |
-| `?= [[Session 12#^letter\|the letter]] [[Lady Vess]] sent it` | The answer. The question is answered |
-| `? Who is the pale woman, after: [[Session 12#^letter\|the letter]]` | A new question that follows from the earlier one |
+| `?+ Who sent the letter: it smelled of lantern oil` | A clue. The question stays open |
+| `?= Who sent the letter: [[Lady Vess]] sent it` | The answer. The question is answered |
+| `? Who is the pale woman, after: Who sent the letter` | A new question that follows from the earlier one |
 
-A question is open until it has a `?=` line. Reopening it removes that `?=` line.
+A question is open until it has a `?=` line. Reopening it removes that `?=` line, which is the one time the plugin deletes a line, and only when you ask it to.
 
 ### Quests
 
 | Line | Means |
 |---|---|
-| `!+ [[Session 12#^caravan\|the caravan]] tracks lead to [[Old Mill]]` | Progress. The quest stays active |
-| `!= [[Session 12#^caravan\|the caravan]] found it under the Old Mill` | Completed, with what happened |
-| `!x [[Session 12#^caravan\|the caravan]] the wagons burned` | Failed or abandoned, with what happened |
-| `! Escort [[Mira]] to the ferry, after: [[Session 12#^caravan\|the caravan]]` | A follow-up quest |
-| `$ +200 gp reward for [[Session 12#^caravan\|the caravan]]` | The reward collected. It is coin in, and the quest counts as paid |
+| `!+ Find the missing caravan: tracks lead to [[Old Mill]]` | Progress. The quest stays active |
+| `!= Find the missing caravan: found it under the Old Mill` | Completed, with what happened |
+| `!x Find the missing caravan: the wagons burned` | Failed or abandoned, with what happened |
+| `! Escort [[Mira]] to the ferry, after: Find the missing caravan` | A follow-up quest |
+| `$ +200 gp reward, for: Find the missing caravan` | The reward collected. It is coin in, and the quest counts as paid |
 
 ### Items
 
 | Line | Means |
 |---|---|
-| `$> [[Session 12#^lantern\|silvered lantern]] [[Mira]]` | The item changes hands. Mira holds it from here on |
-| `$x [[Session 12#^lantern\|silvered lantern]] sold, 30 gp` | Sold. The 30 gp is coin in |
-| `$x [[Session 12#^potion\|potion]] used up` | Used up |
-| `$x [[Session 12#^lantern\|silvered lantern]] lost` | Lost |
+| `$> Silvered lantern: [[Mira]]` | The item changes hands. Mira holds it from here on |
+| `$x Silvered lantern: sold, +30 gp` | Sold. The 30 gp is coin in |
+| `$x Potion of healing: used up` | Used up |
+| `$x Silvered lantern: lost` | Lost |
 
 An item is held until it has a `$x` line, and `$x` lines fold away in the funds screen.
 
@@ -189,23 +194,11 @@ Renaming a character's note renames it: Obsidian rewrites every `[[link]]` to it
 
 These are the choices this page makes that differ from the prototype or the plan doc, or that neither settled. Each one gives the recommendation first.
 
-1. **Answers and statuses are new lines, not changes to the old line.** The plan doc does this. Issue #17 instead suggested writing them into the line, as in `? Who sent the letter → [[Lady Vess]] sent it`.
-   - *Recommended: new lines.* Nothing you wrote is rewritten, the session where it was learned is kept, and two devices editing different sessions can't clash.
-   - *Into the line:* each question reads as one line. But a dialog has to rewrite an earlier session's note, and the answer loses the session it came from.
-2. **The plugin adds block ids itself.** This is the one edit it makes to an existing line. The alternative is asking you to type `^letter` before a dialog can follow up, which is a chore on a tablet.
-3. **A new session copies nothing in.** The plan doc copies open questions into the new note. Copying them would show each one twice, once in its own session and once in the copy. The prototype copies nothing, and the lists carry over by themselves.
-4. **Signs on a `$` line with more than one amount** ([#68](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/issues/68)). Today one minus sign or money-out word turns every amount negative:
+Settled so far: answers and changes are new lines that start with the earlier line's text, written for you from the `??`, `!!` and `$$` lookups, and each amount on a `$` line counts on its own (#68).
 
-   | Line | Read today | (b) each amount on its own |
-   |---|---|---|
-   | `$ +50 gp reward, -5 gp ferry` | −55 gp | +45 gp |
-   | `$ [[Lady Vess]] gave us 50 gp` | −50 gp | +50 gp (*gave* doesn't come right before the amount) |
-   | `$ paid 5 gp, got 3 gp back` | −8 gp | −2 gp |
-
-   - *Recommended: (b).* Each amount takes its own sign, or a money-out word right before it. This also suits `$ [[Thessaly]] +30 gp share`.
-   - (a) keeps today's rule and explains it in the funds screen.
-   - (c) counts a money-out word only when it starts the line.
-5. **Item lines `$>` and `$x`** are new here. Neither the prototype nor the plan doc wrote item changes down.
-6. **Override and carried over** come from where a fact's line is, rather than from a marker on the value. The plan doc gives the meanings but not the syntax.
-7. **The characters gallery is a plain plugin view, not a custom Bases view.** Bases views (Obsidian 1.10, which is why `minAppVersion` is 1.10.3) list notes by their properties. The sheet values here are lines, so a Bases view would only add filtering by `type`. If it stays a plain view, `minAppVersion` can come down.
-8. **Marked lines in bullets.** `- ? Who sent the letter` isn't read today, because the marker must be the first character. Recommended: read a marker after a leading `- `, since Obsidian lists are a common way to write.
+1. **A new session copies nothing in.** The plan doc copies open questions into the new note. Copying them would show each one twice, once in its own session and once in the copy. The prototype copies nothing, and the lists carry over by themselves.
+2. **Which amounts a money-out word turns negative** (#68): only the amount right after it, or every amount after it up to the next comma.
+3. **Item lines `$>` and `$x`** are new here. Neither the prototype nor the plan doc wrote item changes down.
+4. **Override and carried over** come from where a fact's line is, rather than from a marker on the value. The plan doc gives the meanings but not the syntax.
+5. **The characters gallery is a plain plugin view, not a custom Bases view.** Bases views (Obsidian 1.10, which is why `minAppVersion` is 1.10.3) list notes by their properties. The sheet values here are lines, so a Bases view would only add filtering by `type`. If it stays a plain view, `minAppVersion` can come down.
+6. **Marked lines in bullets.** `- ? Who sent the letter` isn't read today, because the marker must be the first character. Recommended: read a marker after a leading `- `, since Obsidian lists are a common way to write.
