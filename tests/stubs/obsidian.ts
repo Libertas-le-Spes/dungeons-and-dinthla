@@ -1,6 +1,11 @@
+import type { Plugin as RealPlugin } from "obsidian";
+
 export class Plugin {
-  constructor(
-    readonly app: unknown,
-    readonly manifest: unknown,
-  ) {}
+  app: RealPlugin["app"];
+  manifest: RealPlugin["manifest"];
+
+  constructor(...[app, manifest]: ConstructorParameters<typeof RealPlugin>) {
+    this.app = app;
+    this.manifest = manifest;
+  }
 }
