@@ -18,6 +18,14 @@ describe("readQuest", () => {
     expect(readQuest("Slay the wolf reward: 50 gp")).toEqual({ title: "Slay the wolf", reward: "50 gp" });
   });
 
+  it("reads a giver and a reward without a comma between them", () => {
+    expect(readQuest("Slay the wolf from: [[Tor]] reward: 50 gp")).toEqual({
+      title: "Slay the wolf",
+      givenBy: "[[Tor]]",
+      reward: "50 gp",
+    });
+  });
+
   it("keeps a reward written with a thousands comma whole", () => {
     expect(readQuest("Escort the duke, reward: 1,000 gp")).toEqual({ title: "Escort the duke", reward: "1,000 gp" });
   });

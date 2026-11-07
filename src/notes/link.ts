@@ -1,4 +1,4 @@
-const LINK = /\[\[([^\]]+)\]\]/g;
+const LINK = /\[\[([^[\]]+)\]\]/g;
 
 function targetOf(inside: string): string {
   return inside.replace(/[|#].*$/, "").trim();
