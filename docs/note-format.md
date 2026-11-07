@@ -95,7 +95,7 @@ The plugin reads a line by its first character. A list bullet (`- `, `* ` or `+ 
 | `?? letter`, `!! caravan` | A lookup typed while writing, which finds an earlier question or quest. The plugin never reads it as a note |
 | `$$ Silvered lantern :sold 30gp` | Something happened to an item ([Items](#items)) |
 
-`src/notes/` reads all of these today, and `src/campaign/` builds a campaign from its session notes, in session order. [#62](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/pull/62) lists the exact rules: commas, links, signs and the five coin kinds.
+`src/notes/` reads all of these today, and `src/campaign/` builds a campaign from the session notes in its folder, in session order. [#62](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/pull/62) lists the exact rules: commas, links, signs and the five coin kinds.
 
 ### Quest facts
 
@@ -142,7 +142,13 @@ A follow-up belongs to the open question or active quest whose text comes right 
 
 If an earlier line is reworded, its follow-ups no longer match it. The plugin marks a follow-up that matches nothing, so either line can be fixed.
 
-`?+`, `?=`, `!+`, `!=`, `!x` and `$$` lines are read and matched today. `after:` and `for:` aren't yet: an `after:` stays part of the question's text or the quest's title, and a `for:` line counts as coin in without marking the quest paid. A follow-up typed in full must match the earlier text exactly, capitals included.
+`?+`, `?=`, `!+`, `!=`, `!x` and `$$` lines are read and matched today. `!x` needs a space after it, so a quest can still start with an x. Some parts aren't read yet:
+
+- `after:`, `where:` and `due:` stay part of the question's text or the quest's title, so a follow-up has to include them to match.
+- A `for:` line counts as coin in without marking the quest paid.
+- A follow-up that matches nothing is collected but not marked yet.
+
+A follow-up typed in full must match the earlier text exactly, capitals included.
 
 ### Questions
 
