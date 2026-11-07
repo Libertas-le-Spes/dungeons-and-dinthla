@@ -18,11 +18,22 @@ export class ItemView {
   }
 }
 
-const PROPERTIES = /^---\r?\n([\s\S]*?)\r?\n---(?=\r?\n|$)/;
+const PROPERTIES_OPEN = /^---\r?\n/;
 
 export function getFrontMatterInfo(content: string): FrontMatterInfo {
-  const match = PROPERTIES.exec(content);
-  if (match === null) return { exists: false, frontmatter: "", from: 0, to: 0, contentStart: 0 };
-  const from = content.indexOf("\n") + 1;
-  return { exists: true, frontmatter: match[1]!, from, to: from + match[1]!.length, contentStart: match[0].length };
+  const none = { exists: false, frontmatter: "", from: 0, to: 0, contentStart: 0 };
+  const opening = PROPERTIES_OPEN.exec(content);
+  if (opening === null) return none;
+  const from = opening[0].length;
+  const closing = /^---(?:\r?\n|$)/gm;
+  closing.lastIndex = from;
+  const close = closing.exec(content);
+  if (close === null) return none;
+  return {
+    exists: true,
+    frontmatter: content.slice(from, close.index),
+    from,
+    to: close.index,
+    contentStart: close.index + close[0].length,
+  };
 }

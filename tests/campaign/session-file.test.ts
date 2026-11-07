@@ -35,6 +35,10 @@ describe("firstLineAfterProperties", () => {
     expect(firstLineAfterProperties("? Who\n---\nnot properties\n---")).toBe(0);
   });
 
+  it("starts after an empty properties block", () => {
+    expect(firstLineAfterProperties("---\n---\n? Who")).toBe(2);
+  });
+
   it("starts after properties that end the note", () => {
     expect(firstLineAfterProperties("---\nplayed: 2026-03-14\n---")).toBe(3);
   });
