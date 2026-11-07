@@ -17,10 +17,4 @@ jobs:
   parents:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-        with:
-          sparse-checkout: .github/scripts
-          persist-credentials: false
-      - uses: actions/github-script@v9
-        with:
-          script: await require('./.github/scripts/close-or-reopen-parents.cjs')({ github, context, core })
+      - uses: Libertas-le-Spes/OptimusBoard/close-parent-issues@d1ba227628018b4295ed3c2df79cef0a6d67c4d9
