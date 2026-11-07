@@ -1,36 +1,33 @@
-import type { CachedMetadata, TFile } from "obsidian";
-import type { CampaignMetadata, CampaignVault } from "../../src/campaign/read-campaign";
+import type { TFile } from "obsidian";
+import type { CampaignVault } from "../../src/campaign/read-campaign";
 
 export interface FakeNote {
   path: string;
   text: string;
-  propertiesEndLine?: number;
 }
 
 function fileFor(path: string): TFile {
-  const folder = path.slice(0, path.lastIndexOf("/"));
   const name = path.slice(path.lastIndexOf("/") + 1);
-  const extension = name.slice(name.lastIndexOf(".") + 1);
   const basename = name.slice(0, name.lastIndexOf("."));
-  return { path, basename, extension, parent: { path: folder } } as TFile;
-}
-
-export function cacheWithProperties(endLine: number | undefined): CachedMetadata {
-  if (endLine === undefined) return {};
-  return { frontmatterPosition: { start: { line: 0 }, end: { line: endLine } } } as CachedMetadata;
+  return { path, basename } as TFile;
 }
 
 export class FakeVault {
-  readonly notes: FakeNote[];
+  private readonly notes: FakeNote[];
+  private readonly held = new Map<string, Promise<void>>();
 
   constructor(notes: FakeNote[]) {
-    this.notes = [...notes];
+    this.notes = notes.map((note) => ({ ...note }));
   }
 
   get vault(): CampaignVault {
     return {
       getFiles: () => this.notes.map((note) => fileFor(note.path)),
-      cachedRead: async (file) => this.noteAt(file.path).text,
+      cachedRead: async (file) => {
+        const text = this.noteAt(file.path).text;
+        await this.held.get(file.path);
+        return text;
+      },
       getFileByPath: (path) => {
         if (!this.notes.some((note) => note.path === path)) return null;
         return fileFor(path);
@@ -38,12 +35,18 @@ export class FakeVault {
     };
   }
 
-  get metadata(): CampaignMetadata {
-    return { getFileCache: (file) => cacheWithProperties(this.noteAt(file.path).propertiesEndLine) };
-  }
-
-  file(path: string): TFile {
-    return fileFor(path);
+  holdReadsOf(path: string): () => void {
+    let release = (): void => {};
+    this.held.set(
+      path,
+      new Promise((resolve) => {
+        release = resolve;
+      }),
+    );
+    return () => {
+      this.held.delete(path);
+      release();
+    };
   }
 
   rename(oldPath: string, path: string): void {

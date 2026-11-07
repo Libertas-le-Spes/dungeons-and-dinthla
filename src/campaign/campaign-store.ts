@@ -1,21 +1,19 @@
-import type { CachedMetadata, TFile } from "obsidian";
 import { buildCampaign } from "./build-campaign";
 import type { Campaign, SessionNote } from "./campaign";
-import { readSession, readSessions, type CampaignMetadata, type CampaignVault } from "./read-campaign";
-import { firstLineAfterProperties, sessionNumberOf } from "./session-file";
+import { readSession, readSessions, type CampaignVault } from "./read-campaign";
+import { sessionNoteOf, sessionNumberOf } from "./session-file";
 
 export type CampaignListener = (campaign: Campaign) => void;
 
 export class CampaignStore {
   private folder: string | null = null;
-  private readonly sessions = new Map<string, SessionNote>();
   private campaign: Campaign = buildCampaign([]);
+  private readonly sessions = new Map<string, SessionNote>();
+  private readonly editedWhileOpening = new Set<string>();
   private readonly listeners = new Set<CampaignListener>();
+  private openings = 0;
 
-  constructor(
-    private readonly vault: CampaignVault,
-    private readonly metadata: CampaignMetadata,
-  ) {}
+  constructor(private readonly vault: CampaignVault) {}
 
   get current(): Campaign {
     return this.campaign;
@@ -31,17 +29,25 @@ export class CampaignStore {
   }
 
   async open(folder: string): Promise<void> {
+    const opening = ++this.openings;
     this.folder = folder;
-    const sessions = await readSessions(this.vault, this.metadata, folder);
+    this.editedWhileOpening.clear();
+    const read = await readSessions(this.vault, folder);
+    if (opening !== this.openings) return;
+    const edited = [...this.editedWhileOpening].map((path) => this.sessions.get(path));
     this.sessions.clear();
-    for (const session of sessions) this.sessions.set(session.path, session);
+    for (const session of read) this.sessions.set(session.path, session);
+    for (const session of edited) {
+      if (session !== undefined) this.sessions.set(session.path, session);
+    }
     this.rebuild();
   }
 
-  noteChanged(file: TFile, text: string, cache: CachedMetadata | null): void {
-    const number = this.sessionNumberOf(file.path);
+  noteChanged(path: string, text: string): void {
+    const number = this.numberInCampaign(path);
     if (number === null) return;
-    this.sessions.set(file.path, { path: file.path, number, text, firstLine: firstLineAfterProperties(cache) });
+    this.sessions.set(path, sessionNoteOf(path, number, text));
+    this.editedWhileOpening.add(path);
     this.rebuild();
   }
 
@@ -60,14 +66,17 @@ export class CampaignStore {
   }
 
   private async readIfSession(path: string): Promise<boolean> {
-    const number = this.sessionNumberOf(path);
+    const number = this.numberInCampaign(path);
     const file = this.vault.getFileByPath(path);
     if (number === null || file === null) return false;
-    this.sessions.set(path, await readSession(file, number, this.vault, this.metadata));
+    const opening = this.openings;
+    const session = await readSession(file, number, this.vault);
+    if (opening !== this.openings) return false;
+    this.sessions.set(path, session);
     return true;
   }
 
-  private sessionNumberOf(path: string): number | null {
+  private numberInCampaign(path: string): number | null {
     if (this.folder === null) return null;
     return sessionNumberOf(path, this.folder);
   }
