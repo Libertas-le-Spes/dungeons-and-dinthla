@@ -1,4 +1,7 @@
 import esbuild from "esbuild";
+import { copyFile, mkdir } from "node:fs/promises";
+
+const demoPluginFolder = "demo-vault/.obsidian/plugins/dungeons-and-dinthla";
 
 await esbuild.build({
   entryPoints: ["src/main.ts"],
@@ -9,3 +12,7 @@ await esbuild.build({
   outfile: "main.js",
   logLevel: "info",
 });
+
+await mkdir(demoPluginFolder, { recursive: true });
+await copyFile("manifest.json", `${demoPluginFolder}/manifest.json`);
+await copyFile("main.js", `${demoPluginFolder}/main.js`);
