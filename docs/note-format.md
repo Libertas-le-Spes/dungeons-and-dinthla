@@ -142,7 +142,7 @@ A follow-up belongs to the open question or active quest whose text comes right 
 
 If an earlier line is reworded, its follow-ups no longer match it. The plugin marks a follow-up that matches nothing, so either line can be fixed.
 
-`?+`, `?=`, `!+`, `!=`, `!x` and `$$` lines are read and matched today. `!x` needs a space after it, so a quest can still start with an x. Some parts aren't read yet:
+`?+`, `?=`, `!+`, `!=`, `!x` and `$$` lines are read and matched today. `!x` needs a space or the end of the line after it, so a quest can still start with an x. Some parts aren't read yet:
 
 - `after:`, `where:` and `due:` stay part of the question's text or the quest's title, so a follow-up has to include them to match.
 - A `for:` line counts as coin in without marking the quest paid.
@@ -197,7 +197,7 @@ A `$` line can hold two links, as in `$ [[Mira]] [[Flame Tongue]]`. A link to a 
 
 Telling the holder from the item isn't read yet, and neither is how much an item matters. Today the first link on a `$` line is always the holder, so `$ [[Silvered lantern]]` alone reads as nothing.
 
-Typing `$$ lan` suggests the items already named, so the name matches. Names match whatever their capitals. A `$$` line with no `:` yet is still being typed and is read as nothing.
+Typing `$$ lan` suggests the items already named, so the name matches. Names match whatever their capitals and spacing. A name that is one link matches by the note it points to, whatever the link's alias or folder, while a longer name that holds a link (`+1 [[Longsword]]`) is a different item. A `$$` line with no `:` yet is still being typed and is read as nothing.
 
 ## Character
 
