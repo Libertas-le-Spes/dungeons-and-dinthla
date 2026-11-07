@@ -11,11 +11,11 @@ const MARKERS: Record<string, Marker> = {
   $: "ledger",
 };
 
-const MARKED_LINE = /^\s*([?!$])(?!\1)\s?(.*)$/;
-
 export function readMarker(line: string): MarkedLine {
-  const match = MARKED_LINE.exec(line);
-  if (!match) return { marker: null, body: line };
-  const [, symbol = "", body = ""] = match;
-  return { marker: MARKERS[symbol] ?? null, body };
+  const text = line.trim();
+  const symbol = text.charAt(0);
+  const marker = MARKERS[symbol];
+  const isLookup = text.charAt(1) === symbol;
+  if (marker === undefined || isLookup) return { marker: null, body: text };
+  return { marker, body: text.slice(1).trim() };
 }

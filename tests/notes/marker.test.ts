@@ -12,8 +12,20 @@ describe("readMarker", () => {
     expect(readMarker("  ?Who is Mira")).toEqual({ marker: "question", body: "Who is Mira" });
   });
 
+  it("trims extra spaces after the marker", () => {
+    expect(readMarker("?   Who is Mira")).toEqual({ marker: "question", body: "Who is Mira" });
+  });
+
+  it("reads a line that ends in a Windows line break", () => {
+    expect(readMarker("$ 5 gp\r")).toEqual({ marker: "ledger", body: "5 gp" });
+  });
+
   it("leaves a plain line unmarked", () => {
     expect(readMarker("We reached the Old Mill.")).toEqual({ marker: null, body: "We reached the Old Mill." });
+  });
+
+  it("leaves an empty line unmarked", () => {
+    expect(readMarker("")).toEqual({ marker: null, body: "" });
   });
 
   it("leaves a doubled marker for looking up an earlier note unmarked", () => {
