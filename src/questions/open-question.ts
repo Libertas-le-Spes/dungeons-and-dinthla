@@ -3,6 +3,7 @@ import type { QuestionRecord, Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
 import { SESSIONS_SHARE_A_NUMBER, latestNumberIsShared, sessionToWriteIn } from "../campaign/session-to-write";
+import { activePathOf } from "../views/open-view";
 import { ANSWER_GOES_ELSEWHERE, answerWouldGoElsewhere, currentQuestion, latestSessionOfQuestion, sharesTextWithEarlierOpenQuestion } from "./current-question";
 import { QuestionModal } from "./question-modal";
 import { planQuestionSave, planReopen, refusalForQuestionPlan, type QuestionEdit, type QuestionPlan } from "./question-plan";
@@ -10,12 +11,6 @@ import { QuestionWriter } from "./question-writer";
 
 const NO_SESSION = "Start a session first: answers are written into a session note.";
 const SAME_TEXT = "An earlier open question reads the same, so an answer would go to it. Reword one of them first.";
-
-function activePathOf(app: App): string | null {
-  const file = app.workspace.getActiveFile();
-  if (file === null) return null;
-  return file.path;
-}
 
 export function openQuestion(
   app: App,

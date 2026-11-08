@@ -18,14 +18,14 @@ function campaignOf(lines: string[], ...laterSessions: string[][]): Campaign {
   );
 }
 
-type OpenEntry = (source: Source, onClosed: (outcome: CoinOutcome) => void) => void;
+type OpenLedgerEntry = (source: Source, onClosed: (outcome: CoinOutcome) => void) => void;
 type OpenItem = (name: string, source: Source, onClosed: (changed: boolean) => void) => void;
 
 async function openView(
   campaign: Campaign,
   notes: string[] = ["Mira"],
   addCoin: ((returnFocus: () => void) => void) | null = null,
-  openEntry: OpenEntry | null = null,
+  openLedgerEntry: OpenLedgerEntry | null = null,
   openItem: OpenItem | null = null,
 ) {
   let listener: (campaign: Campaign) => void = () => {};
@@ -39,7 +39,7 @@ async function openView(
   };
   const actions = { openRow: vi.fn(), openLink: vi.fn() };
   const noteExists = (name: string) => notes.includes(name);
-  const view = new FundsView({} as WorkspaceLeaf, store as unknown as CampaignStore, actions, noteExists, addCoin, openEntry, openItem);
+  const view = new FundsView({} as WorkspaceLeaf, store as unknown as CampaignStore, actions, noteExists, addCoin, openLedgerEntry, openItem);
   const root = obsidianDocument().createElement("div");
   view.contentEl = root;
   const registered: (() => void)[] = [];
@@ -195,27 +195,27 @@ describe("FundsView", () => {
   });
 
   it("opens a ledger entry to change it, and puts focus back on that entry after the redraw", async () => {
-    const openEntry = vi.fn<OpenEntry>();
+    const openLedgerEntry = vi.fn<OpenLedgerEntry>();
     const lines = ["$ 5 gp found", "$ 2 gp tip", "$ 7 gp later"];
-    const { root, change } = await openView(campaignOf(lines), [], vi.fn(), openEntry);
+    const { root, change } = await openView(campaignOf(lines), [], vi.fn(), openLedgerEntry);
     const document = root.ownerDocument;
     document.body.append(root);
     const rowAt = (line: number) => root.querySelector(`.dd-ledger-row[data-line="${line}"]`) as HTMLElement;
     rowAt(1).click();
-    expect(openEntry).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 1 }, expect.any(Function));
-    openEntry.mock.calls[0]![1]("written");
+    expect(openLedgerEntry).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 1 }, expect.any(Function));
+    openLedgerEntry.mock.calls[0]![1]("written");
     change(campaignOf(["$ 5 gp found", "$ 3 gp tip", "$ 7 gp later"]));
     expect(document.activeElement).toBe(rowAt(1));
     expect(rowAt(1).querySelector(".dd-what")?.textContent).toBe("3 gp tip");
   });
 
   it("leaves focus alone on a later redraw when an entry closed unchanged", async () => {
-    const openEntry = vi.fn<OpenEntry>();
-    const { root, change } = await openView(campaignOf(["$ 5 gp found"]), [], vi.fn(), openEntry);
+    const openLedgerEntry = vi.fn<OpenLedgerEntry>();
+    const { root, change } = await openView(campaignOf(["$ 5 gp found"]), [], vi.fn(), openLedgerEntry);
     const document = root.ownerDocument;
     document.body.append(root);
     (root.querySelector(".dd-ledger-row") as HTMLElement).click();
-    openEntry.mock.calls[0]![1]("unchanged");
+    openLedgerEntry.mock.calls[0]![1]("unchanged");
     const editor = document.createElement("input");
     document.body.append(editor);
     editor.focus();
@@ -224,16 +224,16 @@ describe("FundsView", () => {
   });
 
   it("puts focus on Add coin after an entry is deleted, and back on the row when nothing changed", async () => {
-    const openEntry = vi.fn<OpenEntry>();
-    const { root, change } = await openView(campaignOf(["$ 5 gp found", "$ 2 gp tip"]), [], vi.fn(), openEntry);
+    const openLedgerEntry = vi.fn<OpenLedgerEntry>();
+    const { root, change } = await openView(campaignOf(["$ 5 gp found", "$ 2 gp tip"]), [], vi.fn(), openLedgerEntry);
     const document = root.ownerDocument;
     document.body.append(root);
     const rowAt = (line: number) => root.querySelector(`.dd-ledger-row[data-line="${line}"]`) as HTMLElement;
     rowAt(1).click();
-    openEntry.mock.calls[0]![1]("unchanged");
+    openLedgerEntry.mock.calls[0]![1]("unchanged");
     expect(document.activeElement).toBe(rowAt(1));
     rowAt(0).click();
-    openEntry.mock.calls[1]![1]("deleted");
+    openLedgerEntry.mock.calls[1]![1]("deleted");
     change(campaignOf(["$ 2 gp tip"]));
     expect(document.activeElement).toBe(root.querySelector(".dd-ledger-panel .dd-create"));
   });
@@ -255,26 +255,20 @@ describe("FundsView", () => {
     expect(document.activeElement).toBe(rowOf("Rope"));
   });
 
-  it("opens a sale in the ledger as its item, and puts focus back on the sale after the redraw", async () => {
-    const openEntry = vi.fn<OpenEntry>();
+  it("opens a sale in the ledger as any entry, and puts focus back on the sale after the redraw", async () => {
+    const openLedgerEntry = vi.fn<OpenLedgerEntry>();
     const openItem = vi.fn<OpenItem>();
-    const later = ["$ 5 gp found", "", "", "", "$$ Torch :lost"];
-    const lines = ["$ Torch", "$ Hook", "$$ Hook :lost", "$ Rope", "$$ Rope :sold 3 gp"];
-    const { root, change } = await openView(campaignOf(lines, later), [], vi.fn(), openEntry, openItem);
+    const lines = ["$ Rope", "$$ Rope :sold 3 gp"];
+    const { root, change } = await openView(campaignOf(lines), [], vi.fn(), openLedgerEntry, openItem);
     const document = root.ownerDocument;
     document.body.append(root);
     const rowAt = (line: number) => root.querySelector(`.dd-ledger-row[data-line="${line}"]`) as HTMLElement;
-    rowAt(4).click();
-    expect(openItem).toHaveBeenCalledWith("Rope", { path: "Pale Moon/Sessions/Session 1.md", line: 4 }, expect.any(Function));
-    openItem.mock.calls[0]![2](true);
-    change(campaignOf(["$ Torch", "$ Hook", "$$ Hook :lost", "$ Rope", "$$ Rope :sold 4 gp"], later));
-    expect(document.activeElement).toBe(rowAt(4));
-    rowAt(4).click();
-    openItem.mock.calls[1]![2](false);
-    expect(document.activeElement).toBe(rowAt(4));
-    rowAt(0).click();
-    expect(openEntry).toHaveBeenCalledTimes(1);
-    expect(openItem).toHaveBeenCalledTimes(2);
+    rowAt(1).click();
+    expect(openLedgerEntry).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 1 }, expect.any(Function));
+    openLedgerEntry.mock.calls[0]![1]("written");
+    change(campaignOf(["$ Rope", "$$ Rope :sold 4 gp"]));
+    expect(document.activeElement).toBe(rowAt(1));
+    expect(openItem).not.toHaveBeenCalled();
   });
 
   it("forgets an item's pending focus once it is stale", async () => {
@@ -292,13 +286,13 @@ describe("FundsView", () => {
   });
 
   it("forgets a pending focus once it is stale", async () => {
-    const openEntry = vi.fn<OpenEntry>();
-    const { root, change } = await openView(campaignOf(["$ 5 gp found", "$ 2 gp tip"]), [], vi.fn(), openEntry);
+    const openLedgerEntry = vi.fn<OpenLedgerEntry>();
+    const { root, change } = await openView(campaignOf(["$ 5 gp found", "$ 2 gp tip"]), [], vi.fn(), openLedgerEntry);
     const document = root.ownerDocument;
     document.body.append(root);
     const now = vi.spyOn(Date, "now").mockReturnValue(1000);
     (root.querySelector('.dd-ledger-row[data-line="1"]') as HTMLElement).click();
-    openEntry.mock.calls[0]![1]("written");
+    openLedgerEntry.mock.calls[0]![1]("written");
     now.mockReturnValue(1000 + 3001);
     change(campaignOf(["$ 5 gp found", "$ 3 gp tip"]));
     now.mockRestore();

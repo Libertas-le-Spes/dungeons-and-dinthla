@@ -8,6 +8,7 @@ import { summariseFunds, type CoinCount, type FundsSummary, type LedgerLine } fr
 import { summariseItems, THE_PARTY_LABEL, type ItemSummary } from "./item-groups";
 import type { CoinOutcome } from "./coin-modal";
 import { addLedgerRow, NO_COIN_ENTRIES } from "./ledger-row";
+import type { OpenLedgerEntry } from "./open-ledger-entry";
 import { focusRowAt, NO_ROW, RowFocus } from "../views/row-focus";
 
 export const FUNDS_VIEW = "dungeons-and-dinthla-funds";
@@ -71,7 +72,7 @@ export class FundsView extends ItemView {
     private readonly actions: LinkActions,
     private readonly noteExists: (name: string, sourcePath: string) => boolean,
     private readonly addCoin: ((returnFocus: () => void) => void) | null,
-    private readonly openEntry: ((source: Source, onClosed: (outcome: CoinOutcome) => void) => void) | null,
+    private readonly openLedgerEntry: OpenLedgerEntry | null,
     private readonly openItem: ((name: string, source: Source, onClosed: (changed: boolean) => void) => void) | null,
   ) {
     super(leaf);
@@ -215,28 +216,11 @@ export class FundsView extends ItemView {
     this.rowFocus.afterClose(focusRow, outcome !== "unchanged", () => this.focusAddCoin());
   }
 
-  private soldAt(source: Source): ItemRecord | undefined {
-    return this.store.current.items.find(
-      (item) => item.gone !== null && item.gone.source.path === source.path && item.gone.source.line === source.line,
-    );
-  }
-
-  private afterSale(source: Source, changed: boolean): void {
-    let outcome: CoinOutcome = "unchanged";
-    if (changed) outcome = "written";
-    this.afterEntry(source, outcome);
-  }
-
   private addLedgerRow(list: HTMLElement, line: LedgerLine): void {
-    const { record } = line;
     let actions = this.actions;
-    const openEntry = this.openEntry;
-    const openItem = this.openItem;
-    const sold = this.soldAt(record.source);
-    if (sold !== undefined && openItem !== null) {
-      actions = { ...this.actions, openRow: (source: Source) => openItem(sold.name, source, (changed) => this.afterSale(source, changed)) };
-    } else if (openEntry !== null) {
-      actions = { ...this.actions, openRow: (source: Source) => openEntry(source, (outcome) => this.afterEntry(source, outcome)) };
+    const openLedgerEntry = this.openLedgerEntry;
+    if (openLedgerEntry !== null) {
+      actions = { ...this.actions, openRow: (source: Source) => openLedgerEntry(source, (outcome) => this.afterEntry(source, outcome)) };
     }
     addLedgerRow(list, line, actions, this.actions);
   }
