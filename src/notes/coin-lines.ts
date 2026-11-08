@@ -11,7 +11,13 @@ export interface CoinDraft {
   what: string;
 }
 
-export type CoinReading = { line: string; copper: number; reads: string } | { error: string };
+export interface CoinLine {
+  line: string;
+  copper: number;
+  reads: string;
+}
+
+export type CoinReading = CoinLine | { error: string };
 
 const ONE_AMOUNT = /(?:\d{1,3}(?:,\d{3})+|\d{1,9})\s*(?:pp|gp|ep|sp|cp)\b/gi;
 const AMOUNT_ONLY = /^(?:(?:\d{1,3}(?:,\d{3})+|\d{1,9})\s*(?:pp|gp|ep|sp|cp)\b\s*)+$/i;

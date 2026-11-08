@@ -6,6 +6,7 @@ import type { ItemEventKind, ItemRecord, Source } from "../campaign/campaign";
 import { sessionLabelOf } from "../campaign/session-file";
 import { summariseFunds, type CoinCount, type FundsSummary, type LedgerLine } from "./funds-summary";
 import { summariseItems, type ItemSummary } from "./item-groups";
+import type { CoinOutcome } from "./coin-modal";
 
 export const FUNDS_VIEW = "dungeons-and-dinthla-funds";
 
@@ -53,6 +54,8 @@ function heldText(count: number): string {
   return `${count} held`;
 }
 
+const PENDING_FOCUS_MS = 3000;
+
 function entriesText(count: number): string {
   if (count === 0) return "";
   if (count === 1) return "1 entry";
@@ -65,7 +68,7 @@ export class FundsView extends ItemView {
   private ledgerCount!: HTMLElement;
   private ledgerList!: HTMLElement;
   private addCoinButton: HTMLElement | null = null;
-  private pendingEntry: Source | null = null;
+  private pendingFocus: { entry: Source | null; until: number } | null = null;
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -73,7 +76,7 @@ export class FundsView extends ItemView {
     private readonly actions: LinkActions,
     private readonly noteExists: (name: string, sourcePath: string) => boolean,
     private readonly addCoin: ((returnFocus: () => void) => void) | null,
-    private readonly openEntry: ((source: Source, onClosed: (changed: boolean) => void) => void) | null = null,
+    private readonly openEntry: ((source: Source, onClosed: (outcome: CoinOutcome) => void) => void) | null,
   ) {
     super(leaf);
   }
@@ -183,7 +186,7 @@ export class FundsView extends ItemView {
     this.ledgerList.empty();
     if (lines.length === 0) this.ledgerList.createEl("li", { cls: "dd-empty", text: "No coin entries yet." });
     for (const line of lines) this.addLedgerRow(this.ledgerList, line);
-    this.focusPendingEntry();
+    this.focusPending();
   }
 
   private focusEntryRow(source: Source): boolean {
@@ -194,26 +197,30 @@ export class FundsView extends ItemView {
     return true;
   }
 
-  private focusPendingEntry(): void {
-    const source = this.pendingEntry;
-    this.pendingEntry = null;
-    if (source === null) return;
-    if (!this.focusEntryRow(source) && this.addCoinButton !== null) this.addCoinButton.focus();
+  private focusPending(): void {
+    const pending = this.pendingFocus;
+    this.pendingFocus = null;
+    if (pending === null || Date.now() > pending.until) return;
+    if (pending.entry !== null && this.focusEntryRow(pending.entry)) return;
+    if (this.addCoinButton !== null) this.addCoinButton.focus();
   }
 
-  private afterEntry(source: Source, changed: boolean): void {
-    if (changed) {
-      this.pendingEntry = source;
+  private afterEntry(source: Source, outcome: CoinOutcome): void {
+    this.pendingFocus = null;
+    if (outcome === "unchanged") {
+      this.focusEntryRow(source);
       return;
     }
-    this.focusEntryRow(source);
+    let entry: Source | null = source;
+    if (outcome === "deleted") entry = null;
+    this.pendingFocus = { entry, until: Date.now() + PENDING_FOCUS_MS };
   }
 
   private addLedgerRow(list: HTMLElement, { record, balance }: LedgerLine): void {
     let actions = this.actions;
     const openEntry = this.openEntry;
     if (openEntry !== null) {
-      actions = { ...this.actions, openRow: (source: Source) => openEntry(source, (changed) => this.afterEntry(source, changed)) };
+      actions = { ...this.actions, openRow: (source: Source) => openEntry(source, (outcome) => this.afterEntry(source, outcome)) };
     }
     const row = addRowButton(list, record.source, actions);
     row.addClass("dd-ledger-row");

@@ -11,6 +11,7 @@ import { openNewQuest } from "./quests/open-new-quest";
 import { openQuest } from "./quests/open-quest";
 import { QUESTS_VIEW, questsKind } from "./quests/quests-kind";
 import { FUNDS_VIEW, FundsView } from "./funds/funds-view";
+import type { CoinOutcome } from "./funds/coin-modal";
 import { openAddCoin, openCoinEntry } from "./funds/open-add-coin";
 import { CampaignListView } from "./views/list-view";
 import { openSideView, openSource } from "./views/open-view";
@@ -59,7 +60,7 @@ export default class DungeonsAndDinthla extends Plugin {
     this.addCommand({ id: "open-quests", name: "Open quests", callback: () => void openSideView(this.app, QUESTS_VIEW) });
     const noteExists = (name: string, sourcePath: string) => this.app.metadataCache.getFirstLinkpathDest(name, sourcePath) !== null;
     const addCoin = (returnFocus: () => void) => openAddCoin(this.app, this.store, returnFocus);
-    const openEntry = (source: Source, onClosed: (changed: boolean) => void) =>
+    const openEntry = (source: Source, onClosed: (outcome: CoinOutcome) => void) =>
       openCoinEntry(this.app, this.store, source, () => void openSource(this.app, source), onClosed);
     this.registerView(FUNDS_VIEW, (leaf) => new FundsView(leaf, this.store, actions, noteExists, addCoin, openEntry));
     this.addRibbonIcon("coins", "Open party funds", () => void openSideView(this.app, FUNDS_VIEW));

@@ -1,19 +1,17 @@
 import { Modal, Notice, Setting, type App, type ButtonComponent } from "obsidian";
-import { readCoinDraft, type CoinDraft, type Direction } from "../notes/coin-lines";
+import { readCoinDraft, type CoinDraft, type CoinLine, type Direction } from "../notes/coin-lines";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
+import type { CoinEntryChoices } from "./coin-entry";
 
-export interface CoinEntryChoices {
-  draft: CoinDraft;
-  remove(): Promise<boolean>;
-}
+export type CoinOutcome = "unchanged" | "written" | "deleted";
 
 const CONFIRM_MS = 4000;
 
 export class CoinModal extends Modal {
   private readonly draft: CoinDraft;
   private confirmTimer: number | null = null;
-  private changed = false;
+  private outcome: CoinOutcome = "unchanged";
   private reading: HTMLElement | null = null;
   private amountInput: HTMLInputElement | null = null;
   private busy = false;
@@ -21,9 +19,9 @@ export class CoinModal extends Modal {
   constructor(
     app: App,
     private readonly writesTo: string,
-    private readonly add: (line: string) => Promise<boolean>,
+    private readonly save: (written: CoinLine) => Promise<boolean>,
     private readonly entry: CoinEntryChoices | null,
-    private readonly onClosed: (changed: boolean) => void,
+    private readonly onClosed: (outcome: CoinOutcome) => void,
   ) {
     super(app);
     this.draft = { direction: "in", amount: "", what: "" };
@@ -64,7 +62,7 @@ export class CoinModal extends Modal {
     if (this.entry !== null) where = `Saving replaces the entry's line in ${this.writesTo}.`;
     contentEl.createEl("p", { cls: "dd-where", text: where });
     const buttons = new Setting(contentEl)
-      .addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.save()))
+      .addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.submit()))
       .addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));
     const entry = this.entry;
     if (entry !== null) {
@@ -84,7 +82,7 @@ export class CoinModal extends Modal {
   override onClose(): void {
     if (this.confirmTimer !== null) window.clearTimeout(this.confirmTimer);
     this.contentEl.empty();
-    this.onClosed(this.changed);
+    this.onClosed(this.outcome);
   }
 
   private confirmDelete(button: ButtonComponent, entry: CoinEntryChoices): void {
@@ -96,12 +94,18 @@ export class CoinModal extends Modal {
       }, CONFIRM_MS);
       return;
     }
-    this.write(() => entry.remove());
+    this.run("deleted", () => entry.remove());
   }
 
   private showReading(): void {
     if (this.reading === null) return;
     this.reading.removeClass("dd-error");
+    const cannotSave = this.cannotSave();
+    if (cannotSave !== null) {
+      this.reading.addClass("dd-error");
+      this.reading.setText(cannotSave);
+      return;
+    }
     if (this.draft.amount.trim() === "") {
       this.reading.setText("");
       return;
@@ -119,32 +123,42 @@ export class CoinModal extends Modal {
     input.addEventListener("keydown", (event) => {
       if (event.defaultPrevented || !isSubmit(event, false)) return;
       event.preventDefault();
-      this.save();
+      this.submit();
     });
   }
 
-  private save(): void {
+  private cannotSave(): string | null {
+    if (this.entry === null) return null;
+    return this.entry.cannotSave;
+  }
+
+  private submit(): void {
     const reading = readCoinDraft(this.draft);
-    if ("error" in reading) {
+    if (this.cannotSave() !== null || "error" in reading) {
       this.showReading();
       if (this.amountInput !== null) this.amountInput.focus();
       return;
     }
-    this.write(() => this.add(reading.line));
+    this.run("written", () => this.save(reading));
   }
 
-  private write(change: () => Promise<boolean>): void {
+  private failureText(): string {
+    if (this.entry === null) return "Couldn't add the coin";
+    return "Couldn't change the entry";
+  }
+
+  private run(done: CoinOutcome, change: () => Promise<boolean>): void {
     if (this.busy) return;
     this.busy = true;
     change()
       .then((wrote) => {
         this.busy = false;
-        this.changed = wrote;
+        if (wrote) this.outcome = done;
         this.close();
       })
       .catch((error: unknown) => {
         this.busy = false;
-        new Notice(`Couldn't change the coin: ${messageOf(error)}`);
+        new Notice(`${this.failureText()}: ${messageOf(error)}`);
       });
   }
 }

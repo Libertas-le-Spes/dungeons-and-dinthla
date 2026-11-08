@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import type { WorkspaceLeaf } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
-import type { Campaign } from "../../src/campaign/campaign";
+import type { Campaign, Source } from "../../src/campaign/campaign";
 import type { CampaignStore } from "../../src/campaign/campaign-store";
+import type { CoinOutcome } from "../../src/funds/coin-modal";
 import { FundsView } from "../../src/funds/funds-view";
 import { obsidianDocument } from "../views/obsidian-dom";
 
@@ -17,7 +18,14 @@ function campaignOf(lines: string[], ...laterSessions: string[][]): Campaign {
   );
 }
 
-async function openView(campaign: Campaign, notes: string[] = ["Mira"], addCoin: ((returnFocus: () => void) => void) | null = null) {
+type OpenEntry = (source: Source, onClosed: (outcome: CoinOutcome) => void) => void;
+
+async function openView(
+  campaign: Campaign,
+  notes: string[] = ["Mira"],
+  addCoin: ((returnFocus: () => void) => void) | null = null,
+  openEntry: OpenEntry | null = null,
+) {
   let listener: (campaign: Campaign) => void = () => {};
   const unsubscribe = vi.fn();
   const store = {
@@ -29,7 +37,7 @@ async function openView(campaign: Campaign, notes: string[] = ["Mira"], addCoin:
   };
   const actions = { openRow: vi.fn(), openLink: vi.fn() };
   const noteExists = (name: string) => notes.includes(name);
-  const view = new FundsView({} as WorkspaceLeaf, store as unknown as CampaignStore, actions, noteExists, addCoin);
+  const view = new FundsView({} as WorkspaceLeaf, store as unknown as CampaignStore, actions, noteExists, addCoin, openEntry);
   const root = obsidianDocument().createElement("div");
   view.contentEl = root;
   const registered: (() => void)[] = [];
@@ -184,28 +192,47 @@ describe("FundsView", () => {
     expect(root.querySelector(".dd-ledger-panel .dd-count")?.textContent).toBe("1 entry");
   });
 
-  it("opens a ledger entry to change it, and puts focus back on its row after the redraw", async () => {
-    const store = { current: campaignOf(["$ 5 gp found"]), listener: (_campaign: Campaign) => {} };
-    const openEntry = vi.fn();
-    const view = new FundsView(
-      {} as WorkspaceLeaf,
-      { get current() { return store.current; }, subscribe: (next: (campaign: Campaign) => void) => { store.listener = next; return () => {}; } } as unknown as CampaignStore,
-      { openRow: vi.fn(), openLink: vi.fn() },
-      () => true,
-      null,
-      openEntry,
-    );
-    const document = obsidianDocument();
-    const root = document.createElement("div");
+  it("opens a ledger entry to change it, and puts focus back on that entry after the redraw", async () => {
+    const openEntry = vi.fn<OpenEntry>();
+    const lines = ["$ 5 gp found", "$ 2 gp tip", "$ 7 gp later"];
+    const { root, change } = await openView(campaignOf(lines), [], vi.fn(), openEntry);
+    const document = root.ownerDocument;
     document.body.append(root);
-    view.contentEl = root;
-    view.register = () => {};
-    await view.onOpen();
-    (root.querySelector(".dd-ledger-row") as HTMLElement).click();
-    expect(openEntry).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 0 }, expect.any(Function));
-    openEntry.mock.calls[0]![1](true);
-    store.current = campaignOf(["$ 8 gp found"]);
-    store.listener(store.current);
-    expect((document.activeElement as HTMLElement).classList.contains("dd-ledger-row")).toBe(true);
+    const rowAt = (line: number) => root.querySelector(`.dd-ledger-row[data-line="${line}"]`) as HTMLElement;
+    rowAt(1).click();
+    expect(openEntry).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 1 }, expect.any(Function));
+    openEntry.mock.calls[0]![1]("written");
+    change(campaignOf(["$ 5 gp found", "$ 3 gp tip", "$ 7 gp later"]));
+    expect(document.activeElement).toBe(rowAt(1));
+    expect(rowAt(1).querySelector(".dd-what")?.textContent).toBe("3 gp tip");
+  });
+
+  it("puts focus on Add coin after an entry is deleted, and back on the row when nothing changed", async () => {
+    const openEntry = vi.fn<OpenEntry>();
+    const { root, change } = await openView(campaignOf(["$ 5 gp found", "$ 2 gp tip"]), [], vi.fn(), openEntry);
+    const document = root.ownerDocument;
+    document.body.append(root);
+    const rowAt = (line: number) => root.querySelector(`.dd-ledger-row[data-line="${line}"]`) as HTMLElement;
+    rowAt(1).click();
+    openEntry.mock.calls[0]![1]("unchanged");
+    expect(document.activeElement).toBe(rowAt(1));
+    rowAt(0).click();
+    openEntry.mock.calls[1]![1]("deleted");
+    change(campaignOf(["$ 2 gp tip"]));
+    expect(document.activeElement).toBe(root.querySelector(".dd-ledger-panel .dd-create"));
+  });
+
+  it("forgets a pending focus once it is stale", async () => {
+    const openEntry = vi.fn<OpenEntry>();
+    const { root, change } = await openView(campaignOf(["$ 5 gp found", "$ 2 gp tip"]), [], vi.fn(), openEntry);
+    const document = root.ownerDocument;
+    document.body.append(root);
+    const now = vi.spyOn(Date, "now").mockReturnValue(1000);
+    (root.querySelector('.dd-ledger-row[data-line="1"]') as HTMLElement).click();
+    openEntry.mock.calls[0]![1]("written");
+    now.mockReturnValue(1000 + 3001);
+    change(campaignOf(["$ 5 gp found", "$ 3 gp tip"]));
+    now.mockRestore();
+    expect(document.activeElement).toBe(document.body);
   });
 });

@@ -1,3 +1,5 @@
+import { markerStartOf } from "./bullet";
+
 function lineBreakOf(text: string): string {
   if (text.includes("\r\n")) return "\r\n";
   return "\n";
@@ -36,4 +38,15 @@ export function removeLines(text: string, targets: LineToRemove[]): { text: stri
   const lastKept = kept.length - 1;
   if (taken.has(lines.length - 1) && lastKept >= 0) kept[lastKept] = kept[lastKept]!.replace(/\r$/, "");
   return { text: kept.join("\n"), removed: taken.size };
+}
+
+export function rewriteLine(text: string, target: LineToRemove, line: string): string | null {
+  const lines = text.split("\n");
+  const index = nearestMatch(lines, target, new Set());
+  if (index === -1) return null;
+  const old = lines[index]!;
+  let ending = "";
+  if (old.endsWith("\r")) ending = "\r";
+  lines[index] = `${old.slice(0, markerStartOf(old))}${line}${ending}`;
+  return lines.join("\n");
 }
