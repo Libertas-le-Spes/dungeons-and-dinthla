@@ -1,11 +1,11 @@
 import { ItemView, type WorkspaceLeaf } from "obsidian";
 import type { Campaign, Source } from "../campaign/campaign";
-import { mainNotePathOf } from "../campaign/campaign-folders";
+import { charactersFolderOf, mainNotePathOf } from "../campaign/campaign-folders";
 import type { CampaignStore } from "../campaign/campaign-store";
-import { characterCardOf, learnedFactsOf } from "../characters/character-cards";
+import { latestNumberIsShared, latestSession, SESSIONS_SHARE_A_NUMBER } from "../campaign/session-to-write";
 import type { CharacterCard } from "../characters/character-card";
 import type { CharacterNotes } from "../characters/character-notes";
-import { NO_CHARACTERS } from "../characters/characters-view";
+import { learnedFactsOf, readCharacterCard } from "../characters/read-character-card";
 import type { CoinOutcome } from "../funds/coin-modal";
 import { summariseFunds, type FundsSummary } from "../funds/funds-summary";
 import { summariseItems } from "../funds/item-groups";
@@ -16,15 +16,16 @@ import { addQuestionRow } from "../questions/question-row";
 import { listQuests } from "../quests/quest-list";
 import { addQuestRow } from "../quests/quest-row";
 import type { LinkActions } from "../views/linked-text";
-import { RowFocus } from "../views/row-focus";
-import { latestSessionOf, linesWrittenIn, type WrittenLine } from "./latest-session";
-import { addPartyCard } from "./party-card";
+import { focusRowAt, NO_ROW, RowFocus, type FocusRow } from "../views/row-focus";
+import { linesWrittenIn, type WrittenLine } from "./latest-session";
+import { addShortCharacterCard } from "./short-character-card";
 
 export const DASHBOARD_VIEW = "dungeons-and-dinthla-dashboard";
 
 const SHOWN_ROWS = 3;
 const SHOWN_SESSION_LINES = 4;
 const NO_SESSION = "No sessions yet. Start one to write in it.";
+const NO_CHARACTERS = "No characters yet. A note in the campaign’s Characters folder adds one.";
 
 export interface DashboardActions extends LinkActions {
   openQuestion(source: Source, onClosed: (changed: boolean) => void): void;
@@ -45,6 +46,8 @@ interface Panel {
   link: HTMLElement;
 }
 
+type OpenRow = (source: Source, onClosed: (changed: boolean) => void) => void;
+
 function countWord(count: number, one: string, many: string): string {
   if (count === 1) return one;
   return many;
@@ -61,20 +64,19 @@ export class DashboardView extends ItemView {
   private purseTotal!: HTMLElement;
   private inOut!: HTMLElement;
   private ledgerList!: HTMLElement;
-  private party!: Panel;
-  private partyList!: HTMLElement;
+  private characters!: Panel;
+  private characterList!: HTMLElement;
   private session!: Panel;
-  private writeButton!: HTMLElement;
   private sessionCount!: HTMLElement;
   private sessionList!: HTMLElement;
   private latestPath: string | null = null;
-  private partyRenders = 0;
+  private characterRenders = 0;
   private readonly rowFocus = new RowFocus();
 
   constructor(
     leaf: WorkspaceLeaf,
     private readonly store: CampaignStore,
-    private readonly characters: CharacterNotes,
+    private readonly notes: CharacterNotes,
     private readonly actions: DashboardActions,
   ) {
     super(leaf);
@@ -100,12 +102,12 @@ export class DashboardView extends ItemView {
     this.buildQuestions(grid);
     this.buildQuests(grid);
     this.buildPurse(grid);
-    this.buildParty(grid);
+    this.buildCharacters(grid);
     this.buildSession(grid);
     this.register(this.store.subscribe(() => this.render()));
     this.register(
-      this.characters.onNoteChanged((path) => {
-        if (this.showsCharacterNote(path)) void this.renderParty();
+      this.notes.onNoteChanged((path) => {
+        if (this.showsCharacterNote(path)) void this.renderCharacters();
       }),
     );
     this.render();
@@ -140,15 +142,14 @@ export class DashboardView extends ItemView {
     this.ledgerList = this.purse.section.createEl("ul", { cls: "dd-ledger" });
   }
 
-  private buildParty(grid: HTMLElement): void {
-    this.party = this.addPanel(grid, "Characters", "All characters", () => this.actions.showCharacters());
-    this.party.section.addClass("dd-wide", "dd-characters");
-    this.partyList = this.party.section.createEl("ul", { cls: "dd-party" });
+  private buildCharacters(grid: HTMLElement): void {
+    this.characters = this.addPanel(grid, "Characters", "All characters", () => this.actions.showCharacters());
+    this.characters.section.addClass("dd-wide", "dd-characters");
+    this.characterList = this.characters.section.createEl("ul", { cls: "dd-character-list" });
   }
 
   private buildSession(grid: HTMLElement): void {
     this.session = this.addPanel(grid, "", "Write notes", () => this.writeInLatest());
-    this.writeButton = this.session.link;
     const newSession = this.session.links.createEl("button", { cls: "dd-panel-link", text: "New session", prepend: true });
     this.registerDomEvent(newSession, "click", () => this.actions.startSession());
     this.sessionCount = this.session.section.createDiv({ cls: "dd-big" });
@@ -162,7 +163,7 @@ export class DashboardView extends ItemView {
     this.renderQuests(campaign);
     this.renderPurse(campaign, funds);
     this.renderSession(campaign, funds);
-    void this.renderParty();
+    void this.renderCharacters();
     this.rowFocus.afterRender();
   }
 
@@ -176,21 +177,28 @@ export class DashboardView extends ItemView {
     element.createSpan({ cls: "dd-big-word", text: word });
   }
 
-  private rowActions(panel: Panel, open: (source: Source, onClosed: (changed: boolean) => void) => void): LinkActions {
+  private rowActions(panel: Panel, open: OpenRow): LinkActions {
     return {
       ...this.actions,
-      openRow: (source: Source) => open(source, (changed) => this.afterClose(panel, source, changed)),
+      openRow: (source: Source) => open(source, (changed) => this.afterClose(panel, () => focusRowAt(panel.section, source), changed)),
     };
   }
 
   private coinActions(panel: Panel): LinkActions {
-    const open = (source: Source, onClosed: (changed: boolean) => void) =>
-      this.actions.openCoinEntry(source, (outcome) => onClosed(outcome !== "unchanged"));
-    return this.rowActions(panel, open);
+    return {
+      ...this.actions,
+      openRow: (source: Source) => this.actions.openCoinEntry(source, (outcome) => this.afterCoinEntry(panel, source, outcome)),
+    };
   }
 
-  private afterClose(panel: Panel, source: Source, changed: boolean): void {
-    this.rowFocus.afterClose(panel.section, source, changed, () => panel.link.focus());
+  private afterCoinEntry(panel: Panel, source: Source, outcome: CoinOutcome): void {
+    let focusRow = () => focusRowAt(panel.section, source);
+    if (outcome === "deleted") focusRow = NO_ROW;
+    this.afterClose(panel, focusRow, outcome !== "unchanged");
+  }
+
+  private afterClose(panel: Panel, focusRow: FocusRow, changed: boolean): void {
+    this.rowFocus.afterClose(focusRow, changed, () => panel.link.focus());
   }
 
   private renderQuestions(campaign: Campaign): void {
@@ -224,20 +232,23 @@ export class DashboardView extends ItemView {
   }
 
   private renderSession(campaign: Campaign, funds: FundsSummary): void {
-    const latest = latestSessionOf(this.store.sessionNotes);
+    const folder = this.store.campaignFolder;
+    const paths = this.store.sessionNotes.map((session) => session.path);
+    this.latestPath = null;
+    if (folder !== null) this.latestPath = latestSession(folder, paths);
     this.sessionList.empty();
+    const latest = this.latestPath;
+    this.session.link.toggle(latest !== null);
     if (latest === null) {
-      this.latestPath = null;
       this.session.title.setText("Latest session");
-      this.writeButton.hide();
       this.sessionCount.empty();
-      this.sessionList.createEl("li", { cls: "dd-empty", text: NO_SESSION });
+      let why = NO_SESSION;
+      if (folder !== null && latestNumberIsShared(folder, paths)) why = SESSIONS_SHARE_A_NUMBER;
+      this.sessionList.createEl("li", { cls: "dd-empty", text: why });
       return;
     }
-    this.latestPath = latest.path;
-    this.session.title.setText(this.actions.sessionHeadingOf(latest.path));
-    this.writeButton.show();
-    const lines = linesWrittenIn(latest.path, campaign, funds.ledger);
+    this.session.title.setText(this.actions.sessionHeadingOf(latest));
+    const lines = linesWrittenIn(latest, campaign, funds.ledger);
     this.showCount(this.sessionCount, lines.length, countWord(lines.length, "line", "lines"), "Nothing written yet");
     for (const line of lines.slice(0, SHOWN_SESSION_LINES)) this.addWrittenLine(line);
   }
@@ -263,22 +274,22 @@ export class DashboardView extends ItemView {
   private showsCharacterNote(path: string): boolean {
     const folder = this.store.campaignFolder;
     if (folder === null) return false;
-    return path === mainNotePathOf(folder) || path.startsWith(`${folder}/Characters/`);
+    return path === mainNotePathOf(folder) || path.startsWith(`${charactersFolderOf(folder)}/`);
   }
 
-  private async renderParty(): Promise<void> {
-    const render = ++this.partyRenders;
-    const cards = await this.partyCards();
-    if (render !== this.partyRenders) return;
-    this.partyList.empty();
-    if (cards.length === 0) this.partyList.createEl("li", { cls: "dd-empty", text: NO_CHARACTERS });
-    for (const card of cards) addPartyCard(this.partyList, card, this.actions);
+  private async renderCharacters(): Promise<void> {
+    const render = ++this.characterRenders;
+    const cards = await this.characterCards();
+    if (render !== this.characterRenders) return;
+    this.characterList.empty();
+    if (cards.length === 0) this.characterList.createEl("li", { cls: "dd-empty", text: NO_CHARACTERS });
+    for (const card of cards) addShortCharacterCard(this.characterList, card, this.actions);
   }
 
-  private async partyCards(): Promise<CharacterCard[]> {
+  private async characterCards(): Promise<CharacterCard[]> {
     const folder = this.store.campaignFolder;
     if (folder === null) return [];
-    const learned = learnedFactsOf(this.store.sessionNotes, this.characters);
-    return Promise.all(this.characters.filesIn(folder).map((file) => characterCardOf(file, learned, this.characters)));
+    const learned = learnedFactsOf(this.store.sessionNotes, this.notes);
+    return Promise.all(this.notes.filesIn(folder).map((file) => readCharacterCard(file, learned, this.notes)));
   }
 }

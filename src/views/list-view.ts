@@ -2,7 +2,7 @@ import { ItemView, type WorkspaceLeaf } from "obsidian";
 import type { Campaign, Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { keywordsOf } from "./keywords";
-import { RowFocus } from "./row-focus";
+import { focusRowAt, RowFocus } from "./row-focus";
 import type { LinkActions } from "./linked-text";
 
 export interface ListContents<T> {
@@ -106,7 +106,7 @@ export class CampaignListView<T> extends ItemView {
   }
 
   focusRow(source: Source, afterChange: boolean): void {
-    this.rowFocus.afterClose(this.contentEl, source, afterChange, () => this.filter.focus());
+    this.rowFocus.afterClose(() => focusRowAt(this.contentEl, source), afterChange, () => this.filter.focus());
   }
 
   private fill(list: HTMLElement, items: T[], keywords: string[], emptyText: string): void {

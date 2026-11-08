@@ -12,9 +12,12 @@ export function focusRowAt(container: HTMLElement, source: Source): boolean {
   return true;
 }
 
+export type FocusRow = () => boolean;
+
+export const NO_ROW: FocusRow = () => false;
+
 interface PendingFocus {
-  container: HTMLElement;
-  source: Source;
+  focusRow: FocusRow;
   fallback: () => void;
   until: number;
 }
@@ -22,16 +25,16 @@ interface PendingFocus {
 export class RowFocus {
   private pending: PendingFocus | null = null;
 
-  afterClose(container: HTMLElement, source: Source, changed: boolean, fallback: () => void): void {
-    focusRowAt(container, source);
+  afterClose(focusRow: FocusRow, changed: boolean, fallback: () => void): void {
+    focusRow();
     this.pending = null;
-    if (changed) this.pending = { container, source, fallback, until: Date.now() + PENDING_FOCUS_MS };
+    if (changed) this.pending = { focusRow, fallback, until: Date.now() + PENDING_FOCUS_MS };
   }
 
   afterRender(): void {
     const pending = this.pending;
     this.pending = null;
     if (pending === null || Date.now() > pending.until) return;
-    if (!focusRowAt(pending.container, pending.source)) pending.fallback();
+    if (!pending.focusRow()) pending.fallback();
   }
 }

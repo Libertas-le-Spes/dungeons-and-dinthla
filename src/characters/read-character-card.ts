@@ -10,7 +10,7 @@ export function learnedFactsOf(sessions: SessionNote[], notes: CharacterNotes): 
   return factsByCharacter(sessions, (linktext, sourcePath) => notes.pathOfLink(linktext, sourcePath));
 }
 
-export async function characterCardOf(file: TFile, learnedFacts: LearnedFacts, notes: CharacterNotes): Promise<CharacterCard> {
+export async function readCharacterCard(file: TFile, learnedFacts: LearnedFacts, notes: CharacterNotes): Promise<CharacterCard> {
   const ownNote = await notes.textOf(file);
   let learned = learnedFacts.get(file.path);
   if (learned === undefined) learned = [];
