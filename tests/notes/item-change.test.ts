@@ -8,11 +8,12 @@ describe("readItemChange", () => {
       item: "Silvered lantern",
       kind: "changed",
       holder: "Mira",
+      holderLinked: true,
     });
   });
 
   it("reads a holder written without a link", () => {
-    expect(readItemChange("$$ Silvered lantern :changed to Mira")?.holder).toBe("Mira");
+    expect(readItemChange("$$ Silvered lantern :changed to Mira")).toMatchObject({ holder: "Mira", holderLinked: false });
   });
 
   it("reads a sale and its price", () => {

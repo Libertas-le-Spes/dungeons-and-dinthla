@@ -9,6 +9,7 @@ import {
   CHANGES_ANOTHER_ITEM,
   GONE_LINE_SAYS_MORE,
   latestSessionOfItem,
+  holderOptionOf,
   holderOptions,
   HOLDER_OF_GONE,
   initialItemEdit,
@@ -89,7 +90,29 @@ describe("saving an item", () => {
     expect(notes.item("Silvered lantern").holder).toBe("Thessaly");
     await notes.save("Silvered lantern", { holder: "the party" });
     expect(notes.texts.get(TWO)).toBe("$$ Silvered lantern :changed to [[Thessaly]]\n$$ Silvered lantern :changed to the party\n");
-    expect(holderOptions([notes.item("Silvered lantern").holder], [])[0]!.text).toBe("the party");
+    expect(holderOptions([holderOptionOf(notes.item("Silvered lantern"))], [])[0]!.text).toBe("the party");
+  });
+
+  it("writes a plain holder back as plain text, and a linked one as a link", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ Rope\n$$ Rope :changed to Old Tom\n$ [[Mira]] Torch\n$ Shield\n", [TWO]: "" });
+    expect(holderOptionOf(notes.item("Rope"))).toEqual({ text: "Old Tom", label: "Old Tom" });
+    expect(holderOptionOf(notes.item("Torch"))).toEqual({ text: "[[Mira]]", label: "Mira" });
+    await notes.save("Shield", { holder: "Old Tom" });
+    await notes.save("Rope", { holder: "[[Mira]]" });
+    await notes.save("Torch", { holder: "Old Tom" });
+    expect(notes.texts.get(TWO)).toBe("$$ Shield :changed to Old Tom\n$$ Rope :changed to [[Mira]]\n$$ Torch :changed to Old Tom\n");
+    expect([notes.item("Rope").holderLinked, notes.item("Torch").holderLinked]).toEqual([true, false]);
+  });
+
+  it("keeps a plain holder plain when an item named only by the line that took it is set held again", async () => {
+    const notes = new FakeNotes({ [ONE]: "$$ Rope :changed to Old Tom\n$$ [[Rope]] :lost\n", [TWO]: "" });
+    await notes.save("Rope", { status: "held" });
+    expect(notes.texts.get(TWO)).toBe("$$ [[Rope]] :changed to Old Tom\n");
+  });
+
+  it("reads a holder named by a $ line as linked again after a plain one", () => {
+    const notes = new FakeNotes({ [ONE]: "$ Rope\n$$ Rope :changed to Old Tom\n$ [[Mira]] Rope\n" });
+    expect(initialItemEdit(notes.item("Rope")).holder).toBe("[[Mira]]");
   });
 
   it("gives an item away and sells it in one step, in that order", async () => {
@@ -283,10 +306,26 @@ describe("where an item's lines go", () => {
 
 describe("holder options", () => {
   it("offers the party first, then each holder and character once, by name", () => {
-    const options = holderOptions(["Mira", "the party", "Characters/Thessaly"], [
+    const notes = new FakeNotes({ [ONE]: "$ [[Mira]] Rope\n$ Torch\n$ [[Characters/Thessaly]] Shield\n" });
+    const options = holderOptions(notes.current.items.map(holderOptionOf), [
       { text: "[[Mira]]", label: "Mira" },
       { text: "[[Bram]]", label: "Bram" },
     ]);
     expect(options.map((option) => option.label)).toEqual(["The party", "Bram", "Mira", "Thessaly"]);
+  });
+
+  it("links a holder that has a character note, even where an item names them in plain text", () => {
+    const notes = new FakeNotes({ [ONE]: "$ Rope\n$$ Rope :changed to Old Tom\n$$ Torch :changed to Bram\n" });
+    const options = holderOptions(notes.current.items.map(holderOptionOf), [{ text: "[[Characters/Old Tom]]", label: "Old Tom" }]);
+    expect(options.map((option) => option.text)).toEqual(["the party", "Bram", "[[Characters/Old Tom]]"]);
+  });
+
+  it("refuses a plan that would write a plain holder as a link", () => {
+    const notes = new FakeNotes({ [ONE]: "$ Rope\n", [TWO]: "" });
+    const item = notes.item("Rope");
+    const plan = planItemSave(item, { ...initialItemEdit(item), holder: "Old Tom" }, notes.sessionNotes, [], TWO);
+    if ("error" in plan) throw new Error(plan.error);
+    expect(refusalForItemPlan(notes.sessionNotes, item, plan)).toBeNull();
+    expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, added: ["$$ Rope :changed to [[Old Tom]]"] })).toBe(CHANGES_ANOTHER_ITEM);
   });
 });
