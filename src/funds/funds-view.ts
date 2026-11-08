@@ -1,8 +1,8 @@
 import { ItemView, type WorkspaceLeaf } from "obsidian";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { formatMoney } from "../notes/money";
-import { addLinkedText, addRowButton, type LinkActions } from "../views/linked-text";
-import type { ItemEventKind, ItemRecord } from "../campaign/campaign";
+import { addLinkedText, addNameLink, addRowButton, type LinkActions } from "../views/linked-text";
+import type { ItemEventKind, ItemRecord, Source } from "../campaign/campaign";
 import { sessionLabelOf } from "../campaign/session-file";
 import { summariseFunds, type CoinCount, type FundsSummary, type LedgerLine } from "./funds-summary";
 import { summariseItems, type ItemSummary } from "./item-groups";
@@ -24,13 +24,22 @@ function signedMoney(copper: number): string {
 }
 
 const NO_ITEMS = "No items held. A $ line without an amount, like “$ [[Mira]] Flame Tongue longsword”, adds one.";
-const GONE_WORDS: Partial<Record<ItemEventKind, string>> = { sold: "Sold", used: "Used up", lost: "Lost" };
+type GoneKind = "sold" | "used" | "lost";
+
+const GONE_WORDS: Record<GoneKind, string> = { sold: "Sold", used: "Used up", lost: "Lost" };
+
+function isGoneKind(kind: ItemEventKind): kind is GoneKind {
+  return kind in GONE_WORDS;
+}
 
 function goneWordOf(item: ItemRecord): string | null {
-  if (item.gone === null) return null;
-  const word = GONE_WORDS[item.gone.kind];
-  if (word === undefined) return null;
-  return word;
+  if (item.gone === null || !isGoneKind(item.gone.kind)) return null;
+  return GONE_WORDS[item.gone.kind];
+}
+
+function rowSourceOf(item: ItemRecord): Source {
+  if (item.gone === null) return item.source;
+  return item.gone.source;
 }
 
 function isSaleLogged(item: ItemRecord, ledger: LedgerLine[]): boolean {
@@ -118,7 +127,7 @@ export class FundsView extends ItemView {
     for (const group of summary.groups) {
       const heading = this.items.createEl("h3", { cls: "dd-holder" });
       if (group.holder === "") heading.setText("The party");
-      else addLinkedText(heading, `[[${group.holder}]]`, [], group.items[0]!.source.path, this.actions);
+      else addNameLink(heading, group.holder, group.items[0]!.source.path, this.actions).setText(group.holder);
       const list = this.items.createEl("ul", { cls: "dd-list" });
       for (const item of group.items) this.addItemRow(list, item, ledger);
     }
@@ -130,7 +139,8 @@ export class FundsView extends ItemView {
   }
 
   private addItemRow(list: HTMLElement, item: ItemRecord, ledger: LedgerLine[]): void {
-    const row = addRowButton(list, item.source, this.actions);
+    const source = rowSourceOf(item);
+    const row = addRowButton(list, source, this.actions);
     const goneWord = goneWordOf(item);
     if (goneWord === null) row.createSpan({ cls: "dd-mark dd-mark-ledger", text: "$" });
     else row.createSpan({ cls: "dd-mark dd-mark-gone", text: "✕", attr: { "aria-label": goneWord } });
@@ -143,7 +153,7 @@ export class FundsView extends ItemView {
       if (isSaleLogged(item, ledger)) meta.appendText(" · sale in the ledger");
       meta.appendText(" · ");
     }
-    meta.appendText(sessionLabelOf(item.source.path));
+    meta.appendText(sessionLabelOf(source.path));
   }
 
   private renderLedger(lines: LedgerLine[]): void {
