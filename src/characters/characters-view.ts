@@ -9,7 +9,7 @@ import { factsByCharacter, overrideFacts, sheetValuesOf, type SourcedFact } from
 
 export const CHARACTERS_VIEW = "dungeons-and-dinthla-characters";
 
-const NO_CHARACTERS = "No characters yet. A note in the campaign’s Characters folder adds one.";
+const NO_CHARACTERS = "No characters yet. Add one with New character.";
 
 type LearnedFacts = Map<string, SourcedFact[]>;
 
@@ -18,6 +18,7 @@ export class CharactersView extends BasesView {
   private readonly root: HTMLElement;
   private renders = 0;
   private campaignNotes = new Set<string | null>();
+  private createButton: HTMLButtonElement | null = null;
 
   constructor(
     controller: QueryController,
@@ -25,6 +26,7 @@ export class CharactersView extends BasesView {
     private readonly store: CampaignStore,
     private readonly notes: CharacterNotes,
     private readonly actions: LinkActions,
+    private readonly newCharacter: (returnFocus: () => void) => void,
   ) {
     super(controller);
     this.root = containerEl.createDiv({ cls: ["dd-tokens", "dd-root", "dd-list-view", "dd-characters"] });
@@ -64,7 +66,9 @@ export class CharactersView extends BasesView {
 
   private draw(cards: CharacterCard[]): void {
     this.root.empty();
-    const title = this.root.createDiv({ cls: "dd-head" }).createEl("h2", { cls: "dd-title", text: "Characters" });
+    const head = this.root.createDiv({ cls: "dd-head" });
+    const title = head.createEl("h2", { cls: "dd-title", text: "Characters" });
+    this.addCreateButton(head);
     if (cards.length === 0) {
       this.root.createEl("p", { cls: "dd-empty", text: NO_CHARACTERS });
       return;
@@ -72,6 +76,16 @@ export class CharactersView extends BasesView {
     title.createSpan({ cls: "dd-count", text: String(cards.length) });
     const gallery = this.root.createEl("ul", { cls: "dd-gallery" });
     for (const card of cards) addCharacterCard(gallery, card, this.actions);
+  }
+
+  private addCreateButton(head: HTMLElement): void {
+    const button = head.createEl("button", { cls: "dd-create", text: "New character" });
+    button.addEventListener("click", () => this.newCharacter(() => this.focusCreateButton()));
+    this.createButton = button;
+  }
+
+  private focusCreateButton(): void {
+    if (this.createButton !== null) this.createButton.focus();
   }
 
   private async sessionsIn(folder: string | null): Promise<SessionNote[]> {

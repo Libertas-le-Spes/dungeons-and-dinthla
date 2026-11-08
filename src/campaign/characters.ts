@@ -1,4 +1,5 @@
 import type { App } from "obsidian";
+import { charactersFolderOf } from "./campaign-folders";
 
 export interface Character {
   name: string;
@@ -6,7 +7,7 @@ export interface Character {
 }
 
 export function charactersIn(app: App, campaignFolder: string, sessionPath: string): Character[] {
-  const charactersFolder = `${campaignFolder}/Characters/`;
+  const charactersFolder = `${charactersFolderOf(campaignFolder)}/`;
   const characters: Character[] = [];
   for (const file of app.vault.getMarkdownFiles()) {
     if (!file.path.startsWith(charactersFolder)) continue;
