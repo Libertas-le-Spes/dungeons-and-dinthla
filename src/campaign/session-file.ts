@@ -20,6 +20,14 @@ export function firstLineAfterProperties(text: string): number {
   return linesBefore + 1;
 }
 
+function propertiesOf(text: string): string {
+  return text.split("\n").slice(0, firstLineAfterProperties(text)).join("\n");
+}
+
+export function keepsProperties(before: string, after: string): boolean {
+  return propertiesOf(before) === propertiesOf(after);
+}
+
 export function sessionNoteOf(path: string, number: number, text: string): SessionNote {
   return { path, number, text, firstLine: firstLineAfterProperties(text) };
 }
