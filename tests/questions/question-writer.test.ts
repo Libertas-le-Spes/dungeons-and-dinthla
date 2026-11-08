@@ -3,8 +3,8 @@ import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { QuestionRecord } from "../../src/campaign/campaign";
 import { sessionNoteOf } from "../../src/campaign/session-file";
-import { CHANGED_IN_NOTE, DUPLICATE_LINES, LINES_LEFT, PartlyWritten, type EditorVault } from "../../src/campaign/note-editor";
-import { planQuestionSave, planReopen, type QuestionEdit } from "../../src/questions/question-plan";
+import { CHANGED_IN_NOTE, LINES_LEFT, PartlyWritten, type EditorVault } from "../../src/campaign/note-editor";
+import { CHANGES_MORE_THAN_ASKED, planQuestionSave, planReopen, refusalForQuestionPlan, type QuestionEdit } from "../../src/questions/question-plan";
 import { QuestionWriter } from "../../src/questions/question-writer";
 
 class FakeNotes {
@@ -33,9 +33,12 @@ class FakeNotes {
     };
   }
 
+  sessions() {
+    return [...this.texts].map(([path, text]) => sessionNoteOf(path, Number(/(\d+)\.md$/.exec(path)![1]), text));
+  }
+
   questions(): QuestionRecord[] {
-    const sessions = [...this.texts].map(([path, text]) => sessionNoteOf(path, Number(/(\d+)\.md$/.exec(path)![1]), text));
-    return buildCampaign(sessions).questions;
+    return buildCampaign(this.sessions()).questions;
   }
 }
 
@@ -223,11 +226,17 @@ describe("QuestionWriter", () => {
     expect(notes.texts.get(ONE)).toBe("");
   });
 
-  it("deletes nothing when two lines in the note read like the question", async () => {
+  it("refuses to reopen a question with two answer lines, since the other would still answer it", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Where\n", [TWO]: "?= Where: mill\n?= Where: mill\n" });
+    const [question] = notes.questions();
+    const plan = planReopen(question!, TWO);
+    expect(refusalForQuestionPlan(notes.sessions(), question!, plan)).toBe(CHANGES_MORE_THAN_ASKED);
+  });
+
+  it("deletes only the opened question when another line reads the same", async () => {
     const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n? Who\n" });
-    const question = notes.questions()[1]!;
-    await expect(new QuestionWriter(notes.vault).delete(question)).rejects.toThrow(DUPLICATE_LINES);
-    expect(notes.texts.get(ONE)).toBe("? Who\n?= Who: Mira\n? Who\n");
+    await new QuestionWriter(notes.vault).delete(notes.questions()[1]!);
+    expect(notes.texts.get(ONE)).toBe("? Who\n?= Who: Mira\n");
   });
 
   it("says it wrote when it reopens or deletes, and not when there was no answer to reopen", async () => {

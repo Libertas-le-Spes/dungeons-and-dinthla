@@ -33,7 +33,7 @@ export interface QuestPlan {
 }
 
 export const CHANGES_ANOTHER_QUEST =
-  "That change would be read as changing more than asked, another quest or the purse beyond the reward, so nothing was written.";
+  "That change wouldn't be read as asked, or would change another quest or the purse beyond the reward, so nothing was written.";
 
 function outcomeKey(status: QuestStatus, text: string, path: string): string {
   return JSON.stringify([status, oneLine(text), path]);
