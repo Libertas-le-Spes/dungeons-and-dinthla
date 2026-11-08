@@ -51,7 +51,6 @@ describe("colourMarkers", () => {
     expect(marks(root).map(([text]) => text)).toEqual(["?"]);
   });
 
-
   it("colours a bulleted line behind the bullet Obsidian draws", () => {
     const root = rendered(
       '<ul class="has-list-bullet"><li><span class="list-bullet"></span>$ <a>Mira</a> <a>Silvered lantern</a></li></ul>',
@@ -81,5 +80,10 @@ describe("colourMarkers", () => {
 
   it("leaves a glyph split across elements alone", () => {
     expect(marks(rendered("<p>?<em>=</em> Who: Mira</p>"))).toEqual([]);
+  });
+
+  it("colours a loose bulleted line, whose text sits in a paragraph", () => {
+    const root = rendered('<ul><li><span class="list-bullet"></span><p>? Who</p></li></ul>');
+    expect(marks(root).map(([text]) => text)).toEqual(["?"]);
   });
 });

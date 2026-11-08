@@ -1,4 +1,5 @@
-import type { FrontMatterInfo, ItemView as RealItemView, Plugin as RealPlugin } from "obsidian";
+import { StateField } from "@codemirror/state";
+import type { FrontMatterInfo, ItemView as RealItemView, MarkdownFileInfo, Plugin as RealPlugin } from "obsidian";
 
 export class Plugin {
   app: RealPlugin["app"];
@@ -37,3 +38,8 @@ export function getFrontMatterInfo(content: string): FrontMatterInfo {
     contentStart: close.index + close[0].length,
   };
 }
+
+export const editorInfoField = StateField.define<MarkdownFileInfo>({
+  create: () => ({ file: null }) as unknown as MarkdownFileInfo,
+  update: (info) => info,
+});
