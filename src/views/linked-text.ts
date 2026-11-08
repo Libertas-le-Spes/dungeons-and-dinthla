@@ -2,6 +2,7 @@ import type { Source } from "../campaign/campaign";
 import { textRunsOf, type MarkedPiece } from "./text-parts";
 
 export interface LinkActions {
+  openRow(source: Source): void;
   openSource(source: Source): void;
   openLink(linktext: string, sourcePath: string): void;
 }
@@ -55,12 +56,12 @@ export function addRowButton(list: HTMLElement, source: Source, actions: LinkAct
     cls: "dd-row",
     attr: { role: "button", tabindex: "0", "data-path": source.path, "data-line": String(source.line) },
   });
-  row.addEventListener("click", () => actions.openSource(source));
+  row.addEventListener("click", () => actions.openRow(source));
   row.addEventListener("keydown", (event) => {
     if (event.target !== row) return;
     if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
-    actions.openSource(source);
+    actions.openRow(source);
   });
   return row;
 }

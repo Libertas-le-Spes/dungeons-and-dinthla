@@ -22,14 +22,15 @@ export default class DungeonsAndDinthla extends Plugin {
 
   override async onload(): Promise<void> {
     const actions = {
+      openRow: (source: Source) => void openSource(this.app, source),
       openSource: (source: Source) => void openSource(this.app, source),
       openLink: (linktext: string, sourcePath: string) => void this.app.workspace.openLinkText(linktext, sourcePath),
     };
     const questionActions = {
       ...actions,
-      openSource: (source: Source) => {
-        const opened = openQuestion(this.app, this.store, source, () => this.focusQuestionRow(source));
-        if (!opened) void openSource(this.app, source);
+      openRow: (source: Source) => {
+        const openNote = () => void openSource(this.app, source);
+        openQuestion(this.app, this.store, source, openNote, (changed) => this.focusQuestionRow(source, changed));
       },
     };
     this.registerView(QUESTIONS_VIEW, (leaf) => new CampaignListView(leaf, this.store, questionActions, questionsKind));
@@ -88,9 +89,9 @@ export default class DungeonsAndDinthla extends Plugin {
     if (text !== null) this.store.noteChanged(file.path, text);
   }
 
-  private focusQuestionRow(source: Source): void {
+  private focusQuestionRow(source: Source, afterChange: boolean): void {
     for (const leaf of this.app.workspace.getLeavesOfType(QUESTIONS_VIEW)) {
-      if (leaf.view instanceof CampaignListView) leaf.view.focusRow(source);
+      if (leaf.view instanceof CampaignListView) leaf.view.focusRow(source, afterChange);
     }
   }
 
