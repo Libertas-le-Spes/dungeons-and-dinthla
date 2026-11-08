@@ -1,4 +1,5 @@
 import { Notice, type App } from "obsidian";
+import { NO_CAMPAIGN } from "../campaign/campaign-folders";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
 import { latestSession, SESSIONS_SHARE_A_NUMBER, latestNumberIsShared } from "../campaign/session-to-write";
@@ -7,7 +8,6 @@ import { refusalForNewQuestion } from "./current-question";
 import { NewQuestionModal, type NewQuestion } from "./new-question-modal";
 import { QuestionWriter } from "./question-writer";
 
-const NO_CAMPAIGN = "Make a campaign first: a top-level folder with a main note of the same name.";
 const NO_SESSION = "Start a session first: questions are written into a session note.";
 
 export function openNewQuestion(app: App, store: CampaignStore, onClosed: () => void): void {
