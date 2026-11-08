@@ -24,6 +24,15 @@ describe("CampaignStore", () => {
     expect(store.campaignFolder).toBe("Pale Moon");
   });
 
+  it("gives the campaign as the editor has a note, reading it only when its text differs", async () => {
+    const fake = new FakeVault([{ path: "Pale Moon/Sessions/Session 1.md", text: "? Who" }]);
+    const { store, seen } = await openStore(fake);
+    expect(questionsIn(store.currentAsEdited("Pale Moon/Sessions/Session 1.md", "? Who"))).toEqual(["Who"]);
+    expect(seen).toHaveLength(1);
+    expect(questionsIn(store.currentAsEdited("Pale Moon/Sessions/Session 1.md", "? Who\n? Why"))).toEqual(["Who", "Why"]);
+    expect(seen).toHaveLength(2);
+  });
+
   it("re-reads a session note when it changes", async () => {
     const fake = new FakeVault([
       { path: "Pale Moon/Sessions/Session 1.md", text: "? Who" },

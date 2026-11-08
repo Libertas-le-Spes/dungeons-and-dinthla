@@ -47,6 +47,11 @@ export class CampaignStore {
     this.rebuild();
   }
 
+  currentAsEdited(path: string, text: string): Campaign {
+    if (!this.sessionNotes.some((session) => session.path === path && session.text === text)) this.noteChanged(path, text);
+    return this.current;
+  }
+
   noteChanged(path: string, text: string): void {
     this.markChanged(path);
     const number = this.numberInCampaign(path);
