@@ -1,10 +1,11 @@
 import { Notice, type App } from "obsidian";
-import type { Source } from "../campaign/campaign";
+import type { QuestionRecord, Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
 import { sessionToWriteIn } from "../campaign/session-to-write";
 import { ANSWER_GOES_ELSEWHERE, answerWouldGoElsewhere, currentQuestion, latestSessionOfQuestion, sharesTextWithEarlierOpenQuestion } from "./current-question";
 import { QuestionModal } from "./question-modal";
+import { planQuestionSave, planReopen, refusalForQuestionPlan, type QuestionPlan } from "./question-plan";
 import { QuestionWriter, type QuestionEdit } from "./question-writer";
 
 const NO_SESSION = "Start a session first: answers are written into a session note.";
@@ -42,14 +43,22 @@ export function openQuestion(
     return;
   }
   const writer = new QuestionWriter(app.vault);
+  const checkedApply = async (current: QuestionRecord, plan: QuestionPlan) => {
+    const refusal = refusalForQuestionPlan(store.sessionNotes, current, plan);
+    if (refusal !== null) throw new Error(refusal);
+    return writer.apply(plan);
+  };
   const latest = () => currentQuestion(store.current.questions, question);
   const choices = {
     save: async (edit: QuestionEdit) => {
       const current = latest();
       if (answerWouldGoElsewhere(store.current.questions, current, edit.answer)) throw new Error(ANSWER_GOES_ELSEWHERE);
-      return writer.save(current, edit, sessionPath);
+      return checkedApply(current, planQuestionSave(current, edit, sessionPath));
     },
-    reopen: () => writer.reopen(latest()),
+    reopen: () => {
+      const current = latest();
+      return checkedApply(current, planReopen(current, sessionPath));
+    },
     delete: () => writer.delete(latest()),
   };
   const places = { askedIn: sessionLabelOf(question.source.path), writesTo: sessionLabelOf(sessionPath) };
