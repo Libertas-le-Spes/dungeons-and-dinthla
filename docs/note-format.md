@@ -341,6 +341,16 @@ The sheet refuses, and writes nothing, when:
 
 The session line is written first and the character's note after it. If the note can't be changed by then, the sheet says the line was added but the note was left, so you can fix one of them by hand.
 
+#### In the notes
+
+Under the values, *In the notes* lists every line in the vault with a link to the character, and says how many there are (*3 lines*). It is built from Obsidian's own link index, so a link counts for the note Obsidian resolves it to, as for fact lines: `[[Mira]]`, `[[Characters/Mira|her]]` and `[[Mira#Stats]]` all count. A line with two links to them shows once. Links in a note's properties aren't lines, so the campaign note's `character` property doesn't show, and neither does an embed (`![[Mira]]`). Obsidian doesn't index links in code blocks or comments, so lines there don't show either.
+
+Each line shows as written, without its bullet, with the note it's in (*Session 12*). Tapping it opens that note at that line; tapping a link in it opens the link. Session lines come first, newest first: the highest session number, and in each session the last line first, since it was written last. Lines in any other note, such as a place's note or another character's, follow in the order of their notes' paths, also last line first. With no line yet it says *No note mentions [[Mira]] yet.* If the notes can't be read, it says so.
+
+A renamed character keeps their lines when Obsidian's *Automatically update internal links* setting is on, since every link is rewritten to the new name. With it off, the old links point nowhere, and their lines leave the list until the links are fixed.
+
+The list redraws on its own when Obsidian has resolved the links of a note that's on it or now links to the character, and when a note on it is deleted or renamed. It also redraws with the rest of the sheet. A changed note is checked by its own links only, so writing in a note outside the sheet's campaigns costs a look at that note's links and no more.
+
 ### Calling a character over
 
 Calling a character into another campaign is a choice, made in a dialog: everything, only the groups you pick (ability scores, other values, history), or only a link. The new campaign's note for them records it in two properties:
