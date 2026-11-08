@@ -98,7 +98,6 @@ export default class DungeonsAndDinthla extends Plugin {
     this.addCommand({ id: "open-funds", name: "Open party funds", callback: () => void openSideView(this.app, FUNDS_VIEW) });
     const characterNotes = characterNotesOf(this.app);
     const sheetNotes = sheetNotesOf(this.app);
-    const openCharacter = (path: string) => void openCharacterSheet(this.app, path);
     const sheetActions = {
       ...actions,
       editCharacter: (file: TFile) => editCharacter(this.app, characterNotes, file),
@@ -106,7 +105,7 @@ export default class DungeonsAndDinthla extends Plugin {
         void chooseSheetValue(this.app, this.store, sheetNotes, file, value, actions.openRow, onClosed),
     };
     this.registerView(CHARACTER_SHEET_VIEW, (leaf) => new CharacterSheetView(leaf, this.store, sheetNotes, sheetActions));
-    const galleryActions = { ...actions, openRow: (source: Source) => openCharacter(source.path) };
+    const galleryActions = { ...actions, openRow: (source: Source) => void openCharacterSheet(this.app, source.path) };
     const newCharacter = (returnFocus: () => void) => openNewCharacter(this.app, this.store.campaignFolder, returnFocus);
     const basesOn = this.registerBasesView(CHARACTERS_VIEW, {
       name: "Characters",
@@ -128,7 +127,7 @@ export default class DungeonsAndDinthla extends Plugin {
       showQuests: () => void openSideView(this.app, QUESTS_VIEW),
       showFunds: () => void openSideView(this.app, FUNDS_VIEW),
       showCharacters,
-      openCharacter,
+      openCharacterSheet: (path: string) => void openCharacterSheet(this.app, path),
       startSession: () => startSession(this.app, this.store.campaignFolder),
       sessionHeadingOf: (path: string) => sessionHeadingOf(path, this.app.metadataCache),
     };

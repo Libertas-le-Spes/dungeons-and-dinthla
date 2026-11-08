@@ -35,7 +35,7 @@ export interface DashboardActions extends LinkActions {
   showQuests(): void;
   showFunds(): void;
   showCharacters(): void;
-  openCharacter(path: string): void;
+  openCharacterSheet(path: string): void;
   startSession(): void;
   sessionHeadingOf(path: string): string;
 }
@@ -284,7 +284,7 @@ export class DashboardView extends ItemView {
     if (render !== this.characterRenders) return;
     this.characterList.empty();
     if (cards.length === 0) this.characterList.createEl("li", { cls: "dd-empty", text: NO_CHARACTERS });
-    const actions = { ...this.actions, openRow: (source: Source) => this.actions.openCharacter(source.path) };
+    const actions = { ...this.actions, openRow: (source: Source) => this.actions.openCharacterSheet(source.path) };
     for (const card of cards) addShortCharacterCard(this.characterList, card, actions);
   }
 

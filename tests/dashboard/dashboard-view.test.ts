@@ -71,7 +71,7 @@ async function openDashboard(sessions: SessionNote[], { folder = CAMPAIGN, chara
     showQuests: vi.fn(),
     showFunds: vi.fn(),
     showCharacters: vi.fn(),
-    openCharacter: vi.fn(),
+    openCharacterSheet: vi.fn(),
     startSession: vi.fn(),
     sessionHeadingOf: (path: string) => `${path.slice(path.lastIndexOf("/") + 1, -3)} · The ferry at dusk`,
   } satisfies DashboardActions;
@@ -303,7 +303,7 @@ describe("DashboardView", () => {
     expect(textsOf(characters, ".dd-card-own-label")).toEqual(["Your character"]);
     expect(characters.querySelector(".dd-empty")).toBeNull();
     characters.querySelector<HTMLElement>(".dd-card")!.click();
-    expect(actions.openCharacter).toHaveBeenCalledWith(`${CAMPAIGN}/Characters/Mira.md`);
+    expect(actions.openCharacterSheet).toHaveBeenCalledWith(`${CAMPAIGN}/Characters/Mira.md`);
     expect(actions.openRow).not.toHaveBeenCalled();
   });
 
