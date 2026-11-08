@@ -16,7 +16,7 @@ The plugin writes through `Vault.process`, which reads and changes a note in one
 
 A campaign is a top-level folder of the vault. Every note inside it, and in the folders inside it, belongs to the campaign.
 
-The folder's main note sits at its top and has the folder's name. It is the campaign's dashboard, and its properties hold the campaign's settings:
+The folder's main note sits at its top and has the folder's name. Its properties hold the campaign's settings:
 
 ```
 Curse of the Pale Moon/
@@ -59,6 +59,18 @@ Renaming the folder renames the campaign. Obsidian renames the main note's links
 **Background:** every note in the campaign's folder, and in the folders inside it, shows the `background` picture behind its text, under a wash of the page colour. A subtle wash lets the least of the picture through and a strong one the most. A `background` that links anything but a picture (avif, bmp, gif, jpeg, jpg, png, svg or webp), or a picture no longer in the vault, shows nothing. Notes outside every campaign, and the plugin's own panels, keep the plain background.
 
 **Campaign settings:** the plugin's page in Obsidian's settings shows the campaign you are in: its folder, its background picture and how much of the picture shows. The campaign you are in is the one whose note you opened last, or the one chosen on that page. The plugin keeps it in its own `data.json`, follows the folder when it is renamed, and starts in it next time unless a note of another campaign is open. Choosing a picture from the vault writes `background: "[[<picture>]]"` to the main note, **Remove picture** deletes the `background` property, and choosing how much shows writes `wash`. These writes go through Obsidian's own property editing, which writes the whole properties block again: comments in it can be lost, quoting can change, and a main note without properties gets a properties block at its top. The text below the properties is left as it is.
+
+**Dashboard:** *Open dashboard*, from the ribbon or the command palette, shows where the campaign you are in stands, in a tab of its own. It writes nothing and keeps nothing: each panel counts from the same lines as its full view, so the numbers match, and redraws as you write. Each panel opens its full view:
+
+| Panel | What it shows | Opens |
+|---|---|---|
+| Open questions | How many, and the three newest | *All questions*: the Questions view |
+| Active quests | How many, and the three newest | *All quests*: the Quests view |
+| Purse | The purse, how many items are held, money in and out, and the three latest entries | *Party funds*: the Funds view |
+| Characters | Each note in the campaign's `Characters` folder with its class, AC and HP, the player's own marked *Your character* | *All characters*: the gallery |
+| The latest session | Its heading, such as *Session 13 · The ferry at dusk*, how many questions, quests and coin entries were written in it, and the four written last | *Write notes*: the session's note. *New session* starts the next one |
+
+Tapping a question, quest or coin entry opens its dialog, as in its own view, and tapping a character opens their note.
 
 ## Session
 
