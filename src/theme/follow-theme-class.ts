@@ -1,6 +1,6 @@
 export const FOLLOW_THEME_CLASS = "dd-follow-theme";
 
-export class ThemeClass {
+export class FollowThemeClass {
   private readonly bodies = new Set<HTMLElement>();
 
   constructor(private readonly followsTheme: () => boolean) {}

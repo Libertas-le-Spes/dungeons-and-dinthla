@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FOLLOW_THEME_CLASS, ThemeClass } from "../../src/theme/theme-class";
+import { FOLLOW_THEME_CLASS, FollowThemeClass } from "../../src/theme/follow-theme-class";
 
 class FakeBody {
   readonly classes = new Set<string>();
@@ -18,22 +18,22 @@ function asBody(body: FakeBody): HTMLElement {
   return body as unknown as HTMLElement;
 }
 
-describe("ThemeClass", () => {
+describe("FollowThemeClass", () => {
   it("marks a body as following the theme when a community theme is active", () => {
     const main = new FakeBody();
-    new ThemeClass(() => true).add(asBody(main));
+    new FollowThemeClass(() => true).add(asBody(main));
     expect(main.classes.has(FOLLOW_THEME_CLASS)).toBe(true);
   });
 
   it("leaves a body unmarked under the default theme", () => {
     const main = new FakeBody();
-    new ThemeClass(() => false).add(asBody(main));
+    new FollowThemeClass(() => false).add(asBody(main));
     expect(main.classes.has(FOLLOW_THEME_CLASS)).toBe(false);
   });
 
   it("updates every open window when the theme changes", () => {
     let follow = false;
-    const themeClass = new ThemeClass(() => follow);
+    const themeClass = new FollowThemeClass(() => follow);
     const [main, popout] = [new FakeBody(), new FakeBody()];
     themeClass.add(asBody(main));
     themeClass.add(asBody(popout));
@@ -44,7 +44,7 @@ describe("ThemeClass", () => {
 
   it("stops updating a window once it closes", () => {
     let follow = true;
-    const themeClass = new ThemeClass(() => follow);
+    const themeClass = new FollowThemeClass(() => follow);
     const popout = new FakeBody();
     themeClass.add(asBody(popout));
     themeClass.remove(asBody(popout));
@@ -54,7 +54,7 @@ describe("ThemeClass", () => {
   });
 
   it("takes the class off every window when cleared", () => {
-    const themeClass = new ThemeClass(() => true);
+    const themeClass = new FollowThemeClass(() => true);
     const [main, popout] = [new FakeBody(), new FakeBody()];
     themeClass.add(asBody(main));
     themeClass.add(asBody(popout));
