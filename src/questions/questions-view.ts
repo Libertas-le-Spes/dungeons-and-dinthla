@@ -36,7 +36,7 @@ export class QuestionsView extends ItemView {
   override async onOpen(): Promise<void> {
     const root = this.contentEl;
     root.empty();
-    root.addClass("dd-questions");
+    root.addClass("dd-root", "dd-questions");
     const head = root.createDiv({ cls: "dd-head" });
     const title = head.createEl("h2", { cls: "dd-title", text: "Open questions" });
     this.openCount = title.createSpan({ cls: "dd-count" });
