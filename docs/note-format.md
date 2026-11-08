@@ -7,7 +7,7 @@ The project grows in small steps, so parts of this page are still planned. Whoev
 Three rules hold everywhere:
 
 - **The notes are the record.** Answers, statuses, holders and sheet values are all lines in notes. The plugin keeps nothing of its own but the campaign you were last in, so a vault synced to a tablet carries everything with it.
-- **Nothing you write is moved or rewritten.** A change is recorded as a new line that names the earlier one (see [Following up](#following-up-an-earlier-line)). The plugin adds lines and never edits one, except a `$` ledger entry you change from the Funds view, or the price on an item's `:sold` line, which are rewritten where they stand. It deletes lines only when you ask it to: reopening a question or changing its answer removes the old answer line (two answers would leave the question unclear), setting a quest active again or changing its outcome removes the old outcome line, and deleting a question or quest removes it with its own follow-up lines. No change is written that would turn lines into a note's properties, as removing the line before a `---` at the top of a note could; the plugin refuses and says so. The one other change it makes to what you wrote is to a campaign's main note, when you change its background picture or wash in the plugin's settings (see [Campaign](#campaign)).
+- **Nothing you write is moved or rewritten.** A change is recorded as a new line that names the earlier one (see [Following up](#following-up-an-earlier-line)). The plugin adds lines and never edits one, except a `$` ledger entry you change from the Funds view, or the price on an item's `:sold` line, or a `type`, `subtitle` or `speed` line on a character's own note that you change in the character dialog, which are rewritten where they stand (see [Making, renaming and deleting a character](#making-renaming-and-deleting-a-character)). It deletes lines only when you ask it to: clearing a value in the character dialog removes the lines on the character's note that state it on their own, reopening a question or changing its answer removes the old answer line (two answers would leave the question unclear), setting a quest active again or changing its outcome removes the old outcome line, and deleting a question or quest removes it with its own follow-up lines. No change is written that would turn lines into a note's properties, as removing the line before a `---` at the top of a note could; the plugin refuses and says so. The one other change it makes to what you wrote is to a campaign's main note, when you change its background picture or wash in the plugin's settings (see [Campaign](#campaign)).
 - **It reads without the plugin.** With the plugin off, every note is still plain, sensible Markdown, and the links still work.
 
 The plugin writes through `Vault.process`, which reads and changes a note in one step, so nothing written in between is lost. It uses only Obsidian's own vault access, so it works the same on mobile.
@@ -244,7 +244,42 @@ Each value has a state, which comes from where its line is:
 
 A name is letters and spaces, read whatever its capitals (`ac:` is `AC`). A value runs to the next comma that a name and a colon follow, so the comma in `type: Medium humanoid (human), lawful good` stays in the type, and a name with nothing after its colon states nothing. Learned values and overrides are read today, each with the note and line it came from, with an override winning over anything learned and the newest line winning among the rest. A session's properties are never read as facts, and a link counts for the note Obsidian resolves it to, so `[[Mira]]` and `[[Characters/Mira|her]]` state facts about the same character. Carried-over values, earlier values and list values that add up aren't read yet.
 
-Renaming a character's note renames it: Obsidian rewrites every `[[link]]` to it.
+### Making, renaming and deleting a character
+
+*New character*, at the top of the characters gallery, opens a dialog with the character's name, type line, subtitle and speed. It makes a note named after them in the open campaign's `Characters` folder, making the folder if it isn't there, and opens it. Each value given is written on the note as an override, one per line, and every other value starts as not known:
+
+```markdown
+type: Medium humanoid (human), lawful good
+subtitle: Human Cleric 5
+speed: 30 ft.
+```
+
+*Edit character*, from the command palette while a character's note is open, or from the note's menu (the ⋯ menu on a phone, or a right-click on the note in the file list), opens the same dialog filled in from the note's own lines, with a *Delete character* button. Under each value the sessions have taught, the dialog shows it (*Learned in the sessions: 30 ft.*), so you can see what a value of your own would cover up.
+
+- **Renaming** goes through Obsidian's file manager. With Obsidian's *Automatically update internal links* setting on (Settings → Files and links), it rewrites every `[[link]]` to the note, in session notes and everywhere else; with it off, links keep the old name. The note stays in its folder, and its path is written the way Obsidian keeps paths (`normalizePath`).
+- **A changed value** rewrites the last line that states it, when that line states nothing else, keeping its bullet. When the last line that states it has other values on it, as in `AC: 15, speed: 30 ft.`, the new value is added as a line at the end of the note, which wins.
+- **A cleared value** removes every line that states it on its own, so an older line can't bring it back. If a line with other values still states it, nothing is written and the dialog says so.
+- **Lines it never writes to:** hidden lines are skipped, and a new line is added at the end instead. A line is hidden inside a fenced code block (a fence closes only at a bare fence of the same kind, at least as long), an indented code block (four spaces or a tab, at the start of the note's text or after a blank line or a code block), a `%% %%` or `<!-- -->` comment, or a `$$` math block, counted from below the note's properties. Marks inside `inline code` don't count. A line that ends in a block id (`speed: 30 ft. ^stats`) is left, since links may point to it: changing or clearing a value on such a line is refused.
+- **A last check:** the changed note is read again before it is written. If it wouldn't give back exactly the values asked for, or if any line it wrote would be hidden, or any line it kept would become hidden or stop being hidden (as when a new line lands in a comment or code block that never closes), nothing is written. A value nobody changed is never written.
+- **Deleting** needs a second press within four seconds. The note goes where Obsidian's *Deleted files* setting sends it (Settings → Files and links): the system trash, the vault's `.trash` folder, or nowhere, if it is set to *Permanently delete*. Every other note is left alone, so the session lines about the character stay, linking to a note that's gone.
+
+The name and values are trimmed, then the dialog refuses, and writes nothing, when it's given:
+
+| Refused | Why |
+|---|---|
+| A name another note in the folder has, whatever its capitals, compared after `normalizePath` | Two notes can't share a name, and links would point at either |
+| A name with any of `\ / : * ? " < > \| # ^ [ ]` or a control character, or starting or ending with a dot or a space | A note can't be named that everywhere, or a link to it wouldn't work |
+| `CON`, `PRN`, `AUX`, `NUL`, `CONIN$`, `CONOUT$`, `COM0` to `COM9`, `COM¹` to `COM³`, `LPT0` to `LPT9` or `LPT¹` to `LPT³`, whatever the capitals, also with more after a dot | Windows keeps these names, so a vault synced there couldn't hold the note |
+| A name whose file name would be over 255 bytes | Most file systems can't hold it |
+| A value with a comma, a word and a colon in it, as in `Rogue 3, AC: 15` | It would read back as two values |
+| A value with `%%` in it, or ending in a block id, as in `40 ft. ^stats` | The `%%` would start a comment hiding the rest of the note, and the block id would become the line's |
+| A new name for a note that was moved or renamed since the dialog opened | The dialog would rename it from a place it no longer is. The dialog closes, since what it shows is out of date |
+| A value changed in the note since the dialog opened | So nothing written meanwhile is lost. The dialog closes, since what it shows is out of date |
+| A change that would turn the note's first lines into properties | So nothing is hidden |
+
+A dialog with no name does nothing.
+
+Fact lines are still read inside hidden lines today, so a value there shows on the card, and the dialog can't change it.
 
 ### Calling a character over
 
@@ -277,4 +312,4 @@ views:
 
 It never writes the file again, so a filter, sort or view added to it in Bases stays. If it already exists by the time the plugin writes it, from a second tap say, the plugin opens that one. A new note in the `Characters` folder shows up as a card at once.
 
-Each card is a short stat block: the character's name, their `type` and `subtitle` when known, then `class`, `AC`, `HP` and `speed`, and the six ability scores with their modifiers. A value no line states shows as `?`. Each card reads the sessions of the campaign its note is in, even while another campaign is open, and a note outside any campaign shows only its own overrides. The player's own character, named by a link in the campaign note's `character` property, is marked *Your character*, and changing that property redraws the gallery. Tapping a card opens the character's note, until their sheet is built.
+Each card is a short stat block: the character's name, their `type` and `subtitle` when known, then `class`, `AC`, `HP` and `speed`, and the six ability scores with their modifiers. A value no line states shows as `?`. Each card reads the sessions of the campaign its note is in, even while another campaign is open, and a note outside any campaign shows only its own overrides. The player's own character, named by a link in the campaign note's `character` property, is marked *Your character*, and changing that property redraws the gallery. Tapping a card opens the character's note, until their sheet is built. With no characters yet, the gallery says to add one with *New character*.

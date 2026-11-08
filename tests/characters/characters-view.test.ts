@@ -85,8 +85,9 @@ function openGallery({
     },
   };
   const actions = { openRow: vi.fn(), openLink: vi.fn() };
+  const newCharacter = vi.fn();
   const container = obsidianDocument().createElement("div");
-  const view = new CharactersView({} as QueryController, container, store as unknown as CampaignStore, notes, actions);
+  const view = new CharactersView({} as QueryController, container, store as unknown as CampaignStore, notes, actions, newCharacter);
   const registered: (() => void)[] = [];
   view.register = (callback) => {
     registered.push(callback);
@@ -107,6 +108,7 @@ function openGallery({
     container,
     store,
     actions,
+    newCharacter,
     owner,
     reads,
     sessionsAskedFor,
@@ -191,8 +193,27 @@ describe("CharactersView", () => {
   it("says how to add a character when there are none, with no count", async () => {
     const gallery = openGallery();
     await gallery.show([]);
-    expect(textsOf(gallery.container, ".dd-empty")).toEqual(["No characters yet. A note in the campaign’s Characters folder adds one."]);
+    expect(textsOf(gallery.container, ".dd-empty")).toEqual(["No characters yet. Add one with New character."]);
     expect(gallery.container.querySelectorAll(".dd-count, .dd-gallery")).toHaveLength(0);
+  });
+
+  it("opens the new character dialog from its button, even with no characters yet", async () => {
+    const gallery = openGallery();
+    await gallery.show([]);
+    gallery.container.querySelector<HTMLElement>(".dd-head .dd-create")!.click();
+    expect(gallery.newCharacter).toHaveBeenCalledOnce();
+  });
+
+  it("returns focus to the new character button drawn since the dialog opened", async () => {
+    const gallery = openGallery();
+    gallery.container.ownerDocument.body.append(gallery.container);
+    await gallery.show([]);
+    gallery.container.querySelector<HTMLElement>(".dd-create")!.click();
+    const [[returnFocus]] = gallery.newCharacter.mock.calls as [[() => void]];
+    gallery.update(["Mira"]);
+    await vi.waitFor(() => expect(gallery.container.querySelector(".dd-card")).not.toBeNull());
+    returnFocus();
+    expect(gallery.container.ownerDocument.activeElement).toBe(gallery.container.querySelector(".dd-create"));
   });
 
   it("draws the cards again when a session changes", async () => {
