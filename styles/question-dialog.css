@@ -1,0 +1,23 @@
+.dd-question-dialog .dd-question {
+  margin: 0 0 var(--space-3);
+  font: var(--type-note);
+  font-size: var(--text-md);
+  font-variant-ligatures: none;
+  color: var(--text-strong);
+}
+
+.dd-question-dialog textarea {
+  width: 100%;
+  min-height: 72px;
+}
+
+.dd-question-dialog input,
+.dd-question-dialog button {
+  min-height: var(--touch-min);
+}
+
+.dd-question-dialog .dd-where {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted-ui);
+}
