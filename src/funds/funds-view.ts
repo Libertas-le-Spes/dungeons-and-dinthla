@@ -6,6 +6,8 @@ import type { ItemEventKind, ItemRecord, Source } from "../campaign/campaign";
 import { sessionLabelOf } from "../campaign/session-file";
 import { summariseFunds, type CoinCount, type FundsSummary, type LedgerLine } from "./funds-summary";
 import { summariseItems, type ItemSummary } from "./item-groups";
+import type { CoinOutcome } from "./coin-modal";
+import { focusRowAt, PENDING_FOCUS_MS } from "../views/row-focus";
 
 export const FUNDS_VIEW = "dungeons-and-dinthla-funds";
 
@@ -64,6 +66,8 @@ export class FundsView extends ItemView {
   private items!: HTMLElement;
   private ledgerCount!: HTMLElement;
   private ledgerList!: HTMLElement;
+  private addCoinButton: HTMLElement | null = null;
+  private pendingFocus: { source: Source | null; until: number } | null = null;
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -71,6 +75,7 @@ export class FundsView extends ItemView {
     private readonly actions: LinkActions,
     private readonly noteExists: (name: string, sourcePath: string) => boolean,
     private readonly addCoin: ((returnFocus: () => void) => void) | null,
+    private readonly openEntry: ((source: Source, onClosed: (outcome: CoinOutcome) => void) => void) | null,
   ) {
     super(leaf);
   }
@@ -169,6 +174,7 @@ export class FundsView extends ItemView {
     if (addCoin !== null) {
       const button = head.createEl("button", { cls: "dd-create", text: "Add coin" });
       this.registerDomEvent(button, "click", () => addCoin(() => button.focus()));
+      this.addCoinButton = button;
     }
     this.ledgerList = panel.createEl("ul", { cls: "dd-ledger" });
     panel.createEl("p", { cls: "dd-note", text: HOW_LINES_ARE_READ });
@@ -179,10 +185,35 @@ export class FundsView extends ItemView {
     this.ledgerList.empty();
     if (lines.length === 0) this.ledgerList.createEl("li", { cls: "dd-empty", text: "No coin entries yet." });
     for (const line of lines) this.addLedgerRow(this.ledgerList, line);
+    this.focusPending();
+  }
+
+  private focusPending(): void {
+    const pending = this.pendingFocus;
+    this.pendingFocus = null;
+    if (pending === null || Date.now() > pending.until) return;
+    if (pending.source !== null && focusRowAt(this.ledgerList, pending.source)) return;
+    if (this.addCoinButton !== null) this.addCoinButton.focus();
+  }
+
+  private afterEntry(source: Source, outcome: CoinOutcome): void {
+    this.pendingFocus = null;
+    if (outcome === "unchanged") {
+      focusRowAt(this.ledgerList, source);
+      return;
+    }
+    let focused: Source | null = source;
+    if (outcome === "deleted") focused = null;
+    this.pendingFocus = { source: focused, until: Date.now() + PENDING_FOCUS_MS };
   }
 
   private addLedgerRow(list: HTMLElement, { record, balance }: LedgerLine): void {
-    const row = addRowButton(list, record.source, this.actions);
+    let actions = this.actions;
+    const openEntry = this.openEntry;
+    if (openEntry !== null) {
+      actions = { ...this.actions, openRow: (source: Source) => openEntry(source, (outcome) => this.afterEntry(source, outcome)) };
+    }
+    const row = addRowButton(list, record.source, actions);
     row.addClass("dd-ledger-row");
     let direction = "In";
     if (record.entry.moneyOut) direction = "Out";

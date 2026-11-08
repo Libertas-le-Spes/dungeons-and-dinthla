@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import {
+  draftOf,
   NO_AMOUNT,
   NO_COIN,
   NO_FOR,
@@ -83,5 +84,15 @@ describe("readCoinDraft", () => {
       expect(readCoinDraft(draft("in", "5 gp", what)), what).toEqual({ error: WORDS_CHANGE_IT });
     }
     expect(readCoinDraft(draft("out", "5 gp", "and 2 gp back"))).toEqual({ error: WORDS_CHANGE_IT });
+  });
+});
+
+describe("draftOf", () => {
+  it("fills the dialog back from an entry that it can show as written", () => {
+    for (const line of ["35 gp 4 sp from the bandits", "Paid 2 gp 5 sp for rooms", "Bought 5 gp rope", "1,200 gp found"]) {
+      const entry = buildCampaign([{ path: "S/Sessions/Session 1.md", number: 1, firstLine: 0, text: `$ ${line}` }]).coins[0]!;
+      const draft = draftOf(entry.text, entry.entry.copper, entry.entry.coins);
+      expect(lineOf(readCoinDraft(draft)), line).toBe(`$ ${line}`);
+    }
   });
 });
