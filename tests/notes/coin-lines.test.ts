@@ -88,7 +88,7 @@ describe("readCoinDraft", () => {
 });
 
 describe("draftOf", () => {
-  it("fills the dialog back from an entry, so saving it unchanged writes the same line", () => {
+  it("fills the dialog back from an entry that it can show as written", () => {
     for (const line of ["35 gp 4 sp from the bandits", "Paid 2 gp 5 sp for rooms", "Bought 5 gp rope", "1,200 gp found"]) {
       const entry = buildCampaign([{ path: "S/Sessions/Session 1.md", number: 1, firstLine: 0, text: `$ ${line}` }]).coins[0]!;
       const draft = draftOf(entry.text, entry.entry.copper, entry.entry.coins);
