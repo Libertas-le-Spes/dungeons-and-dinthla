@@ -269,6 +269,6 @@ views:
     name: Characters
 ```
 
-It never writes the file again, so a filter, sort or view added to it in Bases stays. A new note in the `Characters` folder shows up as a card at once.
+It never writes the file again, so a filter, sort or view added to it in Bases stays. If it already exists by the time the plugin writes it, from a second tap say, the plugin opens that one. A new note in the `Characters` folder shows up as a card at once.
 
 Each card is a short stat block: the character's name, their `type` and `subtitle` when known, then `class`, `AC`, `HP` and `speed`, and the six ability scores with their modifiers. A value no line states shows as `?`. Each card reads the sessions of the campaign its note is in, even while another campaign is open, and a note outside any campaign shows only its own overrides. The player's own character, named by a link in the campaign note's `character` property, is marked *Your character*, and changing that property redraws the gallery. Tapping a card opens the character's note, until their sheet is built.

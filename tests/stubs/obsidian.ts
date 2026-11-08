@@ -44,6 +44,10 @@ export class BasesView {
   register(): void {}
 }
 
+export function stringifyYaml(value: unknown): string {
+  return `${JSON.stringify(value, null, 2)}\n`;
+}
+
 export class Notice {
   static shown: string[] = [];
 
