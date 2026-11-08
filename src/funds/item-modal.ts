@@ -22,7 +22,7 @@ export class ItemModal extends Modal {
     private readonly holders: HolderOption[],
     private readonly writesTo: string,
     private readonly save: (edit: ItemEdit) => Promise<boolean>,
-    private readonly openLine: (source: Source) => void,
+    private readonly openNoteAt: (source: Source) => void,
     private readonly onClosed: (changed: boolean) => void,
   ) {
     super(app);
@@ -70,7 +70,7 @@ export class ItemModal extends Modal {
       .addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.run()))
       .addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()))
       .addButton((button) => {
-        button.setButtonText("Open note").onClick(() => this.openTheNote());
+        button.setButtonText("Open note").onClick(() => this.openNote());
         button.buttonEl.toggle(false);
         this.openNoteButton = button.buttonEl;
       });
@@ -96,10 +96,10 @@ export class ItemModal extends Modal {
     this.openNoteButton.toggle(false);
   }
 
-  private openTheNote(): void {
+  private openNote(): void {
     const gone = this.item.gone;
     this.close();
-    if (gone !== null) this.openLine(gone.source);
+    if (gone !== null) this.openNoteAt(gone.source);
   }
 
   private run(): void {

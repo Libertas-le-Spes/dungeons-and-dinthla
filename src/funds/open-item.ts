@@ -43,6 +43,6 @@ export function openItemDialog(app: App, store: CampaignStore, name: string, ope
     charactersIn(app, folder, sessionPath).map((character) => ({ text: `[[${character.linktext}]]`, label: character.name })),
   );
   const opened = openedItem(app.vault, store, item, sessionPath);
-  const openLine = (source: Source) => void openSource(app, source);
-  new ItemModal(app, item, opened.edit, holders, sessionLabelOf(sessionPath), opened.save, openLine, onClosed).open();
+  const openNoteAt = (source: Source) => void openSource(app, source);
+  new ItemModal(app, item, opened.edit, holders, sessionLabelOf(sessionPath), opened.save, openNoteAt, onClosed).open();
 }

@@ -9,17 +9,17 @@ import { Notice } from "../stubs/obsidian";
 function openDialog(text: string, save: (edit: ItemEdit) => Promise<boolean>) {
   const sessions = [sessionNoteOf("Pale Moon/Sessions/Session 1.md", 1, text)];
   const item = buildCampaign(sessions).items[0]!;
-  const openLine = vi.fn();
+  const openNoteAt = vi.fn();
   const onClosed = vi.fn();
   const holders = [{ text: "the party", label: "The party" }];
-  const dialog = new ItemModal({} as App, item, initialItemEdit(item, sessions), holders, "Session 2", save, openLine, onClosed);
+  const dialog = new ItemModal({} as App, item, initialItemEdit(item, sessions), holders, "Session 2", save, openNoteAt, onClosed);
   dialog.open();
   const root = dialog.contentEl;
   const button = (name: string) => Array.from(root.querySelectorAll("button")).find((candidate) => candidate.textContent === name)!;
   const price = root.querySelector('input[aria-label="Sold for"]') as HTMLInputElement;
   const status = root.querySelectorAll("select")[1] as HTMLSelectElement;
   const priceRow = price.closest(".setting-item") as HTMLElement;
-  return { openLine, onClosed, button, price, status, priceRow };
+  return { openNoteAt, onClosed, button, price, status, priceRow };
 }
 
 const refuse = (message: string) => () => Promise.reject(new Error(message));
@@ -41,7 +41,7 @@ describe("the item dialog", () => {
   });
 
   it("offers to open the line that took the item when it refuses because that line says more than it writes", async () => {
-    const { openLine, onClosed, button } = openDialog("$ Rope\n$$ Rope :lost in the river\n", refuse(GONE_LINE_SAYS_MORE));
+    const { openNoteAt, onClosed, button } = openDialog("$ Rope\n$$ Rope :lost in the river\n", refuse(GONE_LINE_SAYS_MORE));
     expect(button("Open note").hidden).toBe(true);
     button("Save").click();
     await vi.waitFor(() => expect(button("Open note").hidden).toBe(false));
@@ -49,7 +49,7 @@ describe("the item dialog", () => {
     expect(onClosed).not.toHaveBeenCalled();
     button("Open note").click();
     expect(onClosed).toHaveBeenCalledWith(false);
-    expect(openLine).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 1 });
+    expect(openNoteAt).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 1 });
   });
 
   it("hides Open note again once the status or price changes", async () => {
