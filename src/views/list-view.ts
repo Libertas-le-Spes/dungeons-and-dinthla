@@ -1,5 +1,5 @@
 import { ItemView, type WorkspaceLeaf } from "obsidian";
-import type { Campaign } from "../campaign/campaign";
+import type { Campaign, Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { keywordsOf } from "./keywords";
 import type { LinkActions } from "./linked-text";
@@ -33,6 +33,7 @@ export class CampaignListView<T> extends ItemView {
   private openList!: HTMLElement;
   private foldedCount!: HTMLElement;
   private foldedList!: HTMLElement;
+  private pendingFocus: Source | null = null;
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -86,6 +87,22 @@ export class CampaignListView<T> extends ItemView {
     this.foldedCount.setText(String(contents.foldedCount));
     this.fill(this.openList, contents.open, keywords, this.openEmptyText(contents));
     this.fill(this.foldedList, contents.folded, keywords, this.foldedEmptyText(contents));
+    this.focusPendingRow();
+  }
+
+  focusRow(source: Source): void {
+    this.pendingFocus = source;
+    this.focusPendingRow();
+  }
+
+  private focusPendingRow(): void {
+    const source = this.pendingFocus;
+    if (source === null) return;
+    const rows = Array.from(this.contentEl.querySelectorAll<HTMLElement>(".dd-row"));
+    const row = rows.find((candidate) => candidate.dataset.path === source.path && candidate.dataset.line === String(source.line));
+    if (row === undefined) return;
+    row.focus();
+    this.pendingFocus = null;
   }
 
   private fill(list: HTMLElement, items: T[], keywords: string[], emptyText: string): void {

@@ -51,7 +51,10 @@ export function addLinkedText(
 }
 
 export function addRowButton(list: HTMLElement, source: Source, actions: LinkActions): HTMLElement {
-  const row = list.createEl("li").createDiv({ cls: "dd-row", attr: { role: "button", tabindex: "0" } });
+  const row = list.createEl("li").createDiv({
+    cls: "dd-row",
+    attr: { role: "button", tabindex: "0", "data-path": source.path, "data-line": String(source.line) },
+  });
   row.addEventListener("click", () => actions.openSource(source));
   row.addEventListener("keydown", (event) => {
     if (event.target !== row) return;

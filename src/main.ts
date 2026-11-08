@@ -4,6 +4,7 @@ import { campaignFolderOf, findCampaignFolders, isSessionNote } from "./campaign
 import { CampaignStore } from "./campaign/campaign-store";
 import { editorTextOf } from "./campaign/editor-text";
 import { markerColouring } from "./editor/marker-decorations";
+import { openQuestion } from "./questions/open-question";
 import { QUESTIONS_VIEW, questionsKind } from "./questions/questions-kind";
 import { QUESTS_VIEW, questsKind } from "./quests/quests-kind";
 import { FUNDS_VIEW, FundsView } from "./funds/funds-view";
@@ -24,7 +25,14 @@ export default class DungeonsAndDinthla extends Plugin {
       openSource: (source: Source) => void openSource(this.app, source),
       openLink: (linktext: string, sourcePath: string) => void this.app.workspace.openLinkText(linktext, sourcePath),
     };
-    this.registerView(QUESTIONS_VIEW, (leaf) => new CampaignListView(leaf, this.store, actions, questionsKind));
+    const questionActions = {
+      ...actions,
+      openSource: (source: Source) => {
+        const opened = openQuestion(this.app, this.store, source, () => this.focusQuestionRow(source));
+        if (!opened) void openSource(this.app, source);
+      },
+    };
+    this.registerView(QUESTIONS_VIEW, (leaf) => new CampaignListView(leaf, this.store, questionActions, questionsKind));
     this.addRibbonIcon(questionsKind.icon, "Open questions", () => void openSideView(this.app, QUESTIONS_VIEW));
     this.addCommand({ id: "open-questions", name: "Open questions", callback: () => void openSideView(this.app, QUESTIONS_VIEW) });
     this.registerView(QUESTS_VIEW, (leaf) => new CampaignListView(leaf, this.store, actions, questsKind));
@@ -78,6 +86,12 @@ export default class DungeonsAndDinthla extends Plugin {
   private readEditor(info: MarkdownFileInfo, file: TFile): void {
     const text = editorTextOf(info, file, this.app.vault);
     if (text !== null) this.store.noteChanged(file.path, text);
+  }
+
+  private focusQuestionRow(source: Source): void {
+    for (const leaf of this.app.workspace.getLeavesOfType(QUESTIONS_VIEW)) {
+      if (leaf.view instanceof CampaignListView) leaf.view.focusRow(source);
+    }
   }
 
   private campaignFolders(): string[] {
