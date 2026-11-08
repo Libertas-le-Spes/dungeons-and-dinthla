@@ -1,9 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { App } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { CampaignStore } from "../../src/campaign/campaign-store";
 import { sessionNoteOf } from "../../src/campaign/session-file";
+import type { CoinEntryChoices } from "../../src/funds/coin-entry";
+import { CoinModal } from "../../src/funds/coin-modal";
 import { openCoinEntry } from "../../src/funds/open-add-coin";
+import { CONFIRM_MS } from "../../src/views/second-press";
 import { openedModals } from "../stubs/obsidian";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
@@ -38,5 +41,56 @@ describe("the ledger entry dialog", () => {
     const { openNote, opened } = openEntryAt(3);
     expect(opened).toEqual([]);
     expect(openNote).toHaveBeenCalledTimes(1);
+  });
+});
+
+function openDialog(canDelete: boolean) {
+  const entry = { draft: { direction: "in" as const, amount: "2 gp", what: "tip" }, cannotSave: null, delete: vi.fn(async () => true) };
+  let shown: CoinEntryChoices | null = null;
+  if (canDelete) shown = entry;
+  const onClosed = vi.fn();
+  const modal = new CoinModal({} as App, "Session 1", vi.fn(async () => true), shown, null, onClosed);
+  modal.open();
+  const button = (text: string) => Array.from(modal.contentEl.querySelectorAll("button")).find((candidate) => candidate.textContent === text);
+  return { button, entry, onClosed };
+}
+
+afterEach(() => {
+  vi.useRealTimers();
+});
+
+describe("deleting a ledger entry", () => {
+  it("deletes only on a second press, then closes", async () => {
+    const { button, entry, onClosed } = openDialog(true);
+    button("Delete entry")!.click();
+    expect(entry.delete).not.toHaveBeenCalled();
+    button("Press again to delete")!.click();
+    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledWith("deleted"));
+    expect(entry.delete).toHaveBeenCalledOnce();
+  });
+
+  it("asks again when the second press comes too late", () => {
+    vi.useFakeTimers();
+    const { button, entry } = openDialog(true);
+    button("Delete entry")!.click();
+    vi.advanceTimersByTime(CONFIRM_MS);
+    button("Delete entry")!.click();
+    expect(entry.delete).not.toHaveBeenCalled();
+  });
+
+  it("stops asking to delete once closed", () => {
+    vi.useFakeTimers();
+    const { button } = openDialog(true);
+    const deleting = button("Delete entry")!;
+    deleting.click();
+    button("Cancel")!.click();
+    expect(deleting.textContent).toBe("Delete entry");
+  });
+
+  it("closes Add coin, which has nothing to delete", () => {
+    const { button, onClosed } = openDialog(false);
+    expect(button("Delete entry")).toBeUndefined();
+    button("Cancel")!.click();
+    expect(onClosed).toHaveBeenCalledWith("unchanged");
   });
 });
