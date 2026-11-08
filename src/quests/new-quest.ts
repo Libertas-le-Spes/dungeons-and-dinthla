@@ -14,21 +14,26 @@ export interface NewQuestPlan extends NewQuest {
   line: string;
 }
 
+export interface Character {
+  name: string;
+  linktext: string;
+}
+
 export const SAME_TITLE_AS_EXISTING = "A quest already has that title, so changes would be mixed up between them. Reword this one.";
 export const WOULD_READ_DIFFERENTLY =
   "That quest would be read back differently from what was typed, perhaps because of a comma or a from: or reward: in it. Reword it.";
 
-function giverLink(givenBy: string, characters: string[]): string {
+function writtenGiver(givenBy: string, characters: Character[]): string {
   const name = oneLine(givenBy);
-  if (name === "" || name.startsWith("[[")) return name;
-  const known = characters.find((character) => character.toLowerCase() === name.toLowerCase());
+  const known = characters.find((character) => character.name.toLowerCase() === name.toLowerCase());
   if (known === undefined) return name;
-  return `[[${known}]]`;
+  if (known.linktext === known.name) return `[[${known.name}]]`;
+  return `[[${known.linktext}|${known.name}]]`;
 }
 
-export function planNewQuest(entry: NewQuest, characters: string[]): NewQuestPlan {
+export function planNewQuest(entry: NewQuest, characters: Character[]): NewQuestPlan {
   const title = questTextOf(entry.title);
-  const givenBy = giverLink(entry.givenBy, characters);
+  const givenBy = writtenGiver(entry.givenBy, characters);
   const reward = oneLine(entry.reward);
   return { title, givenBy, reward, line: newQuestLine(title, givenBy, reward) };
 }

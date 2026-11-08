@@ -27,7 +27,8 @@ export class NewQuestModal extends Modal {
       text.setPlaceholder("Find the missing caravan").onChange((value) => {
         this.entry.title = value;
       });
-      this.submitOnEnter(text.inputEl, "Quest");
+      text.inputEl.setAttr("aria-label", "Quest");
+      this.saveOnEnter(text.inputEl);
       this.titleInput = text.inputEl;
       text.inputEl.focus();
     });
@@ -35,16 +36,17 @@ export class NewQuestModal extends Modal {
       text.setPlaceholder("Lady Vess").onChange((value) => {
         this.entry.givenBy = value;
       });
-      this.submitOnEnter(text.inputEl, "Given by");
+      text.inputEl.setAttr("aria-label", "Given by");
       new CharacterSuggest(this.app, text.inputEl, this.characters);
     });
     new Setting(contentEl).setName("Reward (optional)").addText((text) => {
       text.setPlaceholder("200 gp").onChange((value) => {
         this.entry.reward = value;
       });
-      this.submitOnEnter(text.inputEl, "Reward");
+      text.inputEl.setAttr("aria-label", "Reward");
+      this.saveOnEnter(text.inputEl);
     });
-    contentEl.createEl("p", { cls: "dd-where", text: `New lines go into ${this.writesTo}.` });
+    contentEl.createEl("p", { cls: "dd-where", text: `Adds a line to ${this.writesTo}.` });
     new Setting(contentEl)
       .addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.save()))
       .addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));
@@ -60,10 +62,9 @@ export class NewQuestModal extends Modal {
     this.onClosed();
   }
 
-  private submitOnEnter(input: HTMLInputElement, label: string): void {
-    input.setAttr("aria-label", label);
+  private saveOnEnter(input: HTMLInputElement): void {
     input.addEventListener("keydown", (event) => {
-      if (!isSubmit(event, false)) return;
+      if (event.defaultPrevented || !isSubmit(event, false)) return;
       event.preventDefault();
       this.save();
     });
