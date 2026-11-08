@@ -6,6 +6,7 @@ export type CoinKind = "pp" | "gp" | "ep" | "sp" | "cp";
 export interface CoinAmount {
   count: number;
   kind: CoinKind;
+  moneyOut: boolean;
 }
 
 export interface CoinEntry {
@@ -23,11 +24,6 @@ export interface ItemEntry {
 
 export type LedgerEntry = CoinEntry | ItemEntry;
 
-interface SignedAmount {
-  coins: CoinAmount;
-  minus: boolean;
-}
-
 const COPPER_PER: Record<CoinKind, number> = { pp: 1000, gp: 100, ep: 50, sp: 10, cp: 1 };
 const AMOUNT = /(?<![^\s(])(?:([+\-−])\s*)?(\d[\d,]*)\s*(pp|gp|ep|sp|cp)\b/gi;
 const MINUS_SIGNS = ["-", "−"];
@@ -43,27 +39,27 @@ function isMoneyOut(sign: string | undefined, position: number, wordAt: number):
   return position > wordAt;
 }
 
-function readAmount(match: RegExpMatchArray, wordAt: number): SignedAmount {
+function readAmount(match: RegExpMatchArray, wordAt: number): CoinAmount {
   const [, sign, digits, kind] = match;
   const count = Number.parseInt(digits!.replaceAll(",", ""), 10);
-  const minus = isMoneyOut(sign, match.index!, wordAt);
-  return { coins: { count, kind: kind!.toLowerCase() as CoinKind }, minus };
+  const moneyOut = isMoneyOut(sign, match.index!, wordAt);
+  return { count, kind: kind!.toLowerCase() as CoinKind, moneyOut };
 }
 
-function readAmountsIn(part: string): SignedAmount[] {
+function readAmountsIn(part: string): CoinAmount[] {
   const wordAt = moneyOutWordAt(part);
   return [...part.matchAll(AMOUNT)].map((match) => readAmount(match, wordAt));
 }
 
-function copperOf({ coins, minus }: SignedAmount): number {
-  const worth = coins.count * COPPER_PER[coins.kind];
-  if (minus) return -worth;
+export function copperOf({ count, kind, moneyOut }: CoinAmount): number {
+  const worth = count * COPPER_PER[kind];
+  if (moneyOut) return -worth;
   return worth;
 }
 
-function readCoins(amounts: SignedAmount[]): CoinEntry {
-  const copper = amounts.reduce((sum, amount) => sum + copperOf(amount), 0);
-  return { type: "coin", coins: amounts.map((amount) => amount.coins), copper, moneyOut: copper < 0 };
+function readCoins(coins: CoinAmount[]): CoinEntry {
+  const copper = coins.reduce((sum, amount) => sum + copperOf(amount), 0);
+  return { type: "coin", coins, copper, moneyOut: copper < 0 };
 }
 
 function readItem(body: string): ItemEntry | null {

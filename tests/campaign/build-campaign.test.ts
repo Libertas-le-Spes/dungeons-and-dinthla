@@ -69,6 +69,14 @@ describe("buildCampaign", () => {
     ]);
   });
 
+  it("keeps each coin entry's text, a sale's item change included", () => {
+    expect(campaign.coins.map((coin) => coin.text)).toEqual([
+      "Paid 2 gp for rooms",
+      "35 gp 4 sp from the bandits",
+      "Silvered lantern :sold 30gp",
+    ]);
+  });
+
   it("lists every coin entry in session order, a sale included, and adds up the purse", () => {
     expect(campaign.coins.map((coin) => [coin.source.path, coin.source.line, coin.entry.copper])).toEqual([
       ["Pale Moon/Sessions/Session 1.md", 6, -200],

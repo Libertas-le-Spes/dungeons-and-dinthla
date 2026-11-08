@@ -63,6 +63,7 @@ const PAIRS: [string, string, number][] = [
   ["text-strong", "surface-page", 4.5],
   ["text-body", "surface-card", 4.5],
   ["text-body", "surface-sunken", 4.5],
+  ["text-muted-ui", "surface-page", 4.5],
   ["text-muted-ui", "surface-card", 4.5],
   ["text-muted-ui", "surface-sunken", 4.5],
   ["text-muted-ui", "surface-raised", 4.5],
