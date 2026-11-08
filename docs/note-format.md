@@ -7,7 +7,7 @@ The project grows in small steps, so parts of this page are still planned. Whoev
 Three rules hold everywhere:
 
 - **The notes are the record.** Answers, statuses, holders and sheet values are all lines in notes. The plugin keeps nothing of its own but the campaign you were last in, so a vault synced to a tablet carries everything with it.
-- **Nothing you write is moved or rewritten.** A change is recorded as a new line that names the earlier one (see [Following up](#following-up-an-earlier-line)). The plugin adds lines and never edits one, except a `$` ledger entry you change from the Funds view, or the price on an item's `:sold` line, which are rewritten where they stand. It deletes lines only when you ask it to: reopening a question or changing its answer removes the old answer line (two answers would leave the question unclear), setting a quest active again or changing its outcome removes the old outcome line, and deleting a question or quest removes it with its own follow-up lines. No change is written that would turn lines into a note's properties, as removing the line before a `---` at the top of a note could; the plugin refuses and says so. The one other change it makes to what you wrote is to a campaign's main note, when you change its background picture or wash in the plugin's settings (see [Campaign](#campaign)).
+- **Nothing you write is moved or rewritten.** A change is recorded as a new line that names the earlier one (see [Following up](#following-up-an-earlier-line)). The plugin adds lines and never edits one, except a `$` ledger entry you change from the Funds view, or the price on an item's `:sold` line, or a `type`, `subtitle` or `speed` line on a character's own note that you change in the character dialog, which are rewritten where they stand (see [Making, renaming and deleting a character](#making-renaming-and-deleting-a-character)). It deletes lines only when you ask it to: clearing a value in the character dialog removes the lines on the character's note that state it on their own, reopening a question or changing its answer removes the old answer line (two answers would leave the question unclear), setting a quest active again or changing its outcome removes the old outcome line, and deleting a question or quest removes it with its own follow-up lines. No change is written that would turn lines into a note's properties, as removing the line before a `---` at the top of a note could; the plugin refuses and says so. The one other change it makes to what you wrote is to a campaign's main note, when you change its background picture or wash in the plugin's settings (see [Campaign](#campaign)).
 - **It reads without the plugin.** With the plugin off, every note is still plain, sensible Markdown, and the links still work.
 
 The plugin writes through `Vault.process`, which reads and changes a note in one step, so nothing written in between is lost. It uses only Obsidian's own vault access, so it works the same on mobile.
@@ -254,23 +254,30 @@ subtitle: Human Cleric 5
 speed: 30 ft.
 ```
 
-*Edit character*, from the command palette while a character's note is open, opens the same dialog filled in from the note's own lines, with a *Delete character* button.
+*Edit character*, from the command palette while a character's note is open, or from the note's menu (the ⋯ menu on a phone, or a right-click on the note in the file list), opens the same dialog filled in from the note's own lines, with a *Delete character* button. Under each value the sessions have taught, the dialog shows it (*Learned in the sessions: 30 ft.*), so you can see what a value of your own would cover up.
 
-- **Renaming** goes through Obsidian's file manager, which rewrites every `[[link]]` to the note, in session notes and everywhere else. The note stays in its folder.
-- **A changed value** rewrites the line that states it when that line states nothing else, keeping its bullet. A cleared value takes that line out. When the value shares its line with others, as in `AC: 15, speed: 30 ft.`, a changed value is added as a new line at the end of the note, which wins, and clearing it is refused, so the other values stay. A value nobody changed is never written.
-- **Deleting** needs a second press within four seconds. The note goes to the trash Obsidian is set to use, and every other note is left alone, so the session lines about the character stay, linking to a note that's gone.
+- **Renaming** goes through Obsidian's file manager. With Obsidian's *Automatically update internal links* setting on (Settings → Files and links), it rewrites every `[[link]]` to the note, in session notes and everywhere else; with it off, links keep the old name. The note stays in its folder, and its path is written the way Obsidian keeps paths (`normalizePath`).
+- **A changed value** rewrites the last line that states it, when that line states nothing else, keeping its bullet. When the last line that states it has other values on it, as in `AC: 15, speed: 30 ft.`, the new value is added as a line at the end of the note, which wins.
+- **A cleared value** removes every line that states it on its own, so an older line can't bring it back. If a line with other values still states it, nothing is written and the dialog says so.
+- **Lines it never writes to:** lines inside a code block or a `%% %%` comment are skipped, and a new line is added at the end instead. A line that ends in a block id (`speed: 30 ft. ^stats`) is left, since links may point to it: changing or clearing a value on such a line is refused.
+- **A last check:** the changed note is read again before it is written, and if it wouldn't give back exactly the values asked for, nothing is written. A value nobody changed is never written.
+- **Deleting** needs a second press within four seconds. The note goes where Obsidian's *Deleted files* setting sends it (Settings → Files and links): the system trash, the vault's `.trash` folder, or nowhere, if it is set to *Permanently delete*. Every other note is left alone, so the session lines about the character stay, linking to a note that's gone.
 
-The dialog refuses, and writes nothing, when it's given:
+The name and values are trimmed, then the dialog refuses, and writes nothing, when it's given:
 
 | Refused | Why |
 |---|---|
-| A name another note in the folder has, whatever its capitals | Two notes can't share a name, and links would point at either |
-| A name with any of `\ / : * ? " < > \| # ^ [ ]`, or starting with a dot | A note can't be named that, or a link to it wouldn't work |
+| A name another note in the folder has, whatever its capitals, compared after `normalizePath` | Two notes can't share a name, and links would point at either |
+| A name with any of `\ / : * ? " < > \| # ^ [ ]` or a control character, or starting or ending with a dot or a space | A note can't be named that everywhere, or a link to it wouldn't work |
+| `CON`, `PRN`, `AUX`, `NUL`, `COM1` to `COM9` or `LPT1` to `LPT9`, whatever the capitals, also with more after a dot | Windows keeps these names, so a vault synced there couldn't hold the note |
+| A name whose file name would be over 255 bytes | Most file systems can't hold it |
 | A value with a comma, a word and a colon in it, as in `Rogue 3, AC: 15` | It would read back as two values |
-| A value changed in the note since the dialog opened | So nothing written meanwhile is lost |
+| A value changed in the note since the dialog opened | So nothing written meanwhile is lost. The dialog closes, since what it shows is out of date |
 | A change that would turn the note's first lines into properties | So nothing is hidden |
 
 A dialog with no name does nothing.
+
+Fact lines are still read inside code blocks and comments today, so a value there shows on the card, and the dialog can't change it.
 
 ### Calling a character over
 
