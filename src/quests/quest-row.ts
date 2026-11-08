@@ -46,7 +46,7 @@ export function addQuestRow(list: HTMLElement, record: QuestRecord, keywords: st
   const row = addRowButton(list, record.source, actions);
   addMark(row, record);
   const body = row.createSpan({ cls: "dd-body" });
-  const title = body.createSpan({ cls: "dd-title-line" });
+  const title = body.createSpan({ cls: "dd-text" });
   if (record.outcome !== null && record.outcome.status === "failed") title.addClass("dd-abandoned");
   addLinkedText(title, record.quest.title, keywords, sourcePath, actions);
   addFacts(body, record, keywords, actions);

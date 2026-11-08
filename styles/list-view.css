@@ -107,10 +107,6 @@
   color: var(--text-muted-ui);
 }
 
-.dd-list-view .dd-title-line {
-  display: block;
-}
-
 .dd-list-view .dd-abandoned {
   text-decoration: line-through;
   text-decoration-color: var(--text-muted-ui);
@@ -147,7 +143,7 @@
 .dd-list-view .dd-answer,
 .dd-list-view .dd-meta {
   display: block;
-  margin-top: 2px;
+  margin-top: var(--space-0);
   color: var(--text-muted-ui);
 }
 
