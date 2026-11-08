@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and publish the release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Check the tag matches the manifest and versions.json
+        run: |
+          version="$(jq -r .version manifest.json)"
+          min_app_version="$(jq -r .minAppVersion manifest.json)"
+          listed_min_app_version="$(jq -r --arg version "$GITHUB_REF_NAME" '.[$version]' versions.json)"
+          if [ "$GITHUB_REF_NAME" != "$version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match manifest.json version $version"
+            exit 1
+          fi
+          if [ "$listed_min_app_version" != "$min_app_version" ]; then
+            echo "::error::versions.json lists $listed_min_app_version for $GITHUB_REF_NAME, but manifest.json minAppVersion is $min_app_version"
+            exit 1
+          fi
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 26
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Type check and build
+        run: npm run build
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --verify-tag main.js manifest.json styles.css
