@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { Campaign, SessionNote } from "../../src/campaign/campaign";
-import { CHANGED_IN_NOTE, type EditorVault } from "../../src/campaign/note-editor";
+import { CHANGED_IN_NOTE, PROPERTIES_WOULD_CHANGE, type EditorVault } from "../../src/campaign/note-editor";
 import { sessionNoteOf } from "../../src/campaign/session-file";
 import { NO_COIN, SIGN_SAYS_OUT } from "../../src/notes/coin-lines";
 import {
@@ -227,6 +227,15 @@ describe("saving an item", () => {
     const three = "Pale Moon/Sessions/Session 3.md";
     notes.texts.set(three, "");
     await expect(itemSaver(notes.vault, readBefore, "Rope", three)(edit)).rejects.toThrow(CHANGES_ANOTHER_ITEM);
+    expect(notes.texts.get(three)).toBe("");
+  });
+
+  it("refuses before writing anything when undoing a line elsewhere would turn lines into properties", async () => {
+    const three = "Pale Moon/Sessions/Session 3.md";
+    const gone = "$$ Rope :lost\n---\nWe rode on.\n---\n";
+    const notes = new FakeNotes({ [ONE]: "$ Rope\n", [TWO]: gone, [three]: "" });
+    await expect(notes.save("Rope", { status: "held", holder: "[[Mira]]" }, three)).rejects.toThrow(PROPERTIES_WOULD_CHANGE);
+    expect(notes.texts.get(TWO)).toBe(gone);
     expect(notes.texts.get(three)).toBe("");
   });
 
