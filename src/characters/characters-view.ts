@@ -9,7 +9,7 @@ import type { CharacterNotes } from "./character-notes";
 
 export const CHARACTERS_VIEW = "dungeons-and-dinthla-characters";
 
-const NO_CHARACTERS = "No characters yet. Add one with New character.";
+export const NO_CHARACTERS = "No characters yet. Add one with New character.";
 
 export class CharactersView extends BasesView {
   readonly type = CHARACTERS_VIEW;

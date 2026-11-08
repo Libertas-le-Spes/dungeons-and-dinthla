@@ -62,6 +62,12 @@ export function obsidianDocument(): Document {
   prototype.empty = function (this: HTMLElement) {
     this.replaceChildren();
   };
+  prototype.hide = function (this: HTMLElement) {
+    this.style.display = "none";
+  };
+  prototype.show = function (this: HTMLElement) {
+    this.style.display = "";
+  };
   prototype.setText = function (this: HTMLElement, text: string) {
     this.textContent = text;
   };

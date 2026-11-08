@@ -1,0 +1,133 @@
+.dd-dashboard {
+  container-type: inline-size;
+}
+
+.dd-dashboard .dd-dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@container (min-width: 680px) {
+  .dd-dashboard .dd-dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5);
+  }
+
+  .dd-dashboard .dd-wide {
+    grid-column: 1 / -1;
+  }
+}
+
+@container (min-width: 1040px) {
+  .dd-dashboard .dd-dashboard-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dd-dashboard .dd-wide {
+    grid-column: span 2;
+  }
+}
+
+.dd-dashboard .dd-panel {
+  min-width: 0;
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-1);
+}
+
+.dd-dashboard .dd-head {
+  align-items: baseline;
+  margin-bottom: var(--space-2);
+}
+
+.dd-dashboard .dd-panel-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.dd-dashboard .dd-panel-link {
+  min-height: var(--touch-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  font: var(--weight-medium) var(--text-sm) / 1 var(--font-ui);
+  color: var(--text-link);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.dd-dashboard .dd-panel-link:hover {
+  background: none;
+  text-decoration: underline;
+}
+
+.dd-dashboard .dd-panel-link:focus-visible {
+  border-radius: var(--radius-xs);
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.dd-dashboard .dd-big {
+  font: var(--type-score);
+  font-size: var(--text-3xl);
+  color: var(--text-strong);
+}
+
+.dd-dashboard .dd-big:empty {
+  display: none;
+}
+
+.dd-dashboard .dd-big-word {
+  font: var(--type-label);
+  color: var(--text-muted-ui);
+}
+
+.dd-dashboard .dd-big-word:not(:first-child) {
+  margin-left: var(--space-2);
+}
+
+.dd-dashboard .dd-ledger {
+  margin-top: var(--space-3);
+}
+
+.dd-dashboard .dd-ledger-row {
+  grid-template-columns: 3em minmax(0, 1fr) auto;
+}
+
+.dd-dashboard .dd-ledger-row .dd-what,
+.dd-dashboard .dd-ledger-row .dd-direction,
+.dd-dashboard .dd-ledger-row .dd-amount {
+  grid-column: auto;
+  grid-row: auto;
+}
+
+.dd-dashboard .dd-ledger-row .dd-amount {
+  text-align: right;
+}
+
+.dd-dashboard .dd-ledger-row .dd-balance {
+  display: none;
+}
+
+.dd-dashboard .dd-party {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: var(--space-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dd-dashboard .dd-party .dd-card {
+  padding: var(--space-3) var(--space-4);
+}
+
+.dd-dashboard .dd-party .dd-card-name {
+  font-size: var(--text-lg);
+}

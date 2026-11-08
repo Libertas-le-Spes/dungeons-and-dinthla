@@ -15,7 +15,7 @@ const CARD_LINES = [
   { label: "Speed", name: "speed" },
 ];
 
-function addValue(parent: HTMLElement, value: string | undefined): void {
+export function addSheetValue(parent: HTMLElement, value: string | undefined): void {
   if (value === undefined) parent.createSpan({ cls: "dd-unknown", text: "?" });
   else parent.appendText(value);
 }
@@ -30,7 +30,7 @@ function addAbilities(card: HTMLElement, values: SheetValues): void {
     const cell = abilities.createDiv();
     cell.createEl("b", { text: ability });
     const score = values.get(ability);
-    addValue(cell, score);
+    addSheetValue(cell, score);
     if (score === undefined) continue;
     const modifier = modifierOf(score);
     if (modifier !== "") cell.appendText(` (${modifier})`);
@@ -52,7 +52,7 @@ export function addCharacterCard(gallery: HTMLElement, card: CharacterCard, acti
     const line = element.createDiv({ cls: "dd-card-line" });
     line.createEl("strong", { text: label });
     line.appendText(" ");
-    addValue(line, card.values.get(name));
+    addSheetValue(line, card.values.get(name));
   }
   element.createDiv({ cls: "dd-card-rule" });
   addAbilities(element, card.values);
