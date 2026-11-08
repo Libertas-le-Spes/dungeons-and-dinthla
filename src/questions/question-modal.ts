@@ -2,7 +2,8 @@ import { Modal, Notice, Setting, type App, type ButtonComponent } from "obsidian
 import type { QuestionRecord } from "../campaign/campaign";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
-import { PartlyWritten, type QuestionEdit } from "./question-writer";
+import { PartlyWritten } from "../campaign/note-editor";
+import type { QuestionEdit } from "./question-writer";
 
 export interface QuestionChoices {
   save(edit: QuestionEdit): Promise<boolean>;

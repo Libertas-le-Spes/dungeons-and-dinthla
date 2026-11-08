@@ -1,0 +1,125 @@
+import type { TFile, Vault } from "obsidian";
+import { appendLines, removeLines, type LineToRemove } from "../notes/note-lines";
+import { messageOf } from "../views/message-of";
+
+export type EditorVault = Pick<Vault, "getFileByPath" | "process" | "read">;
+
+export const CHANGED_IN_NOTE = "A line was changed in its note since the dialog was opened, so nothing was written.";
+export const OLD_LINE_LEFT =
+  "The new line was written, but the old one had changed in its note since, so it was left. Remove one of them by hand.";
+export const DUPLICATE_LINES = "More than one line in the note reads like this one, so nothing was deleted.";
+
+export class PartlyWritten extends Error {}
+
+export interface Removal extends LineToRemove {
+  path: string;
+}
+
+function countMatches(text: string, removal: Removal): number {
+  return text.split("\n").filter((written) => removal.matches(written.replace(/\r$/, ""))).length;
+}
+
+export class NoteEditor {
+  constructor(private readonly vault: EditorVault) {}
+
+  async append(targetPath: string, added: string[]): Promise<boolean> {
+    if (added.length === 0) return false;
+    await this.vault.process(this.fileAt(targetPath), (text) => appendLines(text, added));
+    return true;
+  }
+
+  async replace(targetPath: string, added: string[], old: Removal): Promise<boolean> {
+    const target = this.fileAt(targetPath);
+    if (old.path === targetPath) {
+      await this.changeOrRefuse(target, CHANGED_IN_NOTE, (text) => {
+        const removal = removeLines(text, [old]);
+        if (removal.removed === 0) return null;
+        return appendLines(removal.text, added);
+      });
+      return true;
+    }
+    const oldNote = this.fileAt(old.path);
+    await this.refuseUnlessFound(oldNote, [old]);
+    if (added.length === 0) {
+      await this.removeOrRefuse(oldNote, [old], CHANGED_IN_NOTE);
+      return true;
+    }
+    await this.vault.process(target, (text) => appendLines(text, added));
+    try {
+      await this.removeOrRefuse(oldNote, [old], OLD_LINE_LEFT);
+    } catch (error) {
+      throw new PartlyWritten(messageOf(error));
+    }
+    return true;
+  }
+
+  async remove(removal: Removal): Promise<boolean> {
+    await this.removeOrRefuse(this.fileAt(removal.path), [removal], CHANGED_IN_NOTE);
+    return true;
+  }
+
+  async removeWithItsLines(own: Removal, others: Removal[]): Promise<boolean> {
+    const alongside = others.filter((removal) => removal.path === own.path);
+    const elsewhere = new Map<string, Removal[]>();
+    for (const removal of others.filter((other) => other.path !== own.path)) {
+      const group = elsewhere.get(removal.path);
+      if (group === undefined) elsewhere.set(removal.path, [removal]);
+      else group.push(removal);
+    }
+    const ownNote = this.fileAt(own.path);
+    const otherNotes = [...elsewhere].map(([path, group]) => ({ path, file: this.fileAt(path), group }));
+    await this.removeOwnLine(ownNote, own, alongside);
+    for (const { path, file, group } of otherNotes) {
+      try {
+        await this.vault.process(file, (text) => removeLines(text, group).text);
+      } catch (error) {
+        throw new PartlyWritten(`It was deleted, but its lines in ${path} were left: ${messageOf(error)}`);
+      }
+    }
+    return true;
+  }
+
+  private async removeOwnLine(file: TFile, own: Removal, alongside: Removal[]): Promise<void> {
+    let duplicated = false;
+    await this.changeOrRefuse(file, CHANGED_IN_NOTE, (text) => {
+      if (countMatches(text, own) > 1) {
+        duplicated = true;
+        return text;
+      }
+      const withoutOwn = removeLines(text, [own]);
+      if (withoutOwn.removed === 0) return null;
+      return removeLines(withoutOwn.text, alongside).text;
+    });
+    if (duplicated) throw new Error(DUPLICATE_LINES);
+  }
+
+  private async refuseUnlessFound(file: TFile, removals: Removal[]): Promise<void> {
+    const text = await this.vault.read(file);
+    if (removeLines(text, removals).removed < removals.length) throw new Error(CHANGED_IN_NOTE);
+  }
+
+  private async removeOrRefuse(file: TFile, removals: Removal[], message: string): Promise<void> {
+    await this.changeOrRefuse(file, message, (text) => {
+      const removal = removeLines(text, removals);
+      if (removal.removed < removals.length) return null;
+      return removal.text;
+    });
+  }
+
+  private async changeOrRefuse(file: TFile, message: string, change: (text: string) => string | null): Promise<void> {
+    let refused = false;
+    await this.vault.process(file, (text) => {
+      const changed = change(text);
+      if (changed !== null) return changed;
+      refused = true;
+      return text;
+    });
+    if (refused) throw new Error(message);
+  }
+
+  private fileAt(path: string): TFile {
+    const file = this.vault.getFileByPath(path);
+    if (file === null) throw new Error(`${path} was moved or deleted`);
+    return file;
+  }
+}
