@@ -8,6 +8,7 @@ import { summariseFunds, type CoinCount, type FundsSummary, type LedgerLine } fr
 import { summariseItems, THE_PARTY_LABEL, type ItemSummary } from "./item-groups";
 import type { CoinOutcome } from "./coin-modal";
 import { addLedgerRow, NO_COIN_ENTRIES } from "./ledger-row";
+import type { OpenLedgerEntry } from "./open-ledger-entry";
 import { focusRowAt, NO_ROW, RowFocus } from "../views/row-focus";
 
 export const FUNDS_VIEW = "dungeons-and-dinthla-funds";
@@ -71,7 +72,7 @@ export class FundsView extends ItemView {
     private readonly actions: LinkActions,
     private readonly noteExists: (name: string, sourcePath: string) => boolean,
     private readonly addCoin: ((returnFocus: () => void) => void) | null,
-    private readonly openLedgerEntry: ((source: Source, onClosed: (outcome: CoinOutcome) => void) => void) | null,
+    private readonly openLedgerEntry: OpenLedgerEntry | null,
     private readonly openItem: ((name: string, source: Source, onClosed: (changed: boolean) => void) => void) | null,
   ) {
     super(leaf);
