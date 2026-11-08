@@ -1,5 +1,6 @@
 import type { QuestionRecord, SourcedText } from "../campaign/campaign";
-import { NoteEditor, type EditorVault, type Removal } from "../campaign/note-editor";
+import { NoteEditor, PartlyWritten, type EditorVault, type Removal } from "../campaign/note-editor";
+import { messageOf } from "../views/message-of";
 import { answerLine, isFollowUpLine, isQuestionLine, oneLine, questionLine } from "../notes/question-lines";
 import { answerRemoval, type QuestionPlan } from "./question-plan";
 
@@ -23,11 +24,21 @@ export class QuestionWriter {
   }
 
   async apply(plan: QuestionPlan): Promise<boolean> {
-    let wrote = false;
-    if (plan.removal === null) wrote = await this.editor.append(plan.answerPath, plan.answerLines);
-    else wrote = await this.editor.replace(plan.answerPath, plan.answerLines, plan.removal);
-    const followed = await this.editor.append(plan.followUpPath, plan.followUpLines);
-    return wrote || followed;
+    if (plan.answerPath === plan.followUpPath) return this.writeAnswer(plan, [...plan.answerLines, ...plan.followUpLines]);
+    this.editor.ensureExists([plan.answerPath, plan.followUpPath]);
+    const wrote = await this.writeAnswer(plan, plan.answerLines);
+    try {
+      const followed = await this.editor.append(plan.followUpPath, plan.followUpLines);
+      return wrote || followed;
+    } catch (error) {
+      if (!wrote) throw error;
+      throw new PartlyWritten(`The answer was written, but the follow-up couldn't be: ${messageOf(error)}`);
+    }
+  }
+
+  private async writeAnswer(plan: QuestionPlan, lines: string[]): Promise<boolean> {
+    if (plan.removal === null) return this.editor.append(plan.answerPath, lines);
+    return this.editor.replace(plan.answerPath, lines, plan.removal);
   }
 
   async add(question: string, answer: string, sessionPath: string): Promise<boolean> {

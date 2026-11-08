@@ -61,6 +61,8 @@ export function openQuestion(
     },
     delete: () => writer.delete(latest()),
   };
-  const places = { askedIn: sessionLabelOf(question.source.path), writesTo: sessionLabelOf(sessionPath) };
+  let answeredIn = sessionLabelOf(sessionPath);
+  if (question.answer !== null) answeredIn = sessionLabelOf(question.answer.source.path);
+  const places = { askedIn: sessionLabelOf(question.source.path), answeredIn, writesTo: sessionLabelOf(sessionPath) };
   new QuestionModal(app, question, places, choices, onClosed).open();
 }

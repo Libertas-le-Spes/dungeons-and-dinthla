@@ -145,6 +145,7 @@ function questsBesidesFollowUp(campaign: Campaign, plan: QuestPlan): QuestRecord
 }
 
 export function refusalForQuestPlan(sessions: SessionNote[], record: QuestRecord, plan: QuestPlan): string | null {
+  if (!sessions.some((session) => session.path === plan.targetPath)) return CHANGES_ANOTHER_QUEST;
   const before = buildCampaign(sessions);
   const after = buildCampaign(applyPlan(sessions, plan));
   const wanted = before.quests.map((quest) => {

@@ -56,4 +56,8 @@ describe("refusalForQuestionPlan", () => {
   it("refuses a follow-up that reads like a question already asked", () => {
     expect(refusalFor({ 1: "? Who\n? Why, after: Who\n" }, 0, "", "Why", 1)).toBe(FOLLOW_UP_ALREADY_ASKED);
   });
+
+  it("refuses a plan for a session that hasn't been read yet", () => {
+    expect(refusalFor({ 1: "? Who\n?= Who: Mira\n" }, 0, "Mira", "Why", 9)).toBe(CHANGES_MORE_THAN_ASKED);
+  });
 });
