@@ -67,7 +67,7 @@ export class FundsView extends ItemView {
   private ledgerCount!: HTMLElement;
   private ledgerList!: HTMLElement;
   private addCoinButton: HTMLElement | null = null;
-  private pendingFocus: { entry: Source | null; until: number } | null = null;
+  private pendingFocus: { source: Source | null; until: number } | null = null;
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -192,7 +192,7 @@ export class FundsView extends ItemView {
     const pending = this.pendingFocus;
     this.pendingFocus = null;
     if (pending === null || Date.now() > pending.until) return;
-    if (pending.entry !== null && focusRowAt(this.ledgerList, pending.entry)) return;
+    if (pending.source !== null && focusRowAt(this.ledgerList, pending.source)) return;
     if (this.addCoinButton !== null) this.addCoinButton.focus();
   }
 
@@ -202,9 +202,9 @@ export class FundsView extends ItemView {
       focusRowAt(this.ledgerList, source);
       return;
     }
-    let entry: Source | null = source;
-    if (outcome === "deleted") entry = null;
-    this.pendingFocus = { entry, until: Date.now() + PENDING_FOCUS_MS };
+    let focused: Source | null = source;
+    if (outcome === "deleted") focused = null;
+    this.pendingFocus = { source: focused, until: Date.now() + PENDING_FOCUS_MS };
   }
 
   private addLedgerRow(list: HTMLElement, { record, balance }: LedgerLine): void {
