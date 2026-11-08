@@ -136,6 +136,30 @@ describe("saving an item", () => {
     expect(notes.texts.get(TWO)).toBe("$$ [[Items/Lantern|Lamp]] :lost\n$$ [[Longsword]] :changed to the party\n");
   });
 
+  it("keeps an item's link or alias when the line that carried it is undone", async () => {
+    const notes = new FakeNotes({
+      [ONE]: "$ Silvered lantern\n$$ [[Silvered lantern]] :lost\n$ [[Mira]] [[Shield]]\n$$ [[Shield|grandma's shield]] :lost\n",
+      [TWO]: "",
+    });
+    await notes.save("Silvered lantern", { status: "held" });
+    await notes.save("Shield", { status: "held" });
+    expect(notes.texts.get(ONE)).toBe("$ Silvered lantern\n$ [[Mira]] [[Shield]]\n");
+    expect(notes.texts.get(TWO)).toBe("$$ [[Silvered lantern]] :changed to the party\n$$ [[Shield|grandma's shield]] :changed to [[Mira]]\n");
+  });
+
+  it("writes an item as it was last linked", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ [[Mira]] [[Items/Lantern|Lamp]]\n$ [[Mira]] [[Lantern]]\n", [TWO]: "" });
+    await notes.save("Lantern", { status: "lost" });
+    expect(notes.texts.get(TWO)).toBe("$$ [[Lantern]] :lost\n");
+  });
+
+  it("changes how an item named only by the line that took it went, without a holder line", async () => {
+    const notes = new FakeNotes({ [ONE]: "$$ Rope :lost\n", [TWO]: "" });
+    await notes.save("Rope", { status: "used" });
+    expect(notes.texts.get(ONE)).toBe("");
+    expect(notes.texts.get(TWO)).toBe("$$ Rope :used\n");
+  });
+
   it("takes an item's link from a later $$ line too", async () => {
     const notes = new FakeNotes({ [ONE]: "$ Shield\n$$ [[Shield]] :lost\n", [TWO]: "" });
     await notes.save("Shield", { status: "used" });
@@ -150,6 +174,14 @@ describe("saving an item", () => {
     await expect(notes.save("Lantern", { status: "held" })).rejects.toThrow(GONE_LINE_SAYS_MORE);
     await expect(notes.save("Rope", { status: "lost" })).rejects.toThrow(GONE_LINE_SAYS_MORE);
     expect(notes.writes).toBe(0);
+  });
+
+  it("refuses to undo a line that took an item when what follows isn't a plain sale price", async () => {
+    for (const line of ["$$ Rope :lost 30 gp", "$$ Rope :sold+30 gp", "$$ Rope :sold 1,2345 gp"]) {
+      const notes = new FakeNotes({ [ONE]: `$ Rope\n${line}\n`, [TWO]: "" });
+      await expect(notes.save("Rope", { status: "held" }), line).rejects.toThrow(GONE_LINE_SAYS_MORE);
+      expect(notes.writes, line).toBe(0);
+    }
   });
 
   it("undoes a line that took an item when it reads as the dialog writes it, whatever its spacing and bullet", async () => {
@@ -205,6 +237,15 @@ describe("saving an item", () => {
     if ("error" in plan) throw new Error(plan.error);
     expect(refusalForItemPlan(notes.sessionNotes, item, plan)).toBeNull();
     expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, purseCopper: 200 })).toBe(CHANGES_ANOTHER_ITEM);
+  });
+
+  it("refuses a plan that would lose how an item is written", () => {
+    const notes = new FakeNotes({ [ONE]: "$ Lantern\n$$ [[Lantern]] :lost\n", [TWO]: "" });
+    const item = notes.item("Lantern");
+    const plan = planItemSave(item, { ...initialItemEdit(item), status: "held" }, notes.sessionNotes, [], TWO);
+    if ("error" in plan) throw new Error(plan.error);
+    expect(refusalForItemPlan(notes.sessionNotes, item, plan)).toBeNull();
+    expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, added: [] })).toBe(CHANGES_ANOTHER_ITEM);
   });
 
   it("refuses a plan that would change another item", () => {

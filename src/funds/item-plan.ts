@@ -3,7 +3,7 @@ import type { CoinRecord, ItemRecord, SessionNote } from "../campaign/campaign";
 import { lineAsRead, removalAsRead, type Removal } from "../campaign/note-editor";
 import { sessionNoteOf, sessionNumberOf } from "../campaign/session-file";
 import { withoutBullet } from "../notes/bullet";
-import { comparableLine, readAmount } from "../notes/coin-lines";
+import { readAmount } from "../notes/coin-lines";
 import { readItemChange } from "../notes/item-change";
 import { appendLines, removeLines } from "../notes/note-lines";
 import { oneLine } from "../notes/question-lines";
@@ -92,12 +92,23 @@ function writtenAsTheDialogWould(read: string | undefined): boolean {
   if (read === undefined) return false;
   const change = readItemChange(read);
   if (change === null) return false;
-  const line = comparableLine(withoutBullet(read));
-  const base = comparableLine(`$$ ${change.item} :${change.kind}`);
-  if (!line.startsWith(base)) return false;
-  const rest = line.slice(base.length);
-  if (rest === "") return true;
-  return change.kind === "sold" && rest.startsWith(" ") && !("error" in readAmount("in", rest));
+  const text = withoutBullet(read);
+  const word = ` :${change.kind}`;
+  const rest = text.slice(text.toLowerCase().lastIndexOf(word) + word.length);
+  if (rest.trim() === "") return true;
+  return change.kind === "sold" && /^\s/.test(rest) && !("error" in readAmount("in", rest));
+}
+
+function writtenAfterRemoval(sessions: SessionNote[], removal: Removal, item: ItemRecord): string | undefined {
+  const after = buildCampaign(
+    sessions.map((session) => {
+      if (session.path !== removal.path) return session;
+      return sessionNoteOf(session.path, session.number, removeLines(session.text, [removal]).text);
+    }),
+  );
+  const found = after.items.find((candidate) => candidate.name === item.name);
+  if (found === undefined) return undefined;
+  return found.written;
 }
 
 export function planItemSave(
@@ -121,13 +132,14 @@ export function planItemSave(
     removal = removalAsRead(sessions, item.gone!.source);
     purseCopper -= saleCopperOf(item, coins);
   }
-  const keepsItsOnlyLine = removal !== null && item.history.length === 1 && edit.status === "held";
-  if (holderChanged || keepsItsOnlyLine) added.push(`$$ ${item.written} :changed to ${edit.holder}`);
+  let keepsItsWritten = false;
+  if (removal !== null && edit.status === "held") keepsItsWritten = writtenAfterRemoval(sessions, removal, item) !== item.written;
+  if (holderChanged || keepsItsWritten) added.push(`$$ ${item.written} :changed to ${edit.holder}`);
   if (statusChanged && edit.status !== "held") {
     let line = `$$ ${item.written} :${edit.status}`;
-    const price = oneLine(edit.soldFor);
-    if (edit.status === "sold" && price !== "") {
-      const reading = readAmount("in", price);
+    const soldFor = oneLine(edit.soldFor);
+    if (edit.status === "sold" && soldFor !== "") {
+      const reading = readAmount("in", soldFor);
       if ("error" in reading) return { error: reading.error };
       line = `${line} ${reading.amount}`;
       purseCopper += reading.copper;
@@ -146,19 +158,19 @@ function applyPlan(sessions: SessionNote[], plan: ItemPlan): SessionNote[] {
   });
 }
 
-function signature(name: string, holderName: string, status: ItemStatus): string {
-  return JSON.stringify([name.toLowerCase(), holderName.toLowerCase(), status]);
+function signature(item: ItemRecord, holderName: string, status: ItemStatus): string {
+  return JSON.stringify([item.name.toLowerCase(), item.written, holderName.toLowerCase(), status]);
 }
 
 function signatureOf(item: ItemRecord): string {
-  return signature(item.name, holderNameOf(item.holder), statusOf(item));
+  return signature(item, holderNameOf(item.holder), statusOf(item));
 }
 
 export function refusalForItemPlan(sessions: SessionNote[], item: ItemRecord, plan: ItemPlan): string | null {
   const before = buildCampaign(sessions);
   const after = buildCampaign(applyPlan(sessions, plan));
   const wanted = before.items.map((candidate) => {
-    if (candidate.name === item.name) return signature(item.name, plan.holderName, plan.status);
+    if (candidate.name === item.name) return signature(item, plan.holderName, plan.status);
     return signatureOf(candidate);
   });
   const found = after.items.map(signatureOf);
