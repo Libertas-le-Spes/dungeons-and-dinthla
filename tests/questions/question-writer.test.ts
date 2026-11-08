@@ -3,10 +3,11 @@ import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { QuestionRecord } from "../../src/campaign/campaign";
 import { sessionNoteOf } from "../../src/campaign/session-file";
-import { QuestionWriter, type WriterVault } from "../../src/questions/question-writer";
+import { CHANGED_IN_NOTE, QuestionWriter, type WriterVault } from "../../src/questions/question-writer";
 
 class FakeNotes {
   readonly texts: Map<string, string>;
+  writes = 0;
 
   constructor(notes: Record<string, string>) {
     this.texts = new Map(Object.entries(notes));
@@ -19,10 +20,12 @@ class FakeNotes {
         return { path } as TFile;
       },
       process: async (file, change) => {
+        this.writes += 1;
         const next = change(this.texts.get(file.path)!);
         this.texts.set(file.path, next);
         return next;
       },
+      read: async (file) => this.texts.get(file.path)!,
     };
   }
 
@@ -67,6 +70,7 @@ describe("QuestionWriter", () => {
     const [question] = notes.questions();
     await new QuestionWriter(notes.vault).save(question!, { answer: " Mira ", followUp: "" }, ONE);
     expect(notes.texts.get(ONE)).toBe("? Who\n?= Who: Mira\n");
+    expect(notes.writes).toBe(0);
   });
 
   it("reopens a question when its answer is cleared, or on asking", async () => {
@@ -86,12 +90,58 @@ describe("QuestionWriter", () => {
     expect(notes.texts.get(TWO)).toBe("We rode on.\n");
   });
 
-  it("leaves a line alone when it no longer says what was read", async () => {
+  it("refuses to reopen when the answer line no longer says what was read", async () => {
     const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n" });
     const [question] = notes.questions();
     notes.texts.set(ONE, "? Who\n?= Who: Lady Vess\n");
-    await new QuestionWriter(notes.vault).reopen(question!);
+    await expect(new QuestionWriter(notes.vault).reopen(question!)).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notes.texts.get(ONE)).toBe("? Who\n?= Who: Lady Vess\n");
+  });
+
+  it("refuses to change an answer that was edited by hand, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n", [TWO]: "" });
+    const [question] = notes.questions();
+    notes.texts.set(ONE, "? Who\n?= Who: Mira (maybe)\n");
+    await expect(new QuestionWriter(notes.vault).save(question!, { answer: "Lady Vess", followUp: "" }, TWO)).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(notes.texts.get(ONE)).toBe("? Who\n?= Who: Mira (maybe)\n");
+    expect(notes.texts.get(TWO)).toBe("");
+  });
+
+  it("refuses to change an answer edited by hand in the note being written, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n" });
+    const [question] = notes.questions();
+    notes.texts.set(ONE, "? Who\n?= Who: Mira (maybe)\n");
+    await expect(new QuestionWriter(notes.vault).save(question!, { answer: "Lady Vess", followUp: "" }, ONE)).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(notes.texts.get(ONE)).toBe("? Who\n?= Who: Mira (maybe)\n");
+  });
+
+  it("keeps the old answer when the note to write the new one in has gone", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n" });
+    await expect(new QuestionWriter(notes.vault).save(notes.questions()[0]!, { answer: "Lady Vess", followUp: "" }, TWO)).rejects.toThrow(
+      "moved or deleted",
+    );
+    expect(notes.texts.get(ONE)).toBe("? Who\n?= Who: Mira\n");
+  });
+
+  it("changes an answer in one note in one step", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\nWe rode on.\n" });
+    await new QuestionWriter(notes.vault).save(notes.questions()[0]!, { answer: "Lady Vess", followUp: "" }, ONE);
+    expect(notes.texts.get(ONE)).toBe("? Who\nWe rode on.\n?= Who: Lady Vess\n");
+    expect(notes.writes).toBe(1);
+  });
+
+  it("writes no follow-up that is only a question mark", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n" });
+    await new QuestionWriter(notes.vault).save(notes.questions()[0]!, { answer: "", followUp: " ? " }, ONE);
+    expect(notes.texts.get(ONE)).toBe("? Who\n");
+  });
+
+  it("refuses to delete a question whose line has changed, removing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n" });
+    const [question] = notes.questions();
+    notes.texts.set(ONE, "? Who exactly\n?= Who: Mira\n");
+    await expect(new QuestionWriter(notes.vault).delete(question!)).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(notes.texts.get(ONE)).toBe("? Who exactly\n?= Who: Mira\n");
   });
 
   it("says so when the note to write in has gone", async () => {
