@@ -51,7 +51,7 @@ function readAmountsIn(part: string): CoinAmount[] {
   return [...part.matchAll(AMOUNT)].map((match) => readAmount(match, wordAt));
 }
 
-export function copperOf({ count, kind, moneyOut }: CoinAmount): number {
+function copperOf({ count, kind, moneyOut }: CoinAmount): number {
   const worth = count * COPPER_PER[kind];
   if (moneyOut) return -worth;
   return worth;

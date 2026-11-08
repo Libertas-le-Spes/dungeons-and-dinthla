@@ -5,6 +5,7 @@ import { withoutBullet } from "./bullet";
 export type ItemChangeKind = "changed" | "sold" | "used" | "lost";
 
 export interface ItemChange {
+  text: string;
   item: string;
   kind: ItemChangeKind;
   holder?: string;
@@ -43,7 +44,7 @@ export function readItemChange(line: string): ItemChange | null {
   if (item === "") return null;
   const kind = KINDS[last[1]!.toLowerCase()]!;
   const rest = body.slice(last.index + last[0].length);
-  const change: ItemChange = { item, kind };
+  const change: ItemChange = { text: body.trim(), item, kind };
   if (kind === "changed") change.holder = holderIn(rest);
   if (kind === "sold") change.sale = saleIn(rest);
   return change;

@@ -13,9 +13,9 @@ export interface LedgerLine {
 
 export interface FundsSummary {
   purse: number;
-  moneyIn: number;
-  moneyOut: number;
-  coins: CoinCount[];
+  totalIn: number;
+  totalOut: number;
+  coinCounts: CoinCount[];
   ledger: LedgerLine[];
 }
 
@@ -35,15 +35,15 @@ function coinCountsOf(records: CoinRecord[]): CoinCount[] {
 
 export function summariseFunds(campaign: Campaign): FundsSummary {
   let balance = 0;
-  let moneyIn = 0;
-  let moneyOut = 0;
+  let totalIn = 0;
+  let totalOut = 0;
   const ledger: LedgerLine[] = [];
   for (const record of campaign.coins) {
     const copper = record.entry.copper;
     balance += copper;
-    if (copper < 0) moneyOut -= copper;
-    else moneyIn += copper;
+    if (record.entry.moneyOut) totalOut -= copper;
+    else totalIn += copper;
     ledger.push({ record, balance });
   }
-  return { purse: balance, moneyIn, moneyOut, coins: coinCountsOf(campaign.coins), ledger: ledger.reverse() };
+  return { purse: balance, totalIn, totalOut, coinCounts: coinCountsOf(campaign.coins), ledger: ledger.reverse() };
 }
