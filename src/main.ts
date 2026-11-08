@@ -1,10 +1,12 @@
-import { debounce, Plugin, type MarkdownFileInfo, type TFile } from "obsidian";
+import { debounce, MarkdownView, Plugin, type EditorSuggestContext, type MarkdownFileInfo, type TFile } from "obsidian";
 import type { Source } from "./campaign/campaign";
 import { campaignFolderOf, findCampaignFolders, isSessionNote } from "./campaign/campaign-folders";
 import { CampaignStore } from "./campaign/campaign-store";
 import { editorTextOf } from "./campaign/editor-text";
 import { markerColouring } from "./editor/marker-decorations";
+import type { LookupMatch } from "./lookups/lookup";
 import { LookupSuggest } from "./lookups/lookup-suggest";
+import { openLookup, type LookupOpeners } from "./lookups/open-lookup";
 import { openNewQuestion } from "./questions/open-new-question";
 import { openQuestion } from "./questions/open-question";
 import { QUESTIONS_VIEW, questionsKind } from "./questions/questions-kind";
@@ -73,7 +75,14 @@ export default class DungeonsAndDinthla extends Plugin {
     this.addCommand({ id: "start-session", name: "Start a new session", callback: () => startSession(this.app, this.store.campaignFolder) });
     const inSession = (path: string) => isSessionNote(path, (notePath) => this.app.vault.getFileByPath(notePath) !== null);
     this.registerEditorExtension(markerColouring(inSession));
-    this.registerEditorSuggest(new LookupSuggest(this.app, () => this.store.current, inSession, () => {}));
+    const openers: LookupOpeners = {
+      question: (source) => openQuestion(this.app, this.store, source, () => void openSource(this.app, source), () => this.focusEditor()),
+      quest: (source) => openQuest(this.app, this.store, source, () => void openSource(this.app, source), () => this.focusEditor()),
+      item: (name, source) => openItemDialog(this.app, this.store, name, () => void openSource(this.app, source), () => this.focusEditor()),
+    };
+    const pickLookup = (match: LookupMatch, context: EditorSuggestContext) =>
+      void openLookup(this.app, match, context, (path, text) => this.store.noteChanged(path, text), openers);
+    this.registerEditorSuggest(new LookupSuggest(this.app, () => this.store.current, inSession, pickLookup));
     this.registerMarkdownPostProcessor((element, context) => {
       if (inSession(context.sourcePath)) colourMarkers(element);
     });
@@ -114,6 +123,11 @@ export default class DungeonsAndDinthla extends Plugin {
   private readEditor(info: MarkdownFileInfo, file: TFile): void {
     const text = editorTextOf(info, file, this.app.vault);
     if (text !== null) this.store.noteChanged(file.path, text);
+  }
+
+  private focusEditor(): void {
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (view !== null) view.editor.focus();
   }
 
   private focusRow(viewType: string, source: Source, afterChange: boolean): void {
