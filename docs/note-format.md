@@ -160,6 +160,8 @@ A follow-up typed in full must match the earlier text exactly, capitals included
 
 A question is open until it has a `?=` line. Reopening it removes that `?=` line; changing the answer removes it and writes a new one. Deleting a question removes its `?` line, its clues and its answer, wherever they were written. The plugin does each only when you ask. It removes a line only if it still says what was read, taking the matching line nearest where it was. If the question or the answer being replaced has changed since the dialog opened, it writes nothing and says so; deleting a question leaves any clue or answer line that was changed by hand, and deletes nothing while two lines in its note read like the question. An answer that would be read as another open question's, because that question starts the same way, is refused. An answer can't be given from the view while an earlier open question reads the same, since the answer would go to that one.
 
+*New question* in the Questions view adds `? …`, and `?= …` if an answer is given, to the campaign's latest session, so the new lines are read after every other. It refuses a question that reads the same as one already asked, open or answered, since their answers would be mixed up, and an answer that would be read as another question's.
+
 ### Quests
 
 | Line | Means |
