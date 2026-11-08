@@ -26,10 +26,9 @@ import { openNewQuest } from "./quests/open-new-quest";
 import { openQuest } from "./quests/open-quest";
 import { QUESTS_VIEW, questsKind } from "./quests/quests-kind";
 import { FUNDS_VIEW, FundsView } from "./funds/funds-view";
-import type { CoinOutcome } from "./funds/coin-modal";
-import { openAddCoin, openCoinEntry } from "./funds/open-add-coin";
+import { openAddCoin } from "./funds/open-add-coin";
 import { openItemDialog } from "./funds/open-item";
-import { openLedgerEntry } from "./funds/ledger-row";
+import { ledgerEntryOpener } from "./funds/open-ledger-entry";
 import { CampaignListView } from "./views/list-view";
 import { activePathOf, openMainView, openSideView, openSource } from "./views/open-view";
 import { colourMarkers } from "./reading/colour-markers";
@@ -89,14 +88,8 @@ export default class DungeonsAndDinthla extends Plugin {
     const addCoin = (returnFocus: () => void) => openAddCoin(this.app, this.store, returnFocus);
     const openItem = (name: string, source: Source, onClosed: (changed: boolean) => void) =>
       openItemDialog(this.app, this.store, name, () => void openSource(this.app, source), onClosed);
-    const ledgerOpeners = {
-      coinEntry: (source: Source, onClosed: (outcome: CoinOutcome) => void) =>
-        openCoinEntry(this.app, this.store, source, () => void openSource(this.app, source), onClosed),
-      item: openItem,
-    };
-    const openLedgerEntryAt = (source: Source, onClosed: (outcome: CoinOutcome) => void) =>
-      openLedgerEntry(this.store.current.items, source, ledgerOpeners, onClosed);
-    this.registerView(FUNDS_VIEW, (leaf) => new FundsView(leaf, this.store, actions, noteExists, addCoin, openLedgerEntryAt, openItem));
+    const openLedgerEntry = ledgerEntryOpener(this.app, this.store, openItem);
+    this.registerView(FUNDS_VIEW, (leaf) => new FundsView(leaf, this.store, actions, noteExists, addCoin, openLedgerEntry, openItem));
     this.addRibbonIcon("coins", "Open party funds", () => void openSideView(this.app, FUNDS_VIEW));
     this.addCommand({ id: "open-funds", name: "Open party funds", callback: () => void openSideView(this.app, FUNDS_VIEW) });
     const characterNotes = characterNotesOf(this.app);
@@ -116,7 +109,7 @@ export default class DungeonsAndDinthla extends Plugin {
       ...actions,
       openQuestion: openQuestionAt,
       openQuest: openQuestAt,
-      openLedgerEntry: openLedgerEntryAt,
+      openLedgerEntry,
       showQuestions: () => void openSideView(this.app, QUESTIONS_VIEW),
       showQuests: () => void openSideView(this.app, QUESTS_VIEW),
       showFunds: () => void openSideView(this.app, FUNDS_VIEW),
