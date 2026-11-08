@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sessionToWriteIn } from "../../src/campaign/session-to-write";
+import { latestSession, sessionToWriteIn } from "../../src/campaign/session-to-write";
 
 const PATHS = ["Pale Moon/Pale Moon.md", "Pale Moon/Sessions/Session 2.md", "Pale Moon/Sessions/Session 10.md", "Ashen Road/Sessions/Session 11.md"];
 
@@ -20,5 +20,10 @@ describe("sessionToWriteIn", () => {
 
   it("writes in the latest session instead of one earlier than the question, where the line would never match", () => {
     expect(sessionToWriteIn("Pale Moon/Sessions/Session 2.md", "Pale Moon", PATHS, 5)).toBe("Pale Moon/Sessions/Session 10.md");
+  });
+
+  it("finds the campaign's latest session by number", () => {
+    expect(latestSession("Pale Moon", PATHS)).toBe("Pale Moon/Sessions/Session 10.md");
+    expect(latestSession("Pale Moon", ["Pale Moon/Pale Moon.md"])).toBeNull();
   });
 });

@@ -4,14 +4,14 @@ import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { Campaign } from "../../src/campaign/campaign";
 import type { CampaignStore } from "../../src/campaign/campaign-store";
 import { questsKind } from "../../src/quests/quests-kind";
-import { CampaignListView } from "../../src/views/list-view";
+import { CampaignListView, type ListCreate } from "../../src/views/list-view";
 import { obsidianDocument } from "./obsidian-dom";
 
 function campaignOf(lines: string[]): Campaign {
   return buildCampaign([{ path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: lines.join("\n") }]);
 }
 
-async function openView(campaign: Campaign) {
+async function openView(campaign: Campaign, create: ListCreate | null = null) {
   let listener: (campaign: Campaign) => void = () => {};
   const unsubscribe = vi.fn();
   const store = {
@@ -21,7 +21,7 @@ async function openView(campaign: Campaign) {
       return unsubscribe;
     },
   };
-  const view = new CampaignListView({} as WorkspaceLeaf, store as unknown as CampaignStore, { openRow: vi.fn(), openLink: vi.fn() }, questsKind);
+  const view = new CampaignListView({} as WorkspaceLeaf, store as unknown as CampaignStore, { openRow: vi.fn(), openLink: vi.fn() }, questsKind, create);
   const document = obsidianDocument();
   const root = document.createElement("div");
   document.body.append(root);
@@ -128,5 +128,17 @@ describe("CampaignListView", () => {
     editor.focus();
     change(campaignOf(["! Find it", "", "", "", "", "! A new line five"]));
     expect(root.ownerDocument.activeElement).toBe(editor);
+  });
+
+  it("shows a create button only when the list can make new items, and hands it a way back", async () => {
+    expect((await openView(campaignOf([]))).root.querySelector(".dd-create")).toBeNull();
+    const open = vi.fn();
+    const { root } = await openView(campaignOf([]), { label: "New quest", open });
+    const button = root.querySelector(".dd-create") as HTMLElement;
+    expect(button.textContent).toBe("New quest");
+    button.click();
+    expect(open).toHaveBeenCalledTimes(1);
+    open.mock.calls[0]![0]();
+    expect(root.ownerDocument.activeElement).toBe(button);
   });
 });
