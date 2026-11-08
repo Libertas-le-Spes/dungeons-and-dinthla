@@ -37,8 +37,13 @@ describe("summariseFunds", () => {
     ]);
   });
 
-  it("counts an entry with money in and out as in or out by its net amount", () => {
-    expect(summaryOf(["$ +50 gp reward, -5 gp ferry"])).toMatchObject({ totalIn: 4500, totalOut: 0, purse: 4500 });
+  it("counts each amount in or out on its own, as the note says", () => {
+    expect(summaryOf(["$ +50 gp reward, -5 gp ferry"])).toMatchObject({ totalIn: 5000, totalOut: 500, purse: 4500 });
+    expect(summaryOf(["$ found 5 gp, paid 5 gp toll", "$ sold the cart for 10 gp, paid 2 gp toll"])).toMatchObject({
+      totalIn: 1500,
+      totalOut: 700,
+      purse: 800,
+    });
   });
 
   it("counts the coins of such an entry by each amount's own sign", () => {

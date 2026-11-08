@@ -102,4 +102,9 @@ describe("FundsView", () => {
     (root.querySelector(".dd-ledger-row") as HTMLElement).click();
     expect(actions.openSource).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 1 });
   });
+
+  it("writes an entry that comes to nothing without a sign", async () => {
+    const { root } = await openView(campaignOf(["$ found 5 gp, paid 5 gp toll"]));
+    expect(textsOf(root, ".dd-ledger .dd-amount")).toEqual(["0 gp"]);
+  });
 });
