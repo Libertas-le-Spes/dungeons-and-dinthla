@@ -63,6 +63,7 @@ async function learnedAbout(notes: CharacterNotes, character: Character): Promis
 
 export async function openEditCharacter(app: App, notes: CharacterNotes, character: Character): Promise<void> {
   const { file } = character;
+  const openedPath = file.path;
   let before: CharacterEntry;
   let learned: Learned;
   try {
@@ -77,7 +78,7 @@ export async function openEditCharacter(app: App, notes: CharacterNotes, charact
     entry: before,
     learned,
     where: EDIT_WHERE,
-    save: (after: CharacterEntry) => saveCharacter(app.vault, app.fileManager, file, before, after),
+    save: (after: CharacterEntry) => saveCharacter(app.vault, app.fileManager, file, openedPath, before, after),
     delete: () => deleteCharacter(app.fileManager, file),
   };
   new CharacterModal(app, dialog, () => {}).open();
