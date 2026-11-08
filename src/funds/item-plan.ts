@@ -3,10 +3,10 @@ import type { CoinRecord, ItemRecord, SessionNote } from "../campaign/campaign";
 import { lineAsRead, removalAsRead, type Removal } from "../campaign/note-editor";
 import { sessionNoteOf, sessionNumberOf } from "../campaign/session-file";
 import { withoutBullet } from "../notes/bullet";
-import { readAmount } from "../notes/coin-lines";
+import { amountTextOf, readAmount, type AmountReading } from "../notes/coin-lines";
 import { readItemChange } from "../notes/item-change";
 import { findLinks } from "../notes/link";
-import { appendLines, removeLines } from "../notes/note-lines";
+import { appendLines, removeLines, rewriteLine } from "../notes/note-lines";
 import { oneLine } from "../notes/question-lines";
 import { holderNameOf, THE_PARTY, THE_PARTY_LABEL } from "./item-groups";
 
@@ -27,6 +27,7 @@ export interface ItemPlan {
   targetPath: string;
   added: string[];
   removal: Removal | null;
+  rewrittenAs: string | null;
   holderName: string;
   holderLinked: boolean;
   status: ItemStatus;
@@ -57,8 +58,20 @@ export function holderOptionOf(item: ItemRecord): HolderOption {
   return { text: holderTextOf(item), label: holderNameOf(item.holder) };
 }
 
-export function initialItemEdit(item: ItemRecord): ItemEdit {
-  return { holder: holderTextOf(item), status: statusOf(item), soldFor: "" };
+function saleOf(item: ItemRecord, coins: CoinRecord[]): CoinRecord | undefined {
+  const gone = item.gone;
+  if (gone === null) return undefined;
+  return coins.find((coin) => coin.source.path === gone.source.path && coin.source.line === gone.source.line);
+}
+
+function soldForOf(item: ItemRecord, coins: CoinRecord[]): string {
+  const sale = saleOf(item, coins);
+  if (sale === undefined) return "";
+  return amountTextOf(sale.entry.coins);
+}
+
+export function initialItemEdit(item: ItemRecord, coins: CoinRecord[]): ItemEdit {
+  return { holder: holderTextOf(item), status: statusOf(item), soldFor: soldForOf(item, coins) };
 }
 
 export function holderOptions(itemHolders: HolderOption[], characters: HolderOption[]): HolderOption[] {
@@ -88,11 +101,14 @@ function sameName(first: string, second: string): boolean {
 }
 
 function saleCopperOf(item: ItemRecord, coins: CoinRecord[]): number {
-  const gone = item.gone;
-  if (gone === null) return 0;
-  const sale = coins.find((coin) => coin.source.path === gone.source.path && coin.source.line === gone.source.line);
+  const sale = saleOf(item, coins);
   if (sale === undefined) return 0;
   return sale.entry.copper;
+}
+
+function changeWordEnd(text: string, kind: string): number {
+  const word = ` :${kind}`;
+  return text.toLowerCase().lastIndexOf(word) + word.length;
 }
 
 function writtenAsTheDialogWould(read: string | undefined): boolean {
@@ -100,10 +116,49 @@ function writtenAsTheDialogWould(read: string | undefined): boolean {
   const change = readItemChange(read);
   if (change === null) return false;
   const text = withoutBullet(read);
-  const word = ` :${change.kind}`;
-  const rest = text.slice(text.toLowerCase().lastIndexOf(word) + word.length);
+  const rest = text.slice(changeWordEnd(text, change.kind));
   if (rest.trim() === "") return true;
   return change.kind === "sold" && /^\s/.test(rest) && !("error" in readAmount("in", rest));
+}
+
+function withPrice(saleLine: string, amount: string): string {
+  const text = withoutBullet(saleLine);
+  const sold = text.slice(0, changeWordEnd(text, "sold"));
+  if (amount === "") return sold;
+  return `${sold} ${amount}`;
+}
+
+function priceChange(item: ItemRecord, typed: string, coins: CoinRecord[]): AmountReading | null {
+  const price = oneLine(typed);
+  if (price === soldForOf(item, coins)) return null;
+  let reading: AmountReading = { amount: "", copper: 0 };
+  if (price !== "") reading = readAmount("in", price);
+  if ("error" in reading || reading.copper !== saleCopperOf(item, coins)) return reading;
+  return null;
+}
+
+function planPriceChange(
+  item: ItemRecord,
+  edit: ItemEdit,
+  sessions: SessionNote[],
+  coins: CoinRecord[],
+  targetPath: string,
+): ItemPlan | { error: string } | null {
+  const price = priceChange(item, edit.soldFor, coins);
+  if (price === null) return null;
+  if ("error" in price) return price;
+  const read = lineAsRead(sessions, item.gone!.source);
+  if (!writtenAsTheDialogWould(read)) return { error: GONE_LINE_SAYS_MORE };
+  return {
+    targetPath,
+    added: [],
+    removal: removalAsRead(sessions, item.gone!.source),
+    rewrittenAs: withPrice(read!, price.amount),
+    holderName: holderNameOf(item.holder),
+    holderLinked: item.holderLinked,
+    status: "sold",
+    purseCopper: price.copper - saleCopperOf(item, coins),
+  };
 }
 
 function writtenAfterRemoval(sessions: SessionNote[], removal: Removal, item: ItemRecord): string | undefined {
@@ -129,6 +184,10 @@ export function planItemSave(
   const statusChanged = edit.status !== was;
   const holderChanged = !sameName(edit.holder, item.holder);
   if (holderChanged && edit.status !== "held" && !statusChanged) return { error: HOLDER_OF_GONE };
+  if (was === "sold" && !statusChanged) {
+    const priceChanged = planPriceChange(item, edit, sessions, coins, targetPath);
+    if (priceChanged !== null) return priceChanged;
+  }
   let holderName = holderNameOf(item.holder);
   if (holderChanged) holderName = holderNameOf(edit.holder);
   const added: string[] = [];
@@ -157,13 +216,20 @@ export function planItemSave(
     }
     added.push(line);
   }
-  return { targetPath, added, removal, holderName, holderLinked, status: edit.status, purseCopper };
+  return { targetPath, added, removal, rewrittenAs: null, holderName, holderLinked, status: edit.status, purseCopper };
+}
+
+function changedText(text: string, removal: Removal, rewrittenAs: string | null): string {
+  if (rewrittenAs === null) return removeLines(text, [removal]).text;
+  const rewritten = rewriteLine(text, removal, rewrittenAs);
+  if (rewritten === null) return text;
+  return rewritten;
 }
 
 function applyPlan(sessions: SessionNote[], plan: ItemPlan): SessionNote[] {
   return sessions.map((session) => {
     let text = session.text;
-    if (plan.removal !== null && plan.removal.path === session.path) text = removeLines(text, [plan.removal]).text;
+    if (plan.removal !== null && plan.removal.path === session.path) text = changedText(text, plan.removal, plan.rewrittenAs);
     if (session.path === plan.targetPath) text = appendLines(text, plan.added);
     return sessionNoteOf(session.path, session.number, text);
   });

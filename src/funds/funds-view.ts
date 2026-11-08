@@ -241,10 +241,26 @@ export class FundsView extends ItemView {
     this.pendingFocus = { source: focused, until: Date.now() + PENDING_FOCUS_MS };
   }
 
+  private soldAt(source: Source): ItemRecord | undefined {
+    return this.store.current.items.find(
+      (item) => item.gone !== null && item.gone.source.path === source.path && item.gone.source.line === source.line,
+    );
+  }
+
+  private afterSale(source: Source, changed: boolean): void {
+    let outcome: CoinOutcome = "unchanged";
+    if (changed) outcome = "written";
+    this.afterEntry(source, outcome);
+  }
+
   private addLedgerRow(list: HTMLElement, { record, balance }: LedgerLine): void {
     let actions = this.actions;
     const openEntry = this.openEntry;
-    if (openEntry !== null) {
+    const openItem = this.openItem;
+    const sold = this.soldAt(record.source);
+    if (sold !== undefined && openItem !== null) {
+      actions = { ...this.actions, openRow: (source: Source) => openItem(sold.name, source, (changed) => this.afterSale(source, changed)) };
+    } else if (openEntry !== null) {
       actions = { ...this.actions, openRow: (source: Source) => openEntry(source, (outcome) => this.afterEntry(source, outcome)) };
     }
     const row = addRowButton(list, record.source, actions);

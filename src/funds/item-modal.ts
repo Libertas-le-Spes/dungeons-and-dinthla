@@ -4,7 +4,7 @@ import { PartlyWritten } from "../campaign/note-editor";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
 import { holderNameOf } from "./item-groups";
-import { initialItemEdit, statusOf, type HolderOption, type ItemEdit, type ItemStatus } from "./item-plan";
+import type { HolderOption, ItemEdit, ItemStatus } from "./item-plan";
 
 const STATUS_WORDS: Record<ItemStatus, string> = { held: "Held", sold: "Sold", used: "Used up", lost: "Lost" };
 
@@ -17,13 +17,14 @@ export class ItemModal extends Modal {
   constructor(
     app: App,
     private readonly item: ItemRecord,
+    opened: ItemEdit,
     private readonly holders: HolderOption[],
     private readonly writesTo: string,
     private readonly save: (edit: ItemEdit) => Promise<boolean>,
     private readonly onClosed: (changed: boolean) => void,
   ) {
     super(app);
-    this.edit = initialItemEdit(item);
+    this.edit = { ...opened };
     const current = holders.find((option) => holderNameOf(option.text).toLowerCase() === holderNameOf(item.holder).toLowerCase());
     if (current !== undefined) this.edit.holder = current.text;
   }
@@ -48,7 +49,7 @@ export class ItemModal extends Modal {
       });
     });
     const soldFor = new Setting(contentEl).setName("Sold for (adds it to the purse)").addText((text) => {
-      text.setPlaceholder("150 gp").onChange((value) => {
+      text.setPlaceholder("150 gp").setValue(this.edit.soldFor).onChange((value) => {
         this.edit.soldFor = value;
       });
       text.inputEl.setAttr("aria-label", "Sold for");
@@ -78,7 +79,7 @@ export class ItemModal extends Modal {
 
   private showSoldFor(): void {
     if (this.soldForRow === null) return;
-    this.soldForRow.toggle(this.edit.status === "sold" && statusOf(this.item) !== "sold");
+    this.soldForRow.toggle(this.edit.status === "sold");
   }
 
   private run(): void {
