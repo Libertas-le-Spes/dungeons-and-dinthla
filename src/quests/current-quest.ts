@@ -1,4 +1,5 @@
-import type { QuestRecord } from "../campaign/campaign";
+import type { QuestRecord, Source } from "../campaign/campaign";
+import { keepsEveryPlace } from "../campaign/places";
 import { CHANGED_IN_NOTE } from "../campaign/note-editor";
 import { sessionNumberOf } from "../campaign/session-file";
 import { findSubject } from "../campaign/subject";
@@ -12,10 +13,17 @@ function outcomeOf(record: QuestRecord): string {
   return `${record.outcome.status}:${record.outcome.text}`;
 }
 
+function placesOf(record: QuestRecord): Source[] {
+  const sources = [record.source, ...record.progress.map((note) => note.source)];
+  if (record.outcome !== null) sources.push(record.outcome.source);
+  return sources;
+}
+
 function isSameQuest(current: QuestRecord, opened: QuestRecord): boolean {
   const sameSource = current.source.path === opened.source.path && current.source.line === opened.source.line;
+  const stillInPlace = sameSource && keepsEveryPlace(placesOf(current), placesOf(opened));
   const sameFacts = current.quest.reward === opened.quest.reward && current.quest.givenBy === opened.quest.givenBy;
-  return sameSource && sameFacts && current.quest.title === opened.quest.title && outcomeOf(current) === outcomeOf(opened);
+  return stillInPlace && sameFacts && current.quest.title === opened.quest.title && outcomeOf(current) === outcomeOf(opened);
 }
 
 export function currentQuest(quests: QuestRecord[], opened: QuestRecord): QuestRecord {

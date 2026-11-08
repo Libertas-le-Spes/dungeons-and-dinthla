@@ -21,7 +21,7 @@ export interface QuestionPlan {
   followUpText: string | null;
 }
 
-export const CHANGES_MORE_THAN_ASKED = "That change would be read as changing more than asked, so nothing was written.";
+export const CHANGES_MORE_THAN_ASKED = "That change wouldn't be read as asked, or would change more than asked, so nothing was written.";
 export const FOLLOW_UP_ALREADY_ASKED = "A question already reads like that follow-up, so answers would be mixed up. Reword it.";
 
 export function answerRemoval(question: QuestionRecord): Removal | null {

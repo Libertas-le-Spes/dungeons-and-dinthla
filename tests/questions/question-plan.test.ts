@@ -19,6 +19,12 @@ function refusalFor(notes: Record<number, string>, index: number, answer: string
 }
 
 describe("refusalForQuestionPlan", () => {
+  it("refuses to reopen a question with two answer lines, since the other would still answer it", () => {
+    const sessions = sessionsOf({ 1: "? Where\n", 2: "?= Where: mill\n?= Where: mill\n" });
+    const question = buildCampaign(sessions).questions[0]!;
+    expect(refusalForQuestionPlan(sessions, question, planReopen(question, path(2)))).toBe(CHANGES_MORE_THAN_ASKED);
+  });
+
   it("lets an ordinary answer, change, clearing and follow-up through", () => {
     expect(refusalFor({ 1: "? Who\n" }, 0, "Mira", "", 1)).toBeNull();
     expect(refusalFor({ 1: "? Who\n?= Who: Mira\n", 2: "" }, 0, "Lady Vess", "", 2)).toBeNull();
