@@ -15,15 +15,10 @@ export interface ItemSummary {
 const THE_PARTY = "the party";
 const SESSION_NUMBER = /Session (\d+)\.md$/;
 
-function holderKeyOf(holder: string): string {
-  const name = unlink(holder).trim();
-  return name.slice(name.lastIndexOf("/") + 1).toLowerCase();
-}
-
 function holderNameOf(holder: string): string {
   const name = unlink(holder).trim();
   if (name.toLowerCase() === THE_PARTY) return "";
-  return name.slice(name.lastIndexOf("/") + 1);
+  return name.slice(name.lastIndexOf("/") + 1).replace(/\.md$/i, "");
 }
 
 function byHolderWithThePartyLast(first: HolderGroup, second: HolderGroup): number {
@@ -50,7 +45,7 @@ export function summariseItems(campaign: Campaign): ItemSummary {
   const groups = new Map<string, HolderGroup>();
   for (const item of held) {
     const name = holderNameOf(item.holder);
-    const key = holderKeyOf(name);
+    const key = name.toLowerCase();
     const group = groups.get(key);
     if (group === undefined) groups.set(key, { holder: name, items: [item] });
     else group.items.push(item);

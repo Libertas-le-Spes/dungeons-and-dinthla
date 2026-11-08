@@ -13,8 +13,14 @@ function addPieces(parent: HTMLElement, pieces: MarkedPiece[]): void {
   }
 }
 
-export function addNameLink(parent: HTMLElement, linktext: string, sourcePath: string, actions: LinkActions): HTMLElement {
-  const name = parent.createEl("a", { cls: "internal-link", href: linktext, attr: { "data-href": linktext } });
+export function addNameLink(
+  parent: HTMLElement,
+  text: string,
+  linktext: string,
+  sourcePath: string,
+  actions: LinkActions,
+): HTMLElement {
+  const name = parent.createEl("a", { cls: "internal-link", text, href: linktext, attr: { "data-href": linktext } });
   name.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -26,7 +32,7 @@ export function addNameLink(parent: HTMLElement, linktext: string, sourcePath: s
 function addLink(parent: HTMLElement, linktext: string, sourcePath: string, actions: LinkActions): HTMLElement {
   const link = parent.createSpan({ cls: "dd-link" });
   link.createSpan({ cls: "dd-link-bracket", text: "[[" });
-  const name = addNameLink(link, linktext, sourcePath, actions);
+  const name = addNameLink(link, "", linktext, sourcePath, actions);
   link.createSpan({ cls: "dd-link-bracket", text: "]]" });
   return name;
 }
