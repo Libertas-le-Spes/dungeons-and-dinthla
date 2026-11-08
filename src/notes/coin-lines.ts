@@ -1,4 +1,4 @@
-import { readLedgerEntry } from "./ledger";
+import { AMOUNT, readLedgerEntry } from "./ledger";
 import { blankLinks } from "./link";
 import { formatMoney } from "./money";
 import { oneLine } from "./question-lines";
@@ -11,7 +11,13 @@ export interface CoinDraft {
   what: string;
 }
 
-export type CoinReading = { line: string; copper: number; reads: string } | { error: string };
+export interface CoinLine {
+  line: string;
+  copper: number;
+  reads: string;
+}
+
+export type CoinReading = CoinLine | { error: string };
 
 const ONE_AMOUNT = /(?:\d{1,3}(?:,\d{3})+|\d{1,9})\s*(?:pp|gp|ep|sp|cp)\b/gi;
 const AMOUNT_ONLY = /^(?:(?:\d{1,3}(?:,\d{3})+|\d{1,9})\s*(?:pp|gp|ep|sp|cp)\b\s*)+$/i;
@@ -65,4 +71,12 @@ export function readCoinDraft(draft: CoinDraft): CoinReading {
   let word = "In";
   if (copper < 0) word = "Out";
   return { line: `$ ${body}`, copper, reads: `Reads as ${word} ${formatMoney(Math.abs(copper))}: ${body}` };
+}
+
+export function draftOf(text: string, copper: number, amounts: { count: number; kind: string }[]): CoinDraft {
+  let direction: Direction = "in";
+  if (copper < 0) direction = "out";
+  const amount = amounts.map((coin) => `${coin.count.toLocaleString("en")} ${coin.kind}`).join(" ");
+  const what = oneLine(text.replace(AMOUNT, " "));
+  return { direction, amount, what };
 }

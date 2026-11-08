@@ -2,6 +2,7 @@ import { ItemView, type WorkspaceLeaf } from "obsidian";
 import type { Campaign, Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { keywordsOf } from "./keywords";
+import { focusRowAt, PENDING_FOCUS_MS } from "./row-focus";
 import type { LinkActions } from "./linked-text";
 
 export interface ListContents<T> {
@@ -27,8 +28,6 @@ export interface ListKind<T> {
   contentsOf(campaign: Campaign, keywords: string[]): ListContents<T>;
   addRow(list: HTMLElement, item: T, keywords: string[], actions: LinkActions): void;
 }
-
-const PENDING_FOCUS_MS = 3000;
 
 function capitalised(word: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1);
@@ -107,7 +106,7 @@ export class CampaignListView<T> extends ItemView {
   }
 
   focusRow(source: Source, afterChange: boolean): void {
-    this.focusRowAt(source);
+    focusRowAt(this.contentEl, source);
     this.pendingFocus = null;
     if (afterChange) this.pendingFocus = { source, until: Date.now() + PENDING_FOCUS_MS };
   }
@@ -116,17 +115,7 @@ export class CampaignListView<T> extends ItemView {
     const pending = this.pendingFocus;
     this.pendingFocus = null;
     if (pending === null || Date.now() > pending.until) return;
-    if (!this.focusRowAt(pending.source)) this.filter.focus();
-  }
-
-  private focusRowAt(source: Source): boolean {
-    const rows = Array.from(this.contentEl.querySelectorAll<HTMLElement>(".dd-row"));
-    const row = rows.find((candidate) => candidate.dataset.path === source.path && candidate.dataset.line === String(source.line));
-    if (row === undefined) return false;
-    const folded = row.closest("details");
-    if (folded !== null) folded.open = true;
-    row.focus();
-    return true;
+    if (!focusRowAt(this.contentEl, pending.source)) this.filter.focus();
   }
 
   private fill(list: HTMLElement, items: T[], keywords: string[], emptyText: string): void {
