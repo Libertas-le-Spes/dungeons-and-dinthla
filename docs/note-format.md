@@ -244,7 +244,33 @@ Each value has a state, which comes from where its line is:
 
 A name is letters and spaces, read whatever its capitals (`ac:` is `AC`). A value runs to the next comma that a name and a colon follow, so the comma in `type: Medium humanoid (human), lawful good` stays in the type, and a name with nothing after its colon states nothing. Learned values and overrides are read today, each with the note and line it came from, with an override winning over anything learned and the newest line winning among the rest. A session's properties are never read as facts, and a link counts for the note Obsidian resolves it to, so `[[Mira]]` and `[[Characters/Mira|her]]` state facts about the same character. Carried-over values, earlier values and list values that add up aren't read yet.
 
-Renaming a character's note renames it: Obsidian rewrites every `[[link]]` to it.
+### Making, renaming and deleting a character
+
+*New character*, at the top of the characters gallery, opens a dialog with the character's name, type line, subtitle and speed. It makes a note named after them in the open campaign's `Characters` folder, making the folder if it isn't there, and opens it. Each value given is written on the note as an override, one per line, and every other value starts as not known:
+
+```markdown
+type: Medium humanoid (human), lawful good
+subtitle: Human Cleric 5
+speed: 30 ft.
+```
+
+*Edit character*, from the command palette while a character's note is open, opens the same dialog filled in from the note's own lines, with a *Delete character* button.
+
+- **Renaming** goes through Obsidian's file manager, which rewrites every `[[link]]` to the note, in session notes and everywhere else. The note stays in its folder.
+- **A changed value** rewrites the line that states it when that line states nothing else, keeping its bullet. A cleared value takes that line out. When the value shares its line with others, as in `AC: 15, speed: 30 ft.`, a changed value is added as a new line at the end of the note, which wins, and clearing it is refused, so the other values stay. A value nobody changed is never written.
+- **Deleting** needs a second press within four seconds. The note goes to the trash Obsidian is set to use, and every other note is left alone, so the session lines about the character stay, linking to a note that's gone.
+
+The dialog refuses, and writes nothing, when it's given:
+
+| Refused | Why |
+|---|---|
+| A name another note in the folder has, whatever its capitals | Two notes can't share a name, and links would point at either |
+| A name with any of `\ / : * ? " < > \| # ^ [ ]`, or starting with a dot | A note can't be named that, or a link to it wouldn't work |
+| A value with a comma, a word and a colon in it, as in `Rogue 3, AC: 15` | It would read back as two values |
+| A value changed in the note since the dialog opened | So nothing written meanwhile is lost |
+| A change that would turn the note's first lines into properties | So nothing is hidden |
+
+A dialog with no name does nothing.
 
 ### Calling a character over
 
@@ -277,4 +303,4 @@ views:
 
 It never writes the file again, so a filter, sort or view added to it in Bases stays. If it already exists by the time the plugin writes it, from a second tap say, the plugin opens that one. A new note in the `Characters` folder shows up as a card at once.
 
-Each card is a short stat block: the character's name, their `type` and `subtitle` when known, then `class`, `AC`, `HP` and `speed`, and the six ability scores with their modifiers. A value no line states shows as `?`. Each card reads the sessions of the campaign its note is in, even while another campaign is open, and a note outside any campaign shows only its own overrides. The player's own character, named by a link in the campaign note's `character` property, is marked *Your character*, and changing that property redraws the gallery. Tapping a card opens the character's note, until their sheet is built.
+Each card is a short stat block: the character's name, their `type` and `subtitle` when known, then `class`, `AC`, `HP` and `speed`, and the six ability scores with their modifiers. A value no line states shows as `?`. Each card reads the sessions of the campaign its note is in, even while another campaign is open, and a note outside any campaign shows only its own overrides. The player's own character, named by a link in the campaign note's `character` property, is marked *Your character*, and changing that property redraws the gallery. Tapping a card opens the character's note, until their sheet is built. With no characters yet, the gallery says to add one with *New character*.
