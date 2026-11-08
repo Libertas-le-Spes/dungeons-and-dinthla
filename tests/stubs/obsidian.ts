@@ -40,9 +40,10 @@ export function getFrontMatterInfo(content: string): FrontMatterInfo {
   const opening = PROPERTIES_OPEN.exec(content);
   if (opening === null) return none;
   const from = opening[0].length;
-  const closing = /^---(?:\r?\n|$)/gm;
+  const closing = /---(?:\r?\n|$)/g;
   closing.lastIndex = from;
-  const close = closing.exec(content);
+  let close = closing.exec(content);
+  while (close !== null && content.charAt(close.index - 1) !== "\n") close = closing.exec(content);
   if (close === null) return none;
   return {
     exists: true,

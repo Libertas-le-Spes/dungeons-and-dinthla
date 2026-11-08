@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { firstLineAfterProperties, sessionLabelOf, sessionNumberOf } from "../../src/campaign/session-file";
+import { firstLineAfterProperties, keepsProperties, sessionLabelOf, sessionNumberOf } from "../../src/campaign/session-file";
 
 describe("sessionNumberOf", () => {
   it("reads the number of a note in the campaign's Sessions folder", () => {
@@ -41,5 +41,25 @@ describe("firstLineAfterProperties", () => {
 
   it("starts after properties that end the note", () => {
     expect(firstLineAfterProperties("---\nplayed: 2026-03-14\n---")).toBe(3);
+  });
+});
+
+describe("keepsProperties", () => {
+  it("knows when a change would turn lines into properties", () => {
+    expect(keepsProperties("? Who\n---\n? Where\n---\n", "---\n? Where\n---\n")).toBe(false);
+    expect(keepsProperties("---\na: 1\n---\n? Who\n", "---\na: 1\n---\n")).toBe(true);
+    expect(keepsProperties("? Who\n---\nmid\n", "---\nmid\n")).toBe(true);
+  });
+
+  it("ignores a line ending that a change adds or takes away", () => {
+    expect(keepsProperties("---\r\na: 1\r\n---", "---\r\na: 1\r\n---\r\n? y\r\n")).toBe(true);
+  });
+});
+
+describe("properties, as Obsidian reads them", () => {
+  it("closes them only at a --- that starts a line after a line break", () => {
+    expect(firstLineAfterProperties("---\na\r---\n")).toBe(0);
+    expect(firstLineAfterProperties("---\na\n---\rb")).toBe(0);
+    expect(firstLineAfterProperties("---\n---\nb")).toBe(2);
   });
 });
