@@ -22,7 +22,9 @@ async function openView(campaign: Campaign) {
     },
   };
   const view = new CampaignListView({} as WorkspaceLeaf, store as unknown as CampaignStore, { openSource: vi.fn(), openLink: vi.fn() }, questsKind);
-  const root = obsidianDocument().createElement("div");
+  const document = obsidianDocument();
+  const root = document.createElement("div");
+  document.body.append(root);
   view.contentEl = root;
   const registered: (() => void)[] = [];
   view.register = (callback) => {
@@ -41,7 +43,7 @@ async function openView(campaign: Campaign) {
   const close = () => {
     for (const callback of registered) callback();
   };
-  return { root, typeFilter, change, close, unsubscribe };
+  return { root, view, typeFilter, change, close, unsubscribe };
 }
 
 function textOf(root: HTMLElement, selector: string): string | null | undefined {
@@ -82,5 +84,14 @@ describe("CampaignListView", () => {
     const { close, unsubscribe } = await openView(campaignOf([]));
     close();
     expect(unsubscribe).toHaveBeenCalled();
+  });
+
+  it("puts focus back on a row, even once the list has been redrawn", async () => {
+    const { root, view, change } = await openView(campaignOf(["! Find it", "! Guard it"]));
+    view.focusRow({ path: "Pale Moon/Sessions/Session 1.md", line: 1 });
+    expect((root.ownerDocument.activeElement as HTMLElement).dataset.line).toBe("1");
+    view.focusRow({ path: "Pale Moon/Sessions/Session 1.md", line: 2 });
+    change(campaignOf(["! Find it", "! Guard it", "! A third"]));
+    expect((root.ownerDocument.activeElement as HTMLElement).dataset.line).toBe("2");
   });
 });
