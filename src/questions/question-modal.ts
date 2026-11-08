@@ -1,5 +1,6 @@
 import { Modal, Notice, Setting, type App, type ButtonComponent } from "obsidian";
 import type { QuestionRecord } from "../campaign/campaign";
+import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
 import { PartlyWritten, type QuestionEdit } from "./question-writer";
 
@@ -16,11 +17,6 @@ export interface QuestionPlaces {
 
 const CONFIRM_MS = 4000;
 
-function isSubmit(event: KeyboardEvent, needsModifier: boolean): boolean {
-  if (event.key !== "Enter" || event.isComposing) return false;
-  if (!needsModifier) return true;
-  return event.ctrlKey || event.metaKey;
-}
 
 export class QuestionModal extends Modal {
   private readonly edit: QuestionEdit;
