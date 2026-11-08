@@ -1,19 +1,8 @@
 import type { QuestionRecord, SourcedText } from "../campaign/campaign";
-import { NoteEditor, type EditorVault, type Removal } from "../campaign/note-editor";
-import { answerLine, followUpQuestionLine, isFollowUpLine, isQuestionLine, oneLine, questionLine, questionTextOf } from "../notes/question-lines";
-
-export interface QuestionEdit {
-  answer: string;
-  followUp: string;
-}
-
-function answerRemoval(question: QuestionRecord, answer: SourcedText): Removal {
-  return {
-    path: answer.source.path,
-    line: answer.source.line,
-    matches: (written) => isFollowUpLine(written, "answer", question.text, answer.text),
-  };
-}
+import { NoteEditor, PartlyWritten, type EditorVault, type Removal } from "../campaign/note-editor";
+import { messageOf } from "../views/message-of";
+import { answerLine, isFollowUpLine, isQuestionLine, oneLine, questionLine } from "../notes/question-lines";
+import { answerRemoval, type QuestionPlan } from "./question-plan";
 
 function clueRemoval(question: QuestionRecord, clue: SourcedText): Removal {
   return {
@@ -27,13 +16,6 @@ function questionRemoval(question: QuestionRecord): Removal {
   return { path: question.source.path, line: question.source.line, matches: (written) => isQuestionLine(written, question.text) };
 }
 
-function linesToAdd(question: QuestionRecord, answer: string, answerChanged: boolean, followUp: string): string[] {
-  const added: string[] = [];
-  if (answer !== "" && answerChanged) added.push(answerLine(question.text, answer));
-  if (followUp !== "") added.push(followUpQuestionLine(followUp, question.text));
-  return added;
-}
-
 export class QuestionWriter {
   private readonly editor: NoteEditor;
 
@@ -41,12 +23,22 @@ export class QuestionWriter {
     this.editor = new NoteEditor(vault);
   }
 
-  async save(question: QuestionRecord, edit: QuestionEdit, sessionPath: string): Promise<boolean> {
-    const answer = oneLine(edit.answer);
-    const answerChanged = question.answer === null || answer !== oneLine(question.answer.text);
-    const added = linesToAdd(question, answer, answerChanged, questionTextOf(edit.followUp));
-    if (question.answer === null || !answerChanged) return this.editor.append(sessionPath, added);
-    return this.editor.replace(sessionPath, added, answerRemoval(question, question.answer));
+  async apply(plan: QuestionPlan): Promise<boolean> {
+    if (plan.answerPath === plan.followUpPath) return this.writeAnswer(plan, [...plan.answerLines, ...plan.followUpLines]);
+    this.editor.ensureExists([plan.answerPath, plan.followUpPath]);
+    const wrote = await this.writeAnswer(plan, plan.answerLines);
+    try {
+      const followed = await this.editor.append(plan.followUpPath, plan.followUpLines);
+      return wrote || followed;
+    } catch (error) {
+      if (!wrote) throw error;
+      throw new PartlyWritten(`The answer was written, but the follow-up couldn't be: ${messageOf(error)}`);
+    }
+  }
+
+  private async writeAnswer(plan: QuestionPlan, lines: string[]): Promise<boolean> {
+    if (plan.removal === null) return this.editor.append(plan.answerPath, lines);
+    return this.editor.replace(plan.answerPath, lines, plan.removal);
   }
 
   async add(question: string, answer: string, sessionPath: string): Promise<boolean> {
@@ -57,14 +49,10 @@ export class QuestionWriter {
     return this.editor.append(sessionPath, added);
   }
 
-  async reopen(question: QuestionRecord): Promise<boolean> {
-    if (question.answer === null) return false;
-    return this.editor.remove(answerRemoval(question, question.answer));
-  }
-
   async delete(question: QuestionRecord): Promise<boolean> {
     const others = question.clues.map((clue) => clueRemoval(question, clue));
-    if (question.answer !== null) others.push(answerRemoval(question, question.answer));
+    const answer = answerRemoval(question);
+    if (answer !== null) others.push(answer);
     return this.editor.removeWithItsLines(questionRemoval(question), others);
   }
 }
