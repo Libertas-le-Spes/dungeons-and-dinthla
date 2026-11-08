@@ -14,6 +14,7 @@ import { CHARACTERS_VIEW, CharactersView } from "./characters/characters-view";
 import { addEditCharacterItem, editActiveCharacter, openNewCharacter } from "./characters/open-character";
 import { openCharacters } from "./characters/open-characters";
 import { editorTextOf } from "./campaign/editor-text";
+import { DASHBOARD_VIEW, DashboardView } from "./dashboard/dashboard-view";
 import { markerColouring } from "./editor/marker-decorations";
 import type { LookupMatch } from "./lookups/lookup";
 import { LookupSuggest } from "./lookups/lookup-suggest";
@@ -29,12 +30,13 @@ import type { CoinOutcome } from "./funds/coin-modal";
 import { openAddCoin, openCoinEntry } from "./funds/open-add-coin";
 import { openItemDialog } from "./funds/open-item";
 import { CampaignListView } from "./views/list-view";
-import { openSideView, openSource } from "./views/open-view";
+import { openMainView, openSideView, openSource } from "./views/open-view";
 import { colourMarkers } from "./reading/colour-markers";
 import { BackgroundRefresh, showBackground, shownBackgroundOf } from "./reading/note-background";
 import { CampaignSettingTab } from "./settings/campaign-setting-tab";
 import { ChosenCampaign } from "./settings/chosen-campaign";
 import { settingsOf, type PluginSettings } from "./settings/plugin-settings";
+import { sessionHeadingOf } from "./sessions/session-heading";
 import { startSession } from "./sessions/start-session";
 import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
@@ -104,6 +106,21 @@ export default class DungeonsAndDinthla extends Plugin {
     this.addCommand({ id: "edit-character", name: "Edit character", checkCallback: (checking) => editActiveCharacter(this.app, characterNotes, checking) });
     this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => addEditCharacterItem(this.app, characterNotes, menu, file)));
     this.addRibbonIcon("calendar-plus", "Start a new session", () => startSession(this.app, this.store.campaignFolder));
+    const dashboardActions = {
+      ...actions,
+      openQuestion: openQuestionAt,
+      openQuest: openQuestAt,
+      openCoinEntry: openEntry,
+      showQuestions: () => void openSideView(this.app, QUESTIONS_VIEW),
+      showQuests: () => void openSideView(this.app, QUESTS_VIEW),
+      showFunds: () => void openSideView(this.app, FUNDS_VIEW),
+      showCharacters,
+      startSession: () => startSession(this.app, this.store.campaignFolder),
+      sessionHeadingOf: (path: string) => sessionHeadingOf(path, this.app.metadataCache),
+    };
+    this.registerView(DASHBOARD_VIEW, (leaf) => new DashboardView(leaf, this.store, characterNotes, dashboardActions));
+    this.addRibbonIcon("layout-dashboard", "Open dashboard", () => void openMainView(this.app, DASHBOARD_VIEW));
+    this.addCommand({ id: "open-dashboard", name: "Open dashboard", callback: () => void openMainView(this.app, DASHBOARD_VIEW) });
     this.addCommand({ id: "start-session", name: "Start a new session", callback: () => startSession(this.app, this.store.campaignFolder) });
     const inSession = (path: string) => isSessionNote(path, (notePath) => this.app.vault.getFileByPath(notePath) !== null);
     this.registerEditorExtension(markerColouring(inSession));

@@ -75,6 +75,7 @@ function openGallery({
     },
     isOwnCharacter: (file) => file.basename === owner.name,
     campaignFolders: () => ["Ashen Road", "Pale Moon"],
+    filesIn: () => [],
     sessionsOf: async (folder) => {
       sessionsAskedFor.push(folder);
       return otherSessions;

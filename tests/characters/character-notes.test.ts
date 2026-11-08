@@ -20,6 +20,7 @@ function appWith({ links, hasCache = true, notes = [THESSALY.path], files = [] }
     vault: {
       cachedRead: async (file: TFile) => `text of ${file.path}`,
       getFiles: () => files.map((path) => ({ path }) as TFile),
+      getMarkdownFiles: () => files.map((path) => ({ path, basename: path.slice(path.lastIndexOf("/") + 1, -3) }) as TFile),
     },
     metadataCache: {
       getCache: (path: string) => {
@@ -81,6 +82,18 @@ describe("characterNotesOf", () => {
     const notes = characterNotesOf(appWith({ files }).app);
     expect(notes.campaignFolders()).toEqual(["Ashen Road", "Pale Moon"]);
     expect(await notes.sessionsOf("Pale Moon")).toEqual([{ path: "Pale Moon/Sessions/Session 2.md", number: 2, text: "text of Pale Moon/Sessions/Session 2.md", firstLine: 0 }]);
+  });
+
+  it("finds the notes in a campaign's Characters folder, by name", () => {
+    const files = [
+      "Pale Moon/Characters/Thessaly.md",
+      "Pale Moon/Characters/Brother Aldric.md",
+      "Pale Moon/Sessions/Session 1.md",
+      "Ashen Road/Characters/Mira.md",
+      "Pale Moon Characters/Kest.md",
+    ];
+    const found = characterNotesOf(appWith({ files }).app).filesIn("Pale Moon");
+    expect(found.map((file) => file.path)).toEqual(["Pale Moon/Characters/Brother Aldric.md", "Pale Moon/Characters/Thessaly.md"]);
   });
 
   it("tells which note changed until it stops watching", () => {
