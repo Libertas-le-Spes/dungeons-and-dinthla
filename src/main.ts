@@ -1,4 +1,4 @@
-import { debounce, Notice, Plugin, type EditorSuggestContext, type MarkdownFileInfo, type TFile } from "obsidian";
+import { debounce, MarkdownView, Notice, Plugin, type EditorSuggestContext, type MarkdownFileInfo, type TFile } from "obsidian";
 import type { Source } from "./campaign/campaign";
 import { messageOf } from "./views/message-of";
 import { campaignFolderOf, findCampaignFolders, isSessionNote } from "./campaign/campaign-folders";
@@ -24,6 +24,7 @@ import { openItemDialog } from "./funds/open-item";
 import { CampaignListView } from "./views/list-view";
 import { openSideView, openSource } from "./views/open-view";
 import { colourMarkers } from "./reading/colour-markers";
+import { showBackground, shownBackgroundOf } from "./reading/note-background";
 import { startSession } from "./sessions/start-session";
 import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
@@ -97,6 +98,34 @@ export default class DungeonsAndDinthla extends Plugin {
     });
     this.followTheme();
     this.app.workspace.onLayoutReady(() => void this.watchCampaign());
+    this.app.workspace.onLayoutReady(() => this.watchBackgrounds());
+  }
+
+  private watchBackgrounds(): void {
+    const show = () => this.showBackgrounds();
+    this.registerEvent(this.app.workspace.on("layout-change", show));
+    this.registerEvent(this.app.workspace.on("file-open", show));
+    this.registerEvent(this.app.metadataCache.on("changed", show));
+    this.registerEvent(this.app.vault.on("create", show));
+    this.registerEvent(this.app.vault.on("rename", show));
+    this.registerEvent(this.app.vault.on("delete", show));
+    this.register(() => this.eachNoteView((view) => showBackground(view.contentEl, null)));
+    show();
+  }
+
+  private showBackgrounds(): void {
+    const folders = this.campaignFolders();
+    const urlOf = (picture: TFile) => this.app.vault.getResourcePath(picture);
+    this.eachNoteView((view) => {
+      if (view.file === null) showBackground(view.contentEl, null);
+      else showBackground(view.contentEl, shownBackgroundOf(view.file.path, folders, this.app.metadataCache, urlOf));
+    });
+  }
+
+  private eachNoteView(act: (view: MarkdownView) => void): void {
+    this.app.workspace.iterateAllLeaves((leaf) => {
+      if (leaf.view instanceof MarkdownView) act(leaf.view);
+    });
   }
 
   private followTheme(): void {

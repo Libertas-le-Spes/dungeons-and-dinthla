@@ -7,6 +7,7 @@ interface ElementInfo {
   href?: string;
   type?: string;
   placeholder?: string;
+  prepend?: boolean;
 }
 
 function applyInfo(element: HTMLElement, info: ElementInfo | string | undefined): void {
@@ -29,7 +30,8 @@ function applyInfo(element: HTMLElement, info: ElementInfo | string | undefined)
 function create(parent: HTMLElement, tag: string, info?: ElementInfo | string): HTMLElement {
   const element = parent.ownerDocument.createElement(tag);
   applyInfo(element, info);
-  parent.append(element);
+  if (typeof info === "object" && info.prepend === true) parent.prepend(element);
+  else parent.append(element);
   return element;
 }
 
@@ -50,6 +52,12 @@ export function obsidianDocument(): Document {
   };
   prototype.addClass = function (this: HTMLElement, ...names: string[]) {
     this.classList.add(...names);
+  };
+  prototype.removeClass = function (this: HTMLElement, ...names: string[]) {
+    this.classList.remove(...names);
+  };
+  prototype.setCssProps = function (this: HTMLElement, props: Record<string, string>) {
+    for (const [name, value] of Object.entries(props)) this.style.setProperty(name, value);
   };
   prototype.empty = function (this: HTMLElement) {
     this.replaceChildren();
