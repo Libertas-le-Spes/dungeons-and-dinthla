@@ -1,5 +1,5 @@
 import { Notice, stringifyYaml, type App, type TFile } from "obsidian";
-import { NO_CAMPAIGN } from "../campaign/campaign-folders";
+import { charactersFolderOf, NO_CAMPAIGN } from "../campaign/campaign-folders";
 import { messageOf } from "../views/message-of";
 import { CHARACTERS_VIEW } from "./characters-view";
 
@@ -7,7 +7,7 @@ export const BASES_OFF = "The characters gallery is a Bases view. Turn on Bases 
 
 export function charactersBase(campaignFolder: string): object {
   return {
-    filters: { and: [`file.inFolder(${JSON.stringify(`${campaignFolder}/Characters`)})`, 'file.ext == "md"'] },
+    filters: { and: [`file.inFolder(${JSON.stringify(charactersFolderOf(campaignFolder))})`, 'file.ext == "md"'] },
     views: [{ type: CHARACTERS_VIEW, name: "Characters" }],
   };
 }

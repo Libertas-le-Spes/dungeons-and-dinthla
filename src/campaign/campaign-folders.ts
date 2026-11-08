@@ -12,6 +12,10 @@ export function mainNotePathOf(folder: string): string {
   return `${folder}/${folder}.md`;
 }
 
+export function charactersFolderOf(campaignFolder: string): string {
+  return `${campaignFolder}/Characters`;
+}
+
 export function campaignNotePathOf(path: string): string | null {
   const folder = topFolderOf(path);
   if (folder === null) return null;
