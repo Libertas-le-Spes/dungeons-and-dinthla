@@ -1,4 +1,5 @@
-import type { QuestionRecord } from "../campaign/campaign";
+import type { QuestionRecord, Source } from "../campaign/campaign";
+import { keepsEveryPlace } from "../campaign/places";
 import { sessionNumberOf } from "../campaign/session-file";
 import { findSubject } from "../campaign/subject";
 import { oneLine } from "../notes/question-lines";
@@ -9,9 +10,15 @@ function answerTextOf(question: QuestionRecord): string | null {
   return question.answer.text;
 }
 
+function placesOf(question: QuestionRecord): Source[] {
+  const sources = [question.source, ...question.clues.map((clue) => clue.source)];
+  if (question.answer !== null) sources.push(question.answer.source);
+  return sources;
+}
+
 function isSameQuestion(current: QuestionRecord, opened: QuestionRecord): boolean {
-  const sameSource = current.source.path === opened.source.path && current.source.line === opened.source.line;
-  return sameSource && current.text === opened.text && answerTextOf(current) === answerTextOf(opened);
+  const stillInPlace = keepsEveryPlace(placesOf(current), placesOf(opened));
+  return stillInPlace && current.text === opened.text && answerTextOf(current) === answerTextOf(opened);
 }
 
 export function currentQuestion(questions: QuestionRecord[], opened: QuestionRecord): QuestionRecord {

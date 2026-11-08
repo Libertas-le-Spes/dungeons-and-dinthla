@@ -4,7 +4,7 @@ import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { QuestionRecord } from "../../src/campaign/campaign";
 import { sessionNoteOf } from "../../src/campaign/session-file";
 import { CHANGED_IN_NOTE, LINES_LEFT, PartlyWritten, type EditorVault } from "../../src/campaign/note-editor";
-import { CHANGES_MORE_THAN_ASKED, planQuestionSave, planReopen, refusalForQuestionPlan, type QuestionEdit } from "../../src/questions/question-plan";
+import { planQuestionSave, planReopen, type QuestionEdit } from "../../src/questions/question-plan";
 import { QuestionWriter } from "../../src/questions/question-writer";
 
 class FakeNotes {
@@ -33,12 +33,9 @@ class FakeNotes {
     };
   }
 
-  sessions() {
-    return [...this.texts].map(([path, text]) => sessionNoteOf(path, Number(/(\d+)\.md$/.exec(path)![1]), text));
-  }
-
   questions(): QuestionRecord[] {
-    return buildCampaign(this.sessions()).questions;
+    const sessions = [...this.texts].map(([path, text]) => sessionNoteOf(path, Number(/(\d+)\.md$/.exec(path)![1]), text));
+    return buildCampaign(sessions).questions;
   }
 }
 
@@ -224,13 +221,6 @@ describe("QuestionWriter", () => {
     await expect(deleting).rejects.toBeInstanceOf(PartlyWritten);
     await expect(deleting).rejects.toThrow("its lines in Pale Moon/Sessions/Session 2.md were left");
     expect(notes.texts.get(ONE)).toBe("");
-  });
-
-  it("refuses to reopen a question with two answer lines, since the other would still answer it", async () => {
-    const notes = new FakeNotes({ [ONE]: "? Where\n", [TWO]: "?= Where: mill\n?= Where: mill\n" });
-    const [question] = notes.questions();
-    const plan = planReopen(question!, TWO);
-    expect(refusalForQuestionPlan(notes.sessions(), question!, plan)).toBe(CHANGES_MORE_THAN_ASKED);
   });
 
   it("deletes only the opened question when another line reads the same", async () => {

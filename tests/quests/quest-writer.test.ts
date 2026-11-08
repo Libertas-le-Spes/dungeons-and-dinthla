@@ -270,6 +270,12 @@ describe("deleting a quest", () => {
     expect(notes.texts.get(TWO)).toBe("");
   });
 
+  it("deletes only the opened quest when another line reads the same", async () => {
+    const notes = new FakeNotes({ [ONE]: "! Find it\n!= Find it: done\n! Find it\n" });
+    await new QuestWriter(notes.vault).delete(notes.campaign().quests[1]!);
+    expect(notes.texts.get(ONE)).toBe("! Find it\n!= Find it: done\n");
+  });
+
   it("says so when its progress or outcome moved since they were read, leaving them", async () => {
     const notes = new FakeNotes({ [ONE]: "! Find it\n!+ Find it: tracks\n!= Find it: done\n" });
     const record = notes.campaign().quests[0]!;
