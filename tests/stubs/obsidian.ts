@@ -1,6 +1,7 @@
 import { StateField } from "@codemirror/state";
 import type {
   AbstractInputSuggest as RealInputSuggest,
+  BasesView as RealBasesView,
   EditorSuggest as RealEditorSuggest,
   EditorSuggestContext,
   FrontMatterInfo,
@@ -33,6 +34,26 @@ export class ItemView {
   }
 
   register(): void {}
+}
+
+export class BasesView {
+  data!: RealBasesView["data"];
+
+  constructor(..._controller: unknown[]) {}
+
+  register(): void {}
+}
+
+export function stringifyYaml(value: unknown): string {
+  return `${JSON.stringify(value, null, 2)}\n`;
+}
+
+export class Notice {
+  static shown: string[] = [];
+
+  constructor(message: string) {
+    Notice.shown.push(message);
+  }
 }
 
 const PROPERTIES_OPEN = /^---\r?\n/;

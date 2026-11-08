@@ -3,6 +3,9 @@ import type { Source } from "./campaign/campaign";
 import { messageOf } from "./views/message-of";
 import { campaignFolderOf, findCampaignFolders, isSessionNote } from "./campaign/campaign-folders";
 import { CampaignStore } from "./campaign/campaign-store";
+import { characterNotesOf } from "./characters/character-notes";
+import { CHARACTERS_VIEW, CharactersView } from "./characters/characters-view";
+import { openCharacters } from "./characters/open-characters";
 import { editorTextOf } from "./campaign/editor-text";
 import { markerColouring } from "./editor/marker-decorations";
 import type { LookupMatch } from "./lookups/lookup";
@@ -70,6 +73,15 @@ export default class DungeonsAndDinthla extends Plugin {
     this.registerView(FUNDS_VIEW, (leaf) => new FundsView(leaf, this.store, actions, noteExists, addCoin, openEntry, openItem));
     this.addRibbonIcon("coins", "Open party funds", () => void openSideView(this.app, FUNDS_VIEW));
     this.addCommand({ id: "open-funds", name: "Open party funds", callback: () => void openSideView(this.app, FUNDS_VIEW) });
+    const characterNotes = characterNotesOf(this.app);
+    const basesOn = this.registerBasesView(CHARACTERS_VIEW, {
+      name: "Characters",
+      icon: "users",
+      factory: (controller, containerEl) => new CharactersView(controller, containerEl, this.store, characterNotes, actions),
+    });
+    const showCharacters = () => void openCharacters(this.app, this.store.campaignFolder, basesOn);
+    this.addRibbonIcon("users", "Open characters", showCharacters);
+    this.addCommand({ id: "open-characters", name: "Open characters", callback: showCharacters });
     this.addRibbonIcon("calendar-plus", "Start a new session", () => startSession(this.app, this.store.campaignFolder));
     this.addCommand({ id: "start-session", name: "Start a new session", callback: () => startSession(this.app, this.store.campaignFolder) });
     const inSession = (path: string) => isSessionNote(path, (notePath) => this.app.vault.getFileByPath(notePath) !== null);

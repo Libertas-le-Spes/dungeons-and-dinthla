@@ -1,9 +1,8 @@
 import { Notice, type App, type TFile } from "obsidian";
 import { createSession, nextSessionNumber, type NewSession } from "./create-session";
+import { NO_CAMPAIGN } from "../campaign/campaign-folders";
 import { messageOf } from "../views/message-of";
 import { NewSessionModal } from "./new-session-modal";
-
-const NO_CAMPAIGN = "Make a campaign first: a top-level folder with a main note of the same name.";
 
 async function makeAndOpen(app: App, campaignFolder: string, session: NewSession): Promise<void> {
   let note: TFile;
