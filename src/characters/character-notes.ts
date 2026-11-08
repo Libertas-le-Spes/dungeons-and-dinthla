@@ -1,6 +1,6 @@
 import type { App, TFile } from "obsidian";
 import type { SessionNote } from "../campaign/campaign";
-import { campaignNotePathOf, findCampaignFolders } from "../campaign/campaign-folders";
+import { campaignNotePathOf, charactersFolderOf, findCampaignFolders } from "../campaign/campaign-folders";
 import { readSessions } from "../campaign/read-campaign";
 
 export interface CharacterNotes {
@@ -33,7 +33,7 @@ function isOwnCharacter(app: App, file: TFile): boolean {
 }
 
 function filesIn(app: App, campaignFolder: string): TFile[] {
-  const charactersFolder = `${campaignFolder}/Characters/`;
+  const charactersFolder = `${charactersFolderOf(campaignFolder)}/`;
   const files = app.vault.getMarkdownFiles().filter((file) => file.path.startsWith(charactersFolder));
   return files.sort((first, second) => first.basename.localeCompare(second.basename));
 }
