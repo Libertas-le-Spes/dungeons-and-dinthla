@@ -1,4 +1,4 @@
-.dd-question-dialog .dd-question {
+.dd-dialog .dd-subject {
   margin: 0 0 var(--space-3);
   font: var(--type-note);
   font-size: var(--text-md);
@@ -6,31 +6,32 @@
   color: var(--text-strong);
 }
 
-.dd-question-dialog .dd-asked {
+.dd-dialog .dd-detail {
   margin: 0 0 var(--space-3);
   font: var(--type-label);
   color: var(--text-muted-ui);
 }
 
-.dd-question-dialog .setting-item-control:has(.dd-delete) {
+.dd-dialog .setting-item-control:has(.dd-delete) {
   flex-wrap: wrap;
 }
 
-.dd-question-dialog .dd-delete {
+.dd-dialog .dd-delete {
   margin-left: auto;
 }
 
-.dd-question-dialog textarea {
+.dd-dialog textarea {
   width: 100%;
   min-height: 72px;
 }
 
-.dd-question-dialog input,
-.dd-question-dialog button {
+.dd-dialog input,
+.dd-dialog select,
+.dd-dialog button {
   min-height: var(--touch-min);
 }
 
-.dd-question-dialog .dd-where {
+.dd-dialog .dd-where {
   margin: var(--space-3) 0 0;
   font-size: var(--text-sm);
   color: var(--text-muted-ui);
