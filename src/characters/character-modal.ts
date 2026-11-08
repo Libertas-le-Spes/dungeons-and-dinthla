@@ -3,6 +3,7 @@ import { CHANGED_IN_NOTE, PartlyWritten } from "../campaign/note-editor";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
 import { SecondPress } from "../views/second-press";
+import { NOTE_MOVED } from "./character-files";
 import { ENTRY_FIELDS, trimmedEntry, type CharacterEntry, type EntryFact, type Learned } from "./character-entry";
 
 export interface CharacterDialog {
@@ -15,6 +16,7 @@ export interface CharacterDialog {
 }
 
 const DELETE = "Delete character";
+const OUT_OF_DATE = [CHANGED_IN_NOTE, NOTE_MOVED];
 const PRESS_AGAIN = "Press again to delete";
 
 const PLACEHOLDERS: Record<keyof CharacterEntry, string> = {
@@ -116,7 +118,7 @@ export class CharacterModal extends Modal {
       .catch((error: unknown) => {
         this.busy = false;
         new Notice(`${failure}: ${messageOf(error)}`);
-        if (error instanceof PartlyWritten || messageOf(error) === CHANGED_IN_NOTE) this.close();
+        if (error instanceof PartlyWritten || OUT_OF_DATE.includes(messageOf(error))) this.close();
       });
   }
 }

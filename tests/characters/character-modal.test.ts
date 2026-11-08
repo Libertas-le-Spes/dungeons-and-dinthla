@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { App } from "obsidian";
 import { CHANGED_IN_NOTE, PartlyWritten } from "../../src/campaign/note-editor";
 import type { CharacterEntry, Learned } from "../../src/characters/character-entry";
+import { NOTE_MOVED } from "../../src/characters/character-files";
 import { CharacterModal, type CharacterDialog } from "../../src/characters/character-modal";
 import { Notice } from "../stubs/obsidian";
 
@@ -111,6 +112,12 @@ describe("CharacterModal", () => {
     button("Save")!.click();
     await vi.waitFor(() => expect(onClosed).toHaveBeenCalledOnce());
     expect(Notice.shown).toEqual([`Couldn't save the character: ${CHANGED_IN_NOTE}`]);
+  });
+
+  it("closes when the note was moved since it opened", async () => {
+    const { button, onClosed } = openDialog({ save: async () => Promise.reject(new Error(NOTE_MOVED)) });
+    button("Save")!.click();
+    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledOnce());
   });
 
   it("deletes only on a second press, then closes", async () => {
