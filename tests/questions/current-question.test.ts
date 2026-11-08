@@ -78,24 +78,22 @@ describe("answerWouldGoElsewhere", () => {
 });
 
 describe("refusalForNewQuestion", () => {
-  const SESSION = "Pale Moon/Sessions/Session 1.md";
-
   it("refuses a question that reads the same as one already asked, even an answered one", () => {
     const questions = buildCampaign([
       { path: "Pale Moon/Sessions/Session 2.md", number: 2, firstLine: 0, text: "? Who owns the ferry" },
       { path: "Pale Moon/Sessions/Session 3.md", number: 3, firstLine: 0, text: "?= Who owns the ferry: Vess" },
     ]).questions;
-    expect(refusalForNewQuestion(questions, "Who owns the ferry", "", SESSION)).toBe(SAME_TEXT_AS_EXISTING);
+    expect(refusalForNewQuestion(questions, "Who owns the ferry", "")).toBe(SAME_TEXT_AS_EXISTING);
   });
 
   it("refuses an answer that would be read as another question's", () => {
     const questions = questionsOf(["? Ferry: who owns it"]);
-    expect(refusalForNewQuestion(questions, "Ferry", "who owns it: Vess", SESSION)).toBe(ANSWER_GOES_ELSEWHERE);
+    expect(refusalForNewQuestion(questions, "Ferry", "who owns it: Vess")).toBe(ANSWER_GOES_ELSEWHERE);
   });
 
-  it("lets a new question through, with or without an answer", () => {
+  it("lets a new question through when its answer reads as its own", () => {
     const questions = questionsOf(["? Ferry: who owns it"]);
-    expect(refusalForNewQuestion(questions, "Ferry", "", SESSION)).toBeNull();
-    expect(refusalForNewQuestion(questions, "Who rang the bell", "Mira", SESSION)).toBeNull();
+    expect(refusalForNewQuestion(questions, "Ferry", "the old mill's")).toBeNull();
+    expect(refusalForNewQuestion(questions, "Who rang the bell", "Mira")).toBeNull();
   });
 });
