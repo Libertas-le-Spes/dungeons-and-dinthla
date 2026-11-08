@@ -14,7 +14,7 @@ import {
   trimmedEntry,
   valuesChanged,
   withEntryValues,
-  withOwnValues,
+  withOverrides,
   type CharacterEntry,
 } from "../../src/characters/character-entry";
 
@@ -203,19 +203,19 @@ describe("withEntryValues", () => {
   });
 });
 
-describe("withOwnValues", () => {
+describe("withOverrides", () => {
   it("rewrites any value, whatever the capitals it was written with", () => {
     const change = { name: "Patron", label: "Patron", before: "Lady Vess", after: "the Duke" };
-    expect(withOwnValues("patron: Lady Vess\n", PATH, [change])).toBe("Patron: the Duke\n");
+    expect(withOverrides("patron: Lady Vess\n", PATH, [change])).toBe("Patron: the Duke\n");
   });
 
   it("refuses when the note changed the value since it was read", () => {
     const change = { name: "AC", label: "Armor Class", before: "15", after: "16" };
-    expect(() => withOwnValues("AC: 14\n", PATH, [change])).toThrow(CHANGED_IN_NOTE);
+    expect(() => withOverrides("AC: 14\n", PATH, [change])).toThrow(CHANGED_IN_NOTE);
   });
 
   it("writes ? to mark a value not known", () => {
     const change = { name: "HP", label: "Hit Points", before: "", after: "?" };
-    expect(withOwnValues("AC: 14\n", PATH, [change])).toBe("AC: 14\nHP: ?\n");
+    expect(withOverrides("AC: 14\n", PATH, [change])).toBe("AC: 14\nHP: ?\n");
   });
 });

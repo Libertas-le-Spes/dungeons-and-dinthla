@@ -30,9 +30,9 @@ export function earlierSourceOf(source: Source, notePath: string): string {
 }
 
 export function whereText(character: string, sessionLabel: string | null): string {
-  let learned = "Learned at the table needs a session to write in.";
-  if (sessionLabel !== null) learned = `Learned at the table adds a line to ${sessionLabel}.`;
-  return `${learned} Override and Not known yet change ${character}'s note.`;
+  let learned = "Learned at the table and Not known yet need a session to write in.";
+  if (sessionLabel !== null) learned = `Learned at the table and Not known yet add a line to ${sessionLabel}.`;
+  return `${learned} Override changes ${character}'s note.`;
 }
 
 export class SheetValueModal extends Modal {

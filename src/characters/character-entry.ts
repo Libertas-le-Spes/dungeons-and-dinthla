@@ -51,7 +51,7 @@ export function trimmedEntry(entry: CharacterEntry): CharacterEntry {
   return { name: entry.name.trim(), type: entry.type.trim(), subtitle: entry.subtitle.trim(), speed: entry.speed.trim() };
 }
 
-export interface OwnValueChange {
+export interface OverrideChange {
   name: string;
   label: string;
   before: string;
@@ -66,7 +66,7 @@ export function sameName(first: string, second: string): boolean {
   return first.toLowerCase() === second.toLowerCase();
 }
 
-export function ownValueOf(text: string, path: string, name: string): string {
+export function overrideValueOf(text: string, path: string, name: string): string {
   let value = "";
   for (const fact of overrideFacts(text, path)) {
     if (sameName(fact.name, name)) value = fact.value;
@@ -187,9 +187,9 @@ function withValue(draft: Draft, path: string, name: string, label: string, valu
   return withRewritten(draft, changeable(draft.text, last.line, label), factLine(name, value));
 }
 
-function refuseUnlessWritten(changed: string, path: string, changes: OwnValueChange[]): void {
+function refuseUnlessWritten(changed: string, path: string, changes: OverrideChange[]): void {
   for (const { name, label, after } of changes) {
-    const written = ownValueOf(changed, path, name);
+    const written = overrideValueOf(changed, path, name);
     if (written !== after) throw new Error(stillReads(label, written));
   }
 }
@@ -204,11 +204,11 @@ function refuseIfHidingChanges(text: string, draft: Draft): void {
   }
 }
 
-export function withOwnValues(text: string, path: string, changes: OwnValueChange[]): string {
+export function withOverrides(text: string, path: string, changes: OverrideChange[]): string {
   const changed = changes.filter(({ before, after }) => after !== before);
   let draft: Draft = { text, origins: text.split("\n").map((_line, index) => index) };
   for (const { name, label, before, after } of changed) {
-    if (ownValueOf(text, path, name) !== before) throw new Error(CHANGED_IN_NOTE);
+    if (overrideValueOf(text, path, name) !== before) throw new Error(CHANGED_IN_NOTE);
     draft = withValue(draft, path, name, label, after);
   }
   refuseUnlessWritten(draft.text, path, changed);
@@ -219,5 +219,5 @@ export function withOwnValues(text: string, path: string, changes: OwnValueChang
 
 export function withEntryValues(text: string, path: string, before: CharacterEntry, after: CharacterEntry): string {
   const changes = ENTRY_FIELDS.map(({ fact, label }) => ({ name: fact, label, before: before[fact], after: after[fact] }));
-  return withOwnValues(text, path, changes);
+  return withOverrides(text, path, changes);
 }

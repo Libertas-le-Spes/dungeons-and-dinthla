@@ -28,7 +28,7 @@ function learnedLine(value: string): SourcedFact {
   return { name: "AC", value, source: { path: ONE, line: 0 } };
 }
 
-function ownLine(value: string): SourcedFact {
+function overrideLine(value: string): SourcedFact {
   return { name: "AC", value, source: { path: MIRA, line: 0 } };
 }
 
@@ -43,13 +43,13 @@ function acOf(learned: SourcedFact[], overrides: SourcedFact[], carriedClass: st
 describe("sheetWriteOf", () => {
   it("writes an override on the character's note", () => {
     expect(sheetWriteOf(acOf([learnedLine("15")], []), { state: "override", value: " 16 " })).toEqual({
-      own: { name: "AC", label: "Armor Class", before: "", after: "16" },
+      override: { name: "AC", label: "Armor Class", before: "", after: "16" },
       sessionFact: null,
     });
   });
 
   it("writes nothing when the override is already that value", () => {
-    expect(sheetWriteOf(acOf([], [ownLine("16")]), { state: "override", value: "16" })).toEqual({ own: null, sessionFact: null });
+    expect(sheetWriteOf(acOf([], [overrideLine("16")]), { state: "override", value: "16" })).toEqual({ override: null, sessionFact: null });
   });
 
   it("refuses an override or learned value with nothing typed", () => {
@@ -68,50 +68,60 @@ describe("sheetWriteOf", () => {
   });
 
   it("adds a learned value to a session and clears the override that would hide it", () => {
-    expect(sheetWriteOf(acOf([learnedLine("15")], [ownLine("16")]), { state: "learned", value: "17" })).toEqual({
-      own: { name: "AC", label: "Armor Class", before: "16", after: "" },
+    expect(sheetWriteOf(acOf([learnedLine("15")], [overrideLine("16")]), { state: "learned", value: "17" })).toEqual({
+      override: { name: "AC", label: "Armor Class", before: "16", after: "" },
       sessionFact: "AC: 17",
     });
   });
 
   it("only clears the override when the newest learned value is already the one typed", () => {
-    expect(sheetWriteOf(acOf([learnedLine("15")], [ownLine("16")]), { state: "learned", value: "15" })).toEqual({
-      own: { name: "AC", label: "Armor Class", before: "16", after: "" },
+    expect(sheetWriteOf(acOf([learnedLine("15")], [overrideLine("16")]), { state: "learned", value: "15" })).toEqual({
+      override: { name: "AC", label: "Armor Class", before: "16", after: "" },
       sessionFact: null,
     });
   });
 
-  it("marks a learned value not known with ? on the character's note", () => {
-    expect(sheetWriteOf(acOf([learnedLine("15")], []), { state: "unknown", value: "15" }).own).toEqual({
-      name: "AC",
-      label: "Armor Class",
-      before: "",
-      after: "?",
+  it("marks a learned value not known with a ? line in the session, clearing the override", () => {
+    expect(sheetWriteOf(acOf([learnedLine("15")], [overrideLine("16")]), { state: "unknown", value: "15" })).toEqual({
+      override: { name: "AC", label: "Armor Class", before: "16", after: "" },
+      sessionFact: "AC: ?",
     });
   });
 
-  it("marks a carried value not known with ? too", () => {
-    expect(sheetWriteOf(acOf([], [], "13"), { state: "unknown", value: "" }).own!.after).toBe("?");
+  it("marks a carried value not known with a ? line in the session too", () => {
+    expect(sheetWriteOf(acOf([], [], "13"), { state: "unknown", value: "" })).toEqual({ override: null, sessionFact: "AC: ?" });
   });
 
   it("only clears the override when nothing else states the value", () => {
-    expect(sheetWriteOf(acOf([], [ownLine("16")]), { state: "unknown", value: "" }).own!.after).toBe("");
+    expect(sheetWriteOf(acOf([], [overrideLine("16")]), { state: "unknown", value: "" })).toEqual({
+      override: { name: "AC", label: "Armor Class", before: "16", after: "" },
+      sessionFact: null,
+    });
   });
 
   it("only clears the override when what was learned is already not known", () => {
-    expect(sheetWriteOf(acOf([learnedLine("?")], [ownLine("16")]), { state: "unknown", value: "" }).own!.after).toBe("");
+    expect(sheetWriteOf(acOf([learnedLine("?")], [overrideLine("16")]), { state: "unknown", value: "" }).sessionFact).toBeNull();
+  });
+
+  it("reads an override of ? like any other override, and clears it to mark the value not known", () => {
+    const value = acOf([learnedLine("15")], [overrideLine("?")]);
+    expect(value.state).toBe("override");
+    expect(sheetWriteOf(value, { state: "unknown", value: "" })).toEqual({
+      override: { name: "AC", label: "Armor Class", before: "?", after: "" },
+      sessionFact: "AC: ?",
+    });
   });
 
   it("writes nothing to mark a value not known that nothing states", () => {
-    expect(sheetWriteOf(acOf([], []), { state: "unknown", value: "" })).toEqual({ own: null, sessionFact: null });
+    expect(sheetWriteOf(acOf([], []), { state: "unknown", value: "" })).toEqual({ override: null, sessionFact: null });
   });
 
   it("goes back to the carried value by clearing the override", () => {
-    expect(sheetWriteOf(acOf([], [ownLine("16")], "13"), { state: "carried", value: "13" }).own!.after).toBe("");
+    expect(sheetWriteOf(acOf([], [overrideLine("16")], "13"), { state: "carried", value: "13" }).override!.after).toBe("");
   });
 
   it("refuses a carried value no carried note gives", () => {
-    expect(() => sheetWriteOf(acOf([], [ownLine("16")]), { state: "carried", value: "" })).toThrow(nothingCarried("Armor Class"));
+    expect(() => sheetWriteOf(acOf([], [overrideLine("16")]), { state: "carried", value: "" })).toThrow(nothingCarried("Armor Class"));
   });
 
   it("refuses a carried value when one learned in this campaign would win", () => {
@@ -171,7 +181,7 @@ function targetWith({ notes, failOwn = false, linkedTo = MIRA, linktext = "Mira"
 }
 
 const LEARNED_AND_CLEARED: SheetWrite = {
-  own: { name: "AC", label: "Armor Class", before: "16", after: "" },
+  override: { name: "AC", label: "Armor Class", before: "16", after: "" },
   sessionFact: "AC: 17",
 };
 
@@ -185,7 +195,7 @@ describe("writeSheetValue", () => {
 
   it("writes nothing when there is nothing to write", async () => {
     const { target, processed } = targetWith({ notes: { [MIRA]: "" } });
-    expect(await writeSheetValue(target, { own: null, sessionFact: null })).toBe(false);
+    expect(await writeSheetValue(target, { override: null, sessionFact: null })).toBe(false);
     expect(processed).toEqual([]);
   });
 
@@ -230,14 +240,14 @@ describe("writeSheetValue", () => {
 
   it("passes on a refusal to write only the override", async () => {
     const { target } = targetWith({ notes: { [MIRA]: "AC: 16" }, failOwn: true });
-    const written = writeSheetValue(target, { own: LEARNED_AND_CLEARED.own, sessionFact: null });
+    const written = writeSheetValue(target, { override: LEARNED_AND_CLEARED.override, sessionFact: null });
     await expect(written).rejects.not.toBeInstanceOf(PartlyWritten);
     await expect(written).rejects.toThrow("disk full");
   });
 
   it("writes an override line on the character's note", async () => {
     const { target, texts } = targetWith({ notes: { [MIRA]: "speed: 30 ft." } });
-    await writeSheetValue(target, { own: { name: "AC", label: "Armor Class", before: "", after: "?" }, sessionFact: null });
-    expect(texts.get(MIRA)).toBe("speed: 30 ft.\nAC: ?\n");
+    await writeSheetValue(target, { override: { name: "AC", label: "Armor Class", before: "", after: "16" }, sessionFact: null });
+    expect(texts.get(MIRA)).toBe("speed: 30 ft.\nAC: 16\n");
   });
 });

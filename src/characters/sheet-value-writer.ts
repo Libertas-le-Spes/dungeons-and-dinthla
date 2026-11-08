@@ -4,8 +4,8 @@ import { sessionLabelOf } from "../campaign/session-file";
 import { latestNumberIsShared, latestSession, SESSIONS_SHARE_A_NUMBER } from "../campaign/session-to-write";
 import { linkedFactsOf } from "../notes/character-facts";
 import { messageOf } from "../views/message-of";
-import { factLine, refusalForValue, withOwnValues, type OwnValueChange } from "./character-entry";
-import { writeOwnNote } from "./character-files";
+import { factLine, refusalForValue, withOverrides, type OverrideChange } from "./character-entry";
+import { writeOverrides } from "./character-files";
 import { NOT_KNOWN, type SheetValue, type StatedValue, type ValueState } from "./character-sheet";
 
 export interface ValueChoice {
@@ -14,7 +14,7 @@ export interface ValueChoice {
 }
 
 export interface SheetWrite {
-  own: OwnValueChange | null;
+  override: OverrideChange | null;
   sessionFact: string | null;
 }
 
@@ -53,9 +53,9 @@ export function sessionToWrite(campaignFolder: string, paths: string[]): string 
   return latest;
 }
 
-function ownChange(value: SheetValue, after: string): OwnValueChange | null {
+function overrideChange(value: SheetValue, after: string): OverrideChange | null {
   let before = "";
-  if (value.own !== null) before = value.own.value;
+  if (value.override !== null) before = value.override.value;
   if (before === after) return null;
   return { name: value.name, label: value.label, before, after };
 }
@@ -76,21 +76,21 @@ function learnedWrite(value: SheetValue, written: string): SheetWrite {
   refuseUnlessWritable(value, written);
   let sessionFact: string | null = factLine(value.name, written);
   if (value.learned !== null && value.learned.value === written) sessionFact = null;
-  return { own: ownChange(value, ""), sessionFact };
+  return { override: overrideChange(value, ""), sessionFact };
 }
 
 function unknownWrite(value: SheetValue): SheetWrite {
   const shownBeneath = underneath(value);
-  let after = "";
-  if (shownBeneath !== null && shownBeneath.value !== NOT_KNOWN) after = NOT_KNOWN;
-  return { own: ownChange(value, after), sessionFact: null };
+  let sessionFact: string | null = null;
+  if (shownBeneath !== null && shownBeneath.value !== NOT_KNOWN) sessionFact = factLine(value.name, NOT_KNOWN);
+  return { override: overrideChange(value, ""), sessionFact };
 }
 
 function carriedWrite(value: SheetValue, written: string): SheetWrite {
-  if (value.carried === null || value.carriedFrom === null) throw new Error(nothingCarried(value.label));
+  if (value.carried === null || value.carriedCampaign === null) throw new Error(nothingCarried(value.label));
   if (value.learned !== null) throw new Error(learnedHereWins(value.label));
-  if (written !== "" && written !== value.carried.value) throw new Error(carriedDiffers(value.label, value.carriedFrom));
-  return { own: ownChange(value, ""), sessionFact: null };
+  if (written !== "" && written !== value.carried.value) throw new Error(carriedDiffers(value.label, value.carriedCampaign));
+  return { override: overrideChange(value, ""), sessionFact: null };
 }
 
 export function sheetWriteOf(value: SheetValue, choice: ValueChoice): SheetWrite {
@@ -99,7 +99,7 @@ export function sheetWriteOf(value: SheetValue, choice: ValueChoice): SheetWrite
   if (choice.state === "unknown") return unknownWrite(value);
   if (choice.state === "carried") return carriedWrite(value, written);
   refuseUnlessWritable(value, written);
-  return { own: ownChange(value, written), sessionFact: null };
+  return { override: overrideChange(value, written), sessionFact: null };
 }
 
 function sessionLineOf(target: SheetTarget, sessionPath: string, fact: string): string {
@@ -114,17 +114,17 @@ function sessionLineOf(target: SheetTarget, sessionPath: string, fact: string): 
 
 export async function writeSheetValue(target: SheetTarget, write: SheetWrite): Promise<boolean> {
   const { vault, file } = target;
-  const own = write.own;
+  const override = write.override;
   const fact = write.sessionFact;
-  if (own === null && fact === null) return false;
-  if (own !== null) withOwnValues(await vault.read(file), file.path, [own]);
+  if (override === null && fact === null) return false;
+  if (override !== null) withOverrides(await vault.read(file), file.path, [override]);
   if (fact !== null) {
     const sessionPath = target.sessionPath();
     await new NoteEditor(vault).appendShown(sessionPath, [sessionLineOf(target, sessionPath, fact)]);
   }
-  if (own === null) return true;
+  if (override === null) return true;
   try {
-    await writeOwnNote(vault, file, (text) => withOwnValues(text, file.path, [own]));
+    await writeOverrides(vault, file, (text) => withOverrides(text, file.path, [override]));
   } catch (error) {
     if (fact === null) throw error;
     throw new PartlyWritten(`The line was added to the session, but ${file.basename}'s note was left: ${messageOf(error)}`);
