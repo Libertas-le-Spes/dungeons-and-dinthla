@@ -5,8 +5,8 @@ import { sessionLabelOf } from "../campaign/session-file";
 import { sessionToWriteIn } from "../campaign/session-to-write";
 import { ANSWER_GOES_ELSEWHERE, answerWouldGoElsewhere, currentQuestion, latestSessionOfQuestion, sharesTextWithEarlierOpenQuestion } from "./current-question";
 import { QuestionModal } from "./question-modal";
-import { planQuestionSave, planReopen, refusalForQuestionPlan, type QuestionPlan } from "./question-plan";
-import { QuestionWriter, type QuestionEdit } from "./question-writer";
+import { planQuestionSave, planReopen, refusalForQuestionPlan, type QuestionEdit, type QuestionPlan } from "./question-plan";
+import { QuestionWriter } from "./question-writer";
 
 const NO_SESSION = "Start a session first: answers are written into a session note.";
 const SAME_TEXT = "An earlier open question reads the same, so an answer would go to it. Reword one of them first.";

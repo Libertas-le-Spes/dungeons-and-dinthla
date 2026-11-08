@@ -35,8 +35,12 @@ export interface QuestPlan {
 export const CHANGES_ANOTHER_QUEST =
   "That change would be read as changing more than asked, another quest or the purse beyond the reward, so nothing was written.";
 
-function outcomeKey(status: QuestStatus, text: string): string {
-  return `${status}:${oneLine(text)}`;
+function outcomeKey(status: QuestStatus, text: string, path: string): string {
+  return JSON.stringify([status, oneLine(text), path]);
+}
+
+function placed(path: string, text: string): string {
+  return JSON.stringify([path, oneLine(text)]);
 }
 
 function rewardCopperOf(reward: string, title: string): number | null {
@@ -74,22 +78,22 @@ export function planQuestSave(record: QuestRecord, edit: QuestEdit, coins: CoinR
   const title = record.quest.title;
   const happened = oneLine(edit.happened);
   const added: string[] = [];
-  const progress = record.progress.map((note) => oneLine(note.text));
+  const progress = record.progress.map((note) => placed(note.source.path, note.text));
   let outcome: string | null = null;
-  if (record.outcome !== null) outcome = outcomeKey(record.outcome.status, record.outcome.text);
+  if (record.outcome !== null) outcome = outcomeKey(record.outcome.status, record.outcome.text, record.outcome.source.path);
   let removal: Removal | null = null;
   if (edit.status === "active") {
     removal = outcomeRemoval(record);
     outcome = null;
     if (happened !== "") {
       added.push(progressLine(title, happened));
-      progress.push(happened);
+      progress.push(placed(targetPath, happened));
     }
-  } else if (outcome !== outcomeKey(edit.status, happened)) {
+  } else if (record.outcome === null || record.outcome.status !== edit.status || oneLine(record.outcome.text) !== happened) {
     added.push(outcomeLine(edit.status, title, happened));
     removal = outcomeRemoval(record);
-    outcome = outcomeKey(edit.status, happened);
     if (record.outcome !== null) targetPath = record.outcome.source.path;
+    outcome = outcomeKey(edit.status, happened, targetPath);
   }
   let rewardCopper = 0;
   if (edit.status === "completed" && edit.collectReward && canCollectReward(record, coins)) {
@@ -117,8 +121,8 @@ function applyPlan(sessions: SessionNote[], plan: QuestPlan): SessionNote[] {
 
 function signatureOf(record: QuestRecord): string {
   let outcome = "";
-  if (record.outcome !== null) outcome = outcomeKey(record.outcome.status, record.outcome.text);
-  return JSON.stringify([record.source.path, record.quest.title, record.progress.map((note) => oneLine(note.text)), outcome]);
+  if (record.outcome !== null) outcome = outcomeKey(record.outcome.status, record.outcome.text, record.outcome.source.path);
+  return JSON.stringify([record.source.path, record.quest.title, record.progress.map((note) => placed(note.source.path, note.text)), outcome]);
 }
 
 function expectedSignature(record: QuestRecord, expected: ExpectedQuest): string {

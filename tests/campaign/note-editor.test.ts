@@ -55,6 +55,7 @@ describe("NoteEditor.replace across notes", () => {
     await expect(replacing).rejects.toBeInstanceOf(PartlyWritten);
     await expect(replacing).rejects.toThrow(OLD_LINE_LEFT);
     expect(notes.texts.get(TWO)).toBe("!x Find it: lost\n");
+    expect(notes.texts.get(ONE)).toBe("! Find it\n!= Find it: done, mostly\n");
   });
 
   it("says plainly that nothing was written when only removing a line that changed in between", async () => {
@@ -62,6 +63,7 @@ describe("NoteEditor.replace across notes", () => {
     notes.afterRead = () => notes.texts.set(ONE, "! Find it\n!= Find it: done, mostly\n");
     await expect(new NoteEditor(notes.vault).replace(TWO, [], OLD)).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notes.texts.get(TWO)).toBe("");
+    expect(notes.texts.get(ONE)).toBe("! Find it\n!= Find it: done, mostly\n");
   });
 
   it("keeps the old line when the note to write in has gone", async () => {
