@@ -30,7 +30,7 @@ describe("the item dialog", () => {
     expect(onClosed).not.toHaveBeenCalled();
     button("Open note").click();
     expect(onClosed).toHaveBeenCalledWith(false);
-    expect(openNote).toHaveBeenCalledTimes(1);
+    expect(openNote).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 1 });
   });
 
   it("doesn't offer the note for a refusal the dialog itself can fix", async () => {
