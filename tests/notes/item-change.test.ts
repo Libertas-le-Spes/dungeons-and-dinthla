@@ -38,6 +38,11 @@ describe("readItemChange", () => {
     expect(readItemChange("$$ Rope :used ^r-1")).toMatchObject({ item: "Rope", kind: "used" });
   });
 
+  it("leaves a block id before the change word out of the item", () => {
+    expect(readItemChange("$$ Rope ^r1 :changed to [[Mira]]")).toMatchObject({ item: "Rope", holder: "Mira" });
+    expect(readItemChange("$$ ^r1 :used")).toBeNull();
+  });
+
   it("keeps a colon inside the name", () => {
     expect(readItemChange("$$ Ring: +1 :sold 10 gp")?.item).toBe("Ring: +1");
   });
