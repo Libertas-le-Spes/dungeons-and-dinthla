@@ -12,6 +12,7 @@ import type {
   Plugin as RealPlugin,
   PluginSettingTab as RealPluginSettingTab,
 } from "obsidian";
+import { obsidianDocument } from "../views/obsidian-dom";
 
 export class Plugin {
   app: RealPlugin["app"];
@@ -84,11 +85,56 @@ export const editorInfoField = StateField.define<MarkdownFileInfo>({
   update: (info) => info,
 });
 
+export const openedModals: Modal[] = [];
+
 export class Modal {
   app: RealModal["app"];
+  contentEl: HTMLElement = obsidianDocument().createElement("div");
+  title = "";
 
   constructor(...[app]: ConstructorParameters<typeof RealModal>) {
     this.app = app;
+  }
+
+  setTitle(title: string): this {
+    this.title = title;
+    return this;
+  }
+
+  open(): void {
+    openedModals.push(this);
+    this.onOpen();
+  }
+
+  close(): void {
+    this.onClose();
+  }
+
+  onOpen(): void {}
+
+  onClose(): void {}
+}
+
+class TextComponent {
+  readonly inputEl: HTMLInputElement;
+
+  constructor(containerEl: HTMLElement) {
+    this.inputEl = containerEl.createEl("input");
+  }
+
+  setPlaceholder(placeholder: string): this {
+    this.inputEl.placeholder = placeholder;
+    return this;
+  }
+
+  setValue(value: string): this {
+    this.inputEl.value = value;
+    return this;
+  }
+
+  onChange(callback: (value: string) => void): this {
+    this.inputEl.addEventListener("input", () => callback(this.inputEl.value));
+    return this;
   }
 }
 
@@ -189,6 +235,14 @@ export class ButtonComponent {
     return this;
   }
 
+  setCta(): this {
+    return this;
+  }
+
+  setWarning(): this {
+    return this;
+  }
+
   onClick(callback: () => unknown): this {
     this.buttonEl.addEventListener("click", () => callback());
     return this;
@@ -215,6 +269,21 @@ export class Setting {
 
   setDesc(description: string): this {
     this.descEl.setText(description);
+    return this;
+  }
+
+  addButton(build: (button: ButtonComponent) => void): this {
+    build(new ButtonComponent(this.controlEl));
+    return this;
+  }
+
+  addDropdown(build: (dropdown: DropdownComponent) => void): this {
+    build(new DropdownComponent(this.controlEl));
+    return this;
+  }
+
+  addText(build: (text: TextComponent) => void): this {
+    build(new TextComponent(this.controlEl));
     return this;
   }
 

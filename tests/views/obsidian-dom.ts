@@ -65,5 +65,14 @@ export function obsidianDocument(): Document {
   prototype.setText = function (this: HTMLElement, text: string) {
     this.textContent = text;
   };
+  prototype.removeClass = function (this: HTMLElement, ...names: string[]) {
+    this.classList.remove(...names);
+  };
+  prototype.setAttr = function (this: HTMLElement, name: string, value: string) {
+    this.setAttribute(name, value);
+  };
+  prototype.toggle = function (this: HTMLElement, show: boolean) {
+    this.hidden = !show;
+  };
   return window.document as unknown as Document;
 }

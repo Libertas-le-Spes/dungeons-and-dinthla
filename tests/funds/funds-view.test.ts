@@ -241,6 +241,28 @@ describe("FundsView", () => {
     expect(document.activeElement).toBe(rowOf("Rope"));
   });
 
+  it("opens a sale in the ledger as its item, and puts focus back on the sale after the redraw", async () => {
+    const openEntry = vi.fn<OpenEntry>();
+    const openItem = vi.fn<OpenItem>();
+    const later = ["$ 5 gp found", "", "", "", "$$ Torch :lost"];
+    const lines = ["$ Torch", "$ Hook", "$$ Hook :lost", "$ Rope", "$$ Rope :sold 3 gp"];
+    const { root, change } = await openView(campaignOf(lines, later), [], vi.fn(), openEntry, openItem);
+    const document = root.ownerDocument;
+    document.body.append(root);
+    const rowAt = (line: number) => root.querySelector(`.dd-ledger-row[data-line="${line}"]`) as HTMLElement;
+    rowAt(4).click();
+    expect(openItem).toHaveBeenCalledWith("Rope", { path: "Pale Moon/Sessions/Session 1.md", line: 4 }, expect.any(Function));
+    openItem.mock.calls[0]![2](true);
+    change(campaignOf(["$ Torch", "$ Hook", "$$ Hook :lost", "$ Rope", "$$ Rope :sold 4 gp"], later));
+    expect(document.activeElement).toBe(rowAt(4));
+    rowAt(4).click();
+    openItem.mock.calls[1]![2](false);
+    expect(document.activeElement).toBe(rowAt(4));
+    rowAt(0).click();
+    expect(openEntry).toHaveBeenCalledTimes(1);
+    expect(openItem).toHaveBeenCalledTimes(2);
+  });
+
   it("forgets an item's pending focus once it is stale", async () => {
     const openItem = vi.fn<OpenItem>();
     const { root, change } = await openView(campaignOf(["$ Rope", "$ Torch"]), [], null, null, openItem);
