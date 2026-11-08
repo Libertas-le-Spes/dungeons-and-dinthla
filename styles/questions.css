@@ -39,6 +39,18 @@
   color: var(--text-body);
 }
 
+.dd-questions .dd-filter:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-sunken);
+}
+
+.dd-questions .dd-filter:focus,
+.dd-questions .dd-filter:focus-visible {
+  border-color: var(--border-focus);
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
 .dd-questions .dd-filter::placeholder {
   color: var(--text-faint-ui);
   opacity: 1;
