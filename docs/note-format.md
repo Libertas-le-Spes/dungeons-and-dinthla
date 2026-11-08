@@ -76,7 +76,7 @@ $ 35 gp 4 sp from the bandits at the ford
 | `played` | The date it was played, `YYYY-MM-DD` |
 | `title` | Optional. Screens show *Session 13 · The ferry at dusk* |
 
-**New session:** creates `Sessions/Session <highest + 1>.md` with `played` set to today. Nothing is copied into it.
+**New session:** creates `Sessions/Session <highest + 1>.md` with `played` (the date chosen, today by default) and, if one is given, `title`. Nothing else is copied into it.
 
 **What's still open:** above its own text, every session note shows the questions and quests that were still open when it began, wherever they were written. The plugin draws this from the earlier sessions each time the note is opened, the way a character from Session 1 shows on their sheet in Session 30. It is never written into the note, so nothing appears twice, and an answer written in Session 13 shows up everywhere at once.
 
