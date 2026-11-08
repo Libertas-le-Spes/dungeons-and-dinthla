@@ -6,8 +6,15 @@ import type { CampaignStore } from "../../src/campaign/campaign-store";
 import { FundsView } from "../../src/funds/funds-view";
 import { obsidianDocument } from "../views/obsidian-dom";
 
-function campaignOf(lines: string[]): Campaign {
-  return buildCampaign([{ path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: lines.join("\n") }]);
+function campaignOf(lines: string[], ...laterSessions: string[][]): Campaign {
+  return buildCampaign(
+    [lines, ...laterSessions].map((sessionLines, index) => ({
+      path: `Pale Moon/Sessions/Session ${index + 1}.md`,
+      number: index + 1,
+      firstLine: 0,
+      text: sessionLines.join("\n"),
+    })),
+  );
 }
 
 async function openView(campaign: Campaign) {
@@ -109,15 +116,35 @@ describe("FundsView", () => {
   });
 
   it("lists held items under their holders, the party's own last, with gone items folded away", async () => {
-    const { root } = await openView(
-      campaignOf(["$ [[Mira]] Flame Tongue", "$ Potion of healing", "$ Spyglass", "$$ Spyglass :sold 20 gp", "$ Rope", "$$ Rope :used"]),
-    );
-    expect(textsOf(root, ".dd-items-panel .dd-holder")).toEqual(["[[Mira]]", "The party"]);
+    const { root } = await openView(campaignOf(["$ [[Mira]] Flame Tongue", "$ Potion of healing", "$ Spyglass", "$ Rope"], ["$$ Spyglass :sold 20 gp", "$$ Rope :used"]));
+    expect(textsOf(root, ".dd-items-panel .dd-holder")).toEqual(["Mira", "The party"]);
     expect(textsOf(root, ".dd-items-panel > .dd-list .dd-text")).toEqual(["Flame Tongue", "Potion of healing"]);
+    expect(textsOf(root, ".dd-items-panel > .dd-list .dd-mark-ledger")).toEqual(["$", "$"]);
     expect(textsOf(root, ".dd-items-panel > .dd-title .dd-count")).toEqual(["2 held"]);
     expect(textsOf(root, ".dd-items-panel .dd-folded summary")).toEqual(["Gone2"]);
-    expect(textsOf(root, ".dd-folded .dd-meta")).toEqual(["Used up · Session 1", "Sold · sale in the ledger · Session 1"]);
     expect(root.querySelectorAll(".dd-folded .dd-text.dd-gone")).toHaveLength(2);
+  });
+
+  it("says how and in which session each item went, and when its sale is in the ledger", async () => {
+    const { root } = await openView(campaignOf(["$ Spyglass", "$ Rope", "$ Map"], ["$$ Spyglass :sold 20 gp", "$$ Map :sold", "$$ Rope :used"]));
+    expect(textsOf(root, ".dd-folded .dd-meta")).toEqual([
+      "Used up · Session 2",
+      "Sold · Session 2",
+      "Sold · sale in the ledger · Session 2",
+    ]);
+    expect(Array.from(root.querySelectorAll(".dd-folded .dd-mark-gone")).map((mark) => mark.getAttribute("aria-label"))).toEqual([
+      "Used up",
+      "Sold",
+      "Sold",
+    ]);
+  });
+
+  it("opens a held item where it was written, and a gone one where it went", async () => {
+    const { root, actions } = await openView(campaignOf(["$ Potion of healing", "$ Rope"], ["We rode on.", "$$ Rope :used"]));
+    (root.querySelector(".dd-items-panel > .dd-list .dd-row") as HTMLElement).click();
+    expect(actions.openSource).toHaveBeenLastCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 0 });
+    (root.querySelector(".dd-folded .dd-row") as HTMLElement).click();
+    expect(actions.openSource).toHaveBeenLastCalledWith({ path: "Pale Moon/Sessions/Session 2.md", line: 1 });
   });
 
   it("says how to note an item, and that nothing is gone, when there are none", async () => {
