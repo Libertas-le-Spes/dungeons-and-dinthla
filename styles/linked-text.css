@@ -1,0 +1,24 @@
+.dd-root .dd-link {
+  color: var(--marker-link);
+}
+
+.dd-root .dd-link a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.dd-root .dd-link a:hover {
+  text-decoration: underline;
+}
+
+.dd-root .dd-link-bracket {
+  padding: 0 var(--space-0);
+  border-radius: var(--radius-xs);
+  background: var(--marker-link-soft);
+}
+
+.dd-root mark {
+  background: var(--marker-question-soft);
+  color: inherit;
+  border-radius: 2px;
+}

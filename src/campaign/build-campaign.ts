@@ -41,7 +41,7 @@ class CampaignBuilder {
     const change = readItemChange(line);
     if (change !== null) {
       this.itemBook.change(change, source);
-      if (change.sale !== undefined) this.coins.push({ entry: change.sale, source });
+      if (change.sale !== undefined) this.coins.push({ entry: change.sale, text: change.text, source });
       return;
     }
     this.addMarked(line, source);
@@ -85,7 +85,7 @@ class CampaignBuilder {
 
   private addLedgerEntry(body: string, source: Source): void {
     const entry = readLedgerEntry(body);
-    if (entry?.type === "coin") this.coins.push({ entry, source });
+    if (entry?.type === "coin") this.coins.push({ entry, text: body, source });
     if (entry?.type === "item") this.itemBook.mention(entry.item, entry.holder, source);
   }
 
