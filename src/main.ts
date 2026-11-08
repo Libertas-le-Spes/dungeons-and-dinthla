@@ -11,7 +11,7 @@ import {
 import { CampaignStore } from "./campaign/campaign-store";
 import { characterNotesOf } from "./characters/character-notes";
 import { CHARACTERS_VIEW, CharactersView } from "./characters/characters-view";
-import { editActiveCharacter, openNewCharacter } from "./characters/open-character";
+import { addEditCharacterItem, editActiveCharacter, openNewCharacter } from "./characters/open-character";
 import { openCharacters } from "./characters/open-characters";
 import { editorTextOf } from "./campaign/editor-text";
 import { markerColouring } from "./editor/marker-decorations";
@@ -101,7 +101,8 @@ export default class DungeonsAndDinthla extends Plugin {
     const showCharacters = () => void openCharacters(this.app, this.store.campaignFolder, basesOn);
     this.addRibbonIcon("users", "Open characters", showCharacters);
     this.addCommand({ id: "open-characters", name: "Open characters", callback: showCharacters });
-    this.addCommand({ id: "edit-character", name: "Edit character", checkCallback: (checking) => editActiveCharacter(this.app, checking) });
+    this.addCommand({ id: "edit-character", name: "Edit character", checkCallback: (checking) => editActiveCharacter(this.app, characterNotes, checking) });
+    this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => addEditCharacterItem(this.app, characterNotes, menu, file)));
     this.addRibbonIcon("calendar-plus", "Start a new session", () => startSession(this.app, this.store.campaignFolder));
     this.addCommand({ id: "start-session", name: "Start a new session", callback: () => startSession(this.app, this.store.campaignFolder) });
     const inSession = (path: string) => isSessionNote(path, (notePath) => this.app.vault.getFileByPath(notePath) !== null);

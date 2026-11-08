@@ -1,13 +1,14 @@
 import { Modal, Notice, Setting, type App, type ButtonComponent } from "obsidian";
-import { PartlyWritten } from "../campaign/note-editor";
+import { CHANGED_IN_NOTE, PartlyWritten } from "../campaign/note-editor";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
 import { SecondPress } from "../views/second-press";
-import { ENTRY_FIELDS, type CharacterEntry } from "./character-entry";
+import { ENTRY_FIELDS, trimmedEntry, type CharacterEntry, type EntryFact, type Learned } from "./character-entry";
 
 export interface CharacterDialog {
   title: string;
   entry: CharacterEntry;
+  learned: Learned;
   where: string;
   save(entry: CharacterEntry): Promise<boolean>;
   delete: (() => Promise<void>) | null;
@@ -43,7 +44,7 @@ export class CharacterModal extends Modal {
     this.setTitle(this.dialog.title);
     contentEl.addClass("dd-tokens", "dd-dialog");
     this.addField("name", "Name");
-    for (const { fact, label } of ENTRY_FIELDS) this.addField(fact, label);
+    for (const { fact, label } of ENTRY_FIELDS) this.addLearned(this.addField(fact, label), fact);
     contentEl.createEl("p", { cls: "dd-where", text: this.dialog.where });
     const buttons = new Setting(contentEl);
     buttons.addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.save()));
@@ -63,8 +64,13 @@ export class CharacterModal extends Modal {
     this.onClosed();
   }
 
-  private addField(field: keyof CharacterEntry, label: string): void {
-    new Setting(this.contentEl).setName(label).addText((text) => {
+  private addLearned(setting: Setting, fact: EntryFact): void {
+    const learned = this.dialog.learned.get(fact);
+    if (learned !== undefined) setting.setDesc(`Learned in the sessions: ${learned}`);
+  }
+
+  private addField(field: keyof CharacterEntry, label: string): Setting {
+    return new Setting(this.contentEl).setName(label).addText((text) => {
       text.setPlaceholder(PLACEHOLDERS[field]).setValue(this.entry[field]).onChange((value) => {
         this.entry[field] = value;
       });
@@ -95,7 +101,7 @@ export class CharacterModal extends Modal {
   }
 
   private save(): void {
-    this.run(() => this.dialog.save(this.entry), "Couldn't save the character");
+    this.run(() => this.dialog.save(trimmedEntry(this.entry)), "Couldn't save the character");
   }
 
   private run(change: () => Promise<boolean>, failure: string): void {
@@ -110,7 +116,7 @@ export class CharacterModal extends Modal {
       .catch((error: unknown) => {
         this.busy = false;
         new Notice(`${failure}: ${messageOf(error)}`);
-        if (error instanceof PartlyWritten) this.close();
+        if (error instanceof PartlyWritten || messageOf(error) === CHANGED_IN_NOTE) this.close();
       });
   }
 }
