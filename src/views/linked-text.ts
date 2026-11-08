@@ -2,7 +2,7 @@ import type { Source } from "../campaign/campaign";
 import { textRunsOf, type MarkedPiece } from "./text-parts";
 
 export interface LinkActions {
-  openSource(source: Source): void;
+  openRow(source: Source): void;
   openLink(linktext: string, sourcePath: string): void;
 }
 
@@ -51,13 +51,16 @@ export function addLinkedText(
 }
 
 export function addRowButton(list: HTMLElement, source: Source, actions: LinkActions): HTMLElement {
-  const row = list.createEl("li").createDiv({ cls: "dd-row", attr: { role: "button", tabindex: "0" } });
-  row.addEventListener("click", () => actions.openSource(source));
+  const row = list.createEl("li").createDiv({
+    cls: "dd-row",
+    attr: { role: "button", tabindex: "0", "data-path": source.path, "data-line": String(source.line) },
+  });
+  row.addEventListener("click", () => actions.openRow(source));
   row.addEventListener("keydown", (event) => {
     if (event.target !== row) return;
     if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
-    actions.openSource(source);
+    actions.openRow(source);
   });
   return row;
 }

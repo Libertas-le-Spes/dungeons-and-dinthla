@@ -21,8 +21,10 @@ async function openView(campaign: Campaign) {
       return unsubscribe;
     },
   };
-  const view = new CampaignListView({} as WorkspaceLeaf, store as unknown as CampaignStore, { openSource: vi.fn(), openLink: vi.fn() }, questsKind);
-  const root = obsidianDocument().createElement("div");
+  const view = new CampaignListView({} as WorkspaceLeaf, store as unknown as CampaignStore, { openRow: vi.fn(), openLink: vi.fn() }, questsKind);
+  const document = obsidianDocument();
+  const root = document.createElement("div");
+  document.body.append(root);
   view.contentEl = root;
   const registered: (() => void)[] = [];
   view.register = (callback) => {
@@ -41,7 +43,11 @@ async function openView(campaign: Campaign) {
   const close = () => {
     for (const callback of registered) callback();
   };
-  return { root, typeFilter, change, close, unsubscribe };
+  return { root, view, typeFilter, change, close, unsubscribe };
+}
+
+function focusedLine(root: HTMLElement): string | undefined {
+  return (root.ownerDocument.activeElement as HTMLElement).dataset.line;
 }
 
 function textOf(root: HTMLElement, selector: string): string | null | undefined {
@@ -82,5 +88,45 @@ describe("CampaignListView", () => {
     const { close, unsubscribe } = await openView(campaignOf([]));
     close();
     expect(unsubscribe).toHaveBeenCalled();
+  });
+
+  it("puts focus straight back on a row when nothing changed", async () => {
+    const { root, view } = await openView(campaignOf(["! Find it", "! Guard it"]));
+    view.focusRow({ path: "Pale Moon/Sessions/Session 1.md", line: 1 }, false);
+    expect(focusedLine(root)).toBe("1");
+  });
+
+  it("puts focus back on a row once the list has redrawn after a change", async () => {
+    const { root, view, change } = await openView(campaignOf(["! Find it", "! Guard it"]));
+    view.focusRow({ path: "Pale Moon/Sessions/Session 1.md", line: 1 }, true);
+    change(campaignOf(["! Find it", "! Guard it", "! A third"]));
+    expect(focusedLine(root)).toBe("1");
+    expect(root.ownerDocument.activeElement?.isConnected).toBe(true);
+  });
+
+  it("opens the folded section to reach a row that moved into it", async () => {
+    const { root, view, change } = await openView(campaignOf(["! Find it"]));
+    view.focusRow({ path: "Pale Moon/Sessions/Session 1.md", line: 0 }, true);
+    change(campaignOf(["! Find it", "!= Find it: found"]));
+    expect((root.querySelector(".dd-folded") as HTMLDetailsElement).open).toBe(true);
+    expect(focusedLine(root)).toBe("0");
+  });
+
+  it("puts focus on the filter when the row is gone", async () => {
+    const { root, view, change } = await openView(campaignOf(["! Find it"]));
+    view.focusRow({ path: "Pale Moon/Sessions/Session 1.md", line: 0 }, true);
+    change(campaignOf([]));
+    expect(root.ownerDocument.activeElement?.classList.contains("dd-filter")).toBe(true);
+  });
+
+  it("forgets a focus request after one redraw, so it can't steal focus later", async () => {
+    const { root, view, change } = await openView(campaignOf(["! Find it"]));
+    view.focusRow({ path: "Pale Moon/Sessions/Session 1.md", line: 5 }, true);
+    change(campaignOf(["! Find it"]));
+    const editor = root.ownerDocument.createElement("input");
+    root.ownerDocument.body.append(editor);
+    editor.focus();
+    change(campaignOf(["! Find it", "", "", "", "", "! A new line five"]));
+    expect(root.ownerDocument.activeElement).toBe(editor);
   });
 });
