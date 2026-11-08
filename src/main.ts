@@ -11,6 +11,7 @@ import {
 import { CampaignStore } from "./campaign/campaign-store";
 import { characterNotesOf } from "./characters/character-notes";
 import { CHARACTERS_VIEW, CharactersView } from "./characters/characters-view";
+import { editActiveCharacter, openNewCharacter } from "./characters/open-character";
 import { openCharacters } from "./characters/open-characters";
 import { editorTextOf } from "./campaign/editor-text";
 import { markerColouring } from "./editor/marker-decorations";
@@ -91,14 +92,16 @@ export default class DungeonsAndDinthla extends Plugin {
     this.addRibbonIcon("coins", "Open party funds", () => void openSideView(this.app, FUNDS_VIEW));
     this.addCommand({ id: "open-funds", name: "Open party funds", callback: () => void openSideView(this.app, FUNDS_VIEW) });
     const characterNotes = characterNotesOf(this.app);
+    const newCharacter = (returnFocus: () => void) => openNewCharacter(this.app, this.store.campaignFolder, returnFocus);
     const basesOn = this.registerBasesView(CHARACTERS_VIEW, {
       name: "Characters",
       icon: "users",
-      factory: (controller, containerEl) => new CharactersView(controller, containerEl, this.store, characterNotes, actions),
+      factory: (controller, containerEl) => new CharactersView(controller, containerEl, this.store, characterNotes, actions, newCharacter),
     });
     const showCharacters = () => void openCharacters(this.app, this.store.campaignFolder, basesOn);
     this.addRibbonIcon("users", "Open characters", showCharacters);
     this.addCommand({ id: "open-characters", name: "Open characters", callback: showCharacters });
+    this.addCommand({ id: "edit-character", name: "Edit character", checkCallback: (checking) => editActiveCharacter(this.app, checking) });
     this.addRibbonIcon("calendar-plus", "Start a new session", () => startSession(this.app, this.store.campaignFolder));
     this.addCommand({ id: "start-session", name: "Start a new session", callback: () => startSession(this.app, this.store.campaignFolder) });
     const inSession = (path: string) => isSessionNote(path, (notePath) => this.app.vault.getFileByPath(notePath) !== null);
