@@ -1,5 +1,6 @@
 import { debounce, MarkdownView, Notice, Plugin, type EditorSuggestContext, type MarkdownFileInfo, type TFile } from "obsidian";
 import type { Source } from "./campaign/campaign";
+import type { SheetValue } from "./characters/character-sheet";
 import { messageOf } from "./views/message-of";
 import {
   campaignFolderOf,
@@ -11,7 +12,10 @@ import {
 import { CampaignStore } from "./campaign/campaign-store";
 import { characterNotesOf } from "./characters/character-notes";
 import { CHARACTERS_VIEW, CharactersView } from "./characters/characters-view";
-import { addEditCharacterItem, editActiveCharacter, openNewCharacter } from "./characters/open-character";
+import { addEditCharacterItem, editActiveCharacter, editCharacter, openNewCharacter } from "./characters/open-character";
+import { CHARACTER_SHEET_VIEW, CharacterSheetView } from "./characters/character-sheet-view";
+import { chooseSheetValue, openCharacterSheet } from "./characters/open-character-sheet";
+import { sheetNotesOf } from "./characters/sheet-notes";
 import { openCharacters } from "./characters/open-characters";
 import { editorTextOf } from "./campaign/editor-text";
 import { DASHBOARD_VIEW, DashboardView } from "./dashboard/dashboard-view";
@@ -93,11 +97,21 @@ export default class DungeonsAndDinthla extends Plugin {
     this.addRibbonIcon("coins", "Open party funds", () => void openSideView(this.app, FUNDS_VIEW));
     this.addCommand({ id: "open-funds", name: "Open party funds", callback: () => void openSideView(this.app, FUNDS_VIEW) });
     const characterNotes = characterNotesOf(this.app);
+    const sheetNotes = sheetNotesOf(this.app);
+    const openCharacter = (path: string) => void openCharacterSheet(this.app, path);
+    const sheetActions = {
+      ...actions,
+      editCharacter: (file: TFile) => editCharacter(this.app, characterNotes, file),
+      chooseValue: (file: TFile, value: SheetValue, onClosed: () => void) =>
+        void chooseSheetValue(this.app, this.store, sheetNotes, file, value, actions.openRow, onClosed),
+    };
+    this.registerView(CHARACTER_SHEET_VIEW, (leaf) => new CharacterSheetView(leaf, this.store, sheetNotes, sheetActions));
+    const galleryActions = { ...actions, openRow: (source: Source) => openCharacter(source.path) };
     const newCharacter = (returnFocus: () => void) => openNewCharacter(this.app, this.store.campaignFolder, returnFocus);
     const basesOn = this.registerBasesView(CHARACTERS_VIEW, {
       name: "Characters",
       icon: "users",
-      factory: (controller, containerEl) => new CharactersView(controller, containerEl, this.store, characterNotes, actions, newCharacter),
+      factory: (controller, containerEl) => new CharactersView(controller, containerEl, this.store, characterNotes, galleryActions, newCharacter),
     });
     const showCharacters = () => void openCharacters(this.app, this.store.campaignFolder, basesOn);
     this.addRibbonIcon("users", "Open characters", showCharacters);
@@ -114,6 +128,7 @@ export default class DungeonsAndDinthla extends Plugin {
       showQuests: () => void openSideView(this.app, QUESTS_VIEW),
       showFunds: () => void openSideView(this.app, FUNDS_VIEW),
       showCharacters,
+      openCharacter,
       startSession: () => startSession(this.app, this.store.campaignFolder),
       sessionHeadingOf: (path: string) => sessionHeadingOf(path, this.app.metadataCache),
     };
