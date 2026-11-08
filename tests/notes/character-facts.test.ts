@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { factsOf, linkedFactsOf } from "../../src/characters/character-facts";
+import { factsOf, linkedFactsOf } from "../../src/notes/character-facts";
 
 describe("factsOf", () => {
   it("reads name and value pairs between commas", () => {

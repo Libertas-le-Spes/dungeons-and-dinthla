@@ -1,40 +1,57 @@
 import { describe, expect, it } from "vitest";
 import type { SessionNote } from "../../src/campaign/campaign";
-import { learnedFacts, modifierOf, overrideFacts, sheetValuesOf } from "../../src/characters/sheet-values";
+import { factsByCharacter, modifierOf, overrideFacts, sheetValuesOf } from "../../src/characters/sheet-values";
 
-function session(number: number, lines: string[]): SessionNote {
-  return { path: `Pale Moon/Sessions/Session ${number}.md`, number, firstLine: 0, text: lines.join("\n") };
+function session(number: number, lines: string[], firstLine = 0): SessionNote {
+  return { path: `Pale Moon/Sessions/Session ${number}.md`, number, firstLine, text: lines.join("\n") };
 }
 
-const isMira = (target: string) => target === "Mira";
+function pathOfLink(linktext: string): string | null {
+  if (linktext === "Nobody") return null;
+  return `Pale Moon/Characters/${linktext}.md`;
+}
 
-describe("learnedFacts", () => {
-  it("reads the character's fact lines in session order, whatever order the notes come in", () => {
+const MIRA = "Pale Moon/Characters/Mira.md";
+
+describe("factsByCharacter", () => {
+  it("reads each character's fact lines in session order, whatever order the notes come in, with where each was written", () => {
     const sessions = [session(2, ["[[Mira]] HP: 30"]), session(1, ["We meet [[Mira]].", "[[Mira]] HP: 20, AC: 15"])];
-    expect(learnedFacts(sessions, isMira)).toEqual([
-      { name: "HP", value: "20" },
-      { name: "AC", value: "15" },
-      { name: "HP", value: "30" },
+    expect(factsByCharacter(sessions, pathOfLink).get(MIRA)).toEqual([
+      { name: "HP", value: "20", source: { path: "Pale Moon/Sessions/Session 1.md", line: 1 } },
+      { name: "AC", value: "15", source: { path: "Pale Moon/Sessions/Session 1.md", line: 1 } },
+      { name: "HP", value: "30", source: { path: "Pale Moon/Sessions/Session 2.md", line: 0 } },
     ]);
   });
 
-  it("leaves out the fact lines of other characters", () => {
-    expect(learnedFacts([session(1, ["[[Vess]] AC: 12", "[[Mira]] AC: 15"])], isMira)).toEqual([{ name: "AC", value: "15" }]);
+  it("groups the facts by the note each link points to, leaving out links to no note", () => {
+    const facts = factsByCharacter([session(1, ["[[Vess]] AC: 12", "[[Mira]] AC: 15", "[[Nobody]] AC: 9", "[[Mira]] HP: 4"])], pathOfLink);
+    expect([...facts].map(([path, sourced]) => [path, sourced.map(({ value }) => value)])).toEqual([
+      ["Pale Moon/Characters/Vess.md", ["12"]],
+      [MIRA, ["15", "4"]],
+    ]);
   });
 
-  it("passes the session the line is in when matching the link", () => {
+  it("matches each link from the session it is in", () => {
     const paths: string[] = [];
-    learnedFacts([session(3, ["[[Mira]] AC: 15"])], (_target, sourcePath) => paths.push(sourcePath) > 0);
+    factsByCharacter([session(3, ["[[Mira]] AC: 15"])], (_linktext, sourcePath) => {
+      paths.push(sourcePath);
+      return null;
+    });
     expect(paths).toEqual(["Pale Moon/Sessions/Session 3.md"]);
+  });
+
+  it("skips a session's properties", () => {
+    const sessions = [session(1, ["---", "[[Mira]] AC: 9", "---", "[[Mira]] AC: 15"], 3)];
+    expect(factsByCharacter(sessions, pathOfLink).get(MIRA)!.map(({ value }) => value)).toEqual(["15"]);
   });
 });
 
 describe("overrideFacts", () => {
-  it("reads facts at the start of the character's own lines, after its properties", () => {
+  it("reads facts at the start of the character's own lines, after its properties, with their lines", () => {
     const note = ["---", "class: wizard", "---", "AC: 16", "- speed: 30 ft.", "She knows every ferry."].join("\n");
-    expect(overrideFacts(note)).toEqual([
-      { name: "AC", value: "16" },
-      { name: "speed", value: "30 ft." },
+    expect(overrideFacts(note, MIRA)).toEqual([
+      { name: "AC", value: "16", source: { path: MIRA, line: 3 } },
+      { name: "speed", value: "30 ft.", source: { path: MIRA, line: 4 } },
     ]);
   });
 });

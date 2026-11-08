@@ -8,16 +8,24 @@ import { obsidianDocument } from "../views/obsidian-dom";
 
 const FOLDER = "Pale Moon/Characters";
 
-function fileOf(name: string): TFile {
-  return { path: `${FOLDER}/${name}.md`, basename: name } as TFile;
+function fileOf(name: string, folder = FOLDER): TFile {
+  return { path: `${folder}/${name}.md`, basename: name } as TFile;
 }
 
-function sessionOf(number: number, lines: string[]): SessionNote {
-  return { path: `Pale Moon/Sessions/Session ${number}.md`, number, firstLine: 0, text: lines.join("\n") };
+function asFile(shown: string | TFile): TFile {
+  if (typeof shown === "string") return fileOf(shown);
+  return shown;
+}
+
+function sessionOf(number: number, lines: string[], campaign = "Pale Moon"): SessionNote {
+  return { path: `${campaign}/Sessions/Session ${number}.md`, number, firstLine: 0, text: lines.join("\n") };
 }
 
 interface Setup {
   sessions?: SessionNote[];
+  storeFolder?: string;
+  otherSessions?: SessionNote[];
+  linkPaths?: Record<string, string>;
   ownNotes?: Record<string, string>;
   own?: string | null;
   textOf?: CharacterNotes["textOf"];
@@ -31,20 +39,50 @@ function ownNoteReader(ownNotes: Record<string, string>): CharacterNotes["textOf
   };
 }
 
-function openGallery({ sessions = [], ownNotes = {}, own = null, textOf = ownNoteReader(ownNotes) }: Setup = {}) {
+function openGallery({
+  sessions = [],
+  storeFolder = "Pale Moon",
+  otherSessions = [],
+  linkPaths = {},
+  ownNotes = {},
+  own = null,
+  textOf = ownNoteReader(ownNotes),
+}: Setup = {}) {
   let listener = () => {};
+  let noteChanged: (path: string) => void = () => {};
   const unsubscribe = vi.fn();
+  const stopWatchingNotes = vi.fn();
   const store = {
+    campaignFolder: storeFolder,
     sessionNotes: sessions,
     subscribe: (next: () => void) => {
       listener = next;
       return unsubscribe;
     },
   };
+  const sessionsAskedFor: string[] = [];
+  const reads = { count: 0 };
+  const owner = { name: own };
   const notes: CharacterNotes = {
-    textOf,
-    pathOfLink: (linktext) => `${FOLDER}/${linktext}.md`,
-    isOwnCharacter: (file) => file.basename === own,
+    textOf: (file) => {
+      reads.count += 1;
+      return textOf(file);
+    },
+    pathOfLink: (linktext) => {
+      const path = linkPaths[linktext];
+      if (path !== undefined) return path;
+      return `${FOLDER}/${linktext}.md`;
+    },
+    isOwnCharacter: (file) => file.basename === owner.name,
+    campaignFolders: () => ["Ashen Road", "Pale Moon"],
+    sessionsOf: async (folder) => {
+      sessionsAskedFor.push(folder);
+      return otherSessions;
+    },
+    onNoteChanged: (changed) => {
+      noteChanged = changed;
+      return stopWatchingNotes;
+    },
   };
   const actions = { openRow: vi.fn(), openLink: vi.fn() };
   const container = obsidianDocument().createElement("div");
@@ -53,11 +91,11 @@ function openGallery({ sessions = [], ownNotes = {}, own = null, textOf = ownNot
   view.register = (callback) => {
     registered.push(callback);
   };
-  const update = (shown: string[]) => {
-    view.data = { data: shown.map((name) => ({ file: fileOf(name) })) } as unknown as BasesQueryResult;
+  const update = (shown: (string | TFile)[]) => {
+    view.data = { data: shown.map((shownFile) => ({ file: asFile(shownFile) })) } as unknown as BasesQueryResult;
     view.onDataUpdated();
   };
-  const show = async (shown: string[]) => {
+  const show = async (shown: (string | TFile)[]) => {
     update(shown);
     await vi.waitFor(() => expect(container.querySelector(".dd-title")).not.toBeNull());
   };
@@ -65,7 +103,21 @@ function openGallery({ sessions = [], ownNotes = {}, own = null, textOf = ownNot
   const unload = () => {
     for (const callback of registered) callback();
   };
-  return { container, store, actions, listener: () => listener(), update, show, unload, unsubscribe };
+  return {
+    container,
+    store,
+    actions,
+    owner,
+    reads,
+    sessionsAskedFor,
+    listener: () => listener(),
+    noteChanged: (path: string) => noteChanged(path),
+    update,
+    show,
+    unload,
+    unsubscribe,
+    stopWatchingNotes,
+  };
 }
 
 function textsOf(root: HTMLElement, selector: string): string[] {
@@ -152,10 +204,55 @@ describe("CharactersView", () => {
     expect(gallery.container.querySelectorAll(".dd-card")).toHaveLength(1);
   });
 
-  it("stops listening to the campaign when unloaded", () => {
+  it("stops listening to the campaign and the notes when unloaded", () => {
     const gallery = openGallery();
     gallery.unload();
     expect(gallery.unsubscribe).toHaveBeenCalledOnce();
+    expect(gallery.stopWatchingNotes).toHaveBeenCalledOnce();
+  });
+
+  it("reads a character's own campaign when the plugin follows another one", async () => {
+    const gallery = openGallery({
+      storeFolder: "Ashen Road",
+      sessions: [sessionOf(1, ["[[Mira]] AC: 99"], "Ashen Road")],
+      otherSessions: [sessionOf(1, ["[[Mira]] AC: 15"])],
+    });
+    await gallery.show(["Mira"]);
+    expect(textsOf(gallery.container, ".dd-card-line")[1]).toBe("Armor Class 15");
+    expect(gallery.sessionsAskedFor).toEqual(["Pale Moon"]);
+  });
+
+  it("reads each campaign's sessions once a drawing, however many cards it has", async () => {
+    const gallery = openGallery({ storeFolder: "Ashen Road", otherSessions: [sessionOf(1, ["[[Mira]] AC: 15", "[[Lady Vess]] AC: 12"])] });
+    await gallery.show(["Mira", "Lady Vess"]);
+    expect(textsOf(gallery.container, ".dd-card-line:nth-child(4)")).toEqual(["Armor Class 15", "Armor Class 12"]);
+    expect(gallery.sessionsAskedFor).toEqual(["Pale Moon"]);
+  });
+
+  it("learns nothing for a note outside any campaign", async () => {
+    const outside = fileOf("Mira", "Recipes");
+    const gallery = openGallery({ otherSessions: [sessionOf(1, ["[[Mira]] AC: 15"])], linkPaths: { Mira: outside.path } });
+    await gallery.show([outside]);
+    expect(textsOf(gallery.container, ".dd-card-line")[1]).toBe("Armor Class ?");
+    expect(gallery.sessionsAskedFor).toEqual([]);
+  });
+
+  it("draws again when the campaign note of a shown character changes, so a new own character shows", async () => {
+    const gallery = openGallery();
+    await gallery.show(["Mira", "Thessaly"]);
+    gallery.owner.name = "Thessaly";
+    gallery.noteChanged("Pale Moon/Pale Moon.md");
+    await vi.waitFor(() => expect(textsOf(gallery.container, ".dd-card-own .dd-card-name")).toEqual(["Thessaly"]));
+  });
+
+  it("doesn't draw again when some other note changes", async () => {
+    const gallery = openGallery();
+    await gallery.show(["Mira"]);
+    const reads = gallery.reads.count;
+    gallery.noteChanged("Ashen Road/Ashen Road.md");
+    gallery.noteChanged("Pale Moon/Sessions/Session 1.md");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(gallery.reads.count).toBe(reads);
   });
 
   it("keeps the newest drawing when an earlier one finishes reading last", async () => {

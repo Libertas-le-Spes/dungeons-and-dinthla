@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { App, TFile } from "obsidian";
 import { BASES_OFF, charactersBaseText, openCharacters } from "../../src/characters/open-characters";
-import { NO_CAMPAIGN } from "../../src/sessions/start-session";
+import { NO_CAMPAIGN } from "../../src/campaign/campaign-folders";
 import { Notice } from "../stubs/obsidian";
 
 function appWith(existing: string[], failCreate = false) {

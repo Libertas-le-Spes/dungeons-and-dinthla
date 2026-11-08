@@ -13,6 +13,7 @@ import type {
   Source,
 } from "./campaign";
 import { ItemBook } from "./item-book";
+import { forEachSessionLine } from "./session-lines";
 import { findSubject } from "./subject";
 
 type FollowUpSubject = "question" | "quest";
@@ -124,17 +125,8 @@ class CampaignBuilder {
   }
 }
 
-function bySessionNumber(first: SessionNote, second: SessionNote): number {
-  return first.number - second.number;
-}
-
 export function buildCampaign(sessions: SessionNote[]): Campaign {
   const builder = new CampaignBuilder();
-  for (const session of [...sessions].sort(bySessionNumber)) {
-    const lines = session.text.split("\n");
-    for (let lineNumber = session.firstLine; lineNumber < lines.length; lineNumber++) {
-      builder.addLine(lines[lineNumber]!, { path: session.path, line: lineNumber });
-    }
-  }
+  forEachSessionLine(sessions, (line, source) => builder.addLine(line, source));
   return builder.build();
 }

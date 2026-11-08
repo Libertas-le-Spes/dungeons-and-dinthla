@@ -1,11 +1,16 @@
-import type { SessionNote } from "../campaign/campaign";
+import type { SessionNote, Source } from "../campaign/campaign";
 import { firstLineAfterProperties } from "../campaign/session-file";
+import { forEachSessionLine } from "../campaign/session-lines";
 import { withoutBullet } from "../notes/bullet";
-import { factsOf, linkedFactsOf, type CharacterFact } from "./character-facts";
+import { factsOf, linkedFactsOf, type CharacterFact } from "../notes/character-facts";
 
 export const ABILITIES = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 
 const SHEET_NAMES = ["type", "subtitle", "speed", ...ABILITIES, "class", "AC", "HP", "alignment"];
+
+export interface SourcedFact extends CharacterFact {
+  source: Source;
+}
 
 export type SheetValues = Map<string, string>;
 
@@ -15,21 +20,33 @@ function sheetNameOf(name: string): string {
   return sheetName;
 }
 
-export function learnedFacts(sessions: SessionNote[], isCharacter: (target: string, sourcePath: string) => boolean): CharacterFact[] {
-  const facts: CharacterFact[] = [];
-  const inOrder = [...sessions].sort((first, second) => first.number - second.number);
-  for (const session of inOrder) {
-    for (const line of session.text.split("\n")) {
-      const linked = linkedFactsOf(line);
-      if (linked !== null && isCharacter(linked.target, session.path)) facts.push(...linked.facts);
+export function factsByCharacter(
+  sessions: SessionNote[],
+  pathOfLink: (linktext: string, sourcePath: string) => string | null,
+): Map<string, SourcedFact[]> {
+  const byCharacter = new Map<string, SourcedFact[]>();
+  forEachSessionLine(sessions, (line, source) => {
+    const linked = linkedFactsOf(line);
+    if (linked === null) return;
+    const path = pathOfLink(linked.target, source.path);
+    if (path === null) return;
+    let facts = byCharacter.get(path);
+    if (facts === undefined) {
+      facts = [];
+      byCharacter.set(path, facts);
     }
-  }
-  return facts;
+    facts.push(...linked.facts.map((fact) => ({ ...fact, source })));
+  });
+  return byCharacter;
 }
 
-export function overrideFacts(ownNote: string): CharacterFact[] {
-  const lines = ownNote.split("\n").slice(firstLineAfterProperties(ownNote));
-  return lines.flatMap((line) => factsOf(withoutBullet(line)));
+export function overrideFacts(ownNote: string, path: string): SourcedFact[] {
+  const lines = ownNote.split("\n");
+  const facts: SourcedFact[] = [];
+  for (let line = firstLineAfterProperties(ownNote); line < lines.length; line++) {
+    facts.push(...factsOf(withoutBullet(lines[line]!)).map((fact) => ({ ...fact, source: { path, line } })));
+  }
+  return facts;
 }
 
 export function sheetValuesOf(learned: CharacterFact[], overrides: CharacterFact[]): SheetValues {
