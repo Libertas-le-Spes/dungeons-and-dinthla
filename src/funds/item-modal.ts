@@ -4,7 +4,7 @@ import { PartlyWritten } from "../campaign/note-editor";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
 import { holderNameOf } from "./item-groups";
-import type { HolderOption, ItemEdit, ItemStatus } from "./item-plan";
+import { GONE_LINE_SAYS_MORE, type HolderOption, type ItemEdit, type ItemStatus } from "./item-plan";
 
 const STATUS_WORDS: Record<ItemStatus, string> = { held: "Held", sold: "Sold", used: "Used up", lost: "Lost" };
 
@@ -13,6 +13,7 @@ export class ItemModal extends Modal {
   private changed = false;
   private busy = false;
   private soldForRow: HTMLElement | null = null;
+  private openNoteButton: HTMLElement | null = null;
 
   constructor(
     app: App,
@@ -21,6 +22,7 @@ export class ItemModal extends Modal {
     private readonly holders: HolderOption[],
     private readonly writesTo: string,
     private readonly save: (edit: ItemEdit) => Promise<boolean>,
+    private readonly openNote: () => void,
     private readonly onClosed: (changed: boolean) => void,
   ) {
     super(app);
@@ -64,7 +66,12 @@ export class ItemModal extends Modal {
     contentEl.createEl("p", { cls: "dd-where", text: `New lines go into ${this.writesTo}.` });
     new Setting(contentEl)
       .addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.run()))
-      .addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));
+      .addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()))
+      .addButton((button) => {
+        button.setButtonText("Open note").onClick(() => this.openTheNote());
+        button.buttonEl.toggle(false);
+        this.openNoteButton = button.buttonEl;
+      });
   }
 
   override close(): void {
@@ -82,6 +89,11 @@ export class ItemModal extends Modal {
     this.soldForRow.toggle(this.edit.status === "sold");
   }
 
+  private openTheNote(): void {
+    this.close();
+    this.openNote();
+  }
+
   private run(): void {
     if (this.busy) return;
     this.busy = true;
@@ -94,6 +106,7 @@ export class ItemModal extends Modal {
       .catch((error: unknown) => {
         this.busy = false;
         new Notice(`Couldn't change the item: ${messageOf(error)}`);
+        if (messageOf(error) === GONE_LINE_SAYS_MORE && this.openNoteButton !== null) this.openNoteButton.toggle(true);
         if (!(error instanceof PartlyWritten)) return;
         this.changed = true;
         this.close();

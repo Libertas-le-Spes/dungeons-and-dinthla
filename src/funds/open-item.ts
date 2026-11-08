@@ -42,5 +42,5 @@ export function openItemDialog(app: App, store: CampaignStore, name: string, ope
     charactersIn(app, folder, sessionPath).map((character) => ({ text: `[[${character.linktext}]]`, label: character.name })),
   );
   const opened = initialItemEdit(item, store.current.coins);
-  new ItemModal(app, item, opened, holders, sessionLabelOf(sessionPath), itemSaver(app.vault, store, name, sessionPath), onClosed).open();
+  new ItemModal(app, item, opened, holders, sessionLabelOf(sessionPath), itemSaver(app.vault, store, name, sessionPath), openNote, onClosed).open();
 }
