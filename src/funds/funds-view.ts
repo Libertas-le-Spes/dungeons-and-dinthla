@@ -69,6 +69,7 @@ export class FundsView extends ItemView {
     private readonly store: CampaignStore,
     private readonly actions: LinkActions,
     private readonly noteExists: (name: string, sourcePath: string) => boolean,
+    private readonly addCoin: ((returnFocus: () => void) => void) | null,
   ) {
     super(leaf);
   }
@@ -161,8 +162,14 @@ export class FundsView extends ItemView {
 
   private renderLedger(lines: LedgerLine[]): void {
     this.ledger.empty();
-    const title = this.ledger.createEl("h2", { cls: "dd-title", text: "Ledger" });
+    const head = this.ledger.createDiv({ cls: "dd-head" });
+    const title = head.createEl("h2", { cls: "dd-title", text: "Ledger" });
     title.createSpan({ cls: "dd-count", text: entriesText(lines.length) });
+    const addCoin = this.addCoin;
+    if (addCoin !== null) {
+      const button = head.createEl("button", { cls: "dd-create", text: "Add coin" });
+      button.addEventListener("click", () => addCoin(() => button.focus()));
+    }
     const list = this.ledger.createEl("ul", { cls: "dd-ledger" });
     if (lines.length === 0) list.createEl("li", { cls: "dd-empty", text: "No coin entries yet." });
     for (const line of lines) this.addLedgerRow(list, line);
