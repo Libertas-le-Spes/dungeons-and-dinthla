@@ -171,6 +171,33 @@ describe("refusing a quest change that would change another quest", () => {
   });
 });
 
+describe("refusing changes that swap same-titled quests in one note", () => {
+  it("refuses reopening a quest that would take a later same-titled quest's progress in the same note", async () => {
+    const notes = new FakeNotes({ [ONE]: "! X, reward: 5 gp\n!= X: done\n! X, reward: 100 gp\n!+ X: a\n" });
+    await expect(notes.save(0, { status: "active" }, ONE)).rejects.toThrow(CHANGES_ANOTHER_QUEST);
+  });
+
+  it("refuses reopening a quest that would take a later same-titled quest's outcome in the same note", async () => {
+    const notes = new FakeNotes({ [ONE]: "! X, reward: 5 gp\n!= X: done\n! X, reward: 100 gp\n!x X: lost\n" });
+    await expect(notes.save(0, { status: "active" }, ONE)).rejects.toThrow(CHANGES_ANOTHER_QUEST);
+  });
+
+  it("lets one of two identical finished quests change on its own", async () => {
+    const notes = new FakeNotes({ [ONE]: "! X\n!= X: done\n! X\n!= X: done\n" });
+    await notes.save(1, { status: "failed", happened: "done" }, ONE);
+    expect(notes.campaign().quests.map((record) => record.outcome?.status)).toEqual(["completed", "failed"]);
+  });
+
+  it("refuses a plan that would move the purse by more than the reward", () => {
+    const notes = new FakeNotes({ [ONE]: "! Find it\n" });
+    const campaign = notes.campaign();
+    const plan = planQuestSave(campaign.quests[0]!, edit({ happened: "tracks" }), campaign.coins, ONE);
+    expect(refusalForQuestPlan(notes.sessions(), campaign.quests[0]!, { ...plan, added: [...plan.added, "$ 5 gp found"] })).toBe(
+      CHANGES_ANOTHER_QUEST,
+    );
+  });
+});
+
 describe("deleting a quest", () => {
   it("removes it with its progress and outcome, wherever they were written", async () => {
     const notes = new FakeNotes({ [ONE]: "! Find it, from: [[Lady Vess]]\n!+ Find it: tracks\n! Keep this\n", [TWO]: "!= Find it: done\n" });

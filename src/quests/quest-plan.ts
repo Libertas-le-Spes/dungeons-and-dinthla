@@ -33,7 +33,7 @@ export interface QuestPlan {
 }
 
 export const CHANGES_ANOTHER_QUEST =
-  "That change would also be read as changing another quest, or the purse by more than the reward, so nothing was written.";
+  "That change would be read as changing more than asked, another quest or the purse beyond the reward, so nothing was written.";
 
 function outcomeKey(status: QuestStatus, text: string): string {
   return `${status}:${oneLine(text)}`;
@@ -54,7 +54,7 @@ export function canCollectReward(record: QuestRecord, coins: CoinRecord[]): bool
   return !collected;
 }
 
-function outcomeRemoval(record: QuestRecord): Removal | null {
+export function outcomeRemoval(record: QuestRecord): Removal | null {
   const outcome = record.outcome;
   if (outcome === null) return null;
   return {
@@ -137,11 +137,12 @@ export function refusalForQuestPlan(sessions: SessionNote[], record: QuestRecord
   const before = buildCampaign(sessions);
   const after = buildCampaign(applyPlan(sessions, plan));
   const wanted = before.quests.map((quest) => {
-    if (signatureOf(quest) === signatureOf(record)) return expectedSignature(record, plan.expected);
+    const isOpened = quest.source.path === record.source.path && quest.source.line === record.source.line;
+    if (isOpened) return expectedSignature(record, plan.expected);
     return signatureOf(quest);
   });
   const found = questsBesidesFollowUp(after, plan).map(signatureOf);
-  const questsMatch = JSON.stringify([...wanted].sort()) === JSON.stringify([...found].sort());
+  const questsMatch = JSON.stringify(wanted) === JSON.stringify(found);
   const purseMatches = after.purseCopper - before.purseCopper === plan.rewardCopper;
   if (questsMatch && purseMatches) return null;
   return CHANGES_ANOTHER_QUEST;

@@ -24,6 +24,14 @@ describe("currentQuest", () => {
   });
 });
 
+describe("currentQuest's facts", () => {
+  it("refuses when the quest's reward or giver was changed by hand meanwhile", () => {
+    const [opened] = questsOf(["! Find it, from: [[Lady Vess]], reward: 5 gp"]);
+    expect(() => currentQuest(questsOf(["! Find it, from: [[Lady Vess]], reward: 50 gp"]), opened!)).toThrow(CHANGED_IN_NOTE);
+    expect(() => currentQuest(questsOf(["! Find it, from: [[Mira]], reward: 5 gp"]), opened!)).toThrow(CHANGED_IN_NOTE);
+  });
+});
+
 describe("sharesTitleWithEarlierActiveQuest", () => {
   it("sees an earlier active quest with the same title, and ignores a finished one", () => {
     const twice = questsOf(["! Find it", "! Find it"]);
