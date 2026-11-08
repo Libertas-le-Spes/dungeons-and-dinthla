@@ -42,12 +42,12 @@ function readRules(file: string): Rule[] {
 
 function applies(selector: string, { dark, follow }: ThemeContext): boolean {
   const known: Record<string, boolean> = {
-    ".dd-root": true,
-    ".theme-dark .dd-root": dark,
-    "body:not(.dd-follow-theme) .dd-root": !follow,
-    "body.dd-follow-theme.theme-dark .dd-root": follow && dark,
-    "body.dd-follow-theme.theme-light .dd-root": follow && !dark,
-    "body.dd-follow-theme .dd-root": follow,
+    ".dd-tokens": true,
+    ".theme-dark .dd-tokens": dark,
+    "body:not(.dd-follow-theme) .dd-tokens": !follow,
+    "body.dd-follow-theme.theme-dark .dd-tokens": follow && dark,
+    "body.dd-follow-theme.theme-light .dd-tokens": follow && !dark,
+    "body.dd-follow-theme .dd-tokens": follow,
   };
   const applied = known[selector];
   if (applied === undefined) throw new Error(`The contrast test doesn't know the selector ${selector}`);
@@ -57,7 +57,7 @@ function applies(selector: string, { dark, follow }: ThemeContext): boolean {
 function tokenRulesInCascadeOrder(): Rule[] {
   const rules = importedFiles()
     .flatMap(readRules)
-    .filter((rule) => rule.declarations.size > 0 && rule.selector.includes(".dd-root"));
+    .filter((rule) => rule.declarations.size > 0 && rule.selector.includes(".dd-tokens"));
   return rules.sort((first, second) => specificityOf(first.selector) - specificityOf(second.selector));
 }
 

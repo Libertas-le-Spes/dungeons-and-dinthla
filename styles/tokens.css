@@ -1,4 +1,4 @@
-.dd-root {
+.dd-tokens {
   --vellum-50: #fbf8f2;
   --vellum-100: #f5efe3;
   --vellum-200: #ece3d0;
@@ -151,16 +151,13 @@
   --type-label: var(--weight-medium) var(--text-xs) / var(--leading-snug) var(--font-ui);
   --type-score: var(--weight-bold) var(--text-2xl) / 1 var(--font-display);
   --type-note: var(--weight-regular) var(--text-sm) / var(--leading-body) var(--font-mono);
-
-  background: var(--surface-page);
-  color: var(--text-body);
 }
 
-body:not(.dd-follow-theme) .dd-root {
+body:not(.dd-follow-theme) .dd-tokens {
   --text-on-accent: #fff8f2;
 }
 
-.theme-dark .dd-root {
+.theme-dark .dd-tokens {
   --surface-page: #1c1815;
   --surface-sunken: #15120f;
   --surface-card: #25201b;

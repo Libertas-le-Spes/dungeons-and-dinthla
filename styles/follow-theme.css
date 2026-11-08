@@ -1,18 +1,18 @@
-body.dd-follow-theme.theme-dark .dd-root {
+body.dd-follow-theme.theme-dark .dd-tokens {
   --dd-danger-mix: 56%;
   --dd-hue-mix: 78%;
   --dd-hue-toward: white;
   --dd-soft-mix: 8%;
 }
 
-body.dd-follow-theme.theme-light .dd-root {
+body.dd-follow-theme.theme-light .dd-tokens {
   --dd-danger-mix: 68%;
   --dd-hue-mix: 68%;
   --dd-hue-toward: black;
   --dd-soft-mix: 8%;
 }
 
-body.dd-follow-theme .dd-root {
+body.dd-follow-theme .dd-tokens {
   --surface-page: var(--background-primary);
   --surface-sunken: var(--background-secondary);
   --surface-card: var(--background-primary-alt);
