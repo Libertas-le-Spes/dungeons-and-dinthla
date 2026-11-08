@@ -30,8 +30,9 @@ import { openItemDialog } from "./funds/open-item";
 import { CampaignListView } from "./views/list-view";
 import { openSideView, openSource } from "./views/open-view";
 import { colourMarkers } from "./reading/colour-markers";
-import { showBackground, shownBackgroundOf } from "./reading/note-background";
+import { BackgroundRefresh, showBackground, shownBackgroundOf } from "./reading/note-background";
 import { CampaignSettingTab } from "./settings/campaign-setting-tab";
+import { ChosenCampaign } from "./settings/chosen-campaign";
 import { settingsOf, type PluginSettings } from "./settings/plugin-settings";
 import { startSession } from "./sessions/start-session";
 import { usesCommunityTheme } from "./theme/community-theme";
@@ -41,14 +42,14 @@ const TYPING_PAUSE_MS = 250;
 
 export default class DungeonsAndDinthla extends Plugin {
   private readonly store = new CampaignStore(this.app.vault);
-  private settings: PluginSettings = settingsOf(null);
+  private chosen = this.chosenCampaignFrom(settingsOf(null));
 
   override async onload(): Promise<void> {
-    this.settings = settingsOf(await this.loadData());
+    this.chosen = this.chosenCampaignFrom(settingsOf(await this.loadData()));
     this.addSettingTab(new CampaignSettingTab(this.app, this, {
       folders: () => this.campaignFolders(),
-      shown: () => chosenCampaignFolder(this.store.campaignFolder, this.campaignFolders()),
-      choose: (folder) => this.chooseCampaign(folder),
+      chosen: () => chosenCampaignFolder(this.chosen.folder, this.campaignFolders()),
+      choose: (folder) => this.chosen.choose(folder),
     }));
     const actions = {
       openRow: (source: Source) => void openSource(this.app, source),
@@ -116,22 +117,22 @@ export default class DungeonsAndDinthla extends Plugin {
     this.app.workspace.onLayoutReady(() => this.watchBackgrounds());
   }
 
-  private async chooseCampaign(folder: string): Promise<void> {
-    this.settings.campaignFolder = folder;
-    await this.saveData(this.settings);
-    await this.store.open(folder);
+  private chosenCampaignFrom(settings: PluginSettings): ChosenCampaign {
+    return new ChosenCampaign(settings, (changed) => this.saveData(changed), (folder) => this.store.open(folder));
   }
 
   private watchBackgrounds(): void {
-    const show = () => this.showBackgrounds();
-    this.registerEvent(this.app.workspace.on("layout-change", show));
-    this.registerEvent(this.app.workspace.on("file-open", show));
-    this.registerEvent(this.app.metadataCache.on("changed", show));
-    this.registerEvent(this.app.vault.on("create", show));
-    this.registerEvent(this.app.vault.on("rename", show));
-    this.registerEvent(this.app.vault.on("delete", show));
+    const refresh = new BackgroundRefresh(() => this.showBackgrounds());
+    const layoutChanged = () => refresh.layoutChanged();
+    this.registerEvent(this.app.workspace.on("layout-change", layoutChanged));
+    this.registerEvent(this.app.workspace.on("file-open", layoutChanged));
+    this.registerEvent(this.app.metadataCache.on("changed", (file) => refresh.noteChanged(file.path)));
+    this.registerEvent(this.app.vault.on("create", layoutChanged));
+    this.registerEvent(this.app.vault.on("rename", layoutChanged));
+    this.registerEvent(this.app.vault.on("delete", layoutChanged));
+    this.register(() => refresh.cancel());
     this.register(() => this.eachNoteView((view) => showBackground(view.contentEl, null)));
-    show();
+    this.showBackgrounds();
   }
 
   private showBackgrounds(): void {
@@ -164,7 +165,7 @@ export default class DungeonsAndDinthla extends Plugin {
   private async watchCampaign(): Promise<void> {
     this.watchNotes();
     const folder = this.startingCampaignFolder();
-    if (folder !== null) await this.store.open(folder);
+    if (folder !== null) await this.chosen.choose(folder);
   }
 
   private watchNotes(): void {
@@ -176,6 +177,9 @@ export default class DungeonsAndDinthla extends Plugin {
     this.registerEvent(this.app.metadataCache.on("changed", (file, text) => this.store.noteChanged(file.path, text)));
     this.registerEvent(this.app.vault.on("delete", (file) => this.store.noteDeleted(file.path)));
     this.registerEvent(this.app.vault.on("rename", (file, oldPath) => void this.store.noteRenamed(file.path, oldPath)));
+    this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
+      this.chosen.renamed(file.path, oldPath).catch((error: unknown) => new Notice(`Couldn't keep the chosen campaign: ${messageOf(error)}`));
+    }));
     this.registerEvent(this.app.workspace.on("file-open", (file) => void this.followCampaignOf(file)));
   }
 
@@ -198,13 +202,13 @@ export default class DungeonsAndDinthla extends Plugin {
     const activeFile = this.app.workspace.getActiveFile();
     let activePath: string | null = null;
     if (activeFile !== null) activePath = activeFile.path;
-    return startingCampaignFolder(activePath, this.settings.campaignFolder, this.campaignFolders());
+    return startingCampaignFolder(activePath, this.chosen.folder, this.campaignFolders());
   }
 
   private async followCampaignOf(file: TFile | null): Promise<void> {
     if (file === null) return;
     const folder = campaignFolderOf(file.path, this.campaignFolders());
     if (folder === null || folder === this.store.campaignFolder) return;
-    await this.store.open(folder);
+    await this.chosen.choose(folder);
   }
 }

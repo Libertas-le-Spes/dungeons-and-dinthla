@@ -49,13 +49,13 @@ export function backgroundOf(campaignFolder: string, metadata: BackgroundMetadat
   return { picture: pictureOf(cache, mainNote, metadata), wash: washIn(cache) };
 }
 
-export async function chooseBackground(fileManager: BackgroundFileManager, mainNote: TFile, linktext: string): Promise<void> {
+export async function choosePicture(fileManager: BackgroundFileManager, mainNote: TFile, linktext: string): Promise<void> {
   await fileManager.processFrontMatter(mainNote, (properties: Record<string, unknown>) => {
     properties.background = `[[${linktext}]]`;
   });
 }
 
-export async function removeBackground(fileManager: BackgroundFileManager, mainNote: TFile): Promise<void> {
+export async function removePicture(fileManager: BackgroundFileManager, mainNote: TFile): Promise<void> {
   await fileManager.processFrontMatter(mainNote, (properties: Record<string, unknown>) => {
     delete properties.background;
   });

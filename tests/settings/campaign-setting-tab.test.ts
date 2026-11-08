@@ -6,6 +6,7 @@ import { Notice, openedSuggestModals } from "../stubs/obsidian";
 import { obsidianDocument } from "../views/obsidian-dom";
 
 const PALE_MOON = "Pale Moon/Pale Moon.md";
+const ASHEN_ROAD = "Ashen Road/Ashen Road.md";
 
 function fileAt(path: string): TFile {
   const name = path.slice(path.lastIndexOf("/") + 1);
@@ -13,11 +14,15 @@ function fileAt(path: string): TFile {
 }
 
 class FakeApp {
-  readonly files = [PALE_MOON, "Ashen Road/Ashen Road.md", "Art/pale-moon.jpg", "Art/map.png", "Art/notes.md"];
-  properties: Record<string, unknown> = {};
+  readonly files = [PALE_MOON, ASHEN_ROAD, "Art/pale-moon.jpg", "Art/map.png", "Art/notes.md"];
+  readonly properties = new Map<string, Record<string, unknown>>([
+    [PALE_MOON, {}],
+    [ASHEN_ROAD, {}],
+  ]);
   failWrites = false;
   readonly written: string[] = [];
-  private readonly listeners = new Map<EventRef, (file: TFile) => void>();
+  readonly registered: EventRef[] = [];
+  private readonly listeners: ((file: TFile) => void)[] = [];
 
   get app(): App {
     return {
@@ -29,10 +34,7 @@ class FakeApp {
         getFiles: () => this.files.map(fileAt),
       },
       metadataCache: {
-        getCache: (path: string) => {
-          if (path !== PALE_MOON) return null;
-          return this.cache();
-        },
+        getCache: (path: string) => this.cacheOf(path),
         getFirstLinkpathDest: (linkpath: string) => {
           const path = this.files.find((file) => file.endsWith(linkpath));
           if (path === undefined) return null;
@@ -40,35 +42,39 @@ class FakeApp {
         },
         fileToLinktext: (file: TFile) => file.name,
         on: (_name: string, callback: (file: TFile) => void) => {
-          const ref = {} as EventRef;
-          this.listeners.set(ref, callback);
-          return ref;
-        },
-        offref: (ref: EventRef) => {
-          if (!this.listeners.delete(ref)) throw new Error("Nothing is watching with that ref.");
+          this.listeners.push(callback);
+          return {} as EventRef;
         },
       },
       fileManager: {
         processFrontMatter: async (file: TFile, change: (properties: Record<string, unknown>) => void) => {
           if (this.failWrites) throw new Error("The note is locked.");
-          change(this.properties);
+          change(this.propertiesOf(file.path));
           this.written.push(file.path);
         },
       },
     } as unknown as App;
   }
 
+  get plugin(): Plugin {
+    return { registerEvent: (ref: EventRef) => this.registered.push(ref) } as unknown as Plugin;
+  }
+
+  propertiesOf(path: string): Record<string, unknown> {
+    const properties = this.properties.get(path);
+    if (properties === undefined) throw new Error(`No note at ${path}`);
+    return properties;
+  }
+
   noteChanged(path: string): void {
-    for (const listener of [...this.listeners.values()]) listener(fileAt(path));
+    for (const listener of this.listeners) listener(fileAt(path));
   }
 
-  get watchers(): number {
-    return this.listeners.size;
-  }
-
-  private cache(): CachedMetadata {
-    const cache: CachedMetadata = { frontmatter: { ...this.properties } };
-    const background = this.properties.background;
+  private cacheOf(path: string): CachedMetadata | null {
+    const properties = this.properties.get(path);
+    if (properties === undefined) return null;
+    const cache: CachedMetadata = { frontmatter: { ...properties } };
+    const background = properties.background;
     if (typeof background === "string") {
       const link = background.slice(2, -2);
       cache.frontmatterLinks = [{ key: "background", link, original: background }];
@@ -78,27 +84,27 @@ class FakeApp {
 }
 
 class FakeCampaigns implements CampaignChoice {
-  readonly chosen: string[] = [];
+  readonly choices: string[] = [];
 
-  constructor(private shownFolder: string | null) {}
+  constructor(private chosenFolder: string | null) {}
 
   folders(): string[] {
-    if (this.shownFolder === null) return [];
+    if (this.chosenFolder === null) return [];
     return ["Ashen Road", "Pale Moon"];
   }
 
-  shown(): string | null {
-    return this.shownFolder;
+  chosen(): string | null {
+    return this.chosenFolder;
   }
 
   async choose(folder: string): Promise<void> {
-    this.chosen.push(folder);
-    this.shownFolder = folder;
+    this.choices.push(folder);
+    this.chosenFolder = folder;
   }
 }
 
 function tabFor(fake: FakeApp, campaigns: CampaignChoice): CampaignSettingTab {
-  const tab = new CampaignSettingTab(fake.app, {} as Plugin, campaigns);
+  const tab = new CampaignSettingTab(fake.app, fake.plugin, campaigns);
   tab.containerEl = obsidianDocument().body.createDiv();
   tab.display();
   return tab;
@@ -120,10 +126,18 @@ function rowNamed(tab: CampaignSettingTab, name: string): HTMLElement {
   return row;
 }
 
+function pictureText(tab: CampaignSettingTab): string {
+  return rowNamed(tab, "Background picture").querySelector(".setting-item-description")!.textContent;
+}
+
 function buttonIn(row: HTMLElement, text: string): HTMLButtonElement {
   const button = [...row.querySelectorAll("button")].find((each) => each.textContent === text);
   if (button === undefined) throw new Error(`No button ${text}`);
   return button;
+}
+
+function selectIn(tab: CampaignSettingTab, name: string): HTMLSelectElement {
+  return rowNamed(tab, name).querySelector("select")!;
 }
 
 function pick(select: HTMLSelectElement, value: string): void {
@@ -145,38 +159,36 @@ describe("CampaignSettingTab", () => {
     expect(tab.containerEl.textContent).toBe("Make a campaign first: a top-level folder with a main note of the same name.");
   });
 
-  it("shows the campaign's folder, its background picture and how much of it shows", () => {
-    fake.properties = { background: "[[pale-moon.jpg]]", wash: "strong" };
+  it("shows the chosen campaign, its background picture and how much of it shows", () => {
+    fake.properties.set(PALE_MOON, { background: "[[pale-moon.jpg]]", wash: "strong" });
     const tab = tabFor(fake, new FakeCampaigns("Pale Moon"));
     expect(rows(tab)).toEqual(["Campaign", "Background picture", "How much of the picture shows"]);
-    expect(rowNamed(tab, "Campaign").querySelector("select")!.value).toBe("Pale Moon");
-    expect(rowNamed(tab, "Background picture").querySelector(".setting-item-description")!.textContent).toBe("Art/pale-moon.jpg");
+    expect(selectIn(tab, "Campaign").value).toBe("Pale Moon");
+    expect(pictureText(tab)).toBe("Art/pale-moon.jpg");
+    expect(buttonIn(rowNamed(tab, "Background picture"), "Change picture")).toBeDefined();
     expect(buttonIn(rowNamed(tab, "Background picture"), "Remove picture").disabled).toBe(false);
-    expect(rowNamed(tab, "How much of the picture shows").querySelector("select")!.value).toBe("strong");
+    expect(selectIn(tab, "How much of the picture shows").value).toBe("strong");
   });
 
   it("offers to choose a picture, and has none to remove, before one is set", () => {
     const tab = tabFor(fake, new FakeCampaigns("Pale Moon"));
-    const row = rowNamed(tab, "Background picture");
-    expect(row.querySelector(".setting-item-description")!.textContent).toBe("None yet.");
-    expect(buttonIn(row, "Choose a picture")).toBeDefined();
-    expect(buttonIn(row, "Remove picture").disabled).toBe(true);
-    expect(rowNamed(tab, "How much of the picture shows").querySelector("select")!.value).toBe("balanced");
+    expect(pictureText(tab)).toBe("None yet.");
+    expect(buttonIn(rowNamed(tab, "Background picture"), "Choose a picture")).toBeDefined();
+    expect(buttonIn(rowNamed(tab, "Background picture"), "Remove picture").disabled).toBe(true);
+    expect(selectIn(tab, "How much of the picture shows").value).toBe("balanced");
   });
 
-  it("opens the chosen campaign, remembers it and shows its settings", async () => {
+  it("chooses another campaign and shows its picture in the same rows", async () => {
+    fake.properties.set(ASHEN_ROAD, { background: "[[map.png]]", wash: "subtle" });
     const campaigns = new FakeCampaigns("Pale Moon");
     const tab = tabFor(fake, campaigns);
-    pick(rowNamed(tab, "Campaign").querySelector("select")!, "Ashen Road");
+    const washSelect = selectIn(tab, "How much of the picture shows");
+    pick(selectIn(tab, "Campaign"), "Ashen Road");
     await settled();
-    expect(campaigns.chosen).toEqual(["Ashen Road"]);
-    expect(rowNamed(tab, "Campaign").querySelector("select")!.value).toBe("Ashen Road");
-  });
-
-  it("shows only the campaign when its main note has gone missing", () => {
-    const tab = tabFor(fake, new FakeCampaigns("Lost Mines"));
-    expect(rows(tab)).toEqual(["Campaign"]);
-    expect(fake.watchers).toBe(0);
+    expect(campaigns.choices).toEqual(["Ashen Road"]);
+    expect(pictureText(tab)).toBe("Art/map.png");
+    expect(selectIn(tab, "How much of the picture shows")).toBe(washSelect);
+    expect(washSelect.value).toBe("subtle");
   });
 
   it("offers only the vault's pictures, and links the one chosen in the main note", async () => {
@@ -186,56 +198,78 @@ describe("CampaignSettingTab", () => {
     expect(modal.getItems().map((picture) => picture.path)).toEqual(["Art/pale-moon.jpg", "Art/map.png"]);
     modal.onChooseItem(fileAt("Art/map.png"));
     await settled();
-    expect(fake.properties).toEqual({ background: "[[map.png]]" });
+    expect(fake.propertiesOf(PALE_MOON)).toEqual({ background: "[[map.png]]" });
     expect(fake.written).toEqual([PALE_MOON]);
   });
 
+  it("writes to the campaign chosen since the page opened", async () => {
+    const tab = tabFor(fake, new FakeCampaigns("Pale Moon"));
+    pick(selectIn(tab, "Campaign"), "Ashen Road");
+    await settled();
+    pick(selectIn(tab, "How much of the picture shows"), "strong");
+    await settled();
+    expect(fake.written).toEqual([ASHEN_ROAD]);
+  });
+
   it("removes the picture from the main note", async () => {
-    fake.properties = { background: "[[pale-moon.jpg]]", wash: "subtle" };
+    fake.properties.set(PALE_MOON, { background: "[[pale-moon.jpg]]", wash: "subtle" });
     const tab = tabFor(fake, new FakeCampaigns("Pale Moon"));
     buttonIn(rowNamed(tab, "Background picture"), "Remove picture").click();
     await settled();
-    expect(fake.properties).toEqual({ wash: "subtle" });
+    expect(fake.propertiesOf(PALE_MOON)).toEqual({ wash: "subtle" });
   });
 
   it("writes how much of the picture shows to the main note", async () => {
     const tab = tabFor(fake, new FakeCampaigns("Pale Moon"));
-    pick(rowNamed(tab, "How much of the picture shows").querySelector("select")!, "subtle");
+    pick(selectIn(tab, "How much of the picture shows"), "subtle");
     await settled();
-    expect(fake.properties).toEqual({ wash: "subtle" });
+    expect(fake.propertiesOf(PALE_MOON)).toEqual({ wash: "subtle" });
   });
 
   it("says so when the main note can't be written", async () => {
     fake.failWrites = true;
     const tab = tabFor(fake, new FakeCampaigns("Pale Moon"));
-    pick(rowNamed(tab, "How much of the picture shows").querySelector("select")!, "strong");
+    pick(selectIn(tab, "How much of the picture shows"), "strong");
     await settled();
     expect(Notice.shown).toEqual(["Couldn't save the campaign: The note is locked."]);
   });
 
-  it("shows the main note's new properties once Obsidian has read them", () => {
+  it("says so, and writes nothing, when the main note has gone", async () => {
     const tab = tabFor(fake, new FakeCampaigns("Pale Moon"));
-    fake.properties = { background: "[[pale-moon.jpg]]" };
+    fake.files.splice(fake.files.indexOf(PALE_MOON), 1);
+    pick(selectIn(tab, "How much of the picture shows"), "strong");
+    await settled();
+    expect(Notice.shown).toEqual(["Couldn't save the campaign: Pale Moon/Pale Moon.md is missing."]);
+    expect(fake.written).toEqual([]);
+  });
+
+  it("updates the rows in place once Obsidian has read the main note", () => {
+    const tab = tabFor(fake, new FakeCampaigns("Pale Moon"));
+    const washSelect = selectIn(tab, "How much of the picture shows");
+    fake.properties.set(PALE_MOON, { background: "[[pale-moon.jpg]]", wash: "strong" });
     fake.noteChanged(PALE_MOON);
-    expect(rowNamed(tab, "Background picture").querySelector(".setting-item-description")!.textContent).toBe("Art/pale-moon.jpg");
-    expect(fake.watchers).toBe(1);
+    expect(pictureText(tab)).toBe("Art/pale-moon.jpg");
+    expect(selectIn(tab, "How much of the picture shows")).toBe(washSelect);
+    expect(washSelect.value).toBe("strong");
   });
 
   it("stays as it is when another note changes", () => {
     const tab = tabFor(fake, new FakeCampaigns("Pale Moon"));
-    const before = rowNamed(tab, "Background picture");
-    fake.noteChanged("Ashen Road/Ashen Road.md");
-    expect(rowNamed(tab, "Background picture")).toBe(before);
+    fake.properties.set(PALE_MOON, { background: "[[pale-moon.jpg]]" });
+    fake.noteChanged(ASHEN_ROAD);
+    expect(pictureText(tab)).toBe("None yet.");
   });
 
-  it("stops watching the main note once the settings close", () => {
+  it("stays as it is once the settings close", () => {
     const tab = tabFor(fake, new FakeCampaigns("Pale Moon"));
     tab.hide();
-    expect(fake.watchers).toBe(0);
+    fake.properties.set(PALE_MOON, { background: "[[pale-moon.jpg]]" });
+    fake.noteChanged(PALE_MOON);
+    expect(pictureText(tab)).toBe("None yet.");
   });
 
-  it("closes without trouble when it was never watching", () => {
-    const tab = tabFor(fake, new FakeCampaigns(null));
-    expect(() => tab.hide()).not.toThrow();
+  it("listens to Obsidian through the plugin, so it stops when the plugin unloads", () => {
+    tabFor(fake, new FakeCampaigns("Pale Moon"));
+    expect(fake.registered).toHaveLength(1);
   });
 });

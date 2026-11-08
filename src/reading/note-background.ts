@@ -1,7 +1,8 @@
-import type { TFile } from "obsidian";
+import { debounce, type Debouncer, type TFile } from "obsidian";
 import { backgroundOf, type BackgroundMetadata, type Wash } from "../campaign/campaign-background";
-import { campaignFolderOf } from "../campaign/campaign-folders";
+import { campaignFolderOf, isMainNote } from "../campaign/campaign-folders";
 
+const SETTLE_MS = 200;
 const LAYER_CLASS = "dd-campaign-background";
 const HOLDER_CLASS = "dd-has-campaign-background";
 
@@ -41,4 +42,24 @@ export function showBackground(contentEl: HTMLElement, shown: ShownBackground | 
   layer.className = `dd-tokens ${LAYER_CLASS} dd-wash-${shown.wash}`;
   layer.setCssProps({ "--dd-campaign-picture": `url("${shown.url}")` });
   contentEl.addClass(HOLDER_CLASS);
+}
+
+export class BackgroundRefresh {
+  private readonly soon: Debouncer<[], void>;
+
+  constructor(refresh: () => void) {
+    this.soon = debounce(refresh, SETTLE_MS, true);
+  }
+
+  noteChanged(path: string): void {
+    if (isMainNote(path)) this.soon();
+  }
+
+  layoutChanged(): void {
+    this.soon();
+  }
+
+  cancel(): void {
+    this.soon.cancel();
+  }
 }

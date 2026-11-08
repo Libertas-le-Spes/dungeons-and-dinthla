@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import type { CachedMetadata, TFile } from "obsidian";
 import {
   backgroundOf,
-  chooseBackground,
+  choosePicture,
   chooseWash,
-  removeBackground,
+  removePicture,
   washOf,
   type BackgroundFileManager,
   type BackgroundMetadata,
@@ -103,13 +103,13 @@ describe("writing the background", () => {
 
   it("links the chosen picture in the background property", async () => {
     const properties: Record<string, unknown> = { role: "player" };
-    await chooseBackground(fileManagerWith(properties), mainNote, "pale-moon.jpg");
+    await choosePicture(fileManagerWith(properties), mainNote, "pale-moon.jpg");
     expect(properties).toEqual({ role: "player", background: "[[pale-moon.jpg]]" });
   });
 
   it("removes the background property and nothing else", async () => {
     const properties: Record<string, unknown> = { role: "player", background: "[[pale-moon.jpg]]", wash: "strong" };
-    await removeBackground(fileManagerWith(properties), mainNote);
+    await removePicture(fileManagerWith(properties), mainNote);
     expect(properties).toEqual({ role: "player", wash: "strong" });
   });
 
