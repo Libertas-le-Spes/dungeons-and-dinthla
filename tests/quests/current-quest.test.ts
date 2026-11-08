@@ -11,6 +11,12 @@ function questsOf(...sessions: string[][]): QuestRecord[] {
 }
 
 describe("currentQuest", () => {
+  it("refuses a twin that slid onto the opened quest's line without its progress", () => {
+    const opened = questsOf(["Intro", "! Find", "! Find"], ["!+ Find: tracks"])[0]!;
+    expect(opened.progress).toHaveLength(1);
+    expect(() => currentQuest(questsOf(["! Find", "! Find"], ["!+ Find: tracks"]), opened)).toThrow(CHANGED_IN_NOTE);
+  });
+
   it("finds the quest the dialog opened, as it is now", () => {
     const [opened] = questsOf(["! Find it"]);
     expect(currentQuest(questsOf(["! Find it", "!+ Find it: tracks"]), opened!).quest.title).toBe("Find it");

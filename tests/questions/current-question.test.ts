@@ -17,6 +17,16 @@ function questionsOf(lines: string[], path = "Pale Moon/Sessions/Session 4.md"):
 }
 
 describe("currentQuestion", () => {
+  it("refuses a twin that slid onto the opened question's line without its clues", () => {
+    const sessions = (first: string) => [
+      { path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: first },
+      { path: "Pale Moon/Sessions/Session 2.md", number: 2, firstLine: 0, text: "?+ Who: a\n" },
+    ];
+    const opened = buildCampaign(sessions("Intro\n? Who\n? Who\n")).questions[0]!;
+    expect(opened.clues).toHaveLength(1);
+    expect(() => currentQuestion(buildCampaign(sessions("? Who\n? Who\n")).questions, opened)).toThrow(CHANGED_IN_NOTE);
+  });
+
   it("finds the question the dialog opened, as it is now", () => {
     const [opened] = questionsOf(["? Who"]);
     expect(currentQuestion(questionsOf(["? Who"]), opened!).text).toBe("Who");
