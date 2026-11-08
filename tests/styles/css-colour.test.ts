@@ -38,6 +38,7 @@ describe("parseColour and contrast", () => {
 
   it("refuses colours it can't read rather than guessing", () => {
     expect(() => parseColour("rgb(192 202 245 / 0.07)")).toThrow("Can't read the colour");
+    expect(() => parseColour("#zzz")).toThrow("Can't read the colour");
     expect(() => parseColour("color-mix(in oklch, rgba(0, 0, 0, 0.5) 50%, white)")).toThrow("translucent");
   });
 });

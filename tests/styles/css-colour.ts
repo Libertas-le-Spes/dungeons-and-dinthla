@@ -138,7 +138,11 @@ export function parseColour(value: string): Colour {
   const text = value.trim();
   const named = NAMED[text];
   if (named !== undefined) return named;
-  if (text.startsWith("#")) return readHex(text.slice(1));
+  if (text.startsWith("#")) {
+    const colour = readHex(text.slice(1));
+    if (Object.values(colour).some(Number.isNaN)) throw new Error(`Can't read the colour ${text}`);
+    return colour;
+  }
   const rgb = /^rgba?\((.*)\)$/.exec(text);
   if (rgb !== null) {
     const [r, g, b, alpha = "1"] = rgb[1]!.split(",").map((part) => part.trim());
