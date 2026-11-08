@@ -1,0 +1,38 @@
+.dd-has-campaign-background {
+  position: relative;
+  isolation: isolate;
+}
+
+.dd-has-campaign-background > .markdown-source-view,
+.dd-has-campaign-background > .markdown-reading-view,
+.dd-has-campaign-background .markdown-preview-view,
+.dd-has-campaign-background .cm-scroller {
+  background-color: transparent;
+}
+
+.dd-campaign-background {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--dd-campaign-picture) center / cover no-repeat;
+}
+
+.dd-campaign-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--surface-page);
+}
+
+.dd-wash-subtle::after {
+  opacity: var(--campaign-wash-subtle);
+}
+
+.dd-wash-balanced::after {
+  opacity: var(--campaign-wash-balanced);
+}
+
+.dd-wash-strong::after {
+  opacity: var(--campaign-wash-strong);
+}
