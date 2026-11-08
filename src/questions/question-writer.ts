@@ -1,20 +1,7 @@
 import type { QuestionRecord, SourcedText } from "../campaign/campaign";
 import { NoteEditor, type EditorVault, type Removal } from "../campaign/note-editor";
 import { answerLine, isFollowUpLine, isQuestionLine, oneLine, questionLine } from "../notes/question-lines";
-import type { QuestionPlan } from "./question-plan";
-
-export interface QuestionEdit {
-  answer: string;
-  followUp: string;
-}
-
-function answerRemoval(question: QuestionRecord, answer: SourcedText): Removal {
-  return {
-    path: answer.source.path,
-    line: answer.source.line,
-    matches: (written) => isFollowUpLine(written, "answer", question.text, answer.text),
-  };
-}
+import { answerRemoval, type QuestionPlan } from "./question-plan";
 
 function clueRemoval(question: QuestionRecord, clue: SourcedText): Removal {
   return {
@@ -36,8 +23,11 @@ export class QuestionWriter {
   }
 
   async apply(plan: QuestionPlan): Promise<boolean> {
-    if (plan.removal === null) return this.editor.append(plan.targetPath, plan.added);
-    return this.editor.replace(plan.targetPath, plan.added, plan.removal);
+    let wrote = false;
+    if (plan.removal === null) wrote = await this.editor.append(plan.answerPath, plan.answerLines);
+    else wrote = await this.editor.replace(plan.answerPath, plan.answerLines, plan.removal);
+    const followed = await this.editor.append(plan.followUpPath, plan.followUpLines);
+    return wrote || followed;
   }
 
   async add(question: string, answer: string, sessionPath: string): Promise<boolean> {
@@ -50,7 +40,8 @@ export class QuestionWriter {
 
   async delete(question: QuestionRecord): Promise<boolean> {
     const others = question.clues.map((clue) => clueRemoval(question, clue));
-    if (question.answer !== null) others.push(answerRemoval(question, question.answer));
+    const answer = answerRemoval(question);
+    if (answer !== null) others.push(answer);
     return this.editor.removeWithItsLines(questionRemoval(question), others);
   }
 }

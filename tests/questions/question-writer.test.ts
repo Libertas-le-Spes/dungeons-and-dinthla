@@ -4,8 +4,8 @@ import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { QuestionRecord } from "../../src/campaign/campaign";
 import { sessionNoteOf } from "../../src/campaign/session-file";
 import { CHANGED_IN_NOTE, DUPLICATE_LINES, PartlyWritten, type EditorVault } from "../../src/campaign/note-editor";
-import { planQuestionSave, planReopen } from "../../src/questions/question-plan";
-import { QuestionWriter, type QuestionEdit } from "../../src/questions/question-writer";
+import { planQuestionSave, planReopen, type QuestionEdit } from "../../src/questions/question-plan";
+import { QuestionWriter } from "../../src/questions/question-writer";
 
 class FakeNotes {
   readonly texts: Map<string, string>;
@@ -69,12 +69,11 @@ describe("QuestionWriter", () => {
     );
   });
 
-  it("replaces a changed answer in the old answer's own note, leaving no earlier line", async () => {
-    const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n", [TWO]: "" });
-    const [question] = notes.questions();
-    await save(notes, question!, { answer: "Lady Vess", followUp: "" }, TWO);
-    expect(notes.texts.get(ONE)).toBe("? Who\n?= Who: Lady Vess\n");
-    expect(notes.texts.get(TWO)).toBe("");
+  it("replaces a changed answer in the old answer's own note, wherever the question is", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n", [TWO]: "?= Who: Mira\n" });
+    await save(notes, notes.questions()[0]!, { answer: "Lady Vess", followUp: "" }, ONE);
+    expect(notes.texts.get(ONE)).toBe("? Who\n");
+    expect(notes.texts.get(TWO)).toBe("?= Who: Lady Vess\n");
   });
 
   it("writes nothing when the answer is unchanged and there is no follow-up", async () => {

@@ -230,6 +230,20 @@ describe("the reward and outcome rules for recurring quests", () => {
   });
 });
 
+describe("refusing a quest change that swaps lines with a quest starting the same way", () => {
+  it("refuses an outcome that would swap outcome lines with another quest", async () => {
+    const notes = new FakeNotes({ [session(1)]: "! Ring: lost\n! Ring\n", [session(2)]: "", [session(3)]: "!= Ring: lost: found\n" });
+    await expect(notes.save(1, { status: "completed", happened: "lost: found" }, session(2))).rejects.toThrow(CHANGES_ANOTHER_QUEST);
+  });
+
+  it("sets a finished quest active with progress across notes, writing the progress where you are", async () => {
+    const notes = new FakeNotes({ [ONE]: "! Find it\n!= Find it: done\n", [TWO]: "" });
+    await notes.save(0, { status: "active", happened: "not done after all" }, TWO);
+    expect(notes.texts.get(ONE)).toBe("! Find it\n");
+    expect(notes.texts.get(TWO)).toBe("!+ Find it: not done after all\n");
+  });
+});
+
 describe("deleting a quest", () => {
   it("removes it with its progress and outcome, wherever they were written", async () => {
     const notes = new FakeNotes({ [ONE]: "! Find it, from: [[Lady Vess]]\n!+ Find it: tracks\n! Keep this\n", [TWO]: "!= Find it: done\n" });

@@ -3,7 +3,7 @@ import type { QuestionRecord } from "../campaign/campaign";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
 import { PartlyWritten } from "../campaign/note-editor";
-import type { QuestionEdit } from "./question-writer";
+import type { QuestionEdit } from "./question-plan";
 
 export interface QuestionChoices {
   save(edit: QuestionEdit): Promise<boolean>;
@@ -67,7 +67,7 @@ export class QuestionModal extends Modal {
         this.run(() => this.choices.save(this.edit));
       });
     });
-    contentEl.createEl("p", { cls: "dd-where", text: `New lines go into ${this.places.writesTo}.` });
+    contentEl.createEl("p", { cls: "dd-where", text: `New lines go into ${this.places.writesTo}; a changed answer replaces the old one where it was.` });
     const buttons = new Setting(contentEl);
     buttons.addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.run(() => this.choices.save(this.edit))));
     if (this.question.answer !== null) {
