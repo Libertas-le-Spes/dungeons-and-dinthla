@@ -3,7 +3,8 @@ import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { QuestionRecord } from "../../src/campaign/campaign";
 import { sessionNoteOf } from "../../src/campaign/session-file";
-import { CHANGED_IN_NOTE, DUPLICATE_LINES, OLD_ANSWER_LEFT, PartlyWritten, QuestionWriter, type WriterVault } from "../../src/questions/question-writer";
+import { CHANGED_IN_NOTE, DUPLICATE_LINES, OLD_LINE_LEFT, PartlyWritten, type EditorVault } from "../../src/campaign/note-editor";
+import { QuestionWriter } from "../../src/questions/question-writer";
 
 class FakeNotes {
   readonly texts: Map<string, string>;
@@ -15,7 +16,7 @@ class FakeNotes {
     this.texts = new Map(Object.entries(notes));
   }
 
-  get vault(): WriterVault {
+  get vault(): EditorVault {
     return {
       getFileByPath: (path) => {
         if (!this.texts.has(path)) return null;
@@ -169,7 +170,7 @@ describe("QuestionWriter", () => {
     const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n", [TWO]: "" });
     const [question] = notes.questions();
     notes.afterRead = () => notes.texts.set(ONE, "? Who\n?= Who: Mira (maybe)\n");
-    await expect(new QuestionWriter(notes.vault).save(question!, { answer: "Vess", followUp: "" }, TWO)).rejects.toThrow(OLD_ANSWER_LEFT);
+    await expect(new QuestionWriter(notes.vault).save(question!, { answer: "Vess", followUp: "" }, TWO)).rejects.toThrow(OLD_LINE_LEFT);
     expect(notes.texts.get(TWO)).toBe("?= Who: Vess\n");
     expect(notes.texts.get(ONE)).toBe("? Who\n?= Who: Mira (maybe)\n");
   });

@@ -2,7 +2,8 @@ import { Modal, Notice, Setting, type App, type ButtonComponent } from "obsidian
 import type { QuestionRecord } from "../campaign/campaign";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
-import { PartlyWritten, type QuestionEdit } from "./question-writer";
+import { PartlyWritten } from "../campaign/note-editor";
+import type { QuestionEdit } from "./question-writer";
 
 export interface QuestionChoices {
   save(edit: QuestionEdit): Promise<boolean>;
@@ -40,9 +41,9 @@ export class QuestionModal extends Modal {
     const { contentEl } = this;
     if (this.question.answer === null) this.setTitle("Answer the question");
     else this.setTitle("Answered question");
-    contentEl.addClass("dd-tokens", "dd-question-dialog");
-    contentEl.createEl("p", { cls: "dd-question", text: this.question.text });
-    contentEl.createEl("p", { cls: "dd-asked", text: `Asked in ${this.places.askedIn}` });
+    contentEl.addClass("dd-tokens", "dd-dialog");
+    contentEl.createEl("p", { cls: "dd-subject", text: this.question.text });
+    contentEl.createEl("p", { cls: "dd-detail", text: `Asked in ${this.places.askedIn}` });
     new Setting(contentEl).setName("Answer").addTextArea((area) => {
       area.setPlaceholder("Lady Vess sent it, through [[Mira]]").setValue(this.edit.answer).onChange((value) => {
         this.edit.answer = value;

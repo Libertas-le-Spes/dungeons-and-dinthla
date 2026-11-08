@@ -2,7 +2,7 @@ import type { QuestionRecord } from "../campaign/campaign";
 import { sessionNumberOf } from "../campaign/session-file";
 import { findSubject } from "../campaign/subject";
 import { oneLine } from "../notes/question-lines";
-import { CHANGED_IN_NOTE } from "./question-writer";
+import { CHANGED_IN_NOTE } from "../campaign/note-editor";
 
 function answerTextOf(question: QuestionRecord): string | null {
   if (question.answer === null) return null;

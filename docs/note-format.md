@@ -7,7 +7,7 @@ The project grows in small steps, so parts of this page are still planned. Whoev
 Three rules hold everywhere:
 
 - **The notes are the record.** Answers, statuses, holders and sheet values are all lines in notes. The plugin keeps nothing of its own, so a vault synced to a tablet carries everything with it.
-- **Nothing you write is moved or rewritten.** A change is recorded as a new line that names the earlier one (see [Following up](#following-up-an-earlier-line)). The plugin adds lines and never edits one. It deletes lines only when you ask it to: reopening a question or changing its answer removes the old answer line (two answers would leave the question unclear), and deleting a question removes it with its clues and answer.
+- **Nothing you write is moved or rewritten.** A change is recorded as a new line that names the earlier one (see [Following up](#following-up-an-earlier-line)). The plugin adds lines and never edits one. It deletes lines only when you ask it to: reopening a question or changing its answer removes the old answer line (two answers would leave the question unclear), setting a quest active again or changing its outcome removes the old outcome line, and deleting a question or quest removes it with its own follow-up lines.
 - **It reads without the plugin.** With the plugin off, every note is still plain, sensible Markdown, and the links still work.
 
 The plugin writes through `Vault.process`, which reads and changes a note in one step, so nothing written in between is lost. It uses only Obsidian's own vault access, so it works the same on mobile.
@@ -136,7 +136,7 @@ Answers, progress and changes are new lines, written in the session where they h
 ?= Who sent the letter: [[Lady Vess]] sent it   (Session 13)
 ```
 
-You don't type the earlier line's text. Type `?? letter` or `!! caravan`, pick the line from the suggestions, and choose what happened, or tap the question in the Questions view. The plugin then writes the follow-up line into the session you're in: the session note that is open, or else the campaign's latest. An open session earlier than the question, or than any of its clues or its answer, is passed over, since a follow-up is only read after the line it follows and a clue only while its question is open. You may also type one in full.
+You don't type the earlier line's text. Type `?? letter` or `!! caravan`, pick the line from the suggestions, and choose what happened, or tap the question or quest in its view. The plugin then writes the follow-up line into the session you're in: the session note that is open, or else the campaign's latest. An open session earlier than the question, or than any of its clues or its answer, is passed over, since a follow-up is only read after the line it follows and a clue only while its question is open. You may also type one in full.
 
 A follow-up belongs to the open question or active quest whose text comes right before its colon: `?= Who sent the letter: …` belongs to *Who sent the letter*, never to a shorter *Who*. When the line holds more than one colon, the longest text that matches wins, so a colon inside a question's own text does no harm. For a quest the text is its title, without its facts (`from:`, `reward:`, `where:`, `due:`).
 
@@ -171,6 +171,8 @@ A question is open until it has a `?=` line. Reopening it removes that `?=` line
 | `!x Find the missing caravan: the wagons burned` | Failed or abandoned, with what happened |
 | `! Escort [[Mira]] to the ferry, after: Find the missing caravan` | A follow-up quest |
 | `$ +200 gp reward, for: Find the missing caravan` | The reward collected. It is coin in, and the quest counts as paid |
+
+Tapping a quest in the Quests view opens it to note progress, complete or abandon it with what happened, collect a coin reward, or open a follow-up quest. Each writes the line above into the session you're in, as answers are. Setting a finished quest active again removes its outcome line, and changing the outcome replaces it. A coin reward of one amount is offered until a `$ … for: <quest>` line for it exists, so it can't be collected twice, and not at all when the quest's own title holds an amount the reward line would also count. Quests sharing a title share that check, and a reward already written by hand in other words isn't recognised, so switch the toggle off for it. A changed outcome is written in the old outcome's note, so a later quest of the same title keeps its lines. Deleting a quest removes it with its progress and outcome lines. The same refusals hold as for questions: a line changed since the dialog opened, two lines reading like the quest, an earlier active quest with the same title, or a note that would read as about another quest. Before writing, the plugin reads the notes as they would be after the change, and writes nothing unless only this quest changes as intended and the purse moves by exactly the reward. Deleting a quest leaves its reward line and its follow-up quests.
 
 ### Items
 

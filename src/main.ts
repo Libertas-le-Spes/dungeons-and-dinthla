@@ -7,6 +7,7 @@ import { markerColouring } from "./editor/marker-decorations";
 import { openNewQuestion } from "./questions/open-new-question";
 import { openQuestion } from "./questions/open-question";
 import { QUESTIONS_VIEW, questionsKind } from "./questions/questions-kind";
+import { openQuest } from "./quests/open-quest";
 import { QUESTS_VIEW, questsKind } from "./quests/quests-kind";
 import { FUNDS_VIEW, FundsView } from "./funds/funds-view";
 import { CampaignListView } from "./views/list-view";
@@ -30,7 +31,7 @@ export default class DungeonsAndDinthla extends Plugin {
       ...actions,
       openRow: (source: Source) => {
         const openNote = () => void openSource(this.app, source);
-        openQuestion(this.app, this.store, source, openNote, (changed) => this.focusQuestionRow(source, changed));
+        openQuestion(this.app, this.store, source, openNote, (changed) => this.focusRow(QUESTIONS_VIEW, source, changed));
       },
     };
     const createQuestion = {
@@ -40,7 +41,14 @@ export default class DungeonsAndDinthla extends Plugin {
     this.registerView(QUESTIONS_VIEW, (leaf) => new CampaignListView(leaf, this.store, questionActions, questionsKind, createQuestion));
     this.addRibbonIcon(questionsKind.icon, "Open questions", () => void openSideView(this.app, QUESTIONS_VIEW));
     this.addCommand({ id: "open-questions", name: "Open questions", callback: () => void openSideView(this.app, QUESTIONS_VIEW) });
-    this.registerView(QUESTS_VIEW, (leaf) => new CampaignListView(leaf, this.store, actions, questsKind, null));
+    const questActions = {
+      ...actions,
+      openRow: (source: Source) => {
+        const openNote = () => void openSource(this.app, source);
+        openQuest(this.app, this.store, source, openNote, (changed) => this.focusRow(QUESTS_VIEW, source, changed));
+      },
+    };
+    this.registerView(QUESTS_VIEW, (leaf) => new CampaignListView(leaf, this.store, questActions, questsKind, null));
     this.addRibbonIcon(questsKind.icon, "Open quests", () => void openSideView(this.app, QUESTS_VIEW));
     this.addCommand({ id: "open-quests", name: "Open quests", callback: () => void openSideView(this.app, QUESTS_VIEW) });
     const noteExists = (name: string, sourcePath: string) => this.app.metadataCache.getFirstLinkpathDest(name, sourcePath) !== null;
@@ -93,8 +101,8 @@ export default class DungeonsAndDinthla extends Plugin {
     if (text !== null) this.store.noteChanged(file.path, text);
   }
 
-  private focusQuestionRow(source: Source, afterChange: boolean): void {
-    for (const leaf of this.app.workspace.getLeavesOfType(QUESTIONS_VIEW)) {
+  private focusRow(viewType: string, source: Source, afterChange: boolean): void {
+    for (const leaf of this.app.workspace.getLeavesOfType(viewType)) {
       if (leaf.view instanceof CampaignListView) leaf.view.focusRow(source, afterChange);
     }
   }
