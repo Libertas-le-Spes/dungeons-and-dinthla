@@ -1,5 +1,5 @@
 import type { TFile, Vault } from "obsidian";
-import { appendLines, removeLines, rewriteLine, type LineToRemove } from "../notes/note-lines";
+import { appendLines, dropLine, removeLines, rewriteLine, type LineToRemove } from "../notes/note-lines";
 import { messageOf } from "../views/message-of";
 
 export type EditorVault = Pick<Vault, "getFileByPath" | "process" | "read">;
@@ -55,6 +55,11 @@ export class NoteEditor {
 
   async rewrite(old: Removal, line: string): Promise<boolean> {
     await this.changeOrRefuse(this.fileAt(old.path), CHANGED_IN_NOTE, (text) => rewriteLine(text, old, line));
+    return true;
+  }
+
+  async drop(old: Removal): Promise<boolean> {
+    await this.changeOrRefuse(this.fileAt(old.path), CHANGED_IN_NOTE, (text) => dropLine(text, old));
     return true;
   }
 

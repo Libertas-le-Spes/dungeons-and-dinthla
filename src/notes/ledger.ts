@@ -25,7 +25,7 @@ export interface ItemEntry {
 export type LedgerEntry = CoinEntry | ItemEntry;
 
 const COPPER_PER: Record<CoinKind, number> = { pp: 1000, gp: 100, ep: 50, sp: 10, cp: 1 };
-const AMOUNT = /(?<![^\s(])(?:([+\-−])\s*)?(\d[\d,]*)\s*(pp|gp|ep|sp|cp)\b/gi;
+export const AMOUNT = /(?<![^\s(])(?:([+\-−])\s*)?(\d[\d,]*)\s*(pp|gp|ep|sp|cp)\b/gi;
 const MINUS_SIGNS = ["-", "−"];
 const MONEY_OUT_WORD = /\b(paid|spent|bought|gave|lost)\b/i;
 

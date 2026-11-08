@@ -94,7 +94,7 @@ export class CoinModal extends Modal {
       }, CONFIRM_MS);
       return;
     }
-    this.run("deleted", () => entry.remove());
+    this.run("deleted", () => entry.delete());
   }
 
   private showReading(): void {
