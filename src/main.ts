@@ -4,8 +4,10 @@ import { campaignFolderOf, findCampaignFolders, isSessionNote } from "./campaign
 import { CampaignStore } from "./campaign/campaign-store";
 import { editorTextOf } from "./campaign/editor-text";
 import { markerColouring } from "./editor/marker-decorations";
-import { openQuestionsView, openSource } from "./questions/open-questions";
-import { QUESTIONS_VIEW, QuestionsView } from "./questions/questions-view";
+import { QUESTIONS_VIEW, questionsKind } from "./questions/questions-kind";
+import { QUESTS_VIEW, questsKind } from "./quests/quests-kind";
+import { CampaignListView } from "./views/list-view";
+import { openListView, openSource } from "./views/open-view";
 import { colourMarkers } from "./reading/colour-markers";
 import { startSession } from "./sessions/start-session";
 import { usesCommunityTheme } from "./theme/community-theme";
@@ -21,9 +23,12 @@ export default class DungeonsAndDinthla extends Plugin {
       openSource: (source: Source) => void openSource(this.app, source),
       openLink: (linktext: string, sourcePath: string) => void this.app.workspace.openLinkText(linktext, sourcePath),
     };
-    this.registerView(QUESTIONS_VIEW, (leaf) => new QuestionsView(leaf, this.store, actions));
-    this.addRibbonIcon("circle-help", "Open questions", () => void openQuestionsView(this.app));
-    this.addCommand({ id: "open-questions", name: "Open questions", callback: () => void openQuestionsView(this.app) });
+    this.registerView(QUESTIONS_VIEW, (leaf) => new CampaignListView(leaf, this.store, actions, questionsKind));
+    this.addRibbonIcon(questionsKind.icon, "Open questions", () => void openListView(this.app, QUESTIONS_VIEW));
+    this.addCommand({ id: "open-questions", name: "Open questions", callback: () => void openListView(this.app, QUESTIONS_VIEW) });
+    this.registerView(QUESTS_VIEW, (leaf) => new CampaignListView(leaf, this.store, actions, questsKind));
+    this.addRibbonIcon(questsKind.icon, "Open quests", () => void openListView(this.app, QUESTS_VIEW));
+    this.addCommand({ id: "open-quests", name: "Open quests", callback: () => void openListView(this.app, QUESTS_VIEW) });
     this.addRibbonIcon("calendar-plus", "Start a new session", () => startSession(this.app, this.store.campaignFolder));
     this.addCommand({ id: "start-session", name: "Start a new session", callback: () => startSession(this.app, this.store.campaignFolder) });
     const inSession = (path: string) => isSessionNote(path, (notePath) => this.app.vault.getFileByPath(notePath) !== null);
