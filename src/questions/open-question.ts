@@ -7,15 +7,10 @@ import { ANSWER_GOES_ELSEWHERE, answerWouldGoElsewhere, currentQuestion, latestS
 import { QuestionModal } from "./question-modal";
 import { planQuestionSave, planReopen, refusalForQuestionPlan, type QuestionEdit, type QuestionPlan } from "./question-plan";
 import { QuestionWriter } from "./question-writer";
+import { activePathOf } from "../views/open-view";
 
 const NO_SESSION = "Start a session first: answers are written into a session note.";
 const SAME_TEXT = "An earlier open question reads the same, so an answer would go to it. Reword one of them first.";
-
-function activePathOf(app: App): string | null {
-  const file = app.workspace.getActiveFile();
-  if (file === null) return null;
-  return file.path;
-}
 
 export function openQuestion(
   app: App,
