@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
-import { CHANGED_IN_NOTE, NoteEditor, OLD_LINE_LEFT, PartlyWritten, type EditorVault, type Removal } from "../../src/campaign/note-editor";
+import { CHANGED_IN_NOTE, NoteEditor, OLD_LINE_LEFT, PartlyWritten, PROPERTIES_WOULD_CHANGE, type EditorVault, type Removal } from "../../src/campaign/note-editor";
 
 class FakeNotes {
   readonly texts: Map<string, string>;
@@ -34,6 +34,28 @@ const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
 const OLD: Removal = { path: ONE, line: 1, matches: (written) => written === "!= Find it: done" };
 
+describe("NoteEditor and a note's properties", () => {
+  it("lets ordinary changes through in Windows notes without a final line break", async () => {
+    const notes = new FakeNotes({ [ONE]: "---\r\na: 1\r\n---", [TWO]: "---\r\na: 1\r\n---\r\n? x" });
+    const editor = new NoteEditor(notes.vault);
+    await editor.append(ONE, ["? y"]);
+    await editor.remove({ path: TWO, line: 3, matches: (written) => written === "? x" });
+    expect(notes.texts.get(ONE)).toBe("---\r\na: 1\r\n---\r\n? y\r\n");
+    expect(notes.texts.get(TWO)).toBe("---\r\na: 1\r\n---");
+  });
+
+  it("says the new line was written, leaving both, when the old note changed so removing would hide lines", async () => {
+    const notes = new FakeNotes({ [ONE]: "!= Find it: done\nkeep\n", [TWO]: "" });
+    notes.afterRead = () => notes.texts.set(ONE, "!= Find it: done\n---\nkeep\n---\n");
+    const old: Removal = { path: ONE, line: 0, matches: (written) => written === "!= Find it: done" };
+    const replacing = new NoteEditor(notes.vault).replace(TWO, ["!x Find it: lost"], old);
+    await expect(replacing).rejects.toBeInstanceOf(PartlyWritten);
+    await expect(replacing).rejects.toThrow(`The new line was written, but the old one was left: ${PROPERTIES_WOULD_CHANGE} Remove one of them by hand.`);
+    expect(notes.texts.get(TWO)).toBe("!x Find it: lost\n");
+    expect(notes.texts.get(ONE)).toBe("!= Find it: done\n---\nkeep\n---\n");
+  });
+});
+
 describe("NoteEditor.replace across notes", () => {
   it("adds the new line in one note and removes the old line from another", async () => {
     const notes = new FakeNotes({ [ONE]: "! Find it\n!= Find it: done\n", [TWO]: "" });
@@ -53,7 +75,7 @@ describe("NoteEditor.replace across notes", () => {
     notes.afterRead = () => notes.texts.set(ONE, "! Find it\n!= Find it: done, mostly\n");
     const replacing = new NoteEditor(notes.vault).replace(TWO, ["!x Find it: lost"], OLD);
     await expect(replacing).rejects.toBeInstanceOf(PartlyWritten);
-    await expect(replacing).rejects.toThrow(OLD_LINE_LEFT);
+    await expect(replacing).rejects.toMatchObject({ message: OLD_LINE_LEFT });
     expect(notes.texts.get(TWO)).toBe("!x Find it: lost\n");
     expect(notes.texts.get(ONE)).toBe("! Find it\n!= Find it: done, mostly\n");
   });

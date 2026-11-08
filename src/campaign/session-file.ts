@@ -21,7 +21,8 @@ export function firstLineAfterProperties(text: string): number {
 }
 
 function propertiesOf(text: string): string {
-  return text.split("\n").slice(0, firstLineAfterProperties(text)).join("\n");
+  const lines = text.split("\n").slice(0, firstLineAfterProperties(text));
+  return lines.map((line) => line.replace(/\r$/, "")).join("\n");
 }
 
 export function keepsProperties(before: string, after: string): boolean {
