@@ -11,8 +11,7 @@ export const OLD_LINE_LEFT =
   "The new line was written, but the old one had changed in its note since, so it was left. Remove one of them by hand.";
 export const LINES_LEFT = "It was deleted, but some of its lines had changed or moved since they were read, so they were left in";
 
-export const PROPERTIES_WOULD_CHANGE =
-  "That change would turn lines of the note into its properties, hiding them, because a --- line would come first. Nothing was written.";
+export const PROPERTIES_WOULD_CHANGE = "That change would turn lines of the note into its properties, hiding them, because a --- line would come first.";
 
 export class PartlyWritten extends Error {}
 
@@ -53,7 +52,7 @@ export class NoteEditor {
       return true;
     }
     const oldNote = this.fileAt(old.path);
-    await this.refuseUnlessFound(oldNote, [old]);
+    if ((await this.checkRemoval(oldNote, [old])) === 0) throw new Error(CHANGED_IN_NOTE);
     if (added.length === 0) {
       await this.removeOrRefuse(oldNote, [old], CHANGED_IN_NOTE);
       return true;
@@ -62,7 +61,8 @@ export class NoteEditor {
     try {
       await this.removeOrRefuse(oldNote, [old], OLD_LINE_LEFT);
     } catch (error) {
-      throw new PartlyWritten(messageOf(error));
+      if (messageOf(error) === OLD_LINE_LEFT) throw new PartlyWritten(OLD_LINE_LEFT);
+      throw new PartlyWritten(`The new line was written, but the old one was left: ${messageOf(error)} Remove one of them by hand.`);
     }
     return true;
   }
@@ -96,7 +96,7 @@ export class NoteEditor {
     }
     const ownNote = this.fileAt(own.path);
     const otherNotes = [...elsewhere].map(([path, group]) => ({ path, file: this.fileAt(path), group }));
-    for (const { file, group } of otherNotes) await this.refuseIfPropertiesChange(file, group);
+    for (const { file, group } of otherNotes) await this.checkRemoval(file, group);
     const leftIn: string[] = [];
     if (await this.removeOwnLine(ownNote, own, alongside)) leftIn.push(own.path);
     for (const { path, file, group } of otherNotes) {
@@ -127,16 +127,11 @@ export class NoteEditor {
     return left;
   }
 
-  private async refuseUnlessFound(file: TFile, removals: Removal[]): Promise<void> {
+  private async checkRemoval(file: TFile, removals: Removal[]): Promise<number> {
     const text = await this.vault.read(file);
     const removal = removeLines(text, removals);
-    if (removal.removed < removals.length) throw new Error(CHANGED_IN_NOTE);
     if (!keepsProperties(text, removal.text)) throw new Error(PROPERTIES_WOULD_CHANGE);
-  }
-
-  private async refuseIfPropertiesChange(file: TFile, removals: Removal[]): Promise<void> {
-    const text = await this.vault.read(file);
-    if (!keepsProperties(text, removeLines(text, removals).text)) throw new Error(PROPERTIES_WOULD_CHANGE);
+    return removal.removed;
   }
 
   private async removeOrRefuse(file: TFile, removals: Removal[], message: string): Promise<void> {
