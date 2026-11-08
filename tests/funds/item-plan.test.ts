@@ -160,6 +160,14 @@ describe("saving an item", () => {
     expect(notes.texts.get(TWO)).toBe("$$ Rope :used\n");
   });
 
+  it("writes an item without its block id, and leaves a line with one where it is", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ Rope ^r1\n$ Torch\n$$ Torch :lost ^t1\n", [TWO]: "" });
+    await notes.save("Rope", { status: "sold" });
+    expect(notes.texts.get(TWO)).toBe("$$ Rope :sold\n");
+    await expect(notes.save("Torch", { status: "held" })).rejects.toThrow(GONE_LINE_SAYS_MORE);
+    expect(notes.texts.get(ONE)).toBe("$ Rope ^r1\n$ Torch\n$$ Torch :lost ^t1\n");
+  });
+
   it("takes an item's link from a later $$ line too", async () => {
     const notes = new FakeNotes({ [ONE]: "$ Shield\n$$ [[Shield]] :lost\n", [TWO]: "" });
     await notes.save("Shield", { status: "used" });

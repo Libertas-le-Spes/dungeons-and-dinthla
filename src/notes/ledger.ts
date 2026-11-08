@@ -1,3 +1,4 @@
+import { withoutBlockId } from "./block-id";
 import { partsBetweenCommas } from "./comma";
 import { blankLinks, findLinks, removeFirstLink } from "./link";
 
@@ -62,7 +63,8 @@ function readCoins(coins: CoinAmount[]): CoinEntry {
   return { type: "coin", coins, copper, moneyOut: copper < 0 };
 }
 
-function readItem(body: string): ItemEntry | null {
+function readItem(written: string): ItemEntry | null {
+  const body = withoutBlockId(written);
   const [holder = ""] = findLinks(body);
   const item = removeFirstLink(body).replace(/\s+/g, " ").trim();
   if (item === "") return null;

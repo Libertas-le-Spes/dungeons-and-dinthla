@@ -106,6 +106,17 @@ describe("readLedgerEntry", () => {
     expect(readLedgerEntry("Potion   of healing")).toEqual({ type: "item", item: "Potion of healing", holder: "" });
   });
 
+  it("leaves a trailing block id out of an item's name", () => {
+    expect(readLedgerEntry("Rope ^r1")).toEqual({ type: "item", item: "Rope", holder: "" });
+    expect(readLedgerEntry("[[Mira]] Silvered lantern ^lantern-1 ")).toEqual({ type: "item", item: "Silvered lantern", holder: "Mira" });
+    expect(readLedgerEntry("Rope ^r1 and hook")).toEqual({ type: "item", item: "Rope ^r1 and hook", holder: "" });
+    expect(readLedgerEntry("Rope^r1")).toEqual({ type: "item", item: "Rope^r1", holder: "" });
+  });
+
+  it("reads a block id alone as no item", () => {
+    expect(readLedgerEntry("^r1")).toBeNull();
+  });
+
   it("reads nothing from an empty line or a name alone", () => {
     expect(readLedgerEntry("")).toBeNull();
     expect(readLedgerEntry("   ")).toBeNull();

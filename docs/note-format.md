@@ -213,6 +213,8 @@ A `$` line can hold two links, as in `$ [[Mira]] [[Flame Tongue]]`. A link to a 
 
 Telling the holder from the item isn't read yet, and neither is how much an item matters. Today the first link on a `$` line is always the holder, so `$ [[Silvered lantern]]` alone reads as nothing.
 
+A block id at the end of an item line, as in `$ Rope ^r1` or `$$ Rope :changed to Old Tom ^r2`, is Obsidian's, not part of the item's name or its holder, so the dialog writes `$$ Rope …`. A `^` needs a space before it to start a block id. A line that took an item and ends in a block id says more than the dialog writes, so it is changed in its note, where the block id can be kept.
+
 Typing `$$ lan` suggests the items held now that match, with who holds them, the same way, and picking one opens the item's dialog; once a ` :` and a change word follow, the line is an item line and no longer a lookup. Names match whatever their capitals and spacing. A name that is one link matches by the note it points to, whatever the link's alias or folder, while a longer name that holds a link (`+1 [[Longsword]]`) is a different item. A `$$` line with no `:` yet is still being typed and is read as nothing.
 
 ## Character
