@@ -37,9 +37,9 @@ describe("listQuests", () => {
     expect(listQuests(campaign, ["vess"]).openCount).toBe(2);
   });
 
-  it("keeps only quests holding every keyword", () => {
-    expect(titlesOf(listQuests(campaign, ["old", "mill", "cellar"]).open)).toEqual(["Clear the Old Mill cellar"]);
-    expect(titlesOf(listQuests(campaign, ["old", "mill"]).folded)).toEqual(["Find the missing caravan"]);
+  it("keeps only quests holding every keyword, not any of them", () => {
+    expect(titlesOf(listQuests(campaign, ["mill", "lantern"]).open)).toEqual(["Clear the Old Mill cellar"]);
+    expect(listQuests(campaign, ["cellar", "mira"]).open).toEqual([]);
   });
 
   it("searches what a link shows, not how it is written", () => {
