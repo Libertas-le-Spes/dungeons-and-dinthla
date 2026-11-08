@@ -1,4 +1,5 @@
 import { Notice, type App } from "obsidian";
+import { NO_CAMPAIGN } from "../campaign/campaign-folders";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { NoteEditor } from "../campaign/note-editor";
 import { sessionLabelOf } from "../campaign/session-file";
@@ -8,7 +9,6 @@ import type { CoinLine } from "../notes/coin-lines";
 import { coinEntryEdit, entryToEdit } from "./coin-entry";
 import { CoinModal, type CoinOutcome } from "./coin-modal";
 
-const NO_CAMPAIGN = "Make a campaign first: a top-level folder with a main note of the same name.";
 const NO_SESSION = "Start a session first: coin is written into a session note.";
 
 function activePathOf(app: App): string | null {
