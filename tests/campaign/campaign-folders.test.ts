@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { campaignFolderOf, findCampaignFolders } from "../../src/campaign/campaign-folders";
+import { campaignFolderOf, findCampaignFolders, isSessionNote } from "../../src/campaign/campaign-folders";
 
 describe("findCampaignFolders", () => {
   it("finds each top-level folder with a main note of its own name, in name order", () => {
@@ -26,5 +26,19 @@ describe("campaignFolderOf", () => {
   it("finds no campaign for a note outside them", () => {
     expect(campaignFolderOf("Recipes/Bread.md", folders)).toBeNull();
     expect(campaignFolderOf("Inbox.md", folders)).toBeNull();
+  });
+});
+
+describe("isSessionNote", () => {
+  const exists = (path: string) => path === "Pale Moon/Pale Moon.md";
+
+  it("knows a session note of a campaign", () => {
+    expect(isSessionNote("Pale Moon/Sessions/Session 3.md", exists)).toBe(true);
+  });
+
+  it("leaves out other notes, and sessions of a folder that isn't a campaign", () => {
+    for (const path of ["Pale Moon/Characters/Mira.md", "Recipes/Sessions/Session 1.md", "Session 1.md"]) {
+      expect(isSessionNote(path, exists)).toBe(false);
+    }
   });
 });

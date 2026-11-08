@@ -38,4 +38,9 @@ describe("markerDecorations", () => {
     const doc = "? One long line";
     expect(marked(doc, [{ from: 0, to: 4 }, { from: 6, to: doc.length }])).toHaveLength(1);
   });
+
+  it("leaves the note's properties uncoloured, as the readers skip them", () => {
+    expect(marked("---\n? key: value\n---\n? Who").map(([text]) => text)).toEqual(["?"]);
+    expect(marked("---\n? key: value\n---\n? Who")).toHaveLength(1);
+  });
 });

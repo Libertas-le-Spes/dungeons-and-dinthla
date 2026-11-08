@@ -1,9 +1,9 @@
 import { debounce, Plugin, type MarkdownFileInfo, type TFile } from "obsidian";
 import type { Source } from "./campaign/campaign";
-import { campaignFolderOf, findCampaignFolders } from "./campaign/campaign-folders";
+import { campaignFolderOf, findCampaignFolders, isSessionNote } from "./campaign/campaign-folders";
 import { CampaignStore } from "./campaign/campaign-store";
 import { editorTextOf } from "./campaign/editor-text";
-import { markerHighlighter } from "./editor/marker-decorations";
+import { markerColouring } from "./editor/marker-decorations";
 import { openQuestionsView, openSource } from "./questions/open-questions";
 import { QUESTIONS_VIEW, QuestionsView } from "./questions/questions-view";
 import { colourMarkers } from "./reading/colour-markers";
@@ -23,8 +23,11 @@ export default class DungeonsAndDinthla extends Plugin {
     this.registerView(QUESTIONS_VIEW, (leaf) => new QuestionsView(leaf, this.store, actions));
     this.addRibbonIcon("circle-help", "Open questions", () => void openQuestionsView(this.app));
     this.addCommand({ id: "open-questions", name: "Open questions", callback: () => void openQuestionsView(this.app) });
-    this.registerEditorExtension(markerHighlighter);
-    this.registerMarkdownPostProcessor((element) => colourMarkers(element));
+    const inSession = (path: string) => isSessionNote(path, (notePath) => this.app.vault.getFileByPath(notePath) !== null);
+    this.registerEditorExtension(markerColouring(inSession));
+    this.registerMarkdownPostProcessor((element, context) => {
+      if (inSession(context.sourcePath)) colourMarkers(element);
+    });
     this.followTheme();
     this.app.workspace.onLayoutReady(() => void this.watchCampaign());
   }
