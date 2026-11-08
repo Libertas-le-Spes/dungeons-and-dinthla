@@ -221,6 +221,23 @@ describe("CharacterSheetView", () => {
     expect(sheet.root.ownerDocument.activeElement).not.toBe(sheet.button("AC"));
   });
 
+  it("shows a stat block built from the sheet's values, with ? for what isn't known", async () => {
+    const sheet = openSheet({
+      sessions: ["[[Mira]] type: Medium humanoid (half-elf), chaotic good, AC: 15, DEX: 17, HP: 30, speed: ?"],
+      texts: { [MIRA.path]: "HP: 44", [OLD_MIRA]: "class: Ranger, STR: 13" },
+      carriedFrom: { path: OLD_MIRA, groups: ["abilities", "values"] },
+    });
+    await sheet.load();
+    const block = sheet.root.querySelector<HTMLElement>(".dd-sheet-stat-block")!;
+    expect(textsOf(block, ".dd-title")).toEqual(["Stat block"]);
+    expect(block.querySelectorAll(":scope > .dd-stat-block")).toHaveLength(1);
+    expect(textsOf(block, ".dd-stat-block-name")).toEqual(["Mira"]);
+    expect(textsOf(block, ".dd-stat-block-type")).toEqual(["Medium humanoid (half-elf), chaotic good"]);
+    expect(textsOf(block, ".dd-stat-block-line")).toEqual(["Class Ranger", "Armor Class 15", "Hit Points 44", "Speed ?"]);
+    expect(textsOf(block, ".dd-stat-block-abilities > div")).toEqual(["STR13 (+1)", "DEX17 (+3)", "CON?", "INT?", "WIS?", "CHA?"]);
+    expect(textsOf(block, ".dd-unknown")).toEqual(["?", "?", "?", "?", "?"]);
+  });
+
   it("opens the character dialog from Edit character", async () => {
     const sheet = openSheet();
     await sheet.load();
