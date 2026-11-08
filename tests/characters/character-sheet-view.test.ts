@@ -4,6 +4,8 @@ import type { SessionNote } from "../../src/campaign/campaign";
 import { CharacterSheetView, couldNotRead, TAP_A_VALUE, type SheetActions } from "../../src/characters/character-sheet-view";
 import type { SheetValue } from "../../src/characters/character-sheet";
 import type { CarriedFrom, SheetNotes } from "../../src/characters/sheet-notes";
+import type { MentionNotes } from "../../src/characters/mention-notes";
+import { IN_THE_NOTES } from "../../src/characters/mentions-panel";
 import { obsidianDocument } from "../views/obsidian-dom";
 
 function fileAt(path: string): TFile {
@@ -19,9 +21,10 @@ interface Setup {
   texts?: Record<string, string>;
   carriedFrom?: CarriedFrom | null;
   textOf?: SheetNotes["textOf"];
+  linking?: Record<string, number[]>;
 }
 
-function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf }: Setup = {}) {
+function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf, linking = {} }: Setup = {}) {
   let listener = () => {};
   let noteChanged: (path: string) => void = () => {};
   let noteMoved: (path: string) => void = () => {};
@@ -61,6 +64,29 @@ function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf }: Se
       return () => {};
     },
   };
+  let linksResolved: (path: string) => void = () => {};
+  const mentionReads = { count: 0 };
+  const mentionNotes: MentionNotes = {
+    fileAt: (path) => fileAt(path),
+    textOf: async (file) => {
+      mentionReads.count += 1;
+      const text = texts[file.path];
+      if (text === undefined) return "";
+      return text;
+    },
+    campaignFolders: () => ["Ashen Road", "Pale Moon"],
+    onNoteMoved: () => () => {},
+    linkingPaths: () => Object.keys(linking),
+    linkedLines: (sourcePath) => {
+      const lines = linking[sourcePath];
+      if (lines === undefined) return [];
+      return lines;
+    },
+    onLinksResolved: (resolved) => {
+      linksResolved = resolved;
+      return () => {};
+    },
+  };
   const closers: (() => void)[] = [];
   const chosen: SheetValue[] = [];
   const actions: SheetActions = {
@@ -72,7 +98,7 @@ function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf }: Se
       closers.push(onClosed);
     },
   };
-  const view = new CharacterSheetView({} as WorkspaceLeaf, store, notes, actions);
+  const view = new CharacterSheetView({} as WorkspaceLeaf, store, notes, actions, mentionNotes);
   view.contentEl = obsidianDocument().createElement("div");
   view.contentEl.ownerDocument.body.append(view.contentEl);
   view.onload();
@@ -89,6 +115,7 @@ function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf }: Se
     root,
     store,
     reads,
+    mentionReads,
     actions,
     chosen,
     closers,
@@ -98,6 +125,7 @@ function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf }: Se
     listener: () => listener(),
     noteChanged: (path: string) => noteChanged(path),
     noteMoved: (path: string) => noteMoved(path),
+    linksResolved: (path: string) => linksResolved(path),
   };
 }
 
@@ -297,9 +325,9 @@ describe("CharacterSheetView", () => {
     expect(sheet.root.querySelector(".dd-value")).toBeNull();
   });
 
-  function failingFirst() {
+  function failingFirst(setup: Setup = {}) {
     const reading = { fails: true };
-    const sheet = openSheet({ textOf: async () => {
+    const sheet = openSheet({ ...setup, textOf: async () => {
       if (reading.fails) throw new Error("the disk is gone");
       return "AC: 16";
     } });
@@ -380,7 +408,7 @@ describe("CharacterSheetView", () => {
     failures[0]!(new Error("the disk is gone"));
     await first;
     expect(sheet.button("AC").textContent).toBe("16");
-    expect(sheet.root.querySelector(".dd-empty")).toBeNull();
+    expect(sheet.root.querySelector(":scope > .dd-empty")).toBeNull();
   });
 
   it("draws only the latest reading when readings finish out of order", async () => {
@@ -418,6 +446,43 @@ describe("CharacterSheetView", () => {
     await sheet.load();
     await sheet.view.onUnloadFile();
     expect(sheet.root.childElementCount).toBe(0);
+  });
+
+  it("lists the lines that link to the character under the values", async () => {
+    const sheet = openSheet({ linking: { [ONE]: [0] }, texts: { [ONE]: "- Met [[Mira]] at the ford" } });
+    await sheet.load();
+    await vi.waitFor(() => expect(textsOf(sheet.root, ".dd-sheet-mentions .dd-text")).toEqual(["Met [[Mira]] at the ford"]));
+    expect(textsOf(sheet.root, ".dd-sheet-mentions .dd-title")).toEqual([`${IN_THE_NOTES}1 line`]);
+    expect(sheet.root.lastElementChild!.classList.contains("dd-sheet-mentions")).toBe(true);
+  });
+
+  it("lists the lines again when a note that links to the character is resolved", async () => {
+    const sheet = openSheet({ linking: { [ONE]: [0] }, texts: { [ONE]: "[[Mira]]" } });
+    await sheet.load();
+    await vi.waitFor(() => expect(sheet.mentionReads.count).toBe(1));
+    sheet.linksResolved(ONE);
+    await vi.waitFor(() => expect(sheet.mentionReads.count).toBe(2));
+  });
+
+  it("stops listing the lines once its note is unloaded", async () => {
+    const sheet = openSheet({ linking: { [ONE]: [0] }, texts: { [ONE]: "[[Mira]]" } });
+    await sheet.load();
+    await vi.waitFor(() => expect(sheet.mentionReads.count).toBe(1));
+    await sheet.view.onUnloadFile();
+    sheet.linksResolved(ONE);
+    expect(sheet.mentionReads.count).toBe(1);
+  });
+
+  it("stops listing the lines when the sheet can't be read", async () => {
+    const { sheet, reading } = failingFirst({ linking: { [ONE]: [0] } });
+    reading.fails = false;
+    await sheet.load();
+    await vi.waitFor(() => expect(sheet.mentionReads.count).toBe(1));
+    reading.fails = true;
+    sheet.listener();
+    await vi.waitFor(() => expect(sheet.root.querySelector(".dd-value")).toBeNull());
+    sheet.linksResolved(ONE);
+    expect(sheet.mentionReads.count).toBe(1);
   });
 
   it("draws the new name after the note is renamed", async () => {

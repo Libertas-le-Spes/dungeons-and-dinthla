@@ -7,6 +7,8 @@ import { PENDING_FOCUS_MS } from "../views/row-focus";
 import { NOT_KNOWN, shownValuesOf, type CharacterSheet, type SheetValue, type ValueState } from "./character-sheet";
 import { messageOf } from "../views/message-of";
 import { readCharacterSheet, type ReadSheet, type SheetStore } from "./read-character-sheet";
+import type { MentionNotes } from "./mention-notes";
+import { MentionsPanel } from "./mentions-panel";
 import type { SheetNotes } from "./sheet-notes";
 import { modifierOf } from "./sheet-values";
 import { fillStatBlock } from "./stat-block";
@@ -53,14 +55,17 @@ export class CharacterSheetView extends FileView {
   private renders = 0;
   private watched: string[] = [];
   private pendingFocus: { name: string; until: number } | null = null;
+  private readonly mentions: MentionsPanel;
 
   constructor(
     leaf: WorkspaceLeaf,
     private readonly store: WatchedStore,
     private readonly notes: SheetNotes,
     private readonly actions: SheetActions,
+    mentionNotes: MentionNotes,
   ) {
     super(leaf);
+    this.mentions = new MentionsPanel(mentionNotes, actions);
   }
 
   getViewType(): string {
@@ -79,6 +84,7 @@ export class CharacterSheetView extends FileView {
     };
     this.register(this.notes.onNoteChanged(refreshIfWatched));
     this.register(this.notes.onNoteMoved(refreshIfWatched));
+    this.register(this.mentions.watch());
   }
 
   override async onLoadFile(file: TFile): Promise<void> {
@@ -87,6 +93,7 @@ export class CharacterSheetView extends FileView {
 
   override async onUnloadFile(): Promise<void> {
     this.renders += 1;
+    this.mentions.clear();
     this.contentEl.empty();
   }
 
@@ -135,6 +142,7 @@ export class CharacterSheetView extends FileView {
   }
 
   private drawError(file: TFile, error: unknown): void {
+    this.mentions.clear();
     const root = this.contentEl;
     root.empty();
     root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-sheet");
@@ -166,6 +174,7 @@ export class CharacterSheetView extends FileView {
     }
     root.createEl("p", { cls: "dd-sheet-hint", text: TAP_A_VALUE });
     this.drawStatBlock(root, file, sheet);
+    void this.mentions.draw(root.createEl("section", { cls: "dd-sheet-mentions" }), file);
     this.focusPending();
   }
 

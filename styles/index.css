@@ -10,6 +10,7 @@
 @import "./ledger.css";
 @import "./stat-block.css";
 @import "./characters.css";
+@import "./character-mentions.css";
 @import "./character-sheet.css";
 @import "./dashboard.css";
 @import "./dialog.css";
