@@ -51,5 +51,11 @@ export function obsidianDocument(): Document {
   prototype.addClass = function (this: HTMLElement, ...names: string[]) {
     this.classList.add(...names);
   };
+  prototype.empty = function (this: HTMLElement) {
+    this.replaceChildren();
+  };
+  prototype.setText = function (this: HTMLElement, text: string) {
+    this.textContent = text;
+  };
   return window.document as unknown as Document;
 }

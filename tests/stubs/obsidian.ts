@@ -13,10 +13,21 @@ export class Plugin {
 
 export class ItemView {
   leaf: RealItemView["leaf"];
+  contentEl!: HTMLElement;
 
   constructor(...[leaf]: ConstructorParameters<typeof RealItemView>) {
     this.leaf = leaf;
   }
+
+  registerDomEvent(element: HTMLElement, type: string, callback: (event: Event) => void): void {
+    element.addEventListener(type, callback);
+  }
+
+  register(callback: () => void): void {
+    this.registered.push(callback);
+  }
+
+  readonly registered: (() => void)[] = [];
 }
 
 const PROPERTIES_OPEN = /^---\r?\n/;
