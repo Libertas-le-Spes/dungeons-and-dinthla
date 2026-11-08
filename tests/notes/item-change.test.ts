@@ -32,6 +32,11 @@ describe("readItemChange", () => {
     expect(readItemChange("$$ Silvered lantern :lost")).toEqual({ text: "Silvered lantern :lost", item: "Silvered lantern", kind: "lost" });
   });
 
+  it("leaves a trailing block id out of the holder", () => {
+    expect(readItemChange("$$ Rope :changed to Old Tom ^h1")?.holder).toBe("Old Tom");
+    expect(readItemChange("$$ Rope :used ^r-1")).toMatchObject({ item: "Rope", kind: "used" });
+  });
+
   it("keeps a colon inside the name", () => {
     expect(readItemChange("$$ Ring: +1 :sold 10 gp")?.item).toBe("Ring: +1");
   });

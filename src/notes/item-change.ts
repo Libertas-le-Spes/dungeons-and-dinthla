@@ -1,5 +1,6 @@
 import { readLedgerEntry, type CoinEntry } from "./ledger";
 import { findLinks, unlink } from "./link";
+import { withoutBlockId } from "./block-id";
 import { withoutBullet } from "./bullet";
 
 export type ItemChangeKind = "changed" | "sold" | "used" | "lost";
@@ -37,7 +38,7 @@ function saleIn(rest: string): CoinEntry | undefined {
 export function readItemChange(line: string): ItemChange | null {
   const text = withoutBullet(line);
   if (!ITEM_CHANGE_MARKER.test(text)) return null;
-  const body = text.slice(2);
+  const body = withoutBlockId(text.slice(2));
   const last = [...body.matchAll(CHANGE_WORD)].at(-1);
   if (last === undefined) return null;
   const item = body.slice(0, last.index).trim();
