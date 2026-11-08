@@ -221,4 +221,22 @@ describe("QuestionWriter", () => {
     expect(await writer.reopen(notes.questions()[0]!)).toBe(true);
     expect(await writer.delete(notes.questions()[1]!)).toBe(true);
   });
+
+  it("adds a new question, with its answer when one is given", async () => {
+    const notes = new FakeNotes({ [ONE]: "We rode on.\n" });
+    const writer = new QuestionWriter(notes.vault);
+    expect(await writer.add("Who sent the letter", "", ONE)).toBe(true);
+    expect(await writer.add("Why the mill", "  the wheel\n turns ", ONE)).toBe(true);
+    expect(notes.texts.get(ONE)).toBe("We rode on.\n? Who sent the letter\n? Why the mill\n?= Why the mill: the wheel turns\n");
+    expect(notes.questions().map((question) => [question.text, question.answer?.text])).toEqual([
+      ["Who sent the letter", undefined],
+      ["Why the mill", "the wheel turns"],
+    ]);
+  });
+
+  it("adds nothing for an empty question", async () => {
+    const notes = new FakeNotes({ [ONE]: "" });
+    expect(await new QuestionWriter(notes.vault).add("", "Mira", ONE)).toBe(false);
+    expect(notes.writes).toBe(0);
+  });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { answerLine, followUpQuestionLine, isFollowUpLine, isQuestionLine } from "../../src/notes/question-lines";
+import { answerLine, followUpQuestionLine, isFollowUpLine, isQuestionLine, questionLine, questionTextOf } from "../../src/notes/question-lines";
 
 describe("question lines", () => {
   it("writes an answer as a ?= line naming the question", () => {
@@ -23,5 +23,10 @@ describe("question lines", () => {
     expect(isFollowUpLine("?= Who sent the letter: Lady Vess", "answer", "Who sent the letter", "Mira")).toBe(false);
     expect(isFollowUpLine("?+ Who sent the letter: Mira", "answer", "Who sent the letter", "Mira")).toBe(false);
     expect(isFollowUpLine("?= Who sent it: Mira", "answer", "Who sent the letter", "Mira")).toBe(false);
+  });
+
+  it("reads a typed question without its marker or extra spaces, and writes it as a ? line", () => {
+    expect(questionTextOf("  ?  Who sent\n the letter ")).toBe("Who sent the letter");
+    expect(questionLine("Who sent the letter")).toBe("? Who sent the letter");
   });
 });

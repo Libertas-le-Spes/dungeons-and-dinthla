@@ -2,7 +2,7 @@ import type { TFile, Vault } from "obsidian";
 import type { QuestionRecord, SourcedText } from "../campaign/campaign";
 import { appendLines, removeLines, type LineToRemove } from "../notes/note-lines";
 import { messageOf } from "../views/message-of";
-import { answerLine, followUpQuestionLine, followUpTextOf, isFollowUpLine, isQuestionLine, oneLine } from "../notes/question-lines";
+import { answerLine, followUpQuestionLine, followUpTextOf, isFollowUpLine, isQuestionLine, oneLine, questionLine } from "../notes/question-lines";
 
 export type WriterVault = Pick<Vault, "getFileByPath" | "process" | "read">;
 
@@ -87,6 +87,15 @@ export class QuestionWriter {
     } catch (error) {
       throw new PartlyWritten(messageOf(error));
     }
+    return true;
+  }
+
+  async add(question: string, answer: string, sessionPath: string): Promise<boolean> {
+    if (question === "") return false;
+    const added = [questionLine(question)];
+    const written = oneLine(answer);
+    if (written !== "") added.push(answerLine(question, written));
+    await this.vault.process(this.fileAt(sessionPath), (text) => appendLines(text, added));
     return true;
   }
 
