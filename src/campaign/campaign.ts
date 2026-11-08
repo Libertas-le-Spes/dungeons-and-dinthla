@@ -43,6 +43,7 @@ export interface CoinRecord {
   entry: CoinEntry;
   text: string;
   source: Source;
+  isSale: boolean;
 }
 
 export type ItemEventKind = "named" | ItemChangeKind;

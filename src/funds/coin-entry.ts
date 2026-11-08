@@ -3,7 +3,6 @@ import type { CoinRecord, SessionNote } from "../campaign/campaign";
 import { CHANGED_IN_NOTE, NoteEditor, type EditorVault, type Removal } from "../campaign/note-editor";
 import { sessionNoteOf } from "../campaign/session-file";
 import { draftOf, readCoinDraft, type CoinDraft, type CoinLine } from "../notes/coin-lines";
-import { readItemChange } from "../notes/item-change";
 import { dropLine, rewriteLine } from "../notes/note-lines";
 
 export const CHANGES_OTHER_MONEY = "That change would also change other money in the purse, so nothing was written.";
@@ -17,10 +16,6 @@ export interface CoinEntryChoices {
 
 export interface CoinEntryEdit extends CoinEntryChoices {
   save(coinLine: CoinLine): Promise<boolean>;
-}
-
-export function isLedgerLineEntry(record: CoinRecord): boolean {
-  return readItemChange(`$$ ${record.text}`) === null;
 }
 
 function sessionOf(sessions: SessionNote[], record: CoinRecord): SessionNote | undefined {

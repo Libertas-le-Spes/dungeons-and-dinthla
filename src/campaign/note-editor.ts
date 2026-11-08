@@ -100,9 +100,8 @@ export class NoteEditor {
         duplicated = true;
         return text;
       }
-      const withoutOwn = removeLines(text, [own]);
-      if (withoutOwn.removed === 0) return null;
-      return removeLines(withoutOwn.text, alongside).text;
+      if (removeLines(text, [own]).removed === 0) return null;
+      return removeLines(text, [own, ...alongside]).text;
     });
     if (duplicated) throw new Error(DUPLICATE_LINES);
   }
