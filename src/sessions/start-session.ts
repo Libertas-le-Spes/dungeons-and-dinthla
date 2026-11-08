@@ -1,4 +1,4 @@
-import { Notice, type App } from "obsidian";
+import { Notice, type App, type TFile } from "obsidian";
 import { createSession, nextSessionNumber, type NewSession } from "./create-session";
 import { NewSessionModal } from "./new-session-modal";
 
@@ -10,11 +10,17 @@ function messageOf(error: unknown): string {
 }
 
 async function makeAndOpen(app: App, campaignFolder: string, session: NewSession): Promise<void> {
+  let note: TFile;
   try {
-    const note = await createSession(app.vault, app.fileManager, campaignFolder, session);
-    await app.workspace.getLeaf(false).openFile(note);
+    note = await createSession(app.vault, app.fileManager, campaignFolder, session);
   } catch (error) {
     new Notice(`Couldn't start the session: ${messageOf(error)}`);
+    return;
+  }
+  try {
+    await app.workspace.getLeaf(false).openFile(note);
+  } catch (error) {
+    new Notice(`${note.basename} was made but couldn't be opened: ${messageOf(error)}`);
   }
 }
 
