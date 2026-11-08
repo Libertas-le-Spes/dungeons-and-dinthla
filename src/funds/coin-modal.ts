@@ -97,9 +97,9 @@ export class CoinModal extends Modal {
     if (this.busy) return;
     this.busy = true;
     this.add(reading.line)
-      .then(() => {
+      .then((added) => {
         this.busy = false;
-        this.close();
+        if (added) this.close();
       })
       .catch((error: unknown) => {
         this.busy = false;

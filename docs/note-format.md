@@ -127,7 +127,7 @@ Each amount on a line counts on its own ([#68](https://github.com/Libertas-le-Sp
 | `$ Bought rope for 2 gp` | −2 gp |
 | `$ [[Lady Vess]] gave us 50 gp` | −50 gp: write `+50 gp` when someone gives the party money |
 
-*Add coin* in the Funds view writes money in as `$ <amount> <what for>` and money out as `$ Paid <amount> <what for>`, into the session you're in. It shows how the line will be read as you type, and saves only if it reads back as exactly the money chosen, so an amount or a money word in *What for* can't change it. Entries are added, never edited, as every line is.
+*Add coin* in the Funds view writes money in as `$ <amount> <what for>` and money out as `$ Paid <amount> <what for>`, into the session you're in. It shows how the line will be read as you type, and saves only if it reads back as exactly the money chosen. It refuses an amount with stray commas, a sign or money word that says the other way, an amount that comes to nothing, and `for:`, which marks a quest's reward collected. Editing an entry is #104.
 
 ## Following up an earlier line
 
