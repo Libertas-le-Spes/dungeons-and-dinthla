@@ -52,11 +52,11 @@ export async function createCharacter(vault: CharacterVault, campaignFolder: str
   return vault.create(notePathOf(folder, entry.name), newCharacterText(entry));
 }
 
-async function writeValues(vault: CharacterVault, file: TFile, before: CharacterEntry, after: CharacterEntry): Promise<void> {
+export async function writeOwnNote(vault: Pick<Vault, "process">, file: TFile, change: (text: string) => string): Promise<void> {
   let refusal: unknown = null;
   await vault.process(file, (text) => {
     try {
-      return withEntryValues(text, file.path, before, after);
+      return change(text);
     } catch (error) {
       refusal = error;
       return text;
@@ -80,7 +80,7 @@ export async function saveCharacter(
   if (renamed) refuseIfAny(refusalForName(vault, folder, after.name, file.path));
   refuseIfAny(refusalForValues(after));
   const writes = valuesChanged(before, after);
-  if (writes) await writeValues(vault, file, before, after);
+  if (writes) await writeOwnNote(vault, file, (text) => withEntryValues(text, file.path, before, after));
   if (!renamed) return true;
   try {
     await fileManager.renameFile(file, notePathOf(folder, after.name));
