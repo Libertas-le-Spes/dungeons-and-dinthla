@@ -8,21 +8,31 @@ function topFolderOf(path: string): string | null {
   return path.slice(0, slash);
 }
 
-function mainNoteOf(folder: string): string {
+export function mainNotePathOf(folder: string): string {
   return `${folder}/${folder}.md`;
 }
 
 export function campaignNotePathOf(path: string): string | null {
   const folder = topFolderOf(path);
   if (folder === null) return null;
-  return mainNoteOf(folder);
+  return mainNotePathOf(folder);
+}
+
+function campaignFolderNaming(path: string): string | null {
+  const folder = topFolderOf(path);
+  if (folder === null || path !== mainNotePathOf(folder)) return null;
+  return folder;
+}
+
+export function isMainNote(path: string): boolean {
+  return campaignFolderNaming(path) !== null;
 }
 
 export function findCampaignFolders(paths: string[]): string[] {
   const folders = new Set<string>();
   for (const path of paths) {
-    const folder = topFolderOf(path);
-    if (folder !== null && path === mainNoteOf(folder)) folders.add(folder);
+    const folder = campaignFolderNaming(path);
+    if (folder !== null) folders.add(folder);
   }
   return [...folders].sort();
 }
@@ -33,8 +43,23 @@ export function campaignFolderOf(path: string, campaignFolders: string[]): strin
   return folder;
 }
 
+export function chosenCampaignFolder(wanted: string | null, campaignFolders: string[]): string | null {
+  if (wanted !== null && campaignFolders.includes(wanted)) return wanted;
+  const [first] = campaignFolders;
+  if (first === undefined) return null;
+  return first;
+}
+
+export function startingCampaignFolder(activePath: string | null, chosen: string | null, campaignFolders: string[]): string | null {
+  if (activePath !== null) {
+    const active = campaignFolderOf(activePath, campaignFolders);
+    if (active !== null) return active;
+  }
+  return chosenCampaignFolder(chosen, campaignFolders);
+}
+
 export function isSessionNote(path: string, noteExists: (path: string) => boolean): boolean {
   const folder = topFolderOf(path);
   if (folder === null || sessionNumberOf(path, folder) === null) return false;
-  return noteExists(mainNoteOf(folder));
+  return noteExists(mainNotePathOf(folder));
 }

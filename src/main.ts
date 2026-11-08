@@ -1,7 +1,13 @@
-import { debounce, Notice, Plugin, type EditorSuggestContext, type MarkdownFileInfo, type TFile } from "obsidian";
+import { debounce, MarkdownView, Notice, Plugin, type EditorSuggestContext, type MarkdownFileInfo, type TFile } from "obsidian";
 import type { Source } from "./campaign/campaign";
 import { messageOf } from "./views/message-of";
-import { campaignFolderOf, findCampaignFolders, isSessionNote } from "./campaign/campaign-folders";
+import {
+  campaignFolderOf,
+  chosenCampaignFolder,
+  findCampaignFolders,
+  isSessionNote,
+  startingCampaignFolder,
+} from "./campaign/campaign-folders";
 import { CampaignStore } from "./campaign/campaign-store";
 import { characterNotesOf } from "./characters/character-notes";
 import { CHARACTERS_VIEW, CharactersView } from "./characters/characters-view";
@@ -24,6 +30,10 @@ import { openItemDialog } from "./funds/open-item";
 import { CampaignListView } from "./views/list-view";
 import { openSideView, openSource } from "./views/open-view";
 import { colourMarkers } from "./reading/colour-markers";
+import { BackgroundRefresh, showBackground, shownBackgroundOf } from "./reading/note-background";
+import { CampaignSettingTab } from "./settings/campaign-setting-tab";
+import { ChosenCampaign } from "./settings/chosen-campaign";
+import { settingsOf, type PluginSettings } from "./settings/plugin-settings";
 import { startSession } from "./sessions/start-session";
 import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
@@ -32,8 +42,15 @@ const TYPING_PAUSE_MS = 250;
 
 export default class DungeonsAndDinthla extends Plugin {
   private readonly store = new CampaignStore(this.app.vault);
+  private chosen = this.chosenCampaignFrom(settingsOf(null));
 
   override async onload(): Promise<void> {
+    this.chosen = this.chosenCampaignFrom(settingsOf(await this.loadData()));
+    this.addSettingTab(new CampaignSettingTab(this.app, this, {
+      folders: () => this.campaignFolders(),
+      chosen: () => chosenCampaignFolder(this.chosen.folder, this.campaignFolders()),
+      choose: (folder) => this.chosen.choose(folder),
+    }));
     const actions = {
       openRow: (source: Source) => void openSource(this.app, source),
       openLink: (linktext: string, sourcePath: string) => void this.app.workspace.openLinkText(linktext, sourcePath),
@@ -97,6 +114,40 @@ export default class DungeonsAndDinthla extends Plugin {
     });
     this.followTheme();
     this.app.workspace.onLayoutReady(() => void this.watchCampaign());
+    this.app.workspace.onLayoutReady(() => this.watchBackgrounds());
+  }
+
+  private chosenCampaignFrom(settings: PluginSettings): ChosenCampaign {
+    return new ChosenCampaign(settings, (changed) => this.saveData(changed), (folder) => this.store.open(folder));
+  }
+
+  private watchBackgrounds(): void {
+    const refresh = new BackgroundRefresh(() => this.showBackgrounds());
+    const layoutChanged = () => refresh.layoutChanged();
+    this.registerEvent(this.app.workspace.on("layout-change", layoutChanged));
+    this.registerEvent(this.app.workspace.on("file-open", layoutChanged));
+    this.registerEvent(this.app.metadataCache.on("changed", (file) => refresh.noteChanged(file.path)));
+    this.registerEvent(this.app.vault.on("create", layoutChanged));
+    this.registerEvent(this.app.vault.on("rename", layoutChanged));
+    this.registerEvent(this.app.vault.on("delete", layoutChanged));
+    this.register(() => refresh.cancel());
+    this.register(() => this.eachNoteView((view) => showBackground(view.contentEl, null)));
+    this.showBackgrounds();
+  }
+
+  private showBackgrounds(): void {
+    const folders = this.campaignFolders();
+    const urlOf = (picture: TFile) => this.app.vault.getResourcePath(picture);
+    this.eachNoteView((view) => {
+      if (view.file === null) showBackground(view.contentEl, null);
+      else showBackground(view.contentEl, shownBackgroundOf(view.file.path, folders, this.app.metadataCache, urlOf));
+    });
+  }
+
+  private eachNoteView(act: (view: MarkdownView) => void): void {
+    this.app.workspace.iterateAllLeaves((leaf) => {
+      if (leaf.view instanceof MarkdownView) act(leaf.view);
+    });
   }
 
   private followTheme(): void {
@@ -114,7 +165,7 @@ export default class DungeonsAndDinthla extends Plugin {
   private async watchCampaign(): Promise<void> {
     this.watchNotes();
     const folder = this.startingCampaignFolder();
-    if (folder !== null) await this.store.open(folder);
+    if (folder !== null) await this.chosen.choose(folder);
   }
 
   private watchNotes(): void {
@@ -126,6 +177,9 @@ export default class DungeonsAndDinthla extends Plugin {
     this.registerEvent(this.app.metadataCache.on("changed", (file, text) => this.store.noteChanged(file.path, text)));
     this.registerEvent(this.app.vault.on("delete", (file) => this.store.noteDeleted(file.path)));
     this.registerEvent(this.app.vault.on("rename", (file, oldPath) => void this.store.noteRenamed(file.path, oldPath)));
+    this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
+      this.chosen.renamed(file.path, oldPath).catch((error: unknown) => new Notice(`Couldn't keep the chosen campaign: ${messageOf(error)}`));
+    }));
     this.registerEvent(this.app.workspace.on("file-open", (file) => void this.followCampaignOf(file)));
   }
 
@@ -145,21 +199,16 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private startingCampaignFolder(): string | null {
-    const folders = this.campaignFolders();
     const activeFile = this.app.workspace.getActiveFile();
-    if (activeFile !== null) {
-      const folder = campaignFolderOf(activeFile.path, folders);
-      if (folder !== null) return folder;
-    }
-    const [first] = folders;
-    if (first === undefined) return null;
-    return first;
+    let activePath: string | null = null;
+    if (activeFile !== null) activePath = activeFile.path;
+    return startingCampaignFolder(activePath, this.chosen.folder, this.campaignFolders());
   }
 
   private async followCampaignOf(file: TFile | null): Promise<void> {
     if (file === null) return;
     const folder = campaignFolderOf(file.path, this.campaignFolders());
     if (folder === null || folder === this.store.campaignFolder) return;
-    await this.store.open(folder);
+    await this.chosen.choose(folder);
   }
 }
