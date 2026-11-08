@@ -1,4 +1,4 @@
-.dd-dialog .dd-question {
+.dd-dialog .dd-subject {
   margin: 0 0 var(--space-3);
   font: var(--type-note);
   font-size: var(--text-md);
@@ -6,7 +6,7 @@
   color: var(--text-strong);
 }
 
-.dd-dialog .dd-asked {
+.dd-dialog .dd-detail {
   margin: 0 0 var(--space-3);
   font: var(--type-label);
   color: var(--text-muted-ui);
@@ -26,6 +26,7 @@
 }
 
 .dd-dialog input,
+.dd-dialog select,
 .dd-dialog button {
   min-height: var(--touch-min);
 }
@@ -34,8 +35,4 @@
   margin: var(--space-3) 0 0;
   font-size: var(--text-sm);
   color: var(--text-muted-ui);
-}
-
-.dd-dialog .dd-hidden {
-  display: none;
 }
