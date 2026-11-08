@@ -99,6 +99,55 @@
   color: var(--marker-question);
 }
 
+.dd-list-view .dd-mark-quest {
+  color: var(--marker-quest);
+}
+
+.dd-list-view .dd-mark-gone {
+  color: var(--text-muted-ui);
+}
+
+.dd-list-view .dd-title-line {
+  display: block;
+}
+
+.dd-list-view .dd-gone {
+  text-decoration: line-through;
+  text-decoration-color: var(--text-muted-ui);
+  color: var(--text-muted-ui);
+}
+
+.dd-list-view .dd-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin-top: 2px;
+  font: var(--type-label);
+  font-size: var(--text-sm);
+  color: var(--text-muted-ui);
+}
+
+.dd-list-view .dd-facts:empty {
+  display: none;
+}
+
+.dd-list-view .dd-facts b {
+  font-weight: var(--weight-medium);
+  color: var(--text-body);
+}
+
+.dd-list-view .dd-status {
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  color: var(--text-muted-ui);
+}
+
+.dd-list-view .dd-status-done {
+  background: var(--marker-quest-soft);
+  color: var(--text-strong);
+}
+
 .dd-list-view .dd-answer,
 .dd-list-view .dd-meta {
   display: block;
