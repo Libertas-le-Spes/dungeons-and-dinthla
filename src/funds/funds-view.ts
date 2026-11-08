@@ -1,12 +1,13 @@
 import { ItemView, type WorkspaceLeaf } from "obsidian";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { formatMoney } from "../notes/money";
-import { addLinkedText, addNameLink, addRowButton, type LinkActions } from "../views/linked-text";
+import { addNameLink, addRowButton, type LinkActions } from "../views/linked-text";
 import type { ItemEventKind, ItemRecord, Source } from "../campaign/campaign";
 import { sessionLabelOf } from "../campaign/session-file";
 import { summariseFunds, type CoinCount, type FundsSummary, type LedgerLine } from "./funds-summary";
 import { summariseItems, THE_PARTY_LABEL, type ItemSummary } from "./item-groups";
 import type { CoinOutcome } from "./coin-modal";
+import { addLedgerRow, NO_COIN_ENTRIES } from "./ledger-row";
 import { focusRowAt, PENDING_FOCUS_MS } from "../views/row-focus";
 
 export const FUNDS_VIEW = "dungeons-and-dinthla-funds";
@@ -18,11 +19,6 @@ function coinText({ kind, count }: CoinCount): string {
   const written = Math.abs(count).toLocaleString("en");
   if (count < 0) return `−${written} ${kind}`;
   return `${written} ${kind}`;
-}
-
-function signedMoney(copper: number): string {
-  if (copper <= 0) return formatMoney(copper);
-  return `+${formatMoney(copper)}`;
 }
 
 const NO_ITEMS = "No items held. A $ line without an amount, like “$ [[Mira]] Flame Tongue longsword”, adds one.";
@@ -217,7 +213,7 @@ export class FundsView extends ItemView {
   private renderLedger(lines: LedgerLine[]): void {
     this.ledgerCount.setText(entriesText(lines.length));
     this.ledgerList.empty();
-    if (lines.length === 0) this.ledgerList.createEl("li", { cls: "dd-empty", text: "No coin entries yet." });
+    if (lines.length === 0) this.ledgerList.createEl("li", { cls: "dd-empty", text: NO_COIN_ENTRIES });
     for (const line of lines) this.addLedgerRow(this.ledgerList, line);
     this.focusPending();
   }
@@ -253,7 +249,8 @@ export class FundsView extends ItemView {
     this.afterEntry(source, outcome);
   }
 
-  private addLedgerRow(list: HTMLElement, { record, balance }: LedgerLine): void {
+  private addLedgerRow(list: HTMLElement, line: LedgerLine): void {
+    const { record } = line;
     let actions = this.actions;
     const openEntry = this.openEntry;
     const openItem = this.openItem;
@@ -263,13 +260,6 @@ export class FundsView extends ItemView {
     } else if (openEntry !== null) {
       actions = { ...this.actions, openRow: (source: Source) => openEntry(source, (outcome) => this.afterEntry(source, outcome)) };
     }
-    const row = addRowButton(list, record.source, actions);
-    row.addClass("dd-ledger-row");
-    let direction = "In";
-    if (record.entry.moneyOut) direction = "Out";
-    row.createSpan({ cls: "dd-direction", text: direction });
-    addLinkedText(row.createSpan({ cls: "dd-what" }), record.text, [], record.source.path, this.actions);
-    row.createSpan({ cls: "dd-amount", text: signedMoney(record.entry.copper) });
-    row.createSpan({ cls: "dd-balance", text: formatMoney(balance) });
+    addLedgerRow(list, line, actions, this.actions);
   }
 }
