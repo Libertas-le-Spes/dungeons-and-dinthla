@@ -7,7 +7,7 @@ export async function openSource(app: App, source: Source): Promise<void> {
   await app.workspace.getLeaf(false).openFile(file, { eState: { line: source.line } });
 }
 
-export async function openListView(app: App, viewType: string): Promise<void> {
+export async function openSideView(app: App, viewType: string): Promise<void> {
   const [open] = app.workspace.getLeavesOfType(viewType);
   if (open !== undefined) {
     await app.workspace.revealLeaf(open);
