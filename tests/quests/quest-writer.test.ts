@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
-import { CHANGED_IN_NOTE, type EditorVault } from "../../src/campaign/note-editor";
+import { CHANGED_IN_NOTE, LINES_LEFT, type EditorVault } from "../../src/campaign/note-editor";
 import { sessionNoteOf } from "../../src/campaign/session-file";
 import { canCollectReward, CHANGES_ANOTHER_QUEST, initialQuestEdit, planQuestSave, refusalForQuestPlan, type QuestEdit } from "../../src/quests/quest-plan";
 import { QuestWriter } from "../../src/quests/quest-writer";
@@ -268,5 +268,13 @@ describe("deleting a quest", () => {
     await new QuestWriter(notes.vault).delete(notes.campaign().quests[0]!);
     expect(notes.texts.get(ONE)).toBe("! Keep this\n");
     expect(notes.texts.get(TWO)).toBe("");
+  });
+
+  it("says so when its progress or outcome moved since they were read, leaving them", async () => {
+    const notes = new FakeNotes({ [ONE]: "! Find it\n!+ Find it: tracks\n!= Find it: done\n" });
+    const record = notes.campaign().quests[0]!;
+    notes.texts.set(ONE, "! Find it\nmid\n!+ Find it: tracks\n!= Find it: done\n");
+    await expect(new QuestWriter(notes.vault).delete(record)).rejects.toThrow(`${LINES_LEFT} ${ONE}.`);
+    expect(notes.texts.get(ONE)).toBe("mid\n!+ Find it: tracks\n!= Find it: done\n");
   });
 });
