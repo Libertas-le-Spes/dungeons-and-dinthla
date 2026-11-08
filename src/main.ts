@@ -16,6 +16,7 @@ import { addEditCharacterItem, editActiveCharacter, editCharacter, openNewCharac
 import { CHARACTER_SHEET_VIEW, CharacterSheetView } from "./characters/character-sheet-view";
 import { chooseSheetValue, openCharacterSheet } from "./characters/open-character-sheet";
 import { sheetNotesOf } from "./characters/sheet-notes";
+import { mentionNotesOf } from "./characters/mention-notes";
 import { openCharacters } from "./characters/open-characters";
 import { editorTextOf } from "./campaign/editor-text";
 import { DASHBOARD_VIEW, DashboardView } from "./dashboard/dashboard-view";
@@ -104,7 +105,8 @@ export default class DungeonsAndDinthla extends Plugin {
       chooseValue: (file: TFile, value: SheetValue, onClosed: () => void) =>
         void chooseSheetValue(this.app, this.store, sheetNotes, file, value, actions.openRow, onClosed),
     };
-    this.registerView(CHARACTER_SHEET_VIEW, (leaf) => new CharacterSheetView(leaf, this.store, sheetNotes, sheetActions));
+    const mentionNotes = mentionNotesOf(this.app);
+    this.registerView(CHARACTER_SHEET_VIEW, (leaf) => new CharacterSheetView(leaf, this.store, sheetNotes, sheetActions, mentionNotes));
     const galleryActions = { ...actions, openRow: (source: Source) => void openCharacterSheet(this.app, source.path) };
     const newCharacter = (returnFocus: () => void) => openNewCharacter(this.app, this.store.campaignFolder, returnFocus);
     const basesOn = this.registerBasesView(CHARACTERS_VIEW, {
