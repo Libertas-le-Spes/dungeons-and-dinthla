@@ -3,12 +3,13 @@ import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { QuestionRecord } from "../../src/campaign/campaign";
 import { sessionNoteOf } from "../../src/campaign/session-file";
-import { CHANGED_IN_NOTE, OLD_ANSWER_LEFT, QuestionWriter, type WriterVault } from "../../src/questions/question-writer";
+import { CHANGED_IN_NOTE, DUPLICATE_LINES, OLD_ANSWER_LEFT, PartlyWritten, QuestionWriter, type WriterVault } from "../../src/questions/question-writer";
 
 class FakeNotes {
   readonly texts: Map<string, string>;
   writes = 0;
   afterRead: () => void = () => {};
+  failOn: string | null = null;
 
   constructor(notes: Record<string, string>) {
     this.texts = new Map(Object.entries(notes));
@@ -21,6 +22,7 @@ class FakeNotes {
         return { path } as TFile;
       },
       process: async (file, change) => {
+        if (file.path === this.failOn) throw new Error("disk full");
         this.writes += 1;
         const next = change(this.texts.get(file.path)!);
         this.texts.set(file.path, next);
@@ -178,5 +180,45 @@ describe("QuestionWriter", () => {
     notes.texts.set(ONE, "? Who exactly\n");
     await expect(new QuestionWriter(notes.vault).delete(question!)).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notes.texts.get(TWO)).toBe("?= Who: Mira\n");
+  });
+
+  it("says plainly that nothing was written when clearing an answer that changed in between", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n", [TWO]: "" });
+    const [question] = notes.questions();
+    notes.afterRead = () => notes.texts.set(ONE, "? Who\n?= Who: Mira (maybe)\n");
+    await expect(new QuestionWriter(notes.vault).save(question!, { answer: "", followUp: "" }, TWO)).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(notes.texts.get(TWO)).toBe("");
+  });
+
+  it("marks the half-written answer change as partly written", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n", [TWO]: "" });
+    const [question] = notes.questions();
+    notes.afterRead = () => notes.texts.set(ONE, "? Who\n?= Who: Mira (maybe)\n");
+    await expect(new QuestionWriter(notes.vault).save(question!, { answer: "Vess", followUp: "" }, TWO)).rejects.toBeInstanceOf(PartlyWritten);
+  });
+
+  it("says a delete was partly done when another note can't be written", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n", [TWO]: "?+ Who: oil\n" });
+    const [question] = notes.questions();
+    notes.failOn = TWO;
+    const deleting = new QuestionWriter(notes.vault).delete(question!);
+    await expect(deleting).rejects.toBeInstanceOf(PartlyWritten);
+    await expect(deleting).rejects.toThrow("its lines in Pale Moon/Sessions/Session 2.md were left");
+    expect(notes.texts.get(ONE)).toBe("");
+  });
+
+  it("deletes nothing when two lines in the note read like the question", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n? Who\n" });
+    const question = notes.questions()[1]!;
+    await expect(new QuestionWriter(notes.vault).delete(question)).rejects.toThrow(DUPLICATE_LINES);
+    expect(notes.texts.get(ONE)).toBe("? Who\n?= Who: Mira\n? Who\n");
+  });
+
+  it("says it wrote when it reopens or deletes, and not when there was no answer to reopen", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n? Why\n" });
+    const writer = new QuestionWriter(notes.vault);
+    expect(await writer.reopen(notes.questions()[1]!)).toBe(false);
+    expect(await writer.reopen(notes.questions()[0]!)).toBe(true);
+    expect(await writer.delete(notes.questions()[1]!)).toBe(true);
   });
 });

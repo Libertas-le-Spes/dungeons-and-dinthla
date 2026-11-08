@@ -1,7 +1,7 @@
 import { Modal, Notice, Setting, type App, type ButtonComponent } from "obsidian";
 import type { QuestionRecord } from "../campaign/campaign";
 import { messageOf } from "../views/message-of";
-import type { QuestionEdit } from "./question-writer";
+import { PartlyWritten, type QuestionEdit } from "./question-writer";
 
 export interface QuestionChoices {
   save(edit: QuestionEdit): Promise<boolean>;
@@ -119,6 +119,9 @@ export class QuestionModal extends Modal {
       .catch((error: unknown) => {
         this.busy = false;
         new Notice(`Couldn't change the question: ${messageOf(error)}`);
+        if (!(error instanceof PartlyWritten)) return;
+        this.changed = true;
+        this.close();
       });
   }
 }

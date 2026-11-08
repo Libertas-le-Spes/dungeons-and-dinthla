@@ -1,5 +1,7 @@
 import type { QuestionRecord } from "../campaign/campaign";
 import { sessionNumberOf } from "../campaign/session-file";
+import { findSubject } from "../campaign/subject";
+import { oneLine } from "../notes/question-lines";
 import { CHANGED_IN_NOTE } from "./question-writer";
 
 function answerTextOf(question: QuestionRecord): string | null {
@@ -23,8 +25,19 @@ export function sharesTextWithEarlierOpenQuestion(questions: QuestionRecord[], q
   return questions.slice(0, index).some((earlier) => earlier.answer === null && earlier.text === question.text);
 }
 
-export function sessionOfQuestion(question: QuestionRecord, campaignFolder: string): number {
-  const asked = sessionNumberOf(question.source.path, campaignFolder);
-  if (asked === null) return 0;
-  return asked;
+export function latestSessionOfQuestion(question: QuestionRecord, campaignFolder: string): number {
+  const sources = [question.source, ...question.clues.map((clue) => clue.source)];
+  if (question.answer !== null) sources.push(question.answer.source);
+  let latest = 0;
+  for (const source of sources) {
+    const number = sessionNumberOf(source.path, campaignFolder);
+    if (number !== null && number > latest) latest = number;
+  }
+  return latest;
+}
+
+export function answerWouldGoElsewhere(questions: QuestionRecord[], question: QuestionRecord, answer: string): boolean {
+  const open = questions.filter((candidate) => candidate === question || candidate.answer === null);
+  const found = findSubject(`${question.text}: ${oneLine(answer)}`, open, (candidate) => candidate.text);
+  return found !== null && found.candidate !== question;
 }

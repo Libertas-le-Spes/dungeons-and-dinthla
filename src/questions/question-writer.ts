@@ -1,6 +1,7 @@
 import type { TFile, Vault } from "obsidian";
 import type { QuestionRecord, SourcedText } from "../campaign/campaign";
 import { appendLines, removeLines, type LineToRemove } from "../notes/note-lines";
+import { messageOf } from "../views/message-of";
 import { answerLine, followUpQuestionLine, followUpTextOf, isFollowUpLine, isQuestionLine, oneLine } from "../notes/question-lines";
 
 export type WriterVault = Pick<Vault, "getFileByPath" | "process" | "read">;
@@ -13,6 +14,9 @@ export interface QuestionEdit {
 export const CHANGED_IN_NOTE = "The question was changed in its note since it was opened, so nothing was written.";
 export const OLD_ANSWER_LEFT =
   "The new answer was written, but the old one had changed in its note since, so it was left. Remove one of them by hand.";
+export const DUPLICATE_LINES = "More than one line in the note reads like this question, so nothing was deleted.";
+
+export class PartlyWritten extends Error {}
 
 interface Removal extends LineToRemove {
   path: string;
@@ -45,6 +49,10 @@ function linesToAdd(question: QuestionRecord, answer: string, answerChanged: boo
   return added;
 }
 
+function countMatches(text: string, removal: Removal): number {
+  return text.split("\n").filter((written) => removal.matches(written.replace(/\r$/, ""))).length;
+}
+
 export class QuestionWriter {
   constructor(private readonly vault: WriterVault) {}
 
@@ -69,8 +77,16 @@ export class QuestionWriter {
     }
     const oldNote = this.fileAt(oldAnswer.path);
     await this.refuseUnlessFound(oldNote, [oldAnswer]);
-    if (added.length > 0) await this.vault.process(target, (text) => appendLines(text, added));
-    await this.removeOrRefuse(oldNote, [oldAnswer], OLD_ANSWER_LEFT);
+    if (added.length === 0) {
+      await this.removeOrRefuse(oldNote, [oldAnswer], CHANGED_IN_NOTE);
+      return true;
+    }
+    await this.vault.process(target, (text) => appendLines(text, added));
+    try {
+      await this.removeOrRefuse(oldNote, [oldAnswer], OLD_ANSWER_LEFT);
+    } catch (error) {
+      throw new PartlyWritten(messageOf(error));
+    }
     return true;
   }
 
@@ -85,25 +101,38 @@ export class QuestionWriter {
     const asked = questionRemoval(question);
     const others = question.clues.map((clue) => clueRemoval(question, clue));
     if (question.answer !== null) others.push(answerRemoval(question, question.answer));
-    const byNote = new Map<string, Removal[]>([[asked.path, []]]);
-    for (const removal of others) {
-      const group = byNote.get(removal.path);
-      if (group === undefined) byNote.set(removal.path, [removal]);
+    const inAskedNote = others.filter((removal) => removal.path === asked.path);
+    const elsewhere = new Map<string, Removal[]>();
+    for (const removal of others.filter((other) => other.path !== asked.path)) {
+      const group = elsewhere.get(removal.path);
+      if (group === undefined) elsewhere.set(removal.path, [removal]);
       else group.push(removal);
     }
-    const notes = [...byNote].map(([path, group]) => ({ path, file: this.fileAt(path), group }));
-    for (const { path, file, group } of notes) {
-      if (path !== asked.path) continue;
-      await this.changeOrRefuse(file, CHANGED_IN_NOTE, (text) => {
-        const withoutQuestion = removeLines(text, [asked]);
-        if (withoutQuestion.removed === 0) return null;
-        return removeLines(withoutQuestion.text, group).text;
-      });
-    }
-    for (const { path, file, group } of notes) {
-      if (path !== asked.path) await this.vault.process(file, (text) => removeLines(text, group).text);
+    const askedNote = this.fileAt(asked.path);
+    const otherNotes = [...elsewhere].map(([path, group]) => ({ path, file: this.fileAt(path), group }));
+    await this.removeQuestionLine(askedNote, asked, inAskedNote);
+    for (const { path, file, group } of otherNotes) {
+      try {
+        await this.vault.process(file, (text) => removeLines(text, group).text);
+      } catch (error) {
+        throw new PartlyWritten(`The question was deleted, but its lines in ${path} were left: ${messageOf(error)}`);
+      }
     }
     return true;
+  }
+
+  private async removeQuestionLine(file: TFile, asked: Removal, alongside: Removal[]): Promise<void> {
+    let duplicated = false;
+    await this.changeOrRefuse(file, CHANGED_IN_NOTE, (text) => {
+      if (countMatches(text, asked) > 1) {
+        duplicated = true;
+        return text;
+      }
+      const withoutQuestion = removeLines(text, [asked]);
+      if (withoutQuestion.removed === 0) return null;
+      return removeLines(withoutQuestion.text, alongside).text;
+    });
+    if (duplicated) throw new Error(DUPLICATE_LINES);
   }
 
   private async refuseUnlessFound(file: TFile, removals: Removal[]): Promise<void> {
