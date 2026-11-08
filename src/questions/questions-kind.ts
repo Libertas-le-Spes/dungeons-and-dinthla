@@ -13,6 +13,7 @@ export const questionsKind: ListKind<QuestionRecord> = {
   openWord: "open",
   foldedWord: "answered",
   emptyHint: "No open questions. Start a note with ? to ask one.",
+  createLabel: "New question",
   contentsOf: listQuestions,
   addRow: addQuestionRow,
 };
