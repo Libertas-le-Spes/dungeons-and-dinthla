@@ -5,7 +5,7 @@ import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
 import { latestNumberIsShared, SESSIONS_SHARE_A_NUMBER, sessionToWriteIn } from "../campaign/session-to-write";
 import { ItemModal } from "./item-modal";
-import { holderOptions, latestSessionOfItem } from "./item-plan";
+import { holderOptionOf, holderOptions, latestSessionOfItem } from "./item-plan";
 import { itemSaver } from "./item-writer";
 
 const NO_SESSION = "Start a session first: item changes are written into a session note.";
@@ -38,7 +38,7 @@ export function openItemDialog(app: App, store: CampaignStore, name: string, ope
     return;
   }
   const holders = holderOptions(
-    store.current.items.map((candidate) => candidate.holder),
+    store.current.items.map(holderOptionOf),
     charactersIn(app, folder, sessionPath).map((character) => ({ text: `[[${character.linktext}]]`, label: character.name })),
   );
   new ItemModal(app, item, holders, sessionLabelOf(sessionPath), itemSaver(app.vault, store, name, sessionPath), onClosed).open();

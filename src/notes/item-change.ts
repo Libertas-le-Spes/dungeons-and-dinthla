@@ -10,6 +10,7 @@ export interface ItemChange {
   item: string;
   kind: ItemChangeKind;
   holder?: string;
+  holderLinked?: boolean;
   sale?: CoinEntry;
 }
 
@@ -23,10 +24,10 @@ const KINDS: Record<string, ItemChangeKind> = {
   lost: "lost",
 };
 
-function holderIn(rest: string): string {
+function holderIn(rest: string): { holder: string; holderLinked: boolean } {
   const [link] = findLinks(rest);
-  if (link !== undefined) return link;
-  return unlink(rest).trim();
+  if (link !== undefined) return { holder: link, holderLinked: true };
+  return { holder: unlink(rest).trim(), holderLinked: false };
 }
 
 function saleIn(rest: string): CoinEntry | undefined {
@@ -46,7 +47,11 @@ export function readItemChange(line: string): ItemChange | null {
   const kind = KINDS[last[1]!.toLowerCase()]!;
   const rest = body.slice(last.index + last[0].length);
   const change: ItemChange = { text: body.trim(), item, kind };
-  if (kind === "changed") change.holder = holderIn(rest);
+  if (kind === "changed") {
+    const found = holderIn(rest);
+    change.holder = found.holder;
+    change.holderLinked = found.holderLinked;
+  }
   if (kind === "sold") change.sale = saleIn(rest);
   return change;
 }

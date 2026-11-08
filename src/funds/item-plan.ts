@@ -5,6 +5,7 @@ import { sessionNoteOf, sessionNumberOf } from "../campaign/session-file";
 import { withoutBullet } from "../notes/bullet";
 import { readAmount } from "../notes/coin-lines";
 import { readItemChange } from "../notes/item-change";
+import { findLinks } from "../notes/link";
 import { appendLines, removeLines } from "../notes/note-lines";
 import { oneLine } from "../notes/question-lines";
 import { holderNameOf, THE_PARTY, THE_PARTY_LABEL } from "./item-groups";
@@ -27,6 +28,7 @@ export interface ItemPlan {
   added: string[];
   removal: Removal | null;
   holderName: string;
+  holderLinked: boolean;
   status: ItemStatus;
   purseCopper: number;
 }
@@ -45,19 +47,24 @@ export function statusOf(item: ItemRecord): ItemStatus {
   return item.gone.kind;
 }
 
-export function holderTextOf(holder: string): string {
-  if (holderNameOf(holder) === "") return THE_PARTY;
-  return `[[${holder}]]`;
+export function holderTextOf(item: ItemRecord): string {
+  if (holderNameOf(item.holder) === "") return THE_PARTY;
+  if (!item.holderLinked) return item.holder;
+  return `[[${item.holder}]]`;
+}
+
+export function holderOptionOf(item: ItemRecord): HolderOption {
+  return { text: holderTextOf(item), label: holderNameOf(item.holder) };
 }
 
 export function initialItemEdit(item: ItemRecord): ItemEdit {
-  return { holder: holderTextOf(item.holder), status: statusOf(item), soldFor: "" };
+  return { holder: holderTextOf(item), status: statusOf(item), soldFor: "" };
 }
 
-export function holderOptions(itemHolders: string[], characters: HolderOption[]): HolderOption[] {
+export function holderOptions(itemHolders: HolderOption[], characters: HolderOption[]): HolderOption[] {
   const options: HolderOption[] = [{ text: THE_PARTY, label: THE_PARTY_LABEL }];
   const seen = new Set([""]);
-  const found = [...itemHolders.map((holder) => ({ text: holderTextOf(holder), label: holderNameOf(holder) })), ...characters];
+  const found = [...characters, ...itemHolders];
   for (const option of found.sort((first, second) => first.label.localeCompare(second.label))) {
     const key = holderNameOf(option.text).toLowerCase();
     if (seen.has(key)) continue;
@@ -134,7 +141,11 @@ export function planItemSave(
   }
   let keepsItsWritten = false;
   if (removal !== null && edit.status === "held") keepsItsWritten = writtenAfterRemoval(sessions, removal, item) !== item.written;
-  if (holderChanged || keepsItsWritten) added.push(`$$ ${item.written} :changed to ${edit.holder}`);
+  let holderLinked = item.holderLinked;
+  if (holderChanged || keepsItsWritten) {
+    added.push(`$$ ${item.written} :changed to ${edit.holder}`);
+    holderLinked = findLinks(edit.holder).length > 0;
+  }
   if (statusChanged && edit.status !== "held") {
     let line = `$$ ${item.written} :${edit.status}`;
     const soldFor = oneLine(edit.soldFor);
@@ -146,7 +157,7 @@ export function planItemSave(
     }
     added.push(line);
   }
-  return { targetPath, added, removal, holderName, status: edit.status, purseCopper };
+  return { targetPath, added, removal, holderName, holderLinked, status: edit.status, purseCopper };
 }
 
 function applyPlan(sessions: SessionNote[], plan: ItemPlan): SessionNote[] {
@@ -158,19 +169,19 @@ function applyPlan(sessions: SessionNote[], plan: ItemPlan): SessionNote[] {
   });
 }
 
-function signature(item: ItemRecord, holderName: string, status: ItemStatus): string {
-  return JSON.stringify([item.name.toLowerCase(), item.written, holderName.toLowerCase(), status]);
+function signature(item: ItemRecord, holderName: string, holderLinked: boolean, status: ItemStatus): string {
+  return JSON.stringify([item.name.toLowerCase(), item.written, holderName.toLowerCase(), holderLinked, status]);
 }
 
 function signatureOf(item: ItemRecord): string {
-  return signature(item, holderNameOf(item.holder), statusOf(item));
+  return signature(item, holderNameOf(item.holder), item.holderLinked, statusOf(item));
 }
 
 export function refusalForItemPlan(sessions: SessionNote[], item: ItemRecord, plan: ItemPlan): string | null {
   const before = buildCampaign(sessions);
   const after = buildCampaign(applyPlan(sessions, plan));
   const wanted = before.items.map((candidate) => {
-    if (candidate.name === item.name) return signature(item, plan.holderName, plan.status);
+    if (candidate.name === item.name) return signature(item, plan.holderName, plan.holderLinked, plan.status);
     return signatureOf(candidate);
   });
   const found = after.items.map(signatureOf);

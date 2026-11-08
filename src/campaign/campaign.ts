@@ -58,6 +58,7 @@ export interface ItemRecord {
   name: string;
   written: string;
   holder: string;
+  holderLinked: boolean;
   source: Source;
   history: ItemEvent[];
   gone: ItemEvent | null;
