@@ -5,6 +5,14 @@ export function oneLine(text: string): string {
   return text.replace(/\s+/g, " ").trim();
 }
 
+export function questionTextOf(text: string): string {
+  return oneLine(text).replace(/^\?\s*/, "");
+}
+
+export function questionLine(question: string): string {
+  return `? ${question}`;
+}
+
 export function answerLine(question: string, answer: string): string {
   return `?= ${question}: ${oneLine(answer)}`;
 }
