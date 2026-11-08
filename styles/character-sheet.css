@@ -216,3 +216,11 @@
 .dd-sheet-dialog .dd-state-choice[data-state="unknown"]::before {
   background: var(--state-unknown);
 }
+
+.dd-sheet .dd-sheet-stat-block {
+  margin-top: var(--space-5);
+}
+
+.dd-sheet .dd-sheet-stat-block .dd-title {
+  margin-bottom: var(--space-3);
+}
