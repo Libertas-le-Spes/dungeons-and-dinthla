@@ -67,10 +67,25 @@ export function blockIdOn(label: string): string {
   return `The ${label.toLowerCase()}'s line ends in a block id, which links can point to, so it was left. Change it in the note.`;
 }
 
+const BLOCK_ID = /\s\^[A-Za-z0-9-]+\s*$/;
+
+export const HIDING_WOULD_CHANGE =
+  "That change would hide lines of the note in a code block or comment, or show lines hidden there, so nothing was written. Change it in the note.";
+
+export function commentMarkIn(label: string): string {
+  return `The ${label.toLowerCase()} can't hold %%, which starts a comment that would hide the rest of the note.`;
+}
+
+export function endsInBlockId(label: string): string {
+  return `The ${label.toLowerCase()} can't end in a block id like ^stats.`;
+}
+
 export function refusalForValues(entry: CharacterEntry): string | null {
   for (const { fact, label } of ENTRY_FIELDS) {
     const value = entry[fact];
     if (value === "") continue;
+    if (value.includes("%%")) return commentMarkIn(label);
+    if (BLOCK_ID.test(factLine(fact, value))) return endsInBlockId(label);
     if (factsOf(factLine(fact, value))[0]!.value !== value) return readsBackDifferently(label);
   }
   return null;
@@ -84,8 +99,6 @@ export function newCharacterText(entry: CharacterEntry): string {
 export function valuesChanged(before: CharacterEntry, after: CharacterEntry): boolean {
   return ENTRY_FIELDS.some(({ fact }) => before[fact] !== after[fact]);
 }
-
-const BLOCK_ID = /\s\^[A-Za-z0-9-]+\s*$/;
 
 interface StatingLine {
   line: number;
@@ -105,20 +118,49 @@ function linesStating(text: string, path: string, fact: EntryFact): StatingLine[
     }));
 }
 
-function changeable(text: string, line: number, label: string): { line: number; matches: () => boolean } {
-  if (BLOCK_ID.test(text.split("\n")[line]!)) throw new Error(blockIdOn(label));
-  return { line, matches: () => true };
+type Origins = (number | null)[];
+
+interface Draft {
+  text: string;
+  origins: Origins;
 }
 
-function withValue(text: string, path: string, fact: EntryFact, label: string, value: string): string {
-  const stating = linesStating(text, path, fact);
+function changeable(text: string, line: number, label: string): number {
+  if (BLOCK_ID.test(text.split("\n")[line]!)) throw new Error(blockIdOn(label));
+  return line;
+}
+
+function withDropped(draft: Draft, lines: number[]): Draft {
+  return {
+    text: removeLines(draft.text, lines.map((line) => ({ line, matches: () => true }))).text,
+    origins: draft.origins.filter((_origin, index) => !lines.includes(index)),
+  };
+}
+
+function withRewritten(draft: Draft, line: number, written: string): Draft {
+  const origins = [...draft.origins];
+  origins[line] = null;
+  return { text: rewriteLine(draft.text, { line, matches: () => true }, written)!, origins };
+}
+
+function withAppended(draft: Draft, written: string): Draft {
+  const text = appendLines(draft.text, [written]);
+  let kept = draft.origins.length;
+  if (draft.text === "" || draft.text.endsWith("\n")) kept -= 1;
+  const origins = draft.origins.slice(0, kept);
+  while (origins.length < text.split("\n").length) origins.push(null);
+  return { text, origins };
+}
+
+function withValue(draft: Draft, path: string, fact: EntryFact, label: string, value: string): Draft {
+  const stating = linesStating(draft.text, path, fact);
   if (value === "") {
     const alone = stating.filter((candidate) => candidate.alone && !candidate.hidden);
-    return removeLines(text, alone.map(({ line }) => changeable(text, line, label))).text;
+    return withDropped(draft, alone.map(({ line }) => changeable(draft.text, line, label)));
   }
   const last = stating[stating.length - 1];
-  if (last === undefined || !last.alone || last.hidden) return appendLines(text, [factLine(fact, value)]);
-  return rewriteLine(text, changeable(text, last.line, label), factLine(fact, value))!;
+  if (last === undefined || !last.alone || last.hidden) return withAppended(draft, factLine(fact, value));
+  return withRewritten(draft, changeable(draft.text, last.line, label), factLine(fact, value));
 }
 
 function refuseUnlessWritten(changed: string, path: string, before: CharacterEntry, after: CharacterEntry): void {
@@ -128,15 +170,26 @@ function refuseUnlessWritten(changed: string, path: string, before: CharacterEnt
   }
 }
 
+function refuseIfHidingChanges(text: string, draft: Draft): void {
+  const hiddenBefore = hiddenLines(text);
+  const hiddenAfter = hiddenLines(draft.text);
+  for (const [index, origin] of draft.origins.entries()) {
+    let wasHidden = false;
+    if (origin !== null) wasHidden = hiddenBefore.has(origin);
+    if (hiddenAfter.has(index) !== wasHidden) throw new Error(HIDING_WOULD_CHANGE);
+  }
+}
+
 export function withEntryValues(text: string, path: string, before: CharacterEntry, after: CharacterEntry): string {
   const current = entryOf(before.name, path, text);
-  let changed = text;
+  let draft: Draft = { text, origins: text.split("\n").map((_line, index) => index) };
   for (const { fact, label } of ENTRY_FIELDS) {
     if (after[fact] === before[fact]) continue;
     if (current[fact] !== before[fact]) throw new Error(CHANGED_IN_NOTE);
-    changed = withValue(changed, path, fact, label, after[fact]);
+    draft = withValue(draft, path, fact, label, after[fact]);
   }
-  refuseUnlessWritten(changed, path, before, after);
-  if (!keepsProperties(text, changed)) throw new Error(PROPERTIES_WOULD_CHANGE);
-  return changed;
+  refuseUnlessWritten(draft.text, path, before, after);
+  refuseIfHidingChanges(text, draft);
+  if (!keepsProperties(text, draft.text)) throw new Error(PROPERTIES_WOULD_CHANGE);
+  return draft.text;
 }
