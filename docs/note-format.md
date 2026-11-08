@@ -7,7 +7,7 @@ The project grows in small steps, so parts of this page are still planned. Whoev
 Three rules hold everywhere:
 
 - **The notes are the record.** Answers, statuses, holders and sheet values are all lines in notes. The plugin keeps nothing of its own but the campaign you were last in, so a vault synced to a tablet carries everything with it.
-- **Nothing you write is moved or rewritten.** A change is recorded as a new line that names the earlier one (see [Following up](#following-up-an-earlier-line)). The plugin adds lines and never edits one, except a `$` ledger entry you change from the Funds view, or the price on an item's `:sold` line, or a `type`, `subtitle` or `speed` line on a character's own note that you change in the character dialog, which are rewritten where they stand (see [Making, renaming and deleting a character](#making-renaming-and-deleting-a-character)). It deletes lines only when you ask it to: clearing a value in the character dialog removes the lines on the character's note that state it on their own, reopening a question or changing its answer removes the old answer line (two answers would leave the question unclear), setting a quest active again or changing its outcome removes the old outcome line, and deleting a question or quest removes it with its own follow-up lines. No change is written that would turn lines into a note's properties, as removing the line before a `---` at the top of a note could; the plugin refuses and says so. The one other change it makes to what you wrote is to a campaign's main note, when you change its background picture or wash in the plugin's settings (see [Campaign](#campaign)).
+- **Nothing you write is moved or rewritten.** A change is recorded as a new line that names the earlier one (see [Following up](#following-up-an-earlier-line)). The plugin adds lines and never edits one, except a `$` ledger entry you change from the Funds view, or the price on an item's `:sold` line, or a value's line on a character's own note that you change in the character dialog or on their sheet, which are rewritten where they stand (see [Making, renaming and deleting a character](#making-renaming-and-deleting-a-character) and [Character sheet](#character-sheet)). It deletes lines only when you ask it to: clearing a value in the character dialog, or clearing an override from the sheet, removes the lines on the character's note that state it on their own, reopening a question or changing its answer removes the old answer line (two answers would leave the question unclear), setting a quest active again or changing its outcome removes the old outcome line, and deleting a question or quest removes it with its own follow-up lines. No change is written that would turn lines into a note's properties, as removing the line before a `---` at the top of a note could; the plugin refuses and says so. The one other change it makes to what you wrote is to a campaign's main note, when you change its background picture or wash in the plugin's settings (see [Campaign](#campaign)).
 - **It reads without the plugin.** With the plugin off, every note is still plain, sensible Markdown, and the links still work.
 
 The plugin writes through `Vault.process`, which reads and changes a note in one step, so nothing written in between is lost. It uses only Obsidian's own vault access, so it works the same on mobile.
@@ -70,7 +70,7 @@ Renaming the folder renames the campaign. Obsidian renames the main note's links
 | Characters | Each note in the campaign's `Characters` folder with its class, AC and HP, the player's own marked *Your character* | *All characters*: the gallery |
 | The latest session | Its heading, such as *Session 13 · The ferry at dusk*, how many questions, quests and coin entries were written in it, and the four written last | *Write notes*: the session's note. *New session* starts the next one |
 
-Tapping a question, quest or coin entry opens its dialog, as in its own view, and tapping a character opens their note. When two session notes share the highest number, it isn't clear which is the latest, so the last panel shows no session and says to rename one, as the dialogs that write into the latest session do.
+Tapping a question, quest or coin entry opens its dialog, as in its own view, and tapping a character opens their sheet. When two session notes share the highest number, it isn't clear which is the latest, so the last panel shows no session and says to rename one, as the dialogs that write into the latest session do.
 
 ## Session
 
@@ -247,14 +247,16 @@ Each value has a state, which comes from where its line is:
 | State | Where the line is | On the sheet |
 |---|---|---|
 | Learned | In a session note | The value, linked to that session |
-| Not known yet | No line states it | Greyed out, with `?` |
+| Not known yet | No line states it, or the line that wins says `?` (`HP: ?`) | Greyed out, with `?` |
 | Override | On the character's own note, at the start of a line (`AC: 16`) | Marked so it never passes for something you saw |
 | Carried over | On a character note in another campaign, named by the character's `carried from` property (see [Calling a character over](#calling-a-character-over)) | Marked with that campaign's name. Anything learned in this campaign wins over it |
 | Changed over time | More than one line states it | The newest value, with the earlier ones and their sessions on tap. A list value (languages, say) adds them up instead |
 
 "Newest" means the highest session number, and then the lowest line in that note.
 
-A name is letters and spaces, read whatever its capitals (`ac:` is `AC`). A value runs to the next comma that a name and a colon follow, so the comma in `type: Medium humanoid (human), lawful good` stays in the type, and a name with nothing after its colon states nothing. Learned values and overrides are read today, each with the note and line it came from, with an override winning over anything learned and the newest line winning among the rest. A session's properties are never read as facts, and a link counts for the note Obsidian resolves it to, so `[[Mira]]` and `[[Characters/Mira|her]]` state facts about the same character. Carried-over values, earlier values and list values that add up aren't read yet.
+A name is letters and spaces, read whatever its capitals (`ac:` is `AC`). A value runs to the next comma that a name and a colon follow, so the comma in `type: Medium humanoid (human), lawful good` stays in the type, and a name with nothing after its colon states nothing. Learned values and overrides are read today, each with the note and line it came from, with an override winning over anything learned and the newest line winning among the rest. A session's properties are never read as facts, and a link counts for the note Obsidian resolves it to, so `[[Mira]]` and `[[Characters/Mira|her]]` state facts about the same character. Carried-over values and earlier values are read too. Other names are read whatever their capitals, so `Languages:` and `languages:` are one value, shown as first written. List values that add up aren't read yet: a list shows its newest line, with the others as earlier values.
+
+On the character's own note, every line that starts with a name and a colon is a value, prose included, so `Personality: grumpy, but kind` shows on the sheet as *Personality*, marked as an override. That keeps the note to one format, and the sheet shows every such line, so none is taken for something seen at the table. To keep a line of prose off the sheet, start it some other way, such as in a quote (`> Personality: grumpy`), or without the colon (`Personality — grumpy`).
 
 ### Making, renaming and deleting a character
 
@@ -291,7 +293,48 @@ The name and values are trimmed, then the dialog refuses, and writes nothing, wh
 
 A dialog with no name does nothing.
 
-Fact lines are still read inside hidden lines today, so a value there shows on the card, and the dialog can't change it.
+Fact lines are still read inside hidden lines today, so a value there shows on the card and the sheet, and neither the dialog nor the sheet can change it.
+
+### Character sheet
+
+Tapping a character's card, in the gallery or on the dashboard, opens their sheet in its place; Obsidian's back button goes back to the cards. The sheet is a view of the character's note, so it follows the note when it is renamed, and Obsidian opens it again next time with the rest of the workspace. It writes nothing until you change a value, and redraws as the notes change.
+
+It shows the character's name, their subtitle when known, the six ability scores with their modifiers, then the type line, subtitle, class, Armor Class, Hit Points, speed and alignment, and every other value after them. Each value is drawn in its state's colour and says where it came from:
+
+| State | Under the value |
+|---|---|
+| Learned | The session it was learned in, which opens the line |
+| Override | *Override*, which opens the line on the character's note |
+| Carried over | *Carried from* and the campaign, which opens the line on the note it was carried from |
+| Not known yet | *Not known yet*, which opens the `?` line when there is one |
+
+A value with earlier lines shows how many (↺ 2). *Edit character*, at the top, opens the character dialog.
+
+Tapping a value opens a dialog with the value, its earlier values newest first, each with its session (tapping one opens its line), and a button for each state. The button you tap saves the value typed in that state:
+
+- **Learned at the table** adds `[[Mira]] AC: 16` at the end of the campaign's latest session, and clears the character's override, which would otherwise cover it. If the newest learned value is already the one typed, only the override is cleared.
+- **Override** writes `AC: 16` on the character's own note, as the character dialog does: it rewrites the last line that states it on its own, or adds a line at the end.
+- **Carried over** clears the override, so the value carried from another campaign shows again.
+- **Not known yet** writes `AC: ?` on the character's note when a learned or carried value would otherwise show, and otherwise only clears the override.
+
+Enter saves the value in its own state, or as learned when it wasn't known. Lines on the character's note are written and removed by the rules in [Making, renaming and deleting a character](#making-renaming-and-deleting-a-character), with the same last check.
+
+The sheet refuses, and writes nothing, when:
+
+| Refused | Why |
+|---|---|
+| The value changed in the notes since its dialog opened | So nothing written meanwhile is lost. The dialog closes, since what it shows is out of date |
+| Learned or Override with no value typed, or with `?` | `?` means not known; there's a button for that |
+| A value with a comma, a word and a colon in it, with `%%`, or ending in a block id | As in the character dialog |
+| Carried over when no carried note gives the value | There's nothing to carry |
+| Carried over when the value was learned in this campaign | What was learned here wins over a carried value |
+| Carried over with a value other than the carried one | That value belongs to the other campaign's note. Change it there, or choose Override |
+| Learned at the table with no session, or two session notes sharing the latest number | It isn't clear where the line goes |
+| Learned at the table when the link wouldn't point to this character from the session | The line would be about someone else |
+| Learned at the table when the new line would land in a code block or comment that never closes | It would be hidden |
+| A change on the character's note that the character dialog would refuse | As in the character dialog. Then the session line isn't written either |
+
+The session line is written first and the character's note after it. If the note can't be changed by then, the sheet says the line was added but the note was left, so you can fix one of them by hand.
 
 ### Calling a character over
 
@@ -304,7 +347,7 @@ carried: [abilities, values]
 ---
 ```
 
-Only the groups listed in `carried` show on the sheet as carried over. The same dialog works as a library: it can call over anyone from any other campaign, or from the game system's own notes, which are there before the first campaign.
+Only the groups listed in `carried` show on the sheet as carried over: `abilities` for the six scores and `values` for everything else. The sheet reads the carried note's values as its own sheet would, from its campaign's sessions and its own overrides. Until the dialog is built, the two properties can be written by hand. `history` isn't read yet. The same dialog works as a library: it can call over anyone from any other campaign, or from the game system's own notes, which are there before the first campaign.
 
 ### Characters gallery
 
@@ -324,4 +367,4 @@ views:
 
 It never writes the file again, so a filter, sort or view added to it in Bases stays. If it already exists by the time the plugin writes it, from a second tap say, the plugin opens that one. A new note in the `Characters` folder shows up as a card at once.
 
-Each card is a short stat block: the character's name, their `type` and `subtitle` when known, then `class`, `AC`, `HP` and `speed`, and the six ability scores with their modifiers. A value no line states shows as `?`. Each card reads the sessions of the campaign its note is in, even while another campaign is open, and a note outside any campaign shows only its own overrides. The player's own character, named by a link in the campaign note's `character` property, is marked *Your character*, and changing that property redraws the gallery. Tapping a card opens the character's note, until their sheet is built. With no characters yet, the gallery says to add one with *New character*.
+Each card is a short stat block: the character's name, their `type` and `subtitle` when known, then `class`, `AC`, `HP` and `speed`, and the six ability scores with their modifiers. A value no line states shows as `?`. Each card reads the sessions of the campaign its note is in, even while another campaign is open, and a note outside any campaign shows only its own overrides. The player's own character, named by a link in the campaign note's `character` property, is marked *Your character*, and changing that property redraws the gallery. Tapping a card opens the character's [sheet](#character-sheet). With no characters yet, the gallery says to add one with *New character*.
