@@ -27,10 +27,36 @@ const TOKYO_NIGHT: Record<string, string> = {
   "--color-cyan": "#7dcfff",
 };
 
+const CATPPUCCIN_LATTE: Record<string, string> = {
+  "--background-primary": "#eff1f5",
+  "--background-primary-alt": "#f5f6f9",
+  "--background-secondary": "#e6e9ef",
+  "--background-secondary-alt": "#f8f9fb",
+  "--background-modifier-hover": "rgba(76, 79, 105, 0.07)",
+  "--background-modifier-active-hover": "rgba(76, 79, 105, 0.12)",
+  "--background-modifier-cover": "rgba(76, 79, 105, 0.35)",
+  "--background-modifier-border": "#ccd0da",
+  "--background-modifier-border-hover": "#8c8fa1",
+  "--background-modifier-border-focus": "#8839ef",
+  "--text-normal": "#4c4f69",
+  "--text-muted": "#5c5f77",
+  "--text-faint": "#6c6f85",
+  "--text-accent": "#8839ef",
+  "--interactive-accent": "#8839ef",
+  "--text-on-accent": "#eff1f5",
+  "--text-error": "#d20f39",
+  "--color-blue": "#1e66f5",
+  "--color-yellow": "#df8e1d",
+  "--color-green": "#40a02b",
+  "--color-purple": "#8839ef",
+  "--color-cyan": "#179299",
+};
+
 const THEMES: Record<string, ThemeContext> = {
   "Dinthla light": { dark: false, follow: false, obsidian: {} },
   "Dinthla dark": { dark: true, follow: false, obsidian: {} },
   "Tokyo Night": { dark: true, follow: true, obsidian: TOKYO_NIGHT },
+  "Catppuccin Latte": { dark: false, follow: true, obsidian: CATPPUCCIN_LATTE },
 };
 
 const PAIRS: [string, string, number][] = [
@@ -83,10 +109,10 @@ const PAIRS: [string, string, number][] = [
 
 describe.each(Object.entries(THEMES))("contrast in %s", (_name, context) => {
   const token = tokensFor(context);
-  const card = over(token("surface-card"), { r: 0, g: 0, b: 0, alpha: 1 });
+  const page = over(token("surface-page"), { r: 0, g: 0, b: 0, alpha: 1 });
 
   it.each(PAIRS)("%s on %s reaches %d:1", (foreground, background, needed) => {
-    const behind = over(token(background), card);
+    const behind = over(token(background), page);
     const ratio = contrast(over(token(foreground), behind), behind);
     expect(ratio).toBeGreaterThanOrEqual(needed);
   });

@@ -65,20 +65,41 @@ function mixOklch(first: Colour, second: Colour, share: number): Colour {
   return fromOklab([lightness, chroma * Math.cos(hue), chroma * Math.sin(hue)], 1);
 }
 
+function premultiplied(colour: Colour): Colour {
+  return { r: colour.r * colour.alpha, g: colour.g * colour.alpha, b: colour.b * colour.alpha, alpha: colour.alpha };
+}
+
+function unpremultiplied(colour: Colour): Colour {
+  if (colour.alpha === 0) return colour;
+  return { r: colour.r / colour.alpha, g: colour.g / colour.alpha, b: colour.b / colour.alpha, alpha: colour.alpha };
+}
+
+function mixOklab(first: Colour, second: Colour, share: number): Colour {
+  const [l1, a1, b1] = toOklab(first);
+  const [l2, a2, b2] = toOklab(second);
+  const lightness = l1 * share + l2 * (1 - share);
+  const a = a1 * share + a2 * (1 - share);
+  const b = b1 * share + b2 * (1 - share);
+  return fromOklab([lightness, a, b], 1);
+}
+
+function mixSrgb(first: Colour, second: Colour, share: number): Colour {
+  const [x, y] = [premultiplied(first), premultiplied(second)];
+  return unpremultiplied({
+    r: x.r * share + y.r * (1 - share),
+    g: x.g * share + y.g * (1 - share),
+    b: x.b * share + y.b * (1 - share),
+    alpha: x.alpha * share + y.alpha * (1 - share),
+  });
+}
+
 function mix(space: Space, first: Colour, second: Colour, share: number): Colour {
   if (second.alpha === 0) return { ...first, alpha: first.alpha * share };
   if (first.alpha === 0) return { ...second, alpha: second.alpha * (1 - share) };
+  if (space === "srgb") return mixSrgb(first, second, share);
+  if (first.alpha < 1 || second.alpha < 1) throw new Error(`Can't mix translucent colours in ${space}`);
   if (space === "oklch") return mixOklch(first, second, share);
-  if (space === "oklab") {
-    const [x, y] = [toOklab(first), toOklab(second)];
-    return fromOklab([0, 1, 2].map((i) => x[i]! * share + y[i]! * (1 - share)) as [number, number, number], 1);
-  }
-  return {
-    r: first.r * share + second.r * (1 - share),
-    g: first.g * share + second.g * (1 - share),
-    b: first.b * share + second.b * (1 - share),
-    alpha: 1,
-  };
+  return mixOklab(first, second, share);
 }
 
 function splitTopLevel(text: string): string[] {
@@ -121,7 +142,9 @@ export function parseColour(value: string): Colour {
   const rgb = /^rgba?\((.*)\)$/.exec(text);
   if (rgb !== null) {
     const [r, g, b, alpha = "1"] = rgb[1]!.split(",").map((part) => part.trim());
-    return { r: Number(r) / 255, g: Number(g) / 255, b: Number(b) / 255, alpha: Number(alpha) };
+    const colour = { r: Number(r) / 255, g: Number(g) / 255, b: Number(b) / 255, alpha: Number(alpha) };
+    if (Object.values(colour).some(Number.isNaN)) throw new Error(`Can't read the colour ${text}`);
+    return colour;
   }
   const colourMix = /^color-mix\((.*)\)$/.exec(text);
   if (colourMix !== null) {
