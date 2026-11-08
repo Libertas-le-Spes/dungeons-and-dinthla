@@ -33,5 +33,7 @@ export function removeLines(text: string, targets: LineToRemove[]): { text: stri
     if (index !== -1) taken.add(index);
   }
   const kept = lines.filter((_written, index) => !taken.has(index));
+  const lastKept = kept.length - 1;
+  if (taken.has(lines.length - 1) && lastKept >= 0) kept[lastKept] = kept[lastKept]!.replace(/\r$/, "");
   return { text: kept.join("\n"), removed: taken.size };
 }

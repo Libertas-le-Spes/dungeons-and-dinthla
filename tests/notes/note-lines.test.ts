@@ -68,4 +68,8 @@ describe("removeLines", () => {
   it("removes a line from a note with Windows line endings", () => {
     expect(removeLines("? Who\r\n?= Who: Mira\r\n", [{ line: 1, matches: isAnswer }]).text).toBe("? Who\r\n");
   });
+
+  it("leaves no stray carriage return when the last line, with no line break, is removed", () => {
+    expect(removeLines("? Who\r\n?= Who: Mira", [{ line: 1, matches: isAnswer }]).text).toBe("? Who");
+  });
 });
