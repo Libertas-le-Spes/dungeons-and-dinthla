@@ -51,6 +51,10 @@ describe("refusalForValues", () => {
     expect(refusalForValues(entry({ type: "Medium humanoid (human), lawful good", speed: "30 ft., fly 60 ft." }))).toBeNull();
   });
 
+  it("refuses a value that would read back with a comma lost", () => {
+    expect(refusalForValues(entry({ speed: "30 ft.,, fly 60 ft." }))).toBe(readsBackDifferently("Speed"));
+  });
+
   it("refuses a value that would read back as two", () => {
     expect(refusalForValues(entry({ subtitle: "Elf Rogue 3, AC: 15" }))).toBe(readsBackDifferently("Subtitle"));
   });
@@ -95,7 +99,7 @@ describe("withEntryValues", () => {
   });
 
   it("leaves values that weren't changed", () => {
-    expect(edited("speed: 30 ft.\ntype: elf\n", { type: "half-elf" })).toBe("speed: 30 ft.\ntype: half-elf\n");
+    expect(edited("Speed:30 ft.\ntype: elf\n", { type: "half-elf" })).toBe("Speed:30 ft.\ntype: half-elf\n");
   });
 
   it("refuses when the note changed the value since the dialog read it", () => {

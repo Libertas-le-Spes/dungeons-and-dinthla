@@ -54,8 +54,7 @@ export function refusalForValues(entry: CharacterEntry): string | null {
   for (const { fact, label } of ENTRY_FIELDS) {
     const value = entry[fact];
     if (value === "") continue;
-    const read = factsOf(factLine(fact, value));
-    if (read.length !== 1 || read[0]!.value !== value) return readsBackDifferently(label);
+    if (factsOf(factLine(fact, value))[0]!.value !== value) return readsBackDifferently(label);
   }
   return null;
 }
@@ -74,22 +73,14 @@ function lastStated(text: string, path: string, fact: EntryFact): SourcedFact | 
   return stated[stated.length - 1];
 }
 
-function changedOrRefused(text: string | null): string {
-  if (text === null) throw new Error(CHANGED_IN_NOTE);
-  return text;
-}
-
 function withValue(text: string, path: string, fact: EntryFact, label: string, value: string): string {
   const stated = lastStated(text, path, fact);
-  if (stated === undefined) {
-    if (value === "") return text;
-    return appendLines(text, [factLine(fact, value)]);
-  }
+  if (stated === undefined) return appendLines(text, [factLine(fact, value)]);
   const target = { line: stated.source.line, matches: () => true };
   const written = text.split("\n")[stated.source.line]!;
   const alone = factsOf(withoutBullet(written)).length === 1;
-  if (alone && value === "") return changedOrRefused(dropLine(text, target));
-  if (alone) return changedOrRefused(rewriteLine(text, target, factLine(fact, value)));
+  if (alone && value === "") return dropLine(text, target)!;
+  if (alone) return rewriteLine(text, target, factLine(fact, value))!;
   if (value === "") throw new Error(sharedLine(label));
   return appendLines(text, [factLine(fact, value)]);
 }
