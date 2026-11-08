@@ -51,8 +51,27 @@ export function trimmedEntry(entry: CharacterEntry): CharacterEntry {
   return { name: entry.name.trim(), type: entry.type.trim(), subtitle: entry.subtitle.trim(), speed: entry.speed.trim() };
 }
 
-function factLine(fact: EntryFact, value: string): string {
-  return `${fact}: ${value}`;
+export interface OwnValueChange {
+  name: string;
+  label: string;
+  before: string;
+  after: string;
+}
+
+export function factLine(name: string, value: string): string {
+  return `${name}: ${value}`;
+}
+
+export function sameName(first: string, second: string): boolean {
+  return first.toLowerCase() === second.toLowerCase();
+}
+
+export function ownValueOf(text: string, path: string, name: string): string {
+  let value = "";
+  for (const fact of overrideFacts(text, path)) {
+    if (sameName(fact.name, name)) value = fact.value;
+  }
+  return value;
 }
 
 export function readsBackDifferently(label: string): string {
@@ -80,13 +99,18 @@ export function endsInBlockId(label: string): string {
   return `The ${label.toLowerCase()} can't end in a block id like ^stats.`;
 }
 
+export function refusalForValue(name: string, label: string, value: string): string | null {
+  if (value === "") return null;
+  if (value.includes("%%")) return commentMarkIn(label);
+  if (BLOCK_ID.test(factLine(name, value))) return endsInBlockId(label);
+  if (factsOf(factLine(name, value))[0]!.value !== value) return readsBackDifferently(label);
+  return null;
+}
+
 export function refusalForValues(entry: CharacterEntry): string | null {
   for (const { fact, label } of ENTRY_FIELDS) {
-    const value = entry[fact];
-    if (value === "") continue;
-    if (value.includes("%%")) return commentMarkIn(label);
-    if (BLOCK_ID.test(factLine(fact, value))) return endsInBlockId(label);
-    if (factsOf(factLine(fact, value))[0]!.value !== value) return readsBackDifferently(label);
+    const refusal = refusalForValue(fact, label, entry[fact]);
+    if (refusal !== null) return refusal;
   }
   return null;
 }
@@ -106,11 +130,11 @@ interface StatingLine {
   hidden: boolean;
 }
 
-function linesStating(text: string, path: string, fact: EntryFact): StatingLine[] {
+function linesStating(text: string, path: string, name: string): StatingLine[] {
   const lines = text.split("\n");
   const hidden = hiddenLines(text);
   return overrideFacts(text, path)
-    .filter((candidate) => sheetNameOf(candidate.name) === fact)
+    .filter((candidate) => sameName(candidate.name, name))
     .map(({ source }) => ({
       line: source.line,
       alone: factsOf(withoutBullet(lines[source.line]!)).length === 1,
@@ -152,21 +176,21 @@ function withAppended(draft: Draft, written: string): Draft {
   return { text, origins };
 }
 
-function withValue(draft: Draft, path: string, fact: EntryFact, label: string, value: string): Draft {
-  const stating = linesStating(draft.text, path, fact);
+function withValue(draft: Draft, path: string, name: string, label: string, value: string): Draft {
+  const stating = linesStating(draft.text, path, name);
   if (value === "") {
     const alone = stating.filter((candidate) => candidate.alone && !candidate.hidden);
     return withDropped(draft, alone.map(({ line }) => changeable(draft.text, line, label)));
   }
   const last = stating[stating.length - 1];
-  if (last === undefined || !last.alone || last.hidden) return withAppended(draft, factLine(fact, value));
-  return withRewritten(draft, changeable(draft.text, last.line, label), factLine(fact, value));
+  if (last === undefined || !last.alone || last.hidden) return withAppended(draft, factLine(name, value));
+  return withRewritten(draft, changeable(draft.text, last.line, label), factLine(name, value));
 }
 
-function refuseUnlessWritten(changed: string, path: string, before: CharacterEntry, after: CharacterEntry): void {
-  const written = entryOf(after.name, path, changed);
-  for (const { fact, label } of ENTRY_FIELDS) {
-    if (after[fact] !== before[fact] && written[fact] !== after[fact]) throw new Error(stillReads(label, written[fact]));
+function refuseUnlessWritten(changed: string, path: string, changes: OwnValueChange[]): void {
+  for (const { name, label, after } of changes) {
+    const written = ownValueOf(changed, path, name);
+    if (written !== after) throw new Error(stillReads(label, written));
   }
 }
 
@@ -180,16 +204,20 @@ function refuseIfHidingChanges(text: string, draft: Draft): void {
   }
 }
 
-export function withEntryValues(text: string, path: string, before: CharacterEntry, after: CharacterEntry): string {
-  const current = entryOf(before.name, path, text);
+export function withOwnValues(text: string, path: string, changes: OwnValueChange[]): string {
+  const changed = changes.filter(({ before, after }) => after !== before);
   let draft: Draft = { text, origins: text.split("\n").map((_line, index) => index) };
-  for (const { fact, label } of ENTRY_FIELDS) {
-    if (after[fact] === before[fact]) continue;
-    if (current[fact] !== before[fact]) throw new Error(CHANGED_IN_NOTE);
-    draft = withValue(draft, path, fact, label, after[fact]);
+  for (const { name, label, before, after } of changed) {
+    if (ownValueOf(text, path, name) !== before) throw new Error(CHANGED_IN_NOTE);
+    draft = withValue(draft, path, name, label, after);
   }
-  refuseUnlessWritten(draft.text, path, before, after);
+  refuseUnlessWritten(draft.text, path, changed);
   refuseIfHidingChanges(text, draft);
   if (!keepsProperties(text, draft.text)) throw new Error(PROPERTIES_WOULD_CHANGE);
   return draft.text;
+}
+
+export function withEntryValues(text: string, path: string, before: CharacterEntry, after: CharacterEntry): string {
+  const changes = ENTRY_FIELDS.map(({ fact, label }) => ({ name: fact, label, before: before[fact], after: after[fact] }));
+  return withOwnValues(text, path, changes);
 }
