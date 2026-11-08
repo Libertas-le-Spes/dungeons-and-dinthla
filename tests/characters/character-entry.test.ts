@@ -14,6 +14,7 @@ import {
   trimmedEntry,
   valuesChanged,
   withEntryValues,
+  withOverrides,
   type CharacterEntry,
 } from "../../src/characters/character-entry";
 
@@ -199,5 +200,22 @@ describe("withEntryValues", () => {
 
   it("keeps the note's properties when writing below them", () => {
     expect(edited("---\ntags: npc\n---\nspeed: 30 ft.\n", { speed: "" })).toBe("---\ntags: npc\n---\n");
+  });
+});
+
+describe("withOverrides", () => {
+  it("rewrites any value, whatever the capitals it was written with", () => {
+    const change = { name: "Patron", label: "Patron", before: "Lady Vess", after: "the Duke" };
+    expect(withOverrides("patron: Lady Vess\n", PATH, [change])).toBe("Patron: the Duke\n");
+  });
+
+  it("refuses when the note changed the value since it was read", () => {
+    const change = { name: "AC", label: "Armor Class", before: "15", after: "16" };
+    expect(() => withOverrides("AC: 14\n", PATH, [change])).toThrow(CHANGED_IN_NOTE);
+  });
+
+  it("writes ? to mark a value not known", () => {
+    const change = { name: "HP", label: "Hit Points", before: "", after: "?" };
+    expect(withOverrides("AC: 14\n", PATH, [change])).toBe("AC: 14\nHP: ?\n");
   });
 });

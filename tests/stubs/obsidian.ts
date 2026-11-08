@@ -7,6 +7,7 @@ import type {
   FrontMatterInfo,
   FuzzySuggestModal as RealFuzzySuggestModal,
   ItemView as RealItemView,
+  TFile,
   MarkdownFileInfo,
   Modal as RealModal,
   Plugin as RealPlugin,
@@ -37,6 +38,21 @@ export class ItemView {
   }
 
   register(): void {}
+}
+
+export class FileView extends ItemView {
+  file: TFile | null = null;
+  navigation = true;
+
+  onload(): void {}
+
+  async onLoadFile(_file: TFile): Promise<void> {}
+
+  async onUnloadFile(_file: TFile): Promise<void> {}
+
+  async onRename(file: TFile): Promise<void> {
+    this.file = file;
+  }
 }
 
 export class BasesView {

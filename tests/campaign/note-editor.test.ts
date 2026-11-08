@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
-import { CHANGED_IN_NOTE, NoteEditor, OLD_LINE_LEFT, PartlyWritten, PROPERTIES_WOULD_CHANGE, type EditorVault, type Removal } from "../../src/campaign/note-editor";
+import {
+  CHANGED_IN_NOTE,
+  NoteEditor,
+  OLD_LINE_LEFT,
+  PartlyWritten,
+  PROPERTIES_WOULD_CHANGE,
+  WOULD_BE_HIDDEN,
+  type EditorVault,
+  type Removal,
+} from "../../src/campaign/note-editor";
 
 class FakeNotes {
   readonly texts: Map<string, string>;
@@ -92,5 +101,31 @@ describe("NoteEditor.replace across notes", () => {
     const notes = new FakeNotes({ [ONE]: "! Find it\n!= Find it: done\n" });
     await expect(new NoteEditor(notes.vault).replace(TWO, ["!x Find it: lost"], OLD)).rejects.toThrow("moved or deleted");
     expect(notes.texts.get(ONE)).toBe("! Find it\n!= Find it: done\n");
+  });
+});
+
+describe("NoteEditor.appendShown", () => {
+  it("adds the lines at the end of the note", async () => {
+    const notes = new FakeNotes({ [ONE]: "? x\n" });
+    await new NoteEditor(notes.vault).appendShown(ONE, ["[[Mira]] AC: 15"]);
+    expect(notes.texts.get(ONE)).toBe("? x\n[[Mira]] AC: 15\n");
+  });
+
+  it("writes nothing when the new line would land in a code block that never closes", async () => {
+    const notes = new FakeNotes({ [ONE]: "```\ncode" });
+    await expect(new NoteEditor(notes.vault).appendShown(ONE, ["[[Mira]] AC: 15"])).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.texts.get(ONE)).toBe("```\ncode");
+  });
+
+  it("writes nothing when the new line would land in a comment that never closes", async () => {
+    const notes = new FakeNotes({ [ONE]: "%% a comment\n" });
+    await expect(new NoteEditor(notes.vault).appendShown(ONE, ["[[Mira]] AC: 15"])).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.texts.get(ONE)).toBe("%% a comment\n");
+  });
+
+  it("adds a line after a code block that closes", async () => {
+    const notes = new FakeNotes({ [ONE]: "```\ncode\n```" });
+    await new NoteEditor(notes.vault).appendShown(ONE, ["[[Mira]] AC: 15"]);
+    expect(notes.texts.get(ONE)).toBe("```\ncode\n```\n[[Mira]] AC: 15\n");
   });
 });
