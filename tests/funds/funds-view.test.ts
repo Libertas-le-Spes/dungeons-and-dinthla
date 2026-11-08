@@ -27,7 +27,7 @@ async function openView(campaign: Campaign, notes: string[] = ["Mira"]) {
       return unsubscribe;
     },
   };
-  const actions = { openSource: vi.fn(), openLink: vi.fn() };
+  const actions = { openRow: vi.fn(), openSource: vi.fn(), openLink: vi.fn() };
   const noteExists = (name: string) => notes.includes(name);
   const view = new FundsView({} as WorkspaceLeaf, store as unknown as CampaignStore, actions, noteExists);
   const root = obsidianDocument().createElement("div");
@@ -108,7 +108,7 @@ describe("FundsView", () => {
   it("opens the session at a ledger line when it is tapped", async () => {
     const { root, actions } = await openView(campaignOf(["We rode on.", "$ 5 gp"]));
     (root.querySelector(".dd-ledger-row") as HTMLElement).click();
-    expect(actions.openSource).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 1 });
+    expect(actions.openRow).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 1 });
   });
 
   it("writes an entry that comes to nothing without a sign", async () => {
@@ -143,9 +143,9 @@ describe("FundsView", () => {
   it("opens a held item where it was written, and a gone one where it went", async () => {
     const { root, actions } = await openView(campaignOf(["$ Potion of healing", "$ Rope"], ["We rode on.", "$$ Rope :used"]));
     (root.querySelector(".dd-items-panel > .dd-list .dd-row") as HTMLElement).click();
-    expect(actions.openSource).toHaveBeenLastCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 0 });
+    expect(actions.openRow).toHaveBeenLastCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 0 });
     (root.querySelector(".dd-folded .dd-row") as HTMLElement).click();
-    expect(actions.openSource).toHaveBeenLastCalledWith({ path: "Pale Moon/Sessions/Session 2.md", line: 1 });
+    expect(actions.openRow).toHaveBeenLastCalledWith({ path: "Pale Moon/Sessions/Session 2.md", line: 1 });
   });
 
   it("says how to note an item, and that nothing is gone, when there are none", async () => {

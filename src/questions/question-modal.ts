@@ -1,5 +1,6 @@
 import { Modal, Notice, Setting, type App, type ButtonComponent } from "obsidian";
 import type { QuestionRecord } from "../campaign/campaign";
+import { messageOf } from "../views/message-of";
 import type { QuestionEdit } from "./question-writer";
 
 export interface QuestionChoices {
@@ -8,23 +9,31 @@ export interface QuestionChoices {
   delete(): Promise<void>;
 }
 
+export interface QuestionPlaces {
+  askedIn: string;
+  writesTo: string;
+}
+
 const CONFIRM_MS = 4000;
 
-function messageOf(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  return String(error);
+function isSubmit(event: KeyboardEvent, needsModifier: boolean): boolean {
+  if (event.key !== "Enter" || event.isComposing) return false;
+  if (!needsModifier) return true;
+  return event.ctrlKey || event.metaKey;
 }
 
 export class QuestionModal extends Modal {
   private readonly edit: QuestionEdit;
   private confirmTimer: number | null = null;
+  private changed = false;
+  private busy = false;
 
   constructor(
     app: App,
     private readonly question: QuestionRecord,
-    private readonly sessionLabel: string,
+    private readonly places: QuestionPlaces,
     private readonly choices: QuestionChoices,
-    private readonly onClosed: () => void,
+    private readonly onClosed: (changed: boolean) => void,
   ) {
     super(app);
     let answer = "";
@@ -38,14 +47,16 @@ export class QuestionModal extends Modal {
     else this.setTitle("Answered question");
     contentEl.addClass("dd-tokens", "dd-question-dialog");
     contentEl.createEl("p", { cls: "dd-question", text: this.question.text });
+    contentEl.createEl("p", { cls: "dd-asked", text: `Asked in ${this.places.askedIn}` });
     new Setting(contentEl).setName("Answer").addTextArea((area) => {
       area.setPlaceholder("Lady Vess sent it, through [[Mira]]").setValue(this.edit.answer).onChange((value) => {
         this.edit.answer = value;
       });
+      area.inputEl.setAttr("aria-label", "Answer");
       area.inputEl.addEventListener("keydown", (event) => {
-        if (event.key !== "Enter" || !(event.ctrlKey || event.metaKey)) return;
+        if (!isSubmit(event, true)) return;
         event.preventDefault();
-        this.run(this.choices.save(this.edit));
+        this.run(() => this.choices.save(this.edit));
       });
       area.inputEl.focus();
     });
@@ -53,33 +64,35 @@ export class QuestionModal extends Modal {
       text.setPlaceholder("Why would she hide it?").onChange((value) => {
         this.edit.followUp = value;
       });
+      text.inputEl.setAttr("aria-label", "Follow-up question");
       text.inputEl.addEventListener("keydown", (event) => {
-        if (event.key !== "Enter") return;
+        if (!isSubmit(event, false)) return;
         event.preventDefault();
-        this.run(this.choices.save(this.edit));
+        this.run(() => this.choices.save(this.edit));
       });
     });
-    contentEl.createEl("p", { cls: "dd-where", text: `New lines go into ${this.sessionLabel}.` });
+    contentEl.createEl("p", { cls: "dd-where", text: `New lines go into ${this.places.writesTo}.` });
     const buttons = new Setting(contentEl);
-    buttons.addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.run(this.choices.save(this.edit))));
+    buttons.addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.run(() => this.choices.save(this.edit))));
     if (this.question.answer !== null) {
-      buttons.addButton((button) => button.setButtonText("Reopen question").onClick(() => this.run(this.choices.reopen())));
+      buttons.addButton((button) => button.setButtonText("Reopen question").onClick(() => this.run(() => this.choices.reopen())));
     }
     buttons.addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));
     buttons.addButton((button) => {
       button.setButtonText("Delete question").setWarning().onClick(() => this.confirmDelete(button));
+      button.buttonEl.addClass("dd-delete");
     });
   }
 
   override onClose(): void {
     if (this.confirmTimer !== null) window.clearTimeout(this.confirmTimer);
     this.contentEl.empty();
-    this.onClosed();
+    this.onClosed(this.changed);
   }
 
   private confirmDelete(button: ButtonComponent): void {
     if (this.confirmTimer !== null) {
-      this.run(this.choices.delete());
+      this.run(() => this.choices.delete());
       return;
     }
     button.setButtonText("Press again to delete");
@@ -89,8 +102,17 @@ export class QuestionModal extends Modal {
     }, CONFIRM_MS);
   }
 
-  private run(change: Promise<void>): void {
-    this.close();
-    change.catch((error: unknown) => new Notice(`Couldn't change the question: ${messageOf(error)}`));
+  private run(change: () => Promise<void>): void {
+    if (this.busy) return;
+    this.busy = true;
+    change()
+      .then(() => {
+        this.changed = true;
+        this.close();
+      })
+      .catch((error: unknown) => new Notice(`Couldn't change the question: ${messageOf(error)}`))
+      .finally(() => {
+        this.busy = false;
+      });
   }
 }

@@ -6,7 +6,7 @@ import { obsidianDocument } from "../views/obsidian-dom";
 function setUp(lines: string[], keywords: string[] = []) {
   const campaign = buildCampaign([{ path: "Pale Moon/Sessions/Session 2.md", number: 2, firstLine: 0, text: lines.join("\n") }]);
   const list = obsidianDocument().createElement("ul");
-  const actions = { openSource: vi.fn(), openLink: vi.fn() };
+  const actions = { openRow: vi.fn(), openSource: vi.fn(), openLink: vi.fn() };
   for (const record of campaign.quests) addQuestRow(list, record, keywords, actions);
   return { row: list.querySelector(".dd-row") as HTMLElement, actions };
 }
@@ -54,6 +54,6 @@ describe("addQuestRow", () => {
   it("opens the session at the quest's line when tapped", () => {
     const { row, actions } = setUp(["We rode on.", "! Find it"]);
     row.click();
-    expect(actions.openSource).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 2.md", line: 1 });
+    expect(actions.openRow).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 2.md", line: 1 });
   });
 });

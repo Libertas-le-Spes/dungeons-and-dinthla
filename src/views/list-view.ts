@@ -23,6 +23,8 @@ export interface ListKind<T> {
   addRow(list: HTMLElement, item: T, keywords: string[], actions: LinkActions): void;
 }
 
+const PENDING_FOCUS_MS = 3000;
+
 function capitalised(word: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
@@ -33,7 +35,7 @@ export class CampaignListView<T> extends ItemView {
   private openList!: HTMLElement;
   private foldedCount!: HTMLElement;
   private foldedList!: HTMLElement;
-  private pendingFocus: Source | null = null;
+  private pendingFocus: { source: Source; until: number } | null = null;
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -90,19 +92,27 @@ export class CampaignListView<T> extends ItemView {
     this.focusPendingRow();
   }
 
-  focusRow(source: Source): void {
-    this.pendingFocus = source;
-    this.focusPendingRow();
+  focusRow(source: Source, afterChange: boolean): void {
+    this.focusRowAt(source);
+    this.pendingFocus = null;
+    if (afterChange) this.pendingFocus = { source, until: Date.now() + PENDING_FOCUS_MS };
   }
 
   private focusPendingRow(): void {
-    const source = this.pendingFocus;
-    if (source === null) return;
+    const pending = this.pendingFocus;
+    this.pendingFocus = null;
+    if (pending === null || Date.now() > pending.until) return;
+    if (!this.focusRowAt(pending.source)) this.filter.focus();
+  }
+
+  private focusRowAt(source: Source): boolean {
     const rows = Array.from(this.contentEl.querySelectorAll<HTMLElement>(".dd-row"));
     const row = rows.find((candidate) => candidate.dataset.path === source.path && candidate.dataset.line === String(source.line));
-    if (row === undefined) return;
+    if (row === undefined) return false;
+    const folded = row.closest("details");
+    if (folded !== null) folded.open = true;
     row.focus();
-    this.pendingFocus = null;
+    return true;
   }
 
   private fill(list: HTMLElement, items: T[], keywords: string[], emptyText: string): void {
