@@ -102,7 +102,7 @@
 
 .dd-sheet .dd-value.dd-state-learned {
   text-decoration: underline dotted var(--border-strong);
-  text-underline-offset: 4px;
+  text-underline-offset: var(--space-1);
 }
 
 .dd-sheet .dd-value.dd-state-unknown {
@@ -160,7 +160,7 @@
   min-height: var(--control-sm);
   color: inherit;
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: var(--space-0);
 }
 
 .dd-sheet .dd-sheet-hint {
@@ -196,25 +196,23 @@
   background: var(--surface-active);
 }
 
-.dd-sheet-dialog .dd-state-dot {
+.dd-sheet-dialog .dd-state-choice::before {
+  content: "";
   flex: none;
-  width: 10px;
-  height: 10px;
+  width: var(--space-2);
+  height: var(--space-2);
   border-radius: var(--radius-pill);
-}
-
-.dd-sheet-dialog .dd-state-dot.dd-state-learned {
   background: var(--state-known);
 }
 
-.dd-sheet-dialog .dd-state-dot.dd-state-override {
+.dd-sheet-dialog .dd-state-choice[data-state="override"]::before {
   background: var(--state-override);
 }
 
-.dd-sheet-dialog .dd-state-dot.dd-state-carried {
+.dd-sheet-dialog .dd-state-choice[data-state="carried"]::before {
   background: var(--state-carried);
 }
 
-.dd-sheet-dialog .dd-state-dot.dd-state-unknown {
+.dd-sheet-dialog .dd-state-choice[data-state="unknown"]::before {
   background: var(--state-unknown);
 }

@@ -2,9 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App } from "obsidian";
 import { CHANGED_IN_NOTE, PartlyWritten } from "../../src/campaign/note-editor";
 import { characterSheetOf, type SheetValue } from "../../src/characters/character-sheet";
-import { SheetValueModal, whereText, type SheetValueDialog } from "../../src/characters/sheet-value-modal";
+import { secondPressText, SheetValueModal, whereText, type SheetValueDialog } from "../../src/characters/sheet-value-modal";
 import type { ValueChoice } from "../../src/characters/sheet-value-writer";
 import type { SourcedFact } from "../../src/characters/sheet-values";
+import { PRESS_AGAIN } from "../../src/views/second-press";
 import { Notice, type Modal as StubModal } from "../stubs/obsidian";
 
 const MIRA = "Pale Moon/Characters/Mira.md";
@@ -175,5 +176,77 @@ describe("SheetValueModal", () => {
     } });
     choice("learned").click();
     await vi.waitFor(() => expect(onClosed).toHaveBeenCalledOnce());
+  });
+});
+
+describe("SheetValueModal on a value only the character's note states, under a name the sheet doesn't know", () => {
+  const PERSONALITY: SourcedFact = { name: "Personality", value: "grumpy, but kind", source: { path: MIRA, line: 2 } };
+
+  function personality(): SheetValue {
+    return characterSheetOf([], [PERSONALITY], null).values.find((value) => value.name === "Personality")!;
+  }
+
+  it("asks for a second press before a choice that removes its line from the note", async () => {
+    const { choice, saved } = openDialog({ value: personality() });
+    choice("carried").click();
+    expect(choice("carried").textContent).toBe(PRESS_AGAIN);
+    choice("unknown").click();
+    expect(saved).toEqual([]);
+    expect(choice("unknown").textContent).toBe(PRESS_AGAIN);
+    choice("unknown").click();
+    await vi.waitFor(() => expect(saved).toEqual([{ state: "unknown", value: "grumpy, but kind" }]));
+  });
+
+  it("saves the override on Enter, which removes nothing", async () => {
+    const { enter, saved } = openDialog({ value: personality() });
+    enter();
+    await vi.waitFor(() => expect(saved).toEqual([{ state: "override", value: "grumpy, but kind" }]));
+  });
+
+  it("asks for a second press before Learned at the table, which clears the override", async () => {
+    const { choice, saved } = openDialog({ value: personality() });
+    choice("learned").click();
+    expect(saved).toEqual([]);
+    choice("learned").click();
+    await vi.waitFor(() => expect(saved).toEqual([{ state: "learned", value: "grumpy, but kind" }]));
+  });
+
+  it("stops waiting for the second press when the dialog closes", () => {
+    vi.useFakeTimers();
+    try {
+      const { modal, choice } = openDialog({ value: personality() });
+      choice("unknown").click();
+      expect(vi.getTimerCount()).toBe(1);
+      modal.close();
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("says why", () => {
+    const { root } = openDialog({ value: personality() });
+    expect(Array.from(root.querySelectorAll(".dd-where")).map((where) => where.textContent)).toContain(secondPressText("Mira", "Personality"));
+  });
+
+  it("saves an override on the first press", async () => {
+    const { choice, saved } = openDialog({ value: personality() });
+    choice("override").click();
+    await vi.waitFor(() => expect(saved).toHaveLength(1));
+  });
+
+  it("saves on the first press for a name the sheet knows", async () => {
+    const { choice, saved, root } = openDialog({ value: hpOf([], [{ name: "HP", value: "40", source: { path: MIRA, line: 0 } }]) });
+    expect(Array.from(root.querySelectorAll(".dd-where")).map((where) => where.textContent)).toHaveLength(1);
+    choice("unknown").click();
+    await vi.waitFor(() => expect(saved).toEqual([{ state: "unknown", value: "40" }]));
+  });
+
+  it("saves on the first press when nothing is on the note to remove", async () => {
+    const learned = { ...PERSONALITY, source: { path: "Pale Moon/Sessions/Session 1.md", line: 0 } };
+    const value = characterSheetOf([learned], [], null).values.find((sheetValue) => sheetValue.name === "Personality")!;
+    const { choice, saved } = openDialog({ value });
+    choice("unknown").click();
+    await vi.waitFor(() => expect(saved).toHaveLength(1));
   });
 });

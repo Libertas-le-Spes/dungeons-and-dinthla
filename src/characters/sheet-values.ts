@@ -14,6 +14,10 @@ export interface SourcedFact extends CharacterFact {
 
 export type SheetValues = Map<string, string>;
 
+export function isSheetName(name: string): boolean {
+  return SHEET_NAMES.some((candidate) => candidate.toLowerCase() === name.toLowerCase());
+}
+
 export function sheetNameOf(name: string): string {
   const sheetName = SHEET_NAMES.find((candidate) => candidate.toLowerCase() === name.toLowerCase());
   if (sheetName === undefined) return name;
