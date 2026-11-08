@@ -1,6 +1,6 @@
 import { sessionNumberOf } from "./session-file";
 
-function topFolderOf(path: string): string | null {
+export function topFolderOf(path: string): string | null {
   const slash = path.indexOf("/");
   if (slash === -1) return null;
   return path.slice(0, slash);
