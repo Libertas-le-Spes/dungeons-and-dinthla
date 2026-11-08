@@ -27,7 +27,7 @@ async function openView(campaign: Campaign, notes: string[] = ["Mira"]) {
       return unsubscribe;
     },
   };
-  const actions = { openRow: vi.fn(), openSource: vi.fn(), openLink: vi.fn() };
+  const actions = { openRow: vi.fn(), openLink: vi.fn() };
   const noteExists = (name: string) => notes.includes(name);
   const view = new FundsView({} as WorkspaceLeaf, store as unknown as CampaignStore, actions, noteExists);
   const root = obsidianDocument().createElement("div");

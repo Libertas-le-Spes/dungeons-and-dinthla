@@ -3,7 +3,6 @@ import { textRunsOf, type MarkedPiece } from "./text-parts";
 
 export interface LinkActions {
   openRow(source: Source): void;
-  openSource(source: Source): void;
   openLink(linktext: string, sourcePath: string): void;
 }
 

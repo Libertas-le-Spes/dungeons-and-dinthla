@@ -21,7 +21,7 @@ async function openView(campaign: Campaign) {
       return unsubscribe;
     },
   };
-  const view = new CampaignListView({} as WorkspaceLeaf, store as unknown as CampaignStore, { openRow: vi.fn(), openSource: vi.fn(), openLink: vi.fn() }, questsKind);
+  const view = new CampaignListView({} as WorkspaceLeaf, store as unknown as CampaignStore, { openRow: vi.fn(), openLink: vi.fn() }, questsKind);
   const document = obsidianDocument();
   const root = document.createElement("div");
   document.body.append(root);

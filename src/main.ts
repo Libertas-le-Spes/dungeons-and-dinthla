@@ -23,7 +23,6 @@ export default class DungeonsAndDinthla extends Plugin {
   override async onload(): Promise<void> {
     const actions = {
       openRow: (source: Source) => void openSource(this.app, source),
-      openSource: (source: Source) => void openSource(this.app, source),
       openLink: (linktext: string, sourcePath: string) => void this.app.workspace.openLinkText(linktext, sourcePath),
     };
     const questionActions = {
