@@ -4,14 +4,12 @@ import { campaignFolderOf, campaignNotePathOf } from "../campaign/campaign-folde
 import type { CampaignStore } from "../campaign/campaign-store";
 import type { LinkActions } from "../views/linked-text";
 import { addCharacterCard, type CharacterCard } from "./character-card";
+import { characterCardOf, learnedFactsOf, type LearnedFacts } from "./character-cards";
 import type { CharacterNotes } from "./character-notes";
-import { factsByCharacter, overrideFacts, sheetValuesOf, type SourcedFact } from "./sheet-values";
 
 export const CHARACTERS_VIEW = "dungeons-and-dinthla-characters";
 
 const NO_CHARACTERS = "No characters yet. Add one with New character.";
-
-type LearnedFacts = Map<string, SourcedFact[]>;
 
 export class CharactersView extends BasesView {
   readonly type = CHARACTERS_VIEW;
@@ -96,18 +94,10 @@ export class CharactersView extends BasesView {
 
   private async readLearned(folder: string | null): Promise<LearnedFacts> {
     const sessions = await this.sessionsIn(folder);
-    return factsByCharacter(sessions, (linktext, sourcePath) => this.notes.pathOfLink(linktext, sourcePath));
+    return learnedFactsOf(sessions, this.notes);
   }
 
   private async cardOf(file: TFile, learnedFacts: Promise<LearnedFacts>): Promise<CharacterCard> {
-    const ownNote = await this.notes.textOf(file);
-    let learned = (await learnedFacts).get(file.path);
-    if (learned === undefined) learned = [];
-    return {
-      path: file.path,
-      name: file.basename,
-      values: sheetValuesOf(learned, overrideFacts(ownNote, file.path)),
-      isOwn: this.notes.isOwnCharacter(file),
-    };
+    return characterCardOf(file, await learnedFacts, this.notes);
   }
 }
