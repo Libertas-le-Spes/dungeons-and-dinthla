@@ -1,7 +1,13 @@
 import { debounce, MarkdownView, Notice, Plugin, type EditorSuggestContext, type MarkdownFileInfo, type TFile } from "obsidian";
 import type { Source } from "./campaign/campaign";
 import { messageOf } from "./views/message-of";
-import { campaignFolderOf, findCampaignFolders, isSessionNote } from "./campaign/campaign-folders";
+import {
+  campaignFolderOf,
+  chosenCampaignFolder,
+  findCampaignFolders,
+  isSessionNote,
+  startingCampaignFolder,
+} from "./campaign/campaign-folders";
 import { CampaignStore } from "./campaign/campaign-store";
 import { characterNotesOf } from "./characters/character-notes";
 import { CHARACTERS_VIEW, CharactersView } from "./characters/characters-view";
@@ -25,6 +31,8 @@ import { CampaignListView } from "./views/list-view";
 import { openSideView, openSource } from "./views/open-view";
 import { colourMarkers } from "./reading/colour-markers";
 import { showBackground, shownBackgroundOf } from "./reading/note-background";
+import { CampaignSettingTab } from "./settings/campaign-setting-tab";
+import { settingsOf, type PluginSettings } from "./settings/plugin-settings";
 import { startSession } from "./sessions/start-session";
 import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
@@ -33,8 +41,15 @@ const TYPING_PAUSE_MS = 250;
 
 export default class DungeonsAndDinthla extends Plugin {
   private readonly store = new CampaignStore(this.app.vault);
+  private settings: PluginSettings = settingsOf(null);
 
   override async onload(): Promise<void> {
+    this.settings = settingsOf(await this.loadData());
+    this.addSettingTab(new CampaignSettingTab(this.app, this, {
+      folders: () => this.campaignFolders(),
+      shown: () => chosenCampaignFolder(this.store.campaignFolder, this.campaignFolders()),
+      choose: (folder) => this.chooseCampaign(folder),
+    }));
     const actions = {
       openRow: (source: Source) => void openSource(this.app, source),
       openLink: (linktext: string, sourcePath: string) => void this.app.workspace.openLinkText(linktext, sourcePath),
@@ -99,6 +114,12 @@ export default class DungeonsAndDinthla extends Plugin {
     this.followTheme();
     this.app.workspace.onLayoutReady(() => void this.watchCampaign());
     this.app.workspace.onLayoutReady(() => this.watchBackgrounds());
+  }
+
+  private async chooseCampaign(folder: string): Promise<void> {
+    this.settings.campaignFolder = folder;
+    await this.saveData(this.settings);
+    await this.store.open(folder);
   }
 
   private watchBackgrounds(): void {
@@ -174,15 +195,10 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private startingCampaignFolder(): string | null {
-    const folders = this.campaignFolders();
     const activeFile = this.app.workspace.getActiveFile();
-    if (activeFile !== null) {
-      const folder = campaignFolderOf(activeFile.path, folders);
-      if (folder !== null) return folder;
-    }
-    const [first] = folders;
-    if (first === undefined) return null;
-    return first;
+    let activePath: string | null = null;
+    if (activeFile !== null) activePath = activeFile.path;
+    return startingCampaignFolder(activePath, this.settings.campaignFolder, this.campaignFolders());
   }
 
   private async followCampaignOf(file: TFile | null): Promise<void> {
