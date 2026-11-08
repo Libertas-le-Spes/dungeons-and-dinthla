@@ -1,11 +1,9 @@
-const LIST_BULLET = /^[-*+]\s+/;
+const INDENT_AND_BULLET = /^\s*(?:[-*+]\s+)?/;
 
-export function withoutBullet(line: string): string {
-  return line.trim().replace(LIST_BULLET, "");
+export function markerStartOf(line: string): number {
+  return INDENT_AND_BULLET.exec(line)![0].length;
 }
 
-const LEADING_BULLET = /^\s*(?:[-*+]\s+)?/;
-
-export function bulletLengthOf(line: string): number {
-  return LEADING_BULLET.exec(line)![0].length;
+export function withoutBullet(line: string): string {
+  return line.slice(markerStartOf(line)).trim();
 }
