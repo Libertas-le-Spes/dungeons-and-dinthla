@@ -36,3 +36,14 @@
   font-size: var(--text-sm);
   color: var(--text-muted-ui);
 }
+
+.dd-dialog .dd-reading {
+  min-height: calc(var(--leading-body) * 1em);
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted-ui);
+}
+
+.dd-dialog .dd-reading.dd-error {
+  color: var(--state-danger);
+}
