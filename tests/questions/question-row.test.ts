@@ -6,7 +6,7 @@ import { obsidianDocument } from "../views/obsidian-dom";
 function setUp(lines: string[], keywords: string[] = []) {
   const campaign = buildCampaign([{ path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: lines.join("\n") }]);
   const list = obsidianDocument().createElement("ul");
-  const actions = { openRow: vi.fn(), openSource: vi.fn(), openLink: vi.fn() };
+  const actions = { openRow: vi.fn(), openLink: vi.fn() };
   for (const question of campaign.questions) addQuestionRow(list, question, keywords, actions);
   return { row: list.querySelector(".dd-row") as HTMLElement, actions };
 }
