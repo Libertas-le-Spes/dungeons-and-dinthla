@@ -29,6 +29,10 @@ export class QuestWriter {
     return this.editor.replace(plan.targetPath, plan.added, plan.removal);
   }
 
+  async add(line: string, sessionPath: string): Promise<boolean> {
+    return this.editor.append(sessionPath, [line]);
+  }
+
   async delete(record: QuestRecord): Promise<boolean> {
     const others = record.progress.map((note) => followUpRemoval(record, "progress", note));
     const outcome = outcomeRemoval(record);
