@@ -50,9 +50,11 @@ function signRefusal(direction: Direction, typed: string): string | null {
   return null;
 }
 
-export function readCoinDraft(draft: CoinDraft): CoinReading {
-  const typed = oneLine(draft.amount);
-  const signed = signRefusal(draft.direction, typed);
+export type AmountReading = { amount: string; copper: number } | { error: string };
+
+export function readAmount(direction: Direction, typedAmount: string): AmountReading {
+  const typed = oneLine(typedAmount);
+  const signed = signRefusal(direction, typed);
   if (signed !== null) return { error: signed };
   const amount = typed.replace(LEADING_SIGN, "");
   if (!AMOUNT_ONLY.test(amount)) return { error: NO_COIN };
@@ -60,6 +62,13 @@ export function readCoinDraft(draft: CoinDraft): CoinReading {
   const typedAmounts = amount.match(ONE_AMOUNT)!.length;
   if (worth === null || worth.type !== "coin" || worth.coins.length !== typedAmounts) return { error: NO_COIN };
   if (worth.copper === 0) return { error: NO_AMOUNT };
+  return { amount, copper: worth.copper };
+}
+
+export function readCoinDraft(draft: CoinDraft): CoinReading {
+  const worth = readAmount(draft.direction, draft.amount);
+  if ("error" in worth) return worth;
+  const amount = worth.amount;
   const what = oneLine(draft.what);
   if (/\bfor:/i.test(blankLinks(what))) return { error: NO_FOR };
   if (draft.direction === "in" && MONEY_OUT_WORD.test(blankLinks(what))) return { error: WORDS_SAY_OUT };
