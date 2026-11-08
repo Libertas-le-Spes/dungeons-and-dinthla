@@ -183,4 +183,29 @@ describe("FundsView", () => {
     expect(root.ownerDocument.activeElement).toBe(button);
     expect(root.querySelector(".dd-ledger-panel .dd-count")?.textContent).toBe("1 entry");
   });
+
+  it("opens a ledger entry to change it, and puts focus back on its row after the redraw", async () => {
+    const store = { current: campaignOf(["$ 5 gp found"]), listener: (_campaign: Campaign) => {} };
+    const openEntry = vi.fn();
+    const view = new FundsView(
+      {} as WorkspaceLeaf,
+      { get current() { return store.current; }, subscribe: (next: (campaign: Campaign) => void) => { store.listener = next; return () => {}; } } as unknown as CampaignStore,
+      { openRow: vi.fn(), openLink: vi.fn() },
+      () => true,
+      null,
+      openEntry,
+    );
+    const document = obsidianDocument();
+    const root = document.createElement("div");
+    document.body.append(root);
+    view.contentEl = root;
+    view.register = () => {};
+    await view.onOpen();
+    (root.querySelector(".dd-ledger-row") as HTMLElement).click();
+    expect(openEntry).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 0 }, expect.any(Function));
+    openEntry.mock.calls[0]![1](true);
+    store.current = campaignOf(["$ 8 gp found"]);
+    store.listener(store.current);
+    expect((document.activeElement as HTMLElement).classList.contains("dd-ledger-row")).toBe(true);
+  });
 });

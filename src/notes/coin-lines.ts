@@ -66,3 +66,14 @@ export function readCoinDraft(draft: CoinDraft): CoinReading {
   if (copper < 0) word = "Out";
   return { line: `$ ${body}`, copper, reads: `Reads as ${word} ${formatMoney(Math.abs(copper))}: ${body}` };
 }
+
+const AMOUNT_IN_TEXT = /(?<![^\s(])(?:[+\-−]\s*)?\d[\d,]*\s*(?:pp|gp|ep|sp|cp)\b/gi;
+
+export function draftOf(text: string, copper: number, amounts: { count: number; kind: string }[]): CoinDraft {
+  let direction: Direction = "in";
+  if (copper < 0) direction = "out";
+  const amount = amounts.map((coin) => `${coin.count.toLocaleString("en")} ${coin.kind}`).join(" ");
+  let what = oneLine(text.replace(AMOUNT_IN_TEXT, " "));
+  if (direction === "out") what = what.replace(/^paid\b\s*/i, "");
+  return { direction, amount, what };
+}
