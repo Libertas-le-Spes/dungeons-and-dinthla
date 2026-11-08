@@ -62,13 +62,15 @@ function entriesText(count: number): string {
 export class FundsView extends ItemView {
   private purse!: HTMLElement;
   private items!: HTMLElement;
-  private ledger!: HTMLElement;
+  private ledgerCount!: HTMLElement;
+  private ledgerList!: HTMLElement;
 
   constructor(
     leaf: WorkspaceLeaf,
     private readonly store: CampaignStore,
     private readonly actions: LinkActions,
     private readonly noteExists: (name: string, sourcePath: string) => boolean,
+    private readonly addCoin: ((returnFocus: () => void) => void) | null,
   ) {
     super(leaf);
   }
@@ -91,7 +93,7 @@ export class FundsView extends ItemView {
     root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-funds");
     this.purse = root.createEl("section", { cls: "dd-panel dd-purse-panel" });
     this.items = root.createEl("section", { cls: "dd-panel dd-items-panel" });
-    this.ledger = root.createEl("section", { cls: "dd-panel dd-ledger-panel" });
+    this.buildLedger(root.createEl("section", { cls: "dd-panel dd-ledger-panel" }));
     this.register(this.store.subscribe(() => this.render()));
     this.render();
   }
@@ -159,14 +161,24 @@ export class FundsView extends ItemView {
     meta.appendText(sessionLabelOf(source.path));
   }
 
+  private buildLedger(panel: HTMLElement): void {
+    const head = panel.createDiv({ cls: "dd-head" });
+    const title = head.createEl("h2", { cls: "dd-title", text: "Ledger" });
+    this.ledgerCount = title.createSpan({ cls: "dd-count" });
+    const addCoin = this.addCoin;
+    if (addCoin !== null) {
+      const button = head.createEl("button", { cls: "dd-create", text: "Add coin" });
+      this.registerDomEvent(button, "click", () => addCoin(() => button.focus()));
+    }
+    this.ledgerList = panel.createEl("ul", { cls: "dd-ledger" });
+    panel.createEl("p", { cls: "dd-note", text: HOW_LINES_ARE_READ });
+  }
+
   private renderLedger(lines: LedgerLine[]): void {
-    this.ledger.empty();
-    const title = this.ledger.createEl("h2", { cls: "dd-title", text: "Ledger" });
-    title.createSpan({ cls: "dd-count", text: entriesText(lines.length) });
-    const list = this.ledger.createEl("ul", { cls: "dd-ledger" });
-    if (lines.length === 0) list.createEl("li", { cls: "dd-empty", text: "No coin entries yet." });
-    for (const line of lines) this.addLedgerRow(list, line);
-    this.ledger.createEl("p", { cls: "dd-note", text: HOW_LINES_ARE_READ });
+    this.ledgerCount.setText(entriesText(lines.length));
+    this.ledgerList.empty();
+    if (lines.length === 0) this.ledgerList.createEl("li", { cls: "dd-empty", text: "No coin entries yet." });
+    for (const line of lines) this.addLedgerRow(this.ledgerList, line);
   }
 
   private addLedgerRow(list: HTMLElement, { record, balance }: LedgerLine): void {
