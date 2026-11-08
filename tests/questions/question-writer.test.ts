@@ -3,7 +3,7 @@ import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { QuestionRecord } from "../../src/campaign/campaign";
 import { sessionNoteOf } from "../../src/campaign/session-file";
-import { CHANGED_IN_NOTE, DUPLICATE_LINES, PartlyWritten, type EditorVault } from "../../src/campaign/note-editor";
+import { CHANGED_IN_NOTE, DUPLICATE_LINES, LINES_LEFT, PartlyWritten, type EditorVault } from "../../src/campaign/note-editor";
 import { planQuestionSave, planReopen, type QuestionEdit } from "../../src/questions/question-plan";
 import { QuestionWriter } from "../../src/questions/question-writer";
 
@@ -127,6 +127,30 @@ describe("QuestionWriter", () => {
     expect(notes.texts.get(ONE)).toBe("? Who\n?= Who: Mira (maybe)\n");
   });
 
+  it("refuses rather than change a twin of an answer edited by hand", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n" });
+    const [question] = notes.questions();
+    const handEdited = "? Who\n?= Who: Mira (maybe)\n?= Who: Mira\n";
+    notes.texts.set(ONE, handEdited);
+    await expect(save(notes, question!, { answer: "Lady Vess", followUp: "" }, ONE)).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(notes.texts.get(ONE)).toBe(handEdited);
+  });
+
+  it("deletes a question with the clue and answer written below it in its own note", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n?+ Who: the seal\nWe rode on.\n?= Who: Mira\n" });
+    await new QuestionWriter(notes.vault).delete(notes.questions()[0]!);
+    expect(notes.texts.get(ONE)).toBe("We rode on.\n");
+  });
+
+  it("refuses rather than delete a twin of a question edited by hand", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n" });
+    const [question] = notes.questions();
+    const handEdited = "? Who exactly\nmid\n? Who\n";
+    notes.texts.set(ONE, handEdited);
+    await expect(new QuestionWriter(notes.vault).delete(question!)).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(notes.texts.get(ONE)).toBe(handEdited);
+  });
+
   it("changes an answer in one note in one step", async () => {
     const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\nWe rode on.\n" });
     await save(notes, notes.questions()[0]!, { answer: "Lady Vess", followUp: "" }, ONE);
@@ -168,6 +192,25 @@ describe("QuestionWriter", () => {
     notes.texts.set(ONE, "? Who exactly\n");
     await expect(new QuestionWriter(notes.vault).delete(question!)).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notes.texts.get(TWO)).toBe("?= Who: Mira\n");
+  });
+
+  it("says which notes kept follow-up lines that moved since they were read", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n?+ Who: oil\n?= Who: Mira\n" });
+    const [question] = notes.questions();
+    notes.texts.set(ONE, "? Who\nWe rode on.\n?+ Who: oil\n?= Who: Mira\n");
+    const deleting = new QuestionWriter(notes.vault).delete(question!);
+    await expect(deleting).rejects.toBeInstanceOf(PartlyWritten);
+    await expect(deleting).rejects.toThrow(`${LINES_LEFT} ${ONE}.`);
+    expect(notes.texts.get(ONE)).toBe("We rode on.\n?+ Who: oil\n?= Who: Mira\n");
+  });
+
+  it("says so when follow-up lines in another note moved since they were read", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n", [TWO]: "?+ Who: oil\n?= Who: Mira\n" });
+    const [question] = notes.questions();
+    notes.texts.set(TWO, "Later.\n?+ Who: oil\n?= Who: Mira\n");
+    await expect(new QuestionWriter(notes.vault).delete(question!)).rejects.toThrow(`${LINES_LEFT} ${TWO}.`);
+    expect(notes.texts.get(ONE)).toBe("");
+    expect(notes.texts.get(TWO)).toBe("Later.\n?+ Who: oil\n?= Who: Mira\n");
   });
 
   it("says a delete was partly done when another note can't be written", async () => {
