@@ -1,0 +1,65 @@
+body.dd-follow-theme.theme-dark .dd-root {
+  --dd-danger-mix: 56%;
+  --dd-hue-mix: 78%;
+  --dd-hue-toward: white;
+  --dd-soft-mix: 8%;
+}
+
+body.dd-follow-theme.theme-light .dd-root {
+  --dd-danger-mix: 68%;
+  --dd-hue-mix: 68%;
+  --dd-hue-toward: black;
+  --dd-soft-mix: 8%;
+}
+
+body.dd-follow-theme .dd-root {
+  --surface-page: var(--background-primary);
+  --surface-sunken: var(--background-secondary);
+  --surface-card: var(--background-primary-alt);
+  --surface-raised: var(--background-secondary-alt);
+  --surface-hover: var(--background-modifier-hover);
+  --surface-active: var(--background-modifier-active-hover);
+  --surface-overlay: var(--background-modifier-cover);
+  --surface-statblock: var(--background-secondary);
+
+  --text-strong: var(--text-normal);
+  --text-body: var(--text-normal);
+  --text-muted-ui: var(--text-muted);
+  --text-faint-ui: color-mix(in oklab, var(--text-faint) 60%, var(--text-normal));
+  --text-link: color-mix(in oklch, var(--text-accent) var(--dd-hue-mix), var(--dd-hue-toward));
+
+  --border-subtle: var(--background-modifier-border);
+  --border-strong: color-mix(in oklab, var(--background-modifier-border-hover) 70%, var(--text-normal));
+  --border-focus: var(--background-modifier-border-focus);
+
+  --accent: var(--interactive-accent);
+  --accent-hover: color-mix(in oklab, var(--interactive-accent) 88%, var(--text-normal));
+  --accent-press: color-mix(in oklab, var(--interactive-accent) 76%, var(--text-normal));
+  --accent-soft: color-mix(in srgb, var(--interactive-accent) 18%, transparent);
+
+  --marker-question: color-mix(in oklch, var(--color-blue) var(--dd-hue-mix), var(--dd-hue-toward));
+  --marker-question-soft: color-mix(in srgb, var(--color-blue) var(--dd-soft-mix), transparent);
+  --marker-quest: color-mix(in oklch, var(--color-yellow) var(--dd-hue-mix), var(--dd-hue-toward));
+  --marker-quest-soft: color-mix(in srgb, var(--color-yellow) var(--dd-soft-mix), transparent);
+  --marker-ledger: color-mix(in oklch, var(--color-green) var(--dd-hue-mix), var(--dd-hue-toward));
+  --marker-ledger-soft: color-mix(in srgb, var(--color-green) var(--dd-soft-mix), transparent);
+  --marker-link: var(--text-link);
+  --marker-link-soft: color-mix(in srgb, var(--text-accent) var(--dd-soft-mix), transparent);
+
+  --state-known: var(--text-normal);
+  --state-unknown: var(--text-faint-ui);
+  --state-unknown-soft: var(--background-modifier-hover);
+  --state-override: color-mix(in oklch, var(--color-purple) var(--dd-hue-mix), var(--dd-hue-toward));
+  --state-override-soft: color-mix(in srgb, var(--color-purple) var(--dd-soft-mix), transparent);
+  --state-carried: color-mix(in oklch, var(--color-cyan) var(--dd-hue-mix), var(--dd-hue-toward));
+  --state-carried-soft: color-mix(in srgb, var(--color-cyan) var(--dd-soft-mix), transparent);
+  --state-history: var(--text-muted);
+  --state-danger: color-mix(in oklch, var(--text-error) var(--dd-danger-mix), var(--dd-hue-toward));
+  --state-danger-soft: color-mix(in srgb, var(--text-error) var(--dd-soft-mix), transparent);
+  --text-on-danger: var(--background-primary);
+
+  --statblock-heading: var(--text-link);
+  --statblock-rule: var(--interactive-accent);
+  --statblock-text: var(--text-normal);
+  --statblock-subtitle: var(--text-muted);
+}

@@ -24,11 +24,17 @@ npm run build
 
 `demo-vault/` is a small Obsidian vault with one made-up campaign, *Curse of the Pale Moon*, kept in the note format below. It shows what `main` can do after each merge, without touching your own vault.
 
-1. Run `npm run build`. Besides `main.js`, it copies `manifest.json`, `main.js` and `styles.css` into the demo vault's plugin folder.
+1. Run `npm run build`. It builds `main.js` and `styles.css`, then copies them and `manifest.json` into the demo vault's plugin folder.
 2. In Obsidian, choose **Open folder as vault** and pick `demo-vault`.
 3. When Obsidian asks whether you trust the vault's author, choose **Trust author and enable plugins**. Dungeons & Dinthla is then turned on under Community plugins.
 
 After the next build, reload the vault (**Reload app without saving** in the command palette, or Ctrl+R on desktop) to see the newest version. When the note format changes, the demo notes change in the same pull request, and each pull request says what to look for in the demo vault.
+
+## Look
+
+The plugin follows the [Dungeons & Dinthla design system](https://claude.ai/artifact/TPqcxoS9uio8boYoScD8Uk). With Obsidian's default theme its panels use the Dinthla colours, light or dark. With any other theme, such as an Omarchy theme, they take that theme's colours instead, lightened or darkened where needed so text stays readable. Headings use Alegreya and Alegreya SC, which are built into `styles.css`. Everything else uses Obsidian's own fonts.
+
+`styles.css` is built from `styles/` by `npm run build`. `tests/styles/contrast.test.ts` checks the prototype's contrast pairs in both Dinthla themes, Tokyo Night and Catppuccin Latte.
 
 ## Notes
 
