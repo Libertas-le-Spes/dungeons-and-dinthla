@@ -3,7 +3,7 @@ import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import { CHANGED_IN_NOTE, type EditorVault } from "../../src/campaign/note-editor";
 import { sessionNoteOf } from "../../src/campaign/session-file";
-import { canCollectReward, CHANGES_ANOTHER_QUEST, planQuestSave, refusalForQuestPlan, type QuestEdit } from "../../src/quests/quest-plan";
+import { canCollectReward, CHANGES_ANOTHER_QUEST, initialQuestEdit, planQuestSave, refusalForQuestPlan, type QuestEdit } from "../../src/quests/quest-plan";
 import { QuestWriter } from "../../src/quests/quest-writer";
 
 class FakeNotes {
@@ -119,7 +119,8 @@ describe("saving a quest", () => {
   it("replaces a changed outcome without collecting the reward a second time", async () => {
     const notes = new FakeNotes({ [ONE]: "! Find it, reward: 5 gp\n!= Find it: done\n$ +5 gp reward, for: Find it\n", [TWO]: "" });
     await notes.save(0, { status: "completed", happened: "done late", collectReward: true }, TWO);
-    expect(notes.texts.get(TWO)).toBe("!= Find it: done late\n");
+    expect(notes.texts.get(ONE)).toBe("! Find it, reward: 5 gp\n$ +5 gp reward, for: Find it\n!= Find it: done late\n");
+    expect(notes.texts.get(TWO)).toBe("");
     expect(notes.campaign().purseCopper).toBe(500);
   });
 
@@ -195,6 +196,37 @@ describe("refusing changes that swap same-titled quests in one note", () => {
     expect(refusalForQuestPlan(notes.sessions(), campaign.quests[0]!, { ...plan, added: [...plan.added, "$ 5 gp found"] })).toBe(
       CHANGES_ANOTHER_QUEST,
     );
+  });
+});
+
+describe("the reward and outcome rules for recurring quests", () => {
+  it("offers a reward only when it reads as one amount", () => {
+    const notes = new FakeNotes({ [ONE]: "! Escort, reward: 100 gp or 2 pp\n! Guard, reward: 100 gp\n" });
+    const campaign = notes.campaign();
+    expect(campaign.quests.map((record) => canCollectReward(record, campaign.coins))).toEqual([false, true]);
+  });
+
+  it("corrects an old outcome in its own note, so a later quest of the same title keeps its progress", async () => {
+    const notes = new FakeNotes({ [ONE]: "! Clear the rats\n!= Clear the rats: done\n", [TWO]: "! Clear the rats\n!+ Clear the rats: cellar\n" });
+    await notes.save(0, { status: "failed", happened: "fled" }, TWO);
+    expect(notes.texts.get(ONE)).toBe("! Clear the rats\n!x Clear the rats: fled\n");
+    expect(notes.campaign().quests.map((record) => [record.outcome?.status, record.progress.map((note) => note.text)])).toEqual([
+      ["failed", []],
+      [undefined, ["cellar"]],
+    ]);
+  });
+
+  it("refuses a follow-up quest that a stray line would mark finished at once", async () => {
+    const notes = new FakeNotes({ [session(1)]: "! T\n", [session(2)]: "", [session(3)]: "!= Return it, after: T: done\n" });
+    await expect(notes.save(0, { followUp: "Return it" }, session(2))).rejects.toThrow(CHANGES_ANOTHER_QUEST);
+  });
+
+  it("starts the reward toggle on for an active quest and off for a finished one", () => {
+    const notes = new FakeNotes({ [ONE]: "! A, reward: 5 gp\n! B, reward: 5 gp\n!= B: done\n" });
+    expect(notes.campaign().quests.map((record) => initialQuestEdit(record))).toEqual([
+      { status: "active", happened: "", collectReward: true, followUp: "" },
+      { status: "completed", happened: "done", collectReward: false, followUp: "" },
+    ]);
   });
 });
 

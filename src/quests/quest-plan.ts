@@ -43,7 +43,7 @@ function rewardCopperOf(reward: string, title: string): number | null {
   const own = readLedgerEntry(reward);
   const written = readLedgerEntry(readMarker(rewardLine(reward, title)).body);
   if (own === null || written === null || own.type !== "coin" || written.type !== "coin") return null;
-  if (own.copper !== written.copper) return null;
+  if (own.coins.length !== 1 || own.copper !== written.copper) return null;
   return own.copper;
 }
 
@@ -64,7 +64,13 @@ export function outcomeRemoval(record: QuestRecord): Removal | null {
   };
 }
 
-export function planQuestSave(record: QuestRecord, edit: QuestEdit, coins: CoinRecord[], targetPath: string): QuestPlan {
+export function initialQuestEdit(record: QuestRecord): QuestEdit {
+  if (record.outcome === null) return { status: "active", happened: "", collectReward: true, followUp: "" };
+  return { status: record.outcome.status, happened: record.outcome.text, collectReward: false, followUp: "" };
+}
+
+export function planQuestSave(record: QuestRecord, edit: QuestEdit, coins: CoinRecord[], sessionPath: string): QuestPlan {
+  let targetPath = sessionPath;
   const title = record.quest.title;
   const happened = oneLine(edit.happened);
   const added: string[] = [];
@@ -83,6 +89,7 @@ export function planQuestSave(record: QuestRecord, edit: QuestEdit, coins: CoinR
     added.push(outcomeLine(edit.status, title, happened));
     removal = outcomeRemoval(record);
     outcome = outcomeKey(edit.status, happened);
+    if (record.outcome !== null) targetPath = record.outcome.source.path;
   }
   let rewardCopper = 0;
   if (edit.status === "completed" && edit.collectReward && canCollectReward(record, coins)) {
@@ -142,8 +149,11 @@ export function refusalForQuestPlan(sessions: SessionNote[], record: QuestRecord
     return signatureOf(quest);
   });
   const found = questsBesidesFollowUp(after, plan).map(signatureOf);
+  const followUpStartsFresh = after.quests.every(
+    (quest) => quest.quest.title !== plan.followUpTitle || quest.source.path !== plan.targetPath || (quest.progress.length === 0 && quest.outcome === null),
+  );
   const questsMatch = JSON.stringify(wanted) === JSON.stringify(found);
   const purseMatches = after.purseCopper - before.purseCopper === plan.rewardCopper;
-  if (questsMatch && purseMatches) return null;
+  if (questsMatch && purseMatches && followUpStartsFresh) return null;
   return CHANGES_ANOTHER_QUEST;
 }

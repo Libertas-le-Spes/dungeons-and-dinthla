@@ -3,7 +3,7 @@ import type { QuestRecord } from "../campaign/campaign";
 import { PartlyWritten } from "../campaign/note-editor";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
-import type { QuestEdit, QuestStatusChoice } from "./quest-plan";
+import { initialQuestEdit, type QuestEdit, type QuestStatusChoice } from "./quest-plan";
 
 export interface QuestChoices {
   save(edit: QuestEdit): Promise<boolean>;
@@ -42,13 +42,7 @@ export class QuestModal extends Modal {
     private readonly onClosed: (changed: boolean) => void,
   ) {
     super(app);
-    let status: QuestStatusChoice = "active";
-    let happened = "";
-    if (record.outcome !== null) {
-      status = record.outcome.status;
-      happened = record.outcome.text;
-    }
-    this.edit = { status, happened, collectReward: record.outcome === null, followUp: "" };
+    this.edit = initialQuestEdit(record);
   }
 
   override onOpen(): void {
