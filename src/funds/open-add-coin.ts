@@ -8,14 +8,9 @@ import type { Source } from "../campaign/campaign";
 import type { CoinLine } from "../notes/coin-lines";
 import { coinEntryEdit, entryToEdit } from "./coin-entry";
 import { CoinModal, type CoinOutcome } from "./coin-modal";
+import { activePathOf } from "../views/open-view";
 
 const NO_SESSION = "Start a session first: coin is written into a session note.";
-
-function activePathOf(app: App): string | null {
-  const file = app.workspace.getActiveFile();
-  if (file === null) return null;
-  return file.path;
-}
 
 export function openAddCoin(app: App, store: CampaignStore, onClosed: (outcome: CoinOutcome) => void): void {
   const folder = store.campaignFolder;

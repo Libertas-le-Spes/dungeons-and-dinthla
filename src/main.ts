@@ -30,7 +30,7 @@ import type { CoinOutcome } from "./funds/coin-modal";
 import { openAddCoin, openCoinEntry } from "./funds/open-add-coin";
 import { openItemDialog } from "./funds/open-item";
 import { CampaignListView } from "./views/list-view";
-import { openMainView, openSideView, openSource } from "./views/open-view";
+import { activePathOf, openMainView, openSideView, openSource } from "./views/open-view";
 import { colourMarkers } from "./reading/colour-markers";
 import { BackgroundRefresh, showBackground, shownBackgroundOf } from "./reading/note-background";
 import { CampaignSettingTab } from "./settings/campaign-setting-tab";
@@ -220,10 +220,7 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private startingCampaignFolder(): string | null {
-    const activeFile = this.app.workspace.getActiveFile();
-    let activePath: string | null = null;
-    if (activeFile !== null) activePath = activeFile.path;
-    return startingCampaignFolder(activePath, this.chosen.folder, this.campaignFolders());
+    return startingCampaignFolder(activePathOf(this.app), this.chosen.folder, this.campaignFolders());
   }
 
   private async followCampaignOf(file: TFile | null): Promise<void> {

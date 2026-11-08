@@ -7,14 +7,9 @@ import { currentQuest, GOES_ELSEWHERE, happenedWouldGoElsewhere, latestSessionOf
 import { QuestModal } from "./quest-modal";
 import { canCollectReward, planQuestSave, refusalForQuestPlan, type QuestEdit } from "./quest-plan";
 import { QuestWriter } from "./quest-writer";
+import { activePathOf } from "../views/open-view";
 
 const NO_SESSION = "Start a session first: quest changes are written into a session note.";
-
-function activePathOf(app: App): string | null {
-  const file = app.workspace.getActiveFile();
-  if (file === null) return null;
-  return file.path;
-}
 
 export function openQuest(
   app: App,

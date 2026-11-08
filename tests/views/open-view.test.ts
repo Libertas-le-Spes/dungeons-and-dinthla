@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { App, ViewState, WorkspaceLeaf } from "obsidian";
-import { openMainView } from "../../src/views/open-view";
+import type { App, TFile, ViewState, WorkspaceLeaf } from "obsidian";
+import { activePathOf, openMainView } from "../../src/views/open-view";
 
 function appWith(openLeaves: WorkspaceLeaf[]) {
   const revealed: WorkspaceLeaf[] = [];
@@ -34,5 +34,17 @@ describe("openMainView", () => {
     await openMainView(app, "dashboard");
     expect(revealed).toEqual([open]);
     expect(states).toEqual([]);
+  });
+});
+
+describe("activePathOf", () => {
+  const appShowing = (file: TFile | null) => ({ workspace: { getActiveFile: () => file } }) as unknown as App;
+
+  it("gives the path of the note in front", () => {
+    expect(activePathOf(appShowing({ path: "Pale Moon/Sessions/Session 2.md" } as TFile))).toBe("Pale Moon/Sessions/Session 2.md");
+  });
+
+  it("gives nothing when no note is in front", () => {
+    expect(activePathOf(appShowing(null))).toBeNull();
   });
 });
