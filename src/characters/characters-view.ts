@@ -4,12 +4,12 @@ import { campaignFolderOf, campaignNotePathOf } from "../campaign/campaign-folde
 import type { CampaignStore } from "../campaign/campaign-store";
 import type { LinkActions } from "../views/linked-text";
 import { addCharacterCard, type CharacterCard } from "./character-card";
-import { characterCardOf, learnedFactsOf, type LearnedFacts } from "./character-cards";
+import { readCharacterCard, learnedFactsOf, type LearnedFacts } from "./read-character-card";
 import type { CharacterNotes } from "./character-notes";
 
 export const CHARACTERS_VIEW = "dungeons-and-dinthla-characters";
 
-export const NO_CHARACTERS = "No characters yet. Add one with New character.";
+const NO_CHARACTERS = "No characters yet. Add one with New character.";
 
 export class CharactersView extends BasesView {
   readonly type = CHARACTERS_VIEW;
@@ -98,6 +98,6 @@ export class CharactersView extends BasesView {
   }
 
   private async cardOf(file: TFile, learnedFacts: Promise<LearnedFacts>): Promise<CharacterCard> {
-    return characterCardOf(file, await learnedFacts, this.notes);
+    return readCharacterCard(file, await learnedFacts, this.notes);
   }
 }

@@ -1,18 +1,10 @@
-import type { Campaign, QuestionRecord, QuestRecord, SessionNote, Source } from "../campaign/campaign";
+import type { Campaign, QuestionRecord, QuestRecord, Source } from "../campaign/campaign";
 import type { LedgerLine } from "../funds/funds-summary";
 
 export type WrittenLine =
   | { kind: "question"; source: Source; question: QuestionRecord }
   | { kind: "quest"; source: Source; quest: QuestRecord }
   | { kind: "coin"; source: Source; ledgerLine: LedgerLine };
-
-export function latestSessionOf(sessions: SessionNote[]): SessionNote | null {
-  let latest: SessionNote | null = null;
-  for (const session of sessions) {
-    if (latest === null || session.number > latest.number) latest = session;
-  }
-  return latest;
-}
 
 export function linesWrittenIn(path: string, campaign: Campaign, ledger: LedgerLine[]): WrittenLine[] {
   const lines: WrittenLine[] = [];

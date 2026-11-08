@@ -1,14 +1,14 @@
 import { addSheetValue, type CharacterCard } from "../characters/character-card";
 import { addRowButton, type LinkActions } from "../views/linked-text";
 
-const PARTY_LINES = [
+const SHORT_CARD_LINES = [
   { label: "Class", name: "class" },
   { label: "AC", name: "AC" },
   { label: "HP", name: "HP" },
 ];
 
-export function addPartyCard(party: HTMLElement, card: CharacterCard, actions: LinkActions): void {
-  const element = addRowButton(party, { path: card.path, line: 0 }, actions);
+export function addShortCharacterCard(list: HTMLElement, card: CharacterCard, actions: LinkActions): void {
+  const element = addRowButton(list, { path: card.path, line: 0 }, actions);
   element.addClass("dd-card");
   if (card.isOwn) {
     element.addClass("dd-card-own");
@@ -16,7 +16,7 @@ export function addPartyCard(party: HTMLElement, card: CharacterCard, actions: L
   }
   element.createDiv({ cls: "dd-card-name", text: card.name });
   const line = element.createDiv({ cls: "dd-card-line" });
-  PARTY_LINES.forEach(({ label, name }, index) => {
+  SHORT_CARD_LINES.forEach(({ label, name }, index) => {
     if (index > 0) line.appendText(" · ");
     line.createEl("strong", { text: label });
     line.appendText(" ");

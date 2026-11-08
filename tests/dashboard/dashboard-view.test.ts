@@ -4,13 +4,14 @@ import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { SessionNote, Source } from "../../src/campaign/campaign";
 import type { CampaignStore } from "../../src/campaign/campaign-store";
 import type { CharacterNotes } from "../../src/characters/character-notes";
-import { NO_CHARACTERS } from "../../src/characters/characters-view";
 import { DashboardView, type DashboardActions } from "../../src/dashboard/dashboard-view";
 import type { CoinOutcome } from "../../src/funds/coin-modal";
 import { NO_COIN_ENTRIES } from "../../src/funds/ledger-row";
+import { SESSIONS_SHARE_A_NUMBER } from "../../src/campaign/session-to-write";
 import { obsidianDocument } from "../views/obsidian-dom";
 
 const CAMPAIGN = "Pale Moon";
+const NO_CHARACTERS = "No characters yet. A note in the campaign’s Characters folder adds one.";
 
 function sessionOf(number: number, lines: string[]): SessionNote {
   return { path: `${CAMPAIGN}/Sessions/Session ${number}.md`, number, firstLine: 0, text: lines.join("\n") };
@@ -112,7 +113,7 @@ function focusedLine(root: HTMLElement): string | undefined {
 const QUESTIONS = 0;
 const QUESTS = 1;
 const PURSE = 2;
-const PARTY = 3;
+const CHARACTERS = 3;
 const SESSION = 4;
 
 describe("DashboardView", () => {
@@ -152,7 +153,7 @@ describe("DashboardView", () => {
     expect(textsOf(panel(root, QUESTIONS), ".dd-big")).toEqual(["Nothing open"]);
     expect(textsOf(panel(root, QUESTS), ".dd-big")).toEqual(["No active quests"]);
     expect(textsOf(panel(root, PURSE), ".dd-ledger .dd-empty")).toEqual([NO_COIN_ENTRIES]);
-    await vi.waitFor(() => expect(textsOf(panel(root, PARTY), ".dd-empty")).toEqual([NO_CHARACTERS]));
+    await vi.waitFor(() => expect(textsOf(panel(root, CHARACTERS), ".dd-empty")).toEqual([NO_CHARACTERS]));
     expect(textsOf(panel(root, SESSION), ".dd-title")).toEqual(["Latest session"]);
     expect(textsOf(panel(root, SESSION), ".dd-empty")).toEqual(["No sessions yet. Start one to write in it."]);
   });
@@ -172,14 +173,28 @@ describe("DashboardView", () => {
     expect(textsOf(panel((await openDashboard([sessionOf(1, ["notes"])])).root, SESSION), ".dd-big")).toEqual(["Nothing written yet"]);
   });
 
+  it("shows no latest session, and says why, when two session notes share the highest number", async () => {
+    const tied = { ...sessionOf(2, ["? Who"]), path: `${CAMPAIGN}/Sessions/Session 02.md` };
+    const { root } = await openDashboard([sessionOf(1, []), sessionOf(2, []), tied]);
+    const session = panel(root, SESSION);
+    expect(textsOf(session, ".dd-title")).toEqual(["Latest session"]);
+    expect(textsOf(session, ".dd-empty")).toEqual([SESSIONS_SHARE_A_NUMBER]);
+    expect(button(session, "Write notes").hidden).toBe(true);
+  });
+
+  it("shows no latest session without a campaign", async () => {
+    const { root } = await openDashboard([sessionOf(1, ["? Who"])], { folder: null });
+    expect(textsOf(panel(root, SESSION), ".dd-empty")).toEqual(["No sessions yet. Start one to write in it."]);
+  });
+
   it("opens the latest session to write in it, and has nothing to open without one", async () => {
     const { root, actions, change } = await openDashboard([]);
     const write = button(panel(root, SESSION), "Write notes");
-    expect(write.style.display).toBe("none");
+    expect(write.hidden).toBe(true);
     write.click();
     expect(actions.openRow).not.toHaveBeenCalled();
     change([sessionOf(3, []), sessionOf(4, [])]);
-    expect(write.style.display).toBe("");
+    expect(write.hidden).toBe(false);
     write.click();
     expect(actions.openRow).toHaveBeenCalledWith({ path: `${CAMPAIGN}/Sessions/Session 4.md`, line: 0 });
     change([]);
@@ -239,10 +254,26 @@ describe("DashboardView", () => {
     expect(actions.openCoinEntry).toHaveBeenCalledWith({ path: `${CAMPAIGN}/Sessions/Session 1.md`, line: 0 }, expect.any(Function));
     closers.coin[0]!("unchanged");
     expect(root.ownerDocument.activeElement).toBe(row());
-    row().click();
-    closers.coin[1]!("deleted");
-    change([sessionOf(1, [])]);
+  });
+
+  it("puts focus on the panel's link once a coin entry is deleted, not on the entry that moves up to its line", async () => {
+    const lines = ["$ 1 gp found", "$ 5 gp found"];
+    const { root, closers, change } = await openDashboard([sessionOf(1, lines)]);
+    const rows = panel(root, PURSE).querySelectorAll<HTMLElement>(".dd-row");
+    expect(rows[1]!.dataset.line).toBe("0");
+    rows[1]!.click();
+    closers.coin[0]!("deleted");
+    change([sessionOf(1, ["$ 5 gp found"])]);
     expect(root.ownerDocument.activeElement).toBe(button(panel(root, PURSE), "Party funds"));
+  });
+
+  it("puts focus back on a coin entry once the dashboard has redrawn after a change", async () => {
+    const { root, closers, change } = await openDashboard([sessionOf(1, ["$ 5 gp found"])]);
+    panel(root, PURSE).querySelector<HTMLElement>(".dd-row")!.click();
+    closers.coin[0]!("written");
+    change([sessionOf(1, ["$ 6 gp found"])]);
+    expect(focusedLine(root)).toBe("0");
+    expect(root.ownerDocument.activeElement!.closest(".dd-panel")).toBe(panel(root, PURSE));
   });
 
   it("leaves focus alone on a later redraw when a coin entry closed unchanged", async () => {
@@ -265,18 +296,18 @@ describe("DashboardView", () => {
   it("shows each character's class, AC and HP, marks the player's own, and opens their note", async () => {
     const sessions = [sessionOf(1, ["[[Mira]] class: rogue, AC: 15", "[[Thessaly]] HP: 22"])];
     const { root, actions } = await openDashboard(sessions, { characters: ["Mira", "Thessaly"], own: "Thessaly" });
-    const party = panel(root, PARTY);
-    await vi.waitFor(() => expect(textsOf(party, ".dd-card-name")).toEqual(["Mira", "Thessaly"]));
-    expect(textsOf(party, ".dd-card-line")).toEqual(["Class rogue · AC 15 · HP ?", "Class ? · AC ? · HP 22"]);
-    expect(textsOf(party, ".dd-card-own-label")).toEqual(["Your character"]);
-    expect(party.querySelector(".dd-empty")).toBeNull();
-    party.querySelector<HTMLElement>(".dd-card")!.click();
+    const characters = panel(root, CHARACTERS);
+    await vi.waitFor(() => expect(textsOf(characters, ".dd-card-name")).toEqual(["Mira", "Thessaly"]));
+    expect(textsOf(characters, ".dd-card-line")).toEqual(["Class rogue · AC 15 · HP ?", "Class ? · AC ? · HP 22"]);
+    expect(textsOf(characters, ".dd-card-own-label")).toEqual(["Your character"]);
+    expect(characters.querySelector(".dd-empty")).toBeNull();
+    characters.querySelector<HTMLElement>(".dd-card")!.click();
     expect(actions.openRow).toHaveBeenCalledWith({ path: `${CAMPAIGN}/Characters/Mira.md`, line: 0 });
   });
 
   it("shows no characters without a campaign", async () => {
     const { root } = await openDashboard([], { folder: null, characters: ["Mira"] });
-    await vi.waitFor(() => expect(textsOf(panel(root, PARTY), ".dd-empty")).toEqual([NO_CHARACTERS]));
+    await vi.waitFor(() => expect(textsOf(panel(root, CHARACTERS), ".dd-empty")).toEqual([NO_CHARACTERS]));
   });
 
   it("redraws the characters when a character note or the campaign note changes, and not for other notes", async () => {

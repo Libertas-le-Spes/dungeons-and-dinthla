@@ -8,7 +8,7 @@ import { summariseFunds, type CoinCount, type FundsSummary, type LedgerLine } fr
 import { summariseItems, THE_PARTY_LABEL, type ItemSummary } from "./item-groups";
 import type { CoinOutcome } from "./coin-modal";
 import { addLedgerRow, NO_COIN_ENTRIES } from "./ledger-row";
-import { focusRowAt, PENDING_FOCUS_MS } from "../views/row-focus";
+import { focusRowAt, NO_ROW, RowFocus } from "../views/row-focus";
 
 export const FUNDS_VIEW = "dungeons-and-dinthla-funds";
 
@@ -63,8 +63,7 @@ export class FundsView extends ItemView {
   private ledgerCount!: HTMLElement;
   private ledgerList!: HTMLElement;
   private addCoinButton: HTMLElement | null = null;
-  private pendingFocus: { source: Source | null; until: number } | null = null;
-  private pendingItem: { name: string; until: number } | null = null;
+  private readonly rowFocus = new RowFocus();
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -106,6 +105,7 @@ export class FundsView extends ItemView {
     this.renderPurse(summary);
     this.renderItems(summariseItems(this.store.current), summary.ledger);
     this.renderLedger(summary.ledger);
+    this.rowFocus.afterRender();
   }
 
   private renderPurse(summary: FundsSummary): void {
@@ -144,32 +144,20 @@ export class FundsView extends ItemView {
     const gone = folded.createEl("ul", { cls: "dd-list" });
     if (summary.gone.length === 0) gone.createEl("li", { cls: "dd-empty", text: "Nothing sold, used or lost yet." });
     for (const item of summary.gone) this.addItemRow(gone, item, ledger);
-    this.focusPendingItem();
   }
 
-  private focusItemRow(name: string): void {
+  private focusItemRow(name: string): boolean {
     const rows = Array.from(this.items.querySelectorAll<HTMLElement>(".dd-row"));
     const row = rows.find((candidate) => candidate.dataset.item === name);
-    if (row === undefined) return;
+    if (row === undefined) return false;
     const folded = row.closest("details");
     if (folded !== null) folded.open = true;
     row.focus();
-  }
-
-  private focusPendingItem(): void {
-    const pending = this.pendingItem;
-    this.pendingItem = null;
-    if (pending === null || Date.now() > pending.until) return;
-    this.focusItemRow(pending.name);
+    return true;
   }
 
   private afterItem(name: string, changed: boolean): void {
-    this.pendingItem = null;
-    if (!changed) {
-      this.focusItemRow(name);
-      return;
-    }
-    this.pendingItem = { name, until: Date.now() + PENDING_FOCUS_MS };
+    this.rowFocus.afterClose(() => this.focusItemRow(name), changed, () => {});
   }
 
   private addItemRow(list: HTMLElement, item: ItemRecord, ledger: LedgerLine[]): void {
@@ -215,26 +203,16 @@ export class FundsView extends ItemView {
     this.ledgerList.empty();
     if (lines.length === 0) this.ledgerList.createEl("li", { cls: "dd-empty", text: NO_COIN_ENTRIES });
     for (const line of lines) this.addLedgerRow(this.ledgerList, line);
-    this.focusPending();
   }
 
-  private focusPending(): void {
-    const pending = this.pendingFocus;
-    this.pendingFocus = null;
-    if (pending === null || Date.now() > pending.until) return;
-    if (pending.source !== null && focusRowAt(this.ledgerList, pending.source)) return;
+  private focusAddCoin(): void {
     if (this.addCoinButton !== null) this.addCoinButton.focus();
   }
 
   private afterEntry(source: Source, outcome: CoinOutcome): void {
-    this.pendingFocus = null;
-    if (outcome === "unchanged") {
-      focusRowAt(this.ledgerList, source);
-      return;
-    }
-    let focused: Source | null = source;
-    if (outcome === "deleted") focused = null;
-    this.pendingFocus = { source: focused, until: Date.now() + PENDING_FOCUS_MS };
+    let focusRow = () => focusRowAt(this.ledgerList, source);
+    if (outcome === "deleted") focusRow = NO_ROW;
+    this.rowFocus.afterClose(focusRow, outcome !== "unchanged", () => this.focusAddCoin());
   }
 
   private soldAt(source: Source): ItemRecord | undefined {

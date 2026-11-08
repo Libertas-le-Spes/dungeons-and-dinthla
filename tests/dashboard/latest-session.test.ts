@@ -1,23 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { SessionNote } from "../../src/campaign/campaign";
-import { latestSessionOf, linesWrittenIn } from "../../src/dashboard/latest-session";
+import { linesWrittenIn } from "../../src/dashboard/latest-session";
 import { summariseFunds } from "../../src/funds/funds-summary";
 
 function sessionOf(number: number, lines: string[]): SessionNote {
   return { path: `Pale Moon/Sessions/Session ${number}.md`, number, firstLine: 0, text: lines.join("\n") };
 }
-
-describe("latestSessionOf", () => {
-  it("finds the session with the highest number, whatever the order", () => {
-    const sessions = [sessionOf(2, []), sessionOf(12, []), sessionOf(9, [])];
-    expect(latestSessionOf(sessions)?.number).toBe(12);
-  });
-
-  it("finds none without sessions", () => {
-    expect(latestSessionOf([])).toBeNull();
-  });
-});
 
 describe("linesWrittenIn", () => {
   it("lists the questions, quests and coin entries written in one session, the last written first", () => {
