@@ -354,6 +354,46 @@ describe("saving an item", () => {
     expect(notes.texts.get(TWO)).toBe("");
   });
 
+  it("reads the item's notes again before writing, when the campaign hasn't caught up with them", async () => {
+    for (const [path, text] of [
+      [ONE, "$ Rope\n$$ Rope :sold 30 gp\n"],
+      [ONE, "We found it.\n$ Rope\n"],
+      [TWO, "$$ Rope :sold 3 gp\n"],
+    ]) {
+      const notes = new FakeNotes({ [ONE]: "$ Rope\n", [TWO]: "" });
+      const opened = notes.open("Rope", TWO, notes.readBefore());
+      notes.texts.set(path!, text!);
+      await expect(opened.save({ ...opened.edit, status: "lost" }), text).rejects.toThrow(CHANGED_IN_NOTE);
+      expect(notes.texts.get(path!), text).toBe(text);
+    }
+  });
+
+  it("reads again every note that holds the item's lines", async () => {
+    const three = "Pale Moon/Sessions/Session 3.md";
+    const notes = new FakeNotes({ [ONE]: "$ Rope\n", [TWO]: "$$ Rope :changed to [[Mira]]\n", [three]: "" });
+    const opened = notes.open("Rope", three, notes.readBefore());
+    notes.texts.set(TWO, "$$ Rope :changed to [[Bram]]\n");
+    await expect(opened.save({ ...opened.edit, status: "lost" })).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(notes.texts.get(three)).toBe("");
+  });
+
+  it("refuses to write when a note holding the item's lines is gone", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ Rope\n", [TWO]: "" });
+    const opened = notes.open("Rope", TWO, notes.readBefore());
+    notes.texts.delete(ONE);
+    await expect(opened.save({ ...opened.edit, status: "lost" })).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(notes.texts.get(TWO)).toBe("");
+  });
+
+  it("refuses to write when the campaign shows the item changed in a note made since the dialog opened", async () => {
+    const three = "Pale Moon/Sessions/Session 3.md";
+    const notes = new FakeNotes({ [ONE]: "$ Rope\n", [TWO]: "" });
+    const opened = notes.open("Rope");
+    notes.texts.set(three, "$$ Rope :lost\n");
+    await expect(opened.save({ ...opened.edit, status: "used" })).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(notes.texts.get(TWO)).toBe("");
+  });
+
   it("refuses a price correction that would move the purse by anything but the difference, or miss its line", () => {
     const notes = new FakeNotes({ [ONE]: "$ Rope\n$$ Rope :sold 30 gp\n", [TWO]: "" });
     const item = notes.item("Rope");
