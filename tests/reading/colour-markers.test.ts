@@ -51,11 +51,35 @@ describe("colourMarkers", () => {
     expect(marks(root).map(([text]) => text)).toEqual(["?"]);
   });
 
-  it("colours a paragraph handed over on its own", () => {
-    const document = new Window().document;
-    const paragraph = document.createElement("p");
-    paragraph.textContent = "? Who";
-    colourMarkers(paragraph as unknown as HTMLElement);
-    expect(paragraph.querySelectorAll(".dd-marker")).toHaveLength(1);
+
+  it("colours a bulleted line behind the bullet Obsidian draws", () => {
+    const root = rendered(
+      '<ul class="has-list-bullet"><li><span class="list-bullet"></span>$ <a>Mira</a> <a>Silvered lantern</a></li></ul>',
+    );
+    expect(marks(root).map(([text]) => text)).toEqual(["$"]);
+  });
+
+  it("colours a list item that has children, behind its fold arrow", () => {
+    const root = rendered(
+      '<ul><li><span class="list-bullet"></span><span class="list-collapse-indicator"></span>? Who<ul><li>clue</li></ul></li></ul>',
+    );
+    expect(marks(root).map(([text]) => text)).toEqual(["?"]);
+  });
+
+  it("leaves quotes, callouts and loose numbered lines alone, as the readers do", () => {
+    const root = rendered(
+      '<blockquote><p>? Who</p></blockquote><div class="callout"><div class="callout-content"><p>? Who</p></div></div><ol><li><p>? Who</p></li></ol>',
+    );
+    expect(marks(root)).toEqual([]);
+  });
+
+  it("colours every line when strict line breaks keep a paragraph as one text", () => {
+    const root = rendered("<p>? Who\n! Find it\n$ 5 gp</p>");
+    expect(marks(root).map(([text]) => text)).toEqual(["?", "!", "$"]);
+    expect(root.textContent).toBe("? Who\n! Find it\n$ 5 gp");
+  });
+
+  it("leaves a glyph split across elements alone", () => {
+    expect(marks(rendered("<p>?<em>=</em> Who: Mira</p>"))).toEqual([]);
   });
 });
