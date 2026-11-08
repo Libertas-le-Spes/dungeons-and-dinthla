@@ -172,6 +172,8 @@ A question is open until it has a `?=` line. Reopening it removes that `?=` line
 | `! Escort [[Mira]] to the ferry, after: Find the missing caravan` | A follow-up quest |
 | `$ +200 gp reward, for: Find the missing caravan` | The reward collected. It is coin in, and the quest counts as paid |
 
+Tapping a quest in the Quests view opens it to note progress, complete or abandon it with what happened, collect a coin reward, or open a follow-up quest. Each writes the line above into the session you're in, as answers are. Setting a finished quest active again removes its outcome line, and changing the outcome replaces it. A reward is offered only when a quest is first completed, so it can't be collected twice. Deleting a quest removes it with its progress and outcome lines. The same refusals hold as for questions: a line changed since the dialog opened, two lines reading like the quest, an earlier active quest with the same title, or a note that would read as about another quest.
+
 ### Items
 
 The plugin doesn't keep an inventory. It keeps the items that matter to the party, from what you write about them. An item line starts with `$$`, then the item's name, then a space, a colon and one of `changed to`, `sold`, `used` or `lost`. A colon inside the name (`Ring: +1`) is part of the name, because only the last ` :` before one of those words counts:
