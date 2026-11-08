@@ -26,11 +26,11 @@ import { openNewQuest } from "./quests/open-new-quest";
 import { openQuest } from "./quests/open-quest";
 import { QUESTS_VIEW, questsKind } from "./quests/quests-kind";
 import { FUNDS_VIEW, FundsView } from "./funds/funds-view";
-import type { CoinOutcome } from "./funds/coin-modal";
-import { openAddCoin, openCoinEntry } from "./funds/open-add-coin";
+import { openAddCoin } from "./funds/open-add-coin";
 import { openItemDialog } from "./funds/open-item";
+import { ledgerEntryOpener } from "./funds/open-ledger-entry";
 import { CampaignListView } from "./views/list-view";
-import { openMainView, openSideView, openSource } from "./views/open-view";
+import { activePathOf, openMainView, openSideView, openSource } from "./views/open-view";
 import { colourMarkers } from "./reading/colour-markers";
 import { BackgroundRefresh, showBackground, shownBackgroundOf } from "./reading/note-background";
 import { CampaignSettingTab } from "./settings/campaign-setting-tab";
@@ -86,11 +86,10 @@ export default class DungeonsAndDinthla extends Plugin {
     this.addCommand({ id: "open-quests", name: "Open quests", callback: () => void openSideView(this.app, QUESTS_VIEW) });
     const noteExists = (name: string, sourcePath: string) => this.app.metadataCache.getFirstLinkpathDest(name, sourcePath) !== null;
     const addCoin = (returnFocus: () => void) => openAddCoin(this.app, this.store, returnFocus);
-    const openEntry = (source: Source, onClosed: (outcome: CoinOutcome) => void) =>
-      openCoinEntry(this.app, this.store, source, () => void openSource(this.app, source), onClosed);
     const openItem = (name: string, source: Source, onClosed: (changed: boolean) => void) =>
       openItemDialog(this.app, this.store, name, () => void openSource(this.app, source), onClosed);
-    this.registerView(FUNDS_VIEW, (leaf) => new FundsView(leaf, this.store, actions, noteExists, addCoin, openEntry, openItem));
+    const openLedgerEntry = ledgerEntryOpener(this.app, this.store, openItem);
+    this.registerView(FUNDS_VIEW, (leaf) => new FundsView(leaf, this.store, actions, noteExists, addCoin, openLedgerEntry, openItem));
     this.addRibbonIcon("coins", "Open party funds", () => void openSideView(this.app, FUNDS_VIEW));
     this.addCommand({ id: "open-funds", name: "Open party funds", callback: () => void openSideView(this.app, FUNDS_VIEW) });
     const characterNotes = characterNotesOf(this.app);
@@ -110,7 +109,7 @@ export default class DungeonsAndDinthla extends Plugin {
       ...actions,
       openQuestion: openQuestionAt,
       openQuest: openQuestAt,
-      openCoinEntry: openEntry,
+      openLedgerEntry,
       showQuestions: () => void openSideView(this.app, QUESTIONS_VIEW),
       showQuests: () => void openSideView(this.app, QUESTS_VIEW),
       showFunds: () => void openSideView(this.app, FUNDS_VIEW),
@@ -220,10 +219,7 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private startingCampaignFolder(): string | null {
-    const activeFile = this.app.workspace.getActiveFile();
-    let activePath: string | null = null;
-    if (activeFile !== null) activePath = activeFile.path;
-    return startingCampaignFolder(activePath, this.chosen.folder, this.campaignFolders());
+    return startingCampaignFolder(activePathOf(this.app), this.chosen.folder, this.campaignFolders());
   }
 
   private async followCampaignOf(file: TFile | null): Promise<void> {

@@ -1,16 +1,15 @@
-import { Modal, Notice, Setting, type App, type ButtonComponent } from "obsidian";
+import { Modal, Notice, Setting, type App } from "obsidian";
 import { readCoinDraft, type CoinDraft, type CoinLine, type Direction } from "../notes/coin-lines";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
+import { deleteOnSecondPress, type SecondPress } from "../views/second-press";
 import type { CoinEntryChoices } from "./coin-entry";
 
 export type CoinOutcome = "unchanged" | "written" | "deleted";
 
-const CONFIRM_MS = 4000;
-
 export class CoinModal extends Modal {
   private readonly draft: CoinDraft;
-  private confirmTimer: number | null = null;
+  private secondPress: SecondPress | null = null;
   private outcome: CoinOutcome = "unchanged";
   private reading: HTMLElement | null = null;
   private amountInput: HTMLInputElement | null = null;
@@ -77,8 +76,7 @@ export class CoinModal extends Modal {
     const entry = this.entry;
     if (entry !== null) {
       buttons.addButton((button) => {
-        button.setButtonText("Delete entry").setWarning().onClick(() => this.confirmDelete(button, entry));
-        button.buttonEl.addClass("dd-delete");
+        this.secondPress = deleteOnSecondPress(button, "Delete entry", () => this.run("deleted", () => entry.delete()));
       });
     }
     this.showReading();
@@ -90,21 +88,9 @@ export class CoinModal extends Modal {
   }
 
   override onClose(): void {
-    if (this.confirmTimer !== null) window.clearTimeout(this.confirmTimer);
+    if (this.secondPress !== null) this.secondPress.stop();
     this.contentEl.empty();
     this.onClosed(this.outcome);
-  }
-
-  private confirmDelete(button: ButtonComponent, entry: CoinEntryChoices): void {
-    if (this.confirmTimer === null) {
-      button.setButtonText("Press again to delete");
-      this.confirmTimer = window.setTimeout(() => {
-        this.confirmTimer = null;
-        button.setButtonText("Delete entry");
-      }, CONFIRM_MS);
-      return;
-    }
-    this.run("deleted", () => entry.delete());
   }
 
   private showReading(): void {

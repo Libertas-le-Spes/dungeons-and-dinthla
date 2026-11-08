@@ -1,7 +1,8 @@
-import { Modal, Notice, Setting, type App, type ButtonComponent } from "obsidian";
+import { Modal, Notice, Setting, type App } from "obsidian";
 import type { QuestionRecord } from "../campaign/campaign";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
+import { deleteOnSecondPress, type SecondPress } from "../views/second-press";
 import { PartlyWritten } from "../campaign/note-editor";
 import type { QuestionEdit } from "./question-plan";
 
@@ -17,11 +18,9 @@ export interface QuestionPlaces {
   writesTo: string;
 }
 
-const CONFIRM_MS = 4000;
-
 export class QuestionModal extends Modal {
   private readonly edit: QuestionEdit;
-  private confirmTimer: number | null = null;
+  private secondPress: SecondPress | null = null;
   private changed = false;
   private busy = false;
 
@@ -78,8 +77,7 @@ export class QuestionModal extends Modal {
     }
     buttons.addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));
     buttons.addButton((button) => {
-      button.setButtonText("Delete question").setWarning().onClick(() => this.confirmDelete(button));
-      button.buttonEl.addClass("dd-delete");
+      this.secondPress = deleteOnSecondPress(button, "Delete question", () => this.run(() => this.choices.delete()));
     });
   }
 
@@ -89,21 +87,9 @@ export class QuestionModal extends Modal {
   }
 
   override onClose(): void {
-    if (this.confirmTimer !== null) window.clearTimeout(this.confirmTimer);
+    if (this.secondPress !== null) this.secondPress.stop();
     this.contentEl.empty();
     this.onClosed(this.changed);
-  }
-
-  private confirmDelete(button: ButtonComponent): void {
-    if (this.confirmTimer !== null) {
-      this.run(() => this.choices.delete());
-      return;
-    }
-    button.setButtonText("Press again to delete");
-    this.confirmTimer = window.setTimeout(() => {
-      this.confirmTimer = null;
-      button.setButtonText("Delete question");
-    }, CONFIRM_MS);
   }
 
   private run(change: () => Promise<boolean>): void {

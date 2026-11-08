@@ -66,7 +66,7 @@ async function openDashboard(sessions: SessionNote[], { folder = CAMPAIGN, chara
     openLink: vi.fn(),
     openQuestion: vi.fn((_source: Source, onClosed: Closer) => void closers.question.push(onClosed)),
     openQuest: vi.fn((_source: Source, onClosed: Closer) => void closers.quest.push(onClosed)),
-    openCoinEntry: vi.fn((_source: Source, onClosed: (outcome: CoinOutcome) => void) => void closers.coin.push(onClosed)),
+    openLedgerEntry: vi.fn((_source: Source, onClosed: (outcome: CoinOutcome) => void) => void closers.coin.push(onClosed)),
     showQuestions: vi.fn(),
     showQuests: vi.fn(),
     showFunds: vi.fn(),
@@ -251,7 +251,7 @@ describe("DashboardView", () => {
     const { root, actions, closers, change } = await openDashboard([sessionOf(1, ["$ 5 gp found"])]);
     const row = () => panel(root, PURSE).querySelector<HTMLElement>(".dd-row")!;
     row().click();
-    expect(actions.openCoinEntry).toHaveBeenCalledWith({ path: `${CAMPAIGN}/Sessions/Session 1.md`, line: 0 }, expect.any(Function));
+    expect(actions.openLedgerEntry).toHaveBeenCalledWith({ path: `${CAMPAIGN}/Sessions/Session 1.md`, line: 0 }, expect.any(Function));
     closers.coin[0]!("unchanged");
     expect(root.ownerDocument.activeElement).toBe(row());
   });
@@ -290,7 +290,7 @@ describe("DashboardView", () => {
   it("opens a coin entry written in the latest session from its panel too", async () => {
     const { root, actions } = await openDashboard([sessionOf(1, ["$ 5 gp found"])]);
     panel(root, SESSION).querySelector<HTMLElement>(".dd-row")!.click();
-    expect(actions.openCoinEntry).toHaveBeenCalledOnce();
+    expect(actions.openLedgerEntry).toHaveBeenCalledOnce();
   });
 
   it("shows each character's class, AC and HP, marks the player's own, and opens their note", async () => {

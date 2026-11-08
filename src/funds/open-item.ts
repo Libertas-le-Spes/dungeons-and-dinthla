@@ -4,18 +4,12 @@ import { charactersIn } from "../campaign/characters";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
 import { latestNumberIsShared, SESSIONS_SHARE_A_NUMBER, sessionToWriteIn } from "../campaign/session-to-write";
-import { openSource } from "../views/open-view";
+import { activePathOf, openSource } from "../views/open-view";
 import { ItemModal } from "./item-modal";
 import { holderOptionOf, holderOptions, latestSessionOfItem } from "./item-plan";
 import { openedItem } from "./item-writer";
 
 const NO_SESSION = "Start a session first: item changes are written into a session note.";
-
-function activePathOf(app: App): string | null {
-  const file = app.workspace.getActiveFile();
-  if (file === null) return null;
-  return file.path;
-}
 
 function itemNamed(items: ItemRecord[], name: string): ItemRecord | undefined {
   return items.find((item) => item.name === name);
