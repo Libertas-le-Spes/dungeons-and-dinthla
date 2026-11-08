@@ -5,7 +5,7 @@ import { sessionLabelOf } from "../campaign/session-file";
 import { latestNumberIsShared, SESSIONS_SHARE_A_NUMBER, sessionToWriteIn } from "../campaign/session-to-write";
 import type { Source } from "../campaign/campaign";
 import type { CoinLine } from "../notes/coin-lines";
-import { coinEntryEdit } from "./coin-entry";
+import { coinEntryEdit, entryToEdit } from "./coin-entry";
 import { CoinModal, type CoinOutcome } from "./coin-modal";
 
 const NO_CAMPAIGN = "Make a campaign first: a top-level folder with a main note of the same name.";
@@ -39,8 +39,8 @@ export function openAddCoin(app: App, store: CampaignStore, onClosed: (outcome: 
 }
 
 export function openCoinEntry(app: App, store: CampaignStore, source: Source, openNote: () => void, onClosed: (outcome: CoinOutcome) => void): void {
-  const record = store.current.coins.find((coin) => coin.source.path === source.path && coin.source.line === source.line);
-  if (record === undefined || record.isSale) {
+  const record = entryToEdit(store.current.coins, source);
+  if (record === null) {
     openNote();
     return;
   }

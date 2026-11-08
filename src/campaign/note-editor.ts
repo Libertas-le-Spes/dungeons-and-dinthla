@@ -7,6 +7,7 @@ export type EditorVault = Pick<Vault, "getFileByPath" | "process" | "read">;
 export const CHANGED_IN_NOTE = "A line was changed in its note since the dialog was opened, so nothing was written.";
 export const OLD_LINE_LEFT =
   "The new line was written, but the old one had changed in its note since, so it was left. Remove one of them by hand.";
+export const LINES_LEFT = "It was deleted, but some of its lines had changed or moved since they were read, so they were left in";
 export const DUPLICATE_LINES = "More than one line in the note reads like this one, so nothing was deleted.";
 
 export class PartlyWritten extends Error {}
@@ -82,28 +83,40 @@ export class NoteEditor {
     }
     const ownNote = this.fileAt(own.path);
     const otherNotes = [...elsewhere].map(([path, group]) => ({ path, file: this.fileAt(path), group }));
-    await this.removeOwnLine(ownNote, own, alongside);
+    const leftIn: string[] = [];
+    if (await this.removeOwnLine(ownNote, own, alongside)) leftIn.push(own.path);
     for (const { path, file, group } of otherNotes) {
+      let left = false;
       try {
-        await this.vault.process(file, (text) => removeLines(text, group).text);
+        await this.vault.process(file, (text) => {
+          const removal = removeLines(text, group);
+          left = removal.removed < group.length;
+          return removal.text;
+        });
       } catch (error) {
         throw new PartlyWritten(`It was deleted, but its lines in ${path} were left: ${messageOf(error)}`);
       }
+      if (left) leftIn.push(path);
     }
+    if (leftIn.length > 0) throw new PartlyWritten(`${LINES_LEFT} ${leftIn.join(", ")}.`);
     return true;
   }
 
-  private async removeOwnLine(file: TFile, own: Removal, alongside: Removal[]): Promise<void> {
+  private async removeOwnLine(file: TFile, own: Removal, alongside: Removal[]): Promise<boolean> {
     let duplicated = false;
+    let left = false;
     await this.changeOrRefuse(file, CHANGED_IN_NOTE, (text) => {
       if (countMatches(text, own) > 1) {
         duplicated = true;
         return text;
       }
       if (removeLines(text, [own]).removed === 0) return null;
-      return removeLines(text, [own, ...alongside]).text;
+      const removal = removeLines(text, [own, ...alongside]);
+      left = removal.removed < alongside.length + 1;
+      return removal.text;
     });
     if (duplicated) throw new Error(DUPLICATE_LINES);
+    return left;
   }
 
   private async refuseUnlessFound(file: TFile, removals: Removal[]): Promise<void> {

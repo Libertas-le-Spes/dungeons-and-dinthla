@@ -1,5 +1,5 @@
 import { buildCampaign } from "../campaign/build-campaign";
-import type { CoinRecord, SessionNote } from "../campaign/campaign";
+import type { CoinRecord, SessionNote, Source } from "../campaign/campaign";
 import { CHANGED_IN_NOTE, NoteEditor, type EditorVault, type Removal } from "../campaign/note-editor";
 import { sessionNoteOf } from "../campaign/session-file";
 import { draftOf, readCoinDraft, type CoinDraft, type CoinLine } from "../notes/coin-lines";
@@ -16,6 +16,12 @@ export interface CoinEntryChoices {
 
 export interface CoinEntryEdit extends CoinEntryChoices {
   save(coinLine: CoinLine): Promise<boolean>;
+}
+
+export function entryToEdit(coins: CoinRecord[], source: Source): CoinRecord | null {
+  const record = coins.find((coin) => coin.source.path === source.path && coin.source.line === source.line);
+  if (record === undefined || record.isSale) return null;
+  return record;
 }
 
 function sessionOf(sessions: SessionNote[], record: CoinRecord): SessionNote | undefined {
