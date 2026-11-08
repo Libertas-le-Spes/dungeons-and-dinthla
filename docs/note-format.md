@@ -259,8 +259,8 @@ speed: 30 ft.
 - **Renaming** goes through Obsidian's file manager. With Obsidian's *Automatically update internal links* setting on (Settings → Files and links), it rewrites every `[[link]]` to the note, in session notes and everywhere else; with it off, links keep the old name. The note stays in its folder, and its path is written the way Obsidian keeps paths (`normalizePath`).
 - **A changed value** rewrites the last line that states it, when that line states nothing else, keeping its bullet. When the last line that states it has other values on it, as in `AC: 15, speed: 30 ft.`, the new value is added as a line at the end of the note, which wins.
 - **A cleared value** removes every line that states it on its own, so an older line can't bring it back. If a line with other values still states it, nothing is written and the dialog says so.
-- **Lines it never writes to:** lines inside a code block or a `%% %%` comment are skipped, and a new line is added at the end instead. A line that ends in a block id (`speed: 30 ft. ^stats`) is left, since links may point to it: changing or clearing a value on such a line is refused.
-- **A last check:** the changed note is read again before it is written, and if it wouldn't give back exactly the values asked for, nothing is written. A value nobody changed is never written.
+- **Lines it never writes to:** hidden lines are skipped, and a new line is added at the end instead. A line is hidden inside a fenced code block (a fence closes only at a bare fence of the same kind, at least as long), an indented code block (four spaces or a tab, at the start of the note's text or after a blank line or a code block), a `%% %%` or `<!-- -->` comment, or a `$$` math block, counted from below the note's properties. Marks inside `inline code` don't count. A line that ends in a block id (`speed: 30 ft. ^stats`) is left, since links may point to it: changing or clearing a value on such a line is refused.
+- **A last check:** the changed note is read again before it is written. If it wouldn't give back exactly the values asked for, or if any line it wrote would be hidden, or any line it kept would become hidden or stop being hidden (as when a new line lands in a comment or code block that never closes), nothing is written. A value nobody changed is never written.
 - **Deleting** needs a second press within four seconds. The note goes where Obsidian's *Deleted files* setting sends it (Settings → Files and links): the system trash, the vault's `.trash` folder, or nowhere, if it is set to *Permanently delete*. Every other note is left alone, so the session lines about the character stay, linking to a note that's gone.
 
 The name and values are trimmed, then the dialog refuses, and writes nothing, when it's given:
@@ -269,15 +269,17 @@ The name and values are trimmed, then the dialog refuses, and writes nothing, wh
 |---|---|
 | A name another note in the folder has, whatever its capitals, compared after `normalizePath` | Two notes can't share a name, and links would point at either |
 | A name with any of `\ / : * ? " < > \| # ^ [ ]` or a control character, or starting or ending with a dot or a space | A note can't be named that everywhere, or a link to it wouldn't work |
-| `CON`, `PRN`, `AUX`, `NUL`, `COM1` to `COM9` or `LPT1` to `LPT9`, whatever the capitals, also with more after a dot | Windows keeps these names, so a vault synced there couldn't hold the note |
+| `CON`, `PRN`, `AUX`, `NUL`, `CONIN$`, `CONOUT$`, `COM0` to `COM9`, `COM¹` to `COM³`, `LPT0` to `LPT9` or `LPT¹` to `LPT³`, whatever the capitals, also with more after a dot | Windows keeps these names, so a vault synced there couldn't hold the note |
 | A name whose file name would be over 255 bytes | Most file systems can't hold it |
 | A value with a comma, a word and a colon in it, as in `Rogue 3, AC: 15` | It would read back as two values |
+| A value with `%%` in it, or ending in a block id, as in `40 ft. ^stats` | The `%%` would start a comment hiding the rest of the note, and the block id would become the line's |
+| A new name for a note that was moved or renamed since the dialog opened | The dialog would rename it from a place it no longer is. The dialog closes, since what it shows is out of date |
 | A value changed in the note since the dialog opened | So nothing written meanwhile is lost. The dialog closes, since what it shows is out of date |
 | A change that would turn the note's first lines into properties | So nothing is hidden |
 
 A dialog with no name does nothing.
 
-Fact lines are still read inside code blocks and comments today, so a value there shows on the card, and the dialog can't change it.
+Fact lines are still read inside hidden lines today, so a value there shows on the card, and the dialog can't change it.
 
 ### Calling a character over
 
