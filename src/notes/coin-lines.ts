@@ -86,14 +86,10 @@ export function readCoinDraft(draft: CoinDraft): CoinReading {
   return { line: `$ ${body}`, copper, reads: `Reads as ${word} ${formatMoney(Math.abs(copper))}: ${body}` };
 }
 
-export function amountTextOf(amounts: { count: number; kind: string }[]): string {
-  return amounts.map((coin) => `${coin.count.toLocaleString("en")} ${coin.kind}`).join(" ");
-}
-
 export function draftOf(text: string, copper: number, amounts: { count: number; kind: string }[]): CoinDraft {
   let direction: Direction = "in";
   if (copper < 0) direction = "out";
-  const amount = amountTextOf(amounts);
+  const amount = amounts.map((coin) => `${coin.count.toLocaleString("en")} ${coin.kind}`).join(" ");
   const what = oneLine(text.replace(AMOUNT, " "));
   return { direction, amount, what };
 }
