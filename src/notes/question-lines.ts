@@ -17,12 +17,8 @@ export function answerLine(question: string, answer: string): string {
   return `?= ${question}: ${oneLine(answer)}`;
 }
 
-export function followUpTextOf(followUp: string): string {
-  return oneLine(followUp).replace(/^\?\s*/, "");
-}
-
 export function followUpQuestionLine(followUp: string, question: string): string {
-  return `? ${followUpTextOf(followUp)}, after: ${question}`;
+  return `? ${questionTextOf(followUp)}, after: ${question}`;
 }
 
 export function isQuestionLine(written: string, question: string): boolean {

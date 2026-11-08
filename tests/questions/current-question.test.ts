@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { QuestionRecord } from "../../src/campaign/campaign";
-import { answerWouldGoElsewhere, currentQuestion, latestSessionOfQuestion, sharesTextWithEarlierOpenQuestion } from "../../src/questions/current-question";
+import {
+  ANSWER_GOES_ELSEWHERE,
+  answerWouldGoElsewhere,
+  currentQuestion,
+  latestSessionOfQuestion,
+  refusalForNewQuestion,
+  SAME_TEXT_AS_EXISTING,
+  sharesTextWithEarlierOpenQuestion,
+} from "../../src/questions/current-question";
 import { CHANGED_IN_NOTE } from "../../src/questions/question-writer";
 
 function questionsOf(lines: string[], path = "Pale Moon/Sessions/Session 4.md"): QuestionRecord[] {
@@ -66,5 +74,28 @@ describe("answerWouldGoElsewhere", () => {
   it("lets an ordinary answer through", () => {
     const questions = questionsOf(["? Who", "? Who: really"]);
     expect(answerWouldGoElsewhere(questions, questions[0]!, "Mira")).toBe(false);
+  });
+});
+
+describe("refusalForNewQuestion", () => {
+  const SESSION = "Pale Moon/Sessions/Session 1.md";
+
+  it("refuses a question that reads the same as one already asked, even an answered one", () => {
+    const questions = buildCampaign([
+      { path: "Pale Moon/Sessions/Session 2.md", number: 2, firstLine: 0, text: "? Who owns the ferry" },
+      { path: "Pale Moon/Sessions/Session 3.md", number: 3, firstLine: 0, text: "?= Who owns the ferry: Vess" },
+    ]).questions;
+    expect(refusalForNewQuestion(questions, "Who owns the ferry", "", SESSION)).toBe(SAME_TEXT_AS_EXISTING);
+  });
+
+  it("refuses an answer that would be read as another question's", () => {
+    const questions = questionsOf(["? Ferry: who owns it"]);
+    expect(refusalForNewQuestion(questions, "Ferry", "who owns it: Vess", SESSION)).toBe(ANSWER_GOES_ELSEWHERE);
+  });
+
+  it("lets a new question through, with or without an answer", () => {
+    const questions = questionsOf(["? Ferry: who owns it"]);
+    expect(refusalForNewQuestion(questions, "Ferry", "", SESSION)).toBeNull();
+    expect(refusalForNewQuestion(questions, "Who rang the bell", "Mira", SESSION)).toBeNull();
   });
 });
