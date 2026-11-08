@@ -3,8 +3,10 @@ import type { Source } from "./campaign/campaign";
 import { campaignFolderOf, findCampaignFolders } from "./campaign/campaign-folders";
 import { CampaignStore } from "./campaign/campaign-store";
 import { editorTextOf } from "./campaign/editor-text";
+import { markerHighlighter } from "./editor/marker-decorations";
 import { openQuestionsView, openSource } from "./questions/open-questions";
 import { QUESTIONS_VIEW, QuestionsView } from "./questions/questions-view";
+import { colourMarkers } from "./reading/colour-markers";
 import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
 
@@ -21,6 +23,8 @@ export default class DungeonsAndDinthla extends Plugin {
     this.registerView(QUESTIONS_VIEW, (leaf) => new QuestionsView(leaf, this.store, actions));
     this.addRibbonIcon("circle-help", "Open questions", () => void openQuestionsView(this.app));
     this.addCommand({ id: "open-questions", name: "Open questions", callback: () => void openQuestionsView(this.app) });
+    this.registerEditorExtension(markerHighlighter);
+    this.registerMarkdownPostProcessor((element) => colourMarkers(element));
     this.followTheme();
     this.app.workspace.onLayoutReady(() => void this.watchCampaign());
   }
