@@ -4,9 +4,9 @@ import { messageOf } from "../views/message-of";
 import type { QuestionEdit } from "./question-writer";
 
 export interface QuestionChoices {
-  save(edit: QuestionEdit): Promise<void>;
-  reopen(): Promise<void>;
-  delete(): Promise<void>;
+  save(edit: QuestionEdit): Promise<boolean>;
+  reopen(): Promise<boolean>;
+  delete(): Promise<boolean>;
 }
 
 export interface QuestionPlaces {
@@ -84,6 +84,11 @@ export class QuestionModal extends Modal {
     });
   }
 
+  override close(): void {
+    if (this.busy) return;
+    super.close();
+  }
+
   override onClose(): void {
     if (this.confirmTimer !== null) window.clearTimeout(this.confirmTimer);
     this.contentEl.empty();
@@ -102,17 +107,18 @@ export class QuestionModal extends Modal {
     }, CONFIRM_MS);
   }
 
-  private run(change: () => Promise<void>): void {
+  private run(change: () => Promise<boolean>): void {
     if (this.busy) return;
     this.busy = true;
     change()
-      .then(() => {
-        this.changed = true;
+      .then((wrote) => {
+        this.busy = false;
+        this.changed = wrote;
         this.close();
       })
-      .catch((error: unknown) => new Notice(`Couldn't change the question: ${messageOf(error)}`))
-      .finally(() => {
+      .catch((error: unknown) => {
         this.busy = false;
+        new Notice(`Couldn't change the question: ${messageOf(error)}`);
       });
   }
 }

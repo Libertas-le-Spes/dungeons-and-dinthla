@@ -3,11 +3,12 @@ import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { QuestionRecord } from "../../src/campaign/campaign";
 import { sessionNoteOf } from "../../src/campaign/session-file";
-import { CHANGED_IN_NOTE, QuestionWriter, type WriterVault } from "../../src/questions/question-writer";
+import { CHANGED_IN_NOTE, OLD_ANSWER_LEFT, QuestionWriter, type WriterVault } from "../../src/questions/question-writer";
 
 class FakeNotes {
   readonly texts: Map<string, string>;
   writes = 0;
+  afterRead: () => void = () => {};
 
   constructor(notes: Record<string, string>) {
     this.texts = new Map(Object.entries(notes));
@@ -25,7 +26,11 @@ class FakeNotes {
         this.texts.set(file.path, next);
         return next;
       },
-      read: async (file) => this.texts.get(file.path)!,
+      read: async (file) => {
+        const text = this.texts.get(file.path)!;
+        this.afterRead();
+        return text;
+      },
     };
   }
 
@@ -149,5 +154,29 @@ describe("QuestionWriter", () => {
     await expect(new QuestionWriter(notes.vault).save(notes.questions()[0]!, { answer: "Mira", followUp: "" }, TWO)).rejects.toThrow(
       "Session 2.md was moved or deleted",
     );
+  });
+
+  it("says whether it wrote anything", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n" });
+    const writer = new QuestionWriter(notes.vault);
+    expect(await writer.save(notes.questions()[0]!, { answer: "", followUp: "" }, ONE)).toBe(false);
+    expect(await writer.save(notes.questions()[0]!, { answer: "Mira", followUp: "" }, ONE)).toBe(true);
+  });
+
+  it("says the new answer was written when the old one changed in between, leaving both", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n", [TWO]: "" });
+    const [question] = notes.questions();
+    notes.afterRead = () => notes.texts.set(ONE, "? Who\n?= Who: Mira (maybe)\n");
+    await expect(new QuestionWriter(notes.vault).save(question!, { answer: "Vess", followUp: "" }, TWO)).rejects.toThrow(OLD_ANSWER_LEFT);
+    expect(notes.texts.get(TWO)).toBe("?= Who: Vess\n");
+    expect(notes.texts.get(ONE)).toBe("? Who\n?= Who: Mira (maybe)\n");
+  });
+
+  it("deletes nothing anywhere when the question's own line has changed", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n", [TWO]: "?= Who: Mira\n" });
+    const [question] = notes.questions();
+    notes.texts.set(ONE, "? Who exactly\n");
+    await expect(new QuestionWriter(notes.vault).delete(question!)).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(notes.texts.get(TWO)).toBe("?= Who: Mira\n");
   });
 });
