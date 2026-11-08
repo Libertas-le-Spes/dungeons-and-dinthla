@@ -6,6 +6,9 @@ import {
   readsBackDifferently,
   refusalForValues,
   blockIdOn,
+  commentMarkIn,
+  endsInBlockId,
+  HIDING_WOULD_CHANGE,
   learnedOf,
   stillReads,
   trimmedEntry,
@@ -66,6 +69,15 @@ describe("refusalForValues", () => {
 
   it("refuses a value that would read back with a comma lost", () => {
     expect(refusalForValues(entry({ speed: "30 ft.,, fly 60 ft." }))).toBe(readsBackDifferently("Speed"));
+  });
+
+  it("refuses a value with a comment mark, which would hide the rest of the note", () => {
+    expect(refusalForValues(entry({ speed: "40 ft. %%" }))).toBe(commentMarkIn("Speed"));
+  });
+
+  it("refuses a value that ends in a block id", () => {
+    expect(refusalForValues(entry({ speed: "40 ft. ^stats" }))).toBe(endsInBlockId("Speed"));
+    expect(refusalForValues(entry({ speed: "40 ft. ^" }))).toBeNull();
   });
 
   it("refuses a value that would read back as two", () => {
@@ -159,6 +171,26 @@ describe("withEntryValues", () => {
   it("changes one value even when another changed in the note since the dialog read it", () => {
     const before = entry({ speed: "30 ft." });
     expect(withEntryValues("speed: 25 ft.\n", PATH, before, entry({ speed: "30 ft.", type: "elf" }))).toBe("speed: 25 ft.\ntype: elf\n");
+  });
+
+  it("refuses to add a line inside a comment that never closes", () => {
+    expect(() => edited("Notes\n%%\nunfinished", { type: "elf" })).toThrow(HIDING_WOULD_CHANGE);
+  });
+
+  it("refuses to add a line inside a code block that never closes", () => {
+    expect(() => edited("Notes\n```\nunfinished\n", { type: "elf" })).toThrow(HIDING_WOULD_CHANGE);
+  });
+
+  it("refuses a change that would turn a kept line into code", () => {
+    expect(() => edited("\nspeed: 30 ft.\n    four spaces in\n", { speed: "" })).toThrow(HIDING_WOULD_CHANGE);
+  });
+
+  it("adds a line after a code block that ends the note without a line break", () => {
+    expect(edited("Notes\n```\ncode\n```", { type: "elf" })).toBe("Notes\n```\ncode\n```\ntype: elf\n");
+  });
+
+  it("adds a line after a comment that closes", () => {
+    expect(edited("%%\naside\n%%\n", { type: "elf" })).toBe("%%\naside\n%%\ntype: elf\n");
   });
 
   it("refuses a change that would turn lines into properties", () => {
