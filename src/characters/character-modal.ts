@@ -1,0 +1,116 @@
+import { Modal, Notice, Setting, type App, type ButtonComponent } from "obsidian";
+import { PartlyWritten } from "../campaign/note-editor";
+import { isSubmit } from "../views/keys";
+import { messageOf } from "../views/message-of";
+import { SecondPress } from "../views/second-press";
+import { ENTRY_FIELDS, type CharacterEntry } from "./character-entry";
+
+export interface CharacterDialog {
+  title: string;
+  entry: CharacterEntry;
+  where: string;
+  save(entry: CharacterEntry): Promise<boolean>;
+  delete: (() => Promise<void>) | null;
+}
+
+const DELETE = "Delete character";
+const PRESS_AGAIN = "Press again to delete";
+
+const PLACEHOLDERS: Record<keyof CharacterEntry, string> = {
+  name: "Brother Aldric",
+  type: "Medium humanoid (human), lawful good",
+  subtitle: "Human Cleric 5",
+  speed: "30 ft.",
+};
+
+export class CharacterModal extends Modal {
+  private readonly entry: CharacterEntry;
+  private nameInput: HTMLInputElement | null = null;
+  private secondPress: SecondPress | null = null;
+  private busy = false;
+
+  constructor(
+    app: App,
+    private readonly dialog: CharacterDialog,
+    private readonly onClosed: () => void,
+  ) {
+    super(app);
+    this.entry = { ...dialog.entry };
+  }
+
+  override onOpen(): void {
+    const { contentEl } = this;
+    this.setTitle(this.dialog.title);
+    contentEl.addClass("dd-tokens", "dd-dialog");
+    this.addField("name", "Name");
+    for (const { fact, label } of ENTRY_FIELDS) this.addField(fact, label);
+    contentEl.createEl("p", { cls: "dd-where", text: this.dialog.where });
+    const buttons = new Setting(contentEl);
+    buttons.addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.save()));
+    buttons.addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));
+    const deleteNote = this.dialog.delete;
+    if (deleteNote !== null) buttons.addButton((button) => this.addDelete(button, deleteNote));
+  }
+
+  override close(): void {
+    if (this.busy) return;
+    super.close();
+  }
+
+  override onClose(): void {
+    if (this.secondPress !== null) this.secondPress.stop();
+    this.contentEl.empty();
+    this.onClosed();
+  }
+
+  private addField(field: keyof CharacterEntry, label: string): void {
+    new Setting(this.contentEl).setName(label).addText((text) => {
+      text.setPlaceholder(PLACEHOLDERS[field]).setValue(this.entry[field]).onChange((value) => {
+        this.entry[field] = value;
+      });
+      text.inputEl.setAttr("aria-label", label);
+      text.inputEl.addEventListener("keydown", (event) => {
+        if (event.defaultPrevented || !isSubmit(event, false)) return;
+        event.preventDefault();
+        this.save();
+      });
+      if (field !== "name") return;
+      this.nameInput = text.inputEl;
+      text.inputEl.focus();
+    });
+  }
+
+  private addDelete(button: ButtonComponent, deleteNote: () => Promise<void>): void {
+    const showArmed = (armed: boolean) => {
+      if (armed) button.setButtonText(PRESS_AGAIN);
+      else button.setButtonText(DELETE);
+    };
+    const secondPress = new SecondPress(showArmed, () => this.run(async () => {
+      await deleteNote();
+      return true;
+    }, "Couldn't delete the character"));
+    this.secondPress = secondPress;
+    button.setButtonText(DELETE).setWarning().onClick(() => secondPress.press());
+    button.buttonEl.addClass("dd-delete");
+  }
+
+  private save(): void {
+    this.run(() => this.dialog.save(this.entry), "Couldn't save the character");
+  }
+
+  private run(change: () => Promise<boolean>, failure: string): void {
+    if (this.busy) return;
+    this.busy = true;
+    change()
+      .then((done) => {
+        this.busy = false;
+        if (done) this.close();
+        else if (this.nameInput !== null) this.nameInput.focus();
+      })
+      .catch((error: unknown) => {
+        this.busy = false;
+        new Notice(`${failure}: ${messageOf(error)}`);
+        if (error instanceof PartlyWritten) this.close();
+      });
+  }
+}
