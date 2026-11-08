@@ -125,11 +125,10 @@ describe("DashboardView", () => {
   });
 
   it("counts the active quests and shows the newest three, as the Quests view does", async () => {
-    const { root } = await openDashboard([sessionOf(1, ["! Find it, from: [[Vess]]", "! Guard it", "! Burn it", "! Keep it", "!x Keep it: lost"])]);
+    const { root } = await openDashboard([sessionOf(1, ["! Find it, from: [[Vess]]", "! Guard it", "! Burn it", "! Keep it", "!x Keep it: lost", "! Bury it"])]);
     const quests = panel(root, QUESTS);
-    expect(textsOf(quests, ".dd-big")).toEqual(["3active"]);
-    expect(textsOf(quests, ".dd-text")).toEqual(["Burn it", "Guard it", "Find it"]);
-    expect(textsOf(quests, ".dd-facts")).toEqual(["From [[Vess]]"]);
+    expect(textsOf(quests, ".dd-big")).toEqual(["4active"]);
+    expect(textsOf(quests, ".dd-text")).toEqual(["Bury it", "Burn it", "Guard it"]);
   });
 
   it("shows the purse, the items held, money in and out, and the three latest entries", async () => {
@@ -140,6 +139,7 @@ describe("DashboardView", () => {
     expect(textsOf(purse, ".dd-in-out > span")).toEqual(["In 86 gp 4 sp", "Out 2 gp"]);
     expect(textsOf(purse, ".dd-ledger .dd-what")).toEqual(["1 gp found", "35 gp 4 sp from the bandits", "Paid 2 gp for rooms"]);
     expect(textsOf(purse, ".dd-ledger .dd-amount")).toEqual(["+1 gp", "+35 gp 4 sp", "−2 gp"]);
+    expect(purse.querySelector(".dd-empty")).toBeNull();
   });
 
   it("says one item, and nothing about items when none is held", async () => {
@@ -182,6 +182,9 @@ describe("DashboardView", () => {
     expect(write.style.display).toBe("");
     write.click();
     expect(actions.openRow).toHaveBeenCalledWith({ path: `${CAMPAIGN}/Sessions/Session 4.md`, line: 0 });
+    change([]);
+    write.click();
+    expect(actions.openRow).toHaveBeenCalledOnce();
   });
 
   it("opens each panel's full view and starts a new session", async () => {
@@ -242,6 +245,17 @@ describe("DashboardView", () => {
     expect(root.ownerDocument.activeElement).toBe(button(panel(root, PURSE), "Party funds"));
   });
 
+  it("leaves focus alone on a later redraw when a coin entry closed unchanged", async () => {
+    const { root, closers, change } = await openDashboard([sessionOf(1, ["$ 5 gp found"])]);
+    panel(root, PURSE).querySelector<HTMLElement>(".dd-row")!.click();
+    closers.coin[0]!("unchanged");
+    const editor = root.ownerDocument.createElement("input");
+    root.ownerDocument.body.append(editor);
+    editor.focus();
+    change([sessionOf(1, ["$ 5 gp found", "$ 1 gp found"])]);
+    expect(root.ownerDocument.activeElement).toBe(editor);
+  });
+
   it("opens a coin entry written in the latest session from its panel too", async () => {
     const { root, actions } = await openDashboard([sessionOf(1, ["$ 5 gp found"])]);
     panel(root, SESSION).querySelector<HTMLElement>(".dd-row")!.click();
@@ -255,6 +269,7 @@ describe("DashboardView", () => {
     await vi.waitFor(() => expect(textsOf(party, ".dd-card-name")).toEqual(["Mira", "Thessaly"]));
     expect(textsOf(party, ".dd-card-line")).toEqual(["Class rogue · AC 15 · HP ?", "Class ? · AC ? · HP 22"]);
     expect(textsOf(party, ".dd-card-own-label")).toEqual(["Your character"]);
+    expect(party.querySelector(".dd-empty")).toBeNull();
     party.querySelector<HTMLElement>(".dd-card")!.click();
     expect(actions.openRow).toHaveBeenCalledWith({ path: `${CAMPAIGN}/Characters/Mira.md`, line: 0 });
   });
