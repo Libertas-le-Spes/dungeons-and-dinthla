@@ -68,6 +68,7 @@ export class FundsView extends ItemView {
     leaf: WorkspaceLeaf,
     private readonly store: CampaignStore,
     private readonly actions: LinkActions,
+    private readonly noteExists: (name: string, sourcePath: string) => boolean,
   ) {
     super(leaf);
   }
@@ -126,8 +127,10 @@ export class FundsView extends ItemView {
     if (summary.groups.length === 0) this.items.createEl("p", { cls: "dd-empty", text: NO_ITEMS });
     for (const group of summary.groups) {
       const heading = this.items.createEl("h3", { cls: "dd-holder" });
+      const sourcePath = group.items[0]!.source.path;
       if (group.holder === "") heading.setText("The party");
-      else addNameLink(heading, group.holder, group.items[0]!.source.path, this.actions).setText(group.holder);
+      else if (this.noteExists(group.holder, sourcePath)) addNameLink(heading, group.holder, group.holder, sourcePath, this.actions);
+      else heading.setText(group.holder);
       const list = this.items.createEl("ul", { cls: "dd-list" });
       for (const item of group.items) this.addItemRow(list, item, ledger);
     }

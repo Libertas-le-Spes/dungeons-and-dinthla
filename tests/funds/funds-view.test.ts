@@ -17,7 +17,7 @@ function campaignOf(lines: string[], ...laterSessions: string[][]): Campaign {
   );
 }
 
-async function openView(campaign: Campaign) {
+async function openView(campaign: Campaign, notes: string[] = ["Mira"]) {
   let listener: (campaign: Campaign) => void = () => {};
   const unsubscribe = vi.fn();
   const store = {
@@ -28,7 +28,8 @@ async function openView(campaign: Campaign) {
     },
   };
   const actions = { openSource: vi.fn(), openLink: vi.fn() };
-  const view = new FundsView({} as WorkspaceLeaf, store as unknown as CampaignStore, actions);
+  const noteExists = (name: string) => notes.includes(name);
+  const view = new FundsView({} as WorkspaceLeaf, store as unknown as CampaignStore, actions, noteExists);
   const root = obsidianDocument().createElement("div");
   view.contentEl = root;
   const registered: (() => void)[] = [];
@@ -160,5 +161,11 @@ describe("FundsView", () => {
     const { root, actions } = await openView(campaignOf(["$ [[Mira]] Flame Tongue"]));
     (root.querySelector(".dd-holder a.internal-link") as HTMLElement).click();
     expect(actions.openLink).toHaveBeenCalledWith("Mira", "Pale Moon/Sessions/Session 1.md");
+  });
+
+  it("names a holder without a note in plain text, so tapping can't make one", async () => {
+    const { root } = await openView(campaignOf(["$ Rope", "$$ Rope :changed to Bob the innkeeper"]), []);
+    expect(textsOf(root, ".dd-holder")).toEqual(["Bob the innkeeper"]);
+    expect(root.querySelector(".dd-holder a")).toBeNull();
   });
 });

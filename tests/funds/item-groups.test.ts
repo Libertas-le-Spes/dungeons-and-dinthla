@@ -43,17 +43,26 @@ describe("summariseItems", () => {
     ]);
   });
 
-  it("lists gone items by when they went, most recent first", () => {
-    const summary = summaryOf(["$ Rope", "$ Spyglass"], ["$$ Spyglass :sold 20 gp"], ["$$ Rope :used"]);
-    expect(summary.gone.map((item) => [item.name, item.gone?.kind])).toEqual([
-      ["Rope", "used"],
-      ["Spyglass", "sold"],
-    ]);
+  it("lists gone items by the session they went in, latest first, not by when they were named", () => {
+    const summary = summaryOf(["$ Rope", "$ Spyglass"], ["$$ Rope :used"], ["$$ Spyglass :sold 20 gp"]);
+    expect(summary.gone.map((item) => item.name)).toEqual(["Spyglass", "Rope"]);
+  });
+
+  it("compares session numbers as numbers", () => {
+    const sessions = Array.from({ length: 10 }, (): string[] => []);
+    sessions[0] = ["$ Rope", "$ Spyglass"];
+    sessions[8] = ["$$ Spyglass :lost"];
+    sessions[9] = ["$$ Rope :used"];
+    expect(summaryOf(...sessions).gone.map((item) => item.name)).toEqual(["Rope", "Spyglass"]);
   });
 
   it("orders items gone in one session by their lines, latest first", () => {
-    const summary = summaryOf(["$ Rope", "$ Spyglass", "$$ Spyglass :lost", "$$ Rope :used"]);
-    expect(summary.gone.map((item) => item.name)).toEqual(["Rope", "Spyglass"]);
+    const summary = summaryOf(["$ Rope", "$ Spyglass", "$$ Rope :used", "$$ Spyglass :lost"]);
+    expect(summary.gone.map((item) => item.name)).toEqual(["Spyglass", "Rope"]);
+  });
+
+  it("reads a holder linked with .md as the same holder", () => {
+    expect(groupsOf(summaryOf(["$ [[Mira]] Lantern", "$ [[Mira.md]] Rope"]))).toEqual([["Mira", ["Lantern", "Rope"]]]);
   });
 
   it("summarises a campaign with no items as empty", () => {
