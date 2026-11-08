@@ -9,6 +9,15 @@
   align-items: start;
 }
 
+.dd-dashboard .dd-panel {
+  min-width: 0;
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-1);
+}
+
 @container (min-width: 680px) {
   .dd-dashboard .dd-dashboard-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -17,6 +26,10 @@
 
   .dd-dashboard .dd-wide {
     grid-column: 1 / -1;
+  }
+
+  .dd-dashboard .dd-panel {
+    padding: var(--space-5);
   }
 }
 
@@ -28,15 +41,6 @@
   .dd-dashboard .dd-wide {
     grid-column: span 2;
   }
-}
-
-.dd-dashboard .dd-panel {
-  min-width: 0;
-  padding: var(--space-4);
-  border: var(--border-width) solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  background: var(--surface-card);
-  box-shadow: var(--shadow-1);
 }
 
 .dd-dashboard .dd-head {
@@ -115,7 +119,7 @@
   display: none;
 }
 
-.dd-dashboard .dd-party {
+.dd-dashboard .dd-character-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
   gap: var(--space-3);
@@ -124,10 +128,20 @@
   padding: 0;
 }
 
-.dd-dashboard .dd-party .dd-card {
+.dd-dashboard .dd-character-list .dd-card {
   padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  box-shadow: none;
 }
 
-.dd-dashboard .dd-party .dd-card-name {
+.dd-dashboard .dd-character-list .dd-card:hover {
+  box-shadow: var(--shadow-2);
+}
+
+.dd-dashboard .dd-character-list .dd-card:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+.dd-dashboard .dd-character-list .dd-card-name {
   font-size: var(--text-lg);
 }
