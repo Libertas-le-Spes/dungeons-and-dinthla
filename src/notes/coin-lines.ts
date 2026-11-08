@@ -50,6 +50,10 @@ function signRefusal(direction: Direction, typed: string): string | null {
   return null;
 }
 
+export function comparableLine(line: string): string {
+  return line.replace(/(\d),(?=\d{3})/g, "$1").replace(/\s+/g, " ").trim().toLowerCase();
+}
+
 export type AmountReading = { amount: string; copper: number } | { error: string };
 
 export function readAmount(direction: Direction, typedAmount: string): AmountReading {

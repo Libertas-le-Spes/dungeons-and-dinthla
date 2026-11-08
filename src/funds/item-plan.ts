@@ -1,8 +1,10 @@
 import { buildCampaign } from "../campaign/build-campaign";
 import type { CoinRecord, ItemRecord, SessionNote } from "../campaign/campaign";
-import { removalAsRead, type Removal } from "../campaign/note-editor";
+import { lineAsRead, removalAsRead, type Removal } from "../campaign/note-editor";
 import { sessionNoteOf, sessionNumberOf } from "../campaign/session-file";
-import { readAmount } from "../notes/coin-lines";
+import { withoutBullet } from "../notes/bullet";
+import { comparableLine, readAmount } from "../notes/coin-lines";
+import { readItemChange } from "../notes/item-change";
 import { appendLines, removeLines } from "../notes/note-lines";
 import { oneLine } from "../notes/question-lines";
 import { holderNameOf, THE_PARTY } from "./item-groups";
@@ -30,7 +32,8 @@ export interface ItemPlan {
 }
 
 export const CHANGES_ANOTHER_ITEM =
-  "That change would be read as changing more than asked, another item or the purse beyond the sale, so nothing was written.";
+  "That change wouldn't be read as asked, or would change another item or the purse beyond the sale, so nothing was written.";
+export const GONE_LINE_SAYS_MORE = "The line that took it says more than the dialog writes, so change it in its note.";
 export const HOLDER_OF_GONE = "Set it to Held to give it to someone else: a new holder would bring it back.";
 
 function isGoneStatus(kind: string): kind is "sold" | "used" | "lost" {
@@ -80,14 +83,21 @@ function sameName(first: string, second: string): boolean {
 function saleCopperOf(item: ItemRecord, coins: CoinRecord[]): number {
   const gone = item.gone;
   if (gone === null) return 0;
-  const sale = coins.find((coin) => coin.isSale && coin.source.path === gone.source.path && coin.source.line === gone.source.line);
+  const sale = coins.find((coin) => coin.source.path === gone.source.path && coin.source.line === gone.source.line);
   if (sale === undefined) return 0;
   return sale.entry.copper;
 }
 
-function mentionLine(item: ItemRecord, holder: string): string {
-  if (holderNameOf(holder) === "") return `$ ${item.name}`;
-  return `$ ${holder} ${item.name}`;
+function writtenAsTheDialogWould(read: string | undefined): boolean {
+  if (read === undefined) return false;
+  const change = readItemChange(read);
+  if (change === null) return false;
+  const line = comparableLine(withoutBullet(read));
+  const base = comparableLine(`$$ ${change.item} :${change.kind}`);
+  if (!line.startsWith(base)) return false;
+  const rest = line.slice(base.length);
+  if (rest === "") return true;
+  return change.kind === "sold" && rest.startsWith(" ") && !("error" in readAmount("in", rest));
 }
 
 export function planItemSave(
@@ -107,13 +117,14 @@ export function planItemSave(
   let removal: Removal | null = null;
   let purseCopper = 0;
   if (statusChanged && was !== "held") {
+    if (!writtenAsTheDialogWould(lineAsRead(sessions, item.gone!.source))) return { error: GONE_LINE_SAYS_MORE };
     removal = removalAsRead(sessions, item.gone!.source);
     purseCopper -= saleCopperOf(item, coins);
-    if (item.history.length === 1 && edit.status === "held") added.push(mentionLine(item, edit.holder));
   }
-  if (holderChanged && added.length === 0) added.push(`$$ ${item.name} :changed to ${edit.holder}`);
+  const keepsItsOnlyLine = removal !== null && item.history.length === 1 && edit.status === "held";
+  if (holderChanged || keepsItsOnlyLine) added.push(`$$ ${item.written} :changed to ${edit.holder}`);
   if (statusChanged && edit.status !== "held") {
-    let line = `$$ ${item.name} :${edit.status}`;
+    let line = `$$ ${item.written} :${edit.status}`;
     const price = oneLine(edit.soldFor);
     if (edit.status === "sold" && price !== "") {
       const reading = readAmount("in", price);

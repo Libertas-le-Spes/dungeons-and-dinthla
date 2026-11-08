@@ -1,24 +1,14 @@
 import { Notice, type App } from "obsidian";
+import { charactersIn } from "../campaign/characters";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
 import { latestSession, SESSIONS_SHARE_A_NUMBER, latestNumberIsShared } from "../campaign/session-to-write";
 import { NewQuestModal } from "./new-quest-modal";
-import { planNewQuest, refusalForNewQuest, type Character, type NewQuest } from "./new-quest";
+import { planNewQuest, refusalForNewQuest, type NewQuest } from "./new-quest";
 import { QuestWriter } from "./quest-writer";
 
 const NO_CAMPAIGN = "Make a campaign first: a top-level folder with a main note of the same name.";
 const NO_SESSION = "Start a session first: quests are written into a session note.";
-
-function charactersIn(app: App, folder: string, sessionPath: string): Character[] {
-  const charactersFolder = `${folder}/Characters/`;
-  const characters: Character[] = [];
-  for (const file of app.vault.getMarkdownFiles()) {
-    if (!file.path.startsWith(charactersFolder)) continue;
-    if (characters.some((character) => character.name === file.basename)) continue;
-    characters.push({ name: file.basename, linktext: app.metadataCache.fileToLinktext(file, sessionPath, true) });
-  }
-  return characters.sort((first, second) => first.name.localeCompare(second.name));
-}
 
 export function openNewQuest(app: App, store: CampaignStore, onClosed: () => void): void {
   const folder = store.campaignFolder;

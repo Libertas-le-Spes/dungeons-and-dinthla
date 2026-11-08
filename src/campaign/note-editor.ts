@@ -17,11 +17,16 @@ export interface Removal extends LineToRemove {
   path: string;
 }
 
-export function removalAsRead(sessions: SessionNote[], source: Source): Removal {
+export function lineAsRead(sessions: SessionNote[], source: Source): string | undefined {
   const session = sessions.find((candidate) => candidate.path === source.path);
-  let read: string | undefined;
-  if (session !== undefined) read = session.text.split("\n")[source.line];
-  if (read !== undefined) read = read.replace(/\r$/, "");
+  if (session === undefined) return undefined;
+  const read = session.text.split("\n")[source.line];
+  if (read === undefined) return undefined;
+  return read.replace(/\r$/, "");
+}
+
+export function removalAsRead(sessions: SessionNote[], source: Source): Removal {
+  const read = lineAsRead(sessions, source);
   return { path: source.path, line: source.line, matches: (line) => line === read };
 }
 

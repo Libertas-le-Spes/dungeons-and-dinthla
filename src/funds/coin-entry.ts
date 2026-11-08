@@ -2,7 +2,7 @@ import { buildCampaign } from "../campaign/build-campaign";
 import type { CoinRecord, SessionNote, Source } from "../campaign/campaign";
 import { CHANGED_IN_NOTE, NoteEditor, removalAsRead, type EditorVault, type Removal } from "../campaign/note-editor";
 import { sessionNoteOf } from "../campaign/session-file";
-import { draftOf, readCoinDraft, type CoinDraft, type CoinLine } from "../notes/coin-lines";
+import { comparableLine, draftOf, readCoinDraft, type CoinDraft, type CoinLine } from "../notes/coin-lines";
 import { dropLine, rewriteLine } from "../notes/note-lines";
 
 export const CHANGES_OTHER_MONEY = "That change would also change other money in the purse, so nothing was written.";
@@ -49,14 +49,10 @@ export function refusalForEntryChange(sessions: SessionNote[], record: CoinRecor
   return null;
 }
 
-function comparable(line: string): string {
-  return line.replace(/(\d),(?=\d{3})/g, "$1").replace(/\s+/g, " ").trim().toLowerCase();
-}
-
 function keepsTheEntry(record: CoinRecord, draft: CoinDraft): boolean {
   const reading = readCoinDraft(draft);
   if ("error" in reading) return false;
-  return comparable(reading.line) === comparable(`$ ${record.text}`);
+  return comparableLine(reading.line) === comparableLine(`$ ${record.text}`);
 }
 
 export function coinEntryEdit(vault: EditorVault, store: { readonly sessionNotes: SessionNote[] }, record: CoinRecord): CoinEntryEdit {
