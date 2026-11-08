@@ -18,11 +18,21 @@ export function campaignNotePathOf(path: string): string | null {
   return mainNotePathOf(folder);
 }
 
+function campaignFolderNaming(path: string): string | null {
+  const folder = topFolderOf(path);
+  if (folder === null || path !== mainNotePathOf(folder)) return null;
+  return folder;
+}
+
+export function isMainNote(path: string): boolean {
+  return campaignFolderNaming(path) !== null;
+}
+
 export function findCampaignFolders(paths: string[]): string[] {
   const folders = new Set<string>();
   for (const path of paths) {
-    const folder = topFolderOf(path);
-    if (folder !== null && path === mainNotePathOf(folder)) folders.add(folder);
+    const folder = campaignFolderNaming(path);
+    if (folder !== null) folders.add(folder);
   }
   return [...folders].sort();
 }

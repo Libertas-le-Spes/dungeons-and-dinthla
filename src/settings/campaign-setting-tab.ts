@@ -1,13 +1,5 @@
-import { Notice, PluginSettingTab, Setting, type App, type EventRef, type Plugin, type TFile } from "obsidian";
-import {
-  backgroundOf,
-  chooseBackground,
-  chooseWash,
-  isPicture,
-  removeBackground,
-  washOf,
-  type Wash,
-} from "../campaign/campaign-background";
+import { ButtonComponent, DropdownComponent, Notice, PluginSettingTab, Setting, type App, type Plugin, type TFile } from "obsidian";
+import { backgroundOf, chooseWash, choosePicture, isPicture, removePicture, washOf, type Wash } from "../campaign/campaign-background";
 import { mainNotePathOf, NO_CAMPAIGN } from "../campaign/campaign-folders";
 import { messageOf } from "../views/message-of";
 import { PictureSuggestModal } from "./picture-suggest-modal";
@@ -18,12 +10,20 @@ const WASH_NAMES: Record<Wash, string> = { subtle: "Subtle", balanced: "Balanced
 
 export interface CampaignChoice {
   folders(): string[];
-  shown(): string | null;
+  chosen(): string | null;
   choose(folder: string): Promise<void>;
 }
 
+interface PictureRows {
+  folder: string;
+  picture: Setting;
+  choose: ButtonComponent;
+  remove: ButtonComponent;
+  wash: DropdownComponent;
+}
+
 export class CampaignSettingTab extends PluginSettingTab {
-  private watching: EventRef | null = null;
+  private rows: PictureRows | null = null;
 
   constructor(
     app: App,
@@ -31,80 +31,82 @@ export class CampaignSettingTab extends PluginSettingTab {
     private readonly campaigns: CampaignChoice,
   ) {
     super(app, plugin);
+    plugin.registerEvent(app.metadataCache.on("changed", (file) => this.noteChanged(file.path)));
   }
 
   override display(): void {
-    this.stopWatching();
+    this.rows = null;
     this.containerEl.empty();
-    const folder = this.campaigns.shown();
+    const folder = this.campaigns.chosen();
     if (folder === null) {
       this.containerEl.createEl("p", { text: NO_CAMPAIGN });
       return;
     }
-    this.showCampaign(folder);
-    const mainNote = this.app.vault.getFileByPath(mainNotePathOf(folder));
-    if (mainNote === null) return;
-    this.showBackground(folder, mainNote);
-    this.watching = this.app.metadataCache.on("changed", (file) => {
-      if (file.path === mainNote.path) this.display();
-    });
+    const campaign = new Setting(this.containerEl).setName("Campaign").setDesc(FOLDER_HINT);
+    const rows = this.addPictureRows(folder);
+    const dropdown = new DropdownComponent(campaign.controlEl);
+    for (const each of this.campaigns.folders()) dropdown.addOption(each, each);
+    dropdown.setValue(folder).onChange((chosen) =>
+      this.save(async () => {
+        await this.campaigns.choose(chosen);
+        rows.folder = chosen;
+        this.showPictureSettings(rows);
+      }),
+    );
+    this.rows = rows;
+    this.showPictureSettings(rows);
   }
 
   override hide(): void {
-    this.stopWatching();
+    this.rows = null;
     super.hide();
   }
 
-  private stopWatching(): void {
-    if (this.watching === null) return;
-    this.app.metadataCache.offref(this.watching);
-    this.watching = null;
+  private noteChanged(path: string): void {
+    if (this.rows === null || path !== mainNotePathOf(this.rows.folder)) return;
+    this.showPictureSettings(this.rows);
   }
 
-  private showCampaign(folder: string): void {
-    new Setting(this.containerEl)
-      .setName("Campaign")
-      .setDesc(FOLDER_HINT)
-      .addDropdown((dropdown) => {
-        for (const each of this.campaigns.folders()) dropdown.addOption(each, each);
-        dropdown.setValue(folder).onChange((chosen) =>
-          this.save(async () => {
-            await this.campaigns.choose(chosen);
-            this.display();
-          }),
-        );
-      });
+  private addPictureRows(folder: string): PictureRows {
+    const picture = new Setting(this.containerEl).setName("Background picture");
+    const choose = new ButtonComponent(picture.controlEl);
+    const remove = new ButtonComponent(picture.controlEl).setButtonText("Remove picture");
+    const washSetting = new Setting(this.containerEl).setName("How much of the picture shows");
+    const wash = new DropdownComponent(washSetting.controlEl).addOptions(WASH_NAMES);
+    const rows: PictureRows = { folder, picture, choose, remove, wash };
+    choose.onClick(() => new PictureSuggestModal(this.app, this.picturesInVault(), (chosen) => this.choosePictureFor(rows, chosen)).open());
+    remove.onClick(() => this.writeMainNote(rows, (mainNote) => removePicture(this.app.fileManager, mainNote)));
+    wash.onChange((chosen) => this.writeMainNote(rows, (mainNote) => chooseWash(this.app.fileManager, mainNote, washOf(chosen))));
+    return rows;
   }
 
-  private showBackground(folder: string, mainNote: TFile): void {
-    const { fileManager, metadataCache } = this.app;
-    const background = backgroundOf(folder, metadataCache);
+  private showPictureSettings(rows: PictureRows): void {
+    const background = backgroundOf(rows.folder, this.app.metadataCache);
     let description = NO_PICTURE;
     let chooseText = "Choose a picture";
     if (background.picture !== null) {
       description = background.picture.path;
       chooseText = "Change picture";
     }
-    const choose = (picture: TFile) =>
-      this.save(() => chooseBackground(fileManager, mainNote, metadataCache.fileToLinktext(picture, mainNote.path)));
-    new Setting(this.containerEl)
-      .setName("Background picture")
-      .setDesc(description)
-      .addButton((button) =>
-        button.setButtonText(chooseText).onClick(() => new PictureSuggestModal(this.app, this.picturesInVault(), choose).open()),
-      )
-      .addButton((button) =>
-        button
-          .setButtonText("Remove picture")
-          .setDisabled(background.picture === null)
-          .onClick(() => this.save(() => removeBackground(fileManager, mainNote))),
-      );
-    new Setting(this.containerEl).setName("How much of the picture shows").addDropdown((dropdown) => {
-      dropdown
-        .addOptions(WASH_NAMES)
-        .setValue(background.wash)
-        .onChange((chosen) => this.save(() => chooseWash(fileManager, mainNote, washOf(chosen))));
-    });
+    rows.picture.setDesc(description);
+    rows.choose.setButtonText(chooseText);
+    rows.remove.setDisabled(background.picture === null);
+    rows.wash.setValue(background.wash);
+  }
+
+  private choosePictureFor(rows: PictureRows, picture: TFile): void {
+    this.writeMainNote(rows, (mainNote) =>
+      choosePicture(this.app.fileManager, mainNote, this.app.metadataCache.fileToLinktext(picture, mainNote.path)),
+    );
+  }
+
+  private writeMainNote(rows: PictureRows, write: (mainNote: TFile) => Promise<void>): void {
+    const mainNote = this.app.vault.getFileByPath(mainNotePathOf(rows.folder));
+    if (mainNote === null) {
+      new Notice(`Couldn't save the campaign: ${mainNotePathOf(rows.folder)} is missing.`);
+      return;
+    }
+    this.save(() => write(mainNote));
   }
 
   private picturesInVault(): TFile[] {

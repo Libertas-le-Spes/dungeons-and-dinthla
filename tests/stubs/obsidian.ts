@@ -144,7 +144,7 @@ export class FuzzySuggestModal {
   }
 }
 
-class DropdownComponent {
+export class DropdownComponent {
   readonly selectEl: HTMLSelectElement;
 
   constructor(containerEl: HTMLElement) {
@@ -172,7 +172,7 @@ class DropdownComponent {
   }
 }
 
-class ButtonComponent {
+export class ButtonComponent {
   readonly buttonEl: HTMLButtonElement;
 
   constructor(containerEl: HTMLElement) {
@@ -199,7 +199,7 @@ export class Setting {
   readonly settingEl: HTMLElement;
   private readonly nameEl: HTMLElement;
   private readonly descEl: HTMLElement;
-  private readonly controlEl: HTMLElement;
+  readonly controlEl: HTMLElement;
 
   constructor(containerEl: HTMLElement) {
     this.settingEl = containerEl.createDiv({ cls: "setting-item" });
@@ -218,13 +218,10 @@ export class Setting {
     return this;
   }
 
-  addDropdown(build: (dropdown: DropdownComponent) => unknown): this {
-    build(new DropdownComponent(this.controlEl));
-    return this;
-  }
+}
 
-  addButton(build: (button: ButtonComponent) => unknown): this {
-    build(new ButtonComponent(this.controlEl));
-    return this;
-  }
+export function debounce<T extends unknown[]>(callback: (...args: T) => void): ((...args: T) => void) & { cancel: () => void } {
+  const debouncer = (...args: T) => callback(...args);
+  debouncer.cancel = () => {};
+  return debouncer;
 }

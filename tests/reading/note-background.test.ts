@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { CachedMetadata, TFile } from "obsidian";
 import type { BackgroundMetadata } from "../../src/campaign/campaign-background";
-import { showBackground, shownBackgroundOf } from "../../src/reading/note-background";
+import { BackgroundRefresh, showBackground, shownBackgroundOf } from "../../src/reading/note-background";
 import { obsidianDocument } from "../views/obsidian-dom";
 
 const FOLDERS = ["Ashen Road", "Pale Moon"];
@@ -81,5 +81,33 @@ describe("showBackground", () => {
     const contentEl = contentWithNote();
     showBackground(contentEl, null);
     expect(contentEl.outerHTML).toBe('<div class=""><div class="markdown-source-view"></div></div>');
+  });
+});
+
+describe("BackgroundRefresh", () => {
+  function counted() {
+    const counter = { runs: 0 };
+    const refresh = new BackgroundRefresh(() => {
+      counter.runs += 1;
+    });
+    return { refresh, counter };
+  }
+
+  it("redraws when a campaign's main note changes", () => {
+    const { refresh, counter } = counted();
+    refresh.noteChanged("Pale Moon/Pale Moon.md");
+    expect(counter.runs).toBe(1);
+  });
+
+  it("leaves the backgrounds alone when any other note changes", () => {
+    const { refresh, counter } = counted();
+    refresh.noteChanged("Pale Moon/Sessions/Session 1.md");
+    expect(counter.runs).toBe(0);
+  });
+
+  it("redraws when notes open or files move", () => {
+    const { refresh, counter } = counted();
+    refresh.layoutChanged();
+    expect(counter.runs).toBe(1);
   });
 });

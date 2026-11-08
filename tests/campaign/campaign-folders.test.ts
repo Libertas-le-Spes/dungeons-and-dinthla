@@ -4,6 +4,7 @@ import {
   campaignNotePathOf,
   chosenCampaignFolder,
   findCampaignFolders,
+  isMainNote,
   isSessionNote,
   mainNotePathOf,
   startingCampaignFolder,
@@ -50,6 +51,16 @@ describe("campaignFolderOf", () => {
 describe("mainNotePathOf", () => {
   it("names the note at the top of the folder after the folder", () => {
     expect(mainNotePathOf("Pale Moon")).toBe("Pale Moon/Pale Moon.md");
+  });
+});
+
+describe("isMainNote", () => {
+  it("knows a campaign's main note", () => {
+    expect(isMainNote("Pale Moon/Pale Moon.md")).toBe(true);
+  });
+
+  it("leaves out every other note", () => {
+    for (const path of ["Pale Moon/Sessions/Session 1.md", "Pale Moon.md", "Lore/Pale Moon/Pale Moon.md"]) expect(isMainNote(path)).toBe(false);
   });
 });
 
