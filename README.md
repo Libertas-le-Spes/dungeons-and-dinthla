@@ -13,7 +13,9 @@ This README describes a project that grows in small steps: parts of it may still
 
 ## Install
 
-Build it, then copy `manifest.json`, `main.js` and `styles.css` into `<vault>/.obsidian/plugins/dungeons-and-dinthla/` and turn it on under Community plugins.
+Each tagged version is published as a [release](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/releases) with `main.js`, `manifest.json` and `styles.css`. On a tablet, install it with the [BRAT](https://github.com/TfTHacker/obsidian42-brat) plugin by adding `Libertas-le-Spes/dungeons-and-dinthla`, or download the three files from a release into `<vault>/.obsidian/plugins/dungeons-and-dinthla/`.
+
+Or build it yourself, then copy `manifest.json`, `main.js` and `styles.css` into `<vault>/.obsidian/plugins/dungeons-and-dinthla/` and turn it on under Community plugins.
 
 ```
 npm install
