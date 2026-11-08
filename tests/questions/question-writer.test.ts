@@ -67,6 +67,7 @@ describe("QuestionWriter", () => {
     expect(notes.texts.get(ONE)).toBe(
       "? Who sent the letter\n?= Who sent the letter: Lady Vess\n? Why would she hide it, after: Who sent the letter\n",
     );
+    expect(notes.writes).toBe(1);
   });
 
   it("replaces a changed answer in the old answer's own note, wherever the question is", async () => {
@@ -210,5 +211,18 @@ describe("QuestionWriter", () => {
     const notes = new FakeNotes({ [ONE]: "" });
     expect(await new QuestionWriter(notes.vault).add("", "Mira", ONE)).toBe(false);
     expect(notes.writes).toBe(0);
+  });
+
+  it("says the answer was written when only the follow-up in another note couldn't be", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n", [TWO]: "" });
+    notes.failOn = TWO;
+    await expect(save(notes, notes.questions()[0]!, { answer: "Vess", followUp: "Why" }, TWO)).rejects.toBeInstanceOf(PartlyWritten);
+    expect(notes.texts.get(ONE)).toBe("? Who\n?= Who: Vess\n");
+  });
+
+  it("writes nothing when the note for the follow-up has gone", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n" });
+    await expect(save(notes, notes.questions()[0]!, { answer: "Vess", followUp: "Why" }, TWO)).rejects.toThrow("moved or deleted");
+    expect(notes.texts.get(ONE)).toBe("? Who\n?= Who: Mira\n");
   });
 });

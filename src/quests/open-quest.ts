@@ -54,6 +54,8 @@ export function openQuest(
     },
     delete: () => writer.delete(latest()),
   };
-  const places = { givenIn: sessionLabelOf(record.source.path), writesTo: sessionLabelOf(sessionPath) };
+  let finishedIn = sessionLabelOf(sessionPath);
+  if (record.outcome !== null) finishedIn = sessionLabelOf(record.outcome.source.path);
+  const places = { givenIn: sessionLabelOf(record.source.path), finishedIn, writesTo: sessionLabelOf(sessionPath) };
   new QuestModal(app, record, places, canCollectReward(record, store.current.coins), choices, onClosed).open();
 }

@@ -53,6 +53,10 @@ export class NoteEditor {
     return true;
   }
 
+  ensureExists(paths: string[]): void {
+    for (const path of paths) this.fileAt(path);
+  }
+
   async remove(removal: Removal): Promise<boolean> {
     await this.removeOrRefuse(this.fileAt(removal.path), [removal], CHANGED_IN_NOTE);
     return true;

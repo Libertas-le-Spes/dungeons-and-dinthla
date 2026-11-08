@@ -13,6 +13,7 @@ export interface QuestionChoices {
 
 export interface QuestionPlaces {
   askedIn: string;
+  answeredIn: string;
   writesTo: string;
 }
 
@@ -67,7 +68,9 @@ export class QuestionModal extends Modal {
         this.run(() => this.choices.save(this.edit));
       });
     });
-    contentEl.createEl("p", { cls: "dd-where", text: `New lines go into ${this.places.writesTo}; a changed answer replaces the old one where it was.` });
+    let where = `New lines go into ${this.places.writesTo}.`;
+    if (this.question.answer !== null) where = `New lines go into ${this.places.writesTo}; a changed answer replaces the old one in ${this.places.answeredIn}.`;
+    contentEl.createEl("p", { cls: "dd-where", text: where });
     const buttons = new Setting(contentEl);
     buttons.addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.run(() => this.choices.save(this.edit))));
     if (this.question.answer !== null) {

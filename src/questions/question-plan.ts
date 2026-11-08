@@ -102,6 +102,8 @@ function followUpIndex(campaign: Campaign, plan: QuestionPlan): number {
 }
 
 export function refusalForQuestionPlan(sessions: SessionNote[], question: QuestionRecord, plan: QuestionPlan): string | null {
+  const known = new Set(sessions.map((session) => session.path));
+  if (!known.has(plan.answerPath) || !known.has(plan.followUpPath)) return CHANGES_MORE_THAN_ASKED;
   const before = buildCampaign(sessions);
   if (plan.followUpText !== null && before.questions.some((existing) => existing.text === plan.followUpText)) return FOLLOW_UP_ALREADY_ASKED;
   const after = buildCampaign(applyQuestionPlan(sessions, plan));

@@ -12,6 +12,7 @@ export interface QuestChoices {
 
 export interface QuestPlaces {
   givenIn: string;
+  finishedIn: string;
   writesTo: string;
 }
 
@@ -97,7 +98,9 @@ export class QuestModal extends Modal {
         this.run(() => this.choices.save(this.edit));
       });
     });
-    contentEl.createEl("p", { cls: "dd-where", text: `New lines go into ${this.places.writesTo}.` });
+    let where = `New lines go into ${this.places.writesTo}.`;
+    if (this.record.outcome !== null) where = `New lines go into ${this.places.writesTo}; a changed outcome, with its reward and follow-up, goes into ${this.places.finishedIn}.`;
+    contentEl.createEl("p", { cls: "dd-where", text: where });
     const buttons = new Setting(contentEl);
     buttons.addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.run(() => this.choices.save(this.edit))));
     buttons.addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));
