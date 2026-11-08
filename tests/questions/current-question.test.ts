@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { QuestionRecord } from "../../src/campaign/campaign";
-import { currentQuestion, sessionOfQuestion, sharesTextWithEarlierOpenQuestion } from "../../src/questions/current-question";
+import { answerWouldGoElsewhere, currentQuestion, latestSessionOfQuestion, sharesTextWithEarlierOpenQuestion } from "../../src/questions/current-question";
 import { CHANGED_IN_NOTE } from "../../src/questions/question-writer";
 
 function questionsOf(lines: string[], path = "Pale Moon/Sessions/Session 4.md"): QuestionRecord[] {
@@ -43,8 +43,28 @@ describe("sharesTextWithEarlierOpenQuestion", () => {
   });
 });
 
-describe("sessionOfQuestion", () => {
-  it("gives the number of the session the question was asked in", () => {
-    expect(sessionOfQuestion(questionsOf(["? Who"])[0]!, "Pale Moon")).toBe(4);
+describe("latestSessionOfQuestion", () => {
+  it("gives the latest session holding the question, a clue or its answer", () => {
+    const questions = buildCampaign([
+      { path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: "? Who" },
+      { path: "Pale Moon/Sessions/Session 3.md", number: 3, firstLine: 0, text: "?+ Who: oil" },
+    ]).questions;
+    expect(latestSessionOfQuestion(questions[0]!, "Pale Moon")).toBe(3);
+  });
+
+  it("gives the question's own session when nothing follows it", () => {
+    expect(latestSessionOfQuestion(questionsOf(["? Who"])[0]!, "Pale Moon")).toBe(4);
+  });
+});
+
+describe("answerWouldGoElsewhere", () => {
+  it("sees an answer that would be read as another open question's", () => {
+    const questions = questionsOf(["? Who", "? Who: really"]);
+    expect(answerWouldGoElsewhere(questions, questions[0]!, "really: Mira")).toBe(true);
+  });
+
+  it("lets an ordinary answer through", () => {
+    const questions = questionsOf(["? Who", "? Who: really"]);
+    expect(answerWouldGoElsewhere(questions, questions[0]!, "Mira")).toBe(false);
   });
 });
