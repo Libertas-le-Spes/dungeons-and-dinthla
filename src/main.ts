@@ -5,8 +5,10 @@ import { CampaignStore } from "./campaign/campaign-store";
 import { editorTextOf } from "./campaign/editor-text";
 import { openQuestionsView, openSource } from "./questions/open-questions";
 import { QUESTIONS_VIEW, QuestionsView } from "./questions/questions-view";
+import { usesCommunityTheme } from "./theme/community-theme";
 
 const TYPING_PAUSE_MS = 250;
+const FOLLOW_THEME_CLASS = "dd-follow-theme";
 
 export default class DungeonsAndDinthla extends Plugin {
   private readonly store = new CampaignStore(this.app.vault);
@@ -19,7 +21,15 @@ export default class DungeonsAndDinthla extends Plugin {
     this.registerView(QUESTIONS_VIEW, (leaf) => new QuestionsView(leaf, this.store, actions));
     this.addRibbonIcon("circle-help", "Open questions", () => void openQuestionsView(this.app));
     this.addCommand({ id: "open-questions", name: "Open questions", callback: () => void openQuestionsView(this.app) });
+    this.followTheme();
     this.app.workspace.onLayoutReady(() => void this.watchCampaign());
+  }
+
+  private followTheme(): void {
+    const update = () => document.body.toggleClass(FOLLOW_THEME_CLASS, usesCommunityTheme(this.app.vault));
+    update();
+    this.registerEvent(this.app.workspace.on("css-change", update));
+    this.register(() => document.body.removeClass(FOLLOW_THEME_CLASS));
   }
 
   private async watchCampaign(): Promise<void> {
