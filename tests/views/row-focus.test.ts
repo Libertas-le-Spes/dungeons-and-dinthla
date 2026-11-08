@@ -28,6 +28,14 @@ describe("RowFocus", () => {
     expect(fallback).not.toHaveBeenCalled();
   });
 
+  it("puts focus back at once and not again after a redraw when nothing changed", () => {
+    const focusRow = vi.fn(() => true);
+    const rowFocus = new RowFocus();
+    rowFocus.afterClose(focusRow, false, vi.fn());
+    rowFocus.afterRender();
+    expect(focusRow).toHaveBeenCalledOnce();
+  });
+
   it("falls back when the row is gone after the redraw", () => {
     const fallback = vi.fn();
     const rowFocus = new RowFocus();

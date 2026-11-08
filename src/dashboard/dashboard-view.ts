@@ -234,10 +234,10 @@ export class DashboardView extends ItemView {
   private renderSession(campaign: Campaign, funds: FundsSummary): void {
     const folder = this.store.campaignFolder;
     const paths = this.store.sessionNotes.map((session) => session.path);
-    this.latestPath = null;
-    if (folder !== null) this.latestPath = latestSession(folder, paths);
+    let latest: string | null = null;
+    if (folder !== null) latest = latestSession(folder, paths);
+    this.latestPath = latest;
     this.sessionList.empty();
-    const latest = this.latestPath;
     this.session.link.toggle(latest !== null);
     if (latest === null) {
       this.session.title.setText("Latest session");
