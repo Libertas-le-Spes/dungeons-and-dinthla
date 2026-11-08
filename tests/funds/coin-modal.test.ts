@@ -7,7 +7,7 @@ import type { CoinEntryChoices } from "../../src/funds/coin-entry";
 import { CoinModal } from "../../src/funds/coin-modal";
 import { openCoinEntry } from "../../src/funds/open-add-coin";
 import { CONFIRM_MS } from "../../src/views/second-press";
-import { openedModals } from "../stubs/obsidian";
+import { Notice, openedModals } from "../stubs/obsidian";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 
@@ -44,8 +44,8 @@ describe("the ledger entry dialog", () => {
   });
 });
 
-function openDialog(canDelete: boolean) {
-  const entry = { draft: { direction: "in" as const, amount: "2 gp", what: "tip" }, cannotSave: null, delete: vi.fn(async () => true) };
+function openDialog(canDelete: boolean, deleteNote: () => Promise<boolean> = async () => true) {
+  const entry = { draft: { direction: "in" as const, amount: "2 gp", what: "tip" }, cannotSave: null, delete: vi.fn(deleteNote) };
   let shown: CoinEntryChoices | null = null;
   if (canDelete) shown = entry;
   const onClosed = vi.fn();
@@ -85,6 +85,22 @@ describe("deleting a ledger entry", () => {
     deleting.click();
     button("Cancel")!.click();
     expect(deleting.textContent).toBe("Delete entry");
+  });
+
+  it("needs two presses again after a failed delete", async () => {
+    Notice.shown = [];
+    const { button, entry, onClosed } = openDialog(true, async () => {
+      throw new Error("the disk is full");
+    });
+    const deleting = button("Delete entry")!;
+    deleting.click();
+    deleting.click();
+    await vi.waitFor(() => expect(Notice.shown).toEqual(["Couldn't change the entry: the disk is full"]));
+    deleting.click();
+    expect(entry.delete).toHaveBeenCalledOnce();
+    deleting.click();
+    expect(entry.delete).toHaveBeenCalledTimes(2);
+    expect(onClosed).not.toHaveBeenCalled();
   });
 
   it("closes Add coin, which has nothing to delete", () => {
