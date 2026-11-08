@@ -9,7 +9,6 @@ export const CHANGED_IN_NOTE = "A line was changed in its note since the dialog 
 export const OLD_LINE_LEFT =
   "The new line was written, but the old one had changed in its note since, so it was left. Remove one of them by hand.";
 export const LINES_LEFT = "It was deleted, but some of its lines had changed or moved since they were read, so they were left in";
-export const DUPLICATE_LINES = "More than one line in the note reads like this one, so nothing was deleted.";
 
 export class PartlyWritten extends Error {}
 
@@ -28,10 +27,6 @@ export function lineAsRead(sessions: SessionNote[], source: Source): string | un
 export function removalAsRead(sessions: SessionNote[], source: Source): Removal {
   const read = lineAsRead(sessions, source);
   return { path: source.path, line: source.line, matches: (line) => line === read };
-}
-
-function countMatches(text: string, removal: Removal): number {
-  return text.split("\n").filter((written) => removal.matches(written.replace(/\r$/, ""))).length;
 }
 
 export class NoteEditor {
@@ -117,19 +112,13 @@ export class NoteEditor {
   }
 
   private async removeOwnLine(file: TFile, own: Removal, alongside: Removal[]): Promise<boolean> {
-    let duplicated = false;
     let left = false;
     await this.changeOrRefuse(file, CHANGED_IN_NOTE, (text) => {
-      if (countMatches(text, own) > 1) {
-        duplicated = true;
-        return text;
-      }
       if (removeLines(text, [own]).removed === 0) return null;
       const removal = removeLines(text, [own, ...alongside]);
       left = removal.removed < alongside.length + 1;
       return removal.text;
     });
-    if (duplicated) throw new Error(DUPLICATE_LINES);
     return left;
   }
 
