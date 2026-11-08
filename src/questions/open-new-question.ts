@@ -1,7 +1,7 @@
 import { Notice, type App } from "obsidian";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
-import { latestSession, SESSIONS_SHARE_A_NUMBER, sessionsSharingTheLatestNumber } from "../campaign/session-to-write";
+import { latestSession, SESSIONS_SHARE_A_NUMBER, latestNumberIsShared } from "../campaign/session-to-write";
 import { questionTextOf } from "../notes/question-lines";
 import { refusalForNewQuestion } from "./current-question";
 import { NewQuestionModal, type NewQuestion } from "./new-question-modal";
@@ -18,7 +18,7 @@ export function openNewQuestion(app: App, store: CampaignStore, onClosed: () => 
   }
   const paths = app.vault.getFiles().map((file) => file.path);
   const sessionPath = latestSession(folder, paths);
-  if (sessionPath === null && sessionsSharingTheLatestNumber(folder, app.vault.getFiles().map((file) => file.path))) {
+  if (sessionPath === null && latestNumberIsShared(folder, paths)) {
     new Notice(SESSIONS_SHARE_A_NUMBER);
     return;
   }

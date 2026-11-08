@@ -2,7 +2,7 @@ import { Notice, type App } from "obsidian";
 import type { Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
-import { SESSIONS_SHARE_A_NUMBER, sessionsSharingTheLatestNumber, sessionToWriteIn } from "../campaign/session-to-write";
+import { SESSIONS_SHARE_A_NUMBER, latestNumberIsShared, sessionToWriteIn } from "../campaign/session-to-write";
 import { currentQuest, GOES_ELSEWHERE, happenedWouldGoElsewhere, latestSessionOfQuest, SAME_TITLE, sharesTitleWithEarlierActiveQuest } from "./current-quest";
 import { QuestModal } from "./quest-modal";
 import { canCollectReward, planQuestSave, refusalForQuestPlan, type QuestEdit } from "./quest-plan";
@@ -37,7 +37,7 @@ export function openQuest(
   }
   const paths = app.vault.getFiles().map((file) => file.path);
   const sessionPath = sessionToWriteIn(activePathOf(app), folder, paths, latestSessionOfQuest(record, folder));
-  if (sessionPath === null && sessionsSharingTheLatestNumber(folder, paths)) {
+  if (sessionPath === null && latestNumberIsShared(folder, paths)) {
     new Notice(SESSIONS_SHARE_A_NUMBER);
     return;
   }
