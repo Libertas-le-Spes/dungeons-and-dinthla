@@ -33,7 +33,10 @@ export default class DungeonsAndDinthla extends Plugin {
         openQuestion(this.app, this.store, source, openNote, (changed) => this.focusQuestionRow(source, changed));
       },
     };
-    const createQuestion = (returnFocus: () => void) => openNewQuestion(this.app, this.store, returnFocus);
+    const createQuestion = {
+      label: "New question",
+      open: (returnFocus: () => void) => openNewQuestion(this.app, this.store, returnFocus),
+    };
     this.registerView(QUESTIONS_VIEW, (leaf) => new CampaignListView(leaf, this.store, questionActions, questionsKind, createQuestion));
     this.addRibbonIcon(questionsKind.icon, "Open questions", () => void openSideView(this.app, QUESTIONS_VIEW));
     this.addCommand({ id: "open-questions", name: "Open questions", callback: () => void openSideView(this.app, QUESTIONS_VIEW) });

@@ -13,7 +13,6 @@ export const questsKind: ListKind<QuestRecord> = {
   openWord: "active",
   foldedWord: "finished",
   emptyHint: "No active quests. Start a note with ! to add one.",
-  createLabel: "New quest",
   contentsOf: listQuests,
   addRow: addQuestRow,
 };

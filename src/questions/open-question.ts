@@ -3,13 +3,12 @@ import type { Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
 import { sessionToWriteIn } from "../campaign/session-to-write";
-import { answerWouldGoElsewhere, currentQuestion, latestSessionOfQuestion, sharesTextWithEarlierOpenQuestion } from "./current-question";
+import { ANSWER_GOES_ELSEWHERE, answerWouldGoElsewhere, currentQuestion, latestSessionOfQuestion, sharesTextWithEarlierOpenQuestion } from "./current-question";
 import { QuestionModal } from "./question-modal";
 import { QuestionWriter, type QuestionEdit } from "./question-writer";
 
 const NO_SESSION = "Start a session first: answers are written into a session note.";
 const SAME_TEXT = "An earlier open question reads the same, so an answer would go to it. Reword one of them first.";
-const ANSWER_GOES_ELSEWHERE = "That answer would be read as the answer to another question that starts the same way. Reword it.";
 
 function activePathOf(app: App): string | null {
   const file = app.workspace.getActiveFile();

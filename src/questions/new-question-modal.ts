@@ -49,7 +49,7 @@ export class NewQuestionModal extends Modal {
         this.save();
       });
     });
-    contentEl.createEl("p", { cls: "dd-where", text: `Adds a line to ${this.writesTo}.` });
+    contentEl.createEl("p", { cls: "dd-where", text: `New lines go into ${this.writesTo}.` });
     new Setting(contentEl)
       .addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.save()))
       .addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));

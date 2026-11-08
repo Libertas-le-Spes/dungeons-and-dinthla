@@ -36,6 +36,16 @@ export function latestSessionOfQuestion(question: QuestionRecord, campaignFolder
   return latest;
 }
 
+export const SAME_TEXT_AS_EXISTING = "A question already reads the same, so answers would be mixed up between them. Reword this one.";
+export const ANSWER_GOES_ELSEWHERE = "That answer would be read as the answer to another question that starts the same way. Reword it.";
+
+export function refusalForNewQuestion(questions: QuestionRecord[], text: string, answer: string, sessionPath: string): string | null {
+  if (questions.some((existing) => existing.text === text)) return SAME_TEXT_AS_EXISTING;
+  const standIn: QuestionRecord = { text, source: { path: sessionPath, line: -1 }, clues: [], answer: null };
+  if (oneLine(answer) !== "" && answerWouldGoElsewhere([...questions, standIn], standIn, answer)) return ANSWER_GOES_ELSEWHERE;
+  return null;
+}
+
 export function answerWouldGoElsewhere(questions: QuestionRecord[], question: QuestionRecord, answer: string): boolean {
   const open = questions.filter((candidate) => candidate === question || candidate.answer === null);
   const found = findSubject(`${question.text}: ${oneLine(answer)}`, open, (candidate) => candidate.text);

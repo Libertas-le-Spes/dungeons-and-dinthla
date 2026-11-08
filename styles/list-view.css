@@ -33,13 +33,23 @@
   border: var(--border-width) solid var(--border-strong);
   border-radius: var(--radius-md);
   background: var(--surface-card);
-  font-size: var(--text-sm);
+  font: var(--weight-medium) var(--text-sm) / 1 var(--font-ui);
   color: var(--text-body);
   cursor: pointer;
 }
 
 .dd-list-view .dd-create:hover {
   background: var(--surface-hover);
+}
+
+.dd-list-view .dd-create:active {
+  background: var(--surface-active);
+}
+
+.dd-list-view .dd-create:focus-visible {
+  border-color: var(--border-focus);
+  box-shadow: var(--focus-ring);
+  outline: none;
 }
 
 .dd-list-view .dd-filter {

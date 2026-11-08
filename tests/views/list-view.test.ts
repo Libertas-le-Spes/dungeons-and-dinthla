@@ -4,14 +4,14 @@ import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { Campaign } from "../../src/campaign/campaign";
 import type { CampaignStore } from "../../src/campaign/campaign-store";
 import { questsKind } from "../../src/quests/quests-kind";
-import { CampaignListView } from "../../src/views/list-view";
+import { CampaignListView, type ListCreate } from "../../src/views/list-view";
 import { obsidianDocument } from "./obsidian-dom";
 
 function campaignOf(lines: string[]): Campaign {
   return buildCampaign([{ path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: lines.join("\n") }]);
 }
 
-async function openView(campaign: Campaign, create: ((returnFocus: () => void) => void) | null = null) {
+async function openView(campaign: Campaign, create: ListCreate | null = null) {
   let listener: (campaign: Campaign) => void = () => {};
   const unsubscribe = vi.fn();
   const store = {
@@ -132,13 +132,13 @@ describe("CampaignListView", () => {
 
   it("shows a create button only when the list can make new items, and hands it a way back", async () => {
     expect((await openView(campaignOf([]))).root.querySelector(".dd-create")).toBeNull();
-    const create = vi.fn();
-    const { root } = await openView(campaignOf([]), create);
+    const open = vi.fn();
+    const { root } = await openView(campaignOf([]), { label: "New quest", open });
     const button = root.querySelector(".dd-create") as HTMLElement;
     expect(button.textContent).toBe("New quest");
     button.click();
-    expect(create).toHaveBeenCalledTimes(1);
-    create.mock.calls[0]![0]();
+    expect(open).toHaveBeenCalledTimes(1);
+    open.mock.calls[0]![0]();
     expect(root.ownerDocument.activeElement).toBe(button);
   });
 });

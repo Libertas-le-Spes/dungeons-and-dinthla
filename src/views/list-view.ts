@@ -11,6 +11,11 @@ export interface ListContents<T> {
   foldedCount: number;
 }
 
+export interface ListCreate {
+  label: string;
+  open(returnFocus: () => void): void;
+}
+
 export interface ListKind<T> {
   viewType: string;
   displayText: string;
@@ -19,7 +24,6 @@ export interface ListKind<T> {
   openWord: string;
   foldedWord: string;
   emptyHint: string;
-  createLabel: string;
   contentsOf(campaign: Campaign, keywords: string[]): ListContents<T>;
   addRow(list: HTMLElement, item: T, keywords: string[], actions: LinkActions): void;
 }
@@ -43,7 +47,7 @@ export class CampaignListView<T> extends ItemView {
     private readonly store: CampaignStore,
     private readonly actions: LinkActions,
     private readonly kind: ListKind<T>,
-    private readonly create: ((returnFocus: () => void) => void) | null,
+    private readonly create: ListCreate | null,
   ) {
     super(leaf);
   }
@@ -98,8 +102,8 @@ export class CampaignListView<T> extends ItemView {
   private addCreateButton(head: HTMLElement): void {
     const create = this.create;
     if (create === null) return;
-    const button = head.createEl("button", { cls: "dd-create", text: this.kind.createLabel });
-    this.registerDomEvent(button, "click", () => create(() => button.focus()));
+    const button = head.createEl("button", { cls: "dd-create", text: create.label });
+    this.registerDomEvent(button, "click", () => create.open(() => button.focus()));
   }
 
   focusRow(source: Source, afterChange: boolean): void {

@@ -17,7 +17,6 @@ export interface QuestionPlaces {
 
 const CONFIRM_MS = 4000;
 
-
 export class QuestionModal extends Modal {
   private readonly edit: QuestionEdit;
   private confirmTimer: number | null = null;
