@@ -5,10 +5,12 @@ import type {
   EditorSuggest as RealEditorSuggest,
   EditorSuggestContext,
   FrontMatterInfo,
+  FuzzySuggestModal as RealFuzzySuggestModal,
   ItemView as RealItemView,
   MarkdownFileInfo,
   Modal as RealModal,
   Plugin as RealPlugin,
+  PluginSettingTab as RealPluginSettingTab,
 } from "obsidian";
 
 export class Plugin {
@@ -109,5 +111,120 @@ export class AbstractInputSuggest {
 
   constructor(...[app]: ConstructorParameters<typeof RealInputSuggest>) {
     this.app = app;
+  }
+}
+
+export class PluginSettingTab {
+  app: RealPluginSettingTab["app"];
+  containerEl!: HTMLElement;
+
+  constructor(...[app]: ConstructorParameters<typeof RealPluginSettingTab>) {
+    this.app = app;
+  }
+
+  hide(): void {}
+}
+
+export const openedSuggestModals: unknown[] = [];
+
+export class FuzzySuggestModal {
+  app: RealFuzzySuggestModal<unknown>["app"];
+  placeholder = "";
+
+  constructor(...[app]: ConstructorParameters<typeof RealFuzzySuggestModal>) {
+    this.app = app;
+  }
+
+  setPlaceholder(placeholder: string): void {
+    this.placeholder = placeholder;
+  }
+
+  open(): void {
+    openedSuggestModals.push(this);
+  }
+}
+
+class DropdownComponent {
+  readonly selectEl: HTMLSelectElement;
+
+  constructor(containerEl: HTMLElement) {
+    this.selectEl = containerEl.createEl("select");
+  }
+
+  addOption(value: string, display: string): this {
+    this.selectEl.createEl("option", { text: display, attr: { value } });
+    return this;
+  }
+
+  addOptions(options: Record<string, string>): this {
+    for (const [value, display] of Object.entries(options)) this.addOption(value, display);
+    return this;
+  }
+
+  setValue(value: string): this {
+    this.selectEl.value = value;
+    return this;
+  }
+
+  onChange(callback: (value: string) => unknown): this {
+    this.selectEl.addEventListener("change", () => callback(this.selectEl.value));
+    return this;
+  }
+}
+
+class ButtonComponent {
+  readonly buttonEl: HTMLButtonElement;
+
+  constructor(containerEl: HTMLElement) {
+    this.buttonEl = containerEl.createEl("button");
+  }
+
+  setButtonText(text: string): this {
+    this.buttonEl.textContent = text;
+    return this;
+  }
+
+  setDisabled(disabled: boolean): this {
+    this.buttonEl.disabled = disabled;
+    return this;
+  }
+
+  onClick(callback: () => unknown): this {
+    this.buttonEl.addEventListener("click", () => callback());
+    return this;
+  }
+}
+
+export class Setting {
+  readonly settingEl: HTMLElement;
+  private readonly nameEl: HTMLElement;
+  private readonly descEl: HTMLElement;
+  private readonly controlEl: HTMLElement;
+
+  constructor(containerEl: HTMLElement) {
+    this.settingEl = containerEl.createDiv({ cls: "setting-item" });
+    this.nameEl = this.settingEl.createDiv({ cls: "setting-item-name" });
+    this.descEl = this.settingEl.createDiv({ cls: "setting-item-description" });
+    this.controlEl = this.settingEl.createDiv({ cls: "setting-item-control" });
+  }
+
+  setName(name: string): this {
+    this.nameEl.setText(name);
+    return this;
+  }
+
+  setDesc(description: string): this {
+    this.descEl.setText(description);
+    return this;
+  }
+
+  addDropdown(build: (dropdown: DropdownComponent) => unknown): this {
+    build(new DropdownComponent(this.controlEl));
+    return this;
+  }
+
+  addButton(build: (button: ButtonComponent) => unknown): this {
+    build(new ButtonComponent(this.controlEl));
+    return this;
   }
 }
