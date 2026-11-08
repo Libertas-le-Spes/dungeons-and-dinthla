@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TFile, TFolder } from "obsidian";
-import { createSession, nextSessionNumber, type SessionFiles, type SessionVault } from "../../src/sessions/create-session";
+import { createSession, nextSessionNumber, type SessionFileManager, type SessionVault } from "../../src/sessions/create-session";
 
 class FakeSessionVault {
   readonly files = new Map<string, string>();
@@ -20,6 +20,7 @@ class FakeSessionVault {
         return { path } as TFolder;
       },
       createFolder: async (path) => {
+        if (this.folders.has(path)) throw new Error("Folder already exists.");
         this.folders.add(path);
         return { path } as TFolder;
       },
@@ -31,7 +32,7 @@ class FakeSessionVault {
     };
   }
 
-  get fileManager(): SessionFiles {
+  get fileManager(): SessionFileManager {
     return {
       processFrontMatter: async (file, change) => {
         const properties: Record<string, unknown> = {};
@@ -49,7 +50,11 @@ describe("nextSessionNumber", () => {
   });
 
   it("starts a campaign with no sessions at 1", () => {
-    expect(nextSessionNumber(["Pale Moon/Pale Moon.md", "Ashen Road/Sessions/Session 4.md"], "Pale Moon")).toBe(1);
+    expect(nextSessionNumber(["Pale Moon/Pale Moon.md"], "Pale Moon")).toBe(1);
+  });
+
+  it("counts only this campaign's sessions", () => {
+    expect(nextSessionNumber(["Ashen Road/Sessions/Session 4.md"], "Pale Moon")).toBe(1);
   });
 });
 
@@ -58,10 +63,10 @@ describe("createSession", () => {
     const fake = new FakeSessionVault(["Pale Moon/Sessions/Session 3.md"], ["Pale Moon/Sessions"]);
     const note = await createSession(fake.vault, fake.fileManager, "Pale Moon", {
       title: "  The ferry at dusk ",
-      played: "2026-03-14",
+      played: "2026-03-21",
     });
     expect(note.path).toBe("Pale Moon/Sessions/Session 4.md");
-    expect(fake.properties.get(note.path)).toEqual({ played: "2026-03-14", title: "The ferry at dusk" });
+    expect(fake.properties.get(note.path)).toEqual({ played: "2026-03-21", title: "The ferry at dusk" });
   });
 
   it("leaves the title out when none is given, and still names the note by its number", async () => {

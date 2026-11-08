@@ -2,7 +2,7 @@ import type { FileManager, TFile, Vault } from "obsidian";
 import { sessionNumberOf } from "../campaign/session-file";
 
 export type SessionVault = Pick<Vault, "getFiles" | "getFolderByPath" | "createFolder" | "create">;
-export type SessionFiles = Pick<FileManager, "processFrontMatter">;
+export type SessionFileManager = Pick<FileManager, "processFrontMatter">;
 
 export interface NewSession {
   title: string;
@@ -20,7 +20,7 @@ export function nextSessionNumber(paths: string[], campaignFolder: string): numb
 
 export async function createSession(
   vault: SessionVault,
-  files: SessionFiles,
+  fileManager: SessionFileManager,
   campaignFolder: string,
   session: NewSession,
 ): Promise<TFile> {
@@ -29,7 +29,7 @@ export async function createSession(
   const number = nextSessionNumber(vault.getFiles().map((file) => file.path), campaignFolder);
   const note = await vault.create(`${sessionsFolder}/Session ${number}.md`, "");
   const title = session.title.trim();
-  await files.processFrontMatter(note, (properties: Record<string, unknown>) => {
+  await fileManager.processFrontMatter(note, (properties: Record<string, unknown>) => {
     properties.played = session.played;
     if (title !== "") properties.title = title;
   });
