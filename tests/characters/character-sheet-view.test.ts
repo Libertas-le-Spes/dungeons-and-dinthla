@@ -122,10 +122,11 @@ describe("CharacterSheetView", () => {
     expect(sheet.root.querySelector(".dd-sheet-subtitle")).toBeNull();
   });
 
-  it("shows each ability score with its modifier, but none for a score not known", async () => {
-    const sheet = openSheet({ sessions: ["[[Mira]] DEX: 17, STR: 8"] });
+  it("shows each ability score with its modifier, but none for a score not known or for other values", async () => {
+    const sheet = openSheet({ sessions: ["[[Mira]] DEX: 17, STR: 8, CON: ?, AC: 15"] });
     await sheet.load();
     expect(textsOf(sheet.root, ".dd-sheet-ability .dd-modifier")).toEqual(["(−1)", "(+3)"]);
+    expect(sheet.root.querySelector(".dd-sheet-row .dd-modifier")).toBeNull();
   });
 
   it("marks each value with its state, in words for those who can't see the colour", async () => {
@@ -270,6 +271,13 @@ describe("CharacterSheetView", () => {
     await sheet.view.onUnloadFile();
     pending[0]!("AC: 16");
     await loading;
+    expect(sheet.root.childElementCount).toBe(0);
+  });
+
+  it("empties the sheet when its note is unloaded", async () => {
+    const sheet = openSheet();
+    await sheet.load();
+    await sheet.view.onUnloadFile();
     expect(sheet.root.childElementCount).toBe(0);
   });
 

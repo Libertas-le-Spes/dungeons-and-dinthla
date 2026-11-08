@@ -62,6 +62,16 @@ describe("sheetNotesOf", () => {
     expect(sheetNotesOf(appWith({})).carriedFromOf(MIRA)).toBeNull();
   });
 
+  it("ignores links in other properties", () => {
+    const cache = { frontmatterLinks: [{ key: "patron", link: "Ashen Road/Characters/Mira", original: "", displayText: "" }] };
+    expect(sheetNotesOf(appWith(cache)).carriedFromOf(MIRA)).toBeNull();
+  });
+
+  it("carries no group when the note's properties can't be read", () => {
+    const cache = { frontmatterLinks: carriedFrom("Ashen Road/Characters/Mira").frontmatterLinks };
+    expect(sheetNotesOf(appWith(cache)).carriedFromOf(MIRA)).toEqual({ path: OLD_MIRA, groups: [] });
+  });
+
   it("ignores a carried from link to no note", () => {
     expect(sheetNotesOf(appWith(carriedFrom("Nowhere/Mira"))).carriedFromOf(MIRA)).toBeNull();
   });

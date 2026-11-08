@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App, TFile } from "obsidian";
 import type { SessionNote } from "../../src/campaign/campaign";
 import { CHANGED_IN_NOTE } from "../../src/campaign/note-editor";
-import { characterSheetOf, type SheetValue } from "../../src/characters/character-sheet";
+import { carriedValuesOf, characterSheetOf, type SheetValue } from "../../src/characters/character-sheet";
 import { CHARACTER_SHEET_VIEW } from "../../src/characters/character-sheet-view";
 import { chooseSheetValue, openCharacterSheet, sameSheetValue, saveSheetValue } from "../../src/characters/open-character-sheet";
 import type { SheetNotes } from "../../src/characters/sheet-notes";
@@ -94,6 +94,17 @@ describe("sameSheetValue", () => {
     expect(sameSheetValue(acOf([LEARNED_15]), acOf([LEARNED_15, { ...LEARNED_15, value: "16" }]))).toBe(false);
     expect(sameSheetValue(acOf([LEARNED_15]), acOf([LEARNED_15], [{ name: "AC", value: "16", source: { path: MIRA.path, line: 0 } }]))).toBe(false);
     expect(sameSheetValue(acOf([LEARNED_15]), acOf([moved]))).toBe(false);
+    const override = (value: string): SourcedFact => ({ name: "AC", value, source: { path: MIRA.path, line: 0 } });
+    expect(sameSheetValue(acOf([], [override("16")]), acOf([], [override("18")]))).toBe(false);
+  });
+
+  it("tells apart a value carried from another campaign that changed there", () => {
+    const carriedAc = (value: string) => {
+      const carried = carriedValuesOf("Ashen Road", [], [{ name: "AC", value, source: { path: "Ashen Road/Characters/Mira.md", line: 0 } }], ["values"]);
+      return characterSheetOf([], [], carried).values.find((sheetValue) => sheetValue.name === "AC")!;
+    };
+    expect(sameSheetValue(carriedAc("13"), carriedAc("13"))).toBe(true);
+    expect(sameSheetValue(carriedAc("13"), carriedAc("14"))).toBe(false);
   });
 });
 
