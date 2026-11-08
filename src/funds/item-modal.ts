@@ -1,5 +1,5 @@
 import { Modal, Notice, Setting, type App } from "obsidian";
-import type { ItemRecord } from "../campaign/campaign";
+import type { ItemRecord, Source } from "../campaign/campaign";
 import { PartlyWritten } from "../campaign/note-editor";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
@@ -22,7 +22,7 @@ export class ItemModal extends Modal {
     private readonly holders: HolderOption[],
     private readonly writesTo: string,
     private readonly save: (edit: ItemEdit) => Promise<boolean>,
-    private readonly openNote: () => void,
+    private readonly openNote: (source: Source) => void,
     private readonly onClosed: (changed: boolean) => void,
   ) {
     super(app);
@@ -90,8 +90,9 @@ export class ItemModal extends Modal {
   }
 
   private openTheNote(): void {
+    const gone = this.item.gone;
     this.close();
-    this.openNote();
+    if (gone !== null) this.openNote(gone.source);
   }
 
   private run(): void {
