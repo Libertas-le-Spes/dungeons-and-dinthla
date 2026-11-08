@@ -30,10 +30,10 @@ describe("removeLines", () => {
     });
   });
 
-  it("finds the line when the note has moved since it was read", () => {
+  it("removes nothing when the line has moved since it was read", () => {
     expect(removeLines("Added above.\n? Who\n?= Who: Mira", [{ line: 1, matches: isAnswer }])).toEqual({
-      text: "Added above.\n? Who",
-      removed: 1,
+      text: "Added above.\n? Who\n?= Who: Mira",
+      removed: 0,
     });
   });
 
@@ -59,10 +59,16 @@ describe("removeLines", () => {
     expect(removeLines("? Who\nWe rode on.", [{ line: 0, matches: sameText }, { line: 5, matches: sameText }]).removed).toBe(1);
   });
 
-  it("removes the matching line nearest where it was read, when two say the same", () => {
-    const text = "Added on top.\n? Who\n?+ Who: oil\nmid\n? Who\n";
+  it("never removes a twin elsewhere when the line read was changed by hand", () => {
+    const text = "? Who wrote it\n?+ Who: oil\nmid\n? Who\n";
     const isWho = (written: string) => written === "? Who";
-    expect(removeLines(text, [{ line: 3, matches: isWho }]).text).toBe("Added on top.\n? Who\n?+ Who: oil\nmid\n");
+    expect(removeLines(text, [{ line: 0, matches: isWho }])).toEqual({ text, removed: 0 });
+  });
+
+  it("removes the line read, not its twin, when two say the same", () => {
+    const text = "? Who\nmid\n? Who\n";
+    const isWho = (written: string) => written === "? Who";
+    expect(removeLines(text, [{ line: 2, matches: isWho }]).text).toBe("? Who\nmid\n");
   });
 
   it("removes a line from a note with Windows line endings", () => {
