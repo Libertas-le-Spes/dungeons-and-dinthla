@@ -75,7 +75,7 @@
 
 .dd-funds .dd-ledger-row {
   display: grid;
-  grid-template-columns: 3em minmax(0, 1fr) auto;
+  grid-template-columns: 3em minmax(0, 1fr);
   gap: var(--space-1) var(--space-3);
   align-items: baseline;
   min-height: var(--touch-min);
@@ -103,6 +103,8 @@
 }
 
 .dd-funds .dd-direction {
+  grid-column: 1;
+  grid-row: 2;
   font: var(--type-label);
   color: var(--text-muted-ui);
   white-space: nowrap;
@@ -110,18 +112,18 @@
 
 .dd-funds .dd-amount {
   grid-column: 2;
+  grid-row: 2;
   font: var(--type-note);
   color: var(--text-strong);
   white-space: nowrap;
 }
 
 .dd-funds .dd-balance {
-  grid-column: 3;
+  grid-column: 2;
+  grid-row: 3;
   font: var(--type-note);
   font-size: var(--text-xs);
   color: var(--text-muted-ui);
-  text-align: right;
-  white-space: nowrap;
 }
 
 .dd-funds .dd-balance::before {
