@@ -236,7 +236,7 @@ Each value has a state, which comes from where its line is:
 
 "Newest" means the highest session number, and then the lowest line in that note.
 
-A name is letters and spaces, read whatever its capitals (`ac:` is `AC`). A value runs to the next comma that a name and a colon follow, so the comma in `type: Medium humanoid (human), lawful good` stays in the type, and a name with nothing after its colon states nothing. Learned values and overrides are read today, with an override winning over anything learned and the newest line winning among the rest. Carried-over values, earlier values and list values that add up aren't read yet.
+A name is letters and spaces, read whatever its capitals (`ac:` is `AC`). A value runs to the next comma that a name and a colon follow, so the comma in `type: Medium humanoid (human), lawful good` stays in the type, and a name with nothing after its colon states nothing. Learned values and overrides are read today, each with the note and line it came from, with an override winning over anything learned and the newest line winning among the rest. A session's properties are never read as facts, and a link counts for the note Obsidian resolves it to, so `[[Mira]]` and `[[Characters/Mira|her]]` state facts about the same character. Carried-over values, earlier values and list values that add up aren't read yet.
 
 Renaming a character's note renames it: Obsidian rewrites every `[[link]]` to it.
 
@@ -271,4 +271,4 @@ views:
 
 It never writes the file again, so a filter, sort or view added to it in Bases stays. A new note in the `Characters` folder shows up as a card at once.
 
-Each card is a short stat block: the character's name, their `type` and `subtitle` when known, then `class`, `AC`, `HP` and `speed`, and the six ability scores with their modifiers. A value no line states shows as `?`. The player's own character, named by the campaign note's `character` property, is marked *Your character*. Tapping a card opens the character's note, until their sheet is built.
+Each card is a short stat block: the character's name, their `type` and `subtitle` when known, then `class`, `AC`, `HP` and `speed`, and the six ability scores with their modifiers. A value no line states shows as `?`. Each card reads the sessions of the campaign its note is in, even while another campaign is open, and a note outside any campaign shows only its own overrides. The player's own character, named by a link in the campaign note's `character` property, is marked *Your character*, and changing that property redraws the gallery. Tapping a card opens the character's note, until their sheet is built.

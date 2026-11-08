@@ -1,5 +1,5 @@
 import { Notice, type App, type TFile } from "obsidian";
-import { NO_CAMPAIGN } from "../sessions/start-session";
+import { NO_CAMPAIGN } from "../campaign/campaign-folders";
 import { messageOf } from "../views/message-of";
 import { CHARACTERS_VIEW } from "./characters-view";
 

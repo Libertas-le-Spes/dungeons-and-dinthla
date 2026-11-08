@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { campaignFolderOf, findCampaignFolders, isSessionNote } from "../../src/campaign/campaign-folders";
+import { campaignFolderOf, campaignNotePathOf, findCampaignFolders, isSessionNote } from "../../src/campaign/campaign-folders";
+
+describe("campaignNotePathOf", () => {
+  it("gives the main note of the campaign folder a note is in", () => {
+    expect(campaignNotePathOf("Pale Moon/Characters/Mira.md")).toBe("Pale Moon/Pale Moon.md");
+  });
+
+  it("gives none for a note outside any folder", () => {
+    expect(campaignNotePathOf("Mira.md")).toBeNull();
+  });
+});
 
 describe("findCampaignFolders", () => {
   it("finds each top-level folder with a main note of its own name, in name order", () => {

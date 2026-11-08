@@ -1,18 +1,23 @@
 import { BasesView, type QueryController, type TFile } from "obsidian";
+import type { SessionNote } from "../campaign/campaign";
+import { campaignFolderOf, campaignNotePathOf } from "../campaign/campaign-folders";
 import type { CampaignStore } from "../campaign/campaign-store";
 import type { LinkActions } from "../views/linked-text";
 import { addCharacterCard, type CharacterCard } from "./character-card";
 import type { CharacterNotes } from "./character-notes";
-import { learnedFacts, overrideFacts, sheetValuesOf } from "./sheet-values";
+import { factsByCharacter, overrideFacts, sheetValuesOf, type SourcedFact } from "./sheet-values";
 
 export const CHARACTERS_VIEW = "dungeons-and-dinthla-characters";
 
 const NO_CHARACTERS = "No characters yet. A note in the campaign’s Characters folder adds one.";
 
+type LearnedFacts = Map<string, SourcedFact[]>;
+
 export class CharactersView extends BasesView {
   readonly type = CHARACTERS_VIEW;
   private readonly root: HTMLElement;
   private renders = 0;
+  private campaignNotes = new Set<string | null>();
 
   constructor(
     controller: QueryController,
@@ -27,6 +32,11 @@ export class CharactersView extends BasesView {
 
   override onload(): void {
     this.register(this.store.subscribe(() => this.onDataUpdated()));
+    this.register(
+      this.notes.onNoteChanged((path) => {
+        if (this.campaignNotes.has(path)) this.onDataUpdated();
+      }),
+    );
   }
 
   onDataUpdated(): void {
@@ -35,8 +45,24 @@ export class CharactersView extends BasesView {
 
   private async render(): Promise<void> {
     const render = ++this.renders;
-    const cards = await Promise.all(this.data.data.map((entry) => this.cardOf(entry.file)));
+    const files = this.data.data.map((entry) => entry.file);
+    const folders = this.notes.campaignFolders();
+    const learnedByFolder = new Map<string | null, Promise<LearnedFacts>>();
+    const learnedIn = (folder: string | null) => {
+      let learned = learnedByFolder.get(folder);
+      if (learned === undefined) {
+        learned = this.readLearned(folder);
+        learnedByFolder.set(folder, learned);
+      }
+      return learned;
+    };
+    const cards = await Promise.all(files.map((file) => this.cardOf(file, learnedIn(campaignFolderOf(file.path, folders)))));
     if (render !== this.renders) return;
+    this.campaignNotes = new Set(files.map((file) => campaignNotePathOf(file.path)));
+    this.draw(cards);
+  }
+
+  private draw(cards: CharacterCard[]): void {
     this.root.empty();
     const title = this.root.createDiv({ cls: "dd-head" }).createEl("h2", { cls: "dd-title", text: "Characters" });
     if (cards.length === 0) {
@@ -48,14 +74,25 @@ export class CharactersView extends BasesView {
     for (const card of cards) addCharacterCard(gallery, card, this.actions);
   }
 
-  private async cardOf(file: TFile): Promise<CharacterCard> {
+  private async sessionsIn(folder: string | null): Promise<SessionNote[]> {
+    if (folder === null) return [];
+    if (folder === this.store.campaignFolder) return this.store.sessionNotes;
+    return this.notes.sessionsOf(folder);
+  }
+
+  private async readLearned(folder: string | null): Promise<LearnedFacts> {
+    const sessions = await this.sessionsIn(folder);
+    return factsByCharacter(sessions, (linktext, sourcePath) => this.notes.pathOfLink(linktext, sourcePath));
+  }
+
+  private async cardOf(file: TFile, learnedFacts: Promise<LearnedFacts>): Promise<CharacterCard> {
     const ownNote = await this.notes.textOf(file);
-    const isCharacter = (target: string, sourcePath: string) => this.notes.pathOfLink(target, sourcePath) === file.path;
-    const learned = learnedFacts(this.store.sessionNotes, isCharacter);
+    let learned = (await learnedFacts).get(file.path);
+    if (learned === undefined) learned = [];
     return {
       path: file.path,
       name: file.basename,
-      values: sheetValuesOf(learned, overrideFacts(ownNote)),
+      values: sheetValuesOf(learned, overrideFacts(ownNote, file.path)),
       isOwn: this.notes.isOwnCharacter(file),
     };
   }

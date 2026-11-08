@@ -1,6 +1,6 @@
-import { withoutBullet } from "../notes/bullet";
-import { partsBetweenCommas } from "../notes/comma";
-import { findLinks } from "../notes/link";
+import { withoutBullet } from "./bullet";
+import { partsBetweenCommas } from "./comma";
+import { findLinks } from "./link";
 
 export interface CharacterFact {
   name: string;
