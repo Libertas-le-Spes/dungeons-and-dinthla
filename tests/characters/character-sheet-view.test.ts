@@ -230,6 +230,7 @@ describe("CharacterSheetView", () => {
     await sheet.load();
     const block = sheet.root.querySelector<HTMLElement>(".dd-sheet-stat-block")!;
     expect(textsOf(block, ".dd-title")).toEqual(["Stat block"]);
+    expect(block.querySelectorAll(":scope > .dd-stat-block")).toHaveLength(1);
     expect(textsOf(block, ".dd-stat-block-name")).toEqual(["Mira"]);
     expect(textsOf(block, ".dd-stat-block-type")).toEqual(["Medium humanoid (half-elf), chaotic good"]);
     expect(textsOf(block, ".dd-stat-block-line")).toEqual(["Class Ranger", "Armor Class 15", "Hit Points 44", "Speed ?"]);

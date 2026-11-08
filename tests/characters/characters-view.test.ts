@@ -143,6 +143,7 @@ describe("CharactersView", () => {
     const gallery = openGallery({ sessions });
     await gallery.show(["Mira"]);
     const card = gallery.container.querySelector<HTMLElement>(".dd-card")!;
+    expect(card.classList.contains("dd-stat-block")).toBe(true);
     expect(textsOf(card, ".dd-stat-block-type")).toEqual(["Medium humanoid (half-elf), chaotic good"]);
     expect(textsOf(card, ".dd-stat-block-subtitle")).toEqual(["Half-elf Ranger 5"]);
     expect(textsOf(card, ".dd-stat-block-line")).toEqual(["Class rogue", "Armor Class 15", "Hit Points 44", "Speed ?"]);
@@ -156,12 +157,16 @@ describe("CharactersView", () => {
     expect(gallery.container.querySelectorAll(".dd-stat-block-type, .dd-stat-block-subtitle")).toHaveLength(0);
   });
 
-  it("shows a value marked not known as unknown, and leaves out a type line marked not known", async () => {
-    const sessions = [sessionOf(1, ["[[Mira]] AC: 15, DEX: 17, type: Medium humanoid"]), sessionOf(2, ["[[Mira]] AC: ?, DEX: ?, type: ?"])];
+  it("shows a value marked not known as unknown, and leaves out a type line and subtitle marked not known", async () => {
+    const sessions = [
+      sessionOf(1, ["[[Mira]] AC: 15, DEX: 17, type: Medium humanoid, subtitle: Half-elf Ranger 5"]),
+      sessionOf(2, ["[[Mira]] AC: ?, DEX: ?, type: ?, subtitle: ?"]),
+    ];
     const gallery = openGallery({ sessions });
     await gallery.show(["Mira"]);
     const card = gallery.container.querySelector<HTMLElement>(".dd-card")!;
     expect(card.querySelector(".dd-stat-block-type")).toBeNull();
+    expect(card.querySelector(".dd-stat-block-subtitle")).toBeNull();
     expect(textsOf(card, ".dd-stat-block-line .dd-unknown")).toHaveLength(4);
     expect(textsOf(card, ".dd-stat-block-abilities > div")[1]).toBe("DEX?");
     expect(textsOf(card, ".dd-stat-block-abilities .dd-unknown")).toHaveLength(6);

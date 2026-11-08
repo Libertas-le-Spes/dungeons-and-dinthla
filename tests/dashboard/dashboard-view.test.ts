@@ -301,6 +301,7 @@ describe("DashboardView", () => {
     await vi.waitFor(() => expect(textsOf(characters, ".dd-stat-block-name")).toEqual(["Mira", "Thessaly"]));
     expect(textsOf(characters, ".dd-stat-block-line")).toEqual(["Class rogue · AC 15 · HP ?", "Class ? · AC ? · HP 22"]);
     expect(textsOf(characters, ".dd-card-own-label")).toEqual(["Your character"]);
+    expect(characters.querySelectorAll(".dd-card.dd-stat-block")).toHaveLength(2);
     expect(characters.querySelector(".dd-empty")).toBeNull();
     characters.querySelector<HTMLElement>(".dd-card")!.click();
     expect(actions.openCharacterSheet).toHaveBeenCalledWith(`${CAMPAIGN}/Characters/Mira.md`);
