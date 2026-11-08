@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readMarker } from "../../src/notes/marker";
+import { markerSpanOf, readMarker } from "../../src/notes/marker";
 
 describe("readMarker", () => {
   it("reads a question, a quest and a ledger line", () => {
@@ -76,5 +76,37 @@ describe("readMarker", () => {
 
   it("still reads a quest whose title starts with an x", () => {
     expect(readMarker("!xylophone for the bard")).toEqual({ marker: "quest", body: "xylophone for the bard" });
+  });
+});
+
+describe("markerSpanOf", () => {
+  it("finds the glyph of a question, a quest and a ledger line", () => {
+    expect(markerSpanOf("? Who sent the letter")).toEqual({ marker: "question", start: 0, end: 1 });
+    expect(markerSpanOf("! Find the caravan")).toEqual({ marker: "quest", start: 0, end: 1 });
+    expect(markerSpanOf("$ 35 gp")).toEqual({ marker: "ledger", start: 0, end: 1 });
+  });
+
+  it("finds the glyph after indentation and a list bullet", () => {
+    expect(markerSpanOf("  - ? Who")).toEqual({ marker: "question", start: 4, end: 5 });
+  });
+
+  it("covers both characters of a follow-up and an item change", () => {
+    expect(markerSpanOf("?= Who: Mira")).toEqual({ marker: "question", start: 0, end: 2 });
+    expect(markerSpanOf("!x Find it: burned")).toEqual({ marker: "quest", start: 0, end: 2 });
+    expect(markerSpanOf("$$ Silvered lantern :sold 30gp")).toEqual({ marker: "ledger", start: 0, end: 2 });
+  });
+
+  it("leaves lookups and a $$ line still being typed alone", () => {
+    for (const line of ["?? letter", "!! caravan", "$$ lan"]) expect(markerSpanOf(line)).toBeNull();
+  });
+
+  it("leaves lines the readers leave unmarked alone", () => {
+    for (const line of ["We rode on.", "1. ? Who", "- - ? Who", "-? Who", "- [ ] ? Who", ""]) {
+      expect(markerSpanOf(line)).toBeNull();
+    }
+  });
+
+  it("keeps a quest whose title starts with an x to its one glyph", () => {
+    expect(markerSpanOf("!xylophone")).toEqual({ marker: "quest", start: 0, end: 1 });
   });
 });

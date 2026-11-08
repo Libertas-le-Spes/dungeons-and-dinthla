@@ -1,3 +1,5 @@
+import { sessionNumberOf } from "./session-file";
+
 function topFolderOf(path: string): string | null {
   const slash = path.indexOf("/");
   if (slash === -1) return null;
@@ -17,4 +19,10 @@ export function campaignFolderOf(path: string, campaignFolders: string[]): strin
   const folder = topFolderOf(path);
   if (folder === null || !campaignFolders.includes(folder)) return null;
   return folder;
+}
+
+export function isSessionNote(path: string, noteExists: (path: string) => boolean): boolean {
+  const folder = topFolderOf(path);
+  if (folder === null || sessionNumberOf(path, folder) === null) return false;
+  return noteExists(`${folder}/${folder}.md`);
 }
