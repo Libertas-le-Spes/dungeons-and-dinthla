@@ -1,3 +1,4 @@
+import { NOT_KNOWN } from "./character-sheet";
 import { ABILITIES, modifierOf, type SheetValues } from "./sheet-values";
 
 const STAT_BLOCK_LINES = [
@@ -7,9 +8,15 @@ const STAT_BLOCK_LINES = [
   { label: "Speed", name: "speed" },
 ];
 
-export function addStatValue(parent: HTMLElement, values: SheetValues, name: string): void {
+function knownValueOf(values: SheetValues, name: string): string | undefined {
   const value = values.get(name);
-  if (value === undefined) parent.createSpan({ cls: "dd-unknown", text: "?" });
+  if (value === NOT_KNOWN) return undefined;
+  return value;
+}
+
+export function addStatValue(parent: HTMLElement, values: SheetValues, name: string): void {
+  const value = knownValueOf(values, name);
+  if (value === undefined) parent.createSpan({ cls: "dd-unknown", text: NOT_KNOWN });
   else parent.appendText(value);
 }
 
@@ -23,7 +30,7 @@ function addAbilities(block: HTMLElement, values: SheetValues): void {
     const cell = abilities.createDiv();
     cell.createEl("b", { text: ability });
     addStatValue(cell, values, ability);
-    const score = values.get(ability);
+    const score = knownValueOf(values, ability);
     if (score === undefined) continue;
     const modifier = modifierOf(score);
     if (modifier !== "") cell.appendText(` (${modifier})`);
@@ -33,8 +40,8 @@ function addAbilities(block: HTMLElement, values: SheetValues): void {
 export function fillStatBlock(block: HTMLElement, characterName: string, values: SheetValues): void {
   block.addClass("dd-stat-block");
   block.createDiv({ cls: "dd-stat-block-name", text: characterName });
-  addKnownLine(block, "dd-stat-block-type", values.get("type"));
-  addKnownLine(block, "dd-stat-block-subtitle", values.get("subtitle"));
+  addKnownLine(block, "dd-stat-block-type", knownValueOf(values, "type"));
+  addKnownLine(block, "dd-stat-block-subtitle", knownValueOf(values, "subtitle"));
   block.createDiv({ cls: "dd-stat-block-rule" });
   for (const { label, name } of STAT_BLOCK_LINES) {
     const line = block.createDiv({ cls: "dd-stat-block-line" });
