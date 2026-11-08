@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { campaignFolderOf, campaignNotePathOf, findCampaignFolders, isSessionNote } from "../../src/campaign/campaign-folders";
+import {
+  campaignFolderOf,
+  campaignNotePathOf,
+  chosenCampaignFolder,
+  findCampaignFolders,
+  isSessionNote,
+  mainNotePathOf,
+  startingCampaignFolder,
+} from "../../src/campaign/campaign-folders";
 
 describe("campaignNotePathOf", () => {
   it("gives the main note of the campaign folder a note is in", () => {
@@ -36,6 +44,42 @@ describe("campaignFolderOf", () => {
   it("finds no campaign for a note outside them", () => {
     expect(campaignFolderOf("Recipes/Bread.md", folders)).toBeNull();
     expect(campaignFolderOf("Inbox.md", folders)).toBeNull();
+  });
+});
+
+describe("mainNotePathOf", () => {
+  it("names the note at the top of the folder after the folder", () => {
+    expect(mainNotePathOf("Pale Moon")).toBe("Pale Moon/Pale Moon.md");
+  });
+});
+
+describe("chosenCampaignFolder", () => {
+  const folders = ["Ashen Road", "Pale Moon"];
+
+  it("keeps the chosen campaign", () => {
+    expect(chosenCampaignFolder("Pale Moon", folders)).toBe("Pale Moon");
+  });
+
+  it("takes the first campaign when none was chosen, or the chosen one is gone", () => {
+    expect(chosenCampaignFolder(null, folders)).toBe("Ashen Road");
+    expect(chosenCampaignFolder("Lost Mines", folders)).toBe("Ashen Road");
+  });
+
+  it("has no campaign when the vault has none", () => {
+    expect(chosenCampaignFolder("Pale Moon", [])).toBeNull();
+  });
+});
+
+describe("startingCampaignFolder", () => {
+  const folders = ["Ashen Road", "Pale Moon", "Silver Coast"];
+
+  it("starts in the campaign of the open note", () => {
+    expect(startingCampaignFolder("Silver Coast/Sessions/Session 1.md", "Pale Moon", folders)).toBe("Silver Coast");
+  });
+
+  it("starts in the chosen campaign when no note is open, or the open note is outside every campaign", () => {
+    expect(startingCampaignFolder(null, "Pale Moon", folders)).toBe("Pale Moon");
+    expect(startingCampaignFolder("Recipes/Bread.md", "Pale Moon", folders)).toBe("Pale Moon");
   });
 });
 
