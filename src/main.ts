@@ -6,7 +6,7 @@ import { editorTextOf } from "./campaign/editor-text";
 import { openQuestionsView, openSource } from "./questions/open-questions";
 import { QUESTIONS_VIEW, QuestionsView } from "./questions/questions-view";
 import { usesCommunityTheme } from "./theme/community-theme";
-import { ThemeClass } from "./theme/theme-class";
+import { FollowThemeClass } from "./theme/follow-theme-class";
 
 const TYPING_PAUSE_MS = 250;
 
@@ -26,12 +26,15 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private followTheme(): void {
-    const themeClass = new ThemeClass(() => usesCommunityTheme(this.app.vault));
-    themeClass.add(document.body);
-    this.registerEvent(this.app.workspace.on("css-change", () => themeClass.update()));
-    this.registerEvent(this.app.workspace.on("window-open", (popout) => themeClass.add(popout.doc.body)));
-    this.registerEvent(this.app.workspace.on("window-close", (popout) => themeClass.remove(popout.doc.body)));
-    this.register(() => themeClass.clear());
+    const followThemeClass = new FollowThemeClass(() => usesCommunityTheme(this.app.vault));
+    followThemeClass.add(document.body);
+    this.registerEvent(this.app.workspace.on("css-change", () => followThemeClass.update()));
+    this.registerEvent(this.app.workspace.on("window-open", (popout) => followThemeClass.add(popout.doc.body)));
+    this.registerEvent(this.app.workspace.on("window-close", (popout) => followThemeClass.remove(popout.doc.body)));
+    this.register(() => followThemeClass.clear());
+    this.app.workspace.onLayoutReady(() => {
+      this.app.workspace.iterateAllLeaves((leaf) => followThemeClass.add(leaf.view.containerEl.doc.body));
+    });
   }
 
   private async watchCampaign(): Promise<void> {
