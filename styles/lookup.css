@@ -14,12 +14,6 @@
   min-width: 0;
 }
 
-.dd-lookup mark {
-  background: var(--marker-question-soft);
-  color: inherit;
-  border-radius: 2px;
-}
-
 .dd-lookup-holder {
   color: var(--text-muted-ui);
   font-size: var(--text-sm);

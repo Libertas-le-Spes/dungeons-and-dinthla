@@ -5,7 +5,7 @@ import { addLinkedText, addNameLink, addRowButton, type LinkActions } from "../v
 import type { ItemEventKind, ItemRecord, Source } from "../campaign/campaign";
 import { sessionLabelOf } from "../campaign/session-file";
 import { summariseFunds, type CoinCount, type FundsSummary, type LedgerLine } from "./funds-summary";
-import { summariseItems, type ItemSummary } from "./item-groups";
+import { summariseItems, THE_PARTY_LABEL, type ItemSummary } from "./item-groups";
 import type { CoinOutcome } from "./coin-modal";
 import { focusRowAt, PENDING_FOCUS_MS } from "../views/row-focus";
 
@@ -137,7 +137,7 @@ export class FundsView extends ItemView {
     for (const group of summary.groups) {
       const heading = this.items.createEl("h3", { cls: "dd-holder" });
       const sourcePath = group.items[0]!.source.path;
-      if (group.holder === "") heading.setText("The party");
+      if (group.holder === "") heading.setText(THE_PARTY_LABEL);
       else if (this.noteExists(group.holder, sourcePath)) addNameLink(heading, group.holder, group.holder, sourcePath, this.actions);
       else heading.setText(group.holder);
       const list = this.items.createEl("ul", { cls: "dd-list" });

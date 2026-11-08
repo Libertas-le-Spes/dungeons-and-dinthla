@@ -1,5 +1,6 @@
 import type { Campaign, Source } from "../campaign/campaign";
 import { holderNameOf } from "../funds/item-groups";
+import { readItemChange } from "../notes/item-change";
 import { unlink } from "../notes/link";
 import { listQuestions } from "../questions/question-list";
 import { listQuests } from "../quests/quest-list";
@@ -21,7 +22,6 @@ export interface LookupMatch {
 
 export const LOOKUP_LIMIT = 8;
 const LOOKUP_LINE = /^\s*(\?\?|!!|\$\$)\s?(.*)$/;
-const CHANGE_WORD = / :(changed to|sold|used|lost)\b/i;
 const KINDS: Record<string, LookupKind> = { "??": "question", "!!": "quest", $$: "item" };
 
 export function readLookup(line: string): Lookup | null {
@@ -29,7 +29,7 @@ export function readLookup(line: string): Lookup | null {
   if (match === null) return null;
   const kind = KINDS[match[1]!]!;
   const typed = match[2]!;
-  if (kind === "item" && CHANGE_WORD.test(typed)) return null;
+  if (kind === "item" && readItemChange(line) !== null) return null;
   return { kind, keywords: keywordsOf(typed) };
 }
 

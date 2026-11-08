@@ -77,6 +77,8 @@ export class EditorSuggest {
   constructor(...[app]: ConstructorParameters<typeof RealEditorSuggest>) {
     this.app = app;
   }
+
+  close(): void {}
 }
 
 export class AbstractInputSuggest {
