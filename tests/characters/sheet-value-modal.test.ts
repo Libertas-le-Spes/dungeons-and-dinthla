@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App } from "obsidian";
 import { CHANGED_IN_NOTE, PartlyWritten } from "../../src/campaign/note-editor";
-import { characterSheetOf, type SheetValue } from "../../src/characters/character-sheet";
-import { secondPressText, SheetValueModal, whereText, type SheetValueDialog } from "../../src/characters/sheet-value-modal";
+import { carriedValuesOf, characterSheetOf, type SheetValue } from "../../src/characters/character-sheet";
+import { notKnownOverCarriedText, secondPressText, SheetValueModal, whereText, type SheetValueDialog } from "../../src/characters/sheet-value-modal";
 import type { ValueChoice } from "../../src/characters/sheet-value-writer";
 import type { SourcedFact } from "../../src/characters/sheet-values";
 import { PRESS_AGAIN } from "../../src/views/second-press";
@@ -99,6 +99,20 @@ describe("SheetValueModal", () => {
   it("lists no earlier values when there are none", () => {
     const { root } = openDialog({ value: hpOf([inSession(1, "31")]) });
     expect(root.querySelector(".dd-earlier-list")).toBeNull();
+  });
+
+  it("says that Not known yet over a carried value wins over it", () => {
+    const carried = carriedValuesOf("Ashen Road", [], [{ name: "HP", value: "30", source: { path: "Ashen Road/Characters/Mira.md", line: 0 } }], ["values"]);
+    const value = characterSheetOf([], [], carried).values.find((sheetValue) => sheetValue.name === "HP")!;
+    const wheres = Array.from(openDialog({ value }).root.querySelectorAll(".dd-where")).map((where) => where.textContent);
+    expect(wheres).toContain(notKnownOverCarriedText("Hit Points"));
+    expect(notKnownOverCarriedText("Hit Points")).toBe("Not known yet adds a ? line, which wins over the carried hit points until a later line states it.");
+  });
+
+  it("gives no carried hint when the value was learned in this campaign", () => {
+    const carried = carriedValuesOf("Ashen Road", [], [{ name: "HP", value: "30", source: { path: "Ashen Road/Characters/Mira.md", line: 0 } }], ["values"]);
+    const value = characterSheetOf([inSession(1, "38")], [], carried).values.find((sheetValue) => sheetValue.name === "HP")!;
+    expect(openDialog({ value }).root.querySelectorAll(".dd-where")).toHaveLength(1);
   });
 
   it("says where each choice writes", () => {

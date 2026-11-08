@@ -8,6 +8,7 @@ import {
   carriedDiffers,
   learnedHereWins,
   linksElsewhere,
+  markedNotKnownHere,
   NO_SESSION,
   NO_VALUE,
   nothingCarried,
@@ -126,6 +127,13 @@ describe("sheetWriteOf", () => {
 
   it("refuses a carried value when one learned in this campaign would win", () => {
     expect(() => sheetWriteOf(acOf([learnedLine("15")], [], "13"), { state: "carried", value: "" })).toThrow(learnedHereWins("Armor Class"));
+  });
+
+  it("says a ? line in this campaign wins over the carried value", () => {
+    expect(() => sheetWriteOf(acOf([learnedLine("?")], [], "13"), { state: "carried", value: "" })).toThrow(markedNotKnownHere("Armor Class"));
+    expect(markedNotKnownHere("Armor Class")).toBe(
+      "A ? line in this campaign marks the armor class not known, and it wins over the carried value until a later line states it, so nothing was written.",
+    );
   });
 
   it("refuses a carried value other than the one carried", () => {

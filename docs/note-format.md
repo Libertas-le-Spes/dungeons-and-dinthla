@@ -330,6 +330,7 @@ The sheet refuses, and writes nothing, when:
 | A value with a comma, a word and a colon in it, with `%%`, or ending in a block id | As in the character dialog |
 | Carried over when no carried note gives the value | There's nothing to carry |
 | Carried over when the value was learned in this campaign | What was learned here wins over a carried value |
+| Carried over when a `?` line in this campaign marks the value not known | That line wins over the carried value until a later line states it. The dialog says so before Not known yet is chosen over a carried value |
 | Carried over with a value other than the carried one | That value belongs to the other campaign's note. Change it there, or choose Override |
 | Learned at the table or Not known yet with no session, or two session notes sharing the latest number | It isn't clear where the line goes |
 | Learned at the table or Not known yet when the link wouldn't point to this character from the session | The line would be about someone else |
