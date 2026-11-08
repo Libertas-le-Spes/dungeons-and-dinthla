@@ -41,6 +41,7 @@ export interface QuestRecord {
 
 export interface CoinRecord {
   entry: CoinEntry;
+  text: string;
   source: Source;
 }
 

@@ -6,8 +6,8 @@ describe("readLedgerEntry", () => {
     expect(readLedgerEntry("35 gp 4 sp from the bandits at the ford")).toEqual({
       type: "coin",
       coins: [
-        { count: 35, kind: "gp" },
-        { count: 4, kind: "sp" },
+        { count: 35, kind: "gp", moneyOut: false },
+        { count: 4, kind: "sp", moneyOut: false },
       ],
       copper: 3540,
       moneyOut: false,
@@ -119,5 +119,15 @@ describe("readLedgerEntry", () => {
     readLedgerEntry(`paid${",".repeat(100_000)} 5 gp`);
     readLedgerEntry(`paid ${"[[a,".repeat(100_000)} 5 gp`);
     expect(performance.now() - started).toBeLessThan(1000);
+  });
+
+  it("signs each amount on its own", () => {
+    expect(readLedgerEntry("+50 gp reward, -5 gp ferry")).toMatchObject({
+      coins: [
+        { count: 50, kind: "gp", moneyOut: false },
+        { count: 5, kind: "gp", moneyOut: true },
+      ],
+      copper: 4500,
+    });
   });
 });
