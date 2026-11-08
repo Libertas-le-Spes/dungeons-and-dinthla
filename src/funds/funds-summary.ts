@@ -1,0 +1,49 @@
+import type { Campaign, CoinRecord } from "../campaign/campaign";
+import type { CoinKind } from "../notes/ledger";
+
+export interface CoinCount {
+  kind: CoinKind;
+  count: number;
+}
+
+export interface LedgerLine {
+  record: CoinRecord;
+  balance: number;
+}
+
+export interface FundsSummary {
+  purse: number;
+  moneyIn: number;
+  moneyOut: number;
+  coins: CoinCount[];
+  ledger: LedgerLine[];
+}
+
+const COIN_ORDER: CoinKind[] = ["pp", "gp", "ep", "sp", "cp"];
+
+function coinCountsOf(records: CoinRecord[]): CoinCount[] {
+  const counts = new Map<CoinKind, number>(COIN_ORDER.map((kind) => [kind, 0]));
+  for (const record of records) {
+    for (const amount of record.entry.coins) {
+      let count = amount.count;
+      if (amount.moneyOut) count = -count;
+      counts.set(amount.kind, counts.get(amount.kind)! + count);
+    }
+  }
+  return COIN_ORDER.map((kind) => ({ kind, count: counts.get(kind)! })).filter((coin) => coin.count !== 0);
+}
+
+export function summariseFunds(campaign: Campaign): FundsSummary {
+  let balance = 0;
+  let moneyIn = 0;
+  let moneyOut = 0;
+  const ledger: LedgerLine[] = [];
+  for (const record of campaign.coins) {
+    const copper = record.entry.copper;
+    balance += copper;
+    if (copper < 0) moneyOut -= copper;
+    else moneyIn += copper;
+    ledger.push({ record, balance });
+  }
+  return { purse: balance, moneyIn, moneyOut, coins: coinCountsOf(campaign.coins), ledger: ledger.reverse() };
+}
