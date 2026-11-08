@@ -289,6 +289,12 @@ export class Setting {
 
 }
 
+export function normalizePath(path: string): string {
+  let normalized = path.replace(/[\\/]+/g, "/").replace(/^\/+|\/+$/g, "");
+  if (normalized === "") normalized = "/";
+  return normalized.replace(/ | /g, " ").normalize("NFC");
+}
+
 export function debounce<T extends unknown[]>(callback: (...args: T) => void): ((...args: T) => void) & { cancel: () => void } {
   const debouncer = (...args: T) => callback(...args);
   debouncer.cancel = () => {};
