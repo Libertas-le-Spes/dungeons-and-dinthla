@@ -3,7 +3,7 @@ import { readMarker } from "./marker";
 import { readQuest } from "./quest";
 import { oneLine } from "./question-lines";
 
-export type FinishedStatus = "completed" | "failed";
+type FinishedStatus = "completed" | "failed";
 
 const OUTCOME_MARKERS: Record<FinishedStatus, string> = { completed: "!=", failed: "!x" };
 

@@ -42,8 +42,8 @@ export class QuestionModal extends Modal {
     if (this.question.answer === null) this.setTitle("Answer the question");
     else this.setTitle("Answered question");
     contentEl.addClass("dd-tokens", "dd-dialog");
-    contentEl.createEl("p", { cls: "dd-question", text: this.question.text });
-    contentEl.createEl("p", { cls: "dd-asked", text: `Asked in ${this.places.askedIn}` });
+    contentEl.createEl("p", { cls: "dd-subject", text: this.question.text });
+    contentEl.createEl("p", { cls: "dd-detail", text: `Asked in ${this.places.askedIn}` });
     new Setting(contentEl).setName("Answer").addTextArea((area) => {
       area.setPlaceholder("Lady Vess sent it, through [[Mira]]").setValue(this.edit.answer).onChange((value) => {
         this.edit.answer = value;

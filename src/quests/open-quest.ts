@@ -5,7 +5,8 @@ import { sessionLabelOf } from "../campaign/session-file";
 import { sessionToWriteIn } from "../campaign/session-to-write";
 import { currentQuest, GOES_ELSEWHERE, happenedWouldGoElsewhere, latestSessionOfQuest, SAME_TITLE, sharesTitleWithEarlierActiveQuest } from "./current-quest";
 import { QuestModal } from "./quest-modal";
-import { QuestWriter, type QuestEdit } from "./quest-writer";
+import { canCollectReward, planQuestSave, refusalForQuestPlan, type QuestEdit } from "./quest-plan";
+import { QuestWriter } from "./quest-writer";
 
 const NO_SESSION = "Start a session first: quest changes are written into a session note.";
 
@@ -46,10 +47,13 @@ export function openQuest(
     save: async (edit: QuestEdit) => {
       const current = latest();
       if (happenedWouldGoElsewhere(store.current.quests, current, edit.happened)) throw new Error(GOES_ELSEWHERE);
-      return writer.save(current, edit, sessionPath);
+      const plan = planQuestSave(current, edit, store.current.coins, sessionPath);
+      const refusal = refusalForQuestPlan(store.sessionNotes, current, plan);
+      if (refusal !== null) throw new Error(refusal);
+      return writer.apply(plan);
     },
     delete: () => writer.delete(latest()),
   };
   const places = { givenIn: sessionLabelOf(record.source.path), writesTo: sessionLabelOf(sessionPath) };
-  new QuestModal(app, record, places, QuestWriter.canCollectReward(record), choices, onClosed).open();
+  new QuestModal(app, record, places, canCollectReward(record, store.current.coins), choices, onClosed).open();
 }

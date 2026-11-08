@@ -1,9 +1,9 @@
-import { Modal, Notice, Setting, type App, type ButtonComponent } from "obsidian";
+import { Modal, Notice, Setting, type App, type ButtonComponent, type TextAreaComponent } from "obsidian";
 import type { QuestRecord } from "../campaign/campaign";
 import { PartlyWritten } from "../campaign/note-editor";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
-import type { QuestEdit, QuestStatusChoice } from "./quest-writer";
+import type { QuestEdit, QuestStatusChoice } from "./quest-plan";
 
 export interface QuestChoices {
   save(edit: QuestEdit): Promise<boolean>;
@@ -31,6 +31,7 @@ export class QuestModal extends Modal {
   private changed = false;
   private busy = false;
   private rewardRow: HTMLElement | null = null;
+  private happenedArea: TextAreaComponent | null = null;
 
   constructor(
     app: App,
@@ -54,14 +55,18 @@ export class QuestModal extends Modal {
     const { contentEl } = this;
     this.setTitle("Quest");
     contentEl.addClass("dd-tokens", "dd-dialog");
-    contentEl.createEl("p", { cls: "dd-question", text: this.record.quest.title });
+    contentEl.createEl("p", { cls: "dd-subject", text: this.record.quest.title });
     const facts = factsOf(this.record);
-    if (facts !== "") contentEl.createEl("p", { cls: "dd-asked", text: facts });
-    contentEl.createEl("p", { cls: "dd-asked", text: `Given in ${this.places.givenIn}` });
+    if (facts !== "") contentEl.createEl("p", { cls: "dd-detail", text: facts });
+    contentEl.createEl("p", { cls: "dd-detail", text: `Given in ${this.places.givenIn}` });
     new Setting(contentEl).setName("Status").addDropdown((dropdown) => {
       for (const [value, word] of Object.entries(STATUS_WORDS)) dropdown.addOption(value, word);
       dropdown.setValue(this.edit.status).onChange((value) => {
         this.edit.status = value as QuestStatusChoice;
+        if (this.edit.status === "active" && this.happenedArea !== null) {
+          this.happenedArea.setValue("");
+          this.edit.happened = "";
+        }
         this.showRewardRow();
       });
       dropdown.selectEl.focus();
@@ -70,6 +75,7 @@ export class QuestModal extends Modal {
       area.setPlaceholder("Found it under the Old Mill; [[Mira]] took the lead").setValue(this.edit.happened).onChange((value) => {
         this.edit.happened = value;
       });
+      this.happenedArea = area;
       area.inputEl.setAttr("aria-label", "What happened");
       area.inputEl.addEventListener("keydown", (event) => {
         if (!isSubmit(event, true)) return;
@@ -120,7 +126,7 @@ export class QuestModal extends Modal {
 
   private showRewardRow(): void {
     if (this.rewardRow === null) return;
-    this.rewardRow.toggleClass("dd-hidden", this.edit.status !== "completed");
+    this.rewardRow.toggle(this.edit.status === "completed");
   }
 
   private confirmDelete(button: ButtonComponent): void {

@@ -14,7 +14,8 @@ function outcomeOf(record: QuestRecord): string {
 
 function isSameQuest(current: QuestRecord, opened: QuestRecord): boolean {
   const sameSource = current.source.path === opened.source.path && current.source.line === opened.source.line;
-  return sameSource && current.quest.title === opened.quest.title && outcomeOf(current) === outcomeOf(opened);
+  const sameFacts = current.quest.reward === opened.quest.reward && current.quest.givenBy === opened.quest.givenBy;
+  return sameSource && sameFacts && current.quest.title === opened.quest.title && outcomeOf(current) === outcomeOf(opened);
 }
 
 export function currentQuest(quests: QuestRecord[], opened: QuestRecord): QuestRecord {

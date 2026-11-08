@@ -20,6 +20,10 @@ export class CampaignStore {
     return this.campaign;
   }
 
+  get sessionNotes(): SessionNote[] {
+    return [...this.sessions.values()];
+  }
+
   get campaignFolder(): string | null {
     return this.folder;
   }
