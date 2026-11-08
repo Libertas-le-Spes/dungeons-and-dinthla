@@ -19,6 +19,7 @@ export interface ListKind<T> {
   openWord: string;
   foldedWord: string;
   emptyHint: string;
+  createLabel: string;
   contentsOf(campaign: Campaign, keywords: string[]): ListContents<T>;
   addRow(list: HTMLElement, item: T, keywords: string[], actions: LinkActions): void;
 }
@@ -42,6 +43,7 @@ export class CampaignListView<T> extends ItemView {
     private readonly store: CampaignStore,
     private readonly actions: LinkActions,
     private readonly kind: ListKind<T>,
+    private readonly create: ((returnFocus: () => void) => void) | null,
   ) {
     super(leaf);
   }
@@ -72,6 +74,7 @@ export class CampaignListView<T> extends ItemView {
       attr: { "aria-label": `Filter ${this.kind.itemName}s` },
     });
     this.registerDomEvent(this.filter, "input", () => this.render());
+    this.addCreateButton(head);
     this.openList = root.createEl("ul", { cls: "dd-list" });
     const folded = root.createEl("details", { cls: "dd-folded" });
     const summary = folded.createEl("summary", { text: capitalised(this.kind.foldedWord) });
@@ -90,6 +93,13 @@ export class CampaignListView<T> extends ItemView {
     this.fill(this.openList, contents.open, keywords, this.openEmptyText(contents));
     this.fill(this.foldedList, contents.folded, keywords, this.foldedEmptyText(contents));
     this.focusPendingRow();
+  }
+
+  private addCreateButton(head: HTMLElement): void {
+    const create = this.create;
+    if (create === null) return;
+    const button = head.createEl("button", { cls: "dd-create", text: this.kind.createLabel });
+    this.registerDomEvent(button, "click", () => create(() => button.focus()));
   }
 
   focusRow(source: Source, afterChange: boolean): void {
