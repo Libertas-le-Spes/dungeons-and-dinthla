@@ -1,0 +1,143 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { App, TFile } from "obsidian";
+import type { SessionNote } from "../../src/campaign/campaign";
+import { CHANGED_IN_NOTE } from "../../src/campaign/note-editor";
+import { characterSheetOf, type SheetValue } from "../../src/characters/character-sheet";
+import { CHARACTER_SHEET_VIEW } from "../../src/characters/character-sheet-view";
+import { chooseSheetValue, openCharacterSheet, sameSheetValue, saveSheetValue } from "../../src/characters/open-character-sheet";
+import type { SheetNotes } from "../../src/characters/sheet-notes";
+import type { SheetValueDialog } from "../../src/characters/sheet-value-modal";
+import { NO_SESSION } from "../../src/characters/sheet-value-writer";
+import type { SourcedFact } from "../../src/characters/sheet-values";
+import { Notice, openedModals } from "../stubs/obsidian";
+
+const MIRA = { path: "Pale Moon/Characters/Mira.md", basename: "Mira" } as TFile;
+const ONE = "Pale Moon/Sessions/Session 1.md";
+const TWO = "Pale Moon/Sessions/Session 2.md";
+
+beforeEach(() => {
+  Notice.shown = [];
+});
+
+function setUp(texts: Record<string, string>, { readFails = false, folders = ["Pale Moon"] } = {}) {
+  const notesText = new Map(Object.entries(texts));
+  const viewStates: unknown[] = [];
+  const app = {
+    workspace: {
+      getLeaf: () => ({ setViewState: async (state: unknown) => viewStates.push(state) }),
+    },
+    vault: {
+      getFileByPath: (path: string) => {
+        if (!notesText.has(path)) return null;
+        return { path, basename: path.slice(path.lastIndexOf("/") + 1, -3) } as TFile;
+      },
+      read: async (file: TFile) => notesText.get(file.path)!,
+      process: async (file: TFile, change: (text: string) => string) => {
+        const text = change(notesText.get(file.path)!);
+        notesText.set(file.path, text);
+        return text;
+      },
+    },
+    metadataCache: {
+      fileToLinktext: () => "Mira",
+    },
+  } as unknown as App;
+  const sessionNotes = (): SessionNote[] =>
+    [ONE, TWO].filter((path) => notesText.has(path)).map((path, index) => ({ path, number: index + 1, firstLine: 0, text: notesText.get(path)! }));
+  const store = {
+    campaignFolder: "Pale Moon",
+    get sessionNotes() {
+      return sessionNotes();
+    },
+  };
+  const notes = {
+    textOf: async (file: TFile) => {
+      if (readFails) throw new Error("the disk is gone");
+      return notesText.get(file.path)!;
+    },
+    pathOfLink: (linktext: string) => `Pale Moon/Characters/${linktext}.md`,
+    campaignFolders: () => folders,
+    sessionsOf: async () => [],
+    fileAt: () => null,
+    carriedFromOf: () => null,
+  } as unknown as SheetNotes;
+  return { app, store, notes, notesText, viewStates };
+}
+
+function acOf(learned: SourcedFact[], overrides: SourcedFact[] = []): SheetValue {
+  return characterSheetOf(learned, overrides, null).values.find((value) => value.name === "AC")!;
+}
+
+const LEARNED_15: SourcedFact = { name: "AC", value: "15", source: { path: ONE, line: 0 } };
+
+describe("openCharacterSheet", () => {
+  it("opens the sheet for the note", async () => {
+    const { app, viewStates } = setUp({ [MIRA.path]: "" });
+    await openCharacterSheet(app, MIRA.path);
+    expect(viewStates).toEqual([{ type: CHARACTER_SHEET_VIEW, state: { file: MIRA.path }, active: true }]);
+  });
+
+  it("opens nothing for a note that's gone", async () => {
+    const { app, viewStates } = setUp({});
+    await openCharacterSheet(app, MIRA.path);
+    expect(viewStates).toEqual([]);
+  });
+});
+
+describe("sameSheetValue", () => {
+  it("matches a value read again unchanged", () => {
+    expect(sameSheetValue(acOf([LEARNED_15]), acOf([LEARNED_15]))).toBe(true);
+  });
+
+  it("tells apart a value learned again, an override and a learned line that moved", () => {
+    const moved = { ...LEARNED_15, source: { path: ONE, line: 1 } };
+    expect(sameSheetValue(acOf([LEARNED_15]), acOf([LEARNED_15, { ...LEARNED_15, value: "16" }]))).toBe(false);
+    expect(sameSheetValue(acOf([LEARNED_15]), acOf([LEARNED_15], [{ name: "AC", value: "16", source: { path: MIRA.path, line: 0 } }]))).toBe(false);
+    expect(sameSheetValue(acOf([LEARNED_15]), acOf([moved]))).toBe(false);
+  });
+});
+
+describe("saveSheetValue", () => {
+  it("adds a learned value to the latest session, linked to the character", async () => {
+    const { app, store, notes, notesText } = setUp({ [MIRA.path]: "", [ONE]: "[[Mira]] AC: 15", [TWO]: "Notes\n" });
+    expect(await saveSheetValue(app, store, notes, MIRA, acOf([LEARNED_15]), { state: "learned", value: "16" })).toBe(true);
+    expect(notesText.get(TWO)).toBe("Notes\n[[Mira]] AC: 16\n");
+  });
+
+  it("writes nothing when the value changed since the dialog opened", async () => {
+    const { app, store, notes, notesText } = setUp({ [MIRA.path]: "AC: 18", [ONE]: "[[Mira]] AC: 15" });
+    await expect(saveSheetValue(app, store, notes, MIRA, acOf([LEARNED_15]), { state: "override", value: "16" })).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(notesText.get(MIRA.path)).toBe("AC: 18");
+  });
+
+  it("refuses a learned value for a character outside any campaign", async () => {
+    const { app, store, notes } = setUp({ [MIRA.path]: "" }, { folders: [] });
+    await expect(saveSheetValue(app, store, notes, MIRA, acOf([]), { state: "learned", value: "16" })).rejects.toThrow(NO_SESSION);
+  });
+});
+
+describe("chooseSheetValue", () => {
+  it("opens the dialog, naming the session a learned value goes in", async () => {
+    const { app, store, notes } = setUp({ [MIRA.path]: "", [ONE]: "", [TWO]: "" });
+    const before = openedModals.length;
+    await chooseSheetValue(app, store, notes, MIRA, acOf([]), vi.fn(), vi.fn());
+    expect(openedModals.length).toBe(before + 1);
+    const modal = openedModals[openedModals.length - 1] as unknown as { dialog: SheetValueDialog };
+    expect(modal.dialog.sessionLabel).toBe("Session 2");
+  });
+
+  it("names no session when there's none to write in", async () => {
+    const { app, store, notes } = setUp({ [MIRA.path]: "" });
+    await chooseSheetValue(app, store, notes, MIRA, acOf([]), vi.fn(), vi.fn());
+    const modal = openedModals[openedModals.length - 1] as unknown as { dialog: SheetValueDialog };
+    expect(modal.dialog.sessionLabel).toBeNull();
+  });
+
+  it("says why when the note can't be read", async () => {
+    const { app, store, notes } = setUp({ [MIRA.path]: "" }, { readFails: true });
+    const before = openedModals.length;
+    await chooseSheetValue(app, store, notes, MIRA, acOf([]), vi.fn(), vi.fn());
+    expect(Notice.shown).toEqual(["Couldn't read Mira: the disk is gone"]);
+    expect(openedModals.length).toBe(before);
+  });
+});
