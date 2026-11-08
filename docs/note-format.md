@@ -138,7 +138,7 @@ Answers, progress and changes are new lines, written in the session where they h
 ?= Who sent the letter: [[Lady Vess]] sent it   (Session 13)
 ```
 
-You don't type the earlier line's text. Type `?? letter` or `!! caravan` on its own line in a session note, and the plugin suggests the open questions or active quests holding every word typed, newest first, at most eight, with the words marked. Words are matched as the text reads, so a link matches by what it shows. Pick the line from the suggestions and choose what happened, or tap the question or quest in its view. The plugin then writes the follow-up line into the session you're in: the session note that is open, or else the campaign's latest. An open session earlier than the question, or than any of its clues or its answer, is passed over, since a follow-up is only read after the line it follows and a clue only while its question is open. You may also type one in full.
+You don't type the earlier line's text. Type `?? letter` or `!! caravan` on its own line in a session note, and the plugin suggests the open questions or active quests holding every word typed, newest first, at most eight, with the words marked. Words are matched as the text reads, so a link matches by what it shows. Pick the line from the suggestions: the lookup line is removed and the question's or quest's dialog opens, as if you had tapped it in its view. Then choose what happened. The plugin then writes the follow-up line into the session you're in: the session note that is open, or else the campaign's latest. An open session earlier than the question, or than any of its clues or its answer, is passed over, since a follow-up is only read after the line it follows and a clue only while its question is open. You may also type one in full.
 
 A follow-up belongs to the open question or active quest whose text comes right before its colon: `?= Who sent the letter: …` belongs to *Who sent the letter*, never to a shorter *Who*. When the line holds more than one colon, the longest text that matches wins, so a colon inside a question's own text does no harm. For a quest the text is its title, without its facts (`from:`, `reward:`, `where:`, `due:`).
 
@@ -208,7 +208,7 @@ A `$` line can hold two links, as in `$ [[Mira]] [[Flame Tongue]]`. A link to a 
 
 Telling the holder from the item isn't read yet, and neither is how much an item matters. Today the first link on a `$` line is always the holder, so `$ [[Silvered lantern]]` alone reads as nothing.
 
-Typing `$$ lan` suggests the items held now that match, with who holds them, the same way; once a ` :` and a change word follow, the line is an item line and no longer a lookup. Names match whatever their capitals and spacing. A name that is one link matches by the note it points to, whatever the link's alias or folder, while a longer name that holds a link (`+1 [[Longsword]]`) is a different item. A `$$` line with no `:` yet is still being typed and is read as nothing.
+Typing `$$ lan` suggests the items held now that match, with who holds them, the same way, and picking one opens the item's dialog; once a ` :` and a change word follow, the line is an item line and no longer a lookup. Names match whatever their capitals and spacing. A name that is one link matches by the note it points to, whatever the link's alias or folder, while a longer name that holds a link (`+1 [[Longsword]]`) is a different item. A `$$` line with no `:` yet is still being typed and is read as nothing.
 
 ## Character
 

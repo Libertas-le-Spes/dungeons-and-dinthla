@@ -1,10 +1,13 @@
-import { debounce, Plugin, type MarkdownFileInfo, type TFile } from "obsidian";
+import { debounce, Notice, Plugin, type EditorSuggestContext, type MarkdownFileInfo, type TFile } from "obsidian";
 import type { Source } from "./campaign/campaign";
+import { messageOf } from "./views/message-of";
 import { campaignFolderOf, findCampaignFolders, isSessionNote } from "./campaign/campaign-folders";
 import { CampaignStore } from "./campaign/campaign-store";
 import { editorTextOf } from "./campaign/editor-text";
 import { markerColouring } from "./editor/marker-decorations";
+import type { LookupMatch } from "./lookups/lookup";
 import { LookupSuggest } from "./lookups/lookup-suggest";
+import { openLookup, type LookupOpeners } from "./lookups/open-lookup";
 import { openNewQuestion } from "./questions/open-new-question";
 import { openQuestion } from "./questions/open-question";
 import { QUESTIONS_VIEW, questionsKind } from "./questions/questions-kind";
@@ -32,12 +35,11 @@ export default class DungeonsAndDinthla extends Plugin {
       openRow: (source: Source) => void openSource(this.app, source),
       openLink: (linktext: string, sourcePath: string) => void this.app.workspace.openLinkText(linktext, sourcePath),
     };
+    const openQuestionAt = (source: Source, onClosed: (changed: boolean) => void) =>
+      openQuestion(this.app, this.store, source, () => void openSource(this.app, source), onClosed);
     const questionActions = {
       ...actions,
-      openRow: (source: Source) => {
-        const openNote = () => void openSource(this.app, source);
-        openQuestion(this.app, this.store, source, openNote, (changed) => this.focusRow(QUESTIONS_VIEW, source, changed));
-      },
+      openRow: (source: Source) => openQuestionAt(source, (changed) => this.focusRow(QUESTIONS_VIEW, source, changed)),
     };
     const createQuestion = {
       label: "New question",
@@ -46,12 +48,11 @@ export default class DungeonsAndDinthla extends Plugin {
     this.registerView(QUESTIONS_VIEW, (leaf) => new CampaignListView(leaf, this.store, questionActions, questionsKind, createQuestion));
     this.addRibbonIcon(questionsKind.icon, "Open questions", () => void openSideView(this.app, QUESTIONS_VIEW));
     this.addCommand({ id: "open-questions", name: "Open questions", callback: () => void openSideView(this.app, QUESTIONS_VIEW) });
+    const openQuestAt = (source: Source, onClosed: (changed: boolean) => void) =>
+      openQuest(this.app, this.store, source, () => void openSource(this.app, source), onClosed);
     const questActions = {
       ...actions,
-      openRow: (source: Source) => {
-        const openNote = () => void openSource(this.app, source);
-        openQuest(this.app, this.store, source, openNote, (changed) => this.focusRow(QUESTS_VIEW, source, changed));
-      },
+      openRow: (source: Source) => openQuestAt(source, (changed) => this.focusRow(QUESTS_VIEW, source, changed)),
     };
     const createQuest = {
       label: "New quest",
@@ -73,7 +74,12 @@ export default class DungeonsAndDinthla extends Plugin {
     this.addCommand({ id: "start-session", name: "Start a new session", callback: () => startSession(this.app, this.store.campaignFolder) });
     const inSession = (path: string) => isSessionNote(path, (notePath) => this.app.vault.getFileByPath(notePath) !== null);
     this.registerEditorExtension(markerColouring(inSession));
-    this.registerEditorSuggest(new LookupSuggest(this.app, () => this.store.current, inSession, () => {}));
+    const openers: LookupOpeners = { question: openQuestionAt, quest: openQuestAt, item: openItem };
+    const noteChanged = (path: string, text: string) => this.store.noteChanged(path, text);
+    const pickLookup = (match: LookupMatch, context: EditorSuggestContext) => {
+      openLookup(this.app, match, context, noteChanged, openers).catch((error: unknown) => new Notice(`Couldn't open it: ${messageOf(error)}`));
+    };
+    this.registerEditorSuggest(new LookupSuggest(this.app, (path, text) => this.store.currentAsEdited(path, text), inSession, pickLookup));
     this.registerMarkdownPostProcessor((element, context) => {
       if (inSession(context.sourcePath)) colourMarkers(element);
     });

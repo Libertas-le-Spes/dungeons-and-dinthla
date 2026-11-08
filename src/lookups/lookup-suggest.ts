@@ -14,7 +14,7 @@ const MARKERS: Record<LookupKind, { text: string; cls: string }> = {
 export class LookupSuggest extends EditorSuggest<LookupMatch> {
   constructor(
     app: App,
-    private readonly campaign: () => Campaign,
+    private readonly campaignAsEdited: (path: string, text: string) => Campaign,
     private readonly inSession: (path: string) => boolean,
     private readonly pick: (match: LookupMatch, context: EditorSuggestContext) => void,
   ) {
@@ -31,7 +31,7 @@ export class LookupSuggest extends EditorSuggest<LookupMatch> {
   getSuggestions(context: EditorSuggestContext): LookupMatch[] {
     const lookup = readLookup(context.query);
     if (lookup === null) return [];
-    return lookupMatches(this.campaign(), lookup);
+    return lookupMatches(this.campaignAsEdited(context.file.path, context.editor.getValue()), lookup);
   }
 
   renderSuggestion(match: LookupMatch, el: HTMLElement): void {

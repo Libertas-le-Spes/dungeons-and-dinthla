@@ -69,6 +69,8 @@ export class Modal {
   }
 }
 
+export class MarkdownView {}
+
 export class EditorSuggest {
   app: RealEditorSuggest<unknown>["app"];
   context: EditorSuggestContext | null = null;
