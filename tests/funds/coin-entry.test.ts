@@ -8,6 +8,7 @@ import {
   CANNOT_SHOW,
   CHANGES_OTHER_MONEY,
   coinEntryEdit,
+  entryRemoval,
   isLedgerLineEntry,
   refusalForEntryChange,
   type CoinEntryEdit,
@@ -85,21 +86,23 @@ describe("refusalForEntryChange", () => {
   it("lets a change through when the purse moves by the difference", () => {
     const sessions = sessionsOf("$ 5 gp found\n");
     const record = buildCampaign(sessions).coins[0]!;
-    expect(refusalForEntryChange(sessions, record, found)).toBeNull();
-    expect(refusalForEntryChange(sessions, record, null)).toBeNull();
+    expect(refusalForEntryChange(sessions, record, entryRemoval(sessions, record), found)).toBeNull();
+    expect(refusalForEntryChange(sessions, record, entryRemoval(sessions, record), null)).toBeNull();
   });
 
   it("refuses a change that would move the purse by anything else", () => {
     const sessions = sessionsOf("$ 5 gp found\n");
     const record = buildCampaign(sessions).coins[0]!;
-    expect(refusalForEntryChange(sessions, record, { ...found, copper: 900 })).toBe(CHANGES_OTHER_MONEY);
+    expect(refusalForEntryChange(sessions, record, entryRemoval(sessions, record), { ...found, copper: 900 })).toBe(CHANGES_OTHER_MONEY);
   });
 
   it("refuses as changed in its note when the entry's line was changed by hand", () => {
-    const record = buildCampaign(sessionsOf("$ 5 gp found\n")).coins[0]!;
-    expect(refusalForEntryChange(sessionsOf("$ 6 gp found\n"), record, found)).toBe(CHANGED_IN_NOTE);
-    expect(refusalForEntryChange(sessionsOf("$ 6 gp found\n"), record, null)).toBe(CHANGED_IN_NOTE);
-    expect(refusalForEntryChange([], record, null)).toBe(CHANGED_IN_NOTE);
+    const read = sessionsOf("$ 5 gp found\n");
+    const record = buildCampaign(read).coins[0]!;
+    const removal = entryRemoval(read, record);
+    expect(refusalForEntryChange(sessionsOf("$ 6 gp found\n"), record, removal, found)).toBe(CHANGED_IN_NOTE);
+    expect(refusalForEntryChange(sessionsOf("$ 6 gp found\n"), record, removal, null)).toBe(CHANGED_IN_NOTE);
+    expect(refusalForEntryChange([], record, removal, null)).toBe(CHANGED_IN_NOTE);
   });
 });
 
@@ -199,6 +202,20 @@ describe("coinEntryEdit", () => {
     await expect(edit.save(coinLineOf({ ...edit.draft, amount: "8 gp" }))).rejects.toThrow(CHANGED_IN_NOTE);
     await expect(edit.delete()).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notes.text).toBe("$ 6 gp found\nthen\n- $ 5 gp found\n");
+  });
+
+  it("refuses rather than change a twin that slid onto the entry's line", async () => {
+    for (const readAgain of [true, false]) {
+      const notes = new FakeNotes("## Day 1\n$ 5 gp found\n## Day 2\n");
+      const record = notes.coins()[0]!;
+      let store: { readonly sessionNotes: SessionNote[] } = { sessionNotes: notes.sessionNotes };
+      if (readAgain) store = notes;
+      const edit = coinEntryEdit(notes.vault, store, record);
+      notes.texts.set(ONE, "## Day 2\n  - $ 5 gp found\n## Day 3\n");
+      await expect(edit.save(coinLineOf({ ...edit.draft, amount: "500 gp" })), String(readAgain)).rejects.toThrow(CHANGED_IN_NOTE);
+      await expect(edit.delete(), String(readAgain)).rejects.toThrow(CHANGED_IN_NOTE);
+      expect(notes.text).toBe("## Day 2\n  - $ 5 gp found\n## Day 3\n");
+    }
   });
 
   it("refuses when the entry's line has moved since it was read", async () => {
