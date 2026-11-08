@@ -24,7 +24,7 @@ export class NewQuestionModal extends Modal {
   override onOpen(): void {
     const { contentEl } = this;
     this.setTitle("New question");
-    contentEl.addClass("dd-tokens", "dd-question-dialog");
+    contentEl.addClass("dd-tokens", "dd-dialog");
     new Setting(contentEl).setName("Question").addText((text) => {
       text.setPlaceholder("Who sent the letter [[Brother Aldric]] carried").onChange((value) => {
         this.entry.question = value;
