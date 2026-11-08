@@ -142,6 +142,6 @@
   box-shadow: var(--focus-ring);
 }
 
-.dd-dashboard .dd-character-list .dd-card-name {
+.dd-dashboard .dd-character-list .dd-stat-block-name {
   font-size: var(--text-lg);
 }
