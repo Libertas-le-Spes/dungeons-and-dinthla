@@ -10,7 +10,7 @@ import {
   SAME_TEXT_AS_EXISTING,
   sharesTextWithEarlierOpenQuestion,
 } from "../../src/questions/current-question";
-import { CHANGED_IN_NOTE } from "../../src/questions/question-writer";
+import { CHANGED_IN_NOTE } from "../../src/campaign/note-editor";
 
 function questionsOf(lines: string[], path = "Pale Moon/Sessions/Session 4.md"): QuestionRecord[] {
   return buildCampaign([{ path, number: 4, firstLine: 0, text: lines.join("\n") }]).questions;
