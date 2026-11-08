@@ -4,6 +4,7 @@ import { campaignFolderOf, findCampaignFolders, isSessionNote } from "./campaign
 import { CampaignStore } from "./campaign/campaign-store";
 import { editorTextOf } from "./campaign/editor-text";
 import { markerColouring } from "./editor/marker-decorations";
+import { LookupSuggest } from "./lookups/lookup-suggest";
 import { openNewQuestion } from "./questions/open-new-question";
 import { openQuestion } from "./questions/open-question";
 import { QUESTIONS_VIEW, questionsKind } from "./questions/questions-kind";
@@ -72,6 +73,7 @@ export default class DungeonsAndDinthla extends Plugin {
     this.addCommand({ id: "start-session", name: "Start a new session", callback: () => startSession(this.app, this.store.campaignFolder) });
     const inSession = (path: string) => isSessionNote(path, (notePath) => this.app.vault.getFileByPath(notePath) !== null);
     this.registerEditorExtension(markerColouring(inSession));
+    this.registerEditorSuggest(new LookupSuggest(this.app, () => this.store.current, inSession, () => {}));
     this.registerMarkdownPostProcessor((element, context) => {
       if (inSession(context.sourcePath)) colourMarkers(element);
     });
