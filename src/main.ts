@@ -7,6 +7,7 @@ import { markerColouring } from "./editor/marker-decorations";
 import { openNewQuestion } from "./questions/open-new-question";
 import { openQuestion } from "./questions/open-question";
 import { QUESTIONS_VIEW, questionsKind } from "./questions/questions-kind";
+import { openNewQuest } from "./quests/open-new-quest";
 import { openQuest } from "./quests/open-quest";
 import { QUESTS_VIEW, questsKind } from "./quests/quests-kind";
 import { FUNDS_VIEW, FundsView } from "./funds/funds-view";
@@ -48,7 +49,11 @@ export default class DungeonsAndDinthla extends Plugin {
         openQuest(this.app, this.store, source, openNote, (changed) => this.focusRow(QUESTS_VIEW, source, changed));
       },
     };
-    this.registerView(QUESTS_VIEW, (leaf) => new CampaignListView(leaf, this.store, questActions, questsKind, null));
+    const createQuest = {
+      label: "New quest",
+      open: (returnFocus: () => void) => openNewQuest(this.app, this.store, returnFocus),
+    };
+    this.registerView(QUESTS_VIEW, (leaf) => new CampaignListView(leaf, this.store, questActions, questsKind, createQuest));
     this.addRibbonIcon(questsKind.icon, "Open quests", () => void openSideView(this.app, QUESTS_VIEW));
     this.addCommand({ id: "open-quests", name: "Open quests", callback: () => void openSideView(this.app, QUESTS_VIEW) });
     const noteExists = (name: string, sourcePath: string) => this.app.metadataCache.getFirstLinkpathDest(name, sourcePath) !== null;
