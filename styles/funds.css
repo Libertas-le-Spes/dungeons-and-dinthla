@@ -1,0 +1,138 @@
+.dd-funds {
+  padding: var(--space-4);
+  font: var(--type-body);
+}
+
+.dd-funds .dd-panel + .dd-panel {
+  margin-top: var(--space-5);
+}
+
+.dd-funds .dd-title {
+  margin: 0 0 var(--space-3);
+  font: var(--type-panel-title);
+  font-size: var(--text-md);
+  letter-spacing: var(--tracking-caps);
+  color: var(--statblock-heading);
+}
+
+.dd-funds .dd-count {
+  margin-left: var(--space-2);
+  font: var(--type-label);
+  letter-spacing: 0;
+  color: var(--text-muted-ui);
+}
+
+.dd-funds .dd-purse {
+  margin: var(--space-1) 0 var(--space-2);
+  font: var(--type-score);
+  font-size: var(--text-4xl);
+  color: var(--text-strong);
+}
+
+.dd-funds .dd-coins {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.dd-funds .dd-coins-label {
+  align-self: center;
+  color: var(--text-faint-ui);
+}
+
+.dd-funds .dd-coin {
+  padding: var(--space-0) 10px;
+  border-radius: var(--radius-pill);
+  background: var(--marker-ledger-soft);
+  font: var(--type-note);
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+}
+
+.dd-funds .dd-in-out {
+  display: flex;
+  gap: var(--space-5);
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-muted-ui);
+}
+
+.dd-funds .dd-in-out b {
+  font-weight: var(--weight-medium);
+  color: var(--text-body);
+}
+
+.dd-funds .dd-ledger {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: var(--text-sm);
+}
+
+.dd-funds .dd-ledger li + li {
+  border-top: var(--border-width) solid var(--border-subtle);
+}
+
+.dd-funds .dd-ledger-row {
+  display: grid;
+  grid-template-columns: 3em minmax(0, 1fr) auto;
+  gap: var(--space-1) var(--space-3);
+  align-items: baseline;
+  min-height: var(--touch-min);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.dd-funds .dd-ledger-row:hover {
+  background: var(--surface-hover);
+}
+
+.dd-funds .dd-ledger-row:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.dd-funds .dd-what {
+  grid-column: 1 / -1;
+  font: var(--type-note);
+  font-variant-ligatures: none;
+  color: var(--text-body);
+}
+
+.dd-funds .dd-direction {
+  font: var(--type-label);
+  color: var(--text-muted-ui);
+  white-space: nowrap;
+}
+
+.dd-funds .dd-amount {
+  font: var(--type-note);
+  color: var(--text-strong);
+  white-space: nowrap;
+}
+
+.dd-funds .dd-balance {
+  font: var(--type-note);
+  font-size: var(--text-xs);
+  color: var(--text-muted-ui);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.dd-funds .dd-balance::before {
+  content: "balance ";
+  font: var(--type-label);
+}
+
+.dd-funds .dd-empty,
+.dd-funds .dd-note {
+  font-size: var(--text-sm);
+  color: var(--text-faint-ui);
+}
+
+.dd-funds .dd-note {
+  margin: var(--space-3) 0 0;
+  color: var(--text-muted-ui);
+}
