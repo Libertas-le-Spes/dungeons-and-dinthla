@@ -2,13 +2,12 @@ import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { CoinRecord, SessionNote } from "../../src/campaign/campaign";
-import { CHANGED_IN_NOTE, type EditorVault } from "../../src/campaign/note-editor";
+import { CHANGED_IN_NOTE, removalAsRead, type EditorVault } from "../../src/campaign/note-editor";
 import { sessionNoteOf } from "../../src/campaign/session-file";
 import {
   CANNOT_SHOW,
   CHANGES_OTHER_MONEY,
   coinEntryEdit,
-  entryRemoval,
   entryToEdit,
   refusalForEntryChange,
   type CoinEntryEdit,
@@ -92,20 +91,20 @@ describe("refusalForEntryChange", () => {
   it("lets a change through when the purse moves by the difference", () => {
     const sessions = sessionsOf("$ 5 gp found\n");
     const record = buildCampaign(sessions).coins[0]!;
-    expect(refusalForEntryChange(sessions, record, entryRemoval(sessions, record), found)).toBeNull();
-    expect(refusalForEntryChange(sessions, record, entryRemoval(sessions, record), null)).toBeNull();
+    expect(refusalForEntryChange(sessions, record, removalAsRead(sessions, record.source), found)).toBeNull();
+    expect(refusalForEntryChange(sessions, record, removalAsRead(sessions, record.source), null)).toBeNull();
   });
 
   it("refuses a change that would move the purse by anything else", () => {
     const sessions = sessionsOf("$ 5 gp found\n");
     const record = buildCampaign(sessions).coins[0]!;
-    expect(refusalForEntryChange(sessions, record, entryRemoval(sessions, record), { ...found, copper: 900 })).toBe(CHANGES_OTHER_MONEY);
+    expect(refusalForEntryChange(sessions, record, removalAsRead(sessions, record.source), { ...found, copper: 900 })).toBe(CHANGES_OTHER_MONEY);
   });
 
   it("refuses as changed in its note when the entry's line was changed by hand", () => {
     const read = sessionsOf("$ 5 gp found\n");
     const record = buildCampaign(read).coins[0]!;
-    const removal = entryRemoval(read, record);
+    const removal = removalAsRead(read, record.source);
     expect(refusalForEntryChange(sessionsOf("$ 6 gp found\n"), record, removal, found)).toBe(CHANGED_IN_NOTE);
     expect(refusalForEntryChange(sessionsOf("$ 6 gp found\n"), record, removal, null)).toBe(CHANGED_IN_NOTE);
     expect(refusalForEntryChange([], record, removal, null)).toBe(CHANGED_IN_NOTE);

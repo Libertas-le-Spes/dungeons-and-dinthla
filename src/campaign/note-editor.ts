@@ -1,6 +1,7 @@
 import type { TFile, Vault } from "obsidian";
 import { appendLines, dropLine, removeLines, rewriteLine, type LineToRemove } from "../notes/note-lines";
 import { messageOf } from "../views/message-of";
+import type { SessionNote, Source } from "./campaign";
 
 export type EditorVault = Pick<Vault, "getFileByPath" | "process" | "read">;
 
@@ -14,6 +15,19 @@ export class PartlyWritten extends Error {}
 
 export interface Removal extends LineToRemove {
   path: string;
+}
+
+export function lineAsRead(sessions: SessionNote[], source: Source): string | undefined {
+  const session = sessions.find((candidate) => candidate.path === source.path);
+  if (session === undefined) return undefined;
+  const read = session.text.split("\n")[source.line];
+  if (read === undefined) return undefined;
+  return read.replace(/\r$/, "");
+}
+
+export function removalAsRead(sessions: SessionNote[], source: Source): Removal {
+  const read = lineAsRead(sessions, source);
+  return { path: source.path, line: source.line, matches: (line) => line === read };
 }
 
 function countMatches(text: string, removal: Removal): number {

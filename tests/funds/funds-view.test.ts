@@ -19,12 +19,14 @@ function campaignOf(lines: string[], ...laterSessions: string[][]): Campaign {
 }
 
 type OpenEntry = (source: Source, onClosed: (outcome: CoinOutcome) => void) => void;
+type OpenItem = (name: string, source: Source, onClosed: (changed: boolean) => void) => void;
 
 async function openView(
   campaign: Campaign,
   notes: string[] = ["Mira"],
   addCoin: ((returnFocus: () => void) => void) | null = null,
   openEntry: OpenEntry | null = null,
+  openItem: OpenItem | null = null,
 ) {
   let listener: (campaign: Campaign) => void = () => {};
   const unsubscribe = vi.fn();
@@ -37,7 +39,7 @@ async function openView(
   };
   const actions = { openRow: vi.fn(), openLink: vi.fn() };
   const noteExists = (name: string) => notes.includes(name);
-  const view = new FundsView({} as WorkspaceLeaf, store as unknown as CampaignStore, actions, noteExists, addCoin, openEntry);
+  const view = new FundsView({} as WorkspaceLeaf, store as unknown as CampaignStore, actions, noteExists, addCoin, openEntry, openItem);
   const root = obsidianDocument().createElement("div");
   view.contentEl = root;
   const registered: (() => void)[] = [];
@@ -220,6 +222,37 @@ describe("FundsView", () => {
     openEntry.mock.calls[1]![1]("deleted");
     change(campaignOf(["$ 2 gp tip"]));
     expect(document.activeElement).toBe(root.querySelector(".dd-ledger-panel .dd-create"));
+  });
+
+  it("opens an item from its row, and puts focus back on it once it has moved to Gone", async () => {
+    const openItem = vi.fn<OpenItem>();
+    const { root, change } = await openView(campaignOf(["$ Rope", "$ Torch"]), [], null, null, openItem);
+    const document = root.ownerDocument;
+    document.body.append(root);
+    const rowOf = (name: string) => root.querySelector(`.dd-items-panel .dd-row[data-item="${name}"]`) as HTMLElement;
+    rowOf("Torch").click();
+    expect(openItem).toHaveBeenCalledWith("Torch", { path: "Pale Moon/Sessions/Session 1.md", line: 1 }, expect.any(Function));
+    openItem.mock.calls[0]![2](true);
+    change(campaignOf(["$ Rope", "$ Torch", "$$ Torch :lost"]));
+    expect(document.activeElement).toBe(rowOf("Torch"));
+    expect(rowOf("Torch").closest("details")?.open).toBe(true);
+    rowOf("Rope").click();
+    openItem.mock.calls[1]![2](false);
+    expect(document.activeElement).toBe(rowOf("Rope"));
+  });
+
+  it("forgets an item's pending focus once it is stale", async () => {
+    const openItem = vi.fn<OpenItem>();
+    const { root, change } = await openView(campaignOf(["$ Rope", "$ Torch"]), [], null, null, openItem);
+    const document = root.ownerDocument;
+    document.body.append(root);
+    const now = vi.spyOn(Date, "now").mockReturnValue(1000);
+    (root.querySelector('.dd-row[data-item="Torch"]') as HTMLElement).click();
+    openItem.mock.calls[0]![2](true);
+    now.mockReturnValue(1000 + 3001);
+    change(campaignOf(["$ Rope", "$ Torch", "$$ Torch :lost"]));
+    now.mockRestore();
+    expect(document.activeElement).toBe(document.body);
   });
 
   it("forgets a pending focus once it is stale", async () => {

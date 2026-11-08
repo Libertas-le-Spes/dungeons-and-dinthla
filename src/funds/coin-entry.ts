@@ -1,8 +1,8 @@
 import { buildCampaign } from "../campaign/build-campaign";
 import type { CoinRecord, SessionNote, Source } from "../campaign/campaign";
-import { CHANGED_IN_NOTE, NoteEditor, type EditorVault, type Removal } from "../campaign/note-editor";
+import { CHANGED_IN_NOTE, NoteEditor, removalAsRead, type EditorVault, type Removal } from "../campaign/note-editor";
 import { sessionNoteOf } from "../campaign/session-file";
-import { draftOf, readCoinDraft, type CoinDraft, type CoinLine } from "../notes/coin-lines";
+import { comparableLine, draftOf, readCoinDraft, type CoinDraft, type CoinLine } from "../notes/coin-lines";
 import { dropLine, rewriteLine } from "../notes/note-lines";
 
 export const CHANGES_OTHER_MONEY = "That change would also change other money in the purse, so nothing was written.";
@@ -28,14 +28,6 @@ function sessionOf(sessions: SessionNote[], record: CoinRecord): SessionNote | u
   return sessions.find((candidate) => candidate.path === record.source.path);
 }
 
-export function entryRemoval(sessions: SessionNote[], record: CoinRecord): Removal {
-  const session = sessionOf(sessions, record);
-  let read: string | undefined;
-  if (session !== undefined) read = session.text.split("\n")[record.source.line];
-  if (read !== undefined) read = read.replace(/\r$/, "");
-  return { path: record.source.path, line: record.source.line, matches: (line) => line === read };
-}
-
 function changedText(text: string, removal: Removal, coinLine: CoinLine | null): string | null {
   if (coinLine === null) return dropLine(text, removal);
   return rewriteLine(text, removal, coinLine.line);
@@ -57,19 +49,15 @@ export function refusalForEntryChange(sessions: SessionNote[], record: CoinRecor
   return null;
 }
 
-function comparable(line: string): string {
-  return line.replace(/(\d),(?=\d{3})/g, "$1").replace(/\s+/g, " ").trim().toLowerCase();
-}
-
 function keepsTheEntry(record: CoinRecord, draft: CoinDraft): boolean {
   const reading = readCoinDraft(draft);
   if ("error" in reading) return false;
-  return comparable(reading.line) === comparable(`$ ${record.text}`);
+  return comparableLine(reading.line) === comparableLine(`$ ${record.text}`);
 }
 
 export function coinEntryEdit(vault: EditorVault, store: { readonly sessionNotes: SessionNote[] }, record: CoinRecord): CoinEntryEdit {
   const editor = new NoteEditor(vault);
-  const removal = entryRemoval(store.sessionNotes, record);
+  const removal = removalAsRead(store.sessionNotes, record.source);
   const draft = draftOf(record.text, record.entry.copper, record.entry.coins);
   let cannotSave: string | null = CANNOT_SHOW;
   if (keepsTheEntry(record, draft)) cannotSave = null;

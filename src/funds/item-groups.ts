@@ -12,10 +12,10 @@ export interface ItemSummary {
   heldCount: number;
 }
 
-const THE_PARTY = "the party";
+export const THE_PARTY = "the party";
 const SESSION_NUMBER = /Session (\d+)\.md$/;
 
-function holderNameOf(holder: string): string {
+export function holderNameOf(holder: string): string {
   const name = unlink(holder).trim();
   if (name.toLowerCase() === THE_PARTY) return "";
   return name.slice(name.lastIndexOf("/") + 1).replace(/\.md$/i, "");
