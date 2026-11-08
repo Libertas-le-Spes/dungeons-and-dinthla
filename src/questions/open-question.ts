@@ -2,7 +2,7 @@ import { Notice, type App } from "obsidian";
 import type { QuestionRecord, Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
-import { SESSIONS_SHARE_A_NUMBER, sessionsSharingTheLatestNumber, sessionToWriteIn } from "../campaign/session-to-write";
+import { SESSIONS_SHARE_A_NUMBER, latestNumberIsShared, sessionToWriteIn } from "../campaign/session-to-write";
 import { ANSWER_GOES_ELSEWHERE, answerWouldGoElsewhere, currentQuestion, latestSessionOfQuestion, sharesTextWithEarlierOpenQuestion } from "./current-question";
 import { QuestionModal } from "./question-modal";
 import { planQuestionSave, planReopen, refusalForQuestionPlan, type QuestionEdit, type QuestionPlan } from "./question-plan";
@@ -38,7 +38,7 @@ export function openQuestion(
   }
   const paths = app.vault.getFiles().map((file) => file.path);
   const sessionPath = sessionToWriteIn(activePathOf(app), folder, paths, latestSessionOfQuestion(question, folder));
-  if (sessionPath === null && sessionsSharingTheLatestNumber(folder, paths)) {
+  if (sessionPath === null && latestNumberIsShared(folder, paths)) {
     new Notice(SESSIONS_SHARE_A_NUMBER);
     return;
   }
