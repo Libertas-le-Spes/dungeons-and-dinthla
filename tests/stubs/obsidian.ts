@@ -138,6 +138,29 @@ class TextComponent {
   }
 }
 
+class TextAreaComponent {
+  readonly inputEl: HTMLTextAreaElement;
+
+  constructor(containerEl: HTMLElement) {
+    this.inputEl = containerEl.createEl("textarea");
+  }
+
+  setPlaceholder(placeholder: string): this {
+    this.inputEl.placeholder = placeholder;
+    return this;
+  }
+
+  setValue(value: string): this {
+    this.inputEl.value = value;
+    return this;
+  }
+
+  onChange(callback: (value: string) => void): this {
+    this.inputEl.addEventListener("input", () => callback(this.inputEl.value));
+    return this;
+  }
+}
+
 export class MarkdownView {}
 
 export class EditorSuggest {
@@ -284,6 +307,11 @@ export class Setting {
 
   addText(build: (text: TextComponent) => void): this {
     build(new TextComponent(this.controlEl));
+    return this;
+  }
+
+  addTextArea(build: (area: TextAreaComponent) => void): this {
+    build(new TextAreaComponent(this.controlEl));
     return this;
   }
 

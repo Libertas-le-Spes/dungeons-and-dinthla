@@ -1,8 +1,9 @@
-import { Modal, Notice, Setting, type App, type ButtonComponent, type TextAreaComponent } from "obsidian";
+import { Modal, Notice, Setting, type App, type TextAreaComponent } from "obsidian";
 import type { QuestRecord } from "../campaign/campaign";
 import { PartlyWritten } from "../campaign/note-editor";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
+import { deleteOnSecondPress, type SecondPress } from "../views/second-press";
 import { initialQuestEdit, type QuestEdit, type QuestStatusChoice } from "./quest-plan";
 
 export interface QuestChoices {
@@ -16,7 +17,6 @@ export interface QuestPlaces {
   writesTo: string;
 }
 
-const CONFIRM_MS = 4000;
 const STATUS_WORDS: Record<QuestStatusChoice, string> = { active: "Active", completed: "Completed", failed: "Abandoned" };
 
 function factsOf(record: QuestRecord): string {
@@ -28,7 +28,7 @@ function factsOf(record: QuestRecord): string {
 
 export class QuestModal extends Modal {
   private readonly edit: QuestEdit;
-  private confirmTimer: number | null = null;
+  private secondPress!: SecondPress;
   private changed = false;
   private busy = false;
   private rewardRow: HTMLElement | null = null;
@@ -105,8 +105,7 @@ export class QuestModal extends Modal {
     buttons.addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.run(() => this.choices.save(this.edit))));
     buttons.addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));
     buttons.addButton((button) => {
-      button.setButtonText("Delete quest").setWarning().onClick(() => this.confirmDelete(button));
-      button.buttonEl.addClass("dd-delete");
+      this.secondPress = deleteOnSecondPress(button, "Delete quest", () => this.run(() => this.choices.delete()));
     });
   }
 
@@ -116,7 +115,7 @@ export class QuestModal extends Modal {
   }
 
   override onClose(): void {
-    if (this.confirmTimer !== null) window.clearTimeout(this.confirmTimer);
+    this.secondPress.stop();
     this.contentEl.empty();
     this.onClosed(this.changed);
   }
@@ -124,18 +123,6 @@ export class QuestModal extends Modal {
   private showRewardRow(): void {
     if (this.rewardRow === null) return;
     this.rewardRow.toggle(this.edit.status === "completed");
-  }
-
-  private confirmDelete(button: ButtonComponent): void {
-    if (this.confirmTimer !== null) {
-      this.run(() => this.choices.delete());
-      return;
-    }
-    button.setButtonText("Press again to delete");
-    this.confirmTimer = window.setTimeout(() => {
-      this.confirmTimer = null;
-      button.setButtonText("Delete quest");
-    }, CONFIRM_MS);
   }
 
   private run(change: () => Promise<boolean>): void {
