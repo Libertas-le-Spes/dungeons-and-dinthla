@@ -64,6 +64,8 @@ export class FundsView extends ItemView {
   private items!: HTMLElement;
   private ledgerCount!: HTMLElement;
   private ledgerList!: HTMLElement;
+  private addCoinButton: HTMLElement | null = null;
+  private pendingEntry: Source | null = null;
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -71,6 +73,7 @@ export class FundsView extends ItemView {
     private readonly actions: LinkActions,
     private readonly noteExists: (name: string, sourcePath: string) => boolean,
     private readonly addCoin: ((returnFocus: () => void) => void) | null,
+    private readonly openEntry: ((source: Source, onClosed: (changed: boolean) => void) => void) | null = null,
   ) {
     super(leaf);
   }
@@ -169,6 +172,7 @@ export class FundsView extends ItemView {
     if (addCoin !== null) {
       const button = head.createEl("button", { cls: "dd-create", text: "Add coin" });
       this.registerDomEvent(button, "click", () => addCoin(() => button.focus()));
+      this.addCoinButton = button;
     }
     this.ledgerList = panel.createEl("ul", { cls: "dd-ledger" });
     panel.createEl("p", { cls: "dd-note", text: HOW_LINES_ARE_READ });
@@ -179,10 +183,39 @@ export class FundsView extends ItemView {
     this.ledgerList.empty();
     if (lines.length === 0) this.ledgerList.createEl("li", { cls: "dd-empty", text: "No coin entries yet." });
     for (const line of lines) this.addLedgerRow(this.ledgerList, line);
+    this.focusPendingEntry();
+  }
+
+  private focusEntryRow(source: Source): boolean {
+    const rows = Array.from(this.ledgerList.querySelectorAll<HTMLElement>(".dd-row"));
+    const row = rows.find((candidate) => candidate.dataset.path === source.path && candidate.dataset.line === String(source.line));
+    if (row === undefined) return false;
+    row.focus();
+    return true;
+  }
+
+  private focusPendingEntry(): void {
+    const source = this.pendingEntry;
+    this.pendingEntry = null;
+    if (source === null) return;
+    if (!this.focusEntryRow(source) && this.addCoinButton !== null) this.addCoinButton.focus();
+  }
+
+  private afterEntry(source: Source, changed: boolean): void {
+    if (changed) {
+      this.pendingEntry = source;
+      return;
+    }
+    this.focusEntryRow(source);
   }
 
   private addLedgerRow(list: HTMLElement, { record, balance }: LedgerLine): void {
-    const row = addRowButton(list, record.source, this.actions);
+    let actions = this.actions;
+    const openEntry = this.openEntry;
+    if (openEntry !== null) {
+      actions = { ...this.actions, openRow: (source: Source) => openEntry(source, (changed) => this.afterEntry(source, changed)) };
+    }
+    const row = addRowButton(list, record.source, actions);
     row.addClass("dd-ledger-row");
     let direction = "In";
     if (record.entry.moneyOut) direction = "Out";
