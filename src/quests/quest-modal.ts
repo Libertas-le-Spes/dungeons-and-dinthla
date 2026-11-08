@@ -48,7 +48,7 @@ export class QuestModal extends Modal {
       status = record.outcome.status;
       happened = record.outcome.text;
     }
-    this.edit = { status, happened, collectReward: true, followUp: "" };
+    this.edit = { status, happened, collectReward: record.outcome === null, followUp: "" };
   }
 
   override onOpen(): void {
