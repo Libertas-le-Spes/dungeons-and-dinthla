@@ -12,7 +12,7 @@
 }
 
 .dd-root .dd-link-bracket {
-  padding: 0 2px;
+  padding: 0 var(--space-0);
   border-radius: var(--radius-xs);
   background: var(--marker-link-soft);
 }
