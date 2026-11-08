@@ -7,11 +7,12 @@ import { summariseFunds, type CoinCount, type FundsSummary, type LedgerLine } fr
 export const FUNDS_VIEW = "dungeons-and-dinthla-funds";
 
 const HOW_LINES_ARE_READ =
-  "A $ note with an amount is coin; without one, it is an item. A minus sign or “paid”, “spent”, “bought”, “gave” or “lost” counts it as money out.";
+  "A $ note with an amount is coin; without one, it is an item. An amount is money out when it has a minus sign, or when “paid”, “spent”, “bought”, “gave” or “lost” comes before it.";
 
 function coinText({ kind, count }: CoinCount): string {
-  if (count < 0) return `−${Math.abs(count)} ${kind}`;
-  return `${count} ${kind}`;
+  const written = Math.abs(count).toLocaleString("en");
+  if (count < 0) return `−${written} ${kind}`;
+  return `${written} ${kind}`;
 }
 
 function signedMoney(copper: number): string {
@@ -70,7 +71,7 @@ export class FundsView extends ItemView {
     this.purse.createEl("h2", { cls: "dd-title", text: "Purse" });
     this.purse.createDiv({ cls: "dd-purse", text: formatMoney(summary.purse) });
     const coins = this.purse.createDiv({ cls: "dd-coins" });
-    const chips = summary.coins.map(coinText);
+    const chips = summary.coinCounts.map(coinText);
     if (summary.ledger.length === 0) {
       coins.createSpan({ cls: "dd-empty", text: "No coin yet. Note it as “$ 20 gp from …”." });
     } else if (chips.join(" ") !== formatMoney(summary.purse)) {
@@ -78,8 +79,8 @@ export class FundsView extends ItemView {
       for (const chip of chips) coins.createSpan({ cls: "dd-coin", text: chip });
     }
     const inOut = this.purse.createDiv({ cls: "dd-in-out" });
-    inOut.createSpan({ text: "In " }).createEl("b", { text: formatMoney(summary.moneyIn) });
-    inOut.createSpan({ text: "Out " }).createEl("b", { text: formatMoney(summary.moneyOut) });
+    inOut.createSpan({ text: "In " }).createEl("b", { text: formatMoney(summary.totalIn) });
+    inOut.createSpan({ text: "Out " }).createEl("b", { text: formatMoney(summary.totalOut) });
   }
 
   private renderLedger(lines: LedgerLine[]): void {
@@ -96,7 +97,7 @@ export class FundsView extends ItemView {
     const row = addRowButton(list, record.source, this.actions);
     row.addClass("dd-ledger-row");
     let direction = "In";
-    if (record.entry.copper < 0) direction = "Out";
+    if (record.entry.moneyOut) direction = "Out";
     row.createSpan({ cls: "dd-direction", text: direction });
     addLinkedText(row.createSpan({ cls: "dd-what" }), record.text, [], record.source.path, this.actions);
     row.createSpan({ cls: "dd-amount", text: signedMoney(record.entry.copper) });
