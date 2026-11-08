@@ -1,5 +1,5 @@
 import { StateField } from "@codemirror/state";
-import type { FrontMatterInfo, ItemView as RealItemView, MarkdownFileInfo, Plugin as RealPlugin } from "obsidian";
+import type { FrontMatterInfo, ItemView as RealItemView, MarkdownFileInfo, Modal as RealModal, Plugin as RealPlugin } from "obsidian";
 
 export class Plugin {
   app: RealPlugin["app"];
@@ -43,3 +43,11 @@ export const editorInfoField = StateField.define<MarkdownFileInfo>({
   create: () => ({ file: null }) as unknown as MarkdownFileInfo,
   update: (info) => info,
 });
+
+export class Modal {
+  app: RealModal["app"];
+
+  constructor(...[app]: ConstructorParameters<typeof RealModal>) {
+    this.app = app;
+  }
+}
