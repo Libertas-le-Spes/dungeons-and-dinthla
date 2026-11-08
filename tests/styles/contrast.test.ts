@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contrast, over } from "./css-colour";
+import { contrast, over, parseColour } from "./css-colour";
 import { tokensFor, type ThemeContext } from "./theme-tokens";
 
 const TOKYO_NIGHT: Record<string, string> = {
@@ -115,5 +115,13 @@ describe.each(Object.entries(THEMES))("contrast in %s", (_name, context) => {
     const behind = over(token(background), page);
     const ratio = contrast(over(token(foreground), behind), behind);
     expect(ratio).toBeGreaterThanOrEqual(needed);
+  });
+});
+
+describe("following a community theme", () => {
+  it("takes the theme's own surfaces and text over the Dinthla dark palette", () => {
+    const token = tokensFor(THEMES["Tokyo Night"]!);
+    expect(token("surface-page")).toEqual(parseColour("#1a1b26"));
+    expect(token("text-body")).toEqual(parseColour("#c0caf5"));
   });
 });

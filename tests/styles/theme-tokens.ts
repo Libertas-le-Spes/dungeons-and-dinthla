@@ -32,6 +32,7 @@ function specificityOf(selector: string): number {
 
 function readRules(file: string): Rule[] {
   const css = readStyles(file);
+  if (css.includes("@media") || css.includes("@supports")) throw new Error(`The contrast test can't read conditional rules in ${file}`);
   return [...css.matchAll(/([^{}]+)\{([^}]*)\}/g)].map(([, selector, body]) => {
     const declarations = new Map<string, string>();
     for (const [, name, value] of body!.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) declarations.set(name!, value!.trim());

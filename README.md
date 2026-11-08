@@ -34,7 +34,7 @@ After the next build, reload the vault (**Reload app without saving** in the com
 
 The plugin follows the [Dungeons & Dinthla design system](https://claude.ai/artifact/TPqcxoS9uio8boYoScD8Uk). With Obsidian's default theme its panels use the Dinthla colours, light or dark. With any other theme, such as an Omarchy theme, they take that theme's colours instead, lightened or darkened where needed so text stays readable. Headings use Alegreya and Alegreya SC, which are built into `styles.css`. Everything else uses Obsidian's own fonts.
 
-`styles.css` is built from `styles/` by `npm run build`. `tests/styles/contrast.test.ts` checks the prototype's contrast pairs in both Dinthla themes and in Tokyo Night.
+`styles.css` is built from `styles/` by `npm run build`. `tests/styles/contrast.test.ts` checks the prototype's contrast pairs in both Dinthla themes, Tokyo Night and Catppuccin Latte.
 
 ## Notes
 

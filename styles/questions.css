@@ -44,6 +44,7 @@
   background: var(--surface-sunken);
 }
 
+.dd-questions .dd-filter:active,
 .dd-questions .dd-filter:focus,
 .dd-questions .dd-filter:focus-visible {
   border-color: var(--border-focus);
