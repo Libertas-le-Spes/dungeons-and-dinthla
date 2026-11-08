@@ -115,12 +115,8 @@ export class Modal {
   onClose(): void {}
 }
 
-class TextComponent {
-  readonly inputEl: HTMLInputElement;
-
-  constructor(containerEl: HTMLElement) {
-    this.inputEl = containerEl.createEl("input");
-  }
+class AbstractTextComponent<T extends HTMLInputElement | HTMLTextAreaElement> {
+  constructor(readonly inputEl: T) {}
 
   setPlaceholder(placeholder: string): this {
     this.inputEl.placeholder = placeholder;
@@ -138,26 +134,15 @@ class TextComponent {
   }
 }
 
-class TextAreaComponent {
-  readonly inputEl: HTMLTextAreaElement;
-
+class TextComponent extends AbstractTextComponent<HTMLInputElement> {
   constructor(containerEl: HTMLElement) {
-    this.inputEl = containerEl.createEl("textarea");
+    super(containerEl.createEl("input"));
   }
+}
 
-  setPlaceholder(placeholder: string): this {
-    this.inputEl.placeholder = placeholder;
-    return this;
-  }
-
-  setValue(value: string): this {
-    this.inputEl.value = value;
-    return this;
-  }
-
-  onChange(callback: (value: string) => void): this {
-    this.inputEl.addEventListener("input", () => callback(this.inputEl.value));
-    return this;
+class TextAreaComponent extends AbstractTextComponent<HTMLTextAreaElement> {
+  constructor(containerEl: HTMLElement) {
+    super(containerEl.createEl("textarea"));
   }
 }
 
@@ -263,6 +248,7 @@ export class ButtonComponent {
   }
 
   setWarning(): this {
+    this.buttonEl.addClass("mod-warning");
     return this;
   }
 
