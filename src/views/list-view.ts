@@ -2,7 +2,7 @@ import { ItemView, type WorkspaceLeaf } from "obsidian";
 import type { Campaign, Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { keywordsOf } from "./keywords";
-import { focusRowAt, PENDING_FOCUS_MS } from "./row-focus";
+import { focusRowAt, RowFocus } from "./row-focus";
 import type { LinkActions } from "./linked-text";
 
 export interface ListContents<T> {
@@ -39,7 +39,7 @@ export class CampaignListView<T> extends ItemView {
   private openList!: HTMLElement;
   private foldedCount!: HTMLElement;
   private foldedList!: HTMLElement;
-  private pendingFocus: { source: Source; until: number } | null = null;
+  private readonly rowFocus = new RowFocus();
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -95,7 +95,7 @@ export class CampaignListView<T> extends ItemView {
     this.foldedCount.setText(String(contents.foldedCount));
     this.fill(this.openList, contents.open, keywords, this.openEmptyText(contents));
     this.fill(this.foldedList, contents.folded, keywords, this.foldedEmptyText(contents));
-    this.focusPendingRow();
+    this.rowFocus.afterRender();
   }
 
   private addCreateButton(head: HTMLElement): void {
@@ -106,16 +106,7 @@ export class CampaignListView<T> extends ItemView {
   }
 
   focusRow(source: Source, afterChange: boolean): void {
-    focusRowAt(this.contentEl, source);
-    this.pendingFocus = null;
-    if (afterChange) this.pendingFocus = { source, until: Date.now() + PENDING_FOCUS_MS };
-  }
-
-  private focusPendingRow(): void {
-    const pending = this.pendingFocus;
-    this.pendingFocus = null;
-    if (pending === null || Date.now() > pending.until) return;
-    if (!focusRowAt(this.contentEl, pending.source)) this.filter.focus();
+    this.rowFocus.afterClose(() => focusRowAt(this.contentEl, source), afterChange, () => this.filter.focus());
   }
 
   private fill(list: HTMLElement, items: T[], keywords: string[], emptyText: string): void {

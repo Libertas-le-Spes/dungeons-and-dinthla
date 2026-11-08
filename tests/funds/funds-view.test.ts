@@ -209,6 +209,20 @@ describe("FundsView", () => {
     expect(rowAt(1).querySelector(".dd-what")?.textContent).toBe("3 gp tip");
   });
 
+  it("leaves focus alone on a later redraw when an entry closed unchanged", async () => {
+    const openEntry = vi.fn<OpenEntry>();
+    const { root, change } = await openView(campaignOf(["$ 5 gp found"]), [], vi.fn(), openEntry);
+    const document = root.ownerDocument;
+    document.body.append(root);
+    (root.querySelector(".dd-ledger-row") as HTMLElement).click();
+    openEntry.mock.calls[0]![1]("unchanged");
+    const editor = document.createElement("input");
+    document.body.append(editor);
+    editor.focus();
+    change(campaignOf(["$ 5 gp found", "$ 1 gp found"]));
+    expect(document.activeElement).toBe(editor);
+  });
+
   it("puts focus on Add coin after an entry is deleted, and back on the row when nothing changed", async () => {
     const openEntry = vi.fn<OpenEntry>();
     const { root, change } = await openView(campaignOf(["$ 5 gp found", "$ 2 gp tip"]), [], vi.fn(), openEntry);
