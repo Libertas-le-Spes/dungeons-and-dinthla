@@ -3,7 +3,7 @@ import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { QuestionRecord } from "../../src/campaign/campaign";
 import { sessionNoteOf } from "../../src/campaign/session-file";
-import { CHANGED_IN_NOTE, LINES_LEFT, PartlyWritten, type EditorVault } from "../../src/campaign/note-editor";
+import { CHANGED_IN_NOTE, LINES_LEFT, PartlyWritten, PROPERTIES_WOULD_CHANGE, type EditorVault } from "../../src/campaign/note-editor";
 import { planQuestionSave, planReopen, type QuestionEdit } from "../../src/questions/question-plan";
 import { QuestionWriter } from "../../src/questions/question-writer";
 
@@ -221,6 +221,22 @@ describe("QuestionWriter", () => {
     await expect(deleting).rejects.toBeInstanceOf(PartlyWritten);
     await expect(deleting).rejects.toThrow("its lines in Pale Moon/Sessions/Session 2.md were left");
     expect(notes.texts.get(ONE)).toBe("");
+  });
+
+  it("refuses a delete that would turn a note's lines into its properties, writing nothing", async () => {
+    const own = new FakeNotes({ [ONE]: "? Who\n---\n? Where\n---\n" });
+    await expect(new QuestionWriter(own.vault).delete(own.questions()[0]!)).rejects.toThrow(PROPERTIES_WOULD_CHANGE);
+    expect(own.texts.get(ONE)).toBe("? Who\n---\n? Where\n---\n");
+    const other = new FakeNotes({ [ONE]: "? Who\n", [TWO]: "?= Who: Mira\n---\n? Where\n---\n" });
+    await expect(new QuestionWriter(other.vault).delete(other.questions()[0]!)).rejects.toThrow(PROPERTIES_WOULD_CHANGE);
+    expect(other.texts.get(ONE)).toBe("? Who\n");
+    expect(other.texts.get(TWO)).toBe("?= Who: Mira\n---\n? Where\n---\n");
+  });
+
+  it("refuses to reopen a question when removing its answer would turn lines into properties", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n", [TWO]: "?= Who: Mira\n---\nWe rode on.\n---\n" });
+    await expect(reopen(notes, notes.questions()[0]!)).rejects.toThrow(PROPERTIES_WOULD_CHANGE);
+    expect(notes.texts.get(TWO)).toBe("?= Who: Mira\n---\nWe rode on.\n---\n");
   });
 
   it("deletes only the opened question when another line reads the same", async () => {
