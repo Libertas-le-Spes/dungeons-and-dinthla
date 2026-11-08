@@ -30,7 +30,8 @@ export default class DungeonsAndDinthla extends Plugin {
     this.registerView(QUESTS_VIEW, (leaf) => new CampaignListView(leaf, this.store, actions, questsKind));
     this.addRibbonIcon(questsKind.icon, "Open quests", () => void openSideView(this.app, QUESTS_VIEW));
     this.addCommand({ id: "open-quests", name: "Open quests", callback: () => void openSideView(this.app, QUESTS_VIEW) });
-    this.registerView(FUNDS_VIEW, (leaf) => new FundsView(leaf, this.store, actions));
+    const noteExists = (name: string, sourcePath: string) => this.app.metadataCache.getFirstLinkpathDest(name, sourcePath) !== null;
+    this.registerView(FUNDS_VIEW, (leaf) => new FundsView(leaf, this.store, actions, noteExists));
     this.addRibbonIcon("coins", "Open party funds", () => void openSideView(this.app, FUNDS_VIEW));
     this.addCommand({ id: "open-funds", name: "Open party funds", callback: () => void openSideView(this.app, FUNDS_VIEW) });
     this.addRibbonIcon("calendar-plus", "Start a new session", () => startSession(this.app, this.store.campaignFolder));
