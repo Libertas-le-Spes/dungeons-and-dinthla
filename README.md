@@ -30,6 +30,12 @@ npm run build
 
 After the next build, reload the vault (**Reload app without saving** in the command palette, or Ctrl+R on desktop) to see the newest version. When the note format changes, the demo notes change in the same pull request, and each pull request says what to look for in the demo vault.
 
+## Look
+
+The plugin follows the [Dungeons & Dinthla design system](https://claude.ai/artifact/TPqcxoS9uio8boYoScD8Uk). With Obsidian's default theme its panels use the Dinthla colours, light or dark. With any other theme, such as an Omarchy theme, they take that theme's colours instead, lightened or darkened where needed so text stays readable. Headings use Alegreya and Alegreya SC, which are built into `styles.css`. Everything else uses Obsidian's own fonts.
+
+`styles.css` is built from `styles/` by `npm run build`. `tests/styles/contrast.test.ts` checks the prototype's contrast pairs in both Dinthla themes and in Tokyo Night.
+
 ## Notes
 
 [docs/note-format.md](docs/note-format.md) says how a campaign is kept in plain notes: the folders, sessions, marked lines and character facts the plugin reads and writes.
