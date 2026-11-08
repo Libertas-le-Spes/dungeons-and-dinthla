@@ -127,6 +127,30 @@ describe("QuestionWriter", () => {
     expect(notes.texts.get(ONE)).toBe("? Who\n?= Who: Mira (maybe)\n");
   });
 
+  it("refuses rather than change a twin of an answer edited by hand", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n" });
+    const [question] = notes.questions();
+    const handEdited = "? Who\n?= Who: Mira (maybe)\n?= Who: Mira\n";
+    notes.texts.set(ONE, handEdited);
+    await expect(save(notes, question!, { answer: "Lady Vess", followUp: "" }, ONE)).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(notes.texts.get(ONE)).toBe(handEdited);
+  });
+
+  it("deletes a question with the clue and answer written below it in its own note", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n?+ Who: the seal\nWe rode on.\n?= Who: Mira\n" });
+    await new QuestionWriter(notes.vault).delete(notes.questions()[0]!);
+    expect(notes.texts.get(ONE)).toBe("We rode on.\n");
+  });
+
+  it("refuses rather than delete a twin of a question edited by hand", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n" });
+    const [question] = notes.questions();
+    const handEdited = "? Who exactly\nmid\n? Who\n";
+    notes.texts.set(ONE, handEdited);
+    await expect(new QuestionWriter(notes.vault).delete(question!)).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(notes.texts.get(ONE)).toBe(handEdited);
+  });
+
   it("changes an answer in one note in one step", async () => {
     const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\nWe rode on.\n" });
     await save(notes, notes.questions()[0]!, { answer: "Lady Vess", followUp: "" }, ONE);

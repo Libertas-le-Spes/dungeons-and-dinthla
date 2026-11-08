@@ -138,6 +138,16 @@ describe("saving a quest", () => {
     await expect(new QuestWriter(notes.vault).apply(plan)).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notes.texts.get(ONE)).toBe("! Find it\n!= Find it: done, mostly\n");
   });
+
+  it("refuses rather than replace a twin of an outcome edited by hand", async () => {
+    const notes = new FakeNotes({ [ONE]: "! Find it\n!= Find it: done\n" });
+    const campaign = notes.campaign();
+    const plan = planQuestSave(campaign.quests[0]!, edit({ status: "active" }), campaign.coins, ONE);
+    const handEdited = "! Find it\n!= Find it: done, mostly\n!= Find it: done\n";
+    notes.texts.set(ONE, handEdited);
+    await expect(new QuestWriter(notes.vault).apply(plan)).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(notes.texts.get(ONE)).toBe(handEdited);
+  });
 });
 
 describe("refusing a quest change that would change another quest", () => {

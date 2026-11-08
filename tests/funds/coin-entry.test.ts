@@ -9,7 +9,6 @@ import {
   CHANGES_OTHER_MONEY,
   coinEntryEdit,
   entryRemoval,
-  isLedgerLineEntry,
   refusalForEntryChange,
   type CoinEntryEdit,
 } from "../../src/funds/coin-entry";
@@ -73,10 +72,10 @@ class FakeNotes {
   }
 }
 
-describe("isLedgerLineEntry", () => {
-  it("knows a $ line's entry from a sale's", () => {
-    const coins = buildCampaign(sessionsOf("$ 5 gp found\n$ Lantern\n$$ Lantern :sold 30 gp")).coins;
-    expect(coins.map(isLedgerLineEntry)).toEqual([true, false]);
+describe("a coin record", () => {
+  it("knows a $ line's entry from a sale's, whatever its words", () => {
+    const coins = buildCampaign(sessionsOf("$ 5 gp found\n$ Lantern\n$$ Lantern :sold 30 gp\n$ Lantern :sold 30 gp")).coins;
+    expect(coins.map((coin) => coin.isSale)).toEqual([false, true, false]);
   });
 });
 
