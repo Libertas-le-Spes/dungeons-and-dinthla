@@ -7,7 +7,7 @@ import { readAmount } from "../notes/coin-lines";
 import { readItemChange } from "../notes/item-change";
 import { appendLines, removeLines } from "../notes/note-lines";
 import { oneLine } from "../notes/question-lines";
-import { holderNameOf, THE_PARTY } from "./item-groups";
+import { holderNameOf, THE_PARTY, THE_PARTY_LABEL } from "./item-groups";
 
 export type ItemStatus = "held" | "sold" | "used" | "lost";
 
@@ -55,7 +55,7 @@ export function initialItemEdit(item: ItemRecord): ItemEdit {
 }
 
 export function holderOptions(itemHolders: string[], characters: HolderOption[]): HolderOption[] {
-  const options: HolderOption[] = [{ text: THE_PARTY, label: "The party" }];
+  const options: HolderOption[] = [{ text: THE_PARTY, label: THE_PARTY_LABEL }];
   const seen = new Set([""]);
   const found = [...itemHolders.map((holder) => ({ text: holderTextOf(holder), label: holderNameOf(holder) })), ...characters];
   for (const option of found.sort((first, second) => first.label.localeCompare(second.label))) {

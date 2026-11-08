@@ -1,6 +1,8 @@
 import { StateField } from "@codemirror/state";
 import type {
   AbstractInputSuggest as RealInputSuggest,
+  EditorSuggest as RealEditorSuggest,
+  EditorSuggestContext,
   FrontMatterInfo,
   ItemView as RealItemView,
   MarkdownFileInfo,
@@ -65,6 +67,18 @@ export class Modal {
   constructor(...[app]: ConstructorParameters<typeof RealModal>) {
     this.app = app;
   }
+}
+
+export class EditorSuggest {
+  app: RealEditorSuggest<unknown>["app"];
+  context: EditorSuggestContext | null = null;
+  limit = 100;
+
+  constructor(...[app]: ConstructorParameters<typeof RealEditorSuggest>) {
+    this.app = app;
+  }
+
+  close(): void {}
 }
 
 export class AbstractInputSuggest {
