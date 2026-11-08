@@ -28,7 +28,7 @@ function factsOf(record: QuestRecord): string {
 
 export class QuestModal extends Modal {
   private readonly edit: QuestEdit;
-  private secondPress!: SecondPress;
+  private secondPress: SecondPress | null = null;
   private changed = false;
   private busy = false;
   private rewardRow: HTMLElement | null = null;
@@ -115,7 +115,7 @@ export class QuestModal extends Modal {
   }
 
   override onClose(): void {
-    this.secondPress.stop();
+    if (this.secondPress !== null) this.secondPress.stop();
     this.contentEl.empty();
     this.onClosed(this.changed);
   }

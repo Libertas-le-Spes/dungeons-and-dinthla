@@ -20,7 +20,7 @@ export interface QuestionPlaces {
 
 export class QuestionModal extends Modal {
   private readonly edit: QuestionEdit;
-  private secondPress!: SecondPress;
+  private secondPress: SecondPress | null = null;
   private changed = false;
   private busy = false;
 
@@ -87,7 +87,7 @@ export class QuestionModal extends Modal {
   }
 
   override onClose(): void {
-    this.secondPress.stop();
+    if (this.secondPress !== null) this.secondPress.stop();
     this.contentEl.empty();
     this.onClosed(this.changed);
   }
