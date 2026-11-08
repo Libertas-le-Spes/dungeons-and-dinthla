@@ -23,11 +23,7 @@ export class ItemView {
     element.addEventListener(type, callback);
   }
 
-  register(callback: () => void): void {
-    this.registered.push(callback);
-  }
-
-  readonly registered: (() => void)[] = [];
+  register(): void {}
 }
 
 const PROPERTIES_OPEN = /^---\r?\n/;
