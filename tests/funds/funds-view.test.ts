@@ -172,10 +172,15 @@ describe("FundsView", () => {
   it("offers Add coin on the ledger when coin can be added, handing it a way back", async () => {
     expect((await openView(campaignOf([]))).root.querySelector(".dd-ledger-panel .dd-create")).toBeNull();
     const addCoin = vi.fn();
-    const { root } = await openView(campaignOf([]), [], addCoin);
+    const { root, change } = await openView(campaignOf([]), [], addCoin);
+    root.ownerDocument.body.append(root);
     const button = root.querySelector(".dd-ledger-panel .dd-create") as HTMLElement;
     expect(button.textContent).toBe("Add coin");
     button.click();
     expect(addCoin).toHaveBeenCalledTimes(1);
+    change(campaignOf(["$ 5 gp found"]));
+    addCoin.mock.calls[0]![0]();
+    expect(root.ownerDocument.activeElement).toBe(button);
+    expect(root.querySelector(".dd-ledger-panel .dd-count")?.textContent).toBe("1 entry");
   });
 });
