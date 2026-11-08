@@ -1,6 +1,7 @@
 import { StateField } from "@codemirror/state";
 import type {
   AbstractInputSuggest as RealInputSuggest,
+  BasesView as RealBasesView,
   EditorSuggest as RealEditorSuggest,
   EditorSuggestContext,
   FrontMatterInfo,
@@ -31,6 +32,14 @@ export class ItemView {
   registerDomEvent(element: HTMLElement, type: string, callback: (event: Event) => void): void {
     element.addEventListener(type, callback);
   }
+
+  register(): void {}
+}
+
+export class BasesView {
+  data!: RealBasesView["data"];
+
+  constructor(..._controller: unknown[]) {}
 
   register(): void {}
 }
