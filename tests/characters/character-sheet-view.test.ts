@@ -280,6 +280,73 @@ describe("CharacterSheetView", () => {
     expect(sheet.root.querySelector(".dd-value")).toBeNull();
   });
 
+  function failingFirst() {
+    const reading = { fails: true };
+    const sheet = openSheet({ textOf: async () => {
+      if (reading.fails) throw new Error("the disk is gone");
+      return "AC: 16";
+    } });
+    return { sheet, reading };
+  }
+
+  it("recovers from a failed first reading when the character's note changes", async () => {
+    const { sheet, reading } = failingFirst();
+    await sheet.load();
+    reading.fails = false;
+    sheet.noteChanged("Elsewhere/Note.md");
+    expect(sheet.root.querySelector(".dd-value")).toBeNull();
+    sheet.noteChanged(MIRA.path);
+    await vi.waitFor(() => expect(sheet.button("AC").textContent).toBe("16"));
+  });
+
+  it("recovers from a failed first reading when a session changes", async () => {
+    const { sheet, reading } = failingFirst();
+    await sheet.load();
+    reading.fails = false;
+    sheet.noteChanged("Pale Moon/Sessions/Session 2.md");
+    await vi.waitFor(() => expect(sheet.button("AC").textContent).toBe("16"));
+  });
+
+  it("recovers from a failed first reading when a session is moved", async () => {
+    const { sheet, reading } = failingFirst();
+    await sheet.load();
+    reading.fails = false;
+    sheet.noteMoved("Pale Moon/Sessions/Session 2.md");
+    await vi.waitFor(() => expect(sheet.button("AC").textContent).toBe("16"));
+  });
+
+  it("keeps watching the carried note when a later reading fails", async () => {
+    const reading = { fails: false };
+    const sheet = openSheet({
+      carriedFrom: { path: "Library/Mira.md", groups: ["values"] },
+      textOf: async () => {
+        if (reading.fails) throw new Error("the disk is gone");
+        return "AC: 16";
+      },
+    });
+    await sheet.load();
+    reading.fails = true;
+    sheet.noteChanged(MIRA.path);
+    await vi.waitFor(() => expect(sheet.root.querySelector(".dd-empty")).not.toBeNull());
+    reading.fails = false;
+    sheet.noteChanged("Library/Mira.md");
+    await vi.waitFor(() => expect(sheet.button("AC").textContent).toBe("16"));
+  });
+
+  it("watches nothing outside a campaign but the note itself after a failed reading", async () => {
+    const reading = { fails: true };
+    const sheet = openSheet({ textOf: async () => {
+      if (reading.fails) throw new Error("the disk is gone");
+      return "AC: 16";
+    } });
+    await sheet.load(fileAt("Loose/Mira.md"));
+    reading.fails = false;
+    sheet.noteChanged("Loose/Other.md");
+    expect(sheet.root.querySelector(".dd-value")).toBeNull();
+    sheet.noteChanged("Loose/Mira.md");
+    await vi.waitFor(() => expect(sheet.button("AC").textContent).toBe("16"));
+  });
+
   it("keeps the latest sheet when an earlier reading fails late", async () => {
     const pending: ((text: string) => void)[] = [];
     const failures: ((error: Error) => void)[] = [];
