@@ -52,7 +52,7 @@ describe("FundsView", () => {
     expect(textsOf(root, ".dd-ledger .dd-direction")).toEqual(["In", "Out", "In"]);
     expect(textsOf(root, ".dd-ledger .dd-balance")).toEqual(["83 gp 4 sp", "48 gp", "50 gp"]);
     expect(textsOf(root, ".dd-ledger .dd-what")).toEqual(["35 gp 4 sp from the bandits", "Paid 2 gp for rooms", "+50 gp advance"]);
-    expect(textsOf(root, ".dd-count")).toEqual(["3 entries"]);
+    expect(textsOf(root, ".dd-ledger-panel .dd-title .dd-count")).toEqual(["3 entries"]);
   });
 
   it("shows the coins the purse is made of when they read differently from it", async () => {
@@ -70,12 +70,12 @@ describe("FundsView", () => {
     expect(textsOf(root, ".dd-coins .dd-empty")).toEqual(["No coin yet. Note it as “$ 20 gp from …”."]);
     expect(textsOf(root, ".dd-ledger .dd-empty")).toEqual(["No coin entries yet."]);
     expect(textsOf(root, ".dd-purse")).toEqual(["0 gp"]);
-    expect(textsOf(root, ".dd-count")).toEqual([""]);
+    expect(textsOf(root, ".dd-ledger-panel .dd-title .dd-count")).toEqual([""]);
   });
 
   it("counts one entry as an entry", async () => {
     const { root } = await openView(campaignOf(["$ 5 gp"]));
-    expect(textsOf(root, ".dd-count")).toEqual(["1 entry"]);
+    expect(textsOf(root, ".dd-ledger-panel .dd-title .dd-count")).toEqual(["1 entry"]);
   });
 
   it("writes large coin counts as the purse does, so they aren't shown twice", async () => {
@@ -106,5 +106,32 @@ describe("FundsView", () => {
   it("writes an entry that comes to nothing without a sign", async () => {
     const { root } = await openView(campaignOf(["$ found 5 gp, paid 5 gp toll"]));
     expect(textsOf(root, ".dd-ledger .dd-amount")).toEqual(["0 gp"]);
+  });
+
+  it("lists held items under their holders, the party's own last, with gone items folded away", async () => {
+    const { root } = await openView(
+      campaignOf(["$ [[Mira]] Flame Tongue", "$ Potion of healing", "$ Spyglass", "$$ Spyglass :sold 20 gp", "$ Rope", "$$ Rope :used"]),
+    );
+    expect(textsOf(root, ".dd-items-panel .dd-holder")).toEqual(["[[Mira]]", "The party"]);
+    expect(textsOf(root, ".dd-items-panel > .dd-list .dd-text")).toEqual(["Flame Tongue", "Potion of healing"]);
+    expect(textsOf(root, ".dd-items-panel > .dd-title .dd-count")).toEqual(["2 held"]);
+    expect(textsOf(root, ".dd-items-panel .dd-folded summary")).toEqual(["Gone2"]);
+    expect(textsOf(root, ".dd-folded .dd-meta")).toEqual(["Used up · Session 1", "Sold · sale in the ledger · Session 1"]);
+    expect(root.querySelectorAll(".dd-folded .dd-text.dd-gone")).toHaveLength(2);
+  });
+
+  it("says how to note an item, and that nothing is gone, when there are none", async () => {
+    const { root } = await openView(campaignOf(["$ 5 gp"]));
+    expect(textsOf(root, ".dd-items-panel > .dd-empty")).toEqual([
+      "No items held. A $ line without an amount, like “$ [[Mira]] Flame Tongue longsword”, adds one.",
+    ]);
+    expect(textsOf(root, ".dd-folded .dd-empty")).toEqual(["Nothing sold, used or lost yet."]);
+    expect(textsOf(root, ".dd-items-panel > .dd-title .dd-count")).toEqual([""]);
+  });
+
+  it("opens a holder's note when their name is tapped", async () => {
+    const { root, actions } = await openView(campaignOf(["$ [[Mira]] Flame Tongue"]));
+    (root.querySelector(".dd-holder a.internal-link") as HTMLElement).click();
+    expect(actions.openLink).toHaveBeenCalledWith("Mira", "Pale Moon/Sessions/Session 1.md");
   });
 });
