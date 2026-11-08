@@ -14,20 +14,28 @@ function addMark(row: HTMLElement, record: QuestRecord): void {
     row.createSpan({ cls: "dd-mark dd-mark-quest", text: "✓", attr: { "aria-label": label } });
     return;
   }
-  row.createSpan({ cls: "dd-mark dd-mark-gone", text: "✕", attr: { "aria-label": label } });
+  row.createSpan({ cls: "dd-mark dd-mark-abandoned", text: "✕", attr: { "aria-label": label } });
 }
 
-function addFact(facts: HTMLElement, name: string, value: string | undefined, sourcePath: string, actions: LinkActions, keywords: string[]): void {
+function addFact(facts: HTMLElement, name: string, value: string | undefined, keywords: string[], sourcePath: string, actions: LinkActions): void {
   if (value === undefined) return;
   const fact = facts.createSpan({ text: `${name} ` });
   addLinkedText(fact.createEl("b"), value, keywords, sourcePath, actions);
+}
+
+function addFacts(body: HTMLElement, record: QuestRecord, keywords: string[], actions: LinkActions): void {
+  const { givenBy, reward } = record.quest;
+  if (givenBy === undefined && reward === undefined) return;
+  const facts = body.createSpan({ cls: "dd-facts" });
+  addFact(facts, "From", givenBy, keywords, record.source.path, actions);
+  addFact(facts, "Reward", reward, keywords, record.source.path, actions);
 }
 
 function addMeta(body: HTMLElement, record: QuestRecord): void {
   const meta = body.createSpan({ cls: "dd-meta" });
   if (record.outcome !== null) {
     const status = meta.createSpan({ cls: "dd-status", text: STATUS_WORDS[record.outcome.status] });
-    if (record.outcome.status === "completed") status.addClass("dd-status-done");
+    if (record.outcome.status === "completed") status.addClass("dd-status-completed");
     meta.appendText(" · ");
   }
   meta.appendText(sessionLabelOf(record.source.path));
@@ -38,12 +46,10 @@ export function addQuestRow(list: HTMLElement, record: QuestRecord, keywords: st
   const row = addRowButton(list, record.source, actions);
   addMark(row, record);
   const body = row.createSpan({ cls: "dd-body" });
-  const title = body.createSpan({ cls: "dd-text dd-title-line" });
-  if (record.outcome !== null && record.outcome.status === "failed") title.addClass("dd-gone");
+  const title = body.createSpan({ cls: "dd-title-line" });
+  if (record.outcome !== null && record.outcome.status === "failed") title.addClass("dd-abandoned");
   addLinkedText(title, record.quest.title, keywords, sourcePath, actions);
-  const facts = body.createSpan({ cls: "dd-facts" });
-  addFact(facts, "From", record.quest.givenBy, sourcePath, actions, keywords);
-  addFact(facts, "Reward", record.quest.reward, sourcePath, actions, keywords);
+  addFacts(body, record, keywords, actions);
   if (record.outcome !== null) {
     addLinkedText(body.createSpan({ cls: "dd-answer" }), record.outcome.text, keywords, record.outcome.source.path, actions);
   }

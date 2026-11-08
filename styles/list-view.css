@@ -103,7 +103,7 @@
   color: var(--marker-quest);
 }
 
-.dd-list-view .dd-mark-gone {
+.dd-list-view .dd-mark-abandoned {
   color: var(--text-muted-ui);
 }
 
@@ -111,7 +111,7 @@
   display: block;
 }
 
-.dd-list-view .dd-gone {
+.dd-list-view .dd-abandoned {
   text-decoration: line-through;
   text-decoration-color: var(--text-muted-ui);
   color: var(--text-muted-ui);
@@ -121,14 +121,10 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1) var(--space-3);
-  margin-top: 2px;
+  margin-top: var(--space-0);
   font: var(--type-label);
   font-size: var(--text-sm);
   color: var(--text-muted-ui);
-}
-
-.dd-list-view .dd-facts:empty {
-  display: none;
 }
 
 .dd-list-view .dd-facts b {
@@ -137,13 +133,13 @@
 }
 
 .dd-list-view .dd-status {
-  padding: 1px 8px;
+  padding: 1px var(--space-2);
   border-radius: var(--radius-pill);
   background: var(--surface-sunken);
   color: var(--text-muted-ui);
 }
 
-.dd-list-view .dd-status-done {
+.dd-list-view .dd-status-completed {
   background: var(--marker-quest-soft);
   color: var(--text-strong);
 }
@@ -188,11 +184,11 @@
   border-radius: 2px;
 }
 
-.dd-list-view .dd-answered {
+.dd-list-view .dd-folded {
   margin-top: var(--space-5);
 }
 
-.dd-list-view .dd-answered summary {
+.dd-list-view .dd-folded summary {
   display: list-item;
   box-sizing: border-box;
   min-height: var(--touch-min);
