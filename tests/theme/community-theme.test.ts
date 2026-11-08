@@ -3,7 +3,11 @@ import type { Vault } from "obsidian";
 import { usesCommunityTheme } from "../../src/theme/community-theme";
 
 function vaultWithTheme(theme: unknown): Vault {
-  return { getConfig: () => theme } as unknown as Vault;
+  const getConfig = (key: string) => {
+    if (key === "cssTheme") return theme;
+    return undefined;
+  };
+  return { getConfig } as unknown as Vault;
 }
 
 describe("usesCommunityTheme", () => {
