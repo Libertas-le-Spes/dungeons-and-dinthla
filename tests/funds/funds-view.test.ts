@@ -17,7 +17,7 @@ function campaignOf(lines: string[], ...laterSessions: string[][]): Campaign {
   );
 }
 
-async function openView(campaign: Campaign, notes: string[] = ["Mira"]) {
+async function openView(campaign: Campaign, notes: string[] = ["Mira"], addCoin: ((returnFocus: () => void) => void) | null = null) {
   let listener: (campaign: Campaign) => void = () => {};
   const unsubscribe = vi.fn();
   const store = {
@@ -29,7 +29,7 @@ async function openView(campaign: Campaign, notes: string[] = ["Mira"]) {
   };
   const actions = { openRow: vi.fn(), openLink: vi.fn() };
   const noteExists = (name: string) => notes.includes(name);
-  const view = new FundsView({} as WorkspaceLeaf, store as unknown as CampaignStore, actions, noteExists);
+  const view = new FundsView({} as WorkspaceLeaf, store as unknown as CampaignStore, actions, noteExists, addCoin);
   const root = obsidianDocument().createElement("div");
   view.contentEl = root;
   const registered: (() => void)[] = [];
@@ -167,5 +167,15 @@ describe("FundsView", () => {
     const { root } = await openView(campaignOf(["$ Rope", "$$ Rope :changed to Bob the innkeeper"]), []);
     expect(textsOf(root, ".dd-holder")).toEqual(["Bob the innkeeper"]);
     expect(root.querySelector(".dd-holder a")).toBeNull();
+  });
+
+  it("offers Add coin on the ledger when coin can be added, handing it a way back", async () => {
+    expect((await openView(campaignOf([]))).root.querySelector(".dd-ledger-panel .dd-create")).toBeNull();
+    const addCoin = vi.fn();
+    const { root } = await openView(campaignOf([]), [], addCoin);
+    const button = root.querySelector(".dd-ledger-panel .dd-create") as HTMLElement;
+    expect(button.textContent).toBe("Add coin");
+    button.click();
+    expect(addCoin).toHaveBeenCalledTimes(1);
   });
 });
