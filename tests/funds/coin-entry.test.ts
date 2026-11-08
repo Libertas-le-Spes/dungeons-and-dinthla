@@ -105,7 +105,7 @@ describe("refusalForEntryChange", () => {
 
 describe("coinEntryEdit", () => {
   it("writes nothing when an entry is saved as it opened, however it was worded", async () => {
-    for (const line of ["$ Bought rope for 2 gp", "$ 5 gp, 3 sp from a chest", "$ -5 gp toll", "$ 1200 gp found", "- $ 35 gp 4 sp from the bandits"]) {
+    for (const line of ["$ 1200 gp found", "$ paid  2 gp for rooms", "- $ 35 gp 4 sp from the bandits", "\t* $ Bought 5 gp rope"]) {
       const notes = new FakeNotes(`${line}\n`);
       const edit = notes.editAt(0);
       expect(edit.cannotSave, line).toBeNull();
@@ -124,6 +124,12 @@ describe("coinEntryEdit", () => {
       "$ 10gp the -3 sp",
       "$ found in [[Vault 3 gp]] 5 gp",
       "$ 5 gp from the Lost Mine",
+      "$ Bought rope for 2 gp",
+      "$ 5 gp, 3 sp from a chest",
+      "$ -5 gp toll",
+      "$ 5 gp found (2 gp each)",
+      "$ Paid 5 gp; Mira paid 2 gp",
+      "$ Sold the wagon +120 gp",
     ];
     for (const line of lines) {
       const notes = new FakeNotes(`${line}\n$ 1 gp tip\n`);
@@ -132,7 +138,7 @@ describe("coinEntryEdit", () => {
       const anyLine = coinLineOf({ direction: "in", amount: "1 gp", what: "found" });
       await expect(edit.save(anyLine), line).rejects.toThrow(CANNOT_SHOW);
       expect(notes.text, line).toBe(`${line}\n$ 1 gp tip\n`);
-      expect(await edit.remove(), line).toBe(true);
+      expect(await edit.delete(), line).toBe(true);
       expect(notes.text, line).toBe("$ 1 gp tip\n");
     }
   });
@@ -154,7 +160,7 @@ describe("coinEntryEdit", () => {
 
   it("deletes an entry's line and nothing else", async () => {
     const notes = new FakeNotes("$ 5 gp found\n$ 2 gp tip\n");
-    expect(await notes.editAt(0).remove()).toBe(true);
+    expect(await notes.editAt(0).delete()).toBe(true);
     expect(notes.text).toBe("$ 2 gp tip\n");
     expect(notes.purse()).toBe(200);
   });
@@ -171,7 +177,7 @@ describe("coinEntryEdit", () => {
     const edit = notes.editAt(0);
     notes.texts.set(ONE, "$ 6 gp found\n");
     await expect(edit.save(coinLineOf({ ...edit.draft, amount: "8 gp" }))).rejects.toThrow(CHANGED_IN_NOTE);
-    await expect(edit.remove()).rejects.toThrow(CHANGED_IN_NOTE);
+    await expect(edit.delete()).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notes.text).toBe("$ 6 gp found\n");
   });
 
@@ -182,8 +188,34 @@ describe("coinEntryEdit", () => {
     const edit = coinEntryEdit(notes.vault, readBefore, record);
     notes.texts.set(ONE, "$ 6 gp found\n");
     await expect(edit.save(coinLineOf({ ...edit.draft, amount: "8 gp" }))).rejects.toThrow(CHANGED_IN_NOTE);
-    await expect(edit.remove()).rejects.toThrow(CHANGED_IN_NOTE);
+    await expect(edit.delete()).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notes.text).toBe("$ 6 gp found\n");
+  });
+
+  it("refuses rather than change a twin of a line changed by hand", async () => {
+    const notes = new FakeNotes("$ 5 gp found\nthen\n- $ 5 gp found\n");
+    const edit = notes.editAt(0);
+    notes.texts.set(ONE, "$ 6 gp found\nthen\n- $ 5 gp found\n");
+    await expect(edit.save(coinLineOf({ ...edit.draft, amount: "8 gp" }))).rejects.toThrow(CHANGED_IN_NOTE);
+    await expect(edit.delete()).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(notes.text).toBe("$ 6 gp found\nthen\n- $ 5 gp found\n");
+  });
+
+  it("refuses when the entry's line has moved since it was read", async () => {
+    const notes = new FakeNotes("$ 2 gp tip\n");
+    const edit = notes.editAt(0);
+    notes.texts.set(ONE, "# Loot\n$ 2 gp tip\n");
+    await expect(edit.save(coinLineOf({ ...edit.draft, amount: "3 gp" }))).rejects.toThrow(CHANGED_IN_NOTE);
+    await expect(edit.delete()).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(notes.text).toBe("# Loot\n$ 2 gp tip\n");
+  });
+
+  it("never takes a line without the $ marker for the entry", async () => {
+    const notes = new FakeNotes("$ 5 gp found\n");
+    const edit = notes.editAt(0);
+    notes.texts.set(ONE, "5 gp found\n");
+    await expect(edit.delete()).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(notes.text).toBe("5 gp found\n");
   });
 
   it("refuses when the entry's note was moved", async () => {
@@ -191,7 +223,7 @@ describe("coinEntryEdit", () => {
     const edit = notes.editAt(0);
     notes.texts.set("S/Sessions/Moved.md", notes.text);
     notes.texts.delete(ONE);
-    await expect(edit.remove()).rejects.toThrow();
+    await expect(edit.delete()).rejects.toThrow();
     expect(notes.texts.get("S/Sessions/Moved.md")).toBe("$ 5 gp found\n");
   });
 });

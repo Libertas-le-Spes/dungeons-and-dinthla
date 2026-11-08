@@ -7,6 +7,7 @@ import { sessionLabelOf } from "../campaign/session-file";
 import { summariseFunds, type CoinCount, type FundsSummary, type LedgerLine } from "./funds-summary";
 import { summariseItems, type ItemSummary } from "./item-groups";
 import type { CoinOutcome } from "./coin-modal";
+import { focusRowAt, PENDING_FOCUS_MS } from "../views/row-focus";
 
 export const FUNDS_VIEW = "dungeons-and-dinthla-funds";
 
@@ -53,8 +54,6 @@ function heldText(count: number): string {
   if (count === 0) return "";
   return `${count} held`;
 }
-
-const PENDING_FOCUS_MS = 3000;
 
 function entriesText(count: number): string {
   if (count === 0) return "";
@@ -189,26 +188,18 @@ export class FundsView extends ItemView {
     this.focusPending();
   }
 
-  private focusEntryRow(source: Source): boolean {
-    const rows = Array.from(this.ledgerList.querySelectorAll<HTMLElement>(".dd-row"));
-    const row = rows.find((candidate) => candidate.dataset.path === source.path && candidate.dataset.line === String(source.line));
-    if (row === undefined) return false;
-    row.focus();
-    return true;
-  }
-
   private focusPending(): void {
     const pending = this.pendingFocus;
     this.pendingFocus = null;
     if (pending === null || Date.now() > pending.until) return;
-    if (pending.entry !== null && this.focusEntryRow(pending.entry)) return;
+    if (pending.entry !== null && focusRowAt(this.ledgerList, pending.entry)) return;
     if (this.addCoinButton !== null) this.addCoinButton.focus();
   }
 
   private afterEntry(source: Source, outcome: CoinOutcome): void {
     this.pendingFocus = null;
     if (outcome === "unchanged") {
-      this.focusEntryRow(source);
+      focusRowAt(this.ledgerList, source);
       return;
     }
     let entry: Source | null = source;

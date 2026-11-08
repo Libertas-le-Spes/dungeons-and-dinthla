@@ -6,21 +6,15 @@ import { draftOf, readCoinDraft, type CoinDraft, type CoinLine } from "../notes/
 import { readItemChange } from "../notes/item-change";
 import { readLedgerEntry } from "../notes/ledger";
 import { readMarker } from "../notes/marker";
-import { removeLines, rewriteLine } from "../notes/note-lines";
+import { dropLine, rewriteLine } from "../notes/note-lines";
 
 export const CHANGES_OTHER_MONEY = "That change would also change other money in the purse, so nothing was written.";
 export const CANNOT_SHOW = "The dialog can't show this entry as it is written, so it can only be deleted here. Change it in its note.";
 
-const WRITTEN_LINK = /\[\[[^\]]*\]\]/g;
-
-function linksIn(text: string): string {
-  return Array.from(text.matchAll(WRITTEN_LINK), (match) => match[0]).join("\n");
-}
-
 export interface CoinEntryChoices {
   draft: CoinDraft;
   cannotSave: string | null;
-  remove(): Promise<boolean>;
+  delete(): Promise<boolean>;
 }
 
 export interface CoinEntryEdit extends CoinEntryChoices {
@@ -45,11 +39,7 @@ export function entryRemoval(record: CoinRecord): Removal {
 }
 
 function changedText(text: string, removal: Removal, written: CoinLine | null): string | null {
-  if (written === null) {
-    const removed = removeLines(text, [removal]);
-    if (removed.removed === 0) return null;
-    return removed.text;
-  }
+  if (written === null) return dropLine(text, removal);
   return rewriteLine(text, removal, written.line);
 }
 
@@ -69,10 +59,14 @@ export function refusalForEntryChange(sessions: SessionNote[], record: CoinRecor
   return null;
 }
 
+function comparable(line: string): string {
+  return line.replace(/(\d),(?=\d{3})/g, "$1").replace(/\s+/g, " ").trim().toLowerCase();
+}
+
 function keepsTheEntry(record: CoinRecord, draft: CoinDraft): boolean {
   const reading = readCoinDraft(draft);
-  if ("error" in reading || reading.copper !== record.entry.copper) return false;
-  return linksIn(record.text) === linksIn(draft.what);
+  if ("error" in reading) return false;
+  return comparable(reading.line) === comparable(`$ ${record.text}`);
 }
 
 export function coinEntryEdit(vault: EditorVault, store: { readonly sessionNotes: SessionNote[] }, record: CoinRecord): CoinEntryEdit {
@@ -95,6 +89,6 @@ export function coinEntryEdit(vault: EditorVault, store: { readonly sessionNotes
       if ("line" in opened && written.line === opened.line) return false;
       return change(written, () => editor.rewrite(removal, written.line));
     },
-    remove: () => change(null, () => editor.remove(removal)),
+    delete: () => change(null, () => editor.drop(removal)),
   };
 }
