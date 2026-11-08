@@ -125,3 +125,20 @@ describe("following a community theme", () => {
     expect(token("text-body")).toEqual(parseColour("#c0caf5"));
   });
 });
+
+describe("markers in Obsidian's own editor", () => {
+  const EDITOR_BACKGROUNDS: [string, ThemeContext, string][] = [
+    ["Dinthla light", THEMES["Dinthla light"]!, "#ffffff"],
+    ["Dinthla dark", THEMES["Dinthla dark"]!, "#1c1c1c"],
+    ["Tokyo Night", THEMES["Tokyo Night"]!, TOKYO_NIGHT["--background-primary"]!],
+    ["Catppuccin Latte", THEMES["Catppuccin Latte"]!, CATPPUCCIN_LATTE["--background-primary"]!],
+  ];
+  const MARKERS = ["marker-question", "marker-quest", "marker-ledger"];
+
+  it.each(EDITOR_BACKGROUNDS)("reach 4.5:1 on the editor in %s", (_name, context, background) => {
+    const token = tokensFor(context);
+    for (const marker of MARKERS) {
+      expect(contrast(token(marker), parseColour(background)), marker).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+});
