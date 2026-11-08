@@ -17,6 +17,7 @@ export function itemSaver(vault: EditorVault, store: ItemSource, name: string, s
     const refusal = refusalForItemPlan(store.sessionNotes, item, plan);
     if (refusal !== null) throw new Error(refusal);
     if (plan.removal === null) return editor.append(plan.targetPath, plan.added);
+    if (plan.rewrittenAs !== null) return editor.rewrite(plan.removal, plan.rewrittenAs);
     return editor.replace(plan.targetPath, plan.added, plan.removal);
   };
 }

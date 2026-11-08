@@ -60,7 +60,7 @@ class FakeNotes {
   }
 
   save(name: string, changes: Partial<ItemEdit>, sessionPath = TWO): Promise<boolean> {
-    const edit = { ...initialItemEdit(this.item(name)), ...changes };
+    const edit = { ...initialItemEdit(this.item(name), this.current.coins), ...changes };
     return itemSaver(this.vault, this, name, sessionPath)(edit);
   }
 }
@@ -112,7 +112,7 @@ describe("saving an item", () => {
 
   it("reads a holder named by a $ line as linked again after a plain one", () => {
     const notes = new FakeNotes({ [ONE]: "$ Rope\n$$ Rope :changed to Old Tom\n$ [[Mira]] Rope\n" });
-    expect(initialItemEdit(notes.item("Rope")).holder).toBe("[[Mira]]");
+    expect(initialItemEdit(notes.item("Rope"), notes.current.coins).holder).toBe("[[Mira]]");
   });
 
   it("gives an item away and sells it in one step, in that order", async () => {
@@ -242,9 +242,86 @@ describe("saving an item", () => {
     expect(notes.writes).toBe(0);
   });
 
+  it("corrects a sale price where the sale stands, keeping its bullet", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ Rope\n- $$ Rope :sold 30 gp\n", [TWO]: "" });
+    expect(initialItemEdit(notes.item("Rope"), notes.current.coins).soldFor).toBe("30 gp");
+    expect(await notes.save("Rope", { soldFor: "35 gp" })).toBe(true);
+    expect(notes.texts.get(ONE)).toBe("$ Rope\n- $$ Rope :sold 35 gp\n");
+    expect(notes.texts.get(TWO)).toBe("");
+    expect(notes.current.purseCopper).toBe(3500);
+  });
+
+  it("leaves a typed sale price out when the item goes another way", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ Rope\n$$ Rope :sold 30 gp\n", [TWO]: "" });
+    await notes.save("Rope", { status: "lost", soldFor: "40 gp" });
+    expect(notes.texts.get(ONE)).toBe("$ Rope\n");
+    expect(notes.texts.get(TWO)).toBe("$$ Rope :lost\n");
+    expect(notes.current.purseCopper).toBe(0);
+  });
+
+  it("adds a price to a sale without one, and takes it away again", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ Rope\n$$ Rope :sold\n", [TWO]: "" });
+    await notes.save("Rope", { soldFor: "5 gp" });
+    expect(notes.texts.get(ONE)).toBe("$ Rope\n$$ Rope :sold 5 gp\n");
+    expect(notes.current.purseCopper).toBe(500);
+    await notes.save("Rope", { soldFor: " " });
+    expect(notes.texts.get(ONE)).toBe("$ Rope\n$$ Rope :sold\n");
+    expect(notes.current.purseCopper).toBe(0);
+  });
+
+  it("keeps the sale line's own words for the item when correcting its price", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ [[Mira]] [[Rope]]\n$$ rope  :Sold 3 gp\n", [TWO]: "" });
+    await notes.save("Rope", { soldFor: "4 gp" });
+    expect(notes.texts.get(ONE)).toBe("$ [[Mira]] [[Rope]]\n$$ rope  :Sold 4 gp\n");
+  });
+
+  it("writes nothing when the sale price is left as it was, or reads the same", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ Rope\n$$ Rope :sold 1200gp\n$ Torch\n$$ Torch :sold -5 gp\n", [TWO]: "" });
+    expect(initialItemEdit(notes.item("Rope"), notes.current.coins).soldFor).toBe("1,200 gp");
+    expect(await notes.save("Rope", {})).toBe(false);
+    expect(await notes.save("Rope", { soldFor: "1200 gp" })).toBe(false);
+    expect(await notes.save("Torch", {})).toBe(false);
+    expect(notes.writes).toBe(0);
+  });
+
+  it("refuses to correct a sale price on a line that says more than the dialog writes", async () => {
+    for (const line of ["$$ Rope :sold 30 gp to [[Bram]]", "$$ Rope :sold 30 gp ^s1", "$$ Rope :sold -5 gp"]) {
+      const notes = new FakeNotes({ [ONE]: `$ Rope\n${line}\n`, [TWO]: "" });
+      await expect(notes.save("Rope", { soldFor: "35 gp" }), line).rejects.toThrow(GONE_LINE_SAYS_MORE);
+      expect(notes.writes, line).toBe(0);
+    }
+  });
+
+  it("refuses a corrected sale price that isn't an amount of coin coming in", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ Rope\n$$ Rope :sold 30 gp\n", [TWO]: "" });
+    await expect(notes.save("Rope", { soldFor: "thirty gold" })).rejects.toThrow(NO_COIN);
+    expect(notes.writes).toBe(0);
+  });
+
+  it("refuses to correct a sale price when the sale was changed by hand", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ Lantern\n$$ Lantern :sold 30 gp\n", [TWO]: "" });
+    const edit = { ...initialItemEdit(notes.item("Lantern"), notes.current.coins), soldFor: "40 gp" };
+    const readBefore = { current: notes.current, sessionNotes: notes.sessionNotes };
+    notes.texts.set(ONE, "$ Lantern\n$$ Lantern :sold 35 gp\n");
+    await expect(itemSaver(notes.vault, readBefore, "Lantern", TWO)(edit)).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(notes.texts.get(ONE)).toBe("$ Lantern\n$$ Lantern :sold 35 gp\n");
+  });
+
+  it("refuses a price correction that would move the purse by anything but the difference, or miss its line", () => {
+    const notes = new FakeNotes({ [ONE]: "$ Rope\n$$ Rope :sold 30 gp\n", [TWO]: "" });
+    const item = notes.item("Rope");
+    const plan = planItemSave(item, { ...initialItemEdit(item, notes.current.coins), soldFor: "35 gp" }, notes.sessionNotes, notes.current.coins, TWO);
+    if ("error" in plan) throw new Error(plan.error);
+    expect(plan.purseCopper).toBe(500);
+    expect(refusalForItemPlan(notes.sessionNotes, item, plan)).toBeNull();
+    expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, purseCopper: 3500 })).toBe(CHANGES_ANOTHER_ITEM);
+    const missed = { ...plan, removal: { ...plan.removal!, matches: () => false } };
+    expect(refusalForItemPlan(notes.sessionNotes, item, missed)).toBe(CHANGES_ANOTHER_ITEM);
+  });
+
   it("refuses to set an item held when the line that took it was changed by hand", async () => {
     const notes = new FakeNotes({ [ONE]: "$ Lantern\n$$ Lantern :sold 30 gp\n", [TWO]: "" });
-    const edit = { ...initialItemEdit(notes.item("Lantern")), status: "held" as const };
+    const edit = { ...initialItemEdit(notes.item("Lantern"), notes.current.coins), status: "held" as const };
     const readBefore = { current: notes.current, sessionNotes: notes.sessionNotes };
     notes.texts.set(ONE, "$ Lantern\n$$ Lantern :sold 35 gp\n");
     await expect(itemSaver(notes.vault, readBefore, "Lantern", TWO)(edit)).rejects.toThrow(CHANGED_IN_NOTE);
@@ -253,7 +330,7 @@ describe("saving an item", () => {
 
   it("refuses to write into a session note the campaign hasn't read yet", async () => {
     const notes = new FakeNotes({ [ONE]: "$ Rope\n" });
-    const edit = { ...initialItemEdit(notes.item("Rope")), status: "lost" as const };
+    const edit = { ...initialItemEdit(notes.item("Rope"), notes.current.coins), status: "lost" as const };
     const readBefore = { current: notes.current, sessionNotes: notes.sessionNotes };
     const three = "Pale Moon/Sessions/Session 3.md";
     notes.texts.set(three, "");
@@ -273,7 +350,7 @@ describe("saving an item", () => {
   it("refuses a plan that would move the purse by anything but the sale", () => {
     const notes = new FakeNotes({ [ONE]: "$ Rope\n", [TWO]: "" });
     const item = notes.item("Rope");
-    const plan = planItemSave(item, { ...initialItemEdit(item), status: "sold", soldFor: "1 gp" }, notes.sessionNotes, [], TWO);
+    const plan = planItemSave(item, { ...initialItemEdit(item, notes.current.coins), status: "sold", soldFor: "1 gp" }, notes.sessionNotes, [], TWO);
     if ("error" in plan) throw new Error(plan.error);
     expect(refusalForItemPlan(notes.sessionNotes, item, plan)).toBeNull();
     expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, purseCopper: 200 })).toBe(CHANGES_ANOTHER_ITEM);
@@ -282,7 +359,7 @@ describe("saving an item", () => {
   it("refuses a plan that would lose how an item is written", () => {
     const notes = new FakeNotes({ [ONE]: "$ Lantern\n$$ [[Lantern]] :lost\n", [TWO]: "" });
     const item = notes.item("Lantern");
-    const plan = planItemSave(item, { ...initialItemEdit(item), status: "held" }, notes.sessionNotes, [], TWO);
+    const plan = planItemSave(item, { ...initialItemEdit(item, notes.current.coins), status: "held" }, notes.sessionNotes, [], TWO);
     if ("error" in plan) throw new Error(plan.error);
     expect(refusalForItemPlan(notes.sessionNotes, item, plan)).toBeNull();
     expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, added: [] })).toBe(CHANGES_ANOTHER_ITEM);
@@ -291,7 +368,7 @@ describe("saving an item", () => {
   it("refuses a plan that would change another item", () => {
     const notes = new FakeNotes({ [ONE]: "$ Rope\n$ Torch\n", [TWO]: "" });
     const item = notes.item("Rope");
-    const plan = planItemSave(item, { ...initialItemEdit(item), status: "lost" }, notes.sessionNotes, [], TWO);
+    const plan = planItemSave(item, { ...initialItemEdit(item, notes.current.coins), status: "lost" }, notes.sessionNotes, [], TWO);
     if ("error" in plan) throw new Error(plan.error);
     expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, added: [...plan.added, "$$ Torch :lost"] })).toBe(CHANGES_ANOTHER_ITEM);
   });
@@ -323,7 +400,7 @@ describe("holder options", () => {
   it("refuses a plan that would write a plain holder as a link", () => {
     const notes = new FakeNotes({ [ONE]: "$ Rope\n", [TWO]: "" });
     const item = notes.item("Rope");
-    const plan = planItemSave(item, { ...initialItemEdit(item), holder: "Old Tom" }, notes.sessionNotes, [], TWO);
+    const plan = planItemSave(item, { ...initialItemEdit(item, notes.current.coins), holder: "Old Tom" }, notes.sessionNotes, [], TWO);
     if ("error" in plan) throw new Error(plan.error);
     expect(refusalForItemPlan(notes.sessionNotes, item, plan)).toBeNull();
     expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, added: ["$$ Rope :changed to [[Old Tom]]"] })).toBe(CHANGES_ANOTHER_ITEM);
