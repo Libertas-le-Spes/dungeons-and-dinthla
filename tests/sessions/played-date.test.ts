@@ -1,16 +1,13 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { playedDateOf, withPlayedDate } from "../../src/sessions/played-date";
 
 describe("playedDateOf", () => {
-  let zone: string | undefined;
-
   beforeEach(() => {
-    zone = process.env.TZ;
-    process.env.TZ = "Africa/Johannesburg";
+    vi.stubEnv("TZ", "Africa/Johannesburg");
   });
 
   afterEach(() => {
-    process.env.TZ = zone;
+    vi.unstubAllEnvs();
   });
 
   it("writes the local date as year, month and day", () => {
