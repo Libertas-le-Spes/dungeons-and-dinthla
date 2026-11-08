@@ -21,13 +21,18 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Check the tag matches the manifest and versions.json
+      - name: Check the tag matches the manifest, package.json and versions.json
         run: |
-          version="$(jq -r .version manifest.json)"
-          min_app_version="$(jq -r .minAppVersion manifest.json)"
-          listed_min_app_version="$(jq -r --arg version "$GITHUB_REF_NAME" '.[$version]' versions.json)"
+          version="$(jq -er .version manifest.json)"
+          package_version="$(jq -er .version package.json)"
+          min_app_version="$(jq -er .minAppVersion manifest.json)"
+          listed_min_app_version="$(jq -er --arg version "$GITHUB_REF_NAME" '.[$version]' versions.json)"
           if [ "$GITHUB_REF_NAME" != "$version" ]; then
             echo "::error::Tag $GITHUB_REF_NAME does not match manifest.json version $version"
+            exit 1
+          fi
+          if [ "$GITHUB_REF_NAME" != "$package_version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $package_version"
             exit 1
           fi
           if [ "$listed_min_app_version" != "$min_app_version" ]; then
@@ -43,6 +48,8 @@ jobs:
         run: npm ci
       - name: Type check and build
         run: npm run build
+      - name: Tests
+        run: npm test
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
