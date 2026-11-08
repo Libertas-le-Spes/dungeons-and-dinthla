@@ -11,6 +11,10 @@ describe("appendLines", () => {
     expect(appendLines("", ["? Who"])).toBe("? Who\n");
   });
 
+  it("keeps a note's Windows line endings", () => {
+    expect(appendLines("? Who\r\n", ["?= Who: Mira"])).toBe("? Who\r\n?= Who: Mira\r\n");
+  });
+
   it("leaves the note alone when there is nothing to add", () => {
     expect(appendLines("? Who", [])).toBe("? Who");
   });
@@ -53,5 +57,15 @@ describe("removeLines", () => {
   it("never removes one line for two targets", () => {
     const sameText = (written: string) => written === "? Who";
     expect(removeLines("? Who\nWe rode on.", [{ line: 0, matches: sameText }, { line: 5, matches: sameText }]).removed).toBe(1);
+  });
+
+  it("removes the matching line nearest where it was read, when two say the same", () => {
+    const text = "Added on top.\n? Who\n?+ Who: oil\nmid\n? Who\n";
+    const isWho = (written: string) => written === "? Who";
+    expect(removeLines(text, [{ line: 3, matches: isWho }]).text).toBe("Added on top.\n? Who\n?+ Who: oil\nmid\n");
+  });
+
+  it("removes a line from a note with Windows line endings", () => {
+    expect(removeLines("? Who\r\n?= Who: Mira\r\n", [{ line: 1, matches: isAnswer }]).text).toBe("? Who\r\n");
   });
 });
