@@ -244,6 +244,14 @@ describe("refusing a quest change that swaps lines with a quest starting the sam
   });
 });
 
+describe("adding a quest", () => {
+  it("adds the new quest's line to the session", async () => {
+    const notes = new FakeNotes({ [ONE]: "We rode on.\n" });
+    expect(await new QuestWriter(notes.vault).add("! Escort Mira, reward: 50 gp", ONE)).toBe(true);
+    expect(notes.campaign().quests.map((record) => [record.quest.title, record.quest.reward])).toEqual([["Escort Mira", "50 gp"]]);
+  });
+});
+
 describe("deleting a quest", () => {
   it("removes it with its progress and outcome, wherever they were written", async () => {
     const notes = new FakeNotes({ [ONE]: "! Find it, from: [[Lady Vess]]\n!+ Find it: tracks\n! Keep this\n", [TWO]: "!= Find it: done\n" });
