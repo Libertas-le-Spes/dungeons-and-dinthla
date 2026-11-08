@@ -1,4 +1,5 @@
 import type { TFile, Vault } from "obsidian";
+import { hiddenLines } from "../notes/hidden-lines";
 import { appendLines, dropLine, removeLines, rewriteLine, type LineToRemove } from "../notes/note-lines";
 import { messageOf } from "../views/message-of";
 import type { SessionNote, Source } from "./campaign";
@@ -12,6 +13,9 @@ export const OLD_LINE_LEFT =
 export const LINES_LEFT = "It was deleted, but some of its lines had changed or moved since they were read, so they were left in";
 
 export const PROPERTIES_WOULD_CHANGE = "That change would turn lines of the note into its properties, hiding them, because a --- line would come first.";
+
+export const WOULD_BE_HIDDEN =
+  "The new line would land inside a code block or comment that never closes, so nothing was written. Close it in the note.";
 
 export class PartlyWritten extends Error {}
 
@@ -38,6 +42,20 @@ export class NoteEditor {
   async append(targetPath: string, added: string[]): Promise<boolean> {
     if (added.length === 0) return false;
     await this.changeOrRefuse(this.fileAt(targetPath), CHANGED_IN_NOTE, (text) => appendLines(text, added));
+    return true;
+  }
+
+  async appendShown(targetPath: string, added: string[]): Promise<boolean> {
+    if (added.length === 0) return false;
+    await this.changeOrRefuse(this.fileAt(targetPath), WOULD_BE_HIDDEN, (text) => {
+      const changed = appendLines(text, added);
+      const firstAdded = changed.split("\n").length - 1 - added.length;
+      const hidden = hiddenLines(changed);
+      for (let line = firstAdded; line < firstAdded + added.length; line++) {
+        if (hidden.has(line)) return null;
+      }
+      return changed;
+    });
     return true;
   }
 
