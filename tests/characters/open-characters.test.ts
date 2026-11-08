@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import type { App, TFile } from "obsidian";
-import { BASES_OFF, charactersBaseText, openCharacters } from "../../src/characters/open-characters";
+import { stringifyYaml, type App, type TFile } from "obsidian";
 import { NO_CAMPAIGN } from "../../src/campaign/campaign-folders";
+import { BASES_OFF, charactersBase, openCharacters } from "../../src/characters/open-characters";
 import { Notice } from "../stubs/obsidian";
 
-function appWith(existing: string[], failCreate = false) {
+type CreateOutcome = "made" | "disk full" | "made meanwhile";
+
+function appWith(existing: string[], outcome: CreateOutcome = "made") {
   const files = new Map(existing.map((path) => [path, { path } as TFile]));
   const created: { path: string; text: string }[] = [];
   const opened: string[] = [];
@@ -16,7 +18,11 @@ function appWith(existing: string[], failCreate = false) {
         return file;
       },
       create: async (path: string, text: string) => {
-        if (failCreate) throw new Error("the disk is full");
+        if (outcome === "disk full") throw new Error("the disk is full");
+        if (outcome === "made meanwhile") {
+          files.set(path, { path } as TFile);
+          throw new Error("File already exists.");
+        }
         created.push({ path, text });
         return { path } as TFile;
       },
@@ -34,7 +40,7 @@ describe("openCharacters", () => {
   it("makes the campaign's Characters.base the first time and opens it", async () => {
     const { app, created, opened } = appWith([]);
     await openCharacters(app, "Pale Moon", true);
-    expect(created).toEqual([{ path: "Pale Moon/Characters.base", text: charactersBaseText("Pale Moon") }]);
+    expect(created).toEqual([{ path: "Pale Moon/Characters.base", text: stringifyYaml(charactersBase("Pale Moon")) }]);
     expect(opened).toEqual(["Pale Moon/Characters.base"]);
   });
 
@@ -42,6 +48,13 @@ describe("openCharacters", () => {
     const { app, created, opened } = appWith(["Pale Moon/Characters.base"]);
     await openCharacters(app, "Pale Moon", true);
     expect(created).toEqual([]);
+    expect(opened).toEqual(["Pale Moon/Characters.base"]);
+  });
+
+  it("opens the Characters.base a second tap made while this one was writing it", async () => {
+    const { app, opened } = appWith([], "made meanwhile");
+    await openCharacters(app, "Pale Moon", true);
+    expect(Notice.shown).toEqual([]);
     expect(opened).toEqual(["Pale Moon/Characters.base"]);
   });
 
@@ -60,30 +73,22 @@ describe("openCharacters", () => {
   });
 
   it("says why when the file can't be made", async () => {
-    const { app, opened } = appWith([], true);
+    const { app, opened } = appWith([], "disk full");
     await openCharacters(app, "Pale Moon", true);
     expect(Notice.shown).toEqual(["Couldn't open the characters gallery: the disk is full"]);
     expect(opened).toEqual([]);
   });
 });
 
-describe("charactersBaseText", () => {
+describe("charactersBase", () => {
   it("shows the Markdown notes in the campaign's Characters folder in the gallery", () => {
-    expect(charactersBaseText("Pale Moon")).toBe(
-      [
-        "filters:",
-        "  and:",
-        `    - 'file.inFolder("Pale Moon/Characters")'`,
-        `    - 'file.ext == "md"'`,
-        "views:",
-        "  - type: dungeons-and-dinthla-characters",
-        "    name: Characters",
-        "",
-      ].join("\n"),
-    );
+    expect(charactersBase("Pale Moon")).toEqual({
+      filters: { and: ['file.inFolder("Pale Moon/Characters")', 'file.ext == "md"'] },
+      views: [{ type: "dungeons-and-dinthla-characters", name: "Characters" }],
+    });
   });
 
   it("keeps quotes in the folder's name from ending the filter early", () => {
-    expect(charactersBaseText(`Vess's "Road"`).split("\n")[2]).toBe(`    - 'file.inFolder("Vess''s \\"Road\\"/Characters")'`);
+    expect(charactersBase(`Vess's "Road"`)).toMatchObject({ filters: { and: [`file.inFolder("Vess's \\"Road\\"/Characters")`, 'file.ext == "md"'] } });
   });
 });
