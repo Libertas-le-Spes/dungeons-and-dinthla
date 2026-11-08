@@ -13,16 +13,21 @@ function campaignOf(lines: string[]): Campaign {
 
 async function openView(campaign: Campaign) {
   let listener: (campaign: Campaign) => void = () => {};
+  const unsubscribe = vi.fn();
   const store = {
     current: campaign,
     subscribe: (next: (campaign: Campaign) => void) => {
       listener = next;
-      return () => {};
+      return unsubscribe;
     },
   };
   const view = new CampaignListView({} as WorkspaceLeaf, store as unknown as CampaignStore, { openSource: vi.fn(), openLink: vi.fn() }, questsKind);
   const root = obsidianDocument().createElement("div");
   view.contentEl = root;
+  const registered: (() => void)[] = [];
+  view.register = (callback) => {
+    registered.push(callback);
+  };
   await view.onOpen();
   const typeFilter = (text: string) => {
     const filter = root.querySelector(".dd-filter") as HTMLInputElement;
@@ -33,7 +38,10 @@ async function openView(campaign: Campaign) {
     store.current = next;
     listener(next);
   };
-  return { root, typeFilter, change };
+  const close = () => {
+    for (const callback of registered) callback();
+  };
+  return { root, typeFilter, change, close, unsubscribe };
 }
 
 function textOf(root: HTMLElement, selector: string): string | null | undefined {
@@ -67,6 +75,12 @@ describe("CampaignListView", () => {
   it("redraws when the campaign changes", async () => {
     const { root, change } = await openView(campaignOf([]));
     change(campaignOf(["! A new quest"]));
-    expect(textOf(root, ".dd-title-line")).toBe("A new quest");
+    expect(textOf(root, ".dd-row .dd-text")).toBe("A new quest");
+  });
+
+  it("stops listening to the campaign when the view closes", async () => {
+    const { close, unsubscribe } = await openView(campaignOf([]));
+    close();
+    expect(unsubscribe).toHaveBeenCalled();
   });
 });

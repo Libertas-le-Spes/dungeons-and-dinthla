@@ -14,7 +14,7 @@ function setUp(lines: string[], keywords: string[] = []) {
 describe("addQuestionRow", () => {
   it("shows an open question's mark, text and session", () => {
     const { row } = setUp(["? Who sent the letter"]);
-    expect(row.querySelector(".dd-mark")?.textContent).toBe("?");
+    expect(row.querySelector(".dd-mark-question")?.textContent).toBe("?");
     expect(row.querySelector(".dd-text")?.textContent).toBe("Who sent the letter");
     expect(row.querySelector(".dd-meta")?.textContent).toBe("Session 1");
   });
@@ -41,5 +41,11 @@ describe("addQuestionRow", () => {
   it("marks the filter's words", () => {
     const { row } = setUp(["? Who sent the letter"], ["letter"]);
     expect(row.querySelector("mark")?.textContent).toBe("letter");
+  });
+
+  it("opens the session when Enter is pressed on the focused row", () => {
+    const { row, actions } = setUp(["? Who"]);
+    row.dispatchEvent(new row.ownerDocument.defaultView!.KeyboardEvent("keydown", { key: "Enter" }));
+    expect(actions.openSource).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 0 });
   });
 });

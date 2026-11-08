@@ -19,7 +19,8 @@ describe("addQuestRow", () => {
   it("shows an active quest's mark, title, giver, reward and session", () => {
     const { row } = setUp(["! Find the missing caravan, from: [[Lady Vess]], reward: 200 gp"]);
     expect(textOf(row, ".dd-mark-quest")).toBe("!");
-    expect(textOf(row, ".dd-title-line")).toBe("Find the missing caravan");
+    expect(textOf(row, ".dd-text")).toBe("Find the missing caravan");
+    expect(row.querySelector(".dd-abandoned")).toBeNull();
     expect(textOf(row, ".dd-facts")).toBe("From [[Lady Vess]]Reward 200 gp");
     expect(textOf(row, ".dd-meta")).toBe("Session 2");
     expect(row.querySelector(".dd-answer")).toBeNull();
@@ -36,7 +37,8 @@ describe("addQuestRow", () => {
   it("strikes through an abandoned quest and marks it abandoned", () => {
     const { row } = setUp(["! Guard the bridge", "!x Guard the bridge: it burned"]);
     expect(textOf(row, ".dd-mark-abandoned")).toBe("✕");
-    expect(row.querySelector(".dd-title-line.dd-abandoned")).not.toBeNull();
+    expect(row.querySelector(".dd-text.dd-abandoned")).not.toBeNull();
+    expect(row.querySelector(".dd-status-completed")).toBeNull();
     expect(textOf(row, ".dd-meta")).toBe("Abandoned · Session 2");
   });
 
