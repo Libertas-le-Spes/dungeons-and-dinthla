@@ -7,7 +7,7 @@ The project grows in small steps, so parts of this page are still planned. Whoev
 Three rules hold everywhere:
 
 - **The notes are the record.** Answers, statuses, holders and sheet values are all lines in notes. The plugin keeps nothing of its own, so a vault synced to a tablet carries everything with it.
-- **Nothing you write is moved or rewritten.** A change is recorded as a new line that names the earlier one (see [Following up](#following-up-an-earlier-line)). The plugin adds lines and never edits one. The one exception is reopening a question, which deletes its answer line, and only when you ask.
+- **Nothing you write is moved or rewritten.** A change is recorded as a new line that names the earlier one (see [Following up](#following-up-an-earlier-line)). The plugin adds lines and never edits one. It deletes lines only when you ask it to: reopening a question or changing its answer removes the old answer line (two answers would leave the question unclear), and deleting a question removes it with its clues and answer.
 - **It reads without the plugin.** With the plugin off, every note is still plain, sensible Markdown, and the links still work.
 
 The plugin writes through `Vault.process`, which reads and changes a note in one step, so nothing written in between is lost. It uses only Obsidian's own vault access, so it works the same on mobile.
@@ -136,7 +136,7 @@ Answers, progress and changes are new lines, written in the session where they h
 ?= Who sent the letter: [[Lady Vess]] sent it   (Session 13)
 ```
 
-You don't type the earlier line's text. Type `?? letter` or `!! caravan`, pick the line from the suggestions, and choose what happened. The plugin then writes the follow-up line into the session you're in. You may also type one in full.
+You don't type the earlier line's text. Type `?? letter` or `!! caravan`, pick the line from the suggestions, and choose what happened, or tap the question in the Questions view. The plugin then writes the follow-up line into the session you're in: the session note that is open, or else the campaign's latest. An open session earlier than the question, or than any of its clues or its answer, is passed over, since a follow-up is only read after the line it follows and a clue only while its question is open. You may also type one in full.
 
 A follow-up belongs to the open question or active quest whose text comes right before its colon: `?= Who sent the letter: …` belongs to *Who sent the letter*, never to a shorter *Who*. When the line holds more than one colon, the longest text that matches wins, so a colon inside a question's own text does no harm. For a quest the text is its title, without its facts (`from:`, `reward:`, `where:`, `due:`).
 
@@ -158,7 +158,7 @@ A follow-up typed in full must match the earlier text exactly, capitals included
 | `?= Who sent the letter: [[Lady Vess]] sent it` | The answer. The question is answered |
 | `? Who is the pale woman, after: Who sent the letter` | A new question that follows from the earlier one |
 
-A question is open until it has a `?=` line. Reopening it removes that `?=` line, which is the one time the plugin deletes a line, and only when you ask it to.
+A question is open until it has a `?=` line. Reopening it removes that `?=` line; changing the answer removes it and writes a new one. Deleting a question removes its `?` line, its clues and its answer, wherever they were written. The plugin does each only when you ask. It removes a line only if it still says what was read, taking the matching line nearest where it was. If the question or the answer being replaced has changed since the dialog opened, it writes nothing and says so; deleting a question leaves any clue or answer line that was changed by hand, and deletes nothing while two lines in its note read like the question. An answer that would be read as another open question's, because that question starts the same way, is refused. An answer can't be given from the view while an earlier open question reads the same, since the answer would go to that one.
 
 ### Quests
 
