@@ -46,13 +46,13 @@
 }
 
 .dd-characters .dd-card-name {
-  font: var(--weight-black) var(--text-xl) / var(--leading-tight) var(--font-smallcaps);
+  font: var(--weight-bold) var(--text-xl) / var(--leading-tight) var(--font-smallcaps);
   color: var(--statblock-heading);
 }
 
 .dd-characters .dd-card-type,
 .dd-characters .dd-card-subtitle {
-  font: italic var(--weight-regular) var(--text-sm) / var(--leading-snug) var(--font-display);
+  font: var(--weight-medium) var(--text-sm) / var(--leading-snug) var(--font-display);
   color: var(--statblock-subtitle);
 }
 
@@ -63,7 +63,7 @@
 }
 
 .dd-characters .dd-card-line {
-  font: var(--weight-regular) var(--text-sm) / var(--leading-body) var(--font-display);
+  font: var(--weight-medium) var(--text-sm) / var(--leading-body) var(--font-display);
   color: var(--statblock-text);
 }
 
@@ -76,7 +76,7 @@
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   text-align: center;
-  font: var(--weight-regular) var(--text-sm) / var(--leading-snug) var(--font-display);
+  font: var(--weight-medium) var(--text-sm) / var(--leading-snug) var(--font-display);
   color: var(--statblock-text);
 }
 
