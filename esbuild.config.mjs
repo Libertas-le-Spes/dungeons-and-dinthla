@@ -13,6 +13,14 @@ await esbuild.build({
   logLevel: "info",
 });
 
+await esbuild.build({
+  entryPoints: ["styles/index.css"],
+  bundle: true,
+  loader: { ".woff2": "dataurl" },
+  outfile: "styles.css",
+  logLevel: "info",
+});
+
 await mkdir(demoPluginFolder, { recursive: true });
 await copyFile("manifest.json", `${demoPluginFolder}/manifest.json`);
 await copyFile("main.js", `${demoPluginFolder}/main.js`);

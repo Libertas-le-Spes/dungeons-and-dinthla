@@ -2,3 +2,4 @@ node_modules/
 main.js
 demo-vault/.obsidian/*
 !demo-vault/.obsidian/community-plugins.json
+styles.css
