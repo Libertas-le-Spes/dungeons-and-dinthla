@@ -1,6 +1,6 @@
 import { Modal, Setting, type App } from "obsidian";
 import type { NewSession } from "./create-session";
-import { playedDateOf } from "./played-date";
+import { playedDateOf, withPlayedDate } from "./played-date";
 
 const CARRY_OVER = "Open questions, active quests, the purse and every character carry over. The new session starts with an empty page of notes.";
 
@@ -47,8 +47,7 @@ export class NewSessionModal extends Modal {
   }
 
   private submit(): void {
-    if (this.session.played === "") this.session.played = playedDateOf(new Date());
     this.close();
-    this.start(this.session);
+    this.start(withPlayedDate(this.session, new Date()));
   }
 }
