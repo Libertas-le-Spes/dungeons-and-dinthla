@@ -39,7 +39,7 @@ export function markerDecorations(state: EditorState, ranges: readonly VisibleRa
   return builder.finish();
 }
 
-function isSessionEditor(state: EditorState, isSessionNote: (path: string) => boolean): boolean {
+export function isSessionEditor(state: EditorState, isSessionNote: (path: string) => boolean): boolean {
   const info = state.field(editorInfoField, false);
   if (info === undefined || info.file === null) return false;
   return isSessionNote(info.file.path);

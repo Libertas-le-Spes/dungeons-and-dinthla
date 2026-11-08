@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EditorState } from "@codemirror/state";
-import { markerDecorations, type VisibleRange } from "../../src/editor/marker-decorations";
+import { editorInfoField, type MarkdownFileInfo, type TFile } from "obsidian";
+import { isSessionEditor, markerDecorations, type VisibleRange } from "../../src/editor/marker-decorations";
 
 function marked(doc: string, ranges: VisibleRange[] = [{ from: 0, to: doc.length }]): [string, string][] {
   const state = EditorState.create({ doc });
@@ -41,6 +42,27 @@ describe("markerDecorations", () => {
 
   it("leaves the note's properties uncoloured, as the readers skip them", () => {
     expect(marked("---\n? key: value\n---\n? Who").map(([text]) => text)).toEqual(["?"]);
-    expect(marked("---\n? key: value\n---\n? Who")).toHaveLength(1);
+  });
+});
+
+describe("isSessionEditor", () => {
+  const isSession = (path: string) => path === "Pale Moon/Sessions/Session 1.md";
+
+  function editorOn(file: TFile | null): EditorState {
+    const info = { file } as unknown as MarkdownFileInfo;
+    return EditorState.create({ extensions: [editorInfoField.init(() => info)] });
+  }
+
+  it("colours an editor showing a session note", () => {
+    expect(isSessionEditor(editorOn({ path: "Pale Moon/Sessions/Session 1.md" } as TFile), isSession)).toBe(true);
+  });
+
+  it("leaves an editor on any other note, or on no note, alone", () => {
+    expect(isSessionEditor(editorOn({ path: "Inbox.md" } as TFile), isSession)).toBe(false);
+    expect(isSessionEditor(editorOn(null), isSession)).toBe(false);
+  });
+
+  it("leaves an editor Obsidian hasn't told about its note alone", () => {
+    expect(isSessionEditor(EditorState.create(), isSession)).toBe(false);
   });
 });
