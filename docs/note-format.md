@@ -70,7 +70,7 @@ Renaming the folder renames the campaign. Obsidian renames the main note's links
 | Characters | Each note in the campaign's `Characters` folder with its class, AC and HP, the player's own marked *Your character* | *All characters*: the gallery |
 | The latest session | Its heading, such as *Session 13 · The ferry at dusk*, how many questions, quests and coin entries were written in it, and the four written last | *Write notes*: the session's note. *New session* starts the next one |
 
-Tapping a question, quest or coin entry opens its dialog, as in its own view, and tapping a character opens their note.
+Tapping a question, quest or coin entry opens its dialog, as in its own view, and tapping a character opens their note. When two session notes share the highest number, it isn't clear which is the latest, so the last panel shows no session and says to rename one, as the dialogs that write into the latest session do.
 
 ## Session
 
