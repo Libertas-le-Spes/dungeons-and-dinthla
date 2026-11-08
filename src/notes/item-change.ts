@@ -42,7 +42,7 @@ export function readItemChange(line: string): ItemChange | null {
   const body = withoutBlockId(text.slice(2));
   const last = [...body.matchAll(CHANGE_WORD)].at(-1);
   if (last === undefined) return null;
-  const item = body.slice(0, last.index).trim();
+  const item = withoutBlockId(body.slice(0, last.index)).trim();
   if (item === "") return null;
   const kind = KINDS[last[1]!.toLowerCase()]!;
   const rest = body.slice(last.index + last[0].length);
