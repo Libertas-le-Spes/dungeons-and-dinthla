@@ -7,6 +7,8 @@ import { sessionNoteOf } from "../../src/campaign/session-file";
 import { NO_COIN, SIGN_SAYS_OUT } from "../../src/notes/coin-lines";
 import {
   CHANGES_ANOTHER_ITEM,
+  GONE_LINE_SAYS_MORE,
+  latestSessionOfItem,
   holderOptions,
   HOLDER_OF_GONE,
   initialItemEdit,
@@ -108,12 +110,14 @@ describe("saving an item", () => {
   });
 
   it("keeps an item named only by the line that took it, when it is set held again", async () => {
-    const notes = new FakeNotes({ [ONE]: "$$ Potion of healing :used\n$$ Rope :lost\n", [TWO]: "" });
+    const notes = new FakeNotes({ [ONE]: "$$ Potion of healing :used\n$$ Bag of 50 gp :lost\n", [TWO]: "" });
     await notes.save("Potion of healing", { status: "held", holder: "[[Mira]]" });
-    await notes.save("Rope", { status: "held" });
+    await notes.save("Bag of 50 gp", { status: "held" });
     expect(notes.texts.get(ONE)).toBe("");
-    expect(notes.texts.get(TWO)).toBe("$ [[Mira]] Potion of healing\n$ Rope\n");
+    expect(notes.texts.get(TWO)).toBe("$$ Potion of healing :changed to [[Mira]]\n$$ Bag of 50 gp :changed to the party\n");
     expect(notes.item("Potion of healing")).toMatchObject({ holder: "Mira", gone: null });
+    expect(statusOf(notes.item("Bag of 50 gp"))).toBe("held");
+    expect(notes.current.purseCopper).toBe(0);
   });
 
   it("changes how an item went, replacing the old line and its sale", async () => {
@@ -121,6 +125,37 @@ describe("saving an item", () => {
     await notes.save("Lantern", { status: "lost" });
     expect(notes.texts.get(ONE)).toBe("$ Lantern\n");
     expect(notes.texts.get(TWO)).toBe("$$ Lantern :lost\n");
+    expect(notes.current.purseCopper).toBe(0);
+  });
+
+  it("writes an item as it was written, keeping its link once it has one", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ [[Mira]] [[Items/Lantern|Lamp]]\n$ Lantern\n$$ [[Longsword]] :sold 5 gp\n", [TWO]: "" });
+    await notes.save("Lantern", { status: "lost" });
+    await notes.save("Longsword", { status: "held" });
+    expect(notes.texts.get(ONE)).toBe("$ [[Mira]] [[Items/Lantern|Lamp]]\n$ Lantern\n");
+    expect(notes.texts.get(TWO)).toBe("$$ [[Items/Lantern|Lamp]] :lost\n$$ [[Longsword]] :changed to the party\n");
+  });
+
+  it("takes an item's link from a later $$ line too", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ Shield\n$$ [[Shield]] :lost\n", [TWO]: "" });
+    await notes.save("Shield", { status: "used" });
+    expect(notes.texts.get(TWO)).toBe("$$ [[Shield]] :used\n");
+  });
+
+  it("refuses to change or undo a line that took an item when it says more than the dialog writes", async () => {
+    const lost = "$ Lantern\n$$ Lantern :lost in the river near [[Old Mill]]\n";
+    const sold = "$ Rope\n- $$ Rope :sold 30 gp to [[Bram]]\n";
+    const notes = new FakeNotes({ [ONE]: lost + sold, [TWO]: "" });
+    await expect(notes.save("Lantern", { status: "used" })).rejects.toThrow(GONE_LINE_SAYS_MORE);
+    await expect(notes.save("Lantern", { status: "held" })).rejects.toThrow(GONE_LINE_SAYS_MORE);
+    await expect(notes.save("Rope", { status: "lost" })).rejects.toThrow(GONE_LINE_SAYS_MORE);
+    expect(notes.writes).toBe(0);
+  });
+
+  it("undoes a line that took an item when it reads as the dialog writes it, whatever its spacing and bullet", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ Rope\n  - $$ rope  :Sold 1,200gp\n", [TWO]: "" });
+    await notes.save("Rope", { status: "held" });
+    expect(notes.texts.get(ONE)).toBe("$ Rope\n");
     expect(notes.current.purseCopper).toBe(0);
   });
 
@@ -178,6 +213,13 @@ describe("saving an item", () => {
     const plan = planItemSave(item, { ...initialItemEdit(item), status: "lost" }, notes.sessionNotes, [], TWO);
     if ("error" in plan) throw new Error(plan.error);
     expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, added: [...plan.added, "$$ Torch :lost"] })).toBe(CHANGES_ANOTHER_ITEM);
+  });
+});
+
+describe("where an item's lines go", () => {
+  it("knows the latest session that names the item", () => {
+    const notes = new FakeNotes({ [ONE]: "$ Rope\n", [TWO]: "$$ Rope :changed to [[Mira]]\n", "Pale Moon/Sessions/Session 3.md": "$ Torch\n" });
+    expect(latestSessionOfItem(notes.item("Rope"), "Pale Moon")).toBe(2);
   });
 });
 

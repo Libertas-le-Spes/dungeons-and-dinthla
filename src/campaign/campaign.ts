@@ -56,6 +56,7 @@ export interface ItemEvent {
 
 export interface ItemRecord {
   name: string;
+  written: string;
   holder: string;
   source: Source;
   history: ItemEvent[];

@@ -15,6 +15,11 @@ function keyOf(item: string): string {
   return nameOf(item).toLowerCase();
 }
 
+function keepWritten(record: ItemRecord, item: string): void {
+  const written = item.trim();
+  if (written.includes("[[") || !record.written.includes("[[")) record.written = written;
+}
+
 export class ItemBook {
   private readonly byKey = new Map<string, ItemRecord>();
 
@@ -24,6 +29,7 @@ export class ItemBook {
 
   mention(item: string, holder: string, source: Source): void {
     const record = this.recordFor(item, holder, source);
+    keepWritten(record, item);
     if (holder !== "") record.holder = holder;
     record.gone = null;
     record.history.push({ kind: "named", holder: record.holder, source });
@@ -31,6 +37,7 @@ export class ItemBook {
 
   change(change: ItemChange, source: Source): void {
     const record = this.recordFor(change.item, "", source);
+    keepWritten(record, change.item);
     if (change.holder !== undefined) record.holder = change.holder;
     const event: ItemEvent = { kind: change.kind, holder: record.holder, source };
     record.history.push(event);
@@ -41,7 +48,7 @@ export class ItemBook {
   private recordFor(item: string, holder: string, source: Source): ItemRecord {
     const found = this.byKey.get(keyOf(item));
     if (found !== undefined) return found;
-    const added: ItemRecord = { name: nameOf(item), holder, source, history: [], gone: null };
+    const added: ItemRecord = { name: nameOf(item), written: item.trim(), holder, source, history: [], gone: null };
     this.byKey.set(keyOf(item), added);
     return added;
   }
