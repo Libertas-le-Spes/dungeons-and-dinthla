@@ -1,10 +1,10 @@
 import { Modal, Notice, Setting, type App } from "obsidian";
-import type { ItemRecord } from "../campaign/campaign";
+import type { ItemRecord, Source } from "../campaign/campaign";
 import { PartlyWritten } from "../campaign/note-editor";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
 import { holderNameOf } from "./item-groups";
-import { initialItemEdit, statusOf, type HolderOption, type ItemEdit, type ItemStatus } from "./item-plan";
+import { GONE_LINE_SAYS_MORE, type HolderOption, type ItemEdit, type ItemStatus } from "./item-plan";
 
 const STATUS_WORDS: Record<ItemStatus, string> = { held: "Held", sold: "Sold", used: "Used up", lost: "Lost" };
 
@@ -12,18 +12,21 @@ export class ItemModal extends Modal {
   private readonly edit: ItemEdit;
   private changed = false;
   private busy = false;
-  private soldForRow: HTMLElement | null = null;
+  private priceRow: HTMLElement | null = null;
+  private openNoteButton: HTMLElement | null = null;
 
   constructor(
     app: App,
     private readonly item: ItemRecord,
+    opened: ItemEdit,
     private readonly holders: HolderOption[],
     private readonly writesTo: string,
     private readonly save: (edit: ItemEdit) => Promise<boolean>,
+    private readonly openNoteAt: (source: Source) => void,
     private readonly onClosed: (changed: boolean) => void,
   ) {
     super(app);
-    this.edit = initialItemEdit(item);
+    this.edit = { ...opened };
     const current = holders.find((option) => holderNameOf(option.text).toLowerCase() === holderNameOf(item.holder).toLowerCase());
     if (current !== undefined) this.edit.holder = current.text;
   }
@@ -44,12 +47,14 @@ export class ItemModal extends Modal {
       for (const [value, word] of Object.entries(STATUS_WORDS)) dropdown.addOption(value, word);
       dropdown.setValue(this.edit.status).onChange((value) => {
         this.edit.status = value as ItemStatus;
-        this.showSoldFor();
+        this.showPrice();
+        this.hideOpenNote();
       });
     });
-    const soldFor = new Setting(contentEl).setName("Sold for (adds it to the purse)").addText((text) => {
-      text.setPlaceholder("150 gp").onChange((value) => {
-        this.edit.soldFor = value;
+    const price = new Setting(contentEl).setName("Sold for (adds it to the purse)").addText((text) => {
+      text.setPlaceholder("150 gp").setValue(this.edit.price).onChange((value) => {
+        this.edit.price = value;
+        this.hideOpenNote();
       });
       text.inputEl.setAttr("aria-label", "Sold for");
       text.inputEl.addEventListener("keydown", (event) => {
@@ -58,12 +63,17 @@ export class ItemModal extends Modal {
         this.run();
       });
     });
-    this.soldForRow = soldFor.settingEl;
-    this.showSoldFor();
+    this.priceRow = price.settingEl;
+    this.showPrice();
     contentEl.createEl("p", { cls: "dd-where", text: `New lines go into ${this.writesTo}.` });
     new Setting(contentEl)
       .addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.run()))
-      .addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));
+      .addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()))
+      .addButton((button) => {
+        button.setButtonText("Open note").onClick(() => this.openNote());
+        button.buttonEl.toggle(false);
+        this.openNoteButton = button.buttonEl;
+      });
   }
 
   override close(): void {
@@ -76,9 +86,20 @@ export class ItemModal extends Modal {
     this.onClosed(this.changed);
   }
 
-  private showSoldFor(): void {
-    if (this.soldForRow === null) return;
-    this.soldForRow.toggle(this.edit.status === "sold" && statusOf(this.item) !== "sold");
+  private showPrice(): void {
+    if (this.priceRow === null) return;
+    this.priceRow.toggle(this.edit.status === "sold");
+  }
+
+  private hideOpenNote(): void {
+    if (this.openNoteButton === null) return;
+    this.openNoteButton.toggle(false);
+  }
+
+  private openNote(): void {
+    const gone = this.item.gone;
+    this.close();
+    if (gone !== null) this.openNoteAt(gone.source);
   }
 
   private run(): void {
@@ -93,6 +114,7 @@ export class ItemModal extends Modal {
       .catch((error: unknown) => {
         this.busy = false;
         new Notice(`Couldn't change the item: ${messageOf(error)}`);
+        if (messageOf(error) === GONE_LINE_SAYS_MORE && this.openNoteButton !== null) this.openNoteButton.toggle(true);
         if (!(error instanceof PartlyWritten)) return;
         this.changed = true;
         this.close();

@@ -8,11 +8,12 @@ describe("readItemChange", () => {
       item: "Silvered lantern",
       kind: "changed",
       holder: "Mira",
+      holderLinked: true,
     });
   });
 
   it("reads a holder written without a link", () => {
-    expect(readItemChange("$$ Silvered lantern :changed to Mira")?.holder).toBe("Mira");
+    expect(readItemChange("$$ Silvered lantern :changed to Mira")).toMatchObject({ holder: "Mira", holderLinked: false });
   });
 
   it("reads a sale and its price", () => {
@@ -30,6 +31,16 @@ describe("readItemChange", () => {
   it("reads an item used up or lost", () => {
     expect(readItemChange("$$ Potion of healing :used")).toEqual({ text: "Potion of healing :used", item: "Potion of healing", kind: "used" });
     expect(readItemChange("$$ Silvered lantern :lost")).toEqual({ text: "Silvered lantern :lost", item: "Silvered lantern", kind: "lost" });
+  });
+
+  it("leaves a trailing block id out of the holder", () => {
+    expect(readItemChange("$$ Rope :changed to Old Tom ^h1")?.holder).toBe("Old Tom");
+    expect(readItemChange("$$ Rope :used ^r-1")).toMatchObject({ item: "Rope", kind: "used" });
+  });
+
+  it("leaves a block id before the change word out of the item", () => {
+    expect(readItemChange("$$ Rope ^r1 :changed to [[Mira]]")).toMatchObject({ item: "Rope", holder: "Mira" });
+    expect(readItemChange("$$ ^r1 :used")).toBeNull();
   });
 
   it("keeps a colon inside the name", () => {

@@ -1,5 +1,6 @@
 import { readLedgerEntry, type CoinEntry } from "./ledger";
 import { findLinks, unlink } from "./link";
+import { withoutBlockId } from "./block-id";
 import { withoutBullet } from "./bullet";
 
 export type ItemChangeKind = "changed" | "sold" | "used" | "lost";
@@ -9,6 +10,7 @@ export interface ItemChange {
   item: string;
   kind: ItemChangeKind;
   holder?: string;
+  holderLinked?: boolean;
   sale?: CoinEntry;
 }
 
@@ -22,10 +24,10 @@ const KINDS: Record<string, ItemChangeKind> = {
   lost: "lost",
 };
 
-function holderIn(rest: string): string {
+function holderIn(rest: string): { holder: string; holderLinked: boolean } {
   const [link] = findLinks(rest);
-  if (link !== undefined) return link;
-  return unlink(rest).trim();
+  if (link !== undefined) return { holder: link, holderLinked: true };
+  return { holder: unlink(rest).trim(), holderLinked: false };
 }
 
 function saleIn(rest: string): CoinEntry | undefined {
@@ -37,15 +39,19 @@ function saleIn(rest: string): CoinEntry | undefined {
 export function readItemChange(line: string): ItemChange | null {
   const text = withoutBullet(line);
   if (!ITEM_CHANGE_MARKER.test(text)) return null;
-  const body = text.slice(2);
+  const body = withoutBlockId(text.slice(2));
   const last = [...body.matchAll(CHANGE_WORD)].at(-1);
   if (last === undefined) return null;
-  const item = body.slice(0, last.index).trim();
+  const item = withoutBlockId(body.slice(0, last.index)).trim();
   if (item === "") return null;
   const kind = KINDS[last[1]!.toLowerCase()]!;
   const rest = body.slice(last.index + last[0].length);
   const change: ItemChange = { text: body.trim(), item, kind };
-  if (kind === "changed") change.holder = holderIn(rest);
+  if (kind === "changed") {
+    const found = holderIn(rest);
+    change.holder = found.holder;
+    change.holderLinked = found.holderLinked;
+  }
   if (kind === "sold") change.sale = saleIn(rest);
   return change;
 }

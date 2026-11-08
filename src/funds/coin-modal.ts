@@ -21,6 +21,7 @@ export class CoinModal extends Modal {
     private readonly writesTo: string,
     private readonly save: (written: CoinLine) => Promise<boolean>,
     private readonly entry: CoinEntryChoices | null,
+    private readonly openNote: (() => void) | null,
     private readonly onClosed: (outcome: CoinOutcome) => void,
   ) {
     super(app);
@@ -64,6 +65,15 @@ export class CoinModal extends Modal {
     const buttons = new Setting(contentEl)
       .addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.submit()))
       .addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));
+    const openNote = this.openNote;
+    if (openNote !== null && this.cannotSave() !== null) {
+      buttons.addButton((button) =>
+        button.setButtonText("Open note").onClick(() => {
+          this.close();
+          openNote();
+        }),
+      );
+    }
     const entry = this.entry;
     if (entry !== null) {
       buttons.addButton((button) => {

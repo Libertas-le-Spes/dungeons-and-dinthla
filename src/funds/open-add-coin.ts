@@ -35,7 +35,7 @@ export function openAddCoin(app: App, store: CampaignStore, onClosed: (outcome: 
   }
   const editor = new NoteEditor(app.vault);
   const add = (written: CoinLine) => editor.append(sessionPath, [written.line]);
-  new CoinModal(app, sessionLabelOf(sessionPath), add, null, onClosed).open();
+  new CoinModal(app, sessionLabelOf(sessionPath), add, null, null, onClosed).open();
 }
 
 export function openCoinEntry(app: App, store: CampaignStore, source: Source, openNote: () => void, onClosed: (outcome: CoinOutcome) => void): void {
@@ -45,5 +45,5 @@ export function openCoinEntry(app: App, store: CampaignStore, source: Source, op
     return;
   }
   const edit = coinEntryEdit(app.vault, store, record);
-  new CoinModal(app, sessionLabelOf(record.source.path), edit.save, edit, onClosed).open();
+  new CoinModal(app, sessionLabelOf(record.source.path), edit.save, edit, openNote, onClosed).open();
 }
