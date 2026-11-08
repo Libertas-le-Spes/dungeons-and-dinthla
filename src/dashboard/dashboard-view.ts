@@ -30,7 +30,7 @@ const NO_CHARACTERS = "No characters yet. A note in the campaign’s Characters 
 export interface DashboardActions extends LinkActions {
   openQuestion(source: Source, onClosed: (changed: boolean) => void): void;
   openQuest(source: Source, onClosed: (changed: boolean) => void): void;
-  openCoinEntry(source: Source, onClosed: (outcome: CoinOutcome) => void): void;
+  openLedgerEntry(source: Source, onClosed: (outcome: CoinOutcome) => void): void;
   showQuestions(): void;
   showQuests(): void;
   showFunds(): void;
@@ -184,14 +184,14 @@ export class DashboardView extends ItemView {
     };
   }
 
-  private coinActions(panel: Panel): LinkActions {
+  private ledgerActions(panel: Panel): LinkActions {
     return {
       ...this.actions,
-      openRow: (source: Source) => this.actions.openCoinEntry(source, (outcome) => this.afterCoinEntry(panel, source, outcome)),
+      openRow: (source: Source) => this.actions.openLedgerEntry(source, (outcome) => this.afterLedgerEntry(panel, source, outcome)),
     };
   }
 
-  private afterCoinEntry(panel: Panel, source: Source, outcome: CoinOutcome): void {
+  private afterLedgerEntry(panel: Panel, source: Source, outcome: CoinOutcome): void {
     let focusRow = () => focusRowAt(panel.section, source);
     if (outcome === "deleted") focusRow = NO_ROW;
     this.afterClose(panel, focusRow, outcome !== "unchanged");
@@ -227,7 +227,7 @@ export class DashboardView extends ItemView {
     this.inOut.createSpan({ text: "Out " }).createEl("b", { text: formatMoney(funds.totalOut) });
     this.ledgerList.empty();
     if (funds.ledger.length === 0) this.ledgerList.createEl("li", { cls: "dd-empty", text: NO_COIN_ENTRIES });
-    const actions = this.coinActions(this.purse);
+    const actions = this.ledgerActions(this.purse);
     for (const line of funds.ledger.slice(0, SHOWN_ROWS)) addLedgerRow(this.ledgerList, line, actions, this.actions);
   }
 
@@ -262,7 +262,7 @@ export class DashboardView extends ItemView {
       const actions = this.rowActions(panel, (source, onClosed) => this.actions.openQuest(source, onClosed));
       addQuestRow(this.sessionList, line.quest, [], actions);
     } else {
-      addLedgerRow(this.sessionList, line.ledgerLine, this.coinActions(panel), this.actions);
+      addLedgerRow(this.sessionList, line.ledgerLine, this.ledgerActions(panel), this.actions);
     }
   }
 
