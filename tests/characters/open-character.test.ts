@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App, TFile } from "obsidian";
 import { NO_CAMPAIGN } from "../../src/campaign/campaign-folders";
-import { editActiveCharacter, isCharacterNote, openNewCharacter } from "../../src/characters/open-character";
+import { editActiveCharacter, isCharacterNote, openEditCharacter, openNewCharacter } from "../../src/characters/open-character";
 import { Notice } from "../stubs/obsidian";
 
 const CAMPAIGNS = ["Ashen Road", "Pale Moon"];
@@ -70,5 +70,13 @@ describe("editActiveCharacter", () => {
     const { app, read } = appWithActive("Drafts/Characters/Mira.md");
     expect(editActiveCharacter(app, false)).toBe(false);
     expect(read).not.toHaveBeenCalled();
+  });
+});
+
+describe("openEditCharacter", () => {
+  it("says why when the note can't be read", async () => {
+    const app = { vault: { read: async () => Promise.reject(new Error("the disk is gone")) } } as unknown as App;
+    await openEditCharacter(app, { path: "Pale Moon/Characters/Mira.md", basename: "Mira" } as TFile);
+    expect(Notice.shown).toEqual(["Couldn't read Mira: the disk is gone"]);
   });
 });
