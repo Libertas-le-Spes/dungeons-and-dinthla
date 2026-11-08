@@ -4,6 +4,8 @@ import { CHANGED_IN_NOTE, PartlyWritten } from "../../src/campaign/note-editor";
 import { readsBackDifferently, type CharacterEntry } from "../../src/characters/character-entry";
 import {
   BAD_NAME,
+  LONG_NAME,
+  RESERVED_NAME,
   createCharacter,
   deleteCharacter,
   saveCharacter,
@@ -74,7 +76,7 @@ function entry(values: Partial<CharacterEntry> = {}): CharacterEntry {
 describe("createCharacter", () => {
   it("makes a note named after the character in the campaign's Characters folder, with the values given", async () => {
     const { vault, created } = vaultWith();
-    const note = await createCharacter(vault, "Pale Moon", entry({ name: " Brother Aldric ", subtitle: "Human Cleric 5" }));
+    const note = await createCharacter(vault, "Pale Moon", entry({ name: "Brother Aldric", subtitle: "Human Cleric 5" }));
     expect(note).toMatchObject({ path: `${FOLDER}/Brother Aldric.md` });
     expect(created).toEqual([{ path: `${FOLDER}/Brother Aldric.md`, text: "subtitle: Human Cleric 5\n" }]);
   });
@@ -88,15 +90,46 @@ describe("createCharacter", () => {
 
   it("writes nothing without a name", async () => {
     const { vault, created, folderPaths } = vaultWith({ folders: [] });
-    expect(await createCharacter(vault, "Pale Moon", entry({ name: "  " }))).toBeNull();
+    expect(await createCharacter(vault, "Pale Moon", entry({ name: "" }))).toBeNull();
     expect(created).toEqual([]);
     expect(folderPaths.size).toBe(0);
   });
 
-  it.each(["Mira/Vess", "Mira: the bold", "Mira #2", "[[Mira]]", "Mira^", "Mira|her", "What?", ".Mira"])("refuses the name %s", async (name) => {
+  it.each(["Mira/Vess", "Mira: the bold", "Mira #2", "[[Mira]]", "Mira^", "Mira|her", "What?", ".Mira", "Mira.", "Mira ", " Mira", "Mi\tra", "Mi\u007fra"])("refuses the name %s", async (name) => {
     const { vault, created } = vaultWith();
     await expect(createCharacter(vault, "Pale Moon", entry({ name }))).rejects.toThrow(BAD_NAME);
     expect(created).toEqual([]);
+  });
+
+  it.each(["CON", "prn", "Aux", "nul.txt", "COM1", "lpt9", "com3.old"])("refuses the name %s, which Windows keeps for itself", async (name) => {
+    const { vault, created } = vaultWith();
+    await expect(createCharacter(vault, "Pale Moon", entry({ name }))).rejects.toThrow(RESERVED_NAME);
+    expect(created).toEqual([]);
+  });
+
+  it.each(["Console", "Com", "COM10", "Nully"])("takes the name %s", async (name) => {
+    const { vault, created } = vaultWith();
+    await createCharacter(vault, "Pale Moon", entry({ name }));
+    expect(created).toHaveLength(1);
+  });
+
+  it("refuses a name whose file would be over 255 bytes, counting each letter's bytes", async () => {
+    const { vault, created } = vaultWith();
+    await expect(createCharacter(vault, "Pale Moon", entry({ name: "é".repeat(127) }))).rejects.toThrow(LONG_NAME);
+    await createCharacter(vault, "Pale Moon", entry({ name: "é".repeat(126) }));
+    expect(created).toHaveLength(1);
+  });
+
+  it("refuses a name that only differs from a note's by how its letters are encoded", async () => {
+    const { vault, created } = vaultWith({ notes: { [`${FOLDER}/Zo\u00eb.md`]: "" } });
+    await expect(createCharacter(vault, "Pale Moon", entry({ name: "Zoe\u0308" }))).rejects.toThrow(`There is already a note called Zo\u00eb in ${FOLDER}.`);
+    expect(created).toEqual([]);
+  });
+
+  it("writes the note's path the way Obsidian keeps paths", async () => {
+    const { vault, created } = vaultWith();
+    await createCharacter(vault, "Pale Moon", entry({ name: "Zoe\u0308" }));
+    expect(created.map(({ path }) => path)).toEqual([`${FOLDER}/Zo\u00eb.md`]);
   });
 
   it("refuses a name a note in the folder already has, whatever its capitals", async () => {
@@ -118,7 +151,7 @@ describe("saveCharacter", () => {
 
   it("renames the note through the file manager, so every link follows", async () => {
     const { vault, fileManager, renamed, processed } = vaultWith({ notes: { [MIRA]: "" } });
-    expect(await saveCharacter(vault, fileManager, fileAt(MIRA), entry(), entry({ name: "Mirabel " }))).toBe(true);
+    expect(await saveCharacter(vault, fileManager, fileAt(MIRA), entry(), entry({ name: "Mirabel" }))).toBe(true);
     expect(renamed).toEqual([{ from: MIRA, to: `${FOLDER}/Mirabel.md` }]);
     expect(processed).toEqual([]);
   });
@@ -169,13 +202,13 @@ describe("saveCharacter", () => {
   it("writes nothing when nothing changed", async () => {
     const { vault, fileManager, renamed, processed } = vaultWith({ notes: { [MIRA]: "speed: 30 ft.\n" } });
     const before = entry({ speed: "30 ft." });
-    expect(await saveCharacter(vault, fileManager, fileAt(MIRA), before, entry({ speed: " 30 ft. " }))).toBe(true);
+    expect(await saveCharacter(vault, fileManager, fileAt(MIRA), before, entry({ speed: "30 ft." }))).toBe(true);
     expect([...renamed, ...processed]).toEqual([]);
   });
 
   it("writes nothing without a name", async () => {
     const { vault, fileManager, renamed, processed } = vaultWith({ notes: { [MIRA]: "" } });
-    expect(await saveCharacter(vault, fileManager, fileAt(MIRA), entry(), entry({ name: " ", speed: "30 ft." }))).toBe(false);
+    expect(await saveCharacter(vault, fileManager, fileAt(MIRA), entry(), entry({ name: "", speed: "30 ft." }))).toBe(false);
     expect([...renamed, ...processed]).toEqual([]);
   });
 
