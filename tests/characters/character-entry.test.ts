@@ -5,7 +5,9 @@ import {
   newCharacterText,
   readsBackDifferently,
   refusalForValues,
-  sharedLine,
+  blockIdOn,
+  learnedOf,
+  stillReads,
   trimmedEntry,
   valuesChanged,
   withEntryValues,
@@ -35,6 +37,17 @@ describe("entryOf", () => {
 
   it("leaves a value no line states empty", () => {
     expect(entryOf("Mira", PATH, "")).toEqual(entry());
+  });
+});
+
+describe("learnedOf", () => {
+  it("keeps the dialog's values from what the sessions taught, the newest winning", () => {
+    const learned = learnedOf([
+      { name: "speed", value: "30 ft." },
+      { name: "AC", value: "15" },
+      { name: "Speed", value: "35 ft." },
+    ]);
+    expect([...learned]).toEqual([["speed", "35 ft."]]);
   });
 });
 
@@ -95,7 +108,43 @@ describe("withEntryValues", () => {
   });
 
   it("refuses to clear a value on a line with others", () => {
-    expect(() => edited("AC: 15, speed: 30 ft.\n", { speed: "" })).toThrow(sharedLine("Speed"));
+    expect(() => edited("AC: 15, speed: 30 ft.\n", { speed: "" })).toThrow(stillReads("Speed", "30 ft."));
+  });
+
+  it("removes every line that states a cleared value on its own, so an older one can't come back", () => {
+    expect(edited("speed: 30 ft.\nShe owes us.\nspeed: 40 ft.\n", { speed: "" })).toBe("She owes us.\n");
+  });
+
+  it("refuses to clear a value an earlier line with others would bring back", () => {
+    expect(() => edited("AC: 15, speed: 30 ft.\nspeed: 40 ft.\n", { speed: "" })).toThrow(stillReads("Speed", "30 ft."));
+  });
+
+  it("adds a line when a later line with others states the value", () => {
+    expect(edited("speed: 30 ft.\nAC: 15, speed: 35 ft.\n", { speed: "40 ft." })).toBe("speed: 30 ft.\nAC: 15, speed: 35 ft.\nspeed: 40 ft.\n");
+  });
+
+  it("refuses to rewrite a line that ends in a block id", () => {
+    expect(() => edited("Speed: 30 ft. ^blk\n", { speed: "40 ft." })).toThrow(blockIdOn("Speed"));
+  });
+
+  it("refuses to remove a line that ends in a block id", () => {
+    expect(() => edited("speed: 25 ft.\nSpeed: 30 ft. ^blk\n", { speed: "" })).toThrow(blockIdOn("Speed"));
+  });
+
+  it("leaves a line with a block id that it doesn't change", () => {
+    expect(edited("type: elf ^blk\nspeed: 30 ft.\n", { speed: "40 ft." })).toBe("type: elf ^blk\nspeed: 40 ft.\n");
+  });
+
+  it("adds a line rather than write inside a code block", () => {
+    expect(edited("```\nspeed: 30 ft.\n```\n", { speed: "40 ft." })).toBe("```\nspeed: 30 ft.\n```\nspeed: 40 ft.\n");
+  });
+
+  it("adds a line rather than write inside a comment", () => {
+    expect(edited("%%\nspeed: 30 ft.\n%%\n", { speed: "40 ft." })).toBe("%%\nspeed: 30 ft.\n%%\nspeed: 40 ft.\n");
+  });
+
+  it("refuses to clear a value only a code block states", () => {
+    expect(() => edited("```\nspeed: 30 ft.\n```\n", { speed: "" })).toThrow(stillReads("Speed", "30 ft."));
   });
 
   it("leaves values that weren't changed", () => {
@@ -105,6 +154,11 @@ describe("withEntryValues", () => {
   it("refuses when the note changed the value since the dialog read it", () => {
     const before = entry({ speed: "30 ft." });
     expect(() => withEntryValues("speed: 25 ft.\n", PATH, before, entry({ speed: "40 ft." }))).toThrow(CHANGED_IN_NOTE);
+  });
+
+  it("changes one value even when another changed in the note since the dialog read it", () => {
+    const before = entry({ speed: "30 ft." });
+    expect(withEntryValues("speed: 25 ft.\n", PATH, before, entry({ speed: "30 ft.", type: "elf" }))).toBe("speed: 25 ft.\ntype: elf\n");
   });
 
   it("refuses a change that would turn lines into properties", () => {
