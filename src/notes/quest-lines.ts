@@ -19,6 +19,13 @@ export function outcomeLine(status: FinishedStatus, title: string, text: string)
   return `${OUTCOME_MARKERS[status]} ${title}: ${oneLine(text)}`.trimEnd();
 }
 
+export function newQuestLine(title: string, givenBy: string, reward: string): string {
+  const parts = [`! ${title}`];
+  if (givenBy !== "") parts.push(`from: ${givenBy}`);
+  if (reward !== "") parts.push(`reward: ${reward}`);
+  return parts.join(", ");
+}
+
 export function followUpQuestLine(followUp: string, title: string): string {
   return `! ${questTextOf(followUp)}, after: ${title}`;
 }
