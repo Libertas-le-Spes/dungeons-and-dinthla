@@ -1,9 +1,9 @@
 import { buildCampaign } from "../campaign/build-campaign";
-import type { CoinRecord, ItemRecord, SessionNote } from "../campaign/campaign";
+import type { CoinRecord, ItemEvent, ItemRecord, SessionNote } from "../campaign/campaign";
 import { lineAsRead, removalAsRead, type Removal } from "../campaign/note-editor";
 import { sessionNoteOf, sessionNumberOf } from "../campaign/session-file";
 import { withoutBullet } from "../notes/bullet";
-import { amountTextOf, readAmount, type AmountReading } from "../notes/coin-lines";
+import { readAmount, type AmountReading } from "../notes/coin-lines";
 import { readItemChange } from "../notes/item-change";
 import { findLinks } from "../notes/link";
 import { appendLines, removeLines, rewriteLine } from "../notes/note-lines";
@@ -20,14 +20,19 @@ export interface HolderOption {
 export interface ItemEdit {
   holder: string;
   status: ItemStatus;
-  soldFor: string;
+  price: string;
+}
+
+export interface Rewrite {
+  old: Removal;
+  line: string;
 }
 
 export interface ItemPlan {
   targetPath: string;
   added: string[];
   removal: Removal | null;
-  rewrittenAs: string | null;
+  rewrite: Rewrite | null;
   holderName: string;
   holderLinked: boolean;
   status: ItemStatus;
@@ -58,33 +63,47 @@ export function holderOptionOf(item: ItemRecord): HolderOption {
   return { text: holderTextOf(item), label: holderNameOf(item.holder) };
 }
 
-function saleOf(item: ItemRecord, coins: CoinRecord[]): CoinRecord | undefined {
-  const gone = item.gone;
-  if (gone === null) return undefined;
-  return coins.find((coin) => coin.source.path === gone.source.path && coin.source.line === gone.source.line);
+function soldLineOf(item: ItemRecord): ItemEvent | null {
+  if (item.gone === null || item.gone.kind !== "sold") return null;
+  return item.gone;
 }
 
-function soldForOf(item: ItemRecord, coins: CoinRecord[]): string {
-  const sale = saleOf(item, coins);
-  if (sale === undefined) return "";
-  return amountTextOf(sale.entry.coins);
+function changeWordEnd(text: string, kind: string): number {
+  const word = ` :${kind}`;
+  return text.toLowerCase().lastIndexOf(word) + word.length;
 }
 
-export function initialItemEdit(item: ItemRecord, coins: CoinRecord[]): ItemEdit {
-  return { holder: holderTextOf(item), status: statusOf(item), soldFor: soldForOf(item, coins) };
+function writtenAsTheDialogWould(read: string | undefined): read is string {
+  if (read === undefined) return false;
+  const change = readItemChange(read);
+  if (change === null) return false;
+  const text = withoutBullet(read);
+  const rest = text.slice(changeWordEnd(text, change.kind));
+  if (rest.trim() === "") return true;
+  return change.kind === "sold" && /^\s/.test(rest) && !("error" in readAmount("in", rest));
+}
+
+function priceWritten(item: ItemRecord, sessions: SessionNote[]): string {
+  const sold = soldLineOf(item);
+  if (sold === null) return "";
+  const read = lineAsRead(sessions, sold.source);
+  if (!writtenAsTheDialogWould(read)) return "";
+  const text = withoutBullet(read);
+  return text.slice(changeWordEnd(text, "sold")).trim();
+}
+
+export function initialItemEdit(item: ItemRecord, sessions: SessionNote[]): ItemEdit {
+  return { holder: holderTextOf(item), status: statusOf(item), price: priceWritten(item, sessions) };
 }
 
 export function holderOptions(itemHolders: HolderOption[], characters: HolderOption[]): HolderOption[] {
-  const options: HolderOption[] = [{ text: THE_PARTY, label: THE_PARTY_LABEL }];
-  const seen = new Set([""]);
-  const found = [...characters, ...itemHolders];
-  for (const option of found.sort((first, second) => first.label.localeCompare(second.label))) {
+  const byName = new Map<string, HolderOption>();
+  for (const option of [...itemHolders, ...characters]) {
     const key = holderNameOf(option.text).toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    options.push(option);
+    if (key !== "") byName.set(key, option);
   }
-  return options;
+  const found = [...byName.values()].sort((first, second) => first.label.localeCompare(second.label));
+  return [{ text: THE_PARTY, label: THE_PARTY_LABEL }, ...found];
 }
 
 export function latestSessionOfItem(item: ItemRecord, campaignFolder: string): number {
@@ -100,64 +119,52 @@ function sameName(first: string, second: string): boolean {
   return holderNameOf(first).toLowerCase() === holderNameOf(second).toLowerCase();
 }
 
-function saleCopperOf(item: ItemRecord, coins: CoinRecord[]): number {
-  const sale = saleOf(item, coins);
+function priceCopperOf(item: ItemRecord, coins: CoinRecord[]): number {
+  const gone = item.gone;
+  if (gone === null) return 0;
+  const sale = coins.find((coin) => coin.source.path === gone.source.path && coin.source.line === gone.source.line);
   if (sale === undefined) return 0;
   return sale.entry.copper;
 }
 
-function changeWordEnd(text: string, kind: string): number {
-  const word = ` :${kind}`;
-  return text.toLowerCase().lastIndexOf(word) + word.length;
-}
-
-function writtenAsTheDialogWould(read: string | undefined): boolean {
-  if (read === undefined) return false;
-  const change = readItemChange(read);
-  if (change === null) return false;
-  const text = withoutBullet(read);
-  const rest = text.slice(changeWordEnd(text, change.kind));
-  if (rest.trim() === "") return true;
-  return change.kind === "sold" && /^\s/.test(rest) && !("error" in readAmount("in", rest));
-}
-
-function withPrice(saleLine: string, amount: string): string {
-  const text = withoutBullet(saleLine);
+function withPrice(soldLine: string, price: string): string {
+  const text = withoutBullet(soldLine);
   const sold = text.slice(0, changeWordEnd(text, "sold"));
-  if (amount === "") return sold;
-  return `${sold} ${amount}`;
+  if (price === "") return sold;
+  return `${sold} ${price}`;
 }
 
-function priceChange(item: ItemRecord, typed: string, coins: CoinRecord[]): AmountReading | null {
+function priceChange(item: ItemRecord, typed: string, sessions: SessionNote[], coins: CoinRecord[]): AmountReading | null {
   const price = oneLine(typed);
-  if (price === soldForOf(item, coins)) return null;
+  if (price === priceWritten(item, sessions)) return null;
   let reading: AmountReading = { amount: "", copper: 0 };
   if (price !== "") reading = readAmount("in", price);
-  if ("error" in reading || reading.copper !== saleCopperOf(item, coins)) return reading;
+  if ("error" in reading || reading.copper !== priceCopperOf(item, coins)) return reading;
   return null;
 }
 
 function planPriceChange(
   item: ItemRecord,
+  sold: ItemEvent,
   edit: ItemEdit,
   sessions: SessionNote[],
   coins: CoinRecord[],
   targetPath: string,
 ): ItemPlan | { error: string } | null {
-  const price = priceChange(item, edit.soldFor, coins);
+  const price = priceChange(item, edit.price, sessions, coins);
   if (price === null) return null;
   if ("error" in price) return price;
-  const read = lineAsRead(sessions, item.gone!.source);
+  const read = lineAsRead(sessions, sold.source);
   if (!writtenAsTheDialogWould(read)) return { error: GONE_LINE_SAYS_MORE };
   return {
     targetPath,
     added: [],
-    removal: removalAsRead(sessions, item.gone!.source),
-    rewrittenAs: withPrice(read!, price.amount),
+    removal: null,
+    rewrite: { old: removalAsRead(sessions, sold.source), line: withPrice(read, price.amount) },
     holderName: holderNameOf(item.holder),
     holderLinked: item.holderLinked,
     status: "sold",
-    purseCopper: price.copper - saleCopperOf(item, coins),
+    purseCopper: price.copper - priceCopperOf(item, coins),
   };
 }
 
@@ -180,12 +187,12 @@ export function planItemSave(
   coins: CoinRecord[],
   targetPath: string,
 ): ItemPlan | { error: string } {
-  const was = statusOf(item);
-  const statusChanged = edit.status !== was;
+  const statusChanged = edit.status !== statusOf(item);
   const holderChanged = !sameName(edit.holder, item.holder);
   if (holderChanged && edit.status !== "held" && !statusChanged) return { error: HOLDER_OF_GONE };
-  if (was === "sold" && !statusChanged) {
-    const priceChanged = planPriceChange(item, edit, sessions, coins, targetPath);
+  const sold = soldLineOf(item);
+  if (sold !== null && !statusChanged) {
+    const priceChanged = planPriceChange(item, sold, edit, sessions, coins, targetPath);
     if (priceChanged !== null) return priceChanged;
   }
   let holderName = holderNameOf(item.holder);
@@ -193,10 +200,11 @@ export function planItemSave(
   const added: string[] = [];
   let removal: Removal | null = null;
   let purseCopper = 0;
-  if (statusChanged && was !== "held") {
-    if (!writtenAsTheDialogWould(lineAsRead(sessions, item.gone!.source))) return { error: GONE_LINE_SAYS_MORE };
-    removal = removalAsRead(sessions, item.gone!.source);
-    purseCopper -= saleCopperOf(item, coins);
+  const gone = item.gone;
+  if (statusChanged && gone !== null) {
+    if (!writtenAsTheDialogWould(lineAsRead(sessions, gone.source))) return { error: GONE_LINE_SAYS_MORE };
+    removal = removalAsRead(sessions, gone.source);
+    purseCopper -= priceCopperOf(item, coins);
   }
   let keepsItsWritten = false;
   if (removal !== null && edit.status === "held") keepsItsWritten = writtenAfterRemoval(sessions, removal, item) !== item.written;
@@ -207,21 +215,20 @@ export function planItemSave(
   }
   if (statusChanged && edit.status !== "held") {
     let line = `$$ ${item.written} :${edit.status}`;
-    const soldFor = oneLine(edit.soldFor);
-    if (edit.status === "sold" && soldFor !== "") {
-      const reading = readAmount("in", soldFor);
+    const price = oneLine(edit.price);
+    if (edit.status === "sold" && price !== "") {
+      const reading = readAmount("in", price);
       if ("error" in reading) return { error: reading.error };
       line = `${line} ${reading.amount}`;
       purseCopper += reading.copper;
     }
     added.push(line);
   }
-  return { targetPath, added, removal, rewrittenAs: null, holderName, holderLinked, status: edit.status, purseCopper };
+  return { targetPath, added, removal, rewrite: null, holderName, holderLinked, status: edit.status, purseCopper };
 }
 
-function changedText(text: string, removal: Removal, rewrittenAs: string | null): string {
-  if (rewrittenAs === null) return removeLines(text, [removal]).text;
-  const rewritten = rewriteLine(text, removal, rewrittenAs);
+function rewrittenText(text: string, rewrite: Rewrite): string {
+  const rewritten = rewriteLine(text, rewrite.old, rewrite.line);
   if (rewritten === null) return text;
   return rewritten;
 }
@@ -229,7 +236,8 @@ function changedText(text: string, removal: Removal, rewrittenAs: string | null)
 function applyPlan(sessions: SessionNote[], plan: ItemPlan): SessionNote[] {
   return sessions.map((session) => {
     let text = session.text;
-    if (plan.removal !== null && plan.removal.path === session.path) text = changedText(text, plan.removal, plan.rewrittenAs);
+    if (plan.removal !== null && plan.removal.path === session.path) text = removeLines(text, [plan.removal]).text;
+    if (plan.rewrite !== null && plan.rewrite.old.path === session.path) text = rewrittenText(text, plan.rewrite);
     if (session.path === plan.targetPath) text = appendLines(text, plan.added);
     return sessionNoteOf(session.path, session.number, text);
   });

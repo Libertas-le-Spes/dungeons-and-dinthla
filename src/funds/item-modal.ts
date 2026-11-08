@@ -12,7 +12,7 @@ export class ItemModal extends Modal {
   private readonly edit: ItemEdit;
   private changed = false;
   private busy = false;
-  private soldForRow: HTMLElement | null = null;
+  private priceRow: HTMLElement | null = null;
   private openNoteButton: HTMLElement | null = null;
 
   constructor(
@@ -22,7 +22,7 @@ export class ItemModal extends Modal {
     private readonly holders: HolderOption[],
     private readonly writesTo: string,
     private readonly save: (edit: ItemEdit) => Promise<boolean>,
-    private readonly openNote: (source: Source) => void,
+    private readonly openLine: (source: Source) => void,
     private readonly onClosed: (changed: boolean) => void,
   ) {
     super(app);
@@ -47,12 +47,14 @@ export class ItemModal extends Modal {
       for (const [value, word] of Object.entries(STATUS_WORDS)) dropdown.addOption(value, word);
       dropdown.setValue(this.edit.status).onChange((value) => {
         this.edit.status = value as ItemStatus;
-        this.showSoldFor();
+        this.showPrice();
+        this.hideOpenNote();
       });
     });
-    const soldFor = new Setting(contentEl).setName("Sold for (adds it to the purse)").addText((text) => {
-      text.setPlaceholder("150 gp").setValue(this.edit.soldFor).onChange((value) => {
-        this.edit.soldFor = value;
+    const price = new Setting(contentEl).setName("Sold for (adds it to the purse)").addText((text) => {
+      text.setPlaceholder("150 gp").setValue(this.edit.price).onChange((value) => {
+        this.edit.price = value;
+        this.hideOpenNote();
       });
       text.inputEl.setAttr("aria-label", "Sold for");
       text.inputEl.addEventListener("keydown", (event) => {
@@ -61,8 +63,8 @@ export class ItemModal extends Modal {
         this.run();
       });
     });
-    this.soldForRow = soldFor.settingEl;
-    this.showSoldFor();
+    this.priceRow = price.settingEl;
+    this.showPrice();
     contentEl.createEl("p", { cls: "dd-where", text: `New lines go into ${this.writesTo}.` });
     new Setting(contentEl)
       .addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.run()))
@@ -84,15 +86,20 @@ export class ItemModal extends Modal {
     this.onClosed(this.changed);
   }
 
-  private showSoldFor(): void {
-    if (this.soldForRow === null) return;
-    this.soldForRow.toggle(this.edit.status === "sold");
+  private showPrice(): void {
+    if (this.priceRow === null) return;
+    this.priceRow.toggle(this.edit.status === "sold");
+  }
+
+  private hideOpenNote(): void {
+    if (this.openNoteButton === null) return;
+    this.openNoteButton.toggle(false);
   }
 
   private openTheNote(): void {
     const gone = this.item.gone;
     this.close();
-    if (gone !== null) this.openNote(gone.source);
+    if (gone !== null) this.openLine(gone.source);
   }
 
   private run(): void {

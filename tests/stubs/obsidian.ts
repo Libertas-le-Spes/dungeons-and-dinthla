@@ -12,6 +12,7 @@ import type {
   Plugin as RealPlugin,
   PluginSettingTab as RealPluginSettingTab,
 } from "obsidian";
+import { obsidianDocument } from "../views/obsidian-dom";
 
 export class Plugin {
   app: RealPlugin["app"];
@@ -84,9 +85,11 @@ export const editorInfoField = StateField.define<MarkdownFileInfo>({
   update: (info) => info,
 });
 
+export const openedModals: Modal[] = [];
+
 export class Modal {
   app: RealModal["app"];
-  contentEl!: HTMLElement;
+  contentEl: HTMLElement = obsidianDocument().createElement("div");
   title = "";
 
   constructor(...[app]: ConstructorParameters<typeof RealModal>) {
@@ -99,6 +102,7 @@ export class Modal {
   }
 
   open(): void {
+    openedModals.push(this);
     this.onOpen();
   }
 
