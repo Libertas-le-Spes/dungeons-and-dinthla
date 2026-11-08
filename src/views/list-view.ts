@@ -15,11 +15,9 @@ export interface ListKind<T> {
   viewType: string;
   displayText: string;
   icon: string;
-  className: string;
   itemName: string;
   openWord: string;
   foldedWord: string;
-  foldedTitle: string;
   emptyHint: string;
   contentsOf(campaign: Campaign, keywords: string[]): ListContents<T>;
   addRow(list: HTMLElement, item: T, keywords: string[], actions: LinkActions): void;
@@ -60,7 +58,7 @@ export class CampaignListView<T> extends ItemView {
   override async onOpen(): Promise<void> {
     const root = this.contentEl;
     root.empty();
-    root.addClass("dd-tokens", "dd-root", "dd-list-view", this.kind.className);
+    root.addClass("dd-tokens", "dd-root", "dd-list-view");
     const head = root.createDiv({ cls: "dd-head" });
     const title = head.createEl("h2", { cls: "dd-title", text: `${capitalised(this.kind.openWord)} ${this.kind.itemName}s` });
     this.openCount = title.createSpan({ cls: "dd-count" });
@@ -72,8 +70,8 @@ export class CampaignListView<T> extends ItemView {
     });
     this.registerDomEvent(this.filter, "input", () => this.render());
     this.openList = root.createEl("ul", { cls: "dd-list" });
-    const folded = root.createEl("details", { cls: "dd-answered" });
-    const summary = folded.createEl("summary", { text: this.kind.foldedTitle });
+    const folded = root.createEl("details", { cls: "dd-folded" });
+    const summary = folded.createEl("summary", { text: capitalised(this.kind.foldedWord) });
     this.foldedCount = summary.createSpan({ cls: "dd-count" });
     this.foldedList = folded.createEl("ul", { cls: "dd-list" });
     this.register(this.store.subscribe(() => this.render()));
