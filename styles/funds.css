@@ -96,6 +96,7 @@
 
 .dd-funds .dd-what {
   grid-column: 1 / -1;
+  grid-row: 1;
   font: var(--type-note);
   font-variant-ligatures: none;
   color: var(--text-body);
@@ -108,12 +109,14 @@
 }
 
 .dd-funds .dd-amount {
+  grid-column: 2;
   font: var(--type-note);
   color: var(--text-strong);
   white-space: nowrap;
 }
 
 .dd-funds .dd-balance {
+  grid-column: 3;
   font: var(--type-note);
   font-size: var(--text-xs);
   color: var(--text-muted-ui);
