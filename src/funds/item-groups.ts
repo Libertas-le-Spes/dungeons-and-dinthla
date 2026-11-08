@@ -13,6 +13,7 @@ export interface ItemSummary {
 }
 
 export const THE_PARTY = "the party";
+export const THE_PARTY_LABEL = "The party";
 const SESSION_NUMBER = /Session (\d+)\.md$/;
 
 export function holderNameOf(holder: string): string {

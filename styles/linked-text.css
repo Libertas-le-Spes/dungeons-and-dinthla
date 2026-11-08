@@ -17,7 +17,8 @@
   background: var(--marker-link-soft);
 }
 
-.dd-root mark {
+.dd-root mark,
+.dd-lookup mark {
   background: var(--marker-question-soft);
   color: inherit;
   border-radius: 2px;

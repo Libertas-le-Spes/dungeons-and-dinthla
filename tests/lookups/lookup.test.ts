@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { App, Editor, EditorSuggestContext, TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { Campaign } from "../../src/campaign/campaign";
@@ -22,6 +22,7 @@ describe("readLookup", () => {
     expect(readLookup("  !!caravan")).toEqual({ kind: "quest", keywords: ["caravan"] });
     expect(readLookup("$$ lan")).toEqual({ kind: "item", keywords: ["lan"] });
     expect(readLookup("??")).toEqual({ kind: "question", keywords: [] });
+    expect(readLookup("?? who :lost")).toEqual({ kind: "question", keywords: ["who", ":lost"] });
   });
 
   it("leaves other lines alone, and a $$ line once it says what happened", () => {
@@ -71,8 +72,8 @@ describe("LookupSuggest", () => {
     return new LookupSuggest({} as App, () => campaign, (path) => path === SESSION, () => {});
   }
 
-  function editorWith(line: string): Editor {
-    return { getLine: () => line } as unknown as Editor;
+  function editorWith(line: string, text = line): Editor {
+    return { getLine: () => line, getValue: () => text } as unknown as Editor;
   }
 
   it("starts on a lookup line in a session note, covering the whole line", () => {
@@ -81,6 +82,17 @@ describe("LookupSuggest", () => {
     expect(suggest.onTrigger({ line: 4, ch: 3 }, editorWith("?? let"), session)).toEqual({ start: { line: 4, ch: 0 }, end: { line: 4, ch: 6 }, query: "?? let" });
     expect(suggest.onTrigger({ line: 4, ch: 3 }, editorWith("?? let"), { path: "Notes/Other.md" } as TFile)).toBeNull();
     expect(suggest.onTrigger({ line: 4, ch: 3 }, editorWith("? Who"), session)).toBeNull();
+    expect(suggest.onTrigger({ line: 1, ch: 3 }, editorWith("?? in yaml", "---\n?? in yaml\n---\n"), session)).toBeNull();
+  });
+
+  it("closes its list when a suggestion is picked, and hands the match on", () => {
+    const picked: string[] = [];
+    const suggest = new LookupSuggest({} as App, () => campaignOf(["? Who"]), () => true, (match) => picked.push(match.text));
+    const closed = vi.spyOn(suggest, "close");
+    suggest.context = { query: "?? who" } as EditorSuggestContext;
+    suggest.selectSuggestion(suggest.getSuggestions(suggest.context)[0]!);
+    expect(closed).toHaveBeenCalledTimes(1);
+    expect(picked).toEqual(["Who"]);
   });
 
   it("shows each match with its marker, the typed words marked, and an item's holder", () => {
@@ -97,7 +109,7 @@ describe("LookupSuggest", () => {
     const rope = document.createElement("div");
     suggest.context = { query: "$$ rope" } as EditorSuggestContext;
     suggest.renderSuggestion(suggest.getSuggestions(suggest.context)[0]!, rope);
-    expect(rope.querySelector(".dd-lookup-holder")?.textContent).toBe("party");
+    expect(rope.querySelector(".dd-lookup-holder")?.textContent).toBe("The party");
   });
 
   it("shows a question or quest without a holder", () => {
