@@ -14,6 +14,7 @@ export interface ReadSheet {
   campaignFolder: string | null;
   sessions: SessionNote[];
   carriedPath: string | null;
+  carriedCampaignFolder: string | null;
 }
 
 async function sessionsIn(folder: string | null, store: SheetStore, notes: SheetNotes): Promise<SessionNote[]> {
@@ -38,7 +39,13 @@ async function factsAbout(file: TFile, store: SheetStore, notes: SheetNotes): Pr
   return { campaignFolder, sessions, learned, overrides };
 }
 
-async function carriedTo(file: TFile, store: SheetStore, notes: SheetNotes): Promise<{ path: string; values: CarriedValues } | null> {
+interface Carried {
+  path: string;
+  campaignFolder: string | null;
+  values: CarriedValues;
+}
+
+async function carriedTo(file: TFile, store: SheetStore, notes: SheetNotes): Promise<Carried | null> {
   const carriedFrom = notes.carriedFromOf(file);
   if (carriedFrom === null) return null;
   const carriedFile = notes.fileAt(carriedFrom.path);
@@ -46,7 +53,8 @@ async function carriedTo(file: TFile, store: SheetStore, notes: SheetNotes): Pro
   const facts = await factsAbout(carriedFile, store, notes);
   let campaign = carriedFrom.path;
   if (facts.campaignFolder !== null) campaign = facts.campaignFolder;
-  return { path: carriedFrom.path, values: carriedValuesOf(campaign, facts.learned, facts.overrides, carriedFrom.groups) };
+  const values = carriedValuesOf(campaign, facts.learned, facts.overrides, carriedFrom.groups);
+  return { path: carriedFrom.path, campaignFolder: facts.campaignFolder, values };
 }
 
 export async function readCharacterSheet(file: TFile, store: SheetStore, notes: SheetNotes): Promise<ReadSheet> {
@@ -54,14 +62,17 @@ export async function readCharacterSheet(file: TFile, store: SheetStore, notes: 
   const carried = await carriedTo(file, store, notes);
   let carriedValues: CarriedValues | null = null;
   let carriedPath: string | null = null;
+  let carriedCampaignFolder: string | null = null;
   if (carried !== null) {
     carriedValues = carried.values;
     carriedPath = carried.path;
+    carriedCampaignFolder = carried.campaignFolder;
   }
   return {
     sheet: characterSheetOf(facts.learned, facts.overrides, carriedValues),
     campaignFolder: facts.campaignFolder,
     sessions: facts.sessions,
     carriedPath,
+    carriedCampaignFolder,
   };
 }

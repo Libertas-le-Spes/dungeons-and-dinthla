@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TFile, WorkspaceLeaf } from "obsidian";
 import type { SessionNote } from "../../src/campaign/campaign";
-import { CharacterSheetView, TAP_A_VALUE, type SheetActions } from "../../src/characters/character-sheet-view";
+import { CharacterSheetView, couldNotRead, TAP_A_VALUE, type SheetActions } from "../../src/characters/character-sheet-view";
 import type { SheetValue } from "../../src/characters/character-sheet";
 import type { CarriedFrom, SheetNotes } from "../../src/characters/sheet-notes";
 import { obsidianDocument } from "../views/obsidian-dom";
@@ -24,6 +24,7 @@ interface Setup {
 function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf }: Setup = {}) {
   let listener = () => {};
   let noteChanged: (path: string) => void = () => {};
+  let noteMoved: (path: string) => void = () => {};
   const store = {
     campaignFolder: "Pale Moon",
     sessionNotes: [{ path: ONE, number: 1, firstLine: 0, text: sessions.join("\n") }] as SessionNote[],
@@ -55,6 +56,10 @@ function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf }: Se
     },
     fileAt: (path) => fileAt(path),
     carriedFromOf: () => carriedFrom,
+    onNoteMoved: (moved) => {
+      noteMoved = moved;
+      return () => {};
+    },
   };
   const closers: (() => void)[] = [];
   const chosen: SheetValue[] = [];
@@ -92,6 +97,7 @@ function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf }: Se
     rowOf,
     listener: () => listener(),
     noteChanged: (path: string) => noteChanged(path),
+    noteMoved: (path: string) => noteMoved(path),
   };
 }
 
@@ -230,18 +236,67 @@ describe("CharacterSheetView", () => {
     await vi.waitFor(() => expect(sheet.button("AC").textContent).toBe("15"));
   });
 
-  it("draws again when the character's note, a note in its campaign or the note it was carried from changes, and not otherwise", async () => {
+  it("draws again when the character's note or a note in its campaign or the carried campaign changes, and not otherwise", async () => {
     const sheet = openSheet({ carriedFrom: { path: OLD_MIRA, groups: ["values"] } });
     await sheet.load();
     const before = sheet.reads.count;
     sheet.noteChanged("Elsewhere/Note.md");
-    sheet.noteChanged("Ashen Road/Characters/Other.md");
     sheet.noteChanged("Pale Moonlight/Note.md");
+    sheet.noteChanged("Ashen Roads/Note.md");
     expect(sheet.reads.count).toBe(before);
     sheet.noteChanged(MIRA.path);
     sheet.noteChanged("Pale Moon/Sessions/Session 2.md");
-    sheet.noteChanged(OLD_MIRA);
+    sheet.noteChanged("Ashen Road/Sessions/Session 4.md");
     await vi.waitFor(() => expect(sheet.reads.count).toBe(before + 6));
+  });
+
+  it("draws again when a carried note outside any campaign changes", async () => {
+    const sheet = openSheet({ carriedFrom: { path: "Library/Mira.md", groups: ["values"] } });
+    await sheet.load();
+    const before = sheet.reads.count;
+    sheet.noteChanged("Library/Other.md");
+    expect(sheet.reads.count).toBe(before);
+    sheet.noteChanged("Library/Mira.md");
+    await vi.waitFor(() => expect(sheet.reads.count).toBe(before + 2));
+  });
+
+  it("draws again when a session note is deleted or renamed, and not for notes elsewhere", async () => {
+    const sheet = openSheet();
+    await sheet.load();
+    const before = sheet.reads.count;
+    sheet.noteMoved("Elsewhere/Note.md");
+    expect(sheet.reads.count).toBe(before);
+    sheet.noteMoved("Pale Moon/Sessions/Session 2.md");
+    await vi.waitFor(() => expect(sheet.reads.count).toBe(before + 1));
+  });
+
+  it("says so when the sheet can't be read", async () => {
+    const sheet = openSheet({ textOf: async () => {
+      throw new Error("the disk is gone");
+    } });
+    await sheet.load();
+    expect(textsOf(sheet.root, ".dd-empty")).toEqual([couldNotRead(MIRA, new Error("the disk is gone"))]);
+    expect(textsOf(sheet.root, ".dd-empty")).toEqual(["Couldn't read Mira's sheet: the disk is gone"]);
+    expect(sheet.root.querySelector(".dd-value")).toBeNull();
+  });
+
+  it("keeps the latest sheet when an earlier reading fails late", async () => {
+    const pending: ((text: string) => void)[] = [];
+    const failures: ((error: Error) => void)[] = [];
+    const sheet = openSheet({ textOf: (file) => new Promise((resolve, reject) => {
+      if (file.path !== MIRA.path) resolve("");
+      else if (failures.length === 0) failures.push(reject);
+      else pending.push(resolve);
+    }) });
+    const first = sheet.load();
+    const second = sheet.load();
+    await vi.waitFor(() => expect(pending).toHaveLength(1));
+    pending[0]!("AC: 16");
+    await second;
+    failures[0]!(new Error("the disk is gone"));
+    await first;
+    expect(sheet.button("AC").textContent).toBe("16");
+    expect(sheet.root.querySelector(".dd-empty")).toBeNull();
   });
 
   it("draws only the latest reading when readings finish out of order", async () => {

@@ -4,7 +4,8 @@ import { sessionLabelOf } from "../campaign/session-file";
 import type { LinkActions } from "../views/linked-text";
 import { PENDING_FOCUS_MS } from "../views/row-focus";
 import { NOT_KNOWN, type CharacterSheet, type SheetValue, type ValueState } from "./character-sheet";
-import { readCharacterSheet, type SheetStore } from "./read-character-sheet";
+import { messageOf } from "../views/message-of";
+import { readCharacterSheet, type ReadSheet, type SheetStore } from "./read-character-sheet";
 import type { SheetNotes } from "./sheet-notes";
 import { modifierOf } from "./sheet-values";
 
@@ -37,6 +38,10 @@ function sourceTextOf(value: SheetValue): string {
   return STATE_WORDS[value.state];
 }
 
+export function couldNotRead(file: TFile, error: unknown): string {
+  return `Couldn't read ${file.basename}'s sheet: ${messageOf(error)}`;
+}
+
 function earlierText(count: number): string {
   if (count === 1) return "1 earlier value";
   return `${count} earlier values`;
@@ -67,11 +72,11 @@ export class CharacterSheetView extends FileView {
   override onload(): void {
     super.onload();
     this.register(this.store.subscribe(() => this.refresh()));
-    this.register(
-      this.notes.onNoteChanged((path) => {
-        if (this.watches(path)) this.refresh();
-      }),
-    );
+    const refreshIfWatched = (path: string) => {
+      if (this.watches(path)) this.refresh();
+    };
+    this.register(this.notes.onNoteChanged(refreshIfWatched));
+    this.register(this.notes.onNoteMoved(refreshIfWatched));
   }
 
   override async onLoadFile(file: TFile): Promise<void> {
@@ -98,13 +103,28 @@ export class CharacterSheetView extends FileView {
 
   private async render(file: TFile): Promise<void> {
     const render = ++this.renders;
-    const read = await readCharacterSheet(file, this.store, this.notes);
+    let read: ReadSheet;
+    try {
+      read = await readCharacterSheet(file, this.store, this.notes);
+    } catch (error) {
+      if (render === this.renders) this.drawError(file, error);
+      return;
+    }
     if (render !== this.renders) return;
     const watched = [file.path];
     if (read.campaignFolder !== null) watched.push(read.campaignFolder);
     if (read.carriedPath !== null) watched.push(read.carriedPath);
+    if (read.carriedCampaignFolder !== null) watched.push(read.carriedCampaignFolder);
     this.watched = watched;
     this.draw(file, read.sheet);
+  }
+
+  private drawError(file: TFile, error: unknown): void {
+    const root = this.contentEl;
+    root.empty();
+    root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-sheet");
+    root.createEl("h1", { cls: "dd-sheet-name", text: file.basename });
+    root.createEl("p", { cls: "dd-empty", text: couldNotRead(file, error) });
   }
 
   private draw(file: TFile, sheet: CharacterSheet): void {

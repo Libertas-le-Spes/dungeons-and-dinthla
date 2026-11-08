@@ -5,9 +5,17 @@ import { carriedGroupsOf, sheetNotesOf } from "../../src/characters/sheet-notes"
 const MIRA = { path: "Pale Moon/Characters/Mira.md", basename: "Mira" } as TFile;
 const OLD_MIRA = "Ashen Road/Characters/Mira.md";
 
+const vaultEvents = new Map<string, (...args: unknown[]) => void>();
+const vaultEventsStopped: unknown[] = [];
+
 function appWith(cache: CachedMetadata | null, notes: string[] = [OLD_MIRA, MIRA.path]) {
   return {
     vault: {
+      on: (name: string, callback: (...args: unknown[]) => void) => {
+        vaultEvents.set(name, callback);
+        return { name };
+      },
+      offref: (event: unknown) => vaultEventsStopped.push(event),
       getFileByPath: (path: string) => {
         if (!notes.includes(path)) return null;
         return { path } as TFile;
@@ -82,5 +90,17 @@ describe("sheetNotesOf", () => {
 
   it("finds a note by its path", () => {
     expect(sheetNotesOf(appWith(null)).fileAt(OLD_MIRA)).toEqual({ path: OLD_MIRA });
+  });
+});
+
+describe("onNoteMoved", () => {
+  it("tells of a deleted note, and of both paths of a renamed one, until stopped", () => {
+    const moved: string[] = [];
+    const stop = sheetNotesOf(appWith(null)).onNoteMoved((path) => moved.push(path));
+    vaultEvents.get("delete")!({ path: "Pale Moon/Sessions/Session 2.md" });
+    vaultEvents.get("rename")!({ path: "Pale Moon/Sessions/Session 4.md" }, "Pale Moon/Sessions/Session 3.md");
+    expect(moved).toEqual(["Pale Moon/Sessions/Session 2.md", "Pale Moon/Sessions/Session 3.md", "Pale Moon/Sessions/Session 4.md"]);
+    stop();
+    expect(vaultEventsStopped).toEqual([{ name: "delete" }, { name: "rename" }]);
   });
 });
