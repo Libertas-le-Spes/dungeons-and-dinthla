@@ -4,6 +4,7 @@ import { readItemChange } from "../../src/notes/item-change";
 describe("readItemChange", () => {
   it("reads a change of holder", () => {
     expect(readItemChange("$$ Silvered lantern :changed to [[Mira]]")).toEqual({
+      text: "Silvered lantern :changed to [[Mira]]",
       item: "Silvered lantern",
       kind: "changed",
       holder: "Mira",
@@ -23,12 +24,12 @@ describe("readItemChange", () => {
   });
 
   it("reads a sale with no price", () => {
-    expect(readItemChange("$$ Silvered lantern :sold")).toEqual({ item: "Silvered lantern", kind: "sold" });
+    expect(readItemChange("$$ Silvered lantern :sold")).toEqual({ text: "Silvered lantern :sold", item: "Silvered lantern", kind: "sold" });
   });
 
   it("reads an item used up or lost", () => {
-    expect(readItemChange("$$ Potion of healing :used")).toEqual({ item: "Potion of healing", kind: "used" });
-    expect(readItemChange("$$ Silvered lantern :lost")).toEqual({ item: "Silvered lantern", kind: "lost" });
+    expect(readItemChange("$$ Potion of healing :used")).toEqual({ text: "Potion of healing :used", item: "Potion of healing", kind: "used" });
+    expect(readItemChange("$$ Silvered lantern :lost")).toEqual({ text: "Silvered lantern :lost", item: "Silvered lantern", kind: "lost" });
   });
 
   it("keeps a colon inside the name", () => {
@@ -36,7 +37,7 @@ describe("readItemChange", () => {
   });
 
   it("counts only the last change word", () => {
-    expect(readItemChange("$$ Lantern :lost and found :used")).toEqual({ item: "Lantern :lost and found", kind: "used" });
+    expect(readItemChange("$$ Lantern :lost and found :used")).toMatchObject({ item: "Lantern :lost and found", kind: "used" });
   });
 
   it("keeps a linked name as written", () => {

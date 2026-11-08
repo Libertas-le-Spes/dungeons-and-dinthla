@@ -17,8 +17,8 @@ describe("summariseFunds", () => {
 
   it("adds up the purse, the money in and the money out, by hand-checked sums", () => {
     expect(summary.purse).toBe(5000 - 200 + 3540 - 700);
-    expect(summary.moneyIn).toBe(5000 + 3540);
-    expect(summary.moneyOut).toBe(200 + 700);
+    expect(summary.totalIn).toBe(5000 + 3540);
+    expect(summary.totalOut).toBe(200 + 700);
   });
 
   it("lists the ledger newest first, each line with the balance after it", () => {
@@ -31,21 +31,25 @@ describe("summariseFunds", () => {
   });
 
   it("counts the coins the purse is made of, kind by kind, most valuable first", () => {
-    expect(summary.coins).toEqual([
+    expect(summary.coinCounts).toEqual([
       { kind: "gp", count: 50 - 2 + 35 - 2 - 5 },
       { kind: "sp", count: 4 },
     ]);
   });
 
-  it("counts a line with money in and out by each amount's own sign", () => {
-    expect(summaryOf(["$ +50 gp reward, -5 gp ferry"])).toMatchObject({ moneyIn: 4500, moneyOut: 0, purse: 4500 });
+  it("counts an entry with money in and out as in or out by its net amount", () => {
+    expect(summaryOf(["$ +50 gp reward, -5 gp ferry"])).toMatchObject({ totalIn: 4500, totalOut: 0, purse: 4500 });
+  });
+
+  it("counts the coins of such an entry by each amount's own sign", () => {
+    expect(summaryOf(["$ +50 gp reward, -5 gp ferry"]).coinCounts).toEqual([{ kind: "gp", count: 45 }]);
   });
 
   it("leaves out a kind of coin that comes to nothing", () => {
-    expect(summaryOf(["$ 5 sp found", "$ paid 5 sp toll"]).coins).toEqual([]);
+    expect(summaryOf(["$ 5 sp found", "$ paid 5 sp toll"]).coinCounts).toEqual([]);
   });
 
   it("summarises a campaign with no coin as empty", () => {
-    expect(summaryOf(["$ Potion of healing"])).toEqual({ purse: 0, moneyIn: 0, moneyOut: 0, coins: [], ledger: [] });
+    expect(summaryOf(["$ Potion of healing"])).toEqual({ purse: 0, totalIn: 0, totalOut: 0, coinCounts: [], ledger: [] });
   });
 });

@@ -11,13 +11,32 @@ function campaignOf(lines: string[]): Campaign {
 }
 
 async function openView(campaign: Campaign) {
-  const store = { current: campaign, subscribe: () => () => {} };
+  let listener: (campaign: Campaign) => void = () => {};
+  const unsubscribe = vi.fn();
+  const store = {
+    current: campaign,
+    subscribe: (next: (campaign: Campaign) => void) => {
+      listener = next;
+      return unsubscribe;
+    },
+  };
   const actions = { openSource: vi.fn(), openLink: vi.fn() };
   const view = new FundsView({} as WorkspaceLeaf, store as unknown as CampaignStore, actions);
   const root = obsidianDocument().createElement("div");
   view.contentEl = root;
+  const registered: (() => void)[] = [];
+  view.register = (callback) => {
+    registered.push(callback);
+  };
   await view.onOpen();
-  return { root, actions };
+  const change = (next: Campaign) => {
+    store.current = next;
+    listener(next);
+  };
+  const close = () => {
+    for (const callback of registered) callback();
+  };
+  return { root, actions, change, close, unsubscribe };
 }
 
 function textsOf(root: HTMLElement, selector: string): string[] {
@@ -51,6 +70,31 @@ describe("FundsView", () => {
     expect(textsOf(root, ".dd-coins .dd-empty")).toEqual(["No coin yet. Note it as “$ 20 gp from …”."]);
     expect(textsOf(root, ".dd-ledger .dd-empty")).toEqual(["No coin entries yet."]);
     expect(textsOf(root, ".dd-purse")).toEqual(["0 gp"]);
+    expect(textsOf(root, ".dd-count")).toEqual([""]);
+  });
+
+  it("counts one entry as an entry", async () => {
+    const { root } = await openView(campaignOf(["$ 5 gp"]));
+    expect(textsOf(root, ".dd-count")).toEqual(["1 entry"]);
+  });
+
+  it("writes large coin counts as the purse does, so they aren't shown twice", async () => {
+    const { root } = await openView(campaignOf(["$ 1200 gp from the dragon"]));
+    expect(textsOf(root, ".dd-purse")).toEqual(["1,200 gp"]);
+    expect(root.querySelector(".dd-coin")).toBeNull();
+  });
+
+  it("labels the coins the purse is made of", async () => {
+    const { root } = await openView(campaignOf(["$ 1 pp found", "$ 5 gp found"]));
+    expect(textsOf(root, ".dd-coins-label")).toEqual(["In coins:"]);
+  });
+
+  it("redraws when notes change, and stops listening when closed", async () => {
+    const { root, change, close, unsubscribe } = await openView(campaignOf([]));
+    change(campaignOf(["$ 5 gp found"]));
+    expect(textsOf(root, ".dd-purse")).toEqual(["5 gp"]);
+    close();
+    expect(unsubscribe).toHaveBeenCalled();
   });
 
   it("opens the session at a ledger line when it is tapped", async () => {

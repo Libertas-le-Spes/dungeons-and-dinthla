@@ -1,7 +1,6 @@
 import { readFollowUp, type FollowUp, type FollowUpKind } from "../notes/follow-up";
 import { readItemChange } from "../notes/item-change";
 import { readLedgerEntry } from "../notes/ledger";
-import { withoutBullet } from "../notes/bullet";
 import { readMarker } from "../notes/marker";
 import { readQuest } from "../notes/quest";
 import type {
@@ -42,7 +41,7 @@ class CampaignBuilder {
     const change = readItemChange(line);
     if (change !== null) {
       this.itemBook.change(change, source);
-      if (change.sale !== undefined) this.coins.push({ entry: change.sale, text: withoutBullet(line).slice(2).trim(), source });
+      if (change.sale !== undefined) this.coins.push({ entry: change.sale, text: change.text, source });
       return;
     }
     this.addMarked(line, source);
