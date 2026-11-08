@@ -41,6 +41,12 @@ describe("SecondPress", () => {
     expect(shown).toEqual([true, false, true]);
   });
 
+  it("changes nothing when stopped before a press", () => {
+    const { press, shown } = pressed();
+    press.stop();
+    expect(shown).toEqual([]);
+  });
+
   it("stops asking when stopped", () => {
     const { press, shown, confirmed } = pressed();
     press.press();
