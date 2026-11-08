@@ -71,6 +71,7 @@ async function openDashboard(sessions: SessionNote[], { folder = CAMPAIGN, chara
     showQuests: vi.fn(),
     showFunds: vi.fn(),
     showCharacters: vi.fn(),
+    openCharacter: vi.fn(),
     startSession: vi.fn(),
     sessionHeadingOf: (path: string) => `${path.slice(path.lastIndexOf("/") + 1, -3)} · The ferry at dusk`,
   } satisfies DashboardActions;
@@ -293,7 +294,7 @@ describe("DashboardView", () => {
     expect(actions.openLedgerEntry).toHaveBeenCalledOnce();
   });
 
-  it("shows each character's class, AC and HP, marks the player's own, and opens their note", async () => {
+  it("shows each character's class, AC and HP, marks the player's own, and opens their sheet", async () => {
     const sessions = [sessionOf(1, ["[[Mira]] class: rogue, AC: 15", "[[Thessaly]] HP: 22"])];
     const { root, actions } = await openDashboard(sessions, { characters: ["Mira", "Thessaly"], own: "Thessaly" });
     const characters = panel(root, CHARACTERS);
@@ -302,7 +303,8 @@ describe("DashboardView", () => {
     expect(textsOf(characters, ".dd-card-own-label")).toEqual(["Your character"]);
     expect(characters.querySelector(".dd-empty")).toBeNull();
     characters.querySelector<HTMLElement>(".dd-card")!.click();
-    expect(actions.openRow).toHaveBeenCalledWith({ path: `${CAMPAIGN}/Characters/Mira.md`, line: 0 });
+    expect(actions.openCharacter).toHaveBeenCalledWith(`${CAMPAIGN}/Characters/Mira.md`);
+    expect(actions.openRow).not.toHaveBeenCalled();
   });
 
   it("shows no characters without a campaign", async () => {
