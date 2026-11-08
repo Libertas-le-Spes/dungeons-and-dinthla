@@ -3,11 +3,11 @@ import type { Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
 import { SESSIONS_SHARE_A_NUMBER, latestNumberIsShared, sessionToWriteIn } from "../campaign/session-to-write";
+import { activePathOf } from "../views/open-view";
 import { currentQuest, GOES_ELSEWHERE, happenedWouldGoElsewhere, latestSessionOfQuest, SAME_TITLE, sharesTitleWithEarlierActiveQuest } from "./current-quest";
 import { QuestModal } from "./quest-modal";
 import { canCollectReward, planQuestSave, refusalForQuestPlan, type QuestEdit } from "./quest-plan";
 import { QuestWriter } from "./quest-writer";
-import { activePathOf } from "../views/open-view";
 
 const NO_SESSION = "Start a session first: quest changes are written into a session note.";
 

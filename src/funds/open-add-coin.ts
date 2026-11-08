@@ -6,9 +6,9 @@ import { sessionLabelOf } from "../campaign/session-file";
 import { latestNumberIsShared, SESSIONS_SHARE_A_NUMBER, sessionToWriteIn } from "../campaign/session-to-write";
 import type { Source } from "../campaign/campaign";
 import type { CoinLine } from "../notes/coin-lines";
+import { activePathOf } from "../views/open-view";
 import { coinEntryEdit, entryToEdit } from "./coin-entry";
 import { CoinModal, type CoinOutcome } from "./coin-modal";
-import { activePathOf } from "../views/open-view";
 
 const NO_SESSION = "Start a session first: coin is written into a session note.";
 
