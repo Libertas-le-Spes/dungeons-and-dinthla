@@ -98,6 +98,10 @@ describe("sheetWriteOf", () => {
     expect(sheetWriteOf(acOf([], [ownLine("16")]), { state: "unknown", value: "" }).own!.after).toBe("");
   });
 
+  it("only clears the override when what was learned is already not known", () => {
+    expect(sheetWriteOf(acOf([learnedLine("?")], [ownLine("16")]), { state: "unknown", value: "" }).own!.after).toBe("");
+  });
+
   it("writes nothing to mark a value not known that nothing states", () => {
     expect(sheetWriteOf(acOf([], []), { state: "unknown", value: "" })).toEqual({ own: null, sessionFact: null });
   });
@@ -137,9 +141,10 @@ interface Setup {
   notes: Record<string, string>;
   failOwn?: boolean;
   linkedTo?: string;
+  linktext?: string;
 }
 
-function targetWith({ notes, failOwn = false, linkedTo = MIRA }: Setup) {
+function targetWith({ notes, failOwn = false, linkedTo = MIRA, linktext = "Mira" }: Setup) {
   const texts = new Map(Object.entries(notes));
   const processed: string[] = [];
   const target: SheetTarget = {
@@ -159,7 +164,7 @@ function targetWith({ notes, failOwn = false, linkedTo = MIRA }: Setup) {
     },
     file: { path: MIRA, basename: "Mira" } as TFile,
     sessionPath: () => TWO,
-    linktextFrom: () => "Mira",
+    linktextFrom: () => linktext,
     pathOfLink: () => linkedTo,
   };
   return { target, texts, processed };
@@ -200,6 +205,12 @@ describe("writeSheetValue", () => {
   it("writes nothing when the link wouldn't point to this character from the session", async () => {
     const { target, processed } = targetWith({ notes: { [MIRA]: "AC: 16", [TWO]: "" }, linkedTo: "Elsewhere/Mira.md" });
     await expect(writeSheetValue(target, LEARNED_AND_CLEARED)).rejects.toThrow(linksElsewhere("Mira", TWO));
+    expect(processed).toEqual([]);
+  });
+
+  it("writes nothing when the link wouldn't read as a link", async () => {
+    const { target, processed } = targetWith({ notes: { [MIRA]: "AC: 16", [TWO]: "" }, linktext: "[Mira" });
+    await expect(writeSheetValue(target, LEARNED_AND_CLEARED)).rejects.toThrow(linksElsewhere("[Mira", TWO));
     expect(processed).toEqual([]);
   });
 

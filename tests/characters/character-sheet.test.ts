@@ -74,7 +74,12 @@ describe("characterSheetOf", () => {
   });
 
   it("adds the other names after the sheet's own, once whatever their capitals, in the order first written", () => {
-    const learned = [inSession(1, 0, "languages", "Common"), inSession(1, 1, "Patron", "Lady Vess"), inSession(2, 0, "Languages", "Elvish")];
+    const learned = [
+      inSession(1, 0, "languages", "Common"),
+      inSession(1, 1, "Patron", "Lady Vess"),
+      inSession(1, 2, "ac", "15"),
+      inSession(2, 0, "Languages", "Elvish"),
+    ];
     const sheet = characterSheetOf(learned, [], null);
     expect(sheet.values.slice(7).map(({ name }) => name)).toEqual(["languages", "Patron"]);
     expect(valueNamed(sheet, "languages").shown!.value).toBe("Elvish");
@@ -93,6 +98,11 @@ describe("carriedValuesOf", () => {
     const learned = [inSession(1, 0, "INT", "10"), inSession(1, 1, "AC", "12"), inSession(2, 0, "int", "11")];
     const carried = carriedValuesOf("Ashen Road", learned, [], ["abilities"]);
     expect([...carried.values]).toEqual([["INT", { value: "11", source: learned[2]!.source }]]);
+  });
+
+  it("carries a name once whatever its capitals, the newest line winning", () => {
+    const carried = carriedValuesOf("Ashen Road", [inSession(1, 0, "Deity", "Lathander"), inSession(2, 0, "deity", "Selune")], [], ["values"]);
+    expect([...carried.values].map(([name, { value }]) => [name, value])).toEqual([["deity", "Selune"]]);
   });
 
   it("lets the carried note's own overrides win over what it learned", () => {

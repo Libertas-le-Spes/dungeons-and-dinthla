@@ -22,12 +22,7 @@ function sameStated(first: StatedValue | null, second: StatedValue | null): bool
 }
 
 export function sameSheetValue(first: SheetValue, second: SheetValue): boolean {
-  return (
-    first.state === second.state &&
-    sameStated(first.own, second.own) &&
-    sameStated(first.learned, second.learned) &&
-    sameStated(first.carried, second.carried)
-  );
+  return sameStated(first.own, second.own) && sameStated(first.learned, second.learned) && sameStated(first.carried, second.carried);
 }
 
 function valueIn(read: ReadSheet, name: string): SheetValue | undefined {

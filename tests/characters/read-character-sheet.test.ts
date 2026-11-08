@@ -75,8 +75,9 @@ describe("readCharacterSheet", () => {
   });
 
   it("reads no sessions for a note outside any campaign", async () => {
-    const { notes } = notesWith({ texts: { "Loose/Mira.md": "AC: 9" } });
+    const { notes, sessionsAskedFor } = notesWith({ texts: { "Loose/Mira.md": "AC: 9" } });
     const read = await readCharacterSheet(fileAt("Loose/Mira.md"), { campaignFolder: "Pale Moon", sessionNotes: [] }, notes);
+    expect(sessionsAskedFor).toEqual([]);
     expect(read.campaignFolder).toBeNull();
     expect(read.sessions).toEqual([]);
     expect(valueNamed(read, "AC").state).toBe("override");

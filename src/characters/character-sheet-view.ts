@@ -27,7 +27,7 @@ export interface SheetActions extends LinkActions {
 type WatchedStore = SheetStore & { subscribe(listener: () => void): () => void };
 
 export function shownTextOf(value: SheetValue): string {
-  if (value.shown === null || value.state === "unknown") return NOT_KNOWN;
+  if (value.shown === null) return NOT_KNOWN;
   return value.shown.value;
 }
 
@@ -142,7 +142,7 @@ export class CharacterSheetView extends FileView {
       attr: { "data-name": value.name, "aria-label": `${value.label}: ${shownText}, ${STATE_WORDS[value.state]}` },
     });
     button.addEventListener("click", () => this.choose(file, value));
-    if (isAbility && value.state !== "unknown") {
+    if (isAbility) {
       const modifier = modifierOf(shownText);
       if (modifier !== "") line.createSpan({ cls: "dd-modifier", text: `(${modifier})` });
     }
