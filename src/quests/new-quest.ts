@@ -2,6 +2,7 @@ import type { QuestRecord } from "../campaign/campaign";
 import { readMarker } from "../notes/marker";
 import { readQuest } from "../notes/quest";
 import { newQuestLine, questTextOf } from "../notes/quest-lines";
+import type { Character } from "../campaign/characters";
 import { oneLine } from "../notes/question-lines";
 
 export interface NewQuest {
@@ -12,11 +13,6 @@ export interface NewQuest {
 
 export interface NewQuestPlan extends NewQuest {
   line: string;
-}
-
-export interface Character {
-  name: string;
-  linktext: string;
 }
 
 export const SAME_TITLE_AS_EXISTING = "A quest already has that title, so changes would be mixed up between them. Reword this one.";

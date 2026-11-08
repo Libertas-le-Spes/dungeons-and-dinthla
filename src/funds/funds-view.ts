@@ -68,6 +68,7 @@ export class FundsView extends ItemView {
   private ledgerList!: HTMLElement;
   private addCoinButton: HTMLElement | null = null;
   private pendingFocus: { source: Source | null; until: number } | null = null;
+  private pendingItem: { name: string; until: number } | null = null;
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -76,6 +77,7 @@ export class FundsView extends ItemView {
     private readonly noteExists: (name: string, sourcePath: string) => boolean,
     private readonly addCoin: ((returnFocus: () => void) => void) | null,
     private readonly openEntry: ((source: Source, onClosed: (outcome: CoinOutcome) => void) => void) | null,
+    private readonly openItem: ((name: string, source: Source, onClosed: (changed: boolean) => void) => void) | null,
   ) {
     super(leaf);
   }
@@ -146,11 +148,43 @@ export class FundsView extends ItemView {
     const gone = folded.createEl("ul", { cls: "dd-list" });
     if (summary.gone.length === 0) gone.createEl("li", { cls: "dd-empty", text: "Nothing sold, used or lost yet." });
     for (const item of summary.gone) this.addItemRow(gone, item, ledger);
+    this.focusPendingItem();
+  }
+
+  private focusItemRow(name: string): void {
+    const rows = Array.from(this.items.querySelectorAll<HTMLElement>(".dd-row"));
+    const row = rows.find((candidate) => candidate.dataset.item === name);
+    if (row === undefined) return;
+    const folded = row.closest("details");
+    if (folded !== null) folded.open = true;
+    row.focus();
+  }
+
+  private focusPendingItem(): void {
+    const pending = this.pendingItem;
+    this.pendingItem = null;
+    if (pending === null || Date.now() > pending.until) return;
+    this.focusItemRow(pending.name);
+  }
+
+  private afterItem(name: string, changed: boolean): void {
+    this.pendingItem = null;
+    if (!changed) {
+      this.focusItemRow(name);
+      return;
+    }
+    this.pendingItem = { name, until: Date.now() + PENDING_FOCUS_MS };
   }
 
   private addItemRow(list: HTMLElement, item: ItemRecord, ledger: LedgerLine[]): void {
     const source = rowSourceOf(item);
-    const row = addRowButton(list, source, this.actions);
+    let actions = this.actions;
+    const openItem = this.openItem;
+    if (openItem !== null) {
+      actions = { ...this.actions, openRow: () => openItem(item.name, source, (changed) => this.afterItem(item.name, changed)) };
+    }
+    const row = addRowButton(list, source, actions);
+    row.dataset.item = item.name;
     const goneWord = goneWordOf(item);
     if (goneWord === null) row.createSpan({ cls: "dd-mark dd-mark-ledger", text: "$" });
     else row.createSpan({ cls: "dd-mark dd-mark-gone", text: "✕", attr: { "aria-label": goneWord } });
