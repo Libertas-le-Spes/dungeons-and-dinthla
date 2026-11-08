@@ -1,6 +1,6 @@
 import { sessionNumberOf } from "./session-file";
 
-function latestSession(campaignFolder: string, paths: string[]): string | null {
+export function latestSession(campaignFolder: string, paths: string[]): string | null {
   let latest: string | null = null;
   let highest = 0;
   for (const path of paths) {
