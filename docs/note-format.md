@@ -158,7 +158,7 @@ A follow-up typed in full must match the earlier text exactly, capitals included
 | `?= Who sent the letter: [[Lady Vess]] sent it` | The answer. The question is answered |
 | `? Who is the pale woman, after: Who sent the letter` | A new question that follows from the earlier one |
 
-A question is open until it has a `?=` line. Reopening it removes that `?=` line; changing the answer removes it and writes a new one. Deleting a question removes its `?` line, its clues and its answer, wherever they were written. The plugin does each only when you ask. It removes a line only if it still says what was read, taking the matching line nearest where it was; if the line has changed since, it writes nothing and says so. An answer can't be given from the view while an earlier open question reads the same, since the answer would go to that one.
+A question is open until it has a `?=` line. Reopening it removes that `?=` line; changing the answer removes it and writes a new one. Deleting a question removes its `?` line, its clues and its answer, wherever they were written. The plugin does each only when you ask. It removes a line only if it still says what was read, taking the matching line nearest where it was. If the question or the answer being replaced has changed since the dialog opened, it writes nothing and says so; deleting a question leaves any clue or answer line that was changed by hand. An answer can't be given from the view while an earlier open question reads the same, since the answer would go to that one.
 
 ### Quests
 
