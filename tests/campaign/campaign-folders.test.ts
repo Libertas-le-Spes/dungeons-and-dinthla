@@ -7,6 +7,7 @@ import {
   isMainNote,
   isSessionNote,
   mainNotePathOf,
+  charactersFolderOf,
   startingCampaignFolder,
 } from "../../src/campaign/campaign-folders";
 
@@ -51,6 +52,12 @@ describe("campaignFolderOf", () => {
 describe("mainNotePathOf", () => {
   it("names the note at the top of the folder after the folder", () => {
     expect(mainNotePathOf("Pale Moon")).toBe("Pale Moon/Pale Moon.md");
+  });
+});
+
+describe("charactersFolderOf", () => {
+  it("is the Characters folder at the campaign's top", () => {
+    expect(charactersFolderOf("Pale Moon")).toBe("Pale Moon/Characters");
   });
 });
 
