@@ -1,4 +1,4 @@
-import { bulletLengthOf, withoutBullet } from "./bullet";
+import { markerStartOf, withoutBullet } from "./bullet";
 import { isFollowUp } from "./follow-up";
 import { readItemChange } from "./item-change";
 
@@ -32,7 +32,7 @@ export interface MarkerSpan {
 }
 
 export function markerSpanOf(line: string): MarkerSpan | null {
-  const start = bulletLengthOf(line);
+  const start = markerStartOf(line);
   const text = line.slice(start);
   const marker = MARKERS[text.charAt(0)];
   if (marker === undefined) return null;
