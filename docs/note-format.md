@@ -21,6 +21,7 @@ The folder's main note sits at its top and has the folder's name. It is the camp
 ```
 Curse of the Pale Moon/
   Curse of the Pale Moon.md
+  Characters.base
   Sessions/
     Session 12.md
     Session 13.md
@@ -254,4 +255,20 @@ Only the groups listed in `carried` show on the sheet as carried over. The same 
 
 ### Characters gallery
 
-The gallery is a view the plugin adds to Obsidian's Bases. Each campaign gets a `Characters.base` file showing the notes in its `Characters` folder, so Bases does the filtering, sorting and refreshing, and the plugin draws each card from the lines above. If Bases is turned off in the vault, the plugin says so and asks for it to be turned on, which is why `minAppVersion` is 1.10.3.
+The gallery is a view the plugin adds to Obsidian's Bases. Each campaign gets a `Characters.base` file at its top, showing the Markdown notes in its `Characters` folder, so Bases does the filtering, sorting and refreshing, and the plugin draws each card from the lines above. If Bases is turned off in the vault, the plugin says so and asks for it to be turned on, which is why `minAppVersion` is 1.10.3.
+
+*Open characters*, from the ribbon or the command palette, opens the campaign's `Characters.base`. The first time, it writes the file:
+
+```yaml
+filters:
+  and:
+    - 'file.inFolder("Curse of the Pale Moon/Characters")'
+    - 'file.ext == "md"'
+views:
+  - type: dungeons-and-dinthla-characters
+    name: Characters
+```
+
+It never writes the file again, so a filter, sort or view added to it in Bases stays. A new note in the `Characters` folder shows up as a card at once.
+
+Each card is a short stat block: the character's name, their `type` and `subtitle` when known, then `class`, `AC`, `HP` and `speed`, and the six ability scores with their modifiers. A value no line states shows as `?`. The player's own character, named by the campaign note's `character` property, is marked *Your character*. Tapping a card opens the character's note, until their sheet is built.

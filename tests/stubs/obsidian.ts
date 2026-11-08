@@ -44,6 +44,14 @@ export class BasesView {
   register(): void {}
 }
 
+export class Notice {
+  static shown: string[] = [];
+
+  constructor(message: string) {
+    Notice.shown.push(message);
+  }
+}
+
 const PROPERTIES_OPEN = /^---\r?\n/;
 
 export function getFrontMatterInfo(content: string): FrontMatterInfo {
