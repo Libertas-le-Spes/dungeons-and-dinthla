@@ -1,0 +1,10 @@
+.dd-new-session input,
+.dd-new-session button {
+  min-height: var(--touch-min);
+}
+
+.dd-new-session .dd-carry {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted-ui);
+}
