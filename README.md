@@ -24,7 +24,7 @@ npm run build
 
 `demo-vault/` is a small Obsidian vault with one made-up campaign, *Curse of the Pale Moon*, kept in the note format below. It shows what `main` can do after each merge, without touching your own vault.
 
-1. Run `npm run build`. Besides `main.js`, it copies `manifest.json`, `main.js` and `styles.css` into the demo vault's plugin folder.
+1. Run `npm run build`. It builds `main.js` and `styles.css`, then copies them and `manifest.json` into the demo vault's plugin folder.
 2. In Obsidian, choose **Open folder as vault** and pick `demo-vault`.
 3. When Obsidian asks whether you trust the vault's author, choose **Trust author and enable plugins**. Dungeons & Dinthla is then turned on under Community plugins.
 
