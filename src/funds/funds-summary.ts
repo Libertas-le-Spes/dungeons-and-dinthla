@@ -1,5 +1,5 @@
 import type { Campaign, CoinRecord } from "../campaign/campaign";
-import type { CoinKind } from "../notes/ledger";
+import { copperOf, type CoinKind } from "../notes/ledger";
 
 export interface CoinCount {
   kind: CoinKind;
@@ -39,10 +39,12 @@ export function summariseFunds(campaign: Campaign): FundsSummary {
   let totalOut = 0;
   const ledger: LedgerLine[] = [];
   for (const record of campaign.coins) {
-    const copper = record.entry.copper;
-    balance += copper;
-    if (record.entry.moneyOut) totalOut -= copper;
-    else totalIn += copper;
+    balance += record.entry.copper;
+    for (const amount of record.entry.coins) {
+      const copper = copperOf(amount);
+      if (amount.moneyOut) totalOut -= copper;
+      else totalIn += copper;
+    }
     ledger.push({ record, balance });
   }
   return { purse: balance, totalIn, totalOut, coinCounts: coinCountsOf(campaign.coins), ledger: ledger.reverse() };

@@ -7,7 +7,7 @@ import { summariseFunds, type CoinCount, type FundsSummary, type LedgerLine } fr
 export const FUNDS_VIEW = "dungeons-and-dinthla-funds";
 
 const HOW_LINES_ARE_READ =
-  "A $ note with an amount is coin; without one, it is an item. An amount is money out when it has a minus sign, or when “paid”, “spent”, “bought”, “gave” or “lost” comes before it.";
+  "A $ line with an amount is coin; without one, it is an item. An amount is money out when it has a minus sign, or when “paid”, “spent”, “bought”, “gave” or “lost” comes before it with no comma between. A plus sign keeps it in.";
 
 function coinText({ kind, count }: CoinCount): string {
   const written = Math.abs(count).toLocaleString("en");
@@ -16,7 +16,7 @@ function coinText({ kind, count }: CoinCount): string {
 }
 
 function signedMoney(copper: number): string {
-  if (copper < 0) return formatMoney(copper);
+  if (copper <= 0) return formatMoney(copper);
   return `+${formatMoney(copper)}`;
 }
 
