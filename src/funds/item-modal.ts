@@ -1,0 +1,101 @@
+import { Modal, Notice, Setting, type App } from "obsidian";
+import type { ItemRecord } from "../campaign/campaign";
+import { PartlyWritten } from "../campaign/note-editor";
+import { isSubmit } from "../views/keys";
+import { messageOf } from "../views/message-of";
+import { holderNameOf } from "./item-groups";
+import { initialItemEdit, statusOf, type HolderOption, type ItemEdit, type ItemStatus } from "./item-plan";
+
+const STATUS_WORDS: Record<ItemStatus, string> = { held: "Held", sold: "Sold", used: "Used up", lost: "Lost" };
+
+export class ItemModal extends Modal {
+  private readonly edit: ItemEdit;
+  private changed = false;
+  private busy = false;
+  private soldForRow: HTMLElement | null = null;
+
+  constructor(
+    app: App,
+    private readonly item: ItemRecord,
+    private readonly holders: HolderOption[],
+    private readonly writesTo: string,
+    private readonly save: (edit: ItemEdit) => Promise<boolean>,
+    private readonly onClosed: (changed: boolean) => void,
+  ) {
+    super(app);
+    this.edit = initialItemEdit(item);
+    const current = holders.find((option) => holderNameOf(option.text).toLowerCase() === holderNameOf(item.holder).toLowerCase());
+    if (current !== undefined) this.edit.holder = current.text;
+  }
+
+  override onOpen(): void {
+    const { contentEl } = this;
+    this.setTitle("Item");
+    contentEl.addClass("dd-tokens", "dd-dialog");
+    contentEl.createEl("p", { cls: "dd-subject", text: this.item.name });
+    new Setting(contentEl).setName("Held by").addDropdown((dropdown) => {
+      for (const option of this.holders) dropdown.addOption(option.text, option.label);
+      dropdown.setValue(this.edit.holder).onChange((value) => {
+        this.edit.holder = value;
+      });
+      dropdown.selectEl.focus();
+    });
+    new Setting(contentEl).setName("Status").addDropdown((dropdown) => {
+      for (const [value, word] of Object.entries(STATUS_WORDS)) dropdown.addOption(value, word);
+      dropdown.setValue(this.edit.status).onChange((value) => {
+        this.edit.status = value as ItemStatus;
+        this.showSoldFor();
+      });
+    });
+    const soldFor = new Setting(contentEl).setName("Sold for (adds it to the purse)").addText((text) => {
+      text.setPlaceholder("150 gp").onChange((value) => {
+        this.edit.soldFor = value;
+      });
+      text.inputEl.setAttr("aria-label", "Sold for");
+      text.inputEl.addEventListener("keydown", (event) => {
+        if (event.defaultPrevented || !isSubmit(event, false)) return;
+        event.preventDefault();
+        this.run();
+      });
+    });
+    this.soldForRow = soldFor.settingEl;
+    this.showSoldFor();
+    contentEl.createEl("p", { cls: "dd-where", text: `New lines go into ${this.writesTo}.` });
+    new Setting(contentEl)
+      .addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.run()))
+      .addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));
+  }
+
+  override close(): void {
+    if (this.busy) return;
+    super.close();
+  }
+
+  override onClose(): void {
+    this.contentEl.empty();
+    this.onClosed(this.changed);
+  }
+
+  private showSoldFor(): void {
+    if (this.soldForRow === null) return;
+    this.soldForRow.toggle(this.edit.status === "sold" && statusOf(this.item) !== "sold");
+  }
+
+  private run(): void {
+    if (this.busy) return;
+    this.busy = true;
+    this.save(this.edit)
+      .then((wrote) => {
+        this.busy = false;
+        this.changed = wrote;
+        this.close();
+      })
+      .catch((error: unknown) => {
+        this.busy = false;
+        new Notice(`Couldn't change the item: ${messageOf(error)}`);
+        if (!(error instanceof PartlyWritten)) return;
+        this.changed = true;
+        this.close();
+      });
+  }
+}

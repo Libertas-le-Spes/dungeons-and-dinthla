@@ -13,6 +13,7 @@ import { QUESTS_VIEW, questsKind } from "./quests/quests-kind";
 import { FUNDS_VIEW, FundsView } from "./funds/funds-view";
 import type { CoinOutcome } from "./funds/coin-modal";
 import { openAddCoin, openCoinEntry } from "./funds/open-add-coin";
+import { openItem } from "./funds/open-item";
 import { CampaignListView } from "./views/list-view";
 import { openSideView, openSource } from "./views/open-view";
 import { colourMarkers } from "./reading/colour-markers";
@@ -62,7 +63,9 @@ export default class DungeonsAndDinthla extends Plugin {
     const addCoin = (returnFocus: () => void) => openAddCoin(this.app, this.store, returnFocus);
     const openEntry = (source: Source, onClosed: (outcome: CoinOutcome) => void) =>
       openCoinEntry(this.app, this.store, source, () => void openSource(this.app, source), onClosed);
-    this.registerView(FUNDS_VIEW, (leaf) => new FundsView(leaf, this.store, actions, noteExists, addCoin, openEntry));
+    const openItemDialog = (name: string, source: Source, onClosed: (changed: boolean) => void) =>
+      openItem(this.app, this.store, name, () => void openSource(this.app, source), onClosed);
+    this.registerView(FUNDS_VIEW, (leaf) => new FundsView(leaf, this.store, actions, noteExists, addCoin, openEntry, openItemDialog));
     this.addRibbonIcon("coins", "Open party funds", () => void openSideView(this.app, FUNDS_VIEW));
     this.addCommand({ id: "open-funds", name: "Open party funds", callback: () => void openSideView(this.app, FUNDS_VIEW) });
     this.addRibbonIcon("calendar-plus", "Start a new session", () => startSession(this.app, this.store.campaignFolder));
