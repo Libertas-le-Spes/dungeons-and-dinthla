@@ -235,6 +235,8 @@ Each value has a state, which comes from where its line is:
 
 "Newest" means the highest session number, and then the lowest line in that note.
 
+A name is letters and spaces, read whatever its capitals (`ac:` is `AC`). A value runs to the next comma that a name and a colon follow, so the comma in `type: Medium humanoid (human), lawful good` stays in the type, and a name with nothing after its colon states nothing. Learned values and overrides are read today, with an override winning over anything learned and the newest line winning among the rest. Carried-over values, earlier values and list values that add up aren't read yet.
+
 Renaming a character's note renames it: Obsidian rewrites every `[[link]]` to it.
 
 ### Calling a character over
