@@ -7,6 +7,7 @@ import { markerColouring } from "./editor/marker-decorations";
 import { openQuestionsView, openSource } from "./questions/open-questions";
 import { QUESTIONS_VIEW, QuestionsView } from "./questions/questions-view";
 import { colourMarkers } from "./reading/colour-markers";
+import { startSession } from "./sessions/start-session";
 import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
 
@@ -23,6 +24,8 @@ export default class DungeonsAndDinthla extends Plugin {
     this.registerView(QUESTIONS_VIEW, (leaf) => new QuestionsView(leaf, this.store, actions));
     this.addRibbonIcon("circle-help", "Open questions", () => void openQuestionsView(this.app));
     this.addCommand({ id: "open-questions", name: "Open questions", callback: () => void openQuestionsView(this.app) });
+    this.addRibbonIcon("calendar-plus", "Start a new session", () => startSession(this.app, this.store.campaignFolder));
+    this.addCommand({ id: "start-session", name: "Start a new session", callback: () => startSession(this.app, this.store.campaignFolder) });
     const inSession = (path: string) => isSessionNote(path, (notePath) => this.app.vault.getFileByPath(notePath) !== null);
     this.registerEditorExtension(markerColouring(inSession));
     this.registerMarkdownPostProcessor((element, context) => {
