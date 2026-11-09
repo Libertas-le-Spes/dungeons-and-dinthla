@@ -69,14 +69,18 @@ export class WritingPanel {
     this.reminder.setShown(waiting);
   }
 
+  setRemoving(removing: boolean): void {
+    this.box.setRemoving(removing);
+  }
+
   setGone(gone: boolean): void {
     this.box.setGone(gone);
     if (gone) this.lookup.close();
   }
 
   async save(): Promise<void> {
+    if (!this.canSave()) return;
     const drafts = this.needs.drafts;
-    if (this.box.isGone || drafts.isSaving(this.sessionPath) || !hasLinesToSave(this.box.text)) return;
     drafts.keep(this.sessionPath, this.box.text);
     try {
       await drafts.save(this.sessionPath, (path, draft) => this.needs.writer.save(path, draft));
@@ -85,6 +89,12 @@ export class WritingPanel {
       this.box.say(notSavedMessage(error));
     }
     this.box.focus();
+  }
+
+  private canSave(): boolean {
+    if (this.box.isGone || this.box.isRemoving) return false;
+    if (this.needs.drafts.isSaving(this.sessionPath)) return false;
+    return hasLinesToSave(this.box.text);
   }
 
   private draftChanged(path: string): void {

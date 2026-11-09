@@ -8,6 +8,7 @@ export interface NotesNeeds extends SessionNotesNeeds {
 function movesOf(needs: NotesNeeds, show: ShowPage, stayOn: StayOn): NotesMoves {
   return {
     showSession: (path) => show({ page: "notes", path }),
+    showNoSession: () => show({ page: "notes", path: null }),
     startSession: () => needs.startSession(),
     stayOn,
   };

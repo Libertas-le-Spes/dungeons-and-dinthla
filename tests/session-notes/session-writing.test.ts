@@ -1,60 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildCampaign } from "../../src/campaign/build-campaign";
 import { CHANGED_ELSEWHERE, NOTE_GONE_HERE } from "../../src/note-editing/note-editing";
 import { NoteDrafts } from "../../src/note-editing/note-drafts";
-import { NoteSaver } from "../../src/note-editing/note-saver";
-import type { AppendWriter } from "../../src/session-notes/append-writer";
 import { Drafts } from "../../src/session-notes/drafts";
 import { NOT_SAVED_YET } from "../../src/session-notes/edit-all-panel";
 import { EDIT_ALL_WAITING } from "../../src/session-notes/edit-all-reminder";
-import { SessionWriting } from "../../src/session-notes/session-writing";
-import { FakeNotes } from "../note-editing/fake-notes";
-import { isShown, obsidianDocument } from "../views/obsidian-dom";
+import { isShown } from "../views/obsidian-dom";
+import { FIXED, NOTE, PATH, writingOn } from "./writing-on";
 
-const PATH = "Pale Moon/Sessions/Session 12.md";
-const NOTE = "---\nplayed: 2026-11-09\n---\nTracks lead to the [[Old Mill]].\n? Who sent the leter";
-const FIXED = "---\nplayed: 2026-11-09\n---\nTracks lead to the [[Old Mill]].\n? Who sent the letter";
 const OTHER_PATH = "Pale Moon/Sessions/Session 11.md";
 const APPENDED = `${NOTE}\n! Ride to Thessaly`;
-
-function flushed(): Promise<void> {
-  return new Promise((done) => setTimeout(done, 0));
-}
-
-function writingOn(text: string | null, drafts = new Drafts({}, () => {})) {
-  const document = obsidianDocument();
-  const root = document.createElement("div");
-  document.body.append(root);
-  const notes = new FakeNotes(PATH, text);
-  const noteDrafts = new NoteDrafts(drafts);
-  const writer = { save: vi.fn(async () => "") };
-  const session = new SessionWriting(root, PATH, {
-    drafts,
-    writer: writer as unknown as AppendWriter,
-    openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
-    campaign: () => buildCampaign([]),
-    actions: { openRow: vi.fn(), openLink: vi.fn() },
-    wholeText: { texts: notes.texts, drafts: noteDrafts, saver: new NoteSaver(notes.vault) },
-  });
-  const window = document.defaultView!;
-  const find = <T extends HTMLElement>(selector: string) => root.querySelector<T>(selector)!;
-  const button = (selector: string) => find<HTMLButtonElement>(selector);
-  const wholeBox = () => find<HTMLTextAreaElement>(".dd-edit-all-panel textarea");
-  const typeWhole = (typed: string) => {
-    wholeBox().value = typed;
-    wholeBox().dispatchEvent(new window.Event("input"));
-  };
-  const editAll = async () => {
-    button(".dd-edit-all").click();
-    await flushed();
-  };
-  const panels = () => [find(".dd-writing-panel"), find(".dd-lines-panel"), find(".dd-edit-all-panel")].map(isShown);
-  const leaving = () => find(".dd-edit-all-leaving");
-  const reminder = () => find(".dd-writing-panel .dd-edit-all-reminder");
-  const message = () => find(".dd-edit-all-panel .dd-save-message").textContent;
-  const settle = () => vi.waitFor(() => expect(noteDrafts.isSaving(PATH)).toBe(false));
-  return { root, session, notes, noteDrafts, writer, button, wholeBox, typeWhole, editAll, panels, leaving, reminder, message, settle };
-}
 
 describe("SessionWriting", () => {
   it("adds lines with Edit all closed, and shows no whole-text box", () => {
@@ -178,19 +132,19 @@ describe("SessionWriting", () => {
     session.close();
     expect(notes.changedListeners.size).toBe(0);
     expect(notes.goneListeners.size).toBe(0);
-    expect(stops.length).toBe(3);
+    expect(stops.length).toBe(4);
     for (const stop of stops) expect(stop).toHaveBeenCalledOnce();
   });
 
   it("writes nothing over a line added to the note after leaving Edit all with changes, keeping the note and what was typed", async () => {
-    const { editAll, typeWhole, button, notes, settle, noteDrafts, message } = writingOn(NOTE);
+    const { editAll, typeWhole, button, notes, settle, noteDrafts, wholeMessage } = writingOn(NOTE);
     await editAll();
     typeWhole(FIXED);
     button(".dd-edit-all-done").click();
     button(".dd-leave-edit-all").click();
     notes.changeElsewhere(APPENDED);
     await editAll();
-    expect(message()).toBe(CHANGED_ELSEWHERE);
+    expect(wholeMessage()).toBe(CHANGED_ELSEWHERE);
     button(".dd-edit-all-panel .dd-save").click();
     await settle();
     expect(notes.writes).toEqual([]);
