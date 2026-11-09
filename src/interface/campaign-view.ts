@@ -27,6 +27,10 @@ function pathIn(state: object): string | null {
   return state.path;
 }
 
+function isListed(entry: PageEntry): boolean {
+  return entry.listed;
+}
+
 export class CampaignView extends ItemView {
   override navigation = true;
   private current: Shown | null = null;
@@ -110,7 +114,7 @@ export class CampaignView extends ItemView {
 
   private addSection(nav: HTMLElement, section: NavSection): void {
     if (section.heading !== null) nav.createDiv({ cls: "dd-nav-group", text: section.heading });
-    for (const entry of section.pages) this.addLink(nav, entry);
+    for (const entry of section.pages.filter(isListed)) this.addLink(nav, entry);
   }
 
   private addLink(nav: HTMLElement, entry: PageEntry): void {

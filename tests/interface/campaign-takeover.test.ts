@@ -52,9 +52,23 @@ describe("campaignStateFor", () => {
     expect(session.state).toEqual({ page: "notes", path: "Pale Moon/Sessions/Session 1.md" });
   });
 
+  it("opens an item's note in the campaign tab on Party funds, with that item open", () => {
+    const item = campaignStateFor({ type: "markdown", state: { file: "Pale Moon/Items/Silvered lantern.md" } }, TAKEOVER);
+    expect(item.type).toBe(CAMPAIGN_VIEW);
+    expect(item.state).toEqual({ page: "funds", path: "Pale Moon/Items/Silvered lantern.md" });
+  });
+
+  it("opens any other note of the campaign in the campaign tab on its own note page", () => {
+    const place = campaignStateFor({ type: "markdown", state: { file: "Pale Moon/Places/Old Mill.md" } }, TAKEOVER);
+    expect(place.type).toBe(CAMPAIGN_VIEW);
+    expect(place.state).toEqual({ page: "note", path: "Pale Moon/Places/Old Mill.md" });
+  });
+
   it("hands back the very same state for a file the campaign tab doesn't show", () => {
-    const place = { type: "markdown", state: { file: "Pale Moon/Places/Old Mill.md" } };
-    expect(campaignStateFor(place, TAKEOVER)).toBe(place);
+    const places = { type: "bases", state: { file: "Pale Moon/Places.base" } };
+    const outside = { type: "markdown", state: { file: "Gilded Stag.md" } };
+    expect(campaignStateFor(places, TAKEOVER)).toBe(places);
+    expect(campaignStateFor(outside, TAKEOVER)).toBe(outside);
   });
 
   it("hands back the very same state for any other kind of tab, its own included", () => {

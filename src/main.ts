@@ -34,11 +34,13 @@ import { ledgerEntryOpener } from "./funds/open-ledger-entry";
 import { ListPage } from "./views/list-page";
 import { activePathOf, openSource } from "./views/open-view";
 import { DashboardPage, type DashboardActions } from "./dashboard/dashboard-page";
-import { FundsPage } from "./funds/funds-page";
 import { campaignSections, type PageId, type ShowPage } from "./interface/campaign-pages";
 import { campaignStateFor, type Takeover } from "./interface/campaign-takeover";
 import { isCampaignViewRegistered } from "./interface/campaign-view-registered";
 import { castSection } from "./interface/cast-section";
+import { fundsSection } from "./interface/funds-section";
+import { noteSection } from "./interface/note-section";
+import { openInEditor } from "./interface/open-in-editor";
 import { notesSection } from "./interface/notes-section";
 import { keepOneCampaignTab } from "./interface/one-campaign-tab";
 import { pathYouAreIn, shownCampaignPathOf } from "./interface/shown-campaign-path";
@@ -61,6 +63,9 @@ import { sessionPropertiesOf } from "./sessions/session-properties";
 import { AppendWriter } from "./session-notes/append-writer";
 import { Drafts } from "./session-notes/drafts";
 import { KeptDrafts } from "./session-notes/kept-drafts";
+import { noteTextsOf } from "./campaign/note-texts";
+import { NoteDrafts } from "./note-page/note-drafts";
+import { NoteSaver } from "./note-page/note-saver";
 import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
 
@@ -157,10 +162,13 @@ export default class DungeonsAndDinthla extends Plugin {
     const drafts = new Drafts(local.read(), () => local.changed(drafts.all()));
     flushWhenClosing(local, this.closing());
     const keptDrafts = new KeptDrafts(drafts, () => Date.now());
+    const noteDrafts = new NoteDrafts(drafts);
     this.moveOldDrafts(keptDrafts, local, settings);
     this.registerEvent(this.app.vault.on("rename", (file, oldPath) => keptDrafts.noteRenamed(oldPath, file.path)));
+    this.registerEvent(this.app.vault.on("rename", (file, oldPath) => noteDrafts.moved(oldPath, file.path)));
     this.registerEvent(this.app.vault.on("delete", (file) => keptDrafts.noteDeleted(file.path)));
-    this.app.workspace.onLayoutReady(() => keptDrafts.notesGone((path) => this.app.vault.getFileByPath(path) !== null));
+    this.app.workspace.onLayoutReady(() => keptDrafts.notesGone((key) => this.draftStaysLive(noteDrafts, key)));
+    const texts = noteTextsOf(this.app);
     const notesNeeds = {
       store: this.store,
       drafts,
@@ -177,7 +185,24 @@ export default class DungeonsAndDinthla extends Plugin {
       notes: notesSection(notesNeeds),
       questions: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestionAt, questionsKind, createQuestion),
       quests: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestAt, questsKind, createQuest),
-      funds: (contentEl) => new FundsPage(contentEl, this.store, actions, noteExists, addCoin, openLedgerEntry, openItem),
+      funds: fundsSection({
+        store: this.store,
+        texts,
+        actions,
+        noteExists,
+        addCoin,
+        openLedgerEntry,
+        openItem,
+        campaignFolders: () => this.campaignFolders(),
+      }),
+      note: noteSection({
+        texts,
+        drafts: noteDrafts,
+        saver: new NoteSaver(this.app.vault),
+        actions,
+        isCampaignNote: (path: string) => campaignFolderOf(path, this.campaignFolders()) !== null,
+        openInEditor: (path: string) => void openInEditor(this.app, path),
+      }),
     });
     this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView(leaf, this.store, sections, (path) => void this.followCampaignOf(path)));
     for (const opener of PAGE_OPENERS) {
@@ -225,8 +250,13 @@ export default class DungeonsAndDinthla extends Plugin {
     };
     return new LocalDrafts(this.localStorage, timer, {
       written: () => this.oldDraftsKept(settings),
-      failed: (error) => new Notice(`Couldn't keep the lines typed on the Session notes page: ${messageOf(error)}`),
+      failed: (error) => new Notice(`Couldn't keep the text typed in the campaign tab: ${messageOf(error)}`),
     });
+  }
+
+  private draftStaysLive(noteDrafts: NoteDrafts, key: string): boolean {
+    if (noteDrafts.owns(key)) return true;
+    return this.app.vault.getFileByPath(key) !== null;
   }
 
   private closing(): Closing {

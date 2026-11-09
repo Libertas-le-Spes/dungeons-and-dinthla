@@ -1,4 +1,5 @@
 import { Component } from "obsidian";
+import { isItemNamed } from "./item-of-note";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { formatMoney } from "../notes/money";
 import { addNameLink, addRowButton, type LinkActions } from "../views/linked-text";
@@ -56,6 +57,11 @@ function entriesText(count: number): string {
   return `${count} entries`;
 }
 
+export interface ShownItem {
+  name: string;
+  panel(panelEl: HTMLElement): Component;
+}
+
 export class FundsPage extends Component {
   private purse!: HTMLElement;
   private items!: HTMLElement;
@@ -72,6 +78,7 @@ export class FundsPage extends Component {
     private readonly addCoin: ((returnFocus: () => void) => void) | null,
     private readonly openLedgerEntry: OpenLedgerEntry | null,
     private readonly openItem: ((name: string, source: Source, onClosed: (changed: boolean) => void) => void) | null,
+    private readonly shownItem: ShownItem | null,
   ) {
     super();
   }
@@ -80,11 +87,30 @@ export class FundsPage extends Component {
     const root = this.contentEl;
     root.empty();
     root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-funds");
+    this.addShownItem(root);
     this.purse = root.createEl("section", { cls: "dd-panel dd-purse-panel" });
     this.items = root.createEl("section", { cls: "dd-panel dd-items-panel" });
     this.buildLedger(root.createEl("section", { cls: "dd-panel dd-ledger-panel" }));
     this.register(this.store.subscribe(() => this.render()));
     this.render();
+  }
+
+  private addShownItem(root: HTMLElement): void {
+    if (this.shownItem === null) return;
+    this.addChild(this.shownItem.panel(root.createEl("section", { cls: "dd-panel dd-shown-item" })));
+  }
+
+  private isShown(item: ItemRecord): boolean {
+    if (this.shownItem === null) return false;
+    return isItemNamed(item, this.shownItem.name);
+  }
+
+  private markShown(row: HTMLElement, item: ItemRecord): void {
+    if (!this.isShown(item)) return;
+    row.addClass("dd-row-shown");
+    row.setAttribute("aria-current", "true");
+    const folded = row.closest("details");
+    if (folded !== null) folded.open = true;
   }
 
   private render(): void {
@@ -156,6 +182,7 @@ export class FundsPage extends Component {
     }
     const row = addRowButton(list, source, actions);
     row.dataset.item = item.name;
+    this.markShown(row, item);
     const goneWord = goneWordOf(item);
     if (goneWord === null) row.createSpan({ cls: "dd-mark dd-mark-ledger", text: "$" });
     else row.createSpan({ cls: "dd-mark dd-mark-gone", text: "✕", attr: { "aria-label": goneWord } });

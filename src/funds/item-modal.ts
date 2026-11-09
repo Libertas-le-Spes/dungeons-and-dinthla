@@ -5,8 +5,7 @@ import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
 import { holderNameOf } from "./item-groups";
 import { GONE_LINE_SAYS_MORE, type HolderOption, type ItemEdit, type ItemStatus } from "./item-plan";
-
-const STATUS_WORDS: Record<ItemStatus, string> = { held: "Held", sold: "Sold", used: "Used up", lost: "Lost" };
+import { STATUS_WORDS } from "./status-words";
 
 export class ItemModal extends Modal {
   private readonly edit: ItemEdit;

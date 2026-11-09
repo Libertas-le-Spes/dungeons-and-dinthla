@@ -32,4 +32,10 @@ describe("the Obsidian element helpers in tests", () => {
     row.toggleClass("in-bar", false);
     expect(row.classList.contains("in-bar")).toBe(false);
   });
+
+  it("reads a textarea's Windows and old Mac line endings as plain new lines, as browsers do", () => {
+    const box = obsidianDocument().createElement("textarea");
+    box.value = "The wheel turns.\r\nRain.\rMist.";
+    expect(box.value).toBe("The wheel turns.\nRain.\nMist.");
+  });
 });
