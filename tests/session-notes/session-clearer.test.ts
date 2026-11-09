@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CHANGED_SINCE_ASKED, clearedText, SESSION_GONE, SessionClearer } from "../../src/session-notes/session-clearer";
-import { BOM, FakeNotes } from "../note-page/fake-notes";
+import { BOM, FakeNotes } from "../note-editing/fake-notes";
 
 const PATH = "Pale Moon/Sessions/Session 12.md";
 

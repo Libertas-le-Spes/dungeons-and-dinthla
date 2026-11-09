@@ -1,7 +1,7 @@
 import { vi } from "vitest";
 import type { App, TAbstractFile, TFile } from "obsidian";
 import { noteTextsOf, type NoteTexts } from "../../src/campaign/note-texts";
-import type { SaverVault } from "../../src/note-page/note-saver";
+import type { SaverVault } from "../../src/note-editing/note-saver";
 
 type ChangedListener = (file: TFile, text: string) => void;
 

@@ -2,8 +2,8 @@ import { expect, vi } from "vitest";
 import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import { sessionNoteOf } from "../../src/campaign/session-file";
-import { NoteDrafts } from "../../src/note-page/note-drafts";
-import { NoteSaver } from "../../src/note-page/note-saver";
+import { NoteDrafts } from "../../src/note-editing/note-drafts";
+import { NoteSaver } from "../../src/note-editing/note-saver";
 import type { AppendWriter } from "../../src/session-notes/append-writer";
 import { Drafts } from "../../src/session-notes/drafts";
 import { KeptDrafts } from "../../src/session-notes/kept-drafts";
@@ -12,7 +12,7 @@ import { SessionTrash } from "../../src/session-notes/session-trash";
 import { SessionWriting } from "../../src/session-notes/session-writing";
 import { writtenLinesOf } from "../../src/session-notes/written-lines";
 import type { ConfirmText } from "../../src/views/confirm-modal";
-import { FakeNotes } from "../note-page/fake-notes";
+import { FakeNotes } from "../note-editing/fake-notes";
 import { isShown, obsidianDocument } from "../views/obsidian-dom";
 
 export const PATH = "Pale Moon/Sessions/Session 12.md";
@@ -82,6 +82,8 @@ export function writingOn(text: string | null, drafts = new Drafts({}, () => {})
   const panels = () => [find(".dd-writing-panel"), find(".dd-lines-panel"), find(".dd-edit-all-panel")].map(isShown);
   const leaving = () => find(".dd-edit-all-leaving");
   const message = () => find(".dd-notes-message").textContent;
+  const wholeMessage = () => find(".dd-edit-all-panel .dd-save-message").textContent;
+  const reminder = () => find(".dd-writing-panel .dd-edit-all-reminder");
   const settle = () => vi.waitFor(() => expect(noteDrafts.isSaving(PATH)).toBe(false));
   return {
     root,
@@ -104,6 +106,8 @@ export function writingOn(text: string | null, drafts = new Drafts({}, () => {})
     panels,
     leaving,
     message,
+    wholeMessage,
+    reminder,
     settle,
   };
 }
