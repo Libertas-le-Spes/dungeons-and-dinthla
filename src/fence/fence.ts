@@ -1,3 +1,4 @@
+import { refusalForCampaignsFolder } from "./campaigns-folder-path";
 import { isSafeNewPath, isSafePath } from "./safe-path";
 
 export const OUTSIDE_FENCE = "it is outside the Campaigns folder, and Dungeons & Dinthla only works inside that folder.";
@@ -25,7 +26,7 @@ export class Fence {
 
   private safeFolder(): string | null {
     const folder = this.campaignsFolder();
-    if (!isSafePath(folder)) return null;
+    if (folder === null || refusalForCampaignsFolder(folder) !== null) return null;
     return folder;
   }
 }

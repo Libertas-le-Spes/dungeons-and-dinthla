@@ -26,6 +26,10 @@ describe("Fence", () => {
     for (const folder of ["/", "", "../D&D", "D&D/", ".. ", "D&D."]) expect(new Fence(() => folder).holds("D&D/Pale Moon/Pale Moon.md")).toBe(false);
   });
 
+  it("holds nothing when the Campaigns folder is hidden, such as the vault's settings folder", () => {
+    for (const folder of [".obsidian", "Games/.hidden"]) expect(new Fence(() => folder).holds(`${folder}/Pale Moon/Pale Moon.md`)).toBe(false);
+  });
+
   it("follows the Campaigns folder as it changes", () => {
     let folder = "D&D";
     const fence = new Fence(() => folder);

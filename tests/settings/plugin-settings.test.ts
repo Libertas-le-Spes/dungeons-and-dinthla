@@ -29,8 +29,8 @@ describe("settingsOf", () => {
     for (const campaignsFolder of ["Zoe\u0308", "Pale\u00a0Moon"]) expect(settingsOf({ campaignsFolder })).toEqual({ ...NOTHING_SAVED, campaignsFolder });
   });
 
-  it("drops a saved Campaigns folder that is the whole vault or not a plain path, so the plugin touches nothing", () => {
-    for (const campaignsFolder of ["/", "", "../D&D", "/D&D", "D&D/../Private", 3]) {
+  it("drops a saved Campaigns folder that is the whole vault, not a plain path or hidden, so the plugin touches nothing", () => {
+    for (const campaignsFolder of ["/", "", "../D&D", "/D&D", "D&D/../Private", ".obsidian", "Games/.hidden", 3]) {
       expect(settingsOf({ campaignsFolder })).toEqual(NOTHING_SAVED);
     }
   });
