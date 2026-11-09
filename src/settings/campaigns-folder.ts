@@ -18,8 +18,8 @@ export class CampaignsFolder {
     const refusal = refusalForCampaignsFolder(path);
     if (refusal !== null) throw new Error(refusal);
     if (path === this.settings.campaignsFolder) return;
+    await this.save({ ...this.settings, campaignsFolder: path });
     this.settings.campaignsFolder = path;
-    await this.save(this.settings);
     await this.moved();
   }
 }
