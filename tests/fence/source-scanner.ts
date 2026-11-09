@@ -74,6 +74,8 @@ const FILE_OWNERS = ["TAbstractFile", "TFile", "TFolder"];
 
 const REFLECTION = "Reflect";
 
+const CONSTRUCTOR = "constructor";
+
 const KEY_READERS = ["values", "entries", "getOwnPropertyDescriptor", "getOwnPropertyDescriptors", "assign"];
 
 const LIBRARY_FOLDER = "/node_modules/";
@@ -85,6 +87,7 @@ export interface Allowances {
   keyReading: Allowed;
   editorReading: Allowed;
   fileTree: Allowed;
+  looseCasts: Allowed;
 }
 
 interface Named {
@@ -98,6 +101,8 @@ interface Found {
   editorReads: Named[];
   fileTreeNames: Named[];
   forbidden: Named[];
+  constructors: Node[];
+  casts: Cast[];
   destructured: Named[];
   computedBindings: Node[];
   computedKeys: ElementAccessExpression[];
@@ -124,6 +129,8 @@ function emptyFound(): Found {
     editorReads: [],
     fileTreeNames: [],
     forbidden: [],
+    constructors: [],
+    casts: [],
     destructured: [],
     computedBindings: [],
     computedKeys: [],
@@ -137,6 +144,7 @@ function addName(found: Found, node: Node, name: string): void {
   if (EDITOR_WRITES.includes(name)) found.editorNames.push({ node, name });
   if (EDITOR_READS.includes(name)) found.editorReads.push({ node, name });
   if (FILE_TREE.includes(name)) found.fileTreeNames.push({ node, name });
+  if (name === CONSTRUCTOR) found.constructors.push(node);
 }
 
 function addForbidden(found: Found, node: Node, name: string): void {
@@ -155,6 +163,7 @@ function addElementAccess(found: Found, access: ElementAccessExpression): void {
 
 function addDestructured(found: Found, node: Node, name: string): void {
   found.destructured.push({ node, name });
+  if (name === CONSTRUCTOR) found.constructors.push(node);
   if (!isIdentifier(node)) addForbidden(found, node, name);
 }
 
@@ -185,6 +194,7 @@ function foundIn(sourceFile: SourceFile): Found {
     if (isIdentifier(node) && node.text === REFLECTION) found.reflections.push(node);
     if (isIdentifier(node)) addForbidden(found, node, node.text);
     if (isCallExpression(node) && isKeyReader(node)) found.readWhole.push(...node.arguments);
+    if (isAsExpression(node) || isTypeAssertion(node)) found.casts.push(node);
     if (isSpreadAssignment(node)) found.readWhole.push(node.expression);
     if (isForInStatement(node)) found.readWhole.push(node.expression);
     node.forEachChild(visit);
@@ -254,6 +264,10 @@ export class SourceScanner {
     }
     for (const node of found.computedBindings) breaches.push(`${where(node)} destructures a computed key`);
     for (const { node, name } of found.forbidden) breaches.push(`${where(node)} uses ${name}`);
+    for (const node of found.constructors) breaches.push(`${where(node)} reaches a constructor through ${CONSTRUCTOR}`);
+    if (!allowances.looseCasts(path)) {
+      for (const cast of found.casts.filter((candidate) => this.isLooseCast(project, candidate))) breaches.push(`${where(cast)} casts through unknown or any`);
+    }
     for (const node of this.castKeys(project, found)) breaches.push(`${where(node)} reads a computed key of a value cast through unknown or any`);
     if (!allowances.editorReading(path)) {
       for (const { node, name } of this.editorReads(project, found)) breaches.push(`${where(node)} reads the text of an editor or view with ${name}`);

@@ -16,6 +16,7 @@ const GATEKEEPER_FOLDER = "fence/";
 const PARSED_DATA = ["settings/draft-record.ts"];
 const ALLOWED = ["fence/gatekeeper.ts", "fence/fenced-files.ts", "fence/fenced-file-actions.ts", "fence/folder-choices.ts", "fence/vault-settings.ts"];
 const EDITOR_TEXT_READERS = ["campaign/editor-text.ts"];
+const LOOSE_CASTERS = ["fence/fenced-metadata.ts", "interface/campaign-view-registered.ts", "interface/one-campaign-tab.ts", "interface/seen-tab.ts"];
 const HIDDEN_CODE = [".js", ".mjs", ".cjs", ".mts", ".cts"];
 const REACHING_SAMPLES = [
   "this.app.vault.read(file);",
@@ -109,7 +110,23 @@ const CAST_SAMPLES = [
   'import type { App } from "obsidian";\nexport function files(app: App, key: string) {\n  const loose = app as any;\n  const words: Record<string, object> = loose;\n  return words[key];\n}',
 ];
 
+const LOOSE_CAST_SAMPLES = [
+  'import type { App } from "obsidian";\nexport const registry = (app: App) => (app as unknown as { viewRegistry: object }).viewRegistry;',
+  'import type { App } from "obsidian";\nexport const registry = (app: App) => (app as any).viewRegistry;',
+  'import type { App } from "obsidian";\nexport const registry = (app: App) => (<any>app).viewRegistry;',
+  'import type { App } from "obsidian";\nexport function registry(app: App) {\n  const loose: unknown = app;\n  return (loose as { viewRegistry: object }).viewRegistry;\n}',
+];
+
+const CONSTRUCTOR_SAMPLES = [
+  '(() => 0).constructor("return this")();',
+  'export const make = (run: () => void) => run["constructor"];',
+  "export const make = (run: () => void) => {\n  const { constructor: maker } = run;\n  return maker;\n};",
+  'export const make = (run: () => void) => {\n  const { ["constructor"]: maker } = run;\n  return maker;\n};',
+];
+
 const HARMLESS_SAMPLES = [
+  "export class Purse {\n  constructor(readonly gold: number) {}\n}",
+  "export const name = (value: string | number) => value as string;",
   'import type { TextComponent } from "obsidian";\nexport const name = (text: TextComponent) => text.setValue("Pale Moon");',
   'import type { TextComponent } from "obsidian";\nexport const name = (text: TextComponent) => text.getValue();',
   'export const seen = (counts: Map<string, number>) => counts.set("Mira", 1);',
@@ -124,7 +141,7 @@ const HARMLESS_SAMPLES = [
   "export const merged = (first: { name: string }, second: { level: number }) => ({ ...first, ...second });",
 ];
 
-const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...CAST_SAMPLES, ...HARMLESS_SAMPLES];
+const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...HARMLESS_SAMPLES];
 
 interface Planted {
   name: string;
@@ -242,7 +259,13 @@ function isNeverAllowed(): boolean {
   return false;
 }
 
-const NOTHING_ALLOWED: Allowances = { vault: isNeverAllowed, keyReading: isNeverAllowed, editorReading: isNeverAllowed, fileTree: isNeverAllowed };
+const NOTHING_ALLOWED: Allowances = { vault: isNeverAllowed, keyReading: isNeverAllowed, editorReading: isNeverAllowed, fileTree: isNeverAllowed, looseCasts: isNeverAllowed };
+
+function isAlwaysAllowed(): boolean {
+  return true;
+}
+
+const LOOSE_CASTS_ALLOWED: Allowances = { ...NOTHING_ALLOWED, looseCasts: isAlwaysAllowed };
 
 function isOneOf(files: string[]): (path: string) => boolean {
   return (path) => files.some((file) => path === `${SOURCE_FOLDER}${file}`);
@@ -252,7 +275,13 @@ const isGatekeeper = isOneOf(ALLOWED);
 
 const readsKeysOfAnything = isOneOf([...ALLOWED, ...PARSED_DATA]);
 
-const SOURCE_ALLOWANCES: Allowances = { vault: isGatekeeper, keyReading: readsKeysOfAnything, editorReading: isOneOf(EDITOR_TEXT_READERS), fileTree: isGatekeeper };
+const SOURCE_ALLOWANCES: Allowances = {
+  vault: isGatekeeper,
+  keyReading: readsKeysOfAnything,
+  editorReading: isOneOf(EDITOR_TEXT_READERS),
+  fileTree: isGatekeeper,
+  looseCasts: isOneOf(LOOSE_CASTERS),
+};
 
 let scanner: SourceScanner;
 
@@ -264,8 +293,8 @@ afterAll(() => {
   scanner.close();
 });
 
-function sampleBreaches(sample: string): string[] {
-  return scanner.breaches(SAMPLE_PROJECT, [samplePath(SAMPLES.indexOf(sample))], NOTHING_ALLOWED);
+function sampleBreaches(sample: string, allowances: Allowances = NOTHING_ALLOWED): string[] {
+  return scanner.breaches(SAMPLE_PROJECT, [samplePath(SAMPLES.indexOf(sample))], allowances);
 }
 
 function fenceBreaches(project: string, listing: string[], allowances: Allowances): string[] {
@@ -321,6 +350,14 @@ describe("the vault fence", () => {
     }
   });
 
+  it("lets only the allowed files cast through unknown or any, each of which still needs it and does nothing else the fence refuses", () => {
+    for (const caster of LOOSE_CASTERS) {
+      const breaches = scanner.breaches(BUNDLED_PROJECT, [sourcePath(caster)], NOTHING_ALLOWED);
+      expect(breaches).not.toEqual([]);
+      for (const breach of breaches) expect(breach).toContain("casts through unknown or any");
+    }
+  });
+
   it("scans a .mts file the entry point loads, and refuses it under src", () => {
     const breaches = plantedBreaches("mts");
     expect(breaches).toContain("src/reader.mts is code under src that the scan can't read as TypeScript");
@@ -368,7 +405,15 @@ describe("the vault fence", () => {
     expect(sampleBreaches(sample)).not.toEqual([]);
   });
 
-  it.each(CAST_SAMPLES)("would catch a computed key on a value cast through unknown or any with %s", (sample) => {
+  it.each(CAST_SAMPLES)("would catch a computed key on a value cast through unknown or any with %s, even in a file allowed to cast", (sample) => {
+    expect(sampleBreaches(sample, LOOSE_CASTS_ALLOWED)).not.toEqual([]);
+  });
+
+  it.each(LOOSE_CAST_SAMPLES)("would catch casting through unknown or any with %s", (sample) => {
+    expect(sampleBreaches(sample)).not.toEqual([]);
+  });
+
+  it.each(CONSTRUCTOR_SAMPLES)("would catch reaching a constructor with %s", (sample) => {
     expect(sampleBreaches(sample)).not.toEqual([]);
   });
 
