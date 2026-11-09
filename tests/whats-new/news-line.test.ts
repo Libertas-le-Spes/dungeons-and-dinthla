@@ -1,12 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { News, NewsItem } from "../../src/whats-new/news-item";
 import { NewsLine } from "../../src/whats-new/news-line";
+import { Notice } from "../stubs/obsidian";
 import { isShown, obsidianDocument } from "../views/obsidian-dom";
 
 const LANTERNS: NewsItem = { sentence: "Lanterns now light the party funds.", page: "funds" };
 
-function lineWith(latest: NewsItem | null) {
-  const news: News = { latest: () => latest, seen: vi.fn(async () => {}) };
+function lineWith(latest: NewsItem | null, seen: () => Promise<void> = async () => {}) {
+  const news: News = { latest: () => latest, seen: vi.fn(seen) };
   const show = vi.fn();
   const lineEl = obsidianDocument().body.createDiv();
   const line = new NewsLine(lineEl, news, show);
@@ -21,6 +22,19 @@ function buttonNamed(lineEl: HTMLElement, text: string): HTMLButtonElement {
 }
 
 describe("NewsLine", () => {
+  beforeEach(() => {
+    Notice.shown = [];
+  });
+
+  it("says so when it can't keep that the news was seen", async () => {
+    const { lineEl } = lineWith(LANTERNS, async () => {
+      throw new Error("data.json is read-only.");
+    });
+    buttonNamed(lineEl, "Dismiss").click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(Notice.shown).toEqual(["Couldn't keep that the news was seen: data.json is read-only."]);
+  });
+
   it("says what is new, with Show me and Dismiss", () => {
     const { lineEl } = lineWith(LANTERNS);
     expect(isShown(lineEl)).toBe(true);
