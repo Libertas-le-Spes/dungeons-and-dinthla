@@ -29,6 +29,18 @@ describe("campaignSections", () => {
     ]);
   });
 
+  it("puts Home, Cast, Notes and Funds in the bottom bar under their short names, and leaves Questions and Quests to the dashboard", () => {
+    const pages = campaignSections(makersMadeBy([])).flatMap((section) => section.pages);
+    expect(pages.map((page) => [page.shortLabel, page.inBar])).toEqual([
+      ["Home", true],
+      ["Cast", true],
+      ["Notes", true],
+      ["Questions", false],
+      ["Quests", false],
+      ["Funds", true],
+    ]);
+  });
+
   it("shows the Notes page with a pilcrow", () => {
     const pages = campaignSections(makersMadeBy([])).flatMap((section) => section.pages);
     const notes = pages.find((page) => page.id === "notes");

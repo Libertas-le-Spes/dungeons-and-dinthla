@@ -62,6 +62,7 @@ const THEMES: Record<string, ThemeContext> = {
 const PAIRS: [string, string, number][] = [
   ["text-strong", "surface-page", 4.5],
   ["text-body", "surface-card", 4.5],
+  ["text-strong", "surface-card", 4.5],
   ["text-body", "surface-sunken", 4.5],
   ["text-muted-ui", "surface-page", 4.5],
   ["text-muted-ui", "surface-card", 4.5],
@@ -84,6 +85,7 @@ const PAIRS: [string, string, number][] = [
   ["marker-quest", "surface-card", 4.5],
   ["marker-quest", "marker-quest-soft", 4.5],
   ["marker-ledger", "surface-card", 4.5],
+  ["marker-ledger", "surface-page", 4.5],
   ["marker-ledger", "marker-ledger-soft", 4.5],
   ["marker-link", "surface-card", 4.5],
   ["marker-link", "marker-link-soft", 4.5],

@@ -57,13 +57,13 @@ function campaignOf(lines: string[]): Campaign {
   return buildCampaign([{ path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: lines.join("\n") }]);
 }
 
-function entryOf(id: PageId, made: FakePage[], countOf: (campaign: Campaign) => number = () => 0): PageEntry {
+function entryOf(id: PageId, made: FakePage[], countOf: (campaign: Campaign) => number = () => 0, inBar = true): PageEntry {
   const make = (contentEl: HTMLElement, show: ShowPage, path: string | null) => {
     const page = new FakePage(id, contentEl, show, path);
     made.push(page);
     return page;
   };
-  return { id, label: `Label ${id}`, glyph: "?", glyphClass: "dd-marker-question", make, countOf };
+  return { id, label: `Label ${id}`, shortLabel: `Short ${id}`, inBar, glyph: "?", glyphClass: "dd-marker-question", make, countOf };
 }
 
 async function openView({ folder = "Pale Moon" as string | null, questionCount = (campaign: Campaign) => campaign.questions.length } = {}) {
@@ -80,7 +80,7 @@ async function openView({ folder = "Pale Moon" as string | null, questionCount =
   const made: FakePage[] = [];
   const sections: NavSection[] = [
     { heading: null, pages: [entryOf("home", made), entryOf("cast", made)] },
-    { heading: "From the notes", pages: [entryOf("questions", made, questionCount), entryOf("funds", made)] },
+    { heading: "From the notes", pages: [entryOf("questions", made, questionCount, false), entryOf("funds", made)] },
   ];
   const requestSaveLayout = vi.fn();
   const followCampaign = vi.fn();
@@ -143,7 +143,26 @@ describe("CampaignView", () => {
     const { root } = await openView();
     const nav = root.querySelector(".dd-nav")!;
     const shown = [...nav.children].map((child) => child.textContent);
-    expect(shown).toEqual(["Pale Moon", "?Label home", "?Label cast", "From the notes", "?Label questions", "?Label funds"]);
+    expect(shown).toEqual(["Pale Moon", "?Label homeShort home", "?Label castShort cast", "From the notes", "?Label questionsShort questions", "?Label fundsShort funds"]);
+  });
+
+  it("gives each link its short name for the bottom bar, and marks the links the bar holds", async () => {
+    const { root } = await openView();
+    const links = [...root.querySelectorAll<HTMLElement>(".dd-nav-link")];
+    const shown = links.map((link) => [link.querySelector(".dd-nav-short")!.textContent, link.classList.contains("dd-nav-in-bar")]);
+    expect(shown).toEqual([
+      ["Short home", true],
+      ["Short cast", true],
+      ["Short questions", false],
+      ["Short funds", true],
+    ]);
+  });
+
+  it("marks the current page on the link the bottom bar shows too", async () => {
+    const { root } = await openView();
+    linkLabelled(root, "Label funds").click();
+    await vi.waitFor(() => expect(root.querySelector('.dd-nav-in-bar[aria-current="page"] .dd-nav-short')!.textContent).toBe("Short funds"));
+    expect(root.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
   });
 
   it("shows a page when its link is pressed, through Obsidian so it is kept in the history", async () => {
