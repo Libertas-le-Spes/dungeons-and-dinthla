@@ -4,7 +4,9 @@ import { latestNumberIsShared, SESSIONS_SHARE_A_NUMBER } from "../campaign/sessi
 import type { LookupOpeners } from "../lookups/open-match";
 import type { LinkActions } from "../views/linked-text";
 import type { AppendWriter } from "./append-writer";
+import type { DeletedDrafts } from "./deleted-drafts";
 import type { Drafts } from "./drafts";
+import { KeptLines } from "./kept-lines";
 import { LinesList } from "./lines-list";
 import { sessionChoiceOf, sessionChoicesOf, sessionShown, type PropertiesOf } from "./session-choices";
 import { SessionPicker, type PickerMoves } from "./session-picker";
@@ -13,11 +15,12 @@ import { writtenLinesOf } from "./written-lines";
 
 const PAGE_TITLE = "Session notes";
 const NO_SESSION = "No sessions yet. Start one to write in it.";
-const NOTE_GONE = "This session's note was deleted, so nothing more can be saved to it. What you typed is still in the box.";
+const NOTE_GONE = "This session's note was deleted, so nothing more can be saved to it. Lines typed in its box and not saved are kept below.";
 
 export interface SessionNotesNeeds {
   store: CampaignStore;
   drafts: Drafts;
+  deleted: DeletedDrafts;
   writer: AppendWriter;
   propertiesOf: PropertiesOf;
   openers: LookupOpeners;
@@ -32,6 +35,7 @@ interface Drawn {
   path: string | null;
   picker: SessionPicker;
   gone: HTMLElement;
+  kept: KeptLines;
   lines: LinesList | null;
   writing: WritingPanel | null;
 }
@@ -40,6 +44,7 @@ export class SessionNotesPage extends Component {
   private drawn: Drawn | null = null;
   private chosen: string | null;
   private seen = false;
+  private copyTarget: string | null = null;
 
   constructor(
     private readonly contentEl: HTMLElement,
@@ -54,7 +59,7 @@ export class SessionNotesPage extends Component {
   override onload(): void {
     this.contentEl.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-session-notes");
     this.register(this.needs.store.subscribe(() => this.campaignChanged()));
-    this.register(() => this.closeWriting());
+    this.register(() => this.closeDrawn());
     this.draw();
   }
 
@@ -80,47 +85,59 @@ export class SessionNotesPage extends Component {
   }
 
   private draw(): void {
-    this.closeWriting();
+    this.closeDrawn();
     const root = this.contentEl;
     root.empty();
     const path = this.sessionToShow();
     const picker = new SessionPicker(root, this.moves);
     const gone = root.createEl("p", { cls: "dd-note-gone", attr: { "aria-live": "polite" } });
+    const kept = new KeptLines(root, this.needs.drafts, this.needs.deleted, () => this.copyTarget);
     if (path === null) {
       root.createEl("p", { cls: "dd-empty", text: this.noSessionText() });
-      this.drawn = { path, picker, gone, lines: null, writing: null };
+      this.drawn = { path, picker, gone, kept, lines: null, writing: null };
       this.update(this.drawn);
       return;
     }
     const writing = new WritingPanel(root, path, { ...this.needs, campaign: () => this.needs.store.current });
-    this.drawn = { path, picker, gone, lines: new LinesList(root, this.needs.actions), writing };
+    this.drawn = { path, picker, gone, kept, lines: new LinesList(root, this.needs.actions), writing };
     this.update(this.drawn);
     writing.focus();
   }
 
-  private closeWriting(): void {
-    if (this.drawn === null || this.drawn.writing === null) return;
-    this.drawn.writing.close();
+  private closeDrawn(): void {
+    if (this.drawn === null) return;
+    this.drawn.kept.close();
+    if (this.drawn.writing !== null) this.drawn.writing.close();
   }
 
   private update(drawn: Drawn): void {
     const store = this.needs.store;
     const choices = sessionChoicesOf(store.sessionNotes, this.needs.propertiesOf);
     drawn.picker.show(this.headingOf(drawn.path), choices, drawn.path);
-    if (drawn.lines === null || drawn.path === null) return;
+    this.showSession(drawn);
+    drawn.kept.refresh();
+  }
+
+  private showSession(drawn: Drawn): void {
+    this.copyTarget = null;
+    if (drawn.lines === null || drawn.writing === null || drawn.path === null) return;
+    const store = this.needs.store;
     const session = store.sessionNotes.find((candidate) => candidate.path === drawn.path);
     if (session === undefined) {
-      this.missing(drawn, drawn.lines);
+      this.missing(drawn, drawn.lines, drawn.writing);
       return;
     }
     this.seen = true;
+    this.copyTarget = drawn.path;
     drawn.gone.setText("");
+    drawn.writing.setGone(false);
     drawn.lines.show(writtenLinesOf(session), store.current);
   }
 
-  private missing(drawn: Drawn, lines: LinesList): void {
+  private missing(drawn: Drawn, lines: LinesList, writing: WritingPanel): void {
     if (this.seen) {
       drawn.gone.setText(NOTE_GONE);
+      writing.setGone(true);
       return;
     }
     lines.show([], this.needs.store.current);

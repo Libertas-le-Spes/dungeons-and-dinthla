@@ -272,6 +272,31 @@ describe("NotePage", () => {
     expect(actions.openLink).toHaveBeenCalledExactlyOnceWith("Old Mill#Wheel", OLD_MILL);
   });
 
+  it("shows what is typed in another box for the same note, so typing in either keeps the other's text", async () => {
+    const drafts = new Drafts({}, () => {});
+    const notes = new FakeNotes(LOADED);
+    const first = await openNote({ drafts, notes });
+    const second = await openNote({ drafts, notes });
+    first.type(TYPED);
+    expect(second.box.value).toBe(TYPED);
+    expect(second.saveButton.disabled).toBe(false);
+    second.type(`${TYPED} Rain.`);
+    expect(first.box.value).toBe(`${TYPED} Rain.`);
+    expect(first.noteDrafts.draftOf(OLD_MILL)).toEqual({ base: LOADED, text: `${TYPED} Rain.` });
+  });
+
+  it("doesn't set the text of a box that already shows the draft, so the caret stays put", async () => {
+    const drafts = new Drafts({}, () => {});
+    const notes = new FakeNotes(LOADED);
+    const first = await openNote({ drafts, notes });
+    const second = await openNote({ drafts, notes });
+    const setFirst = vi.spyOn(first.box, "value", "set");
+    const setSecond = vi.spyOn(second.box, "value", "set");
+    first.type(TYPED);
+    expect(setFirst).toHaveBeenCalledOnce();
+    expect(setSecond).toHaveBeenCalledExactlyOnceWith(TYPED);
+  });
+
   it("stops listening to the note and the drafts when it is closed", async () => {
     const drafts = new Drafts({}, () => {});
     const stopHearingSaves = vi.fn();

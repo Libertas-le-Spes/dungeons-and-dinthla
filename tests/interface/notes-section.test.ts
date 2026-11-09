@@ -3,6 +3,7 @@ import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { CampaignStore } from "../../src/campaign/campaign-store";
 import { notesSection } from "../../src/interface/notes-section";
 import type { AppendWriter } from "../../src/session-notes/append-writer";
+import { DeletedDrafts } from "../../src/session-notes/deleted-drafts";
 import { Drafts } from "../../src/session-notes/drafts";
 import { SessionNotesPage } from "../../src/session-notes/session-notes-page";
 import { obsidianDocument } from "../views/obsidian-dom";
@@ -17,9 +18,11 @@ function made(path: string | null) {
   ];
   const store = { campaignFolder: "Pale Moon", sessionNotes: sessions, current: buildCampaign(sessions), subscribe: () => () => {} };
   const startSession = vi.fn();
+  const drafts = new Drafts({}, () => {});
   const needs = {
     store: store as unknown as CampaignStore,
-    drafts: new Drafts({}, () => {}),
+    drafts,
+    deleted: new DeletedDrafts(drafts, () => 0),
     writer: {} as AppendWriter,
     propertiesOf: () => ({ title: "", played: "" }),
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },

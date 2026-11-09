@@ -69,11 +69,11 @@ describe("NoteDrafts", () => {
     expect(notes.draftOf(OLD_MILL)).toEqual({ base: "", text: "Lady Vess owns it." });
   });
 
-  it("says when a note's save starts and ends, by the note's path, and nothing for a session's", async () => {
+  it("says when a note's draft changes and when its save starts and ends, by the note's path, and nothing for a session's", async () => {
     const { notes, drafts } = noteDrafts();
     const heard: string[] = [];
     const saving: boolean[] = [];
-    notes.subscribe((path) => {
+    notes.subscribe((path: string) => {
       heard.push(path);
       saving.push(notes.isSaving(path));
     });
@@ -81,7 +81,7 @@ describe("NoteDrafts", () => {
     drafts.keep(SESSION, "? Who");
     await notes.save(OLD_MILL, async () => {});
     await drafts.save(SESSION, async () => "");
-    expect(heard).toEqual([OLD_MILL, OLD_MILL]);
-    expect(saving).toEqual([true, false]);
+    expect(heard).toEqual([OLD_MILL, OLD_MILL, OLD_MILL, OLD_MILL]);
+    expect(saving).toEqual([false, true, true, false]);
   });
 });
