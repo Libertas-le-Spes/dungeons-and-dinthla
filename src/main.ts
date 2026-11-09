@@ -51,6 +51,7 @@ import { colourMarkers } from "./reading/colour-markers";
 import { BackgroundRefresh, showBackground, shownBackgroundOf } from "./reading/note-background";
 import { CampaignSettingTab } from "./settings/campaign-setting-tab";
 import { ChosenCampaign } from "./settings/chosen-campaign";
+import { DraftFile } from "./settings/draft-file";
 import { settingsOf, type PluginSettings } from "./settings/plugin-settings";
 import { sessionHeadingOf } from "./sessions/session-heading";
 import { startSession } from "./sessions/start-session";
@@ -75,7 +76,8 @@ export default class DungeonsAndDinthla extends Plugin {
   private chosen = this.chosenCampaignFrom(settingsOf(null));
 
   override async onload(): Promise<void> {
-    this.chosen = this.chosenCampaignFrom(settingsOf(await this.loadData()));
+    const settings = settingsOf(await this.loadData());
+    this.chosen = this.chosenCampaignFrom(settings);
     this.addSettingTab(new CampaignSettingTab(this.app, this, {
       folders: () => this.campaignFolders(),
       chosen: () => chosenCampaignFolder(this.chosen.folder, this.campaignFolders()),
@@ -141,7 +143,7 @@ export default class DungeonsAndDinthla extends Plugin {
     const watchFiles = (changed: (path: string) => void) => this.watchFiles(changed);
     const castNeeds = { store: this.store, characterNotes, sheetNotes, mentionNotes, actions, sheetActions, newCharacter, watchFiles };
     const openers: LookupOpeners = { question: openQuestionAt, quest: openQuestAt, item: openItem };
-    const drafts = new Drafts();
+    const drafts = this.draftsKeptIn(settings);
     this.registerEvent(this.app.vault.on("rename", (file, oldPath) => drafts.moved(oldPath, file.path)));
     const notesNeeds = {
       store: this.store,
@@ -197,6 +199,18 @@ export default class DungeonsAndDinthla extends Plugin {
   private async openCampaignFiles(change: ChangeViewState): Promise<void> {
     await takeOpenLeaves(this.app.workspace, change);
     closeRetiredViews(this.app.workspace);
+  }
+
+  private draftsKeptIn(settings: PluginSettings): Drafts {
+    const timer = {
+      start: (run: () => void, ms: number) => window.setTimeout(run, ms),
+      stop: (id: number) => window.clearTimeout(id),
+    };
+    const failed = (error: unknown) => new Notice(`Couldn't keep the lines typed on the Session notes page: ${messageOf(error)}`);
+    const file = new DraftFile(settings, (changed) => this.saveData(changed), timer, failed);
+    const drafts = new Drafts(settings.drafts, () => file.changed(drafts.all()));
+    this.register(() => file.flush());
+    return drafts;
   }
 
   private chosenCampaignFrom(settings: PluginSettings): ChosenCampaign {

@@ -47,10 +47,23 @@ describe("campaignSections", () => {
     expect([notes?.glyph, notes?.glyphClass]).toEqual(["¶", "dd-nav-glyph-plain"]);
   });
 
+  it("keeps the Notes page on its session when the note is deleted, and leaves the note on every other page", () => {
+    const pages = campaignSections(makersMadeBy([])).flatMap((section) => section.pages);
+    const after = pages.map((page) => [page.id, page.pathAfterDelete("Pale Moon/Sessions/Session 3.md")]);
+    expect(after).toEqual([
+      ["home", null],
+      ["cast", null],
+      ["notes", "Pale Moon/Sessions/Session 3.md"],
+      ["questions", null],
+      ["quests", null],
+      ["funds", null],
+    ]);
+  });
+
   it("makes each page with its own maker", () => {
     const made: PageId[] = [];
     const pages = campaignSections(makersMadeBy(made)).flatMap((section) => section.pages);
-    for (const page of pages) page.make({} as HTMLElement, () => {}, null);
+    for (const page of pages) page.make({} as HTMLElement, () => {}, null, () => {});
     expect(made).toEqual(["home", "cast", "notes", "questions", "quests", "funds"]);
     expect(pages.map((page) => page.id)).toEqual(made);
   });

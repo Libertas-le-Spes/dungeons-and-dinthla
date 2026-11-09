@@ -4,7 +4,7 @@ import type { Campaign } from "../../src/campaign/campaign";
 import type { AppendWriter } from "../../src/session-notes/append-writer";
 import { Drafts } from "../../src/session-notes/drafts";
 import { WritingPanel } from "../../src/session-notes/writing-panel";
-import { obsidianDocument } from "../views/obsidian-dom";
+import { isShown, obsidianDocument } from "../views/obsidian-dom";
 
 const PATH = "Pale Moon/Sessions/Session 12.md";
 const EARLIER = "Pale Moon/Sessions/Session 11.md";
@@ -25,17 +25,31 @@ interface Setup {
   draft?: string;
   campaign?: Campaign;
   save?: (path: string, draft: string) => Promise<string>;
+  drafts?: Drafts;
+  path?: string;
 }
 
-function panelWith({ draft = "", campaign = CAMPAIGN, save = async () => "" }: Setup = {}) {
+interface Waiting {
+  resolve(left: string): void;
+  reject(error: Error): void;
+}
+
+function waitingSave() {
+  const waiting: Waiting[] = [];
+  const save = () => new Promise<string>((resolve, reject) => waiting.push({ resolve, reject }));
+  const finish = (left: string) => waiting.shift()!.resolve(left);
+  const fail = (error: Error) => waiting.shift()!.reject(error);
+  return { save, finish, fail };
+}
+
+function panelWith({ draft = "", campaign = CAMPAIGN, save = async () => "", drafts = new Drafts({}, () => {}), path = PATH }: Setup = {}) {
   const document = obsidianDocument();
   const root = document.createElement("div");
   document.body.append(root);
-  const drafts = new Drafts();
-  drafts.keep(PATH, draft);
+  if (draft !== "") drafts.keep(path, draft);
   const writer = { save: vi.fn(save) };
   const openers = { question: vi.fn(), quest: vi.fn(), item: vi.fn() };
-  const panel = new WritingPanel(root, PATH, { drafts, writer: writer as unknown as AppendWriter, openers, campaign: () => campaign });
+  const panel = new WritingPanel(root, path, { drafts, writer: writer as unknown as AppendWriter, openers, campaign: () => campaign });
   const box = root.querySelector("textarea")!;
   const window = document.defaultView!;
   const type = (text: string) => {
@@ -130,8 +144,7 @@ describe("WritingPanel", () => {
   });
 
   it("holds the box still while saving, and saves once however often Save is pressed", async () => {
-    let finish = (_left: string) => {};
-    const save = () => new Promise<string>((resolve) => (finish = resolve));
+    const { save, finish } = waitingSave();
     const { saveButton, type, box, writer, press } = panelWith({ save });
     type("? Who");
     saveButton.click();
@@ -145,9 +158,9 @@ describe("WritingPanel", () => {
 
   it("suggests open questions holding every word typed on a ?? line, newest first, with the words marked", () => {
     const { type, options, heading, lookups } = panelWith();
-    expect(lookups.hidden).toBe(true);
+    expect(isShown(lookups)).toBe(false);
     type("Tracks lead north\n?? old mill");
-    expect(lookups.hidden).toBe(false);
+    expect(isShown(lookups)).toBe(true);
     expect(heading()).toBe("Pick the question to answer");
     expect(options()).toEqual(["true ?Why does the Old Mill wheel turn at night", "false ?Who owns the Old Mill"]);
     expect(Array.from(lookups.querySelectorAll("mark")).map((mark) => mark.textContent)).toEqual(["Old", "Mill", "Old", "Mill"]);
@@ -184,10 +197,10 @@ describe("WritingPanel", () => {
   it("follows the line the caret is on, and closes off a lookup line", () => {
     const { type, box, lookups } = panelWith();
     type("?? mill\nTracks lead north");
-    expect(lookups.hidden).toBe(true);
+    expect(isShown(lookups)).toBe(false);
     box.setSelectionRange(3, 3);
     box.dispatchEvent(new box.ownerDocument.defaultView!.MouseEvent("click"));
-    expect(lookups.hidden).toBe(false);
+    expect(isShown(lookups)).toBe(true);
   });
 
   it("moves through the suggestions with the arrows, wrapping at both ends", () => {
@@ -207,9 +220,9 @@ describe("WritingPanel", () => {
     type("?? who");
     const escape = press("Escape");
     expect(escape.defaultPrevented).toBe(true);
-    expect(lookups.hidden).toBe(true);
+    expect(isShown(lookups)).toBe(false);
     type("?? who sent");
-    expect(lookups.hidden).toBe(false);
+    expect(isShown(lookups)).toBe(true);
   });
 
   it("picks the chosen suggestion with Enter: the lookup line leaves the box and the dialog opens, coming back to the box", () => {
@@ -222,7 +235,7 @@ describe("WritingPanel", () => {
     expect(enter.defaultPrevented).toBe(true);
     expect(box.value).toBe("? Why\nTracks");
     expect(drafts.textOf(PATH)).toBe("? Why\nTracks");
-    expect(lookups.hidden).toBe(true);
+    expect(isShown(lookups)).toBe(false);
     expect(openers.question).toHaveBeenCalledExactlyOnceWith({ path: EARLIER, line: 0 }, expect.any(Function));
     const [, onClosed] = openers.question.mock.lastCall!;
     box.blur();
@@ -236,5 +249,120 @@ describe("WritingPanel", () => {
     lookups.querySelector<HTMLElement>("[role=option]")!.click();
     expect(openers.item).toHaveBeenCalledExactlyOnceWith("Silvered lantern", { path: EARLIER, line: 4 }, expect.any(Function));
     expect(box.value).toBe("");
+  });
+
+  it("leaves Enter and the arrows to the box when no suggestions show", () => {
+    const { type, press } = panelWith();
+    type("Tracks lead north");
+    expect(press("Enter").defaultPrevented).toBe(false);
+    expect(press("ArrowUp").defaultPrevented).toBe(false);
+    expect(press("ArrowDown").defaultPrevented).toBe(false);
+  });
+
+  it("leaves Enter to the box once Esc has closed the suggestions", () => {
+    const { type, press } = panelWith();
+    type("?? who");
+    press("Escape");
+    expect(press("Enter").defaultPrevented).toBe(false);
+  });
+
+  it("keeps Esc from reaching the page when it closes the suggestions", () => {
+    const { type, press, root } = panelWith();
+    const pageKeys = vi.fn();
+    root.addEventListener("keydown", pageKeys);
+    type("?? who");
+    press("Escape");
+    expect(pageKeys).not.toHaveBeenCalled();
+  });
+
+  it("closes the suggestions when the box loses focus", () => {
+    const { type, box, lookups } = panelWith();
+    type("?? who");
+    box.dispatchEvent(new box.ownerDocument.defaultView!.FocusEvent("blur"));
+    expect(isShown(lookups)).toBe(false);
+  });
+
+  it("keeps the focus in the box when a suggestion is pressed", () => {
+    const { type, lookups, box } = panelWith();
+    type("?? who");
+    const press = new box.ownerDocument.defaultView!.MouseEvent("mousedown", { cancelable: true, bubbles: true });
+    lookups.querySelector("[role=option]")!.dispatchEvent(press);
+    expect(press.defaultPrevented).toBe(true);
+  });
+
+  it("closes the suggestions when saving, and opens none while the save runs", async () => {
+    const { save, finish } = waitingSave();
+    const { type, press, lookups, box } = panelWith({ save });
+    type("? Why\n?? who");
+    expect(isShown(lookups)).toBe(true);
+    press("Enter", { ctrlKey: true });
+    expect(isShown(lookups)).toBe(false);
+    box.dispatchEvent(new box.ownerDocument.defaultView!.MouseEvent("click"));
+    expect(isShown(lookups)).toBe(false);
+    finish("?? who");
+    await vi.waitFor(() => expect(box.readOnly).toBe(false));
+  });
+
+  it("clears the message about a failed save once a save goes through", async () => {
+    const { save, finish, fail } = waitingSave();
+    const { saveButton, type, root, box } = panelWith({ save });
+    const message = root.querySelector(".dd-save-message")!;
+    type("? Who");
+    saveButton.click();
+    fail(new Error(`${PATH} was moved or deleted`));
+    await vi.waitFor(() => expect(message.textContent).not.toBe(""));
+    saveButton.click();
+    finish("");
+    await vi.waitFor(() => expect(box.value).toBe(""));
+    expect(message.textContent).toBe("");
+  });
+
+  it("holds every box of the session still while one saves, then shows them what is left, saving once", async () => {
+    const drafts = new Drafts({}, () => {});
+    const { save, finish } = waitingSave();
+    const first = panelWith({ drafts, save });
+    first.type("? Who\n?? letter");
+    first.saveButton.click();
+    const second = panelWith({ drafts, save });
+    expect(second.box.value).toBe("? Who\n?? letter");
+    expect(second.box.readOnly).toBe(true);
+    await second.panel.save();
+    expect(second.writer.save).not.toHaveBeenCalled();
+    finish("?? letter");
+    await vi.waitFor(() => expect(second.box.value).toBe("?? letter"));
+    expect(second.box.readOnly).toBe(false);
+    expect(first.box.value).toBe("?? letter");
+    expect(drafts.textOf(PATH)).toBe("?? letter");
+    expect(first.writer.save).toHaveBeenCalledOnce();
+  });
+
+  it("keeps what is left of a save under the session's new name when it is renamed while saving", async () => {
+    const drafts = new Drafts({}, () => {});
+    const { save, finish } = waitingSave();
+    const renamed = "Pale Moon/Sessions/Session 13.md";
+    const first = panelWith({ drafts, save });
+    first.type("? Who\n?? letter");
+    first.saveButton.click();
+    drafts.moved(PATH, renamed);
+    const second = panelWith({ drafts, save, path: renamed });
+    expect(second.box.readOnly).toBe(true);
+    finish("?? letter");
+    await vi.waitFor(() => expect(second.box.value).toBe("?? letter"));
+    expect(drafts.textOf(renamed)).toBe("?? letter");
+    expect(drafts.textOf(PATH)).toBe("");
+    expect(first.writer.save).toHaveBeenCalledExactlyOnceWith(PATH, "? Who\n?? letter");
+  });
+
+  it("stops following the session's saves once closed", async () => {
+    const drafts = new Drafts({}, () => {});
+    const { save, finish } = waitingSave();
+    const closed = panelWith({ drafts, draft: "? Who" });
+    closed.panel.close();
+    const open = panelWith({ drafts, save });
+    open.saveButton.click();
+    expect(closed.box.readOnly).toBe(false);
+    finish("");
+    await vi.waitFor(() => expect(open.box.value).toBe(""));
+    expect(closed.box.value).toBe("? Who");
   });
 });

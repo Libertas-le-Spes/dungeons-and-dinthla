@@ -13,6 +13,7 @@ import { writtenLinesOf } from "./written-lines";
 
 const PAGE_TITLE = "Session notes";
 const NO_SESSION = "No sessions yet. Start one to write in it.";
+const NOTE_GONE = "This session's note was deleted, so nothing more can be saved to it. What you typed is still in the box.";
 
 export interface SessionNotesNeeds {
   store: CampaignStore;
@@ -23,38 +24,55 @@ export interface SessionNotesNeeds {
   actions: LinkActions;
 }
 
+export interface NotesMoves extends PickerMoves {
+  stayOn(path: string): void;
+}
+
 interface Drawn {
   path: string | null;
   picker: SessionPicker;
+  gone: HTMLElement;
   lines: LinesList | null;
+  writing: WritingPanel | null;
 }
 
 export class SessionNotesPage extends Component {
   private drawn: Drawn | null = null;
+  private chosen: string | null;
+  private seen = false;
 
   constructor(
     private readonly contentEl: HTMLElement,
-    private readonly asked: string | null,
+    asked: string | null,
     private readonly needs: SessionNotesNeeds,
-    private readonly moves: PickerMoves,
+    private readonly moves: NotesMoves,
   ) {
     super();
+    this.chosen = asked;
   }
 
   override onload(): void {
     this.contentEl.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-session-notes");
     this.register(this.needs.store.subscribe(() => this.campaignChanged()));
+    this.register(() => this.closeWriting());
     this.draw();
   }
 
-  private shownPath(): string | null {
+  private sessionToShow(): string | null {
     const store = this.needs.store;
-    return sessionShown(this.asked, store.campaignFolder, store.sessionNotes);
+    const path = sessionShown(this.chosen, store.campaignFolder, store.sessionNotes);
+    if (this.chosen === null && path !== null) this.stayOn(path);
+    return path;
+  }
+
+  private stayOn(path: string): void {
+    this.chosen = path;
+    this.moves.stayOn(path);
   }
 
   private campaignChanged(): void {
     const drawn = this.drawn;
-    if (drawn === null || drawn.path !== this.shownPath()) {
+    if (drawn === null || drawn.path !== this.sessionToShow()) {
       this.draw();
       return;
     }
@@ -62,20 +80,27 @@ export class SessionNotesPage extends Component {
   }
 
   private draw(): void {
+    this.closeWriting();
     const root = this.contentEl;
     root.empty();
-    const path = this.shownPath();
+    const path = this.sessionToShow();
     const picker = new SessionPicker(root, this.moves);
+    const gone = root.createEl("p", { cls: "dd-note-gone", attr: { "aria-live": "polite" } });
     if (path === null) {
       root.createEl("p", { cls: "dd-empty", text: this.noSessionText() });
-      this.drawn = { path, picker, lines: null };
+      this.drawn = { path, picker, gone, lines: null, writing: null };
       this.update(this.drawn);
       return;
     }
     const writing = new WritingPanel(root, path, { ...this.needs, campaign: () => this.needs.store.current });
-    this.drawn = { path, picker, lines: new LinesList(root, this.needs.actions) };
+    this.drawn = { path, picker, gone, lines: new LinesList(root, this.needs.actions), writing };
     this.update(this.drawn);
     writing.focus();
+  }
+
+  private closeWriting(): void {
+    if (this.drawn === null || this.drawn.writing === null) return;
+    this.drawn.writing.close();
   }
 
   private update(drawn: Drawn): void {
@@ -84,8 +109,21 @@ export class SessionNotesPage extends Component {
     drawn.picker.show(this.headingOf(drawn.path), choices, drawn.path);
     if (drawn.lines === null || drawn.path === null) return;
     const session = store.sessionNotes.find((candidate) => candidate.path === drawn.path);
-    if (session === undefined) drawn.lines.show([], store.current);
-    else drawn.lines.show(writtenLinesOf(session), store.current);
+    if (session === undefined) {
+      this.missing(drawn, drawn.lines);
+      return;
+    }
+    this.seen = true;
+    drawn.gone.setText("");
+    drawn.lines.show(writtenLinesOf(session), store.current);
+  }
+
+  private missing(drawn: Drawn, lines: LinesList): void {
+    if (this.seen) {
+      drawn.gone.setText(NOTE_GONE);
+      return;
+    }
+    lines.show([], this.needs.store.current);
   }
 
   private headingOf(path: string | null): string {
