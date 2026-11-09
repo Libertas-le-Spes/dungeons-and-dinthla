@@ -134,6 +134,27 @@
 .dd-session-notes .dd-note-gone:empty {
   display: none;
 }
+.dd-session-notes .dd-kept-heading {
+  margin: 0 0 var(--space-2);
+  font: var(--type-label);
+  color: var(--text-muted-ui);
+}
+.dd-session-notes .dd-kept + .dd-kept {
+  margin-top: var(--space-4);
+}
+.dd-session-notes .dd-kept-message {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+.dd-session-notes .dd-kept-text {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  font: var(--type-note);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 
 .dd-session-notes .dd-written-lines {
   list-style: none;

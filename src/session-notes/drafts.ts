@@ -2,14 +2,14 @@ import { RunningSaves } from "./running-saves";
 
 export type WriteDraft = (path: string, draft: string) => Promise<string>;
 
-export type SaveListener = (path: string) => void;
+export type DraftListener = (path: string) => void;
 
 export type DraftsChanged = () => void;
 
 export class Drafts {
   private readonly texts: Map<string, string>;
   private readonly saves = new RunningSaves();
-  private readonly listeners = new Set<SaveListener>();
+  private readonly listeners = new Set<DraftListener>();
 
   constructor(
     kept: Record<string, string>,
@@ -28,11 +28,16 @@ export class Drafts {
     return Object.fromEntries(this.texts);
   }
 
+  keys(): string[] {
+    return Array.from(this.texts.keys());
+  }
+
   keep(path: string, text: string): void {
     if (this.textOf(path) === text) return;
     if (text === "") this.texts.delete(path);
     else this.texts.set(path, text);
     this.changed();
+    this.tell(path);
   }
 
   moved(oldPath: string, path: string): void {
@@ -44,11 +49,18 @@ export class Drafts {
     this.changed();
   }
 
+  setAside(path: string, key: string): void {
+    if (!this.texts.has(path)) return;
+    this.moved(path, key);
+    this.tell(path);
+    this.tell(key);
+  }
+
   isSaving(path: string): boolean {
     return this.saves.isRunning(path);
   }
 
-  subscribe(listener: SaveListener): () => void {
+  subscribe(listener: DraftListener): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   }
