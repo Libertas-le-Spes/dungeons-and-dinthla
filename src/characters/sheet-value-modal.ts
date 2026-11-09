@@ -27,6 +27,10 @@ export function removesNoteLines(value: SheetValue, state: ValueState): boolean 
   return value.override !== null && !isSheetName(value.name) && CLEARING_STATES.includes(state);
 }
 
+export function notKnownOverCarriedText(label: string): string {
+  return `Not known yet adds a ? line, which wins over the carried ${label.toLowerCase()} until a later line states it.`;
+}
+
 export function secondPressText(character: string, label: string): string {
   return `Learned at the table, Carried over and Not known yet remove ${label} from ${character}'s note, so they need a second press.`;
 }
@@ -85,6 +89,7 @@ export class SheetValueModal extends Modal {
     const choices = contentEl.createDiv({ cls: "dd-state-choices" });
     for (const state of STATES) this.addChoice(choices, state);
     contentEl.createEl("p", { cls: "dd-where", text: whereText(this.dialog.character, this.dialog.sessionLabel) });
+    if (value.carried !== null && value.learned === null) contentEl.createEl("p", { cls: "dd-where", text: notKnownOverCarriedText(value.label) });
     if (removesNoteLines(value, "learned")) contentEl.createEl("p", { cls: "dd-where", text: secondPressText(this.dialog.character, value.label) });
   }
 

@@ -38,6 +38,10 @@ export function learnedHereWins(label: string): string {
   return `The ${label.toLowerCase()} was learned in this campaign, which wins over a carried value, so nothing was written.`;
 }
 
+export function markedNotKnownHere(label: string): string {
+  return `A ? line in this campaign marks the ${label.toLowerCase()} not known, and it wins over the carried value until a later line states it, so nothing was written.`;
+}
+
 export function carriedDiffers(label: string, campaign: string): string {
   return `The carried ${label.toLowerCase()} comes from ${campaign}. Change it there, or choose Override.`;
 }
@@ -88,6 +92,7 @@ function unknownWrite(value: SheetValue): SheetWrite {
 
 function carriedWrite(value: SheetValue, written: string): SheetWrite {
   if (value.carried === null || value.carriedCampaign === null) throw new Error(nothingCarried(value.label));
+  if (value.learned !== null && value.learned.value === NOT_KNOWN) throw new Error(markedNotKnownHere(value.label));
   if (value.learned !== null) throw new Error(learnedHereWins(value.label));
   if (written !== "" && written !== value.carried.value) throw new Error(carriedDiffers(value.label, value.carriedCampaign));
   return { override: overrideChange(value, ""), sessionFact: null };
