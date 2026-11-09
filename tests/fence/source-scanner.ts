@@ -182,7 +182,13 @@ const LEAF_OPENER = "open";
 
 const LEAF_VIEW = "view";
 
-const LEAF_READS = [LEAF_OPENER, LEAF_VIEW, VIEW_FILE];
+const EVENT_LISTENER = "on";
+
+const EVENT_OWNERS = ["Workspace", "Events"];
+
+export const NOTE_EVENTS = ["file-open", "active-leaf-change", "editor-change", "file-menu", "editor-menu", "quick-preview"];
+
+const BOUND_READS = [LEAF_OPENER, LEAF_VIEW, VIEW_FILE, EVENT_LISTENER];
 
 export type Allowed = (path: string) => boolean;
 
@@ -201,6 +207,7 @@ export interface Allowances {
   eventTrigger: Allowed;
   leafView: Allowed;
   viewFile: Allowed;
+  noteEvents: Allowed;
 }
 
 interface BoundRead {
@@ -241,6 +248,7 @@ interface Found {
   calledOnly: Named[];
   openings: CallExpression[];
   calledNames: Set<Node>;
+  listenedEvents: Map<Node, string>;
   viewFiles: Expression[];
   boundReads: BoundRead[];
   satisfied: Node[];
@@ -287,6 +295,7 @@ function emptyFound(): Found {
     calledOnly: [],
     openings: [],
     calledNames: new Set(),
+    listenedEvents: new Map(),
     viewFiles: [],
     boundReads: [],
     satisfied: [],
@@ -422,14 +431,18 @@ function addCall(found: Found, call: CallExpression): void {
     found.calledNames.add(name);
   }
   const [event] = call.arguments;
-  if (text === EVENT_TRIGGER && event !== undefined && literalTextOf(event) !== null) found.calledNames.add(name);
+  if (event === undefined) return;
+  const eventName = literalTextOf(event);
+  if (eventName === null) return;
+  if (text === EVENT_TRIGGER) found.calledNames.add(name);
+  if (text === EVENT_LISTENER) found.listenedEvents.set(name, eventName);
 }
 
 function addBoundRead(found: Found, binding: BindingElement): void {
   const key = keyOfBinding(binding);
   if (key === undefined) return;
   const name = nameTextOf(key);
-  if (name === null || !LEAF_READS.includes(name)) return;
+  if (name === null || !BOUND_READS.includes(name)) return;
   const declaration = binding.parent.parent;
   if (!isVariableDeclaration(declaration) || declaration.initializer === undefined) {
     found.boundReads.push({ node: key, name, owner: binding.parent });
@@ -643,14 +656,22 @@ export class SourceScanner {
       if (name === EVENT_TRIGGER && allowances.eventTrigger(path)) continue;
       breaches.push(`${where(node)} takes ${name} without calling it with what it can read`);
     }
+    for (const { node } of this.ownedReads(project, found, EVENT_LISTENER, EVENT_OWNERS)) {
+      const event = found.listenedEvents.get(node);
+      if (event === undefined) {
+        if (!path.includes(GATE_FOLDER)) breaches.push(`${where(node)} listens to a workspace event it can't read`);
+        continue;
+      }
+      if (NOTE_EVENTS.includes(event) && !allowances.noteEvents(path)) breaches.push(`${where(node)} listens to the ${event} workspace event, which hands over any note`);
+    }
     for (const call of found.openings.filter((opening) => !this.opensFromGate(project, opening))) breaches.push(`${where(call)} opens a file that doesn't come from the gate`);
     for (const owner of found.viewFiles.filter((viewFile) => this.isActiveView(project, viewFile))) breaches.push(`${where(owner)} takes the file of the active view`);
-    for (const { node, name } of this.leafReads(project, found, LEAF_OPENER, LEAF_OWNERS)) breaches.push(`${where(node)} opens a view in a leaf with ${name}`);
+    for (const { node, name } of this.ownedReads(project, found, LEAF_OPENER, LEAF_OWNERS)) breaches.push(`${where(node)} opens a view in a leaf with ${name}`);
     if (!allowances.leafView(path)) {
-      for (const { node, name } of this.leafReads(project, found, LEAF_VIEW, LEAF_OWNERS)) breaches.push(`${where(node)} reads the ${name} of a leaf`);
+      for (const { node, name } of this.ownedReads(project, found, LEAF_VIEW, LEAF_OWNERS)) breaches.push(`${where(node)} reads the ${name} of a leaf`);
     }
     if (!allowances.viewFile(path)) {
-      for (const { node, name } of this.leafReads(project, found, VIEW_FILE, FILE_VIEW_OWNERS)) breaches.push(`${where(node)} reads the ${name} of a view`);
+      for (const { node, name } of this.ownedReads(project, found, VIEW_FILE, FILE_VIEW_OWNERS)) breaches.push(`${where(node)} reads the ${name} of a view`);
     }
     const hoverLink = sourceFile.text.indexOf(HOVER_LINK);
     if (hoverLink !== -1) breaches.push(`${path.slice(this.root.length + 1)}:${sourceFile.getLineAndCharacterOfPosition(hoverLink).line + 1} names the ${HOVER_LINK} event`);
@@ -673,7 +694,7 @@ export class SourceScanner {
     return breaches;
   }
 
-  private leafReads(project: Project, found: Found, name: string, owners: string[]): Named[] {
+  private ownedReads(project: Project, found: Found, name: string, owners: string[]): Named[] {
     const read = this.ownedBy(project, found.members.filter((member) => member.name === name), (symbol) => isObsidianOwnedByOneOf(symbol, owners));
     const bound = found.boundReads.filter((candidate) => candidate.name === name);
     const types = project.checker.getTypeAtLocation(bound.map(({ owner }) => owner));

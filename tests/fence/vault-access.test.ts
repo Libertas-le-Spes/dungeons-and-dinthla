@@ -29,6 +29,7 @@ const ACTIVE_VIEW_READERS = ["interface/open-in-editor.ts", "interface/shown-cam
 const EVENT_TRIGGERS = ["fence/fenced-files.ts"];
 const LEAF_VIEW_READERS = ["main.ts", "interface/one-campaign-tab.ts", "interface/seen-tab.ts", "interface/view-state-patch.ts"];
 const VIEW_FILE_READERS = ["main.ts", "campaign/editor-text.ts", "editor/marker-decorations.ts", "interface/campaign-takeover.ts"];
+const NOTE_EVENT_LISTENERS = ["main.ts"];
 const HIDDEN_CODE = [".js", ".mjs", ".cjs", ".mts", ".cts", ".tsx", ".jsx"];
 const REACHING_SAMPLES = [
   "this.app.vault.read(file);",
@@ -411,7 +412,33 @@ const FILE_CHANGING_SAMPLES = [
   'import type { TFile } from "obsidian";\nexport function move(file: TFile, other: { path: string }) {\n  ({ path: file.path } = other);\n}',
 ];
 
-const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...WRITE_NAME_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...FOLDER_WALK_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...NOTE_READING_SAMPLES, ...VIEW_TEXT_SAMPLES, ...CODE_MIRROR_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...OPENING_SAMPLES, ...ALLOWED_OPENING_SAMPLES, ...GATED_OPENING_SAMPLES, ...GATE_FORGING_SAMPLES, ...FILE_CHANGING_SAMPLES, ...LEAF_SAMPLES, ...LEAF_VIEW_SAMPLES, ...VIEW_FILE_SAMPLES, ...HARMLESS_SAMPLES];
+const NOTE_EVENT_SAMPLES = [
+  'import type { App } from "obsidian";\nexport const listen = (app: App, heard: () => void) => app.workspace.on("file-open", heard);',
+  'import type { App } from "obsidian";\nexport const listen = (app: App, heard: () => void) => app.workspace.on("active-leaf-change", heard);',
+  'import type { App } from "obsidian";\nexport const listen = (app: App, heard: () => void) => app.workspace.on("editor-change", heard);',
+  'import type { App } from "obsidian";\nexport const listen = (app: App, heard: () => void) => app.workspace.on("file-menu", heard);',
+  'import type { App } from "obsidian";\nexport const listen = (app: App, heard: () => void) => app.workspace.on("editor-menu", heard);',
+  'import type { App } from "obsidian";\nexport const listen = (app: App, heard: () => void) => app.workspace.on("quick-preview", heard);',
+  'import type { App } from "obsidian";\nexport const listen = (app: App, heard: () => void) => app.workspace["on"]("file-open", heard);',
+  'import type { App, Events } from "obsidian";\nexport const listen = (app: App, heard: () => void) => (app.workspace as Events).on("file-open", heard);',
+  'import type { Workspace } from "obsidian";\nexport const listen = (workspace: Pick<Workspace, "on">, heard: () => void) => workspace.on("file-open", heard);',
+];
+
+const UNREAD_EVENT_SAMPLES = [
+  'import type { App } from "obsidian";\nexport const listen = (app: App, name: "file-open", heard: () => void) => app.workspace.on(name, heard);',
+  'import type { App } from "obsidian";\nexport function listener(app: App) {\n  const { on } = app.workspace;\n  return on;\n}',
+  'import type { App } from "obsidian";\nexport const listener = (app: App) => app.workspace.on.bind(app.workspace);',
+  'import type { App } from "obsidian";\nexport const listen = (app: App, heard: () => void) => app.workspace.on.call(app.workspace, "file-open", heard);',
+  'import type { App } from "obsidian";\nexport const listen = (app: App, heard: () => void) => app.workspace.on(`file-${"open"}`, heard);',
+];
+
+const HARMLESS_EVENT_SAMPLES = [
+  'import type { App } from "obsidian";\nexport const listen = (app: App, heard: () => void) => app.workspace.on("css-change", heard);',
+  'import { Events } from "obsidian";\nexport const listen = (heard: () => void) => new Events().on("dd-said", heard);',
+  'export const listen = (bell: { on(name: string, heard: () => void): void }, name: string, heard: () => void) => bell.on(name, heard);',
+];
+
+const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...WRITE_NAME_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...FOLDER_WALK_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...NOTE_READING_SAMPLES, ...VIEW_TEXT_SAMPLES, ...CODE_MIRROR_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...OPENING_SAMPLES, ...ALLOWED_OPENING_SAMPLES, ...GATED_OPENING_SAMPLES, ...GATE_FORGING_SAMPLES, ...FILE_CHANGING_SAMPLES, ...NOTE_EVENT_SAMPLES, ...UNREAD_EVENT_SAMPLES, ...HARMLESS_EVENT_SAMPLES, ...LEAF_SAMPLES, ...LEAF_VIEW_SAMPLES, ...VIEW_FILE_SAMPLES, ...HARMLESS_SAMPLES];
 
 interface Planted {
   name: string;
@@ -544,6 +571,7 @@ const NOTHING_ALLOWED: Allowances = {
   eventTrigger: isNeverAllowed,
   leafView: isNeverAllowed,
   viewFile: isNeverAllowed,
+  noteEvents: isNeverAllowed,
 };
 
 function isAlwaysAllowed(): boolean {
@@ -567,6 +595,7 @@ const ALL_ALLOWED: Allowances = {
   eventTrigger: isAlwaysAllowed,
   leafView: isAlwaysAllowed,
   viewFile: isAlwaysAllowed,
+  noteEvents: isAlwaysAllowed,
 };
 
 function isOneOf(files: string[]): (path: string) => boolean {
@@ -592,6 +621,7 @@ const SOURCE_ALLOWANCES: Allowances = {
   eventTrigger: isOneOf(EVENT_TRIGGERS),
   leafView: isOneOf(LEAF_VIEW_READERS),
   viewFile: isOneOf(VIEW_FILE_READERS),
+  noteEvents: isOneOf(NOTE_EVENT_LISTENERS),
 };
 
 let scanner: SourceScanner;
@@ -766,6 +796,7 @@ describe("the vault fence", () => {
     { allowance: "eventTrigger", files: EVENT_TRIGGERS, breach: "takes trigger without calling it with what it can read" },
     { allowance: "leafView", files: LEAF_VIEW_READERS, breach: "reads the view of a leaf" },
     { allowance: "viewFile", files: VIEW_FILE_READERS, breach: "reads the file of a view" },
+    { allowance: "noteEvents", files: NOTE_EVENT_LISTENERS, breach: "workspace event, which hands over any note" },
   ] as const)("lets only the files allowed $allowance do it, each of which still needs it", ({ allowance, files, breach }) => {
     const allowedEverythingElse: Allowances = { ...SOURCE_ALLOWANCES, [allowance]: isNeverAllowed };
     for (const file of files) {
@@ -885,6 +916,18 @@ describe("the vault fence", () => {
 
   it.each(FILE_CHANGING_SAMPLES)("would catch changing a vault file outside the gate's folder with %s, even in a file allowed everything else", (sample) => {
     expect(sampleBreaches(sample, ALL_ALLOWED)).not.toEqual([]);
+  });
+
+  it.each(NOTE_EVENT_SAMPLES)("would catch listening to a workspace event that hands over any note with %s, in a file allowed everything else", (sample) => {
+    expect(sampleBreaches(sample, { ...ALL_ALLOWED, noteEvents: isNeverAllowed })).not.toEqual([]);
+  });
+
+  it.each(UNREAD_EVENT_SAMPLES)("would catch listening to a workspace event the scan can't read with %s, even in a file allowed everything else", (sample) => {
+    expect(sampleBreaches(sample, ALL_ALLOWED)).not.toEqual([]);
+  });
+
+  it.each(HARMLESS_EVENT_SAMPLES)("lets %s pass, since the event hands over no note", (sample) => {
+    expect(sampleBreaches(sample)).toEqual([]);
   });
 
   it.each(LEAF_SAMPLES)("would catch reaching a leaf other than through the campaign tab, or opening a view in one, with %s, even in a file allowed everything else", (sample) => {
