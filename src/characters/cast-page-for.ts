@@ -1,5 +1,5 @@
 import type { Component, TFile } from "obsidian";
-import { isCharacterNotePath } from "../campaign/campaign-folders";
+import { campaignOfCharacter } from "../campaign/campaign-folders";
 import type { SheetNotes } from "./sheet-notes";
 
 export interface CastPages {
@@ -9,7 +9,8 @@ export interface CastPages {
 }
 
 function characterFileAt(path: string | null, notes: CastPages["notes"]): TFile | null {
-  if (path === null || !isCharacterNotePath(path, notes.campaignFolders())) return null;
+  if (path === null) return null;
+  if (campaignOfCharacter(path, notes.campaignFolders()) === null) return null;
   return notes.fileAt(path);
 }
 

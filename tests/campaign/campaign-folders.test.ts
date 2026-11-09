@@ -9,7 +9,7 @@ import {
   mainNotePathOf,
   charactersBasePathOf,
   charactersFolderOf,
-  isCharacterNotePath,
+  campaignOfCharacter,
   startingCampaignFolder,
 } from "../../src/campaign/campaign-folders";
 
@@ -69,26 +69,27 @@ describe("charactersBasePathOf", () => {
   });
 });
 
-describe("isCharacterNotePath", () => {
+describe("campaignOfCharacter", () => {
   const folders = ["Ashen Road", "Pale Moon"];
 
-  it("takes a Markdown note in a campaign's Characters folder, or a folder inside it", () => {
-    expect(isCharacterNotePath("Pale Moon/Characters/Mira.md", folders)).toBe(true);
-    expect(isCharacterNotePath("Pale Moon/Characters/Villains/Lady Vess.md", folders)).toBe(true);
+  it("is the campaign of a Markdown note in its Characters folder, or a folder inside it", () => {
+    expect(campaignOfCharacter("Pale Moon/Characters/Mira.md", folders)).toBe("Pale Moon");
+    expect(campaignOfCharacter("Ashen Road/Characters/Villains/Lady Vess.md", folders)).toBe("Ashen Road");
   });
 
-  it("leaves out other files in the Characters folder", () => {
-    expect(isCharacterNotePath("Pale Moon/Characters/Mira.png", folders)).toBe(false);
+  it("is nothing for another file in the Characters folder", () => {
+    expect(campaignOfCharacter("Pale Moon/Characters/Mira.png", folders)).toBeNull();
   });
 
-  it("leaves out notes elsewhere in the campaign, and in a folder only named like Characters", () => {
-    expect(isCharacterNotePath("Pale Moon/Places/Old Mill.md", folders)).toBe(false);
-    expect(isCharacterNotePath("Pale Moon/Characters.md", folders)).toBe(false);
-    expect(isCharacterNotePath("Pale Moon/Characters old/Mira.md", folders)).toBe(false);
+  it("is nothing for a note elsewhere in the campaign, or in a folder only named like Characters", () => {
+    expect(campaignOfCharacter("Pale Moon/Sessions/Session 1.md", folders)).toBeNull();
+    expect(campaignOfCharacter("Pale Moon/Characters.md", folders)).toBeNull();
+    expect(campaignOfCharacter("Pale Moon/Characters.base", folders)).toBeNull();
+    expect(campaignOfCharacter("Pale Moon/Characters old/Mira.md", folders)).toBeNull();
   });
 
-  it("leaves out a Characters folder of a folder that isn't a campaign", () => {
-    expect(isCharacterNotePath("Gilded Stag/Characters/Mira.md", folders)).toBe(false);
+  it("is nothing for a Characters folder of a folder that isn't a campaign", () => {
+    expect(campaignOfCharacter("Gilded Stag/Characters/Mira.md", folders)).toBeNull();
   });
 });
 
