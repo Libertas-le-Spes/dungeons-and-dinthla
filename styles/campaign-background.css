@@ -36,3 +36,22 @@
 .dd-wash-strong::after {
   opacity: var(--campaign-wash-strong);
 }
+
+.dd-campaign-frame.dd-tab-picture {
+  background:
+    linear-gradient(var(--dd-tab-wash), var(--dd-tab-wash)),
+    var(--dd-campaign-picture) center / cover no-repeat,
+    var(--surface-page);
+}
+
+.dd-tab-wash-subtle {
+  --dd-tab-wash: color-mix(in srgb, var(--surface-page) calc(var(--campaign-wash-subtle) * 100%), transparent);
+}
+
+.dd-tab-wash-balanced {
+  --dd-tab-wash: color-mix(in srgb, var(--surface-page) calc(var(--campaign-wash-balanced) * 100%), transparent);
+}
+
+.dd-tab-wash-strong {
+  --dd-tab-wash: color-mix(in srgb, var(--surface-page) calc(var(--campaign-wash-strong) * 100%), transparent);
+}

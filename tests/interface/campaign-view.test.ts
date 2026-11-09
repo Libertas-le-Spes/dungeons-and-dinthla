@@ -30,6 +30,30 @@ class FakePage extends Component {
   }
 }
 
+class FakeBackdrop extends Component {
+  loaded = false;
+
+  constructor(readonly frameEl: HTMLElement) {
+    super();
+  }
+
+  override onload(): void {
+    this.loaded = true;
+  }
+
+  override onunload(): void {
+    this.loaded = false;
+  }
+}
+
+function backdropsInto(backdrops: FakeBackdrop[]): (frameEl: HTMLElement) => FakeBackdrop {
+  return (frameEl) => {
+    const backdrop = new FakeBackdrop(frameEl);
+    backdrops.push(backdrop);
+    return backdrop;
+  };
+}
+
 class FakeVault {
   readonly listeners = new Map<string, (...args: unknown[]) => void>();
   readonly removed: string[] = [];
@@ -110,7 +134,8 @@ async function openView({
     }),
   };
   const vault = new FakeVault();
-  const view = new CampaignView(leaf as unknown as WorkspaceLeaf, store as unknown as CampaignStore, sections, followCampaign);
+  const backdrops: FakeBackdrop[] = [];
+  const view = new CampaignView(leaf as unknown as WorkspaceLeaf, store as unknown as CampaignStore, sections, followCampaign, backdropsInto(backdrops));
   view.app = { workspace: { requestSaveLayout }, vault } as unknown as CampaignView["app"];
   const root = obsidianDocument().createElement("div");
   view.contentEl = root;
@@ -122,7 +147,7 @@ async function openView({
     store.campaignFolder = nextFolder;
     listener();
   };
-  return { view, root, made, change, unsubscribe, requestSaveLayout, leaf, results, vault, followCampaign };
+  return { view, root, made, change, unsubscribe, requestSaveLayout, leaf, results, vault, followCampaign, backdrops };
 }
 
 function linkLabelled(root: HTMLElement, label: string): HTMLElement {
@@ -139,7 +164,7 @@ function pageText(root: HTMLElement): string | null {
 
 describe("CampaignView", () => {
   it("gives its type while Obsidian is still building it", () => {
-    const view = new CampaignView({} as WorkspaceLeaf, {} as CampaignStore, [{ heading: null, pages: [entryOf("home", [])] }], vi.fn());
+    const view = new CampaignView({} as WorkspaceLeaf, {} as CampaignStore, [{ heading: null, pages: [entryOf("home", [])] }], vi.fn(), backdropsInto([]));
     expect(view.containerEl.getAttribute("data-type")).toBe(CAMPAIGN_VIEW);
   });
 
@@ -352,7 +377,7 @@ describe("CampaignView", () => {
   it("builds no page until Obsidian gives it its state", async () => {
     const made: FakePage[] = [];
     const store = { subscribe: () => () => {}, current: campaignOf([]), campaignFolder: null };
-    const view = new CampaignView({} as WorkspaceLeaf, store as unknown as CampaignStore, [{ heading: null, pages: [entryOf("home", made), entryOf("funds", made)] }], vi.fn());
+    const view = new CampaignView({} as WorkspaceLeaf, store as unknown as CampaignStore, [{ heading: null, pages: [entryOf("home", made), entryOf("funds", made)] }], vi.fn(), backdropsInto([]));
     view.app = { workspace: { requestSaveLayout: vi.fn() }, vault: new FakeVault() } as unknown as CampaignView["app"];
     view.contentEl = obsidianDocument().createElement("div");
     view.load();
@@ -380,10 +405,19 @@ describe("CampaignView", () => {
     expect(pageText(root)).toBe("page home null");
   });
 
+  it("puts the campaign's picture behind the whole tab, around the sidebar and the page", async () => {
+    const { root, backdrops } = await openView();
+    expect(backdrops).toHaveLength(1);
+    expect(backdrops[0]!.frameEl).toBe(root);
+    expect(backdrops[0]!.loaded).toBe(true);
+    expect(root.querySelector(".dd-campaign")!.parentElement).toBe(root);
+  });
+
   it("closes the shown page and stops listening to the campaign and the vault when it is closed", async () => {
-    const { view, made, unsubscribe, vault } = await openView();
+    const { view, made, unsubscribe, vault, backdrops } = await openView();
     view.unload();
     expect(made[0]!.loaded).toBe(false);
+    expect(backdrops[0]!.loaded).toBe(false);
     expect(unsubscribe).toHaveBeenCalledOnce();
     expect(vault.removed.sort()).toEqual(["delete", "rename"]);
   });
