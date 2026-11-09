@@ -91,6 +91,9 @@ const FORBIDDEN_SAMPLES = [
   'globalThis["eval"](text);',
   "const { eval: run } = globalThis;",
   'import * as obsidian from "obsidian";\nexport const pick = (key: "Notice") => obsidian[key];',
+  'app.workspace.openLinkText("Private/Primary", "");',
+  'import type { Workspace } from "obsidian";\nexport const follow = (workspace: Workspace) => workspace["openLinkText"]("Primary", "");',
+  "const { openLinkText } = app.workspace;",
 ];
 
 const FILE_TREE_SAMPLES = [
@@ -397,7 +400,7 @@ describe("the vault fence", () => {
     expect(sampleBreaches(sample)).not.toEqual([]);
   });
 
-  it.each(FORBIDDEN_SAMPLES)("would catch rendering, running a command or running text as code with %s", (sample) => {
+  it.each(FORBIDDEN_SAMPLES)("would catch rendering, running a command, running text as code or following a link unfenced with %s", (sample) => {
     expect(sampleBreaches(sample)).not.toEqual([]);
   });
 

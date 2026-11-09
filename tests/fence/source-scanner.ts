@@ -55,7 +55,7 @@ export const EDITOR_READS = ["getValue", "getLine", "getRange", "getSelection", 
 
 export const FILE_TREE = ["parent", "children"];
 
-export const FORBIDDEN_NAMES = ["MarkdownRenderer", "renderMarkdown", "executeCommandById", "commands", "execCommand", "Function", "eval"];
+export const FORBIDDEN_NAMES = ["MarkdownRenderer", "renderMarkdown", "executeCommandById", "commands", "execCommand", "Function", "eval", "openLinkText"];
 
 const EDITOR_OWNERS = [
   "Editor",
