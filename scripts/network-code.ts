@@ -62,6 +62,10 @@ function nameOf(code: NetworkCode): string {
   return code.name;
 }
 
+export function codesFoundIn(codes: NetworkCode[], text: string): string[] {
+  return codes.filter(isIn(text)).map(nameOf);
+}
+
 export function networkCodeIn(text: string): string[] {
-  return NETWORK_CODE.filter(isIn(withoutAllowed(text))).map(nameOf);
+  return codesFoundIn(NETWORK_CODE, withoutAllowed(text));
 }
