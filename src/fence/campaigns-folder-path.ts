@@ -2,6 +2,8 @@ import { normalizePath } from "obsidian";
 import { refusalForFileName } from "../campaign/file-name";
 import { isSafePath } from "./safe-path";
 
+export const NO_CAMPAIGNS_FOLDER =
+  "No Campaigns folder is chosen yet, so Dungeons & Dinthla reads and writes nothing. Choose one in the plugin's settings or on the welcome page.";
 export const NO_FOLDER_NAME = "Type a name for the Campaigns folder first.";
 export const NOT_THE_WHOLE_VAULT = "The Campaigns folder has to be a folder inside the vault, not the whole vault.";
 export const NOT_A_HIDDEN_FOLDER = "The Campaigns folder can't be a hidden folder, or inside one, such as the vault's own .obsidian folder.";

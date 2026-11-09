@@ -6,6 +6,7 @@ import { CampaignsFolderSetup } from "../../src/settings/campaigns-folder-setup"
 import { FolderSuggestModal } from "../../src/settings/folder-suggest-modal";
 import type { PictureSuggestModal } from "../../src/settings/picture-suggest-modal";
 import { NO_CAMPAIGN } from "../../src/campaign/campaign-folders";
+import { NO_CAMPAIGNS_FOLDER } from "../../src/fence/campaigns-folder-path";
 import { Notice, openedSuggestModals } from "../stubs/obsidian";
 import { obsidianDocument } from "../views/obsidian-dom";
 
@@ -111,7 +112,7 @@ class FakeCampaigns implements CampaignChoice {
   }
 }
 
-class FakeCampaignsFolder {
+class FakeCampaignsFolderSetting {
   readonly chosen: string[] = [];
   failChoosing = false;
 
@@ -136,10 +137,10 @@ function tabFor(
   fake: FakeApp,
   campaigns: CampaignChoice,
   showWelcome: () => Promise<void> = async () => {},
-  campaignsFolder = new FakeCampaignsFolder("D&D"),
+  campaignsFolderSetting = new FakeCampaignsFolderSetting("D&D"),
 ): CampaignSettingTab {
   const pickFolder = (folders: string[], chosen: (folder: string) => void) => new FolderSuggestModal(fake.app, folders, chosen).open();
-  const setup = new CampaignsFolderSetup(campaignsFolder, campaignsFolder, pickFolder);
+  const setup = new CampaignsFolderSetup(campaignsFolderSetting, campaignsFolderSetting, pickFolder);
   const tab = new CampaignSettingTab(fake.app, fake.plugin, fake.gate, setup, campaigns, showWelcome);
   tab.containerEl = obsidianDocument().body.createDiv();
   tab.display();
@@ -327,14 +328,14 @@ describe("CampaignSettingTab", () => {
   });
 
   it("shows the Campaigns folder set, and says the plugin touches nothing while none is", () => {
-    const set = tabFor(fake, new FakeCampaigns(null), async () => {}, new FakeCampaignsFolder("Games/D&D"));
-    const unset = tabFor(fake, new FakeCampaigns(null), async () => {}, new FakeCampaignsFolder(null));
+    const set = tabFor(fake, new FakeCampaigns(null), async () => {}, new FakeCampaignsFolderSetting("Games/D&D"));
+    const unset = tabFor(fake, new FakeCampaigns(null), async () => {}, new FakeCampaignsFolderSetting(null));
     expect(descriptionOf(set, "Campaigns folder")).toMatch(/Now: Games\/D&D$/);
-    expect(descriptionOf(unset, "Campaigns folder")).toMatch(/Now: None yet, so Dungeons & Dinthla reads and writes nothing\.$/);
+    expect(descriptionOf(unset, "Campaigns folder").endsWith(` ${NO_CAMPAIGNS_FOLDER}`)).toBe(true);
   });
 
   it("offers every folder to pick from, sets the one picked and shows it", async () => {
-    const folder = new FakeCampaignsFolder(null);
+    const folder = new FakeCampaignsFolderSetting(null);
     const tab = tabFor(fake, new FakeCampaigns(null), async () => {}, folder);
     buttonIn(rowNamed(tab, "Campaigns folder"), "Choose folder").click();
     const modal = openedSuggestModals[0] as FolderSuggestModal;
@@ -346,7 +347,7 @@ describe("CampaignSettingTab", () => {
   });
 
   it("says so when the Campaigns folder can't be set", async () => {
-    const folder = new FakeCampaignsFolder(null);
+    const folder = new FakeCampaignsFolderSetting(null);
     folder.failChoosing = true;
     const tab = tabFor(fake, new FakeCampaigns(null), async () => {}, folder);
     buttonIn(rowNamed(tab, "Campaigns folder"), "Choose folder").click();

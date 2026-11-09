@@ -53,7 +53,7 @@ import { closeRetiredViews } from "./interface/retired-views";
 import { colourMarkers } from "./reading/colour-markers";
 import { BackgroundRefresh, showBackground, shownBackgroundOf } from "./reading/note-background";
 import { CampaignSettingTab } from "./settings/campaign-setting-tab";
-import { CampaignsFolder } from "./settings/campaigns-folder";
+import { CampaignsFolderSetting } from "./settings/campaigns-folder-setting";
 import { CampaignsFolderSetup } from "./settings/campaigns-folder-setup";
 import { FolderSuggestModal } from "./settings/folder-suggest-modal";
 import { ChosenCampaign } from "./settings/chosen-campaign";
@@ -97,8 +97,8 @@ const PAGE_OPENERS: { page: PageId; id: string; name: string; icon: string }[] =
 ];
 
 export default class DungeonsAndDinthla extends Plugin {
-  private campaignsFolder = this.campaignsFolderFrom(settingsOf(null));
-  private readonly gate = new Gatekeeper(this.app, () => this.campaignsFolder.path);
+  private campaignsFolderSetting = this.campaignsFolderSettingFrom(settingsOf(null));
+  private readonly gate = new Gatekeeper(this.app, () => this.campaignsFolderSetting.path);
   private readonly store = new CampaignStore(this.gate.files);
   private readonly localStorage: LocalStorage = {
     load: (key) => this.app.loadLocalStorage(key),
@@ -112,7 +112,7 @@ export default class DungeonsAndDinthla extends Plugin {
     const settings = settingsOf(saved);
     this.oldDrafts = new OldDrafts(saved, this.localStorage);
     this.chosen = this.chosenCampaignFrom(settings);
-    this.campaignsFolder = this.campaignsFolderFrom(settings);
+    this.campaignsFolderSetting = this.campaignsFolderSettingFrom(settings);
     const gate = this.gate;
     this.addChild(gate.files);
     const helpFiles = {
@@ -121,7 +121,7 @@ export default class DungeonsAndDinthla extends Plugin {
     };
     const help = new Help(settings, this.manifest, NEWS_BY_VERSION, (changed) => this.saveSettings(changed), helpFiles, welcomeOpenerOf(this.app));
     const pickFolder = (folders: string[], chosen: (folder: string) => void) => new FolderSuggestModal(this.app, folders, chosen).open();
-    const campaignsFolderSetup = new CampaignsFolderSetup(this.campaignsFolder, gate.folders, pickFolder);
+    const campaignsFolderSetup = new CampaignsFolderSetup(this.campaignsFolderSetting, gate.folders, pickFolder);
     const campaignChoice = {
       folders: () => this.campaignFolders(),
       chosen: () => chosenCampaignFolder(this.chosen.folder, this.campaignFolders()),
@@ -198,7 +198,7 @@ export default class DungeonsAndDinthla extends Plugin {
     this.registerEvent(gate.files.on("rename", (file, oldPath) => keptDrafts.noteRenamed(oldPath, file.path)));
     this.registerEvent(gate.files.on("rename", (file, oldPath) => noteDrafts.moved(oldPath, file.path)));
     this.registerEvent(gate.files.on("delete", (file) => keptDrafts.noteDeleted(file.path)));
-    this.app.workspace.onLayoutReady(() => setAsideGoneNotes(keptDrafts, this.campaignsFolder.path, (key) => this.draftStaysLive(noteDrafts, key)));
+    this.app.workspace.onLayoutReady(() => setAsideGoneNotes(keptDrafts, this.campaignsFolderSetting.path, (key) => this.draftStaysLive(noteDrafts, key)));
     const texts = noteTextsOf(gate);
     const wholeText = { texts, drafts: noteDrafts, saver: new NoteSaver(gate.files) };
     const notesNeeds = {
@@ -219,8 +219,8 @@ export default class DungeonsAndDinthla extends Plugin {
     };
     const welcome = welcomeSection({
       store: this.store,
-      campaignsFolder: campaignsFolderSetup,
-      maker: new CampaignMaker(gate.files, () => this.campaignsFolder.path, (folder) => this.chosen.choose(folder)),
+      campaignsFolderSetup,
+      maker: new CampaignMaker(gate.files, () => this.campaignsFolderSetting.path, (folder) => this.chosen.choose(folder)),
       startSession: newSession,
     });
     const pages = campaignSections({
@@ -247,7 +247,7 @@ export default class DungeonsAndDinthla extends Plugin {
       }),
       welcome,
     });
-    const sections = campaignsFolderFirst(pages, welcome, () => this.campaignsFolder.path);
+    const sections = campaignsFolderFirst(pages, welcome, () => this.campaignsFolderSetting.path);
     const backdropFor = (frameEl: HTMLElement) => new TabBackground(frameEl, this.store, gate.metadata, gate.files);
     this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView(leaf, this.store, sections, (path) => void this.followCampaignOf(path), backdropFor, gate.files));
     for (const opener of PAGE_OPENERS) {
@@ -256,7 +256,7 @@ export default class DungeonsAndDinthla extends Plugin {
       this.addCommand({ id: opener.id, name: opener.name, callback: open });
     }
     this.addCommand({ id: "start-session", name: "Start a new session", callback: newSession });
-    const inSession = (path: string) => isSessionNote(path, this.campaignsFolder.path, (notePath) => gate.files.getFileByPath(notePath) !== null);
+    const inSession = (path: string) => isSessionNote(path, this.campaignsFolderSetting.path, (notePath) => gate.files.getFileByPath(notePath) !== null);
     this.registerEditorExtension(markerColouring(inSession));
     const noteChanged = (path: string, text: string) => this.store.noteChanged(path, text);
     const pickLookup = (match: LookupMatch, context: EditorSuggestContext) => {
@@ -345,8 +345,8 @@ export default class DungeonsAndDinthla extends Plugin {
     return new ChosenCampaign(settings, (changed) => this.saveSettings(changed), (folder) => this.store.open(folder));
   }
 
-  private campaignsFolderFrom(settings: PluginSettings): CampaignsFolder {
-    return new CampaignsFolder(settings, (changed) => this.saveSettings(changed), () => this.lookAgain());
+  private campaignsFolderSettingFrom(settings: PluginSettings): CampaignsFolderSetting {
+    return new CampaignsFolderSetting(settings, (changed) => this.saveSettings(changed), () => this.lookAgain());
   }
 
   private async lookAgain(): Promise<void> {
@@ -364,7 +364,7 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private watchBackgrounds(): void {
-    const refresh = new BackgroundRefresh(() => this.showBackgrounds(), () => this.campaignsFolder.path);
+    const refresh = new BackgroundRefresh(() => this.showBackgrounds(), () => this.campaignsFolderSetting.path);
     const layoutChanged = () => refresh.layoutChanged();
     this.registerEvent(this.app.workspace.on("layout-change", layoutChanged));
     this.registerEvent(this.app.workspace.on("file-open", layoutChanged));
@@ -452,7 +452,7 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private campaignFolders(): string[] {
-    return findCampaignFolders(this.gate.files.getFiles().map((file) => file.path), this.campaignsFolder.path);
+    return findCampaignFolders(this.gate.files.getFiles().map((file) => file.path), this.campaignsFolderSetting.path);
   }
 
   private startingCampaignFolder(): string | null {

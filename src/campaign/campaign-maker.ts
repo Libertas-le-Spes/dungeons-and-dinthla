@@ -1,5 +1,5 @@
 import { Notice } from "obsidian";
-import type { CampaignsFolderPath } from "../fence/fence";
+import type { ReadCampaignsFolder } from "../fence/fence";
 import { messageOf } from "../views/message-of";
 import { makeCampaign, type NewCampaignFiles } from "./make-campaign";
 
@@ -8,7 +8,7 @@ export type ChooseCampaign = (folder: string) => Promise<void>;
 export class CampaignMaker {
   constructor(
     private readonly files: NewCampaignFiles,
-    private readonly campaignsFolder: CampaignsFolderPath,
+    private readonly readCampaignsFolder: ReadCampaignsFolder,
     private readonly choose: ChooseCampaign,
   ) {}
 
@@ -20,7 +20,7 @@ export class CampaignMaker {
 
   private async madeFolder(name: string): Promise<string | null> {
     try {
-      return await makeCampaign(this.files, this.campaignsFolder(), name);
+      return await makeCampaign(this.files, this.readCampaignsFolder(), name);
     } catch (error) {
       new Notice(`Couldn't make the campaign: ${messageOf(error)}`);
       return null;
