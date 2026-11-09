@@ -25,12 +25,63 @@ export class Plugin {
   }
 }
 
-export class ItemView {
+export class Component {
+  private loaded = false;
+  private readonly children: Component[] = [];
+  private readonly cleanups: (() => void)[] = [];
+
+  load(): void {
+    if (this.loaded) return;
+    this.loaded = true;
+    this.onload();
+    for (const child of this.children.slice()) child.load();
+  }
+
+  onload(): void {}
+
+  unload(): void {
+    if (!this.loaded) return;
+    this.loaded = false;
+    while (this.children.length > 0) this.children.pop()!.unload();
+    while (this.cleanups.length > 0) this.cleanups.pop()!();
+    this.onunload();
+  }
+
+  onunload(): void {}
+
+  addChild<T extends Component>(child: T): T {
+    this.children.push(child);
+    if (this.loaded) child.load();
+    return child;
+  }
+
+  removeChild<T extends Component>(child: T): T {
+    const index = this.children.indexOf(child);
+    if (index !== -1) {
+      this.children.splice(index, 1);
+      child.unload();
+    }
+    return child;
+  }
+
+  register(cleanup: () => void): void {
+    this.cleanups.push(cleanup);
+  }
+
+  registerDomEvent(element: HTMLElement, type: string, callback: (event: Event) => void): void {
+    element.addEventListener(type, callback);
+    this.register(() => element.removeEventListener(type, callback));
+  }
+}
+
+export class ItemView extends Component {
+  app!: RealItemView["app"];
   leaf: RealItemView["leaf"];
   contentEl!: HTMLElement;
   containerEl: HTMLElement;
 
   constructor(...[leaf]: ConstructorParameters<typeof RealItemView>) {
+    super();
     this.leaf = leaf;
     this.containerEl = obsidianDocument().createElement("div");
     this.containerEl.setAttribute("data-type", this.getViewType());
@@ -40,18 +91,18 @@ export class ItemView {
     return "";
   }
 
-  registerDomEvent(element: HTMLElement, type: string, callback: (event: Event) => void): void {
-    element.addEventListener(type, callback);
+  getState(): Record<string, unknown> {
+    return {};
   }
 
-  register(): void {}
+  async setState(..._args: Parameters<RealItemView["setState"]>): Promise<void> {}
 }
 
 export class FileView extends ItemView {
   file: TFile | null = null;
   navigation = true;
 
-  onload(): void {}
+  override onload(): void {}
 
   async onLoadFile(_file: TFile): Promise<void> {}
 

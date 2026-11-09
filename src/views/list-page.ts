@@ -1,4 +1,4 @@
-import { ItemView, type WorkspaceLeaf } from "obsidian";
+import { Component } from "obsidian";
 import type { Campaign, Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { keywordsOf } from "./keywords";
@@ -12,14 +12,14 @@ export interface ListContents<T> {
   foldedCount: number;
 }
 
+export type OpenRow = (source: Source, onClosed: (changed: boolean) => void) => void;
+
 export interface ListCreate {
   label: string;
   open(returnFocus: () => void): void;
 }
 
 export interface ListKind<T> {
-  displayText: string;
-  icon: string;
   itemName: string;
   openWord: string;
   foldedWord: string;
@@ -32,33 +32,28 @@ function capitalised(word: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
-export abstract class CampaignListView<T> extends ItemView {
+export class ListPage<T> extends Component {
   private filter!: HTMLInputElement;
   private openCount!: HTMLElement;
   private openList!: HTMLElement;
   private foldedCount!: HTMLElement;
   private foldedList!: HTMLElement;
   private readonly rowFocus = new RowFocus();
+  private readonly rowActions: LinkActions;
 
   constructor(
-    leaf: WorkspaceLeaf,
+    private readonly contentEl: HTMLElement,
     private readonly store: CampaignStore,
     private readonly actions: LinkActions,
+    private readonly openRow: OpenRow,
     private readonly kind: ListKind<T>,
     private readonly create: ListCreate | null,
   ) {
-    super(leaf);
+    super();
+    this.rowActions = { openLink: actions.openLink, openRow: (source) => this.open(source) };
   }
 
-  getDisplayText(): string {
-    return this.kind.displayText;
-  }
-
-  override getIcon(): string {
-    return this.kind.icon;
-  }
-
-  override async onOpen(): Promise<void> {
+  override onload(): void {
     const root = this.contentEl;
     root.empty();
     root.addClass("dd-tokens", "dd-root", "dd-list-view");
@@ -100,7 +95,11 @@ export abstract class CampaignListView<T> extends ItemView {
     this.registerDomEvent(button, "click", () => create.open(() => button.focus()));
   }
 
-  focusRow(source: Source, afterChange: boolean): void {
+  private open(source: Source): void {
+    this.openRow(source, (changed) => this.focusRow(source, changed));
+  }
+
+  private focusRow(source: Source, afterChange: boolean): void {
     this.rowFocus.afterClose(() => focusRowAt(this.contentEl, source), afterChange, () => this.filter.focus());
   }
 
@@ -110,7 +109,7 @@ export abstract class CampaignListView<T> extends ItemView {
       list.createEl("li", { cls: "dd-empty", text: emptyText });
       return;
     }
-    for (const item of items) this.kind.addRow(list, item, keywords, this.actions);
+    for (const item of items) this.kind.addRow(list, item, keywords, this.rowActions);
   }
 
   private openEmptyText(contents: ListContents<T>): string {

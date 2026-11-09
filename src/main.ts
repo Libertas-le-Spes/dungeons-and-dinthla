@@ -17,9 +17,7 @@ import { CHARACTER_SHEET_VIEW, CharacterSheetView } from "./characters/character
 import { chooseSheetValue, openCharacterSheet } from "./characters/open-character-sheet";
 import { sheetNotesOf } from "./characters/sheet-notes";
 import { mentionNotesOf } from "./characters/mention-notes";
-import { openCharacters } from "./characters/open-characters";
 import { editorTextOf } from "./campaign/editor-text";
-import { DASHBOARD_VIEW, DashboardView } from "./dashboard/dashboard-view";
 import { markerColouring } from "./editor/marker-decorations";
 import type { LookupMatch } from "./lookups/lookup";
 import { LookupSuggest } from "./lookups/lookup-suggest";
@@ -27,17 +25,21 @@ import { openLookup, type LookupOpeners } from "./lookups/open-lookup";
 import { openNewQuestion } from "./questions/open-new-question";
 import { openQuestion } from "./questions/open-question";
 import { questionsKind } from "./questions/questions-kind";
-import { QUESTIONS_VIEW, QuestionsView } from "./questions/questions-view";
 import { openNewQuest } from "./quests/open-new-quest";
 import { openQuest } from "./quests/open-quest";
 import { questsKind } from "./quests/quests-kind";
-import { QUESTS_VIEW, QuestsView } from "./quests/quests-view";
-import { FUNDS_VIEW, FundsView } from "./funds/funds-view";
 import { openAddCoin } from "./funds/open-add-coin";
 import { openItemDialog } from "./funds/open-item";
 import { ledgerEntryOpener } from "./funds/open-ledger-entry";
-import { CampaignListView } from "./views/list-view";
-import { activePathOf, openMainView, openSideView, openSource } from "./views/open-view";
+import { ListPage } from "./views/list-page";
+import { activePathOf, openSource } from "./views/open-view";
+import { CastPage } from "./characters/cast-page";
+import { DashboardPage, type DashboardActions } from "./dashboard/dashboard-page";
+import { FundsPage } from "./funds/funds-page";
+import { campaignSections, type PageId, type ShowPage } from "./interface/campaign-pages";
+import { CAMPAIGN_VIEW, CampaignView } from "./interface/campaign-view";
+import { openCampaignPage } from "./interface/open-campaign";
+import { closeRetiredViews } from "./interface/retired-views";
 import { colourMarkers } from "./reading/colour-markers";
 import { BackgroundRefresh, showBackground, shownBackgroundOf } from "./reading/note-background";
 import { CampaignSettingTab } from "./settings/campaign-setting-tab";
@@ -49,6 +51,14 @@ import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
 
 const TYPING_PAUSE_MS = 250;
+
+const PAGE_OPENERS: { page: PageId; id: string; name: string; icon: string }[] = [
+  { page: "home", id: "open-dashboard", name: "Open dashboard", icon: "layout-dashboard" },
+  { page: "cast", id: "open-characters", name: "Open characters", icon: "users" },
+  { page: "questions", id: "open-questions", name: "Open questions", icon: "circle-help" },
+  { page: "quests", id: "open-quests", name: "Open quests", icon: "scroll-text" },
+  { page: "funds", id: "open-funds", name: "Open party funds", icon: "coins" },
+];
 
 export default class DungeonsAndDinthla extends Plugin {
   private readonly store = new CampaignStore(this.app.vault);
@@ -67,38 +77,21 @@ export default class DungeonsAndDinthla extends Plugin {
     };
     const openQuestionAt = (source: Source, onClosed: (changed: boolean) => void) =>
       openQuestion(this.app, this.store, source, () => void openSource(this.app, source), onClosed);
-    const questionActions = {
-      ...actions,
-      openRow: (source: Source) => openQuestionAt(source, (changed) => this.focusRow(QUESTIONS_VIEW, source, changed)),
-    };
     const createQuestion = {
       label: "New question",
       open: (returnFocus: () => void) => openNewQuestion(this.app, this.store, returnFocus),
     };
-    this.registerView(QUESTIONS_VIEW, (leaf) => new QuestionsView(leaf, this.store, questionActions, createQuestion));
-    this.addRibbonIcon(questionsKind.icon, "Open questions", () => void openSideView(this.app, QUESTIONS_VIEW));
-    this.addCommand({ id: "open-questions", name: "Open questions", callback: () => void openSideView(this.app, QUESTIONS_VIEW) });
     const openQuestAt = (source: Source, onClosed: (changed: boolean) => void) =>
       openQuest(this.app, this.store, source, () => void openSource(this.app, source), onClosed);
-    const questActions = {
-      ...actions,
-      openRow: (source: Source) => openQuestAt(source, (changed) => this.focusRow(QUESTS_VIEW, source, changed)),
-    };
     const createQuest = {
       label: "New quest",
       open: (returnFocus: () => void) => openNewQuest(this.app, this.store, returnFocus),
     };
-    this.registerView(QUESTS_VIEW, (leaf) => new QuestsView(leaf, this.store, questActions, createQuest));
-    this.addRibbonIcon(questsKind.icon, "Open quests", () => void openSideView(this.app, QUESTS_VIEW));
-    this.addCommand({ id: "open-quests", name: "Open quests", callback: () => void openSideView(this.app, QUESTS_VIEW) });
     const noteExists = (name: string, sourcePath: string) => this.app.metadataCache.getFirstLinkpathDest(name, sourcePath) !== null;
     const addCoin = (returnFocus: () => void) => openAddCoin(this.app, this.store, returnFocus);
     const openItem = (name: string, source: Source, onClosed: (changed: boolean) => void) =>
       openItemDialog(this.app, this.store, name, () => void openSource(this.app, source), onClosed);
     const openLedgerEntry = ledgerEntryOpener(this.app, this.store, openItem);
-    this.registerView(FUNDS_VIEW, (leaf) => new FundsView(leaf, this.store, actions, noteExists, addCoin, openLedgerEntry, openItem));
-    this.addRibbonIcon("coins", "Open party funds", () => void openSideView(this.app, FUNDS_VIEW));
-    this.addCommand({ id: "open-funds", name: "Open party funds", callback: () => void openSideView(this.app, FUNDS_VIEW) });
     const characterNotes = characterNotesOf(this.app);
     const sheetNotes = sheetNotesOf(this.app);
     const sheetActions = {
@@ -111,33 +104,41 @@ export default class DungeonsAndDinthla extends Plugin {
     this.registerView(CHARACTER_SHEET_VIEW, (leaf) => new CharacterSheetView(leaf, this.store, sheetNotes, sheetActions, mentionNotes));
     const galleryActions = { ...actions, openRow: (source: Source) => void openCharacterSheet(this.app, source.path) };
     const newCharacter = (returnFocus: () => void) => openNewCharacter(this.app, this.store.campaignFolder, returnFocus);
-    const basesOn = this.registerBasesView(CHARACTERS_VIEW, {
+    this.registerBasesView(CHARACTERS_VIEW, {
       name: "Characters",
       icon: "users",
       factory: (controller, containerEl) => new CharactersView(controller, containerEl, this.store, characterNotes, galleryActions, newCharacter),
     });
-    const showCharacters = () => void openCharacters(this.app, this.store.campaignFolder, basesOn);
-    this.addRibbonIcon("users", "Open characters", showCharacters);
-    this.addCommand({ id: "open-characters", name: "Open characters", callback: showCharacters });
     this.addCommand({ id: "edit-character", name: "Edit character", checkCallback: (checking) => editActiveCharacter(this.app, characterNotes, checking) });
     this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => addEditCharacterItem(this.app, characterNotes, menu, file)));
     this.addRibbonIcon("calendar-plus", "Start a new session", () => startSession(this.app, this.store.campaignFolder));
-    const dashboardActions = {
+    const dashboardActionsFor = (show: ShowPage): DashboardActions => ({
       ...actions,
       openQuestion: openQuestionAt,
       openQuest: openQuestAt,
       openLedgerEntry,
-      showQuestions: () => void openSideView(this.app, QUESTIONS_VIEW),
-      showQuests: () => void openSideView(this.app, QUESTS_VIEW),
-      showFunds: () => void openSideView(this.app, FUNDS_VIEW),
-      showCharacters,
+      showQuestions: () => show("questions"),
+      showQuests: () => show("quests"),
+      showFunds: () => show("funds"),
+      showCharacters: () => show("cast"),
       openCharacterSheet: (path: string) => void openCharacterSheet(this.app, path),
       startSession: () => startSession(this.app, this.store.campaignFolder),
       sessionHeadingOf: (path: string) => sessionHeadingOf(path, this.app.metadataCache),
-    };
-    this.registerView(DASHBOARD_VIEW, (leaf) => new DashboardView(leaf, this.store, characterNotes, dashboardActions));
-    this.addRibbonIcon("layout-dashboard", "Open dashboard", () => void openMainView(this.app, DASHBOARD_VIEW));
-    this.addCommand({ id: "open-dashboard", name: "Open dashboard", callback: () => void openMainView(this.app, DASHBOARD_VIEW) });
+    });
+    const watchFiles = (changed: (path: string) => void) => this.watchFiles(changed);
+    const sections = campaignSections({
+      home: (contentEl, show) => new DashboardPage(contentEl, this.store, characterNotes, dashboardActionsFor(show)),
+      cast: (contentEl) => new CastPage(contentEl, this.store, characterNotes, galleryActions, newCharacter, watchFiles),
+      questions: (contentEl) => new ListPage(contentEl, this.store, actions, openQuestionAt, questionsKind, createQuestion),
+      quests: (contentEl) => new ListPage(contentEl, this.store, actions, openQuestAt, questsKind, createQuest),
+      funds: (contentEl) => new FundsPage(contentEl, this.store, actions, noteExists, addCoin, openLedgerEntry, openItem),
+    });
+    this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView(leaf, this.store, sections));
+    for (const opener of PAGE_OPENERS) {
+      const open = () => void openCampaignPage(this.app, opener.page);
+      this.addRibbonIcon(opener.icon, opener.name, open);
+      this.addCommand({ id: opener.id, name: opener.name, callback: open });
+    }
     this.addCommand({ id: "start-session", name: "Start a new session", callback: () => startSession(this.app, this.store.campaignFolder) });
     const inSession = (path: string) => isSessionNote(path, (notePath) => this.app.vault.getFileByPath(notePath) !== null);
     this.registerEditorExtension(markerColouring(inSession));
@@ -151,6 +152,7 @@ export default class DungeonsAndDinthla extends Plugin {
       if (inSession(context.sourcePath)) colourMarkers(element);
     });
     this.followTheme();
+    this.app.workspace.onLayoutReady(() => closeRetiredViews(this.app.workspace));
     this.app.workspace.onLayoutReady(() => void this.watchCampaign());
     this.app.workspace.onLayoutReady(() => this.watchBackgrounds());
   }
@@ -226,10 +228,18 @@ export default class DungeonsAndDinthla extends Plugin {
     if (text !== null) this.store.noteChanged(file.path, text);
   }
 
-  private focusRow(viewType: string, source: Source, afterChange: boolean): void {
-    for (const leaf of this.app.workspace.getLeavesOfType(viewType)) {
-      if (leaf.view instanceof CampaignListView) leaf.view.focusRow(source, afterChange);
-    }
+  private watchFiles(changed: (path: string) => void): () => void {
+    const events = [
+      this.app.vault.on("create", (file) => changed(file.path)),
+      this.app.vault.on("delete", (file) => changed(file.path)),
+      this.app.vault.on("rename", (file, oldPath) => {
+        changed(file.path);
+        changed(oldPath);
+      }),
+    ];
+    return () => {
+      for (const event of events) this.app.vault.offref(event);
+    };
   }
 
   private campaignFolders(): string[] {

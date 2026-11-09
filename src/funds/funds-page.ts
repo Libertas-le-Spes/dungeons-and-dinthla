@@ -1,4 +1,4 @@
-import { ItemView, type WorkspaceLeaf } from "obsidian";
+import { Component } from "obsidian";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { formatMoney } from "../notes/money";
 import { addNameLink, addRowButton, type LinkActions } from "../views/linked-text";
@@ -10,8 +10,6 @@ import type { CoinOutcome } from "./coin-modal";
 import { addLedgerRow, NO_COIN_ENTRIES } from "./ledger-row";
 import type { OpenLedgerEntry } from "./open-ledger-entry";
 import { focusRowAt, NO_ROW, RowFocus } from "../views/row-focus";
-
-export const FUNDS_VIEW = "dungeons-and-dinthla-funds";
 
 const HOW_LINES_ARE_READ =
   "A $ line with an amount is coin; without one, it is an item. An amount is money out when it has a minus sign, or when “paid”, “spent”, “bought”, “gave” or “lost” comes before it with no comma between. A plus sign keeps it in.";
@@ -58,7 +56,7 @@ function entriesText(count: number): string {
   return `${count} entries`;
 }
 
-export class FundsView extends ItemView {
+export class FundsPage extends Component {
   private purse!: HTMLElement;
   private items!: HTMLElement;
   private ledgerCount!: HTMLElement;
@@ -67,7 +65,7 @@ export class FundsView extends ItemView {
   private readonly rowFocus = new RowFocus();
 
   constructor(
-    leaf: WorkspaceLeaf,
+    private readonly contentEl: HTMLElement,
     private readonly store: CampaignStore,
     private readonly actions: LinkActions,
     private readonly noteExists: (name: string, sourcePath: string) => boolean,
@@ -75,22 +73,10 @@ export class FundsView extends ItemView {
     private readonly openLedgerEntry: OpenLedgerEntry | null,
     private readonly openItem: ((name: string, source: Source, onClosed: (changed: boolean) => void) => void) | null,
   ) {
-    super(leaf);
+    super();
   }
 
-  getViewType(): string {
-    return FUNDS_VIEW;
-  }
-
-  getDisplayText(): string {
-    return "Party funds";
-  }
-
-  override getIcon(): string {
-    return "coins";
-  }
-
-  override async onOpen(): Promise<void> {
+  override onload(): void {
     const root = this.contentEl;
     root.empty();
     root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-funds");
