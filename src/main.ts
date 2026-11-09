@@ -96,9 +96,9 @@ const PAGE_OPENERS: { page: PageId; id: string; name: string; icon: string }[] =
 ];
 
 export default class DungeonsAndDinthla extends Plugin {
-  private settingsSaver = this.settingsSaverOf(settingsOf(null));
-  private campaignsFolderSetting = this.campaignsFolderSettingFrom(this.settingsSaver);
   private readonly gate = new Gatekeeper(this.app, () => this.campaignsFolderSetting.path);
+  private settingsSaver = this.settingsSaverOf(settingsOf(null, this.gate.configDir));
+  private campaignsFolderSetting = this.campaignsFolderSettingFrom(this.settingsSaver);
   private readonly store = new CampaignStore(this.gate.files);
   private readonly localStorage: LocalStorage = {
     load: (key) => this.app.loadLocalStorage(key),
@@ -109,7 +109,7 @@ export default class DungeonsAndDinthla extends Plugin {
 
   override async onload(): Promise<void> {
     const saved: unknown = await this.loadData();
-    const settings = settingsOf(saved);
+    const settings = settingsOf(saved, this.gate.configDir);
     this.oldDrafts = new OldDrafts(saved, this.localStorage);
     this.settingsSaver = this.settingsSaverOf(settings);
     this.chosen = this.chosenCampaignFrom(this.settingsSaver);
@@ -347,7 +347,7 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private campaignsFolderSettingFrom(saver: SettingsSaver): CampaignsFolderSetting {
-    return new CampaignsFolderSetting(saver, () => this.lookAgain());
+    return new CampaignsFolderSetting(saver, () => this.lookAgain(), this.gate.configDir);
   }
 
   private async lookAgain(): Promise<void> {
