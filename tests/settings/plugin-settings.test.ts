@@ -3,21 +3,20 @@ import { settingsOf } from "../../src/settings/plugin-settings";
 
 describe("settingsOf", () => {
   it("keeps the campaign chosen last time", () => {
-    expect(settingsOf({ campaignFolder: "Pale Moon" })).toEqual({ campaignFolder: "Pale Moon", drafts: {} });
+    expect(settingsOf({ campaignFolder: "Pale Moon" })).toEqual({ campaignFolder: "Pale Moon" });
   });
 
-  it("starts with no chosen campaign and no unsaved lines when nothing was saved", () => {
-    expect(settingsOf(null)).toEqual({ campaignFolder: null, drafts: {} });
+  it("starts with no chosen campaign when nothing was saved", () => {
+    expect(settingsOf(null)).toEqual({ campaignFolder: null });
   });
 
   it("ignores saved data it can't read", () => {
-    for (const saved of ["Pale Moon", 3, { campaignFolder: 3 }, {}, { drafts: "? Who" }, { drafts: null }]) {
-      expect(settingsOf(saved)).toEqual({ campaignFolder: null, drafts: {} });
+    for (const saved of ["Pale Moon", 3, { campaignFolder: 3 }, {}]) {
+      expect(settingsOf(saved)).toEqual({ campaignFolder: null });
     }
   });
 
-  it("keeps the lines typed but not saved, by session note, leaving out empty and unreadable ones", () => {
-    const saved = { drafts: { "Pale Moon/Sessions/Session 3.md": "? Who", "Pale Moon/Sessions/Session 4.md": "", "Pale Moon/Sessions/Session 5.md": 5 } };
-    expect(settingsOf(saved).drafts).toEqual({ "Pale Moon/Sessions/Session 3.md": "? Who" });
+  it("leaves unsaved lines out of the settings, since they are kept on this device only", () => {
+    expect(settingsOf({ campaignFolder: "Pale Moon", drafts: { "Pale Moon/Sessions/Session 3.md": "? Who" } })).toEqual({ campaignFolder: "Pale Moon" });
   });
 });
