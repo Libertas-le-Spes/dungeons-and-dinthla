@@ -10,6 +10,7 @@ export interface CarriedFrom {
 export interface SheetNotes extends CharacterNotes {
   fileAt(path: string): TFile | null;
   carriedFromOf(file: TFile): CarriedFrom | null;
+  onNoteMoved(moved: (path: string) => void): () => void;
 }
 
 const CARRIED_FROM = "carried from";
@@ -36,11 +37,24 @@ function carriedFromOf(app: App, notes: CharacterNotes, file: TFile): CarriedFro
   return { path, groups: carriedGroupsOf(listed) };
 }
 
+function onNoteMoved(app: App, moved: (path: string) => void): () => void {
+  const deleted = app.vault.on("delete", (file) => moved(file.path));
+  const renamed = app.vault.on("rename", (file, oldPath) => {
+    moved(oldPath);
+    moved(file.path);
+  });
+  return () => {
+    app.vault.offref(deleted);
+    app.vault.offref(renamed);
+  };
+}
+
 export function sheetNotesOf(app: App): SheetNotes {
   const notes = characterNotesOf(app);
   return {
     ...notes,
     fileAt: (path) => app.vault.getFileByPath(path),
     carriedFromOf: (file) => carriedFromOf(app, notes, file),
+    onNoteMoved: (moved) => onNoteMoved(app, moved),
   };
 }
