@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 const SOURCE_FOLDER = fileURLToPath(new URL("../../src/", import.meta.url));
 const GATEKEEPER_FOLDER = "fence/";
+const ALLOWED = ["fence/gatekeeper.ts", "fence/fenced-files.ts", "fence/fenced-file-actions.ts", "fence/folder-choices.ts", "fence/vault-settings.ts"];
 
 interface Forbidden {
   name: string;
@@ -28,8 +29,8 @@ function sourceFiles(): string[] {
   return all.filter((path) => path.endsWith(".ts")).map((path) => path.split("\\").join("/"));
 }
 
-function isOutsideGatekeeper(path: string): boolean {
-  return !path.startsWith(GATEKEEPER_FOLDER);
+function isNotAllowed(path: string): boolean {
+  return !ALLOWED.includes(path);
 }
 
 function breachesIn(path: string): string[] {
@@ -46,9 +47,18 @@ describe("the vault fence", () => {
     expect(files.length).toBeGreaterThan(100);
   });
 
-  it("lets only the gatekeeper's own folder reach the vault, its files or Obsidian's file metadata", () => {
-    const breaches = sourceFiles().filter(isOutsideGatekeeper).flatMap(breachesIn);
+  it("lets only the gatekeeper's allowed files reach the vault, its files or Obsidian's file metadata", () => {
+    const breaches = sourceFiles().filter(isNotAllowed).flatMap(breachesIn);
     expect(breaches).toEqual([]);
+  });
+
+  it("allows only files in the gatekeeper's own folder, each of which still needs it", () => {
+    const files = sourceFiles();
+    for (const allowed of ALLOWED) {
+      expect(allowed.startsWith(GATEKEEPER_FOLDER)).toBe(true);
+      expect(files).toContain(allowed);
+      expect(breachesIn(allowed)).not.toEqual([]);
+    }
   });
 
   it("would catch each way of reaching the vault", () => {
