@@ -4,6 +4,8 @@ import { FencedFileActions, type RawFileManager } from "../../src/fence/fenced-f
 import { HeldFiles } from "../../src/fence/held-files";
 import { fileAt, rawVaultWith } from "./fake-raw-vault";
 
+const CONFIG_DIR = ".obsidian";
+
 const CHARACTER = fileAt("D&D/Pale Moon/Characters/Mira.md");
 const PRIVATE = fileAt("Private/Primary.md");
 
@@ -14,7 +16,7 @@ function actionsWith() {
     renameFile: vi.fn(async () => {}),
     trashFile: vi.fn(async () => {}),
   };
-  const held = new HeldFiles(vault, new Fence(() => "D&D"));
+  const held = new HeldFiles(vault, new Fence(() => "D&D", CONFIG_DIR));
   return { actions: new FencedFileActions(fileManager as unknown as RawFileManager, held), fileManager };
 }
 
