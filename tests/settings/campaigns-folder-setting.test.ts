@@ -74,6 +74,39 @@ describe("CampaignsFolderSetting", () => {
     expect(lookedIn).toEqual(["Games/D&D"]);
   });
 
+  it("looks again once when the same folder is chosen twice, one after the other", async () => {
+    const { setting, changed } = settingFrom("D&D");
+    await setting.choose("Games/D&D");
+    await setting.choose("Games/D&D");
+    expect(changed).toHaveBeenCalledOnce();
+  });
+
+  it("looks again in the folder an earlier choice saved when the last choice can't be saved", async () => {
+    const { setting, save, order, lookedIn } = settingFrom("D&D");
+    save.mockImplementation(async (written: PluginSettings) => {
+      await oneTick();
+      if (written.campaignsFolder === "Old Games") throw new Error("The disk is full.");
+      order.push(`saved ${written.campaignsFolder}`);
+    });
+    const [first, last] = await Promise.allSettled([setting.choose("Games/D&D"), setting.choose("Old Games")]);
+    expect(first.status).toBe("fulfilled");
+    expect(last).toEqual({ status: "rejected", reason: new Error("The disk is full.") });
+    expect(setting.path).toBe("Games/D&D");
+    expect(order).toEqual(["saved Games/D&D", "looked again"]);
+    expect(lookedIn).toEqual(["Games/D&D"]);
+  });
+
+  it("looks again only in the last folder chosen when a choice between can't be saved", async () => {
+    const { setting, save, lookedIn } = settingFrom("D&D");
+    save.mockImplementation(async (written: PluginSettings) => {
+      await oneTick();
+      if (written.campaignsFolder === "Old Games") throw new Error("The disk is full.");
+    });
+    const results = await Promise.allSettled([setting.choose("Games/D&D"), setting.choose("Old Games"), setting.choose("New Games")]);
+    expect(results.map((result) => result.status)).toEqual(["fulfilled", "rejected", "fulfilled"]);
+    expect(lookedIn).toEqual(["New Games"]);
+  });
+
   it("waits for the look again before it is done", async () => {
     const { setting, changed } = settingFrom("D&D");
     let finishLooking: () => void = () => {};
