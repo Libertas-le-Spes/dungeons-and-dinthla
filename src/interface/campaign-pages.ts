@@ -3,7 +3,7 @@ import type { Campaign } from "../campaign/campaign";
 import { questionsKind } from "../questions/questions-kind";
 import { questsKind } from "../quests/quests-kind";
 
-export type PageId = "home" | "cast" | "notes" | "questions" | "quests" | "funds";
+export type PageId = "home" | "cast" | "notes" | "questions" | "quests" | "funds" | "note";
 
 export type PageTarget = { page: PageId; path: string | null };
 
@@ -19,6 +19,7 @@ export interface PageEntry {
   id: PageId;
   label: string;
   shortLabel: string;
+  listed: boolean;
   inBar: boolean;
   glyph: string;
   glyphClass: string;
@@ -49,6 +50,7 @@ export function campaignSections(makers: PageMakers): NavSection[] {
           id: "home",
           label: "Dashboard",
           shortLabel: "Home",
+          listed: true,
           inBar: true,
           glyph: "⌂",
           glyphClass: "dd-nav-glyph-plain",
@@ -60,6 +62,7 @@ export function campaignSections(makers: PageMakers): NavSection[] {
           id: "cast",
           label: "Characters",
           shortLabel: "Cast",
+          listed: true,
           inBar: true,
           glyph: "♟",
           glyphClass: "dd-nav-glyph-plain",
@@ -71,6 +74,7 @@ export function campaignSections(makers: PageMakers): NavSection[] {
           id: "notes",
           label: "Session notes",
           shortLabel: "Notes",
+          listed: true,
           inBar: true,
           glyph: "¶",
           glyphClass: "dd-nav-glyph-plain",
@@ -87,6 +91,7 @@ export function campaignSections(makers: PageMakers): NavSection[] {
           id: "questions",
           label: "Questions",
           shortLabel: "Questions",
+          listed: true,
           inBar: false,
           glyph: "?",
           glyphClass: "dd-marker-question",
@@ -98,6 +103,7 @@ export function campaignSections(makers: PageMakers): NavSection[] {
           id: "quests",
           label: "Quests",
           shortLabel: "Quests",
+          listed: true,
           inBar: false,
           glyph: "!",
           glyphClass: "dd-marker-quest",
@@ -109,11 +115,29 @@ export function campaignSections(makers: PageMakers): NavSection[] {
           id: "funds",
           label: "Party funds",
           shortLabel: "Funds",
+          listed: true,
           inBar: true,
           glyph: "$",
           glyphClass: "dd-marker-ledger",
           make: makers.funds,
           pathAfterDelete: LEAVE_DELETED_NOTE,
+          countOf: NO_COUNT,
+        },
+      ],
+    },
+    {
+      heading: null,
+      pages: [
+        {
+          id: "note",
+          label: "Note",
+          shortLabel: "Note",
+          listed: false,
+          inBar: false,
+          glyph: "",
+          glyphClass: "dd-nav-glyph-plain",
+          make: makers.note,
+          pathAfterDelete: KEEP_DELETED_NOTE,
           countOf: NO_COUNT,
         },
       ],

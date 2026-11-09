@@ -16,6 +16,10 @@ export function charactersFolderOf(campaignFolder: string): string {
   return `${campaignFolder}/Characters`;
 }
 
+export function itemsFolderOf(campaignFolder: string): string {
+  return `${campaignFolder}/Items`;
+}
+
 export function charactersBasePathOf(campaignFolder: string): string {
   return `${campaignFolder}/Characters.base`;
 }
@@ -24,6 +28,13 @@ export function campaignOfCharacter(path: string, campaignFolders: string[]): st
   const folder = campaignFolderOf(path, campaignFolders);
   if (folder === null) return null;
   if (!path.startsWith(`${charactersFolderOf(folder)}/`) || !path.endsWith(".md")) return null;
+  return folder;
+}
+
+export function campaignOfItem(path: string, campaignFolders: string[]): string | null {
+  const folder = campaignFolderOf(path, campaignFolders);
+  if (folder === null) return null;
+  if (!path.startsWith(`${itemsFolderOf(folder)}/`) || !path.endsWith(".md")) return null;
   return folder;
 }
 
