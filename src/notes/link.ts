@@ -1,4 +1,5 @@
 const LINK = /\[\[([^[\]]+)\]\]/g;
+const PLACE_LINK = /@\[\[([^[\]]+)\]\]/g;
 
 function targetOf(inside: string): string {
   return inside.replace(/[|#].*$/, "").trim();
@@ -17,6 +18,14 @@ function shownTextOf(inside: string): string {
 export function findLinks(text: string): string[] {
   const targets: string[] = [];
   for (const [, inside] of text.matchAll(LINK)) {
+    if (inside !== undefined) targets.push(targetOf(inside));
+  }
+  return targets;
+}
+
+export function findPlaceLinks(text: string): string[] {
+  const targets: string[] = [];
+  for (const [, inside] of text.matchAll(PLACE_LINK)) {
     if (inside !== undefined) targets.push(targetOf(inside));
   }
   return targets;
