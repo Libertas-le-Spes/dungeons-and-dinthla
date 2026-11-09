@@ -167,7 +167,7 @@ describe("FundsPage", () => {
     expect(actions.openLink).toHaveBeenCalledWith("Mira", "Pale Moon/Sessions/Session 1.md", false);
   });
 
-  it("names a holder without a note in plain text, so tapping can't make one", async () => {
+  it("names a holder without a note in plain text, with no link", async () => {
     const { root } = await openPage(campaignOf(["$ Rope", "$$ Rope :changed to Bob the innkeeper"]), []);
     expect(textsOf(root, ".dd-holder")).toEqual(["Bob the innkeeper"]);
     expect(root.querySelector(".dd-holder a")).toBeNull();
