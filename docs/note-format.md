@@ -20,7 +20,7 @@ The plugin works inside one folder of the vault, the **Campaigns folder**, and l
 - **Links that lead out.** To the plugin, a link in a campaign note to a note or picture outside the Campaigns folder is a link to a note that doesn't exist: a `background` picture outside it shows nothing, and a character there has no sheet. Following such a link opens the note in Obsidian as usual; the plugin never reads or writes it.
 - **Opening files.** Only files inside the Campaigns folder can open in the campaign tab. Every other file opens in Obsidian as normal.
 - **Moving out.** A note moved out of the Campaigns folder is outside the plugin's reach: its note page can't save it any more, and *Open in Obsidian's editor* opens nothing; open it from Obsidian's file list.
-- **Changing it moves nothing.** Choosing another Campaigns folder only changes where the plugin looks. The campaign you are in stays if it is in the new folder; otherwise the first campaign there opens, or none. Renaming the Campaigns folder in Obsidian doesn't follow it: choose it again.
+- **Changing it moves nothing.** Choosing another Campaigns folder only changes where the plugin looks. Then, as when Obsidian starts, the campaign of the open note opens if it is in the new folder, or else the campaign you were in, or else the first campaign there; with none there, no campaign is open. Renaming the Campaigns folder in Obsidian doesn't follow it: choose it again.
 - **No network.** The released plugin holds no network code. Every pull request and release checks the built `main.js` for `fetch`, `requestUrl`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `sendBeacon`, `import(`, and Node's file, network and process modules or `electron`, and fails if it finds any.
 
 ## Campaign
