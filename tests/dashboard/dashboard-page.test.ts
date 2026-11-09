@@ -110,7 +110,7 @@ const PURSE = 2;
 const CHARACTERS = 3;
 const SESSION = 4;
 
-describe("DashboardView", () => {
+describe("DashboardPage", () => {
   it("counts the open questions and shows the newest three, as the Questions view does", async () => {
     const { root } = await openDashboard([sessionOf(1, ["? First", "? Second", "? Third", "? Fourth", "? Fifth", "?= Fifth: done"])]);
     const questions = panel(root, QUESTIONS);

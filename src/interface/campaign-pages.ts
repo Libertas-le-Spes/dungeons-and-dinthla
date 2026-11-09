@@ -5,7 +5,9 @@ import { questsKind } from "../quests/quests-kind";
 
 export type PageId = "home" | "cast" | "questions" | "quests" | "funds";
 
-export type MakePage = (contentEl: HTMLElement) => Component;
+export type ShowPage = (page: PageId) => void;
+
+export type MakePage = (contentEl: HTMLElement, show: ShowPage) => Component;
 
 export interface PageEntry {
   id: PageId;

@@ -32,7 +32,7 @@ describe("campaignSections", () => {
   it("makes each page with its own maker", () => {
     const made: PageId[] = [];
     const pages = campaignSections(makersMadeBy(made)).flatMap((section) => section.pages);
-    for (const page of pages) page.make({} as HTMLElement);
+    for (const page of pages) page.make({} as HTMLElement, () => {});
     expect(made).toEqual(["home", "cast", "questions", "quests", "funds"]);
     expect(pages.map((page) => page.id)).toEqual(made);
   });
