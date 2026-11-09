@@ -1,3 +1,4 @@
+import { Keymap, type PaneType } from "obsidian";
 import type { Source } from "../campaign/campaign";
 import { textRunsOf, type MarkedPiece } from "./text-parts";
 
@@ -7,7 +8,7 @@ const ACTIVATING_KEYS = ["Enter", " "];
 
 export interface LinkActions {
   openRow(source: Source): void;
-  openLink(linktext: string, sourcePath: string): void;
+  openLink(linktext: string, sourcePath: string, newLeaf: PaneType | boolean): void;
 }
 
 function addPieces(parent: HTMLElement, pieces: MarkedPiece[]): void {
@@ -25,10 +26,10 @@ export function addNameLink(
   actions: LinkActions,
 ): HTMLElement {
   const name = parent.createEl("a", { cls: "dd-link-name", text, attr: { role: "link", tabindex: "0", draggable: "false" } });
-  const follow = (event: Event) => {
+  const follow = (event: MouseEvent | KeyboardEvent) => {
     event.preventDefault();
     event.stopPropagation();
-    actions.openLink(linktext, sourcePath);
+    actions.openLink(linktext, sourcePath, Keymap.isModEvent(event));
   };
   name.addEventListener("click", follow);
   name.addEventListener("auxclick", (event) => {
