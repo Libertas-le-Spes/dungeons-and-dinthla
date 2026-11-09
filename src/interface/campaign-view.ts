@@ -55,6 +55,11 @@ export class CampaignView extends ItemView {
     return CAMPAIGN_ICON;
   }
 
+  shownPath(): string | null {
+    if (this.current === null) return null;
+    return this.current.path;
+  }
+
   override getState(): Record<string, unknown> {
     if (this.current === null) return {};
     return { page: this.current.entry.id, path: this.current.path };

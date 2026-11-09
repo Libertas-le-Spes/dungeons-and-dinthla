@@ -3,6 +3,10 @@ import type { App, WorkspaceLeaf } from "obsidian";
 import { CAMPAIGN_VIEW } from "../../src/interface/campaign-view";
 import { openCampaignPage } from "../../src/interface/open-campaign";
 
+function campaignLeaf(shown: boolean, activeTime: number): WorkspaceLeaf {
+  return { setViewState: vi.fn(), activeTime, view: { containerEl: { isShown: () => shown } } } as unknown as WorkspaceLeaf;
+}
+
 function appWith(openLeaves: WorkspaceLeaf[]) {
   const newLeaf = { setViewState: vi.fn() } as unknown as WorkspaceLeaf;
   const workspace = {
@@ -24,11 +28,23 @@ describe("openCampaignPage", () => {
   });
 
   it("moves the tab the campaign is already open in to the page, instead of opening another", async () => {
-    const open = { setViewState: vi.fn() } as unknown as WorkspaceLeaf;
+    const open = campaignLeaf(true, 1);
     const { app, workspace } = appWith([open]);
     await openCampaignPage(app, "funds");
     expect(workspace.getLeaf).not.toHaveBeenCalled();
     expect(open.setViewState).toHaveBeenCalledExactlyOnceWith({ type: CAMPAIGN_VIEW, state: { page: "funds", path: null }, active: true });
     expect(workspace.revealLeaf).toHaveBeenCalledExactlyOnceWith(open);
+  });
+
+  it("moves the campaign tab in view that was used last, of several", async () => {
+    const behind = campaignLeaf(false, 30);
+    const left = campaignLeaf(true, 10);
+    const right = campaignLeaf(true, 20);
+    const { app, workspace } = appWith([behind, left, right]);
+    await openCampaignPage(app, "home");
+    expect(right.setViewState).toHaveBeenCalledOnce();
+    expect(left.setViewState).not.toHaveBeenCalled();
+    expect(behind.setViewState).not.toHaveBeenCalled();
+    expect(workspace.revealLeaf).toHaveBeenCalledExactlyOnceWith(right);
   });
 });

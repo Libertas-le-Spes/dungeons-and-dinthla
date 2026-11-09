@@ -175,6 +175,13 @@ describe("CampaignView", () => {
     expect(view.getState()).toEqual({ page: "cast", path: MIRA });
   });
 
+  it("tells which note it shows, and none on a page without one", async () => {
+    const { view } = await openView();
+    expect(view.shownPath()).toBeNull();
+    await view.setState({ page: "cast", path: MIRA }, { history: false });
+    expect(view.shownPath()).toBe(MIRA);
+  });
+
   it("never names its note under file, which Obsidian on a phone would open in the editor", async () => {
     const { view } = await openView();
     await view.setState({ page: "cast", path: MIRA }, { history: false });

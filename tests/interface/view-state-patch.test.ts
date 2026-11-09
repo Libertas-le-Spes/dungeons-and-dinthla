@@ -1,22 +1,25 @@
 import { describe, expect, it, vi } from "vitest";
 import type { ViewState, WorkspaceLeaf } from "obsidian";
-import { patchSetViewState, type ViewStateSetter } from "../../src/interface/view-state-patch";
+import { patchSetViewState, type ViewStateSetter, type ViewStateSettled } from "../../src/interface/view-state-patch";
 
 const NOTE: ViewState = { type: "markdown", state: { file: "Pale Moon/Pale Moon.md" } };
 const TAKEN: ViewState = { type: "dungeons-and-dinthla-campaign", state: { page: "home", path: "Pale Moon/Pale Moon.md" } };
 
 class Leaf {
   readonly calls: { leaf: Leaf; viewState: ViewState; eState: unknown }[] = [];
+  readonly view = { getViewType: () => "empty" };
+  fails = false;
 
   async setViewState(viewState: ViewState, eState?: unknown): Promise<void> {
     this.calls.push({ leaf: this, viewState, eState });
+    if (this.fails) throw new Error("the tab is busy");
   }
 }
 
-function patchedLeaf(change: (viewState: ViewState) => ViewState) {
+function patchedLeaf(change: (viewState: ViewState) => ViewState, settled: ViewStateSettled = () => {}) {
   const prototype = Leaf.prototype as unknown as ViewStateSetter;
   const original = prototype.setViewState;
-  const undo = patchSetViewState(prototype, change);
+  const undo = patchSetViewState(prototype, { change, settled });
   const restore = () => {
     prototype.setViewState = original;
   };
@@ -62,5 +65,46 @@ describe("patchSetViewState", () => {
     restore();
     expect(change).not.toHaveBeenCalled();
     expect(leaf.calls.map((call) => call.viewState)).toEqual([NOTE]);
+  });
+
+  it("tells what was set once Obsidian's own method has finished, with the tab's kind before it", async () => {
+    const settled = vi.fn();
+    const { leaf, restore } = patchedLeaf(() => TAKEN, settled);
+    const setting = leaf.setViewState(NOTE);
+    expect(settled).not.toHaveBeenCalled();
+    await setting;
+    await Promise.resolve();
+    restore();
+    expect(settled).toHaveBeenCalledExactlyOnceWith(leaf, { typeBefore: "empty", incoming: NOTE, sent: TAKEN });
+  });
+
+  it("tells nothing when Obsidian's own method fails, and hands its failure back", async () => {
+    const settled = vi.fn();
+    const { leaf, restore } = patchedLeaf(() => TAKEN, settled);
+    leaf.fails = true;
+    await expect(leaf.setViewState(NOTE)).rejects.toThrow("the tab is busy");
+    await Promise.resolve();
+    restore();
+    expect(settled).not.toHaveBeenCalled();
+  });
+
+  it("still opens the file when telling what was set fails", async () => {
+    const { leaf, restore } = patchedLeaf(() => TAKEN, () => {
+      throw new Error("no tabs to look at");
+    });
+    await expect(leaf.setViewState(NOTE)).resolves.toBeUndefined();
+    await Promise.resolve();
+    restore();
+    expect(leaf.calls.map((call) => call.viewState)).toEqual([TAKEN]);
+  });
+
+  it("tells nothing once it is undone", async () => {
+    const settled = vi.fn();
+    const { leaf, undo } = patchedLeaf(() => TAKEN, settled);
+    const ours = Leaf.prototype.setViewState;
+    undo();
+    await ours.call(leaf, NOTE);
+    await Promise.resolve();
+    expect(settled).not.toHaveBeenCalled();
   });
 });
