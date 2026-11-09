@@ -34,22 +34,27 @@ describe("CampaignsFolderSetup", () => {
     Notice.shown = [];
   });
 
-  it("offers every folder, and sets the one picked", async () => {
+  it("offers every folder, sets the one picked, then says it is chosen", async () => {
     const { setup, folder, pickFolder, pick } = setupWith();
-    setup.pick();
+    const chosen = vi.fn();
+    setup.pick(chosen);
     expect(pickFolder).toHaveBeenCalledExactlyOnceWith(["D&D", "Recipes"], expect.any(Function));
+    expect(chosen).not.toHaveBeenCalled();
     pick("D&D");
     await settled();
     expect(folder.choose).toHaveBeenCalledExactlyOnceWith("D&D");
     expect(setup.path).toBe("D&D");
+    expect(chosen).toHaveBeenCalledOnce();
   });
 
   it("says why when the folder picked can't be set", async () => {
     const { setup, pick } = setupWith({ chooseFails: true });
-    setup.pick();
+    const chosen = vi.fn();
+    setup.pick(chosen);
     pick("D&D");
     await settled();
     expect(Notice.shown).toEqual(["Couldn't set the Campaigns folder: data.json is read-only."]);
+    expect(chosen).not.toHaveBeenCalled();
   });
 
   it("makes the folder named, then sets it", async () => {

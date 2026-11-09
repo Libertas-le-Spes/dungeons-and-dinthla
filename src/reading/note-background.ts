@@ -2,6 +2,7 @@ import { debounce, type Debouncer } from "obsidian";
 import type { BackgroundMetadata } from "../campaign/campaign-background";
 import { campaignFolderOf, isMainNote } from "../campaign/campaign-folders";
 import { shownBackgroundIn, type PictureUrl, type ShownBackground } from "../campaign/shown-background";
+import type { CampaignsFolderPath } from "../fence/fence";
 
 const SETTLE_MS = 200;
 const LAYER_CLASS = "dd-campaign-background";
@@ -37,8 +38,6 @@ export function showBackground(contentEl: HTMLElement, shown: ShownBackground | 
   layer.setCssProps({ "--dd-campaign-picture": shown.picture.value });
   contentEl.addClass(HOLDER_CLASS);
 }
-
-export type CampaignsFolderPath = () => string | null;
 
 export class BackgroundRefresh {
   private readonly soon: Debouncer<[], void>;

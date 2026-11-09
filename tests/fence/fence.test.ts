@@ -15,6 +15,7 @@ describe("Fence", () => {
 
   it("doesn't hold a path that climbs back out with ..", () => {
     expect(new Fence(() => "D&D").holds("D&D/../Private.md")).toBe(false);
+    expect(new Fence(() => "D&D").holds("D&D/.. /Private.md")).toBe(false);
   });
 
   it("holds nothing while no Campaigns folder is set", () => {
@@ -22,7 +23,11 @@ describe("Fence", () => {
   });
 
   it("holds nothing when the Campaigns folder is the vault itself or not a plain path", () => {
-    for (const folder of ["/", "", "../D&D", "D&D/"]) expect(new Fence(() => folder).holds("D&D/Pale Moon/Pale Moon.md")).toBe(false);
+    for (const folder of ["/", "", "../D&D", "D&D/", ".. ", "D&D."]) expect(new Fence(() => folder).holds("D&D/Pale Moon/Pale Moon.md")).toBe(false);
+  });
+
+  it("holds nothing when the Campaigns folder is hidden, such as the vault's settings folder", () => {
+    for (const folder of [".obsidian", "Games/.hidden"]) expect(new Fence(() => folder).holds(`${folder}/Pale Moon/Pale Moon.md`)).toBe(false);
   });
 
   it("follows the Campaigns folder as it changes", () => {
@@ -31,6 +36,29 @@ describe("Fence", () => {
     folder = "Games";
     expect(fence.holds("D&D/Pale Moon/Pale Moon.md")).toBe(false);
     expect(fence.holds("Games/Pale Moon/Pale Moon.md")).toBe(true);
+  });
+
+  it("holds a note the vault already holds in decomposed letters or with a no-break space", () => {
+    const fence = new Fence(() => "D&D");
+    expect(fence.holds("D&D/Zoe\u0308/Zoe\u0308.md")).toBe(true);
+    expect(fence.holds("D&D/Pale\u00a0Moon/Pale\u00a0Moon.md")).toBe(true);
+  });
+
+  it("holds a Campaigns folder named in decomposed letters", () => {
+    expect(new Fence(() => "Zoe\u0308").holds("Zoe\u0308/Pale Moon/Pale Moon.md")).toBe(true);
+  });
+
+  it("holds a new path only as Obsidian writes it", () => {
+    const fence = new Fence(() => "D&D");
+    expect(fence.holdsNew("D&D/Pale Moon/Sessions/Session 2.md")).toBe(true);
+    expect(fence.holdsNew("D&D/Zoe\u0308/Zoe\u0308.md")).toBe(false);
+    expect(fence.holdsNew("D&D/Pale\u00a0Moon/Pale\u00a0Moon.md")).toBe(false);
+  });
+
+  it("holds no new path outside, or while no Campaigns folder is set", () => {
+    expect(new Fence(() => "D&D").holdsNew("Private/Secondary.md")).toBe(false);
+    expect(new Fence(() => "D&D").holdsNew("D&D/../Private/Secondary.md")).toBe(false);
+    expect(new Fence(() => null).holdsNew("D&D/Pale Moon/Pale Moon.md")).toBe(false);
   });
 
   it("knows the Campaigns folder itself, and nothing else as it", () => {

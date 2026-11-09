@@ -17,7 +17,7 @@ export class FencedFileActions {
 
   async renameFile(file: TFile, newPath: string): Promise<void> {
     const held = this.held.file(file);
-    await this.fileManager.renameFile(held, this.held.path(newPath));
+    await this.fileManager.renameFile(held, this.held.newPath(newPath));
   }
 
   async trashFile(file: TFile): Promise<void> {

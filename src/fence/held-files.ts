@@ -14,12 +14,21 @@ export class HeldFiles {
     return this.fence.holds(path);
   }
 
+  isTheFolder(path: unknown): path is string {
+    return this.fence.isTheFolder(path);
+  }
+
   holdsFile(file: unknown): boolean {
     return this.fence.holds(pathOf(file));
   }
 
   path(path: unknown): string {
     if (!this.fence.holds(path)) throw new Error(OUTSIDE_FENCE);
+    return path;
+  }
+
+  newPath(path: unknown): string {
+    if (!this.fence.holdsNew(path)) throw new Error(OUTSIDE_FENCE);
     return path;
   }
 

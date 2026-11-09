@@ -22,16 +22,24 @@ describe("FirstRun", () => {
   });
 
   it("skips the welcome for a vault upgraded from before it, whose campaign already has sessions, leaving the news unseen", async () => {
-    const { firstRun, saved, showWelcome } = firstRunWith({ campaignsFolder: null, campaignFolder: "Silver Road", welcomeSeen: false, lastVersionSeen: null });
+    const { firstRun, saved, showWelcome } = firstRunWith({ campaignsFolder: "D&D", campaignFolder: "D&D/Silver Road", welcomeSeen: false, lastVersionSeen: null });
     await firstRun.begin(true, showWelcome);
     expect(showWelcome).not.toHaveBeenCalled();
-    expect(saved).toEqual([{ campaignsFolder: null, campaignFolder: "Silver Road", welcomeSeen: true, lastVersionSeen: null }]);
+    expect(saved).toEqual([{ campaignsFolder: "D&D", campaignFolder: "D&D/Silver Road", welcomeSeen: true, lastVersionSeen: null }]);
   });
 
-  it("shows nothing and saves nothing once the welcome was seen", async () => {
-    const { firstRun, saved, showWelcome } = firstRunWith({ campaignsFolder: null, campaignFolder: "Silver Road", welcomeSeen: true, lastVersionSeen: "1.3.0" });
+  it("shows nothing and saves nothing once the welcome was seen and a Campaigns folder is set", async () => {
+    const { firstRun, saved, showWelcome } = firstRunWith({ campaignsFolder: "D&D", campaignFolder: "D&D/Silver Road", welcomeSeen: true, lastVersionSeen: "1.3.0" });
     await firstRun.begin(false, showWelcome);
     expect(showWelcome).not.toHaveBeenCalled();
+    expect(saved).toEqual([]);
+  });
+
+  it("opens the welcome page again on every start while no Campaigns folder is set, as after an update, saving nothing", async () => {
+    const { firstRun, saved, showWelcome } = firstRunWith({ campaignsFolder: null, campaignFolder: null, welcomeSeen: true, lastVersionSeen: "1.3.0" });
+    await firstRun.begin(false, showWelcome);
+    await firstRun.begin(false, showWelcome);
+    expect(showWelcome).toHaveBeenCalledTimes(2);
     expect(saved).toEqual([]);
   });
 
@@ -47,7 +55,7 @@ describe("FirstRun", () => {
   });
 
   it("keeps the welcome seen when the page fails to open, so the next start doesn't show it again", async () => {
-    const { firstRun, saved } = firstRunWith({ campaignsFolder: null, campaignFolder: null, welcomeSeen: false, lastVersionSeen: null });
+    const { firstRun, saved } = firstRunWith({ campaignsFolder: "D&D", campaignFolder: null, welcomeSeen: false, lastVersionSeen: null });
     const failingWelcome = async () => {
       throw new Error("The workspace is closing.");
     };

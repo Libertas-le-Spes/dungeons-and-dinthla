@@ -1,15 +1,14 @@
 import { Notice } from "obsidian";
+import type { CampaignsFolderPath } from "../fence/fence";
 import { messageOf } from "../views/message-of";
 import { makeCampaign, type NewCampaignFiles } from "./make-campaign";
 
 export type ChooseCampaign = (folder: string) => Promise<void>;
 
-export type CampaignsFolderOf = () => string | null;
-
 export class CampaignMaker {
   constructor(
     private readonly files: NewCampaignFiles,
-    private readonly campaignsFolder: CampaignsFolderOf,
+    private readonly campaignsFolder: CampaignsFolderPath,
     private readonly choose: ChooseCampaign,
   ) {}
 
