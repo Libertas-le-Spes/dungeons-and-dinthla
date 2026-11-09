@@ -5,7 +5,6 @@ import { NO_CAMPAIGN } from "../../src/campaign/campaign-folders";
 import type { CharacterNotes } from "../../src/characters/character-notes";
 import {
   addEditCharacterItem,
-  campaignOfCharacter,
   EDIT_WHERE,
   editActiveCharacter,
   editCharacter,
@@ -20,27 +19,6 @@ const MIRA = "Pale Moon/Characters/Mira.md";
 
 beforeEach(() => {
   Notice.shown = [];
-});
-
-describe("campaignOfCharacter", () => {
-  it("is the campaign of a Markdown note in its Characters folder", () => {
-    expect(campaignOfCharacter(MIRA, CAMPAIGNS)).toBe("Pale Moon");
-    expect(campaignOfCharacter("Ashen Road/Characters/Villains/Vess.md", CAMPAIGNS)).toBe("Ashen Road");
-  });
-
-  it("is nothing for a note anywhere else", () => {
-    expect(campaignOfCharacter("Pale Moon/Sessions/Session 1.md", CAMPAIGNS)).toBeNull();
-    expect(campaignOfCharacter("Pale Moon/Characters.md", CAMPAIGNS)).toBeNull();
-    expect(campaignOfCharacter("Pale Moon/Characters.base", CAMPAIGNS)).toBeNull();
-  });
-
-  it("is nothing for a note in a folder that isn't a campaign", () => {
-    expect(campaignOfCharacter("Drafts/Characters/Mira.md", CAMPAIGNS)).toBeNull();
-  });
-
-  it("is nothing for a file in the Characters folder that isn't a note", () => {
-    expect(campaignOfCharacter("Pale Moon/Characters/Mira.png", CAMPAIGNS)).toBeNull();
-  });
 });
 
 describe("openNewCharacter", () => {
@@ -141,23 +119,41 @@ describe("editCharacter", () => {
   });
 });
 
+const NOTHING_SHOWN = () => null;
+
 describe("editActiveCharacter", () => {
   it("is offered on a character's note without reading it yet", () => {
     const { app, notes, read } = setUp();
-    expect(editActiveCharacter(app, notes, true)).toBe(true);
+    expect(editActiveCharacter(app, notes, NOTHING_SHOWN, true)).toBe(true);
     expect(read).not.toHaveBeenCalled();
   });
 
-  it("isn't offered with no note open", () => {
+  it("isn't offered with no note open and no sheet shown", () => {
     const { app, notes, read } = setUp({ active: null });
-    expect(editActiveCharacter(app, notes, false)).toBe(false);
+    expect(editActiveCharacter(app, notes, NOTHING_SHOWN, false)).toBe(false);
     expect(read).not.toHaveBeenCalled();
   });
 
   it("isn't offered on a note outside a campaign's Characters folder", () => {
     const { app, notes, read } = setUp({ active: "Drafts/Characters/Mira.md" });
-    expect(editActiveCharacter(app, notes, false)).toBe(false);
+    expect(editActiveCharacter(app, notes, NOTHING_SHOWN, false)).toBe(false);
     expect(read).not.toHaveBeenCalled();
+  });
+
+  it("is offered on the sheet the campaign tab shows, and opens the dialog for that character", async () => {
+    const { app, notes, read } = setUp({ active: null, ownNote: "speed: 40 ft.\n" });
+    const before = openedModals.length;
+    expect(editActiveCharacter(app, notes, () => MIRA, true)).toBe(true);
+    expect(read).not.toHaveBeenCalled();
+    expect(editActiveCharacter(app, notes, () => MIRA, false)).toBe(true);
+    await vi.waitFor(() => expect(openedModals.length).toBe(before + 1));
+    expect(read).toHaveBeenCalledOnce();
+    expect(openedModals[before]!.title).toBe("Edit character");
+  });
+
+  it("isn't offered when the campaign tab shows a page with no character", () => {
+    const { app, notes } = setUp({ active: null });
+    expect(editActiveCharacter(app, notes, () => "Pale Moon/Characters.base", true)).toBe(false);
   });
 });
 

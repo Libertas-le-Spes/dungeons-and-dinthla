@@ -1,5 +1,5 @@
 import { Notice, type App, type Menu, type TAbstractFile, type TFile } from "obsidian";
-import { campaignFolderOf, charactersFolderOf, NO_CAMPAIGN } from "../campaign/campaign-folders";
+import { campaignOfCharacter, charactersFolderOf, NO_CAMPAIGN } from "../campaign/campaign-folders";
 import { messageOf } from "../views/message-of";
 import { blankEntry, entryOf, learnedOf, type CharacterEntry, type Learned } from "./character-entry";
 import { createCharacter, deleteCharacter, saveCharacter } from "./character-files";
@@ -14,12 +14,6 @@ export const EDIT_WHERE =
 interface Character {
   file: TFile;
   campaignFolder: string;
-}
-
-export function campaignOfCharacter(path: string, campaignFolders: string[]): string | null {
-  const folder = campaignFolderOf(path, campaignFolders);
-  if (folder === null || !path.startsWith(`${charactersFolderOf(folder)}/`) || !path.endsWith(".md")) return null;
-  return folder;
 }
 
 function characterAt(app: App, notes: CharacterNotes, path: string): Character | null {
@@ -84,10 +78,18 @@ export async function openEditCharacter(app: App, notes: CharacterNotes, charact
   new CharacterModal(app, dialog, () => {}).open();
 }
 
-export function editActiveCharacter(app: App, notes: CharacterNotes, checking: boolean): boolean {
+export type ShownPath = () => string | null;
+
+function activePathOf(app: App, shownPath: ShownPath): string | null {
   const active = app.workspace.getActiveFile();
-  if (active === null) return false;
-  const character = characterAt(app, notes, active.path);
+  if (active !== null) return active.path;
+  return shownPath();
+}
+
+export function editActiveCharacter(app: App, notes: CharacterNotes, shownPath: ShownPath, checking: boolean): boolean {
+  const path = activePathOf(app, shownPath);
+  if (path === null) return false;
+  const character = characterAt(app, notes, path);
   if (character === null) return false;
   if (!checking) void openEditCharacter(app, notes, character);
   return true;

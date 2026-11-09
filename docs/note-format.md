@@ -71,6 +71,10 @@ Opening one of these files, in any way Obsidian opens a file (the file list, a l
 
 Opening a file of another campaign moves you into that campaign. Sessions, other notes, and notes outside a campaign still open in Obsidian's editor. There is no way back to the plain note for these files: to change a character's note by hand, edit it with the plugin off, or use *Edit character* and the sheet. Tabs that already show one of these files when the plugin is turned on are switched to the campaign tab. The tab keeps the page and the note it shows, so Obsidian's back and forward buttons step between pages and sheets, and it opens there again next time. When that note is renamed, the tab follows it; when it is deleted, the tab goes back to the page without it, such as the character gallery.
 
+Opening a campaign file while the campaign tab is already open in the same window shows it in that tab instead of opening another: the tab it was opened in goes back to what it showed before, or closes if it showed nothing. A pinned campaign tab is left as it is. Back and forward in a tab step through its own history and never move it.
+
+Turning the plugin off leaves its campaign tabs as Obsidian's placeholder for a view it can't show, until you turn the plugin on again; the files themselves open in the editor and Bases as usual while it is off.
+
 **Dashboard:** the campaign tab's first page shows where the campaign stands. It writes nothing and keeps nothing: each panel counts from the same lines as its full page, so the numbers match, and redraws as you write. Each panel opens its full page:
 
 | Panel | What it shows | Opens |
@@ -279,7 +283,7 @@ subtitle: Human Cleric 5
 speed: 30 ft.
 ```
 
-*Edit character*, from the command palette while a character's note is open, or from the note's menu (the ⋯ menu on a phone, or a right-click on the note in the file list), opens the same dialog filled in from the note's own lines, with a *Delete character* button. Under each value the sessions have taught, the dialog shows it (*Learned in the sessions: 30 ft.*), so you can see what a value of your own would cover up.
+*Edit character* opens the same dialog filled in from the note's own lines, with a *Delete character* button. It is the *Edit character* button at the top of the character's [sheet](#character-sheet), the *Edit character* command in the command palette while their sheet is shown, and *Edit character* in the note's menu when you right-click it in the file list, or long-press it on a phone. Under each value the sessions have taught, the dialog shows it (*Learned in the sessions: 30 ft.*), so you can see what a value of your own would cover up.
 
 - **Renaming** goes through Obsidian's file manager. With Obsidian's *Automatically update internal links* setting on (Settings → Files and links), it rewrites every `[[link]]` to the note, in session notes and everywhere else; with it off, links keep the old name. The note stays in its folder, and its path is written the way Obsidian keeps paths (`normalizePath`).
 - **A changed value** rewrites the last line that states it, when that line states nothing else, keeping its bullet. When the last line that states it has other values on it, as in `AC: 15, speed: 30 ft.`, the new value is added as a line at the end of the note, which wins.

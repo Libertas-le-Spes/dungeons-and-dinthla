@@ -1,4 +1,4 @@
-import { debounce, MarkdownView, Notice, Plugin, WorkspaceLeaf, type EditorSuggestContext, type MarkdownFileInfo, type TFile } from "obsidian";
+import { debounce, MarkdownView, Notice, Plugin, WorkspaceLeaf, type EditorSuggestContext, type MarkdownFileInfo, type TFile, type ViewState } from "obsidian";
 import type { Source } from "./campaign/campaign";
 import type { SheetValue } from "./characters/character-sheet";
 import { messageOf } from "./views/message-of";
@@ -13,9 +13,6 @@ import { CampaignStore } from "./campaign/campaign-store";
 import { characterNotesOf } from "./characters/character-notes";
 import { CHARACTERS_VIEW, CharactersView } from "./characters/characters-view";
 import { addEditCharacterItem, editActiveCharacter, editCharacter, openNewCharacter } from "./characters/open-character";
-import { CharacterSheetPage } from "./characters/character-sheet-page";
-import { CharacterPage } from "./characters/character-page";
-import { castPageFor } from "./characters/cast-page-for";
 import { chooseSheetValue, openCharacterSheet } from "./characters/open-character-sheet";
 import { sheetNotesOf } from "./characters/sheet-notes";
 import { mentionNotesOf } from "./characters/mention-notes";
@@ -35,13 +32,16 @@ import { openItemDialog } from "./funds/open-item";
 import { ledgerEntryOpener } from "./funds/open-ledger-entry";
 import { ListPage } from "./views/list-page";
 import { activePathOf, openSource } from "./views/open-view";
-import { CastPage } from "./characters/cast-page";
 import { DashboardPage, type DashboardActions } from "./dashboard/dashboard-page";
 import { FundsPage } from "./funds/funds-page";
 import { campaignSections, type PageId, type ShowPage } from "./interface/campaign-pages";
-import { campaignStateFor } from "./interface/campaign-takeover";
+import { campaignStateFor, type Takeover } from "./interface/campaign-takeover";
+import { isCampaignViewRegistered } from "./interface/campaign-view-registered";
+import { castSection } from "./interface/cast-section";
+import { keepOneCampaignTab } from "./interface/one-campaign-tab";
+import { shownCampaignPathOf } from "./interface/shown-campaign-path";
 import { takeOpenLeaves } from "./interface/take-open-leaves";
-import { patchSetViewState } from "./interface/view-state-patch";
+import { patchSetViewState, type ChangeViewState } from "./interface/view-state-patch";
 import { CAMPAIGN_VIEW, CampaignView } from "./interface/campaign-view";
 import { openCampaignPage } from "./interface/open-campaign";
 import { closeRetiredViews } from "./interface/retired-views";
@@ -70,7 +70,6 @@ export default class DungeonsAndDinthla extends Plugin {
   private chosen = this.chosenCampaignFrom(settingsOf(null));
 
   override async onload(): Promise<void> {
-    this.register(patchSetViewState(WorkspaceLeaf.prototype, (viewState) => campaignStateFor(viewState, this.campaignFolders())));
     this.chosen = this.chosenCampaignFrom(settingsOf(await this.loadData()));
     this.addSettingTab(new CampaignSettingTab(this.app, this, {
       folders: () => this.campaignFolders(),
@@ -114,7 +113,8 @@ export default class DungeonsAndDinthla extends Plugin {
       icon: "users",
       factory: (controller, containerEl) => new CharactersView(controller, containerEl, this.store, characterNotes, galleryActions, newCharacter),
     });
-    this.addCommand({ id: "edit-character", name: "Edit character", checkCallback: (checking) => editActiveCharacter(this.app, characterNotes, checking) });
+    const shownPath = () => shownCampaignPathOf(this.app.workspace);
+    this.addCommand({ id: "edit-character", name: "Edit character", checkCallback: (checking) => editActiveCharacter(this.app, characterNotes, shownPath, checking) });
     this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => addEditCharacterItem(this.app, characterNotes, menu, file)));
     this.addRibbonIcon("calendar-plus", "Start a new session", () => startSession(this.app, this.store.campaignFolder));
     const dashboardActionsFor = (show: ShowPage): DashboardActions => ({
@@ -131,20 +131,10 @@ export default class DungeonsAndDinthla extends Plugin {
       sessionHeadingOf: (path: string) => sessionHeadingOf(path, this.app.metadataCache),
     });
     const watchFiles = (changed: (path: string) => void) => this.watchFiles(changed);
-    const castPagesFor = (show: ShowPage) => ({
-      notes: sheetNotes,
-      gallery: (contentEl: HTMLElement) => {
-        const castActions = { ...actions, openRow: (source: Source) => show({ page: "cast", path: source.path }) };
-        return new CastPage(contentEl, this.store, characterNotes, castActions, newCharacter, watchFiles);
-      },
-      character: (contentEl: HTMLElement, file: TFile) => {
-        const sheet = (sheetEl: HTMLElement, sheetFile: TFile) => new CharacterSheetPage(sheetEl, sheetFile, this.store, sheetNotes, sheetActions, mentionNotes);
-        return new CharacterPage(contentEl, file, sheet, () => show({ page: "cast", path: null }));
-      },
-    });
+    const castNeeds = { store: this.store, characterNotes, sheetNotes, mentionNotes, actions, sheetActions, newCharacter, watchFiles };
     const sections = campaignSections({
       home: (contentEl, show) => new DashboardPage(contentEl, this.store, characterNotes, dashboardActionsFor(show)),
-      cast: (contentEl, show, path) => castPageFor(contentEl, path, castPagesFor(show)),
+      cast: castSection(castNeeds),
       questions: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestionAt, questionsKind, createQuestion),
       quests: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestAt, questsKind, createQuest),
       funds: (contentEl) => new FundsPage(contentEl, this.store, actions, noteExists, addCoin, openLedgerEntry, openItem),
@@ -168,13 +158,24 @@ export default class DungeonsAndDinthla extends Plugin {
       if (inSession(context.sourcePath)) colourMarkers(element);
     });
     this.followTheme();
-    this.app.workspace.onLayoutReady(() => void this.openCampaignFiles());
     this.app.workspace.onLayoutReady(() => void this.watchCampaign());
     this.app.workspace.onLayoutReady(() => this.watchBackgrounds());
+    this.takeOverOpening();
   }
 
-  private async openCampaignFiles(): Promise<void> {
-    await takeOpenLeaves(this.app.workspace, (viewState) => campaignStateFor(viewState, this.campaignFolders()));
+  private takeOverOpening(): void {
+    const takeover: Takeover = {
+      campaignViewRegistered: () => isCampaignViewRegistered(this.app),
+      campaignFolders: () => this.campaignFolders(),
+    };
+    const change = (viewState: ViewState) => campaignStateFor(viewState, takeover);
+    const settled = keepOneCampaignTab(this.app.workspace, (run) => window.setTimeout(run, 0));
+    this.register(patchSetViewState(WorkspaceLeaf.prototype, { change, settled }));
+    this.app.workspace.onLayoutReady(() => void this.openCampaignFiles(change));
+  }
+
+  private async openCampaignFiles(change: ChangeViewState): Promise<void> {
+    await takeOpenLeaves(this.app.workspace, change);
     closeRetiredViews(this.app.workspace);
   }
 

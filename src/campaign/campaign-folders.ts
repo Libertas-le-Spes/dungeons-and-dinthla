@@ -20,10 +20,11 @@ export function charactersBasePathOf(campaignFolder: string): string {
   return `${campaignFolder}/Characters.base`;
 }
 
-export function isCharacterNotePath(path: string, campaignFolders: string[]): boolean {
+export function campaignOfCharacter(path: string, campaignFolders: string[]): string | null {
   const folder = campaignFolderOf(path, campaignFolders);
-  if (folder === null) return false;
-  return path.startsWith(`${charactersFolderOf(folder)}/`) && path.endsWith(".md");
+  if (folder === null) return null;
+  if (!path.startsWith(`${charactersFolderOf(folder)}/`) || !path.endsWith(".md")) return null;
+  return folder;
 }
 
 export function campaignNotePathOf(path: string): string | null {
