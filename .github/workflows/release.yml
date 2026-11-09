@@ -48,6 +48,8 @@ jobs:
         run: npm ci
       - name: Type check and build
         run: npm run build
+      - name: Check the bundle has no network code
+        run: node scripts/check-no-network.ts main.js
       - name: Tests
         run: npm test
       - name: Publish the release
