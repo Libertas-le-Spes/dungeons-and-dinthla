@@ -53,8 +53,8 @@ describe("findCampaignFolders", () => {
     expect(findCampaignFolders(["D&D/Pale Moon/Pale Moon.md"], "D&D")).toEqual(["D&D/Pale Moon"]);
   });
 
-  it("finds no campaign while no Campaigns folder is set, even where a main note sits", () => {
-    expect(findCampaignFolders(["Pale Moon/Pale Moon.md", "D&D/Pale Moon/Pale Moon.md"], null)).toEqual([]);
+  it("finds no campaign while no Campaigns folder is set, even where a main note sits, in a folder named null too", () => {
+    expect(findCampaignFolders(["Pale Moon/Pale Moon.md", "D&D/Pale Moon/Pale Moon.md", "null/Pale Moon/Pale Moon.md"], null)).toEqual([]);
   });
 
   it("doesn't take a folder beside the Campaigns folder whose name only starts the same", () => {
