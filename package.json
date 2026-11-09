@@ -4,6 +4,9 @@
   "description": "Obsidian plugin: campaign notes that fill in character sheets",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
   "scripts": {
     "build": "tsc --noEmit && node esbuild.config.mjs",
     "test": "vitest run"
