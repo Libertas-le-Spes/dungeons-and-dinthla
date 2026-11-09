@@ -1,6 +1,7 @@
 import { normalizePath, type FileManager, type TFile, type Vault } from "obsidian";
 import { charactersFolderOf } from "../campaign/campaign-folders";
 import { refusalForFileName } from "../campaign/file-name";
+import { nameKeyOf } from "../campaign/name-key";
 import { PartlyWritten } from "../campaign/note-editor";
 import { messageOf } from "../views/message-of";
 import { newCharacterText, refusalForValues, valuesChanged, withEntryValues, type CharacterEntry } from "./character-entry";
@@ -19,8 +20,8 @@ function notePathOf(folder: string, name: string): string {
 }
 
 function nameClash(vault: CharacterVault, folder: string, name: string, ownPath: string | null): string | null {
-  const wanted = notePathOf(folder, name).toLowerCase();
-  const clash = vault.getFiles().find((file) => file.path.toLowerCase() === wanted && file.path !== ownPath);
+  const wanted = nameKeyOf(notePathOf(folder, name));
+  const clash = vault.getFiles().find((file) => nameKeyOf(file.path) === wanted && file.path !== ownPath);
   if (clash === undefined) return null;
   return `There is already a note called ${clash.basename} in ${folder}.`;
 }

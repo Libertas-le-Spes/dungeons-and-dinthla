@@ -1,6 +1,6 @@
 import { hasStrayFormatCharacter } from "./format-characters";
 
-export const BAD_NAME = `A name can't hold any of \\ / : * ? " < > | # ^ [ ] or a control character or an invisible formatting character other than the joiners and tags inside emoji, or start or end with a dot or a space.`;
+export const BAD_NAME = `A name can't hold any of \\ / : * ? " < > | # ^ [ ] or a control or invisible character, or start or end with a dot or a space. Invisible joiners are allowed only inside emoji, and tag characters only in the flags of England, Scotland and Wales.`;
 export const RESERVED_NAME =
   "CON, PRN, AUX, NUL, CONIN$, CONOUT$, COM0 to COM9 and LPT0 to LPT9, with COM¹ to COM³ and LPT¹ to LPT³, can't name a note on Windows, even with more after a dot.";
 export const LONG_NAME = "That name is too long for a note's file.";

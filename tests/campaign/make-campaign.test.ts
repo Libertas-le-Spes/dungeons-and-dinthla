@@ -89,6 +89,28 @@ describe("makeCampaign", () => {
     expect(made).toEqual([]);
   });
 
+  it("refuses a name that only differs from one at the top of the vault by invisible characters", async () => {
+    for (const name of ["Ali\u200dce", "Ali\u034fce"]) {
+      const { vault, made } = vaultWith({ topLevel: ["Alice"] });
+      await expect(makeCampaign(vault, name)).rejects.toThrow();
+      expect(made).toEqual([]);
+    }
+  });
+
+  it("refuses a plain name when a folder made outside the plugin differs from it only by invisible characters", async () => {
+    for (const existing of ["Ali\u200dce", "Ali\u034fce"]) {
+      const { vault, made } = vaultWith({ topLevel: [existing] });
+      await expect(makeCampaign(vault, "Alice")).rejects.toThrow(`called ${existing} at the top`);
+      expect(made).toEqual([]);
+    }
+  });
+
+  it("refuses a name that matches a folder at the top of the vault once both are composed the same way", async () => {
+    const { vault, made } = vaultWith({ topLevel: ["Zoe\u0308"] });
+    await expect(makeCampaign(vault, "Zo\u00eb")).rejects.toThrow("called Zoe\u0308 at the top");
+    expect(made).toEqual([]);
+  });
+
   it("refuses a name that differs from one at the top of the vault only in capitals, naming the one there", async () => {
     const { vault, made } = vaultWith({ topLevel: ["silver road"] });
     await expect(makeCampaign(vault, "Silver Road")).rejects.toThrow("called silver road at the top");
