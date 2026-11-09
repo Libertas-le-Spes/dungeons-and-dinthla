@@ -40,4 +40,10 @@ describe("Gatekeeper", () => {
     await expect(gate.fileActions.trashFile(PRIVATE)).rejects.toThrow(OUTSIDE_FENCE);
     expect(fileManager.trashFile).not.toHaveBeenCalled();
   });
+
+  it("hands out the vault's settings folder by the name the vault gives it", () => {
+    const { vault } = rawVaultWith([]);
+    const app = { vault: { ...vault, configDir: "Vault Settings" }, fileManager: {}, metadataCache: {} } as unknown as App;
+    expect(new Gatekeeper(app, () => "D&D").configDir).toBe("Vault Settings");
+  });
 });

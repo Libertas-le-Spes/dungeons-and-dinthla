@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { NOT_A_PLAIN_PATH, NOT_THE_WHOLE_VAULT } from "../../src/fence/campaigns-folder-path";
+import { NOT_A_PLAIN_PATH, NOT_THE_CONFIG_FOLDER, NOT_THE_WHOLE_VAULT } from "../../src/fence/campaigns-folder-path";
 import { CampaignsFolderSetting } from "../../src/settings/campaigns-folder-setting";
 import type { PluginSettings } from "../../src/settings/plugin-settings";
 import { SettingsSaver } from "../../src/settings/settings-saver";
@@ -9,7 +9,7 @@ function oneTick(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-function settingFrom(campaignsFolder: string | null) {
+function settingFrom(campaignsFolder: string | null, configDir = ".obsidian") {
   const settings: PluginSettings = { campaignsFolder, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null };
   const order: string[] = [];
   const save = vi.fn(async (written: PluginSettings) => {
@@ -23,7 +23,7 @@ function settingFrom(campaignsFolder: string | null) {
     await oneTick();
     order.push("looked again");
   });
-  return { setting: new CampaignsFolderSetting(saver, changed), settings, save, changed, order, lookedIn };
+  return { setting: new CampaignsFolderSetting(saver, changed, configDir), settings, save, changed, order, lookedIn };
 }
 
 describe("CampaignsFolderSetting", () => {
@@ -116,5 +116,13 @@ describe("CampaignsFolderSetting", () => {
     await expect(setting.choose("D&D/../Private")).rejects.toThrow(NOT_A_PLAIN_PATH);
     expect(setting.path).toBeNull();
     expect(save).not.toHaveBeenCalled();
+  });
+
+  it("refuses the vault's settings folder and the folders inside it, even when its name has no dot", async () => {
+    const { setting, save, changed } = settingFrom("D&D", "Vault Settings");
+    for (const path of ["Vault Settings", "Vault Settings/D&D"]) await expect(setting.choose(path)).rejects.toThrow(NOT_THE_CONFIG_FOLDER);
+    expect(setting.path).toBe("D&D");
+    expect(save).not.toHaveBeenCalled();
+    expect(changed).not.toHaveBeenCalled();
   });
 });
