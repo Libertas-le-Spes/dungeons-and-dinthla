@@ -16,6 +16,7 @@ export class DraftBox {
   private readonly message: HTMLElement;
   private saving = false;
   private gone = false;
+  private removing = false;
 
   constructor(
     parent: HTMLElement,
@@ -59,6 +60,15 @@ export class DraftBox {
     this.refresh();
   }
 
+  setRemoving(removing: boolean): void {
+    this.removing = removing;
+    this.refresh();
+  }
+
+  get isRemoving(): boolean {
+    return this.removing;
+  }
+
   say(message: string): void {
     this.message.setText(message);
   }
@@ -70,7 +80,7 @@ export class DraftBox {
   refresh(): void {
     const locked = this.saving || this.gone;
     this.textarea.readOnly = locked;
-    this.saveButton.disabled = locked || !hasLinesToSave(this.textarea.value);
+    this.saveButton.disabled = locked || this.removing || !hasLinesToSave(this.textarea.value);
   }
 
   focus(): void {

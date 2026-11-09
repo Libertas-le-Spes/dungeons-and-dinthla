@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { noteSection } from "../../src/interface/note-section";
 import { NoNotePage } from "../../src/note-page/no-note-page";
-import { NoteDrafts } from "../../src/note-page/note-drafts";
+import { NoteDrafts } from "../../src/note-editing/note-drafts";
 import { NotePage } from "../../src/note-page/note-page";
-import type { NoteSaver } from "../../src/note-page/note-saver";
+import type { NoteSaver } from "../../src/note-editing/note-saver";
 import { Drafts } from "../../src/session-notes/drafts";
 import { obsidianDocument } from "../views/obsidian-dom";
 

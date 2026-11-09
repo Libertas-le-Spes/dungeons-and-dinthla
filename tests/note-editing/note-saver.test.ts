@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TFile } from "obsidian";
-import { NOTE_CHANGED, NOTE_GONE, NoteChangedSince, NoteSaver, type SaverVault } from "../../src/note-page/note-saver";
+import { NOTE_CHANGED, NOTE_GONE, NoteChangedSince, NoteSaver, type SaverVault } from "../../src/note-editing/note-saver";
 
 const OLD_MILL = "Pale Moon/Places/Old Mill.md";
 const FILE = { path: OLD_MILL } as TFile;
