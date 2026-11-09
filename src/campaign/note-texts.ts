@@ -1,5 +1,6 @@
-import type { TAbstractFile, TFile } from "obsidian";
+import type { TFile } from "obsidian";
 import { boxTextOf } from "./disk-text";
+import type { GoneFile } from "../fence/fenced-files";
 import type { Gate } from "../fence/gatekeeper";
 
 export type NoteChanged = (path: string, text: string) => void;
@@ -25,7 +26,7 @@ function onChanged(gate: Gate, changed: NoteChanged): () => void {
 }
 
 function onGone(gate: Gate, gone: NoteGone): () => void {
-  const event = gate.files.on("delete", (file: TAbstractFile) => gone(file.path));
+  const event = gate.files.on("delete", (file: GoneFile) => gone(file.path));
   return () => gate.files.offref(event);
 }
 

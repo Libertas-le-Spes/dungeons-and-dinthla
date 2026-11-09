@@ -1,4 +1,4 @@
-import type { EventRef, Events, TAbstractFile, TFile, TFolder, Vault } from "obsidian";
+import { Component, Events, type EventRef, type TAbstractFile, type TFile, type TFolder, type Vault } from "obsidian";
 import type { HeldFiles } from "./held-files";
 
 export type RawVault = Pick<
@@ -20,13 +20,30 @@ export type RawVault = Pick<
 
 export type FileEvent = "create" | "delete" | "modify" | "rename";
 
-type FileEventCallback = (file: TAbstractFile, oldPath: string) => unknown;
+export type GoneFile = Pick<TAbstractFile, "path">;
 
-export class FencedFiles {
+type FileCallback = (file: TAbstractFile) => unknown;
+
+type GoneCallback = (file: GoneFile) => unknown;
+
+type RenameCallback = (file: TAbstractFile, oldPath: string) => unknown;
+
+export class FencedFiles extends Component {
+  private readonly heard = new Events();
+
   constructor(
     private readonly vault: RawVault,
     private readonly held: HeldFiles,
-  ) {}
+  ) {
+    super();
+  }
+
+  override onload(): void {
+    this.listen("create", (file) => this.passHeld("create", file));
+    this.listen("modify", (file) => this.passHeld("modify", file));
+    this.listen("delete", (file) => this.passHeld("delete", file));
+    this.listen("rename", (file, oldPath) => this.passRename(file, oldPath));
+  }
 
   getFileByPath(path: string): TFile | null {
     if (!this.held.holdsPath(path)) return null;
@@ -76,19 +93,31 @@ export class FencedFiles {
     return this.vault.getResourcePath(this.held.file(file));
   }
 
-  on(name: "create" | "delete" | "modify", callback: (file: TAbstractFile) => unknown): EventRef;
-  on(name: "rename", callback: FileEventCallback): EventRef;
-  on(name: FileEvent, callback: FileEventCallback): EventRef {
-    return this.vault.on(name, (...data: unknown[]) => this.pass(data, callback));
+  on(name: "create" | "modify", callback: FileCallback): EventRef;
+  on(name: "delete", callback: GoneCallback): EventRef;
+  on(name: "rename", callback: RenameCallback): EventRef;
+  on(name: FileEvent, callback: (...data: never[]) => unknown): EventRef {
+    return this.heard.on(name, callback as (...data: unknown[]) => unknown);
   }
 
   offref(ref: EventRef): void {
-    this.vault.offref(ref);
+    this.heard.offref(ref);
   }
 
-  private pass(data: unknown[], callback: FileEventCallback): void {
-    const [file, oldPath] = data;
-    if (!this.held.holdsFile(file) && !this.held.holdsPath(oldPath)) return;
-    callback(file as TAbstractFile, oldPath as string);
+  private listen(name: FileEvent, callback: (file: unknown, oldPath: unknown) => void): void {
+    const ref = this.vault.on(name, (...data: unknown[]) => callback(data[0], data[1]));
+    this.register(() => this.vault.offref(ref));
+  }
+
+  private passHeld(name: FileEvent, file: unknown): void {
+    if (this.held.holdsFile(file)) this.heard.trigger(name, file);
+  }
+
+  private passRename(file: unknown, oldPath: unknown): void {
+    if (this.held.holdsFile(file)) {
+      this.heard.trigger("rename", file, oldPath);
+      return;
+    }
+    if (this.held.holdsPath(oldPath)) this.heard.trigger("delete", { path: oldPath });
   }
 }
