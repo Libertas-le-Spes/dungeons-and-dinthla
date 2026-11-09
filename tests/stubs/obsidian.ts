@@ -325,6 +325,10 @@ export function normalizePath(path: string): string {
   return normalized.replace(/ | /g, " ").normalize("NFC");
 }
 
+export function getLinkpath(linktext: string): string {
+  return linktext.replace(/#.*$/, "");
+}
+
 export function debounce<T extends unknown[]>(callback: (...args: T) => void): ((...args: T) => void) & { cancel: () => void } {
   const debouncer = (...args: T) => callback(...args);
   debouncer.cancel = () => {};

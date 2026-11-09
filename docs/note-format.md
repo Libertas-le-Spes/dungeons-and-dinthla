@@ -341,6 +341,16 @@ The sheet refuses, and writes nothing, when:
 
 The session line is written first and the character's note after it. If the note can't be changed by then, the sheet says the line was added but the note was left, so you can fix one of them by hand.
 
+#### In the notes
+
+After the stat block, *In the notes* lists every session line, in every campaign, with a link to the character, and says how many there are (*3 lines*). Lines in other notes, such as a place's note or another character's, aren't listed. It is built from Obsidian's own link index, so a link counts for the note Obsidian resolves it to, as for fact lines: `[[Mira]]`, `[[Characters/Mira|her]]`, `[[Mira#Stats]]` and an embed, `![[Mira]]`, all count. A line with two links to them shows once. Links in a session's properties aren't lines, so they don't show. Obsidian doesn't index links in code blocks or comments, so lines there don't show either.
+
+Each line shows as written, without its bullet, with its session under it (*Session 12*), and the campaign too when it isn't the character's own (*Session 2 · Ashen Road*). Tapping it opens the session at that line; tapping a link in it opens the link. The character's own campaign comes first, then the other campaigns by name, each campaign's lines together. Within a campaign the newest session comes first, and in each session the last line first, since it was written last. With no line yet it says *No session mentions [[Mira]] yet.* If the sessions can't be read, it says so.
+
+A renamed character keeps their lines when Obsidian's *Automatically update internal links* setting is on, since every link is rewritten to the new name. With it off, the old links point nowhere, and their lines leave the list until the links are fixed.
+
+The lines are read when the sheet opens, and read again when Obsidian has resolved the links of a session that's on the list or now links to the character, and when a session on the list is deleted or renamed, once changes have settled for a moment. When the rest of the sheet redraws, the list is drawn again from the lines already read. A changed note is checked by its own links only, so writing elsewhere in a big vault costs a look at that note's links and no more.
+
 ### Calling a character over
 
 Calling a character into another campaign is a choice, made in a dialog: everything, only the groups you pick (ability scores, other values, history), or only a link. The new campaign's note for them records it in two properties:
