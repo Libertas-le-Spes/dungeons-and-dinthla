@@ -10,6 +10,7 @@ import {
   startingCampaignFolder,
 } from "./campaign/campaign-folders";
 import { CampaignStore } from "./campaign/campaign-store";
+import { SavedCampaign } from "./campaign/saved-campaign";
 import { characterNotesOf } from "./characters/character-notes";
 import { CHARACTERS_VIEW, CharactersView } from "./characters/characters-view";
 import { addEditCharacterItem, editActiveCharacter, editCharacter, openNewCharacter } from "./characters/open-character";
@@ -444,9 +445,12 @@ export default class DungeonsAndDinthla extends Plugin {
 
   private keepItemHolders(): void {
     const gate = this.gate;
+    const notRead = (error: unknown) => new Notice(`Couldn't read the saved session notes: ${messageOf(error)}`);
+    const saved = new SavedCampaign({ shown: this.store, files: gate.files, metadata: gate.metadata, failed: notRead });
     const failed = (error: unknown) => new Notice(`Couldn't write an item's holder: ${messageOf(error)}`);
-    const holders = new ItemHolders({ store: this.store, files: gate.files, metadata: gate.metadata, actions: gate.fileActions, failed });
+    const holders = new ItemHolders({ store: saved, files: gate.files, metadata: gate.metadata, actions: gate.fileActions, failed });
     this.register(holders.start());
+    this.register(saved.start());
   }
 
   private readEditor(info: MarkdownFileInfo, file: TFile): void {
