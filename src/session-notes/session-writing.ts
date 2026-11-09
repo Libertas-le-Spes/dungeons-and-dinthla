@@ -1,5 +1,5 @@
 import type { Campaign } from "../campaign/campaign";
-import type { NoteEditingNeeds } from "../note-page/note-editing";
+import type { NoteEditingNeeds } from "../note-editing/note-editing";
 import type { LinkActions } from "../views/linked-text";
 import { EditAllPanel } from "./edit-all-panel";
 import type { KeptDrafts } from "./kept-drafts";
@@ -93,7 +93,9 @@ export class SessionWriting {
 
   private wholeTextKept(path: string): void {
     if (path !== this.path) return;
-    this.buttons.setEditsNotSaved(this.needs.wholeText.drafts.draftOf(path) !== null);
+    const waiting = this.needs.wholeText.drafts.draftOf(path) !== null;
+    this.buttons.setEditsNotSaved(waiting);
+    this.writing.setEditAllWaiting(waiting);
     this.refreshButtons();
   }
 

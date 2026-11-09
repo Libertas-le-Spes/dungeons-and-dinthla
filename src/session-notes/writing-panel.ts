@@ -8,6 +8,7 @@ import { startOfLine, withoutLine } from "./box-text";
 import { DraftBox } from "./draft-box";
 import { hasLinesToSave } from "./draft-lines";
 import type { Drafts } from "./drafts";
+import { EditAllReminder } from "./edit-all-reminder";
 import { LookupList } from "./lookup-list";
 
 export interface WritingNeeds {
@@ -25,6 +26,7 @@ export class WritingPanel {
   private readonly panel: HTMLElement;
   private readonly box: DraftBox;
   private readonly lookup: BoxLookup;
+  private readonly reminder: EditAllReminder;
   private readonly stopListening: () => void;
 
   constructor(
@@ -33,6 +35,7 @@ export class WritingPanel {
     private readonly needs: WritingNeeds,
   ) {
     this.panel = parent.createEl("section", { cls: "dd-notes-panel dd-writing-panel" });
+    this.reminder = new EditAllReminder(this.panel);
     this.box = new DraftBox(this.panel, needs.drafts.textOf(sessionPath), () => void this.save());
     const list = new LookupList(this.box.lookups, (match) => this.pick(match));
     this.lookup = new BoxLookup(this.box.textarea, list, needs.campaign);
@@ -60,6 +63,10 @@ export class WritingPanel {
   setShown(shown: boolean): void {
     this.panel.toggle(shown);
     if (!shown) this.lookup.close();
+  }
+
+  setEditAllWaiting(waiting: boolean): void {
+    this.reminder.setShown(waiting);
   }
 
   setGone(gone: boolean): void {

@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import { NoteDrafts } from "../../src/note-page/note-drafts";
+import { NoteDrafts } from "../../src/note-editing/note-drafts";
 import { LEFT_CAMPAIGN } from "../../src/note-page/left-campaign";
-import { CHANGED_ELSEWHERE, NOTE_GONE_HERE } from "../../src/note-page/note-editing";
+import { CHANGED_ELSEWHERE, NOTE_GONE_HERE } from "../../src/note-editing/note-editing";
 import { NotePage } from "../../src/note-page/note-page";
-import { NoteSaver } from "../../src/note-page/note-saver";
+import { NoteSaver } from "../../src/note-editing/note-saver";
 import { Drafts } from "../../src/session-notes/drafts";
 import { isShown, obsidianDocument } from "../views/obsidian-dom";
-import { BOM, FakeNotes } from "./fake-notes";
+import { BOM, FakeNotes } from "../note-editing/fake-notes";
 
 const OLD_MILL = "Pale Moon/Places/Old Mill.md";
 const LOADED = "The wheel turns at night.";

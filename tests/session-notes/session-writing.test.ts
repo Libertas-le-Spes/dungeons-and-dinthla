@@ -1,10 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
-import { CHANGED_ELSEWHERE, NOTE_GONE_HERE } from "../../src/note-page/note-editing";
-import { NoteDrafts } from "../../src/note-page/note-drafts";
+import { CHANGED_ELSEWHERE, NOTE_GONE_HERE } from "../../src/note-editing/note-editing";
+import { NoteDrafts } from "../../src/note-editing/note-drafts";
 import { Drafts } from "../../src/session-notes/drafts";
 import { NOT_SAVED_YET } from "../../src/session-notes/edit-all-panel";
+import { EDIT_ALL_WAITING } from "../../src/session-notes/edit-all-reminder";
 import { isShown } from "../views/obsidian-dom";
 import { FIXED, NOTE, PATH, writingOn } from "./writing-on";
+
+const OTHER_PATH = "Pale Moon/Sessions/Session 11.md";
+const APPENDED = `${NOTE}\n! Ride to Thessaly`;
 
 describe("SessionWriting", () => {
   it("adds lines with Edit all closed, and shows no whole-text box", () => {
@@ -130,5 +134,43 @@ describe("SessionWriting", () => {
     expect(notes.goneListeners.size).toBe(0);
     expect(stops.length).toBe(4);
     for (const stop of stops) expect(stop).toHaveBeenCalledOnce();
+  });
+
+  it("writes nothing over a line added to the note after leaving Edit all with changes, keeping the note and what was typed", async () => {
+    const { editAll, typeWhole, button, notes, settle, noteDrafts, wholeMessage } = writingOn(NOTE);
+    await editAll();
+    typeWhole(FIXED);
+    button(".dd-edit-all-done").click();
+    button(".dd-leave-edit-all").click();
+    notes.changeElsewhere(APPENDED);
+    await editAll();
+    expect(wholeMessage()).toBe(CHANGED_ELSEWHERE);
+    button(".dd-edit-all-panel .dd-save").click();
+    await settle();
+    expect(notes.writes).toEqual([]);
+    expect(notes.text).toBe(APPENDED);
+    expect(noteDrafts.draftOf(PATH)).toEqual({ base: NOTE, text: FIXED });
+  });
+
+  it("shows a note by the add-lines box while an Edit all change isn't saved, and drops it once saved", async () => {
+    const { editAll, typeWhole, button, reminder, settle } = writingOn(NOTE);
+    expect(isShown(reminder())).toBe(false);
+    await editAll();
+    typeWhole(FIXED);
+    button(".dd-edit-all-done").click();
+    button(".dd-leave-edit-all").click();
+    expect(isShown(reminder())).toBe(true);
+    expect(reminder().textContent).toBe(EDIT_ALL_WAITING);
+    await editAll();
+    button(".dd-edit-all-panel .dd-save").click();
+    await settle();
+    expect(isShown(reminder())).toBe(false);
+  });
+
+  it("keeps Edit all and the add-lines box as they are when a change is kept for another session", () => {
+    const { noteDrafts, button, reminder } = writingOn(NOTE);
+    noteDrafts.keep(OTHER_PATH, { base: NOTE, text: FIXED });
+    expect(button(".dd-edit-all").textContent).toBe("Edit all");
+    expect(isShown(reminder())).toBe(false);
   });
 });
