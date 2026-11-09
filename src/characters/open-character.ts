@@ -93,6 +93,17 @@ export function editActiveCharacter(app: App, notes: CharacterNotes, checking: b
   return true;
 }
 
+export const NOT_A_CHARACTER = "Only a note in a campaign's Characters folder can be edited as a character.";
+
+export function editCharacter(app: App, notes: CharacterNotes, file: TFile): void {
+  const character = characterAt(app, notes, file.path);
+  if (character === null) {
+    new Notice(NOT_A_CHARACTER);
+    return;
+  }
+  void openEditCharacter(app, notes, character);
+}
+
 export function addEditCharacterItem(app: App, notes: CharacterNotes, menu: Menu, file: TAbstractFile): void {
   const character = characterAt(app, notes, file.path);
   if (character === null) return;

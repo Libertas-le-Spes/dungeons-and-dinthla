@@ -8,6 +8,8 @@ import {
   campaignOfCharacter,
   EDIT_WHERE,
   editActiveCharacter,
+  editCharacter,
+  NOT_A_CHARACTER,
   openEditCharacter,
   openNewCharacter,
 } from "../../src/characters/open-character";
@@ -116,6 +118,25 @@ describe("openEditCharacter", () => {
     const before = openedModals.length;
     await openEditCharacter(app, notes, { file: fileAt(MIRA), campaignFolder: "Pale Moon" });
     expect(Notice.shown).toEqual(["Couldn't read Mira: the disk is gone"]);
+    expect(openedModals.length).toBe(before);
+  });
+});
+
+describe("editCharacter", () => {
+  it("opens the dialog for a character's note", async () => {
+    const { app, notes, fileAt, read } = setUp();
+    const before = openedModals.length;
+    editCharacter(app, notes, fileAt(MIRA));
+    await vi.waitFor(() => expect(openedModals.length).toBe(before + 1));
+    expect(read).toHaveBeenCalledOnce();
+  });
+
+  it("says so for a note outside a campaign's Characters folder", () => {
+    const { app, notes, fileAt, read } = setUp();
+    const before = openedModals.length;
+    editCharacter(app, notes, fileAt("Drafts/Characters/Mira.md"));
+    expect(Notice.shown).toEqual([NOT_A_CHARACTER]);
+    expect(read).not.toHaveBeenCalled();
     expect(openedModals.length).toBe(before);
   });
 });

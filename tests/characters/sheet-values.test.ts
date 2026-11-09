@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { SessionNote } from "../../src/campaign/campaign";
-import { factsByCharacter, modifierOf, overrideFacts, sheetValuesOf } from "../../src/characters/sheet-values";
+import { factsByCharacter, isSheetName, modifierOf, overrideFacts, sheetValuesOf } from "../../src/characters/sheet-values";
 
 function session(number: number, lines: string[], firstLine = 0): SessionNote {
   return { path: `Pale Moon/Sessions/Session ${number}.md`, number, firstLine, text: lines.join("\n") };
@@ -82,5 +82,13 @@ describe("modifierOf", () => {
 
   it("gives no modifier for a score that isn't a whole number", () => {
     expect([modifierOf("15 (heroic)"), modifierOf("high")]).toEqual(["", ""]);
+  });
+});
+
+describe("isSheetName", () => {
+  it("knows the sheet's own names whatever their capitals, and no others", () => {
+    expect(isSheetName("ac")).toBe(true);
+    expect(isSheetName("Speed")).toBe(true);
+    expect(isSheetName("Personality")).toBe(false);
   });
 });
