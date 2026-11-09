@@ -56,6 +56,12 @@ export const EDITOR_READS = ["getValue", "getLine", "getRange", "getSelection", 
 
 export const FILE_TREE = ["parent", "children"];
 
+export const NOTE_READS = ["getSectionInfo", "frontmatter", "currentMode", "previewMode", "get", "data", "groupedData", "getValue", "getSummaryValue", "entries"];
+
+export const VIEW_TEXT = ["innerText", "textContent", "outerText"];
+
+const VIEW_ELEMENTS = ["contentEl", "containerEl"];
+
 export const FORBIDDEN_NAMES = ["MarkdownRenderer", "renderMarkdown", "executeCommandById", "commands", "execCommand", "Function", "eval", "openLinkText", "plugins", "getPlugin", "enabledPlugins", "internalPlugins"];
 
 const EDITOR_OWNERS = [
@@ -72,6 +78,20 @@ const EDITOR_OWNERS = [
 ];
 
 const FILE_OWNERS = ["TAbstractFile", "TFile", "TFolder"];
+
+const NOTE_OWNERS = [
+  "MarkdownPostProcessorContext",
+  "MarkdownView",
+  "MarkdownSubView",
+  "MarkdownPreviewView",
+  "MarkdownEditView",
+  "BasesView",
+  "BasesQueryResult",
+  "BasesEntry",
+  "BasesEntryGroup",
+];
+
+const VIEW_OWNERS = ["View", "ItemView", "BasesView", ...EDITOR_OWNERS];
 
 const GLOBAL_OWNERS = ["App", "Window", "globalThis"];
 
@@ -95,6 +115,7 @@ export interface Allowances {
   editorReading: Allowed;
   fileTree: Allowed;
   looseCasts: Allowed;
+  noteReading: Allowed;
 }
 
 interface Named {
@@ -107,6 +128,8 @@ interface Found {
   editorNames: Named[];
   editorReads: Named[];
   fileTreeNames: Named[];
+  noteReads: Named[];
+  viewTextOwners: Node[];
   forbidden: Named[];
   constructors: Node[];
   casts: Cast[];
@@ -138,6 +161,8 @@ function emptyFound(): Found {
     editorNames: [],
     editorReads: [],
     fileTreeNames: [],
+    noteReads: [],
+    viewTextOwners: [],
     forbidden: [],
     constructors: [],
     casts: [],
@@ -157,6 +182,7 @@ function addName(found: Found, node: Node, name: string): void {
   if (EDITOR_WRITES.includes(name)) found.editorNames.push({ node, name });
   if (EDITOR_READS.includes(name)) found.editorReads.push({ node, name });
   if (FILE_TREE.includes(name)) found.fileTreeNames.push({ node, name });
+  if (NOTE_READS.includes(name)) found.noteReads.push({ node, name });
   if (name === CONSTRUCTOR) found.constructors.push(node);
 }
 
@@ -198,6 +224,12 @@ function addBinding(found: Found, binding: BindingElement): void {
   if (isIdentifier(key) || isStringLiteral(key)) addBoundName(found, binding, key, key.text);
 }
 
+function addViewText(found: Found, node: Node): void {
+  if (!isPropertyAccessExpression(node) || !VIEW_TEXT.includes(node.name.text)) return;
+  const element = unwrapped(node.expression);
+  if (isPropertyAccessExpression(element) && VIEW_ELEMENTS.includes(element.name.text)) found.viewTextOwners.push(element.expression);
+}
+
 function addInCheck(found: Found, node: Node): void {
   if (!isBinaryExpression(node) || node.operatorToken.kind !== SyntaxKind.InKeyword) return;
   const literal = literalTextOf(node.left);
@@ -221,6 +253,7 @@ function foundIn(sourceFile: SourceFile): Found {
     if (isPropertyAccessExpression(node)) addName(found, node.name, node.name.text);
     if (isPropertyAccessExpression(node) && node.name.text === APP) found.appOwners.push(node.expression);
     addInCheck(found, node);
+    addViewText(found, node);
     if (isElementAccessExpression(node)) addElementAccess(found, node);
     if (isBindingElement(node) && isObjectBindingPattern(node.parent)) addBinding(found, node);
     if (isIdentifier(node) && node.text === REFLECTION) found.reflections.push(node);
@@ -262,10 +295,14 @@ function layersOf(expression: Node): Node[] {
   return [expression];
 }
 
-function isNamedGlobal(type: Type): boolean {
+function isNamedOneOf(type: Type, names: string[]): boolean {
   const symbol = type.getSymbol();
   if (symbol === undefined) return false;
-  return GLOBAL_OWNERS.includes(symbol.name);
+  return names.includes(symbol.name);
+}
+
+function isNamedGlobal(type: Type): boolean {
+  return isNamedOneOf(type, GLOBAL_OWNERS);
 }
 
 function isLibraryFile(path: string): boolean {
@@ -333,6 +370,15 @@ export class SourceScanner {
         if (EDITOR_READS.includes(name)) breaches.push(`${where(node)} destructures ${name}`);
       }
     }
+    if (!allowances.noteReading(path)) {
+      for (const { node, name } of this.ownedBy(project, found.noteReads, (symbol) => this.isOwnedByOneOf(symbol, NOTE_OWNERS))) {
+        breaches.push(`${where(node)} reads a note's text through Obsidian with ${name}`);
+      }
+      for (const { node, name } of found.destructured) {
+        if (NOTE_READS.includes(name)) breaches.push(`${where(node)} destructures ${name}`);
+      }
+    }
+    for (const node of this.typedBy(project, found.viewTextOwners, (type) => this.isViewOrUntyped(project, type))) breaches.push(`${where(node)} reads the text of a view's element`);
     if (!allowances.fileTree(path)) {
       for (const { node, name } of this.fileTreeSteps(project, found)) breaches.push(`${where(node)} walks the vault's folders with ${name}`);
       for (const { node, name } of found.destructured) {
@@ -384,6 +430,11 @@ export class SourceScanner {
   private isGlobalOrUntyped(project: Project, type: Type | undefined): boolean {
     if (type === undefined) return true;
     return flattened(this.constrained(project, type)).some((member) => isNamedGlobal(member) || (member.flags & UNTYPED) !== 0);
+  }
+
+  private isViewOrUntyped(project: Project, type: Type | undefined): boolean {
+    if (type === undefined) return true;
+    return flattened(this.constrained(project, type)).some((member) => isNamedOneOf(member, VIEW_OWNERS) || (member.flags & UNTYPED) !== 0);
   }
 
   private constrained(project: Project, type: Type): Type {
