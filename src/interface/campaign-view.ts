@@ -146,8 +146,17 @@ export class CampaignView extends ItemView {
     return current.entry === shown.entry && current.path === shown.path;
   }
 
+  showAgain(): void {
+    if (this.current === null) return;
+    this.build(this.current);
+  }
+
   private show(shown: Shown): void {
     if (this.isShowing(shown) && this.shownPage !== null) return;
+    this.build(shown);
+  }
+
+  private build(shown: Shown): void {
     this.current = shown;
     const pageEl = this.pageEl;
     if (pageEl === null) return;
