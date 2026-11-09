@@ -1,5 +1,5 @@
-import { Component, Notice } from "obsidian";
-import { messageOf } from "../views/message-of";
+import { Component } from "obsidian";
+import { addNameForm } from "./name-form";
 import type { WelcomeActions, WelcomeState } from "./welcome-ending";
 
 export const HOW_TO_CHOOSE_THE_CAMPAIGNS_FOLDER =
@@ -24,21 +24,12 @@ export class CampaignsFolderEnding extends Component {
     this.endingEl.createEl("p", { cls: "dd-welcome-how", text: HOW_TO_CHOOSE_THE_CAMPAIGNS_FOLDER });
     const choose = this.endingEl.createEl("button", { cls: "mod-cta dd-welcome-go", text: CHOOSE_A_FOLDER });
     this.registerDomEvent(choose, "click", () => this.actions.pickCampaignsFolder());
-    const form = this.endingEl.createEl("form", { cls: "dd-welcome-make" });
-    const name = form.createEl("input", { type: "text", placeholder: FOLDER_NAME, attr: { "aria-label": FOLDER_NAME } });
-    const button = form.createEl("button", { cls: "dd-welcome-go", type: "submit", text: MAKE_THE_FOLDER });
-    this.registerDomEvent(form, "submit", (event) => {
-      event.preventDefault();
-      this.make(name.value, button).catch((error: unknown) => new Notice(`Couldn't make the Campaigns folder: ${messageOf(error)}`));
+    addNameForm(this, this.endingEl, {
+      label: FOLDER_NAME,
+      buttonText: MAKE_THE_FOLDER,
+      buttonCls: "dd-welcome-go",
+      failed: "Couldn't make the Campaigns folder",
+      make: (name) => this.actions.makeCampaignsFolder(name),
     });
-  }
-
-  private async make(name: string, button: HTMLButtonElement): Promise<void> {
-    button.disabled = true;
-    try {
-      await this.actions.makeCampaignsFolder(name);
-    } finally {
-      button.disabled = false;
-    }
   }
 }
