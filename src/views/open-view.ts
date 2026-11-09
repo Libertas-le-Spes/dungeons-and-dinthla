@@ -1,5 +1,6 @@
 import type { App } from "obsidian";
 import type { Source } from "../campaign/campaign";
+import type { Gate } from "../fence/gatekeeper";
 
 export function activePathOf(app: App): string | null {
   const file = app.workspace.getActiveFile();
@@ -7,8 +8,8 @@ export function activePathOf(app: App): string | null {
   return file.path;
 }
 
-export async function openSource(app: App, source: Source): Promise<void> {
-  const file = app.vault.getFileByPath(source.path);
+export async function openSource(app: App, gate: Gate, source: Source): Promise<void> {
+  const file = gate.files.getFileByPath(source.path);
   if (file === null) return;
   await app.workspace.getLeaf(false).openFile(file, { eState: { line: source.line } });
 }

@@ -7,16 +7,17 @@ import { questionTextOf } from "../notes/question-lines";
 import { refusalForNewQuestion } from "./current-question";
 import { NewQuestionModal, type NewQuestion } from "./new-question-modal";
 import { QuestionWriter } from "./question-writer";
+import type { Gate } from "../fence/gatekeeper";
 
 const NO_SESSION = "Start a session first: questions are written into a session note.";
 
-export function openNewQuestion(app: App, store: CampaignStore, onClosed: () => void): void {
+export function openNewQuestion(app: App, gate: Gate, store: CampaignStore, onClosed: () => void): void {
   const folder = store.campaignFolder;
   if (folder === null) {
     new Notice(NO_CAMPAIGN);
     return;
   }
-  const paths = app.vault.getFiles().map((file) => file.path);
+  const paths = gate.files.getFiles().map((file) => file.path);
   const sessionPath = latestSession(folder, paths);
   if (sessionPath === null && latestNumberIsShared(folder, paths)) {
     new Notice(SESSIONS_SHARE_A_NUMBER);
@@ -26,7 +27,7 @@ export function openNewQuestion(app: App, store: CampaignStore, onClosed: () => 
     new Notice(NO_SESSION);
     return;
   }
-  const writer = new QuestionWriter(app.vault);
+  const writer = new QuestionWriter(gate.files);
   const add = async ({ question, answer }: NewQuestion) => {
     const text = questionTextOf(question);
     const refusal = refusalForNewQuestion(store.current.questions, text, answer);

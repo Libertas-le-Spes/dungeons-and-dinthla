@@ -4,7 +4,7 @@ import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { Campaign } from "../../src/campaign/campaign";
 import type { CampaignStore } from "../../src/campaign/campaign-store";
 import type { NavSection, PageEntry, PageId, PathAfterDelete, ShowPage, StayOn } from "../../src/interface/campaign-pages";
-import { CAMPAIGN_VIEW, CampaignView } from "../../src/interface/campaign-view";
+import { CAMPAIGN_VIEW, CampaignView, type ViewFiles } from "../../src/interface/campaign-view";
 import { obsidianDocument } from "../views/obsidian-dom";
 
 class FakePage extends Component {
@@ -135,8 +135,15 @@ async function openView({
   };
   const vault = new FakeVault();
   const backdrops: FakeBackdrop[] = [];
-  const view = new CampaignView(leaf as unknown as WorkspaceLeaf, store as unknown as CampaignStore, sections, followCampaign, backdropsInto(backdrops));
-  view.app = { workspace: { requestSaveLayout }, vault } as unknown as CampaignView["app"];
+  const view = new CampaignView(
+    leaf as unknown as WorkspaceLeaf,
+    store as unknown as CampaignStore,
+    sections,
+    followCampaign,
+    backdropsInto(backdrops),
+    vault as unknown as ViewFiles,
+  );
+  view.app = { workspace: { requestSaveLayout } } as unknown as CampaignView["app"];
   const root = obsidianDocument().createElement("div");
   view.contentEl = root;
   view.load();
@@ -164,7 +171,7 @@ function pageText(root: HTMLElement): string | null {
 
 describe("CampaignView", () => {
   it("gives its type while Obsidian is still building it", () => {
-    const view = new CampaignView({} as WorkspaceLeaf, {} as CampaignStore, [{ heading: null, pages: [entryOf("home", [])] }], vi.fn(), backdropsInto([]));
+    const view = new CampaignView({} as WorkspaceLeaf, {} as CampaignStore, [{ heading: null, pages: [entryOf("home", [])] }], vi.fn(), backdropsInto([]), {} as ViewFiles);
     expect(view.containerEl.getAttribute("data-type")).toBe(CAMPAIGN_VIEW);
   });
 
@@ -377,8 +384,15 @@ describe("CampaignView", () => {
   it("builds no page until Obsidian gives it its state", async () => {
     const made: FakePage[] = [];
     const store = { subscribe: () => () => {}, current: campaignOf([]), campaignFolder: null };
-    const view = new CampaignView({} as WorkspaceLeaf, store as unknown as CampaignStore, [{ heading: null, pages: [entryOf("home", made), entryOf("funds", made)] }], vi.fn(), backdropsInto([]));
-    view.app = { workspace: { requestSaveLayout: vi.fn() }, vault: new FakeVault() } as unknown as CampaignView["app"];
+    const view = new CampaignView(
+      {} as WorkspaceLeaf,
+      store as unknown as CampaignStore,
+      [{ heading: null, pages: [entryOf("home", made), entryOf("funds", made)] }],
+      vi.fn(),
+      backdropsInto([]),
+      new FakeVault() as unknown as ViewFiles,
+    );
+    view.app = { workspace: { requestSaveLayout: vi.fn() } } as unknown as CampaignView["app"];
     view.contentEl = obsidianDocument().createElement("div");
     view.load();
     await view.onOpen();

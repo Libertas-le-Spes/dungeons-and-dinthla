@@ -6,7 +6,7 @@ function chosenFrom(campaignFolder: string | null) {
   const saved: (string | null)[] = [];
   const opened: string[] = [];
   const chosen = new ChosenCampaign(
-    { campaignFolder, welcomeSeen: true, lastVersionSeen: null },
+    { campaignsFolder: null, campaignFolder, welcomeSeen: true, lastVersionSeen: null },
     async (settings: PluginSettings) => {
       saved.push(settings.campaignFolder);
     },

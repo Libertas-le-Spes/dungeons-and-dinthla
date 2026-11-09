@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { settingsOf } from "../../src/settings/plugin-settings";
 
-const NOTHING_SAVED = { campaignFolder: null, welcomeSeen: false, lastVersionSeen: null };
+const NOTHING_SAVED = { campaignsFolder: null, campaignFolder: null, welcomeSeen: false, lastVersionSeen: null };
 
 describe("settingsOf", () => {
   it("keeps the campaign chosen last time", () => {
@@ -14,10 +14,21 @@ describe("settingsOf", () => {
 
   it("keeps that the welcome was seen and the last version whose news was seen", () => {
     expect(settingsOf({ campaignFolder: "Pale Moon", welcomeSeen: true, lastVersionSeen: "1.4.0" })).toEqual({
+      campaignsFolder: null,
       campaignFolder: "Pale Moon",
       welcomeSeen: true,
       lastVersionSeen: "1.4.0",
     });
+  });
+
+  it("keeps the Campaigns folder set last time, at any depth", () => {
+    expect(settingsOf({ campaignsFolder: "Games/D&D" })).toEqual({ ...NOTHING_SAVED, campaignsFolder: "Games/D&D" });
+  });
+
+  it("drops a saved Campaigns folder that is the whole vault or not a plain path, so the plugin touches nothing", () => {
+    for (const campaignsFolder of ["/", "", "../D&D", "/D&D", "D&D/../Private", 3]) {
+      expect(settingsOf({ campaignsFolder })).toEqual(NOTHING_SAVED);
+    }
   });
 
   it("ignores saved data it can't read", () => {

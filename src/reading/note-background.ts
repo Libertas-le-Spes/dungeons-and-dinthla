@@ -38,15 +38,20 @@ export function showBackground(contentEl: HTMLElement, shown: ShownBackground | 
   contentEl.addClass(HOLDER_CLASS);
 }
 
+export type CampaignsFolderPath = () => string | null;
+
 export class BackgroundRefresh {
   private readonly soon: Debouncer<[], void>;
 
-  constructor(refresh: () => void) {
+  constructor(
+    refresh: () => void,
+    private readonly campaignsFolder: CampaignsFolderPath,
+  ) {
     this.soon = debounce(refresh, SETTLE_MS, true);
   }
 
   noteChanged(path: string): void {
-    if (isMainNote(path)) this.soon();
+    if (isMainNote(path, this.campaignsFolder())) this.soon();
   }
 
   layoutChanged(): void {

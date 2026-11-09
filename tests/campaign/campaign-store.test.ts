@@ -151,6 +151,28 @@ describe("CampaignStore", () => {
     expect(questionsIn(store.current)).toEqual(["From Ashen Road"]);
   });
 
+  it("forgets the campaign when closed, and tells its listeners", async () => {
+    const fake = new FakeVault([{ path: "Pale Moon/Sessions/Session 1.md", text: "? Who" }]);
+    const { store, seen } = await openStore(fake);
+    store.close();
+    expect(store.campaignFolder).toBeNull();
+    expect(store.sessionNotes).toEqual([]);
+    expect(questionsIn(store.current)).toEqual([]);
+    expect(seen).toHaveLength(2);
+  });
+
+  it("stays closed when a campaign opened before it finishes reading", async () => {
+    const fake = new FakeVault([{ path: "Pale Moon/Sessions/Session 1.md", text: "? Who" }]);
+    const store = new CampaignStore(fake.vault);
+    const release = fake.holdReadsOf("Pale Moon/Sessions/Session 1.md");
+    const opening = store.open("Pale Moon");
+    store.close();
+    release();
+    await opening;
+    expect(store.campaignFolder).toBeNull();
+    expect(questionsIn(store.current)).toEqual([]);
+  });
+
   it("drops a renamed session's read when another campaign opened meanwhile", async () => {
     const fake = new FakeVault([
       { path: "Pale Moon/Sessions/Session 1.md", text: "? From Pale Moon" },

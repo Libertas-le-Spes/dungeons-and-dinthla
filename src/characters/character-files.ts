@@ -1,13 +1,15 @@
-import { normalizePath, type FileManager, type TFile, type Vault } from "obsidian";
+import { normalizePath, type TFile } from "obsidian";
 import { charactersFolderOf } from "../campaign/campaign-folders";
 import { refusalForFileName } from "../campaign/file-name";
 import { nameKeyOf } from "../campaign/name-key";
 import { PartlyWritten } from "../campaign/note-editor";
 import { messageOf } from "../views/message-of";
 import { newCharacterText, refusalForValues, valuesChanged, withEntryValues, type CharacterEntry } from "./character-entry";
+import type { FencedFileActions } from "../fence/fenced-file-actions";
+import type { FencedFiles } from "../fence/fenced-files";
 
-export type CharacterVault = Pick<Vault, "getFiles" | "getFolderByPath" | "createFolder" | "create" | "process">;
-export type CharacterFileManager = Pick<FileManager, "renameFile" | "trashFile">;
+export type CharacterFiles = Pick<FencedFiles, "getFiles" | "getFolderByPath" | "createFolder" | "create" | "process">;
+export type CharacterFileActions = Pick<FencedFileActions, "renameFile" | "trashFile">;
 
 export const NOTE_MOVED = "The note was moved or renamed since the dialog opened, so nothing was written. Open the dialog again.";
 
@@ -19,35 +21,35 @@ function notePathOf(folder: string, name: string): string {
   return normalizePath(`${folder}/${name}.md`);
 }
 
-function nameClash(vault: CharacterVault, folder: string, name: string, ownPath: string | null): string | null {
+function nameClash(files: CharacterFiles, folder: string, name: string, ownPath: string | null): string | null {
   const wanted = nameKeyOf(notePathOf(folder, name));
-  const clash = vault.getFiles().find((file) => nameKeyOf(file.path) === wanted && file.path !== ownPath);
+  const clash = files.getFiles().find((file) => nameKeyOf(file.path) === wanted && file.path !== ownPath);
   if (clash === undefined) return null;
   return `There is already a note called ${clash.basename} in ${folder}.`;
 }
 
-function refusalForName(vault: CharacterVault, folder: string, name: string, ownPath: string | null): string | null {
+function refusalForName(files: CharacterFiles, folder: string, name: string, ownPath: string | null): string | null {
   const refusal = refusalForFileName(name);
   if (refusal !== null) return refusal;
-  return nameClash(vault, folder, name, ownPath);
+  return nameClash(files, folder, name, ownPath);
 }
 
 function refuseIfAny(refusal: string | null): void {
   if (refusal !== null) throw new Error(refusal);
 }
 
-export async function createCharacter(vault: CharacterVault, campaignFolder: string, entry: CharacterEntry): Promise<TFile | null> {
+export async function createCharacter(files: CharacterFiles, campaignFolder: string, entry: CharacterEntry): Promise<TFile | null> {
   if (entry.name === "") return null;
   const folder = charactersFolderOf(campaignFolder);
-  refuseIfAny(refusalForName(vault, folder, entry.name, null));
+  refuseIfAny(refusalForName(files, folder, entry.name, null));
   refuseIfAny(refusalForValues(entry));
-  if (vault.getFolderByPath(folder) === null) await vault.createFolder(folder);
-  return vault.create(notePathOf(folder, entry.name), newCharacterText(entry));
+  if (files.getFolderByPath(folder) === null) await files.createFolder(folder);
+  return files.create(notePathOf(folder, entry.name), newCharacterText(entry));
 }
 
-export async function writeOverrides(vault: Pick<Vault, "process">, file: TFile, change: (text: string) => string): Promise<void> {
+export async function writeOverrides(files: Pick<FencedFiles, "process">, file: TFile, change: (text: string) => string): Promise<void> {
   let refusal: unknown = null;
-  await vault.process(file, (text) => {
+  await files.process(file, (text) => {
     try {
       return change(text);
     } catch (error) {
@@ -59,8 +61,8 @@ export async function writeOverrides(vault: Pick<Vault, "process">, file: TFile,
 }
 
 export async function saveCharacter(
-  vault: CharacterVault,
-  fileManager: CharacterFileManager,
+  files: CharacterFiles,
+  actions: CharacterFileActions,
   file: TFile,
   openedPath: string,
   before: CharacterEntry,
@@ -70,13 +72,13 @@ export async function saveCharacter(
   const folder = folderOf(file.path);
   const renamed = after.name !== before.name;
   if (renamed && file.path !== openedPath) throw new Error(NOTE_MOVED);
-  if (renamed) refuseIfAny(refusalForName(vault, folder, after.name, file.path));
+  if (renamed) refuseIfAny(refusalForName(files, folder, after.name, file.path));
   refuseIfAny(refusalForValues(after));
   const writes = valuesChanged(before, after);
-  if (writes) await writeOverrides(vault, file, (text) => withEntryValues(text, file.path, before, after));
+  if (writes) await writeOverrides(files, file, (text) => withEntryValues(text, file.path, before, after));
   if (!renamed) return true;
   try {
-    await fileManager.renameFile(file, notePathOf(folder, after.name));
+    await actions.renameFile(file, notePathOf(folder, after.name));
   } catch (error) {
     if (!writes) throw error;
     throw new PartlyWritten(`The values were saved, but the note couldn't be renamed: ${messageOf(error)}`);
@@ -84,6 +86,6 @@ export async function saveCharacter(
   return true;
 }
 
-export async function deleteCharacter(fileManager: CharacterFileManager, file: TFile): Promise<void> {
-  await fileManager.trashFile(file);
+export async function deleteCharacter(actions: CharacterFileActions, file: TFile): Promise<void> {
+  await actions.trashFile(file);
 }

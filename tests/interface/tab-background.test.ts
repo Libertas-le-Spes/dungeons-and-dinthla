@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { CachedMetadata, EventRef, TFile } from "obsidian";
-import { TabBackground, type TabCampaign, type TabMetadata, type TabVault } from "../../src/interface/tab-background";
+import { TabBackground, type TabCampaign, type TabMetadata, type TabFiles } from "../../src/interface/tab-background";
 import { pictureOf } from "../campaign/shown-picture";
 import { obsidianDocument } from "../views/obsidian-dom";
 
@@ -73,7 +73,7 @@ class FakeFiles extends Events {
     getResourcePath: (file: TFile) => `${this.resourceRoot}${file.path}`,
     on: (name: string, listener: Listener) => this.on(`vault ${name}`, listener),
     offref: (ref: EventRef) => this.offref(ref),
-  } as unknown as TabVault;
+  } as unknown as TabFiles;
 
   private cacheAt(path: string): CachedMetadata | null {
     const cache = this.caches.get(path);

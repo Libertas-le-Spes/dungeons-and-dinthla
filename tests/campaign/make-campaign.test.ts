@@ -1,158 +1,166 @@
 import { describe, expect, it } from "vitest";
 import type { TAbstractFile, TFolder } from "obsidian";
 import { BAD_NAME } from "../../src/campaign/file-name";
-import { makeCampaign, NO_CAMPAIGN_NAME, type NewCampaignVault } from "../../src/campaign/make-campaign";
+import { makeCampaign, NO_CAMPAIGN_NAME, NO_CAMPAIGNS_FOLDER, type NewCampaignFiles } from "../../src/campaign/make-campaign";
 
-interface VaultSetup {
-  topLevel?: string[];
+interface FilesSetup {
+  inCampaigns?: string[];
+  atTheTop?: string[];
   noteFails?: boolean;
-  newFolderHolds?: string[];
-  deleteFails?: boolean;
+  removeFails?: boolean;
 }
 
-function folderNamed(name: string, children: TAbstractFile[]): TFolder {
-  return { name, path: name, children } as unknown as TFolder;
+function folderHolding(path: string, names: string[]): TFolder {
+  const children = names.map((name) => ({ name }) as TAbstractFile);
+  return { path, children } as unknown as TFolder;
 }
 
-function vaultWith({ topLevel = [], noteFails = false, newFolderHolds = [], deleteFails = false }: VaultSetup = {}) {
+function filesWith({ inCampaigns = [], atTheTop = [], noteFails = false, removeFails = false }: FilesSetup = {}) {
   const made: string[] = [];
-  const folders = new Map<string, TFolder>();
-  const root = folderNamed("/", topLevel.map((name) => ({ name, path: name }) as TAbstractFile));
-  const vault: NewCampaignVault = {
-    getRoot: () => root,
+  const folders = [folderHolding("D&D", inCampaigns), folderHolding("/", atTheTop)];
+  const files: NewCampaignFiles = {
     getFolderByPath: (path) => {
-      const folder = folders.get(path);
+      const folder = folders.find((candidate) => candidate.path === path);
       if (folder === undefined) return null;
       return folder;
     },
     createFolder: async (path) => {
       made.push(`folder ${path}`);
-      const held = newFolderHolds.map((name) => ({ name, path: `${path}/${name}` }) as TAbstractFile);
-      const folder = folderNamed(path, held);
-      folders.set(path, folder);
-      return folder;
+      return { path, children: [] } as unknown as TFolder;
     },
     create: async (path, text) => {
       if (noteFails) throw new Error("The disk is full.");
       made.push(`note ${path} "${text}"`);
       return { path } as never;
     },
-    delete: async (file) => {
-      if (deleteFails) throw new Error("The folder is locked.");
-      made.push(`deleted ${file.path}`);
+    removeEmptyFolder: async (path) => {
+      if (removeFails) throw new Error("The folder is locked.");
+      made.push(`removed ${path} if empty`);
     },
   };
-  return { vault, made };
+  return { files, made };
 }
 
 describe("makeCampaign", () => {
-  it("makes a top-level folder and an empty main note of the same name, and gives back the folder", async () => {
-    const { vault, made } = vaultWith();
-    await expect(makeCampaign(vault, "Silver Road")).resolves.toBe("Silver Road");
-    expect(made).toEqual(["folder Silver Road", 'note Silver Road/Silver Road.md ""']);
+  it("makes nothing while no Campaigns folder is set", async () => {
+    const { files, made } = filesWith();
+    await expect(makeCampaign(files, null, "Silver Road")).rejects.toThrow(NO_CAMPAIGNS_FOLDER);
+    expect(made).toEqual([]);
+  });
+
+  it("makes a campaign in a Campaigns folder at any depth", async () => {
+    const { files, made } = filesWith();
+    await expect(makeCampaign(files, "Games/D&D", "Silver Road")).resolves.toBe("Games/D&D/Silver Road");
+    expect(made).toEqual(["folder Games/D&D/Silver Road", 'note Games/D&D/Silver Road/Silver Road.md ""']);
+  });
+
+  it("doesn't compare against names elsewhere in the vault, only inside the Campaigns folder", async () => {
+    const { files, made } = filesWith({ atTheTop: ["Silver Road"] });
+    await expect(makeCampaign(files, "D&D", "Silver Road")).resolves.toBe("D&D/Silver Road");
+    expect(made).toEqual(["folder D&D/Silver Road", 'note D&D/Silver Road/Silver Road.md ""']);
+  });
+
+  it("makes a folder inside the Campaigns folder and an empty main note of the same name, and gives back the folder", async () => {
+    const { files, made } = filesWith();
+    await expect(makeCampaign(files, "D&D", "Silver Road")).resolves.toBe("D&D/Silver Road");
+    expect(made).toEqual(["folder D&D/Silver Road", 'note D&D/Silver Road/Silver Road.md ""']);
   });
 
   it("leaves out the spaces typed around the name", async () => {
-    const { vault, made } = vaultWith();
-    await expect(makeCampaign(vault, "  Silver Road ")).resolves.toBe("Silver Road");
-    expect(made).toEqual(["folder Silver Road", 'note Silver Road/Silver Road.md ""']);
+    const { files, made } = filesWith();
+    await expect(makeCampaign(files, "D&D", "  Silver Road ")).resolves.toBe("D&D/Silver Road");
+    expect(made).toEqual(["folder D&D/Silver Road", 'note D&D/Silver Road/Silver Road.md ""']);
   });
 
   it("uses the name as Obsidian writes a path, a non-breaking space turned into a plain one", async () => {
-    const { vault, made } = vaultWith();
-    await expect(makeCampaign(vault, "Silver\u00a0Road")).resolves.toBe("Silver Road");
-    expect(made).toEqual(["folder Silver Road", 'note Silver Road/Silver Road.md ""']);
+    const { files, made } = filesWith();
+    await expect(makeCampaign(files, "D&D", "Silver\u00a0Road")).resolves.toBe("D&D/Silver Road");
+    expect(made).toEqual(["folder D&D/Silver Road", 'note D&D/Silver Road/Silver Road.md ""']);
   });
 
   it("makes a campaign whose name holds a flag written with tag characters", async () => {
-    const { vault, made } = vaultWith();
+    const { files, made } = filesWith();
     const name = "Highlands \u{1f3f4}\u{e0067}\u{e0062}\u{e0073}\u{e0063}\u{e0074}\u{e007f}";
-    await expect(makeCampaign(vault, name)).resolves.toBe(name);
-    expect(made).toEqual([`folder ${name}`, `note ${name}/${name}.md ""`]);
+    await expect(makeCampaign(files, "D&D", name)).resolves.toBe(`D&D/${name}`);
+    expect(made).toEqual([`folder D&D/${name}`, `note D&D/${name}/${name}.md ""`]);
   });
 
   it("asks for a name when none is typed, and makes nothing", async () => {
-    const { vault, made } = vaultWith();
-    await expect(makeCampaign(vault, "   ")).rejects.toThrow(NO_CAMPAIGN_NAME);
+    const { files, made } = filesWith();
+    await expect(makeCampaign(files, "D&D", "   ")).rejects.toThrow(NO_CAMPAIGN_NAME);
     expect(made).toEqual([]);
   });
 
   it("refuses a name a file can't have, and makes nothing", async () => {
-    const { vault, made } = vaultWith();
-    await expect(makeCampaign(vault, "Silver/Road")).rejects.toThrow(BAD_NAME);
+    const { files, made } = filesWith();
+    await expect(makeCampaign(files, "D&D", "Silver/Road")).rejects.toThrow(BAD_NAME);
     expect(made).toEqual([]);
   });
 
-  it("refuses a name already used at the top of the vault, and says how to make that folder a campaign", async () => {
-    const { vault, made } = vaultWith({ topLevel: ["Silver Road"] });
-    await expect(makeCampaign(vault, "Silver Road")).rejects.toThrow("add a note called Silver Road inside it");
+  it("refuses a name already used in the Campaigns folder, and says how to make that folder a campaign", async () => {
+    const { files, made } = filesWith({ inCampaigns: ["Silver Road"] });
+    await expect(makeCampaign(files, "D&D", "Silver Road")).rejects.toThrow("add a note called Silver Road inside it");
     expect(made).toEqual([]);
   });
 
-  it("refuses a name that only differs from one at the top of the vault by invisible characters", async () => {
+  it("refuses a name that only differs from one in the Campaigns folder by invisible characters", async () => {
     for (const name of ["Ali\u200dce", "Ali\u034fce"]) {
-      const { vault, made } = vaultWith({ topLevel: ["Alice"] });
-      await expect(makeCampaign(vault, name)).rejects.toThrow();
+      const { files, made } = filesWith({ inCampaigns: ["Alice"] });
+      await expect(makeCampaign(files, "D&D", name)).rejects.toThrow();
       expect(made).toEqual([]);
     }
   });
 
   it("refuses a plain name when a folder made outside the plugin differs from it only by invisible characters", async () => {
     for (const existing of ["Ali\u200dce", "Ali\u034fce"]) {
-      const { vault, made } = vaultWith({ topLevel: [existing] });
-      await expect(makeCampaign(vault, "Alice")).rejects.toThrow(`called ${existing} at the top`);
+      const { files, made } = filesWith({ inCampaigns: [existing] });
+      await expect(makeCampaign(files, "D&D", "Alice")).rejects.toThrow(`called ${existing} in D&D`);
       expect(made).toEqual([]);
     }
   });
 
-  it("refuses a name that matches a folder at the top of the vault once both are composed the same way", async () => {
-    const { vault, made } = vaultWith({ topLevel: ["Zoe\u0308"] });
-    await expect(makeCampaign(vault, "Zo\u00eb")).rejects.toThrow("called Zoe\u0308 at the top");
+  it("refuses a name that matches a folder in the Campaigns folder once both are composed the same way", async () => {
+    const { files, made } = filesWith({ inCampaigns: ["Zoe\u0308"] });
+    await expect(makeCampaign(files, "D&D", "Zo\u00eb")).rejects.toThrow("called Zoe\u0308 in D&D");
     expect(made).toEqual([]);
   });
 
   it("refuses a name whose letter is composed differently from a folder's that hides an invisible character inside it", async () => {
     const existing = "Cafe\u200d\u0301";
-    const { vault, made } = vaultWith({ topLevel: [existing] });
-    await expect(makeCampaign(vault, "Caf\u00e9")).rejects.toThrow(`called ${existing} at the top`);
+    const { files, made } = filesWith({ inCampaigns: [existing] });
+    await expect(makeCampaign(files, "D&D", "Caf\u00e9")).rejects.toThrow(`called ${existing} in D&D`);
     expect(made).toEqual([]);
   });
 
-  it("refuses a name that differs from a folder's at the top of the vault only by the kind of space", async () => {
-    const { vault, made } = vaultWith({ topLevel: ["Mira\u3000Road"] });
-    await expect(makeCampaign(vault, "Mira Road")).rejects.toThrow("called Mira\u3000Road at the top");
+  it("refuses a name that differs from a folder's in the Campaigns folder only by the kind of space", async () => {
+    const { files, made } = filesWith({ inCampaigns: ["Mira\u3000Road"] });
+    await expect(makeCampaign(files, "D&D", "Mira Road")).rejects.toThrow("called Mira\u3000Road in D&D");
     expect(made).toEqual([]);
   });
 
-  it("refuses a name that differs from one at the top of the vault only in capitals, naming the one there", async () => {
-    const { vault, made } = vaultWith({ topLevel: ["silver road"] });
-    await expect(makeCampaign(vault, "Silver Road")).rejects.toThrow("called silver road at the top");
+  it("refuses a name that differs from one in the Campaigns folder only in capitals, naming the one there", async () => {
+    const { files, made } = filesWith({ inCampaigns: ["silver road"] });
+    await expect(makeCampaign(files, "D&D", "Silver Road")).rejects.toThrow("called silver road in D&D");
     expect(made).toEqual([]);
   });
 
-  it("refuses a name that matches one at the top of the vault once its non-breaking space is made plain", async () => {
-    const { vault, made } = vaultWith({ topLevel: ["Silver Road"] });
-    await expect(makeCampaign(vault, "Silver\u00a0Road")).rejects.toThrow("called Silver Road at the top");
+  it("refuses a name that matches one in the Campaigns folder once its non-breaking space is made plain", async () => {
+    const { files, made } = filesWith({ inCampaigns: ["Silver Road"] });
+    await expect(makeCampaign(files, "D&D", "Silver\u00a0Road")).rejects.toThrow("called Silver Road in D&D");
     expect(made).toEqual([]);
   });
 
   it("removes the folder it made when the main note can't be made, and says why", async () => {
-    const { vault, made } = vaultWith({ noteFails: true });
-    await expect(makeCampaign(vault, "Silver Road")).rejects.toThrow("The disk is full.");
-    expect(made).toEqual(["folder Silver Road", "deleted Silver Road"]);
-  });
-
-  it("leaves the new folder alone when something already landed in it, and says why the note failed", async () => {
-    const { vault, made } = vaultWith({ noteFails: true, newFolderHolds: ["Map.png"] });
-    await expect(makeCampaign(vault, "Silver Road")).rejects.toThrow(/^The disk is full\.$/);
-    expect(made).toEqual(["folder Silver Road"]);
+    const { files, made } = filesWith({ noteFails: true });
+    await expect(makeCampaign(files, "D&D", "Silver Road")).rejects.toThrow("The disk is full.");
+    expect(made).toEqual(["folder D&D/Silver Road", "removed D&D/Silver Road if empty"]);
   });
 
   it("still says why the note failed when the new folder can't be removed, and names the folder left behind", async () => {
-    const { vault, made } = vaultWith({ noteFails: true, deleteFails: true });
-    await expect(makeCampaign(vault, "Silver Road")).rejects.toThrow(
-      "The disk is full. The folder Silver Road is left behind: it couldn't be removed.",
+    const { files, made } = filesWith({ noteFails: true, removeFails: true });
+    await expect(makeCampaign(files, "D&D", "Silver Road")).rejects.toThrow(
+      "The disk is full. The folder D&D/Silver Road is left behind: it couldn't be removed.",
     );
-    expect(made).toEqual(["folder Silver Road"]);
+    expect(made).toEqual(["folder D&D/Silver Road"]);
   });
 });

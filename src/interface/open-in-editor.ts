@@ -1,5 +1,6 @@
 import type { App, WorkspaceLeaf } from "obsidian";
 import { CampaignView } from "./campaign-view";
+import type { Gate } from "../fence/gatekeeper";
 
 function leafFor(app: App, path: string): WorkspaceLeaf {
   const view = app.workspace.getActiveViewOfType(CampaignView);
@@ -7,8 +8,8 @@ function leafFor(app: App, path: string): WorkspaceLeaf {
   return view.leaf;
 }
 
-export async function openInEditor(app: App, path: string): Promise<void> {
-  const file = app.vault.getFileByPath(path);
+export async function openInEditor(app: App, gate: Gate, path: string): Promise<void> {
+  const file = gate.files.getFileByPath(path);
   if (file === null) return;
   await leafFor(app, path).openFile(file);
 }

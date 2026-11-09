@@ -1,11 +1,12 @@
-import type { TFile, Vault } from "obsidian";
+import type { TFile } from "obsidian";
 import { hiddenLines } from "../notes/hidden-lines";
 import { appendLines, dropLine, removeLines, rewriteLine, type LineToRemove } from "../notes/note-lines";
 import { messageOf } from "../views/message-of";
 import type { SessionNote, Source } from "./campaign";
 import { keepsProperties } from "./session-file";
+import type { FencedFiles } from "../fence/fenced-files";
 
-export type EditorVault = Pick<Vault, "getFileByPath" | "process" | "read">;
+export type EditorFiles = Pick<FencedFiles, "getFileByPath" | "process" | "read">;
 
 export const CHANGED_IN_NOTE = "A line was changed in its note since the dialog was opened, so nothing was written.";
 export const OLD_LINE_LEFT =
@@ -37,7 +38,7 @@ export function removalAsRead(sessions: SessionNote[], source: Source): Removal 
 }
 
 export class NoteEditor {
-  constructor(private readonly vault: EditorVault) {}
+  constructor(private readonly files: EditorFiles) {}
 
   async append(targetPath: string, added: string[]): Promise<boolean> {
     if (added.length === 0) return false;
@@ -146,7 +147,7 @@ export class NoteEditor {
   }
 
   private async checkRemoval(file: TFile, removals: Removal[]): Promise<number> {
-    const text = await this.vault.read(file);
+    const text = await this.files.read(file);
     const removal = removeLines(text, removals);
     if (!keepsProperties(text, removal.text)) throw new Error(PROPERTIES_WOULD_CHANGE);
     return removal.removed;
@@ -162,7 +163,7 @@ export class NoteEditor {
 
   private async changeOrRefuse(file: TFile, message: string, change: (text: string) => string | null): Promise<void> {
     let refusal: string | null = null;
-    await this.vault.process(file, (text) => {
+    await this.files.process(file, (text) => {
       const changed = change(text);
       if (changed === null) {
         refusal = message;
@@ -178,7 +179,7 @@ export class NoteEditor {
   }
 
   private fileAt(path: string): TFile {
-    const file = this.vault.getFileByPath(path);
+    const file = this.files.getFileByPath(path);
     if (file === null) throw new Error(`${path} was moved or deleted`);
     return file;
   }

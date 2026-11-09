@@ -3,17 +3,18 @@ import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { SessionNote } from "../../src/campaign/campaign";
 import type { CampaignListener } from "../../src/campaign/campaign-store";
 import type { WelcomeActions } from "../../src/welcome/welcome-ending";
+import { HOW_TO_CHOOSE_THE_CAMPAIGNS_FOLDER } from "../../src/welcome/campaigns-folder-ending";
 import { WelcomePage, type WelcomeStore } from "../../src/welcome/welcome-page";
 import { Notice } from "../stubs/obsidian";
 import { obsidianDocument } from "../views/obsidian-dom";
 
-const CAMPAIGN = "Silver Road";
+const CAMPAIGN = "D&D/Silver Road";
 
 function sessionNote(): SessionNote {
   return { path: `${CAMPAIGN}/Sessions/Session 1.md`, number: 1, firstLine: 0, text: "" };
 }
 
-function welcomeFor(campaignFolder: string | null, sessionNotes: SessionNote[]) {
+function welcomeFor(campaignFolder: string | null, sessionNotes: SessionNote[], campaignsFolder: string | null = "D&D") {
   let listener: CampaignListener = () => {};
   const unsubscribe = vi.fn();
   const store: WelcomeStore = {
@@ -26,6 +27,7 @@ function welcomeFor(campaignFolder: string | null, sessionNotes: SessionNote[]) 
   };
   let finishMaking = () => {};
   let failMaking = (_error: Error) => {};
+  const folder = { path: campaignsFolder };
   const actions = {
     startSession: vi.fn(),
     showCampaign: vi.fn(),
@@ -36,15 +38,27 @@ function welcomeFor(campaignFolder: string | null, sessionNotes: SessionNote[]) 
           failMaking = reject;
         }),
     ),
+    pickCampaignsFolder: vi.fn(),
+    makeCampaignsFolder: vi.fn(
+      (_name: string) =>
+        new Promise<void>((resolve, reject) => {
+          finishMaking = resolve;
+          failMaking = reject;
+        }),
+    ),
   } satisfies WelcomeActions;
   const root = obsidianDocument().body.createDiv();
-  const page = new WelcomePage(root, store, actions);
+  const page = new WelcomePage(root, store, () => folder.path, actions);
   page.load();
-  const change = (folder: string | null, notes: SessionNote[]) => {
-    Object.assign(store, { campaignFolder: folder, sessionNotes: notes });
+  const change = (campaign: string | null, notes: SessionNote[]) => {
+    Object.assign(store, { campaignFolder: campaign, sessionNotes: notes });
     listener(buildCampaign(notes));
   };
-  return { root, page, actions, change, unsubscribe, finishMaking: () => finishMaking(), failMaking: (error: Error) => failMaking(error) };
+  const setCampaignsFolder = (path: string | null) => {
+    folder.path = path;
+    listener(buildCampaign(store.sessionNotes));
+  };
+  return { root, page, actions, change, setCampaignsFolder, unsubscribe, finishMaking: () => finishMaking(), failMaking: (error: Error) => failMaking(error) };
 }
 
 function buttonTexts(root: HTMLElement): string[] {
@@ -100,7 +114,7 @@ describe("WelcomePage", () => {
 
   it("explains how to make a campaign and offers to make one when there is none", () => {
     const { root } = welcomeFor(null, []);
-    expect(root.querySelector(".dd-welcome-how")!.textContent).toContain("a folder at the top of your vault holding a note with the same name");
+    expect(root.querySelector(".dd-welcome-how")!.textContent).toContain("a folder inside your Campaigns folder holding a note with the same name");
     expect(root.querySelector("input")!.getAttribute("aria-label")).toBe("Campaign name");
     expect(buttonTexts(root)).toEqual(["Make a campaign"]);
   });
@@ -148,6 +162,46 @@ describe("WelcomePage", () => {
     root.querySelector("input")!.value = "Silver";
     change(null, []);
     expect(root.querySelector("input")!.value).toBe("Silver");
+  });
+
+  it("asks for the Campaigns folder first when none is set, offering to pick one or name a new one", () => {
+    const { root } = welcomeFor(null, [], null);
+    expect(root.querySelector(".dd-welcome-how")!.textContent).toBe(HOW_TO_CHOOSE_THE_CAMPAIGNS_FOLDER);
+    expect(root.querySelector("input")!.getAttribute("aria-label")).toBe("Campaigns folder name");
+    expect(buttonTexts(root)).toEqual(["Choose a folder", "Make the folder"]);
+  });
+
+  it("opens the folder picker with Choose a folder", () => {
+    const { root, actions } = welcomeFor(null, [], null);
+    buttonNamed(root, "Choose a folder").click();
+    expect(actions.pickCampaignsFolder).toHaveBeenCalledOnce();
+    expect(actions.makeCampaignsFolder).not.toHaveBeenCalled();
+  });
+
+  it("makes the Campaigns folder with the typed name, the button held until it is made", async () => {
+    const { root, actions, finishMaking } = welcomeFor(null, [], null);
+    expect(submit(root, "D&D").defaultPrevented).toBe(true);
+    expect(actions.makeCampaignsFolder).toHaveBeenCalledExactlyOnceWith("D&D");
+    expect(actions.makeCampaign).not.toHaveBeenCalled();
+    expect(buttonNamed(root, "Make the folder").disabled).toBe(true);
+    finishMaking();
+    await settled();
+    expect(buttonNamed(root, "Make the folder").disabled).toBe(false);
+  });
+
+  it("gives the button back and says why when the Campaigns folder can't be made", async () => {
+    const { root, failMaking } = welcomeFor(null, [], null);
+    submit(root, "D&D");
+    failMaking(new Error("A file already has that name."));
+    await settled();
+    expect(buttonNamed(root, "Make the folder").disabled).toBe(false);
+    expect(Notice.shown).toEqual(["Couldn't make the Campaigns folder: A file already has that name."]);
+  });
+
+  it("moves on to making a campaign once the Campaigns folder is set", () => {
+    const { root, setCampaignsFolder } = welcomeFor(null, [], null);
+    setCampaignsFolder("D&D");
+    expect(buttonTexts(root)).toEqual(["Make a campaign"]);
   });
 
   it("stops following the campaign when it is closed", () => {

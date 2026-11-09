@@ -1,27 +1,33 @@
 import { describe, expect, it } from "vitest";
 import { CampaignEnding } from "../../src/welcome/campaign-ending";
+import { CampaignsFolderEnding } from "../../src/welcome/campaigns-folder-ending";
 import { FirstSessionEnding } from "../../src/welcome/first-session-ending";
 import { NewCampaignEnding } from "../../src/welcome/new-campaign-ending";
 import type { WelcomeEnding, WelcomeState } from "../../src/welcome/welcome-ending";
 
-const NO_CAMPAIGN: WelcomeState = { campaignFolder: null, sessionCount: 0 };
-const NO_SESSIONS: WelcomeState = { campaignFolder: "Silver Road", sessionCount: 0 };
-const SESSIONS: WelcomeState = { campaignFolder: "Silver Road", sessionCount: 2 };
+const NO_CAMPAIGNS_FOLDER: WelcomeState = { campaignsFolder: null, campaignFolder: null, sessionCount: 0 };
+const NO_CAMPAIGN: WelcomeState = { campaignsFolder: "D&D", campaignFolder: null, sessionCount: 0 };
+const NO_SESSIONS: WelcomeState = { campaignsFolder: "D&D", campaignFolder: "D&D/Silver Road", sessionCount: 0 };
+const SESSIONS: WelcomeState = { campaignsFolder: "D&D", campaignFolder: "D&D/Silver Road", sessionCount: 2 };
 
 function fitsEach(ending: WelcomeEnding): boolean[] {
-  return [NO_CAMPAIGN, NO_SESSIONS, SESSIONS].map((state) => ending.fits(state));
+  return [NO_CAMPAIGNS_FOLDER, NO_CAMPAIGN, NO_SESSIONS, SESSIONS].map((state) => ending.fits(state));
 }
 
 describe("welcome endings", () => {
-  it("offers to make a campaign only when there is no campaign", () => {
-    expect(fitsEach(NewCampaignEnding)).toEqual([true, false, false]);
+  it("asks for the Campaigns folder only while none is set", () => {
+    expect(fitsEach(CampaignsFolderEnding)).toEqual([true, false, false, false]);
+  });
+
+  it("offers to make a campaign only when the Campaigns folder is set and holds no campaign", () => {
+    expect(fitsEach(NewCampaignEnding)).toEqual([false, true, false, false]);
   });
 
   it("offers the first session only to a campaign with no sessions", () => {
-    expect(fitsEach(FirstSessionEnding)).toEqual([false, true, false]);
+    expect(fitsEach(FirstSessionEnding)).toEqual([false, false, true, false]);
   });
 
   it("offers to go to the campaign only when it has sessions", () => {
-    expect(fitsEach(CampaignEnding)).toEqual([false, false, true]);
+    expect(fitsEach(CampaignEnding)).toEqual([false, false, false, true]);
   });
 });

@@ -41,7 +41,7 @@ export class CharacterGallery {
     };
     const cards = await Promise.all(files.map((file) => this.cardOf(file, learnedIn(campaignFolderOf(file.path, folders)))));
     if (render !== this.renders) return;
-    this.campaignNotes = new Set(files.map((file) => campaignNotePathOf(file.path)));
+    this.campaignNotes = new Set(files.map((file) => campaignNotePathOf(file.path, folders)));
     this.draw(cards);
   }
 

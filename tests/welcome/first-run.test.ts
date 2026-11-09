@@ -15,28 +15,28 @@ function firstRunWith(settings: PluginSettings) {
 
 describe("FirstRun", () => {
   it("shows the welcome on a fresh install, and marks it and this version's news seen", async () => {
-    const { firstRun, saved, showWelcome } = firstRunWith({ campaignFolder: null, welcomeSeen: false, lastVersionSeen: null });
+    const { firstRun, saved, showWelcome } = firstRunWith({ campaignsFolder: null, campaignFolder: null, welcomeSeen: false, lastVersionSeen: null });
     await firstRun.begin(false, showWelcome);
     expect(showWelcome).toHaveBeenCalledOnce();
-    expect(saved).toEqual([{ campaignFolder: null, welcomeSeen: true, lastVersionSeen: VERSION }]);
+    expect(saved).toEqual([{ campaignsFolder: null, campaignFolder: null, welcomeSeen: true, lastVersionSeen: VERSION }]);
   });
 
   it("skips the welcome for a vault upgraded from before it, whose campaign already has sessions, leaving the news unseen", async () => {
-    const { firstRun, saved, showWelcome } = firstRunWith({ campaignFolder: "Silver Road", welcomeSeen: false, lastVersionSeen: null });
+    const { firstRun, saved, showWelcome } = firstRunWith({ campaignsFolder: null, campaignFolder: "Silver Road", welcomeSeen: false, lastVersionSeen: null });
     await firstRun.begin(true, showWelcome);
     expect(showWelcome).not.toHaveBeenCalled();
-    expect(saved).toEqual([{ campaignFolder: "Silver Road", welcomeSeen: true, lastVersionSeen: null }]);
+    expect(saved).toEqual([{ campaignsFolder: null, campaignFolder: "Silver Road", welcomeSeen: true, lastVersionSeen: null }]);
   });
 
   it("shows nothing and saves nothing once the welcome was seen", async () => {
-    const { firstRun, saved, showWelcome } = firstRunWith({ campaignFolder: "Silver Road", welcomeSeen: true, lastVersionSeen: "1.3.0" });
+    const { firstRun, saved, showWelcome } = firstRunWith({ campaignsFolder: null, campaignFolder: "Silver Road", welcomeSeen: true, lastVersionSeen: "1.3.0" });
     await firstRun.begin(false, showWelcome);
     expect(showWelcome).not.toHaveBeenCalled();
     expect(saved).toEqual([]);
   });
 
   it("shows no welcome when the settings can't be saved, so it can't show on every start", async () => {
-    const settings = { campaignFolder: null, welcomeSeen: false, lastVersionSeen: null };
+    const settings = { campaignsFolder: null, campaignFolder: null, welcomeSeen: false, lastVersionSeen: null };
     const failingSave = async () => {
       throw new Error("data.json is read-only.");
     };
@@ -47,7 +47,7 @@ describe("FirstRun", () => {
   });
 
   it("keeps the welcome seen when the page fails to open, so the next start doesn't show it again", async () => {
-    const { firstRun, saved } = firstRunWith({ campaignFolder: null, welcomeSeen: false, lastVersionSeen: null });
+    const { firstRun, saved } = firstRunWith({ campaignsFolder: null, campaignFolder: null, welcomeSeen: false, lastVersionSeen: null });
     const failingWelcome = async () => {
       throw new Error("The workspace is closing.");
     };
@@ -60,7 +60,7 @@ describe("FirstRun", () => {
 
   it("saves before showing the welcome", async () => {
     const order: string[] = [];
-    const settings = { campaignFolder: null, welcomeSeen: false, lastVersionSeen: null };
+    const settings = { campaignsFolder: null, campaignFolder: null, welcomeSeen: false, lastVersionSeen: null };
     async function save(): Promise<void> {
       order.push("saved");
     }

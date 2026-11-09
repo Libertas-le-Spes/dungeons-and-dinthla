@@ -1,22 +1,17 @@
 import { describe, expect, it } from "vitest";
-import type { Vault } from "obsidian";
 import { usesCommunityTheme } from "../../src/theme/community-theme";
 
-function vaultWithTheme(theme: unknown): Vault {
-  const getConfig = (key: string) => {
-    if (key === "cssTheme") return theme;
-    return undefined;
-  };
-  return { getConfig } as unknown as Vault;
+function settingsWithTheme(theme: unknown) {
+  return { cssTheme: () => theme };
 }
 
 describe("usesCommunityTheme", () => {
   it("sees a community theme by its name", () => {
-    expect(usesCommunityTheme(vaultWithTheme("Tokyo Night"))).toBe(true);
+    expect(usesCommunityTheme(settingsWithTheme("Tokyo Night"))).toBe(true);
   });
 
   it("sees Obsidian's default theme when no theme is named", () => {
-    expect(usesCommunityTheme(vaultWithTheme(""))).toBe(false);
-    expect(usesCommunityTheme(vaultWithTheme(undefined))).toBe(false);
+    expect(usesCommunityTheme(settingsWithTheme(""))).toBe(false);
+    expect(usesCommunityTheme(settingsWithTheme(undefined))).toBe(false);
   });
 });

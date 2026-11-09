@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
-import { CHANGED_IN_NOTE, LINES_LEFT, type EditorVault } from "../../src/campaign/note-editor";
+import { CHANGED_IN_NOTE, LINES_LEFT, type EditorFiles } from "../../src/campaign/note-editor";
 import { sessionNoteOf } from "../../src/campaign/session-file";
 import { canCollectReward, CHANGES_ANOTHER_QUEST, initialQuestEdit, planQuestSave, refusalForQuestPlan, type QuestEdit } from "../../src/quests/quest-plan";
 import { QuestWriter } from "../../src/quests/quest-writer";
@@ -14,7 +14,7 @@ class FakeNotes {
     this.texts = new Map(Object.entries(notes));
   }
 
-  get vault(): EditorVault {
+  get vault(): EditorFiles {
     return {
       getFileByPath: (path) => {
         if (!this.texts.has(path)) return null;

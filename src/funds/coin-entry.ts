@@ -1,6 +1,6 @@
 import { buildCampaign } from "../campaign/build-campaign";
 import type { CoinRecord, SessionNote, Source } from "../campaign/campaign";
-import { CHANGED_IN_NOTE, NoteEditor, removalAsRead, type EditorVault, type Removal } from "../campaign/note-editor";
+import { CHANGED_IN_NOTE, NoteEditor, removalAsRead, type EditorFiles, type Removal } from "../campaign/note-editor";
 import { sessionNoteOf } from "../campaign/session-file";
 import { comparableLine, draftOf, readCoinDraft, type CoinDraft, type CoinLine } from "../notes/coin-lines";
 import { dropLine, rewriteLine } from "../notes/note-lines";
@@ -55,8 +55,8 @@ function keepsTheEntry(record: CoinRecord, draft: CoinDraft): boolean {
   return comparableLine(reading.line) === comparableLine(`$ ${record.text}`);
 }
 
-export function coinEntryEdit(vault: EditorVault, store: { readonly sessionNotes: SessionNote[] }, record: CoinRecord): CoinEntryEdit {
-  const editor = new NoteEditor(vault);
+export function coinEntryEdit(files: EditorFiles, store: { readonly sessionNotes: SessionNote[] }, record: CoinRecord): CoinEntryEdit {
+  const editor = new NoteEditor(files);
   const removal = removalAsRead(store.sessionNotes, record.source);
   const draft = draftOf(record.text, record.entry.copper, record.entry.coins);
   let cannotSave: string | null = CANNOT_SHOW;

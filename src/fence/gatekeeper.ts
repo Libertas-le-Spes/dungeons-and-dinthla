@@ -25,3 +25,5 @@ export class Gatekeeper {
     this.folders = new FolderChoices(app.vault);
   }
 }
+
+export type Gate = Pick<Gatekeeper, "files" | "fileActions" | "metadata">;

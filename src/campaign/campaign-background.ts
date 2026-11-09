@@ -1,5 +1,7 @@
-import type { CachedMetadata, FileManager, MetadataCache, TFile } from "obsidian";
+import type { CachedMetadata, TFile } from "obsidian";
 import { mainNotePathOf } from "./campaign-folders";
+import type { FencedMetadata } from "../fence/fenced-metadata";
+import type { FencedFileActions } from "../fence/fenced-file-actions";
 
 export const WASHES = ["subtle", "balanced", "strong"] as const;
 export type Wash = (typeof WASHES)[number];
@@ -12,8 +14,8 @@ export interface CampaignBackground {
   wash: Wash;
 }
 
-export type BackgroundMetadata = Pick<MetadataCache, "getCache" | "getFirstLinkpathDest">;
-export type BackgroundFileManager = Pick<FileManager, "processFrontMatter">;
+export type BackgroundMetadata = Pick<FencedMetadata, "getCache" | "getFirstLinkpathDest">;
+export type BackgroundFileActions = Pick<FencedFileActions, "processFrontMatter">;
 
 export function isPicture(file: TFile): boolean {
   return PICTURE_EXTENSIONS.has(file.extension.toLowerCase());
@@ -49,20 +51,20 @@ export function backgroundOf(campaignFolder: string, metadata: BackgroundMetadat
   return { picture: pictureOf(cache, mainNote, metadata), wash: washIn(cache) };
 }
 
-export async function choosePicture(fileManager: BackgroundFileManager, mainNote: TFile, linktext: string): Promise<void> {
-  await fileManager.processFrontMatter(mainNote, (properties: Record<string, unknown>) => {
+export async function choosePicture(actions: BackgroundFileActions, mainNote: TFile, linktext: string): Promise<void> {
+  await actions.processFrontMatter(mainNote, (properties: Record<string, unknown>) => {
     properties.background = `[[${linktext}]]`;
   });
 }
 
-export async function removePicture(fileManager: BackgroundFileManager, mainNote: TFile): Promise<void> {
-  await fileManager.processFrontMatter(mainNote, (properties: Record<string, unknown>) => {
+export async function removePicture(actions: BackgroundFileActions, mainNote: TFile): Promise<void> {
+  await actions.processFrontMatter(mainNote, (properties: Record<string, unknown>) => {
     delete properties.background;
   });
 }
 
-export async function chooseWash(fileManager: BackgroundFileManager, mainNote: TFile, wash: Wash): Promise<void> {
-  await fileManager.processFrontMatter(mainNote, (properties: Record<string, unknown>) => {
+export async function chooseWash(actions: BackgroundFileActions, mainNote: TFile, wash: Wash): Promise<void> {
+  await actions.processFrontMatter(mainNote, (properties: Record<string, unknown>) => {
     properties.wash = wash;
   });
 }
