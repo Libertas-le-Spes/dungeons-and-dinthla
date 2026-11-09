@@ -100,6 +100,7 @@ const PAIRS: [string, string, number][] = [
   ["statblock-heading", "surface-statblock", 4.5],
   ["statblock-text", "surface-statblock", 4.5],
   ["statblock-subtitle", "surface-statblock", 4.5],
+  ["state-unknown", "surface-statblock", 4.5],
   ["border-strong", "surface-page", 3],
   ["border-strong", "surface-card", 3],
   ["border-strong", "surface-sunken", 3],

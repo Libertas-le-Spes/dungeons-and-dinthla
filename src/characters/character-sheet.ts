@@ -1,6 +1,6 @@
 import type { Source } from "../campaign/campaign";
 import { sameName } from "./character-entry";
-import { ABILITIES, sheetNameOf, type SourcedFact } from "./sheet-values";
+import { ABILITIES, sheetNameOf, type SheetValues, type SourcedFact } from "./sheet-values";
 
 export const NOT_KNOWN = "?";
 
@@ -151,4 +151,12 @@ export function carriedValuesOf(campaign: string, learned: SourcedFact[], overri
     values.set(name, stated(fact));
   }
   return { campaign, values };
+}
+
+export function shownValuesOf(sheet: CharacterSheet): SheetValues {
+  const values: SheetValues = new Map();
+  for (const value of [...sheet.abilities, ...sheet.values]) {
+    if (value.shown !== null) values.set(value.name, value.shown.value);
+  }
+  return values;
 }

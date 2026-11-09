@@ -298,9 +298,10 @@ describe("DashboardView", () => {
     const sessions = [sessionOf(1, ["[[Mira]] class: rogue, AC: 15", "[[Thessaly]] HP: 22"])];
     const { root, actions } = await openDashboard(sessions, { characters: ["Mira", "Thessaly"], own: "Thessaly" });
     const characters = panel(root, CHARACTERS);
-    await vi.waitFor(() => expect(textsOf(characters, ".dd-card-name")).toEqual(["Mira", "Thessaly"]));
-    expect(textsOf(characters, ".dd-card-line")).toEqual(["Class rogue · AC 15 · HP ?", "Class ? · AC ? · HP 22"]);
+    await vi.waitFor(() => expect(textsOf(characters, ".dd-stat-block-name")).toEqual(["Mira", "Thessaly"]));
+    expect(textsOf(characters, ".dd-stat-block-line")).toEqual(["Class rogue · AC 15 · HP ?", "Class ? · AC ? · HP 22"]);
     expect(textsOf(characters, ".dd-card-own-label")).toEqual(["Your character"]);
+    expect(characters.querySelectorAll(".dd-card.dd-stat-block")).toHaveLength(2);
     expect(characters.querySelector(".dd-empty")).toBeNull();
     characters.querySelector<HTMLElement>(".dd-card")!.click();
     expect(actions.openCharacterSheet).toHaveBeenCalledWith(`${CAMPAIGN}/Characters/Mira.md`);
@@ -314,7 +315,7 @@ describe("DashboardView", () => {
 
   it("redraws the characters when a character note or the campaign note changes, and not for other notes", async () => {
     const { root, reads, noteChanged } = await openDashboard([], { characters: ["Mira"] });
-    await vi.waitFor(() => expect(textsOf(root, ".dd-card-name")).toEqual(["Mira"]));
+    await vi.waitFor(() => expect(textsOf(root, ".dd-stat-block-name")).toEqual(["Mira"]));
     const before = reads.count;
     noteChanged(`${CAMPAIGN}/Sessions/Session 1.md`);
     noteChanged(`Ashen Road/Characters/Mira.md`);
@@ -341,10 +342,10 @@ describe("DashboardView", () => {
     };
     const { root, change } = await openDashboard([], { characters: ["Mira"], textOf });
     change([]);
-    await vi.waitFor(() => expect(textsOf(root, ".dd-card-line")).toEqual(["Class ? · AC 18 · HP ?"]));
+    await vi.waitFor(() => expect(textsOf(root, ".dd-stat-block-line")).toEqual(["Class ? · AC 18 · HP ?"]));
     finishFirst("AC: 12");
     await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(textsOf(root, ".dd-card-line")).toEqual(["Class ? · AC 18 · HP ?"]);
+    expect(textsOf(root, ".dd-stat-block-line")).toEqual(["Class ? · AC 18 · HP ?"]);
   });
 
   it("stops listening when the view closes", async () => {

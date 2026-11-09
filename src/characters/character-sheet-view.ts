@@ -4,11 +4,12 @@ import { campaignFolderOf } from "../campaign/campaign-folders";
 import { sessionLabelOf } from "../campaign/session-file";
 import type { LinkActions } from "../views/linked-text";
 import { PENDING_FOCUS_MS } from "../views/row-focus";
-import { NOT_KNOWN, type CharacterSheet, type SheetValue, type ValueState } from "./character-sheet";
+import { NOT_KNOWN, shownValuesOf, type CharacterSheet, type SheetValue, type ValueState } from "./character-sheet";
 import { messageOf } from "../views/message-of";
 import { readCharacterSheet, type ReadSheet, type SheetStore } from "./read-character-sheet";
 import type { SheetNotes } from "./sheet-notes";
 import { modifierOf } from "./sheet-values";
+import { fillStatBlock } from "./stat-block";
 
 export const CHARACTER_SHEET_VIEW = "dungeons-and-dinthla-character-sheet";
 
@@ -164,7 +165,14 @@ export class CharacterSheetView extends FileView {
       this.addValue(row.createDiv({ cls: "dd-sheet-value" }), file, value, false);
     }
     root.createEl("p", { cls: "dd-sheet-hint", text: TAP_A_VALUE });
+    this.drawStatBlock(root, file, sheet);
     this.focusPending();
+  }
+
+  private drawStatBlock(root: HTMLElement, file: TFile, sheet: CharacterSheet): void {
+    const section = root.createEl("section", { cls: "dd-sheet-stat-block" });
+    section.createEl("h2", { cls: "dd-title", text: "Stat block" });
+    fillStatBlock(section.createDiv(), file.basename, shownValuesOf(sheet));
   }
 
   private addValue(parent: HTMLElement, file: TFile, value: SheetValue, isAbility: boolean): void {
