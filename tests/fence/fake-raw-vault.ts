@@ -48,6 +48,7 @@ export function rawVaultWith(files: TFile[], folders: TFolder[] = []) {
   const events = new FakeEvents();
   const lookup = (path: string) => found([...files, ...folders], path);
   const vault = {
+    configDir: ".obsidian",
     getFileByPath: vi.fn((path: string) => found(files, path)),
     getFolderByPath: vi.fn((path: string) => found(folders, path)),
     getAbstractFileByPath: vi.fn(lookup),
