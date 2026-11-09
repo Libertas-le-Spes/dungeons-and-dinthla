@@ -18,7 +18,6 @@ export interface ListCreate {
 }
 
 export interface ListKind<T> {
-  viewType: string;
   displayText: string;
   icon: string;
   itemName: string;
@@ -33,7 +32,7 @@ function capitalised(word: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
-export class CampaignListView<T> extends ItemView {
+export abstract class CampaignListView<T> extends ItemView {
   private filter!: HTMLInputElement;
   private openCount!: HTMLElement;
   private openList!: HTMLElement;
@@ -49,10 +48,6 @@ export class CampaignListView<T> extends ItemView {
     private readonly create: ListCreate | null,
   ) {
     super(leaf);
-  }
-
-  getViewType(): string {
-    return this.kind.viewType;
   }
 
   getDisplayText(): string {

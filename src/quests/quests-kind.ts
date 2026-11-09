@@ -6,7 +6,6 @@ import { addQuestRow } from "./quest-row";
 export const QUESTS_VIEW = "dungeons-and-dinthla-quests";
 
 export const questsKind: ListKind<QuestRecord> = {
-  viewType: QUESTS_VIEW,
   displayText: "Quests",
   icon: "scroll-text",
   itemName: "quest",
