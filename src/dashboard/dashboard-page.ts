@@ -5,6 +5,7 @@ import type { CampaignStore } from "../campaign/campaign-store";
 import { latestNumberIsShared, latestSession, SESSIONS_SHARE_A_NUMBER } from "../campaign/session-to-write";
 import type { CharacterCard } from "../characters/character-card";
 import type { CharacterNotes } from "../characters/character-notes";
+import { ownCharacterFirst } from "../characters/own-character-first";
 import { learnedFactsOf, readCharacterCard } from "../characters/read-character-card";
 import type { CoinOutcome } from "../funds/coin-modal";
 import { summariseFunds, type FundsSummary } from "../funds/funds-summary";
@@ -271,7 +272,7 @@ export class DashboardPage extends Component {
     this.characterList.empty();
     if (cards.length === 0) this.characterList.createEl("li", { cls: "dd-empty", text: NO_CHARACTERS });
     const actions = { ...this.actions, openRow: (source: Source) => this.actions.openCharacterSheet(source.path) };
-    for (const card of cards) addShortCharacterCard(this.characterList, card, actions);
+    for (const card of ownCharacterFirst(cards)) addShortCharacterCard(this.characterList, card, actions);
   }
 
   private async characterCards(): Promise<CharacterCard[]> {

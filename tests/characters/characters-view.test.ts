@@ -191,11 +191,17 @@ describe("CharactersView", () => {
   });
 
   it("sets the player's own character subtly apart", async () => {
-    const gallery = openGallery({ own: "Thessaly" });
+    const gallery = openGallery({ own: "Mira" });
     await gallery.show(["Mira", "Thessaly"]);
     const cards = Array.from(gallery.container.querySelectorAll(".dd-card"));
-    expect(cards.map((card) => card.classList.contains("dd-card-own"))).toEqual([false, true]);
+    expect(cards.map((card) => card.classList.contains("dd-card-own"))).toEqual([true, false]);
     expect(textsOf(gallery.container, ".dd-card-own-label")).toEqual(["Your character"]);
+  });
+
+  it("puts the player's own character first, and everyone else in Bases' order", async () => {
+    const gallery = openGallery({ own: "Thessaly" });
+    await gallery.show(["Brother Aldric", "Lady Vess", "Thessaly", "Mira"]);
+    expect(textsOf(gallery.container, ".dd-stat-block-name")).toEqual(["Thessaly", "Brother Aldric", "Lady Vess", "Mira"]);
   });
 
   it("opens the character's note when a card is tapped or chosen with the keyboard", async () => {
@@ -275,12 +281,13 @@ describe("CharactersView", () => {
     expect(gallery.sessionsAskedFor).toEqual([]);
   });
 
-  it("draws again when the campaign note of a shown character changes, so a new own character shows", async () => {
-    const gallery = openGallery();
+  it("draws again when the campaign note of a shown character changes, so a new own character shows first", async () => {
+    const gallery = openGallery({ own: "Mira" });
     await gallery.show(["Mira", "Thessaly"]);
     gallery.owner.name = "Thessaly";
     gallery.noteChanged("Pale Moon/Pale Moon.md");
     await vi.waitFor(() => expect(textsOf(gallery.container, ".dd-card-own .dd-stat-block-name")).toEqual(["Thessaly"]));
+    expect(textsOf(gallery.container, ".dd-stat-block-name")).toEqual(["Thessaly", "Mira"]);
   });
 
   it("doesn't draw again when some other note changes", async () => {

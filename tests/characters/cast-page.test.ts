@@ -9,7 +9,7 @@ function fileOf(name: string): TFile {
   return { path: `Pale Moon/Characters/${name}.md`, basename: name } as TFile;
 }
 
-function openCast({ folder = "Pale Moon" as string | null, characters = ["Mira", "Thessaly"] } = {}) {
+function openCast({ folder = "Pale Moon" as string | null, characters = ["Mira", "Thessaly"], own = "" } = {}) {
   let campaignChanged = () => {};
   let noteChanged: (path: string) => void = () => {};
   let fileChanged: (path: string) => void = () => {};
@@ -29,7 +29,7 @@ function openCast({ folder = "Pale Moon" as string | null, characters = ["Mira",
   const notes: CharacterNotes = {
     textOf: async () => "",
     pathOfLink: () => null,
-    isOwnCharacter: () => false,
+    isOwnCharacter: (file) => file.basename === own,
     campaignFolders: () => ["Pale Moon"],
     filesIn,
     sessionsOf: async () => [],
@@ -73,6 +73,11 @@ describe("CastPage", () => {
     const { root, filesIn } = openCast();
     await shownNames(root, ["Mira", "Thessaly"]);
     expect(filesIn).toHaveBeenCalledWith("Pale Moon");
+  });
+
+  it("shows the player's own character first, and the others in the order the Characters folder lists them", async () => {
+    const { root } = openCast({ characters: ["Brother Aldric", "Lady Vess", "Mira", "Thessaly"], own: "Lady Vess" });
+    await shownNames(root, ["Lady Vess", "Brother Aldric", "Mira", "Thessaly"]);
   });
 
   it("says there are no characters when no campaign is open", async () => {
