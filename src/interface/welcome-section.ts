@@ -10,13 +10,15 @@ export interface WelcomeNeeds {
   startSession(): void;
 }
 
+function nothingMore(): void {}
+
 export function welcomeSection(needs: WelcomeNeeds): MakePage {
   return (contentEl, show) =>
     new WelcomePage(contentEl, needs.store, () => needs.campaignsFolderSetup.path, {
       startSession: () => needs.startSession(),
       showCampaign: () => show({ page: "home", path: null }),
       makeCampaign: (name: string) => needs.maker.make(name),
-      pickCampaignsFolder: () => needs.campaignsFolderSetup.pick(),
+      pickCampaignsFolder: () => needs.campaignsFolderSetup.pick(nothingMore),
       makeCampaignsFolder: (name: string) => needs.campaignsFolderSetup.make(name),
     });
 }
