@@ -16,7 +16,7 @@ export function welcomeSection(needs: WelcomeNeeds): MakePage {
       startSession: () => needs.startSession(),
       showCampaign: () => show({ page: "home", path: null }),
       makeCampaign: (name: string) => needs.maker.make(name),
-      pickCampaignsFolder: () => needs.campaignsFolder.pick(),
+      pickCampaignsFolder: () => needs.campaignsFolder.pick(() => {}),
       makeCampaignsFolder: (name: string) => needs.campaignsFolder.make(name),
     });
 }

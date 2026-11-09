@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App, CachedMetadata, EventRef, Plugin, TFile } from "obsidian";
 import type { Gate } from "../../src/fence/gatekeeper";
-import { CampaignSettingTab, type CampaignChoice, type CampaignsFolderChoice } from "../../src/settings/campaign-setting-tab";
-import type { FolderSuggestModal } from "../../src/settings/folder-suggest-modal";
+import { CampaignSettingTab, type CampaignChoice } from "../../src/settings/campaign-setting-tab";
+import { CampaignsFolderSetup } from "../../src/settings/campaigns-folder-setup";
+import { FolderSuggestModal } from "../../src/settings/folder-suggest-modal";
 import type { PictureSuggestModal } from "../../src/settings/picture-suggest-modal";
 import { NO_CAMPAIGN } from "../../src/campaign/campaign-folders";
 import { Notice, openedSuggestModals } from "../stubs/obsidian";
@@ -110,7 +111,7 @@ class FakeCampaigns implements CampaignChoice {
   }
 }
 
-class FakeCampaignsFolder implements CampaignsFolderChoice {
+class FakeCampaignsFolder {
   readonly chosen: string[] = [];
   failChoosing = false;
 
@@ -125,15 +126,21 @@ class FakeCampaignsFolder implements CampaignsFolderChoice {
     this.chosen.push(path);
     this.path = path;
   }
+
+  async make(typed: string): Promise<string> {
+    return typed;
+  }
 }
 
 function tabFor(
   fake: FakeApp,
   campaigns: CampaignChoice,
   showWelcome: () => Promise<void> = async () => {},
-  campaignsFolder: CampaignsFolderChoice = new FakeCampaignsFolder("D&D"),
+  campaignsFolder = new FakeCampaignsFolder("D&D"),
 ): CampaignSettingTab {
-  const tab = new CampaignSettingTab(fake.app, fake.plugin, fake.gate, campaignsFolder, campaigns, showWelcome);
+  const pickFolder = (folders: string[], chosen: (folder: string) => void) => new FolderSuggestModal(fake.app, folders, chosen).open();
+  const setup = new CampaignsFolderSetup(campaignsFolder, campaignsFolder, pickFolder);
+  const tab = new CampaignSettingTab(fake.app, fake.plugin, fake.gate, setup, campaigns, showWelcome);
   tab.containerEl = obsidianDocument().body.createDiv();
   tab.display();
   return tab;
