@@ -9,6 +9,9 @@ import { SessionNotesPage } from "../../src/session-notes/session-notes-page";
 import { NoteDrafts } from "../../src/note-page/note-drafts";
 import { NoteSaver } from "../../src/note-page/note-saver";
 import { FakeNotes } from "../note-page/fake-notes";
+import { SessionClearer } from "../../src/session-notes/session-clearer";
+import { SessionTrash } from "../../src/session-notes/session-trash";
+import type { ConfirmText } from "../../src/views/confirm-modal";
 import type { SessionProperties } from "../../src/sessions/session-properties";
 import { isShown, obsidianDocument } from "../views/obsidian-dom";
 
@@ -54,7 +57,9 @@ function pageWith(
   const document = obsidianDocument();
   const root = document.createElement("div");
   document.body.append(root);
-  const moves = { showSession: vi.fn(), startSession: vi.fn(), stayOn: vi.fn() };
+  const moves = { showSession: vi.fn(), showNoSession: vi.fn(), startSession: vi.fn(), stayOn: vi.fn() };
+  const confirm = vi.fn((_text: ConfirmText, confirmed: () => void) => confirmed());
+  const trashFile = vi.fn(async () => {});
   const writer = { save: vi.fn(async () => "") };
   const keptDrafts = new KeptDrafts(drafts, () => DELETED_AT);
   const needs = {
@@ -66,12 +71,13 @@ function pageWith(
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
     actions: { openRow: vi.fn(), openLink: vi.fn() },
     wholeText: { texts: notes.texts, drafts: new NoteDrafts(drafts), saver: new NoteSaver(notes.vault) },
+    removal: { clearer: new SessionClearer(notes.vault), trash: new SessionTrash(notes.vault, { trashFile }), confirm },
   };
   const page = new SessionNotesPage(root, asked, needs, moves);
   page.load();
   const select = () => root.querySelector("select")!;
   const lineTexts = () => Array.from(root.querySelectorAll(".dd-written-line .dd-line-text")).map((line) => line.textContent);
-  return { root, page, moves, writer, change, unsubscribe, select, lineTexts, drafts, keptDrafts };
+  return { root, page, moves, writer, change, unsubscribe, select, lineTexts, drafts, keptDrafts, confirm, trashFile };
 }
 
 const SESSIONS = [
@@ -312,6 +318,26 @@ describe("SessionNotesPage", () => {
     page.unload();
     expect(notes.changedListeners.size).toBe(0);
     expect(new NoteDrafts(drafts).draftOf(twelve)).toEqual({ base: "Tracks lead to the [[Old Mill]].\n! Find the carvan", text: "Tracks lead to the [[Old Mill]].\n! Find the caravan" });
+  });
+
+  it("asks before deleting the session shown, naming it, then shows the latest session left", async () => {
+    const twelve = `${FOLDER}/Sessions/Session 12.md`;
+    const notes = new FakeNotes(twelve, "Tracks lead to the [[Old Mill]].\n! Find the caravan");
+    const { root, moves, confirm, trashFile } = pageWith(SESSIONS, twelve, { notes });
+    root.querySelector<HTMLButtonElement>(".dd-delete-session")!.click();
+    await vi.waitFor(() => expect(moves.showSession).toHaveBeenCalledExactlyOnceWith(`${FOLDER}/Sessions/Session 11.md`));
+    expect(confirm.mock.calls[0]![0].title).toBe("Delete Session 12 · The Old Mill?");
+    expect(trashFile).toHaveBeenCalledExactlyOnceWith({ path: twelve });
+    expect(moves.showNoSession).not.toHaveBeenCalled();
+  });
+
+  it("says there are no sessions left after deleting the only one", async () => {
+    const twelve = `${FOLDER}/Sessions/Session 12.md`;
+    const notes = new FakeNotes(twelve, "Tracks");
+    const { root, moves } = pageWith([SESSIONS[1]!], twelve, { notes });
+    root.querySelector<HTMLButtonElement>(".dd-delete-session")!.click();
+    await vi.waitFor(() => expect(moves.showNoSession).toHaveBeenCalledOnce());
+    expect(moves.showSession).not.toHaveBeenCalled();
   });
 
   it("stops following the box's saves when closed", async () => {

@@ -1,55 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildCampaign } from "../../src/campaign/build-campaign";
 import { CHANGED_ELSEWHERE, NOTE_GONE_HERE } from "../../src/note-page/note-editing";
 import { NoteDrafts } from "../../src/note-page/note-drafts";
-import { NoteSaver } from "../../src/note-page/note-saver";
-import type { AppendWriter } from "../../src/session-notes/append-writer";
 import { Drafts } from "../../src/session-notes/drafts";
 import { NOT_SAVED_YET } from "../../src/session-notes/edit-all-panel";
-import { SessionWriting } from "../../src/session-notes/session-writing";
-import { FakeNotes } from "../note-page/fake-notes";
-import { isShown, obsidianDocument } from "../views/obsidian-dom";
-
-const PATH = "Pale Moon/Sessions/Session 12.md";
-const NOTE = "---\nplayed: 2026-11-09\n---\nTracks lead to the [[Old Mill]].\n? Who sent the leter";
-const FIXED = "---\nplayed: 2026-11-09\n---\nTracks lead to the [[Old Mill]].\n? Who sent the letter";
-
-function flushed(): Promise<void> {
-  return new Promise((done) => setTimeout(done, 0));
-}
-
-function writingOn(text: string | null, drafts = new Drafts({}, () => {})) {
-  const document = obsidianDocument();
-  const root = document.createElement("div");
-  document.body.append(root);
-  const notes = new FakeNotes(PATH, text);
-  const noteDrafts = new NoteDrafts(drafts);
-  const writer = { save: vi.fn(async () => "") };
-  const session = new SessionWriting(root, PATH, {
-    drafts,
-    writer: writer as unknown as AppendWriter,
-    openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
-    campaign: () => buildCampaign([]),
-    actions: { openRow: vi.fn(), openLink: vi.fn() },
-    wholeText: { texts: notes.texts, drafts: noteDrafts, saver: new NoteSaver(notes.vault) },
-  });
-  const window = document.defaultView!;
-  const find = <T extends HTMLElement>(selector: string) => root.querySelector<T>(selector)!;
-  const button = (selector: string) => find<HTMLButtonElement>(selector);
-  const wholeBox = () => find<HTMLTextAreaElement>(".dd-edit-all-panel textarea");
-  const typeWhole = (typed: string) => {
-    wholeBox().value = typed;
-    wholeBox().dispatchEvent(new window.Event("input"));
-  };
-  const editAll = async () => {
-    button(".dd-edit-all").click();
-    await flushed();
-  };
-  const panels = () => [find(".dd-writing-panel"), find(".dd-lines-panel"), find(".dd-edit-all-panel")].map(isShown);
-  const leaving = () => find(".dd-edit-all-leaving");
-  const settle = () => vi.waitFor(() => expect(noteDrafts.isSaving(PATH)).toBe(false));
-  return { root, session, notes, noteDrafts, writer, button, wholeBox, typeWhole, editAll, panels, leaving, settle };
-}
+import { isShown } from "../views/obsidian-dom";
+import { FIXED, NOTE, PATH, writingOn } from "./writing-on";
 
 describe("SessionWriting", () => {
   it("adds lines with Edit all closed, and shows no whole-text box", () => {
@@ -173,7 +128,7 @@ describe("SessionWriting", () => {
     session.close();
     expect(notes.changedListeners.size).toBe(0);
     expect(notes.goneListeners.size).toBe(0);
-    expect(stops.length).toBe(3);
+    expect(stops.length).toBe(4);
     for (const stop of stops) expect(stop).toHaveBeenCalledOnce();
   });
 });
