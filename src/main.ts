@@ -213,7 +213,7 @@ export default class DungeonsAndDinthla extends Plugin {
       wholeText,
       removal: {
         clearer: new SessionClearer(gate.files),
-        trash: new SessionTrash(gate.files, gate.fileActions, () => deletesPermanently(gate.settings)),
+        trash: new SessionTrash(gate.files, gate.fileActions, () => deletesPermanently(gate.vaultSettings)),
         confirm: (text: ConfirmText, confirmed: () => void, closed: () => void) => new ConfirmModal(this.app, text, confirmed, closed).open(),
       },
       startSession: newSession,
@@ -396,7 +396,7 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private followTheme(): void {
-    const followThemeClass = new FollowThemeClass(() => usesCommunityTheme(this.gate.settings));
+    const followThemeClass = new FollowThemeClass(() => usesCommunityTheme(this.gate.vaultSettings));
     followThemeClass.add(document.body);
     this.registerEvent(this.app.workspace.on("css-change", () => followThemeClass.update()));
     this.registerEvent(this.app.workspace.on("window-open", (popout) => followThemeClass.add(popout.doc.body)));
