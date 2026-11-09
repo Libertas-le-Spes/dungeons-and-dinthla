@@ -24,8 +24,8 @@ export class CampaignsFolderSetup {
     await this.folder.choose(path);
   }
 
-  pick(): void {
-    this.pickFolder(this.folders.folderPaths(), (chosen) => this.chooseOrSay(chosen));
+  pick(chosen: () => void): void {
+    this.pickFolder(this.folders.folderPaths(), (path) => this.chooseOrSay(path, chosen));
   }
 
   async make(typed: string): Promise<void> {
@@ -33,7 +33,10 @@ export class CampaignsFolderSetup {
     await this.folder.choose(path);
   }
 
-  private chooseOrSay(path: string): void {
-    this.folder.choose(path).catch((error: unknown) => new Notice(`Couldn't set the Campaigns folder: ${messageOf(error)}`));
+  private chooseOrSay(path: string, chosen: () => void): void {
+    this.folder
+      .choose(path)
+      .then(chosen)
+      .catch((error: unknown) => new Notice(`Couldn't set the Campaigns folder: ${messageOf(error)}`));
   }
 }

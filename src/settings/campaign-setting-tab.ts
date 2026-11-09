@@ -3,7 +3,6 @@ import { backgroundOf, chooseWash, choosePicture, isPicture, removePicture, wash
 import { campaignNameOf, mainNotePathOf, NO_CAMPAIGN } from "../campaign/campaign-folders";
 import type { Gate } from "../fence/gatekeeper";
 import { messageOf } from "../views/message-of";
-import { FolderSuggestModal } from "./folder-suggest-modal";
 import { PictureSuggestModal } from "./picture-suggest-modal";
 
 const CAMPAIGNS_FOLDER_HINT =
@@ -16,8 +15,7 @@ const WASH_NAMES: Record<Wash, string> = { subtle: "Subtle", balanced: "Balanced
 
 export interface CampaignsFolderChoice {
   readonly path: string | null;
-  choose(path: string): Promise<void>;
-  folderPaths(): string[];
+  pick(chosen: () => void): void;
 }
 
 export interface CampaignChoice {
@@ -61,19 +59,7 @@ export class CampaignSettingTab extends PluginSettingTab {
     let shown = NO_CAMPAIGNS_FOLDER;
     if (this.campaignsFolder.path !== null) shown = this.campaignsFolder.path;
     const row = new Setting(this.containerEl).setName("Campaigns folder").setDesc(`${CAMPAIGNS_FOLDER_HINT} Now: ${shown}`);
-    new ButtonComponent(row.controlEl).setButtonText("Choose folder").onClick(() => this.pickCampaignsFolder());
-  }
-
-  private pickCampaignsFolder(): void {
-    const folders = this.campaignsFolder.folderPaths();
-    new FolderSuggestModal(this.app, folders, (chosen) => this.chooseCampaignsFolder(chosen)).open();
-  }
-
-  private chooseCampaignsFolder(path: string): void {
-    this.campaignsFolder
-      .choose(path)
-      .then(() => this.display())
-      .catch((error: unknown) => new Notice(`Couldn't set the Campaigns folder: ${messageOf(error)}`));
+    new ButtonComponent(row.controlEl).setButtonText("Choose folder").onClick(() => this.campaignsFolder.pick(() => this.display()));
   }
 
   private showCampaign(): void {
