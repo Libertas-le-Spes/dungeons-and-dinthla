@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { TFile, WorkspaceLeaf } from "obsidian";
+import type { TFile } from "obsidian";
 import type { SessionNote } from "../../src/campaign/campaign";
-import { CharacterSheetView, couldNotRead, TAP_A_VALUE, type SheetActions } from "../../src/characters/character-sheet-view";
+import { CharacterSheetPage, couldNotRead, TAP_A_VALUE, type SheetActions } from "../../src/characters/character-sheet-page";
 import type { SheetValue } from "../../src/characters/character-sheet";
 import type { CarriedFrom, SheetNotes } from "../../src/characters/sheet-notes";
 import type { MentionNotes } from "../../src/characters/mention-notes";
@@ -98,21 +98,24 @@ function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf, link
       closers.push(onClosed);
     },
   };
-  const view = new CharacterSheetView({} as WorkspaceLeaf, store, notes, actions, mentionNotes);
-  view.contentEl = obsidianDocument().createElement("div");
-  view.contentEl.ownerDocument.body.append(view.contentEl);
-  view.onload();
-  const root = view.contentEl;
+  const root = obsidianDocument().createElement("div");
+  root.ownerDocument.body.append(root);
+  const start = (file = MIRA) => {
+    const page = new CharacterSheetPage(root, file, store, notes, actions, mentionNotes);
+    page.load();
+    return page;
+  };
   const load = async (file = MIRA) => {
-    view.file = file;
-    await view.onLoadFile(file);
+    const page = start(file);
+    await settle();
+    return page;
   };
   const button = (name: string) => root.querySelector<HTMLButtonElement>(`.dd-value[data-name="${name}"]`)!;
   const rowOf = (label: string) =>
     Array.from(root.querySelectorAll(".dd-sheet-row")).find((row) => row.querySelector(".dd-sheet-label")!.textContent === label)!;
   return {
-    view,
     root,
+    start,
     store,
     reads,
     mentionReads,
@@ -129,6 +132,10 @@ function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf, link
   };
 }
 
+async function settle(): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 function textsOf(root: Element, selector: string): string[] {
   return Array.from(root.querySelectorAll(selector)).map((element) => String(element.textContent));
 }
@@ -137,7 +144,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("CharacterSheetView", () => {
+describe("CharacterSheetPage", () => {
   it("shows the name, the subtitle and every value, with ? for what isn't known", async () => {
     const sheet = openSheet({ sessions: ["[[Mira]] subtitle: Half-elf Ranger 5, AC: 15"] });
     await sheet.load();
@@ -400,13 +407,14 @@ describe("CharacterSheetView", () => {
       else if (failures.length === 0) failures.push(reject);
       else pending.push(resolve);
     }) });
-    const first = sheet.load();
-    const second = sheet.load();
+    sheet.start();
+    await vi.waitFor(() => expect(failures).toHaveLength(1));
+    sheet.listener();
     await vi.waitFor(() => expect(pending).toHaveLength(1));
     pending[0]!("AC: 16");
-    await second;
+    await settle();
     failures[0]!(new Error("the disk is gone"));
-    await first;
+    await settle();
     expect(sheet.button("AC").textContent).toBe("16");
     expect(sheet.root.querySelector(":scope > .dd-empty")).toBeNull();
   });
@@ -417,34 +425,34 @@ describe("CharacterSheetView", () => {
       if (file.path === MIRA.path) pending.push(resolve);
       else resolve("");
     }) });
-    const first = sheet.load();
-    const second = sheet.load();
+    sheet.start();
+    sheet.listener();
     await vi.waitFor(() => expect(pending).toHaveLength(2));
     pending[1]!("AC: 16");
-    await second;
+    await settle();
     pending[0]!("AC: 9");
-    await first;
+    await settle();
     expect(sheet.button("AC").textContent).toBe("16");
   });
 
-  it("empties the sheet when its note is unloaded, dropping a reading still on its way", async () => {
+  it("empties the sheet when it is closed, dropping a reading still on its way", async () => {
     const pending: ((text: string) => void)[] = [];
     const sheet = openSheet({ textOf: (file) => new Promise((resolve) => {
       if (file.path === MIRA.path) pending.push(resolve);
       else resolve("");
     }) });
-    const loading = sheet.load();
+    const page = sheet.start();
     await vi.waitFor(() => expect(pending).toHaveLength(1));
-    await sheet.view.onUnloadFile();
+    page.unload();
     pending[0]!("AC: 16");
-    await loading;
+    await settle();
     expect(sheet.root.childElementCount).toBe(0);
   });
 
-  it("empties the sheet when its note is unloaded", async () => {
+  it("empties the sheet when it is closed", async () => {
     const sheet = openSheet();
-    await sheet.load();
-    await sheet.view.onUnloadFile();
+    const page = await sheet.load();
+    page.unload();
     expect(sheet.root.childElementCount).toBe(0);
   });
 
@@ -476,11 +484,11 @@ describe("CharacterSheetView", () => {
     expect(sheet.mentionReads.count).toBe(1);
   });
 
-  it("stops listing the lines once its note is unloaded", async () => {
+  it("stops listing the lines once it is closed", async () => {
     const sheet = openSheet({ linking: { [ONE]: [0] }, texts: { [ONE]: "[[Mira]]" } });
-    await sheet.load();
+    const page = await sheet.load();
     await vi.waitFor(() => expect(sheet.mentionReads.count).toBe(1));
-    await sheet.view.onUnloadFile();
+    page.unload();
     sheet.linksResolved(ONE);
     expect(sheet.mentionReads.count).toBe(1);
   });
@@ -497,10 +505,12 @@ describe("CharacterSheetView", () => {
     expect(sheet.mentionReads.count).toBe(1);
   });
 
-  it("draws the new name after the note is renamed", async () => {
+  it("draws the new name when its note is renamed, as Obsidian renames the same file", async () => {
     const sheet = openSheet();
-    await sheet.load();
-    await sheet.view.onRename(fileAt("Pale Moon/Characters/Mirabel.md"));
-    expect(textsOf(sheet.root, ".dd-sheet-name")).toEqual(["Mirabel"]);
+    const mira = fileAt(MIRA.path);
+    await sheet.load(mira);
+    Object.assign(mira, fileAt("Pale Moon/Characters/Mirabel.md"));
+    sheet.noteMoved(MIRA.path);
+    await vi.waitFor(() => expect(textsOf(sheet.root, ".dd-sheet-name")).toEqual(["Mirabel"]));
   });
 });

@@ -3,7 +3,6 @@ import type { App, TFile } from "obsidian";
 import type { SessionNote } from "../../src/campaign/campaign";
 import { CHANGED_IN_NOTE } from "../../src/campaign/note-editor";
 import { carriedValuesOf, characterSheetOf, type SheetValue } from "../../src/characters/character-sheet";
-import { CHARACTER_SHEET_VIEW } from "../../src/characters/character-sheet-view";
 import { chooseSheetValue, openCharacterSheet, sameSheetValue, saveSheetValue } from "../../src/characters/open-character-sheet";
 import { readCharacterSheet } from "../../src/characters/read-character-sheet";
 import type { SheetNotes } from "../../src/characters/sheet-notes";
@@ -22,10 +21,10 @@ beforeEach(() => {
 
 function setUp(texts: Record<string, string>, { readFails = false, folders = ["Pale Moon"] } = {}) {
   const notesText = new Map(Object.entries(texts));
-  const viewStates: unknown[] = [];
+  const opened: { newLeaf: unknown; path: string; options: unknown }[] = [];
   const app = {
     workspace: {
-      getLeaf: () => ({ setViewState: async (state: unknown) => viewStates.push(state) }),
+      getLeaf: (newLeaf: unknown) => ({ openFile: async (file: TFile, options: unknown) => opened.push({ newLeaf, path: file.path, options }) }),
     },
     vault: {
       getFileByPath: (path: string) => {
@@ -62,7 +61,7 @@ function setUp(texts: Record<string, string>, { readFails = false, folders = ["P
     fileAt: () => null,
     carriedFromOf: () => null,
   } as unknown as SheetNotes;
-  return { app, store, notes, notesText, viewStates };
+  return { app, store, notes, notesText, opened };
 }
 
 function acOf(learned: SourcedFact[], overrides: SourcedFact[] = []): SheetValue {
@@ -72,16 +71,16 @@ function acOf(learned: SourcedFact[], overrides: SourcedFact[] = []): SheetValue
 const LEARNED_15: SourcedFact = { name: "AC", value: "15", source: { path: ONE, line: 0 } };
 
 describe("openCharacterSheet", () => {
-  it("opens the sheet for the note", async () => {
-    const { app, viewStates } = setUp({ [MIRA.path]: "" });
+  it("opens the character's note in the tab in use, where the campaign tab shows it as their sheet", async () => {
+    const { app, opened } = setUp({ [MIRA.path]: "" });
     await openCharacterSheet(app, MIRA.path);
-    expect(viewStates).toEqual([{ type: CHARACTER_SHEET_VIEW, state: { file: MIRA.path }, active: true }]);
+    expect(opened).toEqual([{ newLeaf: false, path: MIRA.path, options: { active: true } }]);
   });
 
   it("opens nothing for a note that's gone", async () => {
-    const { app, viewStates } = setUp({});
+    const { app, opened } = setUp({});
     await openCharacterSheet(app, MIRA.path);
-    expect(viewStates).toEqual([]);
+    expect(opened).toEqual([]);
   });
 });
 

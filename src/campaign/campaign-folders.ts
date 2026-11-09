@@ -16,6 +16,16 @@ export function charactersFolderOf(campaignFolder: string): string {
   return `${campaignFolder}/Characters`;
 }
 
+export function charactersBasePathOf(campaignFolder: string): string {
+  return `${campaignFolder}/Characters.base`;
+}
+
+export function isCharacterNotePath(path: string, campaignFolders: string[]): boolean {
+  const folder = campaignFolderOf(path, campaignFolders);
+  if (folder === null) return false;
+  return path.startsWith(`${charactersFolderOf(folder)}/`) && path.endsWith(".md");
+}
+
 export function campaignNotePathOf(path: string): string | null {
   const folder = topFolderOf(path);
   if (folder === null) return null;

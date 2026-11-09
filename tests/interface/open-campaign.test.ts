@@ -19,7 +19,7 @@ describe("openCampaignPage", () => {
     await openCampaignPage(app, "quests");
     expect(workspace.getLeavesOfType).toHaveBeenCalledExactlyOnceWith(CAMPAIGN_VIEW);
     expect(workspace.getLeaf).toHaveBeenCalledExactlyOnceWith("tab");
-    expect(newLeaf.setViewState).toHaveBeenCalledExactlyOnceWith({ type: CAMPAIGN_VIEW, state: { page: "quests" }, active: true });
+    expect(newLeaf.setViewState).toHaveBeenCalledExactlyOnceWith({ type: CAMPAIGN_VIEW, state: { page: "quests", path: null }, active: true });
     expect(workspace.revealLeaf).toHaveBeenCalledExactlyOnceWith(newLeaf);
   });
 
@@ -28,7 +28,7 @@ describe("openCampaignPage", () => {
     const { app, workspace } = appWith([open]);
     await openCampaignPage(app, "funds");
     expect(workspace.getLeaf).not.toHaveBeenCalled();
-    expect(open.setViewState).toHaveBeenCalledExactlyOnceWith({ type: CAMPAIGN_VIEW, state: { page: "funds" }, active: true });
+    expect(open.setViewState).toHaveBeenCalledExactlyOnceWith({ type: CAMPAIGN_VIEW, state: { page: "funds", path: null }, active: true });
     expect(workspace.revealLeaf).toHaveBeenCalledExactlyOnceWith(open);
   });
 });
