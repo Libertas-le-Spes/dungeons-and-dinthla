@@ -5,6 +5,7 @@ import { readSessions } from "../campaign/read-campaign";
 import type { Gate } from "../fence/gatekeeper";
 
 export interface CharacterNotes {
+  holds(file: TFile): boolean;
   textOf(file: TFile): Promise<string>;
   pathOfLink(linktext: string, sourcePath: string): string | null;
   isOwnCharacter(file: TFile): boolean;
@@ -48,6 +49,7 @@ function onNoteChanged(gate: Gate, changed: (path: string) => void): () => void 
 
 export function characterNotesOf(gate: Gate, campaignFolders: CampaignFolders): CharacterNotes {
   return {
+    holds: (file) => gate.files.getFileByPath(file.path) === file,
     textOf: (file) => gate.files.cachedRead(file),
     pathOfLink: (linktext, sourcePath) => pathOfLink(gate, linktext, sourcePath),
     isOwnCharacter: (file) => isOwnCharacter(gate, campaignFolders, file),

@@ -33,6 +33,7 @@ export class CharactersView extends BasesView {
   }
 
   onDataUpdated(): void {
-    void this.gallery.show(this.data.data.map((entry) => entry.file));
+    const files = this.data.data.map((entry) => entry.file);
+    void this.gallery.show(files.filter((file) => this.notes.holds(file)));
   }
 }
