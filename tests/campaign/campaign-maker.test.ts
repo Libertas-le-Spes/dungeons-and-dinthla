@@ -21,7 +21,7 @@ describe("CampaignMaker", () => {
 
   it("moves into the campaign it made, under the name Obsidian gave it", async () => {
     const choose = vi.fn(async () => {});
-    await new CampaignMaker(vaultWith([]), choose).make(" Silver Road ");
+    await new CampaignMaker(vaultWith([]), choose).make(" Silver\u00a0Road ");
     expect(choose).toHaveBeenCalledExactlyOnceWith("Silver Road");
     expect(Notice.shown).toEqual([]);
   });
@@ -32,5 +32,13 @@ describe("CampaignMaker", () => {
     expect(choose).not.toHaveBeenCalled();
     expect(Notice.shown).toHaveLength(1);
     expect(Notice.shown[0]).toMatch(/^Couldn't make the campaign: There is already a folder or file called Silver Road/);
+  });
+
+  it("says the campaign was made but not moved into when choosing it fails", async () => {
+    const choose = vi.fn(async () => {
+      throw new Error("data.json is read-only.");
+    });
+    await new CampaignMaker(vaultWith([]), choose).make("Silver Road");
+    expect(Notice.shown).toEqual(["Made Silver Road, but couldn't move into it: data.json is read-only."]);
   });
 });
