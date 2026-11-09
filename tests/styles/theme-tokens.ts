@@ -1,5 +1,5 @@
-import { readFileSync } from "node:fs";
 import { parseColour, type Colour } from "./css-colour";
+import { importedFiles, readStyles } from "./style-files";
 
 export interface ThemeContext {
   dark: boolean;
@@ -10,14 +10,6 @@ export interface ThemeContext {
 interface Rule {
   selector: string;
   declarations: Map<string, string>;
-}
-
-function readStyles(file: string): string {
-  return readFileSync(new URL(`../../styles/${file}`, import.meta.url), "utf8");
-}
-
-function importedFiles(): string[] {
-  return [...readStyles("index.css").matchAll(/@import "\.\/([\w-]+\.css)";/g)].map(([, file]) => file!);
 }
 
 function countOf(text: string, pattern: RegExp): number {

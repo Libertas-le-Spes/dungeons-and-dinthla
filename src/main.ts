@@ -48,6 +48,7 @@ import { takeOpenLeaves } from "./interface/take-open-leaves";
 import { patchSetViewState, type ChangeViewState } from "./interface/view-state-patch";
 import { CAMPAIGN_VIEW, CampaignView } from "./interface/campaign-view";
 import { openCampaignPage } from "./interface/open-campaign";
+import { TabBackground } from "./interface/tab-background";
 import { closeRetiredViews } from "./interface/retired-views";
 import { colourMarkers } from "./reading/colour-markers";
 import { BackgroundRefresh, showBackground, shownBackgroundOf } from "./reading/note-background";
@@ -213,7 +214,8 @@ export default class DungeonsAndDinthla extends Plugin {
         openInEditor: (path: string) => void openInEditor(this.app, path),
       }),
     });
-    this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView(leaf, this.store, sections, (path) => void this.followCampaignOf(path)));
+    const backdropFor = (frameEl: HTMLElement) => new TabBackground(frameEl, this.store, this.app.metadataCache, this.app.vault);
+    this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView(leaf, this.store, sections, (path) => void this.followCampaignOf(path), backdropFor));
     for (const opener of PAGE_OPENERS) {
       const open = () => void openCampaignPage(this.app, opener.page, null);
       this.addRibbonIcon(opener.icon, opener.name, open);

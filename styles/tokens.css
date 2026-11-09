@@ -42,6 +42,7 @@
   --red-100: #f8dfdc;
 
   --surface-page: var(--vellum-50);
+  --surface-ground: white;
   --surface-sunken: var(--vellum-100);
   --surface-card: #fffdf9;
   --surface-raised: #fffdf9;
@@ -163,6 +164,7 @@ body:not(.dd-follow-theme) .dd-tokens {
 
 .theme-dark .dd-tokens {
   --surface-page: #1c1815;
+  --surface-ground: black;
   --surface-sunken: #15120f;
   --surface-card: #25201b;
   --surface-raised: #2b251f;
