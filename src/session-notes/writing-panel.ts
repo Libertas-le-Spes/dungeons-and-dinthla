@@ -22,6 +22,7 @@ function notSavedMessage(error: unknown): string {
 }
 
 export class WritingPanel {
+  private readonly panel: HTMLElement;
   private readonly box: DraftBox;
   private readonly lookup: BoxLookup;
   private readonly stopListening: () => void;
@@ -31,8 +32,8 @@ export class WritingPanel {
     private readonly sessionPath: string,
     private readonly needs: WritingNeeds,
   ) {
-    const panel = parent.createEl("section", { cls: "dd-notes-panel dd-writing-panel" });
-    this.box = new DraftBox(panel, needs.drafts.textOf(sessionPath), () => void this.save());
+    this.panel = parent.createEl("section", { cls: "dd-notes-panel dd-writing-panel" });
+    this.box = new DraftBox(this.panel, needs.drafts.textOf(sessionPath), () => void this.save());
     const list = new LookupList(this.box.lookups, (match) => this.pick(match));
     this.lookup = new BoxLookup(this.box.textarea, list, needs.campaign);
     this.box.textarea.addEventListener("keydown", (event) => this.lookup.keyDown(event));
@@ -54,6 +55,11 @@ export class WritingPanel {
 
   close(): void {
     this.stopListening();
+  }
+
+  setShown(shown: boolean): void {
+    this.panel.toggle(shown);
+    if (!shown) this.lookup.close();
   }
 
   setGone(gone: boolean): void {
