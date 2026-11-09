@@ -3,7 +3,7 @@ import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { QuestionRecord } from "../../src/campaign/campaign";
 import { sessionNoteOf } from "../../src/campaign/session-file";
-import { CHANGED_IN_NOTE, LINES_LEFT, PartlyWritten, PROPERTIES_WOULD_CHANGE, type EditorVault } from "../../src/campaign/note-editor";
+import { CHANGED_IN_NOTE, LINES_LEFT, PartlyWritten, PROPERTIES_WOULD_CHANGE, type EditorFiles } from "../../src/campaign/note-editor";
 import { planQuestionSave, planReopen, type QuestionEdit } from "../../src/questions/question-plan";
 import { QuestionWriter } from "../../src/questions/question-writer";
 
@@ -16,7 +16,7 @@ class FakeNotes {
     this.texts = new Map(Object.entries(notes));
   }
 
-  get vault(): EditorVault {
+  get vault(): EditorFiles {
     return {
       getFileByPath: (path) => {
         if (!this.texts.has(path)) return null;

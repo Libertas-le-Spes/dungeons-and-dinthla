@@ -7,11 +7,13 @@ import { currentQuest, GOES_ELSEWHERE, happenedWouldGoElsewhere, latestSessionOf
 import { QuestModal } from "./quest-modal";
 import { canCollectReward, planQuestSave, refusalForQuestPlan, type QuestEdit } from "./quest-plan";
 import { QuestWriter } from "./quest-writer";
+import type { Gate } from "../fence/gatekeeper";
 
 const NO_SESSION = "Start a session first: quest changes are written into a session note.";
 
 export function openQuest(
   app: App,
+  gate: Gate,
   store: CampaignStore,
   source: Source,
   openNote: () => void,
@@ -30,7 +32,7 @@ export function openQuest(
     openNote();
     return;
   }
-  const paths = app.vault.getFiles().map((file) => file.path);
+  const paths = gate.files.getFiles().map((file) => file.path);
   const sessionPath = sessionToWriteIn(activePath, folder, paths, latestSessionOfQuest(record, folder));
   if (sessionPath === null && latestNumberIsShared(folder, paths)) {
     new Notice(SESSIONS_SHARE_A_NUMBER);
@@ -40,7 +42,7 @@ export function openQuest(
     new Notice(NO_SESSION);
     return;
   }
-  const writer = new QuestWriter(app.vault);
+  const writer = new QuestWriter(gate.files);
   const latest = () => currentQuest(store.current.quests, record);
   const choices = {
     save: async (edit: QuestEdit) => {

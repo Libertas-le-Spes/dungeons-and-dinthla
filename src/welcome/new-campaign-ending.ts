@@ -3,13 +3,13 @@ import { messageOf } from "../views/message-of";
 import type { WelcomeActions, WelcomeState } from "./welcome-ending";
 
 export const HOW_TO_MAKE_A_CAMPAIGN =
-  "A campaign is a folder at the top of your vault holding a note with the same name, such as My Campaign/My Campaign.md. Every note inside the folder belongs to the campaign. Name one here and both are made for you, or make them yourself in Obsidian's file list.";
+  "A campaign is a folder inside your Campaigns folder holding a note with the same name, such as My Campaign/My Campaign.md. Every note inside the folder belongs to the campaign. Name one here and both are made for you, or make them yourself in Obsidian's file list.";
 export const CAMPAIGN_NAME = "Campaign name";
 export const MAKE_A_CAMPAIGN = "Make a campaign";
 
 export class NewCampaignEnding extends Component {
   static fits(state: WelcomeState): boolean {
-    return state.campaignFolder === null;
+    return state.campaignsFolder !== null && state.campaignFolder === null;
   }
 
   constructor(

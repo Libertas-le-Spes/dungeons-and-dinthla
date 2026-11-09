@@ -8,8 +8,8 @@ import {
   createCharacter,
   deleteCharacter,
   saveCharacter,
-  type CharacterFileManager,
-  type CharacterVault,
+  type CharacterFileActions,
+  type CharacterFiles,
 } from "../../src/characters/character-files";
 
 const FOLDER = "Pale Moon/Characters";
@@ -32,7 +32,7 @@ function vaultWith({ notes = {}, folders = [FOLDER], renameFails = false }: Vaul
   const renamed: { from: string; to: string }[] = [];
   const trashed: string[] = [];
   const processed: string[] = [];
-  const vault: CharacterVault = {
+  const vault: CharacterFiles = {
     getFiles: () => [...texts.keys()].map(fileAt),
     getFolderByPath: (path) => {
       if (!folderPaths.has(path)) return null;
@@ -56,7 +56,7 @@ function vaultWith({ notes = {}, folders = [FOLDER], renameFails = false }: Vaul
       return text;
     },
   };
-  const fileManager: CharacterFileManager = {
+  const fileManager: CharacterFileActions = {
     renameFile: async (file, to) => {
       if (renameFails) throw new Error("the disk is full");
       renamed.push({ from: file.path, to });

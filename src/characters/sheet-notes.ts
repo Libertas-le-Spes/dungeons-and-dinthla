@@ -1,6 +1,7 @@
-import type { App, TFile } from "obsidian";
+import type { TFile } from "obsidian";
 import type { CarriedGroup } from "./character-sheet";
-import { characterNotesOf, type CharacterNotes } from "./character-notes";
+import { characterNotesOf, type CampaignFolders, type CharacterNotes } from "./character-notes";
+import type { Gate } from "../fence/gatekeeper";
 
 export interface CarriedFrom {
   path: string;
@@ -23,8 +24,8 @@ export function carriedGroupsOf(listed: unknown): CarriedGroup[] {
   return CARRIED_GROUPS.filter((group) => names.some((name) => typeof name === "string" && name.trim().toLowerCase() === group));
 }
 
-function carriedFromOf(app: App, notes: CharacterNotes, file: TFile): CarriedFrom | null {
-  const cache = app.metadataCache.getFileCache(file);
+function carriedFromOf(gate: Gate, notes: CharacterNotes, file: TFile): CarriedFrom | null {
+  const cache = gate.metadata.getFileCache(file);
   if (cache === null) return null;
   const links = cache.frontmatterLinks;
   if (links === undefined) return null;
@@ -37,24 +38,24 @@ function carriedFromOf(app: App, notes: CharacterNotes, file: TFile): CarriedFro
   return { path, groups: carriedGroupsOf(listed) };
 }
 
-function onNoteMoved(app: App, moved: (path: string) => void): () => void {
-  const deleted = app.vault.on("delete", (file) => moved(file.path));
-  const renamed = app.vault.on("rename", (file, oldPath) => {
+function onNoteMoved(gate: Gate, moved: (path: string) => void): () => void {
+  const deleted = gate.files.on("delete", (file) => moved(file.path));
+  const renamed = gate.files.on("rename", (file, oldPath) => {
     moved(oldPath);
     moved(file.path);
   });
   return () => {
-    app.vault.offref(deleted);
-    app.vault.offref(renamed);
+    gate.files.offref(deleted);
+    gate.files.offref(renamed);
   };
 }
 
-export function sheetNotesOf(app: App): SheetNotes {
-  const notes = characterNotesOf(app);
+export function sheetNotesOf(gate: Gate, campaignFolders: CampaignFolders): SheetNotes {
+  const notes = characterNotesOf(gate, campaignFolders);
   return {
     ...notes,
-    fileAt: (path) => app.vault.getFileByPath(path),
-    carriedFromOf: (file) => carriedFromOf(app, notes, file),
-    onNoteMoved: (moved) => onNoteMoved(app, moved),
+    fileAt: (path) => gate.files.getFileByPath(path),
+    carriedFromOf: (file) => carriedFromOf(gate, notes, file),
+    onNoteMoved: (moved) => onNoteMoved(gate, moved),
   };
 }

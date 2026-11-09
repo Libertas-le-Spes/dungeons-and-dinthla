@@ -1,5 +1,6 @@
 import { vi } from "vitest";
-import type { App, TAbstractFile, TFile, Vault } from "obsidian";
+import type { TAbstractFile, TFile, Vault } from "obsidian";
+import type { Gate } from "../../src/fence/gatekeeper";
 import { noteTextsOf, type NoteTexts } from "../../src/campaign/note-texts";
 
 export type NotesVault = Pick<Vault, "getFileByPath" | "process" | "read">;
@@ -43,7 +44,7 @@ export class FakeNotes {
   }
 
   get texts(): NoteTexts {
-    return noteTextsOf(this.app);
+    return noteTextsOf(this.gate);
   }
 
   get vault(): NotesVault {
@@ -78,7 +79,7 @@ export class FakeNotes {
     return this.file;
   }
 
-  private get app(): App {
+  private get gate(): Gate {
     const metadataCache = {
       on: (_name: string, listener: ChangedListener) => this.listen(this.changedListeners, listener),
       offref: (listener: ChangedListener) => this.changedListeners.delete(listener),
@@ -89,7 +90,7 @@ export class FakeNotes {
       on: (_name: string, listener: GoneListener) => this.listen(this.goneListeners, listener),
       offref: (listener: GoneListener) => this.goneListeners.delete(listener),
     };
-    return { metadataCache, vault } as unknown as App;
+    return { metadata: metadataCache, files: vault } as unknown as Gate;
   }
 
   private listen<T>(listeners: Set<T>, listener: T): T {

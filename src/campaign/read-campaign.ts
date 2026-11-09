@@ -1,18 +1,19 @@
-import type { TFile, Vault } from "obsidian";
+import type { TFile } from "obsidian";
 import type { SessionNote } from "./campaign";
 import { sessionNoteOf, sessionNumberOf } from "./session-file";
+import type { FencedFiles } from "../fence/fenced-files";
 
-export type CampaignVault = Pick<Vault, "getFiles" | "cachedRead" | "getFileByPath">;
+export type CampaignFiles = Pick<FencedFiles, "getFiles" | "cachedRead" | "getFileByPath">;
 
-export async function readSession(file: TFile, number: number, vault: CampaignVault): Promise<SessionNote> {
-  return sessionNoteOf(file.path, number, await vault.cachedRead(file));
+export async function readSession(file: TFile, number: number, files: CampaignFiles): Promise<SessionNote> {
+  return sessionNoteOf(file.path, number, await files.cachedRead(file));
 }
 
-export async function readSessions(vault: CampaignVault, folder: string): Promise<SessionNote[]> {
+export async function readSessions(files: CampaignFiles, folder: string): Promise<SessionNote[]> {
   const reads: Promise<SessionNote>[] = [];
-  for (const file of vault.getFiles()) {
+  for (const file of files.getFiles()) {
     const number = sessionNumberOf(file.path, folder);
-    if (number !== null) reads.push(readSession(file, number, vault));
+    if (number !== null) reads.push(readSession(file, number, files));
   }
   return Promise.all(reads);
 }

@@ -3,13 +3,14 @@ import { createSession, nextSessionNumber, type NewSession } from "./create-sess
 import { NO_CAMPAIGN } from "../campaign/campaign-folders";
 import { messageOf } from "../views/message-of";
 import { NewSessionModal } from "./new-session-modal";
+import type { Gate } from "../fence/gatekeeper";
 
 export type OpenSessionNotes = (path: string) => Promise<void>;
 
-async function makeAndOpen(app: App, campaignFolder: string, session: NewSession, openNotes: OpenSessionNotes): Promise<void> {
+async function makeAndOpen(app: App, gate: Gate, campaignFolder: string, session: NewSession, openNotes: OpenSessionNotes): Promise<void> {
   let note: TFile;
   try {
-    note = await createSession(app.vault, app.fileManager, campaignFolder, session);
+    note = await createSession(gate.files, gate.fileActions, campaignFolder, session);
   } catch (error) {
     new Notice(`Couldn't start the session: ${messageOf(error)}`);
     return;
@@ -21,11 +22,11 @@ async function makeAndOpen(app: App, campaignFolder: string, session: NewSession
   }
 }
 
-export function startSession(app: App, campaignFolder: string | null, openNotes: OpenSessionNotes): void {
+export function startSession(app: App, gate: Gate, campaignFolder: string | null, openNotes: OpenSessionNotes): void {
   if (campaignFolder === null) {
     new Notice(NO_CAMPAIGN);
     return;
   }
-  const number = nextSessionNumber(app.vault.getFiles().map((file) => file.path), campaignFolder);
-  new NewSessionModal(app, number, (session) => void makeAndOpen(app, campaignFolder, session, openNotes)).open();
+  const number = nextSessionNumber(gate.files.getFiles().map((file) => file.path), campaignFolder);
+  new NewSessionModal(app, number, (session) => void makeAndOpen(app, gate, campaignFolder, session, openNotes)).open();
 }

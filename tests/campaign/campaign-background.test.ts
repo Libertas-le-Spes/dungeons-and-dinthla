@@ -6,7 +6,7 @@ import {
   chooseWash,
   removePicture,
   washOf,
-  type BackgroundFileManager,
+  type BackgroundFileActions,
   type BackgroundMetadata,
 } from "../../src/campaign/campaign-background";
 
@@ -92,7 +92,7 @@ describe("washOf", () => {
 });
 
 describe("writing the background", () => {
-  function fileManagerWith(properties: Record<string, unknown>): BackgroundFileManager {
+  function fileManagerWith(properties: Record<string, unknown>): BackgroundFileActions {
     return {
       processFrontMatter: async (_file, change) => {
         change(properties);

@@ -9,9 +9,10 @@ import { readCharacterSheet, type ReadSheet, type SheetStore } from "./read-char
 import type { SheetNotes } from "./sheet-notes";
 import { SheetValueModal } from "./sheet-value-modal";
 import { NO_SESSION, sessionToWrite, sheetWriteOf, writeSheetValue, type ValueChoice } from "./sheet-value-writer";
+import type { Gate } from "../fence/gatekeeper";
 
-export async function openCharacterSheet(app: App, path: string): Promise<void> {
-  const file = app.vault.getFileByPath(path);
+export async function openCharacterSheet(app: App, gate: Gate, path: string): Promise<void> {
+  const file = gate.files.getFileByPath(path);
   if (file === null) return;
   await app.workspace.getLeaf(false).openFile(file, { active: true });
 }
@@ -44,6 +45,7 @@ function sessionLabelIn(read: ReadSheet): string | null {
 
 export async function saveSheetValue(
   app: App,
+  gate: Gate,
   store: SheetStore,
   notes: SheetNotes,
   file: TFile,
@@ -55,10 +57,10 @@ export async function saveSheetValue(
   if (current === undefined || !sameSheetValue(current, opened)) throw new Error(CHANGED_IN_NOTE);
   return writeSheetValue(
     {
-      vault: app.vault,
+      files: gate.files,
       file,
       sessionPath: () => sessionPathIn(read),
-      linktextFrom: (sessionPath) => app.metadataCache.fileToLinktext(file, sessionPath, true),
+      linktextFrom: (sessionPath) => gate.metadata.fileToLinktext(file, sessionPath, true),
       pathOfLink: (linktext, sourcePath) => notes.pathOfLink(linktext, sourcePath),
     },
     sheetWriteOf(current, choice),
@@ -67,6 +69,7 @@ export async function saveSheetValue(
 
 export async function chooseSheetValue(
   app: App,
+  gate: Gate,
   store: SheetStore,
   notes: SheetNotes,
   file: TFile,
@@ -86,7 +89,7 @@ export async function chooseSheetValue(
     notePath: file.path,
     value,
     sessionLabel,
-    save: (choice: ValueChoice) => saveSheetValue(app, store, notes, file, value, choice),
+    save: (choice: ValueChoice) => saveSheetValue(app, gate, store, notes, file, value, choice),
     openSource,
   };
   new SheetValueModal(app, dialog, onClosed).open();

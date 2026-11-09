@@ -41,7 +41,7 @@ export class FencedMetadata {
     return found;
   }
 
-  fileToLinktext(file: TFile, sourcePath: string, omitMdExtension: boolean): string {
+  fileToLinktext(file: TFile, sourcePath: string, omitMdExtension?: boolean): string {
     const held = this.held.file(file);
     return this.metadata.fileToLinktext(held, this.held.path(sourcePath), omitMdExtension);
   }

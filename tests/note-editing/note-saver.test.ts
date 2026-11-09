@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TFile } from "obsidian";
-import { NOTE_CHANGED, NOTE_GONE, NoteChangedSince, NoteSaver, type SaverVault } from "../../src/note-editing/note-saver";
+import { NOTE_CHANGED, NOTE_GONE, NoteChangedSince, NoteSaver, type SaverFiles } from "../../src/note-editing/note-saver";
 
 const OLD_MILL = "Pale Moon/Places/Old Mill.md";
 const FILE = { path: OLD_MILL } as TFile;
@@ -15,7 +15,7 @@ function vaultHolding(text: string | null) {
     if (text === null || path !== OLD_MILL) return null;
     return FILE;
   });
-  const vault = { getFileByPath, process } as unknown as SaverVault;
+  const vault = { getFileByPath, process } as unknown as SaverFiles;
   return { vault, process, written };
 }
 

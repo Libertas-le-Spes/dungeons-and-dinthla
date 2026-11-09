@@ -5,7 +5,7 @@ import { WhatsNew } from "../whats-new/whats-new";
 import { FirstRun, type ShowWelcome } from "./first-run";
 import { sessionsWritten } from "./sessions-written";
 
-export interface HelpVault {
+export interface HelpFiles {
   campaignFolders(): string[];
   filePaths(): string[];
 }
@@ -19,7 +19,7 @@ export class Help {
     manifest: Pick<PluginManifest, "version">,
     newsByVersion: ReadonlyMap<string, NewsItem>,
     save: SaveSettings,
-    private readonly vault: HelpVault,
+    private readonly files: HelpFiles,
     private readonly openWelcome: ShowWelcome,
   ) {
     this.firstRun = new FirstRun(settings, manifest.version, save);
@@ -27,7 +27,7 @@ export class Help {
   }
 
   async start(): Promise<void> {
-    const written = sessionsWritten(this.vault.campaignFolders(), this.vault.filePaths());
+    const written = sessionsWritten(this.files.campaignFolders(), this.files.filePaths());
     await this.firstRun.begin(written, () => this.showWelcome());
   }
 

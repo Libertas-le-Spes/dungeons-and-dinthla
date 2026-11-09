@@ -96,23 +96,34 @@ describe("showBackground", () => {
 });
 
 describe("BackgroundRefresh", () => {
-  function counted() {
+  function counted(campaignsFolder: string | null = "D&D") {
     const counter = { runs: 0 };
-    const refresh = new BackgroundRefresh(() => {
-      counter.runs += 1;
-    });
+    const refresh = new BackgroundRefresh(
+      () => {
+        counter.runs += 1;
+      },
+      () => campaignsFolder,
+    );
     return { refresh, counter };
   }
 
   it("redraws when a campaign's main note changes", () => {
     const { refresh, counter } = counted();
-    refresh.noteChanged("Pale Moon/Pale Moon.md");
+    refresh.noteChanged("D&D/Pale Moon/Pale Moon.md");
     expect(counter.runs).toBe(1);
+  });
+
+  it("leaves the backgrounds alone when a note shaped like a main note changes outside the Campaigns folder, or none is set", () => {
+    const outside = counted();
+    const unset = counted(null);
+    outside.refresh.noteChanged("Pale Moon/Pale Moon.md");
+    unset.refresh.noteChanged("D&D/Pale Moon/Pale Moon.md");
+    expect([outside.counter.runs, unset.counter.runs]).toEqual([0, 0]);
   });
 
   it("leaves the backgrounds alone when any other note changes", () => {
     const { refresh, counter } = counted();
-    refresh.noteChanged("Pale Moon/Sessions/Session 1.md");
+    refresh.noteChanged("D&D/Pale Moon/Sessions/Session 1.md");
     expect(counter.runs).toBe(0);
   });
 

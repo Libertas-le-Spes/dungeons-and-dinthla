@@ -1,18 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
 import type { PluginSettings } from "../../src/settings/plugin-settings";
-import { Help, type HelpVault } from "../../src/welcome/help";
+import { Help, type HelpFiles } from "../../src/welcome/help";
 import type { NewsItem } from "../../src/whats-new/news-item";
 
 const LANTERNS: NewsItem = { sentence: "Lanterns now light the party funds.", page: "funds" };
 const MADE_UP_NEWS = new Map<string, NewsItem>([["3.1.0", LANTERNS]]);
-const FRESH: PluginSettings = { campaignFolder: null, welcomeSeen: false, lastVersionSeen: null };
+const FRESH: PluginSettings = { campaignsFolder: null, campaignFolder: null, welcomeSeen: false, lastVersionSeen: null };
 
 function helpFor(settings: PluginSettings, paths: string[]) {
   const saved: PluginSettings[] = [];
   async function save(changed: PluginSettings): Promise<void> {
     saved.push({ ...changed });
   }
-  const vault: HelpVault = { campaignFolders: () => ["Silver Road"], filePaths: () => paths };
+  const vault: HelpFiles = { campaignFolders: () => ["Silver Road"], filePaths: () => paths };
   const openWelcome = vi.fn(async () => {});
   const help = new Help({ ...settings }, { version: "3.1.0" }, MADE_UP_NEWS, save, vault, openWelcome);
   return { help, saved, openWelcome };
@@ -23,14 +23,14 @@ describe("Help", () => {
     const { help, saved, openWelcome } = helpFor(FRESH, ["Silver Road/Silver Road.md"]);
     await help.start();
     expect(openWelcome).toHaveBeenCalledOnce();
-    expect(saved).toEqual([{ campaignFolder: null, welcomeSeen: true, lastVersionSeen: "3.1.0" }]);
+    expect(saved).toEqual([{ campaignsFolder: null, campaignFolder: null, welcomeSeen: true, lastVersionSeen: "3.1.0" }]);
   });
 
   it("takes a vault whose campaign already has a session note for an update: no welcome, and the news still to see", async () => {
     const { help, saved, openWelcome } = helpFor(FRESH, ["Silver Road/Silver Road.md", "Silver Road/Sessions/Session 1.md"]);
     await help.start();
     expect(openWelcome).not.toHaveBeenCalled();
-    expect(saved).toEqual([{ campaignFolder: null, welcomeSeen: true, lastVersionSeen: null }]);
+    expect(saved).toEqual([{ campaignsFolder: null, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null }]);
     expect(help.whatsNew.latest()).toEqual(LANTERNS);
   });
 

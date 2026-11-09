@@ -53,6 +53,9 @@ import { closeRetiredViews } from "./interface/retired-views";
 import { colourMarkers } from "./reading/colour-markers";
 import { BackgroundRefresh, showBackground, shownBackgroundOf } from "./reading/note-background";
 import { CampaignSettingTab } from "./settings/campaign-setting-tab";
+import { CampaignsFolder } from "./settings/campaigns-folder";
+import { CampaignsFolderSetup } from "./settings/campaigns-folder-setup";
+import { FolderSuggestModal } from "./settings/folder-suggest-modal";
 import { ChosenCampaign } from "./settings/chosen-campaign";
 import { flushWhenClosing, type Closing } from "./settings/flush-when-closing";
 import { LocalDrafts, type LocalStorage } from "./settings/local-drafts";
@@ -60,6 +63,8 @@ import { OldDrafts } from "./settings/old-drafts";
 import { settingsOf, type PluginSettings } from "./settings/plugin-settings";
 import { CampaignMaker } from "./campaign/campaign-maker";
 import { Help } from "./welcome/help";
+import { welcomeOpenerOf } from "./welcome/welcome-opener";
+import { Gatekeeper } from "./fence/gatekeeper";
 import { homeSection } from "./interface/home-section";
 import { welcomeSection } from "./interface/welcome-section";
 import { NEWS_BY_VERSION } from "./whats-new/news-by-version";
@@ -90,7 +95,9 @@ const PAGE_OPENERS: { page: PageId; id: string; name: string; icon: string }[] =
 ];
 
 export default class DungeonsAndDinthla extends Plugin {
-  private readonly store = new CampaignStore(this.app.vault);
+  private campaignsFolder = this.campaignsFolderFrom(settingsOf(null));
+  private readonly gate = new Gatekeeper(this.app, () => this.campaignsFolder.path);
+  private readonly store = new CampaignStore(this.gate.files);
   private readonly localStorage: LocalStorage = {
     load: (key) => this.app.loadLocalStorage(key),
     save: (key, value) => this.app.saveLocalStorage(key, value),
@@ -103,60 +110,64 @@ export default class DungeonsAndDinthla extends Plugin {
     const settings = settingsOf(saved);
     this.oldDrafts = new OldDrafts(saved, this.localStorage);
     this.chosen = this.chosenCampaignFrom(settings);
-    const helpVault = {
+    this.campaignsFolder = this.campaignsFolderFrom(settings);
+    const gate = this.gate;
+    const helpFiles = {
       campaignFolders: () => this.campaignFolders(),
-      filePaths: () => this.app.vault.getFiles().map((file) => file.path),
+      filePaths: () => gate.files.getFiles().map((file) => file.path),
     };
-    const openWelcome = () => openCampaignPage(this.app, "welcome", null);
-    const help = new Help(settings, this.manifest, NEWS_BY_VERSION, (changed) => this.saveSettings(changed), helpVault, openWelcome);
+    const help = new Help(settings, this.manifest, NEWS_BY_VERSION, (changed) => this.saveSettings(changed), helpFiles, welcomeOpenerOf(this.app));
+    const pickFolder = (folders: string[], chosen: (folder: string) => void) => new FolderSuggestModal(this.app, folders, chosen).open();
+    const campaignsFolderSetup = new CampaignsFolderSetup(this.campaignsFolder, gate.folders, pickFolder);
     const campaignChoice = {
       folders: () => this.campaignFolders(),
       chosen: () => chosenCampaignFolder(this.chosen.folder, this.campaignFolders()),
       choose: (folder: string) => this.chosen.choose(folder),
     };
-    this.addSettingTab(new CampaignSettingTab(this.app, this, campaignChoice, () => help.showWelcome()));
+    this.addSettingTab(new CampaignSettingTab(this.app, this, gate, campaignsFolderSetup, campaignChoice, () => help.showWelcome()));
     const actions = {
-      openRow: (source: Source) => void openSource(this.app, source),
+      openRow: (source: Source) => void openSource(this.app, gate, source),
       openLink: (linktext: string, sourcePath: string) => void this.app.workspace.openLinkText(linktext, sourcePath),
     };
     const openQuestionAt = (source: Source, onClosed: (changed: boolean) => void) =>
-      openQuestion(this.app, this.store, source, () => void openSource(this.app, source), onClosed, pathYouAreIn(this.app));
+      openQuestion(this.app, gate, this.store, source, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app));
     const createQuestion = {
       label: "New question",
-      open: (returnFocus: () => void) => openNewQuestion(this.app, this.store, returnFocus),
+      open: (returnFocus: () => void) => openNewQuestion(this.app, gate, this.store, returnFocus),
     };
     const openQuestAt = (source: Source, onClosed: (changed: boolean) => void) =>
-      openQuest(this.app, this.store, source, () => void openSource(this.app, source), onClosed, pathYouAreIn(this.app));
+      openQuest(this.app, gate, this.store, source, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app));
     const createQuest = {
       label: "New quest",
-      open: (returnFocus: () => void) => openNewQuest(this.app, this.store, returnFocus),
+      open: (returnFocus: () => void) => openNewQuest(this.app, gate, this.store, returnFocus),
     };
-    const noteExists = (name: string, sourcePath: string) => this.app.metadataCache.getFirstLinkpathDest(name, sourcePath) !== null;
-    const addCoin = (returnFocus: () => void) => openAddCoin(this.app, this.store, returnFocus, pathYouAreIn(this.app));
+    const noteExists = (name: string, sourcePath: string) => gate.metadata.getFirstLinkpathDest(name, sourcePath) !== null;
+    const addCoin = (returnFocus: () => void) => openAddCoin(this.app, gate, this.store, returnFocus, pathYouAreIn(this.app));
     const openItem = (name: string, source: Source, onClosed: (changed: boolean) => void) =>
-      openItemDialog(this.app, this.store, name, () => void openSource(this.app, source), onClosed, pathYouAreIn(this.app));
-    const openLedgerEntry = ledgerEntryOpener(this.app, this.store, openItem);
-    const characterNotes = characterNotesOf(this.app);
-    const sheetNotes = sheetNotesOf(this.app);
+      openItemDialog(this.app, gate, this.store, name, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app));
+    const openLedgerEntry = ledgerEntryOpener(this.app, gate, this.store, openItem);
+    const campaignFolders = () => this.campaignFolders();
+    const characterNotes = characterNotesOf(gate, campaignFolders);
+    const sheetNotes = sheetNotesOf(gate, campaignFolders);
     const sheetActions = {
       ...actions,
-      editCharacter: (file: TFile) => editCharacter(this.app, characterNotes, file),
+      editCharacter: (file: TFile) => editCharacter(this.app, gate, characterNotes, file),
       chooseValue: (file: TFile, value: SheetValue, onClosed: () => void) =>
-        void chooseSheetValue(this.app, this.store, sheetNotes, file, value, actions.openRow, onClosed),
+        void chooseSheetValue(this.app, gate, this.store, sheetNotes, file, value, actions.openRow, onClosed),
     };
-    const mentionNotes = mentionNotesOf(this.app);
-    const galleryActions = { ...actions, openRow: (source: Source) => void openCharacterSheet(this.app, source.path) };
-    const newCharacter = (returnFocus: () => void) => openNewCharacter(this.app, this.store.campaignFolder, returnFocus);
+    const mentionNotes = mentionNotesOf(gate, campaignFolders);
+    const galleryActions = { ...actions, openRow: (source: Source) => void openCharacterSheet(this.app, gate, source.path) };
+    const newCharacter = (returnFocus: () => void) => openNewCharacter(this.app, gate, this.store.campaignFolder, returnFocus);
     this.registerBasesView(CHARACTERS_VIEW, {
       name: "Characters",
       icon: "users",
       factory: (controller, containerEl) => new CharactersView(controller, containerEl, this.store, characterNotes, galleryActions, newCharacter),
     });
     const shownPath = () => shownCampaignPathOf(this.app.workspace);
-    this.addCommand({ id: "edit-character", name: "Edit character", checkCallback: (checking) => editActiveCharacter(this.app, characterNotes, shownPath, checking) });
-    this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => addEditCharacterItem(this.app, characterNotes, menu, file)));
+    this.addCommand({ id: "edit-character", name: "Edit character", checkCallback: (checking) => editActiveCharacter(this.app, gate, characterNotes, shownPath, checking) });
+    this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => addEditCharacterItem(this.app, gate, characterNotes, menu, file)));
     const openNotes = (path: string) => openCampaignPage(this.app, "notes", path);
-    const newSession = () => startSession(this.app, this.store.campaignFolder, openNotes);
+    const newSession = () => startSession(this.app, gate, this.store.campaignFolder, openNotes);
     this.addRibbonIcon("calendar-plus", "Start a new session", newSession);
     const dashboardActionsFor = (show: ShowPage): DashboardActions => ({
       ...actions,
@@ -170,7 +181,7 @@ export default class DungeonsAndDinthla extends Plugin {
       openCharacterSheet: (path: string) => show({ page: "cast", path }),
       startSession: newSession,
       writeNotes: (path: string) => show({ page: "notes", path }),
-      sessionHeadingOf: (path: string) => sessionHeadingOf(path, this.app.metadataCache),
+      sessionHeadingOf: (path: string) => sessionHeadingOf(path, gate.metadata),
     });
     const watchFiles = (changed: (path: string) => void) => this.watchFiles(changed);
     const castNeeds = { store: this.store, characterNotes, sheetNotes, mentionNotes, actions, sheetActions, newCharacter, watchFiles };
@@ -181,24 +192,24 @@ export default class DungeonsAndDinthla extends Plugin {
     const keptDrafts = new KeptDrafts(drafts, () => Date.now());
     const noteDrafts = new NoteDrafts(drafts);
     this.moveOldDrafts(keptDrafts, local, settings);
-    this.registerEvent(this.app.vault.on("rename", (file, oldPath) => keptDrafts.noteRenamed(oldPath, file.path)));
-    this.registerEvent(this.app.vault.on("rename", (file, oldPath) => noteDrafts.moved(oldPath, file.path)));
-    this.registerEvent(this.app.vault.on("delete", (file) => keptDrafts.noteDeleted(file.path)));
+    this.registerEvent(gate.files.on("rename", (file, oldPath) => keptDrafts.noteRenamed(oldPath, file.path)));
+    this.registerEvent(gate.files.on("rename", (file, oldPath) => noteDrafts.moved(oldPath, file.path)));
+    this.registerEvent(gate.files.on("delete", (file) => keptDrafts.noteDeleted(file.path)));
     this.app.workspace.onLayoutReady(() => keptDrafts.notesGone((key) => this.draftStaysLive(noteDrafts, key)));
-    const texts = noteTextsOf(this.app);
-    const wholeText = { texts, drafts: noteDrafts, saver: new NoteSaver(this.app.vault) };
+    const texts = noteTextsOf(gate);
+    const wholeText = { texts, drafts: noteDrafts, saver: new NoteSaver(gate.files) };
     const notesNeeds = {
       store: this.store,
       drafts,
       keptDrafts,
-      writer: new AppendWriter(this.app.vault),
-      propertiesOf: (path: string) => sessionPropertiesOf(path, this.app.metadataCache),
+      writer: new AppendWriter(gate.files),
+      propertiesOf: (path: string) => sessionPropertiesOf(path, gate.metadata),
       openers,
       actions,
       wholeText,
       removal: {
-        clearer: new SessionClearer(this.app.vault),
-        trash: new SessionTrash(this.app.vault, this.app.fileManager, () => deletesPermanently(this.app.vault)),
+        clearer: new SessionClearer(gate.files),
+        trash: new SessionTrash(gate.files, gate.fileActions, () => deletesPermanently(gate.settings)),
         confirm: (text: ConfirmText, confirmed: () => void, closed: () => void) => new ConfirmModal(this.app, text, confirmed, closed).open(),
       },
       startSession: newSession,
@@ -223,23 +234,24 @@ export default class DungeonsAndDinthla extends Plugin {
         ...wholeText,
         actions,
         isCampaignNote: (path: string) => campaignFolderOf(path, this.campaignFolders()) !== null,
-        openInEditor: (path: string) => void openInEditor(this.app, path),
+        openInEditor: (path: string) => void openInEditor(this.app, gate, path),
       }),
       welcome: welcomeSection({
         store: this.store,
-        maker: new CampaignMaker(this.app.vault, (folder) => this.chosen.choose(folder)),
+        campaignsFolder: campaignsFolderSetup,
+        maker: new CampaignMaker(gate.files, () => this.campaignsFolder.path, (folder) => this.chosen.choose(folder)),
         startSession: newSession,
       }),
     });
-    const backdropFor = (frameEl: HTMLElement) => new TabBackground(frameEl, this.store, this.app.metadataCache, this.app.vault);
-    this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView(leaf, this.store, sections, (path) => void this.followCampaignOf(path), backdropFor));
+    const backdropFor = (frameEl: HTMLElement) => new TabBackground(frameEl, this.store, gate.metadata, gate.files);
+    this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView(leaf, this.store, sections, (path) => void this.followCampaignOf(path), backdropFor, gate.files));
     for (const opener of PAGE_OPENERS) {
       const open = () => void openCampaignPage(this.app, opener.page, null);
       this.addRibbonIcon(opener.icon, opener.name, open);
       this.addCommand({ id: opener.id, name: opener.name, callback: open });
     }
     this.addCommand({ id: "start-session", name: "Start a new session", callback: newSession });
-    const inSession = (path: string) => isSessionNote(path, (notePath) => this.app.vault.getFileByPath(notePath) !== null);
+    const inSession = (path: string) => isSessionNote(path, this.campaignsFolder.path, (notePath) => gate.files.getFileByPath(notePath) !== null);
     this.registerEditorExtension(markerColouring(inSession));
     const noteChanged = (path: string, text: string) => this.store.noteChanged(path, text);
     const pickLookup = (match: LookupMatch, context: EditorSuggestContext) => {
@@ -260,6 +272,7 @@ export default class DungeonsAndDinthla extends Plugin {
   private takeOverOpening(): void {
     const takeover: Takeover = {
       campaignViewRegistered: () => isCampaignViewRegistered(this.app),
+      holds: (path: string) => this.gate.fence.holds(path),
       campaignFolders: () => this.campaignFolders(),
     };
     const change = (viewState: ViewState) => campaignStateFor(viewState, takeover);
@@ -286,7 +299,7 @@ export default class DungeonsAndDinthla extends Plugin {
 
   private draftStaysLive(noteDrafts: NoteDrafts, key: string): boolean {
     if (noteDrafts.owns(key)) return true;
-    return this.app.vault.getFileByPath(key) !== null;
+    return this.gate.files.getFileByPath(key) !== null;
   }
 
   private closing(): Closing {
@@ -327,15 +340,28 @@ export default class DungeonsAndDinthla extends Plugin {
     return new ChosenCampaign(settings, (changed) => this.saveSettings(changed), (folder) => this.store.open(folder));
   }
 
+  private campaignsFolderFrom(settings: PluginSettings): CampaignsFolder {
+    return new CampaignsFolder(settings, (changed) => this.saveSettings(changed), () => this.lookAgain());
+  }
+
+  private async lookAgain(): Promise<void> {
+    const folder = this.startingCampaignFolder();
+    if (folder === null) {
+      this.store.close();
+      return;
+    }
+    await this.chosen.choose(folder);
+  }
+
   private watchBackgrounds(): void {
-    const refresh = new BackgroundRefresh(() => this.showBackgrounds());
+    const refresh = new BackgroundRefresh(() => this.showBackgrounds(), () => this.campaignsFolder.path);
     const layoutChanged = () => refresh.layoutChanged();
     this.registerEvent(this.app.workspace.on("layout-change", layoutChanged));
     this.registerEvent(this.app.workspace.on("file-open", layoutChanged));
-    this.registerEvent(this.app.metadataCache.on("changed", (file) => refresh.noteChanged(file.path)));
-    this.registerEvent(this.app.vault.on("create", layoutChanged));
-    this.registerEvent(this.app.vault.on("rename", layoutChanged));
-    this.registerEvent(this.app.vault.on("delete", layoutChanged));
+    this.registerEvent(this.gate.metadata.on("changed", (file) => refresh.noteChanged(file.path)));
+    this.registerEvent(this.gate.files.on("create", layoutChanged));
+    this.registerEvent(this.gate.files.on("rename", layoutChanged));
+    this.registerEvent(this.gate.files.on("delete", layoutChanged));
     this.register(() => refresh.cancel());
     this.register(() => this.eachNoteView((view) => showBackground(view.contentEl, null)));
     this.showBackgrounds();
@@ -343,10 +369,10 @@ export default class DungeonsAndDinthla extends Plugin {
 
   private showBackgrounds(): void {
     const folders = this.campaignFolders();
-    const urlOf = (picture: TFile) => this.app.vault.getResourcePath(picture);
+    const urlOf = (picture: TFile) => this.gate.files.getResourcePath(picture);
     this.eachNoteView((view) => {
       if (view.file === null) showBackground(view.contentEl, null);
-      else showBackground(view.contentEl, shownBackgroundOf(view.file.path, folders, this.app.metadataCache, urlOf));
+      else showBackground(view.contentEl, shownBackgroundOf(view.file.path, folders, this.gate.metadata, urlOf));
     });
   }
 
@@ -357,7 +383,7 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private followTheme(): void {
-    const followThemeClass = new FollowThemeClass(() => usesCommunityTheme(this.app.vault));
+    const followThemeClass = new FollowThemeClass(() => usesCommunityTheme(this.gate.settings));
     followThemeClass.add(document.body);
     this.registerEvent(this.app.workspace.on("css-change", () => followThemeClass.update()));
     this.registerEvent(this.app.workspace.on("window-open", (popout) => followThemeClass.add(popout.doc.body)));
@@ -385,10 +411,10 @@ export default class DungeonsAndDinthla extends Plugin {
     this.registerEvent(this.app.workspace.on("editor-change", (_editor, info) => {
       if (info.file !== null) editorChanged(info, info.file);
     }));
-    this.registerEvent(this.app.metadataCache.on("changed", (file, text) => this.store.noteChanged(file.path, text)));
-    this.registerEvent(this.app.vault.on("delete", (file) => this.store.noteDeleted(file.path)));
-    this.registerEvent(this.app.vault.on("rename", (file, oldPath) => void this.store.noteRenamed(file.path, oldPath)));
-    this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
+    this.registerEvent(this.gate.metadata.on("changed", (file, text) => this.store.noteChanged(file.path, text)));
+    this.registerEvent(this.gate.files.on("delete", (file) => this.store.noteDeleted(file.path)));
+    this.registerEvent(this.gate.files.on("rename", (file, oldPath) => void this.store.noteRenamed(file.path, oldPath)));
+    this.registerEvent(this.gate.files.on("rename", (file, oldPath) => {
       this.chosen.renamed(file.path, oldPath).catch((error: unknown) => new Notice(`Couldn't keep the chosen campaign: ${messageOf(error)}`));
     }));
     this.registerEvent(this.app.workspace.on("file-open", (file) => {
@@ -397,26 +423,26 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private readEditor(info: MarkdownFileInfo, file: TFile): void {
-    const text = editorTextOf(info, file, this.app.vault);
+    const text = editorTextOf(info, file, this.gate.files);
     if (text !== null) this.store.noteChanged(file.path, text);
   }
 
   private watchFiles(changed: (path: string) => void): () => void {
     const events = [
-      this.app.vault.on("create", (file) => changed(file.path)),
-      this.app.vault.on("delete", (file) => changed(file.path)),
-      this.app.vault.on("rename", (file, oldPath) => {
+      this.gate.files.on("create", (file) => changed(file.path)),
+      this.gate.files.on("delete", (file) => changed(file.path)),
+      this.gate.files.on("rename", (file, oldPath) => {
         changed(file.path);
         changed(oldPath);
       }),
     ];
     return () => {
-      for (const event of events) this.app.vault.offref(event);
+      for (const event of events) this.gate.files.offref(event);
     };
   }
 
   private campaignFolders(): string[] {
-    return findCampaignFolders(this.app.vault.getFiles().map((file) => file.path));
+    return findCampaignFolders(this.gate.files.getFiles().map((file) => file.path), this.campaignsFolder.path);
   }
 
   private startingCampaignFolder(): string | null {

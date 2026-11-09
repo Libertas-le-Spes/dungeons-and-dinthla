@@ -7,6 +7,7 @@ export type ShownViewState = ViewState & { icon?: string; title?: string };
 
 export interface Takeover {
   campaignViewRegistered(): boolean;
+  holds(path: string): boolean;
   campaignFolders(): string[];
 }
 
@@ -23,7 +24,7 @@ function filePathIn(viewState: ShownViewState): string | null {
 
 export function campaignStateFor(viewState: ShownViewState, takeover: Takeover): ShownViewState {
   const path = filePathIn(viewState);
-  if (path === null) return viewState;
+  if (path === null || !takeover.holds(path)) return viewState;
   if (!takeover.campaignViewRegistered()) return viewState;
   const page = pageOfFile(path, takeover.campaignFolders());
   if (page === null) return viewState;

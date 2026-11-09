@@ -166,7 +166,7 @@ function targetWith({ notes, failOwn = false, linkedTo = MIRA, linktext = "Mira"
   const texts = new Map(Object.entries(notes));
   const processed: string[] = [];
   const target: SheetTarget = {
-    vault: {
+    files: {
       getFileByPath: (path) => {
         if (!texts.has(path)) return null;
         return { path } as TFile;

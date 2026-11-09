@@ -1,5 +1,6 @@
-import type { App, TAbstractFile, TFile } from "obsidian";
+import type { TAbstractFile, TFile } from "obsidian";
 import { boxTextOf } from "./disk-text";
+import type { Gate } from "../fence/gatekeeper";
 
 export type NoteChanged = (path: string, text: string) => void;
 
@@ -11,27 +12,27 @@ export interface NoteTexts {
   onGone(gone: NoteGone): () => void;
 }
 
-async function readNote(app: App, path: string): Promise<string | null> {
-  const file = app.vault.getFileByPath(path);
+async function readNote(gate: Gate, path: string): Promise<string | null> {
+  const file = gate.files.getFileByPath(path);
   if (file === null) return null;
-  const disk = await app.vault.read(file);
+  const disk = await gate.files.read(file);
   return boxTextOf(disk);
 }
 
-function onChanged(app: App, changed: NoteChanged): () => void {
-  const event = app.metadataCache.on("changed", (file: TFile, text: string) => changed(file.path, boxTextOf(text)));
-  return () => app.metadataCache.offref(event);
+function onChanged(gate: Gate, changed: NoteChanged): () => void {
+  const event = gate.metadata.on("changed", (file: TFile, text: string) => changed(file.path, boxTextOf(text)));
+  return () => gate.metadata.offref(event);
 }
 
-function onGone(app: App, gone: NoteGone): () => void {
-  const event = app.vault.on("delete", (file: TAbstractFile) => gone(file.path));
-  return () => app.vault.offref(event);
+function onGone(gate: Gate, gone: NoteGone): () => void {
+  const event = gate.files.on("delete", (file: TAbstractFile) => gone(file.path));
+  return () => gate.files.offref(event);
 }
 
-export function noteTextsOf(app: App): NoteTexts {
+export function noteTextsOf(gate: Gate): NoteTexts {
   return {
-    read: (path) => readNote(app, path),
-    onChanged: (changed) => onChanged(app, changed),
-    onGone: (gone) => onGone(app, gone),
+    read: (path) => readNote(gate, path),
+    onChanged: (changed) => onChanged(gate, changed),
+    onGone: (gone) => onGone(gate, gone),
   };
 }
