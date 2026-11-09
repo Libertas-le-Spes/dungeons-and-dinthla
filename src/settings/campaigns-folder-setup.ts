@@ -5,6 +5,10 @@ import type { CampaignsFolderSetting } from "./campaigns-folder-setting";
 
 export type PickFolder = (folders: string[], chosen: (folder: string) => void) => void;
 
+export type Chosen = () => void;
+
+function nothingMore(): void {}
+
 export class CampaignsFolderSetup {
   constructor(
     private readonly setting: Pick<CampaignsFolderSetting, "path" | "choose">,
@@ -16,15 +20,7 @@ export class CampaignsFolderSetup {
     return this.setting.path;
   }
 
-  folderPaths(): string[] {
-    return this.folders.folderPaths();
-  }
-
-  async choose(path: string): Promise<void> {
-    await this.setting.choose(path);
-  }
-
-  pick(chosen: () => void): void {
+  pick(chosen: Chosen = nothingMore): void {
     this.pickFolder(this.folders.folderPaths(), (path) => this.chooseOrSay(path, chosen));
   }
 
@@ -33,7 +29,7 @@ export class CampaignsFolderSetup {
     await this.setting.choose(path);
   }
 
-  private chooseOrSay(path: string, chosen: () => void): void {
+  private chooseOrSay(path: string, chosen: Chosen): void {
     this.setting
       .choose(path)
       .then(chosen)
