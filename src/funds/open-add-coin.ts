@@ -6,20 +6,19 @@ import { sessionLabelOf } from "../campaign/session-file";
 import { latestNumberIsShared, SESSIONS_SHARE_A_NUMBER, sessionToWriteIn } from "../campaign/session-to-write";
 import type { Source } from "../campaign/campaign";
 import type { CoinLine } from "../notes/coin-lines";
-import { activePathOf } from "../views/open-view";
 import { coinEntryEdit, entryToEdit } from "./coin-entry";
 import { CoinModal, type CoinOutcome } from "./coin-modal";
 
 const NO_SESSION = "Start a session first: coin is written into a session note.";
 
-export function openAddCoin(app: App, store: CampaignStore, onClosed: (outcome: CoinOutcome) => void): void {
+export function openAddCoin(app: App, store: CampaignStore, onClosed: (outcome: CoinOutcome) => void, activePath: string | null): void {
   const folder = store.campaignFolder;
   if (folder === null) {
     new Notice(NO_CAMPAIGN);
     return;
   }
   const paths = app.vault.getFiles().map((file) => file.path);
-  const sessionPath = sessionToWriteIn(activePathOf(app), folder, paths, 0);
+  const sessionPath = sessionToWriteIn(activePath, folder, paths, 0);
   if (sessionPath === null && latestNumberIsShared(folder, paths)) {
     new Notice(SESSIONS_SHARE_A_NUMBER);
     return;

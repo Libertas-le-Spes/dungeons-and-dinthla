@@ -3,7 +3,6 @@ import type { Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
 import { SESSIONS_SHARE_A_NUMBER, latestNumberIsShared, sessionToWriteIn } from "../campaign/session-to-write";
-import { activePathOf } from "../views/open-view";
 import { currentQuest, GOES_ELSEWHERE, happenedWouldGoElsewhere, latestSessionOfQuest, SAME_TITLE, sharesTitleWithEarlierActiveQuest } from "./current-quest";
 import { QuestModal } from "./quest-modal";
 import { canCollectReward, planQuestSave, refusalForQuestPlan, type QuestEdit } from "./quest-plan";
@@ -17,6 +16,7 @@ export function openQuest(
   source: Source,
   openNote: () => void,
   onClosed: (changed: boolean) => void,
+  activePath: string | null,
 ): void {
   const quests = store.current.quests;
   const record = quests.find((candidate) => candidate.source.path === source.path && candidate.source.line === source.line);
@@ -31,7 +31,7 @@ export function openQuest(
     return;
   }
   const paths = app.vault.getFiles().map((file) => file.path);
-  const sessionPath = sessionToWriteIn(activePathOf(app), folder, paths, latestSessionOfQuest(record, folder));
+  const sessionPath = sessionToWriteIn(activePath, folder, paths, latestSessionOfQuest(record, folder));
   if (sessionPath === null && latestNumberIsShared(folder, paths)) {
     new Notice(SESSIONS_SHARE_A_NUMBER);
     return;

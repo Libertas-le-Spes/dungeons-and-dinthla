@@ -3,7 +3,7 @@ import type { Campaign } from "../campaign/campaign";
 import { questionsKind } from "../questions/questions-kind";
 import { questsKind } from "../quests/quests-kind";
 
-export type PageId = "home" | "cast" | "questions" | "quests" | "funds";
+export type PageId = "home" | "cast" | "notes" | "questions" | "quests" | "funds";
 
 export type PageTarget = { page: PageId; path: string | null };
 
@@ -36,6 +36,7 @@ export function campaignSections(makers: PageMakers): NavSection[] {
       pages: [
         { id: "home", label: "Dashboard", glyph: "⌂", glyphClass: "dd-nav-glyph-plain", make: makers.home, countOf: NO_COUNT },
         { id: "cast", label: "Characters", glyph: "♟", glyphClass: "dd-nav-glyph-plain", make: makers.cast, countOf: NO_COUNT },
+        { id: "notes", label: "Session notes", glyph: "¶", glyphClass: "dd-nav-glyph-plain", make: makers.notes, countOf: NO_COUNT },
       ],
     },
     {

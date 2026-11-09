@@ -1,15 +1,8 @@
 import { EditorSuggest, type App, type Editor, type EditorPosition, type EditorSuggestContext, type EditorSuggestTriggerInfo, type TFile } from "obsidian";
 import type { Campaign } from "../campaign/campaign";
-import { textRunsOf } from "../views/text-parts";
 import { firstLineAfterProperties } from "../campaign/session-file";
-import { THE_PARTY_LABEL } from "../funds/item-groups";
-import { lookupMatches, readLookup, type LookupKind, type LookupMatch } from "./lookup";
-
-const MARKERS: Record<LookupKind, { text: string; cls: string }> = {
-  question: { text: "?", cls: "dd-marker dd-marker-question" },
-  quest: { text: "!", cls: "dd-marker dd-marker-quest" },
-  item: { text: "$", cls: "dd-marker dd-marker-ledger" },
-};
+import { lookupMatches, readLookup, type LookupMatch } from "./lookup";
+import { addLookupMatch } from "./lookup-match-row";
 
 export class LookupSuggest extends EditorSuggest<LookupMatch> {
   constructor(
@@ -35,21 +28,7 @@ export class LookupSuggest extends EditorSuggest<LookupMatch> {
   }
 
   renderSuggestion(match: LookupMatch, el: HTMLElement): void {
-    el.addClass("dd-tokens", "dd-lookup");
-    const marker = MARKERS[match.kind];
-    el.createSpan({ cls: marker.cls, text: marker.text });
-    const text = el.createSpan({ cls: "dd-lookup-text" });
-    for (const run of textRunsOf(match.text, this.keywords())) {
-      for (const piece of run.pieces) {
-        if (piece.marked) text.createEl("mark", { text: piece.text });
-        else text.appendText(piece.text);
-      }
-    }
-    if (match.kind === "item") {
-      let holder = THE_PARTY_LABEL;
-      if (match.holder !== "") holder = match.holder;
-      el.createSpan({ cls: "dd-lookup-holder", text: holder });
-    }
+    addLookupMatch(el, match, this.keywords());
   }
 
   private keywords(): string[] {

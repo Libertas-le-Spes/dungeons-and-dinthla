@@ -74,6 +74,7 @@ async function openDashboard(sessions: SessionNote[], { folder = CAMPAIGN, chara
     showCharacters: vi.fn(),
     openCharacterSheet: vi.fn(),
     startSession: vi.fn(),
+    writeNotes: vi.fn(),
     sessionHeadingOf: (path: string) => `${path.slice(path.lastIndexOf("/") + 1, -3)} · The ferry at dusk`,
   } satisfies DashboardActions;
   const root = obsidianDocument().createElement("div");
@@ -182,19 +183,20 @@ describe("DashboardPage", () => {
     expect(textsOf(panel(root, SESSION), ".dd-empty")).toEqual(["No sessions yet. Start one to write in it."]);
   });
 
-  it("opens the latest session to write in it, and has nothing to open without one", async () => {
+  it("shows the latest session's Notes page to write in it, and has nothing to show without one", async () => {
     const { root, actions, change } = await openDashboard([]);
     const write = button(panel(root, SESSION), "Write notes");
     expect(write.hidden).toBe(true);
     write.click();
-    expect(actions.openRow).not.toHaveBeenCalled();
+    expect(actions.writeNotes).not.toHaveBeenCalled();
     change([sessionOf(3, []), sessionOf(4, [])]);
     expect(write.hidden).toBe(false);
     write.click();
-    expect(actions.openRow).toHaveBeenCalledWith({ path: `${CAMPAIGN}/Sessions/Session 4.md`, line: 0 });
+    expect(actions.writeNotes).toHaveBeenCalledExactlyOnceWith(`${CAMPAIGN}/Sessions/Session 4.md`);
+    expect(actions.openRow).not.toHaveBeenCalled();
     change([]);
     write.click();
-    expect(actions.openRow).toHaveBeenCalledOnce();
+    expect(actions.writeNotes).toHaveBeenCalledOnce();
   });
 
   it("opens each panel's full view and starts a new session", async () => {

@@ -10,8 +10,8 @@ function campaignLeafOf(app: App): WorkspaceLeaf {
   return app.workspace.getLeaf("tab");
 }
 
-export async function openCampaignPage(app: App, page: PageId): Promise<void> {
+export async function openCampaignPage(app: App, page: PageId, path: string | null): Promise<void> {
   const leaf = campaignLeafOf(app);
-  await leaf.setViewState({ type: CAMPAIGN_VIEW, state: { page, path: null }, active: true });
+  await leaf.setViewState({ type: CAMPAIGN_VIEW, state: { page, path }, active: true });
   await app.workspace.revealLeaf(leaf);
 }
