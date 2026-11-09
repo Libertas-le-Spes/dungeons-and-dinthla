@@ -2,7 +2,7 @@ import { build } from "esbuild";
 import { describe, expect, it } from "vitest";
 import type { BuildOptions } from "esbuild";
 import { PLUGIN_BUNDLE, STYLES_BUNDLE } from "../../scripts/bundle-options.ts";
-import { LINK_ROLE, networkCodeIn, PICTURE_CSS } from "../../scripts/network-code.ts";
+import { ALLOWED_IN_PLACE, networkCodeIn, timesIn } from "../../scripts/network-code.ts";
 import { styleNetworkCodeIn } from "../../scripts/style-network-code.ts";
 
 async function built(options: BuildOptions): Promise<string> {
@@ -12,9 +12,31 @@ async function built(options: BuildOptions): Promise<string> {
   return output.text;
 }
 
+const ALLOWED_TEXT = ALLOWED_IN_PLACE.flatMap((allowed) => Array.from({ length: allowed.count }, () => allowed.code)).join(";\n");
+
 function expectEachFound(samples: [string, string][]): void {
   for (const [sample, name] of samples) expect(networkCodeIn(sample), sample).toContain(name);
 }
+
+const ELEMENT = "an element that loads from or sends to an address";
+
+const PAST_AN_ALLOWANCE: [string, string][] = [
+  ['document.createElement({ role: "link" }.role)', ELEMENT],
+  ['parent.createEl("link", { attr: { role: "link", href: address } })', ELEMENT],
+  ['el.setAttribute("role", "link")', ELEMENT],
+  ['el.style.backgroundImage = `url("${safe}")`;', "a url( other than the background picture's"],
+  ["function put(this: Document, t) { this.write(t) }", "write or writeln, which a document has"],
+  ["this.writeln(text)", "write or writeln, which a document has"],
+  ["const { writeln } = document;", "write or writeln, which a document has"],
+  ["function send() { this.submit() }\nsend.call(form)", "submit, which a form has"],
+  ['el.style.backgroundImage = `image-set("${where}" 1x)`;', "image-set"],
+  ['el.style.background = "-webkit-image-set(" + where + " 1x)";', "image-set"],
+  ['createEl("a", { href: where }).click()', "click"],
+  ['link["click"]()', "click"],
+  ['document.head.createEl("meta", { attr: { "http-equiv": "refresh", content: `0;${where}` } })', ELEMENT],
+  ['document.createElement("form")', ELEMENT],
+  ['document.head.createEl("base", { attr: { href: where } })', ELEMENT],
+];
 
 describe("networkCodeIn", () => {
   it("finds each kind of network code a bundle could hold", () => {
@@ -78,19 +100,19 @@ describe("networkCodeIn", () => {
       ["el.outerHTML = text", "outerHTML"],
       ['el.insertAdjacentHTML("beforeend", text)', "insertAdjacentHTML"],
       ["frame.srcdoc = text", "srcdoc"],
-      ['document.createElement("img")', "an element that loads from an address"],
-      ['document.createElement("link")', "an element that loads from an address"],
-      ['document.createElement("script")', "an element that loads from an address"],
-      ['document.createElement("iframe")', "an element that loads from an address"],
-      ['parent.createEl("img", { attr: { src: address } })', "an element that loads from an address"],
-      ["document.createElement('IMG')", "an element that loads from an address"],
-      ['document.createElement("audio")', "an element that loads from an address"],
-      ['parent.createEl("video", { attr: { src: address } })', "an element that loads from an address"],
-      ['video.createEl("source", { attr: { src: address } })', "an element that loads from an address"],
-      ['document.createElement("embed")', "an element that loads from an address"],
-      ['document.createElement("object")', "an element that loads from an address"],
-      ['video.createEl("track", { attr: { src: address } })', "an element that loads from an address"],
-      ['document.createElement(kind === "a" && "object")', "an element that loads from an address"],
+      ['document.createElement("img")', "an element that loads from or sends to an address"],
+      ['document.createElement("link")', "an element that loads from or sends to an address"],
+      ['document.createElement("script")', "an element that loads from or sends to an address"],
+      ['document.createElement("iframe")', "an element that loads from or sends to an address"],
+      ['parent.createEl("img", { attr: { src: address } })', "an element that loads from or sends to an address"],
+      ["document.createElement('IMG')", "an element that loads from or sends to an address"],
+      ['document.createElement("audio")', "an element that loads from or sends to an address"],
+      ['parent.createEl("video", { attr: { src: address } })', "an element that loads from or sends to an address"],
+      ['video.createEl("source", { attr: { src: address } })', "an element that loads from or sends to an address"],
+      ['document.createElement("embed")', "an element that loads from or sends to an address"],
+      ['document.createElement("object")', "an element that loads from or sends to an address"],
+      ['video.createEl("track", { attr: { src: address } })', "an element that loads from or sends to an address"],
+      ['document.createElement(kind === "a" && "object")', "an element that loads from or sends to an address"],
     ]);
   });
 
@@ -109,14 +131,14 @@ describe("networkCodeIn", () => {
       ['new FontFace("Alegreya", source).load()', "FontFace"],
       ["const sheet = new CSSStyleSheet();", "CSSStyleSheet"],
       ["document.adoptedStyleSheets = [sheet];", "adoptedStyleSheets"],
-      ['document.head.createEl("style", { text })', "an element that loads from an address"],
-      ['document.createElement("style")', "an element that loads from an address"],
-      ['el.createSvg("image", { attr: { href: address } })', "an element that loads from an address"],
-      ['el.createEl("input", { type: "image", attr: { src: address } })', "an element that loads from an address"],
-      ["form.submit()", "submit on anything but the plugin's own dialog"],
-      ["this.form.submit()", "submit on anything but the plugin's own dialog"],
-      ['form["submit"]()', "submit on anything but the plugin's own dialog"],
-      ["form.requestSubmit()", "submit on anything but the plugin's own dialog"],
+      ['document.head.createEl("style", { text })', "an element that loads from or sends to an address"],
+      ['document.createElement("style")', "an element that loads from or sends to an address"],
+      ['el.createSvg("image", { attr: { href: address } })', "an element that loads from or sends to an address"],
+      ['el.createEl("input", { type: "image", attr: { src: address } })', "an element that loads from or sends to an address"],
+      ["form.submit()", "submit, which a form has"],
+      ["this.form.submit()", "submit, which a form has"],
+      ['form["submit"]()', "submit, which a form has"],
+      ["form.requestSubmit()", "submit, which a form has"],
       ['caches.open("pictures")', "caches"],
       ['new Notification("Pale Moon", { icon: address })', "Notification"],
     ]);
@@ -136,17 +158,20 @@ describe("networkCodeIn", () => {
     ]);
   });
 
-  it("finds nothing in a link's role, and still finds a link element beside it", () => {
-    expect(networkCodeIn('const name = parent.createEl("a", { cls: "dd-link-name", text, attr: { role: "link", tabindex: "0" } });')).toEqual([]);
-    expect(networkCodeIn('parent.createEl("link", { attr: { role: "link", href: address } })')).toContain("an element that loads from an address");
-    expect(networkCodeIn('el.setAttribute("role", "link")')).toContain("an element that loads from an address");
+  it("finds nothing in the code allowed in its place, each as often as it is allowed", () => {
+    expect(networkCodeIn(ALLOWED_TEXT)).toEqual([]);
   });
 
-  it("finds nothing in the background picture's url(", () => {
-    expect(networkCodeIn("function isResourceUrl(url, platform) {\n  return new _PictureCss(`url(\"${safe}\")`);")).toEqual([]);
+  it.each(ALLOWED_IN_PLACE)("finds $code once it shows up more often than allowed", (allowed) => {
+    expect(networkCodeIn(`${ALLOWED_TEXT};\n${allowed.code}`)).not.toEqual([]);
   });
 
-  it("finds nothing in Obsidian modals, the plugin's own open, process, submit and write methods, and checks of a value's type", () => {
+  it.each(PAST_AN_ALLOWANCE)("finds %s, alone and beside the code allowed in its place", (sample, name) => {
+    expect(networkCodeIn(sample)).toContain(name);
+    expect(networkCodeIn(`${ALLOWED_TEXT};\n${sample}`)).toContain(name);
+  });
+
+  it("finds nothing in Obsidian modals, the plugin's own open and process methods, and checks of a value's type", () => {
     const allowed = [
       "new ConfirmModal(this.app, text, confirmed, closed).open();",
       "await this.store.open(folder);",
@@ -158,9 +183,7 @@ describe("networkCodeIn", () => {
       "  async process(file, change) {",
       "await this.files.process(file, (text) => text);",
       'if (typeof saved !== "object" || saved === null) return settings;',
-      ".onClick(() => this.submit())",
       "  submit() {",
-      "    this.write();",
       'owner.registerDomEvent(formEl, "submit", (event) => {',
       "if (event.defaultPrevented || !isSubmit(event, false)) return;",
     ];
@@ -259,9 +282,12 @@ describe("the built plugin", () => {
   it("holds no network code", async () => {
     const bundle = await built(PLUGIN_BUNDLE);
     expect(bundle).toContain('require("obsidian")');
-    expect(bundle).toContain(PICTURE_CSS);
-    expect(bundle).toContain(LINK_ROLE);
     expect(networkCodeIn(bundle)).toEqual([]);
+  }, 30_000);
+
+  it("holds each code allowed in its place exactly as often as it is allowed", async () => {
+    const bundle = await built(PLUGIN_BUNDLE);
+    for (const allowed of ALLOWED_IN_PLACE) expect(timesIn(bundle, allowed.code), allowed.code).toBe(allowed.count);
   }, 30_000);
 });
 
