@@ -1,3 +1,4 @@
+import { nameKeyOf } from "../campaign/name-key";
 import { typedPathOf } from "../campaign/typed-path";
 import { isSafePath, refusalForPathParts } from "./safe-path";
 
@@ -21,7 +22,9 @@ export function refusalForCampaignsFolder(path: string): string | null {
 }
 
 export function isInConfigFolder(path: string, configDir: string): boolean {
-  return path === configDir || path.startsWith(`${configDir}/`);
+  const pathKey = nameKeyOf(path);
+  const configKey = nameKeyOf(configDir);
+  return pathKey === configKey || pathKey.startsWith(`${configKey}/`);
 }
 
 export function newCampaignsFolderPathOf(typed: string): string {

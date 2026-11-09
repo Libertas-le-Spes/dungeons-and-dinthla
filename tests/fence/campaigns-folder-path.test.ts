@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { BAD_NAME } from "../../src/campaign/file-name";
 import {
+  isInConfigFolder,
   newCampaignsFolderPathOf,
   NO_FOLDER_NAME,
   NOT_A_HIDDEN_FOLDER,
@@ -53,5 +54,27 @@ describe("newCampaignsFolderPathOf", () => {
 
   it("refuses a part a folder can't be named", () => {
     expect(() => newCampaignsFolderPathOf("Games/D&D?")).toThrow(BAD_NAME);
+  });
+});
+
+describe("isInConfigFolder", () => {
+  it("finds the settings folder and the folders inside it", () => {
+    expect(isInConfigFolder("Vault Settings", "Vault Settings")).toBe(true);
+    expect(isInConfigFolder("Vault Settings/D&D", "Vault Settings")).toBe(true);
+  });
+
+  it("leaves out a folder whose name only starts with the settings folder's", () => {
+    expect(isInConfigFolder("Vault Settings Old/D&D", "Vault Settings")).toBe(false);
+  });
+
+  it("finds the settings folder whatever its capitals, as a disk that ignores them does", () => {
+    expect(isInConfigFolder("Config", "config")).toBe(true);
+    expect(isInConfigFolder("CONFIG/D&D", "config")).toBe(true);
+  });
+
+  it("finds the settings folder written with other spaces, invisible characters or letters composed another way", () => {
+    expect(isInConfigFolder("Vault\u00a0Settings", "Vault Settings")).toBe(true);
+    expect(isInConfigFolder("Vault\u200b Settings/D&D", "Vault Settings")).toBe(true);
+    expect(isInConfigFolder("Re\u0301glages", "R\u00e9glages")).toBe(true);
   });
 });
