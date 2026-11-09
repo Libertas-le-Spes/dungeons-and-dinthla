@@ -131,6 +131,12 @@ const FILE_TREE_SAMPLES = [
   "const { parent } = file;",
 ];
 
+const FOLDER_WALK_SAMPLES = [
+  'import { TFile, Vault, type TFolder } from "obsidian";\nexport function notes(folder: TFolder) {\n  const found: TFile[] = [];\n  Vault.recurseChildren(folder, (file) => {\n    if (file instanceof TFile) found.push(file);\n  });\n  return found;\n}',
+  'import { Vault } from "obsidian";\nexport const walk = Vault["recurseChildren"];',
+  'import { Vault } from "obsidian";\nexport const { recurseChildren } = Vault;',
+];
+
 const CAST_SAMPLES = [
   'import type { App } from "obsidian";\nexport const files = (app: App) => (app as unknown as Record<string, object>)[["va", "ult"].join("")];',
   'import type { App } from "obsidian";\nexport const files = (app: App, key: string) => (<Record<string, object>>(<unknown>app))[key];',
@@ -379,7 +385,7 @@ const GATE_FORGING_SAMPLES = [
   'import type { Gate } from "../../../../src/fence/gatekeeper";\nexport function forge(gate: Gate, other: object) {\n  Object.defineProperties(gate.metadata, { getFirstLinkpathDest: { value: () => other } });\n}',
 ];
 
-const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...WRITE_NAME_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...NOTE_READING_SAMPLES, ...VIEW_TEXT_SAMPLES, ...CODE_MIRROR_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...OPENING_SAMPLES, ...ALLOWED_OPENING_SAMPLES, ...GATED_OPENING_SAMPLES, ...GATE_FORGING_SAMPLES, ...LEAF_SAMPLES, ...LEAF_VIEW_SAMPLES, ...VIEW_FILE_SAMPLES, ...HARMLESS_SAMPLES];
+const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...WRITE_NAME_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...FOLDER_WALK_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...NOTE_READING_SAMPLES, ...VIEW_TEXT_SAMPLES, ...CODE_MIRROR_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...OPENING_SAMPLES, ...ALLOWED_OPENING_SAMPLES, ...GATED_OPENING_SAMPLES, ...GATE_FORGING_SAMPLES, ...LEAF_SAMPLES, ...LEAF_VIEW_SAMPLES, ...VIEW_FILE_SAMPLES, ...HARMLESS_SAMPLES];
 
 interface Planted {
   name: string;
@@ -797,6 +803,10 @@ describe("the vault fence", () => {
 
   it.each(FILE_TREE_SAMPLES)("would catch walking the vault's folders with %s", (sample) => {
     expect(sampleBreaches(sample)).not.toEqual([]);
+  });
+
+  it.each(FOLDER_WALK_SAMPLES)("would catch walking a folder's files past the fence with %s, even in a file allowed everything else", (sample) => {
+    expect(sampleBreaches(sample, ALL_ALLOWED)).not.toEqual([]);
   });
 
   it.each(CAST_SAMPLES)("would catch a computed key on a value cast through unknown or any with %s, even in a file allowed to cast", (sample) => {

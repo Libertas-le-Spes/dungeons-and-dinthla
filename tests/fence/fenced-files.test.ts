@@ -55,6 +55,14 @@ describe("FencedFiles lookups", () => {
     expect(calls.getFolderByPath).toHaveBeenCalledTimes(2);
   });
 
+  it("lists the notes under a folder inside, and none in a folder whose name the fence refuses", () => {
+    const lantern = fileAt("D&D/Pale Moon/Items/Silvered lantern.md");
+    const refused = fileAt("D&D/Pale Moon/Items/Old./Lantern.md");
+    const raw = rawVaultWith([SESSION, lantern, refused]);
+    const files = new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => "D&D", ".obsidian")));
+    expect(files.markdownFilesUnder("D&D/Pale Moon/Items")).toEqual([lantern]);
+  });
+
   it("lists only the files inside", () => {
     const { files } = filesWith();
     expect(files.getFiles()).toEqual([SESSION, DECOMPOSED, NO_BREAK]);

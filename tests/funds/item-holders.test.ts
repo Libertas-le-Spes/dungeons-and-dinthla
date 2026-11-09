@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { CachedMetadata, TFile, TFolder } from "obsidian";
+import type { CachedMetadata, TFile } from "obsidian";
 import { CampaignStore } from "../../src/campaign/campaign-store";
 import { SavedCampaign, type SavedCampaignNeeds } from "../../src/campaign/saved-campaign";
 import { Fence } from "../../src/fence/fence";
@@ -10,7 +10,7 @@ import { HeldFiles } from "../../src/fence/held-files";
 import { ItemHolders, type HolderStore } from "../../src/funds/item-holders";
 import { FakeVault } from "../campaign/fake-vault";
 import { FakeEvents, rawVaultWith } from "../fence/fake-raw-vault";
-import { TFile as StubFile, TFolder as StubFolder } from "../stubs/obsidian";
+import { TFile as StubFile } from "../stubs/obsidian";
 
 const CAMPAIGN = "D&D/Pale Moon";
 const SESSION = `${CAMPAIGN}/Sessions/Session 1.md`;
@@ -33,11 +33,6 @@ function fileAt(path: string): TFile {
   const dot = name.lastIndexOf(".");
   const file = Object.assign(new StubFile(), { path, name, basename: name.slice(0, dot), extension: name.slice(dot + 1) });
   return file as unknown as TFile;
-}
-
-function folderAt(path: string, children: TFile[]): TFolder {
-  const folder = Object.assign(new StubFolder(), { path, name: nameOf(path), children });
-  return folder as unknown as TFolder;
 }
 
 function cacheOf(properties: Properties): CachedMetadata {
@@ -72,7 +67,7 @@ class ItemNotes {
   needsFor(store: HolderStore) {
     return {
       store,
-      files: { getFolderByPath: (path: string) => this.folderAt(path) },
+      files: { markdownFilesUnder: (path: string) => this.notesUnder(path) },
       metadata: {
         getFileCache: (file: TFile) => {
           const properties = this.noteAt(file.path).properties;
@@ -85,11 +80,9 @@ class ItemNotes {
     };
   }
 
-  private folderAt(path: string): TFolder | null {
+  private notesUnder(path: string): TFile[] {
     this.foldersListed.push(path);
-    const inside = this.notes.filter((note) => note.path.startsWith(`${path}/`));
-    if (inside.length === 0) return null;
-    return folderAt(path, inside.map((note) => fileAt(note.path)));
+    return this.notes.filter((note) => note.path.startsWith(`${path}/`) && note.path.endsWith(".md")).map((note) => fileAt(note.path));
   }
 
   private async write(file: TFile, change: ChangeProperties): Promise<void> {
@@ -374,8 +367,7 @@ describe("ItemHolders from the saved session notes", () => {
 describe("ItemHolders through the gate", () => {
   async function keepHoldersThroughGate(campaign: string, itemPath: string) {
     const file = fileAt(itemPath);
-    const itemsFolder = folderAt(itemPath.slice(0, itemPath.lastIndexOf("/")), [file]);
-    const raw = rawVaultWith([file], [itemsFolder]);
+    const raw = rawVaultWith([file]);
     const fence = new Fence(() => "D&D", ".obsidian");
     const held = new HeldFiles(raw.vault, fence);
     const processFrontMatter = vi.fn(async (_file: TFile, change: ChangeProperties) => change({}));
@@ -404,6 +396,11 @@ describe("ItemHolders through the gate", () => {
 
   it("never writes an item note outside the Campaigns folder", async () => {
     const { processFrontMatter } = await keepHoldersThroughGate("Self/Pale Moon", "Self/Pale Moon/Items/Silvered lantern.md");
+    expect(processFrontMatter).not.toHaveBeenCalled();
+  });
+
+  it("never writes an item note in a folder inside Items whose name the fence refuses", async () => {
+    const { processFrontMatter } = await keepHoldersThroughGate(CAMPAIGN, `${CAMPAIGN}/Items/Old./Silvered lantern.md`);
     expect(processFrontMatter).not.toHaveBeenCalled();
   });
 });

@@ -69,6 +69,10 @@ export class FencedFiles extends Component {
     return this.vault.getMarkdownFiles().filter((file) => this.held.holdsFile(file));
   }
 
+  markdownFilesUnder(path: string): TFile[] {
+    return this.getMarkdownFiles().filter((file) => file.path.startsWith(`${path}/`));
+  }
+
   async read(file: TFile): Promise<string> {
     return this.vault.read(this.held.file(file));
   }

@@ -1,4 +1,4 @@
-import { TFile, Vault, type CachedMetadata } from "obsidian";
+import type { CachedMetadata, TFile } from "obsidian";
 import type { Campaign, ItemRecord } from "../campaign/campaign";
 import { itemsFolderOf } from "../campaign/campaign-folders";
 import type { FencedFileActions } from "../fence/fenced-file-actions";
@@ -15,7 +15,7 @@ export interface HolderStore {
 
 export interface ItemHoldersNeeds {
   store: HolderStore;
-  files: Pick<FencedFiles, "getFolderByPath">;
+  files: Pick<FencedFiles, "markdownFilesUnder">;
   metadata: Pick<FencedMetadata, "getFileCache">;
   actions: Pick<FencedFileActions, "processFrontMatter">;
   failed(error: unknown): void;
@@ -46,13 +46,7 @@ export class ItemHolders {
   }
 
   private itemNotesIn(campaignFolder: string): TFile[] {
-    const items = this.needs.files.getFolderByPath(itemsFolderOf(campaignFolder));
-    if (items === null) return [];
-    const notes: TFile[] = [];
-    Vault.recurseChildren(items, (file) => {
-      if (file instanceof TFile && file.extension === "md") notes.push(file);
-    });
-    return notes;
+    return this.needs.files.markdownFilesUnder(itemsFolderOf(campaignFolder));
   }
 
   private keepHolder(file: TFile, items: ItemRecord[]): void {

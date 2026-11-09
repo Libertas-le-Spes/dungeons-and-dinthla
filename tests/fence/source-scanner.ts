@@ -92,6 +92,8 @@ const DOCUMENT = "doc";
 
 export const FORBIDDEN_NAMES = ["MarkdownRenderer", "renderMarkdown", "executeCommandById", "commands", "execCommand", "Function", "eval", "openLinkText", "openPopoutLeaf", "activeEditor", "activeLeaf", "getMostRecentLeaf", "duplicateLeaf", "plugins", "getPlugin", "enabledPlugins", "internalPlugins"];
 
+export const GATE_ONLY_NAMES = ["recurseChildren"];
+
 const EDITOR_OWNERS = [
   "Editor",
   "EditorView",
@@ -220,6 +222,7 @@ interface Found {
   documentOwners: Expression[];
   viewTextOwners: Node[];
   forbidden: Named[];
+  gateOnly: Named[];
   constructors: Node[];
   casts: Cast[];
   destructured: Named[];
@@ -265,6 +268,7 @@ function emptyFound(): Found {
     documentOwners: [],
     viewTextOwners: [],
     forbidden: [],
+    gateOnly: [],
     constructors: [],
     casts: [],
     destructured: [],
@@ -298,6 +302,7 @@ function addName(found: Found, node: Node, name: string): void {
 
 function addForbidden(found: Found, node: Node, name: string): void {
   if (FORBIDDEN_NAMES.includes(name)) found.forbidden.push({ node, name });
+  if (GATE_ONLY_NAMES.includes(name)) found.gateOnly.push({ node, name });
   if (GUARDED_NAMES.some((guarded) => guarded.name === name)) found.guarded.push({ node, name });
   if (CALLED_ONLY.includes(name)) found.calledOnly.push({ node, name });
   if (EDITOR_HOOKS.includes(name)) found.editorHooks.push({ node, name });
@@ -594,6 +599,7 @@ export class SourceScanner {
       breaches.push(`${where(node)} checks for a computed key in the app, a window, globalThis or a value it can't type`);
     }
     if (!path.includes(GATE_FOLDER)) {
+      for (const { node, name } of found.gateOnly) breaches.push(`${where(node)} walks the vault's folders unfenced with ${name}`);
       const isGate = (type: Type | undefined) => this.isGateTyped(project, type);
       for (const node of this.typedBy(project, found.casts.map((cast) => cast.type), isGate)) breaches.push(`${where(node)} casts to a gate type`);
       for (const node of this.typedBy(project, found.satisfied, isGate)) breaches.push(`${where(node)} checks that a value satisfies a gate type`);
