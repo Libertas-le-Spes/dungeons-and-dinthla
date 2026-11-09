@@ -9,7 +9,7 @@ import { obsidianDocument } from "../views/obsidian-dom";
 
 function made(path: string | null) {
   const texts = { read: vi.fn(async () => "The wheel turns."), onChanged: () => () => {}, onGone: () => () => {} };
-  const needs = { texts, drafts: new NoteDrafts(new Drafts({}, () => {})), saver: {} as NoteSaver, actions: { openRow: vi.fn(), openLink: vi.fn() } };
+  const needs = { texts, drafts: new NoteDrafts(new Drafts({}, () => {})), saver: {} as NoteSaver, actions: { openRow: vi.fn(), openLink: vi.fn() }, isCampaignNote: () => true, openInEditor: vi.fn() };
   const root = obsidianDocument().createElement("div");
   const page = noteSection(needs)(root, vi.fn(), path, vi.fn());
   page.load();

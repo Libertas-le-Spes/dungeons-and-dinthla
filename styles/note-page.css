@@ -25,3 +25,15 @@
   list-style: none;
   font: var(--type-note);
 }
+
+.dd-note-page .dd-left-campaign {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
+.dd-note-page .dd-left-campaign-message {
+  margin: 0;
+  font: var(--type-note);
+}

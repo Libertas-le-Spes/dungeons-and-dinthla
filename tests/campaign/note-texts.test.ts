@@ -41,6 +41,19 @@ describe("noteTextsOf", () => {
     expect(vault.read).toHaveBeenCalledOnce();
   });
 
+  it("reads a note with Windows line endings or a mark at its start as a box shows it", async () => {
+    const { app } = appWith("\uFEFFThe wheel turns.\r\nRain.\r\n");
+    expect(await noteTextsOf(app).read(OLD_MILL)).toBe("The wheel turns.\nRain.\n");
+  });
+
+  it("tells a note's new text as a box shows it", () => {
+    const { app, cacheListeners } = appWith("");
+    const changed = vi.fn();
+    noteTextsOf(app).onChanged(changed);
+    cacheListeners.get("changed")!({ path: OLD_MILL }, "\uFEFFThe wheel is still.\r\nRain.");
+    expect(changed).toHaveBeenCalledExactlyOnceWith(OLD_MILL, "The wheel is still.\nRain.");
+  });
+
   it("tells when a note's text changes, with the new text, until told to stop", () => {
     const { app, metadataCache, cacheListeners } = appWith("");
     const changed = vi.fn();

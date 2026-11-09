@@ -3,6 +3,7 @@ import { noteNameOf } from "../campaign/note-name";
 import type { NoteTexts } from "../campaign/note-texts";
 import type { LinkActions } from "../views/linked-text";
 import { messageOf } from "../views/message-of";
+import { LeftCampaign } from "./left-campaign";
 import { NoteBox } from "./note-box";
 import type { NoteDraft, NoteDrafts } from "./note-drafts";
 import { NoteLinks } from "./note-links";
@@ -17,6 +18,8 @@ export interface NotePageNeeds {
   drafts: NoteDrafts;
   saver: NoteSaver;
   actions: LinkActions;
+  isCampaignNote(path: string): boolean;
+  openInEditor(path: string): void;
 }
 
 function notSavedMessage(error: unknown): string {
@@ -30,6 +33,7 @@ function notReadMessage(error: unknown): string {
 export class NotePage extends Component {
   private box!: NoteBox;
   private links!: NoteLinks;
+  private left: LeftCampaign | null = null;
   private base: string | null = null;
   private open = false;
 
@@ -46,6 +50,7 @@ export class NotePage extends Component {
     root.empty();
     root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-session-notes", "dd-note-page");
     root.createEl("h2", { cls: "dd-title dd-note-title", text: noteNameOf(this.path) });
+    this.sayIfLeftCampaign(root);
     const panel = root.createEl("section", { cls: "dd-notes-panel dd-note-panel" });
     this.box = new NoteBox(panel, {
       save: () => void this.save(),
@@ -58,6 +63,11 @@ export class NotePage extends Component {
     this.open = true;
     this.register(() => this.close());
     void this.loadNote();
+  }
+
+  private sayIfLeftCampaign(root: HTMLElement): void {
+    if (this.needs.isCampaignNote(this.path)) return;
+    this.left = new LeftCampaign(root, () => this.needs.openInEditor(this.path));
   }
 
   private watch(): void {
@@ -119,7 +129,9 @@ export class NotePage extends Component {
   }
 
   private textChanged(): void {
-    this.box.setUnsaved(this.box.text !== this.base);
+    const unsaved = this.box.text !== this.base;
+    this.box.setUnsaved(unsaved);
+    if (this.left !== null) this.left.setUnsaved(unsaved);
     this.links.show(this.box.text);
   }
 
