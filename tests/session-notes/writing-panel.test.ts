@@ -365,4 +365,50 @@ describe("WritingPanel", () => {
     await vi.waitFor(() => expect(open.box.value).toBe(""));
     expect(closed.box.value).toBe("? Who");
   });
+
+  it("shows what is typed in one box in every other box of the session, so typing in either keeps the other's lines", () => {
+    const drafts = new Drafts({}, () => {});
+    const first = panelWith({ drafts });
+    const second = panelWith({ drafts });
+    first.type("? Who");
+    expect(second.box.value).toBe("? Who");
+    expect(second.saveButton.disabled).toBe(false);
+    second.type("? Who\n! Find it");
+    expect(first.box.value).toBe("? Who\n! Find it");
+    expect(drafts.textOf(PATH)).toBe("? Who\n! Find it");
+  });
+
+  it("doesn't set the text of a box that already shows it, so the caret of the box being typed in stays put", () => {
+    const drafts = new Drafts({}, () => {});
+    const first = panelWith({ drafts });
+    const second = panelWith({ drafts });
+    const setFirst = vi.spyOn(first.box, "value", "set");
+    const setSecond = vi.spyOn(second.box, "value", "set");
+    first.type("? Who");
+    expect(setFirst).toHaveBeenCalledOnce();
+    expect(setSecond).toHaveBeenCalledExactlyOnceWith("? Who");
+  });
+
+  it("leaves boxes of other sessions alone", () => {
+    const drafts = new Drafts({}, () => {});
+    const first = panelWith({ drafts });
+    const other = panelWith({ drafts, path: EARLIER, draft: "Rain" });
+    first.type("? Who");
+    expect(other.box.value).toBe("Rain");
+  });
+
+  it("locks the box while its session's note is gone, and saves nothing", async () => {
+    const { panel, box, type, saveButton, writer, press, lookups } = panelWith();
+    type("? Who\n?? mill");
+    panel.setGone(true);
+    expect(box.readOnly).toBe(true);
+    expect(saveButton.disabled).toBe(true);
+    expect(isShown(lookups)).toBe(false);
+    press("Enter", { ctrlKey: true });
+    await panel.save();
+    expect(writer.save).not.toHaveBeenCalled();
+    panel.setGone(false);
+    expect(box.readOnly).toBe(false);
+    expect(saveButton.disabled).toBe(false);
+  });
 });

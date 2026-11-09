@@ -15,6 +15,7 @@ export class DraftBox {
   private readonly saveButton: HTMLButtonElement;
   private readonly message: HTMLElement;
   private saving = false;
+  private gone = false;
 
   constructor(
     parent: HTMLElement,
@@ -50,7 +51,11 @@ export class DraftBox {
 
   setSaving(saving: boolean): void {
     this.saving = saving;
-    this.textarea.readOnly = saving;
+    this.refresh();
+  }
+
+  setGone(gone: boolean): void {
+    this.gone = gone;
     this.refresh();
   }
 
@@ -58,8 +63,14 @@ export class DraftBox {
     this.message.setText(message);
   }
 
+  get isGone(): boolean {
+    return this.gone;
+  }
+
   refresh(): void {
-    this.saveButton.disabled = this.saving || !hasLinesToSave(this.textarea.value);
+    const locked = this.saving || this.gone;
+    this.textarea.readOnly = locked;
+    this.saveButton.disabled = locked || !hasLinesToSave(this.textarea.value);
   }
 
   focus(): void {
