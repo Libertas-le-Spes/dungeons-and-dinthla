@@ -91,11 +91,17 @@ describe("ItemPanel", () => {
     expect(button(CHANGE_ITEM)).toBeUndefined();
   });
 
+  it("opens a story link with the line it sits on in the note, counting blank lines and properties", async () => {
+    const { root, needs } = await openPanel(campaignOf([]), `---\nrarity: rare\n---\nFound in a cellar.\n\nIt lit @[[Old Mill]].`);
+    (root.querySelector(".dd-item-story a") as HTMLElement).click();
+    expect(needs.actions.openLink).toHaveBeenCalledExactlyOnceWith("Old Mill", { path: LANTERN, line: 5 }, false);
+  });
+
   it("shows the story written in its note below its properties, line by line, with its links", async () => {
     const { story, root, needs } = await openPanel(campaignOf([]), `---\nrarity: rare\n---\n${STORY}`);
     expect(story()).toEqual(["Mira found it in the cellar of the [[Gilded Stag]].", "Its light shows things the moon hides."]);
     (root.querySelector(".dd-item-story a") as HTMLElement).click();
-    expect(needs.actions.openLink).toHaveBeenCalledExactlyOnceWith("Gilded Stag", LANTERN, false);
+    expect(needs.actions.openLink).toHaveBeenCalledExactlyOnceWith("Gilded Stag", { path: LANTERN, line: 3 }, false);
   });
 
   it("says when its note has no story yet, or isn't there", async () => {

@@ -19,10 +19,10 @@ export function addQuestionRow(
   const row = addRowButton(list, question.source, actions);
   addMark(row, question);
   const body = row.createSpan({ cls: "dd-body" });
-  addLinkedText(body.createSpan({ cls: "dd-text" }), question.text, keywords, question.source.path, actions);
+  addLinkedText(body.createSpan({ cls: "dd-text" }), question.text, keywords, question.source, actions);
   if (question.answer !== null) {
     const answer = body.createSpan({ cls: "dd-answer" });
-    addLinkedText(answer, question.answer.text, keywords, question.answer.source.path, actions);
+    addLinkedText(answer, question.answer.text, keywords, question.answer.source, actions);
   }
   body.createSpan({ cls: "dd-meta", text: sessionLabelOf(question.source.path) });
 }

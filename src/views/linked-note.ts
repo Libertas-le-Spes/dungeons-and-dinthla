@@ -16,9 +16,9 @@ export function takenAt(path: string): string {
   return `${path} is already taken.`;
 }
 
-export function notePathOf(campaignFolder: string, linkpath: string): string {
-  if (linkpath.endsWith(NOTE_ENDING)) return `${campaignFolder}/${linkpath}`;
-  return `${campaignFolder}/${linkpath}${NOTE_ENDING}`;
+export function notePathOf(folder: string, linkpath: string): string {
+  if (linkpath.endsWith(NOTE_ENDING)) return `${folder}/${linkpath}`;
+  return `${folder}/${linkpath}${NOTE_ENDING}`;
 }
 
 function foldersOn(campaignFolder: string, notePath: string): string[] {
@@ -30,23 +30,31 @@ function isTaken(files: LinkedNoteFiles, path: string): boolean {
   return files.getFileByPath(path) !== null || files.getFolderByPath(path) !== null;
 }
 
-function refusalFor(files: LinkedNoteFiles, campaignFolder: string, linkpath: string): string | null {
+function isInCampaign(campaignFolder: string, folder: string): boolean {
+  return folder === campaignFolder || folder.startsWith(`${campaignFolder}/`);
+}
+
+export function refusalForLinkName(linkpath: string): string | null {
   if (linkpath === "") return NO_NAME;
-  const partRefusal = refusalForPathParts(linkpath);
-  if (partRefusal !== null) return partRefusal;
-  const notePath = notePathOf(campaignFolder, linkpath);
+  return refusalForPathParts(linkpath);
+}
+
+function refusalFor(files: LinkedNoteFiles, campaignFolder: string, folder: string, linkpath: string): string | null {
+  const nameRefusal = refusalForLinkName(linkpath);
+  if (nameRefusal !== null) return nameRefusal;
+  if (!isInCampaign(campaignFolder, folder)) return UNSAFE_PATH;
+  const notePath = notePathOf(folder, linkpath);
   if (!isSafeNewPath(notePath)) return UNSAFE_PATH;
   if (isTaken(files, notePath)) return takenAt(notePath);
   return null;
 }
 
-export async function makeLinkedNote(files: LinkedNoteFiles, campaignFolder: string | null, linkpath: string): Promise<TFile> {
-  if (campaignFolder === null) throw new Error(NOT_IN_CAMPAIGN);
-  const refusal = refusalFor(files, campaignFolder, linkpath);
+export async function makeLinkedNote(files: LinkedNoteFiles, campaignFolder: string, folder: string, linkpath: string): Promise<TFile> {
+  const refusal = refusalFor(files, campaignFolder, folder, linkpath);
   if (refusal !== null) throw new Error(refusal);
-  const notePath = notePathOf(campaignFolder, linkpath);
-  for (const folder of foldersOn(campaignFolder, notePath)) {
-    if (files.getFolderByPath(folder) === null) await files.createFolder(folder);
+  const notePath = notePathOf(folder, linkpath);
+  for (const created of foldersOn(campaignFolder, notePath)) {
+    if (files.getFolderByPath(created) === null) await files.createFolder(created);
   }
   return files.create(notePath, "");
 }

@@ -118,7 +118,7 @@ export class MentionsPanel {
     for (const mention of mentions) {
       const row = addRowButton(list, mention.source, this.actions);
       const body = row.createSpan({ cls: "dd-body" });
-      addLinkedText(body.createSpan({ cls: "dd-text" }), mention.text, [], mention.source.path, this.actions);
+      addLinkedText(body.createSpan({ cls: "dd-text" }), mention.text, [], mention.source, this.actions);
       body.createSpan({ cls: "dd-meta", text: mention.where });
     }
   }
