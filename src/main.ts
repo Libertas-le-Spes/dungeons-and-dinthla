@@ -74,6 +74,7 @@ import { sessionPropertiesOf } from "./sessions/session-properties";
 import { AppendWriter } from "./session-notes/append-writer";
 import { Drafts } from "./session-notes/drafts";
 import { KeptDrafts } from "./session-notes/kept-drafts";
+import { setAsideGoneNotes } from "./session-notes/gone-notes";
 import { noteTextsOf } from "./campaign/note-texts";
 import { NoteDrafts } from "./note-editing/note-drafts";
 import { NoteSaver } from "./note-editing/note-saver";
@@ -196,7 +197,7 @@ export default class DungeonsAndDinthla extends Plugin {
     this.registerEvent(gate.files.on("rename", (file, oldPath) => keptDrafts.noteRenamed(oldPath, file.path)));
     this.registerEvent(gate.files.on("rename", (file, oldPath) => noteDrafts.moved(oldPath, file.path)));
     this.registerEvent(gate.files.on("delete", (file) => keptDrafts.noteDeleted(file.path)));
-    this.app.workspace.onLayoutReady(() => keptDrafts.notesGone((key) => this.draftStaysLive(noteDrafts, key)));
+    this.app.workspace.onLayoutReady(() => setAsideGoneNotes(keptDrafts, this.campaignsFolder.path, (key) => this.draftStaysLive(noteDrafts, key)));
     const texts = noteTextsOf(gate);
     const wholeText = { texts, drafts: noteDrafts, saver: new NoteSaver(gate.files) };
     const notesNeeds = {
