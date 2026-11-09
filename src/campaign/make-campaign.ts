@@ -2,6 +2,7 @@ import { normalizePath, type Vault } from "obsidian";
 import { mainNotePathOf } from "./campaign-folders";
 import { messageOf } from "../views/message-of";
 import { refusalForFileName } from "./file-name";
+import { nameKeyOf } from "./name-key";
 
 export type NewCampaignVault = Pick<Vault, "getRoot" | "getFolderByPath" | "createFolder" | "create" | "delete">;
 
@@ -12,8 +13,8 @@ function nameTaken(name: string): string {
 }
 
 function topLevelNameLike(vault: NewCampaignVault, name: string): string | null {
-  const wanted = name.toLowerCase();
-  const taken = vault.getRoot().children.find((child) => child.name.toLowerCase() === wanted);
+  const wanted = nameKeyOf(name);
+  const taken = vault.getRoot().children.find((child) => nameKeyOf(child.name) === wanted);
   if (taken === undefined) return null;
   return taken.name;
 }

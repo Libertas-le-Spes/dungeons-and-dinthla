@@ -143,6 +143,22 @@ describe("createCharacter", () => {
     expect(created.map(({ path }) => path)).toEqual([`${FOLDER}/Zo\u00eb.md`]);
   });
 
+  it("refuses a name that only differs from an existing note's by invisible characters", async () => {
+    for (const name of ["Ali\u200dce", "Ali\u034fce"]) {
+      const { vault, created } = vaultWith({ notes: { [`${FOLDER}/Alice.md`]: "" } });
+      await expect(createCharacter(vault, "Pale Moon", entry({ name }))).rejects.toThrow();
+      expect(created).toEqual([]);
+    }
+  });
+
+  it("refuses a plain name when a note made before invisible characters were refused differs from it only by them", async () => {
+    for (const existing of ["Ali\u200dce", "Ali\u034fce"]) {
+      const { vault, created } = vaultWith({ notes: { [`${FOLDER}/${existing}.md`]: "" } });
+      await expect(createCharacter(vault, "Pale Moon", entry({ name: "Alice" }))).rejects.toThrow(`There is already a note called ${existing} in ${FOLDER}.`);
+      expect(created).toEqual([]);
+    }
+  });
+
   it("refuses a name a note in the folder already has, whatever its capitals", async () => {
     const { vault, created } = vaultWith({ notes: { [`${FOLDER}/Mira.md`]: "" } });
     await expect(createCharacter(vault, "Pale Moon", entry({ name: "MIRA" }))).rejects.toThrow(`There is already a note called Mira in ${FOLDER}.`);
