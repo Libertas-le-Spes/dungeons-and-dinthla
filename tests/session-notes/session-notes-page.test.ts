@@ -6,6 +6,9 @@ import type { AppendWriter } from "../../src/session-notes/append-writer";
 import { Drafts } from "../../src/session-notes/drafts";
 import { KeptDrafts } from "../../src/session-notes/kept-drafts";
 import { SessionNotesPage } from "../../src/session-notes/session-notes-page";
+import { NoteDrafts } from "../../src/note-page/note-drafts";
+import { NoteSaver } from "../../src/note-page/note-saver";
+import { FakeNotes } from "../note-page/fake-notes";
 import type { SessionProperties } from "../../src/sessions/session-properties";
 import { isShown, obsidianDocument } from "../views/obsidian-dom";
 
@@ -27,7 +30,11 @@ function propertiesOf(path: string): SessionProperties {
   return properties;
 }
 
-function pageWith(sessions: SessionNote[], asked: string | null, { folder = FOLDER as string | null, drafts = new Drafts({}, () => {}) } = {}) {
+function pageWith(
+  sessions: SessionNote[],
+  asked: string | null,
+  { folder = FOLDER as string | null, drafts = new Drafts({}, () => {}), notes = new FakeNotes(`${FOLDER}/Sessions/Session 12.md`, "") } = {},
+) {
   let listener = () => {};
   const unsubscribe = vi.fn();
   const store = {
@@ -58,6 +65,7 @@ function pageWith(sessions: SessionNote[], asked: string | null, { folder = FOLD
     propertiesOf,
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
     actions: { openRow: vi.fn(), openLink: vi.fn() },
+    wholeText: { texts: notes.texts, drafts: new NoteDrafts(drafts), saver: new NoteSaver(notes.vault) },
   };
   const page = new SessionNotesPage(root, asked, needs, moves);
   page.load();
@@ -290,6 +298,20 @@ describe("SessionNotesPage", () => {
     expect(isShown(select())).toBe(false);
     change(SESSIONS);
     expect(isShown(select())).toBe(true);
+  });
+
+  it("opens Edit all on the session shown, and keeps its unsaved text when the page closes", async () => {
+    const twelve = `${FOLDER}/Sessions/Session 12.md`;
+    const notes = new FakeNotes(twelve, "Tracks lead to the [[Old Mill]].\n! Find the carvan");
+    const { root, page, drafts } = pageWith(SESSIONS, twelve, { notes });
+    root.querySelector<HTMLButtonElement>(".dd-edit-all")!.click();
+    await vi.waitFor(() => expect(root.querySelector<HTMLTextAreaElement>(".dd-edit-all-panel textarea")!.value).toBe("Tracks lead to the [[Old Mill]].\n! Find the carvan"));
+    const box = root.querySelector<HTMLTextAreaElement>(".dd-edit-all-panel textarea")!;
+    box.value = "Tracks lead to the [[Old Mill]].\n! Find the caravan";
+    box.dispatchEvent(new box.ownerDocument.defaultView!.Event("input"));
+    page.unload();
+    expect(notes.changedListeners.size).toBe(0);
+    expect(new NoteDrafts(drafts).draftOf(twelve)).toEqual({ base: "Tracks lead to the [[Old Mill]].\n! Find the carvan", text: "Tracks lead to the [[Old Mill]].\n! Find the caravan" });
   });
 
   it("stops following the box's saves when closed", async () => {

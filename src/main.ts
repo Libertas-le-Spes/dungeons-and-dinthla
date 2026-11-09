@@ -169,6 +169,7 @@ export default class DungeonsAndDinthla extends Plugin {
     this.registerEvent(this.app.vault.on("delete", (file) => keptDrafts.noteDeleted(file.path)));
     this.app.workspace.onLayoutReady(() => keptDrafts.notesGone((key) => this.draftStaysLive(noteDrafts, key)));
     const texts = noteTextsOf(this.app);
+    const wholeText = { texts, drafts: noteDrafts, saver: new NoteSaver(this.app.vault) };
     const notesNeeds = {
       store: this.store,
       drafts,
@@ -177,6 +178,7 @@ export default class DungeonsAndDinthla extends Plugin {
       propertiesOf: (path: string) => sessionPropertiesOf(path, this.app.metadataCache),
       openers,
       actions,
+      wholeText,
       startSession: newSession,
     };
     const sections = campaignSections({
@@ -196,9 +198,7 @@ export default class DungeonsAndDinthla extends Plugin {
         campaignFolders: () => this.campaignFolders(),
       }),
       note: noteSection({
-        texts,
-        drafts: noteDrafts,
-        saver: new NoteSaver(this.app.vault),
+        ...wholeText,
         actions,
         isCampaignNote: (path: string) => campaignFolderOf(path, this.campaignFolders()) !== null,
         openInEditor: (path: string) => void openInEditor(this.app, path),
