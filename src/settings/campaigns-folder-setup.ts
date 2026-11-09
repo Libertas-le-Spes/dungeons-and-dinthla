@@ -7,8 +7,6 @@ export type PickFolder = (folders: string[], chosen: (folder: string) => void) =
 
 export type Chosen = () => void;
 
-function nothingMore(): void {}
-
 export class CampaignsFolderSetup {
   constructor(
     private readonly setting: Pick<CampaignsFolderSetting, "path" | "choose">,
@@ -20,7 +18,7 @@ export class CampaignsFolderSetup {
     return this.setting.path;
   }
 
-  pick(chosen: Chosen = nothingMore): void {
+  pick(chosen: Chosen): void {
     this.pickFolder(this.folders.folderPaths(), (path) => this.chooseOrSay(path, chosen));
   }
 

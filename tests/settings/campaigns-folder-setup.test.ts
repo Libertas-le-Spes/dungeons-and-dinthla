@@ -72,14 +72,6 @@ describe("CampaignsFolderSetup", () => {
     expect(setting.choose).not.toHaveBeenCalled();
   });
 
-  it("sets the folder picked when nothing else is asked for after", async () => {
-    const { setup, setting, pick } = setupWith();
-    setup.pick();
-    pick("D&D");
-    await settled();
-    expect(setting.choose).toHaveBeenCalledExactlyOnceWith("D&D");
-  });
-
   it("says the folder was set, and still says it is chosen, when opening a campaign in it fails", async () => {
     const saver = new SettingsSaver({ campaignsFolder: null, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null }, async () => {});
     const setting = new CampaignsFolderSetting(saver, async () => {
