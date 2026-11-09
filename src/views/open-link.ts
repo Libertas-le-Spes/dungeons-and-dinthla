@@ -24,7 +24,9 @@ export function notMade(linkpath: string, reason: string): string {
   return `Couldn't make ${linkpath} inside the campaign: ${reason}`;
 }
 
-async function openNote(app: App, file: TFile, subpath: string, newLeaf: PaneType | boolean): Promise<void> {
+async function openNote(app: App, place: LinkPlace, path: string, subpath: string, newLeaf: PaneType | boolean): Promise<void> {
+  const file = place.gate.files.getFileByPath(path);
+  if (file === null) return;
   await app.workspace.getLeaf(newLeaf).openFile(file, { eState: { subpath } });
 }
 
@@ -49,7 +51,7 @@ export async function openLink(app: App, place: LinkPlace, linktext: string, fro
   const { path: linkpath, subpath } = parseLinktext(withoutAlias(linktext));
   const found = place.gate.metadata.getFirstLinkpathDest(linkpath, from.path);
   if (found !== null) {
-    await openNote(app, found, subpath, newLeaf);
+    await openNote(app, place, found.path, subpath, newLeaf);
     return;
   }
   const campaignFolder = campaignFolderOf(from.path, place.campaignFolders());
@@ -59,7 +61,7 @@ export async function openLink(app: App, place: LinkPlace, linktext: string, fro
   }
   const inCampaign = noteInCampaignFor(place.gate.files, campaignFolder, linkpath, from.path);
   if (inCampaign !== null) {
-    await openNote(app, inCampaign, subpath, newLeaf);
+    await openNote(app, place, inCampaign.path, subpath, newLeaf);
     return;
   }
   let made: TFile | null;
@@ -70,5 +72,5 @@ export async function openLink(app: App, place: LinkPlace, linktext: string, fro
     return;
   }
   if (made === null) return;
-  await openNote(app, made, "", newLeaf);
+  await openNote(app, place, made.path, "", newLeaf);
 }

@@ -57,7 +57,11 @@ export function rawVaultWith(files: TFile[], folders: TFolder[] = []) {
     read: vi.fn(async (file: TFile) => `read ${file.path}`),
     cachedRead: vi.fn(async (file: TFile) => `cached ${file.path}`),
     process: vi.fn(async (file: TFile, change: (text: string) => string) => change(`text of ${file.path}`)),
-    create: vi.fn(async (path: string) => fileAt(path)),
+    create: vi.fn(async (path: string) => {
+      const made = fileAt(path);
+      files.push(made);
+      return made;
+    }),
     createFolder: vi.fn(async (path: string) => folderAt(path, [])),
     delete: vi.fn(async () => {}),
     getResourcePath: vi.fn((file: TFile) => `app://${file.path}`),

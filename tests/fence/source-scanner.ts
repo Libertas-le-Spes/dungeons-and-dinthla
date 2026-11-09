@@ -1,7 +1,6 @@
 import type { FileSystem } from "typescript/unstable/fs";
 import { API, TypeFlags, type Project, type Symbol as TypeSymbol, type Type, type UnionOrIntersectionType } from "typescript/unstable/sync";
 import {
-  isArrowFunction,
   isAsExpression,
   isAwaitExpression,
   isBinaryExpression,
@@ -12,34 +11,31 @@ import {
   isExportDeclaration,
   isImportDeclaration,
   isForInStatement,
-  isFunctionDeclaration,
-  isFunctionExpression,
   isIdentifier,
   isNoSubstitutionTemplateLiteral,
   isNonNullExpression,
-  isMethodDeclaration,
   isNumericLiteral,
   isObjectBindingPattern,
-  isParameterDeclaration,
   isParenthesizedExpression,
   isPropertyAccessExpression,
-  isReturnStatement,
   isSatisfiesExpression,
   isSpreadAssignment,
   isStringLiteral,
   isTypeAssertion,
   isVariableDeclaration,
+  isVariableDeclarationList,
+  NodeFlags,
   SyntaxKind,
   type AsExpression,
   type BindingElement,
   type CallExpression,
   type ElementAccessExpression,
   type Expression,
-  type FunctionDeclaration,
+  type Identifier,
   type Node,
-  type ParameterDeclaration,
   type SourceFile,
   type TypeAssertion,
+  type VariableDeclaration,
 } from "typescript/unstable/ast";
 
 export const VAULT_NAMES = ["vault", "fileManager", "metadataCache", "adapter"];
@@ -148,8 +144,6 @@ const ACTIVE_VIEW = "getActiveViewOfType";
 const VIEW_FILE = "file";
 
 const GATE_SOURCES = ["/src/fence/fenced-files.ts", "/src/fence/fenced-metadata.ts"];
-
-const GATE_HOLDER = "/src/fence/gatekeeper.ts";
 
 type GuardedAllowance = "fileOpening" | "viewState" | "activeFile" | "activeView";
 
@@ -446,42 +440,9 @@ function awaited(expression: Expression): Expression {
   return value;
 }
 
-function isExported(declaration: FunctionDeclaration): boolean {
-  if (declaration.modifiers === undefined) return false;
-  return declaration.modifiers.some((modifier) => modifier.kind === SyntaxKind.ExportKeyword);
-}
-
-function isFunctionLike(node: Node): boolean {
-  return isFunctionDeclaration(node) || isFunctionExpression(node) || isArrowFunction(node) || isMethodDeclaration(node);
-}
-
-function returnsIn(body: Node): Node[] {
-  const all: Node[] = [];
-  const visit = (node: Node): void => {
-    if (isReturnStatement(node)) all.push(node);
-    if (!isFunctionLike(node)) node.forEachChild(visit);
-  };
-  body.forEachChild(visit);
-  return all;
-}
-
-function isNull(expression: Expression): boolean {
-  return unwrapped(expression).kind === SyntaxKind.NullKeyword;
-}
-
-function nodesIn(sourceFile: SourceFile, matches: (node: Node) => boolean): Node[] {
-  const all: Node[] = [];
-  const visit = (node: Node): void => {
-    if (matches(node)) all.push(node);
-    node.forEachChild(visit);
-  };
-  visit(sourceFile);
-  return all;
-}
-
-function isDeclaredIn(symbol: TypeSymbol | undefined, endings: string[]): boolean {
-  if (symbol === undefined) return false;
-  return symbol.declarations.some((declaration) => endings.some((ending) => declaration.path.endsWith(ending)));
+function isConst(declaration: VariableDeclaration): boolean {
+  const list = declaration.parent;
+  return isVariableDeclarationList(list) && (list.flags & NodeFlags.Const) !== 0;
 }
 
 function isCast(expression: Expression): expression is Cast {
@@ -622,7 +583,7 @@ export class SourceScanner {
       if (name === EVENT_TRIGGER && allowances.eventTrigger(path)) continue;
       breaches.push(`${where(node)} takes ${name} without calling it with what it can read`);
     }
-    for (const call of found.openings.filter((opening) => !this.opensFromGate(project, sourceFile, opening))) breaches.push(`${where(call)} opens a file that doesn't come from the gate`);
+    for (const call of found.openings.filter((opening) => !this.opensFromGate(project, opening))) breaches.push(`${where(call)} opens a file that doesn't come from the gate`);
     for (const owner of found.viewFiles.filter((viewFile) => this.isActiveView(project, viewFile))) breaches.push(`${where(owner)} takes the file of the active view`);
     for (const { node, name } of this.leafReads(project, found, LEAF_OPENER, LEAF_OWNERS)) breaches.push(`${where(node)} opens a view in a leaf with ${name}`);
     if (!allowances.leafView(path)) {
@@ -669,97 +630,33 @@ export class SourceScanner {
     });
   }
 
-  private opensFromGate(project: Project, sourceFile: SourceFile, call: CallExpression): boolean {
+  private opensFromGate(project: Project, call: CallExpression): boolean {
     const [file] = call.arguments;
     if (file === undefined) return false;
-    return this.isFromGate(project, sourceFile, file, new Set());
-  }
-
-  private isFromGate(project: Project, sourceFile: SourceFile, expression: Expression, seen: Set<number>): boolean {
-    const value = awaited(expression);
-    if (isCallExpression(value)) return this.isGateCall(project, value) || this.returnsFromGate(project, sourceFile, value, seen);
+    const value = awaited(file);
+    if (isCallExpression(value)) return this.isGateCall(project, value);
     if (!isIdentifier(value)) return false;
-    const symbol = project.checker.getSymbolAtLocation(value);
-    if (symbol === undefined || seen.has(symbol.id)) return false;
-    const deeper = new Set([...seen, symbol.id]);
-    const sources = this.sourcesOf(project, sourceFile, symbol);
-    if (sources.length === 0) return false;
-    return sources.every((source) => this.isFromGate(project, sourceFile, source, deeper));
+    const initializer = this.constInitializerOf(project, value);
+    if (initializer === undefined) return false;
+    const initial = awaited(initializer);
+    return isCallExpression(initial) && this.isGateCall(project, initial);
   }
 
-  private returnsFromGate(project: Project, sourceFile: SourceFile, call: CallExpression, seen: Set<number>): boolean {
-    const callee = unwrapped(call.expression);
-    if (!isIdentifier(callee)) return false;
-    const symbol = project.checker.getSymbolAtLocation(callee);
-    if (symbol === undefined || seen.has(symbol.id) || symbol.declarations.length !== 1) return false;
-    const [handle] = symbol.declarations;
-    if (handle === undefined || handle.path !== sourceFile.path) return false;
+  private constInitializerOf(project: Project, name: Identifier): Expression | undefined {
+    const handle = project.checker.getSymbolAtLocation(name)?.valueDeclaration;
+    if (handle === undefined) return undefined;
     const declaration = handle.resolve(project);
-    if (declaration === undefined || !isFunctionDeclaration(declaration) || declaration.body === undefined) return false;
-    const returned = returnsIn(declaration.body).flatMap((node) => {
-      if (isReturnStatement(node) && node.expression !== undefined) return [node.expression];
-      return [];
-    });
-    const files = returned.filter((expression) => !isNull(expression));
-    if (files.length === 0) return false;
-    const deeper = new Set([...seen, symbol.id]);
-    return files.every((expression) => this.isFromGate(project, sourceFile, expression, deeper));
+    if (declaration === undefined || !isVariableDeclaration(declaration) || !isConst(declaration)) return undefined;
+    return declaration.initializer;
   }
 
   private isGateCall(project: Project, call: CallExpression): boolean {
     const name = calledNameOf(call);
-    if (name !== null && isDeclaredIn(project.checker.getSymbolAtLocation(name), GATE_SOURCES)) return true;
-    return call.arguments.some((argument) => {
-      const value = unwrapped(argument);
-      return isPropertyAccessExpression(value) && isDeclaredIn(project.checker.getSymbolAtLocation(value.name), [GATE_HOLDER]);
-    });
-  }
-
-  private sourcesOf(project: Project, sourceFile: SourceFile, symbol: TypeSymbol): Expression[] {
-    if (symbol.declarations.length !== 1) return [];
-    const [handle] = symbol.declarations;
-    if (handle === undefined || handle.path !== sourceFile.path) return [];
-    const declaration = handle.resolve(project);
-    if (declaration === undefined) return [];
-    if (isVariableDeclaration(declaration)) return this.assignedTo(project, sourceFile, symbol, declaration.initializer);
-    if (isParameterDeclaration(declaration)) return this.passedTo(project, sourceFile, declaration);
-    return [];
-  }
-
-  private sameSymbol(project: Project, nodes: Node[], symbol: TypeSymbol): Node[] {
-    if (nodes.length === 0) return [];
-    const symbols = project.checker.getSymbolAtLocation(nodes);
-    return nodes.filter((_node, index) => symbols[index]?.id === symbol.id);
-  }
-
-  private assignedTo(project: Project, sourceFile: SourceFile, symbol: TypeSymbol, initializer: Expression | undefined): Expression[] {
-    const named = nodesIn(sourceFile, (node) => isIdentifier(node) && node.text === symbol.name);
-    const uses = this.sameSymbol(project, named, symbol);
-    const assignments = nodesIn(sourceFile, (node) => isBinaryExpression(node) && node.operatorToken.kind === SyntaxKind.EqualsToken && uses.includes(node.left));
-    const assigned = assignments.flatMap((node) => {
-      if (isBinaryExpression(node)) return [node.right];
-      return [];
-    });
-    if (initializer === undefined) return assigned;
-    return [initializer, ...assigned];
-  }
-
-  private passedTo(project: Project, sourceFile: SourceFile, parameter: ParameterDeclaration): Expression[] {
-    const owner = parameter.parent;
-    if (!isFunctionDeclaration(owner) || owner.name === undefined || isExported(owner)) return [];
-    const ownerSymbol = project.checker.getSymbolAtLocation(owner.name);
-    if (ownerSymbol === undefined) return [];
-    const index = owner.parameters.indexOf(parameter);
-    const named = nodesIn(sourceFile, (node) => isIdentifier(node) && node.text === ownerSymbol.name && node !== owner.name);
-    const uses = this.sameSymbol(project, named, ownerSymbol);
-    const calls = nodesIn(sourceFile, (node) => isCallExpression(node) && uses.includes(node.expression));
-    if (calls.length !== uses.length) return [];
-    return calls.flatMap((call) => {
-      if (!isCallExpression(call)) return [];
-      const argument = call.arguments[index];
-      if (argument === undefined) return [];
-      return [argument];
-    });
+    if (name === null) return false;
+    const symbol = project.checker.getSymbolAtLocation(name);
+    if (symbol === undefined) return false;
+    const [declaration, ...others] = symbol.declarations;
+    return declaration !== undefined && others.length === 0 && GATE_SOURCES.some((ending) => declaration.path.endsWith(ending));
   }
 
   private isActiveView(project: Project, owner: Expression): boolean {
