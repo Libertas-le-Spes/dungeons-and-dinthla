@@ -26,7 +26,7 @@ npm install
 npm run build
 ```
 
-Then choose the **Campaigns folder**, on the welcome page or in the plugin's settings: the one folder of the vault where your campaigns live, such as `D&D`. The plugin reads and writes only inside it and does nothing until it is chosen, so the rest of your vault stays out of its reach. Its released `main.js` holds no network code, which every pull request and release checks. [docs/note-format.md](docs/note-format.md#the-campaigns-folder) says what that means.
+Then choose the **Campaigns folder**, on the welcome page or in the plugin's settings: the one folder of the vault where your campaigns live, such as `D&D`. The plugin reads and writes only inside it and does nothing until it is chosen, so the rest of your vault stays out of its reach. Every pull request and release checks its released `main.js` and `styles.css` for known kinds of network code. [docs/note-format.md](docs/note-format.md#the-campaigns-folder) says what that means.
 
 ## Demo vault
 

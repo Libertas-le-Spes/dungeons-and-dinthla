@@ -9,3 +9,11 @@ export const PLUGIN_BUNDLE: BuildOptions = {
   outfile: "main.js",
   logLevel: "info",
 };
+
+export const STYLES_BUNDLE: BuildOptions = {
+  entryPoints: ["styles/index.css"],
+  bundle: true,
+  loader: { ".woff2": "dataurl" },
+  outfile: "styles.css",
+  logLevel: "info",
+};
