@@ -28,6 +28,8 @@ function newestFirst(lines: WrittenLine[]): WrittenLine[] {
 }
 
 export class LinesList {
+  readonly head: HTMLElement;
+  private readonly panel: HTMLElement;
   private readonly count: HTMLElement;
   private readonly list: HTMLElement;
 
@@ -35,11 +37,15 @@ export class LinesList {
     parent: HTMLElement,
     private readonly actions: LinkActions,
   ) {
-    const panel = parent.createEl("section", { cls: "dd-notes-panel dd-lines-panel" });
-    const head = panel.createDiv({ cls: "dd-head" });
-    const title = head.createEl("h2", { cls: "dd-title", text: "Notes" });
+    this.panel = parent.createEl("section", { cls: "dd-notes-panel dd-lines-panel" });
+    this.head = this.panel.createDiv({ cls: "dd-head" });
+    const title = this.head.createEl("h2", { cls: "dd-title", text: "Notes" });
     this.count = title.createSpan({ cls: "dd-count" });
-    this.list = panel.createEl("ul", { cls: "dd-written-lines", attr: { "aria-live": "polite" } });
+    this.list = this.panel.createEl("ul", { cls: "dd-written-lines", attr: { "aria-live": "polite" } });
+  }
+
+  setShown(shown: boolean): void {
+    this.panel.toggle(shown);
   }
 
   show(lines: WrittenLine[], campaign: Campaign): void {

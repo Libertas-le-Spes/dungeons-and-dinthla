@@ -1,102 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
-import type { App, TAbstractFile, TFile } from "obsidian";
-import { noteTextsOf, type NoteTexts } from "../../src/campaign/note-texts";
-import { NoteDrafts } from "../../src/note-page/note-drafts";
+import { NoteDrafts } from "../../src/note-editing/note-drafts";
 import { LEFT_CAMPAIGN } from "../../src/note-page/left-campaign";
-import { CHANGED_ELSEWHERE, NOTE_GONE_HERE, NotePage } from "../../src/note-page/note-page";
-import { NoteSaver, type SaverVault } from "../../src/note-page/note-saver";
+import { CHANGED_ELSEWHERE, NOTE_GONE_HERE } from "../../src/note-editing/note-editing";
+import { NotePage } from "../../src/note-page/note-page";
+import { NoteSaver } from "../../src/note-editing/note-saver";
 import { Drafts } from "../../src/session-notes/drafts";
 import { isShown, obsidianDocument } from "../views/obsidian-dom";
+import { BOM, FakeNotes } from "../note-editing/fake-notes";
 
 const OLD_MILL = "Pale Moon/Places/Old Mill.md";
 const LOADED = "The wheel turns at night.";
 const TYPED = "The wheel turns at night. [[Lady Vess]] owns it.";
 const WINDOWS_NOTE = "The wheel turns.\r\nRain.\r\n";
 const WINDOWS_NOTE_IN_BOX = "The wheel turns.\nRain.\n";
-
-type ChangedListener = (file: TFile, text: string) => void;
-
-type GoneListener = (file: TAbstractFile) => void;
-
-const BOM = "\uFEFF";
-
-function readByObsidian(disk: string): string {
-  if (!disk.startsWith(BOM)) return disk;
-  return disk.substring(BOM.length);
-}
-
-class FakeNotes {
-  text: string | null;
-  readonly changedListeners = new Set<ChangedListener>();
-  readonly goneListeners = new Set<GoneListener>();
-  readonly writes: string[] = [];
-  private readGate: Promise<void> = Promise.resolve();
-  readonly process = vi.fn(async (_file: TFile, change: (now: string) => string) => {
-    const now = String(this.text);
-    const changed = change(now);
-    if (changed !== now) this.writes.push(changed);
-    this.text = changed;
-    return changed;
-  });
-  readonly read = vi.fn(async () => {
-    await this.readGate;
-    return readByObsidian(String(this.text));
-  });
-
-  constructor(text: string | null) {
-    this.text = text;
-  }
-
-  get texts(): NoteTexts {
-    return noteTextsOf(this.app);
-  }
-
-  get vault(): SaverVault {
-    return { getFileByPath: (path: string) => this.fileAt(path), process: this.process } as unknown as SaverVault;
-  }
-
-  holdRead(): () => void {
-    let release = () => {};
-    this.readGate = new Promise<void>((resolve) => {
-      release = resolve;
-    });
-    return () => release();
-  }
-
-  changeElsewhere(text: string, path = OLD_MILL): void {
-    this.text = text;
-    for (const listener of this.changedListeners) listener({ path } as TFile, text);
-  }
-
-  deleteNote(path = OLD_MILL): void {
-    this.text = null;
-    for (const listener of this.goneListeners) listener({ path } as TAbstractFile);
-  }
-
-  private fileAt(path: string): TFile | null {
-    if (this.text === null || path !== OLD_MILL) return null;
-    return { path } as TFile;
-  }
-
-  private get app(): App {
-    const metadataCache = {
-      on: (_name: string, listener: ChangedListener) => this.listen(this.changedListeners, listener),
-      offref: (listener: ChangedListener) => this.changedListeners.delete(listener),
-    };
-    const vault = {
-      getFileByPath: (path: string) => this.fileAt(path),
-      read: this.read,
-      on: (_name: string, listener: GoneListener) => this.listen(this.goneListeners, listener),
-      offref: (listener: GoneListener) => this.goneListeners.delete(listener),
-    };
-    return { metadataCache, vault } as unknown as App;
-  }
-
-  private listen<T>(listeners: Set<T>, listener: T): T {
-    listeners.add(listener);
-    return listener;
-  }
-}
 
 function flushed(): Promise<void> {
   return new Promise((done) => setTimeout(done, 0));
@@ -109,7 +25,7 @@ interface Setup {
   inCampaign?: boolean;
 }
 
-async function openNote({ text = LOADED, drafts = new Drafts({}, () => {}), notes = new FakeNotes(text), inCampaign = true }: Setup = {}) {
+async function openNote({ text = LOADED, drafts = new Drafts({}, () => {}), notes = new FakeNotes(OLD_MILL, text), inCampaign = true }: Setup = {}) {
   const document = obsidianDocument();
   const root = document.createElement("div");
   document.body.append(root);
@@ -317,7 +233,7 @@ describe("NotePage", () => {
 
   it("shows what is typed in another box for the same note, so typing in either keeps the other's text", async () => {
     const drafts = new Drafts({}, () => {});
-    const notes = new FakeNotes(LOADED);
+    const notes = new FakeNotes(OLD_MILL, LOADED);
     const first = await openNote({ drafts, notes });
     const second = await openNote({ drafts, notes });
     first.type(TYPED);
@@ -330,7 +246,7 @@ describe("NotePage", () => {
 
   it("doesn't set the text of a box that already shows the draft, so the caret stays put", async () => {
     const drafts = new Drafts({}, () => {});
-    const notes = new FakeNotes(LOADED);
+    const notes = new FakeNotes(OLD_MILL, LOADED);
     const first = await openNote({ drafts, notes });
     const second = await openNote({ drafts, notes });
     const setFirst = vi.spyOn(first.box, "value", "set");
@@ -387,7 +303,7 @@ describe("NotePage", () => {
   });
 
   it("leaves the box empty and read-only when the note is read only after the page was closed", async () => {
-    const notes = new FakeNotes(LOADED);
+    const notes = new FakeNotes(OLD_MILL, LOADED);
     const release = notes.holdRead();
     const { page, box, saveButton } = await openNote({ notes });
     page.unload();
@@ -416,7 +332,7 @@ describe("NotePage", () => {
   });
 
   it("can't be left for the editor before the note is loaded", async () => {
-    const notes = new FakeNotes(LOADED);
+    const notes = new FakeNotes(OLD_MILL, LOADED);
     notes.holdRead();
     const { root } = await openNote({ notes, inCampaign: false });
     expect(root.querySelector<HTMLButtonElement>(".dd-open-in-editor")!.disabled).toBe(true);
