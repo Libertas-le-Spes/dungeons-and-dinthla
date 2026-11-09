@@ -7,6 +7,8 @@ import {
   isCallExpression,
   isComputedPropertyName,
   isElementAccessExpression,
+  isExportDeclaration,
+  isImportDeclaration,
   isForInStatement,
   isIdentifier,
   isNoSubstitutionTemplateLiteral,
@@ -62,6 +64,23 @@ export const VIEW_TEXT = ["innerText", "textContent", "outerText"];
 
 const VIEW_ELEMENTS = ["contentEl", "containerEl"];
 
+export const EDITOR_HOOKS = [
+  "updateListener",
+  "transactionFilter",
+  "changeFilter",
+  "inputHandler",
+  "editorEditorField",
+  "editorViewField",
+  "editorInfoField",
+  "editorLivePreviewField",
+];
+
+const CODE_MIRROR_FOLDER = "/node_modules/@codemirror/";
+
+const CODE_MIRROR_MODULE = "@codemirror/";
+
+const DOCUMENT = "doc";
+
 export const FORBIDDEN_NAMES = ["MarkdownRenderer", "renderMarkdown", "executeCommandById", "commands", "execCommand", "Function", "eval", "openLinkText", "plugins", "getPlugin", "enabledPlugins", "internalPlugins"];
 
 const EDITOR_OWNERS = [
@@ -116,6 +135,7 @@ export interface Allowances {
   fileTree: Allowed;
   looseCasts: Allowed;
   noteReading: Allowed;
+  codeMirror: Allowed;
 }
 
 interface Named {
@@ -129,6 +149,10 @@ interface Found {
   editorReads: Named[];
   fileTreeNames: Named[];
   noteReads: Named[];
+  members: Named[];
+  editorHooks: Named[];
+  codeMirrorImports: Node[];
+  documentOwners: Expression[];
   viewTextOwners: Node[];
   forbidden: Named[];
   constructors: Node[];
@@ -162,6 +186,10 @@ function emptyFound(): Found {
     editorReads: [],
     fileTreeNames: [],
     noteReads: [],
+    members: [],
+    editorHooks: [],
+    codeMirrorImports: [],
+    documentOwners: [],
     viewTextOwners: [],
     forbidden: [],
     constructors: [],
@@ -183,11 +211,19 @@ function addName(found: Found, node: Node, name: string): void {
   if (EDITOR_READS.includes(name)) found.editorReads.push({ node, name });
   if (FILE_TREE.includes(name)) found.fileTreeNames.push({ node, name });
   if (NOTE_READS.includes(name)) found.noteReads.push({ node, name });
+  found.members.push({ node, name });
   if (name === CONSTRUCTOR) found.constructors.push(node);
 }
 
 function addForbidden(found: Found, node: Node, name: string): void {
   if (FORBIDDEN_NAMES.includes(name)) found.forbidden.push({ node, name });
+  if (EDITOR_HOOKS.includes(name)) found.editorHooks.push({ node, name });
+}
+
+function addCodeMirrorImport(found: Found, node: Node): void {
+  if (!isImportDeclaration(node) && !isExportDeclaration(node)) return;
+  const module = node.moduleSpecifier;
+  if (module !== undefined && isStringLiteral(module) && module.text.startsWith(CODE_MIRROR_MODULE)) found.codeMirrorImports.push(module);
 }
 
 function addElementAccess(found: Found, access: ElementAccessExpression): void {
@@ -197,6 +233,7 @@ function addElementAccess(found: Found, access: ElementAccessExpression): void {
     return;
   }
   if (literal === APP) found.appOwners.push(access.expression);
+  if (literal === DOCUMENT) found.documentOwners.push(access.expression);
   addName(found, access.argumentExpression, literal);
   addForbidden(found, access.argumentExpression, literal);
 }
@@ -252,8 +289,10 @@ function foundIn(sourceFile: SourceFile): Found {
   const visit = (node: Node): void => {
     if (isPropertyAccessExpression(node)) addName(found, node.name, node.name.text);
     if (isPropertyAccessExpression(node) && node.name.text === APP) found.appOwners.push(node.expression);
+    if (isPropertyAccessExpression(node) && node.name.text === DOCUMENT) found.documentOwners.push(node.expression);
     addInCheck(found, node);
     addViewText(found, node);
+    addCodeMirrorImport(found, node);
     if (isElementAccessExpression(node)) addElementAccess(found, node);
     if (isBindingElement(node) && isObjectBindingPattern(node.parent)) addBinding(found, node);
     if (isIdentifier(node) && node.text === REFLECTION) found.reflections.push(node);
@@ -378,6 +417,15 @@ export class SourceScanner {
         if (NOTE_READS.includes(name)) breaches.push(`${where(node)} destructures ${name}`);
       }
     }
+    if (!allowances.codeMirror(path)) {
+      for (const node of found.codeMirrorImports) breaches.push(`${where(node)} loads CodeMirror`);
+      for (const { node, name } of found.editorHooks) breaches.push(`${where(node)} reaches the editor with ${name}`);
+      for (const { node, name } of this.codeMirrorMembers(project, found)) breaches.push(`${where(node)} reaches the editor through CodeMirror's ${name}`);
+      for (const node of this.looseDocumentOwners(project, found)) breaches.push(`${where(node)} reads the doc of a value it can't type`);
+      for (const { node, name } of found.destructured) {
+        if (name === DOCUMENT) breaches.push(`${where(node)} destructures ${name}`);
+      }
+    }
     for (const node of this.typedBy(project, found.viewTextOwners, (type) => this.isViewOrUntyped(project, type))) breaches.push(`${where(node)} reads the text of a view's element`);
     if (!allowances.fileTree(path)) {
       for (const { node, name } of this.fileTreeSteps(project, found)) breaches.push(`${where(node)} walks the vault's folders with ${name}`);
@@ -401,6 +449,22 @@ export class SourceScanner {
     if (named.length === 0) return [];
     const symbols = project.checker.getSymbolAtLocation(named.map(({ node }) => node));
     return named.filter((_named, index) => isOwner(symbols[index]));
+  }
+
+  private codeMirrorMembers(project: Project, found: Found): Named[] {
+    if (found.members.length === 0) return [];
+    const symbols = project.checker.getSymbolAtLocation(found.members.map(({ node }) => node));
+    return found.members.filter(({ name }, index) => {
+      const symbol = symbols[index];
+      if (symbol === undefined) return name === DOCUMENT;
+      return symbol.declarations.some((declaration) => declaration.path.includes(CODE_MIRROR_FOLDER));
+    });
+  }
+
+  private looseDocumentOwners(project: Project, found: Found): Node[] {
+    const untyped = this.typedBy(project, found.documentOwners, (type) => this.isGlobalOrUntyped(project, type));
+    const cast = found.documentOwners.filter((owner) => this.wentThroughCast(project, owner, new Set()));
+    return [...new Set([...untyped, ...cast])];
   }
 
   private editorWrites(project: Project, found: Found): Named[] {
