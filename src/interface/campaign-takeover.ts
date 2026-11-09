@@ -5,6 +5,11 @@ import { RETIRED_SHEET_VIEW } from "./retired-views";
 
 export type ShownViewState = ViewState & { icon?: string; title?: string };
 
+export interface Takeover {
+  campaignViewRegistered(): boolean;
+  campaignFolders(): string[];
+}
+
 const TAKEN_TYPES = ["markdown", "bases", RETIRED_SHEET_VIEW];
 
 function filePathIn(viewState: ShownViewState): string | null {
@@ -16,10 +21,11 @@ function filePathIn(viewState: ShownViewState): string | null {
   return file;
 }
 
-export function campaignStateFor(viewState: ShownViewState, campaignFolders: string[]): ShownViewState {
+export function campaignStateFor(viewState: ShownViewState, takeover: Takeover): ShownViewState {
   const path = filePathIn(viewState);
   if (path === null) return viewState;
-  const page = pageOfFile(path, campaignFolders);
+  if (!takeover.campaignViewRegistered()) return viewState;
+  const page = pageOfFile(path, takeover.campaignFolders());
   if (page === null) return viewState;
   return { ...viewState, type: CAMPAIGN_VIEW, state: { page, path }, icon: CAMPAIGN_ICON, title: CAMPAIGN_TITLE };
 }
