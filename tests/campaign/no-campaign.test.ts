@@ -15,7 +15,7 @@ beforeEach(() => {
 
 describe("a dialog that writes into a session, without a campaign", () => {
   it.each([
-    ["Add coin", (app: App) => openAddCoin(app, noCampaign, vi.fn())],
+    ["Add coin", (app: App) => openAddCoin(app, noCampaign, vi.fn(), null)],
     ["New question", (app: App) => openNewQuestion(app, noCampaign, vi.fn())],
     ["New quest", (app: App) => openNewQuest(app, noCampaign, vi.fn())],
   ])("%s says to make a campaign first and opens nothing", (_name, open) => {

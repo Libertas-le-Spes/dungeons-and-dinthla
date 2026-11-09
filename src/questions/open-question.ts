@@ -3,7 +3,6 @@ import type { QuestionRecord, Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
 import { SESSIONS_SHARE_A_NUMBER, latestNumberIsShared, sessionToWriteIn } from "../campaign/session-to-write";
-import { activePathOf } from "../views/open-view";
 import { ANSWER_GOES_ELSEWHERE, answerWouldGoElsewhere, currentQuestion, latestSessionOfQuestion, sharesTextWithEarlierOpenQuestion } from "./current-question";
 import { QuestionModal } from "./question-modal";
 import { planQuestionSave, planReopen, refusalForQuestionPlan, type QuestionEdit, type QuestionPlan } from "./question-plan";
@@ -18,6 +17,7 @@ export function openQuestion(
   source: Source,
   openNote: () => void,
   onClosed: (changed: boolean) => void,
+  activePath: string | null,
 ): void {
   const questions = store.current.questions;
   const question = questions.find((candidate) => candidate.source.path === source.path && candidate.source.line === source.line);
@@ -32,7 +32,7 @@ export function openQuestion(
     return;
   }
   const paths = app.vault.getFiles().map((file) => file.path);
-  const sessionPath = sessionToWriteIn(activePathOf(app), folder, paths, latestSessionOfQuestion(question, folder));
+  const sessionPath = sessionToWriteIn(activePath, folder, paths, latestSessionOfQuestion(question, folder));
   if (sessionPath === null && latestNumberIsShared(folder, paths)) {
     new Notice(SESSIONS_SHARE_A_NUMBER);
     return;

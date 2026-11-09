@@ -4,7 +4,7 @@ import { charactersIn } from "../campaign/characters";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
 import { latestNumberIsShared, SESSIONS_SHARE_A_NUMBER, sessionToWriteIn } from "../campaign/session-to-write";
-import { activePathOf, openSource } from "../views/open-view";
+import { openSource } from "../views/open-view";
 import { ItemModal } from "./item-modal";
 import { holderOptionOf, holderOptions, latestSessionOfItem } from "./item-plan";
 import { openedItem } from "./item-writer";
@@ -15,7 +15,14 @@ function itemNamed(items: ItemRecord[], name: string): ItemRecord | undefined {
   return items.find((item) => item.name === name);
 }
 
-export function openItemDialog(app: App, store: CampaignStore, name: string, openNote: () => void, onClosed: (changed: boolean) => void): void {
+export function openItemDialog(
+  app: App,
+  store: CampaignStore,
+  name: string,
+  openNote: () => void,
+  onClosed: (changed: boolean) => void,
+  activePath: string | null,
+): void {
   const item = itemNamed(store.current.items, name);
   const folder = store.campaignFolder;
   if (item === undefined || folder === null) {
@@ -23,7 +30,7 @@ export function openItemDialog(app: App, store: CampaignStore, name: string, ope
     return;
   }
   const paths = app.vault.getFiles().map((file) => file.path);
-  const sessionPath = sessionToWriteIn(activePathOf(app), folder, paths, latestSessionOfItem(item, folder));
+  const sessionPath = sessionToWriteIn(activePath, folder, paths, latestSessionOfItem(item, folder));
   if (sessionPath === null && latestNumberIsShared(folder, paths)) {
     new Notice(SESSIONS_SHARE_A_NUMBER);
     return;

@@ -17,8 +17,15 @@ describe("pageOfFile", () => {
     expect(pageOfFile("Pale Moon/Characters.base", FOLDERS)).toBe("cast");
   });
 
-  it("leaves sessions, other notes and other files of a campaign to Obsidian", () => {
-    expect(pageOfFile("Pale Moon/Sessions/Session 1.md", FOLDERS)).toBeNull();
+  it("shows a session note on the Notes page", () => {
+    expect(pageOfFile("Pale Moon/Sessions/Session 1.md", FOLDERS)).toBe("notes");
+    expect(pageOfFile("Ashen Road/Sessions/Session 12.md", FOLDERS)).toBe("notes");
+  });
+
+  it("leaves notes in Sessions not named as a session, other notes and other files of a campaign to Obsidian", () => {
+    expect(pageOfFile("Pale Moon/Sessions/Recap.md", FOLDERS)).toBeNull();
+    expect(pageOfFile("Pale Moon/Sessions/Old/Session 1.md", FOLDERS)).toBeNull();
+    expect(pageOfFile("Pale Moon/Session 1.md", FOLDERS)).toBeNull();
     expect(pageOfFile("Pale Moon/Places/Old Mill.md", FOLDERS)).toBeNull();
     expect(pageOfFile("Pale Moon/Characters/Mira.png", FOLDERS)).toBeNull();
     expect(pageOfFile("Pale Moon/Places.base", FOLDERS)).toBeNull();
@@ -33,5 +40,6 @@ describe("pageOfFile", () => {
     expect(pageOfFile("Gilded Stag/Gilded Stag.md", FOLDERS)).toBeNull();
     expect(pageOfFile("Gilded Stag/Characters/Lady Vess.md", FOLDERS)).toBeNull();
     expect(pageOfFile("Gilded Stag/Characters.base", FOLDERS)).toBeNull();
+    expect(pageOfFile("Gilded Stag/Sessions/Session 1.md", FOLDERS)).toBeNull();
   });
 });

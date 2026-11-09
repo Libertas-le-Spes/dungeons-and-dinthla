@@ -3,7 +3,7 @@ import { Component, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { Campaign } from "../../src/campaign/campaign";
 import type { CampaignStore } from "../../src/campaign/campaign-store";
-import type { NavSection, PageEntry, PageId, ShowPage } from "../../src/interface/campaign-pages";
+import type { NavSection, PageEntry, PageId, PathAfterDelete, ShowPage, StayOn } from "../../src/interface/campaign-pages";
 import { CAMPAIGN_VIEW, CampaignView } from "../../src/interface/campaign-view";
 import { obsidianDocument } from "../views/obsidian-dom";
 
@@ -15,6 +15,7 @@ class FakePage extends Component {
     readonly contentEl: HTMLElement,
     readonly show: ShowPage,
     readonly path: string | null,
+    readonly stayOn: StayOn,
   ) {
     super();
   }
@@ -57,16 +58,24 @@ function campaignOf(lines: string[]): Campaign {
   return buildCampaign([{ path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: lines.join("\n") }]);
 }
 
-function entryOf(id: PageId, made: FakePage[], countOf: (campaign: Campaign) => number = () => 0): PageEntry {
-  const make = (contentEl: HTMLElement, show: ShowPage, path: string | null) => {
-    const page = new FakePage(id, contentEl, show, path);
+const LEAVE_DELETED: PathAfterDelete = () => null;
+
+const KEEP_DELETED: PathAfterDelete = (path) => path;
+
+function entryOf(id: PageId, made: FakePage[], countOf: (campaign: Campaign) => number = () => 0, pathAfterDelete = LEAVE_DELETED): PageEntry {
+  const make = (contentEl: HTMLElement, show: ShowPage, path: string | null, stayOn: StayOn) => {
+    const page = new FakePage(id, contentEl, show, path, stayOn);
     made.push(page);
     return page;
   };
-  return { id, label: `Label ${id}`, glyph: "?", glyphClass: "dd-marker-question", make, countOf };
+  return { id, label: `Label ${id}`, glyph: "?", glyphClass: "dd-marker-question", make, pathAfterDelete, countOf };
 }
 
-async function openView({ folder = "Pale Moon" as string | null, questionCount = (campaign: Campaign) => campaign.questions.length } = {}) {
+async function openView({
+  folder = "Pale Moon" as string | null,
+  questionCount = (campaign: Campaign) => campaign.questions.length,
+  castAfterDelete = LEAVE_DELETED,
+} = {}) {
   let listener = () => {};
   const unsubscribe = vi.fn();
   const store = {
@@ -79,7 +88,7 @@ async function openView({ folder = "Pale Moon" as string | null, questionCount =
   };
   const made: FakePage[] = [];
   const sections: NavSection[] = [
-    { heading: null, pages: [entryOf("home", made), entryOf("cast", made)] },
+    { heading: null, pages: [entryOf("home", made), entryOf("cast", made, () => 0, castAfterDelete)] },
     { heading: "From the notes", pages: [entryOf("questions", made, questionCount), entryOf("funds", made)] },
   ];
   const requestSaveLayout = vi.fn();
@@ -254,6 +263,42 @@ describe("CampaignView", () => {
     vault.deleted(MIRA);
     expect(pageText(root)).toBe("page cast null");
     expect(view.getState()).toEqual({ page: "cast", path: null });
+  });
+
+  it("stays on a page that keeps its note when the note is deleted", async () => {
+    const { view, vault, made } = await openView({ castAfterDelete: KEEP_DELETED });
+    const session = "Pale Moon/Sessions/Session 3.md";
+    await view.setState({ page: "cast", path: session }, { history: false });
+    const pages = made.length;
+    vault.deleted(session);
+    expect(made).toHaveLength(pages);
+    expect(view.getState()).toEqual({ page: "cast", path: session });
+  });
+
+  it("records the note a page settles on when opened without one, without a new page or a step in the history", async () => {
+    const { view, made, results, requestSaveLayout } = await openView();
+    const session = "Pale Moon/Sessions/Session 3.md";
+    await view.setState({ page: "cast", path: null }, { history: false });
+    const saves = requestSaveLayout.mock.calls.length;
+    const pages = made.length;
+    made.at(-1)!.stayOn(session);
+    expect(view.getState()).toEqual({ page: "cast", path: session });
+    expect(view.shownPath()).toBe(session);
+    expect(requestSaveLayout).toHaveBeenCalledTimes(saves + 1);
+    expect(made).toHaveLength(pages);
+    expect(results).toEqual([]);
+  });
+
+  it("ignores a page settling on a note once the tab has moved on or already shows one", async () => {
+    const { view, made } = await openView();
+    await view.setState({ page: "cast", path: null }, { history: false });
+    const notes = made.at(-1)!;
+    await view.setState({ page: "funds" }, { history: false });
+    notes.stayOn("Pale Moon/Sessions/Session 3.md");
+    expect(view.getState()).toEqual({ page: "funds", path: null });
+    await view.setState({ page: "cast", path: "Pale Moon/Sessions/Session 4.md" }, { history: false });
+    made.at(-1)!.stayOn("Pale Moon/Sessions/Session 3.md");
+    expect(view.getState()).toEqual({ page: "cast", path: "Pale Moon/Sessions/Session 4.md" });
   });
 
   it("shows a page's count beside its link, and none for a count of nothing", async () => {
