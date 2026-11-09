@@ -1,4 +1,4 @@
-import { debounce, MarkdownView, Notice, Plugin, WorkspaceLeaf, type EditorSuggestContext, type MarkdownFileInfo, type TFile, type ViewState } from "obsidian";
+import { debounce, MarkdownView, Notice, Plugin, WorkspaceLeaf, type MarkdownFileInfo, type TFile, type ViewState } from "obsidian";
 import type { Source } from "./campaign/campaign";
 import type { SheetValue } from "./characters/character-sheet";
 import { messageOf } from "./views/message-of";
@@ -18,9 +18,6 @@ import { sheetNotesOf } from "./characters/sheet-notes";
 import { mentionNotesOf } from "./characters/mention-notes";
 import { editorTextOf } from "./campaign/editor-text";
 import { markerColouring } from "./editor/marker-decorations";
-import type { LookupMatch } from "./lookups/lookup";
-import { LookupSuggest } from "./lookups/lookup-suggest";
-import { openLookup } from "./lookups/open-lookup";
 import type { LookupOpeners } from "./lookups/open-match";
 import { openNewQuestion } from "./questions/open-new-question";
 import { openQuestion } from "./questions/open-question";
@@ -258,11 +255,6 @@ export default class DungeonsAndDinthla extends Plugin {
     this.addCommand({ id: "start-session", name: "Start a new session", callback: newSession });
     const inSession = (path: string) => isSessionNote(path, this.campaignsFolder.path, (notePath) => gate.files.getFileByPath(notePath) !== null);
     this.registerEditorExtension(markerColouring(inSession));
-    const noteChanged = (path: string, text: string) => this.store.noteChanged(path, text);
-    const pickLookup = (match: LookupMatch, context: EditorSuggestContext) => {
-      openLookup(this.app, gate.files, match, context, noteChanged, openers).catch((error: unknown) => new Notice(`Couldn't open it: ${messageOf(error)}`));
-    };
-    this.registerEditorSuggest(new LookupSuggest(this.app, (path, text) => this.store.currentAsEdited(path, text), inSession, pickLookup));
     this.registerMarkdownPostProcessor((element, context) => {
       if (inSession(context.sourcePath)) colourMarkers(element);
     });
