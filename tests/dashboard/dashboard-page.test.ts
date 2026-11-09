@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import type { TFile, WorkspaceLeaf } from "obsidian";
+import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { SessionNote, Source } from "../../src/campaign/campaign";
 import type { CampaignStore } from "../../src/campaign/campaign-store";
 import type { CharacterNotes } from "../../src/characters/character-notes";
-import { DashboardView, type DashboardActions } from "../../src/dashboard/dashboard-view";
+import { DashboardPage, type DashboardActions } from "../../src/dashboard/dashboard-page";
 import type { CoinOutcome } from "../../src/funds/coin-modal";
 import { NO_COIN_ENTRIES } from "../../src/funds/ledger-row";
 import { SESSIONS_SHARE_A_NUMBER } from "../../src/campaign/session-to-write";
@@ -75,23 +75,16 @@ async function openDashboard(sessions: SessionNote[], { folder = CAMPAIGN, chara
     startSession: vi.fn(),
     sessionHeadingOf: (path: string) => `${path.slice(path.lastIndexOf("/") + 1, -3)} · The ferry at dusk`,
   } satisfies DashboardActions;
-  const view = new DashboardView({} as WorkspaceLeaf, store as unknown as CampaignStore, notes, actions);
   const root = obsidianDocument().createElement("div");
   root.ownerDocument.body.append(root);
-  view.contentEl = root;
-  const registered: (() => void)[] = [];
-  view.register = (callback) => {
-    registered.push(callback);
-  };
-  await view.onOpen();
+  const view = new DashboardPage(root, store as unknown as CampaignStore, notes, actions);
+  view.load();
   const change = (next: SessionNote[]) => {
     store.current = buildCampaign(next);
     store.sessionNotes = next;
     listener();
   };
-  const close = () => {
-    for (const callback of registered) callback();
-  };
+  const close = () => view.unload();
   return { root, actions, closers, reads, change, close, unsubscribe, stopWatching, noteChanged: (path: string) => noteChanged(path) };
 }
 
@@ -117,7 +110,7 @@ const PURSE = 2;
 const CHARACTERS = 3;
 const SESSION = 4;
 
-describe("DashboardView", () => {
+describe("DashboardPage", () => {
   it("counts the open questions and shows the newest three, as the Questions view does", async () => {
     const { root } = await openDashboard([sessionOf(1, ["? First", "? Second", "? Third", "? Fourth", "? Fifth", "?= Fifth: done"])]);
     const questions = panel(root, QUESTIONS);

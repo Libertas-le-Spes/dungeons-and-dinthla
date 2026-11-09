@@ -1,6 +1,6 @@
 import type { Campaign, QuestRecord } from "../campaign/campaign";
 import { unlink } from "../notes/link";
-import type { ListContents } from "../views/list-view";
+import type { ListContents } from "../views/list-page";
 
 function searchableTextOf(record: QuestRecord): string {
   const texts = [record.quest.title];
