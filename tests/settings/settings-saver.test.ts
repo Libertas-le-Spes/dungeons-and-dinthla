@@ -125,3 +125,24 @@ describe("SettingsSaver", () => {
     expect(saver.settings).toEqual(SETTINGS);
   });
 });
+
+describe("SettingsSaver.whenSaved", () => {
+  it("waits for every save queued before it, even one that fails", async () => {
+    const { saver, writes } = heldSaver();
+    const first = saver.save({ lastVersionSeen: "0.3.0" });
+    const second = saver.save({ welcomeSeen: false });
+    let saved = false;
+    const waiting = saver.whenSaved().then(() => {
+      saved = true;
+    });
+    await settled();
+    writeAt(writes, 0).finish();
+    await first;
+    await settled();
+    expect(saved).toBe(false);
+    writeAt(writes, 1).fail(new Error("The disk is full."));
+    await expect(second).rejects.toThrow("The disk is full.");
+    await waiting;
+    expect(saved).toBe(true);
+  });
+});
