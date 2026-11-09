@@ -71,6 +71,15 @@ describe("openLink to a note inside the Campaigns folder", () => {
     expect(leaf.openFile).toHaveBeenCalledWith(MIRA, { eState: { subpath: "" } });
   });
 
+  it("opens the note the link leads to in another campaign, as Obsidian resolves it", async () => {
+    const elsewhere = fileAt("D&D/Ash Road/Characters/Brannoc.md");
+    const { app, place, calls, leaf, askFolder } = placeWith(elsewhere, [SESSION, elsewhere]);
+    await openLink(app, place, "Brannoc", FROM_SESSION, false);
+    expect(openedPaths(leaf)).toEqual([elsewhere.path]);
+    expect(calls.create).not.toHaveBeenCalled();
+    expect(askFolder).not.toHaveBeenCalled();
+  });
+
   it("opens the note at the heading the link names", async () => {
     const { app, place, raw, leaf } = placeWith(MIRA);
     await openLink(app, place, "Mira#Background", FROM_SESSION, false);
@@ -196,6 +205,39 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
     const { app, place, leaf } = placeWith(null, [SESSION, nearer, exact]);
     await openLink(app, place, "Places/Old Mill", FROM_SESSION, false);
     expect(openedPaths(leaf)).toEqual([exact.path]);
+  });
+
+  it("opens the note at the link's path in other capitals before a nearer note that ends the same way", async () => {
+    const exact = fileAt("D&D/Pale Moon/places/old mill.md");
+    const nearer = fileAt("D&D/Pale Moon/Sessions/Places/Old Mill.md");
+    const { app, place, leaf } = placeWith(null, [SESSION, nearer, exact]);
+    await openLink(app, place, "Places/Old Mill", FROM_SESSION, false);
+    expect(openedPaths(leaf)).toEqual([exact.path]);
+  });
+
+  it("leaves alone a note in a campaign whose name starts with this one's", async () => {
+    const longer = fileAt("D&D/Pale Moonlight/Places/Old Mill.md");
+    const { app, place, calls, leaf } = placeWith(null, [SESSION, longer]);
+    await openLink(app, place, "Old Mill", FROM_SESSION, false);
+    expect(calls.create).toHaveBeenCalledWith("D&D/Pale Moon/Old Mill.md", "");
+    expect(openedPaths(leaf)).toEqual(["D&D/Pale Moon/Old Mill.md"]);
+  });
+
+  it("counts the folders down to a note in its nearness, not only those up from the link", async () => {
+    const deeper = fileAt("D&D/Pale Moon/Places/Deep/Old Mill.md");
+    const shallower = fileAt("D&D/Pale Moon/Places/Old Mill.md");
+    const { app, place, leaf } = placeWith(null, [SESSION, deeper, shallower]);
+    await openLink(app, place, "Old Mill", FROM_SESSION, false);
+    expect(openedPaths(leaf)).toEqual([shallower.path]);
+  });
+
+  it("counts the folders up from the link in its nearness, not only those down to a note", async () => {
+    const from = { path: "D&D/Pale Moon/Sessions/Arc/Session 1.md", line: null };
+    const sameBranch = fileAt("D&D/Pale Moon/Sessions/Zed/Old Mill.md");
+    const otherBranch = fileAt("D&D/Pale Moon/Ash/Old Mill.md");
+    const { app, place, leaf } = placeWith(null, [SESSION, sameBranch, otherBranch]);
+    await openLink(app, place, "Old Mill", from, false);
+    expect(openedPaths(leaf)).toEqual([sameBranch.path]);
   });
 
   it("opens the note of that name nearest to the note holding the link", async () => {
