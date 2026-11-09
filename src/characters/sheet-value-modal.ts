@@ -6,7 +6,7 @@ import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
 import { deleteOnSecondPress, type SecondPress } from "../views/second-press";
 import type { SheetValue, ValueState } from "./character-sheet";
-import { shownTextOf, STATE_WORDS } from "./character-sheet-view";
+import { shownTextOf, STATE_WORDS } from "./character-sheet-page";
 import type { ValueChoice } from "./sheet-value-writer";
 import { isSheetName } from "./sheet-values";
 

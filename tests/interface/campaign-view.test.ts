@@ -14,13 +14,14 @@ class FakePage extends Component {
     readonly id: PageId,
     readonly contentEl: HTMLElement,
     readonly show: ShowPage,
+    readonly path: string | null,
   ) {
     super();
   }
 
   override onload(): void {
     this.loaded = true;
-    this.contentEl.setText(`page ${this.id}`);
+    this.contentEl.setText(`page ${this.id} ${String(this.path)}`);
   }
 
   override onunload(): void {
@@ -28,13 +29,37 @@ class FakePage extends Component {
   }
 }
 
+class FakeVault {
+  readonly listeners = new Map<string, (...args: unknown[]) => void>();
+  readonly removed: string[] = [];
+
+  on(name: string, listener: (...args: unknown[]) => void): string {
+    this.listeners.set(name, listener);
+    return name;
+  }
+
+  offref(ref: string): void {
+    this.removed.push(ref);
+  }
+
+  renamed(path: string, oldPath: string): void {
+    this.listeners.get("rename")!({ path }, oldPath);
+  }
+
+  deleted(path: string): void {
+    this.listeners.get("delete")!({ path });
+  }
+}
+
+const MIRA = "Pale Moon/Characters/Mira.md";
+
 function campaignOf(lines: string[]): Campaign {
   return buildCampaign([{ path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: lines.join("\n") }]);
 }
 
 function entryOf(id: PageId, made: FakePage[], countOf: (campaign: Campaign) => number = () => 0): PageEntry {
-  const make = (contentEl: HTMLElement, show: ShowPage) => {
-    const page = new FakePage(id, contentEl, show);
+  const make = (contentEl: HTMLElement, show: ShowPage, path: string | null) => {
+    const page = new FakePage(id, contentEl, show, path);
     made.push(page);
     return page;
   };
@@ -58,19 +83,29 @@ async function openView({ folder = "Pale Moon" as string | null, questionCount =
     { heading: "From the notes", pages: [entryOf("questions", made, questionCount), entryOf("funds", made)] },
   ];
   const requestSaveLayout = vi.fn();
-  const view = new CampaignView({} as WorkspaceLeaf, store as unknown as CampaignStore, sections);
-  view.app = { workspace: { requestSaveLayout } } as unknown as CampaignView["app"];
+  const followCampaign = vi.fn();
+  const results: ViewStateResult[] = [];
+  const leaf = {
+    setViewState: vi.fn(async ({ state }: { state: unknown }) => {
+      const result = { history: false };
+      results.push(result);
+      await view.setState(state, result);
+    }),
+  };
+  const vault = new FakeVault();
+  const view = new CampaignView(leaf as unknown as WorkspaceLeaf, store as unknown as CampaignStore, sections, followCampaign);
+  view.app = { workspace: { requestSaveLayout }, vault } as unknown as CampaignView["app"];
   const root = obsidianDocument().createElement("div");
   view.contentEl = root;
   view.load();
   await view.onOpen();
-  await view.setState({}, {} as ViewStateResult);
+  await view.setState({}, { history: false });
   const change = (lines: string[], nextFolder: string | null = folder) => {
     store.current = campaignOf(lines);
     store.campaignFolder = nextFolder;
     listener();
   };
-  return { view, root, made, change, unsubscribe, requestSaveLayout };
+  return { view, root, made, change, unsubscribe, requestSaveLayout, leaf, results, vault, followCampaign };
 }
 
 function linkLabelled(root: HTMLElement, label: string): HTMLElement {
@@ -87,15 +122,20 @@ function pageText(root: HTMLElement): string | null {
 
 describe("CampaignView", () => {
   it("gives its type while Obsidian is still building it", () => {
-    const view = new CampaignView({} as WorkspaceLeaf, {} as CampaignStore, [{ heading: null, pages: [entryOf("home", [])] }]);
+    const view = new CampaignView({} as WorkspaceLeaf, {} as CampaignStore, [{ heading: null, pages: [entryOf("home", [])] }], vi.fn());
     expect(view.containerEl.getAttribute("data-type")).toBe(CAMPAIGN_VIEW);
+  });
+
+  it("asks Obsidian to keep its pages in the back and forward history", async () => {
+    const { view } = await openView();
+    expect(view.navigation).toBe(true);
   });
 
   it("opens on its first page, marked as the current one", async () => {
     const { root, made } = await openView();
     expect(made.map((page) => page.id)).toEqual(["home"]);
     expect(made[0]!.loaded).toBe(true);
-    expect(pageText(root)).toBe("page home");
+    expect(pageText(root)).toBe("page home null");
     expect(currentLabels(root)).toEqual(["Label home"]);
   });
 
@@ -106,37 +146,114 @@ describe("CampaignView", () => {
     expect(shown).toEqual(["Pale Moon", "?Label home", "?Label cast", "From the notes", "?Label questions", "?Label funds"]);
   });
 
-  it("shows a page when its link is pressed, closing the one shown before", async () => {
-    const { root, made, requestSaveLayout } = await openView();
+  it("shows a page when its link is pressed, through Obsidian so it is kept in the history", async () => {
+    const { root, made, requestSaveLayout, leaf, results } = await openView();
     linkLabelled(root, "Label funds").click();
-    expect(made.map((page) => page.id)).toEqual(["home", "funds"]);
+    await vi.waitFor(() => expect(made.map((page) => page.id)).toEqual(["home", "funds"]));
+    expect(leaf.setViewState).toHaveBeenCalledExactlyOnceWith({ type: CAMPAIGN_VIEW, state: { page: "funds", path: null } });
+    expect(results).toEqual([{ history: true }]);
     expect(made[0]!.loaded).toBe(false);
     expect(made[1]!.loaded).toBe(true);
-    expect(pageText(root)).toBe("page funds");
+    expect(pageText(root)).toBe("page funds null");
     expect(currentLabels(root)).toEqual(["Label funds"]);
     expect(requestSaveLayout).toHaveBeenCalledTimes(2);
   });
 
-  it("leaves the page as it is when its own link is pressed again", async () => {
-    const { root, made } = await openView();
+  it("leaves the page as it is, and the history alone, when its own link is pressed again", async () => {
+    const { root, made, results } = await openView();
     linkLabelled(root, "Label home").click();
+    await vi.waitFor(() => expect(results).toHaveLength(1));
+    expect(results).toEqual([{ history: false }]);
     expect(made).toHaveLength(1);
     expect(made[0]!.loaded).toBe(true);
   });
 
-  it("shows the page its state names, and keeps that page in its state", async () => {
+  it("shows the page and note its state names, and keeps both in its state", async () => {
     const { view, root } = await openView();
-    await view.setState({ page: "cast" }, {} as ViewStateResult);
-    expect(pageText(root)).toBe("page cast");
-    expect(view.getState()).toEqual({ page: "cast" });
+    await view.setState({ page: "cast", path: MIRA }, { history: false });
+    expect(pageText(root)).toBe(`page cast ${MIRA}`);
+    expect(view.getState()).toEqual({ page: "cast", path: MIRA });
+  });
+
+  it("tells which note it shows, and none on a page without one", async () => {
+    const { view } = await openView();
+    expect(view.shownPath()).toBeNull();
+    await view.setState({ page: "cast", path: MIRA }, { history: false });
+    expect(view.shownPath()).toBe(MIRA);
+  });
+
+  it("never names its note under file, which Obsidian on a phone would open in the editor", async () => {
+    const { view } = await openView();
+    await view.setState({ page: "cast", path: MIRA }, { history: false });
+    expect(Object.keys(view.getState())).toEqual(["page", "path"]);
+  });
+
+  it("builds the page again for another note on the same page, and marks the change for the history", async () => {
+    const { view, made } = await openView();
+    await view.setState({ page: "cast", path: null }, { history: false });
+    const result = { history: false };
+    await view.setState({ page: "cast", path: MIRA }, result);
+    expect(made.map((page) => [page.id, page.path])).toEqual([["home", null], ["cast", null], ["cast", MIRA]]);
+    expect(made[1]!.loaded).toBe(false);
+    expect(result).toEqual({ history: true });
+  });
+
+  it("chooses the campaign of the note it is given, and none for a page with no note", async () => {
+    const { view, followCampaign } = await openView();
+    await view.setState({ page: "funds", path: null }, { history: false });
+    expect(followCampaign).not.toHaveBeenCalled();
+    await view.setState({ page: "cast", path: "Ashen Road/Characters/Thessaly.md" }, { history: false });
+    expect(followCampaign).toHaveBeenCalledExactlyOnceWith("Ashen Road/Characters/Thessaly.md");
+  });
+
+  it("takes a path that isn't text as no note", async () => {
+    const { view, root } = await openView();
+    await view.setState({ page: "cast", path: 7 }, { history: false });
+    expect(pageText(root)).toBe("page cast null");
   });
 
   it("stays on its page when the state names no page it has", async () => {
     const { view, root, made } = await openView();
-    await view.setState({ page: "notes" }, {} as ViewStateResult);
-    await view.setState({}, {} as ViewStateResult);
+    await view.setState({ page: "notes" }, { history: false });
+    await view.setState({}, { history: false });
     expect(made).toHaveLength(1);
-    expect(pageText(root)).toBe("page home");
+    expect(pageText(root)).toBe("page home null");
+  });
+
+  it("keeps the page it is on when a later state names no page", async () => {
+    const { view, root, made } = await openView();
+    await view.setState({ page: "funds" }, { history: false });
+    await view.setState({}, { history: false });
+    expect(made.map((page) => page.id)).toEqual(["home", "funds"]);
+    expect(pageText(root)).toBe("page funds null");
+  });
+
+  it("follows its note when the note is renamed, without a step in the history", async () => {
+    const { view, root, results, requestSaveLayout, vault } = await openView();
+    await view.setState({ page: "cast", path: MIRA }, { history: false });
+    const saves = requestSaveLayout.mock.calls.length;
+    vault.renamed("Pale Moon/Characters/Mirabel.md", MIRA);
+    expect(pageText(root)).toBe("page cast Pale Moon/Characters/Mirabel.md");
+    expect(view.getState()).toEqual({ page: "cast", path: "Pale Moon/Characters/Mirabel.md" });
+    expect(requestSaveLayout).toHaveBeenCalledTimes(saves + 1);
+    expect(results).toEqual([]);
+  });
+
+  it("ignores other notes being renamed or deleted", async () => {
+    const { view, vault, made } = await openView();
+    await view.setState({ page: "cast", path: MIRA }, { history: false });
+    vault.renamed("Pale Moon/Characters/Lady Vess.md", "Pale Moon/Characters/Vess.md");
+    vault.deleted("Pale Moon/Characters/Brother Aldric.md");
+    expect(made).toHaveLength(2);
+    expect(view.getState()).toEqual({ page: "cast", path: MIRA });
+  });
+
+  it("goes back to the page without a note when its note is deleted", async () => {
+    const { view, vault, root } = await openView();
+    await view.setState({ page: "cast", path: MIRA }, { history: false });
+    vault.deleted(MIRA);
+    expect(pageText(root)).toBe("page cast null");
+    expect(view.getState()).toEqual({ page: "cast", path: null });
   });
 
   it("shows a page's count beside its link, and none for a count of nothing", async () => {
@@ -155,36 +272,39 @@ describe("CampaignView", () => {
   it("builds no page until Obsidian gives it its state", async () => {
     const made: FakePage[] = [];
     const store = { subscribe: () => () => {}, current: campaignOf([]), campaignFolder: null };
-    const view = new CampaignView({} as WorkspaceLeaf, store as unknown as CampaignStore, [{ heading: null, pages: [entryOf("home", made), entryOf("funds", made)] }]);
-    view.app = { workspace: { requestSaveLayout: vi.fn() } } as unknown as CampaignView["app"];
+    const view = new CampaignView({} as WorkspaceLeaf, store as unknown as CampaignStore, [{ heading: null, pages: [entryOf("home", made), entryOf("funds", made)] }], vi.fn());
+    view.app = { workspace: { requestSaveLayout: vi.fn() }, vault: new FakeVault() } as unknown as CampaignView["app"];
     view.contentEl = obsidianDocument().createElement("div");
     view.load();
     await view.onOpen();
     expect(made).toEqual([]);
     expect(view.getState()).toEqual({});
-    await view.setState({ page: "funds" }, {} as ViewStateResult);
+    await view.setState({ page: "funds" }, { history: false });
     expect(made.map((page) => page.id)).toEqual(["funds"]);
   });
 
-  it("lets a page show another page in the same tab", async () => {
-    const { root, made } = await openView();
-    made[0]!.show("funds");
-    expect(made.map((page) => page.id)).toEqual(["home", "funds"]);
+  it("lets a page show another page or note in the same tab, through Obsidian", async () => {
+    const { root, made, leaf } = await openView();
+    made[0]!.show({ page: "cast", path: MIRA });
+    await vi.waitFor(() => expect(made.map((page) => page.id)).toEqual(["home", "cast"]));
+    expect(leaf.setViewState).toHaveBeenCalledExactlyOnceWith({ type: CAMPAIGN_VIEW, state: { page: "cast", path: MIRA } });
     expect(made[0]!.loaded).toBe(false);
-    expect(pageText(root)).toBe("page funds");
+    expect(pageText(root)).toBe(`page cast ${MIRA}`);
   });
 
   it("ignores a page asking for a page the tab doesn't have", async () => {
-    const { root, made } = await openView();
-    made[0]!.show("quests");
+    const { root, made, leaf } = await openView();
+    made[0]!.show({ page: "quests", path: null });
+    await vi.waitFor(() => expect(leaf.setViewState).toHaveBeenCalledOnce());
     expect(made).toHaveLength(1);
-    expect(pageText(root)).toBe("page home");
+    expect(pageText(root)).toBe("page home null");
   });
 
-  it("closes the shown page and stops listening to the campaign when it is closed", async () => {
-    const { view, made, unsubscribe } = await openView();
+  it("closes the shown page and stops listening to the campaign and the vault when it is closed", async () => {
+    const { view, made, unsubscribe, vault } = await openView();
     view.unload();
     expect(made[0]!.loaded).toBe(false);
     expect(unsubscribe).toHaveBeenCalledOnce();
+    expect(vault.removed.sort()).toEqual(["delete", "rename"]);
   });
 });

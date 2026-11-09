@@ -24,7 +24,7 @@ async function openPage(campaign: Campaign, create: ListCreate | null = null) {
   const root = document.createElement("div");
   document.body.append(root);
   const openRow = vi.fn();
-  const view = new ListPage(root, store as unknown as CampaignStore, { openRow: vi.fn(), openLink: vi.fn() }, openRow, questsKind, create);
+  const view = new ListPage(root, store as unknown as CampaignStore, vi.fn(), openRow, questsKind, create);
   view.load();
   const typeFilter = (text: string) => {
     const filter = root.querySelector(".dd-filter") as HTMLInputElement;
@@ -124,7 +124,7 @@ describe("ListPage", () => {
     const editor = root.ownerDocument.createElement("input");
     root.ownerDocument.body.append(editor);
     editor.focus();
-    change(campaignOf(["! Find it", "", "", "", "", "! A new line five"]));
+    change(campaignOf(["! Find it", "! Pay the ferryman"]));
     expect(root.ownerDocument.activeElement).toBe(editor);
   });
 

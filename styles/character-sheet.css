@@ -225,3 +225,31 @@
 .dd-sheet .dd-sheet-stat-block .dd-title {
   margin-bottom: var(--space-3);
 }
+
+.dd-character-page {
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+.dd-character-page .dd-back {
+  min-height: var(--touch-min);
+  margin-bottom: var(--space-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  font: var(--weight-medium) var(--text-sm) / 1 var(--font-ui);
+  color: var(--text-link);
+  cursor: pointer;
+}
+
+.dd-character-page .dd-back:hover {
+  background: none;
+  text-decoration: underline;
+}
+
+.dd-character-page .dd-back:focus-visible {
+  border-radius: var(--radius-xs);
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
