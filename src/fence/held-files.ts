@@ -23,6 +23,11 @@ export class HeldFiles {
     return path;
   }
 
+  newPath(path: unknown): string {
+    if (!this.fence.holdsNew(path)) throw new Error(OUTSIDE_FENCE);
+    return path;
+  }
+
   file<T extends TAbstractFile>(file: T): T {
     const path = pathOf(file);
     if (!this.fence.holds(path)) throw new Error(OUTSIDE_FENCE);

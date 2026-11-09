@@ -64,11 +64,11 @@ export class FencedFiles {
   }
 
   async create(path: string, text: string): Promise<TFile> {
-    return this.vault.create(this.held.path(path), text);
+    return this.vault.create(this.held.newPath(path), text);
   }
 
   async createFolder(path: string): Promise<TFolder> {
-    return this.vault.createFolder(this.held.path(path));
+    return this.vault.createFolder(this.held.newPath(path));
   }
 
   async removeEmptyFolder(path: string): Promise<void> {
