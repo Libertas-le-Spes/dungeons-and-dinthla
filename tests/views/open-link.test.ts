@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App, TFile, TFolder } from "obsidian";
+import type { SessionNote } from "../../src/campaign/campaign";
+import { sessionNoteOf } from "../../src/campaign/session-file";
 import { Fence } from "../../src/fence/fence";
 import { FencedFiles } from "../../src/fence/fenced-files";
 import { FencedMetadata, type RawMetadata } from "../../src/fence/fenced-metadata";
@@ -34,7 +36,8 @@ function placeWith(linkLeadsTo: TFile | null, files: TFile[] = [SESSION, MIRA, P
   const leaf = { openFile: vi.fn(async () => {}) };
   const openLinkText = vi.fn(async () => {});
   const app = { workspace: { getLeaf: vi.fn(() => leaf), openLinkText } } as unknown as App;
-  return { app, place: { gate, campaignFolders: () => [CAMPAIGN], askFolder }, calls, raw, leaf, openLinkText, getLeaf: app.workspace.getLeaf, askFolder };
+  const lines = { sessions: { sessionNotes: [] as SessionNote[] }, texts: { read: vi.fn(async (_path: string): Promise<string | null> => null) } };
+  return { app, place: { gate, lines, campaignFolders: () => [CAMPAIGN], askFolder }, calls, raw, leaf, openLinkText, getLeaf: app.workspace.getLeaf, askFolder, lines };
 }
 
 function openedPaths(leaf: { openFile: ReturnType<typeof vi.fn> }): string[] {
@@ -290,7 +293,7 @@ describe("openLink choosing the folder of the note it makes from the line holdin
 
   function placeOnLine(line: string) {
     const place = placeWith(null);
-    place.calls.cachedRead.mockImplementation(async () => `We rode on.\n${line}\nRain.`);
+    place.lines.sessions.sessionNotes = [sessionNoteOf(SESSION.path, 1, `We rode on.\n${line}\nRain.`)];
     return place;
   }
 
@@ -403,7 +406,7 @@ describe("openLink choosing the folder of the note it makes from the line holdin
     const place = placeOnLine("? Who sent [[Lady Vess]]");
     await openLink(place.app, place.place, "Lady Vess", FROM_SESSION, false);
     expect(place.askFolder).toHaveBeenCalledOnce();
-    expect(place.calls.cachedRead).not.toHaveBeenCalled();
+    expect(place.lines.texts.read).not.toHaveBeenCalled();
   });
 
   it("asks when the line the link sat on is no longer in its note", async () => {
@@ -416,7 +419,6 @@ describe("openLink choosing the folder of the note it makes from the line holdin
     const place = placeOnLine("? Who sent [[Lady Vess]]");
     await openLink(place.app, place.place, "Lady Vess", { path: "D&D/Pale Moon/Sessions/Session 9.md", line: 1 }, false);
     expect(place.askFolder).toHaveBeenCalledOnce();
-    expect(place.calls.cachedRead).not.toHaveBeenCalled();
   });
 
   it("refuses a link that climbs out before asking anything", async () => {

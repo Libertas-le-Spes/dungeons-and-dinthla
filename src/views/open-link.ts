@@ -1,7 +1,7 @@
 import { Notice, parseLinktext, type App, type PaneType, type TFile } from "obsidian";
 import { campaignFolderOf } from "../campaign/campaign-folders";
 import type { Gate } from "../fence/gatekeeper";
-import { linkLineOf, type LinkFrom } from "./link-line";
+import { linkLineOf, type LinkFrom, type LinkLines } from "./link-line";
 import { makeLinkedNote, NOT_IN_CAMPAIGN, refusalForLinkName } from "./linked-note";
 import { markedFolderOf } from "./made-note-folder";
 import type { AskMadeNoteFolder } from "./made-note-modal";
@@ -10,6 +10,7 @@ import { noteInCampaignFor } from "./note-in-campaign";
 
 export interface LinkPlace {
   gate: Pick<Gate, "files" | "metadata">;
+  lines: LinkLines;
   campaignFolders: () => string[];
   askFolder: AskMadeNoteFolder;
 }
@@ -29,7 +30,7 @@ async function openNote(app: App, file: TFile, subpath: string, newLeaf: PaneTyp
 }
 
 async function folderForNote(place: LinkPlace, campaignFolder: string, linkpath: string, from: LinkFrom): Promise<string | null> {
-  const line = await linkLineOf(place.gate.files, from);
+  const line = await linkLineOf(place.lines, from);
   const marked = markedFolderOf(campaignFolder, line, linkpath);
   if (marked !== null) return marked;
   const choice = await place.askFolder(linkpath);

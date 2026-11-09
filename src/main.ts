@@ -134,7 +134,8 @@ export default class DungeonsAndDinthla extends Plugin {
       choose: (folder: string) => this.chosen.choose(folder),
     };
     this.addSettingTab(new CampaignSettingTab(this.app, this, gate, campaignsFolderSetup, campaignChoice, () => help.showWelcome()));
-    const linkPlace = { gate, campaignFolders: () => this.campaignFolders(), askFolder: askMadeNoteFolderIn(this.app) };
+    const lines = { sessions: this.store, texts: noteTextsOf(gate) };
+    const linkPlace = { gate, lines, campaignFolders: () => this.campaignFolders(), askFolder: askMadeNoteFolderIn(this.app) };
     const actions = {
       openRow: (source: Source) => void openSource(this.app, gate, source),
       openLink: (linktext: string, from: LinkFrom, newLeaf: PaneType | boolean) =>
