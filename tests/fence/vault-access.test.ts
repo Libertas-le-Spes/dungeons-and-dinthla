@@ -239,6 +239,8 @@ const CONSTRUCTOR_SAMPLES = [
 ];
 
 const HARMLESS_SAMPLES = [
+  'interface Store {\n  open(folder: string): Promise<void>;\n  campaignFolder: string | null;\n}\nexport const reopen = (store: Pick<Store, "open" | "campaignFolder">) => store.open("Pale Moon");',
+  'interface Shown {\n  file: string;\n}\nexport const file = (shown: Pick<Shown, "file">) => shown.file;',
   "export class Purse {\n  constructor(readonly gold: number) {}\n}",
   "export const name = (value: string | number) => value as string;",
   'import type { TextComponent } from "obsidian";\nexport const name = (text: TextComponent) => text.setValue("Pale Moon");',
@@ -286,6 +288,7 @@ const OPENING_SAMPLES = [
 ];
 
 const LEAF_SAMPLES = [
+  'import type { View, WorkspaceLeaf } from "obsidian";\nexport const show = (leaf: Pick<WorkspaceLeaf, "open">, view: View) => leaf.open(view);',
   'import type { App } from "obsidian";\nexport const file = (app: App) => app.workspace.activeLeaf?.view;',
   'import type { App } from "obsidian";\nexport const leaf = (app: App) => app.workspace.getMostRecentLeaf();',
   'import type { App, WorkspaceLeaf } from "obsidian";\nexport const copy = (app: App, leaf: WorkspaceLeaf) => app.workspace.duplicateLeaf(leaf);',
@@ -303,6 +306,7 @@ const LEAF_VIEW_SAMPLES = [
 ];
 
 const VIEW_FILE_SAMPLES = [
+  'import type { MarkdownView } from "obsidian";\nexport const file = (view: Pick<MarkdownView, "file">) => view.file;',
   'import type { MarkdownView } from "obsidian";\nexport const file = (view: MarkdownView) => view.file;',
   'import { MarkdownView, type App, type TFile } from "obsidian";\nexport function files(app: App) {\n  const all: (TFile | null)[] = [];\n  app.workspace.iterateAllLeaves((leaf) => {\n    if (leaf.view instanceof MarkdownView) all.push(leaf.view.file);\n  });\n  return all;\n}',
   'import type { FileView } from "obsidian";\nexport function file(view: FileView) {\n  const { file } = view;\n  return file;\n}',
@@ -312,6 +316,9 @@ const VIEW_FILE_SAMPLES = [
 ];
 
 const ALLOWED_OPENING_SAMPLES = [
+  'import type { App, TFile } from "obsidian";\nfunction picked(app: App): TFile | null {\n  return app.workspace.getActiveFile();\n}\nexport async function open(app: App) {\n  const file = picked(app);\n  if (file !== null) await app.workspace.getLeaf(false).openFile(file);\n}',
+  'import type { App, TFile } from "obsidian";\nimport type { Gate } from "../../../../src/fence/gatekeeper";\nfunction picked(app: App, gate: Gate, path: string): TFile | null {\n  if (path === "") return app.workspace.getActiveFile();\n  return gate.files.getFileByPath(path);\n}\nexport async function open(app: App, gate: Gate, path: string) {\n  const file = picked(app, gate, path);\n  if (file !== null) await app.workspace.getLeaf(false).openFile(file);\n}',
+  'import type { App, TFile } from "obsidian";\nfunction none(): TFile | null {\n  return null;\n}\nexport async function open(app: App) {\n  const file = none();\n  if (file !== null) await app.workspace.getLeaf(false).openFile(file);\n}',
   'import { MarkdownView, type App } from "obsidian";\nexport const file = (app: App) => app.workspace.getActiveViewOfType(MarkdownView)?.["file"];',
   'import type { App, TFile, WorkspaceLeaf } from "obsidian";\nexport const open = (app: App, file: TFile) => app.workspace.getLeaf(false).openFile(file);',
   'import type { App } from "obsidian";\nexport const open = (app: App) => app.workspace.getLeaf("tab").openFile(app.workspace.getActiveFile());',
@@ -325,6 +332,7 @@ const ALLOWED_OPENING_SAMPLES = [
 ];
 
 const GATED_OPENING_SAMPLES = [
+  'import type { App, TFile } from "obsidian";\nimport type { Gate } from "../../../../src/fence/gatekeeper";\ndeclare function make(files: unknown, path: string): Promise<TFile>;\ndeclare function found(files: unknown, path: string): TFile | null;\ninterface Place {\n  gate: Pick<Gate, "files" | "metadata">;\n}\nasync function madeNote(place: Place, path: string): Promise<TFile | null> {\n  if (path === "") return null;\n  return make(place.gate.files, path);\n}\nexport async function open(app: App, place: Place, path: string) {\n  const inCampaign = found(place.gate.files, path);\n  if (inCampaign !== null) await app.workspace.getLeaf(false).openFile(inCampaign);\n  const made = await madeNote(place, path);\n  if (made !== null) await app.workspace.getLeaf(false).openFile(made);\n}',
   'import type { App } from "obsidian";\nimport type { Gate } from "../../../../src/fence/gatekeeper";\nexport async function open(app: App, gate: Gate, path: string) {\n  const file = gate.files.getFileByPath(path);\n  if (file !== null) await app.workspace.getLeaf(false).openFile(file);\n}',
   'import type { App, TFile } from "obsidian";\nimport type { Gate } from "../../../../src/fence/gatekeeper";\nasync function openNote(app: App, file: TFile) {\n  await app.workspace.getLeaf(false).openFile(file);\n}\nexport async function open(app: App, gate: Pick<Gate, "metadata">, linkpath: string) {\n  const found = gate.metadata.getFirstLinkpathDest(linkpath, "");\n  if (found !== null) await openNote(app, found);\n}',
   'import type { App, TFile } from "obsidian";\nimport type { Gate } from "../../../../src/fence/gatekeeper";\ndeclare function make(files: unknown, path: string): Promise<TFile>;\nexport async function open(app: App, gate: Gate, path: string) {\n  let made: TFile;\n  made = await make(gate.files, path);\n  await app.workspace.getLeaf(false).openFile(made);\n}',
