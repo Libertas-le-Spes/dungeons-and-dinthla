@@ -1,6 +1,5 @@
 import type { EventRef, Events, TAbstractFile, TFile, TFolder, Vault } from "obsidian";
-import type { Fence } from "./fence";
-import { HeldFiles } from "./held-files";
+import type { HeldFiles } from "./held-files";
 
 export type RawVault = Pick<
   Vault,
@@ -24,14 +23,10 @@ export type FileEvent = "create" | "delete" | "modify" | "rename";
 type FileEventCallback = (file: TAbstractFile, oldPath: string) => unknown;
 
 export class FencedFiles {
-  private readonly held: HeldFiles;
-
   constructor(
     private readonly vault: RawVault,
-    private readonly fence: Fence,
-  ) {
-    this.held = new HeldFiles(vault, fence);
-  }
+    private readonly held: HeldFiles,
+  ) {}
 
   getFileByPath(path: string): TFile | null {
     if (!this.held.holdsPath(path)) return null;
@@ -39,7 +34,7 @@ export class FencedFiles {
   }
 
   getFolderByPath(path: string): TFolder | null {
-    if (!this.held.holdsPath(path) && !this.fence.isTheFolder(path)) return null;
+    if (!this.held.holdsPath(path) && !this.held.isTheFolder(path)) return null;
     return this.vault.getFolderByPath(path);
   }
 
