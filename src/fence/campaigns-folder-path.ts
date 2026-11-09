@@ -4,7 +4,12 @@ import { isSafePath } from "./safe-path";
 
 export const NO_FOLDER_NAME = "Type a name for the Campaigns folder first.";
 export const NOT_THE_WHOLE_VAULT = "The Campaigns folder has to be a folder inside the vault, not the whole vault.";
+export const NOT_A_HIDDEN_FOLDER = "The Campaigns folder can't be a hidden folder, or inside one, such as the vault's own .obsidian folder.";
 export const NOT_A_PLAIN_PATH = "Type a folder path such as D&D or Games/D&D, without .. or a slash at the start.";
+
+function isHiddenPart(part: string): boolean {
+  return part.startsWith(".");
+}
 
 function typedPathOf(typed: string): string {
   const trimmed = typed.trim();
@@ -15,6 +20,7 @@ function typedPathOf(typed: string): string {
 export function refusalForCampaignsFolder(path: string): string | null {
   if (path === "/") return NOT_THE_WHOLE_VAULT;
   if (!isSafePath(path)) return NOT_A_PLAIN_PATH;
+  if (path.split("/").some(isHiddenPart)) return NOT_A_HIDDEN_FOLDER;
   return null;
 }
 

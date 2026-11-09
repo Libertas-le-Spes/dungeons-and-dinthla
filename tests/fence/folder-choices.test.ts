@@ -1,15 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TAbstractFile, TFolder } from "obsidian";
-import { NOT_THE_WHOLE_VAULT } from "../../src/fence/campaigns-folder-path";
-import { A_FILE_HAS_THAT_NAME, FolderChoices, type FolderVault } from "../../src/fence/folder-choices";
+import { NOT_A_HIDDEN_FOLDER, NOT_THE_WHOLE_VAULT } from "../../src/fence/campaigns-folder-path";
+import { A_FILE_HAS_THAT_NAME, FolderChoices, NOT_THE_CONFIG_FOLDER, type FolderVault } from "../../src/fence/folder-choices";
 
 function found(paths: string[], path: string): TAbstractFile | null {
   if (!paths.includes(path)) return null;
   return { path } as TAbstractFile;
 }
 
-function choicesWith(folders: string[], files: string[] = []) {
+function choicesWith(folders: string[], files: string[] = [], configDir = ".obsidian") {
   const vault = {
+    configDir,
     getAllFolders: vi.fn(() => folders.map((path) => ({ path }) as TFolder)),
     getFolderByPath: vi.fn((path: string) => found(folders, path)),
     getAbstractFileByPath: vi.fn((path: string) => found([...folders, ...files], path)),
@@ -28,6 +29,16 @@ describe("FolderChoices.folderPaths", () => {
   it("lists a folder the vault holds in decomposed letters or with a no-break space", () => {
     const { choices } = choicesWith(["Zoe\u0308", "Pale\u00a0Moon"]);
     expect(choices.folderPaths()).toEqual(["Pale\u00a0Moon", "Zoe\u0308"]);
+  });
+
+  it("leaves out hidden folders, the vault's settings folder and the folders inside them", () => {
+    const { choices } = choicesWith([".obsidian", ".obsidian/plugins", "Games/.hidden", "D&D"]);
+    expect(choices.folderPaths()).toEqual(["D&D"]);
+  });
+
+  it("leaves out the vault's settings folder even when its name has no dot", () => {
+    const { choices } = choicesWith(["Vault Settings", "Vault Settings/plugins", "D&D"], [], "Vault Settings");
+    expect(choices.folderPaths()).toEqual(["D&D"]);
   });
 });
 
@@ -53,6 +64,18 @@ describe("FolderChoices.make", () => {
   it("refuses the whole vault", async () => {
     const { choices, vault } = choicesWith([]);
     await expect(choices.make("/")).rejects.toThrow(NOT_THE_WHOLE_VAULT);
+    expect(vault.createFolder).not.toHaveBeenCalled();
+  });
+
+  it("refuses a hidden folder, such as the vault's settings folder", async () => {
+    const { choices, vault } = choicesWith([".obsidian"]);
+    await expect(choices.make(".obsidian")).rejects.toThrow(NOT_A_HIDDEN_FOLDER);
+    expect(vault.createFolder).not.toHaveBeenCalled();
+  });
+
+  it("refuses the vault's settings folder even when its name has no dot", async () => {
+    const { choices, vault } = choicesWith(["Vault Settings"], [], "Vault Settings");
+    await expect(choices.make("Vault Settings/D&D")).rejects.toThrow(NOT_THE_CONFIG_FOLDER);
     expect(vault.createFolder).not.toHaveBeenCalled();
   });
 });
