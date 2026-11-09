@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   campaignFolderOf,
+  campaignNameOf,
   campaignNotePathOf,
   chosenCampaignFolder,
   findCampaignFolders,
@@ -73,6 +74,13 @@ describe("campaignFolderOf", () => {
     expect(campaignFolderOf("Games/D&D/Recipes/Bread.md", folders)).toBeNull();
     expect(campaignFolderOf("Inbox.md", folders)).toBeNull();
     expect(campaignFolderOf("Games/D&D/Pale Moon Two/Pale Moon Two.md", folders)).toBeNull();
+  });
+});
+
+describe("campaignNameOf", () => {
+  it("is the last part of the campaign's folder, or the whole name at the top of the vault", () => {
+    expect(campaignNameOf(PALE_MOON)).toBe("Pale Moon");
+    expect(campaignNameOf("Pale Moon")).toBe("Pale Moon");
   });
 });
 

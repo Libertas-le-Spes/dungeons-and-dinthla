@@ -69,6 +69,10 @@ export class CampaignStore {
   }
 
   noteDeleted(path: string): void {
+    if (path === this.folder) {
+      this.close();
+      return;
+    }
     this.markChanged(path);
     if (this.sessions.delete(path)) this.rebuild();
   }

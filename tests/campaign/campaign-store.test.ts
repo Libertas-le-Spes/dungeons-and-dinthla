@@ -84,6 +84,15 @@ describe("CampaignStore", () => {
     expect(seen).toHaveLength(1);
   });
 
+  it("closes the campaign when its own folder is deleted or moved out of the Campaigns folder", async () => {
+    const fake = new FakeVault([{ path: "Pale Moon/Sessions/Session 1.md", text: "? Who" }]);
+    const { store, seen } = await openStore(fake);
+    store.noteDeleted("Pale Moon");
+    expect(store.campaignFolder).toBeNull();
+    expect(questionsIn(store.current)).toEqual([]);
+    expect(seen).toHaveLength(2);
+  });
+
   it("follows a session note renamed to a new number", async () => {
     const fake = new FakeVault([
       { path: "Pale Moon/Sessions/Session 1.md", text: "? Later" },

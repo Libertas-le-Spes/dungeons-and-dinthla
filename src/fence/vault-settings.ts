@@ -1,21 +1,27 @@
-import type { Vault } from "obsidian";
+import type { App } from "obsidian";
 
-interface ConfigReader {
+export interface ConfigReader {
   getConfig(key: string): unknown;
 }
 
+function readConfig(vault: object, key: string): unknown {
+  if (!("getConfig" in vault) || typeof vault.getConfig !== "function") return undefined;
+  return vault.getConfig(key);
+}
+
+export function configReaderOf(app: Pick<App, "vault">): ConfigReader {
+  const vault: object = app.vault;
+  return { getConfig: (key) => readConfig(vault, key) };
+}
+
 export class VaultSettings {
-  constructor(private readonly vault: Vault) {}
+  constructor(private readonly config: ConfigReader) {}
 
   trashOption(): unknown {
-    return this.reader().getConfig("trashOption");
+    return this.config.getConfig("trashOption");
   }
 
   cssTheme(): unknown {
-    return this.reader().getConfig("cssTheme");
-  }
-
-  private reader(): ConfigReader {
-    return this.vault as unknown as ConfigReader;
+    return this.config.getConfig("cssTheme");
   }
 }

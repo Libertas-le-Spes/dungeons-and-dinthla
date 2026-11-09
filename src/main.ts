@@ -67,6 +67,7 @@ import { welcomeOpenerOf } from "./welcome/welcome-opener";
 import { Gatekeeper } from "./fence/gatekeeper";
 import { homeSection } from "./interface/home-section";
 import { welcomeSection } from "./interface/welcome-section";
+import { campaignsFolderFirst } from "./interface/campaigns-folder-first";
 import { NEWS_BY_VERSION } from "./whats-new/news-by-version";
 import { sessionHeadingOf } from "./sessions/session-heading";
 import { startSession } from "./sessions/start-session";
@@ -74,6 +75,7 @@ import { sessionPropertiesOf } from "./sessions/session-properties";
 import { AppendWriter } from "./session-notes/append-writer";
 import { Drafts } from "./session-notes/drafts";
 import { KeptDrafts } from "./session-notes/kept-drafts";
+import { setAsideGoneNotes } from "./session-notes/gone-notes";
 import { noteTextsOf } from "./campaign/note-texts";
 import { NoteDrafts } from "./note-editing/note-drafts";
 import { NoteSaver } from "./note-editing/note-saver";
@@ -112,6 +114,7 @@ export default class DungeonsAndDinthla extends Plugin {
     this.chosen = this.chosenCampaignFrom(settings);
     this.campaignsFolder = this.campaignsFolderFrom(settings);
     const gate = this.gate;
+    this.addChild(gate.files);
     const helpFiles = {
       campaignFolders: () => this.campaignFolders(),
       filePaths: () => gate.files.getFiles().map((file) => file.path),
@@ -195,7 +198,7 @@ export default class DungeonsAndDinthla extends Plugin {
     this.registerEvent(gate.files.on("rename", (file, oldPath) => keptDrafts.noteRenamed(oldPath, file.path)));
     this.registerEvent(gate.files.on("rename", (file, oldPath) => noteDrafts.moved(oldPath, file.path)));
     this.registerEvent(gate.files.on("delete", (file) => keptDrafts.noteDeleted(file.path)));
-    this.app.workspace.onLayoutReady(() => keptDrafts.notesGone((key) => this.draftStaysLive(noteDrafts, key)));
+    this.app.workspace.onLayoutReady(() => setAsideGoneNotes(keptDrafts, this.campaignsFolder.path, (key) => this.draftStaysLive(noteDrafts, key)));
     const texts = noteTextsOf(gate);
     const wholeText = { texts, drafts: noteDrafts, saver: new NoteSaver(gate.files) };
     const notesNeeds = {
@@ -214,7 +217,13 @@ export default class DungeonsAndDinthla extends Plugin {
       },
       startSession: newSession,
     };
-    const sections = campaignSections({
+    const welcome = welcomeSection({
+      store: this.store,
+      campaignsFolder: campaignsFolderSetup,
+      maker: new CampaignMaker(gate.files, () => this.campaignsFolder.path, (folder) => this.chosen.choose(folder)),
+      startSession: newSession,
+    });
+    const pages = campaignSections({
       home: homeSection({ store: this.store, characterNotes, news: help.whatsNew, actionsFor: dashboardActionsFor }),
       cast: castSection(castNeeds),
       notes: notesSection(notesNeeds),
@@ -236,13 +245,9 @@ export default class DungeonsAndDinthla extends Plugin {
         isCampaignNote: (path: string) => campaignFolderOf(path, this.campaignFolders()) !== null,
         openInEditor: (path: string) => void openInEditor(this.app, gate, path),
       }),
-      welcome: welcomeSection({
-        store: this.store,
-        campaignsFolder: campaignsFolderSetup,
-        maker: new CampaignMaker(gate.files, () => this.campaignsFolder.path, (folder) => this.chosen.choose(folder)),
-        startSession: newSession,
-      }),
+      welcome,
     });
+    const sections = campaignsFolderFirst(pages, welcome, () => this.campaignsFolder.path);
     const backdropFor = (frameEl: HTMLElement) => new TabBackground(frameEl, this.store, gate.metadata, gate.files);
     this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView(leaf, this.store, sections, (path) => void this.followCampaignOf(path), backdropFor, gate.files));
     for (const opener of PAGE_OPENERS) {
@@ -346,11 +351,9 @@ export default class DungeonsAndDinthla extends Plugin {
 
   private async lookAgain(): Promise<void> {
     const folder = this.startingCampaignFolder();
-    if (folder === null) {
-      this.store.close();
-      return;
-    }
-    await this.chosen.choose(folder);
+    if (folder === null) this.store.close();
+    else await this.chosen.choose(folder);
+    this.showBackgrounds();
   }
 
   private watchBackgrounds(): void {

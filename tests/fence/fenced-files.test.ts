@@ -1,20 +1,23 @@
 import { describe, expect, it, vi } from "vitest";
-import type { EventRef, TAbstractFile } from "obsidian";
+import type { TAbstractFile } from "obsidian";
 import { Fence, OUTSIDE_FENCE } from "../../src/fence/fence";
 import { FencedFiles } from "../../src/fence/fenced-files";
+import { HeldFiles } from "../../src/fence/held-files";
 import { fileAt, folderAt, rawVaultWith } from "./fake-raw-vault";
 
 const SESSION = fileAt("D&D/Pale Moon/Sessions/Session 1.md");
 const PRIVATE = fileAt("Private/Primary.md");
 const BESIDE = fileAt("D&D Old/Secondary.md");
+const DECOMPOSED = fileAt("D&D/Zoe\u0308/Zoe\u0308.md");
+const NO_BREAK = fileAt("D&D/Pale\u00a0Moon/Pale\u00a0Moon.md");
 
 function filesWith(campaignsFolder: string | null = "D&D") {
   const empty = folderAt("D&D/Pale Moon/Items", []);
   const full = folderAt("D&D/Pale Moon/Sessions", [SESSION]);
   const outside = folderAt("Private", []);
   const campaigns = folderAt("D&D", []);
-  const raw = rawVaultWith([SESSION, PRIVATE, BESIDE], [empty, full, outside, campaigns]);
-  return { files: new FencedFiles(raw.vault, new Fence(() => campaignsFolder)), ...raw };
+  const raw = rawVaultWith([SESSION, PRIVATE, BESIDE, DECOMPOSED, NO_BREAK], [empty, full, outside, campaigns]);
+  return { files: new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => campaignsFolder))), ...raw };
 }
 
 describe("FencedFiles lookups", () => {
@@ -46,8 +49,8 @@ describe("FencedFiles lookups", () => {
 
   it("lists only the files inside", () => {
     const { files } = filesWith();
-    expect(files.getFiles()).toEqual([SESSION]);
-    expect(files.getMarkdownFiles()).toEqual([SESSION]);
+    expect(files.getFiles()).toEqual([SESSION, DECOMPOSED, NO_BREAK]);
+    expect(files.getMarkdownFiles()).toEqual([SESSION, DECOMPOSED, NO_BREAK]);
   });
 });
 
@@ -102,6 +105,21 @@ describe("FencedFiles reads and writes", () => {
     expect(calls.createFolder).not.toHaveBeenCalled();
   });
 
+  it("reads and changes a note the vault holds in decomposed letters or with a no-break space", async () => {
+    const { files } = filesWith();
+    expect(files.getFileByPath(DECOMPOSED.path)).toBe(DECOMPOSED);
+    await expect(files.read(DECOMPOSED)).resolves.toBe(`read ${DECOMPOSED.path}`);
+    await expect(files.process(NO_BREAK, (text) => `${text}!`)).resolves.toBe(`text of ${NO_BREAK.path}!`);
+  });
+
+  it("refuses to make a note on a path Obsidian would write another way", async () => {
+    const { files, calls } = filesWith();
+    await expect(files.create("D&D/Zoe\u0308/Sessions/Session 1.md", "")).rejects.toThrow(OUTSIDE_FENCE);
+    await expect(files.createFolder("D&D/Pale\u00a0Moon/Items")).rejects.toThrow(OUTSIDE_FENCE);
+    expect(calls.create).not.toHaveBeenCalled();
+    expect(calls.createFolder).not.toHaveBeenCalled();
+  });
+
   it("refuses to make anything while no Campaigns folder is set", async () => {
     const { files, calls } = filesWith(null);
     await expect(files.create("D&D/Pale Moon/Pale Moon.md", "")).rejects.toThrow(OUTSIDE_FENCE);
@@ -130,53 +148,101 @@ describe("FencedFiles reads and writes", () => {
   });
 });
 
+function listeningFiles() {
+  const fenced = filesWith();
+  fenced.files.load();
+  return fenced;
+}
+
 describe("FencedFiles events", () => {
   it("passes on a file made, changed or deleted inside", () => {
-    const { files, events } = filesWith();
-    const heard = vi.fn();
-    for (const name of ["create", "modify", "delete"] as const) files.on(name, heard);
+    const { files, events } = listeningFiles();
+    const made = vi.fn();
+    const changed = vi.fn();
+    const deleted = vi.fn();
+    files.on("create", made);
+    files.on("modify", changed);
+    files.on("delete", deleted);
     events.trigger("create", SESSION);
     events.trigger("modify", SESSION);
     events.trigger("delete", SESSION);
-    expect(heard.mock.calls).toEqual([[SESSION, undefined], [SESSION, undefined], [SESSION, undefined]]);
+    expect(made.mock.calls).toEqual([[SESSION]]);
+    expect(changed.mock.calls).toEqual([[SESSION]]);
+    expect(deleted.mock.calls).toEqual([[SESSION]]);
   });
 
   it("drops a file made, changed or deleted outside", () => {
-    const { files, events } = filesWith();
+    const { files, events } = listeningFiles();
     const heard = vi.fn();
-    for (const name of ["create", "modify", "delete"] as const) files.on(name, heard);
+    files.on("create", heard);
+    files.on("modify", heard);
+    files.on("delete", heard);
     events.trigger("create", PRIVATE);
     events.trigger("modify", BESIDE);
     events.trigger("delete", PRIVATE);
     expect(heard).not.toHaveBeenCalled();
   });
 
-  it("passes on a rename into or out of the Campaigns folder, and drops one wholly outside", () => {
-    const { files, events } = filesWith();
-    const heard = vi.fn();
-    files.on("rename", heard);
+  it("passes on a rename inside, and one into the Campaigns folder", () => {
+    const { files, events } = listeningFiles();
+    const renamed = vi.fn();
+    files.on("rename", renamed);
+    events.trigger("rename", SESSION, "D&D/Pale Moon/Sessions/Session 0.md");
     events.trigger("rename", SESSION, "Private/Old.md");
-    events.trigger("rename", PRIVATE, "D&D/Pale Moon/Old.md");
-    events.trigger("rename", PRIVATE, "Private/Old.md");
-    expect(heard.mock.calls).toEqual([
+    expect(renamed.mock.calls).toEqual([
+      [SESSION, "D&D/Pale Moon/Sessions/Session 0.md"],
       [SESSION, "Private/Old.md"],
-      [PRIVATE, "D&D/Pale Moon/Old.md"],
     ]);
   });
 
+  it("passes on a rename out of the Campaigns folder as a delete of the old path, never carrying the outside path in", () => {
+    const { files, events } = listeningFiles();
+    const renamed = vi.fn();
+    const deleted = vi.fn();
+    files.on("rename", renamed);
+    files.on("delete", deleted);
+    events.trigger("rename", fileAt("Self/Pale Moon"), "D&D/Pale Moon");
+    expect(renamed).not.toHaveBeenCalled();
+    expect(deleted.mock.calls).toEqual([[{ path: "D&D/Pale Moon" }]]);
+  });
+
+  it("drops a rename wholly outside", () => {
+    const { files, events } = listeningFiles();
+    const heard = vi.fn();
+    files.on("rename", heard);
+    files.on("delete", heard);
+    events.trigger("rename", PRIVATE, "Private/Old.md");
+    expect(heard).not.toHaveBeenCalled();
+  });
+
   it("drops an event that carries no file", () => {
-    const { files, events } = filesWith();
+    const { files, events } = listeningFiles();
     const heard = vi.fn();
     files.on("create", heard);
     events.trigger("create", null as unknown as TAbstractFile);
     expect(heard).not.toHaveBeenCalled();
   });
 
-  it("stops listening when asked", () => {
+  it("hears nothing from the vault until it is loaded", () => {
     const { files, events } = filesWith();
-    const ref = files.on("create", () => {});
+    const heard = vi.fn();
+    files.on("create", heard);
+    events.trigger("create", SESSION);
+    expect(heard).not.toHaveBeenCalled();
+  });
+
+  it("stops passing on to a listener taken off", () => {
+    const { files, events } = listeningFiles();
+    const heard = vi.fn();
+    const ref = files.on("create", heard);
     files.offref(ref);
-    expect(events.stopped).toEqual([ref as EventRef]);
+    events.trigger("create", SESSION);
+    expect(heard).not.toHaveBeenCalled();
+  });
+
+  it("stops listening to the vault when unloaded", () => {
+    const { files, events } = listeningFiles();
+    files.unload();
+    expect(events.stopped).toHaveLength(4);
   });
 });
-

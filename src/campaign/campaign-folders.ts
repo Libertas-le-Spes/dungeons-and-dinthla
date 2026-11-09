@@ -4,8 +4,7 @@ export const NO_CAMPAIGN =
   "Make a campaign first: a folder inside your Campaigns folder with a main note of the same name. Set the Campaigns folder in the plugin's settings.";
 
 export function campaignNameOf(folder: string): string {
-  const parts = folder.split("/");
-  return parts[parts.length - 1]!;
+  return folder.slice(folder.lastIndexOf("/") + 1);
 }
 
 function campaignFolderAround(path: string, campaignsFolder: string | null): string | null {

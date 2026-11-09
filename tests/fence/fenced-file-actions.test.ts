@@ -46,6 +46,12 @@ describe("FencedFileActions", () => {
     expect(fileManager.renameFile).not.toHaveBeenCalled();
   });
 
+  it("refuses to rename a note to a path Obsidian would write another way", async () => {
+    const { actions, fileManager } = actionsWith();
+    await expect(actions.renameFile(CHARACTER, "D&D/Pale Moon/Characters/Zoe\u0308.md")).rejects.toThrow(OUTSIDE_FENCE);
+    expect(fileManager.renameFile).not.toHaveBeenCalled();
+  });
+
   it("trashes a note inside, and refuses one outside", async () => {
     const { actions, fileManager } = actionsWith();
     await actions.trashFile(CHARACTER);
