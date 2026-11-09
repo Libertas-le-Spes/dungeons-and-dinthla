@@ -6,7 +6,7 @@ import { refusalForFileName } from "./file-name";
 import { nameKeyOf } from "./name-key";
 import { typedPathOf } from "./typed-path";
 
-export type NewCampaignFiles = Pick<FencedFiles, "getFolderByPath" | "createFolder" | "create" | "removeEmptyFolder">;
+export type NewCampaignFiles = Pick<FencedFiles, "namesIn" | "createFolder" | "create" | "removeEmptyFolder">;
 
 export const NO_CAMPAIGN_NAME = "Type a name for the campaign first.";
 
@@ -15,12 +15,10 @@ function nameTaken(name: string, campaignsFolder: string): string {
 }
 
 function nameLikeIn(files: NewCampaignFiles, campaignsFolder: string, name: string): string | null {
-  const folder = files.getFolderByPath(campaignsFolder);
-  if (folder === null) return null;
   const wanted = nameKeyOf(name);
-  const taken = folder.children.find((child) => nameKeyOf(child.name) === wanted);
+  const taken = files.namesIn(campaignsFolder).find((child) => nameKeyOf(child) === wanted);
   if (taken === undefined) return null;
-  return taken.name;
+  return taken;
 }
 
 function refusalForCampaign(files: NewCampaignFiles, campaignsFolder: string, name: string): string | null {

@@ -170,10 +170,10 @@ export class DashboardPage extends Component {
     element.createSpan({ cls: "dd-big-word", text: word });
   }
 
-  private rowActions(panel: Panel, open: OpenRow): LinkActions {
+  private rowActions(panel: Panel, openRow: OpenRow): LinkActions {
     return {
       ...this.actions,
-      openRow: (source: Source) => open(source, (changed) => this.afterClose(panel, () => focusRowAt(panel.section, source), changed)),
+      openRow: (source: Source) => openRow(source, (changed) => this.afterClose(panel, () => focusRowAt(panel.section, source), changed)),
     };
   }
 
