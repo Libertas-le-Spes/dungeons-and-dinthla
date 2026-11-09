@@ -50,6 +50,10 @@ function keptTextOf(draft: NoteDraft): string {
 export class NoteDrafts {
   constructor(private readonly drafts: Drafts) {}
 
+  owns(key: string): boolean {
+    return isKey(key);
+  }
+
   draftOf(path: string): NoteDraft | null {
     return draftIn(this.drafts.textOf(keyOf(path)));
   }

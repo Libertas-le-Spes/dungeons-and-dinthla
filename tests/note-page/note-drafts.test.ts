@@ -36,6 +36,12 @@ describe("NoteDrafts", () => {
     expect(notes.draftOf(SESSION)).toEqual({ base: "", text: "Recap" });
   });
 
+  it("owns the keys of notes' drafts, not a session's lines", () => {
+    const { notes } = noteDrafts();
+    expect(notes.owns(`note:${OLD_MILL}`)).toBe(true);
+    expect(notes.owns(SESSION)).toBe(false);
+  });
+
   it("reads nothing from a kept text it didn't write", () => {
     const { notes, drafts } = noteDrafts();
     drafts.keep(`note:${OLD_MILL}`, "not a draft");

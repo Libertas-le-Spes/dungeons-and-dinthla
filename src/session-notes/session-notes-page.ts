@@ -4,8 +4,8 @@ import { latestNumberIsShared, SESSIONS_SHARE_A_NUMBER } from "../campaign/sessi
 import type { LookupOpeners } from "../lookups/open-match";
 import type { LinkActions } from "../views/linked-text";
 import type { AppendWriter } from "./append-writer";
-import type { DeletedDrafts } from "./deleted-drafts";
 import type { Drafts } from "./drafts";
+import type { KeptDrafts } from "./kept-drafts";
 import { KeptLines } from "./kept-lines";
 import { LinesList } from "./lines-list";
 import { sessionChoiceOf, sessionChoicesOf, sessionShown, type PropertiesOf } from "./session-choices";
@@ -20,7 +20,7 @@ const NOTE_GONE = "This session's note was deleted, so nothing more can be saved
 export interface SessionNotesNeeds {
   store: CampaignStore;
   drafts: Drafts;
-  deleted: DeletedDrafts;
+  keptDrafts: KeptDrafts;
   writer: AppendWriter;
   propertiesOf: PropertiesOf;
   openers: LookupOpeners;
@@ -91,7 +91,7 @@ export class SessionNotesPage extends Component {
     const path = this.sessionToShow();
     const picker = new SessionPicker(root, this.moves);
     const gone = root.createEl("p", { cls: "dd-note-gone", attr: { "aria-live": "polite" } });
-    const kept = new KeptLines(root, this.needs.drafts, this.needs.deleted, () => this.copyTarget);
+    const kept = new KeptLines(root, this.needs.drafts, this.needs.keptDrafts, () => this.copyTarget);
     if (path === null) {
       root.createEl("p", { cls: "dd-empty", text: this.noSessionText() });
       this.drawn = { path, picker, gone, kept, lines: null, writing: null };
