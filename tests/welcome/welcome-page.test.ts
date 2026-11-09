@@ -1,9 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { SessionNote } from "../../src/campaign/campaign";
 import type { CampaignListener } from "../../src/campaign/campaign-store";
 import type { WelcomeActions } from "../../src/welcome/welcome-ending";
 import { WelcomePage, type WelcomeStore } from "../../src/welcome/welcome-page";
+import { Notice } from "../stubs/obsidian";
 import { obsidianDocument } from "../views/obsidian-dom";
 
 const CAMPAIGN = "Silver Road";
@@ -24,13 +25,15 @@ function welcomeFor(campaignFolder: string | null, sessionNotes: SessionNote[]) 
     },
   };
   let finishMaking = () => {};
+  let failMaking = (_error: Error) => {};
   const actions = {
     startSession: vi.fn(),
     showCampaign: vi.fn(),
     makeCampaign: vi.fn(
       (_name: string) =>
-        new Promise<void>((resolve) => {
+        new Promise<void>((resolve, reject) => {
           finishMaking = resolve;
+          failMaking = reject;
         }),
     ),
   } satisfies WelcomeActions;
@@ -41,7 +44,7 @@ function welcomeFor(campaignFolder: string | null, sessionNotes: SessionNote[]) 
     Object.assign(store, { campaignFolder: folder, sessionNotes: notes });
     listener(buildCampaign(notes));
   };
-  return { root, page, actions, change, unsubscribe, finishMaking: () => finishMaking() };
+  return { root, page, actions, change, unsubscribe, finishMaking: () => finishMaking(), failMaking: (error: Error) => failMaking(error) };
 }
 
 function buttonTexts(root: HTMLElement): string[] {
@@ -54,10 +57,12 @@ function buttonNamed(root: HTMLElement, text: string): HTMLButtonElement {
   return button;
 }
 
-function submit(root: HTMLElement, name: string): void {
+function submit(root: HTMLElement, name: string): Event {
   root.querySelector("input")!.value = name;
   const form = root.querySelector("form")!;
-  form.dispatchEvent(new form.ownerDocument.defaultView!.Event("submit", { cancelable: true }));
+  const event = new form.ownerDocument.defaultView!.Event("submit", { cancelable: true });
+  form.dispatchEvent(event);
+  return event;
 }
 
 function settled(): Promise<void> {
@@ -65,6 +70,10 @@ function settled(): Promise<void> {
 }
 
 describe("WelcomePage", () => {
+  beforeEach(() => {
+    Notice.shown = [];
+  });
+
   it("shows the three first steps under a welcome heading", () => {
     const { root } = welcomeFor(CAMPAIGN, []);
     expect(root.querySelector("h2")!.textContent).toBe("Welcome to Dungeons & Dinthla");
@@ -106,13 +115,35 @@ describe("WelcomePage", () => {
     expect(buttonNamed(root, "Make a campaign").disabled).toBe(false);
   });
 
+  it("keeps Obsidian's window from reloading when the name is sent", () => {
+    const { root } = welcomeFor(null, []);
+    expect(submit(root, "Silver Road").defaultPrevented).toBe(true);
+  });
+
+  it("gives the button back and says why when the campaign can't be made", async () => {
+    const { root, failMaking } = welcomeFor(null, []);
+    submit(root, "Silver Road");
+    failMaking(new Error("The disk is full."));
+    await settled();
+    expect(buttonNamed(root, "Make a campaign").disabled).toBe(false);
+    expect(Notice.shown).toEqual(["Couldn't make the campaign: The disk is full."]);
+  });
+
+  it("stops listening to the buttons it no longer shows", () => {
+    const { root, actions, change } = welcomeFor(CAMPAIGN, []);
+    const firstSession = buttonNamed(root, "Start my first session");
+    change(CAMPAIGN, [sessionNote()]);
+    firstSession.click();
+    expect(actions.startSession).not.toHaveBeenCalled();
+  });
+
   it("moves on to the first session once the campaign is made", () => {
     const { root, change } = welcomeFor(null, []);
     change(CAMPAIGN, []);
     expect(buttonTexts(root)).toEqual(["Start my first session"]);
   });
 
-  it("keeps what is typed in the name box when the campaign changes without one being made", () => {
+  it("keeps what is typed in the name box when the store updates and there is still no campaign", () => {
     const { root, change } = welcomeFor(null, []);
     root.querySelector("input")!.value = "Silver";
     change(null, []);

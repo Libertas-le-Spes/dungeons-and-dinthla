@@ -1,8 +1,10 @@
 import type { PageId } from "../interface/campaign-pages";
 
+export type NewsPage = Exclude<PageId, "note">;
+
 export interface NewsItem {
   sentence: string;
-  page: PageId;
+  page: NewsPage;
 }
 
 export interface News {

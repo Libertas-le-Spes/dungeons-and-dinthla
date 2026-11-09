@@ -1,9 +1,9 @@
-export const BAD_NAME = `A name can't hold any of \\ / : * ? " < > | # ^ [ ] or a control character, or start or end with a dot or a space.`;
+export const BAD_NAME = `A name can't hold any of \\ / : * ? " < > | # ^ [ ] or a control or invisible formatting character, or start or end with a dot or a space.`;
 export const RESERVED_NAME =
   "CON, PRN, AUX, NUL, CONIN$, CONOUT$, COM0 to COM9 and LPT0 to LPT9, with COM¹ to COM³ and LPT¹ to LPT³, can't name a note on Windows, even with more after a dot.";
 export const LONG_NAME = "That name is too long for a note's file.";
 
-const NOT_IN_A_NAME = /[\\/:*?"<>|#^[\]\u0000-\u001f\u007f]|^[. ]|[. ]$/;
+const NOT_IN_A_NAME = /[\\/:*?"<>|#^[\]\u0000-\u001f\u007f\p{Cf}]|^[. ]|[. ]$/u;
 const RESERVED_ON_WINDOWS = /^(con|prn|aux|nul|conin\$|conout\$|com[0-9¹²³]|lpt[0-9¹²³])(\..*)?$/i;
 const MOST_FILE_NAME_BYTES = 255;
 

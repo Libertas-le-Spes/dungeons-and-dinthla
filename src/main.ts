@@ -33,7 +33,7 @@ import { openItemDialog } from "./funds/open-item";
 import { ledgerEntryOpener } from "./funds/open-ledger-entry";
 import { ListPage } from "./views/list-page";
 import { activePathOf, openSource } from "./views/open-view";
-import { DashboardPage, type DashboardActions } from "./dashboard/dashboard-page";
+import type { DashboardActions } from "./dashboard/dashboard-page";
 import { campaignSections, type PageId, type ShowPage } from "./interface/campaign-pages";
 import { campaignStateFor, type Takeover } from "./interface/campaign-takeover";
 import { isCampaignViewRegistered } from "./interface/campaign-view-registered";
@@ -58,13 +58,11 @@ import { flushWhenClosing, type Closing } from "./settings/flush-when-closing";
 import { LocalDrafts, type LocalStorage } from "./settings/local-drafts";
 import { OldDrafts } from "./settings/old-drafts";
 import { settingsOf, type PluginSettings } from "./settings/plugin-settings";
-import { makeCampaign } from "./campaign/make-campaign";
-import { FirstRun } from "./welcome/first-run";
-import { sessionsWritten } from "./welcome/sessions-written";
-import { WelcomePage } from "./welcome/welcome-page";
+import { CampaignMaker } from "./campaign/campaign-maker";
+import { Help } from "./welcome/help";
+import { homeSection } from "./interface/home-section";
+import { welcomeSection } from "./interface/welcome-section";
 import { NEWS_BY_VERSION } from "./whats-new/news-by-version";
-import { NewsLine } from "./whats-new/news-line";
-import { WhatsNew } from "./whats-new/whats-new";
 import { sessionHeadingOf } from "./sessions/session-heading";
 import { startSession } from "./sessions/start-session";
 import { sessionPropertiesOf } from "./sessions/session-properties";
@@ -105,16 +103,18 @@ export default class DungeonsAndDinthla extends Plugin {
     const settings = settingsOf(saved);
     this.oldDrafts = new OldDrafts(saved, this.localStorage);
     this.chosen = this.chosenCampaignFrom(settings);
-    const showWelcome = () => openCampaignPage(this.app, "welcome", null);
+    const helpVault = {
+      campaignFolders: () => this.campaignFolders(),
+      filePaths: () => this.app.vault.getFiles().map((file) => file.path),
+    };
+    const openPage = (page: PageId) => openCampaignPage(this.app, page, null);
+    const help = new Help(settings, this.manifest, NEWS_BY_VERSION, (changed) => this.saveSettings(changed), helpVault, openPage);
     const campaignChoice = {
       folders: () => this.campaignFolders(),
       chosen: () => chosenCampaignFolder(this.chosen.folder, this.campaignFolders()),
       choose: (folder: string) => this.chosen.choose(folder),
     };
-    this.addSettingTab(new CampaignSettingTab(this.app, this, campaignChoice, () => void showWelcome()));
-    const saveOrSay = (changed: PluginSettings) => this.saveSettingsOrSay(changed);
-    const firstRun = new FirstRun(settings, this.manifest.version, saveOrSay);
-    const whatsNew = new WhatsNew(settings, this.manifest.version, NEWS_BY_VERSION, saveOrSay);
+    this.addSettingTab(new CampaignSettingTab(this.app, this, campaignChoice, () => help.showWelcome()));
     const actions = {
       openRow: (source: Source) => void openSource(this.app, source),
       openLink: (linktext: string, sourcePath: string) => void this.app.workspace.openLinkText(linktext, sourcePath),
@@ -204,8 +204,7 @@ export default class DungeonsAndDinthla extends Plugin {
       startSession: newSession,
     };
     const sections = campaignSections({
-      home: (contentEl, show) =>
-        new DashboardPage(contentEl, this.store, characterNotes, dashboardActionsFor(show), (lineEl) => new NewsLine(lineEl, whatsNew, show)),
+      home: homeSection({ store: this.store, characterNotes, news: help.whatsNew, actionsFor: dashboardActionsFor }),
       cast: castSection(castNeeds),
       notes: notesSection(notesNeeds),
       questions: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestionAt, questionsKind, createQuestion),
@@ -226,12 +225,11 @@ export default class DungeonsAndDinthla extends Plugin {
         isCampaignNote: (path: string) => campaignFolderOf(path, this.campaignFolders()) !== null,
         openInEditor: (path: string) => void openInEditor(this.app, path),
       }),
-      welcome: (contentEl, show) =>
-        new WelcomePage(contentEl, this.store, {
-          startSession: newSession,
-          showCampaign: () => show({ page: "home", path: null }),
-          makeCampaign: (name: string) => this.makeCampaignNamed(name),
-        }),
+      welcome: welcomeSection({
+        store: this.store,
+        maker: new CampaignMaker(this.app.vault, (folder) => this.chosen.choose(folder)),
+        startSession: newSession,
+      }),
     });
     const backdropFor = (frameEl: HTMLElement) => new TabBackground(frameEl, this.store, this.app.metadataCache, this.app.vault);
     this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView(leaf, this.store, sections, (path) => void this.followCampaignOf(path), backdropFor));
@@ -252,7 +250,9 @@ export default class DungeonsAndDinthla extends Plugin {
       if (inSession(context.sourcePath)) colourMarkers(element);
     });
     this.followTheme();
-    this.app.workspace.onLayoutReady(() => void this.startCampaign(firstRun, showWelcome));
+    this.app.workspace.onLayoutReady(() => {
+      this.startCampaign(help).catch((error: unknown) => new Notice(`Couldn't start the campaign: ${messageOf(error)}`));
+    });
     this.app.workspace.onLayoutReady(() => this.watchBackgrounds());
     this.takeOverOpening();
   }
@@ -323,14 +323,6 @@ export default class DungeonsAndDinthla extends Plugin {
     await this.saveData(this.oldDrafts.dataOf(settings));
   }
 
-  private async saveSettingsOrSay(settings: PluginSettings): Promise<void> {
-    try {
-      await this.saveSettings(settings);
-    } catch (error) {
-      new Notice(`Couldn't save the plugin's settings: ${messageOf(error)}`);
-    }
-  }
-
   private chosenCampaignFrom(settings: PluginSettings): ChosenCampaign {
     return new ChosenCampaign(settings, (changed) => this.saveSettings(changed), (folder) => this.store.open(folder));
   }
@@ -376,19 +368,9 @@ export default class DungeonsAndDinthla extends Plugin {
     });
   }
 
-  private async startCampaign(firstRun: FirstRun, showWelcome: () => Promise<void>): Promise<void> {
+  private async startCampaign(help: Help): Promise<void> {
     await this.watchCampaign();
-    const paths = this.app.vault.getFiles().map((file) => file.path);
-    await firstRun.begin(sessionsWritten(this.campaignFolders(), paths), showWelcome);
-  }
-
-  private async makeCampaignNamed(name: string): Promise<void> {
-    try {
-      const folder = await makeCampaign(this.app.vault, name);
-      await this.chosen.choose(folder);
-    } catch (error) {
-      new Notice(`Couldn't make the campaign: ${messageOf(error)}`);
-    }
+    await help.start();
   }
 
   private async watchCampaign(): Promise<void> {

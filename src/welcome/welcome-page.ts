@@ -9,6 +9,7 @@ export type WelcomeStore = Pick<CampaignStore, "campaignFolder" | "sessionNotes"
 export class WelcomePage extends Component {
   private endingEl!: HTMLElement;
   private shownEnding: WelcomeEnding | null = null;
+  private endingPart: Component | null = null;
 
   constructor(
     private readonly contentEl: HTMLElement,
@@ -34,8 +35,15 @@ export class WelcomePage extends Component {
     const ending = endingFor(this.state());
     if (ending === this.shownEnding) return;
     this.shownEnding = ending;
+    this.closeEnding();
     this.endingEl.empty();
-    ending.addTo(this.endingEl, this.actions, this);
+    this.endingPart = this.addChild(new ending(this.endingEl, this.actions));
+  }
+
+  private closeEnding(): void {
+    if (this.endingPart === null) return;
+    this.removeChild(this.endingPart);
+    this.endingPart = null;
   }
 
   private state(): WelcomeState {

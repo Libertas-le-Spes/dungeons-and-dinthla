@@ -1,4 +1,5 @@
-import { Component } from "obsidian";
+import { Component, Notice } from "obsidian";
+import { messageOf } from "../views/message-of";
 import type { ShowPage } from "../interface/campaign-pages";
 import type { News, NewsItem } from "./news-item";
 
@@ -43,6 +44,6 @@ export class NewsLine extends Component {
 
   private close(): void {
     this.lineEl.toggle(false);
-    void this.news.seen();
+    this.news.seen().catch((error: unknown) => new Notice(`Couldn't keep that the news was seen: ${messageOf(error)}`));
   }
 }

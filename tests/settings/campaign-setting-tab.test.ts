@@ -103,7 +103,7 @@ class FakeCampaigns implements CampaignChoice {
   }
 }
 
-function tabFor(fake: FakeApp, campaigns: CampaignChoice, showWelcome: () => void = () => {}): CampaignSettingTab {
+function tabFor(fake: FakeApp, campaigns: CampaignChoice, showWelcome: () => Promise<void> = async () => {}): CampaignSettingTab {
   const tab = new CampaignSettingTab(fake.app, fake.plugin, campaigns, showWelcome);
   tab.containerEl = obsidianDocument().body.createDiv();
   tab.display();
@@ -161,10 +161,19 @@ describe("CampaignSettingTab", () => {
   });
 
   it("shows the welcome page again when Show this again is pressed", () => {
-    const showWelcome = vi.fn();
+    const showWelcome = vi.fn(async () => {});
     const tab = tabFor(fake, new FakeCampaigns("Pale Moon"), showWelcome);
     buttonIn(rowNamed(tab, "Welcome page"), "Show this again").click();
     expect(showWelcome).toHaveBeenCalledOnce();
+  });
+
+  it("says so when the welcome page can't be opened", async () => {
+    const tab = tabFor(fake, new FakeCampaigns("Pale Moon"), async () => {
+      throw new Error("The workspace is closing.");
+    });
+    buttonIn(rowNamed(tab, "Welcome page"), "Show this again").click();
+    await settled();
+    expect(Notice.shown).toEqual(["Couldn't open the welcome page: The workspace is closing."]);
   });
 
   it("shows the chosen campaign, its background picture and how much of it shows", () => {

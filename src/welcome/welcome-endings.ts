@@ -3,7 +3,7 @@ import { FirstSessionEnding } from "./first-session-ending";
 import { NewCampaignEnding } from "./new-campaign-ending";
 import type { WelcomeEnding, WelcomeState } from "./welcome-ending";
 
-const ENDINGS: WelcomeEnding[] = [new NewCampaignEnding(), new FirstSessionEnding(), new CampaignEnding()];
+const ENDINGS: WelcomeEnding[] = [NewCampaignEnding, FirstSessionEnding, CampaignEnding];
 
 export function endingFor(state: WelcomeState): WelcomeEnding {
   const ending = ENDINGS.find((candidate) => candidate.fits(state));

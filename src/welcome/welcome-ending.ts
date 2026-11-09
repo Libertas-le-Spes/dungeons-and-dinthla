@@ -13,5 +13,5 @@ export interface WelcomeActions {
 
 export interface WelcomeEnding {
   fits(state: WelcomeState): boolean;
-  addTo(endingEl: HTMLElement, actions: WelcomeActions, owner: Component): void;
+  new (endingEl: HTMLElement, actions: WelcomeActions): Component;
 }
