@@ -16,7 +16,9 @@ const ALLOWED_ADDRESSES = [
 
 export const PICTURE_CSS = "`url(\"${safe}\")`";
 
-const ALLOWED_CODE = [...ALLOWED_MODULES, ...ALLOWED_ADDRESSES, PICTURE_CSS];
+export const LINK_ROLE = 'role: "link"';
+
+const ALLOWED_CODE = [...ALLOWED_MODULES, ...ALLOWED_ADDRESSES, PICTURE_CSS, LINK_ROLE];
 
 export const WEB_ADDRESSES: NetworkCode[] = [
   { name: "a web address", pattern: /\b(?:https?|wss?):/i },
