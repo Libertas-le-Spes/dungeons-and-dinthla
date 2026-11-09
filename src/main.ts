@@ -354,6 +354,13 @@ export default class DungeonsAndDinthla extends Plugin {
     if (folder === null) this.store.close();
     else await this.chosen.choose(folder);
     this.showBackgrounds();
+    this.showCampaignTabsAgain();
+  }
+
+  private showCampaignTabsAgain(): void {
+    for (const leaf of this.app.workspace.getLeavesOfType(CAMPAIGN_VIEW)) {
+      if (leaf.view instanceof CampaignView) leaf.view.showAgain();
+    }
   }
 
   private watchBackgrounds(): void {
