@@ -51,7 +51,7 @@ import { colourMarkers } from "./reading/colour-markers";
 import { BackgroundRefresh, showBackground, shownBackgroundOf } from "./reading/note-background";
 import { CampaignSettingTab } from "./settings/campaign-setting-tab";
 import { ChosenCampaign } from "./settings/chosen-campaign";
-import { flushWhenClosing } from "./settings/flush-when-closing";
+import { flushWhenClosing, type Closing } from "./settings/flush-when-closing";
 import { LocalDrafts, type LocalStorage } from "./settings/local-drafts";
 import { OldDrafts } from "./settings/old-drafts";
 import { settingsOf, type PluginSettings } from "./settings/plugin-settings";
@@ -59,8 +59,8 @@ import { sessionHeadingOf } from "./sessions/session-heading";
 import { startSession } from "./sessions/start-session";
 import { sessionPropertiesOf } from "./sessions/session-properties";
 import { AppendWriter } from "./session-notes/append-writer";
-import { DeletedDrafts } from "./session-notes/deleted-drafts";
 import { Drafts } from "./session-notes/drafts";
+import { KeptDrafts } from "./session-notes/kept-drafts";
 import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
 
@@ -153,14 +153,18 @@ export default class DungeonsAndDinthla extends Plugin {
     const watchFiles = (changed: (path: string) => void) => this.watchFiles(changed);
     const castNeeds = { store: this.store, characterNotes, sheetNotes, mentionNotes, actions, sheetActions, newCharacter, watchFiles };
     const openers: LookupOpeners = { question: openQuestionAt, quest: openQuestAt, item: openItem };
-    const drafts = this.draftsKept(settings);
-    const deleted = new DeletedDrafts(drafts, () => Date.now());
-    this.registerEvent(this.app.vault.on("rename", (file, oldPath) => drafts.moved(oldPath, file.path)));
-    this.registerEvent(this.app.vault.on("delete", (file) => deleted.noteDeleted(file.path)));
+    const local = this.localDrafts(settings);
+    const drafts = new Drafts(local.read(), () => local.changed(drafts.all()));
+    flushWhenClosing(local, this.closing());
+    const keptDrafts = new KeptDrafts(drafts, () => Date.now());
+    this.moveOldDrafts(keptDrafts, local, settings);
+    this.registerEvent(this.app.vault.on("rename", (file, oldPath) => keptDrafts.noteRenamed(oldPath, file.path)));
+    this.registerEvent(this.app.vault.on("delete", (file) => keptDrafts.noteDeleted(file.path)));
+    this.app.workspace.onLayoutReady(() => keptDrafts.notesGone((path) => this.app.vault.getFileByPath(path) !== null));
     const notesNeeds = {
       store: this.store,
       drafts,
-      deleted,
+      keptDrafts,
       writer: new AppendWriter(this.app.vault),
       propertiesOf: (path: string) => sessionPropertiesOf(path, this.app.metadataCache),
       openers,
@@ -214,26 +218,33 @@ export default class DungeonsAndDinthla extends Plugin {
     closeRetiredViews(this.app.workspace);
   }
 
-  private draftsKept(settings: PluginSettings): Drafts {
+  private localDrafts(settings: PluginSettings): LocalDrafts {
     const timer = {
       start: (run: () => void, ms: number) => window.setTimeout(run, ms),
       stop: (id: number) => window.clearTimeout(id),
     };
-    const local = new LocalDrafts(this.localStorage, timer, {
+    return new LocalDrafts(this.localStorage, timer, {
       written: () => this.oldDraftsKept(settings),
       failed: (error) => new Notice(`Couldn't keep the lines typed on the Session notes page: ${messageOf(error)}`),
     });
-    const drafts = new Drafts(this.oldDrafts.joinedWith(local.read()), () => local.changed(drafts.all()));
-    flushWhenClosing(local, {
+  }
+
+  private closing(): Closing {
+    return {
       onUnload: (run) => this.register(run),
       onQuit: (run) => this.registerEvent(this.app.workspace.on("quit", run)),
-    });
+      onVisibilityChange: (run) => this.registerDomEvent(document, "visibilitychange", run),
+      onPageHide: (run) => this.registerDomEvent(window, "pagehide", run),
+      pageHidden: () => document.visibilityState === "hidden",
+    };
+  }
+
+  private moveOldDrafts(keptDrafts: KeptDrafts, local: LocalDrafts, settings: PluginSettings): void {
     if (this.oldDrafts.waiting) {
-      local.changed(drafts.all());
+      keptDrafts.keepMoved(this.oldDrafts.texts);
       local.flush();
     }
     this.dropOldDrafts(settings);
-    return drafts;
   }
 
   private oldDraftsKept(settings: PluginSettings): void {

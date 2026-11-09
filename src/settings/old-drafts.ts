@@ -28,12 +28,8 @@ export class OldDrafts {
     return this.inFile && !this.waiting;
   }
 
-  joinedWith(local: DraftRecord): DraftRecord {
-    const joined: DraftRecord = { ...local };
-    for (const [key, text] of Object.entries(this.left)) {
-      if (!(key in joined)) joined[key] = text;
-    }
-    return joined;
+  get texts(): DraftRecord {
+    return { ...this.left };
   }
 
   keptOnDevice(): void {
