@@ -2,12 +2,16 @@ import { vi } from "vitest";
 import type { EventRef, TAbstractFile, TFile, TFolder } from "obsidian";
 import type { RawVault } from "../../src/fence/fenced-files";
 
+function nameOf(path: string): string {
+  return path.slice(path.lastIndexOf("/") + 1);
+}
+
 export function fileAt(path: string): TFile {
-  return { path } as TFile;
+  return { path, name: nameOf(path) } as TFile;
 }
 
 export function folderAt(path: string, children: TAbstractFile[]): TFolder {
-  return { path, children } as unknown as TFolder;
+  return { path, name: nameOf(path), children } as unknown as TFolder;
 }
 
 function found<T extends TAbstractFile>(all: T[], path: string): T | null {

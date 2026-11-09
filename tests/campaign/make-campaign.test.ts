@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { TAbstractFile, TFolder } from "obsidian";
+import type { TFolder } from "obsidian";
 import { BAD_NAME } from "../../src/campaign/file-name";
 import { makeCampaign, NO_CAMPAIGN_NAME, NO_CAMPAIGNS_FOLDER, type NewCampaignFiles } from "../../src/campaign/make-campaign";
 
@@ -10,19 +10,22 @@ interface FilesSetup {
   removeFails?: boolean;
 }
 
-function folderHolding(path: string, names: string[]): TFolder {
-  const children = names.map((name) => ({ name }) as TAbstractFile);
-  return { path, children } as unknown as TFolder;
+interface FolderNames {
+  path: string;
+  names: string[];
 }
 
 function filesWith({ inCampaigns = [], atTheTop = [], noteFails = false, removeFails = false }: FilesSetup = {}) {
   const made: string[] = [];
-  const folders = [folderHolding("D&D", inCampaigns), folderHolding("/", atTheTop)];
+  const folders: FolderNames[] = [
+    { path: "D&D", names: inCampaigns },
+    { path: "/", names: atTheTop },
+  ];
   const files: NewCampaignFiles = {
-    getFolderByPath: (path) => {
+    namesIn: (path) => {
       const folder = folders.find((candidate) => candidate.path === path);
-      if (folder === undefined) return null;
-      return folder;
+      if (folder === undefined) return [];
+      return folder.names;
     },
     createFolder: async (path) => {
       made.push(`folder ${path}`);
