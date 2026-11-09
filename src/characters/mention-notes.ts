@@ -1,4 +1,4 @@
-import { getLinkpath, type App } from "obsidian";
+import { getLinkpath, type App, type CachedMetadata, type ReferenceCache } from "obsidian";
 import { sheetNotesOf, type SheetNotes } from "./sheet-notes";
 
 export interface MentionNotes extends Pick<SheetNotes, "fileAt" | "textOf" | "campaignFolders" | "onNoteMoved"> {
@@ -17,12 +17,17 @@ function pointsTo(app: App, linktext: string, sourcePath: string, target: string
   return note !== null && note.path === target;
 }
 
+function linksAndEmbedsOf(cache: CachedMetadata): ReferenceCache[] {
+  const references: ReferenceCache[] = [];
+  if (cache.links !== undefined) references.push(...cache.links);
+  if (cache.embeds !== undefined) references.push(...cache.embeds);
+  return references;
+}
+
 function linkedLines(app: App, sourcePath: string, target: string): number[] {
   const cache = app.metadataCache.getCache(sourcePath);
   if (cache === null) return [];
-  const links = cache.links;
-  if (links === undefined) return [];
-  const linking = links.filter((link) => pointsTo(app, link.link, sourcePath, target));
+  const linking = linksAndEmbedsOf(cache).filter((link) => pointsTo(app, link.link, sourcePath, target));
   return [...new Set(linking.map((link) => link.position.start.line))];
 }
 

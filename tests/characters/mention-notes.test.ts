@@ -65,6 +65,22 @@ describe("mentionNotesOf", () => {
     expect(notes.linkedLines(ONE, MIRA)).toEqual([5]);
   });
 
+  it("counts an embed of the character's note as a link", () => {
+    const { notes } = appWith({ caches: { [ONE]: { embeds: [linkAt("Mira", 2), linkAt("Vess", 3)] } } });
+    expect(notes.linkedLines(ONE, MIRA)).toEqual([2]);
+  });
+
+  it("finds the lines of links and embeds together", () => {
+    const { notes } = appWith({ caches: { [ONE]: { links: [linkAt("Mira", 1)], embeds: [linkAt("Mira", 4)] } } });
+    expect(notes.linkedLines(ONE, MIRA)).toEqual([1, 4]);
+  });
+
+  it("leaves out links in the note's properties", () => {
+    const cache = { frontmatterLinks: [{ key: "character", link: "Mira", original: "[[Mira]]", displayText: "Mira" }] };
+    const { notes } = appWith({ caches: { [ONE]: cache } });
+    expect(notes.linkedLines(ONE, MIRA)).toEqual([]);
+  });
+
   it("finds no lines in a note Obsidian hasn't read, or with no links", () => {
     const { notes } = appWith({ caches: { [TWO]: {} } });
     expect(notes.linkedLines(ONE, MIRA)).toEqual([]);

@@ -1,8 +1,0 @@
-.dd-sheet .dd-sheet-mentions {
-  margin-top: var(--space-6);
-}
-
-.dd-sheet .dd-sheet-mentions .dd-body {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
