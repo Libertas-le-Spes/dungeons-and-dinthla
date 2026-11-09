@@ -288,11 +288,11 @@ function flattened(type: Type): Type[] {
   return members.flatMap(flattened);
 }
 
-function layersOf(expression: Node): Node[] {
-  if (isParenthesizedExpression(expression) || isNonNullExpression(expression) || isSatisfiesExpression(expression) || isCast(expression)) {
-    return [expression, ...layersOf(expression.expression)];
+function layersOf(node: Node): Node[] {
+  if (isParenthesizedExpression(node) || isNonNullExpression(node) || isSatisfiesExpression(node) || isAsExpression(node) || isTypeAssertion(node)) {
+    return [node, ...layersOf(node.expression)];
   }
-  return [expression];
+  return [node];
 }
 
 function isNamedOneOf(type: Type, names: string[]): boolean {
