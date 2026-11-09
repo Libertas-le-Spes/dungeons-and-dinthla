@@ -35,6 +35,22 @@ describe("networkCodeIn", () => {
     ]);
   });
 
+  it("finds each way to reach Node's own modules without require", () => {
+    expectEachFound([
+      ['process.getBuiltinModule("node:https").get(address)', "process"],
+      ['process.getBuiltinModule("child_process").exec(command)', "process"],
+      ['process["getBuiltinModule"]("fs")', "process"],
+      ["process?.binding(name)", "process"],
+      ["process . dlopen(target, path)", "process"],
+      ["const host = process;", "process"],
+      ['globalThis.process.getBuiltinModule("net")', "process"],
+      ['const { getBuiltinModule } = host;', "getBuiltinModule"],
+      ['host.mainModule.require("http")', "mainModule"],
+      ['loader._load("https", parent)', "_load"],
+      ["host.dlopen(target, path)", "dlopen"],
+    ]);
+  });
+
   it("finds each other way a page can reach the network", () => {
     expectEachFound([
       ["(0, import_obsidian.request)({ url })", "request"],
@@ -52,28 +68,44 @@ describe("networkCodeIn", () => {
       ["activeWindow.open(address)", "open on a window"],
       ['window["open"](address)', "open on a window"],
       ["window?.open(address)", "open on a window"],
+      ["open(address)", "open called on its own"],
+      ["const opened = open(address);", "open called on its own"],
+      ['open ("https:" + rest)', "open called on its own"],
+      ["return open(target(address));", "open called on its own"],
       ["location.assign(address)", "location"],
       ["window.location.href = address", "location"],
       ['el.innerHTML = "<img src=x>"', "innerHTML"],
       ["el.outerHTML = text", "outerHTML"],
       ['el.insertAdjacentHTML("beforeend", text)', "insertAdjacentHTML"],
       ["frame.srcdoc = text", "srcdoc"],
-      ['document.createElement("img")', "an img, link, script or iframe element"],
-      ['document.createElement("link")', "an img, link, script or iframe element"],
-      ['document.createElement("script")', "an img, link, script or iframe element"],
-      ['document.createElement("iframe")', "an img, link, script or iframe element"],
-      ['parent.createEl("img", { attr: { src: address } })', "an img, link, script or iframe element"],
-      ["document.createElement('IMG')", "an img, link, script or iframe element"],
+      ['document.createElement("img")', "an element that loads from an address"],
+      ['document.createElement("link")', "an element that loads from an address"],
+      ['document.createElement("script")', "an element that loads from an address"],
+      ['document.createElement("iframe")', "an element that loads from an address"],
+      ['parent.createEl("img", { attr: { src: address } })', "an element that loads from an address"],
+      ["document.createElement('IMG')", "an element that loads from an address"],
+      ['document.createElement("audio")', "an element that loads from an address"],
+      ['parent.createEl("video", { attr: { src: address } })', "an element that loads from an address"],
+      ['video.createEl("source", { attr: { src: address } })', "an element that loads from an address"],
+      ['document.createElement("embed")', "an element that loads from an address"],
+      ['document.createElement("object")', "an element that loads from an address"],
+      ['video.createEl("track", { attr: { src: address } })', "an element that loads from an address"],
+      ['document.createElement(kind === "a" && "object")', "an element that loads from an address"],
     ]);
   });
 
-  it("finds nothing in Obsidian modals and the plugin's own open methods", () => {
+  it("finds nothing in Obsidian modals, the plugin's own open and process methods, and checks of a value's type", () => {
     const allowed = [
       "new ConfirmModal(this.app, text, confirmed, closed).open();",
       "await this.store.open(folder);",
       "super.open();",
       'this.registerEvent(this.app.workspace.on("window-open", added));',
       "const timer = window.setTimeout(run, 0);",
+      "  async open(folder) {",
+      "  open() {",
+      "  async process(file, change) {",
+      "await this.files.process(file, (text) => text);",
+      'if (typeof saved !== "object" || saved === null) return settings;',
     ];
     expect(networkCodeIn(allowed.join("\n"))).toEqual([]);
   });
