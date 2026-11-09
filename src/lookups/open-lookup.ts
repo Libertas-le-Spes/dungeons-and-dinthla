@@ -3,14 +3,9 @@ import type { Source } from "../campaign/campaign";
 import { PROPERTIES_WOULD_CHANGE } from "../campaign/note-editor";
 import { keepsProperties } from "../campaign/session-file";
 import type { LookupMatch } from "./lookup";
+import { openMatch, type LookupOpeners } from "./open-match";
 
 export const NOT_IN_A_NOTE_VIEW = "Lookups work in a note opened in its own tab, so nothing was changed.";
-
-export interface LookupOpeners {
-  question(source: Source, onClosed: () => void): void;
-  quest(source: Source, onClosed: () => void): void;
-  item(name: string, source: Source, onClosed: () => void): void;
-}
 
 export function lineRange(editor: Editor, line: number): { from: EditorPosition; to: EditorPosition } {
   if (line + 1 < editor.lineCount()) return { from: { line, ch: 0 }, to: { line: line + 1, ch: 0 } };
@@ -55,7 +50,5 @@ export async function openLookup(
   noteChanged(file.path, editor.getValue());
   const source = sourceAfterRemoving(match.source, file.path, line);
   const onClosed = () => editor.focus();
-  if (match.kind === "question") openers.question(source, onClosed);
-  else if (match.kind === "quest") openers.quest(source, onClosed);
-  else openers.item(match.text, source, onClosed);
+  openMatch(openers, match, source, onClosed);
 }

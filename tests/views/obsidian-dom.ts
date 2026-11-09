@@ -35,6 +35,10 @@ function create(parent: HTMLElement, tag: string, info?: ElementInfo | string): 
   return element;
 }
 
+export function isShown(element: HTMLElement): boolean {
+  return element.style.display !== "none";
+}
+
 export function obsidianDocument(): Document {
   const window = new Window();
   const prototype = window.HTMLElement.prototype as unknown as Record<string, unknown>;
@@ -71,8 +75,15 @@ export function obsidianDocument(): Document {
   prototype.setAttr = function (this: HTMLElement, name: string, value: string) {
     this.setAttribute(name, value);
   };
+  prototype.show = function (this: HTMLElement) {
+    this.style.display = "";
+  };
+  prototype.hide = function (this: HTMLElement) {
+    this.style.display = "none";
+  };
   prototype.toggle = function (this: HTMLElement, show: boolean) {
-    this.hidden = !show;
+    if (show) this.style.display = "";
+    else this.style.display = "none";
   };
   return window.document as unknown as Document;
 }

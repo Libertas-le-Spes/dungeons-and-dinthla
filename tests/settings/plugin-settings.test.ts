@@ -11,6 +11,12 @@ describe("settingsOf", () => {
   });
 
   it("ignores saved data it can't read", () => {
-    for (const saved of ["Pale Moon", 3, { campaignFolder: 3 }, {}]) expect(settingsOf(saved)).toEqual({ campaignFolder: null });
+    for (const saved of ["Pale Moon", 3, { campaignFolder: 3 }, {}]) {
+      expect(settingsOf(saved)).toEqual({ campaignFolder: null });
+    }
+  });
+
+  it("leaves unsaved lines out of the settings, since they are kept on this device only", () => {
+    expect(settingsOf({ campaignFolder: "Pale Moon", drafts: { "Pale Moon/Sessions/Session 3.md": "? Who" } })).toEqual({ campaignFolder: "Pale Moon" });
   });
 });

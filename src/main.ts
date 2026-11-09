@@ -20,7 +20,8 @@ import { editorTextOf } from "./campaign/editor-text";
 import { markerColouring } from "./editor/marker-decorations";
 import type { LookupMatch } from "./lookups/lookup";
 import { LookupSuggest } from "./lookups/lookup-suggest";
-import { openLookup, type LookupOpeners } from "./lookups/open-lookup";
+import { openLookup } from "./lookups/open-lookup";
+import type { LookupOpeners } from "./lookups/open-match";
 import { openNewQuestion } from "./questions/open-new-question";
 import { openQuestion } from "./questions/open-question";
 import { questionsKind } from "./questions/questions-kind";
@@ -38,8 +39,9 @@ import { campaignSections, type PageId, type ShowPage } from "./interface/campai
 import { campaignStateFor, type Takeover } from "./interface/campaign-takeover";
 import { isCampaignViewRegistered } from "./interface/campaign-view-registered";
 import { castSection } from "./interface/cast-section";
+import { notesSection } from "./interface/notes-section";
 import { keepOneCampaignTab } from "./interface/one-campaign-tab";
-import { shownCampaignPathOf } from "./interface/shown-campaign-path";
+import { pathYouAreIn, shownCampaignPathOf } from "./interface/shown-campaign-path";
 import { takeOpenLeaves } from "./interface/take-open-leaves";
 import { patchSetViewState, type ChangeViewState } from "./interface/view-state-patch";
 import { CAMPAIGN_VIEW, CampaignView } from "./interface/campaign-view";
@@ -49,9 +51,16 @@ import { colourMarkers } from "./reading/colour-markers";
 import { BackgroundRefresh, showBackground, shownBackgroundOf } from "./reading/note-background";
 import { CampaignSettingTab } from "./settings/campaign-setting-tab";
 import { ChosenCampaign } from "./settings/chosen-campaign";
+import { flushWhenClosing, type Closing } from "./settings/flush-when-closing";
+import { LocalDrafts, type LocalStorage } from "./settings/local-drafts";
+import { OldDrafts } from "./settings/old-drafts";
 import { settingsOf, type PluginSettings } from "./settings/plugin-settings";
 import { sessionHeadingOf } from "./sessions/session-heading";
 import { startSession } from "./sessions/start-session";
+import { sessionPropertiesOf } from "./sessions/session-properties";
+import { AppendWriter } from "./session-notes/append-writer";
+import { Drafts } from "./session-notes/drafts";
+import { KeptDrafts } from "./session-notes/kept-drafts";
 import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
 
@@ -67,10 +76,18 @@ const PAGE_OPENERS: { page: PageId; id: string; name: string; icon: string }[] =
 
 export default class DungeonsAndDinthla extends Plugin {
   private readonly store = new CampaignStore(this.app.vault);
+  private readonly localStorage: LocalStorage = {
+    load: (key) => this.app.loadLocalStorage(key),
+    save: (key, value) => this.app.saveLocalStorage(key, value),
+  };
+  private oldDrafts = new OldDrafts(null, this.localStorage);
   private chosen = this.chosenCampaignFrom(settingsOf(null));
 
   override async onload(): Promise<void> {
-    this.chosen = this.chosenCampaignFrom(settingsOf(await this.loadData()));
+    const saved: unknown = await this.loadData();
+    const settings = settingsOf(saved);
+    this.oldDrafts = new OldDrafts(saved, this.localStorage);
+    this.chosen = this.chosenCampaignFrom(settings);
     this.addSettingTab(new CampaignSettingTab(this.app, this, {
       folders: () => this.campaignFolders(),
       chosen: () => chosenCampaignFolder(this.chosen.folder, this.campaignFolders()),
@@ -81,21 +98,21 @@ export default class DungeonsAndDinthla extends Plugin {
       openLink: (linktext: string, sourcePath: string) => void this.app.workspace.openLinkText(linktext, sourcePath),
     };
     const openQuestionAt = (source: Source, onClosed: (changed: boolean) => void) =>
-      openQuestion(this.app, this.store, source, () => void openSource(this.app, source), onClosed);
+      openQuestion(this.app, this.store, source, () => void openSource(this.app, source), onClosed, pathYouAreIn(this.app));
     const createQuestion = {
       label: "New question",
       open: (returnFocus: () => void) => openNewQuestion(this.app, this.store, returnFocus),
     };
     const openQuestAt = (source: Source, onClosed: (changed: boolean) => void) =>
-      openQuest(this.app, this.store, source, () => void openSource(this.app, source), onClosed);
+      openQuest(this.app, this.store, source, () => void openSource(this.app, source), onClosed, pathYouAreIn(this.app));
     const createQuest = {
       label: "New quest",
       open: (returnFocus: () => void) => openNewQuest(this.app, this.store, returnFocus),
     };
     const noteExists = (name: string, sourcePath: string) => this.app.metadataCache.getFirstLinkpathDest(name, sourcePath) !== null;
-    const addCoin = (returnFocus: () => void) => openAddCoin(this.app, this.store, returnFocus);
+    const addCoin = (returnFocus: () => void) => openAddCoin(this.app, this.store, returnFocus, pathYouAreIn(this.app));
     const openItem = (name: string, source: Source, onClosed: (changed: boolean) => void) =>
-      openItemDialog(this.app, this.store, name, () => void openSource(this.app, source), onClosed);
+      openItemDialog(this.app, this.store, name, () => void openSource(this.app, source), onClosed, pathYouAreIn(this.app));
     const openLedgerEntry = ledgerEntryOpener(this.app, this.store, openItem);
     const characterNotes = characterNotesOf(this.app);
     const sheetNotes = sheetNotesOf(this.app);
@@ -116,7 +133,9 @@ export default class DungeonsAndDinthla extends Plugin {
     const shownPath = () => shownCampaignPathOf(this.app.workspace);
     this.addCommand({ id: "edit-character", name: "Edit character", checkCallback: (checking) => editActiveCharacter(this.app, characterNotes, shownPath, checking) });
     this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => addEditCharacterItem(this.app, characterNotes, menu, file)));
-    this.addRibbonIcon("calendar-plus", "Start a new session", () => startSession(this.app, this.store.campaignFolder));
+    const openNotes = (path: string) => openCampaignPage(this.app, "notes", path);
+    const newSession = () => startSession(this.app, this.store.campaignFolder, openNotes);
+    this.addRibbonIcon("calendar-plus", "Start a new session", newSession);
     const dashboardActionsFor = (show: ShowPage): DashboardActions => ({
       ...actions,
       openQuestion: openQuestionAt,
@@ -127,28 +146,48 @@ export default class DungeonsAndDinthla extends Plugin {
       showFunds: () => show({ page: "funds", path: null }),
       showCharacters: () => show({ page: "cast", path: null }),
       openCharacterSheet: (path: string) => show({ page: "cast", path }),
-      startSession: () => startSession(this.app, this.store.campaignFolder),
+      startSession: newSession,
+      writeNotes: (path: string) => show({ page: "notes", path }),
       sessionHeadingOf: (path: string) => sessionHeadingOf(path, this.app.metadataCache),
     });
     const watchFiles = (changed: (path: string) => void) => this.watchFiles(changed);
     const castNeeds = { store: this.store, characterNotes, sheetNotes, mentionNotes, actions, sheetActions, newCharacter, watchFiles };
+    const openers: LookupOpeners = { question: openQuestionAt, quest: openQuestAt, item: openItem };
+    const local = this.localDrafts(settings);
+    const drafts = new Drafts(local.read(), () => local.changed(drafts.all()));
+    flushWhenClosing(local, this.closing());
+    const keptDrafts = new KeptDrafts(drafts, () => Date.now());
+    this.moveOldDrafts(keptDrafts, local, settings);
+    this.registerEvent(this.app.vault.on("rename", (file, oldPath) => keptDrafts.noteRenamed(oldPath, file.path)));
+    this.registerEvent(this.app.vault.on("delete", (file) => keptDrafts.noteDeleted(file.path)));
+    this.app.workspace.onLayoutReady(() => keptDrafts.notesGone((path) => this.app.vault.getFileByPath(path) !== null));
+    const notesNeeds = {
+      store: this.store,
+      drafts,
+      keptDrafts,
+      writer: new AppendWriter(this.app.vault),
+      propertiesOf: (path: string) => sessionPropertiesOf(path, this.app.metadataCache),
+      openers,
+      actions,
+      startSession: newSession,
+    };
     const sections = campaignSections({
       home: (contentEl, show) => new DashboardPage(contentEl, this.store, characterNotes, dashboardActionsFor(show)),
       cast: castSection(castNeeds),
+      notes: notesSection(notesNeeds),
       questions: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestionAt, questionsKind, createQuestion),
       quests: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestAt, questsKind, createQuest),
       funds: (contentEl) => new FundsPage(contentEl, this.store, actions, noteExists, addCoin, openLedgerEntry, openItem),
     });
     this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView(leaf, this.store, sections, (path) => void this.followCampaignOf(path)));
     for (const opener of PAGE_OPENERS) {
-      const open = () => void openCampaignPage(this.app, opener.page);
+      const open = () => void openCampaignPage(this.app, opener.page, null);
       this.addRibbonIcon(opener.icon, opener.name, open);
       this.addCommand({ id: opener.id, name: opener.name, callback: open });
     }
-    this.addCommand({ id: "start-session", name: "Start a new session", callback: () => startSession(this.app, this.store.campaignFolder) });
+    this.addCommand({ id: "start-session", name: "Start a new session", callback: newSession });
     const inSession = (path: string) => isSessionNote(path, (notePath) => this.app.vault.getFileByPath(notePath) !== null);
     this.registerEditorExtension(markerColouring(inSession));
-    const openers: LookupOpeners = { question: openQuestionAt, quest: openQuestAt, item: openItem };
     const noteChanged = (path: string, text: string) => this.store.noteChanged(path, text);
     const pickLookup = (match: LookupMatch, context: EditorSuggestContext) => {
       openLookup(this.app, match, context, noteChanged, openers).catch((error: unknown) => new Notice(`Couldn't open it: ${messageOf(error)}`));
@@ -179,8 +218,53 @@ export default class DungeonsAndDinthla extends Plugin {
     closeRetiredViews(this.app.workspace);
   }
 
+  private localDrafts(settings: PluginSettings): LocalDrafts {
+    const timer = {
+      start: (run: () => void, ms: number) => window.setTimeout(run, ms),
+      stop: (id: number) => window.clearTimeout(id),
+    };
+    return new LocalDrafts(this.localStorage, timer, {
+      written: () => this.oldDraftsKept(settings),
+      failed: (error) => new Notice(`Couldn't keep the lines typed on the Session notes page: ${messageOf(error)}`),
+    });
+  }
+
+  private closing(): Closing {
+    return {
+      onUnload: (run) => this.register(run),
+      onQuit: (run) => this.registerEvent(this.app.workspace.on("quit", run)),
+      onVisibilityChange: (run) => this.registerDomEvent(document, "visibilitychange", run),
+      onPageHide: (run) => this.registerDomEvent(window, "pagehide", run),
+      pageHidden: () => document.visibilityState === "hidden",
+    };
+  }
+
+  private moveOldDrafts(keptDrafts: KeptDrafts, local: LocalDrafts, settings: PluginSettings): void {
+    if (this.oldDrafts.waiting) {
+      keptDrafts.keepMoved(this.oldDrafts.texts);
+      local.flush();
+    }
+    this.dropOldDrafts(settings);
+  }
+
+  private oldDraftsKept(settings: PluginSettings): void {
+    this.oldDrafts.keptOnDevice();
+    this.dropOldDrafts(settings);
+  }
+
+  private dropOldDrafts(settings: PluginSettings): void {
+    if (!this.oldDrafts.leftInFile) return;
+    this.saveSettings(settings)
+      .then(() => this.oldDrafts.fileRewritten())
+      .catch((error: unknown) => new Notice(`Couldn't tidy the plugin's settings file: ${messageOf(error)}`));
+  }
+
+  private async saveSettings(settings: PluginSettings): Promise<void> {
+    await this.saveData(this.oldDrafts.dataOf(settings));
+  }
+
   private chosenCampaignFrom(settings: PluginSettings): ChosenCampaign {
-    return new ChosenCampaign(settings, (changed) => this.saveData(changed), (folder) => this.store.open(folder));
+    return new ChosenCampaign(settings, (changed) => this.saveSettings(changed), (folder) => this.store.open(folder));
   }
 
   private watchBackgrounds(): void {

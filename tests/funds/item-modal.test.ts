@@ -5,6 +5,7 @@ import { sessionNoteOf } from "../../src/campaign/session-file";
 import { ItemModal } from "../../src/funds/item-modal";
 import { GONE_LINE_SAYS_MORE, HOLDER_OF_GONE, initialItemEdit, type ItemEdit } from "../../src/funds/item-plan";
 import { Notice } from "../stubs/obsidian";
+import { isShown } from "../views/obsidian-dom";
 
 function openDialog(text: string, save: (edit: ItemEdit) => Promise<boolean>) {
   const sessions = [sessionNoteOf("Pale Moon/Sessions/Session 1.md", 1, text)];
@@ -28,23 +29,23 @@ describe("the item dialog", () => {
   it("shows a sold item's price as written", () => {
     const { price, priceRow } = openDialog("$ Rope\n$$ Rope :sold 30gp\n", vi.fn());
     expect(price.value).toBe("30gp");
-    expect(priceRow.hidden).toBe(false);
+    expect(isShown(priceRow)).toBe(true);
   });
 
   it("hides the price for an item that isn't sold, and shows it when Sold is chosen", () => {
     const { price, status, priceRow } = openDialog("$ Rope\n$$ Rope :lost\n", vi.fn());
     expect(price.value).toBe("");
-    expect(priceRow.hidden).toBe(true);
+    expect(isShown(priceRow)).toBe(false);
     status.value = "sold";
     status.dispatchEvent(new status.ownerDocument.defaultView!.Event("change"));
-    expect(priceRow.hidden).toBe(false);
+    expect(isShown(priceRow)).toBe(true);
   });
 
   it("offers to open the line that took the item when it refuses because that line says more than it writes", async () => {
     const { openNoteAt, onClosed, button } = openDialog("$ Rope\n$$ Rope :lost in the river\n", refuse(GONE_LINE_SAYS_MORE));
-    expect(button("Open note").hidden).toBe(true);
+    expect(isShown(button("Open note"))).toBe(false);
     button("Save").click();
-    await vi.waitFor(() => expect(button("Open note").hidden).toBe(false));
+    await vi.waitFor(() => expect(isShown(button("Open note"))).toBe(true));
     expect(Notice.shown.at(-1)).toBe(`Couldn't change the item: ${GONE_LINE_SAYS_MORE}`);
     expect(onClosed).not.toHaveBeenCalled();
     button("Open note").click();
@@ -56,21 +57,21 @@ describe("the item dialog", () => {
     const { button, status, price } = openDialog("$ Rope\n$$ Rope :sold 3 gp to Bram\n", refuse(GONE_LINE_SAYS_MORE));
     const window = status.ownerDocument.defaultView!;
     button("Save").click();
-    await vi.waitFor(() => expect(button("Open note").hidden).toBe(false));
+    await vi.waitFor(() => expect(isShown(button("Open note"))).toBe(true));
     status.value = "lost";
     status.dispatchEvent(new window.Event("change"));
-    expect(button("Open note").hidden).toBe(true);
+    expect(isShown(button("Open note"))).toBe(false);
     button("Save").click();
-    await vi.waitFor(() => expect(button("Open note").hidden).toBe(false));
+    await vi.waitFor(() => expect(isShown(button("Open note"))).toBe(true));
     price.value = "4 gp";
     price.dispatchEvent(new window.Event("input"));
-    expect(button("Open note").hidden).toBe(true);
+    expect(isShown(button("Open note"))).toBe(false);
   });
 
   it("doesn't offer the note for a refusal the dialog itself can fix", async () => {
     const { button } = openDialog("$ Rope\n$$ Rope :lost in the river\n", refuse(HOLDER_OF_GONE));
     button("Save").click();
     await vi.waitFor(() => expect(Notice.shown.at(-1)).toBe(`Couldn't change the item: ${HOLDER_OF_GONE}`));
-    expect(button("Open note").hidden).toBe(true);
+    expect(isShown(button("Open note"))).toBe(false);
   });
 });

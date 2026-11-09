@@ -36,6 +36,7 @@ export interface DashboardActions extends LinkActions {
   showCharacters(): void;
   openCharacterSheet(path: string): void;
   startSession(): void;
+  writeNotes(path: string): void;
   sessionHeadingOf(path: string): string;
 }
 
@@ -256,7 +257,7 @@ export class DashboardPage extends Component {
 
   private writeInLatest(): void {
     if (this.latestPath === null) return;
-    this.actions.openRow({ path: this.latestPath, line: 0 });
+    this.actions.writeNotes(this.latestPath);
   }
 
   private showsCharacterNote(path: string): boolean {
