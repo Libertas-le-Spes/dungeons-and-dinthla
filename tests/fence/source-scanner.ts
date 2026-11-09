@@ -1,6 +1,7 @@
 import type { FileSystem } from "typescript/unstable/fs";
 import { API, TypeFlags, type Project, type Symbol as TypeSymbol, type Type, type UnionOrIntersectionType } from "typescript/unstable/sync";
 import {
+  isArrowFunction,
   isAsExpression,
   isAwaitExpression,
   isBinaryExpression,
@@ -12,14 +13,17 @@ import {
   isImportDeclaration,
   isForInStatement,
   isFunctionDeclaration,
+  isFunctionExpression,
   isIdentifier,
   isNoSubstitutionTemplateLiteral,
   isNonNullExpression,
+  isMethodDeclaration,
   isNumericLiteral,
   isObjectBindingPattern,
   isParameterDeclaration,
   isParenthesizedExpression,
   isPropertyAccessExpression,
+  isReturnStatement,
   isSatisfiesExpression,
   isSpreadAssignment,
   isStringLiteral,
@@ -130,6 +134,8 @@ const CONSTRUCTOR = "constructor";
 const KEY_READERS = ["values", "entries", "getOwnPropertyDescriptor", "getOwnPropertyDescriptors", "assign"];
 
 const LIBRARY_FOLDER = "/node_modules/";
+
+const OBSIDIAN_FOLDER = "/node_modules/obsidian/";
 
 const FILE_OPENER = "openFile";
 
@@ -445,6 +451,24 @@ function isExported(declaration: FunctionDeclaration): boolean {
   return declaration.modifiers.some((modifier) => modifier.kind === SyntaxKind.ExportKeyword);
 }
 
+function isFunctionLike(node: Node): boolean {
+  return isFunctionDeclaration(node) || isFunctionExpression(node) || isArrowFunction(node) || isMethodDeclaration(node);
+}
+
+function returnsIn(body: Node): Node[] {
+  const all: Node[] = [];
+  const visit = (node: Node): void => {
+    if (isReturnStatement(node)) all.push(node);
+    if (!isFunctionLike(node)) node.forEachChild(visit);
+  };
+  body.forEachChild(visit);
+  return all;
+}
+
+function isNull(expression: Expression): boolean {
+  return unwrapped(expression).kind === SyntaxKind.NullKeyword;
+}
+
 function nodesIn(sourceFile: SourceFile, matches: (node: Node) => boolean): Node[] {
   const all: Node[] = [];
   const visit = (node: Node): void => {
@@ -494,6 +518,12 @@ export function isOwnedByOneOf(symbol: OwnedSymbol | undefined, owners: string[]
   const owner = symbol.getParent();
   if (owner === undefined) return true;
   return owners.includes(owner.name);
+}
+
+export function isObsidianOwnedByOneOf(symbol: TypeSymbol | undefined, owners: string[]): boolean {
+  if (symbol === undefined || symbol.getParent() !== undefined) return isOwnedByOneOf(symbol, owners);
+  if (symbol.declarations.length === 0) return true;
+  return symbol.declarations.some((declaration) => declaration.path.includes(OBSIDIAN_FOLDER));
 }
 
 export function anyMemberCould(type: Type | undefined, could: (member: Type) => boolean): boolean {
@@ -623,7 +653,7 @@ export class SourceScanner {
   }
 
   private leafReads(project: Project, found: Found, name: string, owners: string[]): Named[] {
-    const read = this.ownedBy(project, found.members.filter((member) => member.name === name), (symbol) => isOwnedByOneOf(symbol, owners));
+    const read = this.ownedBy(project, found.members.filter((member) => member.name === name), (symbol) => isObsidianOwnedByOneOf(symbol, owners));
     const bound = found.boundReads.filter((candidate) => candidate.name === name);
     const types = project.checker.getTypeAtLocation(bound.map(({ owner }) => owner));
     const boundRead = bound.filter((_candidate, index) => this.holdsOwned(project, types[index], name, owners));
@@ -635,7 +665,7 @@ export class SourceScanner {
     return flattened(this.constrained(project, type)).some((member) => {
       if ((member.flags & UNTYPED) !== 0) return true;
       const property = project.checker.getPropertyOfType(member, name);
-      return property !== undefined && isOwnedByOneOf(property, owners);
+      return property !== undefined && isObsidianOwnedByOneOf(property, owners);
     });
   }
 
@@ -647,7 +677,7 @@ export class SourceScanner {
 
   private isFromGate(project: Project, sourceFile: SourceFile, expression: Expression, seen: Set<number>): boolean {
     const value = awaited(expression);
-    if (isCallExpression(value)) return this.isGateCall(project, value);
+    if (isCallExpression(value)) return this.isGateCall(project, value) || this.returnsFromGate(project, sourceFile, value, seen);
     if (!isIdentifier(value)) return false;
     const symbol = project.checker.getSymbolAtLocation(value);
     if (symbol === undefined || seen.has(symbol.id)) return false;
@@ -655,6 +685,25 @@ export class SourceScanner {
     const sources = this.sourcesOf(project, sourceFile, symbol);
     if (sources.length === 0) return false;
     return sources.every((source) => this.isFromGate(project, sourceFile, source, deeper));
+  }
+
+  private returnsFromGate(project: Project, sourceFile: SourceFile, call: CallExpression, seen: Set<number>): boolean {
+    const callee = unwrapped(call.expression);
+    if (!isIdentifier(callee)) return false;
+    const symbol = project.checker.getSymbolAtLocation(callee);
+    if (symbol === undefined || seen.has(symbol.id) || symbol.declarations.length !== 1) return false;
+    const [handle] = symbol.declarations;
+    if (handle === undefined || handle.path !== sourceFile.path) return false;
+    const declaration = handle.resolve(project);
+    if (declaration === undefined || !isFunctionDeclaration(declaration) || declaration.body === undefined) return false;
+    const returned = returnsIn(declaration.body).flatMap((node) => {
+      if (isReturnStatement(node) && node.expression !== undefined) return [node.expression];
+      return [];
+    });
+    const files = returned.filter((expression) => !isNull(expression));
+    if (files.length === 0) return false;
+    const deeper = new Set([...seen, symbol.id]);
+    return files.every((expression) => this.isFromGate(project, sourceFile, expression, deeper));
   }
 
   private isGateCall(project: Project, call: CallExpression): boolean {
