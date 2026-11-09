@@ -52,8 +52,25 @@ export function isShown(element: HTMLElement): boolean {
   return element.style.display !== "none";
 }
 
+const ANY_LINE_END = /\r\n?/g;
+
+function readTextareasLikeBrowsers(window: Window): void {
+  const prototype = window.HTMLTextAreaElement.prototype;
+  const value = Object.getOwnPropertyDescriptor(prototype, "value");
+  if (value === undefined || value.get === undefined || value.set === undefined) throw new Error("happy-dom's textarea has no value to wrap.");
+  const read = value.get;
+  Object.defineProperty(prototype, "value", {
+    ...value,
+    get(this: HTMLTextAreaElement) {
+      const text: string = read.call(this);
+      return text.replace(ANY_LINE_END, "\n");
+    },
+  });
+}
+
 export function obsidianDocument(): Document {
   const window = new Window();
+  readTextareasLikeBrowsers(window);
   const prototype = window.HTMLElement.prototype as unknown as Record<string, unknown>;
   prototype.createEl = function (this: HTMLElement, tag: string, info?: ElementInfo | string) {
     return create(this, tag, info);

@@ -36,6 +36,18 @@ describe("NoteSaver", () => {
     expect(written).toEqual(["The wheel turns. Mira saw it."]);
   });
 
+  it("saves a note that starts with a byte order mark, and keeps the mark", async () => {
+    const { vault, written } = vaultHolding("\uFEFFThe wheel turns.");
+    await new NoteSaver(vault).save(OLD_MILL, { base: "The wheel turns.", text: "The wheel turns at night." });
+    expect(written).toEqual(["\uFEFFThe wheel turns at night."]);
+  });
+
+  it("saves a note with Windows line endings, and keeps them", async () => {
+    const { vault, written } = vaultHolding("The wheel turns.\r\nRain.\r\n");
+    await new NoteSaver(vault).save(OLD_MILL, { base: "The wheel turns.\nRain.\n", text: "The wheel turns.\nRain at night.\n" });
+    expect(written).toEqual(["The wheel turns.\r\nRain at night.\r\n"]);
+  });
+
   it("writes nothing to a note that is gone, and says so", async () => {
     const { vault, process } = vaultHolding(null);
     await expect(new NoteSaver(vault).save(OLD_MILL, { base: "", text: "Lady Vess" })).rejects.toThrow(NOTE_GONE);

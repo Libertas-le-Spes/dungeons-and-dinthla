@@ -1,4 +1,5 @@
 import type { Vault } from "obsidian";
+import { boxTextOf, diskTextFor } from "../campaign/disk-text";
 import type { NoteDraft } from "./note-drafts";
 
 export type SaverVault = Pick<Vault, "getFileByPath" | "process">;
@@ -16,10 +17,10 @@ export class NoteSaver {
     const file = this.vault.getFileByPath(path);
     if (file === null) throw new Error(NOTE_GONE);
     let changedSince = false;
-    await this.vault.process(file, (now) => {
-      if (now === draft.base) return draft.text;
+    await this.vault.process(file, (disk) => {
+      if (boxTextOf(disk) === draft.base) return diskTextFor(draft.text, disk);
       changedSince = true;
-      return now;
+      return disk;
     });
     if (changedSince) throw new NoteChangedSince(NOTE_CHANGED);
   }

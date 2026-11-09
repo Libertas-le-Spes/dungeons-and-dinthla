@@ -88,6 +88,10 @@ Turning the plugin off leaves its campaign tabs as Obsidian's placeholder for a 
 - What is typed but not saved stays in the box while you move between pages of the tab and when Obsidian closes and opens again, with the note's text it was typed over, so a change made since is still caught. It is kept on this device only, with the Session notes page's unsaved lines, by note, following a rename, until it is saved or typed back to what the note says. Two boxes open on the same note show the same text: what is typed in one shows in the other.
 - When the note is deleted, the page stays on it, keeps the box and what you typed, says the note is gone, and saves nothing.
 - Below the box, *Links in this note* lists each `[[link]]` in the box once; pressing one opens that note, in the campaign tab when it belongs to the campaign.
+- A note saved with Windows line endings, or with a byte order mark at its start, keeps them when it is saved; the box shows its lines as usual.
+- A new note made inside the campaign's folder, with Ctrl + N (Cmd + N on a Mac) or by pressing a link to a note that doesn't exist yet, opens on its note page too.
+- The page doesn't rename a note: rename it from Obsidian's file list, and the page follows it. When a note is moved out of the campaign while its page shows, the page says so and offers *Open in Obsidian's editor*, which opens it there in the same tab; it can't be pressed while what you typed is unsaved, so save first.
+- Obsidian's templates are inserted in its editor, so they can't be inserted into a campaign note while the plugin is on; paste the template's text into the box instead.
 
 The page never deletes a note.
 

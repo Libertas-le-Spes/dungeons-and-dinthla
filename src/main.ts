@@ -40,6 +40,7 @@ import { isCampaignViewRegistered } from "./interface/campaign-view-registered";
 import { castSection } from "./interface/cast-section";
 import { fundsSection } from "./interface/funds-section";
 import { noteSection } from "./interface/note-section";
+import { openInEditor } from "./interface/open-in-editor";
 import { notesSection } from "./interface/notes-section";
 import { keepOneCampaignTab } from "./interface/one-campaign-tab";
 import { pathYouAreIn, shownCampaignPathOf } from "./interface/shown-campaign-path";
@@ -190,7 +191,14 @@ export default class DungeonsAndDinthla extends Plugin {
         openItem,
         campaignFolders: () => this.campaignFolders(),
       }),
-      note: noteSection({ texts, drafts: noteDrafts, saver: new NoteSaver(this.app.vault), actions }),
+      note: noteSection({
+        texts,
+        drafts: noteDrafts,
+        saver: new NoteSaver(this.app.vault),
+        actions,
+        isCampaignNote: (path: string) => campaignFolderOf(path, this.campaignFolders()) !== null,
+        openInEditor: (path: string) => void openInEditor(this.app, path),
+      }),
     });
     this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView(leaf, this.store, sections, (path) => void this.followCampaignOf(path)));
     for (const opener of PAGE_OPENERS) {
