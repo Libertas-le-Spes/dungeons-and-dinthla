@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PluginSettings } from "../../src/settings/plugin-settings";
+import { SettingsSaver } from "../../src/settings/settings-saver";
 import type { NewsItem } from "../../src/whats-new/news-item";
 import { WhatsNew } from "../../src/whats-new/whats-new";
 
@@ -12,7 +13,7 @@ function whatsNewFor(version: string, lastVersionSeen: string | null) {
   const save = async (changed: PluginSettings) => {
     saved.push({ ...changed });
   };
-  return { whatsNew: new WhatsNew(settings, version, MADE_UP_NEWS, save), saved };
+  return { whatsNew: new WhatsNew(new SettingsSaver(settings, save), version, MADE_UP_NEWS), saved };
 }
 
 describe("WhatsNew", () => {

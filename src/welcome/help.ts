@@ -1,5 +1,5 @@
 import type { PluginManifest } from "obsidian";
-import type { PluginSettings, SaveSettings } from "../settings/plugin-settings";
+import type { SettingsSaver } from "../settings/settings-saver";
 import type { NewsItem } from "../whats-new/news-item";
 import { WhatsNew } from "../whats-new/whats-new";
 import { FirstRun, type ShowWelcome } from "./first-run";
@@ -15,15 +15,14 @@ export class Help {
   private readonly firstRun: FirstRun;
 
   constructor(
-    settings: PluginSettings,
+    saver: SettingsSaver,
     manifest: Pick<PluginManifest, "version">,
     newsByVersion: ReadonlyMap<string, NewsItem>,
-    save: SaveSettings,
     private readonly files: HelpFiles,
     private readonly openWelcome: ShowWelcome,
   ) {
-    this.firstRun = new FirstRun(settings, manifest.version, save);
-    this.whatsNew = new WhatsNew(settings, manifest.version, newsByVersion, save);
+    this.firstRun = new FirstRun(saver, manifest.version);
+    this.whatsNew = new WhatsNew(saver, manifest.version, newsByVersion);
   }
 
   async start(): Promise<void> {

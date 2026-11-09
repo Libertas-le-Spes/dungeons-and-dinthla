@@ -1,16 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { ChosenCampaign } from "../../src/settings/chosen-campaign";
 import type { PluginSettings } from "../../src/settings/plugin-settings";
+import { SettingsSaver } from "../../src/settings/settings-saver";
 
 function chosenFrom(campaignFolder: string | null, saveFails = false) {
   const saved: (string | null)[] = [];
   const opened: string[] = [];
+  const saver = new SettingsSaver({ campaignsFolder: null, campaignFolder, welcomeSeen: true, lastVersionSeen: null }, async (settings: PluginSettings) => {
+    if (saveFails) throw new Error("data.json is read-only.");
+    saved.push(settings.campaignFolder);
+  });
   const chosen = new ChosenCampaign(
-    { campaignsFolder: null, campaignFolder, welcomeSeen: true, lastVersionSeen: null },
-    async (settings: PluginSettings) => {
-      if (saveFails) throw new Error("data.json is read-only.");
-      saved.push(settings.campaignFolder);
-    },
+    saver,
     async (folder: string) => {
       opened.push(folder);
     },

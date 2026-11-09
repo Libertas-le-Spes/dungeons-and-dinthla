@@ -2,12 +2,18 @@ import { describe, expect, it, vi } from "vitest";
 import { NOT_A_PLAIN_PATH, NOT_THE_WHOLE_VAULT } from "../../src/fence/campaigns-folder-path";
 import { CampaignsFolderSetting } from "../../src/settings/campaigns-folder-setting";
 import type { PluginSettings } from "../../src/settings/plugin-settings";
+import { SettingsSaver } from "../../src/settings/settings-saver";
 
 function settingFrom(campaignsFolder: string | null) {
   const settings: PluginSettings = { campaignsFolder, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null };
-  const save = vi.fn(async () => {});
-  const moved = vi.fn(async () => {});
-  return { setting: new CampaignsFolderSetting(settings, save, moved), settings, save, moved };
+  const order: string[] = [];
+  const save = vi.fn(async (_written: PluginSettings) => {
+    order.push("saved");
+  });
+  const moved = vi.fn(async () => {
+    order.push("moved");
+  });
+  return { setting: new CampaignsFolderSetting(new SettingsSaver(settings, save), moved), settings, save, moved, order };
 }
 
 describe("CampaignsFolderSetting", () => {
@@ -16,12 +22,11 @@ describe("CampaignsFolderSetting", () => {
   });
 
   it("saves a newly chosen Campaigns folder, then says it moved", async () => {
-    const { setting, save, moved } = settingFrom(null);
+    const { setting, save, order } = settingFrom(null);
     await setting.choose("Games/D&D");
     expect(setting.path).toBe("Games/D&D");
     expect(save).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ campaignsFolder: "Games/D&D" }));
-    expect(moved).toHaveBeenCalledOnce();
-    expect(save.mock.invocationCallOrder[0]).toBeLessThan(moved.mock.invocationCallOrder[0]!);
+    expect(order).toEqual(["saved", "moved"]);
   });
 
   it("keeps the folder it had, and says nothing moved, when the new one can't be saved", async () => {

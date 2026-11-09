@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { PluginSettings } from "../../src/settings/plugin-settings";
+import { SettingsSaver } from "../../src/settings/settings-saver";
 import { FirstRun } from "../../src/welcome/first-run";
 
 const VERSION = "1.4.0";
@@ -10,7 +11,7 @@ function firstRunWith(settings: PluginSettings) {
     saved.push({ ...changed });
   };
   const showWelcome = vi.fn(async () => {});
-  return { firstRun: new FirstRun(settings, VERSION, save), saved, showWelcome };
+  return { firstRun: new FirstRun(new SettingsSaver(settings, save), VERSION), saved, showWelcome };
 }
 
 describe("FirstRun", () => {
@@ -49,7 +50,7 @@ describe("FirstRun", () => {
       throw new Error("data.json is read-only.");
     };
     const showWelcome = vi.fn(async () => {});
-    const firstRun = new FirstRun(settings, VERSION, failingSave);
+    const firstRun = new FirstRun(new SettingsSaver(settings, failingSave), VERSION);
     await expect(firstRun.begin(false, showWelcome)).rejects.toThrow("data.json is read-only.");
     expect(showWelcome).not.toHaveBeenCalled();
   });
@@ -75,7 +76,7 @@ describe("FirstRun", () => {
     async function showWelcome(): Promise<void> {
       order.push("shown");
     }
-    await new FirstRun(settings, VERSION, save).begin(false, showWelcome);
+    await new FirstRun(new SettingsSaver(settings, save), VERSION).begin(false, showWelcome);
     expect(order).toEqual(["saved", "shown"]);
   });
 });
