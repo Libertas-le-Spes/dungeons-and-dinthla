@@ -20,7 +20,8 @@ import { editorTextOf } from "./campaign/editor-text";
 import { markerColouring } from "./editor/marker-decorations";
 import type { LookupMatch } from "./lookups/lookup";
 import { LookupSuggest } from "./lookups/lookup-suggest";
-import { openLookup, type LookupOpeners } from "./lookups/open-lookup";
+import { openLookup } from "./lookups/open-lookup";
+import type { LookupOpeners } from "./lookups/open-match";
 import { openNewQuestion } from "./questions/open-new-question";
 import { openQuestion } from "./questions/open-question";
 import { questionsKind } from "./questions/questions-kind";
@@ -38,8 +39,9 @@ import { campaignSections, type PageId, type ShowPage } from "./interface/campai
 import { campaignStateFor, type Takeover } from "./interface/campaign-takeover";
 import { isCampaignViewRegistered } from "./interface/campaign-view-registered";
 import { castSection } from "./interface/cast-section";
+import { notesSection } from "./interface/notes-section";
 import { keepOneCampaignTab } from "./interface/one-campaign-tab";
-import { shownCampaignPathOf } from "./interface/shown-campaign-path";
+import { pathYouAreIn, shownCampaignPathOf } from "./interface/shown-campaign-path";
 import { takeOpenLeaves } from "./interface/take-open-leaves";
 import { patchSetViewState, type ChangeViewState } from "./interface/view-state-patch";
 import { CAMPAIGN_VIEW, CampaignView } from "./interface/campaign-view";
@@ -52,6 +54,9 @@ import { ChosenCampaign } from "./settings/chosen-campaign";
 import { settingsOf, type PluginSettings } from "./settings/plugin-settings";
 import { sessionHeadingOf } from "./sessions/session-heading";
 import { startSession } from "./sessions/start-session";
+import { sessionPropertiesOf } from "./sessions/session-properties";
+import { AppendWriter } from "./session-notes/append-writer";
+import { Drafts } from "./session-notes/drafts";
 import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
 
@@ -81,21 +86,21 @@ export default class DungeonsAndDinthla extends Plugin {
       openLink: (linktext: string, sourcePath: string) => void this.app.workspace.openLinkText(linktext, sourcePath),
     };
     const openQuestionAt = (source: Source, onClosed: (changed: boolean) => void) =>
-      openQuestion(this.app, this.store, source, () => void openSource(this.app, source), onClosed);
+      openQuestion(this.app, this.store, source, () => void openSource(this.app, source), onClosed, pathYouAreIn(this.app));
     const createQuestion = {
       label: "New question",
       open: (returnFocus: () => void) => openNewQuestion(this.app, this.store, returnFocus),
     };
     const openQuestAt = (source: Source, onClosed: (changed: boolean) => void) =>
-      openQuest(this.app, this.store, source, () => void openSource(this.app, source), onClosed);
+      openQuest(this.app, this.store, source, () => void openSource(this.app, source), onClosed, pathYouAreIn(this.app));
     const createQuest = {
       label: "New quest",
       open: (returnFocus: () => void) => openNewQuest(this.app, this.store, returnFocus),
     };
     const noteExists = (name: string, sourcePath: string) => this.app.metadataCache.getFirstLinkpathDest(name, sourcePath) !== null;
-    const addCoin = (returnFocus: () => void) => openAddCoin(this.app, this.store, returnFocus);
+    const addCoin = (returnFocus: () => void) => openAddCoin(this.app, this.store, returnFocus, pathYouAreIn(this.app));
     const openItem = (name: string, source: Source, onClosed: (changed: boolean) => void) =>
-      openItemDialog(this.app, this.store, name, () => void openSource(this.app, source), onClosed);
+      openItemDialog(this.app, this.store, name, () => void openSource(this.app, source), onClosed, pathYouAreIn(this.app));
     const openLedgerEntry = ledgerEntryOpener(this.app, this.store, openItem);
     const characterNotes = characterNotesOf(this.app);
     const sheetNotes = sheetNotesOf(this.app);
@@ -116,7 +121,9 @@ export default class DungeonsAndDinthla extends Plugin {
     const shownPath = () => shownCampaignPathOf(this.app.workspace);
     this.addCommand({ id: "edit-character", name: "Edit character", checkCallback: (checking) => editActiveCharacter(this.app, characterNotes, shownPath, checking) });
     this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => addEditCharacterItem(this.app, characterNotes, menu, file)));
-    this.addRibbonIcon("calendar-plus", "Start a new session", () => startSession(this.app, this.store.campaignFolder));
+    const openNotes = (path: string) => openCampaignPage(this.app, "notes", path);
+    const newSession = () => startSession(this.app, this.store.campaignFolder, openNotes);
+    this.addRibbonIcon("calendar-plus", "Start a new session", newSession);
     const dashboardActionsFor = (show: ShowPage): DashboardActions => ({
       ...actions,
       openQuestion: openQuestionAt,
@@ -127,28 +134,41 @@ export default class DungeonsAndDinthla extends Plugin {
       showFunds: () => show({ page: "funds", path: null }),
       showCharacters: () => show({ page: "cast", path: null }),
       openCharacterSheet: (path: string) => show({ page: "cast", path }),
-      startSession: () => startSession(this.app, this.store.campaignFolder),
+      startSession: newSession,
+      writeNotes: (path: string) => show({ page: "notes", path }),
       sessionHeadingOf: (path: string) => sessionHeadingOf(path, this.app.metadataCache),
     });
     const watchFiles = (changed: (path: string) => void) => this.watchFiles(changed);
     const castNeeds = { store: this.store, characterNotes, sheetNotes, mentionNotes, actions, sheetActions, newCharacter, watchFiles };
+    const openers: LookupOpeners = { question: openQuestionAt, quest: openQuestAt, item: openItem };
+    const drafts = new Drafts();
+    this.registerEvent(this.app.vault.on("rename", (file, oldPath) => drafts.moved(oldPath, file.path)));
+    const notesNeeds = {
+      store: this.store,
+      drafts,
+      writer: new AppendWriter(this.app.vault),
+      propertiesOf: (path: string) => sessionPropertiesOf(path, this.app.metadataCache),
+      openers,
+      actions,
+      startSession: newSession,
+    };
     const sections = campaignSections({
       home: (contentEl, show) => new DashboardPage(contentEl, this.store, characterNotes, dashboardActionsFor(show)),
       cast: castSection(castNeeds),
+      notes: notesSection(notesNeeds),
       questions: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestionAt, questionsKind, createQuestion),
       quests: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestAt, questsKind, createQuest),
       funds: (contentEl) => new FundsPage(contentEl, this.store, actions, noteExists, addCoin, openLedgerEntry, openItem),
     });
     this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView(leaf, this.store, sections, (path) => void this.followCampaignOf(path)));
     for (const opener of PAGE_OPENERS) {
-      const open = () => void openCampaignPage(this.app, opener.page);
+      const open = () => void openCampaignPage(this.app, opener.page, null);
       this.addRibbonIcon(opener.icon, opener.name, open);
       this.addCommand({ id: opener.id, name: opener.name, callback: open });
     }
-    this.addCommand({ id: "start-session", name: "Start a new session", callback: () => startSession(this.app, this.store.campaignFolder) });
+    this.addCommand({ id: "start-session", name: "Start a new session", callback: newSession });
     const inSession = (path: string) => isSessionNote(path, (notePath) => this.app.vault.getFileByPath(notePath) !== null);
     this.registerEditorExtension(markerColouring(inSession));
-    const openers: LookupOpeners = { question: openQuestionAt, quest: openQuestAt, item: openItem };
     const noteChanged = (path: string, text: string) => this.store.noteChanged(path, text);
     const pickLookup = (match: LookupMatch, context: EditorSuggestContext) => {
       openLookup(this.app, match, context, noteChanged, openers).catch((error: unknown) => new Notice(`Couldn't open it: ${messageOf(error)}`));

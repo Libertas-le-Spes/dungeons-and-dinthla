@@ -46,9 +46,15 @@ describe("campaignStateFor", () => {
     expect(old.state).toEqual({ page: "cast", path: MIRA });
   });
 
+  it("opens a session note in the campaign tab on the Notes page for that session", () => {
+    const session = campaignStateFor({ type: "markdown", state: { file: "Pale Moon/Sessions/Session 1.md", mode: "source" } }, TAKEOVER);
+    expect(session.type).toBe(CAMPAIGN_VIEW);
+    expect(session.state).toEqual({ page: "notes", path: "Pale Moon/Sessions/Session 1.md" });
+  });
+
   it("hands back the very same state for a file the campaign tab doesn't show", () => {
-    const session = { type: "markdown", state: { file: "Pale Moon/Sessions/Session 1.md" } };
-    expect(campaignStateFor(session, TAKEOVER)).toBe(session);
+    const place = { type: "markdown", state: { file: "Pale Moon/Places/Old Mill.md" } };
+    expect(campaignStateFor(place, TAKEOVER)).toBe(place);
   });
 
   it("hands back the very same state for any other kind of tab, its own included", () => {

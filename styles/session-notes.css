@@ -1,0 +1,171 @@
+.dd-session-notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.dd-session-notes .dd-notes-head {
+  margin-bottom: 0;
+}
+
+.dd-session-notes .dd-notes-title {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.dd-session-notes .dd-notes-select {
+  max-width: 100%;
+  min-height: var(--control-md);
+}
+
+.dd-session-notes .dd-notes-panel {
+  min-width: 0;
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-1);
+}
+
+.dd-session-notes .dd-box-label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font: var(--type-label);
+  color: var(--text-muted-ui);
+}
+
+.dd-session-notes .dd-box {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 180px;
+  padding: var(--space-3);
+  border: var(--border-width) solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  font: var(--type-note);
+  font-variant-ligatures: none;
+  color: var(--text-body);
+  resize: vertical;
+}
+
+.dd-session-notes .dd-box:focus,
+.dd-session-notes .dd-box:focus-visible {
+  border-color: var(--border-focus);
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.dd-session-notes .dd-box::placeholder {
+  color: var(--text-faint-ui);
+  opacity: 1;
+}
+
+.dd-session-notes .dd-box-help {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted-ui);
+}
+
+.dd-session-notes .dd-box-lookups {
+  margin-top: var(--space-2);
+  padding: var(--space-2);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-2);
+}
+
+.dd-session-notes .dd-box-lookups[hidden] {
+  display: none;
+}
+
+.dd-session-notes .dd-box-lookups-heading {
+  padding: var(--space-1) var(--space-2);
+  font: var(--type-label);
+  color: var(--text-muted-ui);
+}
+
+.dd-session-notes .dd-box-lookups ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dd-session-notes .dd-box-lookup {
+  min-height: var(--touch-min);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  font: var(--type-note);
+  cursor: pointer;
+}
+
+.dd-session-notes .dd-box-lookup:hover,
+.dd-session-notes .dd-box-lookup[aria-selected="true"] {
+  background: var(--surface-hover);
+}
+
+.dd-session-notes .dd-save-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.dd-session-notes .dd-save {
+  min-height: var(--control-md);
+}
+
+.dd-session-notes .dd-save-hint {
+  font-size: var(--text-xs);
+  color: var(--text-faint-ui);
+}
+
+.dd-session-notes .dd-save-message {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--state-danger);
+}
+
+.dd-session-notes .dd-save-message:empty {
+  display: none;
+}
+
+.dd-session-notes .dd-written-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dd-session-notes .dd-written-line {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+  font: var(--type-note);
+  font-variant-ligatures: none;
+  color: var(--text-body);
+}
+
+.dd-session-notes .dd-line-glyph {
+  flex: none;
+  width: 2ch;
+}
+
+.dd-session-notes .dd-line-text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.dd-session-notes .dd-line-state {
+  flex: none;
+  color: var(--text-muted-ui);
+}
+
+.dd-session-notes .dd-line-struck {
+  text-decoration: line-through;
+  text-decoration-color: var(--text-muted-ui);
+  color: var(--text-muted-ui);
+}

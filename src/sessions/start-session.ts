@@ -4,7 +4,9 @@ import { NO_CAMPAIGN } from "../campaign/campaign-folders";
 import { messageOf } from "../views/message-of";
 import { NewSessionModal } from "./new-session-modal";
 
-async function makeAndOpen(app: App, campaignFolder: string, session: NewSession): Promise<void> {
+export type OpenSessionNotes = (path: string) => Promise<void>;
+
+async function makeAndOpen(app: App, campaignFolder: string, session: NewSession, openNotes: OpenSessionNotes): Promise<void> {
   let note: TFile;
   try {
     note = await createSession(app.vault, app.fileManager, campaignFolder, session);
@@ -13,17 +15,17 @@ async function makeAndOpen(app: App, campaignFolder: string, session: NewSession
     return;
   }
   try {
-    await app.workspace.getLeaf(false).openFile(note);
+    await openNotes(note.path);
   } catch (error) {
     new Notice(`${note.basename} was made but couldn't be opened: ${messageOf(error)}`);
   }
 }
 
-export function startSession(app: App, campaignFolder: string | null): void {
+export function startSession(app: App, campaignFolder: string | null, openNotes: OpenSessionNotes): void {
   if (campaignFolder === null) {
     new Notice(NO_CAMPAIGN);
     return;
   }
   const number = nextSessionNumber(app.vault.getFiles().map((file) => file.path), campaignFolder);
-  new NewSessionModal(app, number, (session) => void makeAndOpen(app, campaignFolder, session)).open();
+  new NewSessionModal(app, number, (session) => void makeAndOpen(app, campaignFolder, session, openNotes)).open();
 }
