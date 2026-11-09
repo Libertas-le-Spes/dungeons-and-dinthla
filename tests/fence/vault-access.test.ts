@@ -1,5 +1,8 @@
-import { readdirSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { build, transform } from "esbuild";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { FileSystem } from "typescript/unstable/fs";
 import { PLUGIN_BUNDLE } from "../../scripts/bundle-options.ts";
@@ -19,7 +22,7 @@ const EDITOR_TEXT_READERS = ["campaign/editor-text.ts"];
 const BASES_READERS = ["characters/characters-view.ts"];
 const CODE_MIRROR_READERS = ["editor/marker-decorations.ts"];
 const LOOSE_CASTERS = ["fence/fenced-metadata.ts", "interface/campaign-view-registered.ts", "interface/one-campaign-tab.ts", "interface/seen-tab.ts"];
-const HIDDEN_CODE = [".js", ".mjs", ".cjs", ".mts", ".cts"];
+const HIDDEN_CODE = [".js", ".mjs", ".cjs", ".mts", ".cts", ".tsx", ".jsx"];
 const REACHING_SAMPLES = [
   "this.app.vault.read(file);",
   "const files = app.vault;",
@@ -414,6 +417,65 @@ function plantedBreaches(name: string): string[] {
   return fenceBreaches(plantedProject(planted), plantedListing(planted), NOTHING_ALLOWED).map((breach) => breach.replace(`${plantedFolder(planted)}/`, ""));
 }
 
+interface PlantedOnDisk {
+  name: string;
+  files: Record<string, string>;
+  found: string[];
+}
+
+const PLANTED_ON_DISK: PlantedOnDisk[] = [
+  {
+    name: "tsx beside ts",
+    files: { "src/main.ts": 'export { files } from "./reader";\n', "src/reader.ts": "export const files = 1;\n", "src/reader.tsx": "export const files = 2;\n" },
+    found: ["src/reader.tsx is bundled but not scanned", "src/reader.ts holds code but is scanned and not bundled"],
+  },
+  {
+    name: "browser map",
+    files: {
+      "package.json": JSON.stringify({ browser: { "./src/reader.ts": "./src/other.ts" } }),
+      "src/main.ts": 'export { files } from "./reader";\n',
+      "src/reader.ts": "export const files = 1;\n",
+      "src/other.ts": "export const files = 2;\n",
+    },
+    found: ["src/other.ts is bundled but not scanned", "src/reader.ts holds code but is scanned and not bundled"],
+  },
+];
+
+const LIBRARY_FOLDER = "/node_modules/";
+
+async function bundledInputs(root: string): Promise<string[]> {
+  const result = await build({ ...PLUGIN_BUNDLE, absWorkingDir: root, write: false, metafile: true, logLevel: "silent" });
+  return Object.keys(result.metafile.inputs)
+    .map((input) => resolve(root, input))
+    .filter((path) => !path.includes(LIBRARY_FOLDER));
+}
+
+async function holdsCode(path: string): Promise<boolean> {
+  const result = await transform(readFileSync(path, "utf8"), { loader: "ts" });
+  return result.code !== "";
+}
+
+async function unscannedBundleInputs(root: string, project: string): Promise<string[]> {
+  const bundled = await bundledInputs(root);
+  const scanned = scanner.loadedFiles(project).filter((path) => !isDeclaration(path));
+  const notScanned = bundled.filter((path) => !scanned.includes(path)).map((path) => `${path} is bundled but not scanned`);
+  const notBundled = scanned.filter((path) => !bundled.includes(path));
+  const holdingCode = await Promise.all(notBundled.map(holdsCode));
+  const codeNotBundled = notBundled.filter((_path, index) => holdingCode[index]).map((path) => `${path} holds code but is scanned and not bundled`);
+  return [...notScanned, ...codeNotBundled];
+}
+
+function plantOnDisk(planted: PlantedOnDisk): string {
+  const root = mkdtempSync(join(tmpdir(), "dd-planted-"));
+  const project = { extends: `${ROOT}/tsconfig.json`, compilerOptions: { types: [] }, files: ["src/main.ts"], include: [] };
+  const files = { ...planted.files, "tsconfig.json": JSON.stringify(project) };
+  for (const [path, text] of Object.entries(files)) {
+    mkdirSync(dirname(join(root, path)), { recursive: true });
+    writeFileSync(join(root, path), text);
+  }
+  return root;
+}
+
 function sourcePath(file: string): string {
   return `${SOURCE_FOLDER}${file}`;
 }
@@ -425,6 +487,20 @@ describe("the vault fence", () => {
     expect(loaded).toContain(sourcePath("fence/gatekeeper.ts"));
     expect(loaded.length).toBeGreaterThan(100);
   });
+
+  it("scans exactly the files esbuild bundles, outside node_modules, and beyond them only files that hold nothing but types", async () => {
+    expect(await unscannedBundleInputs(ROOT, BUNDLED_PROJECT)).toEqual([]);
+  }, 30_000);
+
+  it.each(PLANTED_ON_DISK)("finds a file esbuild bundles but the scan doesn't read, with a $name", async (planted) => {
+    const root = plantOnDisk(planted);
+    try {
+      const found = await unscannedBundleInputs(root, `${root}/tsconfig.json`);
+      expect(found.map((breach) => breach.replace(`${root}/`, ""))).toEqual(planted.found);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  }, 30_000);
 
   it("lets only the gatekeeper's allowed files reach the vault, walk its folders or Obsidian's file metadata, only the allowed files read an editor's text, and none write through an editor or view", () => {
     expect(fenceBreaches(BUNDLED_PROJECT, sourceListing(), SOURCE_ALLOWANCES)).toEqual([]);
@@ -499,6 +575,11 @@ describe("the vault fence", () => {
 
   it("refuses a .js file outside src that the entry point loads", () => {
     expect(plantedBreaches("js-outside")).toContain("lib/reader.js is loaded from the entry point but isn't a plain TypeScript file");
+  });
+
+  it("refuses a .tsx or .jsx file under src, which esbuild would bundle before a .ts file of the same name", () => {
+    const paths = [`${SOURCE_FOLDER}campaign/reader.tsx`, `${SOURCE_FOLDER}campaign/reader.jsx`];
+    expect(hiddenCodeIn(paths)).toEqual(paths.map((path) => `${path} is code under src that the scan can't read as TypeScript`));
   });
 
   it.each(HIDDEN_CODE)("refuses a %s file anywhere under src", (ending) => {
