@@ -104,7 +104,7 @@ export class CampaignView extends ItemView {
   private noteDeleted(path: string): void {
     const current = this.current;
     if (current === null || current.path !== path) return;
-    this.show({ entry: current.entry, path: null });
+    this.show({ entry: current.entry, path: current.entry.pathAfterDelete(path) });
   }
 
   private addSection(nav: HTMLElement, section: NavSection): void {
@@ -139,8 +139,16 @@ export class CampaignView extends ItemView {
     this.closePage();
     pageEl.empty();
     const navigate = (target: PageTarget) => this.navigate(target);
-    this.shownPage = this.addChild(shown.entry.make(pageEl.createDiv({ cls: "dd-page-body" }), navigate, shown.path));
+    const stayOn = (path: string) => this.stayOn(shown.entry, path);
+    this.shownPage = this.addChild(shown.entry.make(pageEl.createDiv({ cls: "dd-page-body" }), navigate, shown.path, stayOn));
     this.markCurrent();
+    this.app.workspace.requestSaveLayout();
+  }
+
+  private stayOn(entry: PageEntry, path: string): void {
+    const current = this.current;
+    if (current === null || current.entry !== entry || current.path !== null) return;
+    this.current = { entry, path };
     this.app.workspace.requestSaveLayout();
   }
 

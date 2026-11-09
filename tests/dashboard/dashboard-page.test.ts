@@ -8,7 +8,7 @@ import { DashboardPage, type DashboardActions } from "../../src/dashboard/dashbo
 import type { CoinOutcome } from "../../src/funds/coin-modal";
 import { NO_COIN_ENTRIES } from "../../src/funds/ledger-row";
 import { SESSIONS_SHARE_A_NUMBER } from "../../src/campaign/session-to-write";
-import { obsidianDocument } from "../views/obsidian-dom";
+import { isShown, obsidianDocument } from "../views/obsidian-dom";
 
 const CAMPAIGN = "Pale Moon";
 const NO_CHARACTERS = "No characters yet. A note in the campaign’s Characters folder adds one.";
@@ -175,7 +175,7 @@ describe("DashboardPage", () => {
     const session = panel(root, SESSION);
     expect(textsOf(session, ".dd-title")).toEqual(["Latest session"]);
     expect(textsOf(session, ".dd-empty")).toEqual([SESSIONS_SHARE_A_NUMBER]);
-    expect(button(session, "Write notes").hidden).toBe(true);
+    expect(isShown(button(session, "Write notes"))).toBe(false);
   });
 
   it("shows no latest session without a campaign", async () => {
@@ -186,11 +186,11 @@ describe("DashboardPage", () => {
   it("shows the latest session's Notes page to write in it, and has nothing to show without one", async () => {
     const { root, actions, change } = await openDashboard([]);
     const write = button(panel(root, SESSION), "Write notes");
-    expect(write.hidden).toBe(true);
+    expect(isShown(write)).toBe(false);
     write.click();
     expect(actions.writeNotes).not.toHaveBeenCalled();
     change([sessionOf(3, []), sessionOf(4, [])]);
-    expect(write.hidden).toBe(false);
+    expect(isShown(write)).toBe(true);
     write.click();
     expect(actions.writeNotes).toHaveBeenCalledExactlyOnceWith(`${CAMPAIGN}/Sessions/Session 4.md`);
     expect(actions.openRow).not.toHaveBeenCalled();

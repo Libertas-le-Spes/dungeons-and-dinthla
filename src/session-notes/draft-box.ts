@@ -48,10 +48,6 @@ export class DraftBox {
     this.refresh();
   }
 
-  get isSaving(): boolean {
-    return this.saving;
-  }
-
   setSaving(saving: boolean): void {
     this.saving = saving;
     this.textarea.readOnly = saving;

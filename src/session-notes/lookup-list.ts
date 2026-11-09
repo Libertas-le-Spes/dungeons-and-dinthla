@@ -8,6 +8,7 @@ export class LookupList {
   private matches: LookupMatch[] = [];
   private rows: HTMLElement[] = [];
   private selected = 0;
+  private open = false;
 
   constructor(
     parent: HTMLElement,
@@ -20,7 +21,7 @@ export class LookupList {
   }
 
   get isOpen(): boolean {
-    return !this.element.hidden;
+    return this.open;
   }
 
   show(heading: string, matches: LookupMatch[], keywords: string[]): void {
@@ -31,10 +32,12 @@ export class LookupList {
     this.rows = matches.map((match) => this.addRow(match, keywords));
     this.select(0);
     this.element.toggle(true);
+    this.open = true;
   }
 
   close(): void {
     this.element.toggle(false);
+    this.open = false;
     this.matches = [];
     this.rows = [];
   }
