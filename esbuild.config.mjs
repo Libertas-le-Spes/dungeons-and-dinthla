@@ -1,18 +1,12 @@
 import esbuild from "esbuild";
 import { copyFile, mkdir } from "node:fs/promises";
-import { PLUGIN_BUNDLE } from "./scripts/bundle-options.ts";
+import { PLUGIN_BUNDLE, STYLES_BUNDLE } from "./scripts/bundle-options.ts";
 
 const demoPluginFolder = "demo-vault/.obsidian/plugins/dungeons-and-dinthla";
 
 await esbuild.build(PLUGIN_BUNDLE);
 
-await esbuild.build({
-  entryPoints: ["styles/index.css"],
-  bundle: true,
-  loader: { ".woff2": "dataurl" },
-  outfile: "styles.css",
-  logLevel: "info",
-});
+await esbuild.build(STYLES_BUNDLE);
 
 await mkdir(demoPluginFolder, { recursive: true });
 await copyFile("manifest.json", `${demoPluginFolder}/manifest.json`);
