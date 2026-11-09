@@ -1,9 +1,9 @@
-import { NoteEditing, type NoteEditingNeeds } from "../note-page/note-editing";
+import { NoteEditing, type NoteEditingNeeds } from "../note-editing/note-editing";
 
 const TITLE = "Notes · Edit all";
 const DONE = "Done";
 export const NOT_SAVED_YET =
-  "What you changed here isn't saved yet. It stays on this device, and shows again the next time you press Edit all.";
+  "What you changed here isn't saved yet. It stays on this device, and shows again the next time you press Edit all. If you add lines to the session before saving it, the note will have changed since, and you'll need to copy your change out and make it again.";
 const KEEP_EDITING = "Keep editing";
 const LEAVE = "Back to adding lines";
 
@@ -34,10 +34,6 @@ export class EditAllPanel {
     leaveButton.addEventListener("click", () => this.leave());
     this.leaving.toggle(false);
     this.panel.toggle(false);
-  }
-
-  get isOpen(): boolean {
-    return this.editing !== null;
   }
 
   open(): void {

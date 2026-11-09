@@ -1,18 +1,21 @@
 import { describe, expect, it, vi } from "vitest";
 import { buildCampaign } from "../../src/campaign/build-campaign";
-import { CHANGED_ELSEWHERE, NOTE_GONE_HERE } from "../../src/note-page/note-editing";
-import { NoteDrafts } from "../../src/note-page/note-drafts";
-import { NoteSaver } from "../../src/note-page/note-saver";
+import { CHANGED_ELSEWHERE, NOTE_GONE_HERE } from "../../src/note-editing/note-editing";
+import { NoteDrafts } from "../../src/note-editing/note-drafts";
+import { NoteSaver } from "../../src/note-editing/note-saver";
 import type { AppendWriter } from "../../src/session-notes/append-writer";
 import { Drafts } from "../../src/session-notes/drafts";
 import { NOT_SAVED_YET } from "../../src/session-notes/edit-all-panel";
+import { EDIT_ALL_WAITING } from "../../src/session-notes/edit-all-reminder";
 import { SessionWriting } from "../../src/session-notes/session-writing";
-import { FakeNotes } from "../note-page/fake-notes";
+import { FakeNotes } from "../note-editing/fake-notes";
 import { isShown, obsidianDocument } from "../views/obsidian-dom";
 
 const PATH = "Pale Moon/Sessions/Session 12.md";
 const NOTE = "---\nplayed: 2026-11-09\n---\nTracks lead to the [[Old Mill]].\n? Who sent the leter";
 const FIXED = "---\nplayed: 2026-11-09\n---\nTracks lead to the [[Old Mill]].\n? Who sent the letter";
+const OTHER_PATH = "Pale Moon/Sessions/Session 11.md";
+const APPENDED = `${NOTE}\n! Ride to Thessaly`;
 
 function flushed(): Promise<void> {
   return new Promise((done) => setTimeout(done, 0));
@@ -47,8 +50,10 @@ function writingOn(text: string | null, drafts = new Drafts({}, () => {})) {
   };
   const panels = () => [find(".dd-writing-panel"), find(".dd-lines-panel"), find(".dd-edit-all-panel")].map(isShown);
   const leaving = () => find(".dd-edit-all-leaving");
+  const reminder = () => find(".dd-writing-panel .dd-edit-all-reminder");
+  const message = () => find(".dd-edit-all-panel .dd-save-message").textContent;
   const settle = () => vi.waitFor(() => expect(noteDrafts.isSaving(PATH)).toBe(false));
-  return { root, session, notes, noteDrafts, writer, button, wholeBox, typeWhole, editAll, panels, leaving, settle };
+  return { root, session, notes, noteDrafts, writer, button, wholeBox, typeWhole, editAll, panels, leaving, reminder, message, settle };
 }
 
 describe("SessionWriting", () => {
@@ -175,5 +180,43 @@ describe("SessionWriting", () => {
     expect(notes.goneListeners.size).toBe(0);
     expect(stops.length).toBe(3);
     for (const stop of stops) expect(stop).toHaveBeenCalledOnce();
+  });
+
+  it("writes nothing over a line added to the note after leaving Edit all with changes, keeping the note and what was typed", async () => {
+    const { editAll, typeWhole, button, notes, settle, noteDrafts, message } = writingOn(NOTE);
+    await editAll();
+    typeWhole(FIXED);
+    button(".dd-edit-all-done").click();
+    button(".dd-leave-edit-all").click();
+    notes.changeElsewhere(APPENDED);
+    await editAll();
+    expect(message()).toBe(CHANGED_ELSEWHERE);
+    button(".dd-edit-all-panel .dd-save").click();
+    await settle();
+    expect(notes.writes).toEqual([]);
+    expect(notes.text).toBe(APPENDED);
+    expect(noteDrafts.draftOf(PATH)).toEqual({ base: NOTE, text: FIXED });
+  });
+
+  it("shows a note by the add-lines box while an Edit all change isn't saved, and drops it once saved", async () => {
+    const { editAll, typeWhole, button, reminder, settle } = writingOn(NOTE);
+    expect(isShown(reminder())).toBe(false);
+    await editAll();
+    typeWhole(FIXED);
+    button(".dd-edit-all-done").click();
+    button(".dd-leave-edit-all").click();
+    expect(isShown(reminder())).toBe(true);
+    expect(reminder().textContent).toBe(EDIT_ALL_WAITING);
+    await editAll();
+    button(".dd-edit-all-panel .dd-save").click();
+    await settle();
+    expect(isShown(reminder())).toBe(false);
+  });
+
+  it("keeps Edit all and the add-lines box as they are when a change is kept for another session", () => {
+    const { noteDrafts, button, reminder } = writingOn(NOTE);
+    noteDrafts.keep(OTHER_PATH, { base: NOTE, text: FIXED });
+    expect(button(".dd-edit-all").textContent).toBe("Edit all");
+    expect(isShown(reminder())).toBe(false);
   });
 });
