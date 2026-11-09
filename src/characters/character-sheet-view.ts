@@ -1,5 +1,6 @@
 import { FileView, type TFile, type WorkspaceLeaf } from "obsidian";
 import type { Source } from "../campaign/campaign";
+import { campaignFolderOf } from "../campaign/campaign-folders";
 import { sessionLabelOf } from "../campaign/session-file";
 import type { LinkActions } from "../views/linked-text";
 import { PENDING_FOCUS_MS } from "../views/row-focus";
@@ -107,7 +108,9 @@ export class CharacterSheetView extends FileView {
     try {
       read = await readCharacterSheet(file, this.store, this.notes);
     } catch (error) {
-      if (render === this.renders) this.drawError(file, error);
+      if (render !== this.renders) return;
+      this.watched = this.watchedAlso(this.characterPaths(file));
+      this.drawError(file, error);
       return;
     }
     if (render !== this.renders) return;
@@ -117,6 +120,17 @@ export class CharacterSheetView extends FileView {
     if (read.carriedCampaignFolder !== null) watched.push(read.carriedCampaignFolder);
     this.watched = watched;
     this.draw(file, read.sheet);
+  }
+
+  private characterPaths(file: TFile): string[] {
+    const paths = [file.path];
+    const campaignFolder = campaignFolderOf(file.path, this.notes.campaignFolders());
+    if (campaignFolder !== null) paths.push(campaignFolder);
+    return paths;
+  }
+
+  private watchedAlso(paths: string[]): string[] {
+    return [...this.watched, ...paths.filter((path) => !this.watched.includes(path))];
   }
 
   private drawError(file: TFile, error: unknown): void {
