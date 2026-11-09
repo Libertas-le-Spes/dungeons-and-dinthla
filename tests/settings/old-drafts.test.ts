@@ -9,10 +9,10 @@ function storageWith(moved: unknown) {
 }
 
 describe("OldDrafts", () => {
-  it("joins the lines the earlier build kept in the settings file to the device's, the device's winning", () => {
+  it("reads the lines the earlier build kept in the settings file, leaving out what isn't text", () => {
     const old = new OldDrafts({ campaignFolder: "Pale Moon", drafts: { [THREE]: "? Old", [FOUR]: "! Find it", "x.md": 5 } }, storageWith(null));
     expect(old.waiting).toBe(true);
-    expect(old.joinedWith({ [THREE]: "? New" })).toEqual({ [THREE]: "? New", [FOUR]: "! Find it" });
+    expect(old.texts).toEqual({ [THREE]: "? Old", [FOUR]: "! Find it" });
   });
 
   it("keeps them in the settings file until they are kept on the device, then marks them moved", () => {
@@ -34,7 +34,7 @@ describe("OldDrafts", () => {
     const old = new OldDrafts({ drafts: { [THREE]: "? Who" } }, storage);
     expect(storage.load).toHaveBeenCalledExactlyOnceWith(MOVED_KEY);
     expect(old.waiting).toBe(false);
-    expect(old.joinedWith({})).toEqual({});
+    expect(old.texts).toEqual({});
     expect(old.leftInFile).toBe(true);
     old.keptOnDevice();
     expect(storage.save).not.toHaveBeenCalled();

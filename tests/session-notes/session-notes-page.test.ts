@@ -3,8 +3,8 @@ import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { SessionNote } from "../../src/campaign/campaign";
 import type { CampaignStore } from "../../src/campaign/campaign-store";
 import type { AppendWriter } from "../../src/session-notes/append-writer";
-import { DeletedDrafts } from "../../src/session-notes/deleted-drafts";
 import { Drafts } from "../../src/session-notes/drafts";
+import { KeptDrafts } from "../../src/session-notes/kept-drafts";
 import { SessionNotesPage } from "../../src/session-notes/session-notes-page";
 import type { SessionProperties } from "../../src/sessions/session-properties";
 import { isShown, obsidianDocument } from "../views/obsidian-dom";
@@ -49,11 +49,11 @@ function pageWith(sessions: SessionNote[], asked: string | null, { folder = FOLD
   document.body.append(root);
   const moves = { showSession: vi.fn(), startSession: vi.fn(), stayOn: vi.fn() };
   const writer = { save: vi.fn(async () => "") };
-  const deleted = new DeletedDrafts(drafts, () => DELETED_AT);
+  const keptDrafts = new KeptDrafts(drafts, () => DELETED_AT);
   const needs = {
     store: store as unknown as CampaignStore,
     drafts,
-    deleted,
+    keptDrafts,
     writer: writer as unknown as AppendWriter,
     propertiesOf,
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
@@ -63,7 +63,7 @@ function pageWith(sessions: SessionNote[], asked: string | null, { folder = FOLD
   page.load();
   const select = () => root.querySelector("select")!;
   const lineTexts = () => Array.from(root.querySelectorAll(".dd-written-line .dd-line-text")).map((line) => line.textContent);
-  return { root, page, moves, writer, change, unsubscribe, select, lineTexts, drafts, deleted };
+  return { root, page, moves, writer, change, unsubscribe, select, lineTexts, drafts, keptDrafts };
 }
 
 const SESSIONS = [
@@ -183,11 +183,11 @@ describe("SessionNotesPage", () => {
   });
 
   it("stays on a session whose note is deleted, locks its box, keeps its typed lines below and says the note is gone", () => {
-    const { root, change, lineTexts, deleted } = pageWith(SESSIONS, `${FOLDER}/Sessions/Session 11.md`);
+    const { root, change, lineTexts, keptDrafts } = pageWith(SESSIONS, `${FOLDER}/Sessions/Session 11.md`);
     const box = root.querySelector("textarea")!;
     box.value = "! Ride to Thessaly";
     box.dispatchEvent(new box.ownerDocument.defaultView!.Event("input"));
-    deleted.noteDeleted(`${FOLDER}/Sessions/Session 11.md`);
+    keptDrafts.noteDeleted(`${FOLDER}/Sessions/Session 11.md`);
     change([SESSIONS[1]!, SESSIONS[2]!]);
     expect(root.querySelector("textarea")).toBe(box);
     expect(box.value).toBe("");
@@ -209,10 +209,10 @@ describe("SessionNotesPage", () => {
     const drafts = new Drafts({}, () => {});
     drafts.keep(`${FOLDER}/Sessions/Session 4.md`, "? Who rang the bell");
     drafts.keep(`${FOLDER}/Sessions/Session 12.md`, "Tracks lead north");
-    const { root, deleted } = pageWith(SESSIONS, `${FOLDER}/Sessions/Session 12.md`, { drafts });
+    const { root, keptDrafts } = pageWith(SESSIONS, `${FOLDER}/Sessions/Session 12.md`, { drafts });
     const kept = root.querySelector<HTMLElement>(".dd-kept-lines")!;
     expect(isShown(kept)).toBe(false);
-    deleted.noteDeleted(`${FOLDER}/Sessions/Session 4.md`);
+    keptDrafts.noteDeleted(`${FOLDER}/Sessions/Session 4.md`);
     expect(isShown(kept)).toBe(true);
     expect(kept.querySelector(".dd-kept-heading")?.textContent).toBe("Kept from deleted sessions");
     expect(kept.querySelector(".dd-kept-message")?.textContent).toBe(
@@ -221,33 +221,51 @@ describe("SessionNotesPage", () => {
     kept.querySelector<HTMLButtonElement>(".dd-kept-copy")!.click();
     expect(root.querySelector("textarea")?.value).toBe("Tracks lead north\n? Who rang the bell");
     expect(isShown(kept)).toBe(false);
-    expect(deleted.kept()).toEqual([]);
+    expect(keptDrafts.kept()).toEqual([]);
+  });
+
+  it("lists lines kept from deleted sessions and from an earlier version under their own headings", () => {
+    const drafts = new Drafts({}, () => {});
+    drafts.keep(`${FOLDER}/Sessions/Session 4.md`, "? Who rang the bell");
+    const { root, keptDrafts } = pageWith(SESSIONS, `${FOLDER}/Sessions/Session 12.md`, { drafts });
+    keptDrafts.keepMoved({ [`${FOLDER}/Sessions/Session 5.md`]: "! Find the bell" });
+    keptDrafts.noteDeleted(`${FOLDER}/Sessions/Session 4.md`);
+    const kept = root.querySelector<HTMLElement>(".dd-kept-lines")!;
+    expect(Array.from(kept.querySelectorAll(".dd-kept-heading")).map((heading) => heading.textContent)).toEqual([
+      "Kept from deleted sessions",
+      "Kept from an earlier version",
+    ]);
+    expect(Array.from(kept.querySelectorAll(".dd-kept-message")).map((message) => message.textContent)).toEqual([
+      "Lines typed but not saved in Session 4 were kept when its note was deleted on 2 Nov 2026, 21:05.",
+      "Lines typed but not saved in Session 5 were kept in the plugin's settings file by an earlier version, and moved to this device on 2 Nov 2026, 21:05.",
+    ]);
+    expect(root.querySelector("textarea")?.value).toBe("");
   });
 
   it("discards lines kept from a deleted session only on a second press", () => {
     const drafts = new Drafts({}, () => {});
     drafts.keep(`${FOLDER}/Sessions/Session 4.md`, "? Who rang the bell");
-    const { root, deleted } = pageWith(SESSIONS, `${FOLDER}/Sessions/Session 12.md`, { drafts });
-    deleted.noteDeleted(`${FOLDER}/Sessions/Session 4.md`);
+    const { root, keptDrafts } = pageWith(SESSIONS, `${FOLDER}/Sessions/Session 12.md`, { drafts });
+    keptDrafts.noteDeleted(`${FOLDER}/Sessions/Session 4.md`);
     const discard = root.querySelector<HTMLButtonElement>(".dd-kept-discard")!;
     expect(discard.textContent).toBe("Discard");
     discard.click();
     expect(discard.textContent).toBe("Press again to discard");
-    expect(deleted.kept()).toHaveLength(1);
+    expect(keptDrafts.kept()).toHaveLength(1);
     discard.click();
-    expect(deleted.kept()).toEqual([]);
+    expect(keptDrafts.kept()).toEqual([]);
     expect(isShown(root.querySelector<HTMLElement>(".dd-kept-lines")!)).toBe(false);
   });
 
   it("can't copy kept lines while no session is shown", () => {
     const drafts = new Drafts({}, () => {});
     drafts.keep(`${FOLDER}/Sessions/Session 4.md`, "? Who rang the bell");
-    const { root, deleted } = pageWith([], null, { drafts, folder: null });
-    deleted.noteDeleted(`${FOLDER}/Sessions/Session 4.md`);
+    const { root, keptDrafts } = pageWith([], null, { drafts, folder: null });
+    keptDrafts.noteDeleted(`${FOLDER}/Sessions/Session 4.md`);
     const copy = root.querySelector<HTMLButtonElement>(".dd-kept-copy")!;
     expect(copy.disabled).toBe(true);
     copy.click();
-    expect(deleted.kept()).toHaveLength(1);
+    expect(keptDrafts.kept()).toHaveLength(1);
   });
 
   it("doesn't say a note is gone before the campaign is read", () => {
