@@ -86,7 +86,7 @@ const CODE_MIRROR_MODULE = "@codemirror/";
 
 const DOCUMENT = "doc";
 
-export const FORBIDDEN_NAMES = ["MarkdownRenderer", "renderMarkdown", "executeCommandById", "commands", "execCommand", "Function", "eval", "openLinkText", "openPopoutLeaf", "activeEditor", "plugins", "getPlugin", "enabledPlugins", "internalPlugins"];
+export const FORBIDDEN_NAMES = ["MarkdownRenderer", "renderMarkdown", "executeCommandById", "commands", "execCommand", "Function", "eval", "openLinkText", "openPopoutLeaf", "activeEditor", "activeLeaf", "getMostRecentLeaf", "duplicateLeaf", "plugins", "getPlugin", "enabledPlugins", "internalPlugins"];
 
 const EDITOR_OWNERS = [
   "Editor",
@@ -156,6 +156,16 @@ const GUARDED_NAMES: { name: string; allowance: GuardedAllowance }[] = [
 
 const CALLED_ONLY = [FILE_OPENER, EVENT_TRIGGER];
 
+const LEAF_OWNERS = ["WorkspaceLeaf"];
+
+const FILE_VIEW_OWNERS = ["FileView", "EditableFileView", "TextFileView", "MarkdownView", "MarkdownEditView", "MarkdownPreviewView", "MarkdownSubView", "MarkdownFileInfo"];
+
+const LEAF_OPENER = "open";
+
+const LEAF_VIEW = "view";
+
+const LEAF_READS = [LEAF_OPENER, LEAF_VIEW, VIEW_FILE];
+
 export type Allowed = (path: string) => boolean;
 
 export interface Allowances {
@@ -171,6 +181,14 @@ export interface Allowances {
   activeFile: Allowed;
   activeView: Allowed;
   eventTrigger: Allowed;
+  leafView: Allowed;
+  viewFile: Allowed;
+}
+
+interface BoundRead {
+  node: Node;
+  name: string;
+  owner: Node;
 }
 
 interface Named {
@@ -205,6 +223,7 @@ interface Found {
   openings: CallExpression[];
   calledNames: Set<Node>;
   viewFiles: Expression[];
+  boundReads: BoundRead[];
 }
 
 type Cast = AsExpression | TypeAssertion;
@@ -247,6 +266,7 @@ function emptyFound(): Found {
     openings: [],
     calledNames: new Set(),
     viewFiles: [],
+    boundReads: [],
   };
 }
 
@@ -355,11 +375,18 @@ function addCall(found: Found, call: CallExpression): void {
   if (text === EVENT_TRIGGER && event !== undefined && literalTextOf(event) !== null) found.calledNames.add(name);
 }
 
-function addBoundViewFile(found: Found, binding: BindingElement): void {
+function addBoundRead(found: Found, binding: BindingElement): void {
   const key = keyOfBinding(binding);
-  if (key === undefined || nameTextOf(key) !== VIEW_FILE) return;
+  if (key === undefined) return;
+  const name = nameTextOf(key);
+  if (name === null || !LEAF_READS.includes(name)) return;
   const declaration = binding.parent.parent;
-  if (isVariableDeclaration(declaration) && declaration.initializer !== undefined) found.viewFiles.push(declaration.initializer);
+  if (!isVariableDeclaration(declaration) || declaration.initializer === undefined) {
+    found.boundReads.push({ node: key, name, owner: binding.parent });
+    return;
+  }
+  found.boundReads.push({ node: key, name, owner: declaration.initializer });
+  if (name === VIEW_FILE) found.viewFiles.push(declaration.initializer);
 }
 
 function isActiveViewCall(expression: Expression): boolean {
@@ -376,7 +403,7 @@ function foundIn(sourceFile: SourceFile): Found {
     if (isPropertyAccessExpression(node)) addName(found, node.name, node.name.text);
     if (isPropertyAccessExpression(node) && node.name.text === VIEW_FILE) found.viewFiles.push(node.expression);
     if (isElementAccessExpression(node) && literalTextOf(node.argumentExpression) === VIEW_FILE) found.viewFiles.push(node.expression);
-    if (isBindingElement(node) && isObjectBindingPattern(node.parent)) addBoundViewFile(found, node);
+    if (isBindingElement(node) && isObjectBindingPattern(node.parent)) addBoundRead(found, node);
     if (isCallExpression(node)) addCall(found, node);
     if (isPropertyAccessExpression(node) && node.name.text === APP) found.appOwners.push(node.expression);
     if (isPropertyAccessExpression(node) && node.name.text === DOCUMENT) found.documentOwners.push(node.expression);
@@ -567,6 +594,13 @@ export class SourceScanner {
     }
     for (const call of found.openings.filter((opening) => !this.opensFromGate(project, sourceFile, opening))) breaches.push(`${where(call)} opens a file that doesn't come from the gate`);
     for (const owner of found.viewFiles.filter((viewFile) => this.isActiveView(project, viewFile))) breaches.push(`${where(owner)} takes the file of the active view`);
+    for (const { node, name } of this.leafReads(project, found, LEAF_OPENER, LEAF_OWNERS)) breaches.push(`${where(node)} opens a view in a leaf with ${name}`);
+    if (!allowances.leafView(path)) {
+      for (const { node, name } of this.leafReads(project, found, LEAF_VIEW, LEAF_OWNERS)) breaches.push(`${where(node)} reads the ${name} of a leaf`);
+    }
+    if (!allowances.viewFile(path)) {
+      for (const { node, name } of this.leafReads(project, found, VIEW_FILE, FILE_VIEW_OWNERS)) breaches.push(`${where(node)} reads the ${name} of a view`);
+    }
     const hoverLink = sourceFile.text.indexOf(HOVER_LINK);
     if (hoverLink !== -1) breaches.push(`${path.slice(this.root.length + 1)}:${sourceFile.getLineAndCharacterOfPosition(hoverLink).line + 1} names the ${HOVER_LINK} event`);
     for (const node of this.typedBy(project, found.viewTextOwners, (type) => this.isViewOrUntyped(project, type))) breaches.push(`${where(node)} reads the text of a view's element`);
@@ -586,6 +620,23 @@ export class SourceScanner {
     if (allowances.keyReading(path)) return breaches;
     for (const node of this.reachingWholes(project, found)) breaches.push(`${where(node)} reads every key of a value that could reach the vault, an editor or a view`);
     return breaches;
+  }
+
+  private leafReads(project: Project, found: Found, name: string, owners: string[]): Named[] {
+    const read = this.ownedBy(project, found.members.filter((member) => member.name === name), (symbol) => isOwnedByOneOf(symbol, owners));
+    const bound = found.boundReads.filter((candidate) => candidate.name === name);
+    const types = project.checker.getTypeAtLocation(bound.map(({ owner }) => owner));
+    const boundRead = bound.filter((_candidate, index) => this.holdsOwned(project, types[index], name, owners));
+    return [...read, ...boundRead];
+  }
+
+  private holdsOwned(project: Project, type: Type | undefined, name: string, owners: string[]): boolean {
+    if (type === undefined) return true;
+    return flattened(this.constrained(project, type)).some((member) => {
+      if ((member.flags & UNTYPED) !== 0) return true;
+      const property = project.checker.getPropertyOfType(member, name);
+      return property !== undefined && isOwnedByOneOf(property, owners);
+    });
   }
 
   private opensFromGate(project: Project, sourceFile: SourceFile, call: CallExpression): boolean {

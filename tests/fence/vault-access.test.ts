@@ -27,6 +27,8 @@ const VIEW_STATE_SETTERS = ["interface/campaign-view.ts", "interface/one-campaig
 const ACTIVE_FILE_READERS = ["characters/open-character.ts", "views/open-view.ts"];
 const ACTIVE_VIEW_READERS = ["interface/open-in-editor.ts", "interface/shown-campaign-path.ts"];
 const EVENT_TRIGGERS = ["fence/fenced-files.ts"];
+const LEAF_VIEW_READERS = ["main.ts", "interface/one-campaign-tab.ts", "interface/seen-tab.ts", "interface/view-state-patch.ts"];
+const VIEW_FILE_READERS = ["main.ts", "campaign/editor-text.ts", "editor/marker-decorations.ts", "interface/campaign-takeover.ts"];
 const HIDDEN_CODE = [".js", ".mjs", ".cjs", ".mts", ".cts", ".tsx", ".jsx"];
 const REACHING_SAMPLES = [
   "this.app.vault.read(file);",
@@ -259,6 +261,8 @@ const HARMLESS_SAMPLES = [
   'import { ItemView } from "obsidian";\nexport class Ledger extends ItemView {\n  getViewType(): string {\n    return "ledger";\n  }\n  getDisplayText(): string {\n    return this.contentEl.textContent;\n  }\n}',
   "export const text = (box: HTMLElement) => box.textContent;",
   "export const page = (box: HTMLElement) => box.doc.title;",
+  'import type { TFile } from "obsidian";\nexport const file = (entry: { file: TFile }) => entry.file;',
+  'import type { Modal } from "obsidian";\nexport const show = (modal: Modal) => modal.open();',
   'export class Tab {\n  constructor(readonly app: { name: string }) {}\n  name(): string {\n    return this.app.name;\n  }\n}',
 ];
 
@@ -273,11 +277,38 @@ const OPENING_SAMPLES = [
   'import type { App } from "obsidian";\nexport const leaf = (app: App) => app.workspace["setViewState" as never];',
   'import type { App } from "obsidian";\nexport const name = "hover-" + "link";\nexport const peek = (app: App) => app.workspace.trigger(name, {});',
   'export const name = `hover-link`;',
+  'import type { App } from "obsidian";\nexport const file = (app: App) => app.workspace.activeLeaf?.view.file;',
   'import type { App } from "obsidian";\nimport type { Gate } from "../../../../src/fence/gatekeeper";\nexport async function show(app: App, gate: Gate, path: string) {\n  const file = gate.files.getFileByPath(path);\n  if (file !== null) await app.workspace.getLeaf(false).openFile(file);\n}',
   'import type { App } from "obsidian";\nexport const path = (app: App) => app.workspace.getActiveFile()?.path;',
   'import { MarkdownView, type App } from "obsidian";\nexport const leaf = (app: App) => app.workspace.getActiveViewOfType(MarkdownView)?.leaf;',
   'import type { App } from "obsidian";\nexport const peek = (app: App, name: string) => app.workspace.trigger(name, {});',
   'import type { App } from "obsidian";\nexport function peek(app: App) {\n  const { trigger } = app.workspace;\n  return trigger;\n}',
+];
+
+const LEAF_SAMPLES = [
+  'import type { App } from "obsidian";\nexport const file = (app: App) => app.workspace.activeLeaf?.view;',
+  'import type { App } from "obsidian";\nexport const leaf = (app: App) => app.workspace.getMostRecentLeaf();',
+  'import type { App, WorkspaceLeaf } from "obsidian";\nexport const copy = (app: App, leaf: WorkspaceLeaf) => app.workspace.duplicateLeaf(leaf);',
+  'import type { View, WorkspaceLeaf } from "obsidian";\nexport const show = (leaf: WorkspaceLeaf, view: View) => leaf.open(view);',
+  'import type { View, WorkspaceLeaf } from "obsidian";\nexport const show = (leaf: WorkspaceLeaf, view: View) => leaf["open"](view);',
+  'import type { WorkspaceLeaf } from "obsidian";\nexport function opener(leaf: WorkspaceLeaf) {\n  const { open } = leaf;\n  return open;\n}',
+];
+
+const LEAF_VIEW_SAMPLES = [
+  'import type { App } from "obsidian";\nexport const view = (app: App) => app.workspace.getLeaf(false).view;',
+  'import type { WorkspaceLeaf } from "obsidian";\nexport const view = (leaf: WorkspaceLeaf) => leaf["view"];',
+  'import type { WorkspaceLeaf } from "obsidian";\nexport function shown(leaf: WorkspaceLeaf) {\n  const { view } = leaf;\n  return view;\n}',
+  'import type { App } from "obsidian";\nexport const views = (app: App) => app.workspace.getLeavesOfType("markdown").map((leaf) => leaf.view);',
+  'import type { App } from "obsidian";\nexport const views = (app: App) => app.workspace.getLeavesOfType("markdown").map(({ view }) => view);',
+];
+
+const VIEW_FILE_SAMPLES = [
+  'import type { MarkdownView } from "obsidian";\nexport const file = (view: MarkdownView) => view.file;',
+  'import { MarkdownView, type App, type TFile } from "obsidian";\nexport function files(app: App) {\n  const all: (TFile | null)[] = [];\n  app.workspace.iterateAllLeaves((leaf) => {\n    if (leaf.view instanceof MarkdownView) all.push(leaf.view.file);\n  });\n  return all;\n}',
+  'import type { FileView } from "obsidian";\nexport function file(view: FileView) {\n  const { file } = view;\n  return file;\n}',
+  'import type { MarkdownFileInfo } from "obsidian";\nexport const file = (info: MarkdownFileInfo) => info["file"];',
+  "export const file = (view: any) => view.file;",
+  "export function file(view: any) {\n  const { file } = view;\n  return file;\n}",
 ];
 
 const ALLOWED_OPENING_SAMPLES = [
@@ -300,7 +331,7 @@ const GATED_OPENING_SAMPLES = [
   'import type { App } from "obsidian";\nexport const said = (app: App) => app.workspace.trigger("dd-said", {});',
 ];
 
-const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...WRITE_NAME_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...NOTE_READING_SAMPLES, ...VIEW_TEXT_SAMPLES, ...CODE_MIRROR_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...OPENING_SAMPLES, ...ALLOWED_OPENING_SAMPLES, ...GATED_OPENING_SAMPLES, ...HARMLESS_SAMPLES];
+const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...WRITE_NAME_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...NOTE_READING_SAMPLES, ...VIEW_TEXT_SAMPLES, ...CODE_MIRROR_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...OPENING_SAMPLES, ...ALLOWED_OPENING_SAMPLES, ...GATED_OPENING_SAMPLES, ...LEAF_SAMPLES, ...LEAF_VIEW_SAMPLES, ...VIEW_FILE_SAMPLES, ...HARMLESS_SAMPLES];
 
 interface Planted {
   name: string;
@@ -431,6 +462,8 @@ const NOTHING_ALLOWED: Allowances = {
   activeFile: isNeverAllowed,
   activeView: isNeverAllowed,
   eventTrigger: isNeverAllowed,
+  leafView: isNeverAllowed,
+  viewFile: isNeverAllowed,
 };
 
 function isAlwaysAllowed(): boolean {
@@ -452,6 +485,8 @@ const ALL_ALLOWED: Allowances = {
   activeFile: isAlwaysAllowed,
   activeView: isAlwaysAllowed,
   eventTrigger: isAlwaysAllowed,
+  leafView: isAlwaysAllowed,
+  viewFile: isAlwaysAllowed,
 };
 
 function isOneOf(files: string[]): (path: string) => boolean {
@@ -475,6 +510,8 @@ const SOURCE_ALLOWANCES: Allowances = {
   activeFile: isOneOf(ACTIVE_FILE_READERS),
   activeView: isOneOf(ACTIVE_VIEW_READERS),
   eventTrigger: isOneOf(EVENT_TRIGGERS),
+  leafView: isOneOf(LEAF_VIEW_READERS),
+  viewFile: isOneOf(VIEW_FILE_READERS),
 };
 
 let scanner: SourceScanner;
@@ -611,7 +648,7 @@ describe("the vault fence", () => {
 
   it("lets only the allowed files read an editor's text, each of which still needs it and does nothing else the fence refuses", () => {
     for (const reader of EDITOR_TEXT_READERS) {
-      const breaches = scanner.breaches(BUNDLED_PROJECT, [sourcePath(reader)], NOTHING_ALLOWED);
+      const breaches = scanner.breaches(BUNDLED_PROJECT, [sourcePath(reader)], { ...SOURCE_ALLOWANCES, editorReading: isNeverAllowed });
       expect(breaches).not.toEqual([]);
       for (const breach of breaches) expect(breach).toContain("reads the text of an editor or view");
     }
@@ -635,7 +672,7 @@ describe("the vault fence", () => {
 
   it("lets only the marker colouring reach CodeMirror, which it still needs and does nothing else the fence refuses", () => {
     for (const reader of CODE_MIRROR_READERS) {
-      const breaches = scanner.breaches(BUNDLED_PROJECT, [sourcePath(reader)], NOTHING_ALLOWED);
+      const breaches = scanner.breaches(BUNDLED_PROJECT, [sourcePath(reader)], { ...SOURCE_ALLOWANCES, codeMirror: isNeverAllowed });
       expect(breaches).not.toEqual([]);
       for (const breach of breaches) expect(breach).toMatch(/loads CodeMirror|reaches the editor/);
     }
@@ -647,6 +684,8 @@ describe("the vault fence", () => {
     { allowance: "activeFile", files: ACTIVE_FILE_READERS, breach: "opens, shows or picks a note with getActiveFile" },
     { allowance: "activeView", files: ACTIVE_VIEW_READERS, breach: "opens, shows or picks a note with getActiveViewOfType" },
     { allowance: "eventTrigger", files: EVENT_TRIGGERS, breach: "takes trigger without calling it with what it can read" },
+    { allowance: "leafView", files: LEAF_VIEW_READERS, breach: "reads the view of a leaf" },
+    { allowance: "viewFile", files: VIEW_FILE_READERS, breach: "reads the file of a view" },
   ] as const)("lets only the files allowed $allowance do it, each of which still needs it", ({ allowance, files, breach }) => {
     const allowedEverythingElse: Allowances = { ...SOURCE_ALLOWANCES, [allowance]: isNeverAllowed };
     for (const file of files) {
@@ -754,6 +793,18 @@ describe("the vault fence", () => {
 
   it.each(GATED_OPENING_SAMPLES)("lets %s pass in a file allowed to open files, since the file comes from the gate", (sample) => {
     expect(sampleBreaches(sample, ALL_ALLOWED)).toEqual([]);
+  });
+
+  it.each(LEAF_SAMPLES)("would catch reaching a leaf other than through the campaign tab, or opening a view in one, with %s, even in a file allowed everything else", (sample) => {
+    expect(sampleBreaches(sample, ALL_ALLOWED)).not.toEqual([]);
+  });
+
+  it.each(LEAF_VIEW_SAMPLES)("would catch reading a leaf's view with %s, in a file allowed everything else", (sample) => {
+    expect(sampleBreaches(sample, { ...ALL_ALLOWED, leafView: isNeverAllowed })).not.toEqual([]);
+  });
+
+  it.each(VIEW_FILE_SAMPLES)("would catch reading a view's file with %s, in a file allowed everything else", (sample) => {
+    expect(sampleBreaches(sample, { ...ALL_ALLOWED, viewFile: isNeverAllowed })).not.toEqual([]);
   });
 
   it.each(HARMLESS_SAMPLES)("lets %s pass, since it reaches neither the vault nor an editor's text", (sample) => {
