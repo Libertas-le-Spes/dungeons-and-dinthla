@@ -191,16 +191,19 @@ describe("FencedFiles events", () => {
     expect(heard).not.toHaveBeenCalled();
   });
 
-  it("passes on a rename inside, and one into the Campaigns folder", () => {
+  it("passes on a rename inside, and one into the Campaigns folder, as a rename only", () => {
     const { files, events } = listeningFiles();
     const renamed = vi.fn();
+    const deleted = vi.fn();
     files.on("rename", renamed);
+    files.on("delete", deleted);
     events.trigger("rename", SESSION, "D&D/Pale Moon/Sessions/Session 0.md");
     events.trigger("rename", SESSION, "Private/Old.md");
     expect(renamed.mock.calls).toEqual([
       [SESSION, "D&D/Pale Moon/Sessions/Session 0.md"],
       [SESSION, "Private/Old.md"],
     ]);
+    expect(deleted).not.toHaveBeenCalled();
   });
 
   it("passes on a rename out of the Campaigns folder as a delete of the old path, never carrying the outside path in", () => {

@@ -14,7 +14,9 @@ const ALLOWED_ADDRESSES = [
   '"https://localhost/_capacitor_file_/"',
 ];
 
-const ALLOWED_CODE = [...ALLOWED_MODULES, ...ALLOWED_ADDRESSES];
+export const PICTURE_CSS = "`url(\"${safe}\")`";
+
+const ALLOWED_CODE = [...ALLOWED_MODULES, ...ALLOWED_ADDRESSES, PICTURE_CSS];
 
 export const WEB_ADDRESSES: NetworkCode[] = [
   { name: "a web address", pattern: /\b(?:https?|wss?):/i },
@@ -43,7 +45,20 @@ export const NETWORK_CODE: NetworkCode[] = [
   { name: "outerHTML", pattern: /\bouterHTML\b/ },
   { name: "insertAdjacentHTML", pattern: /\binsertAdjacentHTML\b/ },
   { name: "srcdoc", pattern: /\bsrcdoc\b/ },
-  { name: "an element that loads from an address", pattern: /(?<![!=]=\s*)["'`](?:img|link|script|iframe|audio|video|source|embed|object|track)["'`]/i },
+  { name: "a url( other than the background picture's", pattern: /(?<![\w$])url\(/i },
+  { name: "sanitizeHTMLToDom", pattern: /\bsanitizeHTMLToDom\b/ },
+  { name: "DOMParser", pattern: /\bDOMParser\b/ },
+  { name: "createContextualFragment", pattern: /\bcreateContextualFragment\b/ },
+  { name: "setHTMLUnsafe or parseHTMLUnsafe", pattern: /\b(?:set|parse)HTMLUnsafe\b/ },
+  { name: "write or writeln, which a document has", pattern: /(?<!\bthis\s*)\.\s*write(?:ln)?\s*\(|\[\s*["'`]write(?:ln)?["'`]\s*\]|\bwriteln\b/ },
+  { name: "Audio", pattern: /\bAudio\b/ },
+  { name: "FontFace", pattern: /\bFontFace\b/ },
+  { name: "CSSStyleSheet", pattern: /\bCSSStyleSheet\b/ },
+  { name: "adoptedStyleSheets", pattern: /\badoptedStyleSheets\b/ },
+  { name: "submit on anything but the plugin's own dialog", pattern: /(?<!\bthis\s*)\.\s*submit\s*\(|\[\s*["'`]submit["'`]\s*\]|\brequestSubmit\b/ },
+  { name: "caches", pattern: /\bcaches\b/ },
+  { name: "Notification", pattern: /\bNotification\b/ },
+  { name: "an element that loads from an address", pattern: /(?<![!=]=\s*)["'`](?:img|image|link|script|style|iframe|audio|video|source|embed|object|track)["'`]/i },
   { name: "a module other than Obsidian or CodeMirror", pattern: /require/ },
   { name: "a Node file, network or process module", pattern: new RegExp(`require\\(\\s*["'\`](node:)?(${NODE_NETWORK_MODULES})["'\`]\\s*\\)`) },
   { name: "electron", pattern: /require\(\s*["'`]electron["'`]\s*\)/ },

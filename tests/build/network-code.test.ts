@@ -2,7 +2,7 @@ import { build } from "esbuild";
 import { describe, expect, it } from "vitest";
 import type { BuildOptions } from "esbuild";
 import { PLUGIN_BUNDLE, STYLES_BUNDLE } from "../../scripts/bundle-options.ts";
-import { networkCodeIn } from "../../scripts/network-code.ts";
+import { networkCodeIn, PICTURE_CSS } from "../../scripts/network-code.ts";
 import { styleNetworkCodeIn } from "../../scripts/style-network-code.ts";
 
 async function built(options: BuildOptions): Promise<string> {
@@ -94,7 +94,53 @@ describe("networkCodeIn", () => {
     ]);
   });
 
-  it("finds nothing in Obsidian modals, the plugin's own open and process methods, and checks of a value's type", () => {
+  it("finds each way to parse HTML, write a document, load a sound, font or stylesheet, or send a form", () => {
+    expectEachFound([
+      ["(0, import_obsidian.sanitizeHTMLToDom)(text)", "sanitizeHTMLToDom"],
+      ['new DOMParser().parseFromString(text, "text/html")', "DOMParser"],
+      ["document.createRange().createContextualFragment(text)", "createContextualFragment"],
+      ["el.setHTMLUnsafe(text)", "setHTMLUnsafe or parseHTMLUnsafe"],
+      ["Document.parseHTMLUnsafe(text)", "setHTMLUnsafe or parseHTMLUnsafe"],
+      ["document.write(text)", "write or writeln, which a document has"],
+      ["activeDocument.writeln(text)", "write or writeln, which a document has"],
+      ["el.doc.write(text)", "write or writeln, which a document has"],
+      ['page["write"](text)', "write or writeln, which a document has"],
+      ["new Audio(address).play()", "Audio"],
+      ['new FontFace("Alegreya", source).load()', "FontFace"],
+      ["const sheet = new CSSStyleSheet();", "CSSStyleSheet"],
+      ["document.adoptedStyleSheets = [sheet];", "adoptedStyleSheets"],
+      ['document.head.createEl("style", { text })', "an element that loads from an address"],
+      ['document.createElement("style")', "an element that loads from an address"],
+      ['el.createSvg("image", { attr: { href: address } })', "an element that loads from an address"],
+      ['el.createEl("input", { type: "image", attr: { src: address } })', "an element that loads from an address"],
+      ["form.submit()", "submit on anything but the plugin's own dialog"],
+      ["this.form.submit()", "submit on anything but the plugin's own dialog"],
+      ['form["submit"]()', "submit on anything but the plugin's own dialog"],
+      ["form.requestSubmit()", "submit on anything but the plugin's own dialog"],
+      ['caches.open("pictures")', "caches"],
+      ['new Notification("Pale Moon", { icon: address })', "Notification"],
+    ]);
+  });
+
+  it("finds every url( built in code other than the background picture's", () => {
+    const other = "a url( other than the background picture's";
+    expectEachFound([
+      ["el.style.backgroundImage = `url(${address})`;", other],
+      ['el.style.setProperty("background-image", "url(" + address + ")");', other],
+      ['el.style.backgroundImage = "URL(" + address + ")";', other],
+      ['el.style.backgroundImage = `url("${other}")`;', other],
+      ['el.style.backgroundImage = `url("${safe}"), url(${address})`;', other],
+      ['el.style.backgroundImage = `url("${safe}")` + `, url(${address})`;', other],
+      ['el.style.background = "center/cover url(" + address + ")";', other],
+      ['el.style.background = "-webkit-image-set(url(" + address + ") 1x)";', other],
+    ]);
+  });
+
+  it("finds nothing in the background picture's url(", () => {
+    expect(networkCodeIn("function isResourceUrl(url, platform) {\n  return new _PictureCss(`url(\"${safe}\")`);")).toEqual([]);
+  });
+
+  it("finds nothing in Obsidian modals, the plugin's own open, process, submit and write methods, and checks of a value's type", () => {
     const allowed = [
       "new ConfirmModal(this.app, text, confirmed, closed).open();",
       "await this.store.open(folder);",
@@ -106,6 +152,11 @@ describe("networkCodeIn", () => {
       "  async process(file, change) {",
       "await this.files.process(file, (text) => text);",
       'if (typeof saved !== "object" || saved === null) return settings;',
+      ".onClick(() => this.submit())",
+      "  submit() {",
+      "    this.write();",
+      'owner.registerDomEvent(formEl, "submit", (event) => {',
+      "if (event.defaultPrevented || !isSubmit(event, false)) return;",
     ];
     expect(networkCodeIn(allowed.join("\n"))).toEqual([]);
   });
@@ -202,6 +253,7 @@ describe("the built plugin", () => {
   it("holds no network code", async () => {
     const bundle = await built(PLUGIN_BUNDLE);
     expect(bundle).toContain('require("obsidian")');
+    expect(bundle).toContain(PICTURE_CSS);
     expect(networkCodeIn(bundle)).toEqual([]);
   }, 30_000);
 });
