@@ -16,7 +16,7 @@
 
 .dd-root .dd-stat-block-type,
 .dd-root .dd-stat-block-subtitle {
-  font: var(--weight-medium) var(--text-sm) / var(--leading-snug) var(--font-display);
+  font: var(--weight-regular) var(--text-sm) / var(--leading-snug) var(--font-display);
   color: var(--statblock-subtitle);
 }
 
@@ -27,7 +27,7 @@
 }
 
 .dd-root .dd-stat-block-line {
-  font: var(--weight-medium) var(--text-sm) / var(--leading-body) var(--font-display);
+  font: var(--weight-regular) var(--text-sm) / var(--leading-body) var(--font-display);
   color: var(--statblock-text);
 }
 
@@ -40,7 +40,7 @@
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   text-align: center;
-  font: var(--weight-medium) var(--text-sm) / var(--leading-snug) var(--font-display);
+  font: var(--weight-regular) var(--text-sm) / var(--leading-snug) var(--font-display);
   color: var(--statblock-text);
 }
 
