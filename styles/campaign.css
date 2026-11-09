@@ -31,7 +31,8 @@ body.is-phone.is-hidden-nav .dd-campaign-frame {
   gap: 2px;
   padding: var(--space-2);
   border-radius: var(--radius-lg);
-  background: linear-gradient(var(--surface-page), var(--surface-page)), var(--surface-ground);
+  background-color: var(--surface-ground);
+  background-image: linear-gradient(var(--surface-page), var(--surface-page));
 }
 
 .dd-campaign .dd-nav-campaign {
@@ -133,7 +134,8 @@ body.is-phone.is-hidden-nav .dd-campaign-frame {
 .dd-campaign .dd-page-body {
   padding: var(--space-4);
   border-radius: var(--radius-lg);
-  background: linear-gradient(var(--surface-page), var(--surface-page)), var(--surface-ground);
+  background-color: var(--surface-ground);
+  background-image: linear-gradient(var(--surface-page), var(--surface-page));
 }
 
 @container (max-width: 1023px) {
