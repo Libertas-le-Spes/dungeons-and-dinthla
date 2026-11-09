@@ -33,6 +33,7 @@ const REACHING_SAMPLES = [
   "app?.vault;",
   "const { vault } = app;",
   "const { vault: files } = app;",
+  'const { "vault": files } = app;',
   'const { ["vault"]: files } = app;',
   "const { [key]: files } = app;",
   "const read = ({ vault }: App) => vault;",
@@ -71,6 +72,18 @@ const WRITING_SAMPLES = [
   'import type { Editor } from "obsidian";\nexport const change = (editor: Editor, key: "replaceRange") => editor[key];',
 ];
 
+const WRITE_NAME_SAMPLES = [
+  'import type { Editor } from "obsidian";\nexport const change = (editor: Editor) => editor.setLine(0, "");',
+  'import type { Editor } from "obsidian";\nexport const change = (editor: Editor) => editor.transaction({ changes: [] });',
+  'import type { Editor } from "obsidian";\nexport const change = (editor: Editor) => editor.undo();',
+  'import type { Editor } from "obsidian";\nexport const change = (editor: Editor) => editor.redo();',
+  'import type { Editor } from "obsidian";\nexport const change = (editor: Editor) => editor.exec("goUp");',
+  'import type { Editor } from "obsidian";\nexport const change = (editor: Editor) => editor.processLines(() => null, () => undefined);',
+  'import type { MarkdownView } from "obsidian";\nexport const change = (view: MarkdownView) => view.clear();',
+  'import type { MarkdownSubView } from "obsidian";\nexport const change = (mode: MarkdownSubView) => mode.set("", true);',
+  'import type { EditorView } from "@codemirror/view";\nexport const change = (view: EditorView) => view.dispatch({ changes: { from: 0, insert: "" } });',
+];
+
 const READING_SAMPLES = [
   'import type { Editor } from "obsidian";\nexport const text = (editor: Editor) => editor.getValue();',
   "const line = editor.getLine(0);",
@@ -95,6 +108,7 @@ const FORBIDDEN_SAMPLES = [
   "eval(text);",
   'globalThis["eval"](text);',
   "const { eval: run } = globalThis;",
+  'const { ["eval"]: run } = globalThis;',
   'import * as obsidian from "obsidian";\nexport const pick = (key: "Notice") => obsidian[key];',
   'app.workspace.openLinkText("Private/Primary", "");',
   'import type { Workspace } from "obsidian";\nexport const follow = (workspace: Workspace) => workspace["openLinkText"]("Primary", "");',
@@ -115,6 +129,7 @@ const CAST_SAMPLES = [
   'import type { App } from "obsidian";\nexport const files = (app: App, key: string) => (<Record<string, object>>(<unknown>app))[key];',
   'import type { App } from "obsidian";\nexport function files(app: App, key: string) {\n  const words = app as unknown as Record<string, object>;\n  return words[key];\n}',
   'import type { App } from "obsidian";\nexport function files(app: App, key: string) {\n  const loose: unknown = app;\n  return (loose as Record<string, object>)[key];\n}',
+  'import type { App } from "obsidian";\nexport const files = (app: App, key: string) => (app as unknown as Record<string, object> as Record<string, object>)[key];',
   'import type { App } from "obsidian";\nexport function files(app: App, key: string) {\n  const loose = app as any;\n  const words: Record<string, object> = loose;\n  return words[key];\n}',
 ];
 
@@ -229,7 +244,7 @@ const HARMLESS_SAMPLES = [
   'export class Tab {\n  constructor(readonly app: { name: string }) {}\n  name(): string {\n    return this.app.name;\n  }\n}',
 ];
 
-const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...NOTE_READING_SAMPLES, ...VIEW_TEXT_SAMPLES, ...CODE_MIRROR_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...HARMLESS_SAMPLES];
+const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...WRITE_NAME_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...NOTE_READING_SAMPLES, ...VIEW_TEXT_SAMPLES, ...CODE_MIRROR_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...HARMLESS_SAMPLES];
 
 interface Planted {
   name: string;
@@ -593,6 +608,10 @@ describe("the vault fence", () => {
 
   it.each(WRITING_SAMPLES)("would catch writing through an editor or view with %s", (sample) => {
     expect(sampleBreaches(sample)).not.toEqual([]);
+  });
+
+  it.each(WRITE_NAME_SAMPLES)("would catch writing through an editor or view with %s, even in a file allowed everything else", (sample) => {
+    expect(sampleBreaches(sample, ALL_ALLOWED)).not.toEqual([]);
   });
 
   it.each(READING_SAMPLES)("would catch reading an editor's or view's text with %s", (sample) => {

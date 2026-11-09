@@ -344,6 +344,20 @@ function isNamedGlobal(type: Type): boolean {
   return isNamedOneOf(type, GLOBAL_OWNERS);
 }
 
+export type OwnedSymbol = Pick<TypeSymbol, "getParent">;
+
+export function isOwnedByOneOf(symbol: OwnedSymbol | undefined, owners: string[]): boolean {
+  if (symbol === undefined) return true;
+  const owner = symbol.getParent();
+  if (owner === undefined) return true;
+  return owners.includes(owner.name);
+}
+
+export function anyMemberCould(type: Type | undefined, could: (member: Type) => boolean): boolean {
+  if (type === undefined) return true;
+  return membersOf(type).some(could);
+}
+
 function isLibraryFile(path: string): boolean {
   return path.includes(LIBRARY_FOLDER);
 }
@@ -410,7 +424,7 @@ export class SourceScanner {
       }
     }
     if (!allowances.noteReading(path)) {
-      for (const { node, name } of this.ownedBy(project, found.noteReads, (symbol) => this.isOwnedByOneOf(symbol, NOTE_OWNERS))) {
+      for (const { node, name } of this.ownedBy(project, found.noteReads, (symbol) => isOwnedByOneOf(symbol, NOTE_OWNERS))) {
         breaches.push(`${where(node)} reads a note's text through Obsidian with ${name}`);
       }
       for (const { node, name } of found.destructured) {
@@ -546,23 +560,15 @@ export class SourceScanner {
   }
 
   private isEditorOwned(symbol: TypeSymbol | undefined): boolean {
-    return this.isOwnedByOneOf(symbol, EDITOR_OWNERS);
+    return isOwnedByOneOf(symbol, EDITOR_OWNERS);
   }
 
   private isFileOwned(symbol: TypeSymbol | undefined): boolean {
-    return this.isOwnedByOneOf(symbol, FILE_OWNERS);
-  }
-
-  private isOwnedByOneOf(symbol: TypeSymbol | undefined, owners: string[]): boolean {
-    if (symbol === undefined) return true;
-    const owner = symbol.getParent();
-    if (owner === undefined) return true;
-    return owners.includes(owner.name);
+    return isOwnedByOneOf(symbol, FILE_OWNERS);
   }
 
   private couldReach(project: Project, type: Type | undefined): boolean {
-    if (type === undefined) return true;
-    return membersOf(type).some((member) => this.memberCouldReach(project, member));
+    return anyMemberCould(type, (member) => this.memberCouldReach(project, member));
   }
 
   private memberCouldReach(project: Project, type: Type): boolean {
