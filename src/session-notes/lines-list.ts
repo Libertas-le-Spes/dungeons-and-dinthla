@@ -22,6 +22,11 @@ function addState(row: HTMLElement, text: HTMLElement, state: LineState | null):
   if (state.struck) text.addClass("dd-line-struck");
 }
 
+function newestFirst(lines: WrittenLine[]): WrittenLine[] {
+  const shown = Array.from(lines);
+  return shown.reverse();
+}
+
 export class LinesList {
   private readonly count: HTMLElement;
   private readonly list: HTMLElement;
@@ -41,7 +46,7 @@ export class LinesList {
     this.count.setText(countText(lines.length));
     this.list.empty();
     if (lines.length === 0) this.list.createEl("li", { cls: "dd-empty", text: NO_LINES });
-    for (const line of lines) this.addLine(line, campaign);
+    for (const line of newestFirst(lines)) this.addLine(line, campaign);
   }
 
   private addLine(line: WrittenLine, campaign: Campaign): void {

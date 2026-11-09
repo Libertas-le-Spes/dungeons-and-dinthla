@@ -27,13 +27,23 @@ function rows(root: HTMLElement): string[][] {
 }
 
 describe("LinesList", () => {
-  it("shows each line in order with its mark coloured as elsewhere and cut from its text", () => {
-    const { root } = drawn(["Tracks lead north.", "? Who sent the letter", "! Ride to Thessaly", "$ 20 gp from Lady Vess"]);
+  it("shows each line with its mark coloured as elsewhere and cut from its text", () => {
+    const { root } = drawn(["$ 20 gp from Lady Vess", "! Ride to Thessaly", "? Who sent the letter", "Tracks lead north."]);
     expect(rows(root)).toEqual([
       ["dd-line-glyph|", "dd-line-text|Tracks lead north."],
       ["dd-line-glyph dd-marker dd-marker-question|?", "dd-line-text|Who sent the letter"],
       ["dd-line-glyph dd-marker dd-marker-quest|!", "dd-line-text|Ride to Thessaly"],
       ["dd-line-glyph dd-marker dd-marker-ledger|$", "dd-line-text|20 gp from Lady Vess"],
+    ]);
+  });
+
+  it("shows the newest line, the last in the note, first", () => {
+    const { root } = drawn(["Tracks lead north.", "", "? Who sent the letter", "! Ride to Thessaly"]);
+    const shown = Array.from(root.querySelectorAll(".dd-written-line")).map((row) => [row.getAttribute("data-line"), row.querySelector(".dd-line-text")?.textContent]);
+    expect(shown).toEqual([
+      ["3", "Ride to Thessaly"],
+      ["2", "Who sent the letter"],
+      ["0", "Tracks lead north."],
     ]);
   });
 
@@ -72,13 +82,13 @@ describe("LinesList", () => {
       row.querySelector(".dd-line-text")?.classList.contains("dd-line-struck"),
     ]);
     expect(states).toEqual([
-      ["Answered", "✓", false],
       [undefined, undefined, false],
-      ["Abandoned", "✕", true],
       [undefined, undefined, false],
       ["Gone", "✕", true],
       [undefined, undefined, false],
+      ["Abandoned", "✕", true],
       [undefined, undefined, false],
+      ["Answered", "✓", false],
     ]);
   });
 
@@ -86,6 +96,6 @@ describe("LinesList", () => {
     const { root, list } = drawn(["? Who"]);
     const session = sessionOf(["? Who", "! Ride to Thessaly"]);
     list.show(writtenLinesOf(session), buildCampaign([session]));
-    expect(rows(root).map((row) => row[1])).toEqual(["dd-line-text|Who", "dd-line-text|Ride to Thessaly"]);
+    expect(rows(root).map((row) => row[1])).toEqual(["dd-line-text|Ride to Thessaly", "dd-line-text|Who"]);
   });
 });
