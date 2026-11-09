@@ -159,6 +159,9 @@ const OTHER_PLUGIN_SAMPLES = [
   "export const found = (key: string, loose: object) => key in loose;",
   "export const found = <T extends object>(key: string, loose: T) => key in loose;",
   "export const found = (key: string) => key in activeWindow;",
+  'export const found = (registry: object) => "plugins" in registry;',
+  'export const found = (loose: any) => "vault" in loose;',
+  "export const listed = (registry: { enabledPlugins: Set<string> }) => {\n  const { enabledPlugins } = registry;\n  return enabledPlugins;\n};",
 ];
 
 const GLOBAL_APP_SAMPLES = [
@@ -187,6 +190,8 @@ const NOTE_READING_SAMPLES = [
   "const { frontmatter } = context;",
   "const { getSectionInfo } = context;",
   "const { previewMode } = view;",
+  'import type { MarkdownView } from "obsidian";\nexport const mode = (view: MarkdownView) => view.currentMode;',
+  'import type { BasesEntry, BasesPropertyId, BasesQueryResult, QueryController } from "obsidian";\nexport const total = (result: BasesQueryResult, controller: QueryController, entries: BasesEntry[], id: BasesPropertyId) => result.getSummaryValue(controller, entries, id, "sum");',
 ];
 
 const VIEW_TEXT_SAMPLES = [
@@ -214,6 +219,14 @@ const CODE_MIRROR_SAMPLES = [
   'import type { EditorState } from "@codemirror/state";\nexport const text = (state: EditorState) => state["doc"];',
   "const { doc } = state;",
   'export const text = (view: import("@codemirror/view").EditorView) => view.state.sliceDoc();',
+  "export const listen = (view: { updateListener: { of(run: () => void): object } }) => view.updateListener.of(() => {});",
+  "export const filter = (state: { transactionFilter: { of(run: () => void): object } }) => state.transactionFilter.of(() => {});",
+  "export const filter = (state: { changeFilter: { of(run: () => boolean): object } }) => state.changeFilter.of(() => true);",
+  "export const typed = (view: { inputHandler: { of(run: () => boolean): object } }) => view.inputHandler.of(() => false);",
+  'import { editorViewField } from "obsidian";\nexport const field = editorViewField;',
+  'import { editorLivePreviewField } from "obsidian";\nexport const field = editorLivePreviewField;',
+  'export function text(state: unknown) {\n  const held = state as { doc: string };\n  return held["doc"];\n}',
+  "export function text(state: unknown) {\n  const held = state as { doc: string };\n  return held.doc;\n}",
 ];
 
 const CONSTRUCTOR_SAMPLES = [
