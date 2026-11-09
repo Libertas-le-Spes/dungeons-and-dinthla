@@ -1,16 +1,41 @@
-import { getLinkpath, Notice, type App } from "obsidian";
+import { Notice, parseLinktext, type App, type TFile } from "obsidian";
+import { campaignFolderOf } from "../campaign/campaign-folders";
 import type { Gate } from "../fence/gatekeeper";
+import { makeLinkedNote } from "./linked-note";
+import { messageOf } from "./message-of";
 
-export function missingInCampaignsFolder(linkpath: string): string {
-  return `${linkpath} doesn't exist inside the Campaigns folder.`;
+export interface LinkPlace {
+  gate: Pick<Gate, "files" | "metadata">;
+  campaignFolders: () => string[];
 }
 
-export async function openLink(app: App, gate: Pick<Gate, "metadata">, linktext: string, sourcePath: string): Promise<void> {
-  const linkpath = getLinkpath(linktext);
-  const file = gate.metadata.getFirstLinkpathDest(linkpath, sourcePath);
-  if (file === null) {
-    new Notice(missingInCampaignsFolder(linkpath));
+function withoutAlias(linktext: string): string {
+  const bar = linktext.indexOf("|");
+  if (bar === -1) return linktext;
+  return linktext.slice(0, bar);
+}
+
+export function notMade(linkpath: string, reason: string): string {
+  return `Couldn't make ${linkpath} inside the campaign: ${reason}`;
+}
+
+async function openNote(app: App, file: TFile, subpath: string): Promise<void> {
+  await app.workspace.getLeaf(false).openFile(file, { eState: { subpath } });
+}
+
+export async function openLink(app: App, place: LinkPlace, linktext: string, sourcePath: string): Promise<void> {
+  const { path: linkpath, subpath } = parseLinktext(withoutAlias(linktext));
+  const found = place.gate.metadata.getFirstLinkpathDest(linkpath, sourcePath);
+  if (found !== null) {
+    await openNote(app, found, subpath);
     return;
   }
-  await app.workspace.getLeaf(false).openFile(file, { eState: { subpath: linktext.slice(linkpath.length) } });
+  let made: TFile;
+  try {
+    made = await makeLinkedNote(place.gate.files, campaignFolderOf(sourcePath, place.campaignFolders()), linkpath);
+  } catch (error) {
+    new Notice(notMade(linkpath, messageOf(error)));
+    return;
+  }
+  await openNote(app, made, "");
 }
