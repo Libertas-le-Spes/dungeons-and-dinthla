@@ -1,12 +1,14 @@
-import { Modal, Notice, Setting, type App } from "obsidian";
+import { ButtonComponent, Modal, Notice, Setting, type App } from "obsidian";
 import type { Source } from "../campaign/campaign";
 import { CHANGED_IN_NOTE, PartlyWritten } from "../campaign/note-editor";
 import { sessionLabelOf } from "../campaign/session-file";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
+import { deleteOnSecondPress, type SecondPress } from "../views/second-press";
 import type { SheetValue, ValueState } from "./character-sheet";
 import { shownTextOf, STATE_WORDS } from "./character-sheet-view";
 import type { ValueChoice } from "./sheet-value-writer";
+import { isSheetName } from "./sheet-values";
 
 export interface SheetValueDialog {
   character: string;
@@ -18,6 +20,16 @@ export interface SheetValueDialog {
 }
 
 const STATES: ValueState[] = ["learned", "override", "carried", "unknown"];
+
+const CLEARING_STATES: ValueState[] = ["learned", "carried", "unknown"];
+
+export function removesNoteLines(value: SheetValue, state: ValueState): boolean {
+  return value.override !== null && !isSheetName(value.name) && CLEARING_STATES.includes(state);
+}
+
+export function secondPressText(character: string, label: string): string {
+  return `Learned at the table, Carried over and Not known yet remove ${label} from ${character}'s note, so they need a second press.`;
+}
 
 function stateOnEnter(state: ValueState): ValueState {
   if (state === "unknown") return "learned";
@@ -39,6 +51,7 @@ export class SheetValueModal extends Modal {
   private typed: string;
   private valueInput: HTMLInputElement | null = null;
   private busy = false;
+  private readonly secondPresses = new Map<ValueState, SecondPress>();
 
   constructor(
     app: App,
@@ -72,6 +85,7 @@ export class SheetValueModal extends Modal {
     const choices = contentEl.createDiv({ cls: "dd-state-choices" });
     for (const state of STATES) this.addChoice(choices, state);
     contentEl.createEl("p", { cls: "dd-where", text: whereText(this.dialog.character, this.dialog.sessionLabel) });
+    if (removesNoteLines(value, "learned")) contentEl.createEl("p", { cls: "dd-where", text: secondPressText(this.dialog.character, value.label) });
   }
 
   override close(): void {
@@ -80,6 +94,7 @@ export class SheetValueModal extends Modal {
   }
 
   override onClose(): void {
+    for (const secondPress of this.secondPresses.values()) secondPress.stop();
     this.contentEl.empty();
     this.onClosed();
   }
@@ -101,11 +116,15 @@ export class SheetValueModal extends Modal {
   }
 
   private addChoice(parent: HTMLElement, state: ValueState): void {
-    const pressed = String(state === this.dialog.value.state);
-    const button = parent.createEl("button", { cls: "dd-state-choice", attr: { "aria-pressed": pressed, "data-state": state } });
-    button.createSpan({ cls: ["dd-state-dot", `dd-state-${state}`] });
-    button.appendText(STATE_WORDS[state]);
-    button.addEventListener("click", () => this.choose(state));
+    const button = new ButtonComponent(parent);
+    button.buttonEl.addClass("dd-state-choice");
+    button.buttonEl.setAttr("aria-pressed", String(state === this.dialog.value.state));
+    button.buttonEl.setAttr("data-state", state);
+    if (removesNoteLines(this.dialog.value, state)) {
+      this.secondPresses.set(state, deleteOnSecondPress(button, STATE_WORDS[state], () => this.choose(state)));
+      return;
+    }
+    button.setButtonText(STATE_WORDS[state]).onClick(() => this.choose(state));
   }
 
   private choose(state: ValueState): void {
