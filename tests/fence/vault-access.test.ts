@@ -120,6 +120,34 @@ const LOOSE_CAST_SAMPLES = [
   'import type { App } from "obsidian";\nexport function registry(app: App) {\n  const loose: unknown = app;\n  return (loose as { viewRegistry: object }).viewRegistry;\n}',
 ];
 
+const OTHER_PLUGIN_SAMPLES = [
+  'import type { App } from "obsidian";\nexport const found = (app: App) => "plugins" in app;',
+  'import type { App } from "obsidian";\nexport function load(app: App, plugins: { getPlugin(id: string): { api: { io: { load(path: string): unknown } } } }) {\n  return plugins.getPlugin("dataview").api.io.load("Private/Primary.md");\n}',
+  'export const found = "app" in window;',
+  "const list = app.plugins.enabledPlugins;",
+  'const core = app["internalPlugins"];',
+  "const { plugins } = app;",
+  'const { ["getPlugin"]: pick } = registry;',
+  'export const found = (key: string) => key in globalThis;',
+  'import type { App } from "obsidian";\nexport const found = (app: App, key: string) => key in app;',
+  "export const found = (key: string, loose: unknown) => typeof loose === \"object\" && loose !== null && key in loose;",
+  "export const found = (key: string, loose: object) => key in loose;",
+  "export const found = <T extends object>(key: string, loose: T) => key in loose;",
+  "export const found = (key: string) => key in activeWindow;",
+];
+
+const GLOBAL_APP_SAMPLES = [
+  "export const reached = window.app;",
+  'export const reached = globalThis["app"];',
+  "export const reached = activeWindow.app;",
+  "export const reached = (window as any).app;",
+  "export const reached = (globalThis as unknown as { app: object }).app;",
+  "export const { app } = window;",
+  'export const { ["app"]: reached } = self;',
+  "export const reached = (holder: Window) => holder.app;",
+  "export const reached = document.defaultView?.app;",
+];
+
 const CONSTRUCTOR_SAMPLES = [
   '(() => 0).constructor("return this")();',
   'export const make = (run: () => void) => run["constructor"];',
@@ -142,9 +170,12 @@ const HARMLESS_SAMPLES = [
   "export const first = (list: HTMLElement) => list.children[0];",
   "export const counts = (byName: Record<string, number>) => Object.entries(byName);",
   "export const merged = (first: { name: string }, second: { level: number }) => ({ ...first, ...second });",
+  'export const hasLevel = (sheet: { level: number } | { name: string }) => "level" in sheet;',
+  'export const level = (saved: object) => "level" in saved && typeof saved.level === "number";',
+  'export class Tab {\n  constructor(readonly app: { name: string }) {}\n  name(): string {\n    return this.app.name;\n  }\n}',
 ];
 
-const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...HARMLESS_SAMPLES];
+const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...HARMLESS_SAMPLES];
 
 interface Planted {
   name: string;
@@ -262,7 +293,13 @@ function isNeverAllowed(): boolean {
   return false;
 }
 
-const NOTHING_ALLOWED: Allowances = { vault: isNeverAllowed, keyReading: isNeverAllowed, editorReading: isNeverAllowed, fileTree: isNeverAllowed, looseCasts: isNeverAllowed };
+const NOTHING_ALLOWED: Allowances = {
+  vault: isNeverAllowed,
+  keyReading: isNeverAllowed,
+  editorReading: isNeverAllowed,
+  fileTree: isNeverAllowed,
+  looseCasts: isNeverAllowed,
+};
 
 function isAlwaysAllowed(): boolean {
   return true;
@@ -414,6 +451,14 @@ describe("the vault fence", () => {
 
   it.each(LOOSE_CAST_SAMPLES)("would catch casting through unknown or any with %s", (sample) => {
     expect(sampleBreaches(sample)).not.toEqual([]);
+  });
+
+  it.each(OTHER_PLUGIN_SAMPLES)("would catch reaching other plugins or checking for a key in the app or a window with %s", (sample) => {
+    expect(sampleBreaches(sample)).not.toEqual([]);
+  });
+
+  it.each(GLOBAL_APP_SAMPLES)("would catch reaching the app through a window or globalThis with %s, even in a file allowed to cast", (sample) => {
+    expect(sampleBreaches(sample, LOOSE_CASTS_ALLOWED)).not.toEqual([]);
   });
 
   it.each(CONSTRUCTOR_SAMPLES)("would catch reaching a constructor with %s", (sample) => {

@@ -2,6 +2,7 @@ import type { FileSystem } from "typescript/unstable/fs";
 import { API, TypeFlags, type Project, type Symbol as TypeSymbol, type Type, type UnionOrIntersectionType } from "typescript/unstable/sync";
 import {
   isAsExpression,
+  isBinaryExpression,
   isBindingElement,
   isCallExpression,
   isComputedPropertyName,
@@ -55,7 +56,7 @@ export const EDITOR_READS = ["getValue", "getLine", "getRange", "getSelection", 
 
 export const FILE_TREE = ["parent", "children"];
 
-export const FORBIDDEN_NAMES = ["MarkdownRenderer", "renderMarkdown", "executeCommandById", "commands", "execCommand", "Function", "eval", "openLinkText"];
+export const FORBIDDEN_NAMES = ["MarkdownRenderer", "renderMarkdown", "executeCommandById", "commands", "execCommand", "Function", "eval", "openLinkText", "plugins", "getPlugin", "enabledPlugins", "internalPlugins"];
 
 const EDITOR_OWNERS = [
   "Editor",
@@ -71,6 +72,12 @@ const EDITOR_OWNERS = [
 ];
 
 const FILE_OWNERS = ["TAbstractFile", "TFile", "TFolder"];
+
+const GLOBAL_OWNERS = ["App", "Window", "globalThis"];
+
+const UNTYPED = TypeFlags.Any | TypeFlags.Unknown | TypeFlags.NonPrimitive;
+
+const APP = "app";
 
 const REFLECTION = "Reflect";
 
@@ -108,6 +115,9 @@ interface Found {
   computedKeys: ElementAccessExpression[];
   readWhole: Expression[];
   reflections: Node[];
+  inOwners: Expression[];
+  computedInOwners: Expression[];
+  appOwners: Node[];
 }
 
 type Cast = AsExpression | TypeAssertion;
@@ -136,6 +146,9 @@ function emptyFound(): Found {
     computedKeys: [],
     readWhole: [],
     reflections: [],
+    inOwners: [],
+    computedInOwners: [],
+    appOwners: [],
   };
 }
 
@@ -157,6 +170,7 @@ function addElementAccess(found: Found, access: ElementAccessExpression): void {
     found.computedKeys.push(access);
     return;
   }
+  if (literal === APP) found.appOwners.push(access.expression);
   addName(found, access.argumentExpression, literal);
   addForbidden(found, access.argumentExpression, literal);
 }
@@ -167,16 +181,32 @@ function addDestructured(found: Found, node: Node, name: string): void {
   if (!isIdentifier(node)) addForbidden(found, node, name);
 }
 
+function addBoundName(found: Found, binding: BindingElement, key: Node, name: string): void {
+  addDestructured(found, key, name);
+  if (name === APP) found.appOwners.push(binding.parent);
+}
+
 function addBinding(found: Found, binding: BindingElement): void {
   const key = keyOfBinding(binding);
   if (key === undefined) return;
   if (isComputedPropertyName(key)) {
     const literal = literalTextOf(key.expression);
     if (literal === null) found.computedBindings.push(key);
-    else addDestructured(found, key, literal);
+    else addBoundName(found, binding, key, literal);
     return;
   }
-  if (isIdentifier(key) || isStringLiteral(key)) addDestructured(found, key, key.text);
+  if (isIdentifier(key) || isStringLiteral(key)) addBoundName(found, binding, key, key.text);
+}
+
+function addInCheck(found: Found, node: Node): void {
+  if (!isBinaryExpression(node) || node.operatorToken.kind !== SyntaxKind.InKeyword) return;
+  const literal = literalTextOf(node.left);
+  if (literal === null) {
+    found.computedInOwners.push(node.right);
+    return;
+  }
+  found.inOwners.push(node.right);
+  addForbidden(found, node.left, literal);
 }
 
 function isKeyReader(call: CallExpression): boolean {
@@ -189,6 +219,8 @@ function foundIn(sourceFile: SourceFile): Found {
   const found = emptyFound();
   const visit = (node: Node): void => {
     if (isPropertyAccessExpression(node)) addName(found, node.name, node.name.text);
+    if (isPropertyAccessExpression(node) && node.name.text === APP) found.appOwners.push(node.expression);
+    addInCheck(found, node);
     if (isElementAccessExpression(node)) addElementAccess(found, node);
     if (isBindingElement(node) && isObjectBindingPattern(node.parent)) addBinding(found, node);
     if (isIdentifier(node) && node.text === REFLECTION) found.reflections.push(node);
@@ -215,6 +247,25 @@ function unwrapped(expression: Expression): Expression {
 
 function isCast(expression: Expression): expression is Cast {
   return isAsExpression(expression) || isTypeAssertion(expression);
+}
+
+function flattened(type: Type): Type[] {
+  const members = membersOf(type);
+  if (members.length === 1) return [type];
+  return members.flatMap(flattened);
+}
+
+function layersOf(expression: Node): Node[] {
+  if (isParenthesizedExpression(expression) || isNonNullExpression(expression) || isSatisfiesExpression(expression) || isCast(expression)) {
+    return [expression, ...layersOf(expression.expression)];
+  }
+  return [expression];
+}
+
+function isNamedGlobal(type: Type): boolean {
+  const symbol = type.getSymbol();
+  if (symbol === undefined) return false;
+  return GLOBAL_OWNERS.includes(symbol.name);
 }
 
 function isLibraryFile(path: string): boolean {
@@ -268,6 +319,13 @@ export class SourceScanner {
     if (!allowances.looseCasts(path)) {
       for (const cast of found.casts.filter((candidate) => this.isLooseCast(project, candidate))) breaches.push(`${where(cast)} casts through unknown or any`);
     }
+    for (const node of this.typedBy(project, found.appOwners, (type) => this.isGlobalOrUntyped(project, type))) {
+      breaches.push(`${where(node)} reaches the app through a window, globalThis or a value it can't type`);
+    }
+    for (const node of this.typedBy(project, found.inOwners, (type) => this.isGlobal(project, type))) breaches.push(`${where(node)} checks for a key in the app, a window or globalThis`);
+    for (const node of this.typedBy(project, found.computedInOwners, (type) => this.isGlobalOrUntyped(project, type))) {
+      breaches.push(`${where(node)} checks for a computed key in the app, a window, globalThis or a value it can't type`);
+    }
     for (const node of this.castKeys(project, found)) breaches.push(`${where(node)} reads a computed key of a value cast through unknown or any`);
     if (!allowances.editorReading(path)) {
       for (const { node, name } of this.editorReads(project, found)) breaches.push(`${where(node)} reads the text of an editor or view with ${name}`);
@@ -309,6 +367,30 @@ export class SourceScanner {
 
   private fileTreeSteps(project: Project, found: Found): Named[] {
     return this.ownedBy(project, found.fileTreeNames, (symbol) => this.isFileOwned(symbol));
+  }
+
+  private typedBy(project: Project, owners: Node[], isOwner: (type: Type | undefined) => boolean): Node[] {
+    return owners.filter((owner) => {
+      const layers = layersOf(owner);
+      return project.checker.getTypeAtLocation(layers).some(isOwner);
+    });
+  }
+
+  private isGlobal(project: Project, type: Type | undefined): boolean {
+    if (type === undefined) return true;
+    return flattened(this.constrained(project, type)).some((member) => isNamedGlobal(member) || (member.flags & TypeFlags.Any) !== 0);
+  }
+
+  private isGlobalOrUntyped(project: Project, type: Type | undefined): boolean {
+    if (type === undefined) return true;
+    return flattened(this.constrained(project, type)).some((member) => isNamedGlobal(member) || (member.flags & UNTYPED) !== 0);
+  }
+
+  private constrained(project: Project, type: Type): Type {
+    if ((type.flags & TypeFlags.TypeParameter) === 0) return type;
+    const constraint = project.checker.getBaseConstraintOfType(type);
+    if (constraint === undefined || constraint.id === type.id) return project.checker.getUnknownType();
+    return this.constrained(project, constraint);
   }
 
   private castKeys(project: Project, found: Found): Node[] {
