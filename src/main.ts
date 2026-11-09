@@ -345,7 +345,7 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private chosenCampaignFrom(saver: SettingsSaver): ChosenCampaign {
-    return new ChosenCampaign(saver, (folder) => this.store.open(folder));
+    return new ChosenCampaign(saver, this.store);
   }
 
   private campaignsFolderSettingFrom(saver: SettingsSaver): CampaignsFolderSetting {
