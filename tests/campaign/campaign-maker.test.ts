@@ -6,7 +6,7 @@ import { Notice } from "../stubs/obsidian";
 
 function filesWith(inCampaigns: string[]): NewCampaignFiles {
   return {
-    getFolderByPath: () => ({ children: inCampaigns.map((name) => ({ name })) }) as unknown as TFolder,
+    namesIn: () => inCampaigns,
     createFolder: vi.fn(async () => ({}) as TFolder),
     create: vi.fn(async () => ({}) as never),
     removeEmptyFolder: vi.fn(async () => {}),

@@ -15,7 +15,7 @@ function filesWith(campaignsFolder: string | null = "D&D") {
   const empty = folderAt("D&D/Pale Moon/Items", []);
   const full = folderAt("D&D/Pale Moon/Sessions", [SESSION]);
   const outside = folderAt("Private", []);
-  const campaigns = folderAt("D&D", []);
+  const campaigns = folderAt("D&D", [folderAt("D&D/Pale Moon", [empty, full])]);
   const raw = rawVaultWith([SESSION, PRIVATE, BESIDE, DECOMPOSED, NO_BREAK], [empty, full, outside, campaigns]);
   return { files: new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => campaignsFolder))), ...raw };
 }
@@ -44,6 +44,14 @@ describe("FencedFiles lookups", () => {
     expect(files.getFolderByPath("D&D/Pale Moon/Items")?.path).toBe("D&D/Pale Moon/Items");
     expect(files.getFolderByPath("D&D")?.path).toBe("D&D");
     expect(files.getFolderByPath("Private")).toBeNull();
+    expect(calls.getFolderByPath).toHaveBeenCalledTimes(2);
+  });
+
+  it("names what is directly in a folder inside, or in the Campaigns folder itself, and nothing in a folder outside", () => {
+    const { files, calls } = filesWith();
+    expect(files.namesIn("D&D")).toEqual(["Pale Moon"]);
+    expect(files.namesIn("D&D/Pale Moon/Sessions")).toEqual(["Session 1.md"]);
+    expect(files.namesIn("Private")).toEqual([]);
     expect(calls.getFolderByPath).toHaveBeenCalledTimes(2);
   });
 

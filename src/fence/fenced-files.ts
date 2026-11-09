@@ -55,6 +55,12 @@ export class FencedFiles extends Component {
     return this.vault.getFolderByPath(path);
   }
 
+  namesIn(path: string): string[] {
+    const folder = this.getFolderByPath(path);
+    if (folder === null) return [];
+    return folder.children.map((child) => child.name);
+  }
+
   getFiles(): TFile[] {
     return this.vault.getFiles().filter((file) => this.held.holdsFile(file));
   }
