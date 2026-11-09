@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TAbstractFile, TFolder } from "obsidian";
-import { NOT_A_HIDDEN_FOLDER, NOT_THE_WHOLE_VAULT } from "../../src/fence/campaigns-folder-path";
-import { A_FILE_HAS_THAT_NAME, FolderChoices, NOT_THE_CONFIG_FOLDER, type FolderVault } from "../../src/fence/folder-choices";
+import { NOT_A_HIDDEN_FOLDER, NOT_THE_CONFIG_FOLDER, NOT_THE_WHOLE_VAULT } from "../../src/fence/campaigns-folder-path";
+import { A_FILE_HAS_THAT_NAME, FolderChoices, type FolderVault } from "../../src/fence/folder-choices";
 
 function found(paths: string[], path: string): TAbstractFile | null {
   if (!paths.includes(path)) return null;

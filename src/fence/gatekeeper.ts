@@ -12,16 +12,18 @@ export class Gatekeeper {
   readonly files: FencedFiles;
   readonly fileActions: FencedFileActions;
   readonly metadata: FencedMetadata;
-  readonly settings: VaultSettings;
+  readonly vaultSettings: VaultSettings;
   readonly folders: FolderChoices;
+  readonly configDir: string;
 
   constructor(app: App, readCampaignsFolder: ReadCampaignsFolder) {
-    this.fence = new Fence(readCampaignsFolder);
+    this.configDir = app.vault.configDir;
+    this.fence = new Fence(readCampaignsFolder, this.configDir);
     const held = new HeldFiles(app.vault, this.fence);
     this.files = new FencedFiles(app.vault, held);
     this.fileActions = new FencedFileActions(app.fileManager, held);
     this.metadata = new FencedMetadata(app.metadataCache, held);
-    this.settings = new VaultSettings(configReaderOf(app));
+    this.vaultSettings = new VaultSettings(configReaderOf(app));
     this.folders = new FolderChoices(app.vault);
   }
 }

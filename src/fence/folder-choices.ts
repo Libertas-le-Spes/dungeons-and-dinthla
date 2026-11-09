@@ -1,9 +1,8 @@
 import type { TFolder, Vault } from "obsidian";
-import { newCampaignsFolderPathOf, refusalForCampaignsFolder } from "./campaigns-folder-path";
+import { isInConfigFolder, newCampaignsFolderPathOf, NOT_THE_CONFIG_FOLDER, refusalForCampaignsFolder } from "./campaigns-folder-path";
 
 export type FolderVault = Pick<Vault, "getAllFolders" | "getFolderByPath" | "getAbstractFileByPath" | "createFolder" | "configDir">;
 
-export const NOT_THE_CONFIG_FOLDER = "The Campaigns folder can't be the vault's own settings folder, or inside it.";
 export const A_FILE_HAS_THAT_NAME = "A file already has that name. Pick another name for the Campaigns folder.";
 
 function pathOfFolder(folder: TFolder): string {
@@ -32,7 +31,6 @@ export class FolderChoices {
   }
 
   private isInConfigFolder(path: string): boolean {
-    const configDir = this.vault.configDir;
-    return path === configDir || path.startsWith(`${configDir}/`);
+    return isInConfigFolder(path, this.vault.configDir);
   }
 }

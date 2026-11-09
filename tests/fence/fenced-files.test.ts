@@ -17,7 +17,7 @@ function filesWith(campaignsFolder: string | null = "D&D") {
   const outside = folderAt("Private", []);
   const campaigns = folderAt("D&D", [folderAt("D&D/Pale Moon", [empty, full])]);
   const raw = rawVaultWith([SESSION, PRIVATE, BESIDE, DECOMPOSED, NO_BREAK], [empty, full, outside, campaigns]);
-  return { files: new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => campaignsFolder))), ...raw };
+  return { files: new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => campaignsFolder, ".obsidian"))), ...raw };
 }
 
 describe("FencedFiles lookups", () => {
