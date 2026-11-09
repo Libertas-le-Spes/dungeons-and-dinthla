@@ -4,6 +4,7 @@ import type { Source } from "../../src/campaign/campaign";
 import { PROPERTIES_WOULD_CHANGE } from "../../src/campaign/note-editor";
 import { OUTSIDE_FENCE, Fence } from "../../src/fence/fence";
 import { FencedFiles } from "../../src/fence/fenced-files";
+import { HeldFiles } from "../../src/fence/held-files";
 import type { LookupMatch } from "../../src/lookups/lookup";
 import { LOOKUP_CHANGED, NOT_IN_A_NOTE_VIEW, NOTE_NOT_SHOWN, openLookup, sourceAfterRemoving } from "../../src/lookups/open-lookup";
 import { messageOf } from "../../src/views/message-of";
@@ -53,7 +54,7 @@ async function pick({ text, line, match, inView = true, beforePicking = () => {}
     steps.push(`written ${JSON.stringify(written)}`);
     return written;
   });
-  const files = new FencedFiles(vault, new Fence(() => "D&D"));
+  const files = new FencedFiles(vault, new HeldFiles(vault, new Fence(() => "D&D")));
   const context = { editor: fake.editor, file, start: { line, ch: 0 } } as EditorSuggestContext;
   const opened = (name: string) => (source: Source, onClosed: () => void) => {
     steps.push(`${name} ${source.line}`);
