@@ -1,17 +1,28 @@
-import type { FencedFiles } from "../fence/fenced-files";
+import type { CampaignStore } from "../campaign/campaign-store";
+import type { NoteTexts } from "../campaign/note-texts";
+import { sessionLinesOf } from "../campaign/session-lines";
 
 export interface LinkFrom {
   path: string;
   line: number | null;
 }
 
-export type LinkLineFiles = Pick<FencedFiles, "getFileByPath" | "cachedRead">;
+export interface LinkLines {
+  sessions: Pick<CampaignStore, "sessionNotes">;
+  texts: Pick<NoteTexts, "read">;
+}
 
-export async function linkLineOf(files: LinkLineFiles, from: LinkFrom): Promise<string> {
+function lineAt(lines: string[], line: number): string {
+  const found = lines[line];
+  if (found === undefined) return "";
+  return found;
+}
+
+export async function linkLineOf(lines: LinkLines, from: LinkFrom): Promise<string> {
   if (from.line === null) return "";
-  const file = files.getFileByPath(from.path);
-  if (file === null) return "";
-  const line = (await files.cachedRead(file)).split("\n")[from.line];
-  if (line === undefined) return "";
-  return line;
+  const session = lines.sessions.sessionNotes.find((note) => note.path === from.path);
+  if (session !== undefined) return lineAt(sessionLinesOf(session), from.line);
+  const text = await lines.texts.read(from.path);
+  if (text === null) return "";
+  return lineAt(text.split("\n"), from.line);
 }
