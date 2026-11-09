@@ -34,7 +34,7 @@ export function showBackground(contentEl: HTMLElement, shown: ShownBackground | 
   }
   if (layer === null) layer = contentEl.createDiv({ prepend: true });
   layer.className = `dd-tokens ${LAYER_CLASS} dd-wash-${shown.wash}`;
-  layer.setCssProps({ "--dd-campaign-picture": `url("${shown.url}")` });
+  layer.setCssProps({ "--dd-campaign-picture": shown.picture.value });
   contentEl.addClass(HOLDER_CLASS);
 }
 

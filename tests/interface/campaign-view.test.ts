@@ -413,6 +413,14 @@ describe("CampaignView", () => {
     expect(root.querySelector(".dd-campaign")!.parentElement).toBe(root);
   });
 
+  it("holds only the sidebar and the page, with the page's content in one solid body", async () => {
+    const { root } = await openView();
+    const campaign = root.querySelector(".dd-campaign")!;
+    expect([...campaign.children].map((child) => child.className)).toEqual(["dd-nav", "dd-page"]);
+    const page = campaign.querySelector(".dd-page")!;
+    expect([...page.children].map((child) => child.className)).toEqual(["dd-page-body"]);
+  });
+
   it("closes the shown page and stops listening to the campaign and the vault when it is closed", async () => {
     const { view, made, unsubscribe, vault, backdrops } = await openView();
     view.unload();

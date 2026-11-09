@@ -11,7 +11,16 @@ export interface TabCampaign {
 export type TabMetadata = Pick<MetadataCache, "getCache" | "getFirstLinkpathDest" | "on" | "offref">;
 export type TabVault = Pick<Vault, "getResourcePath" | "on" | "offref">;
 
+const NO_PICTURE = "none";
+
+function paintedKeyOf(shown: ShownBackground | null): string {
+  if (shown === null) return NO_PICTURE;
+  return `${shown.wash} ${shown.picture.value}`;
+}
+
 export class TabBackground extends Component {
+  private painted: string | null = null;
+
   constructor(
     private readonly frameEl: HTMLElement,
     private readonly campaign: TabCampaign,
@@ -27,7 +36,7 @@ export class TabBackground extends Component {
     this.watchVault(this.vault.on("create", () => this.paint()));
     this.watchVault(this.vault.on("rename", () => this.paint()));
     this.watchVault(this.vault.on("delete", () => this.paint()));
-    this.register(() => paintTabPicture(this.frameEl, null));
+    this.register(() => this.clear());
     this.paint();
   }
 
@@ -47,7 +56,16 @@ export class TabBackground extends Component {
   }
 
   private paint(): void {
-    paintTabPicture(this.frameEl, this.shown());
+    const shown = this.shown();
+    const key = paintedKeyOf(shown);
+    if (key === this.painted) return;
+    this.painted = key;
+    paintTabPicture(this.frameEl, shown);
+  }
+
+  private clear(): void {
+    this.painted = null;
+    paintTabPicture(this.frameEl, null);
   }
 
   private shown(): ShownBackground | null {

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { CachedMetadata, TFile } from "obsidian";
 import type { BackgroundMetadata } from "../../src/campaign/campaign-background";
 import { BackgroundRefresh, showBackground, shownBackgroundOf } from "../../src/reading/note-background";
+import { pictureOf, shownPicture } from "../campaign/shown-picture";
 import { obsidianDocument } from "../views/obsidian-dom";
 
 const FOLDERS = ["Ashen Road", "Pale Moon"];
@@ -26,10 +27,20 @@ const urlOf = (picture: TFile) => `app://vault/${picture.path}`;
 
 describe("shownBackgroundOf", () => {
   it("shows the campaign's picture behind a note in one of its folders", () => {
-    expect(shownBackgroundOf("Pale Moon/Sessions/Session 1.md", FOLDERS, metadata, urlOf)).toEqual({
-      url: "app://vault/Art/pale-moon.jpg",
-      wash: "strong",
-    });
+    const shown = shownBackgroundOf("Pale Moon/Sessions/Session 1.md", FOLDERS, metadata, urlOf);
+    expect(shown!.picture.value).toBe('url("app://vault/Art/pale-moon.jpg")');
+    expect(shown!.wash).toBe("strong");
+  });
+
+  it("puts a picture named with quotes and brackets safely inside one url", () => {
+    const named = (picture: TFile) => `app://vault/${picture.path}"), url("https://elsewhere.example/t.png`;
+    const shown = shownBackgroundOf("Pale Moon/Sessions/Session 1.md", FOLDERS, metadata, named);
+    expect(shown!.picture.value).toBe('url("app://vault/Art/pale-moon.jpg%22%29,%20url%28%22https://elsewhere.example/t.png")');
+  });
+
+  it("shows nothing when the picture's address isn't one Obsidian gives on this platform", () => {
+    const remote = (picture: TFile) => `https://elsewhere.example/${picture.path}`;
+    expect(shownBackgroundOf("Pale Moon/Sessions/Session 1.md", FOLDERS, metadata, remote)).toBeNull();
   });
 
   it("shows nothing behind a note outside every campaign", () => {
@@ -51,26 +62,26 @@ describe("showBackground", () => {
 
   it("puts the picture behind the note, under the chosen wash", () => {
     const contentEl = contentWithNote();
-    showBackground(contentEl, { url: "app://vault/pale-moon.jpg", wash: "subtle" });
+    showBackground(contentEl, shownPicture("app://vault/pale-moon.jpg", "subtle"));
     const layer = contentEl.firstElementChild as HTMLElement;
     expect(layer.className).toBe("dd-tokens dd-campaign-background dd-wash-subtle");
-    expect(layer.style.getPropertyValue("--dd-campaign-picture")).toBe('url("app://vault/pale-moon.jpg")');
+    expect(pictureOf(layer)).toBe('url("app://vault/pale-moon.jpg")');
     expect(contentEl.classList.contains("dd-has-campaign-background")).toBe(true);
   });
 
   it("changes the picture and wash in place rather than stacking another", () => {
     const contentEl = contentWithNote();
-    showBackground(contentEl, { url: "app://vault/pale-moon.jpg", wash: "subtle" });
-    showBackground(contentEl, { url: "app://vault/ashen-road.jpg", wash: "strong" });
+    showBackground(contentEl, shownPicture("app://vault/pale-moon.jpg", "subtle"));
+    showBackground(contentEl, shownPicture("app://vault/ashen-road.jpg", "strong"));
     const layers = layersIn(contentEl);
     expect(layers).toHaveLength(1);
     expect(layers[0]!.className).toBe("dd-tokens dd-campaign-background dd-wash-strong");
-    expect(layers[0]!.style.getPropertyValue("--dd-campaign-picture")).toBe('url("app://vault/ashen-road.jpg")');
+    expect(pictureOf(layers[0]!)).toBe('url("app://vault/ashen-road.jpg")');
   });
 
   it("restores the plain background when the picture is removed", () => {
     const contentEl = contentWithNote();
-    showBackground(contentEl, { url: "app://vault/pale-moon.jpg", wash: "balanced" });
+    showBackground(contentEl, shownPicture("app://vault/pale-moon.jpg", "balanced"));
     showBackground(contentEl, null);
     expect(layersIn(contentEl)).toHaveLength(0);
     expect(contentEl.classList.contains("dd-has-campaign-background")).toBe(false);
