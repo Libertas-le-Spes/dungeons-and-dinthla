@@ -5,6 +5,7 @@ import { CHANGED_IN_NOTE } from "../../src/campaign/note-editor";
 import { carriedValuesOf, characterSheetOf, type SheetValue } from "../../src/characters/character-sheet";
 import { CHARACTER_SHEET_VIEW } from "../../src/characters/character-sheet-view";
 import { chooseSheetValue, openCharacterSheet, sameSheetValue, saveSheetValue } from "../../src/characters/open-character-sheet";
+import { readCharacterSheet } from "../../src/characters/read-character-sheet";
 import type { SheetNotes } from "../../src/characters/sheet-notes";
 import type { SheetValueDialog } from "../../src/characters/sheet-value-modal";
 import { NO_SESSION } from "../../src/characters/sheet-value-writer";
@@ -113,6 +114,20 @@ describe("saveSheetValue", () => {
     const { app, store, notes, notesText } = setUp({ [MIRA.path]: "", [ONE]: "[[Mira]] AC: 15", [TWO]: "Notes\n" });
     expect(await saveSheetValue(app, store, notes, MIRA, acOf([LEARNED_15]), { state: "learned", value: "16" })).toBe(true);
     expect(notesText.get(TWO)).toBe("Notes\n[[Mira]] AC: 16\n");
+  });
+
+  it("marks a value not known in the latest session, so a value learned later still shows", async () => {
+    const { app, store, notes, notesText } = setUp({ [MIRA.path]: "AC: 16", [ONE]: "[[Mira]] AC: 15", [TWO]: "" });
+    const opened = acOf([LEARNED_15], [{ name: "AC", value: "16", source: { path: MIRA.path, line: 0 } }]);
+    expect(await saveSheetValue(app, store, notes, MIRA, opened, { state: "unknown", value: "" })).toBe(true);
+    expect(notesText.get(TWO)).toBe("[[Mira]] AC: ?\n");
+    expect(notesText.get(MIRA.path)).toBe("");
+    let read = await readCharacterSheet(MIRA, store, notes);
+    expect(read.sheet.values.find((value) => value.name === "AC")!.state).toBe("unknown");
+    notesText.set(TWO, "[[Mira]] AC: ?\nLater that night\n[[Mira]] AC: 18\n");
+    read = await readCharacterSheet(MIRA, store, notes);
+    const ac = read.sheet.values.find((value) => value.name === "AC")!;
+    expect([ac.state, ac.shown!.value]).toEqual(["learned", "18"]);
   });
 
   it("writes nothing when the value changed since the dialog opened", async () => {

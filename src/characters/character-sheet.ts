@@ -23,10 +23,10 @@ export interface SheetValue {
   label: string;
   state: ValueState;
   shown: StatedValue | null;
-  own: StatedValue | null;
+  override: StatedValue | null;
   learned: StatedValue | null;
   carried: StatedValue | null;
-  carriedFrom: string | null;
+  carriedCampaign: string | null;
   earlier: StatedValue[];
 }
 
@@ -91,22 +91,22 @@ function sheetValueOf(name: string, learned: SourcedFact[], overrides: SourcedFa
     label: labelOf(name),
     state: "unknown",
     shown: null,
-    own: lastStated(overrides, name),
+    override: lastStated(overrides, name),
     learned: lastStated(learned, name),
     carried: null,
-    carriedFrom: null,
+    carriedCampaign: null,
     earlier: [],
   };
   if (carried !== null) {
     const carriedValue = carriedFor(carried, name);
     if (carriedValue !== null) {
       value.carried = carriedValue;
-      value.carriedFrom = carried.campaign;
+      value.carriedCampaign = carried.campaign;
     }
   }
-  if (value.own !== null) {
-    value.shown = value.own;
-    value.state = stateOf(value.own, "override");
+  if (value.override !== null) {
+    value.shown = value.override;
+    value.state = "override";
   } else if (value.learned !== null) {
     value.shown = value.learned;
     value.state = stateOf(value.learned, "learned");

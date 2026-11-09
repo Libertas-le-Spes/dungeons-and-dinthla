@@ -91,7 +91,7 @@ describe("readCharacterSheet", () => {
     });
     const read = await readCharacterSheet(MIRA, { campaignFolder: "Pale Moon", sessionNotes: [] }, notes);
     expect(read.carriedPath).toBe(OLD_MIRA);
-    expect(valueNamed(read, "INT")).toMatchObject({ state: "carried", carriedFrom: "Ashen Road" });
+    expect(valueNamed(read, "INT")).toMatchObject({ state: "carried", carriedCampaign: "Ashen Road" });
     expect(valueNamed(read, "AC").state).toBe("unknown");
     expect(valueNamed(read, "class").state).toBe("unknown");
   });

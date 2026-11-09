@@ -65,7 +65,7 @@ describe("SheetValueModal", () => {
   });
 
   it("starts empty for a value not known", () => {
-    const { input } = openDialog({ value: hpOf([inSession(1, "31")], [{ name: "HP", value: "?", source: { path: MIRA, line: 0 } }]) });
+    const { input } = openDialog({ value: hpOf([inSession(1, "31"), inSession(2, "?")]) });
     expect(input.value).toBe("");
   });
 
@@ -102,8 +102,8 @@ describe("SheetValueModal", () => {
 
   it("says where each choice writes", () => {
     expect(openDialog().root.querySelector(".dd-where")!.textContent).toBe(whereText("Mira", "Session 2"));
-    expect(whereText("Mira", "Session 2")).toBe("Learned at the table adds a line to Session 2. Override and Not known yet change Mira's note.");
-    expect(whereText("Mira", null)).toBe("Learned at the table needs a session to write in. Override and Not known yet change Mira's note.");
+    expect(whereText("Mira", "Session 2")).toBe("Learned at the table and Not known yet add a line to Session 2. Override changes Mira's note.");
+    expect(whereText("Mira", null)).toBe("Learned at the table and Not known yet need a session to write in. Override changes Mira's note.");
   });
 
   it("saves the state tapped with the value typed, then closes", async () => {

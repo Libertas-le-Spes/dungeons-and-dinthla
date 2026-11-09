@@ -33,7 +33,7 @@ export function shownTextOf(value: SheetValue): string {
 
 function sourceTextOf(value: SheetValue): string {
   if (value.state === "learned" && value.shown !== null) return sessionLabelOf(value.shown.source.path);
-  if (value.state === "carried" && value.carriedFrom !== null) return `Carried from ${value.carriedFrom}`;
+  if (value.state === "carried" && value.carriedCampaign !== null) return `Carried from ${value.carriedCampaign}`;
   return STATE_WORDS[value.state];
 }
 

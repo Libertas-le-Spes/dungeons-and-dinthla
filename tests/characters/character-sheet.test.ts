@@ -25,7 +25,7 @@ describe("characterSheetOf", () => {
 
   it("marks a value no line states as not known, with nothing shown", () => {
     const value = valueNamed(characterSheetOf([], [], null), "AC");
-    expect(value).toMatchObject({ state: "unknown", shown: null, own: null, learned: null, carried: null, earlier: [] });
+    expect(value).toMatchObject({ state: "unknown", shown: null, override: null, learned: null, carried: null, earlier: [] });
   });
 
   it("shows the newest learned value with its session, and the older lines as earlier values", () => {
@@ -45,23 +45,32 @@ describe("characterSheetOf", () => {
     expect(value.earlier.map(({ value: earlier }) => earlier)).toEqual(["16"]);
   });
 
-  it("reads a value of ? as not known, keeping where it was written and what came before", () => {
-    const value = valueNamed(characterSheetOf([inSession(1, 0, "HP", "38")], [onNote(2, "HP", "?")], null), "HP");
+  it("reads a learned ? as not known, keeping where it was written and what came before", () => {
+    const learned = [inSession(1, 0, "HP", "38"), inSession(2, 4, "HP", "?")];
+    const value = valueNamed(characterSheetOf(learned, [], null), "HP");
     expect(value.state).toBe("unknown");
-    expect(value.shown).toEqual({ value: "?", source: { path: MIRA, line: 2 } });
+    expect(value.shown).toEqual({ value: "?", source: learned[1]!.source });
     expect(value.earlier.map(({ value: earlier }) => earlier)).toEqual(["38"]);
   });
 
-  it("reads a learned ? as not known too", () => {
-    const value = valueNamed(characterSheetOf([inSession(1, 0, "HP", "38"), inSession(2, 0, "HP", "?")], [], null), "HP");
-    expect(value.state).toBe("unknown");
+  it("shows a value learned after it was marked not known", () => {
+    const learned = [inSession(1, 0, "AC", "15"), inSession(2, 0, "AC", "?"), inSession(9, 0, "AC", "18")];
+    const value = valueNamed(characterSheetOf(learned, [], null), "AC");
+    expect(value.state).toBe("learned");
+    expect(value.shown!.value).toBe("18");
+  });
+
+  it("reads an override of ? like any other override", () => {
+    const value = valueNamed(characterSheetOf([inSession(1, 0, "HP", "38")], [onNote(2, "HP", "?")], null), "HP");
+    expect(value.state).toBe("override");
+    expect(value.shown).toEqual({ value: "?", source: { path: MIRA, line: 2 } });
   });
 
   it("shows a carried value with its campaign when nothing in this campaign states it", () => {
     const carried = carriedValuesOf("Ashen Road", [], [onNote(1, "class", "Cleric", "Ashen Road/Characters/Mira.md")], ["values"]);
     const value = valueNamed(characterSheetOf([], [], carried), "class");
     expect(value.state).toBe("carried");
-    expect(value.carriedFrom).toBe("Ashen Road");
+    expect(value.carriedCampaign).toBe("Ashen Road");
     expect(value.shown).toEqual({ value: "Cleric", source: { path: "Ashen Road/Characters/Mira.md", line: 1 } });
   });
 

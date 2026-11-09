@@ -117,7 +117,7 @@ describe("CharacterSheetView", () => {
   });
 
   it("leaves the subtitle line out while the subtitle isn't known", async () => {
-    const sheet = openSheet({ texts: { [MIRA.path]: "subtitle: ?" } });
+    const sheet = openSheet({ sessions: ["[[Mira]] subtitle: ?"] });
     await sheet.load();
     expect(sheet.root.querySelector(".dd-sheet-subtitle")).toBeNull();
   });
@@ -131,8 +131,8 @@ describe("CharacterSheetView", () => {
 
   it("marks each value with its state, in words for those who can't see the colour", async () => {
     const sheet = openSheet({
-      sessions: ["[[Mira]] AC: 15, HP: 30"],
-      texts: { [MIRA.path]: "HP: 44\nspeed: ?", [OLD_MIRA]: "class: Ranger" },
+      sessions: ["[[Mira]] AC: 15, HP: 30, speed: ?"],
+      texts: { [MIRA.path]: "HP: 44", [OLD_MIRA]: "class: Ranger" },
       carriedFrom: { path: OLD_MIRA, groups: ["values"] },
     });
     await sheet.load();
