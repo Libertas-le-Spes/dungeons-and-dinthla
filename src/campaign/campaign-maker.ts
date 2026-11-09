@@ -11,11 +11,25 @@ export class CampaignMaker {
   ) {}
 
   async make(name: string): Promise<void> {
+    const folder = await this.madeFolder(name);
+    if (folder === null) return;
+    await this.moveInto(folder);
+  }
+
+  private async madeFolder(name: string): Promise<string | null> {
     try {
-      const folder = await makeCampaign(this.vault, name);
-      await this.choose(folder);
+      return await makeCampaign(this.vault, name);
     } catch (error) {
       new Notice(`Couldn't make the campaign: ${messageOf(error)}`);
+      return null;
+    }
+  }
+
+  private async moveInto(folder: string): Promise<void> {
+    try {
+      await this.choose(folder);
+    } catch (error) {
+      new Notice(`Made ${folder}, but couldn't move into it: ${messageOf(error)}`);
     }
   }
 }

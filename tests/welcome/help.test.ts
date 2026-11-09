@@ -13,23 +13,23 @@ function helpFor(settings: PluginSettings, paths: string[]) {
     saved.push({ ...changed });
   }
   const vault: HelpVault = { campaignFolders: () => ["Silver Road"], filePaths: () => paths };
-  const openPage = vi.fn(async () => {});
-  const help = new Help({ ...settings }, { version: "3.1.0" }, MADE_UP_NEWS, save, vault, openPage);
-  return { help, saved, openPage };
+  const openWelcome = vi.fn(async () => {});
+  const help = new Help({ ...settings }, { version: "3.1.0" }, MADE_UP_NEWS, save, vault, openWelcome);
+  return { help, saved, openWelcome };
 }
 
 describe("Help", () => {
   it("opens the welcome page on a fresh install, counting the plugin's own version as seen", async () => {
-    const { help, saved, openPage } = helpFor(FRESH, ["Silver Road/Silver Road.md"]);
+    const { help, saved, openWelcome } = helpFor(FRESH, ["Silver Road/Silver Road.md"]);
     await help.start();
-    expect(openPage).toHaveBeenCalledExactlyOnceWith("welcome");
+    expect(openWelcome).toHaveBeenCalledOnce();
     expect(saved).toEqual([{ campaignFolder: null, welcomeSeen: true, lastVersionSeen: "3.1.0" }]);
   });
 
   it("takes a vault whose campaign already has a session note for an update: no welcome, and the news still to see", async () => {
-    const { help, saved, openPage } = helpFor(FRESH, ["Silver Road/Silver Road.md", "Silver Road/Sessions/Session 1.md"]);
+    const { help, saved, openWelcome } = helpFor(FRESH, ["Silver Road/Silver Road.md", "Silver Road/Sessions/Session 1.md"]);
     await help.start();
-    expect(openPage).not.toHaveBeenCalled();
+    expect(openWelcome).not.toHaveBeenCalled();
     expect(saved).toEqual([{ campaignFolder: null, welcomeSeen: true, lastVersionSeen: null }]);
     expect(help.whatsNew.latest()).toEqual(LANTERNS);
   });
@@ -40,8 +40,8 @@ describe("Help", () => {
   });
 
   it("opens the welcome page again when asked", async () => {
-    const { help, openPage } = helpFor({ ...FRESH, welcomeSeen: true }, []);
+    const { help, openWelcome } = helpFor({ ...FRESH, welcomeSeen: true }, []);
     await help.showWelcome();
-    expect(openPage).toHaveBeenCalledExactlyOnceWith("welcome");
+    expect(openWelcome).toHaveBeenCalledOnce();
   });
 });

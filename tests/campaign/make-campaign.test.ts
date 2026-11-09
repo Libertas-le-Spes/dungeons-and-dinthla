@@ -6,13 +6,15 @@ import { makeCampaign, NO_CAMPAIGN_NAME, type NewCampaignVault } from "../../src
 interface VaultSetup {
   topLevel?: string[];
   noteFails?: boolean;
+  newFolderHolds?: string[];
+  deleteFails?: boolean;
 }
 
 function folderNamed(name: string, children: TAbstractFile[]): TFolder {
   return { name, path: name, children } as unknown as TFolder;
 }
 
-function vaultWith({ topLevel = [], noteFails = false }: VaultSetup = {}) {
+function vaultWith({ topLevel = [], noteFails = false, newFolderHolds = [], deleteFails = false }: VaultSetup = {}) {
   const made: string[] = [];
   const folders = new Map<string, TFolder>();
   const root = folderNamed("/", topLevel.map((name) => ({ name, path: name }) as TAbstractFile));
@@ -25,7 +27,8 @@ function vaultWith({ topLevel = [], noteFails = false }: VaultSetup = {}) {
     },
     createFolder: async (path) => {
       made.push(`folder ${path}`);
-      const folder = folderNamed(path, []);
+      const held = newFolderHolds.map((name) => ({ name, path: `${path}/${name}` }) as TAbstractFile);
+      const folder = folderNamed(path, held);
       folders.set(path, folder);
       return folder;
     },
@@ -35,6 +38,7 @@ function vaultWith({ topLevel = [], noteFails = false }: VaultSetup = {}) {
       return { path } as never;
     },
     delete: async (file) => {
+      if (deleteFails) throw new Error("The folder is locked.");
       made.push(`deleted ${file.path}`);
     },
   };
@@ -56,7 +60,7 @@ describe("makeCampaign", () => {
 
   it("uses the name as Obsidian writes a path, a non-breaking space turned into a plain one", async () => {
     const { vault, made } = vaultWith();
-    await expect(makeCampaign(vault, "Silver Road")).resolves.toBe("Silver Road");
+    await expect(makeCampaign(vault, "Silver\u00a0Road")).resolves.toBe("Silver Road");
     expect(made).toEqual(["folder Silver Road", 'note Silver Road/Silver Road.md ""']);
   });
 
@@ -86,7 +90,7 @@ describe("makeCampaign", () => {
 
   it("refuses a name that matches one at the top of the vault once its non-breaking space is made plain", async () => {
     const { vault, made } = vaultWith({ topLevel: ["Silver Road"] });
-    await expect(makeCampaign(vault, "Silver Road")).rejects.toThrow("called Silver Road at the top");
+    await expect(makeCampaign(vault, "Silver\u00a0Road")).rejects.toThrow("called Silver Road at the top");
     expect(made).toEqual([]);
   });
 
@@ -94,5 +98,19 @@ describe("makeCampaign", () => {
     const { vault, made } = vaultWith({ noteFails: true });
     await expect(makeCampaign(vault, "Silver Road")).rejects.toThrow("The disk is full.");
     expect(made).toEqual(["folder Silver Road", "deleted Silver Road"]);
+  });
+
+  it("leaves the new folder alone when something already landed in it, and says why the note failed", async () => {
+    const { vault, made } = vaultWith({ noteFails: true, newFolderHolds: ["Map.png"] });
+    await expect(makeCampaign(vault, "Silver Road")).rejects.toThrow(/^The disk is full\.$/);
+    expect(made).toEqual(["folder Silver Road"]);
+  });
+
+  it("still says why the note failed when the new folder can't be removed, and names the folder left behind", async () => {
+    const { vault, made } = vaultWith({ noteFails: true, deleteFails: true });
+    await expect(makeCampaign(vault, "Silver Road")).rejects.toThrow(
+      "The disk is full. The folder Silver Road is left behind: it couldn't be removed.",
+    );
+    expect(made).toEqual(["folder Silver Road"]);
   });
 });

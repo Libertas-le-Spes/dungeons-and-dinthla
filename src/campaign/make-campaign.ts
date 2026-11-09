@@ -1,5 +1,6 @@
 import { normalizePath, type Vault } from "obsidian";
 import { mainNotePathOf } from "./campaign-folders";
+import { messageOf } from "../views/message-of";
 import { refusalForFileName } from "./file-name";
 
 export type NewCampaignVault = Pick<Vault, "getRoot" | "getFolderByPath" | "createFolder" | "create" | "delete">;
@@ -37,12 +38,24 @@ async function removeIfEmpty(vault: NewCampaignVault, folderPath: string): Promi
   await vault.delete(folder);
 }
 
+function leftBehind(error: unknown, folderPath: string): Error {
+  return new Error(`${messageOf(error)} The folder ${folderPath} is left behind: it couldn't be removed.`, { cause: error });
+}
+
+async function cleanUpAfter(vault: NewCampaignVault, folderPath: string, error: unknown): Promise<never> {
+  try {
+    await removeIfEmpty(vault, folderPath);
+  } catch {
+    throw leftBehind(error, folderPath);
+  }
+  throw error;
+}
+
 async function addMainNote(vault: NewCampaignVault, name: string): Promise<void> {
   try {
     await vault.create(mainNotePathOf(name), "");
   } catch (error) {
-    await removeIfEmpty(vault, name);
-    throw error;
+    await cleanUpAfter(vault, name, error);
   }
 }
 

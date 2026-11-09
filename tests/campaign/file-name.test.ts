@@ -13,7 +13,7 @@ describe("refusalForFileName", () => {
   });
 
   it("refuses an invisible formatting character, such as a zero-width space", () => {
-    for (const name of ["Silver​Road", "Silver‍Road", "﻿Silver Road"]) {
+    for (const name of ["Silver\u200bRoad", "Silver\u200dRoad", "\ufeffSilver Road"]) {
       expect(refusalForFileName(name)).toBe(BAD_NAME);
     }
   });

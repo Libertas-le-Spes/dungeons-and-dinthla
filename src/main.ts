@@ -107,8 +107,8 @@ export default class DungeonsAndDinthla extends Plugin {
       campaignFolders: () => this.campaignFolders(),
       filePaths: () => this.app.vault.getFiles().map((file) => file.path),
     };
-    const openPage = (page: PageId) => openCampaignPage(this.app, page, null);
-    const help = new Help(settings, this.manifest, NEWS_BY_VERSION, (changed) => this.saveSettings(changed), helpVault, openPage);
+    const openWelcome = () => openCampaignPage(this.app, "welcome", null);
+    const help = new Help(settings, this.manifest, NEWS_BY_VERSION, (changed) => this.saveSettings(changed), helpVault, openWelcome);
     const campaignChoice = {
       folders: () => this.campaignFolders(),
       chosen: () => chosenCampaignFolder(this.chosen.folder, this.campaignFolders()),
