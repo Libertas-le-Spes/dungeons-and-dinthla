@@ -333,9 +333,24 @@ describe("openLink choosing the folder of the note it makes from the line holdin
     expect(calls.create.mock.calls).toEqual([["D&D/Pale Moon/Items/Silvered lantern.md", ""]]);
   });
 
-  it("makes a link on a $ coin line in the Items folder", async () => {
-    const { calls } = await madeFrom("$ 20 gp from [[Lady Vess]]", "Lady Vess");
-    expect(calls.create).toHaveBeenCalledWith("D&D/Pale Moon/Items/Lady Vess.md", "");
+  it("makes a link on a $ coin line in the Funds folder", async () => {
+    const { calls } = await madeFrom("$ -5 gp paid [[Old Tom]] for rooms", "Old Tom");
+    expect(calls.create.mock.calls).toEqual([["D&D/Pale Moon/Funds/Old Tom.md", ""]]);
+  });
+
+  it("makes a link marked with @ on a $ coin line in the Funds folder", async () => {
+    const { calls } = await madeFrom("$ -5 gp paid [[Old Tom]] for rooms at @[[Old Mill]]", "Old Mill");
+    expect(calls.create.mock.calls).toEqual([["D&D/Pale Moon/Funds/Old Mill.md", ""]]);
+  });
+
+  it("makes the buyer on a $$ sale line in the Funds folder", async () => {
+    const { calls } = await madeFrom("$$ [[Silvered lantern]] :sold to [[Old Tom]] 30 gp", "Old Tom");
+    expect(calls.create.mock.calls).toEqual([["D&D/Pale Moon/Funds/Old Tom.md", ""]]);
+  });
+
+  it("makes the item on a $$ sale line in the Items folder", async () => {
+    const { calls } = await madeFrom("$$ [[Silvered lantern]] :sold to [[Old Tom]] 30 gp", "Silvered lantern");
+    expect(calls.create.mock.calls).toEqual([["D&D/Pale Moon/Items/Silvered lantern.md", ""]]);
   });
 
   it("makes the new holder on a $$ line in the Characters folder", async () => {
