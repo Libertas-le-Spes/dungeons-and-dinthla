@@ -5,7 +5,6 @@ import type {
   FrontMatterInfo,
   FuzzySuggestModal as RealFuzzySuggestModal,
   ItemView as RealItemView,
-  TFile,
   MarkdownFileInfo,
   ViewState,
   Modal as RealModal,
@@ -434,3 +433,27 @@ export const Platform = {
   isIosApp: false,
   isAndroidApp: false,
 };
+
+export class TAbstractFile {
+  path = "";
+  name = "";
+}
+
+export class TFile extends TAbstractFile {
+  basename = "";
+  extension = "";
+}
+
+export class TFolder extends TAbstractFile {
+  children: TAbstractFile[] = [];
+}
+
+export class Vault {
+  static recurseChildren(root: TFolder, visit: (file: TAbstractFile) => unknown): void {
+    visit(root);
+    for (const child of root.children) {
+      if (child instanceof TFolder) Vault.recurseChildren(child, visit);
+      else visit(child);
+    }
+  }
+}

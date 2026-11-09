@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App, TFile, TFolder } from "obsidian";
+import type { SessionNote } from "../../src/campaign/campaign";
+import { sessionNoteOf } from "../../src/campaign/session-file";
 import { Fence } from "../../src/fence/fence";
 import { FencedFiles } from "../../src/fence/fenced-files";
 import { FencedMetadata, type RawMetadata } from "../../src/fence/fenced-metadata";
@@ -34,7 +36,8 @@ function placeWith(linkLeadsTo: TFile | null, files: TFile[] = [SESSION, MIRA, P
   const leaf = { openFile: vi.fn(async () => {}) };
   const openLinkText = vi.fn(async () => {});
   const app = { workspace: { getLeaf: vi.fn(() => leaf), openLinkText } } as unknown as App;
-  return { app, place: { gate, campaignFolders: () => [CAMPAIGN], askFolder }, calls, raw, leaf, openLinkText, getLeaf: app.workspace.getLeaf, askFolder };
+  const lines = { sessions: { sessionNotes: [] as SessionNote[] }, texts: { read: vi.fn(async (_path: string): Promise<string | null> => null) } };
+  return { app, place: { gate, lines, campaignFolders: () => [CAMPAIGN], askFolder }, calls, raw, leaf, openLinkText, getLeaf: app.workspace.getLeaf, askFolder, lines };
 }
 
 function openedPaths(leaf: { openFile: ReturnType<typeof vi.fn> }): string[] {
@@ -66,6 +69,15 @@ describe("openLink to a note inside the Campaigns folder", () => {
     await openLink(app, place, "Mira", FROM_SESSION, "tab");
     expect(getLeaf).toHaveBeenCalledExactlyOnceWith("tab");
     expect(leaf.openFile).toHaveBeenCalledWith(MIRA, { eState: { subpath: "" } });
+  });
+
+  it("opens the note the link leads to in another campaign, as Obsidian resolves it", async () => {
+    const elsewhere = fileAt("D&D/Ash Road/Characters/Brannoc.md");
+    const { app, place, calls, leaf, askFolder } = placeWith(elsewhere, [SESSION, elsewhere]);
+    await openLink(app, place, "Brannoc", FROM_SESSION, false);
+    expect(openedPaths(leaf)).toEqual([elsewhere.path]);
+    expect(calls.create).not.toHaveBeenCalled();
+    expect(askFolder).not.toHaveBeenCalled();
   });
 
   it("opens the note at the heading the link names", async () => {
@@ -195,6 +207,39 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
     expect(openedPaths(leaf)).toEqual([exact.path]);
   });
 
+  it("opens the note at the link's path in other capitals before a nearer note that ends the same way", async () => {
+    const exact = fileAt("D&D/Pale Moon/places/old mill.md");
+    const nearer = fileAt("D&D/Pale Moon/Sessions/Places/Old Mill.md");
+    const { app, place, leaf } = placeWith(null, [SESSION, nearer, exact]);
+    await openLink(app, place, "Places/Old Mill", FROM_SESSION, false);
+    expect(openedPaths(leaf)).toEqual([exact.path]);
+  });
+
+  it("leaves alone a note in a campaign whose name starts with this one's", async () => {
+    const longer = fileAt("D&D/Pale Moonlight/Places/Old Mill.md");
+    const { app, place, calls, leaf } = placeWith(null, [SESSION, longer]);
+    await openLink(app, place, "Old Mill", FROM_SESSION, false);
+    expect(calls.create).toHaveBeenCalledWith("D&D/Pale Moon/Old Mill.md", "");
+    expect(openedPaths(leaf)).toEqual(["D&D/Pale Moon/Old Mill.md"]);
+  });
+
+  it("counts the folders down to a note in its nearness, not only those up from the link", async () => {
+    const deeper = fileAt("D&D/Pale Moon/Places/Deep/Old Mill.md");
+    const shallower = fileAt("D&D/Pale Moon/Places/Old Mill.md");
+    const { app, place, leaf } = placeWith(null, [SESSION, deeper, shallower]);
+    await openLink(app, place, "Old Mill", FROM_SESSION, false);
+    expect(openedPaths(leaf)).toEqual([shallower.path]);
+  });
+
+  it("counts the folders up from the link in its nearness, not only those down to a note", async () => {
+    const from = { path: "D&D/Pale Moon/Sessions/Arc/Session 1.md", line: null };
+    const sameBranch = fileAt("D&D/Pale Moon/Sessions/Zed/Old Mill.md");
+    const otherBranch = fileAt("D&D/Pale Moon/Ash/Old Mill.md");
+    const { app, place, leaf } = placeWith(null, [SESSION, sameBranch, otherBranch]);
+    await openLink(app, place, "Old Mill", from, false);
+    expect(openedPaths(leaf)).toEqual([sameBranch.path]);
+  });
+
   it("opens the note of that name nearest to the note holding the link", async () => {
     const far = fileAt("D&D/Pale Moon/Places/Old/Old Mill.md");
     const near = fileAt("D&D/Pale Moon/Sessions/Places/Old Mill.md");
@@ -290,7 +335,7 @@ describe("openLink choosing the folder of the note it makes from the line holdin
 
   function placeOnLine(line: string) {
     const place = placeWith(null);
-    place.calls.cachedRead.mockImplementation(async () => `We rode on.\n${line}\nRain.`);
+    place.lines.sessions.sessionNotes = [sessionNoteOf(SESSION.path, 1, `We rode on.\n${line}\nRain.`)];
     return place;
   }
 
@@ -333,9 +378,24 @@ describe("openLink choosing the folder of the note it makes from the line holdin
     expect(calls.create.mock.calls).toEqual([["D&D/Pale Moon/Items/Silvered lantern.md", ""]]);
   });
 
-  it("makes a link on a $ coin line in the Items folder", async () => {
-    const { calls } = await madeFrom("$ 20 gp from [[Lady Vess]]", "Lady Vess");
-    expect(calls.create).toHaveBeenCalledWith("D&D/Pale Moon/Items/Lady Vess.md", "");
+  it("makes a link on a $ coin line in the Funds folder", async () => {
+    const { calls } = await madeFrom("$ -5 gp paid [[Old Tom]] for rooms", "Old Tom");
+    expect(calls.create.mock.calls).toEqual([["D&D/Pale Moon/Funds/Old Tom.md", ""]]);
+  });
+
+  it("makes a link marked with @ on a $ coin line in the Funds folder", async () => {
+    const { calls } = await madeFrom("$ -5 gp paid [[Old Tom]] for rooms at @[[Old Mill]]", "Old Mill");
+    expect(calls.create.mock.calls).toEqual([["D&D/Pale Moon/Funds/Old Mill.md", ""]]);
+  });
+
+  it("makes the buyer on a $$ sale line in the Funds folder", async () => {
+    const { calls } = await madeFrom("$$ [[Silvered lantern]] :sold to [[Old Tom]] 30 gp", "Old Tom");
+    expect(calls.create.mock.calls).toEqual([["D&D/Pale Moon/Funds/Old Tom.md", ""]]);
+  });
+
+  it("makes the item on a $$ sale line in the Items folder", async () => {
+    const { calls } = await madeFrom("$$ [[Silvered lantern]] :sold to [[Old Tom]] 30 gp", "Silvered lantern");
+    expect(calls.create.mock.calls).toEqual([["D&D/Pale Moon/Items/Silvered lantern.md", ""]]);
   });
 
   it("makes the new holder on a $$ line in the Characters folder", async () => {
@@ -388,7 +448,7 @@ describe("openLink choosing the folder of the note it makes from the line holdin
     const place = placeOnLine("? Who sent [[Lady Vess]]");
     await openLink(place.app, place.place, "Lady Vess", FROM_SESSION, false);
     expect(place.askFolder).toHaveBeenCalledOnce();
-    expect(place.calls.cachedRead).not.toHaveBeenCalled();
+    expect(place.lines.texts.read).not.toHaveBeenCalled();
   });
 
   it("asks when the line the link sat on is no longer in its note", async () => {
@@ -401,7 +461,6 @@ describe("openLink choosing the folder of the note it makes from the line holdin
     const place = placeOnLine("? Who sent [[Lady Vess]]");
     await openLink(place.app, place.place, "Lady Vess", { path: "D&D/Pale Moon/Sessions/Session 9.md", line: 1 }, false);
     expect(place.askFolder).toHaveBeenCalledOnce();
-    expect(place.calls.cachedRead).not.toHaveBeenCalled();
   });
 
   it("refuses a link that climbs out before asking anything", async () => {

@@ -10,6 +10,7 @@ import {
   startingCampaignFolder,
 } from "./campaign/campaign-folders";
 import { CampaignStore } from "./campaign/campaign-store";
+import { SavedCampaign } from "./campaign/saved-campaign";
 import { characterNotesOf } from "./characters/character-notes";
 import { CHARACTERS_VIEW, CharactersView } from "./characters/characters-view";
 import { addEditCharacterItem, editActiveCharacter, editCharacter, openNewCharacter } from "./characters/open-character";
@@ -133,7 +134,8 @@ export default class DungeonsAndDinthla extends Plugin {
       choose: (folder: string) => this.chosen.choose(folder),
     };
     this.addSettingTab(new CampaignSettingTab(this.app, this, gate, campaignsFolderSetup, campaignChoice, () => help.showWelcome()));
-    const linkPlace = { gate, campaignFolders: () => this.campaignFolders(), askFolder: askMadeNoteFolderIn(this.app) };
+    const lines = { sessions: this.store, texts: noteTextsOf(gate) };
+    const linkPlace = { gate, lines, campaignFolders: () => this.campaignFolders(), askFolder: askMadeNoteFolderIn(this.app) };
     const actions = {
       openRow: (source: Source) => void openSource(this.app, gate, source),
       openLink: (linktext: string, from: LinkFrom, newLeaf: PaneType | boolean) =>
@@ -444,9 +446,12 @@ export default class DungeonsAndDinthla extends Plugin {
 
   private keepItemHolders(): void {
     const gate = this.gate;
+    const notRead = (error: unknown) => new Notice(`Couldn't read the saved session notes: ${messageOf(error)}`);
+    const saved = new SavedCampaign({ shown: this.store, files: gate.files, metadata: gate.metadata, failed: notRead });
     const failed = (error: unknown) => new Notice(`Couldn't write an item's holder: ${messageOf(error)}`);
-    const holders = new ItemHolders({ store: this.store, files: gate.files, metadata: gate.metadata, actions: gate.fileActions, failed });
+    const holders = new ItemHolders({ store: saved, files: gate.files, metadata: gate.metadata, actions: gate.fileActions, failed });
     this.register(holders.start());
+    this.register(saved.start());
   }
 
   private readEditor(info: MarkdownFileInfo, file: TFile): void {

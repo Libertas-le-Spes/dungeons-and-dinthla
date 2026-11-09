@@ -1,6 +1,6 @@
-import type { CachedMetadata, TFile } from "obsidian";
+import { TFile, Vault, type CachedMetadata } from "obsidian";
 import type { Campaign, ItemRecord } from "../campaign/campaign";
-import { campaignOfItem } from "../campaign/campaign-folders";
+import { itemsFolderOf } from "../campaign/campaign-folders";
 import type { FencedFileActions } from "../fence/fenced-file-actions";
 import type { FencedFiles } from "../fence/fenced-files";
 import type { FencedMetadata } from "../fence/fenced-metadata";
@@ -15,7 +15,7 @@ export interface HolderStore {
 
 export interface ItemHoldersNeeds {
   store: HolderStore;
-  files: Pick<FencedFiles, "getMarkdownFiles">;
+  files: Pick<FencedFiles, "getFolderByPath">;
   metadata: Pick<FencedMetadata, "getFileCache">;
   actions: Pick<FencedFileActions, "processFrontMatter">;
   failed(error: unknown): void;
@@ -28,7 +28,9 @@ function holderIn(cache: CachedMetadata): unknown {
 }
 
 export class ItemHolders {
+  private readonly wanted = new Map<string, string>();
   private readonly writing = new Set<string>();
+  private readonly failedWrites = new Map<string, string>();
 
   constructor(private readonly needs: ItemHoldersNeeds) {}
 
@@ -40,31 +42,48 @@ export class ItemHolders {
   private campaignRead(campaign: Campaign): void {
     const folder = this.needs.store.campaignFolder;
     if (folder === null) return;
-    for (const file of this.needs.files.getMarkdownFiles()) {
-      if (campaignOfItem(file.path, [folder]) !== null) this.keepHolder(file, campaign.items);
-    }
+    for (const file of this.itemNotesIn(folder)) this.keepHolder(file, campaign.items);
+  }
+
+  private itemNotesIn(campaignFolder: string): TFile[] {
+    const items = this.needs.files.getFolderByPath(itemsFolderOf(campaignFolder));
+    if (items === null) return [];
+    const notes: TFile[] = [];
+    Vault.recurseChildren(items, (file) => {
+      if (file instanceof TFile && file.extension === "md") notes.push(file);
+    });
+    return notes;
   }
 
   private keepHolder(file: TFile, items: ItemRecord[]): void {
     const item = itemOfNote(items, file.path);
-    if (item === null || this.writing.has(file.path)) return;
+    if (item === null) return;
+    this.wanted.set(file.path, holderPropertyOf(item));
+    if (this.writing.has(file.path)) return;
+    this.writeWanted(file);
+  }
+
+  private writeWanted(file: TFile): void {
+    const holder = this.wanted.get(file.path);
+    if (holder === undefined || this.failedWrites.get(file.path) === holder) return;
     const cache = this.needs.metadata.getFileCache(file);
-    if (cache === null) return;
-    const holder = holderPropertyOf(item);
-    if (holderIn(cache) === holder) return;
+    if (cache === null || holderIn(cache) === holder) return;
     void this.setHolder(file, holder);
   }
 
   private async setHolder(file: TFile, holder: string): Promise<void> {
     this.writing.add(file.path);
+    this.failedWrites.delete(file.path);
     try {
       await this.needs.actions.processFrontMatter(file, (properties) => {
         properties[HOLDER_PROPERTY] = holder;
       });
     } catch (error) {
+      this.failedWrites.set(file.path, holder);
       this.needs.failed(error);
     } finally {
       this.writing.delete(file.path);
     }
+    if (this.wanted.get(file.path) !== holder) this.writeWanted(file);
   }
 }
