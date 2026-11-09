@@ -247,16 +247,16 @@ Each value has a state, which comes from where its line is:
 | State | Where the line is | On the sheet |
 |---|---|---|
 | Learned | In a session note | The value, linked to that session |
-| Not known yet | No line states it, or the line that wins says `?` (`HP: ?`) | Greyed out, with `?` |
+| Not known yet | No line states it, or the newest line in the sessions says `?` (`[[Mira]] HP: ?`) | Greyed out, with `?` |
 | Override | On the character's own note, at the start of a line (`AC: 16`) | Marked so it never passes for something you saw |
 | Carried over | On a character note in another campaign, named by the character's `carried from` property (see [Calling a character over](#calling-a-character-over)) | Marked with that campaign's name. Anything learned in this campaign wins over it |
 | Changed over time | More than one line states it | The newest value, with the earlier ones and their sessions on tap. A list value (languages, say) adds them up instead |
 
-"Newest" means the highest session number, and then the lowest line in that note.
+"Newest" means the highest session number, and then the lowest line in that note. So a value marked not known shows again as soon as a later line states it. A `?` on the character's own note is read like any other override.
 
 A name is letters and spaces, read whatever its capitals (`ac:` is `AC`). A value runs to the next comma that a name and a colon follow, so the comma in `type: Medium humanoid (human), lawful good` stays in the type, and a name with nothing after its colon states nothing. Learned values and overrides are read today, each with the note and line it came from, with an override winning over anything learned and the newest line winning among the rest. A session's properties are never read as facts, and a link counts for the note Obsidian resolves it to, so `[[Mira]]` and `[[Characters/Mira|her]]` state facts about the same character. Carried-over values and earlier values are read too. Other names are read whatever their capitals, so `Languages:` and `languages:` are one value, shown as first written. List values that add up aren't read yet: a list shows its newest line, with the others as earlier values.
 
-On the character's own note, every line that starts with a name and a colon is a value, prose included, so `Personality: grumpy, but kind` shows on the sheet as *Personality*, marked as an override. That keeps the note to one format, and the sheet shows every such line, so none is taken for something seen at the table. To keep a line of prose off the sheet, start it some other way, such as in a quote (`> Personality: grumpy`), or without the colon (`Personality — grumpy`).
+On the character's own note, every line that starts with a name and a colon is a value, prose included, so `Personality: grumpy, but kind` shows on the sheet as *Personality*, marked as an override. That keeps the note to one format, and the sheet shows every such line, so none is taken for something seen at the table. To keep a line of prose off the sheet, start it some other way, such as in a quote (`> Personality: grumpy`), or without the colon (`Personality — grumpy`). Since such a line may be prose, the sheet asks for a second press before any change that would remove it (see [Character sheet](#character-sheet)).
 
 ### Making, renaming and deleting a character
 
@@ -297,7 +297,7 @@ Fact lines are still read inside hidden lines today, so a value there shows on t
 
 ### Character sheet
 
-Tapping a character's card, in the gallery or on the dashboard, opens their sheet in its place; Obsidian's back button goes back to the cards. The sheet is a view of the character's note, so it follows the note when it is renamed, and Obsidian opens it again next time with the rest of the workspace. It writes nothing until you change a value, and redraws as the notes change.
+Tapping a character's card, in the gallery or on the dashboard, opens their sheet in its place; Obsidian's back button goes back to the cards. The sheet is a view of the character's note, so it follows the note when it is renamed, and Obsidian opens it again next time with the rest of the workspace. It writes nothing until you change a value. It redraws when the character's note, a note in their campaign, or the note they were carried from or a note in its campaign changes, is deleted or is renamed. If the notes can't be read, it says so in place of the values.
 
 It shows the character's name, their subtitle when known, the six ability scores with their modifiers, then the type line, subtitle, class, Armor Class, Hit Points, speed and alignment, and every other value after them. Each value is drawn in its state's colour and says where it came from:
 
@@ -315,9 +315,11 @@ Tapping a value opens a dialog with the value, its earlier values newest first, 
 - **Learned at the table** adds `[[Mira]] AC: 16` at the end of the campaign's latest session, and clears the character's override, which would otherwise cover it. If the newest learned value is already the one typed, only the override is cleared.
 - **Override** writes `AC: 16` on the character's own note, as the character dialog does: it rewrites the last line that states it on its own, or adds a line at the end.
 - **Carried over** clears the override, so the value carried from another campaign shows again.
-- **Not known yet** writes `AC: ?` on the character's note when a learned or carried value would otherwise show, and otherwise only clears the override.
+- **Not known yet** adds `[[Mira]] AC: ?` at the end of the campaign's latest session when a learned or carried value would otherwise show, and clears the override, as *Learned at the table* does. Like any learned line, it is newest only until a later session states the value again.
 
 Enter saves the value in its own state, or as learned when it wasn't known. Lines on the character's note are written and removed by the rules in [Making, renaming and deleting a character](#making-renaming-and-deleting-a-character), with the same last check.
+
+Clearing an override removes every line on the character's note that states the value on its own. For the sheet's own names (`type`, `subtitle`, `speed`, the six scores, `class`, `AC`, `HP` and `alignment`) that happens on the first press. For any other name the line may be prose, so *Learned at the table*, *Carried over* and *Not known yet* need a second press within four seconds, as deleting does, and the dialog says why. *Override* rewrites the line with the value typed and needs only one press.
 
 The sheet refuses, and writes nothing, when:
 
@@ -329,9 +331,9 @@ The sheet refuses, and writes nothing, when:
 | Carried over when no carried note gives the value | There's nothing to carry |
 | Carried over when the value was learned in this campaign | What was learned here wins over a carried value |
 | Carried over with a value other than the carried one | That value belongs to the other campaign's note. Change it there, or choose Override |
-| Learned at the table with no session, or two session notes sharing the latest number | It isn't clear where the line goes |
-| Learned at the table when the link wouldn't point to this character from the session | The line would be about someone else |
-| Learned at the table when the new line would land in a code block or comment that never closes | It would be hidden |
+| Learned at the table or Not known yet with no session, or two session notes sharing the latest number | It isn't clear where the line goes |
+| Learned at the table or Not known yet when the link wouldn't point to this character from the session | The line would be about someone else |
+| Learned at the table or Not known yet when the new line would land in a code block or comment that never closes | It would be hidden |
 | A change on the character's note that the character dialog would refuse | As in the character dialog. Then the session line isn't written either |
 
 The session line is written first and the character's note after it. If the note can't be changed by then, the sheet says the line was added but the note was left, so you can fix one of them by hand.
