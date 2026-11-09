@@ -1,0 +1,42 @@
+import { describe, expect, it } from "vitest";
+import { Fence } from "../../src/fence/fence";
+
+describe("Fence", () => {
+  it("holds a path inside the Campaigns folder, at any depth", () => {
+    const fence = new Fence(() => "Games/D&D");
+    expect(fence.holds("Games/D&D/Pale Moon/Pale Moon.md")).toBe(true);
+    expect(fence.holds("Games/D&D/Pale Moon/Sessions/Session 1.md")).toBe(true);
+  });
+
+  it("doesn't hold the Campaigns folder itself, a folder beside it with a longer name, or anything outside", () => {
+    const fence = new Fence(() => "Games/D&D");
+    for (const path of ["Games/D&D", "Games/D&D Old/Pale Moon.md", "Games/Pale Moon.md", "Private.md"]) expect(fence.holds(path)).toBe(false);
+  });
+
+  it("doesn't hold a path that climbs back out with ..", () => {
+    expect(new Fence(() => "D&D").holds("D&D/../Private.md")).toBe(false);
+  });
+
+  it("holds nothing while no Campaigns folder is set", () => {
+    expect(new Fence(() => null).holds("D&D/Pale Moon/Pale Moon.md")).toBe(false);
+  });
+
+  it("holds nothing when the Campaigns folder is the vault itself or not a plain path", () => {
+    for (const folder of ["/", "", "../D&D", "D&D/"]) expect(new Fence(() => folder).holds("D&D/Pale Moon/Pale Moon.md")).toBe(false);
+  });
+
+  it("follows the Campaigns folder as it changes", () => {
+    let folder = "D&D";
+    const fence = new Fence(() => folder);
+    folder = "Games";
+    expect(fence.holds("D&D/Pale Moon/Pale Moon.md")).toBe(false);
+    expect(fence.holds("Games/Pale Moon/Pale Moon.md")).toBe(true);
+  });
+
+  it("knows the Campaigns folder itself, and nothing else as it", () => {
+    const fence = new Fence(() => "D&D");
+    expect(fence.isTheFolder("D&D")).toBe(true);
+    expect(fence.isTheFolder("D&D/Pale Moon")).toBe(false);
+    expect(new Fence(() => null).isTheFolder("D&D")).toBe(false);
+  });
+});
