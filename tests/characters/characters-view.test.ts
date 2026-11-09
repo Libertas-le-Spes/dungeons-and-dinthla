@@ -131,7 +131,7 @@ describe("CharactersView", () => {
   it("draws a card for each character Bases shows, in its order, with the count", async () => {
     const gallery = openGallery();
     await gallery.show(["Mira", "Brother Aldric"]);
-    expect(textsOf(gallery.container, ".dd-card-name")).toEqual(["Mira", "Brother Aldric"]);
+    expect(textsOf(gallery.container, ".dd-stat-block-name")).toEqual(["Mira", "Brother Aldric"]);
     expect(textsOf(gallery.container, ".dd-title .dd-count")).toEqual(["2"]);
   });
 
@@ -143,35 +143,35 @@ describe("CharactersView", () => {
     const gallery = openGallery({ sessions });
     await gallery.show(["Mira"]);
     const card = gallery.container.querySelector<HTMLElement>(".dd-card")!;
-    expect(textsOf(card, ".dd-card-type")).toEqual(["Medium humanoid (half-elf), chaotic good"]);
-    expect(textsOf(card, ".dd-card-subtitle")).toEqual(["Half-elf Ranger 5"]);
-    expect(textsOf(card, ".dd-card-line")).toEqual(["Class rogue", "Armor Class 15", "Hit Points 44", "Speed ?"]);
-    expect(textsOf(card, ".dd-card-abilities > div")).toEqual(["STR?", "DEX17 (+3)", "CON9 (−1)", "INT?", "WIS?", "CHA?"]);
+    expect(textsOf(card, ".dd-stat-block-type")).toEqual(["Medium humanoid (half-elf), chaotic good"]);
+    expect(textsOf(card, ".dd-stat-block-subtitle")).toEqual(["Half-elf Ranger 5"]);
+    expect(textsOf(card, ".dd-stat-block-line")).toEqual(["Class rogue", "Armor Class 15", "Hit Points 44", "Speed ?"]);
+    expect(textsOf(card, ".dd-stat-block-abilities > div")).toEqual(["STR?", "DEX17 (+3)", "CON9 (−1)", "INT?", "WIS?", "CHA?"]);
     expect(textsOf(card, ".dd-unknown")).toEqual(["?", "?", "?", "?", "?"]);
   });
 
   it("leaves out the type line and subtitle when neither is known", async () => {
     const gallery = openGallery();
     await gallery.show(["Mira"]);
-    expect(gallery.container.querySelectorAll(".dd-card-type, .dd-card-subtitle")).toHaveLength(0);
+    expect(gallery.container.querySelectorAll(".dd-stat-block-type, .dd-stat-block-subtitle")).toHaveLength(0);
   });
 
   it("shows a score with no modifier when it isn't a whole number", async () => {
     const gallery = openGallery({ sessions: [sessionOf(1, ["[[Mira]] STR: strong"])] });
     await gallery.show(["Mira"]);
-    expect(textsOf(gallery.container, ".dd-card-abilities > div")[0]).toBe("STRstrong");
+    expect(textsOf(gallery.container, ".dd-stat-block-abilities > div")[0]).toBe("STRstrong");
   });
 
   it("lets the character's own note override what the sessions say", async () => {
     const gallery = openGallery({ sessions: [sessionOf(1, ["[[Mira]] AC: 15"])], ownNotes: { Mira: "AC: 16" } });
     await gallery.show(["Mira"]);
-    expect(textsOf(gallery.container, ".dd-card-line")[1]).toBe("Armor Class 16");
+    expect(textsOf(gallery.container, ".dd-stat-block-line")[1]).toBe("Armor Class 16");
   });
 
   it("gives each card only its own character's facts", async () => {
     const gallery = openGallery({ sessions: [sessionOf(1, ["[[Lady Vess]] AC: 12", "[[Mira]] AC: 15"])] });
     await gallery.show(["Mira", "Lady Vess"]);
-    expect(textsOf(gallery.container, ".dd-card-line:nth-child(4)")).toEqual(["Armor Class 15", "Armor Class 12"]);
+    expect(textsOf(gallery.container, ".dd-stat-block-line:nth-child(4)")).toEqual(["Armor Class 15", "Armor Class 12"]);
   });
 
   it("sets the player's own character subtly apart", async () => {
@@ -222,7 +222,7 @@ describe("CharactersView", () => {
     await gallery.show(["Mira"]);
     gallery.store.sessionNotes = [sessionOf(1, ["[[Mira]] HP: 12"])];
     gallery.listener();
-    await vi.waitFor(() => expect(textsOf(gallery.container, ".dd-card-line")[2]).toBe("Hit Points 12"));
+    await vi.waitFor(() => expect(textsOf(gallery.container, ".dd-stat-block-line")[2]).toBe("Hit Points 12"));
     expect(gallery.container.querySelectorAll(".dd-card")).toHaveLength(1);
   });
 
@@ -240,14 +240,14 @@ describe("CharactersView", () => {
       otherSessions: [sessionOf(1, ["[[Mira]] AC: 15"])],
     });
     await gallery.show(["Mira"]);
-    expect(textsOf(gallery.container, ".dd-card-line")[1]).toBe("Armor Class 15");
+    expect(textsOf(gallery.container, ".dd-stat-block-line")[1]).toBe("Armor Class 15");
     expect(gallery.sessionsAskedFor).toEqual(["Pale Moon"]);
   });
 
   it("reads each campaign's sessions once a drawing, however many cards it has", async () => {
     const gallery = openGallery({ storeFolder: "Ashen Road", otherSessions: [sessionOf(1, ["[[Mira]] AC: 15", "[[Lady Vess]] AC: 12"])] });
     await gallery.show(["Mira", "Lady Vess"]);
-    expect(textsOf(gallery.container, ".dd-card-line:nth-child(4)")).toEqual(["Armor Class 15", "Armor Class 12"]);
+    expect(textsOf(gallery.container, ".dd-stat-block-line:nth-child(4)")).toEqual(["Armor Class 15", "Armor Class 12"]);
     expect(gallery.sessionsAskedFor).toEqual(["Pale Moon"]);
   });
 
@@ -255,7 +255,7 @@ describe("CharactersView", () => {
     const outside = fileOf("Mira", "Recipes");
     const gallery = openGallery({ otherSessions: [sessionOf(1, ["[[Mira]] AC: 15"])], linkPaths: { Mira: outside.path } });
     await gallery.show([outside]);
-    expect(textsOf(gallery.container, ".dd-card-line")[1]).toBe("Armor Class ?");
+    expect(textsOf(gallery.container, ".dd-stat-block-line")[1]).toBe("Armor Class ?");
     expect(gallery.sessionsAskedFor).toEqual([]);
   });
 
@@ -264,7 +264,7 @@ describe("CharactersView", () => {
     await gallery.show(["Mira", "Thessaly"]);
     gallery.owner.name = "Thessaly";
     gallery.noteChanged("Pale Moon/Pale Moon.md");
-    await vi.waitFor(() => expect(textsOf(gallery.container, ".dd-card-own .dd-card-name")).toEqual(["Thessaly"]));
+    await vi.waitFor(() => expect(textsOf(gallery.container, ".dd-card-own .dd-stat-block-name")).toEqual(["Thessaly"]));
   });
 
   it("doesn't draw again when some other note changes", async () => {
@@ -290,6 +290,6 @@ describe("CharactersView", () => {
     await gallery.show(["Lady Vess"]);
     finishFirst("");
     await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(textsOf(gallery.container, ".dd-card-name")).toEqual(["Lady Vess"]);
+    expect(textsOf(gallery.container, ".dd-stat-block-name")).toEqual(["Lady Vess"]);
   });
 });

@@ -1,0 +1,56 @@
+.dd-root .dd-stat-block {
+  display: block;
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-sm);
+  background: var(--surface-statblock);
+  box-shadow: var(--shadow-1);
+  font: var(--type-body);
+  font-variant-ligatures: normal;
+  color: var(--statblock-text);
+}
+
+.dd-root .dd-stat-block-name {
+  font: var(--weight-bold) var(--text-xl) / var(--leading-tight) var(--font-smallcaps);
+  color: var(--statblock-heading);
+}
+
+.dd-root .dd-stat-block-type,
+.dd-root .dd-stat-block-subtitle {
+  font: var(--weight-medium) var(--text-sm) / var(--leading-snug) var(--font-display);
+  color: var(--statblock-subtitle);
+}
+
+.dd-root .dd-stat-block-rule {
+  height: 3px;
+  margin: var(--space-2) 0;
+  background: linear-gradient(90deg, var(--statblock-rule), var(--statblock-rule) 70%, transparent);
+}
+
+.dd-root .dd-stat-block-line {
+  font: var(--weight-medium) var(--text-sm) / var(--leading-body) var(--font-display);
+  color: var(--statblock-text);
+}
+
+.dd-root .dd-stat-block-line strong {
+  font-weight: var(--weight-bold);
+  color: var(--statblock-heading);
+}
+
+.dd-root .dd-stat-block-abilities {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  text-align: center;
+  font: var(--weight-medium) var(--text-sm) / var(--leading-snug) var(--font-display);
+  color: var(--statblock-text);
+}
+
+.dd-root .dd-stat-block-abilities b {
+  display: block;
+  font: var(--weight-bold) var(--text-xs) / var(--leading-snug) var(--font-smallcaps);
+  letter-spacing: var(--tracking-label);
+  color: var(--statblock-heading);
+}
+
+.dd-root .dd-stat-block .dd-unknown {
+  color: var(--state-unknown);
+}
