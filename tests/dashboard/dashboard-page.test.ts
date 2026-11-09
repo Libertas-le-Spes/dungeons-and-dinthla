@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { TFile } from "obsidian";
+import { Component, type TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { SessionNote, Source } from "../../src/campaign/campaign";
 import type { CampaignStore } from "../../src/campaign/campaign-store";
@@ -79,7 +79,13 @@ async function openDashboard(sessions: SessionNote[], { folder = CAMPAIGN, chara
   } satisfies DashboardActions;
   const root = obsidianDocument().createElement("div");
   root.ownerDocument.body.append(root);
-  const view = new DashboardPage(root, store as unknown as CampaignStore, notes, actions);
+  const newsLines: HTMLElement[] = [];
+  const newsLine = new Component();
+  const newsLineFor = (lineEl: HTMLElement) => {
+    newsLines.push(lineEl);
+    return newsLine;
+  };
+  const view = new DashboardPage(root, store as unknown as CampaignStore, notes, actions, newsLineFor);
   view.load();
   const change = (next: SessionNote[]) => {
     store.current = buildCampaign(next);
@@ -87,7 +93,7 @@ async function openDashboard(sessions: SessionNote[], { folder = CAMPAIGN, chara
     listener();
   };
   const close = () => view.unload();
-  return { root, actions, closers, reads, owner, change, close, unsubscribe, stopWatching, noteChanged: (path: string) => noteChanged(path) };
+  return { root, newsLines, newsLine, actions, closers, reads, owner, change, close, unsubscribe, stopWatching, noteChanged: (path: string) => noteChanged(path) };
 }
 
 function panel(root: HTMLElement, index: number): HTMLElement {
@@ -113,6 +119,15 @@ const CHARACTERS = 3;
 const SESSION = 4;
 
 describe("DashboardPage", () => {
+  it("puts the line about what's new above the panels, and closes it with the dashboard", async () => {
+    const { root, newsLines, newsLine, close } = await openDashboard([]);
+    const unloaded = vi.spyOn(newsLine, "onunload");
+    expect(newsLines).toEqual([root.firstElementChild]);
+    expect(root.firstElementChild!.className).toBe("dd-news");
+    close();
+    expect(unloaded).toHaveBeenCalledOnce();
+  });
+
   it("counts the open questions and shows the newest three, as the Questions view does", async () => {
     const { root } = await openDashboard([sessionOf(1, ["? First", "? Second", "? Third", "? Fourth", "? Fifth", "?= Fifth: done"])]);
     const questions = panel(root, QUESTIONS);

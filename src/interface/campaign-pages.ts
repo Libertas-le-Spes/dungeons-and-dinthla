@@ -3,7 +3,7 @@ import type { Campaign } from "../campaign/campaign";
 import { questionsKind } from "../questions/questions-kind";
 import { questsKind } from "../quests/quests-kind";
 
-export type PageId = "home" | "cast" | "notes" | "questions" | "quests" | "funds" | "note";
+export type PageId = "home" | "cast" | "notes" | "questions" | "quests" | "funds" | "note" | "welcome";
 
 export type PageTarget = { page: PageId; path: string | null };
 
@@ -138,6 +138,18 @@ export function campaignSections(makers: PageMakers): NavSection[] {
           glyphClass: "dd-nav-glyph-plain",
           make: makers.note,
           pathAfterDelete: KEEP_DELETED_NOTE,
+          countOf: NO_COUNT,
+        },
+        {
+          id: "welcome",
+          label: "Welcome",
+          shortLabel: "Welcome",
+          listed: false,
+          inBar: false,
+          glyph: "",
+          glyphClass: "dd-nav-glyph-plain",
+          make: makers.welcome,
+          pathAfterDelete: LEAVE_DELETED_NOTE,
           countOf: NO_COUNT,
         },
       ],
