@@ -97,6 +97,12 @@ describe("refusalForFileName", () => {
     expect(refusalForFileName("Mira\ud83e")).toBe(BAD_NAME);
   });
 
+  it("refuses every control character, including the C1 controls, and line breaks", () => {
+    for (const name of ["Mi\u0085ra", "Mi\u0080ra", "Mi\u009fra", "Mi\u2028ra", "Mi\u2029ra"]) {
+      expect(refusalForFileName(name)).toBe(BAD_NAME);
+    }
+  });
+
   it("refuses a name that starts or ends with a dot or a space", () => {
     for (const name of [".Silver", "Silver.", " Silver", "Silver "]) {
       expect(refusalForFileName(name)).toBe(BAD_NAME);

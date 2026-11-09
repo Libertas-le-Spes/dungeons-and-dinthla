@@ -111,6 +111,19 @@ describe("makeCampaign", () => {
     expect(made).toEqual([]);
   });
 
+  it("refuses a name whose letter is composed differently from a folder's that hides an invisible character inside it", async () => {
+    const existing = "Cafe\u200d\u0301";
+    const { vault, made } = vaultWith({ topLevel: [existing] });
+    await expect(makeCampaign(vault, "Caf\u00e9")).rejects.toThrow(`called ${existing} at the top`);
+    expect(made).toEqual([]);
+  });
+
+  it("refuses a name that differs from a folder's at the top of the vault only by the kind of space", async () => {
+    const { vault, made } = vaultWith({ topLevel: ["Mira\u3000Road"] });
+    await expect(makeCampaign(vault, "Mira Road")).rejects.toThrow("called Mira\u3000Road at the top");
+    expect(made).toEqual([]);
+  });
+
   it("refuses a name that differs from one at the top of the vault only in capitals, naming the one there", async () => {
     const { vault, made } = vaultWith({ topLevel: ["silver road"] });
     await expect(makeCampaign(vault, "Silver Road")).rejects.toThrow("called silver road at the top");
