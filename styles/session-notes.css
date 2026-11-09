@@ -192,3 +192,38 @@
   text-decoration-color: var(--text-muted-ui);
   color: var(--text-muted-ui);
 }
+
+.dd-session-notes .dd-notes-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.dd-session-notes .dd-edit-all-leaving {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-3);
+  padding: var(--space-3);
+  border: var(--border-width) solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+}
+
+.dd-session-notes .dd-edit-all-leaving-message {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-body);
+}
+
+.dd-session-notes .dd-edit-all-panel .dd-note-box {
+  min-height: 50vh;
+}
+
+.dd-session-notes .dd-edit-all-reminder {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-body);
+}

@@ -6,6 +6,9 @@ import type { AppendWriter } from "../../src/session-notes/append-writer";
 import { Drafts } from "../../src/session-notes/drafts";
 import { KeptDrafts } from "../../src/session-notes/kept-drafts";
 import { SessionNotesPage } from "../../src/session-notes/session-notes-page";
+import type { NoteTexts } from "../../src/campaign/note-texts";
+import { NoteDrafts } from "../../src/note-editing/note-drafts";
+import type { NoteSaver } from "../../src/note-editing/note-saver";
 import { obsidianDocument } from "../views/obsidian-dom";
 
 const ELEVEN = "Pale Moon/Sessions/Session 11.md";
@@ -27,6 +30,7 @@ function made(path: string | null) {
     propertiesOf: () => ({ title: "", played: "" }),
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
     actions: { openRow: vi.fn(), openLink: vi.fn() },
+    wholeText: { texts: {} as NoteTexts, drafts: new NoteDrafts(drafts), saver: {} as NoteSaver },
     startSession,
   };
   const root = obsidianDocument().createElement("div");

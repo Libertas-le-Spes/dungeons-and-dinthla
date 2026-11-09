@@ -2,15 +2,15 @@ import { Component } from "obsidian";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { latestNumberIsShared, SESSIONS_SHARE_A_NUMBER } from "../campaign/session-to-write";
 import type { LookupOpeners } from "../lookups/open-match";
+import type { NoteEditingNeeds } from "../note-editing/note-editing";
 import type { LinkActions } from "../views/linked-text";
 import type { AppendWriter } from "./append-writer";
 import type { Drafts } from "./drafts";
 import type { KeptDrafts } from "./kept-drafts";
 import { KeptLines } from "./kept-lines";
-import { LinesList } from "./lines-list";
 import { sessionChoiceOf, sessionChoicesOf, sessionShown, type PropertiesOf } from "./session-choices";
 import { SessionPicker, type PickerMoves } from "./session-picker";
-import { WritingPanel } from "./writing-panel";
+import { SessionWriting } from "./session-writing";
 import { writtenLinesOf } from "./written-lines";
 
 const PAGE_TITLE = "Session notes";
@@ -25,6 +25,7 @@ export interface SessionNotesNeeds {
   propertiesOf: PropertiesOf;
   openers: LookupOpeners;
   actions: LinkActions;
+  wholeText: NoteEditingNeeds;
 }
 
 export interface NotesMoves extends PickerMoves {
@@ -36,8 +37,7 @@ interface Drawn {
   picker: SessionPicker;
   gone: HTMLElement;
   kept: KeptLines;
-  lines: LinesList | null;
-  writing: WritingPanel | null;
+  session: SessionWriting | null;
 }
 
 export class SessionNotesPage extends Component {
@@ -94,20 +94,20 @@ export class SessionNotesPage extends Component {
     const kept = new KeptLines(root, this.needs.drafts, this.needs.keptDrafts, () => this.copyTarget);
     if (path === null) {
       root.createEl("p", { cls: "dd-empty", text: this.noSessionText() });
-      this.drawn = { path, picker, gone, kept, lines: null, writing: null };
+      this.drawn = { path, picker, gone, kept, session: null };
       this.update(this.drawn);
       return;
     }
-    const writing = new WritingPanel(root, path, { ...this.needs, campaign: () => this.needs.store.current });
-    this.drawn = { path, picker, gone, kept, lines: new LinesList(root, this.needs.actions), writing };
+    const session = new SessionWriting(root, path, { ...this.needs, campaign: () => this.needs.store.current });
+    this.drawn = { path, picker, gone, kept, session };
     this.update(this.drawn);
-    writing.focus();
+    session.focus();
   }
 
   private closeDrawn(): void {
     if (this.drawn === null) return;
     this.drawn.kept.close();
-    if (this.drawn.writing !== null) this.drawn.writing.close();
+    if (this.drawn.session !== null) this.drawn.session.close();
   }
 
   private update(drawn: Drawn): void {
@@ -120,27 +120,27 @@ export class SessionNotesPage extends Component {
 
   private showSession(drawn: Drawn): void {
     this.copyTarget = null;
-    if (drawn.lines === null || drawn.writing === null || drawn.path === null) return;
+    if (drawn.session === null || drawn.path === null) return;
     const store = this.needs.store;
-    const session = store.sessionNotes.find((candidate) => candidate.path === drawn.path);
-    if (session === undefined) {
-      this.missing(drawn, drawn.lines, drawn.writing);
+    const note = store.sessionNotes.find((candidate) => candidate.path === drawn.path);
+    if (note === undefined) {
+      this.missing(drawn, drawn.session);
       return;
     }
     this.seen = true;
     this.copyTarget = drawn.path;
     drawn.gone.setText("");
-    drawn.writing.setGone(false);
-    drawn.lines.show(writtenLinesOf(session), store.current);
+    drawn.session.setGone(false);
+    drawn.session.show(writtenLinesOf(note), store.current);
   }
 
-  private missing(drawn: Drawn, lines: LinesList, writing: WritingPanel): void {
+  private missing(drawn: Drawn, session: SessionWriting): void {
     if (this.seen) {
       drawn.gone.setText(NOTE_GONE);
-      writing.setGone(true);
+      session.setGone(true);
       return;
     }
-    lines.show([], this.needs.store.current);
+    session.show([], this.needs.store.current);
   }
 
   private headingOf(path: string | null): string {
