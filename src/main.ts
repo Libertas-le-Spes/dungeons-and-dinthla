@@ -47,6 +47,7 @@ import { pathYouAreIn, shownCampaignPathOf } from "./interface/shown-campaign-pa
 import { takeOpenLeaves } from "./interface/take-open-leaves";
 import { patchSetViewState, type ChangeViewState } from "./interface/view-state-patch";
 import { CAMPAIGN_VIEW, CampaignView } from "./interface/campaign-view";
+import { lookAgain } from "./interface/look-again";
 import { openCampaignPage } from "./interface/open-campaign";
 import { TabBackground } from "./interface/tab-background";
 import { closeRetiredViews } from "./interface/retired-views";
@@ -358,11 +359,13 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private async lookAgain(): Promise<void> {
-    const folder = this.startingCampaignFolder();
-    if (folder === null) this.store.close();
-    else await this.chosen.choose(folder);
-    this.showBackgrounds();
-    this.showCampaignTabsAgain();
+    await lookAgain({
+      startingCampaignFolder: () => this.startingCampaignFolder(),
+      closeCampaign: () => this.store.close(),
+      chooseCampaign: (folder) => this.chosen.choose(folder),
+      showBackgrounds: () => this.showBackgrounds(),
+      showCampaignTabsAgain: () => this.showCampaignTabsAgain(),
+    });
   }
 
   private showCampaignTabsAgain(): void {
