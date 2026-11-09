@@ -1,15 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { ChosenCampaign } from "../../src/settings/chosen-campaign";
 import type { PluginSettings } from "../../src/settings/plugin-settings";
+import { SettingsSaver } from "../../src/settings/settings-saver";
 
-function chosenFrom(campaignFolder: string | null) {
+function chosenFrom(campaignFolder: string | null, saveFails = false) {
   const saved: (string | null)[] = [];
   const opened: string[] = [];
+  const saver = new SettingsSaver({ campaignsFolder: null, campaignFolder, welcomeSeen: true, lastVersionSeen: null }, async (settings: PluginSettings) => {
+    if (saveFails) throw new Error("data.json is read-only.");
+    saved.push(settings.campaignFolder);
+  });
   const chosen = new ChosenCampaign(
-    { campaignsFolder: null, campaignFolder, welcomeSeen: true, lastVersionSeen: null },
-    async (settings: PluginSettings) => {
-      saved.push(settings.campaignFolder);
-    },
+    saver,
     async (folder: string) => {
       opened.push(folder);
     },
@@ -24,6 +26,19 @@ describe("ChosenCampaign", () => {
     expect(chosen.folder).toBe("Pale Moon");
     expect(saved).toEqual(["Pale Moon"]);
     expect(opened).toEqual(["Pale Moon"]);
+  });
+
+  it("keeps the campaign it had, and opens nothing, when the new choice can't be saved", async () => {
+    const { chosen, opened } = chosenFrom("Ashen Road", true);
+    await expect(chosen.choose("Pale Moon")).rejects.toThrow("data.json is read-only.");
+    expect(chosen.folder).toBe("Ashen Road");
+    expect(opened).toEqual([]);
+  });
+
+  it("keeps the folder it had when the renamed folder can't be saved", async () => {
+    const { chosen } = chosenFrom("Pale Moon", true);
+    await expect(chosen.renamed("Curse of the Pale Moon", "Pale Moon")).rejects.toThrow("data.json is read-only.");
+    expect(chosen.folder).toBe("Pale Moon");
   });
 
   it("opens the campaign already chosen without saving it again", async () => {

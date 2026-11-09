@@ -1,8 +1,7 @@
 import { normalizePath } from "obsidian";
-import { refusalForFileName } from "../campaign/file-name";
+import { isTrimmedByWindows, refusalForFileName } from "../campaign/file-name";
 
 const DRIVE_LETTER = /^[A-Za-z]:/;
-const TRIMMED_BY_WINDOWS = /[. ]$/;
 
 type PathRule = (path: string) => boolean;
 
@@ -31,7 +30,7 @@ function hasOnlyPlainParts(path: string): boolean {
 }
 
 function keepsItsNameOnWindows(part: string): boolean {
-  return !TRIMMED_BY_WINDOWS.test(part);
+  return !isTrimmedByWindows(part);
 }
 
 function hasOnlyPartsWindowsKeeps(path: string): boolean {
@@ -42,12 +41,16 @@ function isAsObsidianWritesIt(path: string): boolean {
   return normalizePath(path) === path;
 }
 
-function isNameablePart(part: string): boolean {
-  return refusalForFileName(part) === null;
+export function refusalForPathParts(path: string): string | null {
+  for (const part of path.split("/")) {
+    const refusal = refusalForFileName(part);
+    if (refusal !== null) return refusal;
+  }
+  return null;
 }
 
 function hasOnlyNameableParts(path: string): boolean {
-  return path.split("/").every(isNameablePart);
+  return refusalForPathParts(path) === null;
 }
 
 const PATH_RULES: PathRule[] = [isWritten, startsInsideTheVault, usesOnlyForwardSlashes, holdsNoNullCharacter, hasOnlyPlainParts, hasOnlyPartsWindowsKeeps];
