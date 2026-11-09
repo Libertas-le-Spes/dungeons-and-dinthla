@@ -35,6 +35,19 @@ function create(parent: HTMLElement, tag: string, info?: ElementInfo | string): 
   return element;
 }
 
+const KEPT_DISPLAY = "data-display";
+
+function displayKeptBy(element: HTMLElement): string {
+  const kept = element.getAttribute(KEPT_DISPLAY);
+  if (kept === null) return "";
+  return kept;
+}
+
+function keepDisplay(element: HTMLElement, display: string): void {
+  if (display === "") element.removeAttribute(KEPT_DISPLAY);
+  else element.setAttribute(KEPT_DISPLAY, display);
+}
+
 export function isShown(element: HTMLElement): boolean {
   return element.style.display !== "none";
 }
@@ -55,10 +68,21 @@ export function obsidianDocument(): Document {
     this.append(this.ownerDocument.createTextNode(text));
   };
   prototype.addClass = function (this: HTMLElement, ...names: string[]) {
-    this.classList.add(...names);
+    this.addClasses(names);
+  };
+  prototype.addClasses = function (this: HTMLElement, names: string[]) {
+    for (const name of names) this.classList.add(name);
   };
   prototype.removeClass = function (this: HTMLElement, ...names: string[]) {
-    this.classList.remove(...names);
+    this.removeClasses(names);
+  };
+  prototype.removeClasses = function (this: HTMLElement, names: string[]) {
+    for (const name of names) this.classList.remove(name);
+  };
+  prototype.toggleClass = function (this: HTMLElement, names: string | string[], add: boolean) {
+    const all = [names].flat();
+    if (add) this.addClasses(all);
+    else this.removeClasses(all);
   };
   prototype.setCssProps = function (this: HTMLElement, props: Record<string, string>) {
     for (const [name, value] of Object.entries(props)) this.style.setProperty(name, value);
@@ -69,21 +93,23 @@ export function obsidianDocument(): Document {
   prototype.setText = function (this: HTMLElement, text: string) {
     this.textContent = text;
   };
-  prototype.removeClass = function (this: HTMLElement, ...names: string[]) {
-    this.classList.remove(...names);
-  };
   prototype.setAttr = function (this: HTMLElement, name: string, value: string) {
     this.setAttribute(name, value);
   };
   prototype.show = function (this: HTMLElement) {
-    this.style.display = "";
+    if (this.style.display !== "none") return;
+    this.style.display = displayKeptBy(this);
+    this.removeAttribute(KEPT_DISPLAY);
   };
   prototype.hide = function (this: HTMLElement) {
+    const display = this.style.display;
+    if (display === "none") return;
     this.style.display = "none";
+    keepDisplay(this, display);
   };
   prototype.toggle = function (this: HTMLElement, show: boolean) {
-    if (show) this.style.display = "";
-    else this.style.display = "none";
+    if (show) this.show();
+    else this.hide();
   };
   return window.document as unknown as Document;
 }

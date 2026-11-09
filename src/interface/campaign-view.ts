@@ -119,7 +119,7 @@ export class CampaignView extends ItemView {
     link.createSpan({ cls: "dd-nav-label", text: entry.label });
     link.createSpan({ cls: "dd-nav-short", text: entry.shortLabel });
     const count = link.createSpan({ cls: "dd-nav-count" });
-    if (entry.inBar) link.addClass(IN_BAR_CLASS);
+    link.toggleClass(IN_BAR_CLASS, entry.inBar);
     this.registerDomEvent(link, "click", () => this.navigate({ page: entry.id, path: null }));
     this.links.push({ entry, link, count });
   }

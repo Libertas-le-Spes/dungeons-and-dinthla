@@ -62,13 +62,13 @@ const LEAVE_DELETED: PathAfterDelete = () => null;
 
 const KEEP_DELETED: PathAfterDelete = (path) => path;
 
-function entryOf(
-  id: PageId,
-  made: FakePage[],
-  countOf: (campaign: Campaign) => number = () => 0,
-  inBar = true,
-  pathAfterDelete = LEAVE_DELETED,
-): PageEntry {
+interface EntryOptions {
+  countOf?: (campaign: Campaign) => number;
+  inBar?: boolean;
+  pathAfterDelete?: PathAfterDelete;
+}
+
+function entryOf(id: PageId, made: FakePage[], { countOf = () => 0, inBar = true, pathAfterDelete = LEAVE_DELETED }: EntryOptions = {}): PageEntry {
   const make = (contentEl: HTMLElement, show: ShowPage, path: string | null, stayOn: StayOn) => {
     const page = new FakePage(id, contentEl, show, path, stayOn);
     made.push(page);
@@ -94,8 +94,8 @@ async function openView({
   };
   const made: FakePage[] = [];
   const sections: NavSection[] = [
-    { heading: null, pages: [entryOf("home", made), entryOf("cast", made, () => 0, true, castAfterDelete)] },
-    { heading: "From the notes", pages: [entryOf("questions", made, questionCount, false), entryOf("funds", made)] },
+    { heading: null, pages: [entryOf("home", made), entryOf("cast", made, { pathAfterDelete: castAfterDelete })] },
+    { heading: "From the notes", pages: [entryOf("questions", made, { countOf: questionCount, inBar: false }), entryOf("funds", made)] },
   ];
   const requestSaveLayout = vi.fn();
   const followCampaign = vi.fn();
