@@ -255,7 +255,7 @@ export default class DungeonsAndDinthla extends Plugin {
     this.registerEditorExtension(markerColouring(inSession));
     const noteChanged = (path: string, text: string) => this.store.noteChanged(path, text);
     const pickLookup = (match: LookupMatch, context: EditorSuggestContext) => {
-      openLookup(this.app, match, context, noteChanged, openers).catch((error: unknown) => new Notice(`Couldn't open it: ${messageOf(error)}`));
+      openLookup(this.app, gate.files, match, context, noteChanged, openers).catch((error: unknown) => new Notice(`Couldn't open it: ${messageOf(error)}`));
     };
     this.registerEditorSuggest(new LookupSuggest(this.app, (path, text) => this.store.currentAsEdited(path, text), inSession, pickLookup));
     this.registerMarkdownPostProcessor((element, context) => {
