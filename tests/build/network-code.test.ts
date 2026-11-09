@@ -1,9 +1,9 @@
 import { build } from "esbuild";
 import { describe, expect, it } from "vitest";
 import type { BuildOptions } from "esbuild";
-import { PLUGIN_BUNDLE, STYLES_BUNDLE } from "../../scripts/bundle-options";
-import { networkCodeIn } from "../../scripts/network-code";
-import { styleNetworkCodeIn } from "../../scripts/style-network-code";
+import { PLUGIN_BUNDLE, STYLES_BUNDLE } from "../../scripts/bundle-options.ts";
+import { networkCodeIn } from "../../scripts/network-code.ts";
+import { styleNetworkCodeIn } from "../../scripts/style-network-code.ts";
 
 async function built(options: BuildOptions): Promise<string> {
   const result = await build({ ...options, write: false, logLevel: "silent" });
