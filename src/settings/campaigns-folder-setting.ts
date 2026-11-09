@@ -3,7 +3,7 @@ import type { PluginSettings, SaveSettings } from "./plugin-settings";
 
 export type CampaignsFolderMoved = () => Promise<void>;
 
-export class CampaignsFolder {
+export class CampaignsFolderSetting {
   constructor(
     private readonly settings: PluginSettings,
     private readonly save: SaveSettings,

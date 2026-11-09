@@ -1,22 +1,18 @@
 import { ButtonComponent, DropdownComponent, Notice, PluginSettingTab, Setting, type App, type Plugin, type TFile } from "obsidian";
 import { backgroundOf, chooseWash, choosePicture, isPicture, removePicture, washOf, type Wash } from "../campaign/campaign-background";
 import { campaignNameOf, mainNotePathOf, NO_CAMPAIGN } from "../campaign/campaign-folders";
+import { NO_CAMPAIGNS_FOLDER } from "../fence/campaigns-folder-path";
 import type { Gate } from "../fence/gatekeeper";
 import { messageOf } from "../views/message-of";
+import type { CampaignsFolderSetup } from "./campaigns-folder-setup";
 import { PictureSuggestModal } from "./picture-suggest-modal";
 
 const CAMPAIGNS_FOLDER_HINT =
   "The folder your campaigns live in, one folder each. Dungeons & Dinthla reads and writes only inside it. Changing it moves nothing.";
-const NO_CAMPAIGNS_FOLDER = "None yet, so Dungeons & Dinthla reads and writes nothing.";
 const FOLDER_HINT = "Its folder. Every note in it, and in the folders inside it, shows the background picture below.";
 const NO_PICTURE = "None yet.";
 const WELCOME_HINT = "The first steps for a new campaign. They open in the campaign tab, behind this window.";
 const WASH_NAMES: Record<Wash, string> = { subtle: "Subtle", balanced: "Balanced", strong: "Strong" };
-
-export interface CampaignsFolderChoice {
-  readonly path: string | null;
-  pick(chosen: () => void): void;
-}
 
 export interface CampaignChoice {
   folders(): string[];
@@ -39,7 +35,7 @@ export class CampaignSettingTab extends PluginSettingTab {
     app: App,
     plugin: Plugin,
     private readonly gate: Gate,
-    private readonly campaignsFolder: CampaignsFolderChoice,
+    private readonly campaignsFolderSetup: Pick<CampaignsFolderSetup, "path" | "pick">,
     private readonly campaigns: CampaignChoice,
     private readonly showWelcome: () => Promise<void>,
   ) {
@@ -56,10 +52,10 @@ export class CampaignSettingTab extends PluginSettingTab {
   }
 
   private addCampaignsFolderRow(): void {
-    let shown = NO_CAMPAIGNS_FOLDER;
-    if (this.campaignsFolder.path !== null) shown = this.campaignsFolder.path;
-    const row = new Setting(this.containerEl).setName("Campaigns folder").setDesc(`${CAMPAIGNS_FOLDER_HINT} Now: ${shown}`);
-    new ButtonComponent(row.controlEl).setButtonText("Choose folder").onClick(() => this.campaignsFolder.pick(() => this.display()));
+    let now = NO_CAMPAIGNS_FOLDER;
+    if (this.campaignsFolderSetup.path !== null) now = `Now: ${this.campaignsFolderSetup.path}`;
+    const row = new Setting(this.containerEl).setName("Campaigns folder").setDesc(`${CAMPAIGNS_FOLDER_HINT} ${now}`);
+    new ButtonComponent(row.controlEl).setButtonText("Choose folder").onClick(() => this.campaignsFolderSetup.pick(() => this.display()));
   }
 
   private showCampaign(): void {

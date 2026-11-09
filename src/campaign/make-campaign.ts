@@ -1,4 +1,5 @@
 import { normalizePath } from "obsidian";
+import { NO_CAMPAIGNS_FOLDER } from "../fence/campaigns-folder-path";
 import type { FencedFiles } from "../fence/fenced-files";
 import { mainNotePathOf } from "./campaign-folders";
 import { messageOf } from "../views/message-of";
@@ -8,7 +9,6 @@ import { nameKeyOf } from "./name-key";
 export type NewCampaignFiles = Pick<FencedFiles, "getFolderByPath" | "createFolder" | "create" | "removeEmptyFolder">;
 
 export const NO_CAMPAIGN_NAME = "Type a name for the campaign first.";
-export const NO_CAMPAIGNS_FOLDER = "Choose a Campaigns folder first, in the plugin's settings or on the welcome page.";
 
 function nameTaken(name: string, campaignsFolder: string): string {
   return `There is already a folder or file called ${name} in ${campaignsFolder}. To make that folder a campaign, add a note called ${name} inside it.`;

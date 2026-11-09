@@ -1,5 +1,5 @@
 import type { App } from "obsidian";
-import { Fence, type CampaignsFolderPath } from "./fence";
+import { Fence, type ReadCampaignsFolder } from "./fence";
 import { FencedFileActions } from "./fenced-file-actions";
 import { FencedFiles } from "./fenced-files";
 import { FencedMetadata } from "./fenced-metadata";
@@ -15,8 +15,8 @@ export class Gatekeeper {
   readonly settings: VaultSettings;
   readonly folders: FolderChoices;
 
-  constructor(app: App, campaignsFolder: CampaignsFolderPath) {
-    this.fence = new Fence(campaignsFolder);
+  constructor(app: App, readCampaignsFolder: ReadCampaignsFolder) {
+    this.fence = new Fence(readCampaignsFolder);
     const held = new HeldFiles(app.vault, this.fence);
     this.files = new FencedFiles(app.vault, held);
     this.fileActions = new FencedFileActions(app.fileManager, held);
