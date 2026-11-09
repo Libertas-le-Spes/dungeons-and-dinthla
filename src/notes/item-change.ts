@@ -12,12 +12,10 @@ export interface ItemChange {
   holder?: string;
   holderLinked?: boolean;
   sale?: CoinEntry;
-  buyer?: string;
 }
 
 const ITEM_CHANGE_MARKER = /^\$\$/;
 const CHANGE_WORD = / :(changed to|sold|used|lost)\b/gi;
-const SOLD_TO = /^\s+to\s/i;
 
 const KINDS: Record<string, ItemChangeKind> = {
   "changed to": "changed",
@@ -38,12 +36,6 @@ function saleIn(rest: string): CoinEntry | undefined {
   return entry;
 }
 
-function buyerIn(rest: string): string | undefined {
-  if (!SOLD_TO.test(rest)) return undefined;
-  const [link] = findLinks(rest);
-  return link;
-}
-
 export function readItemChange(line: string): ItemChange | null {
   const text = withoutBullet(line);
   if (!ITEM_CHANGE_MARKER.test(text)) return null;
@@ -60,10 +52,6 @@ export function readItemChange(line: string): ItemChange | null {
     change.holder = found.holder;
     change.holderLinked = found.holderLinked;
   }
-  if (kind === "sold") {
-    change.sale = saleIn(rest);
-    const buyer = buyerIn(rest);
-    if (buyer !== undefined) change.buyer = buyer;
-  }
+  if (kind === "sold") change.sale = saleIn(rest);
   return change;
 }

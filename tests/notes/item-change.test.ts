@@ -24,18 +24,6 @@ describe("readItemChange", () => {
     });
   });
 
-  it("reads the buyer linked after :sold to, with the price", () => {
-    expect(readItemChange("$$ Silvered lantern :sold to [[Old Tom|Tom]] 30 gp")).toMatchObject({
-      kind: "sold",
-      buyer: "Old Tom",
-      sale: { copper: 3000 },
-    });
-  });
-
-  it("reads no buyer from a link on a sale line without to", () => {
-    expect(readItemChange("$$ Silvered lantern :sold 30 gp at [[Old Mill]]")?.buyer).toBeUndefined();
-  });
-
   it("reads a sale with no price", () => {
     expect(readItemChange("$$ Silvered lantern :sold")).toEqual({ text: "Silvered lantern :sold", item: "Silvered lantern", kind: "sold" });
   });
