@@ -2,8 +2,8 @@ import { expect, vi } from "vitest";
 import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import { sessionNoteOf } from "../../src/campaign/session-file";
-import { NoteDrafts } from "../../src/note-page/note-drafts";
-import { NoteSaver } from "../../src/note-page/note-saver";
+import { NoteDrafts } from "../../src/note-editing/note-drafts";
+import { NoteSaver } from "../../src/note-editing/note-saver";
 import type { AppendWriter } from "../../src/session-notes/append-writer";
 import { Drafts } from "../../src/session-notes/drafts";
 import { KeptDrafts } from "../../src/session-notes/kept-drafts";
@@ -12,7 +12,7 @@ import { SessionTrash } from "../../src/session-notes/session-trash";
 import { SessionWriting } from "../../src/session-notes/session-writing";
 import { writtenLinesOf } from "../../src/session-notes/written-lines";
 import type { ConfirmText } from "../../src/views/confirm-modal";
-import { FakeNotes } from "../note-page/fake-notes";
+import { FakeNotes } from "../note-editing/fake-notes";
 import { isShown, obsidianDocument } from "../views/obsidian-dom";
 
 export const PATH = "Pale Moon/Sessions/Session 12.md";
@@ -28,6 +28,7 @@ export function flushed(): Promise<void> {
 interface Asked {
   text: ConfirmText;
   confirmed: () => void;
+  kept: () => void;
 }
 
 export function writingOn(text: string | null, drafts = new Drafts({}, () => {})) {
@@ -42,9 +43,14 @@ export function writingOn(text: string | null, drafts = new Drafts({}, () => {})
     notes.text = null;
   });
   const asked: Asked[] = [];
-  const confirm = vi.fn((confirmText: ConfirmText, confirmed: () => void) => {
-    asked.push({ text: confirmText, confirmed });
+  const confirm = vi.fn((confirmText: ConfirmText, confirmed: () => void, closed: () => void) => {
+    const pressConfirm = () => {
+      closed();
+      confirmed();
+    };
+    asked.push({ text: confirmText, confirmed: pressConfirm, kept: closed });
   });
+  const permanently = vi.fn(() => false);
   const moves = { heading: vi.fn(() => HEADING), deleted: vi.fn() };
   const session = new SessionWriting(
     root,
@@ -57,7 +63,7 @@ export function writingOn(text: string | null, drafts = new Drafts({}, () => {})
       campaign: () => buildCampaign([]),
       actions: { openRow: vi.fn(), openLink: vi.fn() },
       wholeText: { texts: notes.texts, drafts: noteDrafts, saver: new NoteSaver(notes.vault) },
-      removal: { clearer: new SessionClearer(notes.vault), trash: new SessionTrash(notes.vault, { trashFile }), confirm },
+      removal: { clearer: new SessionClearer(notes.vault), trash: new SessionTrash(notes.vault, { trashFile }, permanently), confirm },
     },
     moves,
   );
@@ -82,6 +88,8 @@ export function writingOn(text: string | null, drafts = new Drafts({}, () => {})
   const panels = () => [find(".dd-writing-panel"), find(".dd-lines-panel"), find(".dd-edit-all-panel")].map(isShown);
   const leaving = () => find(".dd-edit-all-leaving");
   const message = () => find(".dd-notes-message").textContent;
+  const wholeMessage = () => find(".dd-edit-all-panel .dd-save-message").textContent;
+  const reminder = () => find(".dd-writing-panel .dd-edit-all-reminder");
   const settle = () => vi.waitFor(() => expect(noteDrafts.isSaving(PATH)).toBe(false));
   return {
     root,
@@ -93,6 +101,7 @@ export function writingOn(text: string | null, drafts = new Drafts({}, () => {})
     writer,
     trashFile,
     confirm,
+    permanently,
     asked,
     moves,
     showNote,
@@ -104,6 +113,8 @@ export function writingOn(text: string | null, drafts = new Drafts({}, () => {})
     panels,
     leaving,
     message,
+    wholeMessage,
+    reminder,
     settle,
   };
 }

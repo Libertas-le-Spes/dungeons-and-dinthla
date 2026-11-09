@@ -7,13 +7,16 @@ export interface ConfirmText {
   keep: string;
 }
 
-export type OpenConfirm = (text: ConfirmText, confirmed: () => void) => void;
+export type OpenConfirm = (text: ConfirmText, confirmed: () => void, closed: () => void) => void;
 
 export class ConfirmModal extends Modal {
+  private keepButton: HTMLButtonElement | null = null;
+
   constructor(
     app: App,
     private readonly text: ConfirmText,
     private readonly confirmed: () => void,
+    private readonly closed: () => void,
   ) {
     super(app);
   }
@@ -28,11 +31,23 @@ export class ConfirmModal extends Modal {
     const keep = row.createEl("button", { cls: "dd-confirm-keep", text: this.text.keep });
     confirm.addEventListener("click", () => this.confirm());
     keep.addEventListener("click", () => this.close());
-    keep.focus();
+    this.keepButton = keep;
+  }
+
+  override open(): void {
+    super.open();
+    this.focusKeep();
   }
 
   override onClose(): void {
+    this.keepButton = null;
     this.contentEl.empty();
+    this.closed();
+  }
+
+  private focusKeep(): void {
+    if (this.keepButton === null) return;
+    this.keepButton.focus();
   }
 
   private confirm(): void {

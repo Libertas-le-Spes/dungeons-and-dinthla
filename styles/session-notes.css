@@ -245,3 +245,9 @@
 .dd-session-notes .dd-notes-message:empty {
   display: none;
 }
+
+.dd-session-notes .dd-edit-all-reminder {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-body);
+}

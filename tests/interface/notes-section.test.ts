@@ -7,8 +7,8 @@ import { Drafts } from "../../src/session-notes/drafts";
 import { KeptDrafts } from "../../src/session-notes/kept-drafts";
 import { SessionNotesPage } from "../../src/session-notes/session-notes-page";
 import type { NoteTexts } from "../../src/campaign/note-texts";
-import { NoteDrafts } from "../../src/note-page/note-drafts";
-import type { NoteSaver } from "../../src/note-page/note-saver";
+import { NoteDrafts } from "../../src/note-editing/note-drafts";
+import type { NoteSaver } from "../../src/note-editing/note-saver";
 import type { SessionClearer } from "../../src/session-notes/session-clearer";
 import type { SessionTrash } from "../../src/session-notes/session-trash";
 import type { ConfirmText } from "../../src/views/confirm-modal";
@@ -27,7 +27,15 @@ function made(path: string | null, sessions = BOTH) {
   const startSession = vi.fn();
   const drafts = new Drafts({}, () => {});
   const texts = { read: vi.fn(async () => ""), onChanged: () => () => {}, onGone: () => () => {} };
-  const trash = { trash: vi.fn(async () => {}) };
+  const trash = {
+    ask: vi.fn(async (asked: string) => ({ file: { path: asked }, text: "" })),
+    trash: vi.fn(async () => {}),
+    deletesPermanently: () => false,
+  };
+  const confirm = (_text: ConfirmText, confirmed: () => void, closed: () => void) => {
+    closed();
+    confirmed();
+  };
   const needs = {
     store: store as unknown as CampaignStore,
     drafts,
@@ -37,7 +45,7 @@ function made(path: string | null, sessions = BOTH) {
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
     actions: { openRow: vi.fn(), openLink: vi.fn() },
     wholeText: { texts: texts as unknown as NoteTexts, drafts: new NoteDrafts(drafts), saver: {} as NoteSaver },
-    removal: { clearer: {} as SessionClearer, trash: trash as unknown as SessionTrash, confirm: (_text: ConfirmText, confirmed: () => void) => confirmed() },
+    removal: { clearer: {} as SessionClearer, trash: trash as unknown as SessionTrash, confirm },
     startSession,
   };
   const root = obsidianDocument().createElement("div");
@@ -75,7 +83,7 @@ describe("notesSection", () => {
     const { root, show, trash } = made(TWELVE);
     root.querySelector<HTMLButtonElement>(".dd-delete-session")!.click();
     await vi.waitFor(() => expect(show).toHaveBeenCalledExactlyOnceWith({ page: "notes", path: ELEVEN }));
-    expect(trash.trash).toHaveBeenCalledExactlyOnceWith(TWELVE);
+    expect(trash.trash).toHaveBeenCalledExactlyOnceWith(TWELVE, { file: { path: TWELVE }, text: "" });
   });
 
   it("shows the Notes page with no session after deleting the last one", async () => {
