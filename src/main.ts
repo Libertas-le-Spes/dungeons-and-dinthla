@@ -34,9 +34,9 @@ import { ledgerEntryOpener } from "./funds/open-ledger-entry";
 import { ListPage } from "./views/list-page";
 import { activePathOf, openSource } from "./views/open-view";
 import { CastPage } from "./characters/cast-page";
-import { DashboardPage } from "./dashboard/dashboard-page";
+import { DashboardPage, type DashboardActions } from "./dashboard/dashboard-page";
 import { FundsPage } from "./funds/funds-page";
-import { campaignSections, type PageId } from "./interface/campaign-pages";
+import { campaignSections, type PageId, type ShowPage } from "./interface/campaign-pages";
 import { CAMPAIGN_VIEW, CampaignView } from "./interface/campaign-view";
 import { openCampaignPage } from "./interface/open-campaign";
 import { closeRetiredViews } from "./interface/retired-views";
@@ -77,20 +77,12 @@ export default class DungeonsAndDinthla extends Plugin {
     };
     const openQuestionAt = (source: Source, onClosed: (changed: boolean) => void) =>
       openQuestion(this.app, this.store, source, () => void openSource(this.app, source), onClosed);
-    const questionActions = {
-      ...actions,
-      openRow: (source: Source) => openQuestionAt(source, (changed) => this.focusRow(source, changed)),
-    };
     const createQuestion = {
       label: "New question",
       open: (returnFocus: () => void) => openNewQuestion(this.app, this.store, returnFocus),
     };
     const openQuestAt = (source: Source, onClosed: (changed: boolean) => void) =>
       openQuest(this.app, this.store, source, () => void openSource(this.app, source), onClosed);
-    const questActions = {
-      ...actions,
-      openRow: (source: Source) => openQuestAt(source, (changed) => this.focusRow(source, changed)),
-    };
     const createQuest = {
       label: "New quest",
       open: (returnFocus: () => void) => openNewQuest(this.app, this.store, returnFocus),
@@ -120,32 +112,32 @@ export default class DungeonsAndDinthla extends Plugin {
     this.addCommand({ id: "edit-character", name: "Edit character", checkCallback: (checking) => editActiveCharacter(this.app, characterNotes, checking) });
     this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => addEditCharacterItem(this.app, characterNotes, menu, file)));
     this.addRibbonIcon("calendar-plus", "Start a new session", () => startSession(this.app, this.store.campaignFolder));
-    const show = (page: PageId) => () => void openCampaignPage(this.app, page);
-    const dashboardActions = {
+    const dashboardActionsFor = (show: ShowPage): DashboardActions => ({
       ...actions,
       openQuestion: openQuestionAt,
       openQuest: openQuestAt,
       openLedgerEntry,
-      showQuestions: show("questions"),
-      showQuests: show("quests"),
-      showFunds: show("funds"),
-      showCharacters: show("cast"),
+      showQuestions: () => show("questions"),
+      showQuests: () => show("quests"),
+      showFunds: () => show("funds"),
+      showCharacters: () => show("cast"),
       openCharacterSheet: (path: string) => void openCharacterSheet(this.app, path),
       startSession: () => startSession(this.app, this.store.campaignFolder),
       sessionHeadingOf: (path: string) => sessionHeadingOf(path, this.app.metadataCache),
-    };
+    });
     const watchFiles = (changed: (path: string) => void) => this.watchFiles(changed);
     const sections = campaignSections({
-      home: (contentEl) => new DashboardPage(contentEl, this.store, characterNotes, dashboardActions),
+      home: (contentEl, show) => new DashboardPage(contentEl, this.store, characterNotes, dashboardActionsFor(show)),
       cast: (contentEl) => new CastPage(contentEl, this.store, characterNotes, galleryActions, newCharacter, watchFiles),
-      questions: (contentEl) => new ListPage(contentEl, this.store, questionActions, questionsKind, createQuestion),
-      quests: (contentEl) => new ListPage(contentEl, this.store, questActions, questsKind, createQuest),
+      questions: (contentEl) => new ListPage(contentEl, this.store, actions, openQuestionAt, questionsKind, createQuestion),
+      quests: (contentEl) => new ListPage(contentEl, this.store, actions, openQuestAt, questsKind, createQuest),
       funds: (contentEl) => new FundsPage(contentEl, this.store, actions, noteExists, addCoin, openLedgerEntry, openItem),
     });
     this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView(leaf, this.store, sections));
     for (const opener of PAGE_OPENERS) {
-      this.addRibbonIcon(opener.icon, opener.name, show(opener.page));
-      this.addCommand({ id: opener.id, name: opener.name, callback: show(opener.page) });
+      const open = () => void openCampaignPage(this.app, opener.page);
+      this.addRibbonIcon(opener.icon, opener.name, open);
+      this.addCommand({ id: opener.id, name: opener.name, callback: open });
     }
     this.addCommand({ id: "start-session", name: "Start a new session", callback: () => startSession(this.app, this.store.campaignFolder) });
     const inSession = (path: string) => isSessionNote(path, (notePath) => this.app.vault.getFileByPath(notePath) !== null);
@@ -234,12 +226,6 @@ export default class DungeonsAndDinthla extends Plugin {
   private readEditor(info: MarkdownFileInfo, file: TFile): void {
     const text = editorTextOf(info, file, this.app.vault);
     if (text !== null) this.store.noteChanged(file.path, text);
-  }
-
-  private focusRow(source: Source, afterChange: boolean): void {
-    for (const leaf of this.app.workspace.getLeavesOfType(CAMPAIGN_VIEW)) {
-      if (leaf.view instanceof CampaignView && leaf.view.page instanceof ListPage) leaf.view.page.focusRow(source, afterChange);
-    }
   }
 
   private watchFiles(changed: (path: string) => void): () => void {

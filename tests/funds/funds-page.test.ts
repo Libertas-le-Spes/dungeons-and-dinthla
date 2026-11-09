@@ -20,7 +20,7 @@ function campaignOf(lines: string[], ...laterSessions: string[][]): Campaign {
 type OpenLedgerEntry = (source: Source, onClosed: (outcome: CoinOutcome) => void) => void;
 type OpenItem = (name: string, source: Source, onClosed: (changed: boolean) => void) => void;
 
-async function openView(
+async function openPage(
   campaign: Campaign,
   notes: string[] = ["Mira"],
   addCoin: ((returnFocus: () => void) => void) | null = null,
@@ -53,9 +53,9 @@ function textsOf(root: HTMLElement, selector: string): string[] {
   return Array.from(root.querySelectorAll(selector)).map((element) => String(element.textContent));
 }
 
-describe("FundsView", () => {
+describe("FundsPage", () => {
   it("shows the purse, money in and out, and the ledger newest first with each balance", async () => {
-    const { root } = await openView(campaignOf(["$ +50 gp advance", "$ Paid 2 gp for rooms", "$ 35 gp 4 sp from the bandits"]));
+    const { root } = await openPage(campaignOf(["$ +50 gp advance", "$ Paid 2 gp for rooms", "$ 35 gp 4 sp from the bandits"]));
     expect(textsOf(root, ".dd-purse")).toEqual(["83 gp 4 sp"]);
     expect(textsOf(root, ".dd-in-out > span")).toEqual(["In 85 gp 4 sp", "Out 2 gp"]);
     expect(textsOf(root, ".dd-ledger .dd-amount")).toEqual(["+35 gp 4 sp", "−2 gp", "+50 gp"]);
@@ -66,17 +66,17 @@ describe("FundsView", () => {
   });
 
   it("shows the coins the purse is made of when they read differently from it", async () => {
-    const { root } = await openView(campaignOf(["$ 1 pp found", "$ 5 gp found"]));
+    const { root } = await openPage(campaignOf(["$ 1 pp found", "$ 5 gp found"]));
     expect(textsOf(root, ".dd-coin")).toEqual(["1 pp", "5 gp"]);
   });
 
   it("leaves the coins out when they read the same as the purse", async () => {
-    const { root } = await openView(campaignOf(["$ 35 gp 4 sp found"]));
+    const { root } = await openPage(campaignOf(["$ 35 gp 4 sp found"]));
     expect(root.querySelector(".dd-coin")).toBeNull();
   });
 
   it("says how to note coin when there is none", async () => {
-    const { root } = await openView(campaignOf([]));
+    const { root } = await openPage(campaignOf([]));
     expect(textsOf(root, ".dd-coins .dd-empty")).toEqual(["No coin yet. Note it as “$ 20 gp from …”."]);
     expect(textsOf(root, ".dd-ledger .dd-empty")).toEqual(["No coin entries yet."]);
     expect(textsOf(root, ".dd-purse")).toEqual(["0 gp"]);
@@ -84,23 +84,23 @@ describe("FundsView", () => {
   });
 
   it("counts one entry as an entry", async () => {
-    const { root } = await openView(campaignOf(["$ 5 gp"]));
+    const { root } = await openPage(campaignOf(["$ 5 gp"]));
     expect(textsOf(root, ".dd-ledger-panel .dd-title .dd-count")).toEqual(["1 entry"]);
   });
 
   it("writes large coin counts as the purse does, so they aren't shown twice", async () => {
-    const { root } = await openView(campaignOf(["$ 1200 gp from the dragon"]));
+    const { root } = await openPage(campaignOf(["$ 1200 gp from the dragon"]));
     expect(textsOf(root, ".dd-purse")).toEqual(["1,200 gp"]);
     expect(root.querySelector(".dd-coin")).toBeNull();
   });
 
   it("labels the coins the purse is made of", async () => {
-    const { root } = await openView(campaignOf(["$ 1 pp found", "$ 5 gp found"]));
+    const { root } = await openPage(campaignOf(["$ 1 pp found", "$ 5 gp found"]));
     expect(textsOf(root, ".dd-coins-label")).toEqual(["In coins:"]);
   });
 
   it("redraws when notes change, and stops listening when closed", async () => {
-    const { root, change, close, unsubscribe } = await openView(campaignOf([]));
+    const { root, change, close, unsubscribe } = await openPage(campaignOf([]));
     change(campaignOf(["$ 5 gp found"]));
     expect(textsOf(root, ".dd-purse")).toEqual(["5 gp"]);
     close();
@@ -108,18 +108,18 @@ describe("FundsView", () => {
   });
 
   it("opens the session at a ledger line when it is tapped", async () => {
-    const { root, actions } = await openView(campaignOf(["We rode on.", "$ 5 gp"]));
+    const { root, actions } = await openPage(campaignOf(["We rode on.", "$ 5 gp"]));
     (root.querySelector(".dd-ledger-row") as HTMLElement).click();
     expect(actions.openRow).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 1 });
   });
 
   it("writes an entry that comes to nothing without a sign", async () => {
-    const { root } = await openView(campaignOf(["$ found 5 gp, paid 5 gp toll"]));
+    const { root } = await openPage(campaignOf(["$ found 5 gp, paid 5 gp toll"]));
     expect(textsOf(root, ".dd-ledger .dd-amount")).toEqual(["0 gp"]);
   });
 
   it("lists held items under their holders, the party's own last, with gone items folded away", async () => {
-    const { root } = await openView(campaignOf(["$ [[Mira]] Flame Tongue", "$ Potion of healing", "$ Spyglass", "$ Rope"], ["$$ Spyglass :sold 20 gp", "$$ Rope :used"]));
+    const { root } = await openPage(campaignOf(["$ [[Mira]] Flame Tongue", "$ Potion of healing", "$ Spyglass", "$ Rope"], ["$$ Spyglass :sold 20 gp", "$$ Rope :used"]));
     expect(textsOf(root, ".dd-items-panel .dd-holder")).toEqual(["Mira", "The party"]);
     expect(textsOf(root, ".dd-items-panel > .dd-list .dd-text")).toEqual(["Flame Tongue", "Potion of healing"]);
     expect(textsOf(root, ".dd-items-panel > .dd-list .dd-mark-ledger")).toEqual(["$", "$"]);
@@ -129,7 +129,7 @@ describe("FundsView", () => {
   });
 
   it("says how and in which session each item went, and when its sale is in the ledger", async () => {
-    const { root } = await openView(campaignOf(["$ Spyglass", "$ Rope", "$ Map"], ["$$ Spyglass :sold 20 gp", "$$ Map :sold", "$$ Rope :used"]));
+    const { root } = await openPage(campaignOf(["$ Spyglass", "$ Rope", "$ Map"], ["$$ Spyglass :sold 20 gp", "$$ Map :sold", "$$ Rope :used"]));
     expect(textsOf(root, ".dd-folded .dd-meta")).toEqual([
       "Used up · Session 2",
       "Sold · Session 2",
@@ -143,7 +143,7 @@ describe("FundsView", () => {
   });
 
   it("opens a held item where it was written, and a gone one where it went", async () => {
-    const { root, actions } = await openView(campaignOf(["$ Potion of healing", "$ Rope"], ["We rode on.", "$$ Rope :used"]));
+    const { root, actions } = await openPage(campaignOf(["$ Potion of healing", "$ Rope"], ["We rode on.", "$$ Rope :used"]));
     (root.querySelector(".dd-items-panel > .dd-list .dd-row") as HTMLElement).click();
     expect(actions.openRow).toHaveBeenLastCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 0 });
     (root.querySelector(".dd-folded .dd-row") as HTMLElement).click();
@@ -151,7 +151,7 @@ describe("FundsView", () => {
   });
 
   it("says how to note an item, and that nothing is gone, when there are none", async () => {
-    const { root } = await openView(campaignOf(["$ 5 gp"]));
+    const { root } = await openPage(campaignOf(["$ 5 gp"]));
     expect(textsOf(root, ".dd-items-panel > .dd-empty")).toEqual([
       "No items held. A $ line without an amount, like “$ [[Mira]] Flame Tongue longsword”, adds one.",
     ]);
@@ -160,21 +160,21 @@ describe("FundsView", () => {
   });
 
   it("opens a holder's note when their name is tapped", async () => {
-    const { root, actions } = await openView(campaignOf(["$ [[Mira]] Flame Tongue"]));
+    const { root, actions } = await openPage(campaignOf(["$ [[Mira]] Flame Tongue"]));
     (root.querySelector(".dd-holder a.internal-link") as HTMLElement).click();
     expect(actions.openLink).toHaveBeenCalledWith("Mira", "Pale Moon/Sessions/Session 1.md");
   });
 
   it("names a holder without a note in plain text, so tapping can't make one", async () => {
-    const { root } = await openView(campaignOf(["$ Rope", "$$ Rope :changed to Bob the innkeeper"]), []);
+    const { root } = await openPage(campaignOf(["$ Rope", "$$ Rope :changed to Bob the innkeeper"]), []);
     expect(textsOf(root, ".dd-holder")).toEqual(["Bob the innkeeper"]);
     expect(root.querySelector(".dd-holder a")).toBeNull();
   });
 
   it("offers Add coin on the ledger when coin can be added, handing it a way back", async () => {
-    expect((await openView(campaignOf([]))).root.querySelector(".dd-ledger-panel .dd-create")).toBeNull();
+    expect((await openPage(campaignOf([]))).root.querySelector(".dd-ledger-panel .dd-create")).toBeNull();
     const addCoin = vi.fn();
-    const { root, change } = await openView(campaignOf([]), [], addCoin);
+    const { root, change } = await openPage(campaignOf([]), [], addCoin);
     root.ownerDocument.body.append(root);
     const button = root.querySelector(".dd-ledger-panel .dd-create") as HTMLElement;
     expect(button.textContent).toBe("Add coin");
@@ -189,7 +189,7 @@ describe("FundsView", () => {
   it("opens a ledger entry to change it, and puts focus back on that entry after the redraw", async () => {
     const openLedgerEntry = vi.fn<OpenLedgerEntry>();
     const lines = ["$ 5 gp found", "$ 2 gp tip", "$ 7 gp later"];
-    const { root, change } = await openView(campaignOf(lines), [], vi.fn(), openLedgerEntry);
+    const { root, change } = await openPage(campaignOf(lines), [], vi.fn(), openLedgerEntry);
     const document = root.ownerDocument;
     document.body.append(root);
     const rowAt = (line: number) => root.querySelector(`.dd-ledger-row[data-line="${line}"]`) as HTMLElement;
@@ -203,7 +203,7 @@ describe("FundsView", () => {
 
   it("leaves focus alone on a later redraw when an entry closed unchanged", async () => {
     const openLedgerEntry = vi.fn<OpenLedgerEntry>();
-    const { root, change } = await openView(campaignOf(["$ 5 gp found"]), [], vi.fn(), openLedgerEntry);
+    const { root, change } = await openPage(campaignOf(["$ 5 gp found"]), [], vi.fn(), openLedgerEntry);
     const document = root.ownerDocument;
     document.body.append(root);
     (root.querySelector(".dd-ledger-row") as HTMLElement).click();
@@ -217,7 +217,7 @@ describe("FundsView", () => {
 
   it("puts focus on Add coin after an entry is deleted, and back on the row when nothing changed", async () => {
     const openLedgerEntry = vi.fn<OpenLedgerEntry>();
-    const { root, change } = await openView(campaignOf(["$ 5 gp found", "$ 2 gp tip"]), [], vi.fn(), openLedgerEntry);
+    const { root, change } = await openPage(campaignOf(["$ 5 gp found", "$ 2 gp tip"]), [], vi.fn(), openLedgerEntry);
     const document = root.ownerDocument;
     document.body.append(root);
     const rowAt = (line: number) => root.querySelector(`.dd-ledger-row[data-line="${line}"]`) as HTMLElement;
@@ -232,7 +232,7 @@ describe("FundsView", () => {
 
   it("opens an item from its row, and puts focus back on it once it has moved to Gone", async () => {
     const openItem = vi.fn<OpenItem>();
-    const { root, change } = await openView(campaignOf(["$ Rope", "$ Torch"]), [], null, null, openItem);
+    const { root, change } = await openPage(campaignOf(["$ Rope", "$ Torch"]), [], null, null, openItem);
     const document = root.ownerDocument;
     document.body.append(root);
     const rowOf = (name: string) => root.querySelector(`.dd-items-panel .dd-row[data-item="${name}"]`) as HTMLElement;
@@ -251,7 +251,7 @@ describe("FundsView", () => {
     const openLedgerEntry = vi.fn<OpenLedgerEntry>();
     const openItem = vi.fn<OpenItem>();
     const lines = ["$ Rope", "$$ Rope :sold 3 gp"];
-    const { root, change } = await openView(campaignOf(lines), [], vi.fn(), openLedgerEntry, openItem);
+    const { root, change } = await openPage(campaignOf(lines), [], vi.fn(), openLedgerEntry, openItem);
     const document = root.ownerDocument;
     document.body.append(root);
     const rowAt = (line: number) => root.querySelector(`.dd-ledger-row[data-line="${line}"]`) as HTMLElement;
@@ -265,7 +265,7 @@ describe("FundsView", () => {
 
   it("forgets an item's pending focus once it is stale", async () => {
     const openItem = vi.fn<OpenItem>();
-    const { root, change } = await openView(campaignOf(["$ Rope", "$ Torch"]), [], null, null, openItem);
+    const { root, change } = await openPage(campaignOf(["$ Rope", "$ Torch"]), [], null, null, openItem);
     const document = root.ownerDocument;
     document.body.append(root);
     const now = vi.spyOn(Date, "now").mockReturnValue(1000);
@@ -279,7 +279,7 @@ describe("FundsView", () => {
 
   it("forgets a pending focus once it is stale", async () => {
     const openLedgerEntry = vi.fn<OpenLedgerEntry>();
-    const { root, change } = await openView(campaignOf(["$ 5 gp found", "$ 2 gp tip"]), [], vi.fn(), openLedgerEntry);
+    const { root, change } = await openPage(campaignOf(["$ 5 gp found", "$ 2 gp tip"]), [], vi.fn(), openLedgerEntry);
     const document = root.ownerDocument;
     document.body.append(root);
     const now = vi.spyOn(Date, "now").mockReturnValue(1000);

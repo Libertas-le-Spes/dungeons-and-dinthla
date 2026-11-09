@@ -26,23 +26,25 @@ export class Plugin {
 }
 
 export class Component {
+  private loaded = false;
   private readonly children: Component[] = [];
   private readonly cleanups: (() => void)[] = [];
-  private loaded = false;
 
   load(): void {
+    if (this.loaded) return;
     this.loaded = true;
     this.onload();
-    for (const child of this.children) child.load();
+    for (const child of this.children.slice()) child.load();
   }
 
   onload(): void {}
 
   unload(): void {
-    for (const child of this.children) child.unload();
-    for (const cleanup of this.cleanups.splice(0)) cleanup();
-    this.onunload();
+    if (!this.loaded) return;
     this.loaded = false;
+    while (this.children.length > 0) this.children.pop()!.unload();
+    while (this.cleanups.length > 0) this.cleanups.pop()!();
+    this.onunload();
   }
 
   onunload(): void {}
@@ -68,6 +70,7 @@ export class Component {
 
   registerDomEvent(element: HTMLElement, type: string, callback: (event: Event) => void): void {
     element.addEventListener(type, callback);
+    this.register(() => element.removeEventListener(type, callback));
   }
 }
 

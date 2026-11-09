@@ -3,7 +3,7 @@ import { Component, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { Campaign } from "../../src/campaign/campaign";
 import type { CampaignStore } from "../../src/campaign/campaign-store";
-import type { NavSection, PageEntry, PageId } from "../../src/interface/campaign-pages";
+import type { NavSection, PageEntry, PageId, ShowPage } from "../../src/interface/campaign-pages";
 import { CAMPAIGN_VIEW, CampaignView } from "../../src/interface/campaign-view";
 import { obsidianDocument } from "../views/obsidian-dom";
 
@@ -13,6 +13,7 @@ class FakePage extends Component {
   constructor(
     readonly id: PageId,
     readonly contentEl: HTMLElement,
+    readonly show: ShowPage,
   ) {
     super();
   }
@@ -32,8 +33,8 @@ function campaignOf(lines: string[]): Campaign {
 }
 
 function entryOf(id: PageId, made: FakePage[], countOf: (campaign: Campaign) => number = () => 0): PageEntry {
-  const make = (contentEl: HTMLElement) => {
-    const page = new FakePage(id, contentEl);
+  const make = (contentEl: HTMLElement, show: ShowPage) => {
+    const page = new FakePage(id, contentEl, show);
     made.push(page);
     return page;
   };
@@ -63,6 +64,7 @@ async function openView({ folder = "Pale Moon" as string | null, questionCount =
   view.contentEl = root;
   view.load();
   await view.onOpen();
+  await view.setState({}, {} as ViewStateResult);
   const change = (lines: string[], nextFolder: string | null = folder) => {
     store.current = campaignOf(lines);
     store.campaignFolder = nextFolder;
@@ -150,9 +152,37 @@ describe("CampaignView", () => {
     expect(root.querySelector(".dd-nav-campaign")!.textContent).toBe("No campaign open");
   });
 
+  it("builds no page until Obsidian gives it its state", async () => {
+    const made: FakePage[] = [];
+    const store = { subscribe: () => () => {}, current: campaignOf([]), campaignFolder: null };
+    const view = new CampaignView({} as WorkspaceLeaf, store as unknown as CampaignStore, [{ heading: null, pages: [entryOf("home", made), entryOf("funds", made)] }]);
+    view.app = { workspace: { requestSaveLayout: vi.fn() } } as unknown as CampaignView["app"];
+    view.contentEl = obsidianDocument().createElement("div");
+    view.load();
+    await view.onOpen();
+    expect(made).toEqual([]);
+    expect(view.getState()).toEqual({});
+    await view.setState({ page: "funds" }, {} as ViewStateResult);
+    expect(made.map((page) => page.id)).toEqual(["funds"]);
+  });
+
+  it("lets a page show another page in the same tab", async () => {
+    const { root, made } = await openView();
+    made[0]!.show("funds");
+    expect(made.map((page) => page.id)).toEqual(["home", "funds"]);
+    expect(made[0]!.loaded).toBe(false);
+    expect(pageText(root)).toBe("page funds");
+  });
+
+  it("ignores a page asking for a page the tab doesn't have", async () => {
+    const { root, made } = await openView();
+    made[0]!.show("quests");
+    expect(made).toHaveLength(1);
+    expect(pageText(root)).toBe("page home");
+  });
+
   it("closes the shown page and stops listening to the campaign when it is closed", async () => {
     const { view, made, unsubscribe } = await openView();
-    await view.onClose();
     view.unload();
     expect(made[0]!.loaded).toBe(false);
     expect(unsubscribe).toHaveBeenCalledOnce();

@@ -5,7 +5,7 @@ import type { NavSection, PageEntry, PageId } from "./campaign-pages";
 export const CAMPAIGN_VIEW = "dungeons-and-dinthla-campaign";
 
 const TITLE = "Campaign";
-const NO_CAMPAIGN = "No campaign open";
+const NO_CAMPAIGN_TITLE = "No campaign open";
 
 interface NavLink {
   entry: PageEntry;
@@ -14,7 +14,7 @@ interface NavLink {
 }
 
 export class CampaignView extends ItemView {
-  private pageId: PageId;
+  private current: PageEntry | null = null;
   private shownPage: Component | null = null;
   private pageEl: HTMLElement | null = null;
   private campaignName!: HTMLElement;
@@ -26,7 +26,6 @@ export class CampaignView extends ItemView {
     private readonly sections: NavSection[],
   ) {
     super(leaf);
-    this.pageId = sections[0]!.pages[0]!.id;
   }
 
   getViewType(): string {
@@ -46,12 +45,12 @@ export class CampaignView extends ItemView {
   }
 
   override getState(): Record<string, unknown> {
-    return { page: this.pageId };
+    if (this.current === null) return {};
+    return { page: this.current.id };
   }
 
   override async setState(state: unknown, result: ViewStateResult): Promise<void> {
-    const entry = this.entryNamedIn(state);
-    if (entry !== null) this.show(entry);
+    this.show(this.entryToShow(state));
     await super.setState(state, result);
   }
 
@@ -65,12 +64,7 @@ export class CampaignView extends ItemView {
     for (const section of this.sections) this.addSection(nav, section);
     this.pageEl = frame.createDiv({ cls: "dd-page" });
     this.register(this.store.subscribe(() => this.campaignChanged()));
-    this.show(this.entryWithId(this.pageId));
     this.campaignChanged();
-  }
-
-  override async onClose(): Promise<void> {
-    this.closePage();
   }
 
   private addSection(nav: HTMLElement, section: NavSection): void {
@@ -87,14 +81,20 @@ export class CampaignView extends ItemView {
     this.links.push({ entry, link, count });
   }
 
+  private showId(id: PageId): void {
+    const entry = this.entryWithId(id);
+    if (entry !== null) this.show(entry);
+  }
+
   private show(entry: PageEntry): void {
-    if (entry.id === this.pageId && this.shownPage !== null) return;
-    this.pageId = entry.id;
+    if (entry === this.current && this.shownPage !== null) return;
+    this.current = entry;
     const pageEl = this.pageEl;
     if (pageEl === null) return;
     this.closePage();
     pageEl.empty();
-    this.shownPage = this.addChild(entry.make(pageEl.createDiv({ cls: "dd-page-body" })));
+    const show = (id: PageId) => this.showId(id);
+    this.shownPage = this.addChild(entry.make(pageEl.createDiv({ cls: "dd-page-body" }), show));
     this.markCurrent();
     this.app.workspace.requestSaveLayout();
   }
@@ -107,7 +107,7 @@ export class CampaignView extends ItemView {
 
   private markCurrent(): void {
     for (const { entry, link } of this.links) {
-      if (entry.id === this.pageId) link.setAttribute("aria-current", "page");
+      if (entry === this.current) link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
     }
   }
@@ -123,19 +123,33 @@ export class CampaignView extends ItemView {
 
   private campaignTitle(): string {
     const folder = this.store.campaignFolder;
-    if (folder === null) return NO_CAMPAIGN;
+    if (folder === null) return NO_CAMPAIGN_TITLE;
     return folder;
+  }
+
+  private entryToShow(state: unknown): PageEntry {
+    const named = this.entryNamedIn(state);
+    if (named !== null) return named;
+    if (this.current !== null) return this.current;
+    return this.firstEntry();
   }
 
   private entryNamedIn(state: unknown): PageEntry | null {
     if (typeof state !== "object" || state === null || !("page" in state)) return null;
-    const entry = this.allEntries().find((candidate) => candidate.id === state.page);
+    if (typeof state.page !== "string") return null;
+    return this.entryWithId(state.page);
+  }
+
+  private entryWithId(id: string): PageEntry | null {
+    const entry = this.allEntries().find((candidate) => candidate.id === id);
     if (entry === undefined) return null;
     return entry;
   }
 
-  private entryWithId(id: PageId): PageEntry {
-    return this.allEntries().find((entry) => entry.id === id)!;
+  private firstEntry(): PageEntry {
+    const [first] = this.allEntries();
+    if (first === undefined) throw new Error("The campaign tab has no pages to show.");
+    return first;
   }
 
   private allEntries(): PageEntry[] {

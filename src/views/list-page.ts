@@ -12,6 +12,8 @@ export interface ListContents<T> {
   foldedCount: number;
 }
 
+export type OpenRow = (source: Source, onClosed: (changed: boolean) => void) => void;
+
 export interface ListCreate {
   label: string;
   open(returnFocus: () => void): void;
@@ -37,15 +39,18 @@ export class ListPage<T> extends Component {
   private foldedCount!: HTMLElement;
   private foldedList!: HTMLElement;
   private readonly rowFocus = new RowFocus();
+  private readonly rowActions: LinkActions;
 
   constructor(
     private readonly contentEl: HTMLElement,
     private readonly store: CampaignStore,
     private readonly actions: LinkActions,
+    private readonly openRow: OpenRow,
     private readonly kind: ListKind<T>,
     private readonly create: ListCreate | null,
   ) {
     super();
+    this.rowActions = { openLink: actions.openLink, openRow: (source) => this.open(source) };
   }
 
   override onload(): void {
@@ -90,7 +95,11 @@ export class ListPage<T> extends Component {
     this.registerDomEvent(button, "click", () => create.open(() => button.focus()));
   }
 
-  focusRow(source: Source, afterChange: boolean): void {
+  private open(source: Source): void {
+    this.openRow(source, (changed) => this.focusRow(source, changed));
+  }
+
+  private focusRow(source: Source, afterChange: boolean): void {
     this.rowFocus.afterClose(() => focusRowAt(this.contentEl, source), afterChange, () => this.filter.focus());
   }
 
@@ -100,7 +109,7 @@ export class ListPage<T> extends Component {
       list.createEl("li", { cls: "dd-empty", text: emptyText });
       return;
     }
-    for (const item of items) this.kind.addRow(list, item, keywords, this.actions);
+    for (const item of items) this.kind.addRow(list, item, keywords, this.rowActions);
   }
 
   private openEmptyText(contents: ListContents<T>): string {
