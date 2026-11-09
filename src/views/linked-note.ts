@@ -16,7 +16,7 @@ export function takenAt(path: string): string {
   return `${path} is already taken.`;
 }
 
-function notePathOf(campaignFolder: string, linkpath: string): string {
+export function notePathOf(campaignFolder: string, linkpath: string): string {
   if (linkpath.endsWith(NOTE_ENDING)) return `${campaignFolder}/${linkpath}`;
   return `${campaignFolder}/${linkpath}${NOTE_ENDING}`;
 }
