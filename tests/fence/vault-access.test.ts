@@ -272,6 +272,9 @@ const HARMLESS_SAMPLES = [
   'import type { TFile } from "obsidian";\nexport const file = (entry: { file: TFile }) => entry.file;',
   'import type { Modal } from "obsidian";\nexport const show = (modal: Modal) => modal.open();',
   'export class Tab {\n  constructor(readonly app: { name: string }) {}\n  name(): string {\n    return this.app.name;\n  }\n}',
+  'import type { TFile } from "obsidian";\nexport function count(counts: Record<string, number>, file: TFile) {\n  counts[file.path] = 1;\n}',
+  'export function move(place: { path: string }) {\n  place.path = "Pale Moon";\n}',
+  'interface Place {\n  path: string;\n}\nexport function move(place: Pick<Place, "path">) {\n  place.path = "Pale Moon";\n}',
 ];
 
 const OPENING_SAMPLES = [
@@ -385,7 +388,30 @@ const GATE_FORGING_SAMPLES = [
   'import type { Gate } from "../../../../src/fence/gatekeeper";\nexport function forge(gate: Gate, other: object) {\n  Object.defineProperties(gate.metadata, { getFirstLinkpathDest: { value: () => other } });\n}',
 ];
 
-const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...WRITE_NAME_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...FOLDER_WALK_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...NOTE_READING_SAMPLES, ...VIEW_TEXT_SAMPLES, ...CODE_MIRROR_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...OPENING_SAMPLES, ...ALLOWED_OPENING_SAMPLES, ...GATED_OPENING_SAMPLES, ...GATE_FORGING_SAMPLES, ...LEAF_SAMPLES, ...LEAF_VIEW_SAMPLES, ...VIEW_FILE_SAMPLES, ...HARMLESS_SAMPLES];
+const FILE_CHANGING_SAMPLES = [
+  'import type { App } from "obsidian";\nimport type { Gate } from "../../../../src/fence/gatekeeper";\nexport async function open(app: App, gate: Gate, path: string) {\n  const file = gate.files.getFileByPath(path);\n  if (file === null) return;\n  file.path = "Private/Recovery codes.md";\n  await app.workspace.getLeaf(false).openFile(file);\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  file["path"] = "Private/Recovery codes.md";\n}',
+  'import type { TAbstractFile } from "obsidian";\nexport function move(file: TAbstractFile) {\n  file.name += ".md";\n}',
+  'import type { TFolder } from "obsidian";\nexport function move(folder: TFolder, other: TFolder) {\n  folder.parent = other;\n}',
+  'import type { TFile } from "obsidian";\nexport function forget(file: Partial<TFile>) {\n  delete file.path;\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  Object.assign(file, { path: "Private/Recovery codes.md" });\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  Object.defineProperty(file, "path", { value: "Private/Recovery codes.md" });\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile, other: object) {\n  Object.setPrototypeOf(file, other);\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: Pick<TFile, "path">) {\n  file.path = "Private/Recovery codes.md";\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile, paths: string[]) {\n  [file.path] = paths;\n}',
+  'import type { TFile } from "obsidian";\nexport function move<T extends TFile>(file: T) {\n  file.path = "Private/Recovery codes.md";\n}',
+  'import type { TFile } from "obsidian";\nexport function rename(file: TFile) {\n  file.basename = "Recovery codes";\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile, paths: string[]) {\n  [file.path = "Private/Recovery codes.md"] = paths;\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  (file.path) = "Private/Recovery codes.md";\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  (file.path as string) = "Private/Recovery codes.md";\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  (<string>file.path) = "Private/Recovery codes.md";\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  file.path! = "Private/Recovery codes.md";\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  (file.path satisfies string) = "Private/Recovery codes.md";\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile, paths: string[]) {\n  [...file.path] = paths;\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile, other: { path: string }) {\n  ({ path: file.path } = other);\n}',
+];
+
+const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...WRITE_NAME_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...FOLDER_WALK_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...NOTE_READING_SAMPLES, ...VIEW_TEXT_SAMPLES, ...CODE_MIRROR_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...OPENING_SAMPLES, ...ALLOWED_OPENING_SAMPLES, ...GATED_OPENING_SAMPLES, ...GATE_FORGING_SAMPLES, ...FILE_CHANGING_SAMPLES, ...LEAF_SAMPLES, ...LEAF_VIEW_SAMPLES, ...VIEW_FILE_SAMPLES, ...HARMLESS_SAMPLES];
 
 interface Planted {
   name: string;
@@ -854,6 +880,10 @@ describe("the vault fence", () => {
   });
 
   it.each(GATE_FORGING_SAMPLES)("would catch forging or changing a gate outside the gate's folder with %s, even in a file allowed everything else", (sample) => {
+    expect(sampleBreaches(sample, ALL_ALLOWED)).not.toEqual([]);
+  });
+
+  it.each(FILE_CHANGING_SAMPLES)("would catch changing a vault file outside the gate's folder with %s, even in a file allowed everything else", (sample) => {
     expect(sampleBreaches(sample, ALL_ALLOWED)).not.toEqual([]);
   });
 
