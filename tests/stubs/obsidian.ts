@@ -2,8 +2,6 @@ import { StateField } from "@codemirror/state";
 import type {
   AbstractInputSuggest as RealInputSuggest,
   BasesView as RealBasesView,
-  EditorSuggest as RealEditorSuggest,
-  EditorSuggestContext,
   FrontMatterInfo,
   FuzzySuggestModal as RealFuzzySuggestModal,
   ItemView as RealItemView,
@@ -254,18 +252,6 @@ class TextAreaComponent extends AbstractTextComponent<HTMLTextAreaElement> {
 }
 
 export class MarkdownView {}
-
-export class EditorSuggest {
-  app: RealEditorSuggest<unknown>["app"];
-  context: EditorSuggestContext | null = null;
-  limit = 100;
-
-  constructor(...[app]: ConstructorParameters<typeof RealEditorSuggest>) {
-    this.app = app;
-  }
-
-  close(): void {}
-}
 
 export class AbstractInputSuggest {
   app: RealInputSuggest<unknown>["app"];
