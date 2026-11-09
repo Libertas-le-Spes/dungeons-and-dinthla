@@ -21,7 +21,7 @@ function choicesWith(folders: string[], files: string[] = [], configDir = ".obsi
 
 describe("FolderChoices.folderPaths", () => {
   it("lists every folder by path in order, leaving out the vault itself", () => {
-    const { choices, vault } = choicesWith(["Games/D&D", "D&D", "Recipes"]);
+    const { choices, vault } = choicesWith(["/", "Games/D&D", "D&D", "Recipes"]);
     expect(choices.folderPaths()).toEqual(["D&D", "Games/D&D", "Recipes"]);
     expect(vault.getAllFolders).toHaveBeenCalledExactlyOnceWith(false);
   });

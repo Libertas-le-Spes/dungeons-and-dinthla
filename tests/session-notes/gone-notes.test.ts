@@ -4,7 +4,7 @@ import { setAsideGoneNotes } from "../../src/session-notes/gone-notes";
 import { KeptDrafts } from "../../src/session-notes/kept-drafts";
 import { MISSING } from "../../src/session-notes/kept-kinds";
 
-const THREE = "Pale Moon/Sessions/Session 3.md";
+const THREE = "D&D/Pale Moon/Sessions/Session 3.md";
 const AT = 1_000;
 
 function keptWith(kept: Record<string, string>) {
