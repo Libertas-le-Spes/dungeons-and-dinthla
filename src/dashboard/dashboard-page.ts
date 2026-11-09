@@ -49,6 +49,8 @@ interface Panel {
 
 type OpenRow = (source: Source, onClosed: (changed: boolean) => void) => void;
 
+export type NewsLineFor = (lineEl: HTMLElement) => Component;
+
 function countWord(count: number, one: string, many: string): string {
   if (count === 1) return one;
   return many;
@@ -79,6 +81,7 @@ export class DashboardPage extends Component {
     private readonly store: CampaignStore,
     private readonly notes: CharacterNotes,
     private readonly actions: DashboardActions,
+    private readonly newsLineFor: NewsLineFor,
   ) {
     super();
   }
@@ -87,6 +90,7 @@ export class DashboardPage extends Component {
     const root = this.contentEl;
     root.empty();
     root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-dashboard");
+    this.addChild(this.newsLineFor(root.createDiv({ cls: "dd-news" })));
     const grid = root.createDiv({ cls: "dd-dashboard-grid" });
     this.buildQuestions(grid);
     this.buildQuests(grid);

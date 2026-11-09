@@ -2,11 +2,9 @@ import { describe, expect, it } from "vitest";
 import type { TFile, TFolder } from "obsidian";
 import { CHANGED_IN_NOTE, PartlyWritten } from "../../src/campaign/note-editor";
 import { readsBackDifferently, type CharacterEntry } from "../../src/characters/character-entry";
+import { BAD_NAME, LONG_NAME, RESERVED_NAME } from "../../src/campaign/file-name";
 import {
-  BAD_NAME,
-  LONG_NAME,
   NOTE_MOVED,
-  RESERVED_NAME,
   createCharacter,
   deleteCharacter,
   saveCharacter,
@@ -89,6 +87,18 @@ describe("createCharacter", () => {
     expect(created).toEqual([{ path: `${FOLDER}/Mira.md`, text: "" }]);
   });
 
+  it("makes a character whose name holds an emoji joined by invisible joiners", async () => {
+    const { vault, created } = vaultWith();
+    await createCharacter(vault, "Pale Moon", entry({ name: "Mira \u{1f9d9}\u200d\u2640\ufe0f" }));
+    expect(created).toEqual([{ path: `${FOLDER}/Mira \u{1f9d9}\u200d\u2640\ufe0f.md`, text: "" }]);
+  });
+
+  it("refuses a character name holding a zero-width space", async () => {
+    const { vault, created } = vaultWith();
+    await expect(createCharacter(vault, "Pale Moon", entry({ name: "Mi\u200bra" }))).rejects.toThrow(BAD_NAME);
+    expect(created).toEqual([]);
+  });
+
   it("writes nothing without a name", async () => {
     const { vault, created, folderPaths } = vaultWith({ folders: [] });
     expect(await createCharacter(vault, "Pale Moon", entry({ name: "" }))).toBeNull();
@@ -131,6 +141,37 @@ describe("createCharacter", () => {
     const { vault, created } = vaultWith();
     await createCharacter(vault, "Pale Moon", entry({ name: "Zoe\u0308" }));
     expect(created.map(({ path }) => path)).toEqual([`${FOLDER}/Zo\u00eb.md`]);
+  });
+
+  it("refuses a name that only differs from an existing note's by invisible characters", async () => {
+    for (const name of ["Ali\u200dce", "Ali\u034fce"]) {
+      const { vault, created } = vaultWith({ notes: { [`${FOLDER}/Alice.md`]: "" } });
+      await expect(createCharacter(vault, "Pale Moon", entry({ name }))).rejects.toThrow();
+      expect(created).toEqual([]);
+    }
+  });
+
+  it("refuses a plain name when a note made before invisible characters were refused differs from it only by them", async () => {
+    for (const existing of ["Ali\u200dce", "Ali\u034fce"]) {
+      const { vault, created } = vaultWith({ notes: { [`${FOLDER}/${existing}.md`]: "" } });
+      await expect(createCharacter(vault, "Pale Moon", entry({ name: "Alice" }))).rejects.toThrow(`There is already a note called ${existing} in ${FOLDER}.`);
+      expect(created).toEqual([]);
+    }
+  });
+
+  it("refuses a name whose letter is composed differently from an existing note's that hides an invisible character inside it", async () => {
+    const existing = "Cafe\u200d\u0301";
+    const { vault, created } = vaultWith({ notes: { [`${FOLDER}/${existing}.md`]: "" } });
+    await expect(createCharacter(vault, "Pale Moon", entry({ name: "Caf\u00e9" }))).rejects.toThrow(`There is already a note called ${existing} in ${FOLDER}.`);
+    expect(created).toEqual([]);
+  });
+
+  it("refuses a name that differs from an existing note's only by the kind of space", async () => {
+    for (const existing of ["Mira\u00a0Road", "Mira\u3000Road"]) {
+      const { vault, created } = vaultWith({ notes: { [`${FOLDER}/${existing}.md`]: "" } });
+      await expect(createCharacter(vault, "Pale Moon", entry({ name: "Mira Road" }))).rejects.toThrow(`There is already a note called ${existing} in ${FOLDER}.`);
+      expect(created).toEqual([]);
+    }
   });
 
   it("refuses a name a note in the folder already has, whatever its capitals", async () => {
