@@ -1,4 +1,4 @@
-import { FileView, type TFile, type WorkspaceLeaf } from "obsidian";
+import { Component, type TFile } from "obsidian";
 import type { Source } from "../campaign/campaign";
 import { campaignFolderOf } from "../campaign/campaign-folders";
 import { sessionLabelOf } from "../campaign/session-file";
@@ -12,8 +12,6 @@ import { MentionsPanel } from "./mentions-panel";
 import type { SheetNotes } from "./sheet-notes";
 import { modifierOf } from "./sheet-values";
 import { fillStatBlock } from "./stat-block";
-
-export const CHARACTER_SHEET_VIEW = "dungeons-and-dinthla-character-sheet";
 
 export const TAP_A_VALUE = "Tap a value to change it or its state.";
 
@@ -51,33 +49,25 @@ function earlierText(count: number): string {
   return `${count} earlier values`;
 }
 
-export class CharacterSheetView extends FileView {
+export class CharacterSheetPage extends Component {
   private renders = 0;
   private watched: string[] = [];
   private pendingFocus: { name: string; until: number } | null = null;
   private readonly mentions: MentionsPanel;
 
   constructor(
-    leaf: WorkspaceLeaf,
+    private readonly contentEl: HTMLElement,
+    private readonly file: TFile,
     private readonly store: WatchedStore,
     private readonly notes: SheetNotes,
     private readonly actions: SheetActions,
     mentionNotes: MentionNotes,
   ) {
-    super(leaf);
+    super();
     this.mentions = new MentionsPanel(mentionNotes, actions);
   }
 
-  getViewType(): string {
-    return CHARACTER_SHEET_VIEW;
-  }
-
-  override getIcon(): string {
-    return "user";
-  }
-
   override onload(): void {
-    super.onload();
     this.register(this.store.subscribe(() => this.refresh()));
     const refreshIfWatched = (path: string) => {
       if (this.watches(path)) this.refresh();
@@ -85,25 +75,17 @@ export class CharacterSheetView extends FileView {
     this.register(this.notes.onNoteChanged(refreshIfWatched));
     this.register(this.notes.onNoteMoved(refreshIfWatched));
     this.register(this.mentions.watch());
+    this.refresh();
   }
 
-  override async onLoadFile(file: TFile): Promise<void> {
-    await this.render(file);
-  }
-
-  override async onUnloadFile(): Promise<void> {
+  override onunload(): void {
     this.renders += 1;
     this.mentions.clear();
     this.contentEl.empty();
   }
 
-  override async onRename(file: TFile): Promise<void> {
-    await super.onRename(file);
-    await this.render(file);
-  }
-
   private refresh(): void {
-    if (this.file !== null) void this.render(this.file);
+    void this.render(this.file);
   }
 
   private watches(path: string): boolean {

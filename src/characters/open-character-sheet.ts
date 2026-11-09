@@ -5,15 +5,15 @@ import { sessionLabelOf } from "../campaign/session-file";
 import { messageOf } from "../views/message-of";
 import { sameName } from "./character-entry";
 import type { SheetValue, StatedValue } from "./character-sheet";
-import { CHARACTER_SHEET_VIEW } from "./character-sheet-view";
 import { readCharacterSheet, type ReadSheet, type SheetStore } from "./read-character-sheet";
 import type { SheetNotes } from "./sheet-notes";
 import { SheetValueModal } from "./sheet-value-modal";
 import { NO_SESSION, sessionToWrite, sheetWriteOf, writeSheetValue, type ValueChoice } from "./sheet-value-writer";
 
 export async function openCharacterSheet(app: App, path: string): Promise<void> {
-  if (app.vault.getFileByPath(path) === null) return;
-  await app.workspace.getLeaf(false).setViewState({ type: CHARACTER_SHEET_VIEW, state: { file: path }, active: true });
+  const file = app.vault.getFileByPath(path);
+  if (file === null) return;
+  await app.workspace.getLeaf(false).openFile(file, { active: true });
 }
 
 function sameStated(first: StatedValue | null, second: StatedValue | null): boolean {

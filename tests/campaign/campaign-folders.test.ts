@@ -7,7 +7,9 @@ import {
   isMainNote,
   isSessionNote,
   mainNotePathOf,
+  charactersBasePathOf,
   charactersFolderOf,
+  campaignOfCharacter,
   startingCampaignFolder,
 } from "../../src/campaign/campaign-folders";
 
@@ -58,6 +60,36 @@ describe("mainNotePathOf", () => {
 describe("charactersFolderOf", () => {
   it("is the Characters folder at the campaign's top", () => {
     expect(charactersFolderOf("Pale Moon")).toBe("Pale Moon/Characters");
+  });
+});
+
+describe("charactersBasePathOf", () => {
+  it("is the Characters base at the campaign's top", () => {
+    expect(charactersBasePathOf("Pale Moon")).toBe("Pale Moon/Characters.base");
+  });
+});
+
+describe("campaignOfCharacter", () => {
+  const folders = ["Ashen Road", "Pale Moon"];
+
+  it("is the campaign of a Markdown note in its Characters folder, or a folder inside it", () => {
+    expect(campaignOfCharacter("Pale Moon/Characters/Mira.md", folders)).toBe("Pale Moon");
+    expect(campaignOfCharacter("Ashen Road/Characters/Villains/Lady Vess.md", folders)).toBe("Ashen Road");
+  });
+
+  it("is nothing for another file in the Characters folder", () => {
+    expect(campaignOfCharacter("Pale Moon/Characters/Mira.png", folders)).toBeNull();
+  });
+
+  it("is nothing for a note elsewhere in the campaign, or in a folder only named like Characters", () => {
+    expect(campaignOfCharacter("Pale Moon/Sessions/Session 1.md", folders)).toBeNull();
+    expect(campaignOfCharacter("Pale Moon/Characters.md", folders)).toBeNull();
+    expect(campaignOfCharacter("Pale Moon/Characters.base", folders)).toBeNull();
+    expect(campaignOfCharacter("Pale Moon/Characters old/Mira.md", folders)).toBeNull();
+  });
+
+  it("is nothing for a Characters folder of a folder that isn't a campaign", () => {
+    expect(campaignOfCharacter("Gilded Stag/Characters/Mira.md", folders)).toBeNull();
   });
 });
 
