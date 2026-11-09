@@ -29,22 +29,6 @@ export function itemsFolderOf(campaignFolder: string): string {
   return `${campaignFolder}/Items`;
 }
 
-export function fundsFolderOf(campaignFolder: string): string {
-  return `${campaignFolder}/Funds`;
-}
-
-export function questionsFolderOf(campaignFolder: string): string {
-  return `${campaignFolder}/Questions`;
-}
-
-export function questsFolderOf(campaignFolder: string): string {
-  return `${campaignFolder}/Quests`;
-}
-
-export function placesFolderOf(campaignFolder: string): string {
-  return `${campaignFolder}/Places`;
-}
-
 export function charactersBasePathOf(campaignFolder: string): string {
   return `${campaignFolder}/Characters.base`;
 }
