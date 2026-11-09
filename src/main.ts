@@ -34,11 +34,12 @@ import { ledgerEntryOpener } from "./funds/open-ledger-entry";
 import { ListPage } from "./views/list-page";
 import { activePathOf, openSource } from "./views/open-view";
 import { DashboardPage, type DashboardActions } from "./dashboard/dashboard-page";
-import { FundsPage } from "./funds/funds-page";
 import { campaignSections, type PageId, type ShowPage } from "./interface/campaign-pages";
 import { campaignStateFor, type Takeover } from "./interface/campaign-takeover";
 import { isCampaignViewRegistered } from "./interface/campaign-view-registered";
 import { castSection } from "./interface/cast-section";
+import { fundsSection } from "./interface/funds-section";
+import { noteSection } from "./interface/note-section";
 import { notesSection } from "./interface/notes-section";
 import { keepOneCampaignTab } from "./interface/one-campaign-tab";
 import { pathYouAreIn, shownCampaignPathOf } from "./interface/shown-campaign-path";
@@ -58,6 +59,9 @@ import { startSession } from "./sessions/start-session";
 import { sessionPropertiesOf } from "./sessions/session-properties";
 import { AppendWriter } from "./session-notes/append-writer";
 import { Drafts } from "./session-notes/drafts";
+import { noteTextsOf } from "./campaign/note-texts";
+import { NoteDrafts } from "./note-page/note-drafts";
+import { NoteSaver } from "./note-page/note-saver";
 import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
 
@@ -144,7 +148,10 @@ export default class DungeonsAndDinthla extends Plugin {
     const castNeeds = { store: this.store, characterNotes, sheetNotes, mentionNotes, actions, sheetActions, newCharacter, watchFiles };
     const openers: LookupOpeners = { question: openQuestionAt, quest: openQuestAt, item: openItem };
     const drafts = this.draftsKeptIn(settings);
+    const noteDrafts = new NoteDrafts(drafts);
     this.registerEvent(this.app.vault.on("rename", (file, oldPath) => drafts.moved(oldPath, file.path)));
+    this.registerEvent(this.app.vault.on("rename", (file, oldPath) => noteDrafts.moved(oldPath, file.path)));
+    const texts = noteTextsOf(this.app);
     const notesNeeds = {
       store: this.store,
       drafts,
@@ -160,7 +167,17 @@ export default class DungeonsAndDinthla extends Plugin {
       notes: notesSection(notesNeeds),
       questions: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestionAt, questionsKind, createQuestion),
       quests: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestAt, questsKind, createQuest),
-      funds: (contentEl) => new FundsPage(contentEl, this.store, actions, noteExists, addCoin, openLedgerEntry, openItem),
+      funds: fundsSection({
+        store: this.store,
+        texts,
+        actions,
+        noteExists,
+        addCoin,
+        openLedgerEntry,
+        openItem,
+        campaignFolders: () => this.campaignFolders(),
+      }),
+      note: noteSection({ texts, drafts: noteDrafts, saver: new NoteSaver(this.app.vault), actions }),
     });
     this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView(leaf, this.store, sections, (path) => void this.followCampaignOf(path)));
     for (const opener of PAGE_OPENERS) {
@@ -206,7 +223,7 @@ export default class DungeonsAndDinthla extends Plugin {
       start: (run: () => void, ms: number) => window.setTimeout(run, ms),
       stop: (id: number) => window.clearTimeout(id),
     };
-    const failed = (error: unknown) => new Notice(`Couldn't keep the lines typed on the Session notes page: ${messageOf(error)}`);
+    const failed = (error: unknown) => new Notice(`Couldn't keep the text typed in the campaign tab: ${messageOf(error)}`);
     const file = new DraftFile(settings, (changed) => this.saveData(changed), timer, failed);
     const drafts = new Drafts(settings.drafts, () => file.changed(drafts.all()));
     this.register(() => file.flush());

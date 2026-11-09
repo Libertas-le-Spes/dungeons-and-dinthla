@@ -1,0 +1,27 @@
+.dd-note-page .dd-note-title {
+  margin: 0;
+  font: var(--type-panel-title);
+  font-size: var(--text-xl);
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+}
+
+.dd-note-page .dd-note-box {
+  min-height: 50vh;
+}
+
+.dd-note-page .dd-note-links-title {
+  margin: 0 0 var(--space-2);
+  font: var(--type-label);
+  color: var(--text-muted-ui);
+}
+
+.dd-note-page .dd-note-links-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font: var(--type-note);
+}

@@ -10,6 +10,7 @@ import {
   charactersBasePathOf,
   charactersFolderOf,
   campaignOfCharacter,
+  campaignOfItem,
   startingCampaignFolder,
 } from "../../src/campaign/campaign-folders";
 
@@ -90,6 +91,26 @@ describe("campaignOfCharacter", () => {
 
   it("is nothing for a Characters folder of a folder that isn't a campaign", () => {
     expect(campaignOfCharacter("Gilded Stag/Characters/Mira.md", folders)).toBeNull();
+  });
+});
+
+describe("campaignOfItem", () => {
+  const folders = ["Ashen Road", "Pale Moon"];
+
+  it("is the campaign of a Markdown note in its Items folder, or a folder inside it", () => {
+    expect(campaignOfItem("Pale Moon/Items/Silvered lantern.md", folders)).toBe("Pale Moon");
+    expect(campaignOfItem("Ashen Road/Items/Potions/Potion of healing.md", folders)).toBe("Ashen Road");
+  });
+
+  it("is nothing for another file in the Items folder, a note elsewhere, or a folder only named like Items", () => {
+    expect(campaignOfItem("Pale Moon/Items/Silvered lantern.png", folders)).toBeNull();
+    expect(campaignOfItem("Pale Moon/Places/Old Mill.md", folders)).toBeNull();
+    expect(campaignOfItem("Pale Moon/Items.md", folders)).toBeNull();
+    expect(campaignOfItem("Pale Moon/Items old/Silvered lantern.md", folders)).toBeNull();
+  });
+
+  it("is nothing for an Items folder of a folder that isn't a campaign", () => {
+    expect(campaignOfItem("Gilded Stag/Items/Silvered lantern.md", folders)).toBeNull();
   });
 });
 

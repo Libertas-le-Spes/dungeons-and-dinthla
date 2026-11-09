@@ -65,16 +65,17 @@ const KEEP_DELETED: PathAfterDelete = (path) => path;
 interface EntryOptions {
   countOf?: (campaign: Campaign) => number;
   inBar?: boolean;
+  listed?: boolean;
   pathAfterDelete?: PathAfterDelete;
 }
 
-function entryOf(id: PageId, made: FakePage[], { countOf = () => 0, inBar = true, pathAfterDelete = LEAVE_DELETED }: EntryOptions = {}): PageEntry {
+function entryOf(id: PageId, made: FakePage[], { countOf = () => 0, inBar = true, listed = true, pathAfterDelete = LEAVE_DELETED }: EntryOptions = {}): PageEntry {
   const make = (contentEl: HTMLElement, show: ShowPage, path: string | null, stayOn: StayOn) => {
     const page = new FakePage(id, contentEl, show, path, stayOn);
     made.push(page);
     return page;
   };
-  return { id, label: `Label ${id}`, shortLabel: `Short ${id}`, inBar, glyph: "?", glyphClass: "dd-marker-question", make, pathAfterDelete, countOf };
+  return { id, label: `Label ${id}`, shortLabel: `Short ${id}`, listed, inBar, glyph: "?", glyphClass: "dd-marker-question", make, pathAfterDelete, countOf };
 }
 
 async function openView({
@@ -96,6 +97,7 @@ async function openView({
   const sections: NavSection[] = [
     { heading: null, pages: [entryOf("home", made), entryOf("cast", made, { pathAfterDelete: castAfterDelete })] },
     { heading: "From the notes", pages: [entryOf("questions", made, { countOf: questionCount, inBar: false }), entryOf("funds", made)] },
+    { heading: null, pages: [entryOf("note", made, { listed: false, inBar: false, pathAfterDelete: KEEP_DELETED })] },
   ];
   const requestSaveLayout = vi.fn();
   const followCampaign = vi.fn();
@@ -159,6 +161,14 @@ describe("CampaignView", () => {
     const nav = root.querySelector(".dd-nav")!;
     const shown = [...nav.children].map((child) => child.textContent);
     expect(shown).toEqual(["Pale Moon", "?Label homeShort home", "?Label castShort cast", "From the notes", "?Label questionsShort questions", "?Label fundsShort funds"]);
+  });
+
+  it("leaves a page that isn't listed out of the sidebar, and marks no link current while it is shown", async () => {
+    const { view, root } = await openView();
+    await view.setState({ page: "note", path: "Pale Moon/Places/Old Mill.md" }, { history: false });
+    expect(pageText(root)).toBe("page note Pale Moon/Places/Old Mill.md");
+    expect(root.querySelectorAll(".dd-nav-link")).toHaveLength(4);
+    expect(currentLabels(root)).toEqual([]);
   });
 
   it("gives each link its short name for the bottom bar, and marks the links the bar holds", async () => {
