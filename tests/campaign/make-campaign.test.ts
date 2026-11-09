@@ -64,6 +64,13 @@ describe("makeCampaign", () => {
     expect(made).toEqual(["folder Silver Road", 'note Silver Road/Silver Road.md ""']);
   });
 
+  it("makes a campaign whose name holds a flag written with tag characters", async () => {
+    const { vault, made } = vaultWith();
+    const name = "Highlands \u{1f3f4}\u{e0067}\u{e0062}\u{e0073}\u{e0063}\u{e0074}\u{e007f}";
+    await expect(makeCampaign(vault, name)).resolves.toBe(name);
+    expect(made).toEqual([`folder ${name}`, `note ${name}/${name}.md ""`]);
+  });
+
   it("asks for a name when none is typed, and makes nothing", async () => {
     const { vault, made } = vaultWith();
     await expect(makeCampaign(vault, "   ")).rejects.toThrow(NO_CAMPAIGN_NAME);

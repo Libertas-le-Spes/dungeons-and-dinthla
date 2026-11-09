@@ -87,6 +87,18 @@ describe("createCharacter", () => {
     expect(created).toEqual([{ path: `${FOLDER}/Mira.md`, text: "" }]);
   });
 
+  it("makes a character whose name holds an emoji joined by invisible joiners", async () => {
+    const { vault, created } = vaultWith();
+    await createCharacter(vault, "Pale Moon", entry({ name: "Mira \u{1f9d9}\u200d\u2640\ufe0f" }));
+    expect(created).toEqual([{ path: `${FOLDER}/Mira \u{1f9d9}\u200d\u2640\ufe0f.md`, text: "" }]);
+  });
+
+  it("refuses a character name holding a zero-width space", async () => {
+    const { vault, created } = vaultWith();
+    await expect(createCharacter(vault, "Pale Moon", entry({ name: "Mi\u200bra" }))).rejects.toThrow(BAD_NAME);
+    expect(created).toEqual([]);
+  });
+
   it("writes nothing without a name", async () => {
     const { vault, created, folderPaths } = vaultWith({ folders: [] });
     expect(await createCharacter(vault, "Pale Moon", entry({ name: "" }))).toBeNull();
