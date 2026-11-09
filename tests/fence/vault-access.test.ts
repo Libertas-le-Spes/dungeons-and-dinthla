@@ -16,6 +16,7 @@ const GATEKEEPER_FOLDER = "fence/";
 const PARSED_DATA = ["settings/draft-record.ts"];
 const ALLOWED = ["fence/gatekeeper.ts", "fence/fenced-files.ts", "fence/fenced-file-actions.ts", "fence/folder-choices.ts", "fence/vault-settings.ts"];
 const EDITOR_TEXT_READERS = ["campaign/editor-text.ts"];
+const BASES_READERS = ["characters/characters-view.ts"];
 const LOOSE_CASTERS = ["fence/fenced-metadata.ts", "interface/campaign-view-registered.ts", "interface/one-campaign-tab.ts", "interface/seen-tab.ts"];
 const HIDDEN_CODE = [".js", ".mjs", ".cjs", ".mts", ".cts"];
 const REACHING_SAMPLES = [
@@ -148,6 +149,31 @@ const GLOBAL_APP_SAMPLES = [
   "export const reached = document.defaultView?.app;",
 ];
 
+const NOTE_READING_SAMPLES = [
+  'import type { MarkdownPostProcessorContext } from "obsidian";\nexport const lines = (el: HTMLElement, context: MarkdownPostProcessorContext) => context.getSectionInfo(el)?.text;',
+  'import type { MarkdownPostProcessorContext } from "obsidian";\nexport const properties = (context: MarkdownPostProcessorContext) => context.frontmatter;',
+  'import type { MarkdownView } from "obsidian";\nexport const text = (view: MarkdownView) => view.currentMode.get();',
+  'import type { MarkdownView } from "obsidian";\nexport const text = (view: MarkdownView) => view.previewMode.get();',
+  'import type { MarkdownSubView } from "obsidian";\nexport const text = (mode: MarkdownSubView) => mode.get();',
+  'import type { MarkdownPreviewView } from "obsidian";\nexport const text = (mode: MarkdownPreviewView) => mode["get"]();',
+  'import type { BasesEntry, BasesPropertyId } from "obsidian";\nexport const value = (entry: BasesEntry, id: BasesPropertyId) => entry.getValue(id);',
+  'import type { BasesView } from "obsidian";\nexport const files = (view: BasesView) => view.data.data.map((entry) => entry.file);',
+  'import type { BasesQueryResult } from "obsidian";\nexport const groups = (result: BasesQueryResult) => result.groupedData;',
+  'import type { BasesEntryGroup } from "obsidian";\nexport const listed = (group: BasesEntryGroup) => group.entries;',
+  "const { frontmatter } = context;",
+  "const { getSectionInfo } = context;",
+  "const { previewMode } = view;",
+];
+
+const VIEW_TEXT_SAMPLES = [
+  'import type { MarkdownView } from "obsidian";\nexport const text = (view: MarkdownView) => view.contentEl.innerText;',
+  'import type { MarkdownView } from "obsidian";\nexport const text = (view: MarkdownView) => view.containerEl.textContent;',
+  'import type { WorkspaceLeaf } from "obsidian";\nexport const text = (leaf: WorkspaceLeaf) => leaf.view.containerEl.textContent;',
+  'import type { MarkdownView } from "obsidian";\nexport const text = (view: MarkdownView) => view.previewMode.containerEl.outerText;',
+  'export const text = (view: any) => view.contentEl.innerText;',
+  'import type { ItemView } from "obsidian";\nexport const text = (view: ItemView) => (view.contentEl).textContent;',
+];
+
 const CONSTRUCTOR_SAMPLES = [
   '(() => 0).constructor("return this")();',
   'export const make = (run: () => void) => run["constructor"];',
@@ -172,10 +198,15 @@ const HARMLESS_SAMPLES = [
   "export const merged = (first: { name: string }, second: { level: number }) => ({ ...first, ...second });",
   'export const hasLevel = (sheet: { level: number } | { name: string }) => "level" in sheet;',
   'export const level = (saved: object) => "level" in saved && typeof saved.level === "number";',
+  'import type { CachedMetadata } from "obsidian";\nexport const properties = (cache: CachedMetadata) => cache.frontmatter;',
+  'export const level = (levels: Map<string, number>) => levels.get("Mira");',
+  'export const listed = (levels: Map<string, number>) => [...levels.entries()];',
+  'import { ItemView } from "obsidian";\nexport class Ledger extends ItemView {\n  getViewType(): string {\n    return "ledger";\n  }\n  getDisplayText(): string {\n    return this.contentEl.textContent;\n  }\n}',
+  "export const text = (box: HTMLElement) => box.textContent;",
   'export class Tab {\n  constructor(readonly app: { name: string }) {}\n  name(): string {\n    return this.app.name;\n  }\n}',
 ];
 
-const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...HARMLESS_SAMPLES];
+const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...NOTE_READING_SAMPLES, ...VIEW_TEXT_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...HARMLESS_SAMPLES];
 
 interface Planted {
   name: string;
@@ -299,6 +330,7 @@ const NOTHING_ALLOWED: Allowances = {
   editorReading: isNeverAllowed,
   fileTree: isNeverAllowed,
   looseCasts: isNeverAllowed,
+  noteReading: isNeverAllowed,
 };
 
 function isAlwaysAllowed(): boolean {
@@ -306,6 +338,15 @@ function isAlwaysAllowed(): boolean {
 }
 
 const LOOSE_CASTS_ALLOWED: Allowances = { ...NOTHING_ALLOWED, looseCasts: isAlwaysAllowed };
+
+const ALL_ALLOWED: Allowances = {
+  vault: isAlwaysAllowed,
+  keyReading: isAlwaysAllowed,
+  editorReading: isAlwaysAllowed,
+  fileTree: isAlwaysAllowed,
+  looseCasts: isAlwaysAllowed,
+  noteReading: isAlwaysAllowed,
+};
 
 function isOneOf(files: string[]): (path: string) => boolean {
   return (path) => files.some((file) => path === `${SOURCE_FOLDER}${file}`);
@@ -321,6 +362,7 @@ const SOURCE_ALLOWANCES: Allowances = {
   editorReading: isOneOf(EDITOR_TEXT_READERS),
   fileTree: isGatekeeper,
   looseCasts: isOneOf(LOOSE_CASTERS),
+  noteReading: isOneOf(BASES_READERS),
 };
 
 let scanner: SourceScanner;
@@ -398,6 +440,14 @@ describe("the vault fence", () => {
     }
   });
 
+  it("lets only the characters Bases view read what Bases lists, which it still needs and does nothing else the fence refuses", () => {
+    for (const reader of BASES_READERS) {
+      const breaches = scanner.breaches(BUNDLED_PROJECT, [sourcePath(reader)], NOTHING_ALLOWED);
+      expect(breaches).not.toEqual([]);
+      for (const breach of breaches) expect(breach).toContain("reads a note's text through Obsidian");
+    }
+  });
+
   it("scans a .mts file the entry point loads, and refuses it under src", () => {
     const breaches = plantedBreaches("mts");
     expect(breaches).toContain("src/reader.mts is code under src that the scan can't read as TypeScript");
@@ -459,6 +509,14 @@ describe("the vault fence", () => {
 
   it.each(GLOBAL_APP_SAMPLES)("would catch reaching the app through a window or globalThis with %s, even in a file allowed to cast", (sample) => {
     expect(sampleBreaches(sample, LOOSE_CASTS_ALLOWED)).not.toEqual([]);
+  });
+
+  it.each(NOTE_READING_SAMPLES)("would catch reading a note's text through Obsidian with %s", (sample) => {
+    expect(sampleBreaches(sample)).not.toEqual([]);
+  });
+
+  it.each(VIEW_TEXT_SAMPLES)("would catch reading the text of a view's element with %s", (sample) => {
+    expect(sampleBreaches(sample, ALL_ALLOWED)).not.toEqual([]);
   });
 
   it.each(CONSTRUCTOR_SAMPLES)("would catch reaching a constructor with %s", (sample) => {
