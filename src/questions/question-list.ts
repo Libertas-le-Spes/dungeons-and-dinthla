@@ -1,6 +1,6 @@
 import type { Campaign, QuestionRecord } from "../campaign/campaign";
 import { unlink } from "../notes/link";
-import type { ListContents } from "../views/list-view";
+import type { ListContents } from "../views/list-page";
 
 function searchableTextOf(question: QuestionRecord): string {
   const texts = [question.text];

@@ -1,4 +1,4 @@
-import { ItemView, type WorkspaceLeaf } from "obsidian";
+import { Component } from "obsidian";
 import type { Campaign, Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { keywordsOf } from "./keywords";
@@ -18,8 +18,6 @@ export interface ListCreate {
 }
 
 export interface ListKind<T> {
-  displayText: string;
-  icon: string;
   itemName: string;
   openWord: string;
   foldedWord: string;
@@ -32,7 +30,7 @@ function capitalised(word: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
-export abstract class CampaignListView<T> extends ItemView {
+export class ListPage<T> extends Component {
   private filter!: HTMLInputElement;
   private openCount!: HTMLElement;
   private openList!: HTMLElement;
@@ -41,24 +39,16 @@ export abstract class CampaignListView<T> extends ItemView {
   private readonly rowFocus = new RowFocus();
 
   constructor(
-    leaf: WorkspaceLeaf,
+    private readonly contentEl: HTMLElement,
     private readonly store: CampaignStore,
     private readonly actions: LinkActions,
     private readonly kind: ListKind<T>,
     private readonly create: ListCreate | null,
   ) {
-    super(leaf);
+    super();
   }
 
-  getDisplayText(): string {
-    return this.kind.displayText;
-  }
-
-  override getIcon(): string {
-    return this.kind.icon;
-  }
-
-  override async onOpen(): Promise<void> {
+  override onload(): void {
     const root = this.contentEl;
     root.empty();
     root.addClass("dd-tokens", "dd-root", "dd-list-view");

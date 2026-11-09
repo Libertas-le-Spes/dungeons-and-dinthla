@@ -1,4 +1,4 @@
-import { ItemView, type WorkspaceLeaf } from "obsidian";
+import { Component } from "obsidian";
 import type { Campaign, Source } from "../campaign/campaign";
 import { charactersFolderOf, mainNotePathOf } from "../campaign/campaign-folders";
 import type { CampaignStore } from "../campaign/campaign-store";
@@ -19,8 +19,6 @@ import type { LinkActions } from "../views/linked-text";
 import { focusRowAt, NO_ROW, RowFocus, type FocusRow } from "../views/row-focus";
 import { linesWrittenIn, type WrittenLine } from "./latest-session";
 import { addShortCharacterCard } from "./short-character-card";
-
-export const DASHBOARD_VIEW = "dungeons-and-dinthla-dashboard";
 
 const SHOWN_ROWS = 3;
 const SHOWN_SESSION_LINES = 4;
@@ -54,7 +52,7 @@ function countWord(count: number, one: string, many: string): string {
   return many;
 }
 
-export class DashboardView extends ItemView {
+export class DashboardPage extends Component {
   private questions!: Panel;
   private questionCount!: HTMLElement;
   private questionList!: HTMLElement;
@@ -75,27 +73,15 @@ export class DashboardView extends ItemView {
   private readonly rowFocus = new RowFocus();
 
   constructor(
-    leaf: WorkspaceLeaf,
+    private readonly contentEl: HTMLElement,
     private readonly store: CampaignStore,
     private readonly notes: CharacterNotes,
     private readonly actions: DashboardActions,
   ) {
-    super(leaf);
+    super();
   }
 
-  getViewType(): string {
-    return DASHBOARD_VIEW;
-  }
-
-  getDisplayText(): string {
-    return "Dashboard";
-  }
-
-  override getIcon(): string {
-    return "layout-dashboard";
-  }
-
-  override async onOpen(): Promise<void> {
+  override onload(): void {
     const root = this.contentEl;
     root.empty();
     root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-dashboard");
