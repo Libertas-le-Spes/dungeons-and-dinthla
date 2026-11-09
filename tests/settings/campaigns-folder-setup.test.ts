@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { CampaignsFolderSetting } from "../../src/settings/campaigns-folder-setting";
 import { CampaignsFolderSetup } from "../../src/settings/campaigns-folder-setup";
+import { SettingsSaver } from "../../src/settings/settings-saver";
 import { Notice } from "../stubs/obsidian";
 
 function setupWith({ chooseFails = false, makeFails = false } = {}) {
@@ -68,5 +70,42 @@ describe("CampaignsFolderSetup", () => {
     const { setup, setting } = setupWith({ makeFails: true });
     await expect(setup.make("D&D")).rejects.toThrow("A file already has that name.");
     expect(setting.choose).not.toHaveBeenCalled();
+  });
+
+  it("sets the folder picked when nothing else is asked for after", async () => {
+    const { setup, setting, pick } = setupWith();
+    setup.pick();
+    pick("D&D");
+    await settled();
+    expect(setting.choose).toHaveBeenCalledExactlyOnceWith("D&D");
+  });
+
+  it("says the folder was set, and still says it is chosen, when opening a campaign in it fails", async () => {
+    const saver = new SettingsSaver({ campaignsFolder: null, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null }, async () => {});
+    const setting = new CampaignsFolderSetting(saver, async () => {
+      throw new Error("The note can't be read.");
+    });
+    let picked: (folder: string) => void = () => {};
+    const setup = new CampaignsFolderSetup(setting, { folderPaths: () => ["D&D"], make: async (typed: string) => typed }, (_folders, chosen) => {
+      picked = chosen;
+    });
+    const chosen = vi.fn();
+    setup.pick(chosen);
+    picked("D&D");
+    await settled();
+    expect(saver.settings.campaignsFolder).toBe("D&D");
+    expect(chosen).toHaveBeenCalledOnce();
+    expect(Notice.shown).toEqual(["Set the Campaigns folder to D&D, but couldn't open a campaign in it: The note can't be read."]);
+  });
+
+  it("makes the folder without failing when opening a campaign in it fails", async () => {
+    const saver = new SettingsSaver({ campaignsFolder: null, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null }, async () => {});
+    const setting = new CampaignsFolderSetting(saver, async () => {
+      throw new Error("The note can't be read.");
+    });
+    const setup = new CampaignsFolderSetup(setting, { folderPaths: () => [], make: async (typed: string) => typed }, () => {});
+    await setup.make("D&D");
+    expect(saver.settings.campaignsFolder).toBe("D&D");
+    expect(Notice.shown).toEqual(["Set the Campaigns folder to D&D, but couldn't open a campaign in it: The note can't be read."]);
   });
 });
