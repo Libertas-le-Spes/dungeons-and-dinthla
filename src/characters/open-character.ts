@@ -25,9 +25,11 @@ function characterAt(gate: Gate, notes: CharacterNotes, path: string): Character
   return { file, campaignFolder };
 }
 
-async function openMade(app: App, note: TFile): Promise<void> {
+async function openMade(app: App, gate: Gate, note: TFile): Promise<void> {
+  const file = gate.files.getFileByPath(note.path);
+  if (file === null) return;
   try {
-    await app.workspace.getLeaf(false).openFile(note);
+    await app.workspace.getLeaf(false).openFile(file);
   } catch (error) {
     new Notice(`${note.basename} was made but couldn't be opened: ${messageOf(error)}`);
   }
@@ -41,7 +43,7 @@ export function openNewCharacter(app: App, gate: Gate, campaignFolder: string | 
   const save = async (entry: CharacterEntry) => {
     const note = await createCharacter(gate.files, campaignFolder, entry);
     if (note === null) return false;
-    void openMade(app, note);
+    void openMade(app, gate, note);
     return true;
   };
   const where = `Adds a note to ${charactersFolderOf(campaignFolder)}. ${NEW_WHERE}`;
