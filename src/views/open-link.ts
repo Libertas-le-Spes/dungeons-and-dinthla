@@ -3,6 +3,7 @@ import { campaignFolderOf } from "../campaign/campaign-folders";
 import type { Gate } from "../fence/gatekeeper";
 import { makeLinkedNote } from "./linked-note";
 import { messageOf } from "./message-of";
+import { noteInCampaignFor } from "./note-in-campaign";
 
 export interface LinkPlace {
   gate: Pick<Gate, "files" | "metadata">;
@@ -30,9 +31,17 @@ export async function openLink(app: App, place: LinkPlace, linktext: string, sou
     await openNote(app, found, subpath);
     return;
   }
+  const campaignFolder = campaignFolderOf(sourcePath, place.campaignFolders());
+  if (campaignFolder !== null) {
+    const inCampaign = noteInCampaignFor(place.gate.files, campaignFolder, linkpath, sourcePath);
+    if (inCampaign !== null) {
+      await openNote(app, inCampaign, subpath);
+      return;
+    }
+  }
   let made: TFile;
   try {
-    made = await makeLinkedNote(place.gate.files, campaignFolderOf(sourcePath, place.campaignFolders()), linkpath);
+    made = await makeLinkedNote(place.gate.files, campaignFolder, linkpath);
   } catch (error) {
     new Notice(notMade(linkpath, messageOf(error)));
     return;

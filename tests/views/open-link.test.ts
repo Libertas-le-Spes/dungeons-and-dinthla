@@ -105,6 +105,97 @@ describe("openLink to a note that doesn't exist inside the Campaigns folder", ()
   });
 });
 
+describe("openLink to a note in the campaign when the link leads outside the Campaigns folder", () => {
+  const ROOT_MILL = fileAt("Old Mill.md");
+
+  it("opens the note it made on every later press, making it only once", async () => {
+    const files = [SESSION, ROOT_MILL];
+    const { app, place, calls, leaf } = placeWith(ROOT_MILL, files);
+    calls.create.mockImplementation(async (path: string) => {
+      const made = fileAt(path);
+      files.push(made);
+      return made;
+    });
+    await openLink(app, place, "Old Mill", SESSION.path);
+    await openLink(app, place, "Old Mill", SESSION.path);
+    await openLink(app, place, "Old Mill", SESSION.path);
+    expect(calls.create.mock.calls).toEqual([["D&D/Pale Moon/Old Mill.md", ""]]);
+    expect(openedPaths(leaf)).toEqual(["D&D/Pale Moon/Old Mill.md", "D&D/Pale Moon/Old Mill.md", "D&D/Pale Moon/Old Mill.md"]);
+    expect(Notice.shown).toEqual([]);
+  });
+
+  it("opens the note already at the path the link would make, at the heading it names", async () => {
+    const there = fileAt("D&D/Pale Moon/Old Mill.md");
+    const { app, place, calls, leaf } = placeWith(ROOT_MILL, [SESSION, ROOT_MILL, there]);
+    await openLink(app, place, "Old Mill#Cellar", SESSION.path);
+    expect(leaf.openFile).toHaveBeenCalledWith(there, { eState: { subpath: "#Cellar" } });
+    expect(calls.create).not.toHaveBeenCalled();
+  });
+
+  it("opens a note of that name in a folder of the campaign, making no second one", async () => {
+    const placed = fileAt("D&D/Pale Moon/Places/Old Mill.md");
+    const { app, place, calls, leaf } = placeWith(ROOT_MILL, [SESSION, ROOT_MILL, placed]);
+    await openLink(app, place, "Old Mill", SESSION.path);
+    expect(openedPaths(leaf)).toEqual([placed.path]);
+    expect(calls.create).not.toHaveBeenCalled();
+  });
+
+  it("opens the note whose path ends with the folders the link names", async () => {
+    const town = fileAt("D&D/Pale Moon/Places/Town/Inn.md");
+    const road = fileAt("D&D/Pale Moon/Places/Road/Inn.md");
+    const { app, place, leaf } = placeWith(null, [SESSION, road, town]);
+    await openLink(app, place, "Town/Inn", SESSION.path);
+    expect(openedPaths(leaf)).toEqual([town.path]);
+  });
+
+  it("opens the note at the link's path from the campaign folder before a nearer note that ends the same way", async () => {
+    const exact = fileAt("D&D/Pale Moon/Places/Old Mill.md");
+    const nearer = fileAt("D&D/Pale Moon/Sessions/Places/Old Mill.md");
+    const { app, place, leaf } = placeWith(null, [SESSION, nearer, exact]);
+    await openLink(app, place, "Places/Old Mill", SESSION.path);
+    expect(openedPaths(leaf)).toEqual([exact.path]);
+  });
+
+  it("opens the note of that name nearest to the note holding the link", async () => {
+    const far = fileAt("D&D/Pale Moon/Places/Old/Old Mill.md");
+    const near = fileAt("D&D/Pale Moon/Sessions/Places/Old Mill.md");
+    const { app, place, leaf } = placeWith(ROOT_MILL, [SESSION, ROOT_MILL, far, near]);
+    await openLink(app, place, "Old Mill", SESSION.path);
+    expect(openedPaths(leaf)).toEqual([near.path]);
+  });
+
+  it("opens the first by path of two notes of that name as near as each other", async () => {
+    const road = fileAt("D&D/Pale Moon/Road/Old Mill.md");
+    const places = fileAt("D&D/Pale Moon/Places/Old Mill.md");
+    const { app, place, leaf } = placeWith(ROOT_MILL, [SESSION, ROOT_MILL, road, places]);
+    await openLink(app, place, "Old Mill", SESSION.path);
+    expect(openedPaths(leaf)).toEqual([places.path]);
+  });
+
+  it("opens a note whose name differs from the link only in capitals", async () => {
+    const placed = fileAt("D&D/Pale Moon/Places/old mill.md");
+    const { app, place, calls, leaf } = placeWith(ROOT_MILL, [SESSION, ROOT_MILL, placed]);
+    await openLink(app, place, "Old Mill", SESSION.path);
+    expect(openedPaths(leaf)).toEqual([placed.path]);
+    expect(calls.create).not.toHaveBeenCalled();
+  });
+
+  it("leaves alone a note of that name in another campaign, and makes one in this campaign", async () => {
+    const other = fileAt("D&D/Ashen Road/Old Mill.md");
+    const { app, place, calls, leaf } = placeWith(ROOT_MILL, [SESSION, ROOT_MILL, other]);
+    await openLink(app, place, "Old Mill", SESSION.path);
+    expect(calls.create).toHaveBeenCalledWith("D&D/Pale Moon/Old Mill.md", "");
+    expect(openedPaths(leaf)).toEqual(["D&D/Pale Moon/Old Mill.md"]);
+  });
+
+  it("leaves alone a note whose name only ends with the link's name", async () => {
+    const other = fileAt("D&D/Pale Moon/Places/Gold Mill.md");
+    const { app, place, calls } = placeWith(ROOT_MILL, [SESSION, ROOT_MILL, other]);
+    await openLink(app, place, "Mill", SESSION.path);
+    expect(calls.create).toHaveBeenCalledWith("D&D/Pale Moon/Mill.md", "");
+  });
+});
+
 describe("openLink refusing to make a note", () => {
   async function expectNothingMade(place: ReturnType<typeof placeWith>, linktext: string, sourcePath: string, notice: string) {
     await openLink(place.app, place.place, linktext, sourcePath);
@@ -145,9 +236,8 @@ describe("openLink refusing to make a note", () => {
     await expectNothingMade(placeWith(null), "#Background", SESSION.path, notMade("", NO_NAME));
   });
 
-  it("makes nothing where a note already sits, even when the link leads outside the Campaigns folder", async () => {
-    const taken = fileAt("D&D/Pale Moon/Primary.md");
-    await expectNothingMade(placeWith(PRIVATE, [SESSION, PRIVATE, taken]), "Primary", SESSION.path, notMade("Primary", takenAt(taken.path)));
+  it("makes nothing for a link that names no note, even when the campaign holds a note named .md", async () => {
+    await expectNothingMade(placeWith(null, [SESSION, fileAt("D&D/Pale Moon/.md")]), "#Background", SESSION.path, notMade("", NO_NAME));
   });
 
   it("makes nothing where a folder already sits", async () => {
