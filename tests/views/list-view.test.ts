@@ -3,8 +3,8 @@ import type { WorkspaceLeaf } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { Campaign } from "../../src/campaign/campaign";
 import type { CampaignStore } from "../../src/campaign/campaign-store";
-import { questsKind } from "../../src/quests/quests-kind";
-import { CampaignListView, type ListCreate } from "../../src/views/list-view";
+import { QuestsView } from "../../src/quests/quests-view";
+import type { ListCreate } from "../../src/views/list-view";
 import { obsidianDocument } from "./obsidian-dom";
 
 function campaignOf(lines: string[]): Campaign {
@@ -21,7 +21,7 @@ async function openView(campaign: Campaign, create: ListCreate | null = null) {
       return unsubscribe;
     },
   };
-  const view = new CampaignListView({} as WorkspaceLeaf, store as unknown as CampaignStore, { openRow: vi.fn(), openLink: vi.fn() }, questsKind, create);
+  const view = new QuestsView({} as WorkspaceLeaf, store as unknown as CampaignStore, { openRow: vi.fn(), openLink: vi.fn() }, create);
   const document = obsidianDocument();
   const root = document.createElement("div");
   document.body.append(root);

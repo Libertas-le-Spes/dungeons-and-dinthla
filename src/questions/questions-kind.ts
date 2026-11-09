@@ -3,10 +3,7 @@ import type { ListKind } from "../views/list-view";
 import { listQuestions } from "./question-list";
 import { addQuestionRow } from "./question-row";
 
-export const QUESTIONS_VIEW = "dungeons-and-dinthla-questions";
-
 export const questionsKind: ListKind<QuestionRecord> = {
-  viewType: QUESTIONS_VIEW,
   displayText: "Questions",
   icon: "circle-help",
   itemName: "question",
