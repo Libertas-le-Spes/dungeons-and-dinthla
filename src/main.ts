@@ -30,6 +30,8 @@ import { openItemDialog } from "./funds/open-item";
 import { ledgerEntryOpener } from "./funds/open-ledger-entry";
 import { ListPage } from "./views/list-page";
 import { activePathOf, openSource } from "./views/open-view";
+import type { LinkFrom } from "./views/link-line";
+import { askMadeNoteFolderIn } from "./views/made-note-modal";
 import { openLink } from "./views/open-link";
 import type { DashboardActions } from "./dashboard/dashboard-page";
 import { campaignSections, type PageId, type ShowPage } from "./interface/campaign-pages";
@@ -130,10 +132,11 @@ export default class DungeonsAndDinthla extends Plugin {
       choose: (folder: string) => this.chosen.choose(folder),
     };
     this.addSettingTab(new CampaignSettingTab(this.app, this, gate, campaignsFolderSetup, campaignChoice, () => help.showWelcome()));
+    const linkPlace = { gate, campaignFolders: () => this.campaignFolders(), askFolder: askMadeNoteFolderIn(this.app) };
     const actions = {
       openRow: (source: Source) => void openSource(this.app, gate, source),
-      openLink: (linktext: string, sourcePath: string, newLeaf: PaneType | boolean) =>
-        void openLink(this.app, { gate, campaignFolders: () => this.campaignFolders() }, linktext, sourcePath, newLeaf),
+      openLink: (linktext: string, from: LinkFrom, newLeaf: PaneType | boolean) =>
+        void openLink(this.app, linkPlace, linktext, from, newLeaf),
     };
     const openQuestionAt = (source: Source, onClosed: (changed: boolean) => void) =>
       openQuestion(this.app, gate, this.store, source, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app));

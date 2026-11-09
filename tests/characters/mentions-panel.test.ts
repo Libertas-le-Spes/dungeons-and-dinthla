@@ -138,7 +138,7 @@ describe("MentionsPanel", () => {
     shown.parent.querySelector<HTMLElement>(".dd-row")!.click();
     expect(shown.actions.openRow).toHaveBeenCalledWith({ path: TWO, line: 1 });
     shown.parent.querySelectorAll<HTMLElement>(".dd-row a")[1]!.click();
-    expect(shown.actions.openLink).toHaveBeenCalledWith("Vess", TWO, false);
+    expect(shown.actions.openLink).toHaveBeenCalledWith("Vess", { path: TWO, line: 1 }, false);
     expect(shown.actions.openRow).toHaveBeenCalledTimes(1);
   });
 

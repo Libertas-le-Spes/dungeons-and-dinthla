@@ -1,5 +1,6 @@
 import { Keymap, type PaneType } from "obsidian";
 import type { Source } from "../campaign/campaign";
+import type { LinkFrom } from "./link-line";
 import { textRunsOf, type MarkedPiece } from "./text-parts";
 
 const MIDDLE_BUTTON = 1;
@@ -8,7 +9,7 @@ const ACTIVATING_KEYS = ["Enter", " "];
 
 export interface LinkActions {
   openRow(source: Source): void;
-  openLink(linktext: string, sourcePath: string, newLeaf: PaneType | boolean): void;
+  openLink(linktext: string, from: LinkFrom, newLeaf: PaneType | boolean): void;
 }
 
 function addPieces(parent: HTMLElement, pieces: MarkedPiece[]): void {
@@ -22,14 +23,14 @@ export function addNameLink(
   parent: HTMLElement,
   text: string,
   linktext: string,
-  sourcePath: string,
+  from: LinkFrom,
   actions: LinkActions,
 ): HTMLElement {
   const name = parent.createEl("a", { cls: "dd-link-name", text, attr: { role: "link", tabindex: "0", draggable: "false" } });
   const follow = (event: MouseEvent | KeyboardEvent) => {
     event.preventDefault();
     event.stopPropagation();
-    actions.openLink(linktext, sourcePath, Keymap.isModEvent(event));
+    actions.openLink(linktext, from, Keymap.isModEvent(event));
   };
   name.addEventListener("click", follow);
   name.addEventListener("auxclick", (event) => {
@@ -42,10 +43,10 @@ export function addNameLink(
   return name;
 }
 
-function addLink(parent: HTMLElement, linktext: string, sourcePath: string, actions: LinkActions): HTMLElement {
+function addLink(parent: HTMLElement, linktext: string, from: LinkFrom, actions: LinkActions): HTMLElement {
   const link = parent.createSpan({ cls: "dd-link" });
   link.createSpan({ cls: "dd-link-bracket", text: "[[" });
-  const name = addNameLink(link, "", linktext, sourcePath, actions);
+  const name = addNameLink(link, "", linktext, from, actions);
   link.createSpan({ cls: "dd-link-bracket", text: "]]" });
   return name;
 }
@@ -54,12 +55,12 @@ export function addLinkedText(
   parent: HTMLElement,
   text: string,
   keywords: string[],
-  sourcePath: string,
+  from: LinkFrom,
   actions: LinkActions,
 ): void {
   for (const run of textRunsOf(text, keywords)) {
     if (run.linktext === null) addPieces(parent, run.pieces);
-    else addPieces(addLink(parent, run.linktext, sourcePath, actions), run.pieces);
+    else addPieces(addLink(parent, run.linktext, from, actions), run.pieces);
   }
 }
 
