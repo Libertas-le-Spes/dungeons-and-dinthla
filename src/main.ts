@@ -67,6 +67,7 @@ import { welcomeOpenerOf } from "./welcome/welcome-opener";
 import { Gatekeeper } from "./fence/gatekeeper";
 import { homeSection } from "./interface/home-section";
 import { welcomeSection } from "./interface/welcome-section";
+import { campaignsFolderFirst } from "./interface/campaigns-folder-first";
 import { NEWS_BY_VERSION } from "./whats-new/news-by-version";
 import { sessionHeadingOf } from "./sessions/session-heading";
 import { startSession } from "./sessions/start-session";
@@ -216,7 +217,13 @@ export default class DungeonsAndDinthla extends Plugin {
       },
       startSession: newSession,
     };
-    const sections = campaignSections({
+    const welcome = welcomeSection({
+      store: this.store,
+      campaignsFolder: campaignsFolderSetup,
+      maker: new CampaignMaker(gate.files, () => this.campaignsFolder.path, (folder) => this.chosen.choose(folder)),
+      startSession: newSession,
+    });
+    const pages = campaignSections({
       home: homeSection({ store: this.store, characterNotes, news: help.whatsNew, actionsFor: dashboardActionsFor }),
       cast: castSection(castNeeds),
       notes: notesSection(notesNeeds),
@@ -238,13 +245,9 @@ export default class DungeonsAndDinthla extends Plugin {
         isCampaignNote: (path: string) => campaignFolderOf(path, this.campaignFolders()) !== null,
         openInEditor: (path: string) => void openInEditor(this.app, gate, path),
       }),
-      welcome: welcomeSection({
-        store: this.store,
-        campaignsFolder: campaignsFolderSetup,
-        maker: new CampaignMaker(gate.files, () => this.campaignsFolder.path, (folder) => this.chosen.choose(folder)),
-        startSession: newSession,
-      }),
+      welcome,
     });
+    const sections = campaignsFolderFirst(pages, welcome, () => this.campaignsFolder.path);
     const backdropFor = (frameEl: HTMLElement) => new TabBackground(frameEl, this.store, gate.metadata, gate.files);
     this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView(leaf, this.store, sections, (path) => void this.followCampaignOf(path), backdropFor, gate.files));
     for (const opener of PAGE_OPENERS) {
