@@ -1,6 +1,10 @@
 import type { Source } from "../campaign/campaign";
 import { textRunsOf, type MarkedPiece } from "./text-parts";
 
+const MIDDLE_BUTTON = 1;
+
+const ACTIVATING_KEYS = ["Enter", " "];
+
 export interface LinkActions {
   openRow(source: Source): void;
   openLink(linktext: string, sourcePath: string): void;
@@ -20,12 +24,20 @@ export function addNameLink(
   sourcePath: string,
   actions: LinkActions,
 ): HTMLElement {
-  const name = parent.createEl("a", { cls: "internal-link", text, href: linktext, attr: { "data-href": linktext } });
-  name.addEventListener("click", (event) => {
+  const name = parent.createEl("a", { cls: "dd-link-name", text, attr: { role: "link", tabindex: "0", draggable: "false" } });
+  const follow = (event: Event) => {
     event.preventDefault();
     event.stopPropagation();
     actions.openLink(linktext, sourcePath);
+  };
+  name.addEventListener("click", follow);
+  name.addEventListener("auxclick", (event) => {
+    if (event.button === MIDDLE_BUTTON) follow(event);
   });
+  name.addEventListener("keydown", (event) => {
+    if (ACTIVATING_KEYS.includes(event.key)) follow(event);
+  });
+  name.addEventListener("dragstart", (event) => event.preventDefault());
   return name;
 }
 

@@ -2,7 +2,7 @@ import { build } from "esbuild";
 import { describe, expect, it } from "vitest";
 import type { BuildOptions } from "esbuild";
 import { PLUGIN_BUNDLE, STYLES_BUNDLE } from "../../scripts/bundle-options.ts";
-import { networkCodeIn, PICTURE_CSS } from "../../scripts/network-code.ts";
+import { LINK_ROLE, networkCodeIn, PICTURE_CSS } from "../../scripts/network-code.ts";
 import { styleNetworkCodeIn } from "../../scripts/style-network-code.ts";
 
 async function built(options: BuildOptions): Promise<string> {
@@ -136,6 +136,12 @@ describe("networkCodeIn", () => {
     ]);
   });
 
+  it("finds nothing in a link's role, and still finds a link element beside it", () => {
+    expect(networkCodeIn('const name = parent.createEl("a", { cls: "dd-link-name", text, attr: { role: "link", tabindex: "0" } });')).toEqual([]);
+    expect(networkCodeIn('parent.createEl("link", { attr: { role: "link", href: address } })')).toContain("an element that loads from an address");
+    expect(networkCodeIn('el.setAttribute("role", "link")')).toContain("an element that loads from an address");
+  });
+
   it("finds nothing in the background picture's url(", () => {
     expect(networkCodeIn("function isResourceUrl(url, platform) {\n  return new _PictureCss(`url(\"${safe}\")`);")).toEqual([]);
   });
@@ -254,6 +260,7 @@ describe("the built plugin", () => {
     const bundle = await built(PLUGIN_BUNDLE);
     expect(bundle).toContain('require("obsidian")');
     expect(bundle).toContain(PICTURE_CSS);
+    expect(bundle).toContain(LINK_ROLE);
     expect(networkCodeIn(bundle)).toEqual([]);
   }, 30_000);
 });

@@ -1,3 +1,13 @@
+.dd-root .dd-link-name {
+  color: var(--marker-link);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.dd-root .dd-link-name:hover {
+  text-decoration: underline;
+}
+
 .dd-root .dd-link {
   color: var(--marker-link);
 }
