@@ -139,6 +139,14 @@ describe("CampaignView", () => {
     expect(pageText(root)).toBe("page home");
   });
 
+  it("keeps the page it is on when a later state names no page", async () => {
+    const { view, root, made } = await openView();
+    await view.setState({ page: "funds" }, {} as ViewStateResult);
+    await view.setState({}, {} as ViewStateResult);
+    expect(made.map((page) => page.id)).toEqual(["home", "funds"]);
+    expect(pageText(root)).toBe("page funds");
+  });
+
   it("shows a page's count beside its link, and none for a count of nothing", async () => {
     const { root, change } = await openView();
     change(["? Who sent the letter", "? Who is the pale woman"]);

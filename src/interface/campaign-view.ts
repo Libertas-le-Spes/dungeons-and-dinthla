@@ -40,10 +40,6 @@ export class CampaignView extends ItemView {
     return "shield";
   }
 
-  get page(): Component | null {
-    return this.shownPage;
-  }
-
   override getState(): Record<string, unknown> {
     if (this.current === null) return {};
     return { page: this.current.id };

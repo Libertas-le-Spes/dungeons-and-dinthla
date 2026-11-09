@@ -129,8 +129,8 @@ export default class DungeonsAndDinthla extends Plugin {
     const sections = campaignSections({
       home: (contentEl, show) => new DashboardPage(contentEl, this.store, characterNotes, dashboardActionsFor(show)),
       cast: (contentEl) => new CastPage(contentEl, this.store, characterNotes, galleryActions, newCharacter, watchFiles),
-      questions: (contentEl) => new ListPage(contentEl, this.store, actions, openQuestionAt, questionsKind, createQuestion),
-      quests: (contentEl) => new ListPage(contentEl, this.store, actions, openQuestAt, questsKind, createQuest),
+      questions: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestionAt, questionsKind, createQuestion),
+      quests: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestAt, questsKind, createQuest),
       funds: (contentEl) => new FundsPage(contentEl, this.store, actions, noteExists, addCoin, openLedgerEntry, openItem),
     });
     this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView(leaf, this.store, sections));
