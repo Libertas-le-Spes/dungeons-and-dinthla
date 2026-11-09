@@ -89,7 +89,7 @@ describe("SessionNotesPage", () => {
     const { root, select, lineTexts } = pageWith(SESSIONS, null);
     expect(root.querySelector(".dd-notes-title")?.textContent).toBe("Session 12 · The Old Mill");
     expect(select().value).toBe(`${FOLDER}/Sessions/Session 12.md`);
-    expect(lineTexts()).toEqual(["Tracks lead to the [[Old Mill]].", "Find the caravan"]);
+    expect(lineTexts()).toEqual(["Find the caravan", "Tracks lead to the [[Old Mill]]."]);
   });
 
   it("asks the tab to show another session when one is chosen", () => {
@@ -123,7 +123,7 @@ describe("SessionNotesPage", () => {
     const box = root.querySelector("textarea")!;
     box.value = "! Ride to Thessaly";
     change([sessionOf(11, ["? Who sent the letter", "?= Who sent the letter: Lady Vess"]), SESSIONS[1]!]);
-    expect(lineTexts()).toEqual(["Who sent the letter", "Who sent the letter: Lady Vess"]);
+    expect(lineTexts()).toEqual(["Who sent the letter: Lady Vess", "Who sent the letter"]);
     expect(root.querySelector(".dd-line-state")?.textContent).toBe("✓");
     expect(root.querySelector("textarea")).toBe(box);
     expect(box.value).toBe("! Ride to Thessaly");
@@ -136,7 +136,7 @@ describe("SessionNotesPage", () => {
     expect(root.querySelector(".dd-notes-title")?.textContent).toBe("Session notes");
     change(SESSIONS);
     expect(root.querySelector("textarea")).not.toBeNull();
-    expect(lineTexts()).toEqual(["Tracks lead to the [[Old Mill]].", "Find the caravan"]);
+    expect(lineTexts()).toEqual(["Find the caravan", "Tracks lead to the [[Old Mill]]."]);
   });
 
   it("says to rename one when two sessions share the latest number, still listing them", () => {
