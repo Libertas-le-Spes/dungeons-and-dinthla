@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { blankLinks, findLinks, findPlaceLinks, removeFirstLink, splitLinks, unlink } from "../../src/notes/link";
+import { blankLinks, findLinks, removeFirstLink, splitLinks, unlink } from "../../src/notes/link";
 
 describe("findLinks", () => {
   it("finds every linked name in order", () => {
@@ -66,32 +66,5 @@ describe("splitLinks", () => {
 
   it("reads empty text as no parts", () => {
     expect(splitLinks("")).toEqual([]);
-  });
-});
-
-describe("findPlaceLinks", () => {
-  it("finds the links marked with @ as places, leaving out the others", () => {
-    expect(findPlaceLinks("[[Mira]] rode to @[[Old Mill|the mill]] and @[[Gilded Stag#Cellar]]")).toEqual(["Old Mill", "Gilded Stag"]);
-  });
-
-  it("finds nothing when an @ stands apart from the link", () => {
-    expect(findPlaceLinks("mail @ [[Old Mill]]")).toEqual([]);
-  });
-});
-
-describe("a link marked with @ as a place", () => {
-  it("is still found as a link", () => {
-    expect(findLinks("We rested at @[[Old Mill]].")).toEqual(["Old Mill"]);
-  });
-
-  it("keeps the @ as typed when unlinked", () => {
-    expect(unlink("We rested at @[[Old Mill|the mill]].")).toBe("We rested at @the mill.");
-  });
-
-  it("keeps the @ as typed in the plain text before the link", () => {
-    expect(splitLinks("At @[[Old Mill]]")).toEqual([
-      { text: "At @", linktext: null },
-      { text: "Old Mill", linktext: "Old Mill" },
-    ]);
   });
 });

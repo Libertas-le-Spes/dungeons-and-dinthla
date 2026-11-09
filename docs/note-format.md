@@ -179,8 +179,6 @@ The plugin reads a line by its first character. A list bullet (`- `, `* ` or `+ 
 | `?? letter`, `!! caravan` | A lookup typed while writing, which finds an earlier question or quest. The plugin never reads it as a note |
 | `$$ Silvered lantern :sold 30gp` | Something happened to an item ([Items](#items)) |
 
-An `@` written right before a link, as in `We rested at @[[Old Mill]].`, marks the linked note as a place. It shows as typed, and the link still works in Obsidian and in the campaign tab. Tapping it when the note doesn't exist yet makes it in the campaign's `Places/` folder, unless the line is a `?`, `!` or `$` line (see [Links that lead out](#the-campaigns-folder)). Nothing else reads it yet.
-
 `src/notes/` reads all of these today, and `src/campaign/` builds a campaign from the session notes in its folder, in session order. [#62](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/pull/62) lists the exact rules: commas, links, signs and the five coin kinds.
 
 ### Quest facts
