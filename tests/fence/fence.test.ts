@@ -20,6 +20,7 @@ describe("Fence", () => {
 
   it("holds nothing while no Campaigns folder is set", () => {
     expect(new Fence(() => null).holds("D&D/Pale Moon/Pale Moon.md")).toBe(false);
+    expect(new Fence(() => null).holds("null/Pale Moon/Pale Moon.md")).toBe(false);
   });
 
   it("holds nothing when the Campaigns folder is the vault itself or not a plain path", () => {
@@ -59,6 +60,7 @@ describe("Fence", () => {
     expect(new Fence(() => "D&D").holdsNew("Private/Secondary.md")).toBe(false);
     expect(new Fence(() => "D&D").holdsNew("D&D/../Private/Secondary.md")).toBe(false);
     expect(new Fence(() => null).holdsNew("D&D/Pale Moon/Pale Moon.md")).toBe(false);
+    expect(new Fence(() => null).holdsNew("null/Pale Moon/Pale Moon.md")).toBe(false);
   });
 
   it("knows the Campaigns folder itself, and nothing else as it", () => {
