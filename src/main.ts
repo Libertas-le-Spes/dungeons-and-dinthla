@@ -27,6 +27,7 @@ import { openQuest } from "./quests/open-quest";
 import { questsKind } from "./quests/quests-kind";
 import { openAddCoin } from "./funds/open-add-coin";
 import { openItemDialog } from "./funds/open-item";
+import { ItemHolders } from "./funds/item-holders";
 import { ledgerEntryOpener } from "./funds/open-ledger-entry";
 import { ListPage } from "./views/list-page";
 import { activePathOf, openSource } from "./views/open-view";
@@ -419,6 +420,7 @@ export default class DungeonsAndDinthla extends Plugin {
 
   private async watchCampaign(): Promise<void> {
     this.watchNotes();
+    this.keepItemHolders();
     const folder = this.startingCampaignFolder();
     if (folder !== null) await this.chosen.choose(folder);
   }
@@ -438,6 +440,13 @@ export default class DungeonsAndDinthla extends Plugin {
     this.registerEvent(this.app.workspace.on("file-open", (file) => {
       if (file !== null) void this.followCampaignOf(file.path);
     }));
+  }
+
+  private keepItemHolders(): void {
+    const gate = this.gate;
+    const failed = (error: unknown) => new Notice(`Couldn't write an item's holder: ${messageOf(error)}`);
+    const holders = new ItemHolders({ store: this.store, files: gate.files, metadata: gate.metadata, actions: gate.fileActions, failed });
+    this.register(holders.start());
   }
 
   private readEditor(info: MarkdownFileInfo, file: TFile): void {
