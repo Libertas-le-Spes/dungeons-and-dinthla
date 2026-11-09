@@ -14,6 +14,8 @@ export type MakePage = (contentEl: HTMLElement, show: ShowPage, path: string | n
 export interface PageEntry {
   id: PageId;
   label: string;
+  shortLabel: string;
+  inBar: boolean;
   glyph: string;
   glyphClass: string;
   make: MakePage;
@@ -34,9 +36,36 @@ export function campaignSections(makers: PageMakers): NavSection[] {
     {
       heading: null,
       pages: [
-        { id: "home", label: "Dashboard", glyph: "⌂", glyphClass: "dd-nav-glyph-plain", make: makers.home, countOf: NO_COUNT },
-        { id: "cast", label: "Characters", glyph: "♟", glyphClass: "dd-nav-glyph-plain", make: makers.cast, countOf: NO_COUNT },
-        { id: "notes", label: "Session notes", glyph: "¶", glyphClass: "dd-nav-glyph-plain", make: makers.notes, countOf: NO_COUNT },
+        {
+          id: "home",
+          label: "Dashboard",
+          shortLabel: "Home",
+          inBar: true,
+          glyph: "⌂",
+          glyphClass: "dd-nav-glyph-plain",
+          make: makers.home,
+          countOf: NO_COUNT,
+        },
+        {
+          id: "cast",
+          label: "Characters",
+          shortLabel: "Cast",
+          inBar: true,
+          glyph: "♟",
+          glyphClass: "dd-nav-glyph-plain",
+          make: makers.cast,
+          countOf: NO_COUNT,
+        },
+        {
+          id: "notes",
+          label: "Session notes",
+          shortLabel: "Notes",
+          inBar: true,
+          glyph: "¶",
+          glyphClass: "dd-nav-glyph-plain",
+          make: makers.notes,
+          countOf: NO_COUNT,
+        },
       ],
     },
     {
@@ -45,6 +74,8 @@ export function campaignSections(makers: PageMakers): NavSection[] {
         {
           id: "questions",
           label: "Questions",
+          shortLabel: "Questions",
+          inBar: false,
           glyph: "?",
           glyphClass: "dd-marker-question",
           make: makers.questions,
@@ -53,12 +84,23 @@ export function campaignSections(makers: PageMakers): NavSection[] {
         {
           id: "quests",
           label: "Quests",
+          shortLabel: "Quests",
+          inBar: false,
           glyph: "!",
           glyphClass: "dd-marker-quest",
           make: makers.quests,
           countOf: (campaign) => questsKind.contentsOf(campaign, []).openCount,
         },
-        { id: "funds", label: "Party funds", glyph: "$", glyphClass: "dd-marker-ledger", make: makers.funds, countOf: NO_COUNT },
+        {
+          id: "funds",
+          label: "Party funds",
+          shortLabel: "Funds",
+          inBar: true,
+          glyph: "$",
+          glyphClass: "dd-marker-ledger",
+          make: makers.funds,
+          countOf: NO_COUNT,
+        },
       ],
     },
   ];
