@@ -1,15 +1,19 @@
 .dd-campaign-frame {
   position: relative;
   container-type: inline-size;
-  --dd-bar-room: env(safe-area-inset-bottom);
+  --dd-bar-room: var(--safe-area-inset-bottom);
 }
 
 body.is-phone .dd-campaign-frame {
   --dd-bar-room: var(--view-bottom-spacing);
 }
 
+body.is-phone.is-floating-nav .dd-campaign-frame {
+  --dd-bar-room: max(var(--view-bottom-spacing), calc(var(--navbar-bottom-offset) + var(--navbar-height) - var(--keyboard-height)));
+}
+
 body.is-phone.is-hidden-nav .dd-campaign-frame {
-  --dd-bar-room: env(safe-area-inset-bottom);
+  --dd-bar-room: var(--safe-area-inset-bottom);
 }
 
 .dd-campaign {
@@ -148,7 +152,7 @@ body.is-phone.is-hidden-nav .dd-campaign-frame {
     order: 1;
     flex-direction: row;
     gap: 0;
-    padding: 0 0 var(--dd-bar-room);
+    padding: 0 var(--safe-area-inset-right) var(--dd-bar-room) 0;
     border-top: var(--border-width) solid var(--border-subtle);
     border-radius: 0;
   }
@@ -167,7 +171,7 @@ body.is-phone.is-hidden-nav .dd-campaign-frame {
     justify-content: center;
     gap: var(--space-0);
     min-width: 0;
-    min-height: 60px;
+    min-height: var(--bar-height);
     padding: var(--space-1);
     border-radius: 0;
     text-align: center;
