@@ -18,7 +18,7 @@ const PRIVATE = fileAt("Private/Primary.md");
 function placeWith(linkLeadsTo: TFile | null, files: TFile[] = [SESSION, MIRA, PRIVATE], folders: TFolder[] = []) {
   const { vault, calls } = rawVaultWith(files, folders);
   const raw = { getFirstLinkpathDest: vi.fn(() => linkLeadsTo) };
-  const held = new HeldFiles(vault, new Fence(() => "D&D"));
+  const held = new HeldFiles(vault, new Fence(() => "D&D", ".obsidian"));
   const gate = { files: new FencedFiles(vault, held), metadata: new FencedMetadata(raw as unknown as RawMetadata, held) };
   const leaf = { openFile: vi.fn(async () => {}) };
   const openLinkText = vi.fn(async () => {});
