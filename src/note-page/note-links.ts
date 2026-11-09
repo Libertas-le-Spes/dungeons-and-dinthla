@@ -42,6 +42,6 @@ export class NoteLinks {
   }
 
   private addLink(link: ShownLink): void {
-    addNameLink(this.list.createEl("li"), link.text, link.linktext, this.sourcePath, this.actions);
+    addNameLink(this.list.createEl("li"), link.text, link.linktext, { path: this.sourcePath, line: null }, this.actions);
   }
 }

@@ -28,6 +28,10 @@ export class SettingsSaver {
     return saving;
   }
 
+  async whenSaved(): Promise<void> {
+    await this.running;
+  }
+
   private async writeThenApply(change: SettingsChange | null): Promise<boolean> {
     if (change === null) return false;
     await this.write({ ...this.current, ...change });

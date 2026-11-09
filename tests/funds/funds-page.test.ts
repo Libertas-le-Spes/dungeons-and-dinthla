@@ -164,7 +164,7 @@ describe("FundsPage", () => {
   it("opens a holder's note when their name is tapped", async () => {
     const { root, actions } = await openPage(campaignOf(["$ [[Mira]] Flame Tongue"]));
     (root.querySelector(".dd-holder a.dd-link-name") as HTMLElement).click();
-    expect(actions.openLink).toHaveBeenCalledWith("Mira", "Pale Moon/Sessions/Session 1.md");
+    expect(actions.openLink).toHaveBeenCalledWith("Mira", { path: "Pale Moon/Sessions/Session 1.md", line: null }, false);
   });
 
   it("names a holder without a note in plain text, so tapping can't make one", async () => {
