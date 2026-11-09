@@ -1,10 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import type { WorkspaceLeaf } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { Campaign } from "../../src/campaign/campaign";
 import type { CampaignStore } from "../../src/campaign/campaign-store";
-import { QuestsView } from "../../src/quests/quests-view";
-import type { ListCreate } from "../../src/views/list-view";
+import { questsKind } from "../../src/quests/quests-kind";
+import { ListPage, type ListCreate } from "../../src/views/list-page";
 import { obsidianDocument } from "./obsidian-dom";
 
 function campaignOf(lines: string[]): Campaign {
@@ -21,16 +20,11 @@ async function openView(campaign: Campaign, create: ListCreate | null = null) {
       return unsubscribe;
     },
   };
-  const view = new QuestsView({} as WorkspaceLeaf, store as unknown as CampaignStore, { openRow: vi.fn(), openLink: vi.fn() }, create);
   const document = obsidianDocument();
   const root = document.createElement("div");
   document.body.append(root);
-  view.contentEl = root;
-  const registered: (() => void)[] = [];
-  view.register = (callback) => {
-    registered.push(callback);
-  };
-  await view.onOpen();
+  const view = new ListPage(root, store as unknown as CampaignStore, { openRow: vi.fn(), openLink: vi.fn() }, questsKind, create);
+  view.load();
   const typeFilter = (text: string) => {
     const filter = root.querySelector(".dd-filter") as HTMLInputElement;
     filter.value = text;
@@ -40,9 +34,7 @@ async function openView(campaign: Campaign, create: ListCreate | null = null) {
     store.current = next;
     listener(next);
   };
-  const close = () => {
-    for (const callback of registered) callback();
-  };
+  const close = () => view.unload();
   return { root, view, typeFilter, change, close, unsubscribe };
 }
 

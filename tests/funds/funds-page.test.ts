@@ -1,10 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import type { WorkspaceLeaf } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { Campaign, Source } from "../../src/campaign/campaign";
 import type { CampaignStore } from "../../src/campaign/campaign-store";
 import type { CoinOutcome } from "../../src/funds/coin-modal";
-import { FundsView } from "../../src/funds/funds-view";
+import { FundsPage } from "../../src/funds/funds-page";
 import { obsidianDocument } from "../views/obsidian-dom";
 
 function campaignOf(lines: string[], ...laterSessions: string[][]): Campaign {
@@ -39,21 +38,14 @@ async function openView(
   };
   const actions = { openRow: vi.fn(), openLink: vi.fn() };
   const noteExists = (name: string) => notes.includes(name);
-  const view = new FundsView({} as WorkspaceLeaf, store as unknown as CampaignStore, actions, noteExists, addCoin, openLedgerEntry, openItem);
   const root = obsidianDocument().createElement("div");
-  view.contentEl = root;
-  const registered: (() => void)[] = [];
-  view.register = (callback) => {
-    registered.push(callback);
-  };
-  await view.onOpen();
+  const view = new FundsPage(root, store as unknown as CampaignStore, actions, noteExists, addCoin, openLedgerEntry, openItem);
+  view.load();
   const change = (next: Campaign) => {
     store.current = next;
     listener(next);
   };
-  const close = () => {
-    for (const callback of registered) callback();
-  };
+  const close = () => view.unload();
   return { root, actions, change, close, unsubscribe };
 }
 
