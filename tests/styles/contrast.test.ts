@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { contrast, over, parseColour } from "./css-colour";
+import { contrast, over, parseColour, type Colour } from "./css-colour";
+import { backgroundOf, textColourTokens } from "./style-files";
 import { tokensFor, type ThemeContext } from "./theme-tokens";
 
 const TOKYO_NIGHT: Record<string, string> = {
@@ -144,5 +145,81 @@ describe("markers in Obsidian's own editor", () => {
     for (const marker of MARKERS) {
       expect(contrast(token(marker), parseColour(background)), marker).toBeGreaterThanOrEqual(4.5);
     }
+  });
+});
+
+describe("text in the campaign tab over its background picture", () => {
+  const PICTURES: [string, Colour][] = [
+    ["black", parseColour("black")],
+    ["white", parseColour("white")],
+  ];
+  const PAGE = ["surface-page"];
+  const CARD = ["surface-card"];
+  const SUNKEN = ["surface-sunken"];
+  const RAISED = ["surface-raised"];
+  const STATBLOCK = ["surface-statblock"];
+  const PANELS = [PAGE, CARD, SUNKEN, RAISED];
+  function softOn(soft: string): string[][] {
+    return [
+      [soft, "surface-page"],
+      [soft, "surface-card"],
+    ];
+  }
+
+  const TEXT_ON: Record<string, string[][]> = {
+    "text-strong": [...PANELS, ...softOn("marker-question-soft"), ...softOn("marker-quest-soft"), ...softOn("marker-ledger-soft")],
+    "text-body": [...PANELS, ["surface-hover", "surface-page"], ["surface-active", "surface-card"]],
+    "text-muted-ui": PANELS,
+    "text-faint-ui": PANELS,
+    "text-link": [PAGE, CARD],
+    "marker-question": [PAGE, CARD, ...softOn("marker-question-soft")],
+    "marker-quest": [PAGE, CARD, ...softOn("marker-quest-soft")],
+    "marker-ledger": [PAGE, CARD, ...softOn("marker-ledger-soft")],
+    "marker-link": [PAGE, CARD, ...softOn("marker-link-soft")],
+    "state-danger": [PAGE, CARD, ...softOn("state-danger-soft")],
+    "state-known": [PAGE, SUNKEN],
+    "state-unknown": [STATBLOCK, ...softOn("state-unknown-soft")],
+    "state-override": softOn("state-override-soft"),
+    "state-carried": softOn("state-carried-soft"),
+    "state-history": [PAGE, CARD],
+    "statblock-heading": [PAGE, CARD, STATBLOCK],
+    "statblock-text": [STATBLOCK],
+    "statblock-subtitle": [STATBLOCK],
+  };
+  const SOLID = ["surface-page", "surface-card", "surface-sunken", "surface-raised", "surface-statblock"];
+  const cases = Object.entries(TEXT_ON).flatMap(([text, surfaces]) => surfaces.map((layers): [string, string[]] => [text, layers]));
+  const DINTHLA = ["Dinthla light", "Dinthla dark"];
+
+  function layered(token: (name: string) => Colour, layers: string[], picture: Colour): Colour {
+    let behind = picture;
+    for (const layer of [...layers].reverse()) behind = over(token(layer), behind);
+    return behind;
+  }
+
+  it("names a surface for every colour the plugin gives text", () => {
+    const missing = [...textColourTokens()].filter((token) => !(token in TEXT_ON));
+    expect(missing).toEqual([]);
+  });
+
+  it("puts the sidebar and every page on the solid page colour", () => {
+    expect(backgroundOf("campaign.css", ".dd-campaign .dd-nav")).toBe("var(--surface-page)");
+    expect(backgroundOf("campaign.css", ".dd-campaign .dd-page-body")).toBe("var(--surface-page)");
+  });
+
+  describe.each(DINTHLA)("in %s", (name) => {
+    const token = tokensFor(THEMES[name]!);
+
+    it.each(SOLID)("%s hides the picture entirely", (surface) => {
+      expect(token(surface).alpha).toBe(1);
+    });
+
+    it.each(cases)("%s on %j reaches 4.5:1 over a black or a white picture", (text, layers) => {
+      const bottom = layers.at(-1);
+      expect(SOLID).toContain(bottom);
+      for (const [picture, colour] of PICTURES) {
+        const behind = layered(token, layers, colour);
+        expect(contrast(over(token(text), behind), behind), picture).toBeGreaterThanOrEqual(4.5);
+      }
+    });
   });
 });
