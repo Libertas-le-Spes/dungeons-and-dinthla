@@ -391,3 +391,10 @@ export function debounce<T extends unknown[]>(callback: (...args: T) => void): (
   debouncer.cancel = () => {};
   return debouncer;
 }
+
+export const Platform = {
+  isDesktopApp: true,
+  isMobileApp: false,
+  isIosApp: false,
+  isAndroidApp: false,
+};

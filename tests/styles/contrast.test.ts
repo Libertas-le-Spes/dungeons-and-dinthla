@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { contrast, over, parseColour } from "./css-colour";
+import { contrast, over, parseColour, type Colour } from "./css-colour";
+import { panelOver } from "./panel-background";
+import { textColourTokens, unclassifiedTextColours } from "./style-files";
 import { tokensFor, type ThemeContext } from "./theme-tokens";
 
 const TOKYO_NIGHT: Record<string, string> = {
@@ -50,6 +52,14 @@ const CATPPUCCIN_LATTE: Record<string, string> = {
   "--color-green": "#40a02b",
   "--color-purple": "#8839ef",
   "--color-cyan": "#179299",
+};
+
+const FROSTED_GLASS: Record<string, string> = {
+  ...TOKYO_NIGHT,
+  "--background-primary": "rgba(26, 27, 38, 0.55)",
+  "--background-primary-alt": "rgba(31, 35, 53, 0.6)",
+  "--background-secondary": "rgba(22, 22, 30, 0.55)",
+  "--background-secondary-alt": "rgba(36, 40, 59, 0.6)",
 };
 
 const THEMES: Record<string, ThemeContext> = {
@@ -111,6 +121,8 @@ const PAIRS: [string, string, number][] = [
   ["accent", "surface-page", 3],
 ];
 
+const SEE_THROUGH: ThemeContext = { dark: true, follow: true, obsidian: FROSTED_GLASS };
+
 describe.each(Object.entries(THEMES))("contrast in %s", (_name, context) => {
   const token = tokensFor(context);
   const page = over(token("surface-page"), { r: 0, g: 0, b: 0, alpha: 1 });
@@ -144,5 +156,98 @@ describe("markers in Obsidian's own editor", () => {
     for (const marker of MARKERS) {
       expect(contrast(token(marker), parseColour(background)), marker).toBeGreaterThanOrEqual(4.5);
     }
+  });
+});
+
+describe("text in the campaign tab over its background picture", () => {
+  const PICTURES: [string, Colour][] = [
+    ["black", parseColour("black")],
+    ["white", parseColour("white")],
+  ];
+  const PAGE = ["surface-page"];
+  const CARD = ["surface-card"];
+  const SUNKEN = ["surface-sunken"];
+  const RAISED = ["surface-raised"];
+  const STATBLOCK = ["surface-statblock"];
+  const PANELS = [PAGE, CARD, SUNKEN, RAISED];
+  function softOn(soft: string): string[][] {
+    return [
+      [soft, "surface-page"],
+      [soft, "surface-card"],
+    ];
+  }
+
+  const TEXT_ON: Record<string, string[][]> = {
+    "text-strong": [...PANELS, ...softOn("marker-question-soft"), ...softOn("marker-quest-soft"), ...softOn("marker-ledger-soft")],
+    "text-body": [...PANELS, ["surface-hover", "surface-page"], ["surface-active", "surface-card"]],
+    "text-muted-ui": PANELS,
+    "text-faint-ui": PANELS,
+    "text-link": [PAGE, CARD],
+    "marker-question": [PAGE, CARD, ...softOn("marker-question-soft")],
+    "marker-quest": [PAGE, CARD, ...softOn("marker-quest-soft")],
+    "marker-ledger": [PAGE, CARD, ...softOn("marker-ledger-soft")],
+    "marker-link": [PAGE, CARD, ...softOn("marker-link-soft")],
+    "state-danger": [PAGE, CARD, ...softOn("state-danger-soft")],
+    "state-known": [PAGE, SUNKEN],
+    "state-unknown": [STATBLOCK, ...softOn("state-unknown-soft")],
+    "state-override": softOn("state-override-soft"),
+    "state-carried": softOn("state-carried-soft"),
+    "state-history": [PAGE, CARD],
+    "statblock-heading": [PAGE, CARD, STATBLOCK],
+    "statblock-text": [STATBLOCK],
+    "statblock-subtitle": [STATBLOCK],
+  };
+  const SOLID = ["surface-page", "surface-card", "surface-sunken", "surface-raised", "surface-statblock"];
+  const cases = Object.entries(TEXT_ON).flatMap(([text, surfaces]) => surfaces.map((layers): [string, string[]] => [text, layers]));
+  const DINTHLA = ["Dinthla light", "Dinthla dark"];
+  const PANEL_THEMES: [string, ThemeContext][] = [...Object.entries(THEMES), ["Frosted Glass", SEE_THROUGH]];
+  const PANELS_IN_TAB = [".dd-campaign .dd-nav", ".dd-campaign .dd-page-body"];
+
+  function layered(token: (name: string) => Colour, layers: string[], panel: Colour): Colour {
+    let behind = panel;
+    for (const layer of [...layers].reverse()) behind = over(token(layer), behind);
+    return behind;
+  }
+
+  it("names a surface for every colour the plugin gives text", () => {
+    const missing = [...textColourTokens()].filter((token) => !(token in TEXT_ON));
+    expect(missing).toEqual([]);
+  });
+
+  it("knows what every colour the plugin gives text is", () => {
+    expect(unclassifiedTextColours()).toEqual([]);
+  });
+
+  it("starts Frosted Glass with a page colour the picture shows through", () => {
+    expect(tokensFor(SEE_THROUGH)("surface-page").alpha).toBeLessThan(1);
+  });
+
+  describe.each(DINTHLA)("in %s", (name) => {
+    const token = tokensFor(THEMES[name]!);
+
+    it.each(SOLID)("%s hides the picture entirely", (surface) => {
+      expect(token(surface).alpha).toBe(1);
+    });
+  });
+
+  describe.each(PANEL_THEMES)("in %s", (_name, context) => {
+    const token = tokensFor(context);
+
+    it.each(PANELS_IN_TAB)("%s hides the picture entirely", (selector) => {
+      const overBlack = panelOver(token, "campaign.css", selector, PICTURES[0]![1]);
+      const overWhite = panelOver(token, "campaign.css", selector, PICTURES[1]![1]);
+      expect(overBlack).toEqual(overWhite);
+    });
+
+    it.each(cases)("%s on %j reaches 4.5:1 over a black or a white picture", (text, layers) => {
+      const bottom = layers.at(-1);
+      expect(SOLID).toContain(bottom);
+      for (const selector of PANELS_IN_TAB) {
+        for (const [picture, colour] of PICTURES) {
+          const behind = layered(token, layers, panelOver(token, "campaign.css", selector, colour));
+          expect(contrast(over(token(text), behind), behind), `${picture} behind ${selector}`).toBeGreaterThanOrEqual(4.5);
+        }
+      }
+    });
   });
 });

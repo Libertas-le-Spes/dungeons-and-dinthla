@@ -22,6 +22,8 @@ interface Shown {
 
 export type FollowCampaign = (path: string) => void;
 
+export type BackdropFor = (frameEl: HTMLElement) => Component;
+
 function pathIn(state: object): string | null {
   if (!("path" in state) || typeof state.path !== "string") return null;
   return state.path;
@@ -44,6 +46,7 @@ export class CampaignView extends ItemView {
     private readonly store: CampaignStore,
     private readonly sections: NavSection[],
     private readonly followCampaign: FollowCampaign,
+    private readonly backdropFor: BackdropFor,
   ) {
     super(leaf);
   }
@@ -87,6 +90,7 @@ export class CampaignView extends ItemView {
     this.campaignName = nav.createDiv({ cls: "dd-nav-campaign" });
     for (const section of this.sections) this.addSection(nav, section);
     this.pageEl = frame.createDiv({ cls: "dd-page" });
+    this.addChild(this.backdropFor(root));
     this.register(this.store.subscribe(() => this.campaignChanged()));
     this.watchShownNote();
     this.campaignChanged();

@@ -1,27 +1,21 @@
-import { debounce, type Debouncer, type TFile } from "obsidian";
-import { backgroundOf, type BackgroundMetadata, type Wash } from "../campaign/campaign-background";
+import { debounce, type Debouncer } from "obsidian";
+import type { BackgroundMetadata } from "../campaign/campaign-background";
 import { campaignFolderOf, isMainNote } from "../campaign/campaign-folders";
+import { shownBackgroundIn, type PictureUrl, type ShownBackground } from "../campaign/shown-background";
 
 const SETTLE_MS = 200;
 const LAYER_CLASS = "dd-campaign-background";
 const HOLDER_CLASS = "dd-has-campaign-background";
 
-export interface ShownBackground {
-  url: string;
-  wash: Wash;
-}
-
 export function shownBackgroundOf(
   notePath: string,
   campaignFolders: string[],
   metadata: BackgroundMetadata,
-  urlOf: (picture: TFile) => string,
+  urlOf: PictureUrl,
 ): ShownBackground | null {
   const folder = campaignFolderOf(notePath, campaignFolders);
   if (folder === null) return null;
-  const background = backgroundOf(folder, metadata);
-  if (background.picture === null) return null;
-  return { url: urlOf(background.picture), wash: background.wash };
+  return shownBackgroundIn(folder, metadata, urlOf);
 }
 
 function layerIn(contentEl: HTMLElement): HTMLElement | null {
@@ -40,7 +34,7 @@ export function showBackground(contentEl: HTMLElement, shown: ShownBackground | 
   }
   if (layer === null) layer = contentEl.createDiv({ prepend: true });
   layer.className = `dd-tokens ${LAYER_CLASS} dd-wash-${shown.wash}`;
-  layer.setCssProps({ "--dd-campaign-picture": `url("${shown.url}")` });
+  layer.setCssProps({ "--dd-campaign-picture": shown.picture.value });
   contentEl.addClass(HOLDER_CLASS);
 }
 

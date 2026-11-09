@@ -31,7 +31,8 @@ body.is-phone.is-hidden-nav .dd-campaign-frame {
   gap: 2px;
   padding: var(--space-2);
   border-radius: var(--radius-lg);
-  background: var(--surface-page);
+  background-color: var(--surface-ground);
+  background-image: linear-gradient(var(--surface-page), var(--surface-page));
 }
 
 .dd-campaign .dd-nav-campaign {
@@ -130,6 +131,13 @@ body.is-phone.is-hidden-nav .dd-campaign-frame {
   min-width: 0;
 }
 
+.dd-campaign .dd-page-body {
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-ground);
+  background-image: linear-gradient(var(--surface-page), var(--surface-page));
+}
+
 @container (max-width: 1023px) {
   .dd-campaign {
     position: absolute;
@@ -145,6 +153,10 @@ body.is-phone.is-hidden-nav .dd-campaign-frame {
     min-height: 0;
     overflow-y: auto;
     padding: var(--space-3) var(--space-3) var(--space-8);
+  }
+
+  .dd-campaign .dd-page-body {
+    padding: var(--space-3);
   }
 
   .dd-campaign .dd-nav {
