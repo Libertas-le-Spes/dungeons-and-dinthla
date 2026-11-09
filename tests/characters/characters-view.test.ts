@@ -64,6 +64,7 @@ function openGallery({
   const reads = { count: 0 };
   const owner = { name: own };
   const notes: CharacterNotes = {
+    holds: (file) => !file.path.startsWith("Private/"),
     textOf: (file) => {
       reads.count += 1;
       return textOf(file);
@@ -271,6 +272,13 @@ describe("CharactersView", () => {
     await gallery.show(["Mira", "Lady Vess"]);
     expect(textsOf(gallery.container, ".dd-stat-block-line:nth-child(4)")).toEqual(["Armor Class 15", "Armor Class 12"]);
     expect(gallery.sessionsAskedFor).toEqual(["Pale Moon"]);
+  });
+
+  it("leaves out a note outside the Campaigns folder that the base lists, without reading it", async () => {
+    const gallery = openGallery();
+    await gallery.show(["Mira", fileOf("Primary", "Private")]);
+    expect(textsOf(gallery.container, ".dd-stat-block-name")).toEqual(["Mira"]);
+    expect(gallery.reads.count).toBe(1);
   });
 
   it("learns nothing for a note outside any campaign", async () => {

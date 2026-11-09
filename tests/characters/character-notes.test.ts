@@ -19,6 +19,10 @@ function gateWith({ links, hasCache = true, notes = [THESSALY.path], files = [] 
   const stopped: unknown[] = [];
   const gate = {
     files: {
+      getFileByPath: (path: string) => {
+        if (path !== THESSALY.path) return null;
+        return THESSALY;
+      },
       cachedRead: async (file: TFile) => `text of ${file.path}`,
       getFiles: () => files.map((path) => ({ path }) as TFile),
       getMarkdownFiles: () => files.map((path) => ({ path, basename: path.slice(path.lastIndexOf("/") + 1, -3) }) as TFile),
@@ -53,6 +57,13 @@ function notesOf(gate: Gate) {
 describe("characterNotesOf", () => {
   it("reads a character's own note", async () => {
     expect(await notesOf(gateWith().gate).textOf(THESSALY)).toBe("text of Pale Moon/Characters/Thessaly.md");
+  });
+
+  it("holds a note the fence lets through, and not a stand-in for it or a note it keeps out", () => {
+    const notes = notesOf(gateWith().gate);
+    expect(notes.holds(THESSALY)).toBe(true);
+    expect(notes.holds({ path: THESSALY.path } as TFile)).toBe(false);
+    expect(notes.holds({ path: "Private/Primary.md" } as TFile)).toBe(false);
   });
 
   it("finds the note a link points to, or none", () => {

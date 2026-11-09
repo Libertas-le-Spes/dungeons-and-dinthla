@@ -47,6 +47,7 @@ async function openDashboard(sessions: SessionNote[], { folder = CAMPAIGN, chara
   const reads = { count: 0 };
   const owner = { name: own };
   const notes: CharacterNotes = {
+    holds: () => true,
     textOf: (file) => {
       reads.count += 1;
       return textOf(file);
