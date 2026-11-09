@@ -29,6 +29,12 @@ export const ALLOWED_IN_PLACE: AllowedCode[] = [
   { code: "this.write({ ...this.current, ...change })", count: 1 },
   { code: "this.write()", count: 2 },
   { code: "this.submit()", count: 4 },
+  { code: "submit() {", count: 2 },
+  { code: 'formEl.createEl("button", { cls: form.buttonCls, type: "submit", text: form.buttonText })', count: 1 },
+  { code: 'owner.registerDomEvent(formEl, "submit", ', count: 1 },
+  { code: 'addEventListener("click", ', count: 25 },
+  { code: ', "click", ', count: 12 },
+  { code: 'this.input.dispatchEvent(new Event("input"))', count: 1 },
 ];
 
 export const WEB_ADDRESSES: NetworkCode[] = [
@@ -68,8 +74,10 @@ export const NETWORK_CODE: NetworkCode[] = [
   { name: "FontFace", pattern: /\bFontFace\b/ },
   { name: "CSSStyleSheet", pattern: /\bCSSStyleSheet\b/ },
   { name: "adoptedStyleSheets", pattern: /\badoptedStyleSheets\b/ },
-  { name: "submit, which a form has", pattern: /\.\s*submit\s*\(|\[\s*["'`]submit["'`]\s*\]|\brequestSubmit\b/ },
-  { name: "click", pattern: /\.\s*click\s*\(|\[\s*["'`]click["'`]\s*\]/ },
+  { name: "submit, which a form has", pattern: /\bsubmit\b|\brequestSubmit\b/ },
+  { name: "click", pattern: /\bclick\b/ },
+  { name: "dispatchEvent", pattern: /\bdispatchEvent\b/ },
+  { name: "MouseEvent or PointerEvent", pattern: /\b(?:Mouse|Pointer)Event\b/ },
   { name: "image-set", pattern: /image-set\s*\(/i },
   { name: "caches", pattern: /\bcaches\b/ },
   { name: "Notification", pattern: /\bNotification\b/ },
