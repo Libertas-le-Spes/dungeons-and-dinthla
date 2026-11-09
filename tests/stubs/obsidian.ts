@@ -132,6 +132,16 @@ export class ItemView extends Component {
   async setState(..._args: Parameters<RealItemView["setState"]>): Promise<void> {}
 }
 
+const MIDDLE_BUTTON = 1;
+
+export class Keymap {
+  static isModEvent(event: MouseEvent | KeyboardEvent): "tab" | false {
+    if (event.ctrlKey || event.metaKey) return "tab";
+    if ("button" in event && event.button === MIDDLE_BUTTON) return "tab";
+    return false;
+  }
+}
+
 export class WorkspaceLeaf {
   async setViewState(_viewState: ViewState, _eState?: unknown): Promise<void> {}
 }

@@ -1,4 +1,4 @@
-import { debounce, MarkdownView, Notice, Plugin, WorkspaceLeaf, type MarkdownFileInfo, type TFile, type ViewState } from "obsidian";
+import { debounce, MarkdownView, Notice, Plugin, WorkspaceLeaf, type MarkdownFileInfo, type PaneType, type TFile, type ViewState } from "obsidian";
 import type { Source } from "./campaign/campaign";
 import type { SheetValue } from "./characters/character-sheet";
 import { messageOf } from "./views/message-of";
@@ -132,7 +132,8 @@ export default class DungeonsAndDinthla extends Plugin {
     this.addSettingTab(new CampaignSettingTab(this.app, this, gate, campaignsFolderSetup, campaignChoice, () => help.showWelcome()));
     const actions = {
       openRow: (source: Source) => void openSource(this.app, gate, source),
-      openLink: (linktext: string, sourcePath: string) => void openLink(this.app, { gate, campaignFolders: () => this.campaignFolders() }, linktext, sourcePath),
+      openLink: (linktext: string, sourcePath: string, newLeaf: PaneType | boolean) =>
+        void openLink(this.app, { gate, campaignFolders: () => this.campaignFolders() }, linktext, sourcePath, newLeaf),
     };
     const openQuestionAt = (source: Source, onClosed: (changed: boolean) => void) =>
       openQuestion(this.app, gate, this.store, source, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app));

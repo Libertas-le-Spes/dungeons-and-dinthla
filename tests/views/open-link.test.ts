@@ -23,7 +23,7 @@ function placeWith(linkLeadsTo: TFile | null, files: TFile[] = [SESSION, MIRA, P
   const leaf = { openFile: vi.fn(async () => {}) };
   const openLinkText = vi.fn(async () => {});
   const app = { workspace: { getLeaf: vi.fn(() => leaf), openLinkText } } as unknown as App;
-  return { app, place: { gate, campaignFolders: () => [CAMPAIGN] }, calls, raw, leaf, openLinkText };
+  return { app, place: { gate, campaignFolders: () => [CAMPAIGN] }, calls, raw, leaf, openLinkText, getLeaf: app.workspace.getLeaf };
 }
 
 function openedPaths(leaf: { openFile: ReturnType<typeof vi.fn> }): string[] {
@@ -37,16 +37,29 @@ beforeEach(() => {
 describe("openLink to a note inside the Campaigns folder", () => {
   it("opens the note the link leads to, making nothing", async () => {
     const { app, place, raw, leaf, calls } = placeWith(MIRA);
-    await openLink(app, place, "Mira", SESSION.path);
+    await openLink(app, place, "Mira", SESSION.path, false);
     expect(raw.getFirstLinkpathDest).toHaveBeenCalledWith("Mira", SESSION.path);
     expect(leaf.openFile).toHaveBeenCalledWith(MIRA, { eState: { subpath: "" } });
     expect(calls.create).not.toHaveBeenCalled();
     expect(Notice.shown).toEqual([]);
   });
 
+  it("opens the note in the tab in use for a plain press", async () => {
+    const { app, place, getLeaf } = placeWith(MIRA);
+    await openLink(app, place, "Mira", SESSION.path, false);
+    expect(getLeaf).toHaveBeenCalledExactlyOnceWith(false);
+  });
+
+  it("opens the note in a new tab when asked", async () => {
+    const { app, place, getLeaf, leaf } = placeWith(MIRA);
+    await openLink(app, place, "Mira", SESSION.path, "tab");
+    expect(getLeaf).toHaveBeenCalledExactlyOnceWith("tab");
+    expect(leaf.openFile).toHaveBeenCalledWith(MIRA, { eState: { subpath: "" } });
+  });
+
   it("opens the note at the heading the link names", async () => {
     const { app, place, raw, leaf } = placeWith(MIRA);
-    await openLink(app, place, "Mira#Background", SESSION.path);
+    await openLink(app, place, "Mira#Background", SESSION.path, false);
     expect(raw.getFirstLinkpathDest).toHaveBeenCalledWith("Mira", SESSION.path);
     expect(leaf.openFile).toHaveBeenCalledWith(MIRA, { eState: { subpath: "#Background" } });
   });
@@ -55,7 +68,7 @@ describe("openLink to a note inside the Campaigns folder", () => {
 describe("openLink to a note that doesn't exist inside the Campaigns folder", () => {
   it("makes the note in the campaign of the note holding the link, then opens it", async () => {
     const { app, place, calls, leaf, openLinkText } = placeWith(null);
-    await openLink(app, place, "Old Mill", SESSION.path);
+    await openLink(app, place, "Old Mill", SESSION.path, false);
     expect(calls.create).toHaveBeenCalledWith("D&D/Pale Moon/Old Mill.md", "");
     expect(calls.createFolder).not.toHaveBeenCalled();
     expect(openedPaths(leaf)).toEqual(["D&D/Pale Moon/Old Mill.md"]);
@@ -63,9 +76,16 @@ describe("openLink to a note that doesn't exist inside the Campaigns folder", ()
     expect(Notice.shown).toEqual([]);
   });
 
+  it("opens the note it made in a new tab when asked", async () => {
+    const { app, place, getLeaf, leaf } = placeWith(null);
+    await openLink(app, place, "Old Mill", SESSION.path, "tab");
+    expect(getLeaf).toHaveBeenCalledExactlyOnceWith("tab");
+    expect(openedPaths(leaf)).toEqual(["D&D/Pale Moon/Old Mill.md"]);
+  });
+
   it("makes the folders a link names, then the note inside them", async () => {
     const { app, place, calls, leaf } = placeWith(null);
-    await openLink(app, place, "Places/Inn", SESSION.path);
+    await openLink(app, place, "Places/Inn", SESSION.path, false);
     expect(calls.createFolder.mock.calls).toEqual([["D&D/Pale Moon/Places"]]);
     expect(calls.create).toHaveBeenCalledWith("D&D/Pale Moon/Places/Inn.md", "");
     expect(openedPaths(leaf)).toEqual(["D&D/Pale Moon/Places/Inn.md"]);
@@ -73,32 +93,32 @@ describe("openLink to a note that doesn't exist inside the Campaigns folder", ()
 
   it("makes only the folders that are missing", async () => {
     const { app, place, calls } = placeWith(null, [SESSION], [folderAt("D&D/Pale Moon/Places", [])]);
-    await openLink(app, place, "Places/Town/Inn", SESSION.path);
+    await openLink(app, place, "Places/Town/Inn", SESSION.path, false);
     expect(calls.createFolder.mock.calls).toEqual([["D&D/Pale Moon/Places/Town"]]);
     expect(calls.create).toHaveBeenCalledWith("D&D/Pale Moon/Places/Town/Inn.md", "");
   });
 
   it("leaves out the heading, block and shown name of the link from the new note's name", async () => {
     const { app, place, calls } = placeWith(null);
-    await openLink(app, place, "Old Mill#^cellar|the mill", SESSION.path);
+    await openLink(app, place, "Old Mill#^cellar|the mill", SESSION.path, false);
     expect(calls.create.mock.calls).toEqual([["D&D/Pale Moon/Old Mill.md", ""]]);
   });
 
   it("leaves out the shown name of a link with no heading", async () => {
     const { app, place, calls } = placeWith(null);
-    await openLink(app, place, "Old Mill|the mill", SESSION.path);
+    await openLink(app, place, "Old Mill|the mill", SESSION.path, false);
     expect(calls.create.mock.calls).toEqual([["D&D/Pale Moon/Old Mill.md", ""]]);
   });
 
   it("doesn't add a second .md to a link that names it", async () => {
     const { app, place, calls } = placeWith(null);
-    await openLink(app, place, "Old Mill.md", SESSION.path);
+    await openLink(app, place, "Old Mill.md", SESSION.path, false);
     expect(calls.create).toHaveBeenCalledWith("D&D/Pale Moon/Old Mill.md", "");
   });
 
   it("makes a note in the campaign, and leaves alone the note outside the Campaigns folder the link leads to", async () => {
     const { app, place, calls, leaf } = placeWith(PRIVATE);
-    await openLink(app, place, "Primary", SESSION.path);
+    await openLink(app, place, "Primary", SESSION.path, false);
     expect(calls.create).toHaveBeenCalledWith("D&D/Pale Moon/Primary.md", "");
     expect(openedPaths(leaf)).toEqual(["D&D/Pale Moon/Primary.md"]);
     expect(calls.read).not.toHaveBeenCalled();
@@ -116,9 +136,9 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
       files.push(made);
       return made;
     });
-    await openLink(app, place, "Old Mill", SESSION.path);
-    await openLink(app, place, "Old Mill", SESSION.path);
-    await openLink(app, place, "Old Mill", SESSION.path);
+    await openLink(app, place, "Old Mill", SESSION.path, false);
+    await openLink(app, place, "Old Mill", SESSION.path, false);
+    await openLink(app, place, "Old Mill", SESSION.path, false);
     expect(calls.create.mock.calls).toEqual([["D&D/Pale Moon/Old Mill.md", ""]]);
     expect(openedPaths(leaf)).toEqual(["D&D/Pale Moon/Old Mill.md", "D&D/Pale Moon/Old Mill.md", "D&D/Pale Moon/Old Mill.md"]);
     expect(Notice.shown).toEqual([]);
@@ -127,15 +147,23 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
   it("opens the note already at the path the link would make, at the heading it names", async () => {
     const there = fileAt("D&D/Pale Moon/Old Mill.md");
     const { app, place, calls, leaf } = placeWith(ROOT_MILL, [SESSION, ROOT_MILL, there]);
-    await openLink(app, place, "Old Mill#Cellar", SESSION.path);
+    await openLink(app, place, "Old Mill#Cellar", SESSION.path, false);
     expect(leaf.openFile).toHaveBeenCalledWith(there, { eState: { subpath: "#Cellar" } });
     expect(calls.create).not.toHaveBeenCalled();
+  });
+
+  it("opens the campaign's note in a new tab when asked", async () => {
+    const placed = fileAt("D&D/Pale Moon/Places/Old Mill.md");
+    const { app, place, getLeaf, leaf } = placeWith(ROOT_MILL, [SESSION, ROOT_MILL, placed]);
+    await openLink(app, place, "Old Mill", SESSION.path, "tab");
+    expect(getLeaf).toHaveBeenCalledExactlyOnceWith("tab");
+    expect(openedPaths(leaf)).toEqual([placed.path]);
   });
 
   it("opens a note of that name in a folder of the campaign, making no second one", async () => {
     const placed = fileAt("D&D/Pale Moon/Places/Old Mill.md");
     const { app, place, calls, leaf } = placeWith(ROOT_MILL, [SESSION, ROOT_MILL, placed]);
-    await openLink(app, place, "Old Mill", SESSION.path);
+    await openLink(app, place, "Old Mill", SESSION.path, false);
     expect(openedPaths(leaf)).toEqual([placed.path]);
     expect(calls.create).not.toHaveBeenCalled();
   });
@@ -144,7 +172,7 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
     const town = fileAt("D&D/Pale Moon/Places/Town/Inn.md");
     const road = fileAt("D&D/Pale Moon/Places/Road/Inn.md");
     const { app, place, leaf } = placeWith(null, [SESSION, road, town]);
-    await openLink(app, place, "Town/Inn", SESSION.path);
+    await openLink(app, place, "Town/Inn", SESSION.path, false);
     expect(openedPaths(leaf)).toEqual([town.path]);
   });
 
@@ -152,7 +180,7 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
     const exact = fileAt("D&D/Pale Moon/Places/Old Mill.md");
     const nearer = fileAt("D&D/Pale Moon/Sessions/Places/Old Mill.md");
     const { app, place, leaf } = placeWith(null, [SESSION, nearer, exact]);
-    await openLink(app, place, "Places/Old Mill", SESSION.path);
+    await openLink(app, place, "Places/Old Mill", SESSION.path, false);
     expect(openedPaths(leaf)).toEqual([exact.path]);
   });
 
@@ -160,7 +188,7 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
     const far = fileAt("D&D/Pale Moon/Places/Old/Old Mill.md");
     const near = fileAt("D&D/Pale Moon/Sessions/Places/Old Mill.md");
     const { app, place, leaf } = placeWith(ROOT_MILL, [SESSION, ROOT_MILL, far, near]);
-    await openLink(app, place, "Old Mill", SESSION.path);
+    await openLink(app, place, "Old Mill", SESSION.path, false);
     expect(openedPaths(leaf)).toEqual([near.path]);
   });
 
@@ -168,14 +196,14 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
     const road = fileAt("D&D/Pale Moon/Road/Old Mill.md");
     const places = fileAt("D&D/Pale Moon/Places/Old Mill.md");
     const { app, place, leaf } = placeWith(ROOT_MILL, [SESSION, ROOT_MILL, road, places]);
-    await openLink(app, place, "Old Mill", SESSION.path);
+    await openLink(app, place, "Old Mill", SESSION.path, false);
     expect(openedPaths(leaf)).toEqual([places.path]);
   });
 
   it("opens a note whose name differs from the link only in capitals", async () => {
     const placed = fileAt("D&D/Pale Moon/Places/old mill.md");
     const { app, place, calls, leaf } = placeWith(ROOT_MILL, [SESSION, ROOT_MILL, placed]);
-    await openLink(app, place, "Old Mill", SESSION.path);
+    await openLink(app, place, "Old Mill", SESSION.path, false);
     expect(openedPaths(leaf)).toEqual([placed.path]);
     expect(calls.create).not.toHaveBeenCalled();
   });
@@ -183,7 +211,7 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
   it("leaves alone a note of that name in another campaign, and makes one in this campaign", async () => {
     const other = fileAt("D&D/Ashen Road/Old Mill.md");
     const { app, place, calls, leaf } = placeWith(ROOT_MILL, [SESSION, ROOT_MILL, other]);
-    await openLink(app, place, "Old Mill", SESSION.path);
+    await openLink(app, place, "Old Mill", SESSION.path, false);
     expect(calls.create).toHaveBeenCalledWith("D&D/Pale Moon/Old Mill.md", "");
     expect(openedPaths(leaf)).toEqual(["D&D/Pale Moon/Old Mill.md"]);
   });
@@ -191,14 +219,14 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
   it("leaves alone a note whose name only ends with the link's name", async () => {
     const other = fileAt("D&D/Pale Moon/Places/Gold Mill.md");
     const { app, place, calls } = placeWith(ROOT_MILL, [SESSION, ROOT_MILL, other]);
-    await openLink(app, place, "Mill", SESSION.path);
+    await openLink(app, place, "Mill", SESSION.path, false);
     expect(calls.create).toHaveBeenCalledWith("D&D/Pale Moon/Mill.md", "");
   });
 });
 
 describe("openLink refusing to make a note", () => {
   async function expectNothingMade(place: ReturnType<typeof placeWith>, linktext: string, sourcePath: string, notice: string) {
-    await openLink(place.app, place.place, linktext, sourcePath);
+    await openLink(place.app, place.place, linktext, sourcePath, false);
     expect(place.calls.create).not.toHaveBeenCalled();
     expect(place.calls.createFolder).not.toHaveBeenCalled();
     expect(place.leaf.openFile).not.toHaveBeenCalled();
