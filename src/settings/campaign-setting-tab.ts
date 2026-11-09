@@ -6,6 +6,7 @@ import { PictureSuggestModal } from "./picture-suggest-modal";
 
 const FOLDER_HINT = "Its folder. Every note in it, and in the folders inside it, shows the background picture below.";
 const NO_PICTURE = "None yet.";
+const WELCOME_HINT = "The first steps for a new campaign. They open in the campaign tab, behind this window.";
 const WASH_NAMES: Record<Wash, string> = { subtle: "Subtle", balanced: "Balanced", strong: "Strong" };
 
 export interface CampaignChoice {
@@ -29,6 +30,7 @@ export class CampaignSettingTab extends PluginSettingTab {
     app: App,
     plugin: Plugin,
     private readonly campaigns: CampaignChoice,
+    private readonly showWelcome: () => Promise<void>,
   ) {
     super(app, plugin);
     plugin.registerEvent(app.metadataCache.on("changed", (file) => this.noteChanged(file.path)));
@@ -37,6 +39,11 @@ export class CampaignSettingTab extends PluginSettingTab {
   override display(): void {
     this.rows = null;
     this.containerEl.empty();
+    this.showCampaign();
+    this.addWelcomeRow();
+  }
+
+  private showCampaign(): void {
     const folder = this.campaigns.chosen();
     if (folder === null) {
       this.containerEl.createEl("p", { text: NO_CAMPAIGN });
@@ -55,6 +62,15 @@ export class CampaignSettingTab extends PluginSettingTab {
     );
     this.rows = rows;
     this.showPictureSettings(rows);
+  }
+
+  private addWelcomeRow(): void {
+    const welcome = new Setting(this.containerEl).setName("Welcome page").setDesc(WELCOME_HINT);
+    new ButtonComponent(welcome.controlEl).setButtonText("Show this again").onClick(() => this.openWelcome());
+  }
+
+  private openWelcome(): void {
+    this.showWelcome().catch((error: unknown) => new Notice(`Couldn't open the welcome page: ${messageOf(error)}`));
   }
 
   override hide(): void {

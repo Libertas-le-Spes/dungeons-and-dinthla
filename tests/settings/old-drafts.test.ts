@@ -3,6 +3,7 @@ import { MOVED_KEY, OldDrafts } from "../../src/settings/old-drafts";
 
 const THREE = "Pale Moon/Sessions/Session 3.md";
 const FOUR = "Pale Moon/Sessions/Session 4.md";
+const SETTINGS = { campaignFolder: "Pale Moon", welcomeSeen: true, lastVersionSeen: "1.0.0" };
 
 function storageWith(moved: unknown) {
   return { load: vi.fn(() => moved), save: vi.fn() };
@@ -18,12 +19,12 @@ describe("OldDrafts", () => {
   it("keeps them in the settings file until they are kept on the device, then marks them moved", () => {
     const storage = storageWith(null);
     const old = new OldDrafts({ campaignFolder: "Pale Moon", drafts: { [THREE]: "? Who" } }, storage);
-    expect(old.dataOf({ campaignFolder: "Pale Moon" })).toEqual({ campaignFolder: "Pale Moon", drafts: { [THREE]: "? Who" } });
+    expect(old.dataOf(SETTINGS)).toEqual({ ...SETTINGS, drafts: { [THREE]: "? Who" } });
     expect(old.leftInFile).toBe(false);
     old.keptOnDevice();
     expect(storage.save).toHaveBeenCalledExactlyOnceWith(MOVED_KEY, true);
     expect(old.waiting).toBe(false);
-    expect(old.dataOf({ campaignFolder: "Pale Moon" })).toEqual({ campaignFolder: "Pale Moon" });
+    expect(old.dataOf(SETTINGS)).toEqual(SETTINGS);
     expect(old.leftInFile).toBe(true);
     old.fileRewritten();
     expect(old.leftInFile).toBe(false);

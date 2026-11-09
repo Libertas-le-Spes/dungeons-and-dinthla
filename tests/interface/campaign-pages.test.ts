@@ -17,7 +17,7 @@ function makersMadeBy(made: PageId[]): PageMakers {
     made.push(id);
     return new Component();
   };
-  return { home: maker("home"), cast: maker("cast"), notes: maker("notes"), questions: maker("questions"), quests: maker("quests"), funds: maker("funds"), note: maker("note") };
+  return { home: maker("home"), cast: maker("cast"), notes: maker("notes"), questions: maker("questions"), quests: maker("quests"), funds: maker("funds"), note: maker("note"), welcome: maker("welcome") };
 }
 
 function listedPages(made: PageId[] = []) {
@@ -39,6 +39,12 @@ describe("campaignSections", () => {
     const pages = campaignSections(makersMadeBy([])).flatMap((section) => section.pages);
     const note = pages.find((page) => page.id === "note");
     expect([note?.listed, note?.inBar]).toEqual([false, false]);
+  });
+
+  it("has a Welcome page that the sidebar and the bar leave out, as it opens on first install or from the settings", () => {
+    const pages = campaignSections(makersMadeBy([])).flatMap((section) => section.pages);
+    const welcome = pages.find((page) => page.id === "welcome");
+    expect([welcome?.label, welcome?.listed, welcome?.inBar]).toEqual(["Welcome", false, false]);
   });
 
   it("keeps the note page on its note when the note is deleted, so what was typed stays", () => {
@@ -82,7 +88,7 @@ describe("campaignSections", () => {
     const made: PageId[] = [];
     const pages = campaignSections(makersMadeBy(made)).flatMap((section) => section.pages);
     for (const page of pages) page.make({} as HTMLElement, () => {}, null, () => {});
-    expect(made).toEqual(["home", "cast", "notes", "questions", "quests", "funds", "note"]);
+    expect(made).toEqual(["home", "cast", "notes", "questions", "quests", "funds", "note", "welcome"]);
     expect(pages.map((page) => page.id)).toEqual(made);
   });
 
@@ -96,6 +102,7 @@ describe("campaignSections", () => {
       ["quests", 1],
       ["funds", 0],
       ["note", 0],
+      ["welcome", 0],
     ]);
   });
 });

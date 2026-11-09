@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App, CachedMetadata, EventRef, Plugin, TFile } from "obsidian";
 import { CampaignSettingTab, type CampaignChoice } from "../../src/settings/campaign-setting-tab";
 import type { PictureSuggestModal } from "../../src/settings/picture-suggest-modal";
@@ -103,8 +103,8 @@ class FakeCampaigns implements CampaignChoice {
   }
 }
 
-function tabFor(fake: FakeApp, campaigns: CampaignChoice): CampaignSettingTab {
-  const tab = new CampaignSettingTab(fake.app, fake.plugin, campaigns);
+function tabFor(fake: FakeApp, campaigns: CampaignChoice, showWelcome: () => Promise<void> = async () => {}): CampaignSettingTab {
+  const tab = new CampaignSettingTab(fake.app, fake.plugin, campaigns, showWelcome);
   tab.containerEl = obsidianDocument().body.createDiv();
   tab.display();
   return tab;
@@ -154,15 +154,32 @@ describe("CampaignSettingTab", () => {
     Notice.shown = [];
   });
 
-  it("asks for a campaign first when the vault has none", () => {
+  it("asks for a campaign first when the vault has none, and still offers the welcome page", () => {
     const tab = tabFor(fake, new FakeCampaigns(null));
-    expect(tab.containerEl.textContent).toBe("Make a campaign first: a top-level folder with a main note of the same name.");
+    expect(tab.containerEl.querySelector("p")!.textContent).toBe("Make a campaign first: a top-level folder with a main note of the same name.");
+    expect(rows(tab)).toEqual(["Welcome page"]);
+  });
+
+  it("shows the welcome page again when Show this again is pressed", () => {
+    const showWelcome = vi.fn(async () => {});
+    const tab = tabFor(fake, new FakeCampaigns("Pale Moon"), showWelcome);
+    buttonIn(rowNamed(tab, "Welcome page"), "Show this again").click();
+    expect(showWelcome).toHaveBeenCalledOnce();
+  });
+
+  it("says so when the welcome page can't be opened", async () => {
+    const tab = tabFor(fake, new FakeCampaigns("Pale Moon"), async () => {
+      throw new Error("The workspace is closing.");
+    });
+    buttonIn(rowNamed(tab, "Welcome page"), "Show this again").click();
+    await settled();
+    expect(Notice.shown).toEqual(["Couldn't open the welcome page: The workspace is closing."]);
   });
 
   it("shows the chosen campaign, its background picture and how much of it shows", () => {
     fake.properties.set(PALE_MOON, { background: "[[pale-moon.jpg]]", wash: "strong" });
     const tab = tabFor(fake, new FakeCampaigns("Pale Moon"));
-    expect(rows(tab)).toEqual(["Campaign", "Background picture", "How much of the picture shows"]);
+    expect(rows(tab)).toEqual(["Campaign", "Background picture", "How much of the picture shows", "Welcome page"]);
     expect(selectIn(tab, "Campaign").value).toBe("Pale Moon");
     expect(pictureText(tab)).toBe("Art/pale-moon.jpg");
     expect(buttonIn(rowNamed(tab, "Background picture"), "Change picture")).toBeDefined();
