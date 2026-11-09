@@ -351,11 +351,9 @@ export default class DungeonsAndDinthla extends Plugin {
 
   private async lookAgain(): Promise<void> {
     const folder = this.startingCampaignFolder();
-    if (folder === null) {
-      this.store.close();
-      return;
-    }
-    await this.chosen.choose(folder);
+    if (folder === null) this.store.close();
+    else await this.chosen.choose(folder);
+    this.showBackgrounds();
   }
 
   private watchBackgrounds(): void {
