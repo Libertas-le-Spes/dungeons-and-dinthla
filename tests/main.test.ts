@@ -4,6 +4,6 @@ import DungeonsAndDinthla from "../src/main";
 
 describe("DungeonsAndDinthla", () => {
   it("loads against the Obsidian stand-in", () => {
-    expect(new DungeonsAndDinthla({} as App, {} as PluginManifest)).toBeInstanceOf(Plugin);
+    expect(new DungeonsAndDinthla({ vault: { configDir: ".obsidian" } } as unknown as App, {} as PluginManifest)).toBeInstanceOf(Plugin);
   });
 });

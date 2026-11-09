@@ -14,6 +14,7 @@ export class Gatekeeper {
   readonly metadata: FencedMetadata;
   readonly vaultSettings: VaultSettings;
   readonly folders: FolderChoices;
+  readonly configDir: string;
 
   constructor(app: App, readCampaignsFolder: ReadCampaignsFolder) {
     this.fence = new Fence(readCampaignsFolder);
@@ -23,6 +24,7 @@ export class Gatekeeper {
     this.metadata = new FencedMetadata(app.metadataCache, held);
     this.vaultSettings = new VaultSettings(configReaderOf(app));
     this.folders = new FolderChoices(app.vault);
+    this.configDir = app.vault.configDir;
   }
 }
 
