@@ -1,25 +1,23 @@
 import { refusalForCampaignsFolder } from "../fence/campaigns-folder-path";
-import type { PluginSettings, SaveSettings } from "./plugin-settings";
+import type { SettingsSaver } from "./settings-saver";
 
 export type CampaignsFolderMoved = () => Promise<void>;
 
-export class CampaignsFolder {
+export class CampaignsFolderSetting {
   constructor(
-    private readonly settings: PluginSettings,
-    private readonly save: SaveSettings,
+    private readonly saver: SettingsSaver,
     private readonly moved: CampaignsFolderMoved,
   ) {}
 
   get path(): string | null {
-    return this.settings.campaignsFolder;
+    return this.saver.settings.campaignsFolder;
   }
 
   async choose(path: string): Promise<void> {
     const refusal = refusalForCampaignsFolder(path);
     if (refusal !== null) throw new Error(refusal);
-    if (path === this.settings.campaignsFolder) return;
-    this.settings.campaignsFolder = path;
-    await this.save(this.settings);
+    if (path === this.saver.settings.campaignsFolder) return;
+    await this.saver.save({ campaignsFolder: path });
     await this.moved();
   }
 }

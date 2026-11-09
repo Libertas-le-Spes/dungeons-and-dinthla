@@ -1,4 +1,5 @@
 import { ItemView, type Component, type TAbstractFile, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
+import { campaignNameOf } from "../campaign/campaign-folders";
 import type { CampaignStore } from "../campaign/campaign-store";
 import type { FencedFiles, GoneFile } from "../fence/fenced-files";
 import type { NavSection, PageEntry, PageTarget } from "./campaign-pages";
@@ -146,8 +147,17 @@ export class CampaignView extends ItemView {
     return current.entry === shown.entry && current.path === shown.path;
   }
 
+  showAgain(): void {
+    if (this.current === null) return;
+    this.build(this.current);
+  }
+
   private show(shown: Shown): void {
     if (this.isShowing(shown) && this.shownPage !== null) return;
+    this.build(shown);
+  }
+
+  private build(shown: Shown): void {
     this.current = shown;
     const pageEl = this.pageEl;
     if (pageEl === null) return;
@@ -192,7 +202,7 @@ export class CampaignView extends ItemView {
   private campaignTitle(): string {
     const folder = this.store.campaignFolder;
     if (folder === null) return NO_CAMPAIGN_TITLE;
-    return folder;
+    return campaignNameOf(folder);
   }
 
   private shownFor(state: unknown): Shown {

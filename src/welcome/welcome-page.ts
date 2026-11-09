@@ -1,6 +1,6 @@
 import { Component } from "obsidian";
 import type { CampaignStore } from "../campaign/campaign-store";
-import type { CampaignsFolderPath } from "../fence/fence";
+import type { ReadCampaignsFolder } from "../fence/fence";
 import type { WelcomeActions, WelcomeEnding, WelcomeState } from "./welcome-ending";
 import { endingFor } from "./welcome-endings";
 import { WELCOME_STEPS, WELCOME_TITLE } from "./welcome-steps";
@@ -15,7 +15,7 @@ export class WelcomePage extends Component {
   constructor(
     private readonly contentEl: HTMLElement,
     private readonly store: WelcomeStore,
-    private readonly campaignsFolder: CampaignsFolderPath,
+    private readonly readCampaignsFolder: ReadCampaignsFolder,
     private readonly actions: WelcomeActions,
   ) {
     super();
@@ -50,7 +50,7 @@ export class WelcomePage extends Component {
 
   private state(): WelcomeState {
     return {
-      campaignsFolder: this.campaignsFolder(),
+      campaignsFolder: this.readCampaignsFolder(),
       campaignFolder: this.store.campaignFolder,
       sessionCount: this.store.sessionNotes.length,
     };
