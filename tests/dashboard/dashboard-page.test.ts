@@ -45,13 +45,14 @@ async function openDashboard(sessions: SessionNote[], { folder = CAMPAIGN, chara
     },
   };
   const reads = { count: 0 };
+  const owner = { name: own };
   const notes: CharacterNotes = {
     textOf: (file) => {
       reads.count += 1;
       return textOf(file);
     },
     pathOfLink: (linktext) => `${CAMPAIGN}/Characters/${linktext}.md`,
-    isOwnCharacter: (file) => file.basename === own,
+    isOwnCharacter: (file) => file.basename === owner.name,
     campaignFolders: () => [CAMPAIGN],
     filesIn: () => characters.map(characterFile),
     sessionsOf: async () => [],
@@ -85,7 +86,7 @@ async function openDashboard(sessions: SessionNote[], { folder = CAMPAIGN, chara
     listener();
   };
   const close = () => view.unload();
-  return { root, actions, closers, reads, change, close, unsubscribe, stopWatching, noteChanged: (path: string) => noteChanged(path) };
+  return { root, actions, closers, reads, owner, change, close, unsubscribe, stopWatching, noteChanged: (path: string) => noteChanged(path) };
 }
 
 function panel(root: HTMLElement, index: number): HTMLElement {
@@ -289,7 +290,7 @@ describe("DashboardPage", () => {
 
   it("shows each character's class, AC and HP, marks the player's own, and opens their sheet", async () => {
     const sessions = [sessionOf(1, ["[[Mira]] class: rogue, AC: 15", "[[Thessaly]] HP: 22"])];
-    const { root, actions } = await openDashboard(sessions, { characters: ["Mira", "Thessaly"], own: "Thessaly" });
+    const { root, actions } = await openDashboard(sessions, { characters: ["Mira", "Thessaly"], own: "Mira" });
     const characters = panel(root, CHARACTERS);
     await vi.waitFor(() => expect(textsOf(characters, ".dd-stat-block-name")).toEqual(["Mira", "Thessaly"]));
     expect(textsOf(characters, ".dd-stat-block-line")).toEqual(["Class rogue · AC 15 · HP ?", "Class ? · AC ? · HP 22"]);
@@ -299,6 +300,20 @@ describe("DashboardPage", () => {
     characters.querySelector<HTMLElement>(".dd-card")!.click();
     expect(actions.openCharacterSheet).toHaveBeenCalledWith(`${CAMPAIGN}/Characters/Mira.md`);
     expect(actions.openRow).not.toHaveBeenCalled();
+  });
+
+  it("puts the player's own character first, and the others in the order the Characters folder lists them", async () => {
+    const characters = ["Brother Aldric", "Lady Vess", "Mira", "Thessaly"];
+    const { root } = await openDashboard([], { characters, own: "Mira" });
+    await vi.waitFor(() => expect(textsOf(panel(root, CHARACTERS), ".dd-stat-block-name")).toEqual(["Mira", "Brother Aldric", "Lady Vess", "Thessaly"]));
+  });
+
+  it("moves the new own character first when the campaign note changes", async () => {
+    const { root, owner, noteChanged } = await openDashboard([], { characters: ["Mira", "Thessaly"], own: "Mira" });
+    await vi.waitFor(() => expect(textsOf(panel(root, CHARACTERS), ".dd-stat-block-name")).toEqual(["Mira", "Thessaly"]));
+    owner.name = "Thessaly";
+    noteChanged(`${CAMPAIGN}/${CAMPAIGN}.md`);
+    await vi.waitFor(() => expect(textsOf(panel(root, CHARACTERS), ".dd-stat-block-name")).toEqual(["Thessaly", "Mira"]));
   });
 
   it("shows no characters without a campaign", async () => {
