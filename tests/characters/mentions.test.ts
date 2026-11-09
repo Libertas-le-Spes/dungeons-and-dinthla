@@ -21,14 +21,14 @@ interface Linking {
   lines: number[];
 }
 
-function notesWith(linking: Record<string, Linking>, order: string[] = Object.keys(linking)): MentionNotes {
+function notesWith(linking: Record<string, Linking>, order: string[] = Object.keys(linking), campaignFolders = ["Ashen Road", "Bright Sea", "Pale Moon"]): MentionNotes {
   return {
     fileAt: (path) => {
       if (linking[path] === undefined) return null;
       return { path } as TFile;
     },
     textOf: async (file) => linking[file.path]!.text,
-    campaignFolders: () => ["Ashen Road", "Bright Sea", "Pale Moon"],
+    campaignFolders: () => campaignFolders,
     onNoteMoved: () => () => {},
     linkingPaths: (target) => {
       if (target !== MIRA.path && target !== LOOSE_MIRA.path) return [];
@@ -82,6 +82,14 @@ describe("readMentions", () => {
   it("names the campaign of a session outside the character's own", async () => {
     const mentions = await readMentions(MIRA, notesWith({ [ONE]: once(), [OLD_TWO]: once() }));
     expect(mentions.map((mention) => mention.where)).toEqual(["Session 1", "Session 2 · Ashen Road"]);
+  });
+
+  it("names another campaign by its name, not the path of its folder in the Campaigns folder", async () => {
+    const mira = { path: "D&D/Pale Moon/Characters/Mira.md", basename: "Mira" } as TFile;
+    const linking = { "D&D/Ashen Road/Sessions/Session 3.md": once() };
+    const notes = { ...notesWith(linking, Object.keys(linking), ["D&D/Ashen Road", "D&D/Pale Moon"]), linkingPaths: () => Object.keys(linking) };
+    const mentions = await readMentions(mira, notes);
+    expect(mentions.map((mention) => mention.where)).toEqual(["Session 3 · Ashen Road"]);
   });
 
   it("keeps two notes with the same session number apart, by path", async () => {

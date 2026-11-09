@@ -417,6 +417,11 @@ describe("CampaignView", () => {
     expect(made).toEqual([]);
   });
 
+  it("names the open campaign at the top of the sidebar by its name, not the path of its folder", async () => {
+    const { root } = await openView({ folder: "D&D/Pale Moon" });
+    expect(root.querySelector(".dd-nav-campaign")!.textContent).toBe("Pale Moon");
+  });
+
   it("builds no page until Obsidian gives it its state", async () => {
     const made: FakePage[] = [];
     const store = { subscribe: () => () => {}, current: campaignOf([]), campaignFolder: null };
