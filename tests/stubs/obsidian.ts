@@ -9,6 +9,7 @@ import type {
   ItemView as RealItemView,
   TFile,
   MarkdownFileInfo,
+  ViewState,
   Modal as RealModal,
   Plugin as RealPlugin,
   PluginSettingTab as RealPluginSettingTab,
@@ -76,6 +77,7 @@ export class Component {
 
 export class ItemView extends Component {
   app!: RealItemView["app"];
+  navigation = false;
   leaf: RealItemView["leaf"];
   contentEl!: HTMLElement;
   containerEl: HTMLElement;
@@ -98,19 +100,8 @@ export class ItemView extends Component {
   async setState(..._args: Parameters<RealItemView["setState"]>): Promise<void> {}
 }
 
-export class FileView extends ItemView {
-  file: TFile | null = null;
-  navigation = true;
-
-  override onload(): void {}
-
-  async onLoadFile(_file: TFile): Promise<void> {}
-
-  async onUnloadFile(_file: TFile): Promise<void> {}
-
-  async onRename(file: TFile): Promise<void> {
-    this.file = file;
-  }
+export class WorkspaceLeaf {
+  async setViewState(_viewState: ViewState, _eState?: unknown): Promise<void> {}
 }
 
 export class BasesView {
