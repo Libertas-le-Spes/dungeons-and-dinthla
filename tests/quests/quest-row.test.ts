@@ -51,6 +51,20 @@ describe("addQuestRow", () => {
     expect(row.querySelector(".dd-facts mark")?.textContent).toBe("Vess");
   });
 
+  it("opens a name linked in the title from the quest's own line", () => {
+    const { row, actions } = setUp(["We rode on.", "! Find [[Old Mill]]", "!= Find Old Mill: found [[Lady Vess]]"]);
+    (row.querySelector(".dd-text a.dd-link-name") as HTMLElement).click();
+    expect(actions.openLink).toHaveBeenCalledExactlyOnceWith("Old Mill", { path: "Pale Moon/Sessions/Session 2.md", line: 1 }, false);
+    expect(actions.openRow).not.toHaveBeenCalled();
+  });
+
+  it("opens a name linked in what happened from the outcome's own line", () => {
+    const { row, actions } = setUp(["We rode on.", "! Find it", "!= Find it: found [[Lady Vess]]"]);
+    (row.querySelector(".dd-answer a.dd-link-name") as HTMLElement).click();
+    expect(actions.openLink).toHaveBeenCalledExactlyOnceWith("Lady Vess", { path: "Pale Moon/Sessions/Session 2.md", line: 2 }, false);
+    expect(actions.openRow).not.toHaveBeenCalled();
+  });
+
   it("opens the session at the quest's line when tapped", () => {
     const { row, actions } = setUp(["We rode on.", "! Find it"]);
     row.click();

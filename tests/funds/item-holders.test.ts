@@ -1,14 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
-import type { CachedMetadata, TFile } from "obsidian";
+import type { CachedMetadata, TFile, TFolder } from "obsidian";
 import { CampaignStore } from "../../src/campaign/campaign-store";
+import { SavedCampaign, type SavedCampaignNeeds } from "../../src/campaign/saved-campaign";
 import { Fence } from "../../src/fence/fence";
 import { FencedFileActions, type ChangeProperties, type RawFileManager } from "../../src/fence/fenced-file-actions";
 import { FencedFiles } from "../../src/fence/fenced-files";
 import { FencedMetadata, type RawMetadata } from "../../src/fence/fenced-metadata";
 import { HeldFiles } from "../../src/fence/held-files";
-import { ItemHolders } from "../../src/funds/item-holders";
+import { ItemHolders, type HolderStore } from "../../src/funds/item-holders";
 import { FakeVault } from "../campaign/fake-vault";
-import { rawVaultWith } from "../fence/fake-raw-vault";
+import { FakeEvents, rawVaultWith } from "../fence/fake-raw-vault";
+import { TFile as StubFile, TFolder as StubFolder } from "../stubs/obsidian";
 
 const CAMPAIGN = "D&D/Pale Moon";
 const SESSION = `${CAMPAIGN}/Sessions/Session 1.md`;
@@ -22,17 +24,31 @@ interface ItemNote {
   properties: Properties | null;
 }
 
+function nameOf(path: string): string {
+  return path.slice(path.lastIndexOf("/") + 1);
+}
+
 function fileAt(path: string): TFile {
-  return { path, name: path.slice(path.lastIndexOf("/") + 1) } as TFile;
+  const name = nameOf(path);
+  const dot = name.lastIndexOf(".");
+  const file = Object.assign(new StubFile(), { path, name, basename: name.slice(0, dot), extension: name.slice(dot + 1) });
+  return file as unknown as TFile;
+}
+
+function folderAt(path: string, children: TFile[]): TFolder {
+  const folder = Object.assign(new StubFolder(), { path, name: nameOf(path), children });
+  return folder as unknown as TFolder;
 }
 
 function cacheOf(properties: Properties): CachedMetadata {
+  if (Object.keys(properties).length === 0) return {};
   return { frontmatter: { ...properties } };
 }
 
 class ItemNotes {
   readonly written: { path: string; holder: unknown }[] = [];
   readonly failures: unknown[] = [];
+  readonly foldersListed: string[] = [];
   afterWrite: () => void = () => {};
   private held: Promise<void> = Promise.resolve();
   private readonly notes: ItemNote[];
@@ -53,14 +69,10 @@ class ItemNotes {
     return this.noteAt(path).properties;
   }
 
-  setProperties(path: string, properties: Properties): void {
-    this.noteAt(path).properties = properties;
-  }
-
-  needsFor(store: CampaignStore) {
+  needsFor(store: HolderStore) {
     return {
       store,
-      files: { getMarkdownFiles: () => this.notes.map((note) => fileAt(note.path)) },
+      files: { getFolderByPath: (path: string) => this.folderAt(path) },
       metadata: {
         getFileCache: (file: TFile) => {
           const properties = this.noteAt(file.path).properties;
@@ -71,6 +83,13 @@ class ItemNotes {
       actions: { processFrontMatter: async (file: TFile, change: ChangeProperties) => this.write(file, change) },
       failed: (error: unknown) => this.failures.push(error),
     };
+  }
+
+  private folderAt(path: string): TFolder | null {
+    this.foldersListed.push(path);
+    const inside = this.notes.filter((note) => note.path.startsWith(`${path}/`));
+    if (inside.length === 0) return null;
+    return folderAt(path, inside.map((note) => fileAt(note.path)));
   }
 
   private async write(file: TFile, change: ChangeProperties): Promise<void> {
@@ -132,6 +151,11 @@ describe("ItemHolders", () => {
     expect(itemNotes.written).toEqual([{ path: LANTERN, holder: "[[Mira]]" }]);
   });
 
+  it("gives a holder to a note without properties", async () => {
+    const { itemNotes } = await keepHolders(["$$ Silvered lantern :changed to [[Mira]]"], [{ path: LANTERN, properties: {} }]);
+    expect(itemNotes.propertiesOf(LANTERN)).toEqual({ holder: "[[Mira]]" });
+  });
+
   it("writes a new holder over the old one and keeps the note's other properties", async () => {
     const { itemNotes } = await keepHolders(["$$ Silvered lantern :changed to [[Mira]]"], [{ path: LANTERN, properties: { holder: "The party", tags: ["key"] } }]);
     expect(itemNotes.propertiesOf(LANTERN)).toEqual({ holder: "[[Mira]]", tags: ["key"] });
@@ -145,9 +169,44 @@ describe("ItemHolders", () => {
     expect(itemNotes.written).toEqual([{ path: LANTERN, holder: "Old Tom" }]);
   });
 
+  it("writes the same note again once its first write is done", async () => {
+    const lines = ["$$ Silvered lantern :changed to [[Mira]]"];
+    const { itemNotes, reread } = await keepHolders(lines, [{ path: LANTERN, properties: {} }]);
+    reread([...lines, "$$ Silvered lantern :changed to Old Tom"]);
+    await settle();
+    expect(itemNotes.written).toEqual([
+      { path: LANTERN, holder: "[[Mira]]" },
+      { path: LANTERN, holder: "Old Tom" },
+    ]);
+  });
+
+  it("writes the newer holder that came while its write was still going", async () => {
+    const lines = ["$$ Silvered lantern :changed to [[Mira]]"];
+    const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
+    const store = new CampaignStore(sessions.vault);
+    const itemNotes = new ItemNotes([{ path: LANTERN, properties: {} }]);
+    const release = itemNotes.holdWrites();
+    new ItemHolders(itemNotes.needsFor(store)).start();
+    await store.open(CAMPAIGN);
+    store.noteChanged(SESSION, [...lines, "$$ Silvered lantern :changed to Old Tom"].join("\n"));
+    release();
+    await settle();
+    expect(itemNotes.propertiesOf(LANTERN)).toEqual({ holder: "Old Tom" });
+  });
+
   it("writes nothing when the note already holds the holder", async () => {
     const { itemNotes } = await keepHolders(["$$ Silvered lantern :changed to [[Mira]]"], [{ path: LANTERN, properties: { holder: "[[Mira]]" } }]);
     expect(itemNotes.written).toEqual([]);
+  });
+
+  it("writes at once when started after the campaign is open", async () => {
+    const sessions = new FakeVault([{ path: SESSION, text: "$$ Silvered lantern :changed to [[Mira]]" }]);
+    const store = new CampaignStore(sessions.vault);
+    await store.open(CAMPAIGN);
+    const itemNotes = new ItemNotes([{ path: LANTERN, properties: {} }]);
+    new ItemHolders(itemNotes.needsFor(store)).start();
+    await settle();
+    expect(itemNotes.written).toEqual([{ path: LANTERN, holder: "[[Mira]]" }]);
   });
 
   it("writes nothing more when its own write makes the campaign be read again", async () => {
@@ -215,18 +274,18 @@ describe("ItemHolders", () => {
     expect(itemNotes.written).toEqual([]);
   });
 
-  it("leaves an item note Obsidian hasn't read yet", async () => {
-    const { itemNotes } = await keepHolders(["$$ Silvered lantern :changed to [[Mira]]"], [{ path: LANTERN, properties: null }]);
+  it("looks only in the campaign's Items folder", async () => {
+    const { itemNotes } = await keepHolders(["$$ Silvered lantern :changed to [[Mira]]"], [{ path: LANTERN, properties: {} }]);
+    expect(new Set(itemNotes.foldersListed)).toEqual(new Set([`${CAMPAIGN}/Items`]));
+  });
+
+  it("leaves a file in the Items folder that isn't a note, even one named as an item is", async () => {
+    const { itemNotes } = await keepHolders(["$$ Old map.canvas :changed to [[Mira]]"], [{ path: `${CAMPAIGN}/Items/Old map.canvas`, properties: {} }]);
     expect(itemNotes.written).toEqual([]);
   });
 
-  it("writes nothing while no campaign is open", async () => {
-    const sessions = new FakeVault([{ path: SESSION, text: "$$ Silvered lantern :changed to [[Mira]]" }]);
-    const store = new CampaignStore(sessions.vault);
-    const itemNotes = new ItemNotes([{ path: LANTERN, properties: {} }]);
-    new ItemHolders(itemNotes.needsFor(store)).start();
-    store.close();
-    await settle();
+  it("leaves an item note Obsidian hasn't read yet", async () => {
+    const { itemNotes } = await keepHolders(["$$ Silvered lantern :changed to [[Mira]]"], [{ path: LANTERN, properties: null }]);
     expect(itemNotes.written).toEqual([]);
   });
 
@@ -260,12 +319,63 @@ describe("ItemHolders", () => {
     expect(itemNotes.failures).toEqual([refused]);
     expect(itemNotes.written).toEqual([{ path: ROPE, holder: "Old Tom" }]);
   });
+
+  it("says once that a holder couldn't be written however often the campaign is read again", async () => {
+    const lines = ["$$ Silvered lantern :changed to [[Mira]]"];
+    const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
+    const store = new CampaignStore(sessions.vault);
+    const itemNotes = new ItemNotes([{ path: LANTERN, properties: {} }]);
+    const needs = itemNotes.needsFor(store);
+    needs.actions.processFrontMatter = async () => {
+      throw new Error("refused");
+    };
+    new ItemHolders(needs).start();
+    await store.open(CAMPAIGN);
+    await settle();
+    for (let read = 0; read < 3; read++) {
+      store.noteChanged(SESSION, lines.join("\n"));
+      await settle();
+    }
+    expect(itemNotes.failures).toHaveLength(1);
+  });
+});
+
+describe("ItemHolders from the saved session notes", () => {
+  async function keepSavedHolders(lines: string[]) {
+    const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
+    const fileEvents = new FakeEvents();
+    const metadataEvents = new FakeEvents();
+    const files = { ...sessions.vault, on: fileEvents.on.bind(fileEvents), offref: fileEvents.offref.bind(fileEvents) } as unknown as SavedCampaignNeeds["files"];
+    const metadata = { on: metadataEvents.on.bind(metadataEvents), offref: metadataEvents.offref.bind(metadataEvents) } as unknown as SavedCampaignNeeds["metadata"];
+    const shown = new CampaignStore(sessions.vault);
+    const saved = new SavedCampaign({ shown, files, metadata, failed: () => {} });
+    const itemNotes = new ItemNotes([{ path: LANTERN, properties: { holder: "[[Mira]]" } }]);
+    new ItemHolders(itemNotes.needsFor(saved)).start();
+    saved.start();
+    await shown.open(CAMPAIGN);
+    await settle();
+    const saveSession = (text: string) => metadataEvents.trigger("changed", { path: SESSION }, text, {});
+    return { shown, itemNotes, saveSession };
+  }
+
+  it("writes nothing while a holder is being typed and once when the session is saved", async () => {
+    const lines = ["$$ Silvered lantern :changed to [[Mira]]"];
+    const { shown, itemNotes, saveSession } = await keepSavedHolders(lines);
+    for (const typed of ["O", "Ol", "Old", "Old T", "[[Mi"]) {
+      shown.noteChanged(SESSION, [...lines, `$$ Silvered lantern :changed to ${typed}`].join("\n"));
+      await settle();
+    }
+    saveSession([...lines, "$$ Silvered lantern :changed to Old Tom"].join("\n"));
+    await settle();
+    expect(itemNotes.written).toEqual([{ path: LANTERN, holder: "Old Tom" }]);
+  });
 });
 
 describe("ItemHolders through the gate", () => {
   async function keepHoldersThroughGate(campaign: string, itemPath: string) {
     const file = fileAt(itemPath);
-    const raw = rawVaultWith([file]);
+    const itemsFolder = folderAt(itemPath.slice(0, itemPath.lastIndexOf("/")), [file]);
+    const raw = rawVaultWith([file], [itemsFolder]);
     const fence = new Fence(() => "D&D", ".obsidian");
     const held = new HeldFiles(raw.vault, fence);
     const processFrontMatter = vi.fn(async (_file: TFile, change: ChangeProperties) => change({}));
