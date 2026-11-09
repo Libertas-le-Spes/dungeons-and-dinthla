@@ -6,9 +6,9 @@ import type { AppendWriter } from "../../src/session-notes/append-writer";
 import { Drafts } from "../../src/session-notes/drafts";
 import { KeptDrafts } from "../../src/session-notes/kept-drafts";
 import { SessionNotesPage } from "../../src/session-notes/session-notes-page";
-import { NoteDrafts } from "../../src/note-page/note-drafts";
-import { NoteSaver } from "../../src/note-page/note-saver";
-import { FakeNotes } from "../note-page/fake-notes";
+import { NoteDrafts } from "../../src/note-editing/note-drafts";
+import { NoteSaver } from "../../src/note-editing/note-saver";
+import { FakeNotes } from "../note-editing/fake-notes";
 import type { SessionProperties } from "../../src/sessions/session-properties";
 import { isShown, obsidianDocument } from "../views/obsidian-dom";
 

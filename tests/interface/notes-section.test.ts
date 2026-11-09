@@ -7,8 +7,8 @@ import { Drafts } from "../../src/session-notes/drafts";
 import { KeptDrafts } from "../../src/session-notes/kept-drafts";
 import { SessionNotesPage } from "../../src/session-notes/session-notes-page";
 import type { NoteTexts } from "../../src/campaign/note-texts";
-import { NoteDrafts } from "../../src/note-page/note-drafts";
-import type { NoteSaver } from "../../src/note-page/note-saver";
+import { NoteDrafts } from "../../src/note-editing/note-drafts";
+import type { NoteSaver } from "../../src/note-editing/note-saver";
 import { obsidianDocument } from "../views/obsidian-dom";
 
 const ELEVEN = "Pale Moon/Sessions/Session 11.md";

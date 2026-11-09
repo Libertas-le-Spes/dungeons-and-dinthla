@@ -221,3 +221,9 @@
 .dd-session-notes .dd-edit-all-panel .dd-note-box {
   min-height: 50vh;
 }
+
+.dd-session-notes .dd-edit-all-reminder {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-body);
+}
