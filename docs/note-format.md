@@ -337,7 +337,8 @@ The name and values are trimmed, then the dialog refuses, and writes nothing, wh
 | Refused | Why |
 |---|---|
 | A name another note in the folder has, whatever its capitals, compared after `normalizePath` | Two notes can't share a name, and links would point at either |
-| A name with any of `\ / : * ? " < > \| # ^ [ ]` or a control or invisible formatting character (such as a zero-width space), or starting or ending with a dot or a space | A note can't be named that everywhere, or a link to it wouldn't work |
+| A name with any of `\ / : * ? " < > \| # ^ [ ]` or a control character or an invisible formatting character (such as a zero-width space, a byte order mark or a text direction override), or starting or ending with a dot or a space | A note can't be named that everywhere, or a link to it wouldn't work |
+| An invisible joiner (U+200D or U+200C) at the start or end, next to a space, or next to another invisible character, or tag characters that aren't a flag | Nothing would show where it is. Joiners between two visible characters, as inside emoji such as a family or a person with a profession, are fine, and so are the tag characters of a flag such as Scotland's, which follow the black flag and end with the cancel tag |
 | `CON`, `PRN`, `AUX`, `NUL`, `CONIN$`, `CONOUT$`, `COM0` to `COM9`, `COM¹` to `COM³`, `LPT0` to `LPT9` or `LPT¹` to `LPT³`, whatever the capitals, also with more after a dot | Windows keeps these names, so a vault synced there couldn't hold the note |
 | A name whose file name would be over 255 bytes | Most file systems can't hold it |
 | A value with a comma, a word and a colon in it, as in `Rogue 3, AC: 15` | It would read back as two values |
