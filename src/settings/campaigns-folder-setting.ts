@@ -13,7 +13,7 @@ function changeTo(path: string, settings: Readonly<PluginSettings>): SettingsCha
 
 export class CampaignsFolderSetting {
   private choices = 0;
-  private changedSinceLook = false;
+  private changedTo: string | null = null;
 
   constructor(
     private readonly saver: SettingsSaver,
@@ -31,10 +31,22 @@ export class CampaignsFolderSetting {
     if (isInConfigFolder(path, this.configDir)) throw new Error(NOT_THE_CONFIG_FOLDER);
     this.choices += 1;
     const choice = this.choices;
-    const wrote = await this.saver.saveFrom((settings) => changeTo(path, settings));
-    if (wrote) this.changedSinceLook = true;
-    if (choice !== this.choices || !this.changedSinceLook) return;
-    this.changedSinceLook = false;
+    let wrote: boolean;
+    try {
+      wrote = await this.saver.saveFrom((settings) => changeTo(path, settings));
+    } catch (error) {
+      if (choice === this.choices) await this.lookAgainIfChanged();
+      throw error;
+    }
+    if (wrote) this.changedTo = path;
+    if (choice !== this.choices) return;
+    await this.lookAgainIfChanged();
+  }
+
+  private async lookAgainIfChanged(): Promise<void> {
+    const path = this.changedTo;
+    if (path === null) return;
+    this.changedTo = null;
     await this.lookAgain(path);
   }
 

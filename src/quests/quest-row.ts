@@ -1,4 +1,4 @@
-import type { QuestRecord, QuestStatus } from "../campaign/campaign";
+import type { QuestRecord, QuestStatus, Source } from "../campaign/campaign";
 import { sessionLabelOf } from "../campaign/session-file";
 import { addLinkedText, addRowButton, type LinkActions } from "../views/linked-text";
 
@@ -17,18 +17,18 @@ function addMark(row: HTMLElement, record: QuestRecord): void {
   row.createSpan({ cls: "dd-mark dd-mark-abandoned", text: "✕", attr: { "aria-label": label } });
 }
 
-function addFact(facts: HTMLElement, name: string, value: string | undefined, keywords: string[], sourcePath: string, actions: LinkActions): void {
+function addFact(facts: HTMLElement, name: string, value: string | undefined, keywords: string[], source: Source, actions: LinkActions): void {
   if (value === undefined) return;
   const fact = facts.createSpan({ text: `${name} ` });
-  addLinkedText(fact.createEl("b"), value, keywords, sourcePath, actions);
+  addLinkedText(fact.createEl("b"), value, keywords, source, actions);
 }
 
 function addFacts(body: HTMLElement, record: QuestRecord, keywords: string[], actions: LinkActions): void {
   const { givenBy, reward } = record.quest;
   if (givenBy === undefined && reward === undefined) return;
   const facts = body.createSpan({ cls: "dd-facts" });
-  addFact(facts, "From", givenBy, keywords, record.source.path, actions);
-  addFact(facts, "Reward", reward, keywords, record.source.path, actions);
+  addFact(facts, "From", givenBy, keywords, record.source, actions);
+  addFact(facts, "Reward", reward, keywords, record.source, actions);
 }
 
 function addMeta(body: HTMLElement, record: QuestRecord): void {
@@ -42,16 +42,15 @@ function addMeta(body: HTMLElement, record: QuestRecord): void {
 }
 
 export function addQuestRow(list: HTMLElement, record: QuestRecord, keywords: string[], actions: LinkActions): void {
-  const sourcePath = record.source.path;
   const row = addRowButton(list, record.source, actions);
   addMark(row, record);
   const body = row.createSpan({ cls: "dd-body" });
   const title = body.createSpan({ cls: "dd-text" });
   if (record.outcome !== null && record.outcome.status === "failed") title.addClass("dd-abandoned");
-  addLinkedText(title, record.quest.title, keywords, sourcePath, actions);
+  addLinkedText(title, record.quest.title, keywords, record.source, actions);
   addFacts(body, record, keywords, actions);
   if (record.outcome !== null) {
-    addLinkedText(body.createSpan({ cls: "dd-answer" }), record.outcome.text, keywords, record.outcome.source.path, actions);
+    addLinkedText(body.createSpan({ cls: "dd-answer" }), record.outcome.text, keywords, record.outcome.source, actions);
   }
   addMeta(body, record);
 }
