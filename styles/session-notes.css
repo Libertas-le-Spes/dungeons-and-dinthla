@@ -123,13 +123,15 @@
   color: var(--text-faint-ui);
 }
 
-.dd-session-notes .dd-save-message {
+.dd-session-notes .dd-save-message,
+.dd-session-notes .dd-note-gone {
   margin: var(--space-2) 0 0;
   font-size: var(--text-sm);
   color: var(--state-danger);
 }
 
-.dd-session-notes .dd-save-message:empty {
+.dd-session-notes .dd-save-message:empty,
+.dd-session-notes .dd-note-gone:empty {
   display: none;
 }
 

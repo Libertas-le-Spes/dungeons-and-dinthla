@@ -5,9 +5,14 @@ export interface PickerMoves {
   startSession(): void;
 }
 
+function choicesKeyOf(choices: SessionChoice[]): string {
+  return JSON.stringify(choices.map((choice) => [choice.path, choice.label]));
+}
+
 export class SessionPicker {
   private readonly title: HTMLElement;
   private readonly select: HTMLSelectElement;
+  private shownKey: string | null = null;
 
   constructor(parent: HTMLElement, moves: PickerMoves) {
     const head = parent.createDiv({ cls: "dd-head dd-notes-head" });
@@ -20,9 +25,16 @@ export class SessionPicker {
 
   show(heading: string, choices: SessionChoice[], shownPath: string | null): void {
     this.title.setText(heading);
+    this.showChoices(choices);
+    if (shownPath !== null && this.select.value !== shownPath) this.select.value = shownPath;
+  }
+
+  private showChoices(choices: SessionChoice[]): void {
+    const key = choicesKeyOf(choices);
+    if (key === this.shownKey) return;
+    this.shownKey = key;
     this.select.empty();
     for (const choice of choices) this.select.createEl("option", { text: choice.label, attr: { value: choice.path } });
     this.select.toggle(choices.length > 0);
-    if (shownPath !== null) this.select.value = shownPath;
   }
 }

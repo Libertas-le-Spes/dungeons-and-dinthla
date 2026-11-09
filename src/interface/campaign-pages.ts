@@ -9,7 +9,11 @@ export type PageTarget = { page: PageId; path: string | null };
 
 export type ShowPage = (target: PageTarget) => void;
 
-export type MakePage = (contentEl: HTMLElement, show: ShowPage, path: string | null) => Component;
+export type StayOn = (path: string) => void;
+
+export type MakePage = (contentEl: HTMLElement, show: ShowPage, path: string | null, stayOn: StayOn) => Component;
+
+export type PathAfterDelete = (path: string) => string | null;
 
 export interface PageEntry {
   id: PageId;
@@ -19,6 +23,7 @@ export interface PageEntry {
   glyph: string;
   glyphClass: string;
   make: MakePage;
+  pathAfterDelete: PathAfterDelete;
   countOf(campaign: Campaign): number;
 }
 
@@ -30,6 +35,10 @@ export interface NavSection {
 export type PageMakers = Record<PageId, MakePage>;
 
 const NO_COUNT = () => 0;
+
+const LEAVE_DELETED_NOTE: PathAfterDelete = () => null;
+
+const KEEP_DELETED_NOTE: PathAfterDelete = (path) => path;
 
 export function campaignSections(makers: PageMakers): NavSection[] {
   return [
@@ -44,6 +53,7 @@ export function campaignSections(makers: PageMakers): NavSection[] {
           glyph: "⌂",
           glyphClass: "dd-nav-glyph-plain",
           make: makers.home,
+          pathAfterDelete: LEAVE_DELETED_NOTE,
           countOf: NO_COUNT,
         },
         {
@@ -54,6 +64,7 @@ export function campaignSections(makers: PageMakers): NavSection[] {
           glyph: "♟",
           glyphClass: "dd-nav-glyph-plain",
           make: makers.cast,
+          pathAfterDelete: LEAVE_DELETED_NOTE,
           countOf: NO_COUNT,
         },
         {
@@ -64,6 +75,7 @@ export function campaignSections(makers: PageMakers): NavSection[] {
           glyph: "¶",
           glyphClass: "dd-nav-glyph-plain",
           make: makers.notes,
+          pathAfterDelete: KEEP_DELETED_NOTE,
           countOf: NO_COUNT,
         },
       ],
@@ -79,6 +91,7 @@ export function campaignSections(makers: PageMakers): NavSection[] {
           glyph: "?",
           glyphClass: "dd-marker-question",
           make: makers.questions,
+          pathAfterDelete: LEAVE_DELETED_NOTE,
           countOf: (campaign) => questionsKind.contentsOf(campaign, []).openCount,
         },
         {
@@ -89,6 +102,7 @@ export function campaignSections(makers: PageMakers): NavSection[] {
           glyph: "!",
           glyphClass: "dd-marker-quest",
           make: makers.quests,
+          pathAfterDelete: LEAVE_DELETED_NOTE,
           countOf: (campaign) => questsKind.contentsOf(campaign, []).openCount,
         },
         {
@@ -99,6 +113,7 @@ export function campaignSections(makers: PageMakers): NavSection[] {
           glyph: "$",
           glyphClass: "dd-marker-ledger",
           make: makers.funds,
+          pathAfterDelete: LEAVE_DELETED_NOTE,
           countOf: NO_COUNT,
         },
       ],
