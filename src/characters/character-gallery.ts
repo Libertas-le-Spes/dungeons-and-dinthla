@@ -5,6 +5,7 @@ import type { CampaignStore } from "../campaign/campaign-store";
 import type { LinkActions } from "../views/linked-text";
 import { addCharacterCard, type CharacterCard } from "./character-card";
 import type { CharacterNotes } from "./character-notes";
+import { ownCharacterFirst } from "./own-character-first";
 import { learnedFactsOf, readCharacterCard, type LearnedFacts } from "./read-character-card";
 
 const NO_CHARACTERS = "No characters yet. Add one with New character.";
@@ -55,7 +56,7 @@ export class CharacterGallery {
     }
     title.createSpan({ cls: "dd-count", text: String(cards.length) });
     const gallery = this.root.createEl("ul", { cls: "dd-gallery" });
-    for (const card of cards) addCharacterCard(gallery, card, this.actions);
+    for (const card of ownCharacterFirst(cards)) addCharacterCard(gallery, card, this.actions);
   }
 
   private addCreateButton(head: HTMLElement): void {
