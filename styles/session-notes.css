@@ -222,6 +222,30 @@
   min-height: 50vh;
 }
 
+.dd-session-notes .dd-notes-actions .mod-warning {
+  min-height: var(--control-sm);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
+  font: var(--weight-medium) var(--text-sm) / 1 var(--font-ui);
+  cursor: pointer;
+}
+
+.dd-session-notes .dd-notes-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dd-session-notes .dd-notes-message {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--state-danger);
+}
+
+.dd-session-notes .dd-notes-message:empty {
+  display: none;
+}
+
 .dd-session-notes .dd-edit-all-reminder {
   margin: 0 0 var(--space-2);
   font-size: var(--text-sm);

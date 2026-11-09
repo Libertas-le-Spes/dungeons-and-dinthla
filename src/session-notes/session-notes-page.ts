@@ -10,6 +10,7 @@ import type { KeptDrafts } from "./kept-drafts";
 import { KeptLines } from "./kept-lines";
 import { sessionChoiceOf, sessionChoicesOf, sessionShown, type PropertiesOf } from "./session-choices";
 import { SessionPicker, type PickerMoves } from "./session-picker";
+import type { RemovalTools } from "./session-removal";
 import { SessionWriting } from "./session-writing";
 import { writtenLinesOf } from "./written-lines";
 
@@ -26,10 +27,12 @@ export interface SessionNotesNeeds {
   openers: LookupOpeners;
   actions: LinkActions;
   wholeText: NoteEditingNeeds;
+  removal: RemovalTools;
 }
 
 export interface NotesMoves extends PickerMoves {
   stayOn(path: string): void;
+  showNoSession(): void;
 }
 
 interface Drawn {
@@ -98,7 +101,12 @@ export class SessionNotesPage extends Component {
       this.update(this.drawn);
       return;
     }
-    const session = new SessionWriting(root, path, { ...this.needs, campaign: () => this.needs.store.current });
+    const session = new SessionWriting(
+      root,
+      path,
+      { ...this.needs, campaign: () => this.needs.store.current },
+      { heading: () => this.headingOf(path), deleted: (deleted) => this.sessionDeleted(deleted) },
+    );
     this.drawn = { path, picker, gone, kept, session };
     this.update(this.drawn);
     session.focus();
@@ -141,6 +149,17 @@ export class SessionNotesPage extends Component {
       return;
     }
     session.show([], this.needs.store.current);
+  }
+
+  private sessionDeleted(path: string): void {
+    const store = this.needs.store;
+    const left = store.sessionNotes.filter((session) => session.path !== path);
+    const latest = sessionShown(null, store.campaignFolder, left);
+    if (latest === null) {
+      this.moves.showNoSession();
+      return;
+    }
+    this.moves.showSession(latest);
   }
 
   private headingOf(path: string | null): string {

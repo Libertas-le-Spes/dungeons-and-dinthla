@@ -7,7 +7,7 @@ function hasBom(disk: string): boolean {
   return disk.startsWith(BOM);
 }
 
-function withoutBom(disk: string): string {
+export function withoutBom(disk: string): string {
   if (!hasBom(disk)) return disk;
   return disk.substring(BOM.length);
 }
@@ -30,8 +30,11 @@ function withLineEndsOf(disk: string, text: string): string {
   return lines.replaceAll(LF, CRLF);
 }
 
+export function withBomOf(disk: string, text: string): string {
+  if (!hasBom(disk)) return text;
+  return `${BOM}${text}`;
+}
+
 export function diskTextFor(text: string, disk: string): string {
-  const lines = withLineEndsOf(disk, text);
-  if (!hasBom(disk)) return lines;
-  return `${BOM}${lines}`;
+  return withBomOf(disk, withLineEndsOf(disk, text));
 }
