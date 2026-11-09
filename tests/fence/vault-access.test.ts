@@ -15,7 +15,7 @@ const PLANTED_FOLDER = `${VIRTUAL_FOLDER}/planted`;
 const GATEKEEPER_FOLDER = "fence/";
 const PARSED_DATA = ["settings/draft-record.ts"];
 const ALLOWED = ["fence/gatekeeper.ts", "fence/fenced-files.ts", "fence/fenced-file-actions.ts", "fence/folder-choices.ts", "fence/vault-settings.ts"];
-const EDITOR_TEXT_READERS = ["campaign/editor-text.ts", "lookups/lookup-suggest.ts", "lookups/open-lookup.ts"];
+const EDITOR_TEXT_READERS = ["campaign/editor-text.ts"];
 const HIDDEN_CODE = [".js", ".mjs", ".cjs", ".mts", ".cts"];
 const REACHING_SAMPLES = [
   "this.app.vault.read(file);",

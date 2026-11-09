@@ -3,17 +3,17 @@ import { welcomeSection } from "../../src/interface/welcome-section";
 import type { SessionNote } from "../../src/campaign/campaign";
 import { obsidianDocument } from "../views/obsidian-dom";
 
-function made(campaignFolder: string | null, sessionNotes: SessionNote[], campaignsFolderPath: string | null = "D&D") {
+function made(campaignFolder: string | null, sessionNotes: SessionNote[], campaignsFolder: string | null = "D&D") {
   const store = { campaignFolder, sessionNotes, subscribe: () => () => {} };
   const maker = { make: vi.fn(async () => {}) };
-  const campaignsFolder = { path: campaignsFolderPath, pick: vi.fn(), make: vi.fn(async () => {}) };
+  const campaignsFolderSetup = { path: campaignsFolder, pick: vi.fn(), make: vi.fn(async () => {}) };
   const startSession = vi.fn();
   const root = obsidianDocument().body.createDiv();
   const show = vi.fn();
-  const page = welcomeSection({ store, campaignsFolder, maker, startSession })(root, show, null, vi.fn());
+  const page = welcomeSection({ store, campaignsFolderSetup, maker, startSession })(root, show, null, vi.fn());
   page.load();
   const button = (text: string) => Array.from(root.querySelectorAll("button")).find((candidate) => candidate.textContent === text)!;
-  return { root, show, maker, campaignsFolder, startSession, button };
+  return { root, show, maker, campaignsFolderSetup, startSession, button };
 }
 
 function send(root: HTMLElement, typed: string): void {
@@ -44,15 +44,15 @@ describe("welcomeSection", () => {
   });
 
   it("asks the Campaigns folder setup to pick a folder with Choose a folder", () => {
-    const { campaignsFolder, button } = made(null, [], null);
+    const { campaignsFolderSetup, button } = made(null, [], null);
     button("Choose a folder").click();
-    expect(campaignsFolder.pick).toHaveBeenCalledOnce();
+    expect(campaignsFolderSetup.pick).toHaveBeenCalledOnce();
   });
 
   it("hands the typed folder name to the Campaigns folder setup", () => {
-    const { root, campaignsFolder, maker } = made(null, [], null);
+    const { root, campaignsFolderSetup, maker } = made(null, [], null);
     send(root, "Games/D&D");
-    expect(campaignsFolder.make).toHaveBeenCalledExactlyOnceWith("Games/D&D");
+    expect(campaignsFolderSetup.make).toHaveBeenCalledExactlyOnceWith("Games/D&D");
     expect(maker.make).not.toHaveBeenCalled();
   });
 });

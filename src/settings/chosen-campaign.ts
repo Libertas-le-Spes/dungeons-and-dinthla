@@ -1,27 +1,22 @@
-import type { PluginSettings } from "./plugin-settings";
+import type { SettingsSaver } from "./settings-saver";
 
 export class ChosenCampaign {
   constructor(
-    private readonly settings: PluginSettings,
-    private readonly save: (settings: PluginSettings) => Promise<void>,
+    private readonly saver: SettingsSaver,
     private readonly open: (folder: string) => Promise<void>,
   ) {}
 
   get folder(): string | null {
-    return this.settings.campaignFolder;
+    return this.saver.settings.campaignFolder;
   }
 
   async choose(folder: string): Promise<void> {
-    if (folder !== this.settings.campaignFolder) {
-      this.settings.campaignFolder = folder;
-      await this.save(this.settings);
-    }
+    if (folder !== this.saver.settings.campaignFolder) await this.saver.save({ campaignFolder: folder });
     await this.open(folder);
   }
 
   async renamed(path: string, oldPath: string): Promise<void> {
-    if (oldPath !== this.settings.campaignFolder) return;
-    this.settings.campaignFolder = path;
-    await this.save(this.settings);
+    if (oldPath !== this.saver.settings.campaignFolder) return;
+    await this.saver.save({ campaignFolder: path });
   }
 }

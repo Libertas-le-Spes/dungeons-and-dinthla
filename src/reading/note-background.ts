@@ -2,7 +2,7 @@ import { debounce, type Debouncer } from "obsidian";
 import type { BackgroundMetadata } from "../campaign/campaign-background";
 import { campaignFolderOf, isMainNote } from "../campaign/campaign-folders";
 import { shownBackgroundIn, type PictureUrl, type ShownBackground } from "../campaign/shown-background";
-import type { CampaignsFolderPath } from "../fence/fence";
+import type { ReadCampaignsFolder } from "../fence/fence";
 
 const SETTLE_MS = 200;
 const LAYER_CLASS = "dd-campaign-background";
@@ -44,13 +44,13 @@ export class BackgroundRefresh {
 
   constructor(
     refresh: () => void,
-    private readonly campaignsFolder: CampaignsFolderPath,
+    private readonly readCampaignsFolder: ReadCampaignsFolder,
   ) {
     this.soon = debounce(refresh, SETTLE_MS, true);
   }
 
   noteChanged(path: string): void {
-    if (isMainNote(path, this.campaignsFolder())) this.soon();
+    if (isMainNote(path, this.readCampaignsFolder())) this.soon();
   }
 
   layoutChanged(): void {
