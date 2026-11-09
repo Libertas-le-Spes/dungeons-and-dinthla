@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { CachedMetadata, EventRef, TFile } from "obsidian";
 import { TabBackground, type TabCampaign, type TabMetadata, type TabVault } from "../../src/interface/tab-background";
+import { pictureOf } from "../campaign/shown-picture";
 import { obsidianDocument } from "../views/obsidian-dom";
 
 type Listener = (file: { path: string }) => void;
@@ -59,6 +60,7 @@ function pictureLink(link: string, wash: string): CachedMetadata {
 class FakeFiles extends Events {
   readonly caches = new Map<string, CachedMetadata>();
   readonly pictures = new Set<string>();
+  resourceRoot = "app://vault/";
 
   readonly metadata = {
     getCache: (path: string) => this.cacheAt(path),
@@ -68,7 +70,7 @@ class FakeFiles extends Events {
   } as unknown as TabMetadata;
 
   readonly vault = {
-    getResourcePath: (file: TFile) => `app://vault/${file.path}`,
+    getResourcePath: (file: TFile) => `${this.resourceRoot}${file.path}`,
     on: (name: string, listener: Listener) => this.on(`vault ${name}`, listener),
     offref: (ref: EventRef) => this.offref(ref),
   } as unknown as TabVault;
@@ -91,8 +93,7 @@ const HARBOUR_NOTE = "Harbour Watch/Harbour Watch.md";
 const MEADOW = "Green Meadow";
 const MEADOW_NOTE = "Green Meadow/Green Meadow.md";
 
-function opened(folder: string | null = HARBOUR) {
-  const files = new FakeFiles();
+function opened(folder: string | null = HARBOUR, files = new FakeFiles()) {
   files.pictures.add("Art/harbour.jpg");
   files.pictures.add("Art/meadow.jpg");
   files.caches.set(HARBOUR_NOTE, pictureLink("harbour.jpg", "strong"));
@@ -103,8 +104,6 @@ function opened(folder: string | null = HARBOUR) {
   background.load();
   return { files, campaign, frameEl, background };
 }
-
-const pictureOf = (frameEl: HTMLElement) => frameEl.style.getPropertyValue("--dd-campaign-picture");
 
 describe("TabBackground", () => {
   it("shows the open campaign's picture behind the tab, under its wash", () => {
@@ -164,6 +163,33 @@ describe("TabBackground", () => {
     files.pictures.add("Art/cliffs.jpg");
     files.fire("vault create", "Art/cliffs.jpg");
     expect(pictureOf(frameEl)).toBe('url("app://vault/Art/cliffs.jpg")');
+  });
+
+  it("leaves the frame's style untouched when an unrelated file is added, renamed or deleted", () => {
+    const { files, frameEl } = opened();
+    const setCssProps = vi.spyOn(frameEl, "setCssProps");
+    const removeProperty = vi.spyOn(frameEl.style, "removeProperty");
+    files.fire("vault create", "Harbour Watch/Sessions/Session 2.md");
+    files.fire("vault rename", "Harbour Watch/Sessions/Session 3.md");
+    files.fire("vault delete", "Harbour Watch/Sessions/Session 1.md");
+    expect(setCssProps).not.toHaveBeenCalled();
+    expect(removeProperty).not.toHaveBeenCalled();
+    expect(pictureOf(frameEl)).toBe('url("app://vault/Art/harbour.jpg")');
+  });
+
+  it("shows nothing behind the tab when the picture's address isn't one Obsidian gives on this platform", () => {
+    const files = new FakeFiles();
+    files.resourceRoot = "https://elsewhere.example/";
+    const { frameEl } = opened(HARBOUR, files);
+    expect(frameEl.className).toBe("dd-campaign-frame");
+    expect(pictureOf(frameEl)).toBe("");
+  });
+
+  it("paints again when the tab opens a second time", () => {
+    const { frameEl, background } = opened();
+    background.unload();
+    background.load();
+    expect(pictureOf(frameEl)).toBe('url("app://vault/Art/harbour.jpg")');
   });
 
   it("clears the picture and stops listening when the tab closes", () => {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { contrast, over, parseColour, type Colour } from "./css-colour";
-import { backgroundOf, textColourTokens } from "./style-files";
+import { panelOver } from "./panel-background";
+import { textColourTokens, unclassifiedTextColours } from "./style-files";
 import { tokensFor, type ThemeContext } from "./theme-tokens";
 
 const TOKYO_NIGHT: Record<string, string> = {
@@ -51,6 +52,14 @@ const CATPPUCCIN_LATTE: Record<string, string> = {
   "--color-green": "#40a02b",
   "--color-purple": "#8839ef",
   "--color-cyan": "#179299",
+};
+
+const FROSTED_GLASS: Record<string, string> = {
+  ...TOKYO_NIGHT,
+  "--background-primary": "rgba(26, 27, 38, 0.55)",
+  "--background-primary-alt": "rgba(31, 35, 53, 0.6)",
+  "--background-secondary": "rgba(22, 22, 30, 0.55)",
+  "--background-secondary-alt": "rgba(36, 40, 59, 0.6)",
 };
 
 const THEMES: Record<string, ThemeContext> = {
@@ -111,6 +120,8 @@ const PAIRS: [string, string, number][] = [
   ["border-focus", "surface-card", 3],
   ["accent", "surface-page", 3],
 ];
+
+const SEE_THROUGH: ThemeContext = { dark: true, follow: true, obsidian: FROSTED_GLASS };
 
 describe.each(Object.entries(THEMES))("contrast in %s", (_name, context) => {
   const token = tokensFor(context);
@@ -189,9 +200,11 @@ describe("text in the campaign tab over its background picture", () => {
   const SOLID = ["surface-page", "surface-card", "surface-sunken", "surface-raised", "surface-statblock"];
   const cases = Object.entries(TEXT_ON).flatMap(([text, surfaces]) => surfaces.map((layers): [string, string[]] => [text, layers]));
   const DINTHLA = ["Dinthla light", "Dinthla dark"];
+  const PANEL_THEMES: [string, ThemeContext][] = [...Object.entries(THEMES), ["Frosted Glass", SEE_THROUGH]];
+  const PANELS_IN_TAB = [".dd-campaign .dd-nav", ".dd-campaign .dd-page-body"];
 
-  function layered(token: (name: string) => Colour, layers: string[], picture: Colour): Colour {
-    let behind = picture;
+  function layered(token: (name: string) => Colour, layers: string[], panel: Colour): Colour {
+    let behind = panel;
     for (const layer of [...layers].reverse()) behind = over(token(layer), behind);
     return behind;
   }
@@ -201,9 +214,12 @@ describe("text in the campaign tab over its background picture", () => {
     expect(missing).toEqual([]);
   });
 
-  it("puts the sidebar and every page on the solid page colour", () => {
-    expect(backgroundOf("campaign.css", ".dd-campaign .dd-nav")).toBe("var(--surface-page)");
-    expect(backgroundOf("campaign.css", ".dd-campaign .dd-page-body")).toBe("var(--surface-page)");
+  it("knows what every colour the plugin gives text is", () => {
+    expect(unclassifiedTextColours()).toEqual([]);
+  });
+
+  it("starts Frosted Glass with a page colour the picture shows through", () => {
+    expect(tokensFor(SEE_THROUGH)("surface-page").alpha).toBeLessThan(1);
   });
 
   describe.each(DINTHLA)("in %s", (name) => {
@@ -212,13 +228,25 @@ describe("text in the campaign tab over its background picture", () => {
     it.each(SOLID)("%s hides the picture entirely", (surface) => {
       expect(token(surface).alpha).toBe(1);
     });
+  });
+
+  describe.each(PANEL_THEMES)("in %s", (_name, context) => {
+    const token = tokensFor(context);
+
+    it.each(PANELS_IN_TAB)("%s hides the picture entirely", (selector) => {
+      const overBlack = panelOver(token, "campaign.css", selector, PICTURES[0]![1]);
+      const overWhite = panelOver(token, "campaign.css", selector, PICTURES[1]![1]);
+      expect(overBlack).toEqual(overWhite);
+    });
 
     it.each(cases)("%s on %j reaches 4.5:1 over a black or a white picture", (text, layers) => {
       const bottom = layers.at(-1);
       expect(SOLID).toContain(bottom);
-      for (const [picture, colour] of PICTURES) {
-        const behind = layered(token, layers, colour);
-        expect(contrast(over(token(text), behind), behind), picture).toBeGreaterThanOrEqual(4.5);
+      for (const selector of PANELS_IN_TAB) {
+        for (const [picture, colour] of PICTURES) {
+          const behind = layered(token, layers, panelOver(token, "campaign.css", selector, colour));
+          expect(contrast(over(token(text), behind), behind), `${picture} behind ${selector}`).toBeGreaterThanOrEqual(4.5);
+        }
       }
     });
   });

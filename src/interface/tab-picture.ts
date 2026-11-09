@@ -18,5 +18,5 @@ export function paintTabPicture(frameEl: HTMLElement, shown: ShownBackground | n
   clearPicture(frameEl);
   if (shown === null) return;
   frameEl.addClass(PICTURE_CLASS, washClassOf(shown.wash));
-  frameEl.setCssProps({ [PICTURE_PROPERTY]: `url("${shown.url}")` });
+  frameEl.setCssProps({ [PICTURE_PROPERTY]: shown.picture.value });
 }
