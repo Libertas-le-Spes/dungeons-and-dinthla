@@ -29,8 +29,16 @@ export class ItemView {
   leaf: RealItemView["leaf"];
   contentEl!: HTMLElement;
 
+  containerEl: HTMLElement;
+
   constructor(...[leaf]: ConstructorParameters<typeof RealItemView>) {
     this.leaf = leaf;
+    this.containerEl = obsidianDocument().createElement("div");
+    this.containerEl.setAttribute("data-type", this.getViewType());
+  }
+
+  getViewType(): string {
+    return "";
   }
 
   registerDomEvent(element: HTMLElement, type: string, callback: (event: Event) => void): void {
