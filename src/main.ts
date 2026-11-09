@@ -26,10 +26,12 @@ import { LookupSuggest } from "./lookups/lookup-suggest";
 import { openLookup, type LookupOpeners } from "./lookups/open-lookup";
 import { openNewQuestion } from "./questions/open-new-question";
 import { openQuestion } from "./questions/open-question";
-import { QUESTIONS_VIEW, questionsKind } from "./questions/questions-kind";
+import { questionsKind } from "./questions/questions-kind";
+import { QUESTIONS_VIEW, QuestionsView } from "./questions/questions-view";
 import { openNewQuest } from "./quests/open-new-quest";
 import { openQuest } from "./quests/open-quest";
-import { QUESTS_VIEW, questsKind } from "./quests/quests-kind";
+import { questsKind } from "./quests/quests-kind";
+import { QUESTS_VIEW, QuestsView } from "./quests/quests-view";
 import { FUNDS_VIEW, FundsView } from "./funds/funds-view";
 import { openAddCoin } from "./funds/open-add-coin";
 import { openItemDialog } from "./funds/open-item";
@@ -73,7 +75,7 @@ export default class DungeonsAndDinthla extends Plugin {
       label: "New question",
       open: (returnFocus: () => void) => openNewQuestion(this.app, this.store, returnFocus),
     };
-    this.registerView(QUESTIONS_VIEW, (leaf) => new CampaignListView(leaf, this.store, questionActions, questionsKind, createQuestion));
+    this.registerView(QUESTIONS_VIEW, (leaf) => new QuestionsView(leaf, this.store, questionActions, createQuestion));
     this.addRibbonIcon(questionsKind.icon, "Open questions", () => void openSideView(this.app, QUESTIONS_VIEW));
     this.addCommand({ id: "open-questions", name: "Open questions", callback: () => void openSideView(this.app, QUESTIONS_VIEW) });
     const openQuestAt = (source: Source, onClosed: (changed: boolean) => void) =>
@@ -86,7 +88,7 @@ export default class DungeonsAndDinthla extends Plugin {
       label: "New quest",
       open: (returnFocus: () => void) => openNewQuest(this.app, this.store, returnFocus),
     };
-    this.registerView(QUESTS_VIEW, (leaf) => new CampaignListView(leaf, this.store, questActions, questsKind, createQuest));
+    this.registerView(QUESTS_VIEW, (leaf) => new QuestsView(leaf, this.store, questActions, createQuest));
     this.addRibbonIcon(questsKind.icon, "Open quests", () => void openSideView(this.app, QUESTS_VIEW));
     this.addCommand({ id: "open-quests", name: "Open quests", callback: () => void openSideView(this.app, QUESTS_VIEW) });
     const noteExists = (name: string, sourcePath: string) => this.app.metadataCache.getFirstLinkpathDest(name, sourcePath) !== null;
