@@ -12,7 +12,7 @@ export class Gatekeeper {
   readonly files: FencedFiles;
   readonly fileActions: FencedFileActions;
   readonly metadata: FencedMetadata;
-  readonly settings: VaultSettings;
+  readonly vaultSettings: VaultSettings;
   readonly folders: FolderChoices;
 
   constructor(app: App, readCampaignsFolder: ReadCampaignsFolder) {
@@ -21,7 +21,7 @@ export class Gatekeeper {
     this.files = new FencedFiles(app.vault, held);
     this.fileActions = new FencedFileActions(app.fileManager, held);
     this.metadata = new FencedMetadata(app.metadataCache, held);
-    this.settings = new VaultSettings(configReaderOf(app));
+    this.vaultSettings = new VaultSettings(configReaderOf(app));
     this.folders = new FolderChoices(app.vault);
   }
 }
