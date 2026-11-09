@@ -33,6 +33,49 @@ describe("networkCodeIn", () => {
     ]);
   });
 
+  it("finds each other way a page can reach the network", () => {
+    expectEachFound([
+      ["(0, import_obsidian.request)({ url })", "request"],
+      ['import_obsidian["request"]({ url })', "request"],
+      ["window.ajax({ url })", "ajax"],
+      ["window.ajaxPromise({ url })", "ajaxPromise"],
+      ["new Image().src = address", "Image"],
+      ["const picture = new Image;", "Image"],
+      ["new Worker(address)", "Worker"],
+      ["new SharedWorker(address)", "SharedWorker"],
+      ["new RTCPeerConnection()", "RTCPeerConnection"],
+      ["importScripts(address)", "importScripts"],
+      ["window.open(address)", "open on a window"],
+      ["globalThis.open(address)", "open on a window"],
+      ["activeWindow.open(address)", "open on a window"],
+      ['window["open"](address)', "open on a window"],
+      ["window?.open(address)", "open on a window"],
+      ["location.assign(address)", "location"],
+      ["window.location.href = address", "location"],
+      ['el.innerHTML = "<img src=x>"', "innerHTML"],
+      ["el.outerHTML = text", "outerHTML"],
+      ['el.insertAdjacentHTML("beforeend", text)', "insertAdjacentHTML"],
+      ["frame.srcdoc = text", "srcdoc"],
+      ['document.createElement("img")', "an img, link, script or iframe element"],
+      ['document.createElement("link")', "an img, link, script or iframe element"],
+      ['document.createElement("script")', "an img, link, script or iframe element"],
+      ['document.createElement("iframe")', "an img, link, script or iframe element"],
+      ['parent.createEl("img", { attr: { src: address } })', "an img, link, script or iframe element"],
+      ["document.createElement('IMG')", "an img, link, script or iframe element"],
+    ]);
+  });
+
+  it("finds nothing in Obsidian modals and the plugin's own open methods", () => {
+    const allowed = [
+      "new ConfirmModal(this.app, text, confirmed, closed).open();",
+      "await this.store.open(folder);",
+      "super.open();",
+      'this.registerEvent(this.app.workspace.on("window-open", added));',
+      "const timer = window.setTimeout(run, 0);",
+    ];
+    expect(networkCodeIn(allowed.join("\n"))).toEqual([]);
+  });
+
   it("finds every module loaded other than Obsidian and CodeMirror", () => {
     const anyOther = "a module other than Obsidian or CodeMirror";
     expectEachFound([
