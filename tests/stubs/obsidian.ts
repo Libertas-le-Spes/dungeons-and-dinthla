@@ -28,7 +28,6 @@ export class Plugin {
 export class ItemView {
   leaf: RealItemView["leaf"];
   contentEl!: HTMLElement;
-
   containerEl: HTMLElement;
 
   constructor(...[leaf]: ConstructorParameters<typeof RealItemView>) {
