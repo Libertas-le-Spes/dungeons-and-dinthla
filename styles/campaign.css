@@ -1,5 +1,19 @@
 .dd-campaign-frame {
+  position: relative;
   container-type: inline-size;
+  --dd-bar-room: var(--safe-area-inset-bottom);
+}
+
+body.is-phone .dd-campaign-frame {
+  --dd-bar-room: var(--view-bottom-spacing);
+}
+
+body.is-phone.is-floating-nav .dd-campaign-frame {
+  --dd-bar-room: max(var(--view-bottom-spacing), calc(var(--navbar-bottom-offset) + var(--navbar-height) - var(--keyboard-height)));
+}
+
+body.is-phone.is-hidden-nav .dd-campaign-frame {
+  --dd-bar-room: var(--safe-area-inset-bottom);
 }
 
 .dd-campaign {
@@ -91,6 +105,10 @@
   white-space: nowrap;
 }
 
+.dd-campaign .dd-nav-short {
+  display: none;
+}
+
 .dd-campaign .dd-nav-count:empty {
   display: none;
 }
@@ -112,12 +130,66 @@
   min-width: 0;
 }
 
-@container (max-width: 560px) {
+@container (max-width: 1023px) {
   .dd-campaign {
-    grid-template-columns: minmax(0, 1fr);
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .dd-campaign .dd-page {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: var(--space-3) var(--space-3) var(--space-8);
   }
 
   .dd-campaign .dd-nav {
     position: static;
+    order: 1;
+    flex-direction: row;
+    gap: 0;
+    padding: 0 var(--safe-area-inset-right) var(--dd-bar-room) 0;
+    border-top: var(--border-width) solid var(--border-subtle);
+    border-radius: 0;
+  }
+
+  .dd-campaign .dd-nav-campaign,
+  .dd-campaign .dd-nav-group,
+  .dd-campaign .dd-nav-link:not(.dd-nav-in-bar),
+  .dd-campaign .dd-nav-label,
+  .dd-campaign .dd-nav-count {
+    display: none;
+  }
+
+  .dd-campaign .dd-nav-in-bar {
+    flex: 1 1 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--space-0);
+    min-width: 0;
+    min-height: var(--bar-height);
+    padding: var(--space-1);
+    border-radius: 0;
+    text-align: center;
+  }
+
+  .dd-campaign .dd-nav-in-bar .dd-nav-glyph {
+    width: auto;
+    font-size: var(--text-xl);
+    line-height: 1;
+  }
+
+  .dd-campaign .dd-nav-in-bar .dd-nav-short {
+    display: block;
+    max-width: 100%;
+    font: var(--type-label);
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }

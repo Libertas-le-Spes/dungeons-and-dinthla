@@ -18,6 +18,8 @@ export type PathAfterDelete = (path: string) => string | null;
 export interface PageEntry {
   id: PageId;
   label: string;
+  shortLabel: string;
+  inBar: boolean;
   glyph: string;
   glyphClass: string;
   make: MakePage;
@@ -46,6 +48,8 @@ export function campaignSections(makers: PageMakers): NavSection[] {
         {
           id: "home",
           label: "Dashboard",
+          shortLabel: "Home",
+          inBar: true,
           glyph: "⌂",
           glyphClass: "dd-nav-glyph-plain",
           make: makers.home,
@@ -55,6 +59,8 @@ export function campaignSections(makers: PageMakers): NavSection[] {
         {
           id: "cast",
           label: "Characters",
+          shortLabel: "Cast",
+          inBar: true,
           glyph: "♟",
           glyphClass: "dd-nav-glyph-plain",
           make: makers.cast,
@@ -64,6 +70,8 @@ export function campaignSections(makers: PageMakers): NavSection[] {
         {
           id: "notes",
           label: "Session notes",
+          shortLabel: "Notes",
+          inBar: true,
           glyph: "¶",
           glyphClass: "dd-nav-glyph-plain",
           make: makers.notes,
@@ -78,6 +86,8 @@ export function campaignSections(makers: PageMakers): NavSection[] {
         {
           id: "questions",
           label: "Questions",
+          shortLabel: "Questions",
+          inBar: false,
           glyph: "?",
           glyphClass: "dd-marker-question",
           make: makers.questions,
@@ -87,6 +97,8 @@ export function campaignSections(makers: PageMakers): NavSection[] {
         {
           id: "quests",
           label: "Quests",
+          shortLabel: "Quests",
+          inBar: false,
           glyph: "!",
           glyphClass: "dd-marker-quest",
           make: makers.quests,
@@ -96,6 +108,8 @@ export function campaignSections(makers: PageMakers): NavSection[] {
         {
           id: "funds",
           label: "Party funds",
+          shortLabel: "Funds",
+          inBar: true,
           glyph: "$",
           glyphClass: "dd-marker-ledger",
           make: makers.funds,

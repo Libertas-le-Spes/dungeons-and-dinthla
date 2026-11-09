@@ -7,6 +7,7 @@ export const CAMPAIGN_TITLE = "Campaign";
 export const CAMPAIGN_ICON = "shield";
 
 const NO_CAMPAIGN_TITLE = "No campaign open";
+const IN_BAR_CLASS = "dd-nav-in-bar";
 
 interface NavLink {
   entry: PageEntry;
@@ -116,7 +117,9 @@ export class CampaignView extends ItemView {
     const link = nav.createEl("button", { cls: "dd-nav-link" });
     link.createSpan({ cls: ["dd-nav-glyph", entry.glyphClass], text: entry.glyph, attr: { "aria-hidden": "true" } });
     link.createSpan({ cls: "dd-nav-label", text: entry.label });
+    link.createSpan({ cls: "dd-nav-short", text: entry.shortLabel });
     const count = link.createSpan({ cls: "dd-nav-count" });
+    link.toggleClass(IN_BAR_CLASS, entry.inBar);
     this.registerDomEvent(link, "click", () => this.navigate({ page: entry.id, path: null }));
     this.links.push({ entry, link, count });
   }
