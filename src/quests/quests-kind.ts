@@ -3,8 +3,6 @@ import type { ListKind } from "../views/list-view";
 import { listQuests } from "./quest-list";
 import { addQuestRow } from "./quest-row";
 
-export const QUESTS_VIEW = "dungeons-and-dinthla-quests";
-
 export const questsKind: ListKind<QuestRecord> = {
   displayText: "Quests",
   icon: "scroll-text",

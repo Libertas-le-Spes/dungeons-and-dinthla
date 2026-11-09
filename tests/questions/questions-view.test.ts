@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { WorkspaceLeaf } from "obsidian";
 import type { CampaignStore } from "../../src/campaign/campaign-store";
-import { QUESTIONS_VIEW } from "../../src/questions/questions-kind";
-import { QuestionsView } from "../../src/questions/questions-view";
+import { QUESTIONS_VIEW, QuestionsView } from "../../src/questions/questions-view";
 
 describe("QuestionsView", () => {
   it("gives its type while Obsidian is still building it", () => {
