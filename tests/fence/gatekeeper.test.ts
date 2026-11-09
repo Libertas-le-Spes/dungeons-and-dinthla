@@ -40,4 +40,18 @@ describe("Gatekeeper", () => {
     await expect(gate.fileActions.trashFile(PRIVATE)).rejects.toThrow(OUTSIDE_FENCE);
     expect(fileManager.trashFile).not.toHaveBeenCalled();
   });
+
+  it("hands out the vault's settings folder by the name the vault gives it", () => {
+    const { vault } = rawVaultWith([]);
+    const app = { vault: { ...vault, configDir: "Vault Settings" }, fileManager: {}, metadataCache: {} } as unknown as App;
+    expect(new Gatekeeper(app, () => "D&D").configDir).toBe("Vault Settings");
+  });
+
+  it("fences nothing in when the Campaigns folder is inside the vault's settings folder", () => {
+    const { vault } = rawVaultWith([fileAt("Vault Settings/D&D/Pale Moon.md")]);
+    const app = { vault: { ...vault, configDir: "Vault Settings" }, fileManager: {}, metadataCache: {} } as unknown as App;
+    const gate = new Gatekeeper(app, () => "Vault Settings/D&D");
+    expect(gate.fence.holds("Vault Settings/D&D/Pale Moon.md")).toBe(false);
+    expect(gate.files.getFiles()).toEqual([]);
+  });
 });
