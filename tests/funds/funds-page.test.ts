@@ -3,7 +3,8 @@ import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { Campaign, Source } from "../../src/campaign/campaign";
 import type { CampaignStore } from "../../src/campaign/campaign-store";
 import type { CoinOutcome } from "../../src/funds/coin-modal";
-import { FundsPage } from "../../src/funds/funds-page";
+import { Component } from "obsidian";
+import { FundsPage, type ShownItem } from "../../src/funds/funds-page";
 import { obsidianDocument } from "../views/obsidian-dom";
 
 function campaignOf(lines: string[], ...laterSessions: string[][]): Campaign {
@@ -26,6 +27,7 @@ async function openPage(
   addCoin: ((returnFocus: () => void) => void) | null = null,
   openLedgerEntry: OpenLedgerEntry | null = null,
   openItem: OpenItem | null = null,
+  shownItem: ShownItem | null = null,
 ) {
   let listener: (campaign: Campaign) => void = () => {};
   const unsubscribe = vi.fn();
@@ -39,7 +41,7 @@ async function openPage(
   const actions = { openRow: vi.fn(), openLink: vi.fn() };
   const noteExists = (name: string) => notes.includes(name);
   const root = obsidianDocument().createElement("div");
-  const view = new FundsPage(root, store as unknown as CampaignStore, actions, noteExists, addCoin, openLedgerEntry, openItem);
+  const view = new FundsPage(root, store as unknown as CampaignStore, actions, noteExists, addCoin, openLedgerEntry, openItem, shownItem);
   view.load();
   const change = (next: Campaign) => {
     store.current = next;
@@ -289,5 +291,36 @@ describe("FundsPage", () => {
     change(campaignOf(["$ 5 gp found", "$ 3 gp tip"]));
     now.mockRestore();
     expect(document.activeElement).toBe(document.body);
+  });
+
+  it("shows the item it was opened on above everything else, and marks its row", async () => {
+    const panels: HTMLElement[] = [];
+    const makePanel = (panelEl: HTMLElement) => {
+      panels.push(panelEl);
+      return new Component();
+    };
+    const shown = { name: "silvered lantern", panel: makePanel };
+    const { root } = await openPage(campaignOf(["$ [[Mira]] [[Silvered lantern]]", "$ Potion of healing"]), ["Mira"], null, null, null, shown);
+    expect(panels).toHaveLength(1);
+    expect(root.firstElementChild).toBe(panels[0]);
+    expect(panels[0]!.classList.contains("dd-shown-item")).toBe(true);
+    const marked = Array.from(root.querySelectorAll<HTMLElement>(".dd-row-shown"));
+    expect(marked.map((row) => row.dataset.item)).toEqual(["Silvered lantern"]);
+    expect(marked[0]!.getAttribute("aria-current")).toBe("true");
+  });
+
+  it("unfolds the gone items when the item it was opened on is gone", async () => {
+    const shown = { name: "Potion of healing", panel: () => new Component() };
+    const { root } = await openPage(campaignOf(["$ Potion of healing"], ["$$ Potion of healing :used"]), [], null, null, null, shown);
+    const folded = root.querySelector<HTMLDetailsElement>(".dd-folded")!;
+    expect(folded.open).toBe(true);
+    expect(folded.querySelector(".dd-row-shown")).not.toBeNull();
+  });
+
+  it("marks no row and leaves gone items folded when opened on no item", async () => {
+    const { root } = await openPage(campaignOf(["$ Potion of healing"], ["$$ Potion of healing :used"]));
+    expect(root.querySelector(".dd-row-shown")).toBeNull();
+    expect(root.querySelector<HTMLDetailsElement>(".dd-folded")!.open).toBe(false);
+    expect(root.querySelector(".dd-shown-item")).toBeNull();
   });
 });

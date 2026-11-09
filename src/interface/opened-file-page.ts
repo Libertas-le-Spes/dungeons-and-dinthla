@@ -1,4 +1,4 @@
-import { campaignFolderOf, campaignOfCharacter, charactersBasePathOf, mainNotePathOf } from "../campaign/campaign-folders";
+import { campaignFolderOf, campaignOfCharacter, campaignOfItem, charactersBasePathOf, mainNotePathOf } from "../campaign/campaign-folders";
 import { sessionNumberOf } from "../campaign/session-file";
 import type { PageId } from "./campaign-pages";
 
@@ -29,11 +29,21 @@ function isSessionNote(file: OpenedFile): boolean {
   return sessionNumberOf(file.path, file.campaignFolder) !== null;
 }
 
+function isItemNote(file: OpenedFile): boolean {
+  return campaignOfItem(file.path, file.campaignFolders) !== null;
+}
+
+function isMarkdownNote(file: OpenedFile): boolean {
+  return file.path.endsWith(".md");
+}
+
 const FILE_RULES: FileRule[] = [
   { page: "home", matches: isMainNote },
   { page: "cast", matches: isCharactersBase },
   { page: "cast", matches: isCharacterNote },
   { page: "notes", matches: isSessionNote },
+  { page: "funds", matches: isItemNote },
+  { page: "note", matches: isMarkdownNote },
 ];
 
 export function pageOfFile(path: string, campaignFolders: string[]): PageId | null {

@@ -77,3 +77,53 @@
 .dd-funds .dd-head .dd-title {
   margin: 0;
 }
+
+.dd-funds .dd-shown-item {
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-1);
+}
+
+.dd-funds .dd-shown-item .dd-item-name {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.dd-funds .dd-item-fact-list {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1) var(--space-4);
+  margin: 0 0 var(--space-3);
+}
+
+.dd-funds .dd-item-fact-list dt {
+  font: var(--type-label);
+  color: var(--text-muted-ui);
+}
+
+.dd-funds .dd-item-fact-list dd {
+  margin: 0;
+  font: var(--type-note);
+  color: var(--text-strong);
+}
+
+.dd-funds .dd-item-change {
+  min-height: var(--control-md);
+}
+
+.dd-funds .dd-item-story {
+  margin: var(--space-4) 0 var(--space-3);
+  font: var(--type-note);
+  color: var(--text-body);
+}
+
+.dd-funds .dd-item-story p {
+  margin: 0 0 var(--space-2);
+}
+
+.dd-funds .dd-row-shown {
+  background: var(--marker-ledger-soft);
+  box-shadow: inset 3px 0 0 var(--marker-ledger);
+}
