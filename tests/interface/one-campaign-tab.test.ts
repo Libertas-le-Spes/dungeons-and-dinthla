@@ -13,11 +13,10 @@ interface LeafSetup {
   setFails?: boolean;
 }
 
-function campaignLeaf({ backHistory = [], setFails = false }: LeafSetup = {}) {
+function tabWithoutHistory(setFails = false) {
   return {
     view: { getViewType: () => CAMPAIGN_VIEW, containerEl: { isShown: () => true } },
     activeTime: 5,
-    history: { backHistory, back: vi.fn(async () => {}) },
     getViewState: () => ({ type: CAMPAIGN_VIEW, state: {} }),
     getContainer: () => MAIN_WINDOW,
     setViewState: vi.fn(async () => {
@@ -27,9 +26,20 @@ function campaignLeaf({ backHistory = [], setFails = false }: LeafSetup = {}) {
   };
 }
 
-type StandInLeaf = ReturnType<typeof campaignLeaf>;
+function campaignLeaf({ backHistory = [], setFails = false }: LeafSetup = {}) {
+  const history = { backHistory, back: vi.fn(async () => {}) };
+  return { ...tabWithoutHistory(setFails), history };
+}
 
-function setUp(open: StandInLeaf[], opened: StandInLeaf) {
+function tabWithHistoryWithoutList() {
+  const history = { back: vi.fn(async () => {}) };
+  return { ...tabWithoutHistory(), history };
+}
+
+type StandInLeaf = ReturnType<typeof campaignLeaf>;
+type OpenedLeaf = ReturnType<typeof tabWithoutHistory>;
+
+function setUp(open: StandInLeaf[], opened: OpenedLeaf) {
   const workspace = {
     layoutReady: true,
     getLeavesOfType: vi.fn(() => [...open, opened]),
@@ -65,6 +75,27 @@ describe("keepOneCampaignTab", () => {
     tell();
     await runWaiting();
     expect(opened.history.back).toHaveBeenCalledOnce();
+    expect(opened.detach).not.toHaveBeenCalled();
+  });
+
+  it("leaves the new tab alone when Obsidian can't say what it showed before", async () => {
+    const open = campaignLeaf();
+    const opened = tabWithoutHistory();
+    const { tell, runWaiting } = setUp([open], opened);
+    tell();
+    await runWaiting();
+    expect(open.setViewState).toHaveBeenCalledOnce();
+    expect(opened.detach).not.toHaveBeenCalled();
+  });
+
+  it("leaves the new tab alone when its history has no list of what it showed", async () => {
+    const open = campaignLeaf();
+    const opened = tabWithHistoryWithoutList();
+    const { tell, runWaiting } = setUp([open], opened);
+    tell();
+    await runWaiting();
+    expect(open.setViewState).toHaveBeenCalledOnce();
+    expect(opened.history.back).not.toHaveBeenCalled();
     expect(opened.detach).not.toHaveBeenCalled();
   });
 

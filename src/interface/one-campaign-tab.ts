@@ -12,7 +12,7 @@ interface LeafHistory {
 }
 
 interface LeafWithHistory {
-  history?: LeafHistory;
+  history?: unknown;
 }
 
 function otherCampaignTab(leaf: WorkspaceLeaf, other: WorkspaceLeaf): OtherCampaignTab<WorkspaceLeaf> {
@@ -36,13 +36,25 @@ async function showInOpenTab(workspace: Workspace, open: WorkspaceLeaf, step: Se
   await workspace.revealLeaf(open);
 }
 
-async function putBack(leaf: WorkspaceLeaf): Promise<void> {
-  const history = (leaf as unknown as LeafWithHistory).history;
-  if (history !== undefined && history.backHistory.length > 0) {
+function isLeafHistory(history: unknown): history is LeafHistory {
+  if (typeof history !== "object" || history === null) return false;
+  const candidate = history as Partial<LeafHistory>;
+  const hasBackHistory = Array.isArray(candidate.backHistory);
+  const canGoBack = typeof candidate.back === "function";
+  return hasBackHistory && canGoBack;
+}
+
+async function goBackOrClose(leaf: WorkspaceLeaf, history: LeafHistory): Promise<void> {
+  if (history.backHistory.length > 0) {
     await history.back();
     return;
   }
   leaf.detach();
+}
+
+async function putBack(leaf: WorkspaceLeaf): Promise<void> {
+  const history = (leaf as unknown as LeafWithHistory).history;
+  if (isLeafHistory(history)) await goBackOrClose(leaf, history);
 }
 
 async function moveIntoOpenTab(workspace: Workspace, leaf: WorkspaceLeaf, step: SetStep): Promise<void> {
