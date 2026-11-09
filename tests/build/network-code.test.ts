@@ -1,13 +1,15 @@
 import { build } from "esbuild";
 import { describe, expect, it } from "vitest";
-import { PLUGIN_BUNDLE } from "../../scripts/bundle-options";
+import type { BuildOptions } from "esbuild";
+import { PLUGIN_BUNDLE, STYLES_BUNDLE } from "../../scripts/bundle-options";
 import { networkCodeIn } from "../../scripts/network-code";
+import { styleNetworkCodeIn } from "../../scripts/style-network-code";
 
-async function builtBundle(): Promise<string> {
-  const result = await build({ ...PLUGIN_BUNDLE, write: false, logLevel: "silent" });
-  const [bundle] = result.outputFiles;
-  if (bundle === undefined) throw new Error("The build gave back no bundle.");
-  return bundle.text;
+async function built(options: BuildOptions): Promise<string> {
+  const result = await build({ ...options, write: false, logLevel: "silent" });
+  const [output] = result.outputFiles;
+  if (output === undefined) throw new Error("The build gave back no file.");
+  return output.text;
 }
 
 function expectEachFound(samples: [string, string][]): void {
@@ -128,10 +130,54 @@ describe("networkCodeIn", () => {
   });
 });
 
+describe("styleNetworkCodeIn", () => {
+  it("finds each way a stylesheet could reach the network", () => {
+    const samples: [string, string][] = [
+      [".dd-frame { background-image: url(https://example.invalid/a.png); }", "a url( that is not a base64 data URL"],
+      ['.dd-frame { background-image: url("https://example.invalid/a.png"); }', "a url( that is not a base64 data URL"],
+      [".dd-frame { background-image: URL(//example.invalid/a.png); }", "a url( that is not a base64 data URL"],
+      [".dd-frame { background-image: url(a.png); }", "a url( that is not a base64 data URL"],
+      [".dd-frame { background-image: url(data:image/svg+xml,<svg></svg>); }", "a url( that is not a base64 data URL"],
+      ['@import "https://example.invalid/a.css";', "@import"],
+      ["@import url(a.css);", "@import"],
+      ["@IMPORT 'a.css';", "@import"],
+      [".dd-frame { background-image: u\\72l(a.png); }", "an escaped letter or sign"],
+      [".dd-frame { background-image: \\75 rl(a.png); }", "an escaped letter or sign"],
+      [".dd-frame { background-image: u\\rl(a.png); }", "an escaped letter or sign"],
+      ['@\\69mport "a.css";', "an escaped letter or sign"],
+      ['.dd-frame { background-image: image-set("https://example.invalid/a.png" 1x); }', "a web address"],
+      ['.dd-frame { background-image: image-set("//example.invalid/a.png" 1x); }', "an address starting //"],
+    ];
+    for (const [sample, name] of samples) expect(styleNetworkCodeIn(sample), sample).toContain(name);
+  });
+
+  it("finds nothing in embedded fonts and escaped arrows", () => {
+    const allowed = [
+      "@font-face {",
+      '  font-family: "Alegreya";',
+      "  src: url(data:font/woff2;base64,d09GMgAB//AAAKnU+/z0kQY4w==) format(\"woff2\");",
+      "}",
+      '.dd-frame { background-image: url("data:image/png;base64,iVBORw0KGgo="); }',
+      '.dd-answer::before { content: "\\2192  "; }',
+      '.dd-name::after { content: "\\00e9"; }',
+      "/* styles/fonts.css */",
+    ];
+    expect(styleNetworkCodeIn(allowed.join("\n"))).toEqual([]);
+  });
+});
+
 describe("the built plugin", () => {
   it("holds no network code", async () => {
-    const bundle = await builtBundle();
+    const bundle = await built(PLUGIN_BUNDLE);
     expect(bundle).toContain('require("obsidian")');
     expect(networkCodeIn(bundle)).toEqual([]);
+  }, 30_000);
+});
+
+describe("the built styles", () => {
+  it("hold no network code", async () => {
+    const styles = await built(STYLES_BUNDLE);
+    expect(styles).toContain("url(data:font/woff2;base64,");
+    expect(styleNetworkCodeIn(styles)).toEqual([]);
   }, 30_000);
 });
