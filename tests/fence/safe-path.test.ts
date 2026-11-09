@@ -24,6 +24,12 @@ describe("isSafePath", () => {
     }
   });
 
+  it("refuses a part ending in a dot or a space, which Windows trims, so .. with a space can't climb out", () => {
+    for (const path of [".. /Private.md", "Games/.. /Private.md", "Games/... /Private.md", "Games/D&D./Pale Moon.md", "Games/D&D /Pale Moon.md", "Games/Pale Moon.md."]) {
+      expect(isSafePath(path)).toBe(false);
+    }
+  });
+
   it("refuses a path with an empty part", () => {
     for (const path of ["Games//Pale Moon.md", "Games/"]) expect(isSafePath(path)).toBe(false);
   });
@@ -44,6 +50,10 @@ describe("isSafeNewPath", () => {
 
   it("refuses a path Obsidian would write another way", () => {
     for (const path of ["Games/Zoe\u0308.md", "Games/Pale\u00a0Moon.md"]) expect(isSafeNewPath(path)).toBe(false);
+  });
+
+  it("refuses a part a file or folder can't be named", () => {
+    for (const path of ["Games/Session #1.md", "Games/CON/Pale Moon.md", "Games/..Pale Moon.md", "Games/Pale:Moon.md"]) expect(isSafeNewPath(path)).toBe(false);
   });
 
   it("refuses every path that isn't safe to hold", () => {

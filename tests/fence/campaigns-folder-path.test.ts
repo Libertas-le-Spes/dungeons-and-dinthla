@@ -19,7 +19,7 @@ describe("refusalForCampaignsFolder", () => {
   });
 
   it("refuses a path that isn't plain", () => {
-    for (const path of ["../D&D", "/D&D", "D&D/..", ""]) expect(refusalForCampaignsFolder(path)).toBe(NOT_A_PLAIN_PATH);
+    for (const path of ["../D&D", "/D&D", "D&D/..", "", ".. ", "Games/.. ", "D&D."]) expect(refusalForCampaignsFolder(path)).toBe(NOT_A_PLAIN_PATH);
   });
 });
 
