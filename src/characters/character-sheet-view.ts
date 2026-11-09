@@ -174,7 +174,7 @@ export class CharacterSheetView extends FileView {
     }
     root.createEl("p", { cls: "dd-sheet-hint", text: TAP_A_VALUE });
     this.drawStatBlock(root, file, sheet);
-    void this.mentions.draw(root.createEl("section", { cls: "dd-sheet-mentions" }), file);
+    this.mentions.draw(root.createEl("section", { cls: "dd-sheet-mentions" }), file);
     this.focusPending();
   }
 

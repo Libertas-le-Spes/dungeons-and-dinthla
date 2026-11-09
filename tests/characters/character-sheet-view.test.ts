@@ -448,12 +448,13 @@ describe("CharacterSheetView", () => {
     expect(sheet.root.childElementCount).toBe(0);
   });
 
-  it("lists the lines that link to the character under the values", async () => {
+  it("lists the session lines that link to the character after the stat block", async () => {
     const sheet = openSheet({ linking: { [ONE]: [0] }, texts: { [ONE]: "- Met [[Mira]] at the ford" } });
     await sheet.load();
     await vi.waitFor(() => expect(textsOf(sheet.root, ".dd-sheet-mentions .dd-text")).toEqual(["Met [[Mira]] at the ford"]));
     expect(textsOf(sheet.root, ".dd-sheet-mentions .dd-title")).toEqual([`${IN_THE_NOTES}1 line`]);
     expect(sheet.root.lastElementChild!.classList.contains("dd-sheet-mentions")).toBe(true);
+    expect(sheet.root.lastElementChild!.previousElementSibling!.classList.contains("dd-sheet-stat-block")).toBe(true);
   });
 
   it("lists the lines again when a note that links to the character is resolved", async () => {
@@ -462,6 +463,17 @@ describe("CharacterSheetView", () => {
     await vi.waitFor(() => expect(sheet.mentionReads.count).toBe(1));
     sheet.linksResolved(ONE);
     await vi.waitFor(() => expect(sheet.mentionReads.count).toBe(2));
+  });
+
+  it("keeps the lines it has when the rest of the sheet is drawn again", async () => {
+    const sheet = openSheet({ linking: { [ONE]: [0] }, texts: { [ONE]: "[[Mira]]" } });
+    await sheet.load();
+    await vi.waitFor(() => expect(sheet.mentionReads.count).toBe(1));
+    const before = sheet.reads.count;
+    sheet.listener();
+    await vi.waitFor(() => expect(sheet.reads.count).toBeGreaterThan(before));
+    expect(textsOf(sheet.root, ".dd-sheet-mentions .dd-text")).toEqual(["[[Mira]]"]);
+    expect(sheet.mentionReads.count).toBe(1);
   });
 
   it("stops listing the lines once its note is unloaded", async () => {
