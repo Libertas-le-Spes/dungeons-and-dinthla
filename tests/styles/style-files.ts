@@ -37,11 +37,27 @@ export function unclassifiedTextColours(): string[] {
   return textColourValues().filter((value) => !isClassified(value));
 }
 
+function declaredIn(body: string, property: string): string | null {
+  const declared = new RegExp(`(?:^|[\\s;])${property}:\\s*([^;]+);`).exec(body);
+  if (declared === null) return null;
+  return declared[1]!.trim();
+}
+
+function layersOf(body: string): string | null {
+  const shorthand = declaredIn(body, "background");
+  if (shorthand !== null) return shorthand;
+  const colour = declaredIn(body, "background-color");
+  const image = declaredIn(body, "background-image");
+  if (colour === null) return image;
+  if (image === null) return colour;
+  return `${image}, ${colour}`;
+}
+
 export function backgroundOf(file: string, selector: string): string | null {
   for (const [, ruleSelector, body] of readStyles(file).matchAll(/([^{}]+)\{([^}]*)\}/g)) {
     if (ruleSelector!.trim() !== selector) continue;
-    const background = /(?:^|[\s;])background:\s*([^;]+);/.exec(body!);
-    if (background !== null) return background[1]!.trim();
+    const layers = layersOf(body!);
+    if (layers !== null) return layers;
   }
   return null;
 }
