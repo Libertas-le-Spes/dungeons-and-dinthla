@@ -2,7 +2,7 @@ import { build } from "esbuild";
 import { describe, expect, it } from "vitest";
 import type { BuildOptions } from "esbuild";
 import { PLUGIN_BUNDLE, STYLES_BUNDLE } from "../../scripts/bundle-options.ts";
-import { networkCodeIn } from "../../scripts/network-code.ts";
+import { networkCodeIn, PICTURE_CSS } from "../../scripts/network-code.ts";
 import { styleNetworkCodeIn } from "../../scripts/style-network-code.ts";
 
 async function built(options: BuildOptions): Promise<string> {
@@ -92,6 +92,24 @@ describe("networkCodeIn", () => {
       ['video.createEl("track", { attr: { src: address } })', "an element that loads from an address"],
       ['document.createElement(kind === "a" && "object")', "an element that loads from an address"],
     ]);
+  });
+
+  it("finds every url( built in code other than the background picture's", () => {
+    const other = "a url( other than the background picture's";
+    expectEachFound([
+      ["el.style.backgroundImage = `url(${address})`;", other],
+      ['el.style.setProperty("background-image", "url(" + address + ")");', other],
+      ['el.style.backgroundImage = "URL(" + address + ")";', other],
+      ['el.style.backgroundImage = `url("${other}")`;', other],
+      ['el.style.backgroundImage = `url("${safe}"), url(${address})`;', other],
+      ['el.style.backgroundImage = `url("${safe}")` + `, url(${address})`;', other],
+      ['el.style.background = "center/cover url(" + address + ")";', other],
+      ['el.style.background = "-webkit-image-set(url(" + address + ") 1x)";', other],
+    ]);
+  });
+
+  it("finds nothing in the background picture's url(", () => {
+    expect(networkCodeIn("function isResourceUrl(url, platform) {\n  return new _PictureCss(`url(\"${safe}\")`);")).toEqual([]);
   });
 
   it("finds nothing in Obsidian modals, the plugin's own open and process methods, and checks of a value's type", () => {
@@ -202,6 +220,7 @@ describe("the built plugin", () => {
   it("holds no network code", async () => {
     const bundle = await built(PLUGIN_BUNDLE);
     expect(bundle).toContain('require("obsidian")');
+    expect(bundle).toContain(PICTURE_CSS);
     expect(networkCodeIn(bundle)).toEqual([]);
   }, 30_000);
 });
