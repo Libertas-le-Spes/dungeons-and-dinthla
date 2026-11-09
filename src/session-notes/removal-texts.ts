@@ -1,6 +1,7 @@
 import type { ConfirmText } from "../views/confirm-modal";
 
 const OTHERS_STAY = "Other sessions, and values learned on character sheets, stay.";
+const DELETED_PERMANENTLY = "Obsidian is set to delete files permanently, so the note can't be taken back from a trash.";
 
 function notesGoWithIt(count: number): string {
   if (count === 0) return "It has no notes.";
@@ -13,10 +14,16 @@ function notesGo(count: number): string {
   return `Its ${count} notes go, including any questions, quests and ledger lines first written in them.`;
 }
 
-export function deleteTextOf(heading: string, count: number): ConfirmText {
+function deleteBodyOf(count: number, permanently: boolean): string {
+  const body = `${notesGoWithIt(count)} ${OTHERS_STAY}`;
+  if (!permanently) return body;
+  return `${body} ${DELETED_PERMANENTLY}`;
+}
+
+export function deleteTextOf(heading: string, count: number, permanently: boolean): ConfirmText {
   return {
     title: `Delete ${heading}?`,
-    body: `${notesGoWithIt(count)} ${OTHERS_STAY}`,
+    body: deleteBodyOf(count, permanently),
     confirm: "Delete session",
     keep: "Keep session",
   };

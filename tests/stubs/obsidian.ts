@@ -152,6 +152,13 @@ export const editorInfoField = StateField.define<MarkdownFileInfo>({
 
 export const openedModals: Modal[] = [];
 
+const FOCUSABLE = "button, input, select, textarea, [tabindex]";
+
+function focusFirstIn(element: HTMLElement): void {
+  const first = element.querySelector<HTMLElement>(FOCUSABLE);
+  if (first !== null) first.focus();
+}
+
 export class Modal {
   app: RealModal["app"];
   contentEl: HTMLElement = obsidianDocument().createElement("div");
@@ -169,6 +176,7 @@ export class Modal {
   open(): void {
     openedModals.push(this);
     this.onOpen();
+    focusFirstIn(this.contentEl);
   }
 
   close(): void {
