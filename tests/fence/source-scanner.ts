@@ -1,6 +1,7 @@
 import type { FileSystem } from "typescript/unstable/fs";
 import { API, TypeFlags, type Project, type Symbol as TypeSymbol, type Type, type UnionOrIntersectionType } from "typescript/unstable/sync";
 import {
+  isArrayLiteralExpression,
   isAsExpression,
   isAwaitExpression,
   isBinaryExpression,
@@ -18,12 +19,15 @@ import {
   isNonNullExpression,
   isNumericLiteral,
   isObjectBindingPattern,
+  isObjectLiteralExpression,
   isParenthesizedExpression,
   isPostfixUnaryExpression,
   isPrefixUnaryExpression,
   isPropertyAccessExpression,
+  isPropertyAssignment,
   isSatisfiesExpression,
   isSpreadAssignment,
+  isSpreadElement,
   isStringLiteral,
   isTypeAssertion,
   isVariableDeclaration,
@@ -377,13 +381,13 @@ function isAssignment(kind: SyntaxKind): boolean {
 }
 
 function ownersIn(target: Node): Expression[] {
-  const owners: Expression[] = [];
-  const visit = (node: Node): void => {
-    if (isPropertyAccessExpression(node) || isElementAccessExpression(node)) owners.push(node.expression);
-    node.forEachChild(visit);
-  };
-  visit(target);
-  return owners;
+  if (isPropertyAccessExpression(target) || isElementAccessExpression(target)) return [target.expression];
+  if (isParenthesizedExpression(target) || isNonNullExpression(target) || isSatisfiesExpression(target) || isAsExpression(target) || isTypeAssertion(target)) return ownersIn(target.expression);
+  if (isSpreadElement(target) || isSpreadAssignment(target)) return ownersIn(target.expression);
+  if (isPropertyAssignment(target)) return ownersIn(target.initializer);
+  if (isArrayLiteralExpression(target)) return target.elements.flatMap(ownersIn);
+  if (isObjectLiteralExpression(target)) return target.properties.flatMap(ownersIn);
+  return [];
 }
 
 function addChange(found: Found, node: Node): void {
@@ -604,6 +608,7 @@ export class SourceScanner {
       for (const node of this.typedBy(project, found.casts.map((cast) => cast.type), isGate)) breaches.push(`${where(node)} casts to a gate type`);
       for (const node of this.typedBy(project, found.satisfied, isGate)) breaches.push(`${where(node)} checks that a value satisfies a gate type`);
       for (const node of this.typedBy(project, found.changedOwners, isGate)) breaches.push(`${where(node)} changes a member of a gate value`);
+      for (const node of this.typedBy(project, found.changedOwners, (type) => this.isFileTyped(project, type))) breaches.push(`${where(node)} changes a member of a vault file`);
     }
     for (const node of this.castKeys(project, found)) breaches.push(`${where(node)} reads a computed key of a value cast through unknown or any`);
     if (!allowances.editorReading(path)) {
@@ -782,6 +787,15 @@ export class SourceScanner {
     return flattened(this.constrained(project, type)).some((member) =>
       project.checker.getPropertiesOfType(member).some((property) => property.declarations.some((declaration) => GATE_TYPE_SOURCES.some((ending) => declaration.path.endsWith(ending)))),
     );
+  }
+
+  private isFileTyped(project: Project, type: Type | undefined): boolean {
+    if (type === undefined) return true;
+    return flattened(this.constrained(project, type)).some((member) => project.checker.getPropertiesOfType(member).some((property) => this.isObsidianFileMember(property)));
+  }
+
+  private isObsidianFileMember(property: TypeSymbol): boolean {
+    return property.declarations.some((declaration) => declaration.path.includes(OBSIDIAN_FOLDER)) && this.isFileOwned(property);
   }
 
   private isViewOrUntyped(project: Project, type: Type | undefined): boolean {
