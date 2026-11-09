@@ -24,6 +24,15 @@ describe("CampaignsFolder", () => {
     expect(save.mock.invocationCallOrder[0]).toBeLessThan(moved.mock.invocationCallOrder[0]!);
   });
 
+  it("keeps the folder it had, and says nothing moved, when the new one can't be saved", async () => {
+    const { folder, settings, save, moved } = folderFrom("D&D");
+    save.mockRejectedValueOnce(new Error("data.json is read-only."));
+    await expect(folder.choose("Games/D&D")).rejects.toThrow("data.json is read-only.");
+    expect(folder.path).toBe("D&D");
+    expect(settings.campaignsFolder).toBe("D&D");
+    expect(moved).not.toHaveBeenCalled();
+  });
+
   it("does nothing when the same folder is chosen again", async () => {
     const { folder, save, moved } = folderFrom("D&D");
     await folder.choose("D&D");
