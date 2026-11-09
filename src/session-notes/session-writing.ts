@@ -48,7 +48,7 @@ export class SessionWriting {
       heading: () => moves.heading(),
       busy: () => this.isSaving(),
       say: (message) => this.buttons.say(message),
-      changed: () => this.refreshButtons(),
+      changed: () => this.removalChanged(),
       deleted: (deleted) => moves.deleted(deleted),
     });
     this.stops = [
@@ -106,6 +106,11 @@ export class SessionWriting {
   private isSaving(): boolean {
     if (this.needs.drafts.isSaving(this.path)) return true;
     return this.needs.wholeText.drafts.isSaving(this.path);
+  }
+
+  private removalChanged(): void {
+    this.writing.setRemoving(this.removal.isRunning);
+    this.refreshButtons();
   }
 
   private refreshButtons(): void {

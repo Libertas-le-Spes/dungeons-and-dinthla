@@ -58,7 +58,10 @@ function pageWith(
   const root = document.createElement("div");
   document.body.append(root);
   const moves = { showSession: vi.fn(), showNoSession: vi.fn(), startSession: vi.fn(), stayOn: vi.fn() };
-  const confirm = vi.fn((_text: ConfirmText, confirmed: () => void) => confirmed());
+  const confirm = vi.fn((_text: ConfirmText, confirmed: () => void, closed: () => void) => {
+    closed();
+    confirmed();
+  });
   const trashFile = vi.fn(async () => {});
   const writer = { save: vi.fn(async () => "") };
   const keptDrafts = new KeptDrafts(drafts, () => DELETED_AT);
@@ -71,7 +74,7 @@ function pageWith(
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
     actions: { openRow: vi.fn(), openLink: vi.fn() },
     wholeText: { texts: notes.texts, drafts: new NoteDrafts(drafts), saver: new NoteSaver(notes.vault) },
-    removal: { clearer: new SessionClearer(notes.vault), trash: new SessionTrash(notes.vault, { trashFile }), confirm },
+    removal: { clearer: new SessionClearer(notes.vault), trash: new SessionTrash(notes.vault, { trashFile }, () => false), confirm },
   };
   const page = new SessionNotesPage(root, asked, needs, moves);
   page.load();

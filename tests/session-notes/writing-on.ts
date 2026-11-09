@@ -28,6 +28,7 @@ export function flushed(): Promise<void> {
 interface Asked {
   text: ConfirmText;
   confirmed: () => void;
+  kept: () => void;
 }
 
 export function writingOn(text: string | null, drafts = new Drafts({}, () => {})) {
@@ -42,9 +43,14 @@ export function writingOn(text: string | null, drafts = new Drafts({}, () => {})
     notes.text = null;
   });
   const asked: Asked[] = [];
-  const confirm = vi.fn((confirmText: ConfirmText, confirmed: () => void) => {
-    asked.push({ text: confirmText, confirmed });
+  const confirm = vi.fn((confirmText: ConfirmText, confirmed: () => void, closed: () => void) => {
+    const pressConfirm = () => {
+      closed();
+      confirmed();
+    };
+    asked.push({ text: confirmText, confirmed: pressConfirm, kept: closed });
   });
+  const permanently = vi.fn(() => false);
   const moves = { heading: vi.fn(() => HEADING), deleted: vi.fn() };
   const session = new SessionWriting(
     root,
@@ -57,7 +63,7 @@ export function writingOn(text: string | null, drafts = new Drafts({}, () => {})
       campaign: () => buildCampaign([]),
       actions: { openRow: vi.fn(), openLink: vi.fn() },
       wholeText: { texts: notes.texts, drafts: noteDrafts, saver: new NoteSaver(notes.vault) },
-      removal: { clearer: new SessionClearer(notes.vault), trash: new SessionTrash(notes.vault, { trashFile }), confirm },
+      removal: { clearer: new SessionClearer(notes.vault), trash: new SessionTrash(notes.vault, { trashFile }, permanently), confirm },
     },
     moves,
   );
@@ -95,6 +101,7 @@ export function writingOn(text: string | null, drafts = new Drafts({}, () => {})
     writer,
     trashFile,
     confirm,
+    permanently,
     asked,
     moves,
     showNote,

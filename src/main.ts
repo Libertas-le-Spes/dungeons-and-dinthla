@@ -68,6 +68,7 @@ import { NoteDrafts } from "./note-editing/note-drafts";
 import { NoteSaver } from "./note-editing/note-saver";
 import { SessionClearer } from "./session-notes/session-clearer";
 import { SessionTrash } from "./session-notes/session-trash";
+import { deletesPermanently } from "./session-notes/trash-option";
 import { ConfirmModal, type ConfirmText } from "./views/confirm-modal";
 import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
@@ -184,8 +185,8 @@ export default class DungeonsAndDinthla extends Plugin {
       wholeText,
       removal: {
         clearer: new SessionClearer(this.app.vault),
-        trash: new SessionTrash(this.app.vault, this.app.fileManager),
-        confirm: (text: ConfirmText, confirmed: () => void) => new ConfirmModal(this.app, text, confirmed).open(),
+        trash: new SessionTrash(this.app.vault, this.app.fileManager, () => deletesPermanently(this.app.vault)),
+        confirm: (text: ConfirmText, confirmed: () => void, closed: () => void) => new ConfirmModal(this.app, text, confirmed, closed).open(),
       },
       startSession: newSession,
     };

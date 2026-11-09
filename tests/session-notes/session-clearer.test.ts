@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CHANGED_SINCE_ASKED, clearedText, SESSION_GONE, SessionClearer } from "../../src/session-notes/session-clearer";
+import { CHANGED_SINCE_ASKED, clearedText, PROPERTIES_NOT_FOUND, SESSION_GONE, SessionClearer } from "../../src/session-notes/session-clearer";
 import { BOM, FakeNotes } from "../note-editing/fake-notes";
 
 const PATH = "Pale Moon/Sessions/Session 12.md";
@@ -43,5 +43,11 @@ describe("SessionClearer", () => {
     const notes = new FakeNotes(PATH, null);
     await expect(new SessionClearer(notes.vault).clear(PATH, "Tracks")).rejects.toThrow(SESSION_GONE);
     expect(notes.process).not.toHaveBeenCalled();
+  });
+
+  it("writes nothing and says so when the note starts with --- but its properties block isn't closed", async () => {
+    const notes = new FakeNotes(PATH, `${BOM}---\nplayed: 2026-11-09\nTracks`);
+    await expect(new SessionClearer(notes.vault).clear(PATH, "---\nplayed: 2026-11-09\nTracks")).rejects.toThrow(PROPERTIES_NOT_FOUND);
+    expect(notes.writes).toEqual([]);
   });
 });

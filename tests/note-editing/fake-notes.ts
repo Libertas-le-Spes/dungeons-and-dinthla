@@ -1,7 +1,8 @@
 import { vi } from "vitest";
-import type { App, TAbstractFile, TFile } from "obsidian";
+import type { App, TAbstractFile, TFile, Vault } from "obsidian";
 import { noteTextsOf, type NoteTexts } from "../../src/campaign/note-texts";
-import type { SaverVault } from "../../src/note-editing/note-saver";
+
+export type NotesVault = Pick<Vault, "getFileByPath" | "process" | "read">;
 
 type ChangedListener = (file: TFile, text: string) => void;
 
@@ -16,6 +17,7 @@ function readByObsidian(disk: string): string {
 
 export class FakeNotes {
   text: string | null;
+  private file: TFile;
   readonly changedListeners = new Set<ChangedListener>();
   readonly goneListeners = new Set<GoneListener>();
   readonly writes: string[] = [];
@@ -37,14 +39,20 @@ export class FakeNotes {
     text: string | null,
   ) {
     this.text = text;
+    this.file = { path } as TFile;
   }
 
   get texts(): NoteTexts {
     return noteTextsOf(this.app);
   }
 
-  get vault(): SaverVault {
-    return { getFileByPath: (path: string) => this.fileAt(path), process: this.process } as unknown as SaverVault;
+  get vault(): NotesVault {
+    return { getFileByPath: (path: string) => this.fileAt(path), process: this.process, read: this.read } as unknown as NotesVault;
+  }
+
+  makeAgain(text: string): void {
+    this.file = { path: this.path } as TFile;
+    this.text = text;
   }
 
   holdRead(): () => void {
@@ -67,7 +75,7 @@ export class FakeNotes {
 
   private fileAt(path: string): TFile | null {
     if (this.text === null || path !== this.path) return null;
-    return { path } as TFile;
+    return this.file;
   }
 
   private get app(): App {
