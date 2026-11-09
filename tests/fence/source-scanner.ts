@@ -7,16 +7,20 @@ import {
   isBindingElement,
   isCallExpression,
   isComputedPropertyName,
+  isDeleteExpression,
   isElementAccessExpression,
   isExportDeclaration,
   isImportDeclaration,
   isForInStatement,
+  isForOfStatement,
   isIdentifier,
   isNoSubstitutionTemplateLiteral,
   isNonNullExpression,
   isNumericLiteral,
   isObjectBindingPattern,
   isParenthesizedExpression,
+  isPostfixUnaryExpression,
+  isPrefixUnaryExpression,
   isPropertyAccessExpression,
   isSatisfiesExpression,
   isSpreadAssignment,
@@ -145,6 +149,14 @@ const VIEW_FILE = "file";
 
 const GATE_SOURCES = ["/src/fence/fenced-files.ts", "/src/fence/fenced-metadata.ts"];
 
+const GATE_FOLDER = "/src/fence/";
+
+const GATE_TYPE_SOURCES = [...GATE_SOURCES, "/src/fence/fenced-file-actions.ts", "/src/fence/gatekeeper.ts", "/src/fence/held-files.ts", "/src/fence/fence.ts"];
+
+const OBJECT_CHANGERS = ["defineProperty", "defineProperties", "assign", "setPrototypeOf"];
+
+const STEPS = [SyntaxKind.PlusPlusToken, SyntaxKind.MinusMinusToken];
+
 type GuardedAllowance = "fileOpening" | "viewState" | "activeFile" | "activeView";
 
 const GUARDED_NAMES: { name: string; allowance: GuardedAllowance }[] = [
@@ -224,6 +236,8 @@ interface Found {
   calledNames: Set<Node>;
   viewFiles: Expression[];
   boundReads: BoundRead[];
+  satisfied: Node[];
+  changedOwners: Expression[];
 }
 
 type Cast = AsExpression | TypeAssertion;
@@ -267,6 +281,8 @@ function emptyFound(): Found {
     calledNames: new Set(),
     viewFiles: [],
     boundReads: [],
+    satisfied: [],
+    changedOwners: [],
   };
 }
 
@@ -345,10 +361,35 @@ function addInCheck(found: Found, node: Node): void {
   addForbidden(found, node.left, literal);
 }
 
-function isKeyReader(call: CallExpression): boolean {
+function isObjectCall(call: CallExpression, names: string[]): boolean {
   const callee = call.expression;
   if (!isPropertyAccessExpression(callee)) return false;
-  return isIdentifier(callee.expression) && callee.expression.text === "Object" && KEY_READERS.includes(callee.name.text);
+  return isIdentifier(callee.expression) && callee.expression.text === "Object" && names.includes(callee.name.text);
+}
+
+function isAssignment(kind: SyntaxKind): boolean {
+  return kind >= SyntaxKind.FirstAssignment && kind <= SyntaxKind.LastAssignment;
+}
+
+function ownersIn(target: Node): Expression[] {
+  const owners: Expression[] = [];
+  const visit = (node: Node): void => {
+    if (isPropertyAccessExpression(node) || isElementAccessExpression(node)) owners.push(node.expression);
+    node.forEachChild(visit);
+  };
+  visit(target);
+  return owners;
+}
+
+function addChange(found: Found, node: Node): void {
+  if (isBinaryExpression(node) && isAssignment(node.operatorToken.kind)) found.changedOwners.push(...ownersIn(node.left));
+  if ((isPrefixUnaryExpression(node) || isPostfixUnaryExpression(node)) && STEPS.includes(node.operator)) found.changedOwners.push(...ownersIn(node.operand));
+  if (isDeleteExpression(node)) found.changedOwners.push(...ownersIn(node.expression));
+  if ((isForOfStatement(node) || isForInStatement(node)) && !isVariableDeclarationList(node.initializer)) found.changedOwners.push(...ownersIn(node.initializer));
+  if (isCallExpression(node) && isObjectCall(node, OBJECT_CHANGERS)) {
+    const [target] = node.arguments;
+    if (target !== undefined) found.changedOwners.push(target);
+  }
 }
 
 function calledNameOf(call: CallExpression): Node | null {
@@ -414,8 +455,10 @@ function foundIn(sourceFile: SourceFile): Found {
     if (isBindingElement(node) && isObjectBindingPattern(node.parent)) addBinding(found, node);
     if (isIdentifier(node) && node.text === REFLECTION) found.reflections.push(node);
     if (isIdentifier(node)) addForbidden(found, node, node.text);
-    if (isCallExpression(node) && isKeyReader(node)) found.readWhole.push(...node.arguments);
+    if (isCallExpression(node) && isObjectCall(node, KEY_READERS)) found.readWhole.push(...node.arguments);
     if (isAsExpression(node) || isTypeAssertion(node)) found.casts.push(node);
+    if (isSatisfiesExpression(node)) found.satisfied.push(node.type);
+    addChange(found, node);
     if (isSpreadAssignment(node)) found.readWhole.push(node.expression);
     if (isForInStatement(node)) found.readWhole.push(node.expression);
     node.forEachChild(visit);
@@ -549,6 +592,12 @@ export class SourceScanner {
     for (const node of this.typedBy(project, found.inOwners, (type) => this.isGlobal(project, type))) breaches.push(`${where(node)} checks for a key in the app, a window or globalThis`);
     for (const node of this.typedBy(project, found.computedInOwners, (type) => this.isGlobalOrUntyped(project, type))) {
       breaches.push(`${where(node)} checks for a computed key in the app, a window, globalThis or a value it can't type`);
+    }
+    if (!path.includes(GATE_FOLDER)) {
+      const isGate = (type: Type | undefined) => this.isGateTyped(project, type);
+      for (const node of this.typedBy(project, found.casts.map((cast) => cast.type), isGate)) breaches.push(`${where(node)} casts to a gate type`);
+      for (const node of this.typedBy(project, found.satisfied, isGate)) breaches.push(`${where(node)} checks that a value satisfies a gate type`);
+      for (const node of this.typedBy(project, found.changedOwners, isGate)) breaches.push(`${where(node)} changes a member of a gate value`);
     }
     for (const node of this.castKeys(project, found)) breaches.push(`${where(node)} reads a computed key of a value cast through unknown or any`);
     if (!allowances.editorReading(path)) {
@@ -720,6 +769,13 @@ export class SourceScanner {
   private isGlobalOrUntyped(project: Project, type: Type | undefined): boolean {
     if (type === undefined) return true;
     return flattened(this.constrained(project, type)).some((member) => isNamedGlobal(member) || (member.flags & UNTYPED) !== 0);
+  }
+
+  private isGateTyped(project: Project, type: Type | undefined): boolean {
+    if (type === undefined) return true;
+    return flattened(this.constrained(project, type)).some((member) =>
+      project.checker.getPropertiesOfType(member).some((property) => property.declarations.some((declaration) => GATE_TYPE_SOURCES.some((ending) => declaration.path.endsWith(ending)))),
+    );
   }
 
   private isViewOrUntyped(project: Project, type: Type | undefined): boolean {

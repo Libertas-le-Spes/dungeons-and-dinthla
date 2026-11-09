@@ -354,7 +354,32 @@ const GATED_OPENING_SAMPLES = [
   'import type { App } from "obsidian";\nimport type { Gate } from "../../../../src/fence/gatekeeper";\nexport async function open(app: App, gate: Gate, path: string) {\n  await app.workspace.getLeaf(false).openFile(await gate.files.create(path, ""));\n}',
 ];
 
-const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...WRITE_NAME_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...NOTE_READING_SAMPLES, ...VIEW_TEXT_SAMPLES, ...CODE_MIRROR_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...OPENING_SAMPLES, ...ALLOWED_OPENING_SAMPLES, ...GATED_OPENING_SAMPLES, ...LEAF_SAMPLES, ...LEAF_VIEW_SAMPLES, ...VIEW_FILE_SAMPLES, ...HARMLESS_SAMPLES];
+const GATE_FORGING_SAMPLES = [
+  'import type { FencedFiles } from "../../../../src/fence/fenced-files";\nexport const files = (fake: object) => fake as FencedFiles;',
+  'import type { FencedMetadata } from "../../../../src/fence/fenced-metadata";\nexport const metadata = (fake: object) => <FencedMetadata>fake;',
+  'import type { FencedFileActions } from "../../../../src/fence/fenced-file-actions";\nexport const actions = (fake: object) => fake as FencedFileActions;',
+  'import type { Gate } from "../../../../src/fence/gatekeeper";\nexport const gate = (fake: object) => fake as Gate;',
+  'import type { HeldFiles } from "../../../../src/fence/held-files";\nexport const held = (fake: object) => fake as HeldFiles;',
+  'import type { Fence } from "../../../../src/fence/fence";\nexport const fence = (fake: object) => fake as Fence;',
+  'import type { FencedFiles } from "../../../../src/fence/fenced-files";\nexport const files = (fake: object) => fake as Pick<FencedFiles, "getFileByPath">;',
+  'import type { FencedFiles } from "../../../../src/fence/fenced-files";\nexport const files = (fake: unknown) => fake as FencedFiles;',
+  'import type { Gate } from "../../../../src/fence/gatekeeper";\nexport const gate = (other: object) => ({ files: { getFileByPath: () => other } }) satisfies Pick<Gate, "files">;',
+  'import type { FencedFiles } from "../../../../src/fence/fenced-files";\nexport const files = (other: object) => ({ getFileByPath: () => other }) satisfies Partial<FencedFiles>;',
+  'import type { Gate } from "../../../../src/fence/gatekeeper";\nexport function forge(gate: Gate, other: object) {\n  gate.files.getFileByPath = () => other as never;\n}',
+  'import type { Gate } from "../../../../src/fence/gatekeeper";\nexport function forge(gate: Gate, other: object) {\n  gate.files["getFileByPath"] = () => other as never;\n}',
+  'import type { FencedFiles } from "../../../../src/fence/fenced-files";\nexport function forge(files: Pick<FencedFiles, "getFileByPath">, other: object) {\n  files.getFileByPath ??= () => other as never;\n}',
+  'import type { Gate } from "../../../../src/fence/gatekeeper";\nexport function forge(gate: Partial<Gate>) {\n  delete gate.files;\n}',
+  'import type { Gate } from "../../../../src/fence/gatekeeper";\nexport function forge(gate: Gate, fake: Gate["files"]) {\n  ({ files: gate.files } = { files: fake });\n}',
+  'import type { Gate } from "../../../../src/fence/gatekeeper";\nexport function forge(gate: Gate, fake: Gate["metadata"]["getFirstLinkpathDest"]) {\n  [gate.metadata.getFirstLinkpathDest] = [fake];\n}',
+  'import type { HeldFiles } from "../../../../src/fence/held-files";\nexport function forge(held: HeldFiles & { count: number }) {\n  held.count++;\n}',
+  'import type { Gate } from "../../../../src/fence/gatekeeper";\nexport function forge(gate: Gate, fakes: Gate["files"][]) {\n  for (gate.files of fakes) break;\n}',
+  'import type { Gate } from "../../../../src/fence/gatekeeper";\nexport function forge(gate: Gate, other: object) {\n  Object.defineProperty(gate.files, "getFileByPath", { value: () => other });\n}',
+  'import type { Gate } from "../../../../src/fence/gatekeeper";\nexport function forge(gate: Gate, other: object) {\n  Object.assign(gate.files, { getFileByPath: () => other });\n}',
+  'import type { Gate } from "../../../../src/fence/gatekeeper";\nexport function forge(gate: Gate, fake: object) {\n  Object.setPrototypeOf(gate.files, fake);\n}',
+  'import type { Gate } from "../../../../src/fence/gatekeeper";\nexport function forge(gate: Gate, other: object) {\n  Object.defineProperties(gate.metadata, { getFirstLinkpathDest: { value: () => other } });\n}',
+];
+
+const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...WRITE_NAME_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...NOTE_READING_SAMPLES, ...VIEW_TEXT_SAMPLES, ...CODE_MIRROR_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...OPENING_SAMPLES, ...ALLOWED_OPENING_SAMPLES, ...GATED_OPENING_SAMPLES, ...GATE_FORGING_SAMPLES, ...LEAF_SAMPLES, ...LEAF_VIEW_SAMPLES, ...VIEW_FILE_SAMPLES, ...HARMLESS_SAMPLES];
 
 interface Planted {
   name: string;
@@ -816,6 +841,10 @@ describe("the vault fence", () => {
 
   it.each(GATED_OPENING_SAMPLES)("lets %s pass in a file allowed to open files, since the file comes from the gate", (sample) => {
     expect(sampleBreaches(sample, ALL_ALLOWED)).toEqual([]);
+  });
+
+  it.each(GATE_FORGING_SAMPLES)("would catch forging or changing a gate outside the gate's folder with %s, even in a file allowed everything else", (sample) => {
+    expect(sampleBreaches(sample, ALL_ALLOWED)).not.toEqual([]);
   });
 
   it.each(LEAF_SAMPLES)("would catch reaching a leaf other than through the campaign tab, or opening a view in one, with %s, even in a file allowed everything else", (sample) => {
