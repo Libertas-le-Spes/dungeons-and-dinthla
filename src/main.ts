@@ -52,12 +52,15 @@ import { colourMarkers } from "./reading/colour-markers";
 import { BackgroundRefresh, showBackground, shownBackgroundOf } from "./reading/note-background";
 import { CampaignSettingTab } from "./settings/campaign-setting-tab";
 import { ChosenCampaign } from "./settings/chosen-campaign";
-import { DraftFile } from "./settings/draft-file";
+import { flushWhenClosing } from "./settings/flush-when-closing";
+import { LocalDrafts, type LocalStorage } from "./settings/local-drafts";
+import { OldDrafts } from "./settings/old-drafts";
 import { settingsOf, type PluginSettings } from "./settings/plugin-settings";
 import { sessionHeadingOf } from "./sessions/session-heading";
 import { startSession } from "./sessions/start-session";
 import { sessionPropertiesOf } from "./sessions/session-properties";
 import { AppendWriter } from "./session-notes/append-writer";
+import { DeletedDrafts } from "./session-notes/deleted-drafts";
 import { Drafts } from "./session-notes/drafts";
 import { noteTextsOf } from "./campaign/note-texts";
 import { NoteDrafts } from "./note-page/note-drafts";
@@ -77,10 +80,17 @@ const PAGE_OPENERS: { page: PageId; id: string; name: string; icon: string }[] =
 
 export default class DungeonsAndDinthla extends Plugin {
   private readonly store = new CampaignStore(this.app.vault);
+  private readonly localStorage: LocalStorage = {
+    load: (key) => this.app.loadLocalStorage(key),
+    save: (key, value) => this.app.saveLocalStorage(key, value),
+  };
+  private oldDrafts = new OldDrafts(null, this.localStorage);
   private chosen = this.chosenCampaignFrom(settingsOf(null));
 
   override async onload(): Promise<void> {
-    const settings = settingsOf(await this.loadData());
+    const saved: unknown = await this.loadData();
+    const settings = settingsOf(saved);
+    this.oldDrafts = new OldDrafts(saved, this.localStorage);
     this.chosen = this.chosenCampaignFrom(settings);
     this.addSettingTab(new CampaignSettingTab(this.app, this, {
       folders: () => this.campaignFolders(),
@@ -147,14 +157,17 @@ export default class DungeonsAndDinthla extends Plugin {
     const watchFiles = (changed: (path: string) => void) => this.watchFiles(changed);
     const castNeeds = { store: this.store, characterNotes, sheetNotes, mentionNotes, actions, sheetActions, newCharacter, watchFiles };
     const openers: LookupOpeners = { question: openQuestionAt, quest: openQuestAt, item: openItem };
-    const drafts = this.draftsKeptIn(settings);
+    const drafts = this.draftsKept(settings);
+    const deleted = new DeletedDrafts(drafts, () => Date.now());
     const noteDrafts = new NoteDrafts(drafts);
     this.registerEvent(this.app.vault.on("rename", (file, oldPath) => drafts.moved(oldPath, file.path)));
     this.registerEvent(this.app.vault.on("rename", (file, oldPath) => noteDrafts.moved(oldPath, file.path)));
+    this.registerEvent(this.app.vault.on("delete", (file) => deleted.noteDeleted(file.path)));
     const texts = noteTextsOf(this.app);
     const notesNeeds = {
       store: this.store,
       drafts,
+      deleted,
       writer: new AppendWriter(this.app.vault),
       propertiesOf: (path: string) => sessionPropertiesOf(path, this.app.metadataCache),
       openers,
@@ -218,20 +231,46 @@ export default class DungeonsAndDinthla extends Plugin {
     closeRetiredViews(this.app.workspace);
   }
 
-  private draftsKeptIn(settings: PluginSettings): Drafts {
+  private draftsKept(settings: PluginSettings): Drafts {
     const timer = {
       start: (run: () => void, ms: number) => window.setTimeout(run, ms),
       stop: (id: number) => window.clearTimeout(id),
     };
-    const failed = (error: unknown) => new Notice(`Couldn't keep the text typed in the campaign tab: ${messageOf(error)}`);
-    const file = new DraftFile(settings, (changed) => this.saveData(changed), timer, failed);
-    const drafts = new Drafts(settings.drafts, () => file.changed(drafts.all()));
-    this.register(() => file.flush());
+    const local = new LocalDrafts(this.localStorage, timer, {
+      written: () => this.oldDraftsKept(settings),
+      failed: (error) => new Notice(`Couldn't keep the text typed in the campaign tab: ${messageOf(error)}`),
+    });
+    const drafts = new Drafts(this.oldDrafts.joinedWith(local.read()), () => local.changed(drafts.all()));
+    flushWhenClosing(local, {
+      onUnload: (run) => this.register(run),
+      onQuit: (run) => this.registerEvent(this.app.workspace.on("quit", run)),
+    });
+    if (this.oldDrafts.waiting) {
+      local.changed(drafts.all());
+      local.flush();
+    }
+    this.dropOldDrafts(settings);
     return drafts;
   }
 
+  private oldDraftsKept(settings: PluginSettings): void {
+    this.oldDrafts.keptOnDevice();
+    this.dropOldDrafts(settings);
+  }
+
+  private dropOldDrafts(settings: PluginSettings): void {
+    if (!this.oldDrafts.leftInFile) return;
+    this.saveSettings(settings)
+      .then(() => this.oldDrafts.fileRewritten())
+      .catch((error: unknown) => new Notice(`Couldn't tidy the plugin's settings file: ${messageOf(error)}`));
+  }
+
+  private async saveSettings(settings: PluginSettings): Promise<void> {
+    await this.saveData(this.oldDrafts.dataOf(settings));
+  }
+
   private chosenCampaignFrom(settings: PluginSettings): ChosenCampaign {
-    return new ChosenCampaign(settings, (changed) => this.saveData(changed), (folder) => this.store.open(folder));
+    return new ChosenCampaign(settings, (changed) => this.saveSettings(changed), (folder) => this.store.open(folder));
   }
 
   private watchBackgrounds(): void {

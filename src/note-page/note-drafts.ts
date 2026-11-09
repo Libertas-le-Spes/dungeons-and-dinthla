@@ -1,4 +1,4 @@
-import type { Drafts, SaveListener } from "../session-notes/drafts";
+import type { DraftListener, Drafts } from "../session-notes/drafts";
 
 export interface NoteDraft {
   base: string;
@@ -66,7 +66,7 @@ export class NoteDrafts {
     return this.drafts.isSaving(keyOf(path));
   }
 
-  subscribe(listener: SaveListener): () => void {
+  subscribe(listener: DraftListener): () => void {
     return this.drafts.subscribe((key) => {
       if (isKey(key)) listener(pathOf(key));
     });

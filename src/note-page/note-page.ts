@@ -64,7 +64,7 @@ export class NotePage extends Component {
     const texts = this.needs.texts;
     this.register(texts.onChanged((path, text) => this.ifShown(path, () => this.changedElsewhere(text))));
     this.register(texts.onGone((path) => this.ifShown(path, () => this.box.say(NOTE_GONE_HERE))));
-    this.register(this.needs.drafts.subscribe((path) => this.ifShown(path, () => this.savingChanged())));
+    this.register(this.needs.drafts.subscribe((path) => this.ifShown(path, () => this.draftChanged())));
   }
 
   private ifShown(path: string, run: () => void): void {
@@ -131,6 +131,20 @@ export class NotePage extends Component {
   private keepDraft(): void {
     if (this.base === null) return;
     this.needs.drafts.keep(this.path, { base: this.base, text: this.box.text });
+  }
+
+  private draftChanged(): void {
+    this.savingChanged();
+    if (this.base === null || this.needs.drafts.isSaving(this.path)) return;
+    const draft = this.needs.drafts.draftOf(this.path);
+    if (draft === null || this.isShowing(draft)) return;
+    this.base = draft.base;
+    this.box.text = draft.text;
+    this.textChanged();
+  }
+
+  private isShowing(draft: NoteDraft): boolean {
+    return draft.base === this.base && draft.text === this.box.text;
   }
 
   private savingChanged(): void {

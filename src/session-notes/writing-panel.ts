@@ -40,7 +40,7 @@ export class WritingPanel {
     this.box.textarea.addEventListener("click", () => this.refreshLookup());
     this.box.textarea.addEventListener("keyup", () => this.refreshLookup());
     this.box.textarea.addEventListener("blur", () => this.lookup.close());
-    this.stopListening = needs.drafts.subscribe((path) => this.saveChanged(path));
+    this.stopListening = needs.drafts.subscribe((path) => this.draftChanged(path));
     this.box.setSaving(needs.drafts.isSaving(sessionPath));
   }
 
@@ -56,9 +56,14 @@ export class WritingPanel {
     this.stopListening();
   }
 
+  setGone(gone: boolean): void {
+    this.box.setGone(gone);
+    if (gone) this.lookup.close();
+  }
+
   async save(): Promise<void> {
     const drafts = this.needs.drafts;
-    if (drafts.isSaving(this.sessionPath) || !hasLinesToSave(this.box.text)) return;
+    if (this.box.isGone || drafts.isSaving(this.sessionPath) || !hasLinesToSave(this.box.text)) return;
     drafts.keep(this.sessionPath, this.box.text);
     try {
       await drafts.save(this.sessionPath, (path, draft) => this.needs.writer.save(path, draft));
@@ -69,7 +74,7 @@ export class WritingPanel {
     this.box.focus();
   }
 
-  private saveChanged(path: string): void {
+  private draftChanged(path: string): void {
     if (path !== this.sessionPath) return;
     const saving = this.needs.drafts.isSaving(path);
     this.box.setSaving(saving);
@@ -77,11 +82,16 @@ export class WritingPanel {
       this.lookup.close();
       return;
     }
-    this.box.text = this.needs.drafts.textOf(path);
+    this.takeText(this.needs.drafts.textOf(path));
+  }
+
+  private takeText(text: string): void {
+    if (this.box.text === text) return;
+    this.box.text = text;
   }
 
   private refreshLookup(): void {
-    if (this.needs.drafts.isSaving(this.sessionPath)) return;
+    if (this.box.isGone || this.needs.drafts.isSaving(this.sessionPath)) return;
     this.lookup.refresh();
   }
 

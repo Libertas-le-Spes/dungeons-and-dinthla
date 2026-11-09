@@ -58,8 +58,8 @@ describe("Drafts", () => {
   it("saves a session's box once at a time, keeping what the save leaves", async () => {
     const drafts = new Drafts({}, () => {});
     const told = vi.fn();
-    drafts.subscribe(told);
     drafts.keep(THREE, "? Who\n?? letter");
+    drafts.subscribe(told);
     let finish = (_left: string) => {};
     const write = vi.fn(() => new Promise<string>((resolve) => (finish = resolve)));
     const saving = drafts.save(THREE, write);
@@ -72,7 +72,7 @@ describe("Drafts", () => {
     expect(write).toHaveBeenCalledExactlyOnceWith(THREE, "? Who\n?? letter");
     expect(drafts.textOf(THREE)).toBe("?? letter");
     expect(drafts.isSaving(THREE)).toBe(false);
-    expect(told).toHaveBeenCalledTimes(2);
+    expect(told).toHaveBeenCalledTimes(3);
   });
 
   it("keeps the box and lets it be saved again when a save fails", async () => {
@@ -106,5 +106,32 @@ describe("Drafts", () => {
     drafts.keep(THREE, "? Who");
     await drafts.save(THREE, async () => "");
     expect(told).not.toHaveBeenCalled();
+  });
+
+  it("tells listeners when a box's text changes, and not when it stays the same", () => {
+    const drafts = new Drafts({}, () => {});
+    const told = vi.fn();
+    drafts.subscribe(told);
+    drafts.keep(THREE, "? Who");
+    drafts.keep(THREE, "? Who");
+    expect(told).toHaveBeenCalledExactlyOnceWith(THREE);
+    drafts.keep(THREE, "");
+    expect(told).toHaveBeenCalledTimes(2);
+  });
+
+  it("sets a box's text aside under another key, telling both, and leaves a key without text alone", () => {
+    const changed = vi.fn();
+    const drafts = new Drafts({ [THREE]: "? Who" }, changed);
+    const told = vi.fn();
+    drafts.subscribe(told);
+    drafts.setAside(FOUR, "kept:4");
+    expect(told).not.toHaveBeenCalled();
+    expect(changed).not.toHaveBeenCalled();
+    drafts.setAside(THREE, "kept:3");
+    expect(drafts.textOf("kept:3")).toBe("? Who");
+    expect(drafts.textOf(THREE)).toBe("");
+    expect(drafts.keys()).toEqual(["kept:3"]);
+    expect(changed).toHaveBeenCalledOnce();
+    expect(told.mock.calls).toEqual([[THREE], ["kept:3"]]);
   });
 });
