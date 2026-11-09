@@ -14,11 +14,22 @@ const ALLOWED_ADDRESSES = [
   '"https://localhost/_capacitor_file_/"',
 ];
 
-export const PICTURE_CSS = "`url(\"${safe}\")`";
+export interface AllowedCode {
+  code: string;
+  count: number;
+}
 
-export const LINK_ROLE = 'role: "link"';
+const ALLOWED_ANYWHERE = [...ALLOWED_MODULES, ...ALLOWED_ADDRESSES];
 
-const ALLOWED_CODE = [...ALLOWED_MODULES, ...ALLOWED_ADDRESSES, PICTURE_CSS, LINK_ROLE];
+export const ALLOWED_IN_PLACE: AllowedCode[] = [
+  { code: "new _PictureCss(`url(\"${safe}\")`)", count: 1 },
+  { code: 'attr: { role: "link", tabindex: "0", draggable: "false" }', count: 1 },
+  { code: 'parentEl.createEl("form", { cls: "dd-welcome-make" })', count: 1 },
+  { code: '!("base" in read)', count: 1 },
+  { code: "this.write({ ...this.current, ...change })", count: 1 },
+  { code: "this.write()", count: 2 },
+  { code: "this.submit()", count: 4 },
+];
 
 export const WEB_ADDRESSES: NetworkCode[] = [
   { name: "a web address", pattern: /\b(?:https?|wss?):/i },
@@ -52,15 +63,17 @@ export const NETWORK_CODE: NetworkCode[] = [
   { name: "DOMParser", pattern: /\bDOMParser\b/ },
   { name: "createContextualFragment", pattern: /\bcreateContextualFragment\b/ },
   { name: "setHTMLUnsafe or parseHTMLUnsafe", pattern: /\b(?:set|parse)HTMLUnsafe\b/ },
-  { name: "write or writeln, which a document has", pattern: /(?<!\bthis\s*)\.\s*write(?:ln)?\s*\(|\[\s*["'`]write(?:ln)?["'`]\s*\]|\bwriteln\b/ },
+  { name: "write or writeln, which a document has", pattern: /\.\s*write(?:ln)?\s*\(|\[\s*["'`]write(?:ln)?["'`]\s*\]|\bwriteln\b/ },
   { name: "Audio", pattern: /\bAudio\b/ },
   { name: "FontFace", pattern: /\bFontFace\b/ },
   { name: "CSSStyleSheet", pattern: /\bCSSStyleSheet\b/ },
   { name: "adoptedStyleSheets", pattern: /\badoptedStyleSheets\b/ },
-  { name: "submit on anything but the plugin's own dialog", pattern: /(?<!\bthis\s*)\.\s*submit\s*\(|\[\s*["'`]submit["'`]\s*\]|\brequestSubmit\b/ },
+  { name: "submit, which a form has", pattern: /\.\s*submit\s*\(|\[\s*["'`]submit["'`]\s*\]|\brequestSubmit\b/ },
+  { name: "click", pattern: /\.\s*click\s*\(|\[\s*["'`]click["'`]\s*\]/ },
+  { name: "image-set", pattern: /image-set\s*\(/i },
   { name: "caches", pattern: /\bcaches\b/ },
   { name: "Notification", pattern: /\bNotification\b/ },
-  { name: "an element that loads from an address", pattern: /(?<![!=]=\s*)["'`](?:img|image|link|script|style|iframe|audio|video|source|embed|object|track)["'`]/i },
+  { name: "an element that loads from or sends to an address", pattern: /(?<![!=]=\s*)["'`](?:img|image|link|script|style|iframe|audio|video|source|embed|object|track|meta|form|base)["'`]/i },
   { name: "a module other than Obsidian or CodeMirror", pattern: /require/ },
   { name: "a Node file, network or process module", pattern: new RegExp(`require\\(\\s*["'\`](node:)?(${NODE_NETWORK_MODULES})["'\`]\\s*\\)`) },
   { name: "electron", pattern: /require\(\s*["'`]electron["'`]\s*\)/ },
@@ -73,8 +86,18 @@ export const NETWORK_CODE: NetworkCode[] = [
   ...WEB_ADDRESSES,
 ];
 
+export function timesIn(text: string, code: string): number {
+  return text.split(code).length - 1;
+}
+
+function withoutAllowedInPlace(text: string, allowed: AllowedCode): string {
+  if (timesIn(text, allowed.code) !== allowed.count) return text;
+  return text.replaceAll(allowed.code, "");
+}
+
 function withoutAllowed(text: string): string {
-  return ALLOWED_CODE.reduce((left, allowed) => left.replaceAll(allowed, ""), text);
+  const inPlace = ALLOWED_IN_PLACE.reduce(withoutAllowedInPlace, text);
+  return ALLOWED_ANYWHERE.reduce((left, allowed) => left.replaceAll(allowed, ""), inPlace);
 }
 
 function isIn(text: string): (code: NetworkCode) => boolean {
