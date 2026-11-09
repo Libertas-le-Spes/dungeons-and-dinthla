@@ -1,18 +1,27 @@
 import { sessionLabelOf } from "../campaign/session-file";
 import { SecondPress } from "../views/second-press";
-import type { DeletedDraft, DeletedDrafts } from "./deleted-drafts";
-import { shownDeletedTime } from "./deleted-time";
 import type { Drafts } from "./drafts";
+import type { KeptDraft, KeptDrafts } from "./kept-drafts";
+import type { KeptKind } from "./kept-kind";
+import { KEPT_KINDS } from "./kept-kinds";
+import { shownKeptTime } from "./kept-time";
 
-const HEADING = "Kept from deleted sessions";
 const COPY = "Copy into this session's box";
 const DISCARD = "Discard";
 const DISCARD_ARMED = "Press again to discard";
 
 export type CopyTarget = () => string | null;
 
-function keptMessage(draft: DeletedDraft): string {
-  return `Lines typed but not saved in ${sessionLabelOf(draft.path)} were kept when its note was deleted on ${shownDeletedTime(draft.deletedAt)}.`;
+function keptMessage(draft: KeptDraft): string {
+  return draft.kind.messageOf(sessionLabelOf(draft.path), shownKeptTime(draft.keptAt));
+}
+
+function ofKind(drafts: KeptDraft[], kind: KeptKind): KeptDraft[] {
+  const found: KeptDraft[] = [];
+  for (const draft of drafts) {
+    if (draft.kind === kind) found.push(draft);
+  }
+  return found;
 }
 
 interface KeptRow {
@@ -29,7 +38,7 @@ export class KeptLines {
   constructor(
     parent: HTMLElement,
     drafts: Drafts,
-    private readonly deleted: DeletedDrafts,
+    private readonly keptDrafts: KeptDrafts,
     private readonly target: CopyTarget,
   ) {
     this.root = parent.createEl("section", { cls: "dd-notes-panel dd-kept-lines" });
@@ -48,7 +57,7 @@ export class KeptLines {
   }
 
   private draftChanged(key: string): void {
-    if (this.deleted.isKept(key)) this.draw();
+    if (this.keptDrafts.isKept(key)) this.draw();
     else this.refresh();
   }
 
@@ -56,22 +65,26 @@ export class KeptLines {
     this.stopPresses();
     this.root.empty();
     this.rows = [];
-    const kept = this.deleted.kept();
+    const kept = this.keptDrafts.kept();
     this.root.toggle(kept.length > 0);
-    if (kept.length === 0) return;
-    this.root.createEl("h3", { cls: "dd-kept-heading", text: HEADING });
-    for (const draft of kept) this.rows.push(this.drawDraft(draft));
+    for (const kind of KEPT_KINDS) this.drawKind(kind, ofKind(kept, kind));
     this.refresh();
   }
 
-  private drawDraft(draft: DeletedDraft): KeptRow {
+  private drawKind(kind: KeptKind, drafts: KeptDraft[]): void {
+    if (drafts.length === 0) return;
+    this.root.createEl("h3", { cls: "dd-kept-heading", text: kind.heading });
+    for (const draft of drafts) this.rows.push(this.drawDraft(draft));
+  }
+
+  private drawDraft(draft: KeptDraft): KeptRow {
     const item = this.root.createDiv({ cls: "dd-kept" });
     item.createEl("p", { cls: "dd-kept-message", text: keptMessage(draft) });
     item.createEl("pre", { cls: "dd-kept-text", text: draft.text });
     const row = item.createDiv({ cls: "dd-save-row" });
     const copy = row.createEl("button", { cls: "dd-create dd-kept-copy", text: COPY });
     const discardButton = row.createEl("button", { cls: "dd-create dd-kept-discard", text: DISCARD });
-    const discard = new SecondPress((armed) => this.showArmed(discardButton, armed), () => this.deleted.discard(draft.key));
+    const discard = new SecondPress((armed) => this.showArmed(discardButton, armed), () => this.keptDrafts.discard(draft.key));
     copy.addEventListener("click", () => this.copy(draft.key));
     discardButton.addEventListener("click", () => discard.press());
     return { key: draft.key, copy, discard };
@@ -80,12 +93,12 @@ export class KeptLines {
   private copy(key: string): void {
     const path = this.target();
     if (path === null) return;
-    this.deleted.copyInto(key, path);
+    this.keptDrafts.copyInto(key, path);
   }
 
   private cannotCopy(key: string, path: string | null): boolean {
     if (path === null) return true;
-    return !this.deleted.canCopy(key, path);
+    return !this.keptDrafts.canCopy(key, path);
   }
 
   private showArmed(button: HTMLButtonElement, armed: boolean): void {
