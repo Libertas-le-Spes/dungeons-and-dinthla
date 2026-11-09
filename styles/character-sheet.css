@@ -217,7 +217,8 @@
   background: var(--state-unknown);
 }
 
-.dd-sheet .dd-sheet-stat-block {
+.dd-sheet .dd-sheet-stat-block,
+.dd-sheet .dd-sheet-mentions {
   margin-top: var(--space-5);
 }
 
