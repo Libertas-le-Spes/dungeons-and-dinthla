@@ -44,13 +44,13 @@ export class ListPage<T> extends Component {
   constructor(
     private readonly contentEl: HTMLElement,
     private readonly store: CampaignStore,
-    private readonly actions: LinkActions,
+    private readonly openLink: LinkActions["openLink"],
     private readonly openRow: OpenRow,
     private readonly kind: ListKind<T>,
     private readonly create: ListCreate | null,
   ) {
     super();
-    this.rowActions = { openLink: actions.openLink, openRow: (source) => this.open(source) };
+    this.rowActions = { openLink, openRow: (source) => this.open(source) };
   }
 
   override onload(): void {
