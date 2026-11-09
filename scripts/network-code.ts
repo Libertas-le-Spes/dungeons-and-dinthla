@@ -14,7 +14,9 @@ const ALLOWED_ADDRESSES = [
   '"https://localhost/_capacitor_file_/"',
 ];
 
-const ALLOWED_CODE = [...ALLOWED_MODULES, ...ALLOWED_ADDRESSES];
+export const PICTURE_CSS = "`url(\"${safe}\")`";
+
+const ALLOWED_CODE = [...ALLOWED_MODULES, ...ALLOWED_ADDRESSES, PICTURE_CSS];
 
 export const WEB_ADDRESSES: NetworkCode[] = [
   { name: "a web address", pattern: /\b(?:https?|wss?):/i },
@@ -43,6 +45,7 @@ export const NETWORK_CODE: NetworkCode[] = [
   { name: "outerHTML", pattern: /\bouterHTML\b/ },
   { name: "insertAdjacentHTML", pattern: /\binsertAdjacentHTML\b/ },
   { name: "srcdoc", pattern: /\bsrcdoc\b/ },
+  { name: "a url( other than the background picture's", pattern: /(?<![\w$])url\(/i },
   { name: "an element that loads from an address", pattern: /(?<![!=]=\s*)["'`](?:img|link|script|iframe|audio|video|source|embed|object|track)["'`]/i },
   { name: "a module other than Obsidian or CodeMirror", pattern: /require/ },
   { name: "a Node file, network or process module", pattern: new RegExp(`require\\(\\s*["'\`](node:)?(${NODE_NETWORK_MODULES})["'\`]\\s*\\)`) },
