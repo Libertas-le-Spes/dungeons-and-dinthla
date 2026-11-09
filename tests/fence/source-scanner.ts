@@ -2,10 +2,13 @@ import type { FileSystem } from "typescript/unstable/fs";
 import { API, TypeFlags, type Project, type Symbol as TypeSymbol, type Type, type UnionOrIntersectionType } from "typescript/unstable/sync";
 import {
   isAsExpression,
+  isBinaryExpression,
   isBindingElement,
   isCallExpression,
   isComputedPropertyName,
   isElementAccessExpression,
+  isExportDeclaration,
+  isImportDeclaration,
   isForInStatement,
   isIdentifier,
   isNoSubstitutionTemplateLiteral,
@@ -55,7 +58,30 @@ export const EDITOR_READS = ["getValue", "getLine", "getRange", "getSelection", 
 
 export const FILE_TREE = ["parent", "children"];
 
-export const FORBIDDEN_NAMES = ["MarkdownRenderer", "renderMarkdown", "executeCommandById", "commands", "execCommand", "Function", "eval"];
+export const NOTE_READS = ["getSectionInfo", "frontmatter", "currentMode", "previewMode", "get", "data", "groupedData", "getValue", "getSummaryValue", "entries"];
+
+export const VIEW_TEXT = ["innerText", "textContent", "outerText"];
+
+const VIEW_ELEMENTS = ["contentEl", "containerEl"];
+
+export const EDITOR_HOOKS = [
+  "updateListener",
+  "transactionFilter",
+  "changeFilter",
+  "inputHandler",
+  "editorEditorField",
+  "editorViewField",
+  "editorInfoField",
+  "editorLivePreviewField",
+];
+
+const CODE_MIRROR_FOLDER = "/node_modules/@codemirror/";
+
+const CODE_MIRROR_MODULE = "@codemirror/";
+
+const DOCUMENT = "doc";
+
+export const FORBIDDEN_NAMES = ["MarkdownRenderer", "renderMarkdown", "executeCommandById", "commands", "execCommand", "Function", "eval", "openLinkText", "plugins", "getPlugin", "enabledPlugins", "internalPlugins"];
 
 const EDITOR_OWNERS = [
   "Editor",
@@ -71,6 +97,26 @@ const EDITOR_OWNERS = [
 ];
 
 const FILE_OWNERS = ["TAbstractFile", "TFile", "TFolder"];
+
+const NOTE_OWNERS = [
+  "MarkdownPostProcessorContext",
+  "MarkdownView",
+  "MarkdownSubView",
+  "MarkdownPreviewView",
+  "MarkdownEditView",
+  "BasesView",
+  "BasesQueryResult",
+  "BasesEntry",
+  "BasesEntryGroup",
+];
+
+const VIEW_OWNERS = ["View", "ItemView", "BasesView", ...EDITOR_OWNERS];
+
+const GLOBAL_OWNERS = ["App", "Window", "globalThis"];
+
+const UNTYPED = TypeFlags.Any | TypeFlags.Unknown | TypeFlags.NonPrimitive;
+
+const APP = "app";
 
 const REFLECTION = "Reflect";
 
@@ -88,6 +134,8 @@ export interface Allowances {
   editorReading: Allowed;
   fileTree: Allowed;
   looseCasts: Allowed;
+  noteReading: Allowed;
+  codeMirror: Allowed;
 }
 
 interface Named {
@@ -100,6 +148,12 @@ interface Found {
   editorNames: Named[];
   editorReads: Named[];
   fileTreeNames: Named[];
+  noteReads: Named[];
+  members: Named[];
+  editorHooks: Named[];
+  codeMirrorImports: Node[];
+  documentOwners: Expression[];
+  viewTextOwners: Node[];
   forbidden: Named[];
   constructors: Node[];
   casts: Cast[];
@@ -108,6 +162,9 @@ interface Found {
   computedKeys: ElementAccessExpression[];
   readWhole: Expression[];
   reflections: Node[];
+  inOwners: Expression[];
+  computedInOwners: Expression[];
+  appOwners: Node[];
 }
 
 type Cast = AsExpression | TypeAssertion;
@@ -128,6 +185,12 @@ function emptyFound(): Found {
     editorNames: [],
     editorReads: [],
     fileTreeNames: [],
+    noteReads: [],
+    members: [],
+    editorHooks: [],
+    codeMirrorImports: [],
+    documentOwners: [],
+    viewTextOwners: [],
     forbidden: [],
     constructors: [],
     casts: [],
@@ -136,6 +199,9 @@ function emptyFound(): Found {
     computedKeys: [],
     readWhole: [],
     reflections: [],
+    inOwners: [],
+    computedInOwners: [],
+    appOwners: [],
   };
 }
 
@@ -144,11 +210,20 @@ function addName(found: Found, node: Node, name: string): void {
   if (EDITOR_WRITES.includes(name)) found.editorNames.push({ node, name });
   if (EDITOR_READS.includes(name)) found.editorReads.push({ node, name });
   if (FILE_TREE.includes(name)) found.fileTreeNames.push({ node, name });
+  if (NOTE_READS.includes(name)) found.noteReads.push({ node, name });
+  found.members.push({ node, name });
   if (name === CONSTRUCTOR) found.constructors.push(node);
 }
 
 function addForbidden(found: Found, node: Node, name: string): void {
   if (FORBIDDEN_NAMES.includes(name)) found.forbidden.push({ node, name });
+  if (EDITOR_HOOKS.includes(name)) found.editorHooks.push({ node, name });
+}
+
+function addCodeMirrorImport(found: Found, node: Node): void {
+  if (!isImportDeclaration(node) && !isExportDeclaration(node)) return;
+  const module = node.moduleSpecifier;
+  if (module !== undefined && isStringLiteral(module) && module.text.startsWith(CODE_MIRROR_MODULE)) found.codeMirrorImports.push(module);
 }
 
 function addElementAccess(found: Found, access: ElementAccessExpression): void {
@@ -157,6 +232,8 @@ function addElementAccess(found: Found, access: ElementAccessExpression): void {
     found.computedKeys.push(access);
     return;
   }
+  if (literal === APP) found.appOwners.push(access.expression);
+  if (literal === DOCUMENT) found.documentOwners.push(access.expression);
   addName(found, access.argumentExpression, literal);
   addForbidden(found, access.argumentExpression, literal);
 }
@@ -167,16 +244,38 @@ function addDestructured(found: Found, node: Node, name: string): void {
   if (!isIdentifier(node)) addForbidden(found, node, name);
 }
 
+function addBoundName(found: Found, binding: BindingElement, key: Node, name: string): void {
+  addDestructured(found, key, name);
+  if (name === APP) found.appOwners.push(binding.parent);
+}
+
 function addBinding(found: Found, binding: BindingElement): void {
   const key = keyOfBinding(binding);
   if (key === undefined) return;
   if (isComputedPropertyName(key)) {
     const literal = literalTextOf(key.expression);
     if (literal === null) found.computedBindings.push(key);
-    else addDestructured(found, key, literal);
+    else addBoundName(found, binding, key, literal);
     return;
   }
-  if (isIdentifier(key) || isStringLiteral(key)) addDestructured(found, key, key.text);
+  if (isIdentifier(key) || isStringLiteral(key)) addBoundName(found, binding, key, key.text);
+}
+
+function addViewText(found: Found, node: Node): void {
+  if (!isPropertyAccessExpression(node) || !VIEW_TEXT.includes(node.name.text)) return;
+  const element = unwrapped(node.expression);
+  if (isPropertyAccessExpression(element) && VIEW_ELEMENTS.includes(element.name.text)) found.viewTextOwners.push(element.expression);
+}
+
+function addInCheck(found: Found, node: Node): void {
+  if (!isBinaryExpression(node) || node.operatorToken.kind !== SyntaxKind.InKeyword) return;
+  const literal = literalTextOf(node.left);
+  if (literal === null) {
+    found.computedInOwners.push(node.right);
+    return;
+  }
+  found.inOwners.push(node.right);
+  addForbidden(found, node.left, literal);
 }
 
 function isKeyReader(call: CallExpression): boolean {
@@ -189,6 +288,11 @@ function foundIn(sourceFile: SourceFile): Found {
   const found = emptyFound();
   const visit = (node: Node): void => {
     if (isPropertyAccessExpression(node)) addName(found, node.name, node.name.text);
+    if (isPropertyAccessExpression(node) && node.name.text === APP) found.appOwners.push(node.expression);
+    if (isPropertyAccessExpression(node) && node.name.text === DOCUMENT) found.documentOwners.push(node.expression);
+    addInCheck(found, node);
+    addViewText(found, node);
+    addCodeMirrorImport(found, node);
     if (isElementAccessExpression(node)) addElementAccess(found, node);
     if (isBindingElement(node) && isObjectBindingPattern(node.parent)) addBinding(found, node);
     if (isIdentifier(node) && node.text === REFLECTION) found.reflections.push(node);
@@ -215,6 +319,43 @@ function unwrapped(expression: Expression): Expression {
 
 function isCast(expression: Expression): expression is Cast {
   return isAsExpression(expression) || isTypeAssertion(expression);
+}
+
+function flattened(type: Type): Type[] {
+  const members = membersOf(type);
+  if (members.length === 1) return [type];
+  return members.flatMap(flattened);
+}
+
+function layersOf(node: Node): Node[] {
+  if (isParenthesizedExpression(node) || isNonNullExpression(node) || isSatisfiesExpression(node) || isAsExpression(node) || isTypeAssertion(node)) {
+    return [node, ...layersOf(node.expression)];
+  }
+  return [node];
+}
+
+function isNamedOneOf(type: Type, names: string[]): boolean {
+  const symbol = type.getSymbol();
+  if (symbol === undefined) return false;
+  return names.includes(symbol.name);
+}
+
+function isNamedGlobal(type: Type): boolean {
+  return isNamedOneOf(type, GLOBAL_OWNERS);
+}
+
+export type OwnedSymbol = Pick<TypeSymbol, "getParent">;
+
+export function isOwnedByOneOf(symbol: OwnedSymbol | undefined, owners: string[]): boolean {
+  if (symbol === undefined) return true;
+  const owner = symbol.getParent();
+  if (owner === undefined) return true;
+  return owners.includes(owner.name);
+}
+
+export function anyMemberCould(type: Type | undefined, could: (member: Type) => boolean): boolean {
+  if (type === undefined) return true;
+  return membersOf(type).some(could);
 }
 
 function isLibraryFile(path: string): boolean {
@@ -268,6 +409,13 @@ export class SourceScanner {
     if (!allowances.looseCasts(path)) {
       for (const cast of found.casts.filter((candidate) => this.isLooseCast(project, candidate))) breaches.push(`${where(cast)} casts through unknown or any`);
     }
+    for (const node of this.typedBy(project, found.appOwners, (type) => this.isGlobalOrUntyped(project, type))) {
+      breaches.push(`${where(node)} reaches the app through a window, globalThis or a value it can't type`);
+    }
+    for (const node of this.typedBy(project, found.inOwners, (type) => this.isGlobal(project, type))) breaches.push(`${where(node)} checks for a key in the app, a window or globalThis`);
+    for (const node of this.typedBy(project, found.computedInOwners, (type) => this.isGlobalOrUntyped(project, type))) {
+      breaches.push(`${where(node)} checks for a computed key in the app, a window, globalThis or a value it can't type`);
+    }
     for (const node of this.castKeys(project, found)) breaches.push(`${where(node)} reads a computed key of a value cast through unknown or any`);
     if (!allowances.editorReading(path)) {
       for (const { node, name } of this.editorReads(project, found)) breaches.push(`${where(node)} reads the text of an editor or view with ${name}`);
@@ -275,6 +423,24 @@ export class SourceScanner {
         if (EDITOR_READS.includes(name)) breaches.push(`${where(node)} destructures ${name}`);
       }
     }
+    if (!allowances.noteReading(path)) {
+      for (const { node, name } of this.ownedBy(project, found.noteReads, (symbol) => isOwnedByOneOf(symbol, NOTE_OWNERS))) {
+        breaches.push(`${where(node)} reads a note's text through Obsidian with ${name}`);
+      }
+      for (const { node, name } of found.destructured) {
+        if (NOTE_READS.includes(name)) breaches.push(`${where(node)} destructures ${name}`);
+      }
+    }
+    if (!allowances.codeMirror(path)) {
+      for (const node of found.codeMirrorImports) breaches.push(`${where(node)} loads CodeMirror`);
+      for (const { node, name } of found.editorHooks) breaches.push(`${where(node)} reaches the editor with ${name}`);
+      for (const { node, name } of this.codeMirrorMembers(project, found)) breaches.push(`${where(node)} reaches the editor through CodeMirror's ${name}`);
+      for (const node of this.looseDocumentOwners(project, found)) breaches.push(`${where(node)} reads the doc of a value it can't type`);
+      for (const { node, name } of found.destructured) {
+        if (name === DOCUMENT) breaches.push(`${where(node)} destructures ${name}`);
+      }
+    }
+    for (const node of this.typedBy(project, found.viewTextOwners, (type) => this.isViewOrUntyped(project, type))) breaches.push(`${where(node)} reads the text of a view's element`);
     if (!allowances.fileTree(path)) {
       for (const { node, name } of this.fileTreeSteps(project, found)) breaches.push(`${where(node)} walks the vault's folders with ${name}`);
       for (const { node, name } of found.destructured) {
@@ -299,6 +465,22 @@ export class SourceScanner {
     return named.filter((_named, index) => isOwner(symbols[index]));
   }
 
+  private codeMirrorMembers(project: Project, found: Found): Named[] {
+    if (found.members.length === 0) return [];
+    const symbols = project.checker.getSymbolAtLocation(found.members.map(({ node }) => node));
+    return found.members.filter(({ name }, index) => {
+      const symbol = symbols[index];
+      if (symbol === undefined) return name === DOCUMENT;
+      return symbol.declarations.some((declaration) => declaration.path.includes(CODE_MIRROR_FOLDER));
+    });
+  }
+
+  private looseDocumentOwners(project: Project, found: Found): Node[] {
+    const untyped = this.typedBy(project, found.documentOwners, (type) => this.isGlobalOrUntyped(project, type));
+    const cast = found.documentOwners.filter((owner) => this.wentThroughCast(project, owner, new Set()));
+    return [...new Set([...untyped, ...cast])];
+  }
+
   private editorWrites(project: Project, found: Found): Named[] {
     return this.ownedBy(project, found.editorNames, (symbol) => this.isEditorOwned(symbol));
   }
@@ -309,6 +491,35 @@ export class SourceScanner {
 
   private fileTreeSteps(project: Project, found: Found): Named[] {
     return this.ownedBy(project, found.fileTreeNames, (symbol) => this.isFileOwned(symbol));
+  }
+
+  private typedBy(project: Project, owners: Node[], isOwner: (type: Type | undefined) => boolean): Node[] {
+    return owners.filter((owner) => {
+      const layers = layersOf(owner);
+      return project.checker.getTypeAtLocation(layers).some(isOwner);
+    });
+  }
+
+  private isGlobal(project: Project, type: Type | undefined): boolean {
+    if (type === undefined) return true;
+    return flattened(this.constrained(project, type)).some((member) => isNamedGlobal(member) || (member.flags & TypeFlags.Any) !== 0);
+  }
+
+  private isGlobalOrUntyped(project: Project, type: Type | undefined): boolean {
+    if (type === undefined) return true;
+    return flattened(this.constrained(project, type)).some((member) => isNamedGlobal(member) || (member.flags & UNTYPED) !== 0);
+  }
+
+  private isViewOrUntyped(project: Project, type: Type | undefined): boolean {
+    if (type === undefined) return true;
+    return flattened(this.constrained(project, type)).some((member) => isNamedOneOf(member, VIEW_OWNERS) || (member.flags & UNTYPED) !== 0);
+  }
+
+  private constrained(project: Project, type: Type): Type {
+    if ((type.flags & TypeFlags.TypeParameter) === 0) return type;
+    const constraint = project.checker.getBaseConstraintOfType(type);
+    if (constraint === undefined || constraint.id === type.id) return project.checker.getUnknownType();
+    return this.constrained(project, constraint);
   }
 
   private castKeys(project: Project, found: Found): Node[] {
@@ -349,23 +560,15 @@ export class SourceScanner {
   }
 
   private isEditorOwned(symbol: TypeSymbol | undefined): boolean {
-    return this.isOwnedByOneOf(symbol, EDITOR_OWNERS);
+    return isOwnedByOneOf(symbol, EDITOR_OWNERS);
   }
 
   private isFileOwned(symbol: TypeSymbol | undefined): boolean {
-    return this.isOwnedByOneOf(symbol, FILE_OWNERS);
-  }
-
-  private isOwnedByOneOf(symbol: TypeSymbol | undefined, owners: string[]): boolean {
-    if (symbol === undefined) return true;
-    const owner = symbol.getParent();
-    if (owner === undefined) return true;
-    return owners.includes(owner.name);
+    return isOwnedByOneOf(symbol, FILE_OWNERS);
   }
 
   private couldReach(project: Project, type: Type | undefined): boolean {
-    if (type === undefined) return true;
-    return membersOf(type).some((member) => this.memberCouldReach(project, member));
+    return anyMemberCould(type, (member) => this.memberCouldReach(project, member));
   }
 
   private memberCouldReach(project: Project, type: Type): boolean {

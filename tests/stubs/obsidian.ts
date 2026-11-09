@@ -406,6 +406,12 @@ export function getLinkpath(linktext: string): string {
   return linktext.replace(/#.*$/, "");
 }
 
+export function parseLinktext(linktext: string): { path: string; subpath: string } {
+  const hash = linktext.indexOf("#");
+  if (hash === -1) return { path: linktext, subpath: "" };
+  return { path: linktext.slice(0, hash), subpath: linktext.slice(hash) };
+}
+
 export function debounce<T extends unknown[]>(callback: (...args: T) => void): ((...args: T) => void) & { cancel: () => void } {
   const debouncer = (...args: T) => callback(...args);
   debouncer.cancel = () => {};

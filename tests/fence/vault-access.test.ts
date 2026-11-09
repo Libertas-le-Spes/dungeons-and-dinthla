@@ -1,5 +1,8 @@
-import { readdirSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { build, transform } from "esbuild";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { FileSystem } from "typescript/unstable/fs";
 import { PLUGIN_BUNDLE } from "../../scripts/bundle-options.ts";
@@ -16,8 +19,10 @@ const GATEKEEPER_FOLDER = "fence/";
 const PARSED_DATA = ["settings/draft-record.ts"];
 const ALLOWED = ["fence/gatekeeper.ts", "fence/fenced-files.ts", "fence/fenced-file-actions.ts", "fence/folder-choices.ts", "fence/vault-settings.ts"];
 const EDITOR_TEXT_READERS = ["campaign/editor-text.ts"];
+const BASES_READERS = ["characters/characters-view.ts"];
+const CODE_MIRROR_READERS = ["editor/marker-decorations.ts"];
 const LOOSE_CASTERS = ["fence/fenced-metadata.ts", "interface/campaign-view-registered.ts", "interface/one-campaign-tab.ts", "interface/seen-tab.ts"];
-const HIDDEN_CODE = [".js", ".mjs", ".cjs", ".mts", ".cts"];
+const HIDDEN_CODE = [".js", ".mjs", ".cjs", ".mts", ".cts", ".tsx", ".jsx"];
 const REACHING_SAMPLES = [
   "this.app.vault.read(file);",
   "const files = app.vault;",
@@ -28,6 +33,7 @@ const REACHING_SAMPLES = [
   "app?.vault;",
   "const { vault } = app;",
   "const { vault: files } = app;",
+  'const { "vault": files } = app;',
   'const { ["vault"]: files } = app;',
   "const { [key]: files } = app;",
   "const read = ({ vault }: App) => vault;",
@@ -66,6 +72,18 @@ const WRITING_SAMPLES = [
   'import type { Editor } from "obsidian";\nexport const change = (editor: Editor, key: "replaceRange") => editor[key];',
 ];
 
+const WRITE_NAME_SAMPLES = [
+  'import type { Editor } from "obsidian";\nexport const change = (editor: Editor) => editor.setLine(0, "");',
+  'import type { Editor } from "obsidian";\nexport const change = (editor: Editor) => editor.transaction({ changes: [] });',
+  'import type { Editor } from "obsidian";\nexport const change = (editor: Editor) => editor.undo();',
+  'import type { Editor } from "obsidian";\nexport const change = (editor: Editor) => editor.redo();',
+  'import type { Editor } from "obsidian";\nexport const change = (editor: Editor) => editor.exec("goUp");',
+  'import type { Editor } from "obsidian";\nexport const change = (editor: Editor) => editor.processLines(() => null, () => undefined);',
+  'import type { MarkdownView } from "obsidian";\nexport const change = (view: MarkdownView) => view.clear();',
+  'import type { MarkdownSubView } from "obsidian";\nexport const change = (mode: MarkdownSubView) => mode.set("", true);',
+  'import type { EditorView } from "@codemirror/view";\nexport const change = (view: EditorView) => view.dispatch({ changes: { from: 0, insert: "" } });',
+];
+
 const READING_SAMPLES = [
   'import type { Editor } from "obsidian";\nexport const text = (editor: Editor) => editor.getValue();',
   "const line = editor.getLine(0);",
@@ -90,7 +108,11 @@ const FORBIDDEN_SAMPLES = [
   "eval(text);",
   'globalThis["eval"](text);',
   "const { eval: run } = globalThis;",
+  'const { ["eval"]: run } = globalThis;',
   'import * as obsidian from "obsidian";\nexport const pick = (key: "Notice") => obsidian[key];',
+  'app.workspace.openLinkText("Private/Primary", "");',
+  'import type { Workspace } from "obsidian";\nexport const follow = (workspace: Workspace) => workspace["openLinkText"]("Primary", "");',
+  "const { openLinkText } = app.workspace;",
 ];
 
 const FILE_TREE_SAMPLES = [
@@ -107,6 +129,7 @@ const CAST_SAMPLES = [
   'import type { App } from "obsidian";\nexport const files = (app: App, key: string) => (<Record<string, object>>(<unknown>app))[key];',
   'import type { App } from "obsidian";\nexport function files(app: App, key: string) {\n  const words = app as unknown as Record<string, object>;\n  return words[key];\n}',
   'import type { App } from "obsidian";\nexport function files(app: App, key: string) {\n  const loose: unknown = app;\n  return (loose as Record<string, object>)[key];\n}',
+  'import type { App } from "obsidian";\nexport const files = (app: App, key: string) => (app as unknown as Record<string, object> as Record<string, object>)[key];',
   'import type { App } from "obsidian";\nexport function files(app: App, key: string) {\n  const loose = app as any;\n  const words: Record<string, object> = loose;\n  return words[key];\n}',
 ];
 
@@ -115,6 +138,77 @@ const LOOSE_CAST_SAMPLES = [
   'import type { App } from "obsidian";\nexport const registry = (app: App) => (app as any).viewRegistry;',
   'import type { App } from "obsidian";\nexport const registry = (app: App) => (<any>app).viewRegistry;',
   'import type { App } from "obsidian";\nexport function registry(app: App) {\n  const loose: unknown = app;\n  return (loose as { viewRegistry: object }).viewRegistry;\n}',
+];
+
+const OTHER_PLUGIN_SAMPLES = [
+  'import type { App } from "obsidian";\nexport const found = (app: App) => "plugins" in app;',
+  'import type { App } from "obsidian";\nexport function load(app: App, plugins: { getPlugin(id: string): { api: { io: { load(path: string): unknown } } } }) {\n  return plugins.getPlugin("dataview").api.io.load("Private/Primary.md");\n}',
+  'export const found = "app" in window;',
+  "const list = app.plugins.enabledPlugins;",
+  'const core = app["internalPlugins"];',
+  "const { plugins } = app;",
+  'const { ["getPlugin"]: pick } = registry;',
+  'export const found = (key: string) => key in globalThis;',
+  'import type { App } from "obsidian";\nexport const found = (app: App, key: string) => key in app;',
+  "export const found = (key: string, loose: unknown) => typeof loose === \"object\" && loose !== null && key in loose;",
+  "export const found = (key: string, loose: object) => key in loose;",
+  "export const found = <T extends object>(key: string, loose: T) => key in loose;",
+  "export const found = (key: string) => key in activeWindow;",
+];
+
+const GLOBAL_APP_SAMPLES = [
+  "export const reached = window.app;",
+  'export const reached = globalThis["app"];',
+  "export const reached = activeWindow.app;",
+  "export const reached = (window as any).app;",
+  "export const reached = (globalThis as unknown as { app: object }).app;",
+  "export const { app } = window;",
+  'export const { ["app"]: reached } = self;',
+  "export const reached = (holder: Window) => holder.app;",
+  "export const reached = document.defaultView?.app;",
+];
+
+const NOTE_READING_SAMPLES = [
+  'import type { MarkdownPostProcessorContext } from "obsidian";\nexport const lines = (el: HTMLElement, context: MarkdownPostProcessorContext) => context.getSectionInfo(el)?.text;',
+  'import type { MarkdownPostProcessorContext } from "obsidian";\nexport const properties = (context: MarkdownPostProcessorContext) => context.frontmatter;',
+  'import type { MarkdownView } from "obsidian";\nexport const text = (view: MarkdownView) => view.currentMode.get();',
+  'import type { MarkdownView } from "obsidian";\nexport const text = (view: MarkdownView) => view.previewMode.get();',
+  'import type { MarkdownSubView } from "obsidian";\nexport const text = (mode: MarkdownSubView) => mode.get();',
+  'import type { MarkdownPreviewView } from "obsidian";\nexport const text = (mode: MarkdownPreviewView) => mode["get"]();',
+  'import type { BasesEntry, BasesPropertyId } from "obsidian";\nexport const value = (entry: BasesEntry, id: BasesPropertyId) => entry.getValue(id);',
+  'import type { BasesView } from "obsidian";\nexport const files = (view: BasesView) => view.data.data.map((entry) => entry.file);',
+  'import type { BasesQueryResult } from "obsidian";\nexport const groups = (result: BasesQueryResult) => result.groupedData;',
+  'import type { BasesEntryGroup } from "obsidian";\nexport const listed = (group: BasesEntryGroup) => group.entries;',
+  "const { frontmatter } = context;",
+  "const { getSectionInfo } = context;",
+  "const { previewMode } = view;",
+];
+
+const VIEW_TEXT_SAMPLES = [
+  'import type { MarkdownView } from "obsidian";\nexport const text = (view: MarkdownView) => view.contentEl.innerText;',
+  'import type { MarkdownView } from "obsidian";\nexport const text = (view: MarkdownView) => view.containerEl.textContent;',
+  'import type { WorkspaceLeaf } from "obsidian";\nexport const text = (leaf: WorkspaceLeaf) => leaf.view.containerEl.textContent;',
+  'import type { MarkdownView } from "obsidian";\nexport const text = (view: MarkdownView) => view.previewMode.containerEl.outerText;',
+  'export const text = (view: any) => view.contentEl.innerText;',
+  'import type { ItemView } from "obsidian";\nexport const text = (view: ItemView) => (view.contentEl).textContent;',
+];
+
+const CODE_MIRROR_SAMPLES = [
+  'import type { EditorState } from "@codemirror/state";\nexport const text = (state: EditorState) => state.doc.toString();',
+  'import type { Text } from "@codemirror/state";\nexport const line = (doc: Text) => doc.line(1).text;',
+  'import type { EditorView } from "@codemirror/view";\nexport const text = (view: EditorView) => view.state.sliceDoc();',
+  'import { EditorView } from "@codemirror/view";\nexport const listen = EditorView.updateListener.of((update) => update.state);',
+  'import { EditorState } from "@codemirror/state";\nexport const filter = EditorState.transactionFilter.of((transaction) => transaction);',
+  'import { EditorState } from "@codemirror/state";\nexport const filter = EditorState.changeFilter.of(() => true);',
+  'import { EditorView } from "@codemirror/view";\nexport const typed = EditorView.inputHandler.of(() => false);',
+  'import { editorEditorField } from "obsidian";\nexport const field = editorEditorField;',
+  'import { editorInfoField } from "obsidian";\nexport const field = editorInfoField;',
+  "export const text = (editor: any) => editor.cm.state.doc.toString();",
+  "export const text = (state: unknown) => (state as { doc: { toString(): string } }).doc.toString();",
+  'export { EditorView } from "@codemirror/view";',
+  'import type { EditorState } from "@codemirror/state";\nexport const text = (state: EditorState) => state["doc"];',
+  "const { doc } = state;",
+  'export const text = (view: import("@codemirror/view").EditorView) => view.state.sliceDoc();',
 ];
 
 const CONSTRUCTOR_SAMPLES = [
@@ -139,9 +233,18 @@ const HARMLESS_SAMPLES = [
   "export const first = (list: HTMLElement) => list.children[0];",
   "export const counts = (byName: Record<string, number>) => Object.entries(byName);",
   "export const merged = (first: { name: string }, second: { level: number }) => ({ ...first, ...second });",
+  'export const hasLevel = (sheet: { level: number } | { name: string }) => "level" in sheet;',
+  'export const level = (saved: object) => "level" in saved && typeof saved.level === "number";',
+  'import type { CachedMetadata } from "obsidian";\nexport const properties = (cache: CachedMetadata) => cache.frontmatter;',
+  'export const level = (levels: Map<string, number>) => levels.get("Mira");',
+  'export const listed = (levels: Map<string, number>) => [...levels.entries()];',
+  'import { ItemView } from "obsidian";\nexport class Ledger extends ItemView {\n  getViewType(): string {\n    return "ledger";\n  }\n  getDisplayText(): string {\n    return this.contentEl.textContent;\n  }\n}',
+  "export const text = (box: HTMLElement) => box.textContent;",
+  "export const page = (box: HTMLElement) => box.doc.title;",
+  'export class Tab {\n  constructor(readonly app: { name: string }) {}\n  name(): string {\n    return this.app.name;\n  }\n}',
 ];
 
-const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...HARMLESS_SAMPLES];
+const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...WRITE_NAME_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...NOTE_READING_SAMPLES, ...VIEW_TEXT_SAMPLES, ...CODE_MIRROR_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...HARMLESS_SAMPLES];
 
 interface Planted {
   name: string;
@@ -259,13 +362,31 @@ function isNeverAllowed(): boolean {
   return false;
 }
 
-const NOTHING_ALLOWED: Allowances = { vault: isNeverAllowed, keyReading: isNeverAllowed, editorReading: isNeverAllowed, fileTree: isNeverAllowed, looseCasts: isNeverAllowed };
+const NOTHING_ALLOWED: Allowances = {
+  vault: isNeverAllowed,
+  keyReading: isNeverAllowed,
+  editorReading: isNeverAllowed,
+  fileTree: isNeverAllowed,
+  looseCasts: isNeverAllowed,
+  noteReading: isNeverAllowed,
+  codeMirror: isNeverAllowed,
+};
 
 function isAlwaysAllowed(): boolean {
   return true;
 }
 
 const LOOSE_CASTS_ALLOWED: Allowances = { ...NOTHING_ALLOWED, looseCasts: isAlwaysAllowed };
+
+const ALL_ALLOWED: Allowances = {
+  vault: isAlwaysAllowed,
+  keyReading: isAlwaysAllowed,
+  editorReading: isAlwaysAllowed,
+  fileTree: isAlwaysAllowed,
+  looseCasts: isAlwaysAllowed,
+  noteReading: isAlwaysAllowed,
+  codeMirror: isAlwaysAllowed,
+};
 
 function isOneOf(files: string[]): (path: string) => boolean {
   return (path) => files.some((file) => path === `${SOURCE_FOLDER}${file}`);
@@ -281,6 +402,8 @@ const SOURCE_ALLOWANCES: Allowances = {
   editorReading: isOneOf(EDITOR_TEXT_READERS),
   fileTree: isGatekeeper,
   looseCasts: isOneOf(LOOSE_CASTERS),
+  noteReading: isOneOf(BASES_READERS),
+  codeMirror: isOneOf(CODE_MIRROR_READERS),
 };
 
 let scanner: SourceScanner;
@@ -309,6 +432,65 @@ function plantedBreaches(name: string): string[] {
   return fenceBreaches(plantedProject(planted), plantedListing(planted), NOTHING_ALLOWED).map((breach) => breach.replace(`${plantedFolder(planted)}/`, ""));
 }
 
+interface PlantedOnDisk {
+  name: string;
+  files: Record<string, string>;
+  found: string[];
+}
+
+const PLANTED_ON_DISK: PlantedOnDisk[] = [
+  {
+    name: "tsx beside ts",
+    files: { "src/main.ts": 'export { files } from "./reader";\n', "src/reader.ts": "export const files = 1;\n", "src/reader.tsx": "export const files = 2;\n" },
+    found: ["src/reader.tsx is bundled but not scanned", "src/reader.ts holds code but is scanned and not bundled"],
+  },
+  {
+    name: "browser map",
+    files: {
+      "package.json": JSON.stringify({ browser: { "./src/reader.ts": "./src/other.ts" } }),
+      "src/main.ts": 'export { files } from "./reader";\n',
+      "src/reader.ts": "export const files = 1;\n",
+      "src/other.ts": "export const files = 2;\n",
+    },
+    found: ["src/other.ts is bundled but not scanned", "src/reader.ts holds code but is scanned and not bundled"],
+  },
+];
+
+const LIBRARY_FOLDER = "/node_modules/";
+
+async function bundledInputs(root: string): Promise<string[]> {
+  const result = await build({ ...PLUGIN_BUNDLE, absWorkingDir: root, write: false, metafile: true, logLevel: "silent" });
+  return Object.keys(result.metafile.inputs)
+    .map((input) => resolve(root, input))
+    .filter((path) => !path.includes(LIBRARY_FOLDER));
+}
+
+async function holdsCode(path: string): Promise<boolean> {
+  const result = await transform(readFileSync(path, "utf8"), { loader: "ts" });
+  return result.code !== "";
+}
+
+async function unscannedBundleInputs(root: string, project: string): Promise<string[]> {
+  const bundled = await bundledInputs(root);
+  const scanned = scanner.loadedFiles(project).filter((path) => !isDeclaration(path));
+  const notScanned = bundled.filter((path) => !scanned.includes(path)).map((path) => `${path} is bundled but not scanned`);
+  const notBundled = scanned.filter((path) => !bundled.includes(path));
+  const holdingCode = await Promise.all(notBundled.map(holdsCode));
+  const codeNotBundled = notBundled.filter((_path, index) => holdingCode[index]).map((path) => `${path} holds code but is scanned and not bundled`);
+  return [...notScanned, ...codeNotBundled];
+}
+
+function plantOnDisk(planted: PlantedOnDisk): string {
+  const root = mkdtempSync(join(tmpdir(), "dd-planted-"));
+  const project = { extends: `${ROOT}/tsconfig.json`, compilerOptions: { types: [] }, files: ["src/main.ts"], include: [] };
+  const files = { ...planted.files, "tsconfig.json": JSON.stringify(project) };
+  for (const [path, text] of Object.entries(files)) {
+    mkdirSync(dirname(join(root, path)), { recursive: true });
+    writeFileSync(join(root, path), text);
+  }
+  return root;
+}
+
 function sourcePath(file: string): string {
   return `${SOURCE_FOLDER}${file}`;
 }
@@ -320,6 +502,20 @@ describe("the vault fence", () => {
     expect(loaded).toContain(sourcePath("fence/gatekeeper.ts"));
     expect(loaded.length).toBeGreaterThan(100);
   });
+
+  it("scans exactly the files esbuild bundles, outside node_modules, and beyond them only files that hold nothing but types", async () => {
+    expect(await unscannedBundleInputs(ROOT, BUNDLED_PROJECT)).toEqual([]);
+  }, 30_000);
+
+  it.each(PLANTED_ON_DISK)("finds a file esbuild bundles but the scan doesn't read, with a $name", async (planted) => {
+    const root = plantOnDisk(planted);
+    try {
+      const found = await unscannedBundleInputs(root, `${root}/tsconfig.json`);
+      expect(found.map((breach) => breach.replace(`${root}/`, ""))).toEqual(planted.found);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  }, 30_000);
 
   it("lets only the gatekeeper's allowed files reach the vault, walk its folders or Obsidian's file metadata, only the allowed files read an editor's text, and none write through an editor or view", () => {
     expect(fenceBreaches(BUNDLED_PROJECT, sourceListing(), SOURCE_ALLOWANCES)).toEqual([]);
@@ -358,6 +554,22 @@ describe("the vault fence", () => {
     }
   });
 
+  it("lets only the characters Bases view read what Bases lists, which it still needs and does nothing else the fence refuses", () => {
+    for (const reader of BASES_READERS) {
+      const breaches = scanner.breaches(BUNDLED_PROJECT, [sourcePath(reader)], NOTHING_ALLOWED);
+      expect(breaches).not.toEqual([]);
+      for (const breach of breaches) expect(breach).toContain("reads a note's text through Obsidian");
+    }
+  });
+
+  it("lets only the marker colouring reach CodeMirror, which it still needs and does nothing else the fence refuses", () => {
+    for (const reader of CODE_MIRROR_READERS) {
+      const breaches = scanner.breaches(BUNDLED_PROJECT, [sourcePath(reader)], NOTHING_ALLOWED);
+      expect(breaches).not.toEqual([]);
+      for (const breach of breaches) expect(breach).toMatch(/loads CodeMirror|reaches the editor/);
+    }
+  });
+
   it("scans a .mts file the entry point loads, and refuses it under src", () => {
     const breaches = plantedBreaches("mts");
     expect(breaches).toContain("src/reader.mts is code under src that the scan can't read as TypeScript");
@@ -380,6 +592,11 @@ describe("the vault fence", () => {
     expect(plantedBreaches("js-outside")).toContain("lib/reader.js is loaded from the entry point but isn't a plain TypeScript file");
   });
 
+  it("refuses a .tsx or .jsx file under src, which esbuild would bundle before a .ts file of the same name", () => {
+    const paths = [`${SOURCE_FOLDER}campaign/reader.tsx`, `${SOURCE_FOLDER}campaign/reader.jsx`];
+    expect(hiddenCodeIn(paths)).toEqual(paths.map((path) => `${path} is code under src that the scan can't read as TypeScript`));
+  });
+
   it.each(HIDDEN_CODE)("refuses a %s file anywhere under src", (ending) => {
     const path = `${SOURCE_FOLDER}campaign/reader${ending}`;
     expect(hiddenCodeIn([path])).toEqual([`${path} is code under src that the scan can't read as TypeScript`]);
@@ -393,11 +610,15 @@ describe("the vault fence", () => {
     expect(sampleBreaches(sample)).not.toEqual([]);
   });
 
+  it.each(WRITE_NAME_SAMPLES)("would catch writing through an editor or view with %s, even in a file allowed everything else", (sample) => {
+    expect(sampleBreaches(sample, ALL_ALLOWED)).not.toEqual([]);
+  });
+
   it.each(READING_SAMPLES)("would catch reading an editor's or view's text with %s", (sample) => {
     expect(sampleBreaches(sample)).not.toEqual([]);
   });
 
-  it.each(FORBIDDEN_SAMPLES)("would catch rendering, running a command or running text as code with %s", (sample) => {
+  it.each(FORBIDDEN_SAMPLES)("would catch rendering, running a command, running text as code or following a link unfenced with %s", (sample) => {
     expect(sampleBreaches(sample)).not.toEqual([]);
   });
 
@@ -411,6 +632,26 @@ describe("the vault fence", () => {
 
   it.each(LOOSE_CAST_SAMPLES)("would catch casting through unknown or any with %s", (sample) => {
     expect(sampleBreaches(sample)).not.toEqual([]);
+  });
+
+  it.each(OTHER_PLUGIN_SAMPLES)("would catch reaching other plugins or checking for a key in the app or a window with %s", (sample) => {
+    expect(sampleBreaches(sample)).not.toEqual([]);
+  });
+
+  it.each(GLOBAL_APP_SAMPLES)("would catch reaching the app through a window or globalThis with %s, even in a file allowed to cast", (sample) => {
+    expect(sampleBreaches(sample, LOOSE_CASTS_ALLOWED)).not.toEqual([]);
+  });
+
+  it.each(NOTE_READING_SAMPLES)("would catch reading a note's text through Obsidian with %s", (sample) => {
+    expect(sampleBreaches(sample)).not.toEqual([]);
+  });
+
+  it.each(VIEW_TEXT_SAMPLES)("would catch reading the text of a view's element with %s", (sample) => {
+    expect(sampleBreaches(sample, ALL_ALLOWED)).not.toEqual([]);
+  });
+
+  it.each(CODE_MIRROR_SAMPLES)("would catch reaching the editor through CodeMirror with %s", (sample) => {
+    expect(sampleBreaches(sample, LOOSE_CASTS_ALLOWED)).not.toEqual([]);
   });
 
   it.each(CONSTRUCTOR_SAMPLES)("would catch reaching a constructor with %s", (sample) => {
