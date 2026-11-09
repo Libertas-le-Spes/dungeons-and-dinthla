@@ -30,21 +30,29 @@ function addAbilities(block: HTMLElement, values: SheetValues): void {
     const cell = abilities.createDiv();
     cell.createEl("b", { text: ability });
     addStatValue(cell, values, ability);
-    const score = knownValueOf(values, ability);
+    const score = values.get(ability);
     if (score === undefined) continue;
     const modifier = modifierOf(score);
     if (modifier !== "") cell.appendText(` (${modifier})`);
   }
 }
 
-export function fillStatBlock(block: HTMLElement, characterName: string, values: SheetValues): void {
+export function startStatBlock(block: HTMLElement, characterName: string): void {
   block.addClass("dd-stat-block");
   block.createDiv({ cls: "dd-stat-block-name", text: characterName });
+}
+
+export function addStatBlockLine(block: HTMLElement): HTMLElement {
+  return block.createDiv({ cls: "dd-stat-block-line" });
+}
+
+export function fillStatBlock(block: HTMLElement, characterName: string, values: SheetValues): void {
+  startStatBlock(block, characterName);
   addKnownLine(block, "dd-stat-block-type", knownValueOf(values, "type"));
   addKnownLine(block, "dd-stat-block-subtitle", knownValueOf(values, "subtitle"));
   block.createDiv({ cls: "dd-stat-block-rule" });
   for (const { label, name } of STAT_BLOCK_LINES) {
-    const line = block.createDiv({ cls: "dd-stat-block-line" });
+    const line = addStatBlockLine(block);
     line.createEl("strong", { text: label });
     line.appendText(" ");
     addStatValue(line, values, name);
