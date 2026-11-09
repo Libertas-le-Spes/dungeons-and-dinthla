@@ -2,7 +2,7 @@ import { readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { FileSystem } from "typescript/unstable/fs";
-import { SourceScanner } from "./source-scanner";
+import { SourceScanner, type Allowances } from "./source-scanner";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url)).replace(/\/$/, "");
 const SOURCE_FOLDER = `${ROOT}/src/`;
@@ -10,6 +10,7 @@ const PROJECT = `${ROOT}/tsconfig.json`;
 const SAMPLE_FOLDER = `${ROOT}/tests/fence/scanned-samples`;
 const SAMPLE_PROJECT = `${SAMPLE_FOLDER}/tsconfig.json`;
 const GATEKEEPER_FOLDER = "fence/";
+const PARSED_DATA = ["settings/draft-record.ts"];
 const ALLOWED = ["fence/gatekeeper.ts", "fence/fenced-files.ts", "fence/fenced-file-actions.ts", "fence/folder-choices.ts", "fence/vault-settings.ts"];
 
 const REACHING_SAMPLES = [
@@ -33,6 +34,16 @@ const REACHING_SAMPLES = [
   'import type { App } from "obsidian";\nexport const files = (app: App, key: "vault") => app[key];',
   'import type { TFile } from "obsidian";\nexport const files = (file: TFile, key: keyof TFile) => file[key];',
   "export function get<T, K extends keyof T>(value: T, key: K) {\n  return value[key];\n}",
+  "Object.values(app);",
+  "Object.entries(app);",
+  'Object.getOwnPropertyDescriptor(app, "vault");',
+  "Object.getOwnPropertyDescriptors(app);",
+  "Object.assign({}, app);",
+  "const copy = { ...app };",
+  "for (const key in app) read(key);",
+  'import type { App } from "obsidian";\nexport const parts = (app: App) => Object.values(app);',
+  'import type { TFile } from "obsidian";\nexport const copy = (file: TFile) => ({ ...file });',
+  'import type { App } from "obsidian";\nexport function keys(app: App) {\n  const all: string[] = [];\n  for (const key in app) all.push(key);\n  return all;\n}',
 ];
 
 const WRITING_SAMPLES = [
@@ -58,6 +69,8 @@ const HARMLESS_SAMPLES = [
   'export const match = (pattern: RegExp) => pattern.exec("Mira");',
   "export class Ledger {\n  save(): void {}\n  write(): void {\n    this.save();\n  }\n}",
   'import type { Editor } from "obsidian";\nexport const text = (editor: Editor) => editor.getValue();',
+  "export const counts = (byName: Record<string, number>) => Object.entries(byName);",
+  "export const merged = (first: { name: string }, second: { level: number }) => ({ ...first, ...second });",
 ];
 
 const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...HARMLESS_SAMPLES];
@@ -92,13 +105,21 @@ function sourceFiles(): string[] {
   return all.filter((path) => path.endsWith(".ts")).map((path) => path.split("\\").join("/"));
 }
 
-function isAllowed(path: string): boolean {
-  return ALLOWED.includes(path.slice(SOURCE_FOLDER.length));
-}
-
 function isNeverAllowed(): boolean {
   return false;
 }
+
+const NOTHING_ALLOWED: Allowances = { vault: isNeverAllowed, keyReading: isNeverAllowed };
+
+function isGatekeeper(path: string): boolean {
+  return ALLOWED.includes(path.slice(SOURCE_FOLDER.length));
+}
+
+function readsKeysOfAnything(path: string): boolean {
+  return isGatekeeper(path) || PARSED_DATA.includes(path.slice(SOURCE_FOLDER.length));
+}
+
+const SOURCE_ALLOWANCES: Allowances = { vault: isGatekeeper, keyReading: readsKeysOfAnything };
 
 let scanner: SourceScanner;
 
@@ -111,7 +132,7 @@ afterAll(() => {
 });
 
 function sampleBreaches(sample: string): string[] {
-  return scanner.breaches(SAMPLE_PROJECT, [samplePath(SAMPLES.indexOf(sample))], isNeverAllowed);
+  return scanner.breaches(SAMPLE_PROJECT, [samplePath(SAMPLES.indexOf(sample))], NOTHING_ALLOWED);
 }
 
 describe("the vault fence", () => {
@@ -124,7 +145,7 @@ describe("the vault fence", () => {
 
   it("lets only the gatekeeper's allowed files reach the vault, its files or Obsidian's file metadata, and none write through an editor or view", () => {
     const paths = sourceFiles().map((path) => `${SOURCE_FOLDER}${path}`);
-    expect(scanner.breaches(PROJECT, paths, isAllowed)).toEqual([]);
+    expect(scanner.breaches(PROJECT, paths, SOURCE_ALLOWANCES)).toEqual([]);
   });
 
   it("allows only files in the gatekeeper's own folder, each of which still needs it", () => {
@@ -132,7 +153,16 @@ describe("the vault fence", () => {
     for (const allowed of ALLOWED) {
       expect(allowed.startsWith(GATEKEEPER_FOLDER)).toBe(true);
       expect(files).toContain(allowed);
-      expect(scanner.breaches(PROJECT, [`${SOURCE_FOLDER}${allowed}`], isNeverAllowed)).not.toEqual([]);
+      expect(scanner.breaches(PROJECT, [`${SOURCE_FOLDER}${allowed}`], NOTHING_ALLOWED)).not.toEqual([]);
+    }
+  });
+
+  it("lets only the file that parses the plugin's saved data read every key of a value it can't type, which it still needs", () => {
+    for (const parsed of PARSED_DATA) {
+      const path = `${SOURCE_FOLDER}${parsed}`;
+      const breaches = scanner.breaches(PROJECT, [path], NOTHING_ALLOWED);
+      expect(breaches).not.toEqual([]);
+      for (const breach of breaches) expect(breach).toContain("reads every key of a value");
     }
   });
 
