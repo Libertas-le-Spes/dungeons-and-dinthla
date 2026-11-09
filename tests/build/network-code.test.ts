@@ -10,9 +10,13 @@ async function builtBundle(): Promise<string> {
   return bundle.text;
 }
 
+function expectEachFound(samples: [string, string][]): void {
+  for (const [sample, name] of samples) expect(networkCodeIn(sample), sample).toContain(name);
+}
+
 describe("networkCodeIn", () => {
   it("finds each kind of network code a bundle could hold", () => {
-    const samples: [string, string][] = [
+    expectEachFound([
       ['fetch("https://example.invalid")', "fetch"],
       ["(0, import_obsidian.requestUrl)({ url })", "requestUrl"],
       ["new XMLHttpRequest()", "XMLHttpRequest"],
@@ -26,12 +30,31 @@ describe("networkCodeIn", () => {
       ['require("http")', "a Node file, network or process module"],
       ['require("electron")', "electron"],
       ['import("./later.js")', "a module loaded while running"],
-    ];
-    for (const [sample, name] of samples) expect(networkCodeIn(sample)).toEqual([name]);
+    ]);
+  });
+
+  it("finds every module loaded other than Obsidian and CodeMirror", () => {
+    const anyOther = "a module other than Obsidian or CodeMirror";
+    expectEachFound([
+      ['require("original-fs")', anyOther],
+      ["require(name)", anyOther],
+      ["require('obsidian')", anyOther],
+      ['require( "obsidian" )', anyOther],
+      ['require("obsidian" + suffix)', anyOther],
+      ['require("@codemirror/language")', anyOther],
+      ["const load = require;", anyOther],
+      ['module.require("tls")', anyOther],
+      ['var __require = (name) => name;', anyOther],
+    ]);
   });
 
   it("finds nothing in code that only loads Obsidian and CodeMirror", () => {
-    expect(networkCodeIn('var import_obsidian = require("obsidian");\nvar import_state = require("@codemirror/state");')).toEqual([]);
+    const allowed = [
+      'var import_obsidian = require("obsidian");',
+      'var import_state = require("@codemirror/state");',
+      'var import_view = require("@codemirror/view");',
+    ];
+    expect(networkCodeIn(allowed.join("\n"))).toEqual([]);
   });
 });
 
