@@ -99,4 +99,29 @@ describe("SettingsSaver", () => {
     await second;
     expect(writeAt(writes, 1).settings).toEqual({ ...SETTINGS, lastVersionSeen: "0.3.0" });
   });
+
+  it("works out a change from the settings the save before it left", async () => {
+    const { saver, writes } = heldSaver();
+    const first = saver.save({ campaignsFolder: "Games/D&D" });
+    const seen: (string | null)[] = [];
+    const second = saver.saveFrom((settings) => {
+      seen.push(settings.campaignsFolder);
+      return { lastVersionSeen: "0.3.0" };
+    });
+    await settled();
+    expect(seen).toEqual([]);
+    writeAt(writes, 0).finish();
+    await first;
+    await settled();
+    expect(seen).toEqual(["Games/D&D"]);
+    writeAt(writes, 1).finish();
+    expect(await second).toBe(true);
+  });
+
+  it("writes nothing, and says so, when there is no change to make", async () => {
+    const { saver, writes } = heldSaver();
+    expect(await saver.saveFrom(() => null)).toBe(false);
+    expect(writes).toEqual([]);
+    expect(saver.settings).toEqual(SETTINGS);
+  });
 });
