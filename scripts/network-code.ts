@@ -7,6 +7,20 @@ const NODE_NETWORK_MODULES = "fs|fs/promises|net|http|https|http2|tls|dgram|dns|
 
 const ALLOWED_MODULES = ['require("obsidian")', 'require("@codemirror/state")', 'require("@codemirror/view")'];
 
+const ALLOWED_ADDRESSES = [
+  '"app://"',
+  '"capacitor://localhost/_capacitor_file_/"',
+  '"http://localhost/_capacitor_file_/"',
+  '"https://localhost/_capacitor_file_/"',
+];
+
+const ALLOWED_CODE = [...ALLOWED_MODULES, ...ALLOWED_ADDRESSES];
+
+export const WEB_ADDRESSES: NetworkCode[] = [
+  { name: "a web address", pattern: /\b(?:https?|wss?):/i },
+  { name: "an address starting //", pattern: /\/\/(?!\s)/ },
+];
+
 export const NETWORK_CODE: NetworkCode[] = [
   { name: "fetch", pattern: /\bfetch\b/ },
   { name: "requestUrl", pattern: /\brequestUrl\b/ },
@@ -18,10 +32,11 @@ export const NETWORK_CODE: NetworkCode[] = [
   { name: "a Node file, network or process module", pattern: new RegExp(`require\\(\\s*["'\`](node:)?(${NODE_NETWORK_MODULES})["'\`]\\s*\\)`) },
   { name: "electron", pattern: /require\(\s*["'`]electron["'`]\s*\)/ },
   { name: "a module loaded while running", pattern: /\bimport\s*\(/ },
+  ...WEB_ADDRESSES,
 ];
 
 function withoutAllowed(text: string): string {
-  return ALLOWED_MODULES.reduce((left, allowed) => left.replaceAll(allowed, ""), text);
+  return ALLOWED_CODE.reduce((left, allowed) => left.replaceAll(allowed, ""), text);
 }
 
 function isIn(text: string): (code: NetworkCode) => boolean {

@@ -48,6 +48,33 @@ describe("networkCodeIn", () => {
     ]);
   });
 
+  it("finds every web address other than the app's own file addresses", () => {
+    expectEachFound([
+      ['const address = "https://example.invalid/a.png";', "a web address"],
+      ['const address = "http://example.invalid/a.png";', "a web address"],
+      ['const address = "ws://example.invalid/feed";', "a web address"],
+      ['const address = "wss://example.invalid/feed";', "a web address"],
+      ['const address = "HTTPS://example.invalid/a.png";', "a web address"],
+      ['const address = "https:example.invalid/a.png";', "a web address"],
+      ['const address = "http://localhost:8080/_capacitor_file_/";', "a web address"],
+      ['el.style.backgroundImage = "url(https://example.invalid/a.png)";', "a web address"],
+      ['const address = "//example.invalid/a.js";', "an address starting //"],
+      ['const address = "app://example.invalid/a.png";', "an address starting //"],
+      ['const address = "capacitor://example.invalid/a.png";', "an address starting //"],
+      ['const address = "ftp:" + "//example.invalid";', "an address starting //"],
+    ]);
+  });
+
+  it("finds nothing in the app's own file addresses", () => {
+    const allowed = [
+      '{ on: "isDesktopApp", prefixes: ["app://"] },',
+      '{ on: "isIosApp", prefixes: ["capacitor://localhost/_capacitor_file_/"] },',
+      '{ on: "isAndroidApp", prefixes: ["http://localhost/_capacitor_file_/", "https://localhost/_capacitor_file_/"] },',
+      "// src/campaign/picture-css.ts",
+    ];
+    expect(networkCodeIn(allowed.join("\n"))).toEqual([]);
+  });
+
   it("finds nothing in code that only loads Obsidian and CodeMirror", () => {
     const allowed = [
       'var import_obsidian = require("obsidian");',
