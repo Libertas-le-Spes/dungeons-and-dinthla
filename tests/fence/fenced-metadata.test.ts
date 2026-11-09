@@ -5,6 +5,8 @@ import { FencedMetadata, type RawMetadata } from "../../src/fence/fenced-metadat
 import { HeldFiles } from "../../src/fence/held-files";
 import { FakeEvents, fileAt, rawVaultWith } from "./fake-raw-vault";
 
+const CONFIG_DIR = ".obsidian";
+
 const SESSION = fileAt("D&D/Pale Moon/Sessions/Session 1.md");
 const MIRA = fileAt("D&D/Pale Moon/Characters/Mira.md");
 const PRIVATE = fileAt("Private/Primary.md");
@@ -25,7 +27,7 @@ function metadataWith(linkLeadsTo: TFile | null = MIRA) {
     on: (name: string, callback: (...data: unknown[]) => unknown) => events.on(name, callback),
     offref: vi.fn(),
   };
-  const held = new HeldFiles(vault, new Fence(() => "D&D"));
+  const held = new HeldFiles(vault, new Fence(() => "D&D", CONFIG_DIR));
   return { metadata: new FencedMetadata(raw as unknown as RawMetadata, held), raw, events };
 }
 

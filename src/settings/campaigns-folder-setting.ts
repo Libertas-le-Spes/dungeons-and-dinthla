@@ -1,5 +1,5 @@
 import { Notice } from "obsidian";
-import { refusalForCampaignsFolder } from "../fence/campaigns-folder-path";
+import { isInConfigFolder, NOT_THE_CONFIG_FOLDER, refusalForCampaignsFolder } from "../fence/campaigns-folder-path";
 import { messageOf } from "../views/message-of";
 import type { PluginSettings } from "./plugin-settings";
 import type { SettingsChange, SettingsSaver } from "./settings-saver";
@@ -18,6 +18,7 @@ export class CampaignsFolderSetting {
   constructor(
     private readonly saver: SettingsSaver,
     private readonly changed: CampaignsFolderChanged,
+    private readonly configDir: string,
   ) {}
 
   get path(): string | null {
@@ -27,6 +28,7 @@ export class CampaignsFolderSetting {
   async choose(path: string): Promise<void> {
     const refusal = refusalForCampaignsFolder(path);
     if (refusal !== null) throw new Error(refusal);
+    if (isInConfigFolder(path, this.configDir)) throw new Error(NOT_THE_CONFIG_FOLDER);
     this.choices += 1;
     const choice = this.choices;
     const wrote = await this.saver.saveFrom((settings) => changeTo(path, settings));

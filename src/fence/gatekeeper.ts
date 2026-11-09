@@ -14,9 +14,11 @@ export class Gatekeeper {
   readonly metadata: FencedMetadata;
   readonly vaultSettings: VaultSettings;
   readonly folders: FolderChoices;
+  readonly configDir: string;
 
   constructor(app: App, readCampaignsFolder: ReadCampaignsFolder) {
-    this.fence = new Fence(readCampaignsFolder);
+    this.configDir = app.vault.configDir;
+    this.fence = new Fence(readCampaignsFolder, this.configDir);
     const held = new HeldFiles(app.vault, this.fence);
     this.files = new FencedFiles(app.vault, held);
     this.fileActions = new FencedFileActions(app.fileManager, held);
