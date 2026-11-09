@@ -163,7 +163,7 @@ describe("FundsPage", () => {
 
   it("opens a holder's note when their name is tapped", async () => {
     const { root, actions } = await openPage(campaignOf(["$ [[Mira]] Flame Tongue"]));
-    (root.querySelector(".dd-holder a.internal-link") as HTMLElement).click();
+    (root.querySelector(".dd-holder a.dd-link-name") as HTMLElement).click();
     expect(actions.openLink).toHaveBeenCalledWith("Mira", "Pale Moon/Sessions/Session 1.md");
   });
 
