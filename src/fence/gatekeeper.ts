@@ -5,7 +5,7 @@ import { FencedFiles } from "./fenced-files";
 import { FencedMetadata } from "./fenced-metadata";
 import { FolderChoices } from "./folder-choices";
 import { HeldFiles } from "./held-files";
-import { VaultSettings } from "./vault-settings";
+import { configReaderOf, VaultSettings } from "./vault-settings";
 
 export class Gatekeeper {
   readonly fence: Fence;
@@ -21,7 +21,7 @@ export class Gatekeeper {
     this.files = new FencedFiles(app.vault, held);
     this.fileActions = new FencedFileActions(app.fileManager, held);
     this.metadata = new FencedMetadata(app.metadataCache, held);
-    this.settings = new VaultSettings(app.vault);
+    this.settings = new VaultSettings(configReaderOf(app));
     this.folders = new FolderChoices(app.vault);
   }
 }
