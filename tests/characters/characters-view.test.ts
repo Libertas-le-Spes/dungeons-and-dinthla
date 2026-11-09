@@ -156,6 +156,17 @@ describe("CharactersView", () => {
     expect(gallery.container.querySelectorAll(".dd-stat-block-type, .dd-stat-block-subtitle")).toHaveLength(0);
   });
 
+  it("shows a value marked not known as unknown, and leaves out a type line marked not known", async () => {
+    const sessions = [sessionOf(1, ["[[Mira]] AC: 15, DEX: 17, type: Medium humanoid"]), sessionOf(2, ["[[Mira]] AC: ?, DEX: ?, type: ?"])];
+    const gallery = openGallery({ sessions });
+    await gallery.show(["Mira"]);
+    const card = gallery.container.querySelector<HTMLElement>(".dd-card")!;
+    expect(card.querySelector(".dd-stat-block-type")).toBeNull();
+    expect(textsOf(card, ".dd-stat-block-line .dd-unknown")).toHaveLength(4);
+    expect(textsOf(card, ".dd-stat-block-abilities > div")[1]).toBe("DEX?");
+    expect(textsOf(card, ".dd-stat-block-abilities .dd-unknown")).toHaveLength(6);
+  });
+
   it("shows a score with no modifier when it isn't a whole number", async () => {
     const gallery = openGallery({ sessions: [sessionOf(1, ["[[Mira]] STR: strong"])] });
     await gallery.show(["Mira"]);
