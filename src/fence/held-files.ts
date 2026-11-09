@@ -14,6 +14,10 @@ export class HeldFiles {
     return this.fence.holds(path);
   }
 
+  isTheFolder(path: unknown): path is string {
+    return this.fence.isTheFolder(path);
+  }
+
   holdsFile(file: unknown): boolean {
     return this.fence.holds(pathOf(file));
   }

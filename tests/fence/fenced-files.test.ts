@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { EventRef, TAbstractFile } from "obsidian";
 import { Fence, OUTSIDE_FENCE } from "../../src/fence/fence";
 import { FencedFiles } from "../../src/fence/fenced-files";
+import { HeldFiles } from "../../src/fence/held-files";
 import { fileAt, folderAt, rawVaultWith } from "./fake-raw-vault";
 
 const SESSION = fileAt("D&D/Pale Moon/Sessions/Session 1.md");
@@ -16,7 +17,7 @@ function filesWith(campaignsFolder: string | null = "D&D") {
   const outside = folderAt("Private", []);
   const campaigns = folderAt("D&D", []);
   const raw = rawVaultWith([SESSION, PRIVATE, BESIDE, DECOMPOSED, NO_BREAK], [empty, full, outside, campaigns]);
-  return { files: new FencedFiles(raw.vault, new Fence(() => campaignsFolder)), ...raw };
+  return { files: new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => campaignsFolder))), ...raw };
 }
 
 describe("FencedFiles lookups", () => {

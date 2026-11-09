@@ -18,7 +18,7 @@ export class Gatekeeper {
   constructor(app: App, campaignsFolder: CampaignsFolderPath) {
     this.fence = new Fence(campaignsFolder);
     const held = new HeldFiles(app.vault, this.fence);
-    this.files = new FencedFiles(app.vault, this.fence);
+    this.files = new FencedFiles(app.vault, held);
     this.fileActions = new FencedFileActions(app.fileManager, held);
     this.metadata = new FencedMetadata(app.metadataCache, held);
     this.settings = new VaultSettings(app.vault);
