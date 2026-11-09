@@ -33,6 +33,29 @@ describe("Fence", () => {
     expect(fence.holds("Games/Pale Moon/Pale Moon.md")).toBe(true);
   });
 
+  it("holds a note the vault already holds in decomposed letters or with a no-break space", () => {
+    const fence = new Fence(() => "D&D");
+    expect(fence.holds("D&D/Zoe\u0308/Zoe\u0308.md")).toBe(true);
+    expect(fence.holds("D&D/Pale\u00a0Moon/Pale\u00a0Moon.md")).toBe(true);
+  });
+
+  it("holds a Campaigns folder named in decomposed letters", () => {
+    expect(new Fence(() => "Zoe\u0308").holds("Zoe\u0308/Pale Moon/Pale Moon.md")).toBe(true);
+  });
+
+  it("holds a new path only as Obsidian writes it", () => {
+    const fence = new Fence(() => "D&D");
+    expect(fence.holdsNew("D&D/Pale Moon/Sessions/Session 2.md")).toBe(true);
+    expect(fence.holdsNew("D&D/Zoe\u0308/Zoe\u0308.md")).toBe(false);
+    expect(fence.holdsNew("D&D/Pale\u00a0Moon/Pale\u00a0Moon.md")).toBe(false);
+  });
+
+  it("holds no new path outside, or while no Campaigns folder is set", () => {
+    expect(new Fence(() => "D&D").holdsNew("Private/Secondary.md")).toBe(false);
+    expect(new Fence(() => "D&D").holdsNew("D&D/../Private/Secondary.md")).toBe(false);
+    expect(new Fence(() => null).holdsNew("D&D/Pale Moon/Pale Moon.md")).toBe(false);
+  });
+
   it("knows the Campaigns folder itself, and nothing else as it", () => {
     const fence = new Fence(() => "D&D");
     expect(fence.isTheFolder("D&D")).toBe(true);

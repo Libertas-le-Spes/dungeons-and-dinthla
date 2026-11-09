@@ -24,6 +24,11 @@ describe("FolderChoices.folderPaths", () => {
     expect(choices.folderPaths()).toEqual(["D&D", "Games/D&D", "Recipes"]);
     expect(vault.getAllFolders).toHaveBeenCalledExactlyOnceWith(false);
   });
+
+  it("lists a folder the vault holds in decomposed letters or with a no-break space", () => {
+    const { choices } = choicesWith(["Zoe\u0308", "Pale\u00a0Moon"]);
+    expect(choices.folderPaths()).toEqual(["Pale\u00a0Moon", "Zoe\u0308"]);
+  });
 });
 
 describe("FolderChoices.make", () => {

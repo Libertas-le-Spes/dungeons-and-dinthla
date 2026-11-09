@@ -25,6 +25,10 @@ describe("settingsOf", () => {
     expect(settingsOf({ campaignsFolder: "Games/D&D" })).toEqual({ ...NOTHING_SAVED, campaignsFolder: "Games/D&D" });
   });
 
+  it("keeps a Campaigns folder the vault holds in decomposed letters or with a no-break space", () => {
+    for (const campaignsFolder of ["Zoe\u0308", "Pale\u00a0Moon"]) expect(settingsOf({ campaignsFolder })).toEqual({ ...NOTHING_SAVED, campaignsFolder });
+  });
+
   it("drops a saved Campaigns folder that is the whole vault or not a plain path, so the plugin touches nothing", () => {
     for (const campaignsFolder of ["/", "", "../D&D", "/D&D", "D&D/../Private", 3]) {
       expect(settingsOf({ campaignsFolder })).toEqual(NOTHING_SAVED);

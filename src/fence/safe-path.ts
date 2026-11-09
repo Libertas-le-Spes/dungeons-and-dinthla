@@ -20,10 +20,6 @@ function holdsNoNullCharacter(path: string): boolean {
   return !path.includes("\0");
 }
 
-function isAsObsidianWritesIt(path: string): boolean {
-  return normalizePath(path) === path;
-}
-
 function isPlainPart(part: string): boolean {
   return part !== "" && part !== "." && part !== "..";
 }
@@ -32,16 +28,20 @@ function hasOnlyPlainParts(path: string): boolean {
   return path.split("/").every(isPlainPart);
 }
 
-const PATH_RULES: PathRule[] = [
-  isWritten,
-  startsInsideTheVault,
-  usesOnlyForwardSlashes,
-  holdsNoNullCharacter,
-  isAsObsidianWritesIt,
-  hasOnlyPlainParts,
-];
+function isAsObsidianWritesIt(path: string): boolean {
+  return normalizePath(path) === path;
+}
+
+const PATH_RULES: PathRule[] = [isWritten, startsInsideTheVault, usesOnlyForwardSlashes, holdsNoNullCharacter, hasOnlyPlainParts];
+
+const NEW_PATH_RULES: PathRule[] = [isAsObsidianWritesIt];
 
 export function isSafePath(path: unknown): path is string {
   if (typeof path !== "string") return false;
   return PATH_RULES.every((rule) => rule(path));
+}
+
+export function isSafeNewPath(path: unknown): path is string {
+  if (!isSafePath(path)) return false;
+  return NEW_PATH_RULES.every((rule) => rule(path));
 }

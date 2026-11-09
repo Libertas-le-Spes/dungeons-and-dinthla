@@ -7,13 +7,15 @@ import { fileAt, folderAt, rawVaultWith } from "./fake-raw-vault";
 const SESSION = fileAt("D&D/Pale Moon/Sessions/Session 1.md");
 const PRIVATE = fileAt("Private/Primary.md");
 const BESIDE = fileAt("D&D Old/Secondary.md");
+const DECOMPOSED = fileAt("D&D/Zoe\u0308/Zoe\u0308.md");
+const NO_BREAK = fileAt("D&D/Pale\u00a0Moon/Pale\u00a0Moon.md");
 
 function filesWith(campaignsFolder: string | null = "D&D") {
   const empty = folderAt("D&D/Pale Moon/Items", []);
   const full = folderAt("D&D/Pale Moon/Sessions", [SESSION]);
   const outside = folderAt("Private", []);
   const campaigns = folderAt("D&D", []);
-  const raw = rawVaultWith([SESSION, PRIVATE, BESIDE], [empty, full, outside, campaigns]);
+  const raw = rawVaultWith([SESSION, PRIVATE, BESIDE, DECOMPOSED, NO_BREAK], [empty, full, outside, campaigns]);
   return { files: new FencedFiles(raw.vault, new Fence(() => campaignsFolder)), ...raw };
 }
 
@@ -46,8 +48,8 @@ describe("FencedFiles lookups", () => {
 
   it("lists only the files inside", () => {
     const { files } = filesWith();
-    expect(files.getFiles()).toEqual([SESSION]);
-    expect(files.getMarkdownFiles()).toEqual([SESSION]);
+    expect(files.getFiles()).toEqual([SESSION, DECOMPOSED, NO_BREAK]);
+    expect(files.getMarkdownFiles()).toEqual([SESSION, DECOMPOSED, NO_BREAK]);
   });
 });
 
@@ -98,6 +100,21 @@ describe("FencedFiles reads and writes", () => {
     await expect(files.create("/D&D/Pale Moon/Notes.md", "")).rejects.toThrow(OUTSIDE_FENCE);
     await expect(files.createFolder("Private/Secondary")).rejects.toThrow(OUTSIDE_FENCE);
     await expect(files.createFolder("D&D")).rejects.toThrow(OUTSIDE_FENCE);
+    expect(calls.create).not.toHaveBeenCalled();
+    expect(calls.createFolder).not.toHaveBeenCalled();
+  });
+
+  it("reads and changes a note the vault holds in decomposed letters or with a no-break space", async () => {
+    const { files } = filesWith();
+    expect(files.getFileByPath(DECOMPOSED.path)).toBe(DECOMPOSED);
+    await expect(files.read(DECOMPOSED)).resolves.toBe(`read ${DECOMPOSED.path}`);
+    await expect(files.process(NO_BREAK, (text) => `${text}!`)).resolves.toBe(`text of ${NO_BREAK.path}!`);
+  });
+
+  it("refuses to make a note on a path Obsidian would write another way", async () => {
+    const { files, calls } = filesWith();
+    await expect(files.create("D&D/Zoe\u0308/Sessions/Session 1.md", "")).rejects.toThrow(OUTSIDE_FENCE);
+    await expect(files.createFolder("D&D/Pale\u00a0Moon/Items")).rejects.toThrow(OUTSIDE_FENCE);
     expect(calls.create).not.toHaveBeenCalled();
     expect(calls.createFolder).not.toHaveBeenCalled();
   });
