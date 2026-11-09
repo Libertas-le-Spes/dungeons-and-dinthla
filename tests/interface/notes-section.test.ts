@@ -19,7 +19,7 @@ function made(path: string | null) {
   const startSession = vi.fn();
   const needs = {
     store: store as unknown as CampaignStore,
-    drafts: new Drafts(),
+    drafts: new Drafts({}, () => {}),
     writer: {} as AppendWriter,
     propertiesOf: () => ({ title: "", played: "" }),
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
@@ -29,9 +29,10 @@ function made(path: string | null) {
   const root = obsidianDocument().createElement("div");
   root.ownerDocument.body.append(root);
   const show = vi.fn();
-  const page = notesSection(needs)(root, show, path);
+  const stayOn = vi.fn();
+  const page = notesSection(needs)(root, show, path, stayOn);
   page.load();
-  return { root, page, show, startSession };
+  return { root, page, show, startSession, stayOn };
 }
 
 describe("notesSection", () => {
@@ -54,5 +55,10 @@ describe("notesSection", () => {
     Array.from(root.querySelectorAll("button")).find((button) => button.textContent === "New session")!.click();
     expect(startSession).toHaveBeenCalledOnce();
     expect(show).not.toHaveBeenCalled();
+  });
+
+  it("tells the tab which session the page settled on when none was asked for", () => {
+    const { stayOn } = made(null);
+    expect(stayOn).toHaveBeenCalledExactlyOnceWith(TWELVE);
   });
 });

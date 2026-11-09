@@ -24,6 +24,7 @@ function notSavedMessage(error: unknown): string {
 export class WritingPanel {
   private readonly box: DraftBox;
   private readonly lookup: BoxLookup;
+  private readonly stopListening: () => void;
 
   constructor(
     parent: HTMLElement,
@@ -36,9 +37,11 @@ export class WritingPanel {
     this.lookup = new BoxLookup(this.box.textarea, list, needs.campaign);
     this.box.textarea.addEventListener("keydown", (event) => this.lookup.keyDown(event));
     this.box.textarea.addEventListener("input", () => this.typed());
-    this.box.textarea.addEventListener("click", () => this.lookup.refresh());
-    this.box.textarea.addEventListener("keyup", () => this.lookup.refresh());
+    this.box.textarea.addEventListener("click", () => this.refreshLookup());
+    this.box.textarea.addEventListener("keyup", () => this.refreshLookup());
     this.box.textarea.addEventListener("blur", () => this.lookup.close());
+    this.stopListening = needs.drafts.subscribe((path) => this.saveChanged(path));
+    this.box.setSaving(needs.drafts.isSaving(sessionPath));
   }
 
   get textarea(): HTMLTextAreaElement {
@@ -49,28 +52,43 @@ export class WritingPanel {
     this.box.focus();
   }
 
+  close(): void {
+    this.stopListening();
+  }
+
   async save(): Promise<void> {
-    const draft = this.box.text;
-    if (this.box.isSaving || !hasLinesToSave(draft)) return;
-    this.box.setSaving(true);
-    this.lookup.close();
+    const drafts = this.needs.drafts;
+    if (drafts.isSaving(this.sessionPath) || !hasLinesToSave(this.box.text)) return;
+    drafts.keep(this.sessionPath, this.box.text);
     try {
-      const left = await this.needs.writer.save(this.sessionPath, draft);
-      this.needs.drafts.keep(this.sessionPath, left);
-      this.box.text = left;
+      await drafts.save(this.sessionPath, (path, draft) => this.needs.writer.save(path, draft));
       this.box.say("");
     } catch (error) {
       this.box.say(notSavedMessage(error));
-    } finally {
-      this.box.setSaving(false);
-      this.box.focus();
     }
+    this.box.focus();
+  }
+
+  private saveChanged(path: string): void {
+    if (path !== this.sessionPath) return;
+    const saving = this.needs.drafts.isSaving(path);
+    this.box.setSaving(saving);
+    if (saving) {
+      this.lookup.close();
+      return;
+    }
+    this.box.text = this.needs.drafts.textOf(path);
+  }
+
+  private refreshLookup(): void {
+    if (this.needs.drafts.isSaving(this.sessionPath)) return;
+    this.lookup.refresh();
   }
 
   private typed(): void {
     this.needs.drafts.keep(this.sessionPath, this.box.text);
     this.box.refresh();
-    this.lookup.refresh();
+    this.refreshLookup();
   }
 
   private pick(match: LookupMatch): void {

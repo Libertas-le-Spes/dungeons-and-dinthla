@@ -6,7 +6,7 @@ import type { AppendWriter } from "../../src/session-notes/append-writer";
 import { Drafts } from "../../src/session-notes/drafts";
 import { SessionNotesPage } from "../../src/session-notes/session-notes-page";
 import type { SessionProperties } from "../../src/sessions/session-properties";
-import { obsidianDocument } from "../views/obsidian-dom";
+import { isShown, obsidianDocument } from "../views/obsidian-dom";
 
 const FOLDER = "Pale Moon";
 
@@ -25,7 +25,7 @@ function propertiesOf(path: string): SessionProperties {
   return properties;
 }
 
-function pageWith(sessions: SessionNote[], asked: string | null, { folder = FOLDER as string | null, drafts = new Drafts() } = {}) {
+function pageWith(sessions: SessionNote[], asked: string | null, { folder = FOLDER as string | null, drafts = new Drafts({}, () => {}) } = {}) {
   let listener = () => {};
   const unsubscribe = vi.fn();
   const store = {
@@ -45,7 +45,7 @@ function pageWith(sessions: SessionNote[], asked: string | null, { folder = FOLD
   const document = obsidianDocument();
   const root = document.createElement("div");
   document.body.append(root);
-  const moves = { showSession: vi.fn(), startSession: vi.fn() };
+  const moves = { showSession: vi.fn(), startSession: vi.fn(), stayOn: vi.fn() };
   const writer = { save: vi.fn(async () => "") };
   const needs = {
     store: store as unknown as CampaignStore,
@@ -104,7 +104,7 @@ describe("SessionNotesPage", () => {
   });
 
   it("puts the box in front, holding this session's draft, and saves into this session", async () => {
-    const drafts = new Drafts();
+    const drafts = new Drafts({}, () => {});
     drafts.keep(`${FOLDER}/Sessions/Session 11.md`, "? Why does the wheel turn");
     const { root, writer } = pageWith(SESSIONS, `${FOLDER}/Sessions/Session 11.md`, { drafts });
     const box = root.querySelector("textarea")!;
@@ -147,5 +147,89 @@ describe("SessionNotesPage", () => {
     const { page, unsubscribe } = pageWith(SESSIONS, null);
     page.unload();
     expect(unsubscribe).toHaveBeenCalledOnce();
+  });
+
+  it("stays on the latest session it opened with when a newer one arrives, telling the tab", () => {
+    const { root, change, moves } = pageWith(SESSIONS, null);
+    const box = root.querySelector("textarea")!;
+    box.value = "! Ride to Thessaly";
+    expect(moves.stayOn).toHaveBeenCalledExactlyOnceWith(`${FOLDER}/Sessions/Session 12.md`);
+    change([...SESSIONS, sessionOf(13, [])]);
+    expect(root.querySelector(".dd-notes-title")?.textContent).toBe("Session 12 · The Old Mill");
+    expect(root.querySelector("textarea")).toBe(box);
+    expect(box.value).toBe("! Ride to Thessaly");
+    expect(moves.stayOn).toHaveBeenCalledOnce();
+  });
+
+  it("stays on the session it opened with when another takes the same latest number", () => {
+    const { root, change } = pageWith(SESSIONS, null);
+    const box = root.querySelector("textarea")!;
+    change([...SESSIONS, sessionOf(12, [], "Session 012")]);
+    expect(root.querySelector("textarea")).toBe(box);
+    expect(root.querySelector(".dd-notes-title")?.textContent).toBe("Session 12 · The Old Mill");
+  });
+
+  it("tells the tab the latest session once the campaign is read, and nothing when a session was asked for", () => {
+    const late = pageWith([], null);
+    expect(late.moves.stayOn).not.toHaveBeenCalled();
+    late.change(SESSIONS);
+    expect(late.moves.stayOn).toHaveBeenCalledExactlyOnceWith(`${FOLDER}/Sessions/Session 12.md`);
+    const asked = pageWith(SESSIONS, `${FOLDER}/Sessions/Session 11.md`);
+    expect(asked.moves.stayOn).not.toHaveBeenCalled();
+  });
+
+  it("stays on a session whose note is deleted, keeping the box and its lines, and says the note is gone", () => {
+    const { root, change, lineTexts } = pageWith(SESSIONS, `${FOLDER}/Sessions/Session 11.md`);
+    const box = root.querySelector("textarea")!;
+    box.value = "! Ride to Thessaly";
+    change([SESSIONS[1]!, SESSIONS[2]!]);
+    expect(root.querySelector("textarea")).toBe(box);
+    expect(box.value).toBe("! Ride to Thessaly");
+    expect(lineTexts()).toEqual(["Who sent the letter"]);
+    expect(root.querySelector(".dd-notes-title")?.textContent).toBe("Session 11");
+    expect(root.querySelector(".dd-note-gone")?.textContent).toBe(
+      "This session's note was deleted, so nothing more can be saved to it. What you typed is still in the box.",
+    );
+    change(SESSIONS);
+    expect(root.querySelector(".dd-note-gone")?.textContent).toBe("");
+  });
+
+  it("doesn't say a note is gone before the campaign is read", () => {
+    const { root, change } = pageWith([], `${FOLDER}/Sessions/Session 11.md`);
+    expect(root.querySelector(".dd-note-gone")?.textContent).toBe("");
+    change(SESSIONS);
+    expect(root.querySelector(".dd-note-gone")?.textContent).toBe("");
+  });
+
+  it("leaves the session list alone when the campaign changes without changing the sessions, so an open list stays open", () => {
+    const { change, select } = pageWith(SESSIONS, `${FOLDER}/Sessions/Session 11.md`);
+    const options = Array.from(select().options);
+    change([sessionOf(11, ["? Who sent the letter", "Tracks"]), SESSIONS[1]!, SESSIONS[2]!]);
+    for (const [index, option] of options.entries()) expect(select().options[index]).toBe(option);
+    change([...SESSIONS, sessionOf(13, [])]);
+    expect(select().options).toHaveLength(4);
+    expect(select().value).toBe(`${FOLDER}/Sessions/Session 11.md`);
+  });
+
+  it("hides the session list while there are no sessions", () => {
+    const { change, select } = pageWith([], null);
+    expect(isShown(select())).toBe(false);
+    change(SESSIONS);
+    expect(isShown(select())).toBe(true);
+  });
+
+  it("stops following the box's saves when closed", async () => {
+    const drafts = new Drafts({}, () => {});
+    const path = `${FOLDER}/Sessions/Session 11.md`;
+    drafts.keep(path, "? Who");
+    const { page, root } = pageWith(SESSIONS, path, { drafts });
+    const box = root.querySelector("textarea")!;
+    page.unload();
+    let finish = (_left: string) => {};
+    const saving = drafts.save(path, () => new Promise<string>((resolve) => (finish = resolve)));
+    expect(box.readOnly).toBe(false);
+    finish("");
+    await saving;
+    expect(box.value).toBe("? Who");
   });
 });
