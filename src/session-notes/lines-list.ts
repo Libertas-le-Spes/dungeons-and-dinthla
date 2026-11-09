@@ -59,7 +59,7 @@ export class LinesList {
     const row = this.list.createEl("li", { cls: "dd-written-line", attr: { "data-line": String(line.source.line) } });
     row.createSpan({ cls: glyphClassOf(line), text: line.glyph, attr: { "aria-hidden": "true" } });
     const text = row.createSpan({ cls: "dd-line-text" });
-    addLinkedText(text, line.text, [], line.source, this.actions);
+    addLinkedText(text, line.text, [], line.source.path, this.actions);
     addState(row, text, lineStateOf(campaign, line.source));
   }
 }

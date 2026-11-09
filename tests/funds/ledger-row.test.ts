@@ -16,10 +16,10 @@ function setUp(lines: string[]) {
 }
 
 describe("addLedgerRow", () => {
-  it("opens a linked name from the entry's own line, not the session", () => {
+  it("opens a linked name from the entry's own note, not the session", () => {
     const { row, rowActions, linkActions } = setUp(["We rode on.", "$ -5 gp paid [[Old Tom]] for rooms"]);
     (row.querySelector("a.dd-link-name") as HTMLElement).click();
-    expect(linkActions.openLink).toHaveBeenCalledExactlyOnceWith("Old Tom", { path: SESSION, line: 1 }, false);
+    expect(linkActions.openLink).toHaveBeenCalledExactlyOnceWith("Old Tom", SESSION, false);
     expect(rowActions.openRow).not.toHaveBeenCalled();
   });
 });

@@ -46,16 +46,9 @@ function holderLabelOf(item: ItemRecord): string {
   return "Last held by";
 }
 
-interface StoryLine {
-  text: string;
-  line: number;
-}
-
-function storyOf(text: string): StoryLine[] {
-  const contentStart = getFrontMatterInfo(text).contentStart;
-  const firstLine = text.substring(0, contentStart).split("\n").length - 1;
-  const body = text.substring(contentStart).split("\n");
-  return body.map((written, index) => ({ text: written, line: firstLine + index })).filter((story) => story.text.trim() !== "");
+function storyOf(text: string): string[] {
+  const body = text.substring(getFrontMatterInfo(text).contentStart);
+  return body.split("\n").filter((line) => line.trim() !== "");
 }
 
 export class ItemPanel extends Component {
@@ -134,6 +127,6 @@ export class ItemPanel extends Component {
     }
     const lines = storyOf(text);
     if (lines.length === 0) this.story.createEl("p", { cls: "dd-empty", text: EMPTY_STORY });
-    for (const story of lines) addLinkedText(this.story.createEl("p"), story.text, [], { path: this.path, line: story.line }, this.needs.actions);
+    for (const line of lines) addLinkedText(this.story.createEl("p"), line, [], this.path, this.needs.actions);
   }
 }
