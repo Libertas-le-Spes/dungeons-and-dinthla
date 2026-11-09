@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { PluginSettings } from "../../src/settings/plugin-settings";
+import { SettingsSaver } from "../../src/settings/settings-saver";
 import { Help, type HelpFiles } from "../../src/welcome/help";
 import type { NewsItem } from "../../src/whats-new/news-item";
 
@@ -14,7 +15,7 @@ function helpFor(settings: PluginSettings, paths: string[]) {
   }
   const vault: HelpFiles = { campaignFolders: () => ["Silver Road"], filePaths: () => paths };
   const openWelcome = vi.fn(async () => {});
-  const help = new Help({ ...settings }, { version: "3.1.0" }, MADE_UP_NEWS, save, vault, openWelcome);
+  const help = new Help(new SettingsSaver({ ...settings }, save), { version: "3.1.0" }, MADE_UP_NEWS, vault, openWelcome);
   return { help, saved, openWelcome };
 }
 

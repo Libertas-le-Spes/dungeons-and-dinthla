@@ -1,5 +1,5 @@
-import { Component, Notice } from "obsidian";
-import { messageOf } from "../views/message-of";
+import { Component } from "obsidian";
+import { addNameForm } from "./name-form";
 import type { WelcomeActions, WelcomeState } from "./welcome-ending";
 
 export const HOW_TO_MAKE_A_CAMPAIGN =
@@ -21,21 +21,12 @@ export class NewCampaignEnding extends Component {
 
   override onload(): void {
     this.endingEl.createEl("p", { cls: "dd-welcome-how", text: HOW_TO_MAKE_A_CAMPAIGN });
-    const form = this.endingEl.createEl("form", { cls: "dd-welcome-make" });
-    const name = form.createEl("input", { type: "text", placeholder: CAMPAIGN_NAME, attr: { "aria-label": CAMPAIGN_NAME } });
-    const button = form.createEl("button", { cls: "mod-cta dd-welcome-go", type: "submit", text: MAKE_A_CAMPAIGN });
-    this.registerDomEvent(form, "submit", (event) => {
-      event.preventDefault();
-      this.make(name.value, button).catch((error: unknown) => new Notice(`Couldn't make the campaign: ${messageOf(error)}`));
+    addNameForm(this, this.endingEl, {
+      label: CAMPAIGN_NAME,
+      buttonText: MAKE_A_CAMPAIGN,
+      buttonCls: "mod-cta dd-welcome-go",
+      failed: "Couldn't make the campaign",
+      make: (name) => this.actions.makeCampaign(name),
     });
-  }
-
-  private async make(name: string, button: HTMLButtonElement): Promise<void> {
-    button.disabled = true;
-    try {
-      await this.actions.makeCampaign(name);
-    } finally {
-      button.disabled = false;
-    }
   }
 }

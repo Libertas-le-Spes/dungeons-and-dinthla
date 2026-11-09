@@ -8,8 +8,6 @@ export interface PluginSettings {
   lastVersionSeen: string | null;
 }
 
-export type SaveSettings = (settings: PluginSettings) => Promise<void>;
-
 function isCampaignsFolder(saved: unknown): saved is string {
   return typeof saved === "string" && refusalForCampaignsFolder(saved) === null;
 }

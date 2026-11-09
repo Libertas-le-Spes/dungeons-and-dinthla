@@ -1,14 +1,14 @@
-import { normalizePath } from "obsidian";
+import { NO_CAMPAIGNS_FOLDER } from "../fence/campaigns-folder-path";
 import type { FencedFiles } from "../fence/fenced-files";
 import { mainNotePathOf } from "./campaign-folders";
 import { messageOf } from "../views/message-of";
 import { refusalForFileName } from "./file-name";
 import { nameKeyOf } from "./name-key";
+import { typedPathOf } from "./typed-path";
 
 export type NewCampaignFiles = Pick<FencedFiles, "getFolderByPath" | "createFolder" | "create" | "removeEmptyFolder">;
 
 export const NO_CAMPAIGN_NAME = "Type a name for the campaign first.";
-export const NO_CAMPAIGNS_FOLDER = "Choose a Campaigns folder first, in the plugin's settings or on the welcome page.";
 
 function nameTaken(name: string, campaignsFolder: string): string {
   return `There is already a folder or file called ${name} in ${campaignsFolder}. To make that folder a campaign, add a note called ${name} inside it.`;
@@ -29,12 +29,6 @@ function refusalForCampaign(files: NewCampaignFiles, campaignsFolder: string, na
   const taken = nameLikeIn(files, campaignsFolder, name);
   if (taken !== null) return nameTaken(taken, campaignsFolder);
   return null;
-}
-
-function nameOf(typed: string): string {
-  const trimmed = typed.trim();
-  if (trimmed === "") throw new Error(NO_CAMPAIGN_NAME);
-  return normalizePath(trimmed);
 }
 
 function leftBehind(error: unknown, folderPath: string): Error {
@@ -60,7 +54,7 @@ async function addMainNote(files: NewCampaignFiles, folder: string): Promise<voi
 
 export async function makeCampaign(files: NewCampaignFiles, campaignsFolder: string | null, typed: string): Promise<string> {
   if (campaignsFolder === null) throw new Error(NO_CAMPAIGNS_FOLDER);
-  const name = nameOf(typed);
+  const name = typedPathOf(typed, NO_CAMPAIGN_NAME);
   const refusal = refusalForCampaign(files, campaignsFolder, name);
   if (refusal !== null) throw new Error(refusal);
   const folder = `${campaignsFolder}/${name}`;
