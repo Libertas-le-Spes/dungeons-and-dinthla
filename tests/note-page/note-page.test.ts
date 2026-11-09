@@ -228,7 +228,7 @@ describe("NotePage", () => {
     expect(isShown(section)).toBe(true);
     expect(links.map((link) => link.textContent)).toEqual(["Lady Vess", "wheel"]);
     links[1]!.click();
-    expect(actions.openLink).toHaveBeenCalledExactlyOnceWith("Old Mill#Wheel", { path: OLD_MILL, line: null }, false);
+    expect(actions.openLink).toHaveBeenCalledExactlyOnceWith("Old Mill#Wheel", OLD_MILL, false);
   });
 
   it("shows what is typed in another box for the same note, so typing in either keeps the other's text", async () => {

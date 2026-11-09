@@ -63,7 +63,7 @@ describe("LinesList", () => {
     const link = root.querySelector<HTMLElement>(".dd-link a")!;
     expect(link.textContent).toBe("Lady Vess");
     link.click();
-    expect(actions.openLink).toHaveBeenCalledExactlyOnceWith("Lady Vess", { path: PATH, line: 0 }, false);
+    expect(actions.openLink).toHaveBeenCalledExactlyOnceWith("Lady Vess", PATH, false);
   });
 
   it("ticks answered and completed lines, and strikes abandoned quests and items gone", () => {

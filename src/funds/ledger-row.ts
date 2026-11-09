@@ -15,7 +15,7 @@ export function addLedgerRow(list: HTMLElement, { record, balance }: LedgerLine,
   let direction = "In";
   if (record.entry.moneyOut) direction = "Out";
   row.createSpan({ cls: "dd-direction", text: direction });
-  addLinkedText(row.createSpan({ cls: "dd-what" }), record.text, [], record.source, linkActions);
+  addLinkedText(row.createSpan({ cls: "dd-what" }), record.text, [], record.source.path, linkActions);
   row.createSpan({ cls: "dd-amount", text: signedMoney(record.entry.copper) });
   row.createSpan({ cls: "dd-balance", text: formatMoney(balance) });
 }

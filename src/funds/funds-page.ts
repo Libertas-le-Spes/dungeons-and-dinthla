@@ -147,7 +147,7 @@ export class FundsPage extends Component {
       const heading = this.items.createEl("h3", { cls: "dd-holder" });
       const sourcePath = group.items[0]!.source.path;
       if (group.holder === "") heading.setText(THE_PARTY_LABEL);
-      else if (this.noteExists(group.holder, sourcePath)) addNameLink(heading, group.holder, group.holder, { path: sourcePath, line: null }, this.actions);
+      else if (this.noteExists(group.holder, sourcePath)) addNameLink(heading, group.holder, group.holder, sourcePath, this.actions);
       else heading.setText(group.holder);
       const list = this.items.createEl("ul", { cls: "dd-list" });
       for (const item of group.items) this.addItemRow(list, item, ledger);

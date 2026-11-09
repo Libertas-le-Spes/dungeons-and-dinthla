@@ -1,9 +1,15 @@
 import type { TFile } from "obsidian";
 import { nameKeyOf } from "../campaign/name-key";
 import type { FencedFiles } from "../fence/fenced-files";
-import { notePathOf } from "./linked-note";
 
 export type CampaignNoteFiles = Pick<FencedFiles, "getFiles">;
+
+const NOTE_ENDING = ".md";
+
+function notePathOf(folder: string, linkpath: string): string {
+  if (linkpath.endsWith(NOTE_ENDING)) return `${folder}/${linkpath}`;
+  return `${folder}/${linkpath}${NOTE_ENDING}`;
+}
 
 function foldersOf(path: string): string[] {
   return path.split("/").slice(0, -1);

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { addLinkedText, addNameLink } from "../../src/views/linked-text";
 import { obsidianDocument } from "./obsidian-dom";
 
-const SOURCE = { path: "D&D/Pale Moon/Sessions/Session 1.md", line: 4 };
+const SOURCE = "D&D/Pale Moon/Sessions/Session 1.md";
 
 function linkTo(linktext: string) {
   const document = obsidianDocument();
