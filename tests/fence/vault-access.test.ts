@@ -17,6 +17,7 @@ const PARSED_DATA = ["settings/draft-record.ts"];
 const ALLOWED = ["fence/gatekeeper.ts", "fence/fenced-files.ts", "fence/fenced-file-actions.ts", "fence/folder-choices.ts", "fence/vault-settings.ts"];
 const EDITOR_TEXT_READERS = ["campaign/editor-text.ts"];
 const BASES_READERS = ["characters/characters-view.ts"];
+const CODE_MIRROR_READERS = ["editor/marker-decorations.ts"];
 const LOOSE_CASTERS = ["fence/fenced-metadata.ts", "interface/campaign-view-registered.ts", "interface/one-campaign-tab.ts", "interface/seen-tab.ts"];
 const HIDDEN_CODE = [".js", ".mjs", ".cjs", ".mts", ".cts"];
 const REACHING_SAMPLES = [
@@ -174,6 +175,24 @@ const VIEW_TEXT_SAMPLES = [
   'import type { ItemView } from "obsidian";\nexport const text = (view: ItemView) => (view.contentEl).textContent;',
 ];
 
+const CODE_MIRROR_SAMPLES = [
+  'import type { EditorState } from "@codemirror/state";\nexport const text = (state: EditorState) => state.doc.toString();',
+  'import type { Text } from "@codemirror/state";\nexport const line = (doc: Text) => doc.line(1).text;',
+  'import type { EditorView } from "@codemirror/view";\nexport const text = (view: EditorView) => view.state.sliceDoc();',
+  'import { EditorView } from "@codemirror/view";\nexport const listen = EditorView.updateListener.of((update) => update.state);',
+  'import { EditorState } from "@codemirror/state";\nexport const filter = EditorState.transactionFilter.of((transaction) => transaction);',
+  'import { EditorState } from "@codemirror/state";\nexport const filter = EditorState.changeFilter.of(() => true);',
+  'import { EditorView } from "@codemirror/view";\nexport const typed = EditorView.inputHandler.of(() => false);',
+  'import { editorEditorField } from "obsidian";\nexport const field = editorEditorField;',
+  'import { editorInfoField } from "obsidian";\nexport const field = editorInfoField;',
+  "export const text = (editor: any) => editor.cm.state.doc.toString();",
+  "export const text = (state: unknown) => (state as { doc: { toString(): string } }).doc.toString();",
+  'export { EditorView } from "@codemirror/view";',
+  'import type { EditorState } from "@codemirror/state";\nexport const text = (state: EditorState) => state["doc"];',
+  "const { doc } = state;",
+  'export const text = (view: import("@codemirror/view").EditorView) => view.state.sliceDoc();',
+];
+
 const CONSTRUCTOR_SAMPLES = [
   '(() => 0).constructor("return this")();',
   'export const make = (run: () => void) => run["constructor"];',
@@ -203,10 +222,11 @@ const HARMLESS_SAMPLES = [
   'export const listed = (levels: Map<string, number>) => [...levels.entries()];',
   'import { ItemView } from "obsidian";\nexport class Ledger extends ItemView {\n  getViewType(): string {\n    return "ledger";\n  }\n  getDisplayText(): string {\n    return this.contentEl.textContent;\n  }\n}',
   "export const text = (box: HTMLElement) => box.textContent;",
+  "export const page = (box: HTMLElement) => box.doc.title;",
   'export class Tab {\n  constructor(readonly app: { name: string }) {}\n  name(): string {\n    return this.app.name;\n  }\n}',
 ];
 
-const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...NOTE_READING_SAMPLES, ...VIEW_TEXT_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...HARMLESS_SAMPLES];
+const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...NOTE_READING_SAMPLES, ...VIEW_TEXT_SAMPLES, ...CODE_MIRROR_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...HARMLESS_SAMPLES];
 
 interface Planted {
   name: string;
@@ -331,6 +351,7 @@ const NOTHING_ALLOWED: Allowances = {
   fileTree: isNeverAllowed,
   looseCasts: isNeverAllowed,
   noteReading: isNeverAllowed,
+  codeMirror: isNeverAllowed,
 };
 
 function isAlwaysAllowed(): boolean {
@@ -346,6 +367,7 @@ const ALL_ALLOWED: Allowances = {
   fileTree: isAlwaysAllowed,
   looseCasts: isAlwaysAllowed,
   noteReading: isAlwaysAllowed,
+  codeMirror: isAlwaysAllowed,
 };
 
 function isOneOf(files: string[]): (path: string) => boolean {
@@ -363,6 +385,7 @@ const SOURCE_ALLOWANCES: Allowances = {
   fileTree: isGatekeeper,
   looseCasts: isOneOf(LOOSE_CASTERS),
   noteReading: isOneOf(BASES_READERS),
+  codeMirror: isOneOf(CODE_MIRROR_READERS),
 };
 
 let scanner: SourceScanner;
@@ -448,6 +471,14 @@ describe("the vault fence", () => {
     }
   });
 
+  it("lets only the marker colouring reach CodeMirror, which it still needs and does nothing else the fence refuses", () => {
+    for (const reader of CODE_MIRROR_READERS) {
+      const breaches = scanner.breaches(BUNDLED_PROJECT, [sourcePath(reader)], NOTHING_ALLOWED);
+      expect(breaches).not.toEqual([]);
+      for (const breach of breaches) expect(breach).toMatch(/loads CodeMirror|reaches the editor/);
+    }
+  });
+
   it("scans a .mts file the entry point loads, and refuses it under src", () => {
     const breaches = plantedBreaches("mts");
     expect(breaches).toContain("src/reader.mts is code under src that the scan can't read as TypeScript");
@@ -517,6 +548,10 @@ describe("the vault fence", () => {
 
   it.each(VIEW_TEXT_SAMPLES)("would catch reading the text of a view's element with %s", (sample) => {
     expect(sampleBreaches(sample, ALL_ALLOWED)).not.toEqual([]);
+  });
+
+  it.each(CODE_MIRROR_SAMPLES)("would catch reaching the editor through CodeMirror with %s", (sample) => {
+    expect(sampleBreaches(sample, LOOSE_CASTS_ALLOWED)).not.toEqual([]);
   });
 
   it.each(CONSTRUCTOR_SAMPLES)("would catch reaching a constructor with %s", (sample) => {
