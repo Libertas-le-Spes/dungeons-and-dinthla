@@ -112,6 +112,7 @@ export default class DungeonsAndDinthla extends Plugin {
     this.chosen = this.chosenCampaignFrom(settings);
     this.campaignsFolder = this.campaignsFolderFrom(settings);
     const gate = this.gate;
+    this.addChild(gate.files);
     const helpFiles = {
       campaignFolders: () => this.campaignFolders(),
       filePaths: () => gate.files.getFiles().map((file) => file.path),

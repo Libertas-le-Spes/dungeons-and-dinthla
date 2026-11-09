@@ -75,6 +75,40 @@ export class Component {
   }
 }
 
+type EventCallback = (...data: unknown[]) => unknown;
+
+interface HeldEvent {
+  e: Events;
+  name: string;
+  fn: EventCallback;
+}
+
+export class Events {
+  private held: HeldEvent[] = [];
+
+  on(name: string, callback: EventCallback): HeldEvent {
+    const ref = { e: this, name, fn: callback };
+    this.held.push(ref);
+    return ref;
+  }
+
+  off(name: string, callback: EventCallback): void {
+    this.held = this.held.filter((ref) => ref.name !== name || ref.fn !== callback);
+  }
+
+  offref(ref: HeldEvent): void {
+    this.held = this.held.filter((each) => each !== ref);
+  }
+
+  trigger(name: string, ...data: unknown[]): void {
+    for (const ref of this.held.filter((each) => each.name === name)) ref.fn(...data);
+  }
+
+  tryTrigger(ref: HeldEvent, data: unknown[]): void {
+    ref.fn(...data);
+  }
+}
+
 export class ItemView extends Component {
   app!: RealItemView["app"];
   navigation = false;
