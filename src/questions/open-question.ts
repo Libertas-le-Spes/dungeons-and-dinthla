@@ -2,7 +2,7 @@ import { Notice, type App } from "obsidian";
 import type { QuestionRecord, Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
-import { SESSIONS_SHARE_A_NUMBER, latestNumberIsShared, sessionToWriteIn } from "../campaign/session-to-write";
+import { sessionForDialog } from "../campaign/session-for-dialog";
 import { ANSWER_GOES_ELSEWHERE, answerWouldGoElsewhere, currentQuestion, latestSessionOfQuestion, sharesTextWithEarlierOpenQuestion } from "./current-question";
 import { QuestionModal } from "./question-modal";
 import { planQuestionSave, planReopen, refusalForQuestionPlan, type QuestionEdit, type QuestionPlan } from "./question-plan";
@@ -33,16 +33,9 @@ export function openQuestion(
     openNote();
     return;
   }
-  const paths = gate.files.getFiles().map((file) => file.path);
-  const sessionPath = sessionToWriteIn(activePath, folder, paths, latestSessionOfQuestion(question, folder));
-  if (sessionPath === null && latestNumberIsShared(folder, paths)) {
-    new Notice(SESSIONS_SHARE_A_NUMBER);
-    return;
-  }
-  if (sessionPath === null) {
-    new Notice(NO_SESSION);
-    return;
-  }
+  const wanted = { activePath, earliestSession: latestSessionOfQuestion(question, folder), noSession: NO_SESSION };
+  const sessionPath = sessionForDialog(gate.files, folder, wanted);
+  if (sessionPath === null) return;
   const writer = new QuestionWriter(gate.files);
   const checkedApply = async (current: QuestionRecord, plan: QuestionPlan) => {
     const refusal = refusalForQuestionPlan(store.sessionNotes, current, plan);

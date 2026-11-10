@@ -1,7 +1,6 @@
 import type { TFile } from "obsidian";
 import { NoteEditor, PartlyWritten, type EditorFiles } from "../campaign/note-editor";
 import { sessionLabelOf } from "../campaign/session-file";
-import { latestNumberIsShared, latestSession, SESSIONS_SHARE_A_NUMBER } from "../campaign/session-to-write";
 import { linkedFactsOf } from "../notes/character-facts";
 import { messageOf } from "../views/message-of";
 import { factLine, refusalForValue, withOverrides, type OverrideChange } from "./character-entry";
@@ -29,7 +28,6 @@ export interface SheetTarget {
 
 export const NO_VALUE = "Type a value first, or choose Not known yet.";
 export const QUESTION_MARK = "A value of ? means not known yet. Choose Not known yet instead.";
-export const NO_SESSION = "There's no session to write in yet. Start one first.";
 
 export function nothingCarried(label: string): string {
   return `No campaign this character was carried from gives the ${label.toLowerCase()}, so nothing was written.`;
@@ -49,13 +47,6 @@ export function carriedDiffers(label: string, campaign: string): string {
 
 export function linksElsewhere(linktext: string, sessionPath: string): string {
   return `[[${linktext}]] wouldn't point to this character from ${sessionLabelOf(sessionPath)}, so nothing was written.`;
-}
-
-export function sessionToWrite(campaignFolder: string, paths: string[]): string {
-  if (latestNumberIsShared(campaignFolder, paths)) throw new Error(SESSIONS_SHARE_A_NUMBER);
-  const latest = latestSession(campaignFolder, paths);
-  if (latest === null) throw new Error(NO_SESSION);
-  return latest;
 }
 
 function overrideChange(value: SheetValue, after: string): OverrideChange | null {
