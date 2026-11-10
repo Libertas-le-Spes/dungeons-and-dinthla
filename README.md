@@ -15,20 +15,20 @@ This README describes a project that grows in small steps: parts of it may still
 
 The plugin isn't in Obsidian's list of community plugins yet, and this repository is private, so it is installed by hand, by someone with read access to it. Each tagged version is published as a [release](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/releases) with three files: `main.js`, `manifest.json` and `styles.css`.
 
-1. Download the three files from the latest release, or build them yourself (below).
-2. Check them against the release. With the [GitHub CLI](https://cli.github.com) logged in, `gh release view <version> --repo Libertas-le-Spes/dungeons-and-dinthla --json assets --jq '.assets[] | .digest + "  " + .name'` prints each file's digest, where `<version>` is the bare tag, such as `0.3.0`. In the download folder, `sha256sum main.js manifest.json styles.css` (on macOS `shasum -a 256`, on Windows `Get-FileHash`) must print the same hashes as the part after `sha256:`.
+1. Download the three files from the latest release, with `gh release download <version> --repo Libertas-le-Spes/dungeons-and-dinthla` or from the release's page, or build them yourself (below).
+2. If you downloaded them, check them against the release. With the [GitHub CLI](https://cli.github.com) logged in, `gh release view <version> --repo Libertas-le-Spes/dungeons-and-dinthla --json assets --jq '.assets[] | .digest + "  " + .name'` prints each file's digest, where `<version>` is the bare tag, such as `0.3.0`. In the download folder, `sha256sum main.js manifest.json styles.css` (on macOS `shasum -a 256`, on Windows `Get-FileHash`) must print the same hashes as the part after `sha256:`, ignoring upper and lower case.
 3. Put them in `<vault>/.obsidian/plugins/dungeons-and-dinthla/`. `.obsidian` is the vault's settings folder, hidden on most systems.
-4. In Obsidian, open Settings → Community plugins. If Restricted mode is on, turn community plugins on. Then restart Obsidian, or press *Reload plugins* (the circular arrows beside *Installed plugins*), so it finds the new plugin.
+4. In Obsidian, open Settings → Community plugins. If Obsidian is in Restricted mode, press *Exit Restricted mode* (*Turn on community plugins* in older versions). Then restart Obsidian, or press *Reload plugins* (the circular arrows beside *Installed plugins*), so it finds the new plugin.
 5. Turn on **Dungeons & Dinthla** there.
 
-**On a phone or tablet** whose vault is kept in a Git repository (with the Obsidian Git plugin, say): do steps 1 to 3 in a copy of that repository on a computer, commit only the plugin's folder and push, then pull on the phone or tablet and do steps 4 and 5 there. If the repository also holds `.obsidian/community-plugins.json`, turning the plugin on syncs too: the other devices have it turned on once they pull and restart.
+**On a phone or tablet** whose vault is kept in a Git repository (with the Obsidian Git plugin, say): do steps 1 to 3 in a copy of that repository on a computer, commit only the plugin's folder and push, then pull on the phone or tablet and do steps 4 and 5 there. If the repository also holds `.obsidian/community-plugins.json`, that choice syncs too: other devices that pull it have the plugin turned on after Obsidian restarts.
 
-**To update,** replace the three files with the new release's, the same way. Obsidian loads the new version when it starts again, or when the plugin is turned off and on.
+**To update,** replace the three files with the new release's, the same way. Obsidian loads the new version when it starts again, or after *Reload plugins* when the plugin is turned off and on.
 
-**To build it yourself,** with Node `^22.18.0 || ^24.0.0 || >=26.0.0`, run the following. It leaves the three files in the repository's root.
+**To build it yourself,** check out the release's tag (`git checkout 0.3.0`) and, with Node `^22.18.0 || ^24.0.0 || >=26.0.0`, run the following. It leaves the three files in the repository's root, byte for byte the same as the release's.
 
 ```
-npm install
+npm ci
 npm run build
 ```
 
