@@ -20,3 +20,7 @@ export interface SessionChange {
   added: AddedLines | null;
   addedLater: LaterLines | null;
 }
+
+export function linesAddedTo(path: string, lines: string[]): SessionChange {
+  return { removal: null, rewrite: null, added: { path, lines }, addedLater: null };
+}
