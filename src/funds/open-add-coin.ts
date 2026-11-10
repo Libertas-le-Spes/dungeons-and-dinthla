@@ -1,7 +1,8 @@
 import { Notice, type App } from "obsidian";
 import { NO_CAMPAIGN } from "../campaign/campaign-folders";
 import type { CampaignStore } from "../campaign/campaign-store";
-import { NoteEditor } from "../campaign/note-editor";
+import { linesAddedTo } from "../campaign/session-change";
+import { SessionChangeWriter } from "../campaign/session-change-writer";
 import { sessionLabelOf } from "../campaign/session-file";
 import { sessionForDialog } from "../campaign/session-for-dialog";
 import type { Source } from "../campaign/campaign";
@@ -21,8 +22,8 @@ export function openAddCoin(app: App, gate: Gate, store: CampaignStore, onClosed
   const wanted = { activePath, earliestSession: 0, noSession: NO_SESSION };
   const sessionPath = sessionForDialog(gate.files, folder, wanted);
   if (sessionPath === null) return;
-  const editor = new NoteEditor(gate.files);
-  const add = (written: CoinLine) => editor.append(sessionPath, [written.line]);
+  const writer = new SessionChangeWriter(gate.files);
+  const add = (written: CoinLine) => writer.apply(linesAddedTo(sessionPath, [written.line]));
   new CoinModal(app, sessionLabelOf(sessionPath), add, null, null, onClosed).open();
 }
 
