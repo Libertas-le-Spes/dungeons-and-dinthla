@@ -47,13 +47,22 @@ function attributesAllowed(scan: FileScan, value: Expression): boolean {
   });
 }
 
+interface CheckedOption {
+  key: string;
+  allowed(scan: FileScan, value: Expression): boolean;
+}
+
+const CHECKED_OPTIONS: CheckedOption[] = [
+  { key: OPTION_ATTRIBUTES, allowed: attributesAllowed },
+  { key: LINK_OPTION, allowed: (_scan, value) => isPageLink(value) },
+];
+
 function optionAllowed(scan: FileScan, property: ObjectLiteralElementLike): boolean {
   const key = keyOf(property);
   if (key === null || !scan.allowances.elementOptions(scan.path, key)) return false;
-  if (key !== OPTION_ATTRIBUTES && key !== LINK_OPTION) return true;
-  if (!isPropertyAssignment(property)) return false;
-  if (key === OPTION_ATTRIBUTES) return attributesAllowed(scan, property.initializer);
-  return isPageLink(property.initializer);
+  const checked = CHECKED_OPTIONS.find((option) => option.key === key);
+  if (checked === undefined) return true;
+  return isPropertyAssignment(property) && checked.allowed(scan, property.initializer);
 }
 
 function optionsAllowed(scan: FileScan, options: Expression | undefined): boolean {
