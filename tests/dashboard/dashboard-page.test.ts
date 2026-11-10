@@ -144,6 +144,11 @@ describe("DashboardPage", () => {
     expect(textsOf(quests, ".dd-text")).toEqual(["Bury it", "Burn it", "Guard it"]);
   });
 
+  it("heads the quests panel with the active quests", async () => {
+    const { root } = await openDashboard([sessionOf(1, ["! Find it"])]);
+    expect(textsOf(panel(root, QUESTS), ".dd-title")).toEqual(["Active quests"]);
+  });
+
   it("shows the purse, the items held, money in and out, and the three latest entries", async () => {
     const lines = ["$ +50 gp advance", "$ Paid 2 gp for rooms", "$ 35 gp 4 sp from the bandits", "$ 1 gp found", "$ Potion of healing", "$ [[Mira]] Rope"];
     const { root } = await openDashboard([sessionOf(1, lines)]);

@@ -25,6 +25,13 @@ describe("addQuestionRow", () => {
     expect(row.querySelector(".dd-answer")?.textContent).toBe("[[Lady Vess]] sent it");
   });
 
+  it("shows only the session under an answered question, with its text not struck", () => {
+    const { row } = setUp(["? Who sent the letter", "?= Who sent the letter: Vess"]);
+    expect(row.querySelector(".dd-meta")?.textContent).toBe("Session 1");
+    expect(row.querySelector(".dd-status")).toBeNull();
+    expect(row.querySelector(".dd-abandoned")).toBeNull();
+  });
+
   it("opens the session at the question's line when tapped", () => {
     const { row, actions } = setUp(["We rode on.", "? Who"]);
     row.click();
