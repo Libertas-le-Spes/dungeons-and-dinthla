@@ -1,0 +1,41 @@
+import { messageOf } from "../views/message-of";
+import { NoteEditor, PartlyWritten, type EditorFiles, type Removal } from "./note-editor";
+import type { AddedLines, LaterLines, SessionChange } from "./session-change";
+
+export class SessionChangeWriter {
+  private readonly editor: NoteEditor;
+
+  constructor(files: EditorFiles) {
+    this.editor = new NoteEditor(files);
+  }
+
+  async apply(change: SessionChange): Promise<boolean> {
+    if (change.rewrite !== null) return this.editor.rewrite(change.rewrite.old, change.rewrite.line);
+    if (change.added === null) return this.removeAlone(change.removal);
+    if (change.addedLater === null) return this.addWithRemoval(change.added, change.removal);
+    return this.addInTwoNotes(change.added, change.removal, change.addedLater);
+  }
+
+  private async removeAlone(removal: Removal | null): Promise<boolean> {
+    if (removal === null) return false;
+    return this.editor.drop(removal);
+  }
+
+  private async addWithRemoval(added: AddedLines, removal: Removal | null): Promise<boolean> {
+    if (removal === null) return this.editor.append(added.path, added.lines);
+    return this.editor.replace(added.path, added.lines, removal);
+  }
+
+  private async addInTwoNotes(added: AddedLines, removal: Removal | null, later: LaterLines): Promise<boolean> {
+    this.editor.ensureExists([added.path, later.path]);
+    const wrote = await this.addWithRemoval(added, removal);
+    try {
+      const wroteLater = await this.editor.append(later.path, later.lines);
+      if (wroteLater) return true;
+      return wrote;
+    } catch (error) {
+      if (!wrote) throw error;
+      throw new PartlyWritten(`${later.partlyWritten} ${messageOf(error)}`);
+    }
+  }
+}
