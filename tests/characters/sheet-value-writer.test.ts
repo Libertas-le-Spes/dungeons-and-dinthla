@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { CHANGED_IN_NOTE, PartlyWritten, WOULD_BE_HIDDEN } from "../../src/campaign/note-editor";
-import { SESSIONS_SHARE_A_NUMBER } from "../../src/campaign/session-to-write";
 import { commentMarkIn, readsBackDifferently, stillReads } from "../../src/characters/character-entry";
 import { carriedValuesOf, characterSheetOf, type SheetValue } from "../../src/characters/character-sheet";
 import {
@@ -9,11 +8,9 @@ import {
   learnedHereWins,
   linksElsewhere,
   markedNotKnownHere,
-  NO_SESSION,
   NO_VALUE,
   nothingCarried,
   QUESTION_MARK,
-  sessionToWrite,
   sheetWriteOf,
   writeSheetValue,
   type SheetTarget,
@@ -138,20 +135,6 @@ describe("sheetWriteOf", () => {
 
   it("refuses a carried value other than the one carried", () => {
     expect(() => sheetWriteOf(acOf([], [], "13"), { state: "carried", value: "14" })).toThrow(carriedDiffers("Armor Class", "Ashen Road"));
-  });
-});
-
-describe("sessionToWrite", () => {
-  it("writes in the latest session", () => {
-    expect(sessionToWrite("Pale Moon", [TWO, ONE])).toBe(TWO);
-  });
-
-  it("refuses when there is no session", () => {
-    expect(() => sessionToWrite("Pale Moon", [])).toThrow(NO_SESSION);
-  });
-
-  it("refuses when two sessions share the latest number", () => {
-    expect(() => sessionToWrite("Pale Moon", [ONE, "Pale Moon/Sessions/Session 01.md"])).toThrow(SESSIONS_SHARE_A_NUMBER);
   });
 });
 

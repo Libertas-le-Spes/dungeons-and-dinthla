@@ -2,13 +2,14 @@ import { Notice, type App, type TFile } from "obsidian";
 import type { Source } from "../campaign/campaign";
 import { CHANGED_IN_NOTE } from "../campaign/note-editor";
 import { sessionLabelOf } from "../campaign/session-file";
+import { sessionToWrite } from "../campaign/session-to-write";
 import { messageOf } from "../views/message-of";
 import { sameName } from "./character-entry";
 import type { SheetValue, StatedValue } from "./character-sheet";
 import { readCharacterSheet, type ReadSheet, type SheetStore } from "./read-character-sheet";
 import type { SheetNotes } from "./sheet-notes";
 import { SheetValueModal } from "./sheet-value-modal";
-import { NO_SESSION, sessionToWrite, sheetWriteOf, writeSheetValue, type ValueChoice } from "./sheet-value-writer";
+import { NO_SESSION, sheetWriteOf, writeSheetValue, type ValueChoice } from "./sheet-value-writer";
 import type { Gate } from "../fence/gatekeeper";
 
 export async function openCharacterSheet(app: App, gate: Gate, path: string): Promise<void> {
@@ -32,7 +33,9 @@ function valueIn(read: ReadSheet, name: string): SheetValue | undefined {
 
 function sessionPathIn(read: ReadSheet): string {
   if (read.campaignFolder === null) throw new Error(NO_SESSION);
-  return sessionToWrite(read.campaignFolder, read.sessions.map((session) => session.path));
+  const paths = read.sessions.map((session) => session.path);
+  const wanted = { activePath: null, earliestSession: 0, noSession: NO_SESSION };
+  return sessionToWrite(read.campaignFolder, paths, wanted);
 }
 
 function sessionLabelIn(read: ReadSheet): string | null {

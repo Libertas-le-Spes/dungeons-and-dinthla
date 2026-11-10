@@ -2,7 +2,7 @@ import { Notice, type App } from "obsidian";
 import { NO_CAMPAIGN } from "../campaign/campaign-folders";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
-import { latestSession, SESSIONS_SHARE_A_NUMBER, latestNumberIsShared } from "../campaign/session-to-write";
+import { sessionForDialog } from "../campaign/session-for-dialog";
 import { questionTextOf } from "../notes/question-lines";
 import { refusalForNewQuestion } from "./current-question";
 import { NewQuestionModal, type NewQuestion } from "./new-question-modal";
@@ -17,16 +17,9 @@ export function openNewQuestion(app: App, gate: Gate, store: CampaignStore, onCl
     new Notice(NO_CAMPAIGN);
     return;
   }
-  const paths = gate.files.getFiles().map((file) => file.path);
-  const sessionPath = latestSession(folder, paths);
-  if (sessionPath === null && latestNumberIsShared(folder, paths)) {
-    new Notice(SESSIONS_SHARE_A_NUMBER);
-    return;
-  }
-  if (sessionPath === null) {
-    new Notice(NO_SESSION);
-    return;
-  }
+  const wanted = { activePath: null, earliestSession: 0, noSession: NO_SESSION };
+  const sessionPath = sessionForDialog(gate.files, folder, wanted);
+  if (sessionPath === null) return;
   const writer = new QuestionWriter(gate.files);
   const add = async ({ question, answer }: NewQuestion) => {
     const text = questionTextOf(question);

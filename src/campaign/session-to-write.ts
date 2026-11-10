@@ -45,3 +45,16 @@ export function sessionToWriteIn(
   }
   return latestSession(campaignFolder, paths);
 }
+
+export interface SessionWanted {
+  activePath: string | null;
+  earliestSession: number;
+  noSession: string;
+}
+
+export function sessionToWrite(campaignFolder: string, paths: string[], wanted: SessionWanted): string {
+  const sessionPath = sessionToWriteIn(wanted.activePath, campaignFolder, paths, wanted.earliestSession);
+  if (sessionPath !== null) return sessionPath;
+  if (latestNumberIsShared(campaignFolder, paths)) throw new Error(SESSIONS_SHARE_A_NUMBER);
+  throw new Error(wanted.noSession);
+}

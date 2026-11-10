@@ -2,7 +2,7 @@ import { Notice, type App } from "obsidian";
 import type { Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
-import { SESSIONS_SHARE_A_NUMBER, latestNumberIsShared, sessionToWriteIn } from "../campaign/session-to-write";
+import { sessionForDialog } from "../campaign/session-for-dialog";
 import { currentQuest, GOES_ELSEWHERE, happenedWouldGoElsewhere, latestSessionOfQuest, SAME_TITLE, sharesTitleWithEarlierActiveQuest } from "./current-quest";
 import { QuestModal } from "./quest-modal";
 import { canCollectReward, planQuestSave, refusalForQuestPlan, type QuestEdit } from "./quest-plan";
@@ -32,16 +32,9 @@ export function openQuest(
     openNote();
     return;
   }
-  const paths = gate.files.getFiles().map((file) => file.path);
-  const sessionPath = sessionToWriteIn(activePath, folder, paths, latestSessionOfQuest(record, folder));
-  if (sessionPath === null && latestNumberIsShared(folder, paths)) {
-    new Notice(SESSIONS_SHARE_A_NUMBER);
-    return;
-  }
-  if (sessionPath === null) {
-    new Notice(NO_SESSION);
-    return;
-  }
+  const wanted = { activePath, earliestSession: latestSessionOfQuest(record, folder), noSession: NO_SESSION };
+  const sessionPath = sessionForDialog(gate.files, folder, wanted);
+  if (sessionPath === null) return;
   const writer = new QuestWriter(gate.files);
   const latest = () => currentQuest(store.current.quests, record);
   const choices = {

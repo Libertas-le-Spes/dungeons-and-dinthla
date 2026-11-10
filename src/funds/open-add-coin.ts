@@ -3,7 +3,7 @@ import { NO_CAMPAIGN } from "../campaign/campaign-folders";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { NoteEditor } from "../campaign/note-editor";
 import { sessionLabelOf } from "../campaign/session-file";
-import { latestNumberIsShared, SESSIONS_SHARE_A_NUMBER, sessionToWriteIn } from "../campaign/session-to-write";
+import { sessionForDialog } from "../campaign/session-for-dialog";
 import type { Source } from "../campaign/campaign";
 import type { CoinLine } from "../notes/coin-lines";
 import { coinEntryEdit, entryToEdit } from "./coin-entry";
@@ -18,16 +18,9 @@ export function openAddCoin(app: App, gate: Gate, store: CampaignStore, onClosed
     new Notice(NO_CAMPAIGN);
     return;
   }
-  const paths = gate.files.getFiles().map((file) => file.path);
-  const sessionPath = sessionToWriteIn(activePath, folder, paths, 0);
-  if (sessionPath === null && latestNumberIsShared(folder, paths)) {
-    new Notice(SESSIONS_SHARE_A_NUMBER);
-    return;
-  }
-  if (sessionPath === null) {
-    new Notice(NO_SESSION);
-    return;
-  }
+  const wanted = { activePath, earliestSession: 0, noSession: NO_SESSION };
+  const sessionPath = sessionForDialog(gate.files, folder, wanted);
+  if (sessionPath === null) return;
   const editor = new NoteEditor(gate.files);
   const add = (written: CoinLine) => editor.append(sessionPath, [written.line]);
   new CoinModal(app, sessionLabelOf(sessionPath), add, null, null, onClosed).open();
