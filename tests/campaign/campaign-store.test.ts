@@ -244,8 +244,9 @@ describe("CampaignStore", () => {
     const { store, seen } = await openStore(fake);
     const release = fake.holdReadsOf("Ashen Road/Sessions/Session 1.md");
     const opening = store.open("Ashen Road");
+    const told = seen.length;
     store.noteChanged("Ashen Road/Sessions/Session 2.md", "? Typed");
-    expect(questionsIn(seen.at(-1)!)).toEqual(["Typed"]);
+    expect(seen).toHaveLength(told);
     release();
     await opening;
     expect(questionsIn(store.current)).toEqual(["From Ashen Road", "Typed"]);
