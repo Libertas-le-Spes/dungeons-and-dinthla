@@ -42,6 +42,9 @@ export const PAGE_ELEMENT_SAMPLES = [
 ];
 
 export const PAGE_TEXT_SAMPLES = [
+  "export const text = () => document.body.innerText;",
+  'export const text = () => document.querySelector(".cm-content")?.textContent;',
+  'import { MarkdownPreviewRenderer } from "obsidian";\nexport const hook = () => MarkdownPreviewRenderer.registerPostProcessor((el) => el.childElementCount);',
   'import { Plugin } from "obsidian";\nexport class Reader extends Plugin {\n  override onload(): void {\n    this.registerMarkdownPostProcessor((el) => el.textContent);\n  }\n}',
   'import { Plugin } from "obsidian";\nexport class Reader extends Plugin {\n  override onload(): void {\n    this.registerMarkdownPostProcessor((el) => el.childElementCount);\n  }\n}',
   'import { Plugin } from "obsidian";\nexport class Reader extends Plugin {\n  override onload(): void {\n    this.registerMarkdownCodeBlockProcessor("dd", (source) => source.length);\n  }\n}',
