@@ -1,8 +1,9 @@
-import { Modal, Notice, Setting, type App, type ButtonComponent } from "obsidian";
+import { Setting, type App, type ButtonComponent } from "obsidian";
 import { CHANGED_IN_NOTE, PartlyWritten } from "../campaign/note-editor";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
 import { SecondPress } from "../views/second-press";
+import { ChangeDialog } from "../views/change-dialog";
 import { NOTE_MOVED } from "./character-files";
 import { ENTRY_FIELDS, trimmedEntry, type CharacterEntry, type EntryFact, type Learned } from "./character-entry";
 
@@ -26,11 +27,9 @@ const PLACEHOLDERS: Record<keyof CharacterEntry, string> = {
   speed: "30 ft.",
 };
 
-export class CharacterModal extends Modal {
+export class CharacterModal extends ChangeDialog {
   private readonly entry: CharacterEntry;
   private nameInput: HTMLInputElement | null = null;
-  private secondPress: SecondPress | null = null;
-  private busy = false;
 
   constructor(
     app: App,
@@ -55,15 +54,17 @@ export class CharacterModal extends Modal {
     if (deleteNote !== null) buttons.addButton((button) => this.addDelete(button, deleteNote));
   }
 
-  override close(): void {
-    if (this.busy) return;
-    super.close();
+  protected override closed(): void {
+    this.onClosed();
   }
 
-  override onClose(): void {
-    if (this.secondPress !== null) this.secondPress.stop();
-    this.contentEl.empty();
-    this.onClosed();
+  protected override finished(wrote: boolean): void {
+    if (wrote) this.close();
+    else if (this.nameInput !== null) this.nameInput.focus();
+  }
+
+  protected override failed(error: unknown): void {
+    if (error instanceof PartlyWritten || OUT_OF_DATE.includes(messageOf(error))) this.close();
   }
 
   private addLearned(setting: Setting, fact: EntryFact): void {
@@ -93,32 +94,16 @@ export class CharacterModal extends Modal {
       if (armed) button.setButtonText(PRESS_AGAIN);
       else button.setButtonText(DELETE);
     };
-    const secondPress = new SecondPress(showArmed, () => this.run(async () => {
+    const secondPress = new SecondPress(showArmed, () => this.runChange(async () => {
       await deleteNote();
       return true;
     }, "Couldn't delete the character"));
-    this.secondPress = secondPress;
+    this.stopOnClose(secondPress);
     button.setButtonText(DELETE).setWarning().onClick(() => secondPress.press());
     button.buttonEl.addClass("dd-delete");
   }
 
   private save(): void {
-    this.run(() => this.dialog.save(trimmedEntry(this.entry)), "Couldn't save the character");
-  }
-
-  private run(change: () => Promise<boolean>, failure: string): void {
-    if (this.busy) return;
-    this.busy = true;
-    change()
-      .then((done) => {
-        this.busy = false;
-        if (done) this.close();
-        else if (this.nameInput !== null) this.nameInput.focus();
-      })
-      .catch((error: unknown) => {
-        this.busy = false;
-        new Notice(`${failure}: ${messageOf(error)}`);
-        if (error instanceof PartlyWritten || OUT_OF_DATE.includes(messageOf(error))) this.close();
-      });
+    this.runChange(() => this.dialog.save(trimmedEntry(this.entry)), "Couldn't save the character");
   }
 }

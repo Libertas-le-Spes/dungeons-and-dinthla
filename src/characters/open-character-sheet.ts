@@ -2,7 +2,7 @@ import { Notice, type App, type TFile } from "obsidian";
 import type { Source } from "../campaign/campaign";
 import { CHANGED_IN_NOTE } from "../campaign/note-editor";
 import { sessionLabelOf } from "../campaign/session-file";
-import { latestSessionWanted, sessionToWrite } from "../campaign/session-to-write";
+import { latestSessionWanted, NoSessionToWrite, sessionToWrite } from "../campaign/session-to-write";
 import { messageOf } from "../views/message-of";
 import { sameName } from "./character-entry";
 import type { SheetValue, StatedValue } from "./character-sheet";
@@ -34,7 +34,7 @@ function valueIn(read: ReadSheet, name: string): SheetValue | undefined {
 }
 
 function sessionPathIn(read: ReadSheet): string {
-  if (read.campaignFolder === null) throw new Error(NO_SESSION);
+  if (read.campaignFolder === null) throw new NoSessionToWrite(NO_SESSION);
   const paths = read.sessions.map((session) => session.path);
   return sessionToWrite(read.campaignFolder, paths, latestSessionWanted(NO_SESSION));
 }
@@ -42,7 +42,8 @@ function sessionPathIn(read: ReadSheet): string {
 function sessionLabelIn(read: ReadSheet): string | null {
   try {
     return sessionLabelOf(sessionPathIn(read));
-  } catch {
+  } catch (error) {
+    if (!(error instanceof NoSessionToWrite)) throw error;
     return null;
   }
 }
