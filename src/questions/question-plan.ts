@@ -1,13 +1,13 @@
+import { applySessionChange } from "../campaign/apply-session-change";
 import { buildCampaign } from "../campaign/build-campaign";
 import type { Campaign, QuestionRecord, SessionNote, SourcedText } from "../campaign/campaign";
 import type { Removal } from "../campaign/note-editor";
 import { questionThreadKind } from "../campaign/question-thread-kind";
-import { sessionNoteOf } from "../campaign/session-file";
 import { endingRemoval } from "../campaign/thread-removal";
 import { readMarker } from "../notes/marker";
-import { appendLines, removeLines } from "../notes/note-lines";
 import { oneLine } from "../notes/one-line";
 import { answerLine, followUpQuestionLine, questionTextOf } from "../notes/question-lines";
+import { questionSessionChange } from "./question-session-change";
 
 export interface QuestionEdit {
   answer: string;
@@ -71,13 +71,7 @@ export function planReopen(question: QuestionRecord, sessionPath: string): Quest
 }
 
 export function applyQuestionPlan(sessions: SessionNote[], plan: QuestionPlan): SessionNote[] {
-  return sessions.map((session) => {
-    let text = session.text;
-    if (plan.removal !== null && plan.removal.path === session.path) text = removeLines(text, [plan.removal]).text;
-    if (session.path === plan.answerPath) text = appendLines(text, plan.answerLines);
-    if (session.path === plan.followUpPath) text = appendLines(text, plan.followUpLines);
-    return sessionNoteOf(session.path, session.number, text);
-  });
+  return applySessionChange(sessions, questionSessionChange(plan)).sessions;
 }
 
 function placedClues(clues: SourcedText[]): string[] {
