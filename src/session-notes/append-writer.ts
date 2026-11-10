@@ -1,11 +1,11 @@
-import { NoteEditor, type EditorVault } from "../campaign/note-editor";
+import { NoteEditor, type EditorFiles } from "../campaign/note-editor";
 import { linesToSave, lookupLinesLeft } from "./draft-lines";
 
 export class AppendWriter {
   private readonly editor: NoteEditor;
 
-  constructor(vault: EditorVault) {
-    this.editor = new NoteEditor(vault);
+  constructor(files: EditorFiles) {
+    this.editor = new NoteEditor(files);
   }
 
   async save(sessionPath: string, draft: string): Promise<string> {

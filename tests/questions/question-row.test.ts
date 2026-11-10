@@ -33,8 +33,8 @@ describe("addQuestionRow", () => {
 
   it("opens a linked name's note, not the session, when the name is tapped", () => {
     const { row, actions } = setUp(["? Why does [[Old Mill#Wheel|the wheel]] turn"]);
-    (row.querySelector("a.internal-link") as HTMLElement).click();
-    expect(actions.openLink).toHaveBeenCalledWith("Old Mill#Wheel", "Pale Moon/Sessions/Session 1.md");
+    (row.querySelector("a.dd-link-name") as HTMLElement).click();
+    expect(actions.openLink).toHaveBeenCalledWith("Old Mill#Wheel", "Pale Moon/Sessions/Session 1.md", false);
     expect(actions.openRow).not.toHaveBeenCalled();
   });
 

@@ -1,6 +1,6 @@
 import type { TFile } from "obsidian";
 import type { Source } from "../campaign/campaign";
-import { campaignFolderOf } from "../campaign/campaign-folders";
+import { campaignFolderOf, campaignNameOf } from "../campaign/campaign-folders";
 import { sessionLabelOf, sessionNumberOf } from "../campaign/session-file";
 import { withoutBullet } from "../notes/bullet";
 import type { MentionNotes } from "./mention-notes";
@@ -37,7 +37,7 @@ function sessionsAmong(paths: string[], campaignFolders: string[]): SessionPlace
 function whereOf(place: SessionPlace, ownCampaign: string | null): string {
   const session = sessionLabelOf(place.path);
   if (place.campaignFolder === ownCampaign) return session;
-  return `${session} · ${place.campaignFolder}`;
+  return `${session} · ${campaignNameOf(place.campaignFolder)}`;
 }
 
 async function mentionsIn(place: SessionPlace, target: string, ownCampaign: string | null, notes: MentionNotes): Promise<Mention[]> {

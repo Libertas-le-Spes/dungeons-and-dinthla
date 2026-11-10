@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TFile } from "obsidian";
-import { PROPERTIES_WOULD_CHANGE, type EditorVault } from "../../src/campaign/note-editor";
+import { PROPERTIES_WOULD_CHANGE, type EditorFiles } from "../../src/campaign/note-editor";
 import { AppendWriter } from "../../src/session-notes/append-writer";
 
 const PATH = "Pale Moon/Sessions/Session 12.md";
@@ -20,7 +20,7 @@ function vaultHolding(text: string, { gone = false } = {}) {
     }),
     read: vi.fn(),
   };
-  return { vault, written, editorVault: vault as unknown as EditorVault };
+  return { vault, written, editorVault: vault as unknown as EditorFiles };
 }
 
 describe("AppendWriter", () => {

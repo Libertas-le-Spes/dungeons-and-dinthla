@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import type { App, TFile } from "obsidian";
+import type { TFile } from "obsidian";
+import type { Gate } from "../../src/fence/gatekeeper";
 import { noteTextsOf } from "../../src/campaign/note-texts";
 
 const OLD_MILL = "Pale Moon/Places/Old Mill.md";
@@ -27,14 +28,14 @@ function appWith(text: string) {
     }),
     offref: vi.fn(),
   };
-  const app = { vault, metadataCache } as unknown as App;
-  return { app, vault, metadataCache, file, cacheListeners, vaultListeners };
+  const gate = { files: vault, metadata: metadataCache } as unknown as Gate;
+  return { gate, vault, metadataCache, file, cacheListeners, vaultListeners };
 }
 
 describe("noteTextsOf", () => {
   it("reads a note's text fresh from the vault, and nothing for a note that isn't there", async () => {
-    const { app, vault, file } = appWith("The wheel turns.");
-    const texts = noteTextsOf(app);
+    const { gate, vault, file } = appWith("The wheel turns.");
+    const texts = noteTextsOf(gate);
     expect(await texts.read(OLD_MILL)).toBe("The wheel turns.");
     expect(vault.read).toHaveBeenCalledExactlyOnceWith(file);
     expect(await texts.read("Pale Moon/Places/Gilded Stag.md")).toBeNull();
@@ -42,22 +43,22 @@ describe("noteTextsOf", () => {
   });
 
   it("reads a note with Windows line endings or a mark at its start as a box shows it", async () => {
-    const { app } = appWith("\uFEFFThe wheel turns.\r\nRain.\r\n");
-    expect(await noteTextsOf(app).read(OLD_MILL)).toBe("The wheel turns.\nRain.\n");
+    const { gate } = appWith("\uFEFFThe wheel turns.\r\nRain.\r\n");
+    expect(await noteTextsOf(gate).read(OLD_MILL)).toBe("The wheel turns.\nRain.\n");
   });
 
   it("tells a note's new text as a box shows it", () => {
-    const { app, cacheListeners } = appWith("");
+    const { gate, cacheListeners } = appWith("");
     const changed = vi.fn();
-    noteTextsOf(app).onChanged(changed);
+    noteTextsOf(gate).onChanged(changed);
     cacheListeners.get("changed")!({ path: OLD_MILL }, "\uFEFFThe wheel is still.\r\nRain.");
     expect(changed).toHaveBeenCalledExactlyOnceWith(OLD_MILL, "The wheel is still.\nRain.");
   });
 
   it("tells when a note's text changes, with the new text, until told to stop", () => {
-    const { app, metadataCache, cacheListeners } = appWith("");
+    const { gate, metadataCache, cacheListeners } = appWith("");
     const changed = vi.fn();
-    const stop = noteTextsOf(app).onChanged(changed);
+    const stop = noteTextsOf(gate).onChanged(changed);
     expect(metadataCache.on).toHaveBeenCalledExactlyOnceWith("changed", expect.any(Function));
     cacheListeners.get("changed")!({ path: OLD_MILL }, "The wheel is still.");
     expect(changed).toHaveBeenCalledExactlyOnceWith(OLD_MILL, "The wheel is still.");
@@ -66,9 +67,9 @@ describe("noteTextsOf", () => {
   });
 
   it("tells when a note is deleted, until told to stop", () => {
-    const { app, vault, vaultListeners } = appWith("");
+    const { gate, vault, vaultListeners } = appWith("");
     const gone = vi.fn();
-    const stop = noteTextsOf(app).onGone(gone);
+    const stop = noteTextsOf(gate).onGone(gone);
     expect(vault.on).toHaveBeenCalledExactlyOnceWith("delete", expect.any(Function));
     vaultListeners.get("delete")!({ path: OLD_MILL });
     expect(gone).toHaveBeenCalledExactlyOnceWith(OLD_MILL);

@@ -1,3 +1,4 @@
+import { choiceOf } from "../views/choice-of";
 import { Modal, Notice, Setting, type App } from "obsidian";
 import type { ItemRecord, Source } from "../campaign/campaign";
 import { PartlyWritten } from "../campaign/note-editor";
@@ -5,7 +6,7 @@ import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
 import { holderNameOf } from "./item-groups";
 import { GONE_LINE_SAYS_MORE, type HolderOption, type ItemEdit, type ItemStatus } from "./item-plan";
-import { STATUS_WORDS } from "./status-words";
+import { ITEM_STATUSES, STATUS_WORDS } from "./status-words";
 
 export class ItemModal extends Modal {
   private readonly edit: ItemEdit;
@@ -45,7 +46,9 @@ export class ItemModal extends Modal {
     new Setting(contentEl).setName("Status").addDropdown((dropdown) => {
       for (const [value, word] of Object.entries(STATUS_WORDS)) dropdown.addOption(value, word);
       dropdown.setValue(this.edit.status).onChange((value) => {
-        this.edit.status = value as ItemStatus;
+        const status = choiceOf(ITEM_STATUSES, value);
+        if (status === undefined) return;
+        this.edit.status = status;
         this.showPrice();
         this.hideOpenNote();
       });

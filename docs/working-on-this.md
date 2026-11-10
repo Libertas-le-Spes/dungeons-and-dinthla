@@ -21,19 +21,25 @@ This page is for whoever picks the work up on another machine, person or session
 1. Fresh reviewers who know only the pull request go over it, split into security, architecture and readability, and tests and docs. Their findings are checked against the code, then fixed and proven.
 2. One more fresh review checks the result. Stop when what is left sits only in code that round changed and every failure ends safe.
 3. **The owner says yes.** Nothing merges without it.
-4. Merge locally with `git merge --no-ff origin/<branch> -m "Merge pull request #N from Libertas-le-Spes/<branch>"` and push `main`. Delete the local branch once its merge is on `main`.
+4. Merge locally with `git merge --no-ff origin/<branch> -m "Merge pull request #N from Libertas-le-Spes/<branch>"` and push `main`.
+
+## Deleting branches
+
+A branch is deleted, locally and on origin, as soon as it is merged or becomes useless. First check that every commit on it is contained in `main`, or in the branch that took its work over: `git branch --contains <last commit>` and `git log main..<branch>` (which must list nothing) show it. Then `git branch -d <branch>` and `git push origin --delete <branch>`. A branch whose commits aren't contained anywhere is never deleted without the owner's yes.
 
 ## Releasing
 
 1. Bump the version in `manifest.json`, `package.json`, `package-lock.json` and `versions.json` in one pull request.
 2. After it merges, tag `main` with the bare version (`0.3.0`, no `v`) and push the tag.
-3. The Release workflow checks the versions, builds, runs the tests and attaches `main.js`, `manifest.json` and `styles.css`.
+3. The Release workflow checks the versions, builds, checks the built `main.js` and `styles.css` for network code (`node scripts/check-no-network.ts main.js styles.css`), runs the tests and attaches `main.js`, `manifest.json` and `styles.css`.
 
 Stay on `0.x` until the plugin has held up in real games. Then go to `1.0.0`.
 
 ## Running and checking
 
-- Run `npm install`, then `npm run build`. The build also copies the plugin into `demo-vault/`. Open `demo-vault` as a vault in Obsidian; the README has the steps.
+- Node must be `^22.18.0 || ^24.0.0 || >=26.0.0`: the build and `scripts/` are TypeScript run by Node's own type stripping.
+- Run `npm install`, then `npm run build`. The build also copies the plugin into `demo-vault/`. Open `demo-vault` as a vault in Obsidian; the README has the steps. Its campaign still sits at the vault's top, outside any Campaigns folder, so the plugin shows no campaign there until it is moved into one.
+- After a build, `node scripts/check-no-network.ts main.js styles.css` checks the built files for network code, as every pull request and release does. It checks only the files it is given and refuses to run with none.
 - `npx vitest run` runs the tests. Tests must not open a real browser.
 - When the owner is gaming on the machine, run builds and tests at low priority, one builder at a time:
 

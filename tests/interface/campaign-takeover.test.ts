@@ -5,8 +5,12 @@ import { CAMPAIGN_VIEW } from "../../src/interface/campaign-view";
 
 const MIRA = "Pale Moon/Characters/Mira.md";
 
-function takeoverWith({ registered = true } = {}) {
-  return { campaignViewRegistered: vi.fn(() => registered), campaignFolders: vi.fn(() => ["Pale Moon"]) };
+function takeoverWith({ registered = true, fenced = true } = {}) {
+  return {
+    campaignViewRegistered: vi.fn(() => registered),
+    holds: vi.fn((path: string) => fenced && path.startsWith("Pale Moon/")),
+    campaignFolders: vi.fn(() => ["Pale Moon"]),
+  };
 }
 
 const TAKEOVER = takeoverWith();
@@ -69,6 +73,14 @@ describe("campaignStateFor", () => {
     const outside = { type: "markdown", state: { file: "Gilded Stag.md" } };
     expect(campaignStateFor(places, TAKEOVER)).toBe(places);
     expect(campaignStateFor(outside, TAKEOVER)).toBe(outside);
+  });
+
+  it("hands back the very same state for a file outside the Campaigns folder, even one in a campaign it was told of", () => {
+    const takeover = takeoverWith({ fenced: false });
+    const mira = { type: "markdown", state: { file: MIRA } };
+    expect(campaignStateFor(mira, takeover)).toBe(mira);
+    expect(takeover.holds).toHaveBeenCalledExactlyOnceWith(MIRA);
+    expect(takeover.campaignFolders).not.toHaveBeenCalled();
   });
 
   it("hands back the very same state for any other kind of tab, its own included", () => {

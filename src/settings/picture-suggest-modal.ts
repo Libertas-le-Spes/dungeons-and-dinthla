@@ -7,7 +7,7 @@ export class PictureSuggestModal extends FuzzySuggestModal<TFile> {
     private readonly chosen: (picture: TFile) => void,
   ) {
     super(app);
-    this.setPlaceholder("Find a picture in the vault");
+    this.setPlaceholder("Find a picture in your Campaigns folder");
   }
 
   getItems(): TFile[] {

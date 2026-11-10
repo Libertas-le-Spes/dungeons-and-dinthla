@@ -7,12 +7,14 @@ import { ANSWER_GOES_ELSEWHERE, answerWouldGoElsewhere, currentQuestion, latestS
 import { QuestionModal } from "./question-modal";
 import { planQuestionSave, planReopen, refusalForQuestionPlan, type QuestionEdit, type QuestionPlan } from "./question-plan";
 import { QuestionWriter } from "./question-writer";
+import type { Gate } from "../fence/gatekeeper";
 
 const NO_SESSION = "Start a session first: answers are written into a session note.";
 const SAME_TEXT = "An earlier open question reads the same, so an answer would go to it. Reword one of them first.";
 
 export function openQuestion(
   app: App,
+  gate: Gate,
   store: CampaignStore,
   source: Source,
   openNote: () => void,
@@ -31,7 +33,7 @@ export function openQuestion(
     openNote();
     return;
   }
-  const paths = app.vault.getFiles().map((file) => file.path);
+  const paths = gate.files.getFiles().map((file) => file.path);
   const sessionPath = sessionToWriteIn(activePath, folder, paths, latestSessionOfQuestion(question, folder));
   if (sessionPath === null && latestNumberIsShared(folder, paths)) {
     new Notice(SESSIONS_SHARE_A_NUMBER);
@@ -41,7 +43,7 @@ export function openQuestion(
     new Notice(NO_SESSION);
     return;
   }
-  const writer = new QuestionWriter(app.vault);
+  const writer = new QuestionWriter(gate.files);
   const checkedApply = async (current: QuestionRecord, plan: QuestionPlan) => {
     const refusal = refusalForQuestionPlan(store.sessionNotes, current, plan);
     if (refusal !== null) throw new Error(refusal);

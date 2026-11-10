@@ -22,12 +22,16 @@ export interface LookupMatch {
 
 export const LOOKUP_LIMIT = 8;
 const LOOKUP_LINE = /^\s*(\?\?|!!|\$\$)\s?(.*)$/;
-const KINDS: Record<string, LookupKind> = { "??": "question", "!!": "quest", $$: "item" };
+const KINDS = new Map<string, LookupKind>([
+  ["??", "question"],
+  ["!!", "quest"],
+  ["$$", "item"],
+]);
 
 export function readLookup(line: string): Lookup | null {
   const match = LOOKUP_LINE.exec(line);
   if (match === null) return null;
-  const kind = KINDS[match[1]!]!;
+  const kind = KINDS.get(match[1]!)!;
   const typed = match[2]!;
   if (kind === "item" && readItemChange(line) !== null) return null;
   return { kind, keywords: keywordsOf(typed) };

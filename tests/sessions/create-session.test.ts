@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TFile, TFolder } from "obsidian";
-import { createSession, nextSessionNumber, type SessionFileManager, type SessionVault } from "../../src/sessions/create-session";
+import { createSession, nextSessionNumber, type SessionFileActions, type SessionFiles } from "../../src/sessions/create-session";
 
 class FakeSessionVault {
   readonly files = new Map<string, string>();
@@ -12,7 +12,7 @@ class FakeSessionVault {
     for (const folder of folders) this.folders.add(folder);
   }
 
-  get vault(): SessionVault {
+  get vault(): SessionFiles {
     return {
       getFiles: () => [...this.files.keys()].map((path) => ({ path }) as TFile),
       getFolderByPath: (path) => {
@@ -32,7 +32,7 @@ class FakeSessionVault {
     };
   }
 
-  get fileManager(): SessionFileManager {
+  get fileManager(): SessionFileActions {
     return {
       processFrontMatter: async (file, change) => {
         const properties: Record<string, unknown> = {};

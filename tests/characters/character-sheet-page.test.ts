@@ -44,6 +44,7 @@ function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf, link
   };
   if (textOf !== undefined) readText = textOf;
   const notes: SheetNotes = {
+    holds: () => true,
     textOf: (file) => {
       reads.count += 1;
       return readText(file);

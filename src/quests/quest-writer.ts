@@ -1,5 +1,5 @@
 import type { QuestRecord, SourcedText } from "../campaign/campaign";
-import { NoteEditor, type EditorVault, type Removal } from "../campaign/note-editor";
+import { NoteEditor, type EditorFiles, type Removal } from "../campaign/note-editor";
 import type { FollowUpKind } from "../notes/follow-up";
 import { isQuestLine } from "../notes/quest-lines";
 import { isFollowUpLine } from "../notes/question-lines";
@@ -20,8 +20,8 @@ function questRemoval(record: QuestRecord): Removal {
 export class QuestWriter {
   private readonly editor: NoteEditor;
 
-  constructor(vault: EditorVault) {
-    this.editor = new NoteEditor(vault);
+  constructor(files: EditorFiles) {
+    this.editor = new NoteEditor(files);
   }
 
   async apply(plan: QuestPlan): Promise<boolean> {

@@ -1,5 +1,5 @@
 import type { QuestionRecord, SourcedText } from "../campaign/campaign";
-import { NoteEditor, PartlyWritten, type EditorVault, type Removal } from "../campaign/note-editor";
+import { NoteEditor, PartlyWritten, type EditorFiles, type Removal } from "../campaign/note-editor";
 import { messageOf } from "../views/message-of";
 import { answerLine, isFollowUpLine, isQuestionLine, oneLine, questionLine } from "../notes/question-lines";
 import { answerRemoval, type QuestionPlan } from "./question-plan";
@@ -19,8 +19,8 @@ function questionRemoval(question: QuestionRecord): Removal {
 export class QuestionWriter {
   private readonly editor: NoteEditor;
 
-  constructor(vault: EditorVault) {
-    this.editor = new NoteEditor(vault);
+  constructor(files: EditorFiles) {
+    this.editor = new NoteEditor(files);
   }
 
   async apply(plan: QuestionPlan): Promise<boolean> {

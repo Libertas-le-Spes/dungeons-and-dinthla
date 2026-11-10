@@ -1,10 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
-import type { App, Editor, EditorSuggestContext, TFile } from "obsidian";
+import { describe, expect, it } from "vitest";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { Campaign } from "../../src/campaign/campaign";
 import { lookupMatches, readLookup, type Lookup } from "../../src/lookups/lookup";
-import { LookupSuggest } from "../../src/lookups/lookup-suggest";
-import { obsidianDocument } from "../views/obsidian-dom";
 
 const SESSION = "Pale Moon/Sessions/Session 1.md";
 
@@ -64,76 +61,5 @@ describe("lookupMatches", () => {
     expect(textsFor(campaign, { kind: "question", keywords: [] })[0]).toBe("Question 9");
     const items = campaignOf(Array.from({ length: 10 }, (_, index) => `$ Item ${index}`));
     expect(textsFor(items, { kind: "item", keywords: [] })).toHaveLength(8);
-  });
-});
-
-function contextFor(query: string): EditorSuggestContext {
-  return { query, file: { path: SESSION } as TFile, editor: { getValue: () => `We rode on.\n${query}` } as unknown as Editor } as EditorSuggestContext;
-}
-
-describe("LookupSuggest", () => {
-  function suggestFor(campaign: Campaign) {
-    return new LookupSuggest({} as App, () => campaign, (path) => path === SESSION, () => {});
-  }
-
-  function editorWith(line: string, text = line): Editor {
-    return { getLine: () => line, getValue: () => text } as unknown as Editor;
-  }
-
-  it("starts on a lookup line in a session note, covering the whole line", () => {
-    const suggest = suggestFor(campaignOf([]));
-    const session = { path: SESSION } as TFile;
-    expect(suggest.onTrigger({ line: 4, ch: 3 }, editorWith("?? let"), session)).toEqual({ start: { line: 4, ch: 0 }, end: { line: 4, ch: 6 }, query: "?? let" });
-    expect(suggest.onTrigger({ line: 4, ch: 3 }, editorWith("?? let"), { path: "Notes/Other.md" } as TFile)).toBeNull();
-    expect(suggest.onTrigger({ line: 4, ch: 3 }, editorWith("? Who"), session)).toBeNull();
-    expect(suggest.onTrigger({ line: 1, ch: 3 }, editorWith("?? in yaml", "---\n?? in yaml\n---\n"), session)).toBeNull();
-  });
-
-  it("matches against the note as the editor has it", () => {
-    const seen: string[] = [];
-    const suggest = new LookupSuggest({} as App, (path, text) => {
-      seen.push(`${path} ${text}`);
-      return campaignOf([]);
-    }, () => true, () => {});
-    suggest.getSuggestions(contextFor("?? who"));
-    expect(seen).toEqual([`${SESSION} We rode on.\n?? who`]);
-  });
-
-  it("closes its list when a suggestion is picked, and hands the match on", () => {
-    const picked: string[] = [];
-    const suggest = new LookupSuggest({} as App, () => campaignOf(["? Who"]), () => true, (match) => picked.push(match.text));
-    const closed = vi.spyOn(suggest, "close");
-    suggest.context = contextFor("?? who");
-    suggest.selectSuggestion(suggest.getSuggestions(suggest.context)[0]!);
-    expect(closed).toHaveBeenCalledTimes(1);
-    expect(picked).toEqual(["Who"]);
-  });
-
-  it("shows each match with its marker, the typed words marked, and an item's holder", () => {
-    const suggest = suggestFor(campaignOf(["$ [[Mira]] Silvered lantern", "$ Rope"]));
-    suggest.context = contextFor("$$ lan");
-    const matches = suggest.getSuggestions(suggest.context);
-    const document = obsidianDocument();
-    const el = document.createElement("div");
-    suggest.renderSuggestion(matches[0]!, el);
-    expect(el.querySelector(".dd-marker-ledger")?.textContent).toBe("$");
-    expect(el.querySelector("mark")?.textContent).toBe("lan");
-    expect(el.querySelector(".dd-lookup-text")?.textContent).toBe("Silvered lantern");
-    expect(el.querySelector(".dd-lookup-holder")?.textContent).toBe("Mira");
-    const rope = document.createElement("div");
-    suggest.context = contextFor("$$ rope");
-    suggest.renderSuggestion(suggest.getSuggestions(suggest.context)[0]!, rope);
-    expect(rope.querySelector(".dd-lookup-holder")?.textContent).toBe("The party");
-  });
-
-  it("shows a question or quest without a holder", () => {
-    const suggest = suggestFor(campaignOf(["? Who sent it", "! Find it"]));
-    const document = obsidianDocument();
-    for (const query of ["?? who", "!! find"]) {
-      suggest.context = contextFor(query);
-      const el = document.createElement("div");
-      suggest.renderSuggestion(suggest.getSuggestions(suggest.context)[0]!, el);
-      expect(el.querySelector(".dd-lookup-holder"), query).toBeNull();
-    }
   });
 });

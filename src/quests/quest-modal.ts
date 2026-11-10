@@ -1,3 +1,4 @@
+import { choiceOf } from "../views/choice-of";
 import { Modal, Notice, Setting, type App, type TextAreaComponent } from "obsidian";
 import type { QuestRecord } from "../campaign/campaign";
 import { PartlyWritten } from "../campaign/note-editor";
@@ -18,6 +19,8 @@ export interface QuestPlaces {
 }
 
 const STATUS_WORDS: Record<QuestStatusChoice, string> = { active: "Active", completed: "Completed", failed: "Abandoned" };
+
+const STATUS_CHOICES: QuestStatusChoice[] = ["active", "completed", "failed"];
 
 function factsOf(record: QuestRecord): string {
   const facts: string[] = [];
@@ -57,7 +60,9 @@ export class QuestModal extends Modal {
     new Setting(contentEl).setName("Status").addDropdown((dropdown) => {
       for (const [value, word] of Object.entries(STATUS_WORDS)) dropdown.addOption(value, word);
       dropdown.setValue(this.edit.status).onChange((value) => {
-        this.edit.status = value as QuestStatusChoice;
+        const status = choiceOf(STATUS_CHOICES, value);
+        if (status === undefined) return;
+        this.edit.status = status;
         if (this.edit.status === "active" && this.happenedArea !== null) {
           this.happenedArea.setValue("");
           this.edit.happened = "";

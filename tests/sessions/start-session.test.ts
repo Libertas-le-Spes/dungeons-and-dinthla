@@ -3,6 +3,7 @@ import type { App, TFile } from "obsidian";
 import { Notice, openedModals } from "../stubs/obsidian";
 import { NO_CAMPAIGN } from "../../src/campaign/campaign-folders";
 import { startSession } from "../../src/sessions/start-session";
+import type { Gate } from "../../src/fence/gatekeeper";
 
 function appWith(paths: string[], { createFails = false } = {}) {
   const create = vi.fn(async (path: string) => {
@@ -17,8 +18,9 @@ function appWith(paths: string[], { createFails = false } = {}) {
   };
   const fileManager = { processFrontMatter: vi.fn(async () => {}) };
   const getLeaf = vi.fn();
-  const app = { vault, fileManager, workspace: { getLeaf } } as unknown as App;
-  return { app, create, getLeaf };
+  const app = { workspace: { getLeaf } } as unknown as App;
+  const gate = { files: vault, fileActions: fileManager } as unknown as Gate;
+  return { app, gate, create, getLeaf };
 }
 
 function pressStart(): void {
@@ -33,9 +35,9 @@ afterEach(() => {
 
 describe("startSession", () => {
   it("makes the next session and shows it on the Notes page, not in the editor", async () => {
-    const { app, create, getLeaf } = appWith(["Pale Moon/Sessions/Session 11.md"]);
+    const { app, gate, create, getLeaf } = appWith(["Pale Moon/Sessions/Session 11.md"]);
     const openNotes = vi.fn(async () => {});
-    startSession(app, "Pale Moon", openNotes);
+    startSession(app, gate, "Pale Moon", openNotes);
     pressStart();
     await vi.waitFor(() => expect(openNotes).toHaveBeenCalledExactlyOnceWith("Pale Moon/Sessions/Session 12.md"));
     expect(create).toHaveBeenCalledExactlyOnceWith("Pale Moon/Sessions/Session 12.md", "");
@@ -43,28 +45,28 @@ describe("startSession", () => {
   });
 
   it("says the session was made when its page can't be shown", async () => {
-    const { app } = appWith([]);
+    const { app, gate } = appWith([]);
     const openNotes = vi.fn(async () => {
       throw new Error("No tab");
     });
-    startSession(app, "Pale Moon", openNotes);
+    startSession(app, gate, "Pale Moon", openNotes);
     pressStart();
     await vi.waitFor(() => expect(Notice.shown).toEqual(["Session 1 was made but couldn't be opened: No tab"]));
   });
 
   it("shows nothing when the session couldn't be made", async () => {
-    const { app } = appWith([], { createFails: true });
+    const { app, gate } = appWith([], { createFails: true });
     const openNotes = vi.fn(async () => {});
-    startSession(app, "Pale Moon", openNotes);
+    startSession(app, gate, "Pale Moon", openNotes);
     pressStart();
     await vi.waitFor(() => expect(Notice.shown).toEqual(["Couldn't start the session: Disk is full"]));
     expect(openNotes).not.toHaveBeenCalled();
   });
 
   it("asks for a campaign first when there is none", () => {
-    const { app } = appWith([]);
+    const { app, gate } = appWith([]);
     const openNotes = vi.fn(async () => {});
-    startSession(app, null, openNotes);
+    startSession(app, gate, null, openNotes);
     expect(Notice.shown).toEqual([NO_CAMPAIGN]);
     expect(openedModals).toHaveLength(0);
   });

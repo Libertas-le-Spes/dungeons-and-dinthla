@@ -1,9 +1,9 @@
-import type { MetadataCache } from "obsidian";
 import { sessionLabelOf } from "../campaign/session-file";
+import type { FencedMetadata } from "../fence/fenced-metadata";
 
-export function sessionHeadingOf(path: string, metadataCache: Pick<MetadataCache, "getCache">): string {
+export function sessionHeadingOf(path: string, metadata: Pick<FencedMetadata, "getCache">): string {
   const label = sessionLabelOf(path);
-  const title: unknown = metadataCache.getCache(path)?.frontmatter?.title;
+  const title: unknown = metadata.getCache(path)?.frontmatter?.title;
   if (typeof title !== "string" || title.trim() === "") return label;
   return `${label} · ${title.trim()}`;
 }

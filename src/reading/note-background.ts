@@ -2,6 +2,7 @@ import { debounce, type Debouncer } from "obsidian";
 import type { BackgroundMetadata } from "../campaign/campaign-background";
 import { campaignFolderOf, isMainNote } from "../campaign/campaign-folders";
 import { shownBackgroundIn, type PictureUrl, type ShownBackground } from "../campaign/shown-background";
+import type { ReadCampaignsFolder } from "../fence/fence";
 
 const SETTLE_MS = 200;
 const LAYER_CLASS = "dd-campaign-background";
@@ -18,21 +19,26 @@ export function shownBackgroundOf(
   return shownBackgroundIn(folder, metadata, urlOf);
 }
 
+const LAYERS = new WeakMap<HTMLElement, HTMLElement>();
+
 function layerIn(contentEl: HTMLElement): HTMLElement | null {
-  for (const child of Array.from(contentEl.children)) {
-    if (child.classList.contains(LAYER_CLASS)) return child as HTMLElement;
-  }
-  return null;
+  const layer = LAYERS.get(contentEl);
+  if (layer === undefined) return null;
+  return layer;
 }
 
 export function showBackground(contentEl: HTMLElement, shown: ShownBackground | null): void {
   let layer = layerIn(contentEl);
   if (shown === null) {
     if (layer !== null) layer.remove();
+    LAYERS.delete(contentEl);
     contentEl.removeClass(HOLDER_CLASS);
     return;
   }
-  if (layer === null) layer = contentEl.createDiv({ prepend: true });
+  if (layer === null) {
+    layer = contentEl.createDiv({ prepend: true });
+    LAYERS.set(contentEl, layer);
+  }
   layer.className = `dd-tokens ${LAYER_CLASS} dd-wash-${shown.wash}`;
   layer.setCssProps({ "--dd-campaign-picture": shown.picture.value });
   contentEl.addClass(HOLDER_CLASS);
@@ -41,12 +47,15 @@ export function showBackground(contentEl: HTMLElement, shown: ShownBackground | 
 export class BackgroundRefresh {
   private readonly soon: Debouncer<[], void>;
 
-  constructor(refresh: () => void) {
+  constructor(
+    refresh: () => void,
+    private readonly readCampaignsFolder: ReadCampaignsFolder,
+  ) {
     this.soon = debounce(refresh, SETTLE_MS, true);
   }
 
   noteChanged(path: string): void {
-    if (isMainNote(path)) this.soon();
+    if (isMainNote(path, this.readCampaignsFolder())) this.soon();
   }
 
   layoutChanged(): void {

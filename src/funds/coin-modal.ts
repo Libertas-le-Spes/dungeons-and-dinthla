@@ -1,3 +1,4 @@
+import { choiceOf } from "../views/choice-of";
 import { Modal, Notice, Setting, type App } from "obsidian";
 import { readCoinDraft, type CoinDraft, type CoinLine, type Direction } from "../notes/coin-lines";
 import { isSubmit } from "../views/keys";
@@ -6,6 +7,8 @@ import { deleteOnSecondPress, type SecondPress } from "../views/second-press";
 import type { CoinEntryChoices } from "./coin-entry";
 
 export type CoinOutcome = "unchanged" | "written" | "deleted";
+
+const DIRECTIONS: Direction[] = ["in", "out"];
 
 export class CoinModal extends Modal {
   private readonly draft: CoinDraft;
@@ -35,7 +38,9 @@ export class CoinModal extends Modal {
     contentEl.addClass("dd-tokens", "dd-dialog");
     new Setting(contentEl).setName("Money").addDropdown((dropdown) => {
       dropdown.addOption("in", "In").addOption("out", "Out").setValue(this.draft.direction).onChange((value) => {
-        this.draft.direction = value as Direction;
+        const direction = choiceOf(DIRECTIONS, value);
+        if (direction === undefined) return;
+        this.draft.direction = direction;
         this.showReading();
       });
       dropdown.selectEl.focus();

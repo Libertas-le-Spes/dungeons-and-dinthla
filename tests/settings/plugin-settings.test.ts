@@ -1,35 +1,76 @@
 import { describe, expect, it } from "vitest";
 import { settingsOf } from "../../src/settings/plugin-settings";
 
-const NOTHING_SAVED = { campaignFolder: null, welcomeSeen: false, lastVersionSeen: null };
+const CONFIG_DIR = ".obsidian";
+
+const NOTHING_SAVED = { campaignsFolder: null, campaignFolder: null, welcomeSeen: false, lastVersionSeen: null };
 
 describe("settingsOf", () => {
   it("keeps the campaign chosen last time", () => {
-    expect(settingsOf({ campaignFolder: "Pale Moon" })).toEqual({ ...NOTHING_SAVED, campaignFolder: "Pale Moon" });
+    expect(settingsOf({ campaignsFolder: "D&D", campaignFolder: "D&D/Pale Moon" }, CONFIG_DIR)).toEqual({
+      ...NOTHING_SAVED,
+      campaignsFolder: "D&D",
+      campaignFolder: "D&D/Pale Moon",
+    });
+  });
+
+  it("drops a saved campaign outside the Campaigns folder, or one that climbs out of it", () => {
+    for (const campaignFolder of ["Self/Pale Moon", "D&D Old/Pale Moon", "D&D", "D&D/../Self/Pale Moon", "/D&D/Pale Moon"]) {
+      expect(settingsOf({ campaignsFolder: "D&D", campaignFolder }, CONFIG_DIR)).toEqual({ ...NOTHING_SAVED, campaignsFolder: "D&D" });
+    }
+  });
+
+  it("drops a saved campaign while no Campaigns folder is set", () => {
+    expect(settingsOf({ campaignFolder: "D&D/Pale Moon" }, CONFIG_DIR)).toEqual(NOTHING_SAVED);
   });
 
   it("starts with no chosen campaign, the welcome unseen and no version seen when nothing was saved", () => {
-    expect(settingsOf(null)).toEqual(NOTHING_SAVED);
+    expect(settingsOf(null, CONFIG_DIR)).toEqual(NOTHING_SAVED);
   });
 
   it("keeps that the welcome was seen and the last version whose news was seen", () => {
-    expect(settingsOf({ campaignFolder: "Pale Moon", welcomeSeen: true, lastVersionSeen: "1.4.0" })).toEqual({
-      campaignFolder: "Pale Moon",
+    expect(settingsOf({ welcomeSeen: true, lastVersionSeen: "1.4.0" }, CONFIG_DIR)).toEqual({
+      campaignsFolder: null,
+      campaignFolder: null,
       welcomeSeen: true,
       lastVersionSeen: "1.4.0",
     });
   });
 
+  it("keeps the Campaigns folder set last time, at any depth", () => {
+    expect(settingsOf({ campaignsFolder: "Games/D&D" }, CONFIG_DIR)).toEqual({ ...NOTHING_SAVED, campaignsFolder: "Games/D&D" });
+  });
+
+  it("keeps a Campaigns folder the vault holds in decomposed letters or with a no-break space", () => {
+    for (const campaignsFolder of ["Zoe\u0308", "Pale\u00a0Moon"]) expect(settingsOf({ campaignsFolder }, CONFIG_DIR)).toEqual({ ...NOTHING_SAVED, campaignsFolder });
+  });
+
+  it("drops a saved Campaigns folder that is the whole vault, not a plain path or hidden, so the plugin touches nothing", () => {
+    for (const campaignsFolder of ["/", "", "../D&D", "/D&D", "D&D/../Private", ".obsidian", "Games/.hidden", 3]) {
+      expect(settingsOf({ campaignsFolder }, CONFIG_DIR)).toEqual(NOTHING_SAVED);
+    }
+  });
+
+  it("drops a saved Campaigns folder that is the vault's settings folder or inside it, even when its name has no dot", () => {
+    for (const campaignsFolder of ["Vault Settings", "Vault Settings/D&D"]) {
+      expect(settingsOf({ campaignsFolder }, "Vault Settings")).toEqual(NOTHING_SAVED);
+    }
+  });
+
+  it("keeps a saved Campaigns folder whose name only starts like the vault's settings folder", () => {
+    expect(settingsOf({ campaignsFolder: "Vault Settings Old" }, "Vault Settings")).toEqual({ ...NOTHING_SAVED, campaignsFolder: "Vault Settings Old" });
+  });
+
   it("ignores saved data it can't read", () => {
     for (const saved of ["Pale Moon", 3, { campaignFolder: 3 }, { welcomeSeen: "yes", lastVersionSeen: 2 }, {}]) {
-      expect(settingsOf(saved)).toEqual(NOTHING_SAVED);
+      expect(settingsOf(saved, CONFIG_DIR)).toEqual(NOTHING_SAVED);
     }
   });
 
   it("leaves unsaved lines out of the settings, since they are kept on this device only", () => {
-    expect(settingsOf({ campaignFolder: "Pale Moon", drafts: { "Pale Moon/Sessions/Session 3.md": "? Who" } })).toEqual({
+    expect(settingsOf({ campaignsFolder: "D&D", drafts: { "D&D/Pale Moon/Sessions/Session 3.md": "? Who" } }, CONFIG_DIR)).toEqual({
       ...NOTHING_SAVED,
-      campaignFolder: "Pale Moon",
+      campaignsFolder: "D&D",
     });
   });
 });
