@@ -1,5 +1,5 @@
-import { nameKeyOf } from "../campaign/name-key";
-import { typedPathOf } from "../campaign/typed-path";
+import { nameKeyOf } from "../names/name-key";
+import { typedPathOf } from "../names/typed-path";
 import { isSafePath, refusalForPathParts } from "./safe-path";
 
 export const NO_CAMPAIGNS_FOLDER =

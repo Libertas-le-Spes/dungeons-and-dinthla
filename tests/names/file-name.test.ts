@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BAD_NAME, LONG_NAME, refusalForFileName, RESERVED_NAME } from "../../src/campaign/file-name";
+import { BAD_NAME, LONG_NAME, refusalForFileName, RESERVED_NAME } from "../../src/names/file-name";
 
 describe("refusalForFileName", () => {
   it("accepts a plain name", () => {

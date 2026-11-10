@@ -2,9 +2,9 @@ import { NO_CAMPAIGNS_FOLDER } from "../fence/campaigns-folder-path";
 import type { FencedFiles } from "../fence/fenced-files";
 import { mainNotePathOf } from "./campaign-folders";
 import { messageOf } from "../views/message-of";
-import { refusalForFileName } from "./file-name";
-import { nameKeyOf } from "./name-key";
-import { typedPathOf } from "./typed-path";
+import { refusalForFileName } from "../names/file-name";
+import { nameKeyOf } from "../names/name-key";
+import { typedPathOf } from "../names/typed-path";
 
 export type NewCampaignFiles = Pick<FencedFiles, "namesIn" | "createFolder" | "create" | "removeEmptyFolder">;
 

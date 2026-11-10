@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { typedPathOf } from "../../src/campaign/typed-path";
+import { typedPathOf } from "../../src/names/typed-path";
 
 const NOTHING_TYPED = "Type a name first.";
 

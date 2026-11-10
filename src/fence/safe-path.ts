@@ -1,5 +1,5 @@
 import { normalizePath } from "obsidian";
-import { isTrimmedByWindows, refusalForFileName } from "../campaign/file-name";
+import { isTrimmedByWindows, refusalForFileName } from "../names/file-name";
 
 const DRIVE_LETTER = /^[A-Za-z]:/;
 

@@ -1,7 +1,7 @@
 import { normalizePath, type TFile } from "obsidian";
 import { charactersFolderOf } from "../campaign/campaign-folders";
-import { refusalForFileName } from "../campaign/file-name";
-import { nameKeyOf } from "../campaign/name-key";
+import { refusalForFileName } from "../names/file-name";
+import { nameKeyOf } from "../names/name-key";
 import { PartlyWritten } from "../campaign/note-editor";
 import { messageOf } from "../views/message-of";
 import { newCharacterText, refusalForValues, valuesChanged, withEntryValues, type CharacterEntry } from "./character-entry";
