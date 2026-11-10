@@ -14,28 +14,28 @@ function followUpRemoval(subject: string, name: FollowUpName, followUp: SourcedT
 
 export function openingRemoval<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName>(
   kind: ThreadKind<Thread, Ending, EndingName>,
-  record: Thread,
+  thread: Thread,
 ): Removal {
-  const text = kind.textOf(record);
-  return { path: record.source.path, line: record.source.line, matches: (written) => kind.isOpeningLine(written, text) };
+  const text = kind.textOf(thread);
+  return { path: thread.source.path, line: thread.source.line, matches: (written) => kind.isOpeningLine(written, text) };
 }
 
 export function endingRemoval<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName>(
   kind: ThreadKind<Thread, Ending, EndingName>,
-  record: Thread,
+  thread: Thread,
 ): Removal | null {
-  const ending = kind.endingOf(record);
+  const ending = kind.endingOf(thread);
   if (ending === null) return null;
-  return followUpRemoval(kind.textOf(record), kind.endingNameOf(ending), ending);
+  return followUpRemoval(kind.textOf(thread), kind.endingNameOf(ending), ending);
 }
 
 export function followUpRemovals<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName>(
   kind: ThreadKind<Thread, Ending, EndingName>,
-  record: Thread,
+  thread: Thread,
 ): Removal[] {
-  const text = kind.textOf(record);
-  const removals = kind.additionsOf(record).map((addition) => followUpRemoval(text, kind.addingName, addition));
-  const ending = endingRemoval(kind, record);
+  const text = kind.textOf(thread);
+  const removals = kind.additionsOf(thread).map((addition) => followUpRemoval(text, kind.addingName, addition));
+  const ending = endingRemoval(kind, thread);
   if (ending !== null) removals.push(ending);
   return removals;
 }

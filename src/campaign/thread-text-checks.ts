@@ -6,20 +6,20 @@ import type { ThreadKind, ThreadRecord } from "./thread-kind";
 
 export function sharesTextWithEarlierOpenThread<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName>(
   kind: ThreadKind<Thread, Ending, EndingName>,
-  records: Thread[],
-  record: Thread,
+  threads: Thread[],
+  thread: Thread,
 ): boolean {
-  const index = records.indexOf(record);
-  return records.slice(0, index).some((earlier) => kind.endingOf(earlier) === null && kind.textOf(earlier) === kind.textOf(record));
+  const index = threads.indexOf(thread);
+  return threads.slice(0, index).some((earlier) => kind.endingOf(earlier) === null && kind.textOf(earlier) === kind.textOf(thread));
 }
 
 export function followUpWouldGoElsewhere<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName>(
   kind: ThreadKind<Thread, Ending, EndingName>,
-  records: Thread[],
-  record: Thread,
+  threads: Thread[],
+  thread: Thread,
   text: string,
 ): boolean {
-  const open = records.filter((candidate) => candidate === record || kind.endingOf(candidate) === null);
-  const found = findSubject(`${kind.textOf(record)}: ${oneLine(text)}`, open, (candidate) => kind.textOf(candidate));
-  return found !== null && found.candidate !== record;
+  const open = threads.filter((candidate) => candidate === thread || kind.endingOf(candidate) === null);
+  const found = findSubject(`${kind.textOf(thread)}: ${oneLine(text)}`, open, (candidate) => kind.textOf(candidate));
+  return found !== null && found.candidate !== thread;
 }
