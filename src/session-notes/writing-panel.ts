@@ -1,6 +1,7 @@
 import type { Campaign } from "../campaign/campaign";
 import type { LookupMatch } from "../lookups/lookup";
-import { openMatch, type LookupOpeners } from "../lookups/open-match";
+import type { LookupOpeners } from "../kinds/lookup-openers";
+import { openMatch } from "../lookups/open-match";
 import { messageOf } from "../views/message-of";
 import type { AppendWriter } from "./append-writer";
 import { BoxLookup } from "./box-lookup";

@@ -1,4 +1,5 @@
-import { kindFollowedUpBy } from "../kinds/follow-up-markers";
+import { kindFollowsUpWith } from "../kinds/follow-ups";
+import { questionTrackedKind } from "../kinds/question-tracked-kind";
 import { readFollowUp, type FollowUp } from "../notes/follow-up";
 import { readItemChange } from "../notes/item-change";
 import { readLedgerEntry } from "../notes/ledger";
@@ -82,7 +83,7 @@ class CampaignBuilder {
   }
 
   private addFollowUp(followUp: FollowUp, line: string, source: Source): void {
-    if (kindFollowedUpBy(followUp.kind).name === "question") {
+    if (kindFollowsUpWith(questionTrackedKind, followUp.kind)) {
       this.addQuestionFollowUp(followUp, line, source);
       return;
     }

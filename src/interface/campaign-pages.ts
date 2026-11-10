@@ -1,12 +1,13 @@
 import type { Component } from "obsidian";
 import type { Campaign } from "../campaign/campaign";
-import { coinSourceKind } from "../kinds/coin-source-kind";
-import { questSourceKind } from "../kinds/quest-source-kind";
-import { questionSourceKind } from "../kinds/question-source-kind";
+import { coinTrackedKind } from "../kinds/coin-tracked-kind";
+import { questTrackedKind } from "../kinds/quest-tracked-kind";
+import { questionTrackedKind } from "../kinds/question-tracked-kind";
+import type { TrackedPageId } from "../kinds/tracked-page-id";
 import { questionsKind } from "../questions/questions-kind";
 import { questsKind } from "../quests/quests-kind";
 
-export type PageId = "home" | "cast" | "notes" | "questions" | "quests" | "funds" | "note" | "welcome";
+export type PageId = "home" | "cast" | "notes" | TrackedPageId | "note" | "welcome";
 
 export type PageTarget = { page: PageId; path: string | null };
 
@@ -91,37 +92,37 @@ export function campaignSections(makers: PageMakers): NavSection[] {
       heading: "From the notes",
       pages: [
         {
-          id: questionSourceKind.page,
+          id: questionTrackedKind.page,
           label: "Questions",
           shortLabel: "Questions",
           listed: true,
           inBar: false,
-          glyph: questionSourceKind.marker.symbol,
-          glyphClass: questionSourceKind.marker.colourClass,
+          glyph: questionTrackedKind.marker.symbol,
+          glyphClass: questionTrackedKind.marker.colourClass,
           make: makers.questions,
           pathAfterDelete: LEAVE_DELETED_NOTE,
           countOf: (campaign) => questionsKind.contentsOf(campaign, []).openCount,
         },
         {
-          id: questSourceKind.page,
+          id: questTrackedKind.page,
           label: "Quests",
           shortLabel: "Quests",
           listed: true,
           inBar: false,
-          glyph: questSourceKind.marker.symbol,
-          glyphClass: questSourceKind.marker.colourClass,
+          glyph: questTrackedKind.marker.symbol,
+          glyphClass: questTrackedKind.marker.colourClass,
           make: makers.quests,
           pathAfterDelete: LEAVE_DELETED_NOTE,
           countOf: (campaign) => questsKind.contentsOf(campaign, []).openCount,
         },
         {
-          id: coinSourceKind.page,
+          id: coinTrackedKind.page,
           label: "Party funds",
           shortLabel: "Funds",
           listed: true,
           inBar: true,
-          glyph: coinSourceKind.marker.symbol,
-          glyphClass: coinSourceKind.marker.colourClass,
+          glyph: coinTrackedKind.marker.symbol,
+          glyphClass: coinTrackedKind.marker.colourClass,
           make: makers.funds,
           pathAfterDelete: LEAVE_DELETED_NOTE,
           countOf: NO_COUNT,

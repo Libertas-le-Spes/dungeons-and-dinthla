@@ -7,7 +7,7 @@ export interface LookupCounts {
 }
 
 export function lookupHeadingOf(lookup: Lookup, counts: LookupCounts): string {
-  const words = lookedUpKindNamed(lookup.kind).lookupWords;
+  const words = lookedUpKindNamed(lookup.kind).lookup.words;
   if (counts.matching > 0) return words.pick;
   if (counts.open === 0) return words.none;
   return `${words.noMatch} “${lookup.keywords.join(" ")}”`;

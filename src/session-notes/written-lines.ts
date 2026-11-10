@@ -1,11 +1,12 @@
 import type { SessionNote, Source } from "../campaign/campaign";
 import { withoutBullet } from "../notes/bullet";
-import { markerSpanOf, type Marker } from "../notes/marker";
+import type { MarkerName } from "../kinds/marker-name";
+import { markerSpanOf } from "../notes/marker";
 
 export interface WrittenLine {
   source: Source;
   glyph: string;
-  marker: Marker | null;
+  marker: MarkerName | null;
   text: string;
 }
 

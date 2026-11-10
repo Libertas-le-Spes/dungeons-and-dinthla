@@ -2,9 +2,10 @@ import { RangeSetBuilder, type EditorState } from "@codemirror/state";
 import { Decoration, ViewPlugin, type DecorationSet, type EditorView, type ViewUpdate } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
 import { firstLineAfterProperties } from "../campaign/session-file";
-import type { SourceMarker } from "../kinds/source-marker";
-import { SOURCE_MARKERS } from "../kinds/source-markers";
-import { markerSpanOf, type Marker } from "../notes/marker";
+import type { MarkerName } from "../kinds/marker-name";
+import type { TrackedMarker } from "../kinds/tracked-marker";
+import { ALL_MARKERS } from "../kinds/tracked-markers";
+import { markerSpanOf } from "../notes/marker";
 
 const PROPERTIES_SEARCH_LINES = 500;
 
@@ -13,11 +14,11 @@ export interface VisibleRange {
   to: number;
 }
 
-function colourOf(marker: SourceMarker): [Marker, Decoration] {
+function colourOf(marker: TrackedMarker): [MarkerName, Decoration] {
   return [marker.name, Decoration.mark({ class: `dd-tokens dd-marker ${marker.colourClass}` })];
 }
 
-const MARKER_COLOURS = new Map<Marker, Decoration>(SOURCE_MARKERS.map(colourOf));
+const MARKER_COLOURS = new Map<MarkerName, Decoration>(ALL_MARKERS.map(colourOf));
 
 export function bodyStartOf(state: EditorState): number {
   const lastSearched = state.doc.line(Math.min(state.doc.lines, PROPERTIES_SEARCH_LINES));
@@ -35,7 +36,9 @@ export function markerDecorations(state: EditorState, ranges: readonly VisibleRa
       if (line.number <= lastLine) continue;
       lastLine = line.number;
       const span = markerSpanOf(line.text);
-      if (span !== null) builder.add(line.from + span.start, line.from + span.end, MARKER_COLOURS.get(span.marker)!);
+      if (span === null) continue;
+      const colour = MARKER_COLOURS.get(span.marker);
+      if (colour !== undefined) builder.add(line.from + span.start, line.from + span.end, colour);
     }
   }
   return builder.finish();

@@ -19,7 +19,7 @@ import { sheetNotesOf } from "./characters/sheet-notes";
 import { mentionNotesOf } from "./characters/mention-notes";
 import { editorTextOf } from "./campaign/editor-text";
 import { markerColouring } from "./editor/marker-decorations";
-import type { LookupOpeners } from "./lookups/open-match";
+import type { LookupOpeners } from "./kinds/lookup-openers";
 import { openNewQuestion } from "./questions/open-new-question";
 import { openQuestion } from "./questions/open-question";
 import { questionsKind } from "./questions/questions-kind";

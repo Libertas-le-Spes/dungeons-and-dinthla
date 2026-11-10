@@ -22,5 +22,5 @@ export function addLookupMatch(el: HTMLElement, match: LookupMatch, keywords: st
   const kind = lookedUpKindNamed(match.kind);
   el.createSpan({ cls: `dd-marker ${kind.marker.colourClass}`, text: kind.marker.symbol });
   addMarkedText(el.createSpan({ cls: "dd-lookup-text" }), match.text, keywords);
-  if (kind.showsHolder) el.createSpan({ cls: "dd-lookup-holder", text: holderShownFor(match) });
+  if (kind.lookup.showsHolder) el.createSpan({ cls: "dd-lookup-holder", text: holderShownFor(match) });
 }
