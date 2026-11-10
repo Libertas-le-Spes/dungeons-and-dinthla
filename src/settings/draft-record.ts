@@ -1,10 +1,11 @@
 export type DraftRecord = Record<string, string>;
 
+function isKeptText(entry: [string, unknown]): entry is [string, string] {
+  const [, text] = entry;
+  return typeof text === "string" && text !== "";
+}
+
 export function draftsIn(read: unknown): DraftRecord {
-  const drafts: DraftRecord = {};
-  if (typeof read !== "object" || read === null || Array.isArray(read)) return drafts;
-  for (const [key, text] of Object.entries(read)) {
-    if (typeof text === "string" && text !== "") drafts[key] = text;
-  }
-  return drafts;
+  if (typeof read !== "object" || read === null || Array.isArray(read)) return {};
+  return Object.fromEntries(Object.entries(read).filter(isKeptText));
 }

@@ -17,11 +17,8 @@ export class FencedMetadata {
   ) {}
 
   get resolvedLinks(): LinkCounts {
-    const links: LinkCounts = {};
-    for (const [source, targets] of Object.entries(this.metadata.resolvedLinks)) {
-      if (this.held.holdsPath(source)) links[source] = this.heldTargets(targets);
-    }
-    return links;
+    const held = Object.entries(this.metadata.resolvedLinks).filter(([source]) => this.held.holdsPath(source));
+    return Object.fromEntries(held.map(([source, targets]) => [source, this.heldTargets(targets)]));
   }
 
   getCache(path: string): CachedMetadata | null {
@@ -57,11 +54,7 @@ export class FencedMetadata {
   }
 
   private heldTargets(targets: Record<string, number>): Record<string, number> {
-    const held: Record<string, number> = {};
-    for (const [target, count] of Object.entries(targets)) {
-      if (this.held.holdsPath(target)) held[target] = count;
-    }
-    return held;
+    return Object.fromEntries(Object.entries(targets).filter(([target]) => this.held.holdsPath(target)));
   }
 
   private pass(data: unknown[], callback: ChangedCallback): void {

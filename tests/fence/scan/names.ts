@@ -49,7 +49,7 @@ export const CODE_MIRROR_MODULE = "@codemirror/";
 
 export const DOCUMENT = "doc";
 
-export const FORBIDDEN_NAMES = ["MarkdownRenderer", "renderMarkdown", "executeCommandById", "commands", "execCommand", "Function", "eval", "openLinkText", "openPopoutLeaf", "activeEditor", "activeLeaf", "getMostRecentLeaf", "duplicateLeaf", "plugins", "getPlugin", "enabledPlugins", "internalPlugins", "__proto__", "FileSystemAdapter", "CapacitorAdapter", "DataAdapter", "readLocalFile", "getBasePath", "getFullPath", "getFullRealPath", "getFilePath", "mkdir", "MarkdownPreviewRenderer", "registerPostProcessor", "changeLayout", "getLayout", "getLastOpenFiles", "registerMarkdownCodeBlockProcessor", "setCssStyles", "setProperty", "cssText", "setAttrs", "setAttributeNS", "setAttributeNode", "setAttributeNodeNS", "setNamedItem", "setNamedItemNS", "createAttribute", "createAttributeNS", "createElementNS", "createSvg"];
+export const FORBIDDEN_NAMES = ["MarkdownRenderer", "renderMarkdown", "executeCommandById", "commands", "execCommand", "Function", "eval", "openLinkText", "openPopoutLeaf", "activeEditor", "activeLeaf", "getMostRecentLeaf", "duplicateLeaf", "plugins", "getPlugin", "enabledPlugins", "internalPlugins", "__proto__", "FileSystemAdapter", "CapacitorAdapter", "DataAdapter", "readLocalFile", "getBasePath", "getFullPath", "getFullRealPath", "getFilePath", "mkdir", "MarkdownPreviewRenderer", "registerPostProcessor", "changeLayout", "getLayout", "getLastOpenFiles", "registerMarkdownCodeBlockProcessor", "setCssStyles", "setProperty", "cssText", "setAttrs", "setAttributeNS", "setAttributeNode", "setAttributeNodeNS", "setNamedItem", "setNamedItemNS", "createAttribute", "createAttributeNS", "createElementNS", "createSvg", "FunctionConstructor"];
 
 export const GATE_ONLY_NAMES = ["recurseChildren"];
 
@@ -211,3 +211,5 @@ export const LINK_OPTION = "href";
 export const PAGE_LINK = "#";
 
 export const PAGE_NAMES = [...TIMERS, ...ATTRIBUTE_SETTERS, ...ELEMENT_MAKERS, ...OPTION_TAKERS.map((taker) => taker.name), ...CSS_PROPERTY_SETTERS, ...POST_PROCESSORS, ...PAGE_TEXT, CHARACTER_DATA, ...ELEMENT_QUERIES, ...OBSIDIAN_ELEMENT_QUERIES];
+
+export const UNSAFE_KEYS = ["constructor", "__proto__", "prototype"];

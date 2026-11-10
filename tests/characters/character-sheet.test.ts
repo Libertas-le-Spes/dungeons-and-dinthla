@@ -129,4 +129,8 @@ describe("labelOf", () => {
     expect(labelOf("AC")).toBe("Armor Class");
     expect(labelOf("Patron")).toBe("Patron");
   });
+
+  it("leaves a value named like a member every object has as written", () => {
+    expect(labelOf("constructor")).toBe("constructor");
+  });
 });

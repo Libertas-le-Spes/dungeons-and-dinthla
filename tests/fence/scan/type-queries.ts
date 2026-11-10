@@ -185,7 +185,7 @@ export class TypeQueries {
     if ((type.flags & TypeFlags.Object) === 0) return true;
     const known = this.reachingTypes.get(type.id);
     if (known !== undefined) return known;
-    const reaches = this.isWide(project, type) || this.reachesByWhatItHolds(project, type);
+    const reaches = this.isWide(project, type) || this.isCallable(project, type) || this.reachesByWhatItHolds(project, type);
     this.reachingTypes.set(type.id, reaches);
     return reaches;
   }
@@ -195,7 +195,11 @@ export class TypeQueries {
     if (isNamedOneOf(type, [OBJECT]) && isLibraryType(type)) return true;
     if (project.checker.getPropertiesOfType(type).length > 0) return false;
     if (project.checker.getIndexInfosOfType(type).length > 0) return false;
-    return project.checker.getSignaturesOfType(type, SignatureKind.Call).length === 0 && project.checker.getSignaturesOfType(type, SignatureKind.Construct).length === 0;
+    return !this.isCallable(project, type);
+  }
+
+  private isCallable(project: Project, type: Type): boolean {
+    return project.checker.getSignaturesOfType(type, SignatureKind.Call).length > 0 || project.checker.getSignaturesOfType(type, SignatureKind.Construct).length > 0;
   }
 
   private holdsReachingName(project: Project, type: Type): boolean {

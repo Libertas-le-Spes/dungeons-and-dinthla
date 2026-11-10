@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { ALL_ALLOWED, LOOSE_CASTS_ALLOWED } from "./scan/allowance-sets";
+import { ALL_ALLOWED, isAlwaysAllowed, LOOSE_CASTS_ALLOWED, NOTHING_ALLOWED } from "./scan/allowance-sets";
 import { SampleScan } from "./scan/sample-scan";
 import {
   CAST_SAMPLES,
@@ -13,9 +13,11 @@ import {
   OTHER_PLUGIN_SAMPLES,
   REACHING_SAMPLES,
   WIDENING_SAMPLES,
+  KEY_SAMPLES,
+  ALLOWED_KEY_SAMPLES,
 } from "./samples/vault-access-samples";
 
-const SAMPLES = [...REACHING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...FOLDER_WALK_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...WIDENING_SAMPLES, ...HARMLESS_SAMPLES];
+const SAMPLES = [...REACHING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...FOLDER_WALK_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...WIDENING_SAMPLES, ...KEY_SAMPLES, ...ALLOWED_KEY_SAMPLES, ...HARMLESS_SAMPLES];
 
 let scan: SampleScan;
 
@@ -66,6 +68,14 @@ describe("the source scan's vault access rules", () => {
 
   it.each(WIDENING_SAMPLES)("would catch reaching the vault through a value widened to hide it with %s, even in a file allowed to cast", (sample) => {
     expect(scan.breaches(sample, LOOSE_CASTS_ALLOWED)).not.toEqual([]);
+  });
+
+  it.each(KEY_SAMPLES)("would catch a key that could name constructor, __proto__ or prototype, or a Function maker, with %s, even in a file allowed computed keys and casts", (sample) => {
+    expect(scan.breaches(sample, { ...NOTHING_ALLOWED, computedKeys: isAlwaysAllowed, looseCasts: isAlwaysAllowed })).not.toEqual([]);
+  });
+
+  it.each(ALLOWED_KEY_SAMPLES)("lets %s pass in a file allowed computed keys, since its key can only be a number or a safe name", (sample) => {
+    expect(scan.breaches(sample, { ...NOTHING_ALLOWED, computedKeys: isAlwaysAllowed })).toEqual([]);
   });
 
   it.each(HARMLESS_SAMPLES)("lets %s pass, since it reaches neither the vault nor an editor's text", (sample) => {

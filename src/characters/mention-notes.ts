@@ -11,7 +11,7 @@ export interface MentionNotes extends Pick<SheetNotes, "fileAt" | "textOf" | "ca
 
 function linkingPaths(gate: Gate, target: string): string[] {
   const resolved = Object.entries(gate.metadata.resolvedLinks);
-  return resolved.filter(([, targets]) => targets[target] !== undefined).map(([source]) => source);
+  return resolved.filter(([, targets]) => Object.hasOwn(targets, target)).map(([source]) => source);
 }
 
 function pointsTo(gate: Gate, linktext: string, sourcePath: string, target: string): boolean {

@@ -21,6 +21,7 @@ export interface Allowances {
   gateBuilding: Allowed;
   obsidianImports: AllowedName;
   postProcessing: Allowed;
+  computedKeys: Allowed;
   pageText: Allowed;
   elementQueries: Allowed;
   tags: AllowedName;
