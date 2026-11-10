@@ -1,7 +1,8 @@
 import { applySessionChange } from "../campaign/apply-session-change";
 import { buildCampaign } from "../campaign/build-campaign";
 import type { CoinRecord, SessionNote, Source } from "../campaign/campaign";
-import { CHANGED_IN_NOTE, NoteEditor, removalAsRead, type EditorFiles, type Removal } from "../campaign/note-editor";
+import { CHANGED_IN_NOTE, removalAsRead, type EditorFiles, type Removal } from "../campaign/note-editor";
+import { SessionChangeWriter } from "../campaign/session-change-writer";
 import { comparableLine, draftOf, readCoinDraft, type CoinDraft, type CoinLine } from "../notes/coin-lines";
 import { coinSessionChange } from "./coin-session-change";
 
@@ -41,16 +42,16 @@ function keepsTheEntry(record: CoinRecord, draft: CoinDraft): boolean {
 }
 
 export function coinEntryEdit(files: EditorFiles, store: { readonly sessionNotes: SessionNote[] }, record: CoinRecord): CoinEntryEdit {
-  const editor = new NoteEditor(files);
+  const writer = new SessionChangeWriter(files);
   const removal = removalAsRead(store.sessionNotes, record.source);
   const draft = draftOf(record.text, record.entry.copper, record.entry.coins);
   let cannotSave: string | null = CANNOT_SHOW;
   if (keepsTheEntry(record, draft)) cannotSave = null;
   const opened = readCoinDraft(draft);
-  const change = async (coinLine: CoinLine | null, write: () => Promise<boolean>) => {
+  const change = async (coinLine: CoinLine | null) => {
     const refusal = refusalForEntryChange(store.sessionNotes, record, removal, coinLine);
     if (refusal !== null) throw new Error(refusal);
-    return write();
+    return writer.apply(coinSessionChange(removal, coinLine));
   };
   return {
     draft,
@@ -58,8 +59,8 @@ export function coinEntryEdit(files: EditorFiles, store: { readonly sessionNotes
     save: async (coinLine) => {
       if (cannotSave !== null) throw new Error(cannotSave);
       if ("line" in opened && coinLine.line === opened.line) return false;
-      return change(coinLine, () => editor.rewrite(removal, coinLine.line));
+      return change(coinLine);
     },
-    delete: () => change(null, () => editor.drop(removal)),
+    delete: () => change(null),
   };
 }
