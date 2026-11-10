@@ -4,7 +4,8 @@ import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { Campaign, ItemRecord, SessionNote } from "../../src/campaign/campaign";
 import { CHANGED_IN_NOTE, type EditorFiles } from "../../src/campaign/note-editor";
 import { sessionNoteOf } from "../../src/campaign/session-file";
-import { openedItem, type ItemSource } from "../../src/funds/item-writer";
+import type { ItemSource } from "../../src/funds/item-source";
+import { openedItem } from "../../src/funds/item-writer";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";

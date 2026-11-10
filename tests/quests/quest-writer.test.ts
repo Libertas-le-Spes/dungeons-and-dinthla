@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import { CHANGED_IN_NOTE, LINES_LEFT, type EditorFiles } from "../../src/campaign/note-editor";
+import { linesAddedTo } from "../../src/campaign/session-change";
+import { SessionChangeWriter } from "../../src/campaign/session-change-writer";
 import { sessionNoteOf } from "../../src/campaign/session-file";
 import { canCollectReward, CHANGES_ANOTHER_QUEST, initialQuestEdit, planQuestSave, refusalForQuestPlan, type QuestEdit } from "../../src/quests/quest-plan";
+import { questSessionChange } from "../../src/quests/quest-session-change";
 import { QuestWriter } from "../../src/quests/quest-writer";
 
 class FakeNotes {
@@ -44,7 +47,7 @@ class FakeNotes {
     const plan = planQuestSave(record, edit(changes), campaign.coins, targetPath);
     const refusal = refusalForQuestPlan(this.sessions(), record, plan);
     if (refusal !== null) throw new Error(refusal);
-    return new QuestWriter(this.vault).apply(plan);
+    return new SessionChangeWriter(this.vault).apply(questSessionChange(plan));
   }
 }
 
@@ -135,7 +138,7 @@ describe("saving a quest", () => {
     const campaign = notes.campaign();
     const plan = planQuestSave(campaign.quests[0]!, edit({ status: "active" }), campaign.coins, ONE);
     notes.texts.set(ONE, "! Find it\n!= Find it: done, mostly\n");
-    await expect(new QuestWriter(notes.vault).apply(plan)).rejects.toThrow(CHANGED_IN_NOTE);
+    await expect(new SessionChangeWriter(notes.vault).apply(questSessionChange(plan))).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notes.texts.get(ONE)).toBe("! Find it\n!= Find it: done, mostly\n");
   });
 
@@ -145,7 +148,7 @@ describe("saving a quest", () => {
     const plan = planQuestSave(campaign.quests[0]!, edit({ status: "active" }), campaign.coins, ONE);
     const handEdited = "! Find it\n!= Find it: done, mostly\n!= Find it: done\n";
     notes.texts.set(ONE, handEdited);
-    await expect(new QuestWriter(notes.vault).apply(plan)).rejects.toThrow(CHANGED_IN_NOTE);
+    await expect(new SessionChangeWriter(notes.vault).apply(questSessionChange(plan))).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notes.texts.get(ONE)).toBe(handEdited);
   });
 });
@@ -270,7 +273,7 @@ describe("refusing a quest change that swaps lines with a quest starting the sam
 describe("adding a quest", () => {
   it("adds the new quest's line to the session", async () => {
     const notes = new FakeNotes({ [ONE]: "We rode on.\n" });
-    expect(await new QuestWriter(notes.vault).add("! Escort Mira, reward: 50 gp", ONE)).toBe(true);
+    expect(await new SessionChangeWriter(notes.vault).apply(linesAddedTo(ONE, ["! Escort Mira, reward: 50 gp"]))).toBe(true);
     expect(notes.campaign().quests.map((record) => [record.quest.title, record.quest.reward])).toEqual([["Escort Mira", "50 gp"]]);
   });
 });

@@ -1,6 +1,7 @@
 import { Notice, type App } from "obsidian";
 import type { Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
+import { SessionChangeWriter } from "../campaign/session-change-writer";
 import { sessionLabelOf } from "../campaign/session-file";
 import { sessionForDialog } from "../campaign/session-for-dialog";
 import { writeRecordChange } from "../campaign/write-record-change";
@@ -38,9 +39,10 @@ export function openQuest(
   const sessionPath = sessionForDialog(gate.files, folder, wanted);
   if (sessionPath === null) return;
   const writer = new QuestWriter(gate.files);
+  const changes = new SessionChangeWriter(gate.files);
   const latest = () => currentQuest(store.current.quests, record);
   const choices = {
-    save: async (edit: QuestEdit) => writeRecordChange(questSave(store, latest(), edit, sessionPath, writer)),
+    save: async (edit: QuestEdit) => writeRecordChange(questSave(store, latest(), edit, sessionPath), changes),
     delete: () => writer.delete(latest()),
   };
   let finishedIn = sessionLabelOf(sessionPath);

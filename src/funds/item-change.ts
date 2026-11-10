@@ -1,14 +1,13 @@
 import type { CoinRecord, ItemRecord, SessionNote } from "../campaign/campaign";
 import { CHANGED_IN_NOTE, type EditorFiles } from "../campaign/note-editor";
 import type { RecordChange } from "../campaign/record-change";
-import type { SessionChangeWriter } from "../campaign/session-change-writer";
 import { refusedWhen, verdictOf, writeNothingWhen } from "../campaign/verdict";
 import { planItemSave, refusalForItemPlan, type ItemEdit, type ItemPlan } from "./item-plan";
 import { itemSessionChange } from "./item-session-change";
-import type { ItemSource } from "./item-writer";
+import type { ItemSource } from "./item-source";
 import { readsAsOpened } from "./reads-as-opened";
 
-export interface OpenedItemNotes {
+export interface ItemAsOpened {
   files: EditorFiles;
   store: ItemSource;
   sessions: SessionNote[];
@@ -19,18 +18,14 @@ function writesNothing(plan: ItemPlan): boolean {
   return plan.added.length === 0 && plan.removal === null && plan.rewrite === null;
 }
 
-export function itemSave(notes: OpenedItemNotes, item: ItemRecord, edit: ItemEdit, sessionPath: string, writer: SessionChangeWriter): RecordChange<ItemPlan> {
+export function itemSave(asOpened: ItemAsOpened, item: ItemRecord, edit: ItemEdit, sessionPath: string): RecordChange<ItemPlan> {
   return {
-    plan: () => {
-      const plan = planItemSave(item, edit, notes.sessions, notes.coins, sessionPath);
-      if ("error" in plan) return { refused: plan.error };
-      return plan;
-    },
+    plan: () => planItemSave(item, edit, asOpened.sessions, asOpened.coins, sessionPath),
     checks: [
       (plan) => writeNothingWhen(writesNothing(plan)),
-      async () => refusedWhen(!(await readsAsOpened(notes.files, notes.store, notes.sessions, item)), CHANGED_IN_NOTE),
-      (plan) => verdictOf(refusalForItemPlan(notes.sessions, item, plan)),
+      async () => refusedWhen(!(await readsAsOpened(asOpened.files, asOpened.store, asOpened.sessions, item)), CHANGED_IN_NOTE),
+      (plan) => verdictOf(refusalForItemPlan(asOpened.sessions, item, plan)),
     ],
-    writePlan: (plan) => writer.apply(itemSessionChange(plan)),
+    sessionChangeOf: itemSessionChange,
   };
 }

@@ -3,15 +3,16 @@ import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { Campaign, QuestionRecord, SessionNote } from "../../src/campaign/campaign";
 import { PartlyWritten, type EditorFiles } from "../../src/campaign/note-editor";
+import { SessionChangeWriter } from "../../src/campaign/session-change-writer";
 import { sessionNoteOf } from "../../src/campaign/session-file";
 import { writeRecordChange } from "../../src/campaign/write-record-change";
 import { ANSWER_GOES_ELSEWHERE } from "../../src/questions/current-question";
 import { questionReopen, questionSave } from "../../src/questions/question-change";
 import { CHANGES_MORE_THAN_ASKED } from "../../src/questions/question-plan";
-import { QuestionWriter } from "../../src/questions/question-writer";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
+const THREE = "Pale Moon/Sessions/Session 3.md";
 const NINE = "Pale Moon/Sessions/Session 9.md";
 
 function numberOf(path: string): number {
@@ -72,11 +73,11 @@ class FakeNotes {
 }
 
 function save(notes: FakeNotes, text: string, answer: string, followUp: string, sessionPath: string): Promise<boolean> {
-  return writeRecordChange(questionSave(notes, notes.question(text), { answer, followUp }, sessionPath, new QuestionWriter(notes.vault)));
+  return writeRecordChange(questionSave(notes, notes.question(text), { answer, followUp }, sessionPath), new SessionChangeWriter(notes.vault));
 }
 
 function reopen(notes: FakeNotes, text: string, sessionPath: string): Promise<boolean> {
-  return writeRecordChange(questionReopen(notes, notes.question(text), sessionPath, new QuestionWriter(notes.vault)));
+  return writeRecordChange(questionReopen(notes, notes.question(text), sessionPath), new SessionChangeWriter(notes.vault));
 }
 
 describe("saving a question", () => {
@@ -92,10 +93,9 @@ describe("saving a question", () => {
     expect(notes.writes).toBe(0);
   });
 
-  it("refuses a plan that would change more than asked, writing nothing", async () => {
-    const notes = new FakeNotes({ [ONE]: "? Who\n" });
-    notes.texts.set(NINE, "");
-    await expect(save(notes, "Who", "Mira", "", NINE)).rejects.toThrow(CHANGES_MORE_THAN_ASKED);
+  it("refuses a follow-up that a stray line would answer at once, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n", [TWO]: "", [THREE]: "?= Why, after: Who: the mill\n" });
+    await expect(save(notes, "Who", "Mira", "Why", TWO)).rejects.toThrow(CHANGES_MORE_THAN_ASKED);
     expect(notes.writes).toBe(0);
   });
 

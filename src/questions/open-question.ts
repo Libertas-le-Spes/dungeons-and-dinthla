@@ -1,6 +1,7 @@
 import { Notice, type App } from "obsidian";
 import type { Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
+import { SessionChangeWriter } from "../campaign/session-change-writer";
 import { sessionLabelOf } from "../campaign/session-file";
 import { sessionForDialog } from "../campaign/session-for-dialog";
 import { writeRecordChange } from "../campaign/write-record-change";
@@ -39,10 +40,11 @@ export function openQuestion(
   const sessionPath = sessionForDialog(gate.files, folder, wanted);
   if (sessionPath === null) return;
   const writer = new QuestionWriter(gate.files);
+  const changes = new SessionChangeWriter(gate.files);
   const latest = () => currentQuestion(store.current.questions, question);
   const choices = {
-    save: async (edit: QuestionEdit) => writeRecordChange(questionSave(store, latest(), edit, sessionPath, writer)),
-    reopen: () => writeRecordChange(questionReopen(store, latest(), sessionPath, writer)),
+    save: async (edit: QuestionEdit) => writeRecordChange(questionSave(store, latest(), edit, sessionPath), changes),
+    reopen: () => writeRecordChange(questionReopen(store, latest(), sessionPath), changes),
     delete: () => writer.delete(latest()),
   };
   let answeredIn = sessionLabelOf(sessionPath);

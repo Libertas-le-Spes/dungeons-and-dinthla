@@ -3,14 +3,16 @@ import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { Campaign, QuestRecord, SessionNote } from "../../src/campaign/campaign";
 import type { EditorFiles } from "../../src/campaign/note-editor";
+import { SessionChangeWriter } from "../../src/campaign/session-change-writer";
 import { sessionNoteOf } from "../../src/campaign/session-file";
 import { writeRecordChange } from "../../src/campaign/write-record-change";
 import { GOES_ELSEWHERE } from "../../src/quests/current-quest";
 import { questSave } from "../../src/quests/quest-change";
 import { canCollectReward, CHANGES_ANOTHER_QUEST, type QuestEdit } from "../../src/quests/quest-plan";
-import { QuestWriter } from "../../src/quests/quest-writer";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
+const TWO = "Pale Moon/Sessions/Session 2.md";
+const THREE = "Pale Moon/Sessions/Session 3.md";
 const NINE = "Pale Moon/Sessions/Session 9.md";
 
 function numberOf(path: string): number {
@@ -72,7 +74,7 @@ class FakeNotes {
 
 function save(notes: FakeNotes, title: string, changes: Partial<QuestEdit>, sessionPath: string): Promise<boolean> {
   const edit = { status: "active" as const, happened: "", collectReward: false, followUp: "", ...changes };
-  return writeRecordChange(questSave(notes, notes.quest(title), edit, sessionPath, new QuestWriter(notes.vault)));
+  return writeRecordChange(questSave(notes, notes.quest(title), edit, sessionPath), new SessionChangeWriter(notes.vault));
 }
 
 describe("saving a quest", () => {
@@ -88,10 +90,9 @@ describe("saving a quest", () => {
     expect(notes.writes).toBe(0);
   });
 
-  it("refuses a plan that would change another quest or the purse, writing nothing", async () => {
-    const notes = new FakeNotes({ [ONE]: "! Find it\n" });
-    notes.texts.set(NINE, "");
-    await expect(save(notes, "Find it", { happened: "tracks" }, NINE)).rejects.toThrow(CHANGES_ANOTHER_QUEST);
+  it("refuses a follow-up quest that a stray line would mark finished at once, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "! T\n", [TWO]: "", [THREE]: "!= Return it, after: T: done\n" });
+    await expect(save(notes, "T", { followUp: "Return it" }, TWO)).rejects.toThrow(CHANGES_ANOTHER_QUEST);
     expect(notes.writes).toBe(0);
   });
 

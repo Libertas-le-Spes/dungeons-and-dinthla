@@ -1,15 +1,15 @@
 import type { CampaignStore } from "../campaign/campaign-store";
 import type { RecordChange } from "../campaign/record-change";
+import { linesAddedTo } from "../campaign/session-change";
 import { verdictOf } from "../campaign/verdict";
-import { questionTextOf } from "../notes/question-lines";
 import { refusalForNewQuestion } from "./current-question";
+import { planNewQuestion, type NewQuestionPlan } from "./new-question";
 import type { NewQuestion } from "./new-question-modal";
-import type { QuestionWriter } from "./question-writer";
 
-export function newQuestionAdd(store: Pick<CampaignStore, "current">, entry: NewQuestion, sessionPath: string, writer: QuestionWriter): RecordChange<NewQuestion> {
+export function newQuestion(store: Pick<CampaignStore, "current">, entry: NewQuestion, sessionPath: string): RecordChange<NewQuestionPlan> {
   return {
-    plan: () => ({ question: questionTextOf(entry.question), answer: entry.answer }),
-    checks: [(plan) => verdictOf(refusalForNewQuestion(store.current.questions, plan.question, plan.answer))],
-    writePlan: (plan) => writer.add(plan.question, plan.answer, sessionPath),
+    plan: () => planNewQuestion(entry),
+    checks: [(plan) => verdictOf(refusalForNewQuestion(store.current.questions, plan.text, plan.answer))],
+    sessionChangeOf: (plan) => linesAddedTo(sessionPath, plan.lines),
   };
 }
