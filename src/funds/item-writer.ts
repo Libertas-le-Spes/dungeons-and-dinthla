@@ -1,8 +1,10 @@
 import { buildCampaign } from "../campaign/build-campaign";
 import type { Campaign, ItemRecord, SessionNote } from "../campaign/campaign";
-import { CHANGED_IN_NOTE, NoteEditor, type EditorFiles } from "../campaign/note-editor";
+import { CHANGED_IN_NOTE, type EditorFiles } from "../campaign/note-editor";
+import { SessionChangeWriter } from "../campaign/session-change-writer";
 import { sessionNoteOf } from "../campaign/session-file";
 import { initialItemEdit, planItemSave, refusalForItemPlan, type ItemEdit, type ItemPlan } from "./item-plan";
+import { itemSessionChange } from "./item-session-change";
 
 export interface ItemSource {
   readonly current: Campaign;
@@ -41,7 +43,7 @@ async function readsAsOpened(files: EditorFiles, store: ItemSource, sessions: Se
 }
 
 export function openedItem(files: EditorFiles, store: ItemSource, item: ItemRecord, sessionPath: string): OpenedItem {
-  const editor = new NoteEditor(files);
+  const writer = new SessionChangeWriter(files);
   const sessions = store.sessionNotes;
   const coins = store.current.coins;
   return {
@@ -53,9 +55,7 @@ export function openedItem(files: EditorFiles, store: ItemSource, item: ItemReco
       if (!(await readsAsOpened(files, store, sessions, item))) throw new Error(CHANGED_IN_NOTE);
       const refusal = refusalForItemPlan(sessions, item, plan);
       if (refusal !== null) throw new Error(refusal);
-      if (plan.rewrite !== null) return editor.rewrite(plan.rewrite.old, plan.rewrite.line);
-      if (plan.removal === null) return editor.append(plan.targetPath, plan.added);
-      return editor.replace(plan.targetPath, plan.added, plan.removal);
+      return writer.apply(itemSessionChange(plan));
     },
   };
 }
