@@ -1,7 +1,7 @@
-import type { Source } from "../campaign/campaign";
-import type { LookupKind, LookupMatch } from "../lookups/lookup";
-import type { LookupOpeners } from "../lookups/open-match";
-import type { SourceKind } from "./source-kind";
+import type { LookupKindName } from "./lookup-kind-name";
+import type { LookupOpeners } from "./lookup-openers";
+import type { Source } from "./source";
+import type { TrackedKind } from "./tracked-kind";
 
 export interface LookupWords {
   pick: string;
@@ -9,10 +9,14 @@ export interface LookupWords {
   none: string;
 }
 
-export interface LookedUpKind extends SourceKind {
-  name: LookupKind;
-  lookupSymbol: string;
-  lookupWords: LookupWords;
+export interface KindLookup {
+  symbol: string;
+  words: LookupWords;
   showsHolder: boolean;
-  open(openers: LookupOpeners, match: LookupMatch, source: Source, onClosed: () => void): void;
+  open(openers: LookupOpeners, text: string, source: Source, onClosed: () => void): void;
+}
+
+export interface LookedUpKind extends TrackedKind {
+  name: LookupKindName;
+  lookup: KindLookup;
 }

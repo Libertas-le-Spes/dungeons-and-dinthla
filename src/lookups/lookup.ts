@@ -1,33 +1,35 @@
 import type { Campaign, Source } from "../campaign/campaign";
 import { holderNameOf } from "../funds/item-groups";
-import { lookedUpKindOf } from "../kinds/looked-up-kinds";
+import { LOOKUP_SYMBOL_LIST, lookedUpKindBySymbol } from "../kinds/looked-up-kinds";
+import type { LookupKindName } from "../kinds/lookup-kind-name";
+import { symbolPatternOf } from "../kinds/symbol-pattern";
 import { readItemChange } from "../notes/item-change";
 import { unlink } from "../notes/link";
 import { listQuestions } from "../questions/question-list";
 import { listQuests } from "../quests/quest-list";
 import { keywordsOf } from "../views/keywords";
 
-export type LookupKind = "question" | "quest" | "item";
-
 export interface Lookup {
-  kind: LookupKind;
+  kind: LookupKindName;
   keywords: string[];
 }
 
 export interface LookupMatch {
-  kind: LookupKind;
+  kind: LookupKindName;
   text: string;
   holder: string;
   source: Source;
 }
 
 export const LOOKUP_LIMIT = 8;
-const LOOKUP_LINE = /^\s*(\?\?|!!|\$\$)\s?(.*)$/;
+const LOOKUP_LINE = new RegExp(`^\\s*(${symbolPatternOf(LOOKUP_SYMBOL_LIST)})\\s?(.*)$`);
 
 export function readLookup(line: string): Lookup | null {
   const match = LOOKUP_LINE.exec(line);
   if (match === null) return null;
-  const kind = lookedUpKindOf(match[1]!).name;
+  const looked = lookedUpKindBySymbol(match[1]!);
+  if (looked === undefined) return null;
+  const kind = looked.name;
   const typed = match[2]!;
   if (kind === "item" && readItemChange(line) !== null) return null;
   return { kind, keywords: keywordsOf(typed) };

@@ -1,7 +1,7 @@
 import { Component } from "obsidian";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { latestNumberIsShared, SESSIONS_SHARE_A_NUMBER } from "../campaign/session-to-write";
-import type { LookupOpeners } from "../lookups/open-match";
+import type { LookupOpeners } from "../kinds/lookup-openers";
 import type { NoteEditingNeeds } from "../note-editing/note-editing";
 import type { LinkActions } from "../views/linked-text";
 import type { AppendWriter } from "./append-writer";

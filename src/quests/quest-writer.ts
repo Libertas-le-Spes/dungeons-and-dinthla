@@ -1,11 +1,11 @@
 import type { QuestRecord, SourcedText } from "../campaign/campaign";
 import { NoteEditor, type EditorFiles, type Removal } from "../campaign/note-editor";
-import type { FollowUpKind } from "../notes/follow-up";
+import type { FollowUpName } from "../kinds/follow-up-name";
 import { isQuestLine } from "../notes/quest-lines";
 import { isFollowUpLine } from "../notes/question-lines";
 import { outcomeRemoval, type QuestPlan } from "./quest-plan";
 
-function followUpRemoval(record: QuestRecord, kind: FollowUpKind, note: SourcedText): Removal {
+function followUpRemoval(record: QuestRecord, kind: FollowUpName, note: SourcedText): Removal {
   return {
     path: note.source.path,
     line: note.source.line,

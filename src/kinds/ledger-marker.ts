@@ -1,3 +1,3 @@
-import type { SourceMarker } from "./source-marker";
+import type { TrackedMarker } from "./tracked-marker";
 
-export const ledgerMarker: SourceMarker = { name: "ledger", symbol: "$", colourClass: "dd-marker-ledger" };
+export const ledgerMarker: TrackedMarker = { name: "ledger", symbol: "$", colourClass: "dd-marker-ledger" };
