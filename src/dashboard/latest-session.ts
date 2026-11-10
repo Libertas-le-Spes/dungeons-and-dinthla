@@ -1,21 +1,39 @@
-import type { Campaign, QuestionRecord, QuestRecord, Source } from "../campaign/campaign";
+import type { Campaign, Source, SourcedText } from "../campaign/campaign";
+import type { ThreadRecord } from "../campaign/thread-kind";
 import type { LedgerLine } from "../funds/funds-summary";
+import type { FollowUpName } from "../kinds/follow-up-name";
+import type { ShownThreadKind } from "../views/shown-thread-kind";
+import { SHOWN_THREAD_KINDS } from "../views/shown-thread-kinds";
 
-export type WrittenLine =
-  | { kind: "question"; source: Source; question: QuestionRecord }
-  | { kind: "quest"; source: Source; quest: QuestRecord }
-  | { kind: "coin"; source: Source; ledgerLine: LedgerLine };
+export interface WrittenLineRows {
+  addThread<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName>(
+    shown: ShownThreadKind<Thread, Ending, EndingName>,
+    thread: Thread,
+  ): void;
+  addLedgerLine(ledgerLine: LedgerLine): void;
+}
+
+export interface WrittenLine {
+  source: Source;
+  addTo(rows: WrittenLineRows): void;
+}
+
+function threadsWrittenIn<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName>(
+  path: string,
+  campaign: Campaign,
+  shown: ShownThreadKind<Thread, Ending, EndingName>,
+): WrittenLine[] {
+  const written = shown.threadsOf(campaign).filter((thread) => thread.source.path === path);
+  return written.map((thread) => ({ source: thread.source, addTo: (rows) => rows.addThread(shown, thread) }));
+}
+
+function ledgerLinesWrittenIn(path: string, ledger: LedgerLine[]): WrittenLine[] {
+  const written = ledger.filter((ledgerLine) => ledgerLine.record.source.path === path);
+  return written.map((ledgerLine) => ({ source: ledgerLine.record.source, addTo: (rows) => rows.addLedgerLine(ledgerLine) }));
+}
 
 export function linesWrittenIn(path: string, campaign: Campaign, ledger: LedgerLine[]): WrittenLine[] {
-  const lines: WrittenLine[] = [];
-  for (const question of campaign.questions) {
-    if (question.source.path === path) lines.push({ kind: "question", source: question.source, question });
-  }
-  for (const quest of campaign.quests) {
-    if (quest.source.path === path) lines.push({ kind: "quest", source: quest.source, quest });
-  }
-  for (const ledgerLine of ledger) {
-    if (ledgerLine.record.source.path === path) lines.push({ kind: "coin", source: ledgerLine.record.source, ledgerLine });
-  }
+  const threads = SHOWN_THREAD_KINDS.flatMap((shown) => threadsWrittenIn(path, campaign, shown));
+  const lines = [...threads, ...ledgerLinesWrittenIn(path, ledger)];
   return lines.sort((first, second) => second.source.line - first.source.line);
 }

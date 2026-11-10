@@ -144,6 +144,11 @@ describe("DashboardPage", () => {
     expect(textsOf(quests, ".dd-text")).toEqual(["Bury it", "Burn it", "Guard it"]);
   });
 
+  it("heads the quests panel with the active quests", async () => {
+    const { root } = await openDashboard([sessionOf(1, ["! Find it"])]);
+    expect(textsOf(panel(root, QUESTS), ".dd-title")).toEqual(["Active quests"]);
+  });
+
   it("shows the purse, the items held, money in and out, and the three latest entries", async () => {
     const lines = ["$ +50 gp advance", "$ Paid 2 gp for rooms", "$ 35 gp 4 sp from the bandits", "$ 1 gp found", "$ Potion of healing", "$ [[Mira]] Rope"];
     const { root } = await openDashboard([sessionOf(1, lines)]);
@@ -240,6 +245,15 @@ describe("DashboardPage", () => {
     expect(actions.openQuest).toHaveBeenCalledWith({ ...source, line: 0 }, expect.any(Function));
     closers.quest[0]!(false);
     expect(root.ownerDocument.activeElement!.closest(".dd-panel")).toBe(panel(root, QUESTS));
+  });
+
+  it("opens a quest's dialog from its row in the session panel", async () => {
+    const { root, actions } = await openDashboard([sessionOf(1, ["! Find it"])]);
+    const row = panel(root, SESSION).querySelector<HTMLElement>(".dd-row");
+    expect(row).not.toBeNull();
+    row?.click();
+    expect(actions.openQuest).toHaveBeenCalledWith({ path: `${CAMPAIGN}/Sessions/Session 1.md`, line: 0 }, expect.any(Function));
+    expect(actions.openQuestion).not.toHaveBeenCalled();
   });
 
   it("puts focus back on the row in the panel it was tapped in, once the dashboard has redrawn", async () => {
