@@ -1,9 +1,9 @@
-import { Notice, type App } from "obsidian";
+import type { App } from "obsidian";
 import type { ItemRecord, Source } from "../campaign/campaign";
 import { charactersIn } from "../campaign/characters";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
-import { latestNumberIsShared, SESSIONS_SHARE_A_NUMBER, sessionToWriteIn } from "../campaign/session-to-write";
+import { sessionForDialog } from "../campaign/session-for-dialog";
 import { openSource } from "../views/open-view";
 import { ItemModal } from "./item-modal";
 import { holderOptionOf, holderOptions, latestSessionOfItem } from "./item-plan";
@@ -31,16 +31,9 @@ export function openItemDialog(
     openNote();
     return;
   }
-  const paths = gate.files.getFiles().map((file) => file.path);
-  const sessionPath = sessionToWriteIn(activePath, folder, paths, latestSessionOfItem(item, folder));
-  if (sessionPath === null && latestNumberIsShared(folder, paths)) {
-    new Notice(SESSIONS_SHARE_A_NUMBER);
-    return;
-  }
-  if (sessionPath === null) {
-    new Notice(NO_SESSION);
-    return;
-  }
+  const wanted = { activePath, earliestSession: latestSessionOfItem(item, folder), noSession: NO_SESSION };
+  const sessionPath = sessionForDialog(gate.files, folder, wanted);
+  if (sessionPath === null) return;
   const holders = holderOptions(
     store.current.items.map(holderOptionOf),
     charactersIn(gate, folder, sessionPath).map((character) => ({ text: `[[${character.linktext}]]`, label: character.name })),
