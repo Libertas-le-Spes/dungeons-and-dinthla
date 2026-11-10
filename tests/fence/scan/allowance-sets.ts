@@ -4,6 +4,14 @@ export function isNeverAllowed(): boolean {
   return false;
 }
 
+export function isAnyNameAllowed(): boolean {
+  return true;
+}
+
+export function isNoNameAllowed(): boolean {
+  return false;
+}
+
 export function isAlwaysAllowed(): boolean {
   return true;
 }
@@ -25,6 +33,8 @@ export const NOTHING_ALLOWED: Allowances = {
   viewFile: isNeverAllowed,
   noteEvents: isNeverAllowed,
   gateBuilding: isNeverAllowed,
+  obsidianImports: isAnyNameAllowed,
+  globals: isAnyNameAllowed,
 };
 
 export const ALL_ALLOWED: Allowances = {
@@ -44,6 +54,8 @@ export const ALL_ALLOWED: Allowances = {
   viewFile: isAlwaysAllowed,
   noteEvents: isAlwaysAllowed,
   gateBuilding: isAlwaysAllowed,
+  obsidianImports: isAnyNameAllowed,
+  globals: isAnyNameAllowed,
 };
 
 export const LOOSE_CASTS_ALLOWED: Allowances = { ...NOTHING_ALLOWED, looseCasts: isAlwaysAllowed };

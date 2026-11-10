@@ -49,7 +49,7 @@ export const CODE_MIRROR_MODULE = "@codemirror/";
 
 export const DOCUMENT = "doc";
 
-export const FORBIDDEN_NAMES = ["MarkdownRenderer", "renderMarkdown", "executeCommandById", "commands", "execCommand", "Function", "eval", "openLinkText", "openPopoutLeaf", "activeEditor", "activeLeaf", "getMostRecentLeaf", "duplicateLeaf", "plugins", "getPlugin", "enabledPlugins", "internalPlugins", "__proto__"];
+export const FORBIDDEN_NAMES = ["MarkdownRenderer", "renderMarkdown", "executeCommandById", "commands", "execCommand", "Function", "eval", "openLinkText", "openPopoutLeaf", "activeEditor", "activeLeaf", "getMostRecentLeaf", "duplicateLeaf", "plugins", "getPlugin", "enabledPlugins", "internalPlugins", "__proto__", "FileSystemAdapter", "CapacitorAdapter", "DataAdapter", "readLocalFile", "getBasePath", "getFullPath", "getFullRealPath", "getFilePath", "mkdir", "MarkdownPreviewRenderer", "registerPostProcessor", "changeLayout", "getLayout", "getLastOpenFiles"];
 
 export const GATE_ONLY_NAMES = ["recurseChildren"];
 
@@ -161,3 +161,7 @@ export const EVENT_OWNERS = ["Workspace", "Events"];
 export const NOTE_EVENTS = ["file-open", "active-leaf-change", "editor-change", "file-menu", "editor-menu", "quick-preview"];
 
 export const BOUND_READS = [LEAF_OPENER, LEAF_VIEW, VIEW_FILE, EVENT_LISTENER];
+
+export const OBSIDIAN_MODULE = "obsidian";
+
+export const ALLOWED_MODULES = [OBSIDIAN_MODULE, "@codemirror/state", "@codemirror/view"];

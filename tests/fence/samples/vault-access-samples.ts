@@ -50,6 +50,14 @@ export const FORBIDDEN_SAMPLES = [
   'app.workspace.openLinkText("Private/Primary", "");',
   'import type { Workspace } from "obsidian";\nexport const follow = (workspace: Workspace) => workspace["openLinkText"]("Primary", "");',
   "const { openLinkText } = app.workspace;",
+  'import { FileSystemAdapter } from "obsidian";\nexport const read = (path: string) => FileSystemAdapter.readLocalFile(path);',
+  'import type { FileSystemAdapter } from "obsidian";\nexport const make = (adapter: FileSystemAdapter, path: string) => adapter.mkdir(path);',
+  'import type { CapacitorAdapter } from "obsidian";\nexport const where = (adapter: CapacitorAdapter) => adapter.getFullPath("");',
+  'import type { DataAdapter } from "obsidian";\nexport const list = (adapter: DataAdapter, path: string) => adapter.list(path);',
+  'import { MarkdownPreviewRenderer } from "obsidian";\nexport const hook = (run: (el: HTMLElement) => void) => MarkdownPreviewRenderer.registerPostProcessor(run);',
+  'import type { App } from "obsidian";\nexport const open = (app: App, path: string) => app.workspace.changeLayout({ main: { type: "split", children: [{ type: "leaf", state: { type: "markdown", state: { file: path } } }] } });',
+  'import type { App } from "obsidian";\nexport const open = (app: App) => app.workspace.getLayout();',
+  'import type { App } from "obsidian";\nexport const recent = (app: App) => app.workspace.getLastOpenFiles();',
 ];
 
 export const FILE_TREE_SAMPLES = [
