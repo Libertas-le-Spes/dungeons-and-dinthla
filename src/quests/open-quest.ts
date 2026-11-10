@@ -3,9 +3,11 @@ import type { Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
 import { sessionForDialog } from "../campaign/session-for-dialog";
-import { currentQuest, GOES_ELSEWHERE, happenedWouldGoElsewhere, latestSessionOfQuest, SAME_TITLE, sharesTitleWithEarlierActiveQuest } from "./current-quest";
+import { writeRecordChange } from "../campaign/write-record-change";
+import { currentQuest, latestSessionOfQuest, SAME_TITLE, sharesTitleWithEarlierActiveQuest } from "./current-quest";
+import { questSave } from "./quest-change";
 import { QuestModal } from "./quest-modal";
-import { canCollectReward, planQuestSave, refusalForQuestPlan, type QuestEdit } from "./quest-plan";
+import { canCollectReward, type QuestEdit } from "./quest-plan";
 import { QuestWriter } from "./quest-writer";
 import type { Gate } from "../fence/gatekeeper";
 
@@ -38,14 +40,7 @@ export function openQuest(
   const writer = new QuestWriter(gate.files);
   const latest = () => currentQuest(store.current.quests, record);
   const choices = {
-    save: async (edit: QuestEdit) => {
-      const current = latest();
-      if (happenedWouldGoElsewhere(store.current.quests, current, edit.happened)) throw new Error(GOES_ELSEWHERE);
-      const plan = planQuestSave(current, edit, store.current.coins, sessionPath);
-      const refusal = refusalForQuestPlan(store.sessionNotes, current, plan);
-      if (refusal !== null) throw new Error(refusal);
-      return writer.apply(plan);
-    },
+    save: async (edit: QuestEdit) => writeRecordChange(questSave(store, latest(), edit, sessionPath, writer)),
     delete: () => writer.delete(latest()),
   };
   let finishedIn = sessionLabelOf(sessionPath);
