@@ -1,4 +1,17 @@
+import { ATTRIBUTES, ELEMENT_OPTIONS, TAGS } from "../allowed/page";
 import type { Allowances } from "./allowances";
+
+export function isPageTag(_path: string, name: string): boolean {
+  return TAGS.includes(name);
+}
+
+export function isPageAttribute(_path: string, name: string): boolean {
+  return ATTRIBUTES.includes(name);
+}
+
+export function isPageOption(_path: string, name: string): boolean {
+  return ELEMENT_OPTIONS.includes(name);
+}
 
 export function isNeverAllowed(): boolean {
   return false;
@@ -35,6 +48,12 @@ export const NOTHING_ALLOWED: Allowances = {
   gateBuilding: isNeverAllowed,
   obsidianImports: isAnyNameAllowed,
   globals: isAnyNameAllowed,
+  postProcessing: isNeverAllowed,
+  pageText: isNeverAllowed,
+  elementQueries: isNeverAllowed,
+  tags: isPageTag,
+  attributes: isPageAttribute,
+  elementOptions: isPageOption,
 };
 
 export const ALL_ALLOWED: Allowances = {
@@ -56,6 +75,12 @@ export const ALL_ALLOWED: Allowances = {
   gateBuilding: isAlwaysAllowed,
   obsidianImports: isAnyNameAllowed,
   globals: isAnyNameAllowed,
+  postProcessing: isAlwaysAllowed,
+  pageText: isAlwaysAllowed,
+  elementQueries: isAlwaysAllowed,
+  tags: isPageTag,
+  attributes: isPageAttribute,
+  elementOptions: isPageOption,
 };
 
 export const LOOSE_CASTS_ALLOWED: Allowances = { ...NOTHING_ALLOWED, looseCasts: isAlwaysAllowed };

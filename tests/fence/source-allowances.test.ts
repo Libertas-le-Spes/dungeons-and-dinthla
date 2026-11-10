@@ -1,7 +1,7 @@
 import { readdirSync } from "node:fs";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Allowances } from "./scan/allowances";
-import { isNeverAllowed, NOTHING_ALLOWED } from "./scan/allowance-sets";
+import { isNeverAllowed, isPageAttribute, isPageOption, isPageTag, NOTHING_ALLOWED } from "./scan/allowance-sets";
 import { fenceBreaches } from "./scan/bundle-check";
 import { BUNDLED_PROJECT, bundledProjectFiles } from "./scan/bundled-project";
 import { ROOT, SOURCE_FOLDER, sourcePath, VIRTUAL_FOLDER } from "./scan/scan-paths";
@@ -26,6 +26,9 @@ const LEAF_VIEW_READERS = ["main.ts", "interface/one-campaign-tab.ts", "interfac
 const VIEW_FILE_READERS = ["main.ts", "campaign/editor-text.ts", "editor/marker-decorations.ts", "interface/campaign-takeover.ts"];
 const NOTE_EVENT_LISTENERS = ["main.ts"];
 const GATE_BUILDERS = ["main.ts"];
+const POST_PROCESSING = ["main.ts"];
+const PAGE_TEXT_READERS = ["reading/colour-markers.ts"];
+const ELEMENT_QUERIERS = ["reading/colour-markers.ts", "characters/character-sheet-page.ts", "funds/funds-page.ts", "views/row-focus.ts"];
 
 function isOneOf(files: string[]): (path: string) => boolean {
   return (path) => files.some((file) => path === sourcePath(file));
@@ -69,6 +72,12 @@ const SOURCE_ALLOWANCES: Allowances = {
   gateBuilding: isOneOf(GATE_BUILDERS),
   obsidianImports: isImportAllowed,
   globals: isGlobalAllowed,
+  postProcessing: isOneOf(POST_PROCESSING),
+  pageText: isOneOf(PAGE_TEXT_READERS),
+  elementQueries: isOneOf(ELEMENT_QUERIERS),
+  tags: isPageTag,
+  attributes: isPageAttribute,
+  elementOptions: isPageOption,
 };
 
 let scanner: SourceScanner;
@@ -88,6 +97,32 @@ function sourceListing(): string[] {
 
 function breachesOf(file: string, allowances: Allowances): string[] {
   return scanner.breaches(BUNDLED_PROJECT, [sourcePath(file)], allowances);
+}
+
+function placeOf(path: string, allowed: Record<string, string[]>): string | null {
+  const place = Object.keys(allowed).find((candidate) => path.startsWith(sourcePath(candidate)));
+  if (place === undefined) return null;
+  return place;
+}
+
+function namesRefused(pattern: RegExp, allowed: Record<string, string[]>, allowances: Allowances): Record<string, string[]> {
+  const listed = new Map<string, Set<string>>();
+  for (const breach of scanner.breaches(BUNDLED_PROJECT, scanner.loadedFiles(BUNDLED_PROJECT), allowances)) {
+    const match = pattern.exec(breach);
+    if (match === null) continue;
+    const [, file, name] = match;
+    if (file === undefined || name === undefined) continue;
+    const place = placeOf(sourcePath(file), allowed);
+    if (place === null) continue;
+    const names = listed.get(place);
+    if (names === undefined) listed.set(place, new Set([name]));
+    else names.add(name);
+  }
+  return Object.fromEntries([...listed].map(([place, names]) => [place, [...names].sort()]));
+}
+
+function sortedLists(allowed: Record<string, string[]>): Record<string, string[]> {
+  return Object.fromEntries(Object.entries(allowed).map(([place, names]) => [place, [...names].sort()]));
 }
 
 describe("the plugin's own source", () => {
@@ -144,6 +179,16 @@ describe("the plugin's own source", () => {
     }
   });
 
+  it("lists exactly the Obsidian names each place imports today, so a name no longer used leaves the list", () => {
+    const refused = namesRefused(/^src\/([^:]+):\d+ imports (\w+) from obsidian/, OBSIDIAN_IMPORTS, { ...SOURCE_ALLOWANCES, obsidianImports: () => false });
+    expect(refused).toEqual(sortedLists(OBSIDIAN_IMPORTS));
+  });
+
+  it("lists exactly the page and timer globals each file uses today, so a global no longer used leaves the list", () => {
+    const refused = namesRefused(/^src\/([^:]+):\d+ uses the global (\w+)$/, PAGE_GLOBALS, { ...SOURCE_ALLOWANCES, globals: (_path, name) => PLAIN_GLOBALS.includes(name) });
+    expect(refused).toEqual(sortedLists(PAGE_GLOBALS));
+  });
+
   it.each([
     { allowance: "fileOpening", files: FILE_OPENERS, breach: "opens, shows or picks a note with openFile" },
     { allowance: "viewState", files: VIEW_STATE_SETTERS, breach: "opens, shows or picks a note with setViewState" },
@@ -154,6 +199,9 @@ describe("the plugin's own source", () => {
     { allowance: "viewFile", files: VIEW_FILE_READERS, breach: "reads the file of a view" },
     { allowance: "noteEvents", files: NOTE_EVENT_LISTENERS, breach: "workspace event, which hands over any note" },
     { allowance: "gateBuilding", files: GATE_BUILDERS, breach: "builds the gate's Gatekeeper" },
+    { allowance: "postProcessing", files: POST_PROCESSING, breach: "registers a post-processor" },
+    { allowance: "pageText", files: PAGE_TEXT_READERS, breach: "reads the page's text" },
+    { allowance: "elementQueries", files: ELEMENT_QUERIERS, breach: "looks elements up" },
   ] as const)("lets only the files allowed $allowance do it, each of which still needs it", ({ allowance, files, breach }) => {
     const allowedEverythingElse: Allowances = { ...SOURCE_ALLOWANCES, [allowance]: isNeverAllowed };
     for (const file of files) {

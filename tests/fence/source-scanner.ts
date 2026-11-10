@@ -4,7 +4,11 @@ import type { Node } from "typescript/unstable/ast";
 import type { Allowances } from "./scan/allowances";
 import { editorViewBreaches } from "./scan/editor-view-rules";
 import type { FileScan, Rules } from "./scan/file-scan";
+import { codeTextBreaches } from "./scan/code-text-rules";
 import { foundIn } from "./scan/found";
+import { pageElementBreaches } from "./scan/page-element-rules";
+import { pageFoundIn } from "./scan/page-found";
+import { pageTextBreaches } from "./scan/page-text-rules";
 import { GateHolding } from "./scan/gate-holding";
 import { gateForgingBreaches } from "./scan/gate-forging-rules";
 import { globalBreaches } from "./scan/global-rules";
@@ -17,7 +21,7 @@ import { workspaceEventBreaches } from "./scan/workspace-event-rules";
 
 export type { Allowances } from "./scan/allowances";
 
-const RULES: Rules[] = [vaultAccessBreaches, editorViewBreaches, openingBreaches, workspaceEventBreaches, gateForgingBreaches, importBreaches, globalBreaches];
+const RULES: Rules[] = [vaultAccessBreaches, editorViewBreaches, openingBreaches, workspaceEventBreaches, gateForgingBreaches, importBreaches, globalBreaches, codeTextBreaches, pageElementBreaches, pageTextBreaches];
 
 export class SourceScanner {
   private readonly api: API;
@@ -57,7 +61,7 @@ export class SourceScanner {
     const shownPath = path.slice(this.root.length + 1);
     const whereAt = (position: number) => `${shownPath}:${sourceFile.getLineAndCharacterOfPosition(position).line + 1}`;
     const where = (node: Node) => whereAt(node.getStart(sourceFile));
-    const scan: FileScan = { project, path, sourceFile, found: foundIn(sourceFile), allowances, types, gate, where, whereAt };
+    const scan: FileScan = { project, path, sourceFile, found: foundIn(sourceFile), page: pageFoundIn(sourceFile), allowances, types, gate, where, whereAt };
     return RULES.flatMap((rules) => rules(scan));
   }
 }
