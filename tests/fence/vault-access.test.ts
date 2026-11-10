@@ -277,6 +277,7 @@ const HARMLESS_SAMPLES = [
   'import type { TFile } from "obsidian";\nexport function count(counts: Record<string, number>, file: TFile) {\n  counts[file.path] = 1;\n}',
   'export function move(place: { path: string }) {\n  place.path = "Pale Moon";\n}',
   'interface Place {\n  path: string;\n}\nexport function move(place: Pick<Place, "path">) {\n  place.path = "Pale Moon";\n}',
+  "interface Step {\n  next: Step | null;\n}\nexport const first = (step: Step): Step => step;",
 ];
 
 const OPENING_SAMPLES = [
