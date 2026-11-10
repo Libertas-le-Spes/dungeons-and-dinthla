@@ -2,5 +2,6 @@ import type { SessionChange } from "../campaign/session-change";
 import type { ItemPlan } from "./item-plan";
 
 export function itemSessionChange(plan: ItemPlan): SessionChange {
-  return { removal: plan.removal, rewrite: plan.rewrite, added: { path: plan.targetPath, lines: plan.added }, addedLater: null };
+  if (plan.rewrite !== null) return { rewrite: plan.rewrite };
+  return { removal: plan.removal, added: { path: plan.targetPath, lines: plan.added, later: null } };
 }

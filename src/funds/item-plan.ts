@@ -2,7 +2,7 @@ import { applySessionChange } from "../campaign/apply-session-change";
 import { buildCampaign } from "../campaign/build-campaign";
 import type { CoinRecord, ItemEvent, ItemRecord, SessionNote } from "../campaign/campaign";
 import { lineAsRead, removalAsRead, type Removal } from "../campaign/note-editor";
-import type { Rewrite } from "../campaign/session-change";
+import { lineTakenOut, type Rewrite } from "../campaign/session-change";
 import { sessionNumberOf } from "../campaign/session-file";
 import { withoutBullet } from "../notes/bullet";
 import { readAmount, type AmountReading } from "../notes/coin-lines";
@@ -166,7 +166,7 @@ function planPriceChange(
 }
 
 function writtenAfterRemoval(sessions: SessionNote[], removal: Removal, item: ItemRecord): string | undefined {
-  const removed = applySessionChange(sessions, { removal, rewrite: null, added: null, addedLater: null });
+  const removed = applySessionChange(sessions, lineTakenOut(removal));
   const after = buildCampaign(removed.sessions);
   const found = after.items.find((candidate) => candidate.name === item.name);
   if (found === undefined) return undefined;

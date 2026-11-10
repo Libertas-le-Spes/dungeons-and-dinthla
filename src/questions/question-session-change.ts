@@ -5,10 +5,8 @@ export const FOLLOW_UP_NOT_WRITTEN = "The answer was written, but the follow-up 
 
 export function questionSessionChange(plan: QuestionPlan): SessionChange {
   if (plan.answerPath === plan.followUpPath) {
-    const added = { path: plan.answerPath, lines: [...plan.answerLines, ...plan.followUpLines] };
-    return { removal: plan.removal, rewrite: null, added, addedLater: null };
+    return { removal: plan.removal, added: { path: plan.answerPath, lines: [...plan.answerLines, ...plan.followUpLines], later: null } };
   }
-  const added = { path: plan.answerPath, lines: plan.answerLines };
-  const addedLater = { path: plan.followUpPath, lines: plan.followUpLines, partlyWritten: FOLLOW_UP_NOT_WRITTEN };
-  return { removal: plan.removal, rewrite: null, added, addedLater };
+  const later = { path: plan.followUpPath, lines: plan.followUpLines, partlyWritten: FOLLOW_UP_NOT_WRITTEN };
+  return { removal: plan.removal, added: { path: plan.answerPath, lines: plan.answerLines, later } };
 }

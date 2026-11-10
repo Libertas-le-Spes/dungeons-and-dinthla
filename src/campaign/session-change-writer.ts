@@ -1,6 +1,6 @@
 import { messageOf } from "../views/message-of";
 import { NoteEditor, PartlyWritten, type EditorFiles, type Removal } from "./note-editor";
-import type { AddedLines, LaterLines, SessionChange } from "./session-change";
+import type { AddedLines, LaterLines, LinesChange, SessionChange } from "./session-change";
 
 export class SessionChangeWriter {
   private readonly editor: NoteEditor;
@@ -10,10 +10,14 @@ export class SessionChangeWriter {
   }
 
   async apply(change: SessionChange): Promise<boolean> {
-    if (change.rewrite !== null) return this.editor.rewrite(change.rewrite.old, change.rewrite.line);
+    if ("rewrite" in change) return this.editor.rewrite(change.rewrite.old, change.rewrite.line);
+    return this.writeLines(change);
+  }
+
+  private async writeLines(change: LinesChange): Promise<boolean> {
     if (change.added === null) return this.removeAlone(change.removal);
-    if (change.addedLater === null) return this.addWithRemoval(change.added, change.removal);
-    return this.addInTwoNotes(change.added, change.removal, change.addedLater);
+    if (change.added.later === null) return this.addWithRemoval(change.added, change.removal);
+    return this.addInTwoNotes(change.added, change.removal, change.added.later);
   }
 
   private async removeAlone(removal: Removal | null): Promise<boolean> {

@@ -1,33 +1,42 @@
 import { appendLines, removeLines, rewriteLine } from "../notes/note-lines";
 import type { SessionNote } from "./campaign";
-import type { SessionChange } from "./session-change";
+import type { LinesChange, Rewrite, SessionChange } from "./session-change";
 import { sessionNoteOf } from "./session-file";
 
 export interface ChangedSessions {
   sessions: SessionNote[];
-  linesWhereRead: boolean;
+  linesAsRead: boolean;
 }
 
-export function applySessionChange(sessions: SessionNote[], change: SessionChange): ChangedSessions {
-  let removalFound = change.removal === null;
-  let rewriteFound = change.rewrite === null;
+function rewriteApplied(sessions: SessionNote[], rewrite: Rewrite): ChangedSessions {
+  let found = false;
+  const changed = sessions.map((session) => {
+    if (rewrite.old.path !== session.path) return session;
+    const rewritten = rewriteLine(session.text, rewrite.old, rewrite.line);
+    if (rewritten === null) return session;
+    found = true;
+    return sessionNoteOf(session.path, session.number, rewritten);
+  });
+  return { sessions: changed, linesAsRead: found };
+}
+
+function linesApplied(sessions: SessionNote[], change: LinesChange): ChangedSessions {
+  let found = change.removal === null;
   const changed = sessions.map((session) => {
     let text = session.text;
     if (change.removal !== null && change.removal.path === session.path) {
       const removal = removeLines(text, [change.removal]);
       text = removal.text;
-      if (removal.removed > 0) removalFound = true;
-    }
-    if (change.rewrite !== null && change.rewrite.old.path === session.path) {
-      const rewritten = rewriteLine(text, change.rewrite.old, change.rewrite.line);
-      if (rewritten !== null) {
-        text = rewritten;
-        rewriteFound = true;
-      }
+      if (removal.removed > 0) found = true;
     }
     if (change.added !== null && change.added.path === session.path) text = appendLines(text, change.added.lines);
-    if (change.addedLater !== null && change.addedLater.path === session.path) text = appendLines(text, change.addedLater.lines);
+    if (change.added !== null && change.added.later !== null && change.added.later.path === session.path) text = appendLines(text, change.added.later.lines);
     return sessionNoteOf(session.path, session.number, text);
   });
-  return { sessions: changed, linesWhereRead: removalFound && rewriteFound };
+  return { sessions: changed, linesAsRead: found };
+}
+
+export function applySessionChange(sessions: SessionNote[], change: SessionChange): ChangedSessions {
+  if ("rewrite" in change) return rewriteApplied(sessions, change.rewrite);
+  return linesApplied(sessions, change);
 }
