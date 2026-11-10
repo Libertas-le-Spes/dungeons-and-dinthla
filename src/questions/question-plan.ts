@@ -4,7 +4,8 @@ import type { Removal } from "../campaign/note-editor";
 import { sessionNoteOf } from "../campaign/session-file";
 import { readMarker } from "../notes/marker";
 import { appendLines, removeLines } from "../notes/note-lines";
-import { answerLine, followUpQuestionLine, isFollowUpLine, oneLine, questionTextOf } from "../notes/question-lines";
+import { answerLine, followUpQuestionLine, questionTextOf } from "../notes/question-lines";
+import { isFollowUpLine, oneLine } from "../notes/thread-lines";
 
 export interface QuestionEdit {
   answer: string;

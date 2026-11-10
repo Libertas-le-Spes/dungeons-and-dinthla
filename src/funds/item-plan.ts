@@ -7,7 +7,7 @@ import { readAmount, type AmountReading } from "../notes/coin-lines";
 import { readItemChange } from "../notes/item-change";
 import { findLinks } from "../notes/link";
 import { appendLines, removeLines, rewriteLine } from "../notes/note-lines";
-import { oneLine } from "../notes/question-lines";
+import { oneLine } from "../notes/thread-lines";
 import { holderNameOf, THE_PARTY, THE_PARTY_LABEL } from "./item-groups";
 
 export type ItemStatus = "held" | "sold" | "used" | "lost";

@@ -3,7 +3,7 @@ import { readMarker } from "../notes/marker";
 import { readQuest } from "../notes/quest";
 import { newQuestLine, questTextOf } from "../notes/quest-lines";
 import type { Character } from "../campaign/characters";
-import { oneLine } from "../notes/question-lines";
+import { oneLine } from "../notes/thread-lines";
 
 export interface NewQuest {
   title: string;
