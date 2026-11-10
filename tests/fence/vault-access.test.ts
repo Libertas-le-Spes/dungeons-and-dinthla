@@ -30,6 +30,7 @@ const EVENT_TRIGGERS = ["fence/fenced-files.ts"];
 const LEAF_VIEW_READERS = ["main.ts", "interface/one-campaign-tab.ts", "interface/seen-tab.ts", "interface/view-state-patch.ts"];
 const VIEW_FILE_READERS = ["main.ts", "campaign/editor-text.ts", "editor/marker-decorations.ts", "interface/campaign-takeover.ts"];
 const NOTE_EVENT_LISTENERS = ["main.ts"];
+const GATE_BUILDERS = ["main.ts"];
 const HIDDEN_CODE = [".js", ".mjs", ".cjs", ".mts", ".cts", ".tsx", ".jsx"];
 const REACHING_SAMPLES = [
   "this.app.vault.read(file);",
@@ -438,7 +439,63 @@ const HARMLESS_EVENT_SAMPLES = [
   'export const listen = (bell: { on(name: string, heard: () => void): void }, name: string, heard: () => void) => bell.on(name, heard);',
 ];
 
-const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...WRITE_NAME_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...FOLDER_WALK_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...NOTE_READING_SAMPLES, ...VIEW_TEXT_SAMPLES, ...CODE_MIRROR_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...OPENING_SAMPLES, ...ALLOWED_OPENING_SAMPLES, ...GATED_OPENING_SAMPLES, ...GATE_FORGING_SAMPLES, ...FILE_CHANGING_SAMPLES, ...NOTE_EVENT_SAMPLES, ...UNREAD_EVENT_SAMPLES, ...HARMLESS_EVENT_SAMPLES, ...LEAF_SAMPLES, ...LEAF_VIEW_SAMPLES, ...VIEW_FILE_SAMPLES, ...HARMLESS_SAMPLES];
+const GATE_PLACING_SAMPLES = [
+  "import type { App } from \"obsidian\";\nimport type { FencedFiles } from \"../../../../src/fence/fenced-files\";\nfunction showFrom(app: App, files: Pick<FencedFiles, \"getFileByPath\">) { const file = files.getFileByPath(\"\"); if (file !== null) void app.workspace.getLeaf(true).openFile(file); }\nexport function openWhateverOpens(app: App) { app.workspace.on(\"file-open\", (other) => { if (other !== null) showFrom(app, { getFileByPath: () => other }); }); }",
+  "import type { TFile } from \"obsidian\";\nimport type { FencedFiles } from \"../../../../src/fence/fenced-files\";\nexport function forge(other: TFile) {\n  const files: Pick<FencedFiles, \"getFileByPath\"> = { getFileByPath: () => other };\n  return files;\n}",
+  "import type { TFile } from \"obsidian\";\nimport type { FencedFiles } from \"../../../../src/fence/fenced-files\";\ndeclare function show(files: Pick<FencedFiles, \"getFileByPath\">): void;\nexport const forge = (other: TFile) => show({ getFileByPath: () => other });",
+  "import { TFile } from \"obsidian\";\nimport type { FencedFiles } from \"../../../../src/fence/fenced-files\";\ndeclare function show(files: Pick<FencedFiles, \"getFileByPath\">): void;\nexport const forge = () => show({ getFileByPath: () => new TFile() });",
+  "import type { App, PaneType } from \"obsidian\";\nimport { openLink } from \"../../../../src/views/open-link\";\nexport const forge = (app: App, other: object, newLeaf: PaneType) => openLink(app, other as never, \"Primary\", \"\", newLeaf);",
+  "import type { TFile } from \"obsidian\";\nimport type { FencedFiles } from \"../../../../src/fence/fenced-files\";\nexport class Holder {\n  constructor(private readonly other: TFile) {}\n  files: Pick<FencedFiles, \"getFileByPath\"> = { getFileByPath: () => this.other };\n}",
+  "import type { TFile } from \"obsidian\";\nimport type { FencedFiles } from \"../../../../src/fence/fenced-files\";\nexport function forge(other: TFile): Pick<FencedFiles, \"getFileByPath\"> {\n  return { getFileByPath: () => other };\n}",
+  "import type { TFile } from \"obsidian\";\nimport type { FencedFiles } from \"../../../../src/fence/fenced-files\";\nexport const forge = (other: TFile): Pick<FencedFiles, \"getFileByPath\"> => ({ getFileByPath: () => other });",
+  "import type { TFile } from \"obsidian\";\nimport type { FencedFiles } from \"../../../../src/fence/fenced-files\";\nexport function forge(other: TFile) {\n  const all: Pick<FencedFiles, \"getFileByPath\">[] = [{ getFileByPath: () => other }];\n  return all;\n}",
+  "import type { TFile } from \"obsidian\";\nimport type { Gate } from \"../../../../src/fence/gatekeeper\";\nimport type { LinkPlace } from \"../../../../src/views/open-link\";\nexport function forge(gate: Gate, other: TFile) {\n  const files = { getFileByPath: () => other };\n  const place: LinkPlace = { gate: { files, metadata: gate.metadata }, campaignFolders: () => [] };\n  return place;\n}",
+  "import type { TFile } from \"obsidian\";\nimport type { FencedFiles } from \"../../../../src/fence/fenced-files\";\ndeclare function show(files: Pick<FencedFiles, \"getFileByPath\">): void;\nexport function forge(other: TFile) {\n  const fake = { getFileByPath: () => other };\n  show(fake);\n}",
+  "import type { TFile } from \"obsidian\";\nimport type { FencedFiles } from \"../../../../src/fence/fenced-files\";\ndeclare function show(files: Pick<FencedFiles, \"getFileByPath\">): void;\nclass Fake {\n  constructor(private readonly other: TFile) {}\n  getFileByPath(): TFile {\n    return this.other;\n  }\n}\nexport const forge = (other: TFile) => show(new Fake(other));",
+  "import type { TFile } from \"obsidian\";\nimport type { FencedFiles } from \"../../../../src/fence/fenced-files\";\nexport function forge(other: TFile) {\n  let files: Pick<FencedFiles, \"getFileByPath\"> | null = null;\n  files = { getFileByPath: () => other };\n  return files;\n}",
+  "import type { TFile } from \"obsidian\";\nimport type { FencedFiles } from \"../../../../src/fence/fenced-files\";\nexport function forge(other: TFile) {\n  function show(files: Pick<FencedFiles, \"getFileByPath\"> = { getFileByPath: () => other }) {\n    return files;\n  }\n  return show();\n}",
+  "import type { TFile } from \"obsidian\";\nimport type { Gate } from \"../../../../src/fence/gatekeeper\";\nexport function forge(other: TFile, held: Partial<Pick<Gate, \"files\">>) {\n  const { files = { getFileByPath: () => other } }: Partial<{ files: Pick<Gate[\"files\"], \"getFileByPath\"> }> = held;\n  return files;\n}",
+  "import type { TFile } from \"obsidian\";\nimport type { LinkPlace } from \"../../../../src/views/open-link\";\nexport const forge = (other: TFile) => ({ gate: { files: { getFileByPath: () => other } }, campaignFolders: () => [] }) as LinkPlace;",
+  "import type { TFile } from \"obsidian\";\nimport type { FencedFiles } from \"../../../../src/fence/fenced-files\";\ndeclare function show(files: Pick<FencedFiles, \"getFileByPath\">): void;\nexport const forge = (other: TFile) => show(other as any);",
+  "import type { FencedFiles } from \"../../../../src/fence/fenced-files\";\nexport function forge(text: string) {\n  const files: Pick<FencedFiles, \"getFileByPath\"> = JSON.parse(text);\n  return files;\n}",
+  "import type { TFile } from \"obsidian\";\nimport type { FencedFiles } from \"../../../../src/fence/fenced-files\";\ninterface Late {\n  files: () => Pick<FencedFiles, \"getFileByPath\">;\n}\ndeclare function show(late: Late): void;\nexport function forge(other: TFile) {\n  const fake = { getFileByPath: () => other };\n  const late = () => fake;\n  show({ files: late });\n}",
+  "import type { TFile } from \"obsidian\";\nimport type { FencedFiles } from \"../../../../src/fence/fenced-files\";\nexport function forge(other: TFile) {\n  const fake = { getFileByPath: () => other };\n  const all: Record<string, Pick<FencedFiles, \"getFileByPath\">> = { first: fake };\n  return all;\n}",
+  "import type { TFile } from \"obsidian\";\nimport type { FencedFiles } from \"../../../../src/fence/fenced-files\";\nexport function forge(other: TFile) {\n  const fake = { getFileByPath: () => other };\n  const files: Pick<FencedFiles, \"getFileByPath\"> | null = fake;\n  return files;\n}",
+  "import type { TFile } from \"obsidian\";\nimport type { FencedFiles } from \"../../../../src/fence/fenced-files\";\ndeclare function show(files: Pick<FencedFiles, \"getFileByPath\">): void;\nexport function forge(other: TFile) {\n  const fakes = [{ getFileByPath: () => other }];\n  fakes.forEach((fake) => show(fake));\n  const all: Pick<FencedFiles, \"getFileByPath\">[] = fakes;\n  return all;\n}",
+  'import type { TFile } from "obsidian";\nimport type { LinkPlace } from "../../../../src/views/open-link";\nexport const forge = (other: TFile) => ({ gate: { files: { getFileByPath: () => other } }, campaignFolders: () => [] }) satisfies Partial<LinkPlace>;',
+  'import type { TFile } from "obsidian";\nimport type { LinkPlace } from "../../../../src/views/open-link";\nexport const forge = (other: TFile) => <LinkPlace>{ gate: { files: { getFileByPath: () => other } }, campaignFolders: () => [] };',
+  'import type { TFile } from "obsidian";\nimport type { FencedFiles } from "../../../../src/fence/fenced-files";\nexport function forge(other: TFile) {\n  const fake = { getFileByPath: () => other };\n  const found = new Map([["first", fake]]);\n  const all: Map<string, Pick<FencedFiles, "getFileByPath">> = found;\n  return all;\n}',
+  'import type { TFile } from "obsidian";\nimport type { FencedFiles } from "../../../../src/fence/fenced-files";\ninterface Child {\n  parent: Parent;\n}\ninterface Parent {\n  child: Child;\n  files: Pick<FencedFiles, "getFileByPath">;\n}\ndeclare function showParent(parent: Parent): void;\ndeclare function showChild(child: Child): void;\nexport function forge(parent: Parent, other: TFile) {\n  showParent(parent);\n  const fake = { parent: { child: parent.child, files: { getFileByPath: () => other } } };\n  showChild(fake);\n}',
+];
+
+const GATE_SHAPING_SAMPLES = [
+  "import type { TFile } from \"obsidian\";\nimport { FencedFiles } from \"../../../../src/fence/fenced-files\";\nexport class Fake extends FencedFiles {\n  other: TFile | null = null;\n  override getFileByPath(): TFile | null {\n    return this.other;\n  }\n}",
+  "import type { FencedFiles } from \"../../../../src/fence/fenced-files\";\nexport function isFiles(value: object): value is Pick<FencedFiles, \"getFileByPath\"> {\n  return \"getFileByPath\" in value;\n}",
+  "import type { LinkPlace } from \"../../../../src/views/open-link\";\nexport function isPlace(value: object): value is LinkPlace {\n  return \"gate\" in value;\n}",
+  "import { FencedFiles } from \"../../../../src/fence/fenced-files\";\nexport function files(value: object) {\n  if (value instanceof FencedFiles) return value;\n  return null;\n}",
+  "import { FencedFiles } from \"../../../../src/fence/fenced-files\";\nexport const files = () => Object.create(FencedFiles.prototype);",
+  "import { FencedFiles } from \"../../../../src/fence/fenced-files\";\nexport const files = (fake: object) => Object.setPrototypeOf(fake, FencedFiles.prototype);",
+  "import { FencedFiles, type RawVault } from \"../../../../src/fence/fenced-files\";\nimport type { HeldFiles } from \"../../../../src/fence/held-files\";\nexport const files = (fake: RawVault, held: HeldFiles) => new FencedFiles(fake, held);",
+  "import { HeldFiles, type FileLookup } from \"../../../../src/fence/held-files\";\nimport { Fence } from \"../../../../src/fence/fence\";\nexport const held = (fake: FileLookup) => new HeldFiles(fake, new Fence(() => \"Private\", \".obsidian\"));",
+  "import type { App } from \"obsidian\";\nimport { Gatekeeper } from \"../../../../src/fence/gatekeeper\";\nexport const gate = (fake: App) => new Gatekeeper(fake, () => \"Private\");",
+  'import { CampaignView } from "../../../../src/interface/campaign-view";\nexport const view = (fake: object) => ({ __proto__: CampaignView.prototype, ...fake });',
+  'import { CampaignView } from "../../../../src/interface/campaign-view";\nexport const view = (fake: object) => Object.setPrototypeOf(fake, CampaignView.prototype);',
+  'import { Plugin } from "obsidian";\nimport { Fence } from "../../../../src/fence/fence";\nimport { HeldFiles } from "../../../../src/fence/held-files";\nexport class Campaigns extends Plugin {\n  readonly held = new HeldFiles(this.app, new Fence(() => "D&D", ".obsidian"));\n}',
+];
+
+const GATE_KEEPING_SAMPLES = [
+  "import type { FencedFiles } from \"../../../../src/fence/fenced-files\";\nimport type { Gate } from \"../../../../src/fence/gatekeeper\";\ndeclare function show(files: Pick<FencedFiles, \"getFileByPath\">): void;\nexport const pass = (gate: Gate) => show(gate.files);",
+  "import type { Gate } from \"../../../../src/fence/gatekeeper\";\nimport type { LinkPlace } from \"../../../../src/views/open-link\";\nexport function place(gate: Gate): LinkPlace {\n  return { gate: { files: gate.files, metadata: gate.metadata }, campaignFolders: () => [] };\n}",
+  "import type { Gate } from \"../../../../src/fence/gatekeeper\";\nimport type { LinkPlace } from \"../../../../src/views/open-link\";\nexport const place = (gate: Gate): LinkPlace => ({ gate, campaignFolders: () => [] });",
+  "import type { FencedFiles } from \"../../../../src/fence/fenced-files\";\nexport function none() {\n  const files: FencedFiles | null = null;\n  return files;\n}",
+  "import type { FencedFiles } from \"../../../../src/fence/fenced-files\";\nimport type { Gate } from \"../../../../src/fence/gatekeeper\";\nexport async function files(gate: Gate): Promise<Pick<FencedFiles, \"getFileByPath\">> {\n  return gate.files;\n}",
+  "import type { FencedFiles } from \"../../../../src/fence/fenced-files\";\nimport type { Gate } from \"../../../../src/fence/gatekeeper\";\nexport function all(gate: Gate) {\n  const listed: Pick<FencedFiles, \"getFileByPath\">[] = [gate.files];\n  return listed;\n}",
+  "import { Plugin } from \"obsidian\";\nimport { Gatekeeper } from \"../../../../src/fence/gatekeeper\";\nexport class Campaigns extends Plugin {\n  readonly gate = new Gatekeeper(this.app, () => \"D&D\");\n}",
+  "import { Fence } from \"../../../../src/fence/fence\";\nexport const holds = (path: string) => new Fence(() => \"D&D\", \".obsidian\").holds(path);",
+  'import type { View } from "obsidian";\nimport { CampaignView } from "../../../../src/interface/campaign-view";\nexport function campaignView(view: View) {\n  if (view instanceof CampaignView) return view;\n  return null;\n}',
+];
+
+const SAMPLES = [...REACHING_SAMPLES, ...WRITING_SAMPLES, ...WRITE_NAME_SAMPLES, ...READING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...FOLDER_WALK_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...NOTE_READING_SAMPLES, ...VIEW_TEXT_SAMPLES, ...CODE_MIRROR_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...OPENING_SAMPLES, ...ALLOWED_OPENING_SAMPLES, ...GATED_OPENING_SAMPLES, ...GATE_FORGING_SAMPLES, ...GATE_PLACING_SAMPLES, ...GATE_SHAPING_SAMPLES, ...GATE_KEEPING_SAMPLES, ...FILE_CHANGING_SAMPLES, ...NOTE_EVENT_SAMPLES, ...UNREAD_EVENT_SAMPLES, ...HARMLESS_EVENT_SAMPLES, ...LEAF_SAMPLES, ...LEAF_VIEW_SAMPLES, ...VIEW_FILE_SAMPLES, ...HARMLESS_SAMPLES];
 
 interface Planted {
   name: string;
@@ -572,6 +629,7 @@ const NOTHING_ALLOWED: Allowances = {
   leafView: isNeverAllowed,
   viewFile: isNeverAllowed,
   noteEvents: isNeverAllowed,
+  gateBuilding: isNeverAllowed,
 };
 
 function isAlwaysAllowed(): boolean {
@@ -596,6 +654,7 @@ const ALL_ALLOWED: Allowances = {
   leafView: isAlwaysAllowed,
   viewFile: isAlwaysAllowed,
   noteEvents: isAlwaysAllowed,
+  gateBuilding: isAlwaysAllowed,
 };
 
 function isOneOf(files: string[]): (path: string) => boolean {
@@ -622,6 +681,7 @@ const SOURCE_ALLOWANCES: Allowances = {
   leafView: isOneOf(LEAF_VIEW_READERS),
   viewFile: isOneOf(VIEW_FILE_READERS),
   noteEvents: isOneOf(NOTE_EVENT_LISTENERS),
+  gateBuilding: isOneOf(GATE_BUILDERS),
 };
 
 let scanner: SourceScanner;
@@ -797,6 +857,7 @@ describe("the vault fence", () => {
     { allowance: "leafView", files: LEAF_VIEW_READERS, breach: "reads the view of a leaf" },
     { allowance: "viewFile", files: VIEW_FILE_READERS, breach: "reads the file of a view" },
     { allowance: "noteEvents", files: NOTE_EVENT_LISTENERS, breach: "workspace event, which hands over any note" },
+    { allowance: "gateBuilding", files: GATE_BUILDERS, breach: "builds the gate's Gatekeeper" },
   ] as const)("lets only the files allowed $allowance do it, each of which still needs it", ({ allowance, files, breach }) => {
     const allowedEverythingElse: Allowances = { ...SOURCE_ALLOWANCES, [allowance]: isNeverAllowed };
     for (const file of files) {
@@ -928,6 +989,18 @@ describe("the vault fence", () => {
 
   it.each(HARMLESS_EVENT_SAMPLES)("lets %s pass, since the event hands over no note", (sample) => {
     expect(sampleBreaches(sample)).toEqual([]);
+  });
+
+  it.each(GATE_PLACING_SAMPLES)("would catch putting a value the gate didn't give where the gate's parts go with %s, even in a file allowed everything else", (sample) => {
+    expect(sampleBreaches(sample, ALL_ALLOWED)).not.toEqual([]);
+  });
+
+  it.each(GATE_SHAPING_SAMPLES)("would catch building, extending or narrowing to a gate outside the gate's folder with %s, even in a file allowed everything else", (sample) => {
+    expect(sampleBreaches(sample, ALL_ALLOWED)).not.toEqual([]);
+  });
+
+  it.each(GATE_KEEPING_SAMPLES)("lets %s pass in a file allowed everything else, since every gate part comes from the gate", (sample) => {
+    expect(sampleBreaches(sample, ALL_ALLOWED)).toEqual([]);
   });
 
   it.each(LEAF_SAMPLES)("would catch reaching a leaf other than through the campaign tab, or opening a view in one, with %s, even in a file allowed everything else", (sample) => {
