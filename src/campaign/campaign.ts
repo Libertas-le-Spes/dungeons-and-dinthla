@@ -1,11 +1,9 @@
+import type { Source } from "../kinds/source";
 import type { ItemChangeKind } from "../notes/item-change";
 import type { CoinEntry } from "../notes/ledger";
 import type { Quest } from "../notes/quest";
 
-export interface Source {
-  path: string;
-  line: number;
-}
+export type { Source };
 
 export interface SessionNote {
   path: string;
