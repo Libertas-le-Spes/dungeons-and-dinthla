@@ -37,8 +37,7 @@ The plugin checks paths, so it can't see where a folder really is: a symbolic li
 1. Run `npm run build`. It builds `main.js` and `styles.css`, then copies them and `manifest.json` into the demo vault's plugin folder.
 2. In Obsidian, choose **Open folder as vault** and pick `demo-vault`.
 3. When Obsidian asks whether you trust the vault's author, choose **Trust author and enable plugins**. Dungeons & Dinthla is then turned on under Community plugins.
-
-The demo campaign still sits at the top of the vault, outside any Campaigns folder, so for now the plugin shows no campaign in the demo vault. To try it there, the campaign's folder has to move into a Campaigns folder, such as `D&D/Curse of the Pale Moon/`, and that folder be chosen.
+4. The demo campaign sits in `D&D/Curse of the Pale Moon/`. If the campaign tab asks for the Campaigns folder, choose `D&D`.
 
 After the next build, reload the vault (**Reload app without saving** in the command palette, or Ctrl+R on desktop) to see the newest version. When the note format changes, the demo notes change in the same pull request, and each pull request says what to look for in the demo vault.
 
