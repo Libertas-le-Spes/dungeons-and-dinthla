@@ -247,6 +247,15 @@ describe("DashboardPage", () => {
     expect(root.ownerDocument.activeElement!.closest(".dd-panel")).toBe(panel(root, QUESTS));
   });
 
+  it("opens a quest's dialog from its row in the session panel", async () => {
+    const { root, actions } = await openDashboard([sessionOf(1, ["! Find it"])]);
+    const row = panel(root, SESSION).querySelector<HTMLElement>(".dd-row");
+    expect(row).not.toBeNull();
+    row?.click();
+    expect(actions.openQuest).toHaveBeenCalledWith({ path: `${CAMPAIGN}/Sessions/Session 1.md`, line: 0 }, expect.any(Function));
+    expect(actions.openQuestion).not.toHaveBeenCalled();
+  });
+
   it("puts focus back on the row in the panel it was tapped in, once the dashboard has redrawn", async () => {
     const lines = ["? Who"];
     const { root, closers, change } = await openDashboard([sessionOf(1, lines)]);

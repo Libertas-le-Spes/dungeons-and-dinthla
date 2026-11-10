@@ -73,6 +73,7 @@ function readsOnRedraw(loads: number): number {
 
 describe("DashboardPage loaded again", () => {
   it("draws each panel once on a redraw, not once more for every earlier load", () => {
+    expect(readsOnRedraw(1)).toBe(2);
     expect(readsOnRedraw(2)).toBe(readsOnRedraw(1));
   });
 });
