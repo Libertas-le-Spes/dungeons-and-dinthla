@@ -36,21 +36,13 @@ A branch is deleted, locally and on origin, as soon as it is merged or becomes u
 
 Stay on `0.x` until the plugin has held up in real games. Then go to `1.0.0`.
 
-**Getting it onto the owner's devices.** He turned down BRAT and a workflow in his vault repo. The agreed route:
-1. Copy the published release files into his vault repo's `.obsidian/plugins/dungeons-and-dinthla/`.
-2. Check each file's SHA-256 against the release before committing.
-3. Stage only that folder.
-4. Show him the diff and get his yes before pushing.
-
-His phone pulls the change through Obsidian Git. Don't turn the plugin on for him: he does that on each device.
-
 ## Running and checking
 
 - Node must be `^22.18.0 || ^24.0.0 || >=26.0.0`: the build and `scripts/` are TypeScript run by Node's own type stripping.
 - Run `npm install`, then `npm run build`. The build also copies the plugin into `demo-vault/`. Open `demo-vault` as a vault in Obsidian; the README has the steps. Its campaign sits in `D&D/Curse of the Pale Moon/`, with `D&D` as the Campaigns folder. Keep the demo vault up to date: when the note format or the folder rules change, the demo notes change in the same pull request.
 - After a build, `node scripts/check-no-network.ts main.js styles.css` checks the built files for network code, as every pull request and release does. It checks only the files it is given and refuses to run with none.
 - `npx vitest run` runs the tests. Tests must not open a real browser.
-- When the owner is gaming on the machine, run builds and tests at low priority, one builder at a time:
+- To keep the machine responsive for other work, run builds and tests at low priority, one builder at a time:
 
   ```
   systemd-run --user --scope -p CPUWeight=10 -p IOWeight=10 -p MemoryMax=4G -p MemorySwapMax=0 nice -n 19 <command>
