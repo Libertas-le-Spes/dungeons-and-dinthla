@@ -36,14 +36,6 @@ A branch is deleted, locally and on origin, as soon as it is merged or becomes u
 
 Stay on `0.x` until the plugin has held up in real games. Then go to `1.0.0`.
 
-**Getting it onto the owner's devices.** He turned down BRAT and a workflow in his vault repo. The agreed route:
-1. Copy the published release files into his vault repo's `.obsidian/plugins/dungeons-and-dinthla/`.
-2. Check each file's SHA-256 against the release before committing.
-3. Stage only that folder.
-4. Show him the diff and get his yes before pushing.
-
-His phone pulls the change through Obsidian Git. Don't turn the plugin on for him: he does that on each device.
-
 ## Running and checking
 
 - Node must be `^22.18.0 || ^24.0.0 || >=26.0.0`: the build and `scripts/` are TypeScript run by Node's own type stripping.
