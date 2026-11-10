@@ -22,7 +22,11 @@ This page is for whoever picks the work up on another machine, person or session
 1. Fresh reviewers who know only the pull request go over it, split into security, architecture and readability, and tests and docs. Their findings are checked against the code, then fixed and proven.
 2. One more fresh review checks the result. Stop when what is left sits only in code that round changed and every failure ends safe.
 3. **The owner says yes.** Nothing merges without it.
-4. Merge locally with `git merge --no-ff origin/<branch> -m "Merge pull request #N from Libertas-le-Spes/<branch>"` and push `main`. The repo's hooks set commit times to midday. Delete the local branch once its merge is on `main`.
+4. Merge locally with `git merge --no-ff origin/<branch> -m "Merge pull request #N from Libertas-le-Spes/<branch>"` and push `main`. The repo's hooks set commit times to midday.
+
+## Deleting branches
+
+A branch is deleted, locally and on origin, as soon as it is merged or becomes useless. First check that every commit on it is contained in `main`, or in the branch that took its work over: `git branch --contains <last commit>` and `git log main..<branch>` (which must list nothing) show it. Then `git branch -d <branch>` and `git push origin --delete <branch>`. A branch whose commits aren't contained anywhere is never deleted without the owner's yes.
 
 ## Releasing
 
