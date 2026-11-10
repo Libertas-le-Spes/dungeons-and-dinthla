@@ -27,7 +27,7 @@ This page is for whoever picks the work up on another machine, person or session
 
 1. Bump the version in `manifest.json`, `package.json`, `package-lock.json` and `versions.json` in one pull request.
 2. After it merges, tag `main` with the bare version (`0.3.0`, no `v`) and push the tag.
-3. The Release workflow checks the versions, builds, checks the built `main.js` and `styles.css` for network code (`node scripts/check-no-network.ts`), runs the tests and attaches `main.js`, `manifest.json` and `styles.css`.
+3. The Release workflow checks the versions, builds, checks the built `main.js` and `styles.css` for network code (`node scripts/check-no-network.ts main.js styles.css`), runs the tests and attaches `main.js`, `manifest.json` and `styles.css`.
 
 Stay on `0.x` until the plugin has held up in real games. Then go to `1.0.0`.
 
@@ -35,7 +35,7 @@ Stay on `0.x` until the plugin has held up in real games. Then go to `1.0.0`.
 
 - Node must be `^22.18.0 || ^24.0.0 || >=26.0.0`: the build and `scripts/` are TypeScript run by Node's own type stripping.
 - Run `npm install`, then `npm run build`. The build also copies the plugin into `demo-vault/`. Open `demo-vault` as a vault in Obsidian; the README has the steps. Its campaign still sits at the vault's top, outside any Campaigns folder, so the plugin shows no campaign there until it is moved into one.
-- After a build, `node scripts/check-no-network.ts` checks the built `main.js` and `styles.css` for network code, as every pull request and release does.
+- After a build, `node scripts/check-no-network.ts main.js styles.css` checks the built files for network code, as every pull request and release does. It checks only the files it is given and refuses to run with none.
 - `npx vitest run` runs the tests. Tests must not open a real browser.
 - When the owner is gaming on the machine, run builds and tests at low priority, one builder at a time:
 
