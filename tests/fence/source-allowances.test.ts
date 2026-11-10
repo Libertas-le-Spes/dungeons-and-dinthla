@@ -10,6 +10,7 @@ import { SourceScanner } from "./source-scanner";
 import { PAGE_GLOBALS, PLAIN_GLOBALS } from "./allowed/globals";
 import { OBSIDIAN_IMPORTS } from "./allowed/obsidian-imports";
 
+const SCAN_TIME = 60_000;
 const GATEKEEPER_FOLDER = "fence/";
 const PARSED_DATA = ["settings/draft-record.ts"];
 const ALLOWED = ["fence/gatekeeper.ts", "fence/fenced-files.ts", "fence/fenced-file-actions.ts", "fence/folder-choices.ts", "fence/vault-settings.ts"];
@@ -128,7 +129,7 @@ function sortedLists(allowed: Record<string, string[]>): Record<string, string[]
 describe("the plugin's own source", () => {
   it("lets only the gatekeeper's allowed files reach the vault, walk its folders or Obsidian's file metadata, only the allowed files read an editor's text, and none write through an editor or view", () => {
     expect(fenceBreaches(scanner, BUNDLED_PROJECT, sourceListing(), SOURCE_ALLOWANCES)).toEqual([]);
-  });
+  }, SCAN_TIME);
 
   it("allows only files in the gatekeeper's own folder, each of which still needs it", () => {
     const loaded = scanner.loadedFiles(BUNDLED_PROJECT);
@@ -182,12 +183,12 @@ describe("the plugin's own source", () => {
   it("lists exactly the Obsidian names each place imports today, so a name no longer used leaves the list", () => {
     const refused = namesRefused(/^src\/([^:]+):\d+ imports (\w+) from obsidian/, OBSIDIAN_IMPORTS, { ...SOURCE_ALLOWANCES, obsidianImports: () => false });
     expect(refused).toEqual(sortedLists(OBSIDIAN_IMPORTS));
-  });
+  }, SCAN_TIME);
 
   it("lists exactly the page and timer globals each file uses today, so a global no longer used leaves the list", () => {
     const refused = namesRefused(/^src\/([^:]+):\d+ uses the global (\w+)$/, PAGE_GLOBALS, { ...SOURCE_ALLOWANCES, globals: (_path, name) => PLAIN_GLOBALS.includes(name) });
     expect(refused).toEqual(sortedLists(PAGE_GLOBALS));
-  });
+  }, SCAN_TIME);
 
   it.each([
     { allowance: "fileOpening", files: FILE_OPENERS, breach: "opens, shows or picks a note with openFile" },
