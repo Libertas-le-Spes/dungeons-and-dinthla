@@ -9,6 +9,7 @@ import { virtualFileSystem } from "./scan/virtual-files";
 import { SourceScanner } from "./source-scanner";
 import { PAGE_GLOBALS, PLAIN_GLOBALS } from "./allowed/globals";
 import { OBSIDIAN_IMPORTS } from "./allowed/obsidian-imports";
+import { COMPUTED_KEY_READERS } from "./allowed/computed-keys";
 
 const SCAN_TIME = 60_000;
 const GATEKEEPER_FOLDER = "fence/";
@@ -74,6 +75,7 @@ const SOURCE_ALLOWANCES: Allowances = {
   obsidianImports: isImportAllowed,
   globals: isGlobalAllowed,
   postProcessing: isOneOf(POST_PROCESSING),
+  computedKeys: isOneOf(COMPUTED_KEY_READERS),
   pageText: isOneOf(PAGE_TEXT_READERS),
   elementQueries: isOneOf(ELEMENT_QUERIERS),
   tags: isPageTag,
@@ -201,6 +203,7 @@ describe("the plugin's own source", () => {
     { allowance: "noteEvents", files: NOTE_EVENT_LISTENERS, breach: "workspace event, which hands over any note" },
     { allowance: "gateBuilding", files: GATE_BUILDERS, breach: "builds the gate's Gatekeeper" },
     { allowance: "postProcessing", files: POST_PROCESSING, breach: "registers a post-processor" },
+    { allowance: "computedKeys", files: COMPUTED_KEY_READERS, breach: "reads a key that isn't written in place" },
     { allowance: "pageText", files: PAGE_TEXT_READERS, breach: "reads the page's text" },
     { allowance: "elementQueries", files: ELEMENT_QUERIERS, breach: "looks elements up" },
   ] as const)("lets only the files allowed $allowance do it, each of which still needs it", ({ allowance, files, breach }) => {

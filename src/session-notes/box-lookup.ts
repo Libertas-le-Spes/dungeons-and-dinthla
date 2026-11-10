@@ -18,7 +18,11 @@ function pickSelected(list: LookupList): void {
   list.pickSelected();
 }
 
-const KEY_ACTIONS: Record<string, KeyAction> = { ArrowDown: moveDown, ArrowUp: moveUp, Enter: pickSelected };
+const KEY_ACTIONS = new Map<string, KeyAction>([
+  ["ArrowDown", moveDown],
+  ["ArrowUp", moveUp],
+  ["Enter", pickSelected],
+]);
 
 function hasModifier(event: KeyboardEvent): boolean {
   return event.ctrlKey || event.metaKey || event.altKey || event.shiftKey;
@@ -61,7 +65,7 @@ export class BoxLookup {
       this.dismiss(event);
       return;
     }
-    const action = KEY_ACTIONS[event.key];
+    const action = KEY_ACTIONS.get(event.key);
     if (action === undefined) return;
     event.preventDefault();
     action(this.list);

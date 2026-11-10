@@ -137,8 +137,6 @@ export const HARMLESS_SAMPLES = [
   'import type { TextComponent } from "obsidian";\nexport const name = (text: TextComponent) => text.setValue("Pale Moon");',
   'import type { TextComponent } from "obsidian";\nexport const name = (text: TextComponent) => text.getValue();',
   'export const seen = (counts: Map<string, number>) => counts.set("Mira", 1);',
-  "export const line = (lines: string[], index: number) => lines[index];",
-  "export const word = (words: Record<string, string>, key: string) => words[key];",
   'export const word = (words: Map<string, string>, key: string) => (words as ReadonlyMap<string, string>).get(key);',
   'export const match = (pattern: RegExp) => pattern.exec("Mira");',
   "export class Ledger {\n  save(): void {}\n  write(): void {\n    this.save();\n  }\n}",
@@ -155,7 +153,6 @@ export const HARMLESS_SAMPLES = [
   'import type { TFile } from "obsidian";\nexport const file = (entry: { file: TFile }) => entry.file;',
   'import type { Modal } from "obsidian";\nexport const show = (modal: Modal) => modal.open();',
   'export class Tab {\n  constructor(readonly app: { name: string }) {}\n  name(): string {\n    return this.app.name;\n  }\n}',
-  'import type { TFile } from "obsidian";\nexport function count(counts: Record<string, number>, file: TFile) {\n  counts[file.path] = 1;\n}',
   'export function move(place: { path: string }) {\n  place.path = "Pale Moon";\n}',
   'interface Place {\n  path: string;\n}\nexport function move(place: Pick<Place, "path">) {\n  place.path = "Pale Moon";\n}',
   "interface Step {\n  next: Step | null;\n}\nexport const first = (step: Step): Step => step;",
@@ -181,4 +178,26 @@ export const WIDENING_SAMPLES = [
   'import type { App } from "obsidian";\nexport const parts = (app: Pick<App, "scope" | "keymap">) => Object.values(app);',
   'import type { ItemView } from "obsidian";\nexport const parts = (view: ItemView) => Object.values(view);',
   'import type { FencedFiles } from "../../../../src/fence/fenced-files";\nexport const parts = (files: Pick<FencedFiles, "getFileByPath">) => Object.values(files);',
+];
+
+export const KEY_SAMPLES = [
+  "export function make(name: string, code: string): unknown {\n  const arrow = () => 0;\n  const key = name as keyof typeof arrow;\n  const maker = arrow[key] as FunctionConstructor;\n  return maker(code)();\n}",
+  'export function make(first: string, second: string, code: string): unknown {\n  const text = "";\n  const outer = text[first as "constructor"];\n  const maker = outer[second as "constructor"] as FunctionConstructor;\n  return maker(code)();\n}',
+  'export function make(first: string, code: string): unknown {\n  const count = 0;\n  const maker = count[first as "constructor"] as FunctionConstructor;\n  return maker(code);\n}',
+  "export function make(first: string): unknown {\n  const arrow = () => 0;\n  return Object.values(arrow) && first;\n}",
+  'export const make = (arrow: () => number, key: "constructor" | "length") => arrow[key];',
+  'export const make = (arrow: () => number, key: "prototype") => arrow[key];',
+  'export const make = (lines: string[], key: "constructor" | "length") => lines[key];',
+  'export const make = (lines: { name: string }, key: "__proto__") => lines[key];',
+  "export const word = (words: Record<string, string>, key: string) => words[key];",
+  'import type { TFile } from "obsidian";\nexport function count(counts: Record<string, number>, file: TFile) {\n  counts[file.path] = 1;\n}',
+  "export const word = (words: string[], key: string | number) => words[key as number];",
+  'export const make = (code: string) => (Function as unknown as FunctionConstructor)(code);',
+  "export const make = (maker: FunctionConstructor, code: string) => maker(code);",
+];
+
+export const ALLOWED_KEY_SAMPLES = [
+  "export const line = (lines: string[], index: number) => lines[index];",
+  'const LABELS: Record<"AC" | "HP", string> = { AC: "Armor Class", HP: "Hit Points" };\nexport const label = (name: "AC" | "HP") => LABELS[name];',
+  'export const first = (lines: string[]) => lines[0];',
 ];

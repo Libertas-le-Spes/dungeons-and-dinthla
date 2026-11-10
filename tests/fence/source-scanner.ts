@@ -5,6 +5,7 @@ import type { Allowances } from "./scan/allowances";
 import { editorViewBreaches } from "./scan/editor-view-rules";
 import type { FileScan, Rules } from "./scan/file-scan";
 import { codeTextBreaches } from "./scan/code-text-rules";
+import { computedKeyBreaches } from "./scan/computed-key-rules";
 import { foundIn } from "./scan/found";
 import { pageElementBreaches } from "./scan/page-element-rules";
 import { pageFoundIn } from "./scan/page-found";
@@ -21,7 +22,7 @@ import { workspaceEventBreaches } from "./scan/workspace-event-rules";
 
 export type { Allowances } from "./scan/allowances";
 
-const RULES: Rules[] = [vaultAccessBreaches, editorViewBreaches, openingBreaches, workspaceEventBreaches, gateForgingBreaches, importBreaches, globalBreaches, codeTextBreaches, pageElementBreaches, pageTextBreaches];
+const RULES: Rules[] = [vaultAccessBreaches, editorViewBreaches, openingBreaches, workspaceEventBreaches, gateForgingBreaches, importBreaches, globalBreaches, codeTextBreaches, pageElementBreaches, pageTextBreaches, computedKeyBreaches];
 
 export class SourceScanner {
   private readonly api: API;
