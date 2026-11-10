@@ -1,34 +1,36 @@
-import type { Campaign, QuestStatus, Source } from "../campaign/campaign";
-
-export interface LineState {
-  sign: string;
-  label: string;
-  struck: boolean;
-}
+import type { Campaign, Source, SourcedText } from "../campaign/campaign";
+import type { ThreadRecord } from "../campaign/thread-kind";
+import type { FollowUpName } from "../kinds/follow-up-name";
+import { questionShownKind } from "../questions/question-shown-kind";
+import { questShownKind } from "../quests/quest-shown-kind";
+import type { LineState } from "../views/line-state";
+import type { ShownThreadKind } from "../views/shown-thread-kind";
+import { threadStateOf } from "../views/thread-state";
 
 type ReadState = (campaign: Campaign, source: Source) => LineState | null;
 
-const ANSWERED: LineState = { sign: "✓", label: "Answered", struck: false };
 const GONE: LineState = { sign: "✕", label: "Gone", struck: true };
-const QUEST_STATES: Record<QuestStatus, LineState> = {
-  completed: { sign: "✓", label: "Completed", struck: false },
-  failed: { sign: "✕", label: "Abandoned", struck: true },
-};
 
 function isAt(written: Source, source: Source): boolean {
   return written.path === source.path && written.line === source.line;
 }
 
-function answeredQuestion(campaign: Campaign, source: Source): LineState | null {
-  const question = campaign.questions.find((candidate) => isAt(candidate.source, source));
-  if (question === undefined || question.answer === null) return null;
-  return ANSWERED;
+function threadStateAt<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName>(
+  shown: ShownThreadKind<Thread, Ending, EndingName>,
+  campaign: Campaign,
+  source: Source,
+): LineState | null {
+  const thread = shown.threadsOf(campaign).find((candidate) => isAt(candidate.source, source));
+  if (thread === undefined) return null;
+  return threadStateOf(shown, thread);
 }
 
-function finishedQuest(campaign: Campaign, source: Source): LineState | null {
-  const quest = campaign.quests.find((candidate) => isAt(candidate.source, source));
-  if (quest === undefined || quest.outcome === null) return null;
-  return QUEST_STATES[quest.outcome.status];
+function questionState(campaign: Campaign, source: Source): LineState | null {
+  return threadStateAt(questionShownKind, campaign, source);
+}
+
+function questState(campaign: Campaign, source: Source): LineState | null {
+  return threadStateAt(questShownKind, campaign, source);
 }
 
 function goneItem(campaign: Campaign, source: Source): LineState | null {
@@ -37,7 +39,7 @@ function goneItem(campaign: Campaign, source: Source): LineState | null {
   return GONE;
 }
 
-const STATE_READERS: ReadState[] = [answeredQuestion, finishedQuest, goneItem];
+const STATE_READERS: ReadState[] = [questionState, questState, goneItem];
 
 export function lineStateOf(campaign: Campaign, source: Source): LineState | null {
   for (const read of STATE_READERS) {

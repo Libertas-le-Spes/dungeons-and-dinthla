@@ -24,7 +24,6 @@ export const COMPUTED_KEY_READERS = [
   "quests/quest-plan.ts",
   "session-notes/box-text.ts",
   "session-notes/kept-time.ts",
-  "session-notes/line-state.ts",
   "session-notes/lookup-list.ts",
   "sessions/played-date.ts",
   "views/note-in-campaign.ts",

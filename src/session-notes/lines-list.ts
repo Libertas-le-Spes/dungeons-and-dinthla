@@ -1,7 +1,8 @@
 import type { Campaign } from "../campaign/campaign";
 import { markerNamed } from "../kinds/tracked-markers";
 import { addLinkedText, type LinkActions } from "../views/linked-text";
-import { lineStateOf, type LineState } from "./line-state";
+import type { LineState } from "../views/line-state";
+import { lineStateOf } from "./line-state";
 import type { WrittenLine } from "./written-lines";
 
 const NO_LINES = "No notes in this session yet. Type one above and save it.";
