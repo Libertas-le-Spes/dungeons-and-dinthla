@@ -1,14 +1,16 @@
+import { applySessionChange } from "../campaign/apply-session-change";
 import { buildCampaign } from "../campaign/build-campaign";
 import type { CoinRecord, ItemEvent, ItemRecord, SessionNote } from "../campaign/campaign";
 import { lineAsRead, removalAsRead, type Removal } from "../campaign/note-editor";
-import { sessionNoteOf, sessionNumberOf } from "../campaign/session-file";
+import type { Rewrite } from "../campaign/session-change";
+import { sessionNumberOf } from "../campaign/session-file";
 import { withoutBullet } from "../notes/bullet";
 import { readAmount, type AmountReading } from "../notes/coin-lines";
 import { readItemChange } from "../notes/item-change";
 import { findLinks } from "../notes/link";
-import { appendLines, removeLines, rewriteLine } from "../notes/note-lines";
 import { oneLine } from "../notes/one-line";
 import { holderNameOf, THE_PARTY, THE_PARTY_LABEL } from "./item-groups";
+import { itemSessionChange } from "./item-session-change";
 
 export type ItemStatus = "held" | "sold" | "used" | "lost";
 
@@ -21,11 +23,6 @@ export interface ItemEdit {
   holder: string;
   status: ItemStatus;
   price: string;
-}
-
-export interface Rewrite {
-  old: Removal;
-  line: string;
 }
 
 export interface ItemPlan {
@@ -169,12 +166,8 @@ function planPriceChange(
 }
 
 function writtenAfterRemoval(sessions: SessionNote[], removal: Removal, item: ItemRecord): string | undefined {
-  const after = buildCampaign(
-    sessions.map((session) => {
-      if (session.path !== removal.path) return session;
-      return sessionNoteOf(session.path, session.number, removeLines(session.text, [removal]).text);
-    }),
-  );
+  const removed = applySessionChange(sessions, { removal, rewrite: null, added: null, addedLater: null });
+  const after = buildCampaign(removed.sessions);
   const found = after.items.find((candidate) => candidate.name === item.name);
   if (found === undefined) return undefined;
   return found.written;
@@ -227,22 +220,6 @@ export function planItemSave(
   return { targetPath, added, removal, rewrite: null, holderName, holderLinked, status: edit.status, purseCopper };
 }
 
-function rewrittenText(text: string, rewrite: Rewrite): string {
-  const rewritten = rewriteLine(text, rewrite.old, rewrite.line);
-  if (rewritten === null) return text;
-  return rewritten;
-}
-
-function applyPlan(sessions: SessionNote[], plan: ItemPlan): SessionNote[] {
-  return sessions.map((session) => {
-    let text = session.text;
-    if (plan.removal !== null && plan.removal.path === session.path) text = removeLines(text, [plan.removal]).text;
-    if (plan.rewrite !== null && plan.rewrite.old.path === session.path) text = rewrittenText(text, plan.rewrite);
-    if (session.path === plan.targetPath) text = appendLines(text, plan.added);
-    return sessionNoteOf(session.path, session.number, text);
-  });
-}
-
 function signature(item: ItemRecord, holderName: string, holderLinked: boolean, status: ItemStatus): string {
   return JSON.stringify([item.name.toLowerCase(), item.written, holderName.toLowerCase(), holderLinked, status]);
 }
@@ -253,7 +230,7 @@ function signatureOf(item: ItemRecord): string {
 
 export function refusalForItemPlan(sessions: SessionNote[], item: ItemRecord, plan: ItemPlan): string | null {
   const before = buildCampaign(sessions);
-  const after = buildCampaign(applyPlan(sessions, plan));
+  const after = buildCampaign(applySessionChange(sessions, itemSessionChange(plan)).sessions);
   const wanted = before.items.map((candidate) => {
     if (candidate.name === item.name) return signature(item, plan.holderName, plan.holderLinked, plan.status);
     return signatureOf(candidate);
