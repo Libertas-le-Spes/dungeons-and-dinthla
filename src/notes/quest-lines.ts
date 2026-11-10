@@ -1,32 +1,31 @@
-import { followUpSymbolOf } from "../kinds/follow-ups";
+import { questTrackedKind } from "../kinds/quest-tracked-kind";
 import { readLedgerEntry } from "./ledger";
 import { readMarker } from "./marker";
-import { readQuest } from "./quest";
-import { oneLine } from "./question-lines";
-
-type FinishedStatus = "completed" | "failed";
+import { oneLine } from "./one-line";
+import { readQuest, type QuestStatus } from "./quest";
+import { followUpLine, openingAfterLine, openingTextOf } from "./thread-lines";
 
 export function questTextOf(text: string): string {
-  return oneLine(text).replace(/^!\s*/, "");
+  return openingTextOf(questTrackedKind.marker, text);
 }
 
 export function progressLine(title: string, text: string): string {
-  return `${followUpSymbolOf("progress")} ${title}: ${oneLine(text)}`;
+  return followUpLine("progress", title, text);
 }
 
-export function outcomeLine(status: FinishedStatus, title: string, text: string): string {
-  return `${followUpSymbolOf(status)} ${title}: ${oneLine(text)}`.trimEnd();
+export function outcomeLine(status: QuestStatus, title: string, text: string): string {
+  return followUpLine(status, title, text).trimEnd();
 }
 
 export function newQuestLine(title: string, givenBy: string, reward: string): string {
-  const parts = [`! ${title}`];
+  const parts = [`${questTrackedKind.marker.symbol} ${title}`];
   if (givenBy !== "") parts.push(`from: ${givenBy}`);
   if (reward !== "") parts.push(`reward: ${reward}`);
   return parts.join(", ");
 }
 
 export function followUpQuestLine(followUp: string, title: string): string {
-  return `! ${questTextOf(followUp)}, after: ${title}`;
+  return openingAfterLine(questTrackedKind.marker, followUp, title);
 }
 
 export function rewardLine(reward: string, title: string): string {

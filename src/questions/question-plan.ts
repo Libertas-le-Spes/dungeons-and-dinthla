@@ -1,10 +1,13 @@
 import { buildCampaign } from "../campaign/build-campaign";
 import type { Campaign, QuestionRecord, SessionNote, SourcedText } from "../campaign/campaign";
 import type { Removal } from "../campaign/note-editor";
+import { questionThreadKind } from "../campaign/question-thread-kind";
 import { sessionNoteOf } from "../campaign/session-file";
+import { endingRemoval } from "../campaign/thread-removal";
 import { readMarker } from "../notes/marker";
 import { appendLines, removeLines } from "../notes/note-lines";
-import { answerLine, followUpQuestionLine, isFollowUpLine, oneLine, questionTextOf } from "../notes/question-lines";
+import { oneLine } from "../notes/one-line";
+import { answerLine, followUpQuestionLine, questionTextOf } from "../notes/question-lines";
 
 export interface QuestionEdit {
   answer: string;
@@ -25,13 +28,7 @@ export const CHANGES_MORE_THAN_ASKED = "That change wouldn't be read as asked, o
 export const FOLLOW_UP_ALREADY_ASKED = "A question already reads like that follow-up, so answers would be mixed up. Reword it.";
 
 export function answerRemoval(question: QuestionRecord): Removal | null {
-  const answer = question.answer;
-  if (answer === null) return null;
-  return {
-    path: answer.source.path,
-    line: answer.source.line,
-    matches: (written) => isFollowUpLine(written, "answer", question.text, answer.text),
-  };
+  return endingRemoval(questionThreadKind, question);
 }
 
 function placedAnswer(path: string, text: string): string {
