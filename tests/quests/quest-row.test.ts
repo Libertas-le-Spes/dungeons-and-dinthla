@@ -3,12 +3,18 @@ import { buildCampaign } from "../../src/campaign/build-campaign";
 import { addQuestRow } from "../../src/quests/quest-row";
 import { obsidianDocument } from "../views/obsidian-dom";
 
-function setUp(lines: string[], keywords: string[] = []) {
-  const campaign = buildCampaign([{ path: "Pale Moon/Sessions/Session 2.md", number: 2, firstLine: 0, text: lines.join("\n") }]);
+function setUpSessions(sessions: string[][], keywords: string[]) {
+  const campaign = buildCampaign(
+    sessions.map((lines, index) => ({ path: `Pale Moon/Sessions/Session ${index + 2}.md`, number: index + 2, firstLine: 0, text: lines.join("\n") })),
+  );
   const list = obsidianDocument().createElement("ul");
   const actions = { openRow: vi.fn(), openLink: vi.fn() };
   for (const record of campaign.quests) addQuestRow(list, record, keywords, actions);
   return { row: list.querySelector(".dd-row") as HTMLElement, actions };
+}
+
+function setUp(lines: string[], keywords: string[] = []) {
+  return setUpSessions([lines], keywords);
 }
 
 function textOf(row: HTMLElement, selector: string): string | null | undefined {
@@ -59,9 +65,9 @@ describe("addQuestRow", () => {
   });
 
   it("opens a name linked in what happened from the outcome's own note", () => {
-    const { row, actions } = setUp(["We rode on.", "! Find it", "!= Find it: found [[Lady Vess]]"]);
+    const { row, actions } = setUpSessions([["We rode on.", "! Find it"], ["!= Find it: found [[Lady Vess]]"]], []);
     (row.querySelector(".dd-answer a.dd-link-name") as HTMLElement).click();
-    expect(actions.openLink).toHaveBeenCalledExactlyOnceWith("Lady Vess", "Pale Moon/Sessions/Session 2.md", false);
+    expect(actions.openLink).toHaveBeenCalledExactlyOnceWith("Lady Vess", "Pale Moon/Sessions/Session 3.md", false);
     expect(actions.openRow).not.toHaveBeenCalled();
   });
 

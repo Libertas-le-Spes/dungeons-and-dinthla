@@ -63,6 +63,12 @@ describe("openLink to a note inside the Campaigns folder", () => {
     expect(calls.create).not.toHaveBeenCalled();
   });
 
+  it("opens nothing when the note the link leads to isn't in the vault", async () => {
+    const { app, place, leaf } = placeWith(MIRA, [SESSION]);
+    await openLink(app, place, "Mira", SESSION.path, false);
+    expect(leaf.openFile).not.toHaveBeenCalled();
+  });
+
   it("opens the note at the heading the link names", async () => {
     const { app, place, raw, leaf } = placeWith(MIRA);
     await openLink(app, place, "Mira#Background", SESSION.path, false);
@@ -80,6 +86,7 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
     await openLink(app, place, "Old Mill#Cellar", SESSION.path, false);
     expect(leaf.openFile).toHaveBeenCalledWith(there, { eState: { subpath: "#Cellar" } });
     expect(calls.create).not.toHaveBeenCalled();
+    expect(Notice.shown).toEqual([]);
   });
 
   it("opens the note at the link's path when the link names its .md", async () => {
@@ -88,6 +95,7 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
     const { app, place, leaf } = placeWith(null, [SESSION, nearer, there]);
     await openLink(app, place, "Old Mill.md", SESSION.path, false);
     expect(openedPaths(leaf)).toEqual([there.path]);
+    expect(Notice.shown).toEqual([]);
   });
 
   it("opens the campaign's note in a new tab when asked", async () => {
@@ -96,6 +104,7 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
     await openLink(app, place, "Old Mill", SESSION.path, "tab");
     expect(getLeaf).toHaveBeenCalledExactlyOnceWith("tab");
     expect(openedPaths(leaf)).toEqual([placed.path]);
+    expect(Notice.shown).toEqual([]);
   });
 
   it("opens a note of that name in a folder of the campaign, making no second one", async () => {
@@ -104,6 +113,7 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
     await openLink(app, place, "Old Mill", SESSION.path, false);
     expect(openedPaths(leaf)).toEqual([placed.path]);
     expect(calls.create).not.toHaveBeenCalled();
+    expect(Notice.shown).toEqual([]);
   });
 
   it("opens the note whose path ends with the folders the link names", async () => {
@@ -112,6 +122,7 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
     const { app, place, leaf } = placeWith(null, [SESSION, road, town]);
     await openLink(app, place, "Town/Inn", SESSION.path, false);
     expect(openedPaths(leaf)).toEqual([town.path]);
+    expect(Notice.shown).toEqual([]);
   });
 
   it("opens the note at the link's path from the campaign folder before a nearer note that ends the same way", async () => {
@@ -120,6 +131,7 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
     const { app, place, leaf } = placeWith(null, [SESSION, nearer, exact]);
     await openLink(app, place, "Places/Old Mill", SESSION.path, false);
     expect(openedPaths(leaf)).toEqual([exact.path]);
+    expect(Notice.shown).toEqual([]);
   });
 
   it("opens the note at the link's path in other capitals before a nearer note that ends the same way", async () => {
@@ -128,6 +140,7 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
     const { app, place, leaf } = placeWith(null, [SESSION, nearer, exact]);
     await openLink(app, place, "Places/Old Mill", SESSION.path, false);
     expect(openedPaths(leaf)).toEqual([exact.path]);
+    expect(Notice.shown).toEqual([]);
   });
 
   it("counts the folders down to a note in its nearness, not only those up from the link", async () => {
@@ -136,6 +149,7 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
     const { app, place, leaf } = placeWith(null, [SESSION, deeper, shallower]);
     await openLink(app, place, "Old Mill", SESSION.path, false);
     expect(openedPaths(leaf)).toEqual([shallower.path]);
+    expect(Notice.shown).toEqual([]);
   });
 
   it("counts the folders up from the link in its nearness, not only those down to a note", async () => {
@@ -145,6 +159,7 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
     const { app, place, leaf } = placeWith(null, [SESSION, sameBranch, otherBranch]);
     await openLink(app, place, "Old Mill", from, false);
     expect(openedPaths(leaf)).toEqual([sameBranch.path]);
+    expect(Notice.shown).toEqual([]);
   });
 
   it("opens the note of that name nearest to the note holding the link", async () => {
@@ -153,6 +168,7 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
     const { app, place, leaf } = placeWith(ROOT_MILL, [SESSION, ROOT_MILL, far, near]);
     await openLink(app, place, "Old Mill", SESSION.path, false);
     expect(openedPaths(leaf)).toEqual([near.path]);
+    expect(Notice.shown).toEqual([]);
   });
 
   it("opens the first by path of two notes of that name as near as each other", async () => {
@@ -161,6 +177,7 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
     const { app, place, leaf } = placeWith(ROOT_MILL, [SESSION, ROOT_MILL, road, places]);
     await openLink(app, place, "Old Mill", SESSION.path, false);
     expect(openedPaths(leaf)).toEqual([places.path]);
+    expect(Notice.shown).toEqual([]);
   });
 
   it("opens a note whose name differs from the link only in capitals", async () => {
@@ -169,6 +186,7 @@ describe("openLink to a note in the campaign when the link leads outside the Cam
     await openLink(app, place, "Old Mill", SESSION.path, false);
     expect(openedPaths(leaf)).toEqual([placed.path]);
     expect(calls.create).not.toHaveBeenCalled();
+    expect(Notice.shown).toEqual([]);
   });
 });
 
@@ -188,6 +206,8 @@ describe("openLink to a note that doesn't exist inside the campaign", () => {
 
   it("names the note without the heading, block or shown name the link carries", async () => {
     await expectNothingMade(placeWith(null), "Old Mill#^cellar|the mill", SESSION.path, notInCampaign("Old Mill"));
+    Notice.shown = [];
+    await expectNothingMade(placeWith(null), "Old Mill|the mill", SESSION.path, notInCampaign("Old Mill"));
   });
 
   it("makes nothing, and leaves alone the note outside the Campaigns folder the link leads to", async () => {

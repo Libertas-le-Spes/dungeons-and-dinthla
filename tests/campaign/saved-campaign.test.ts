@@ -8,11 +8,16 @@ import { FakeVault } from "./fake-vault";
 
 const CAMPAIGN = "D&D/Pale Moon";
 const SESSION = `${CAMPAIGN}/Sessions/Session 1.md`;
+const RENAMED = `${CAMPAIGN}/Sessions/Session 2.md`;
 const SAVED = "$$ Silvered lantern :changed to [[Mira]]";
 
-function savedCampaignOf(text: string, refused: Error | null = null) {
+function savedCampaignOf(text: string) {
   const sessions = new FakeVault([{ path: SESSION, text }]);
   const reads: string[] = [];
+  let refused: Error | null = null;
+  const refuseReads = (error: Error) => {
+    refused = error;
+  };
   const shownVault = sessions.vault;
   const vault = {
     ...shownVault,
@@ -30,7 +35,11 @@ function savedCampaignOf(text: string, refused: Error | null = null) {
   const failures: unknown[] = [];
   const saved = new SavedCampaign({ shown, files, metadata, failed: (error) => failures.push(error) });
   const saveSession = (saved: string) => metadataEvents.trigger("changed", { path: SESSION }, saved, {});
-  return { saved, shown, reads, fileEvents, metadataEvents, saveSession, failures };
+  const renameSession = (oldPath: string, path: string) => {
+    sessions.rename(oldPath, path);
+    fileEvents.trigger("rename", { path }, oldPath);
+  };
+  return { saved, shown, reads, fileEvents, metadataEvents, saveSession, renameSession, refuseReads, failures };
 }
 
 function holdersOf(saved: SavedCampaign): string[] {
@@ -107,9 +116,26 @@ describe("SavedCampaign", () => {
     expect(holdersOf(saved)).toEqual([]);
   });
 
+  it("follows a session note renamed within the campaign", async () => {
+    const { saved, shown, renameSession, refuseReads, failures } = savedCampaignOf(SAVED);
+    saved.start();
+    await shown.open(CAMPAIGN);
+    await settle();
+    renameSession(SESSION, RENAMED);
+    await settle();
+    expect(holdersOf(saved)).toEqual(["Silvered lantern: [[Mira]]"]);
+    expect(saved.current.items.map((item) => item.source.path)).toEqual([RENAMED]);
+    const refused = new Error("refused");
+    refuseReads(refused);
+    renameSession(RENAMED, SESSION);
+    await settle();
+    expect(failures).toEqual([refused]);
+  });
+
   it("says when the saved notes couldn't be read", async () => {
     const refused = new Error("refused");
-    const { saved, shown, failures } = savedCampaignOf(SAVED, refused);
+    const { saved, shown, failures, refuseReads } = savedCampaignOf(SAVED);
+    refuseReads(refused);
     saved.start();
     await shown.open(CAMPAIGN);
     await settle();
