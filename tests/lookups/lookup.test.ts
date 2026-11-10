@@ -55,6 +55,13 @@ describe("lookupMatches", () => {
     expect(textsFor(campaign, { kind: "item", keywords: ["torch"] })).toEqual([]);
   });
 
+  it("suggests only the kind looked up when questions, quests and items share a word", () => {
+    const campaign = campaignOf(["? Where is the lantern", "! Find the lantern", "$ Silvered lantern"]);
+    expect(textsFor(campaign, { kind: "question", keywords: ["lantern"] })).toEqual(["Where is the lantern"]);
+    expect(textsFor(campaign, { kind: "quest", keywords: ["lantern"] })).toEqual(["Find the lantern"]);
+    expect(textsFor(campaign, { kind: "item", keywords: ["lantern"] })).toEqual(["Silvered lantern"]);
+  });
+
   it("suggests at most eight", () => {
     const campaign = campaignOf(Array.from({ length: 10 }, (_, index) => `? Question ${index}`));
     expect(textsFor(campaign, { kind: "question", keywords: [] })).toHaveLength(8);

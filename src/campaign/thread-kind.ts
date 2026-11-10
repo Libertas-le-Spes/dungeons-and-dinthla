@@ -6,17 +6,15 @@ export interface ThreadRecord {
   source: Source;
 }
 
-export interface ThreadKind<Record extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName> {
+export interface ThreadKind<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName> {
   tracked: TrackedKind;
   addingName: FollowUpName;
   endingNames: readonly EndingName[];
-  readOpening(body: string, source: Source): Record | null;
+  readOpening(body: string, source: Source): Thread | null;
   isOpeningLine(written: string, text: string): boolean;
-  textOf(record: Record): string;
-  additionsOf(record: Record): SourcedText[];
-  endingOf(record: Record): Ending | null;
-  endingNameOf(ending: Ending): FollowUpName;
-  end(record: Record, name: EndingName, ending: SourcedText): void;
+  textOf(thread: Thread): string;
+  additionsOf(thread: Thread): SourcedText[];
+  endingOf(thread: Thread): Ending | null;
+  endingNameOf(ending: Ending): EndingName;
+  end(thread: Thread, name: EndingName, ending: SourcedText): void;
 }
-
-export type AnyThreadKind<Record extends ThreadRecord, Ending extends SourcedText> = ThreadKind<Record, Ending, FollowUpName>;

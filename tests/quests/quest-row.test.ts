@@ -40,12 +40,22 @@ describe("addQuestRow", () => {
     expect(row.querySelector(".dd-status-completed")).not.toBeNull();
   });
 
+  it("leaves a completed quest's title not struck", () => {
+    const { row } = setUp(["! Find it", "!= Find it: found under the Old Mill"]);
+    expect(row.querySelector(".dd-abandoned")).toBeNull();
+  });
+
   it("strikes through an abandoned quest and marks it abandoned", () => {
     const { row } = setUp(["! Guard the bridge", "!x Guard the bridge: it burned"]);
     expect(textOf(row, ".dd-mark-abandoned")).toBe("✕");
     expect(row.querySelector(".dd-text.dd-abandoned")).not.toBeNull();
     expect(row.querySelector(".dd-status-completed")).toBeNull();
     expect(textOf(row, ".dd-meta")).toBe("Abandoned · Session 2");
+  });
+
+  it("labels a completed quest's tick as completed and an abandoned quest's cross as abandoned", () => {
+    expect(setUp(["! Find it", "!= Find it: found"]).row.querySelector(".dd-mark")?.getAttribute("aria-label")).toBe("Completed");
+    expect(setUp(["! Guard it", "!x Guard it: it burned"]).row.querySelector(".dd-mark")?.getAttribute("aria-label")).toBe("Abandoned");
   });
 
   it("leaves the facts out when a quest has none", () => {

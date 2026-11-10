@@ -1,8 +1,9 @@
 import { Component } from "obsidian";
-import type { Campaign, Source } from "../campaign/campaign";
+import type { Campaign, Source, SourcedText } from "../campaign/campaign";
 import { charactersFolderOf, mainNotePathOf } from "../campaign/campaign-folders";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { latestNumberIsShared, latestSession, SESSIONS_SHARE_A_NUMBER } from "../campaign/session-to-write";
+import type { ThreadRecord } from "../campaign/thread-kind";
 import type { CharacterCard } from "../characters/character-card";
 import type { CharacterNotes } from "../characters/character-notes";
 import { ownCharacterFirst } from "../characters/own-character-first";
@@ -11,14 +12,17 @@ import type { CoinOutcome } from "../funds/coin-modal";
 import { summariseFunds, type FundsSummary } from "../funds/funds-summary";
 import { summariseItems } from "../funds/item-groups";
 import { addLedgerRow, NO_COIN_ENTRIES } from "../funds/ledger-row";
+import type { FollowUpName } from "../kinds/follow-up-name";
 import { formatMoney } from "../notes/money";
-import { listQuestions } from "../questions/question-list";
-import { addQuestionRow } from "../questions/question-row";
-import { listQuests } from "../quests/quest-list";
-import { addQuestRow } from "../quests/quest-row";
 import type { LinkActions } from "../views/linked-text";
+import type { OpenRow } from "../views/list-page";
 import { focusRowAt, NO_ROW, RowFocus, type FocusRow } from "../views/row-focus";
-import { linesWrittenIn, type WrittenLine } from "./latest-session";
+import type { ShownThreadKind } from "../views/shown-thread-kind";
+import { SHOWN_THREAD_KINDS } from "../views/shown-thread-kinds";
+import { listThreads } from "../views/thread-list";
+import type { ThreadOpeners } from "../views/thread-openers";
+import { addThreadRow } from "../views/thread-row";
+import { linesWrittenIn, type WrittenLineRows } from "./latest-session";
 import { addShortCharacterCard } from "./short-character-card";
 
 const SHOWN_ROWS = 3;
@@ -26,12 +30,8 @@ const SHOWN_SESSION_LINES = 4;
 const NO_SESSION = "No sessions yet. Start one to write in it.";
 const NO_CHARACTERS = "No characters yet. A note in the campaign’s Characters folder adds one.";
 
-export interface DashboardActions extends LinkActions {
-  openQuestion(source: Source, onClosed: (changed: boolean) => void): void;
-  openQuest(source: Source, onClosed: (changed: boolean) => void): void;
+export interface DashboardActions extends LinkActions, ThreadOpeners {
   openLedgerEntry(source: Source, onClosed: (outcome: CoinOutcome) => void): void;
-  showQuestions(): void;
-  showQuests(): void;
   showFunds(): void;
   showCharacters(): void;
   openCharacterSheet(path: string): void;
@@ -47,7 +47,12 @@ interface Panel {
   link: HTMLElement;
 }
 
-type OpenRow = (source: Source, onClosed: (changed: boolean) => void) => void;
+interface ThreadPanel {
+  shown: ShownThreadKind<ThreadRecord, SourcedText, FollowUpName>;
+  panel: Panel;
+  count: HTMLElement;
+  list: HTMLElement;
+}
 
 export type NewsLineFor = (lineEl: HTMLElement) => Component;
 
@@ -57,12 +62,7 @@ function countWord(count: number, one: string, many: string): string {
 }
 
 export class DashboardPage extends Component {
-  private questions!: Panel;
-  private questionCount!: HTMLElement;
-  private questionList!: HTMLElement;
-  private quests!: Panel;
-  private questCount!: HTMLElement;
-  private questList!: HTMLElement;
+  private threadPanels: ThreadPanel[] = [];
   private purse!: Panel;
   private purseTotal!: HTMLElement;
   private inOut!: HTMLElement;
@@ -75,6 +75,10 @@ export class DashboardPage extends Component {
   private latestPath: string | null = null;
   private characterRenders = 0;
   private readonly rowFocus = new RowFocus();
+  private readonly sessionRows: WrittenLineRows = {
+    addThread: (shown, thread) => addThreadRow(shown, this.sessionList, thread, [], this.rowActions(this.session, this.openerOf(shown))),
+    addLedgerLine: (ledgerLine) => addLedgerRow(this.sessionList, ledgerLine, this.ledgerActions(this.session), this.actions),
+  };
 
   constructor(
     private readonly contentEl: HTMLElement,
@@ -92,8 +96,7 @@ export class DashboardPage extends Component {
     root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-dashboard");
     this.addChild(this.newsLineFor(root.createDiv({ cls: "dd-news" })));
     const grid = root.createDiv({ cls: "dd-dashboard-grid" });
-    this.buildQuestions(grid);
-    this.buildQuests(grid);
+    this.threadPanels = SHOWN_THREAD_KINDS.map((shown) => this.buildThreads(grid, shown));
     this.buildPurse(grid);
     this.buildCharacters(grid);
     this.buildSession(grid);
@@ -116,16 +119,11 @@ export class DashboardPage extends Component {
     return { section, title: heading, links, link };
   }
 
-  private buildQuestions(grid: HTMLElement): void {
-    this.questions = this.addPanel(grid, "Open questions", "All questions", () => this.actions.showQuestions());
-    this.questionCount = this.questions.section.createDiv({ cls: "dd-big" });
-    this.questionList = this.questions.section.createEl("ul", { cls: "dd-list" });
-  }
-
-  private buildQuests(grid: HTMLElement): void {
-    this.quests = this.addPanel(grid, "Active quests", "All quests", () => this.actions.showQuests());
-    this.questCount = this.quests.section.createDiv({ cls: "dd-big" });
-    this.questList = this.quests.section.createEl("ul", { cls: "dd-list" });
+  private buildThreads(grid: HTMLElement, shown: ShownThreadKind<ThreadRecord, SourcedText, FollowUpName>): ThreadPanel {
+    const panel = this.addPanel(grid, shown.panelWords.title, shown.panelWords.link, () => shown.show(this.actions));
+    const count = panel.section.createDiv({ cls: "dd-big" });
+    const list = panel.section.createEl("ul", { cls: "dd-list" });
+    return { shown, panel, count, list };
   }
 
   private buildPurse(grid: HTMLElement): void {
@@ -152,8 +150,7 @@ export class DashboardPage extends Component {
   private render(): void {
     const campaign = this.store.current;
     const funds = summariseFunds(campaign);
-    this.renderQuestions(campaign);
-    this.renderQuests(campaign);
+    for (const threadPanel of this.threadPanels) this.renderThreads(threadPanel, campaign);
     this.renderPurse(campaign, funds);
     this.renderSession(campaign, funds);
     void this.renderCharacters();
@@ -177,6 +174,12 @@ export class DashboardPage extends Component {
     };
   }
 
+  private openerOf<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName>(
+    shown: ShownThreadKind<Thread, Ending, EndingName>,
+  ): OpenRow {
+    return (source, onClosed) => shown.open(this.actions, source, onClosed);
+  }
+
   private ledgerActions(panel: Panel): LinkActions {
     return {
       ...this.actions,
@@ -194,20 +197,13 @@ export class DashboardPage extends Component {
     this.rowFocus.afterClose(focusRow, changed, () => panel.link.focus());
   }
 
-  private renderQuestions(campaign: Campaign): void {
-    const contents = listQuestions(campaign, []);
-    this.showCount(this.questionCount, contents.openCount, "open", "Nothing open");
-    this.questionList.empty();
-    const actions = this.rowActions(this.questions, (source, onClosed) => this.actions.openQuestion(source, onClosed));
-    for (const question of contents.open.slice(0, SHOWN_ROWS)) addQuestionRow(this.questionList, question, [], actions);
-  }
-
-  private renderQuests(campaign: Campaign): void {
-    const contents = listQuests(campaign, []);
-    this.showCount(this.questCount, contents.openCount, "active", "No active quests");
-    this.questList.empty();
-    const actions = this.rowActions(this.quests, (source, onClosed) => this.actions.openQuest(source, onClosed));
-    for (const quest of contents.open.slice(0, SHOWN_ROWS)) addQuestRow(this.questList, quest, [], actions);
+  private renderThreads(threadPanel: ThreadPanel, campaign: Campaign): void {
+    const shown = threadPanel.shown;
+    const contents = listThreads(shown, campaign, []);
+    this.showCount(threadPanel.count, contents.openCount, shown.listWords.openWord, shown.panelWords.noneOpen);
+    threadPanel.list.empty();
+    const actions = this.rowActions(threadPanel.panel, this.openerOf(shown));
+    for (const thread of contents.open.slice(0, SHOWN_ROWS)) addThreadRow(shown, threadPanel.list, thread, [], actions);
   }
 
   private renderPurse(campaign: Campaign, funds: FundsSummary): void {
@@ -243,20 +239,7 @@ export class DashboardPage extends Component {
     this.session.title.setText(this.actions.sessionHeadingOf(latest));
     const lines = linesWrittenIn(latest, campaign, funds.ledger);
     this.showCount(this.sessionCount, lines.length, countWord(lines.length, "line", "lines"), "Nothing written yet");
-    for (const line of lines.slice(0, SHOWN_SESSION_LINES)) this.addWrittenLine(line);
-  }
-
-  private addWrittenLine(line: WrittenLine): void {
-    const panel = this.session;
-    if (line.kind === "question") {
-      const actions = this.rowActions(panel, (source, onClosed) => this.actions.openQuestion(source, onClosed));
-      addQuestionRow(this.sessionList, line.question, [], actions);
-    } else if (line.kind === "quest") {
-      const actions = this.rowActions(panel, (source, onClosed) => this.actions.openQuest(source, onClosed));
-      addQuestRow(this.sessionList, line.quest, [], actions);
-    } else {
-      addLedgerRow(this.sessionList, line.ledgerLine, this.ledgerActions(panel), this.actions);
-    }
+    for (const line of lines.slice(0, SHOWN_SESSION_LINES)) line.addTo(this.sessionRows);
   }
 
   private writeInLatest(): void {
