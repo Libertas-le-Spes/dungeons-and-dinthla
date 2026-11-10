@@ -12,9 +12,10 @@ import {
   LOOSE_CAST_SAMPLES,
   OTHER_PLUGIN_SAMPLES,
   REACHING_SAMPLES,
+  WIDENING_SAMPLES,
 } from "./samples/vault-access-samples";
 
-const SAMPLES = [...REACHING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...FOLDER_WALK_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...HARMLESS_SAMPLES];
+const SAMPLES = [...REACHING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...FOLDER_WALK_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...WIDENING_SAMPLES, ...HARMLESS_SAMPLES];
 
 let scan: SampleScan;
 
@@ -61,6 +62,10 @@ describe("the source scan's vault access rules", () => {
 
   it.each(CONSTRUCTOR_SAMPLES)("would catch reaching a constructor with %s", (sample) => {
     expect(scan.breaches(sample)).not.toEqual([]);
+  });
+
+  it.each(WIDENING_SAMPLES)("would catch reaching the vault through a value widened to hide it with %s, even in a file allowed to cast", (sample) => {
+    expect(scan.breaches(sample, LOOSE_CASTS_ALLOWED)).not.toEqual([]);
   });
 
   it.each(HARMLESS_SAMPLES)("lets %s pass, since it reaches neither the vault nor an editor's text", (sample) => {

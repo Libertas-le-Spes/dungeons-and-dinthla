@@ -1,13 +1,25 @@
 import type { Project, Symbol as TypeSymbol, Type } from "typescript/unstable/sync";
-import { TypeFlags } from "typescript/unstable/sync";
-import { isIdentifier, isVariableDeclaration, SyntaxKind, type Expression, type Node } from "typescript/unstable/ast";
+import { SignatureKind, TypeFlags } from "typescript/unstable/sync";
+import { isBindingElement, isClassDeclaration, isIdentifier, isInterfaceDeclaration, isParameterDeclaration, isVariableDeclaration, SyntaxKind, type Expression, type Node } from "typescript/unstable/ast";
 import type { Found, Named } from "./found";
-import { CODE_MIRROR_FOLDER, DOCUMENT, EDITOR_OWNERS, EDITOR_READS, EDITOR_WRITES, FILE_OWNERS, FORBIDDEN_NAMES, OBSIDIAN_FOLDER, UNTYPED, VAULT_NAMES, VIEW_OWNERS } from "./names";
+import { CODE_MIRROR_FOLDER, DOCUMENT, EDITOR_OWNERS, EDITOR_READS, EDITOR_WRITES, FILE_OWNERS, FORBIDDEN_NAMES, OBJECT, OBSIDIAN_FOLDER, REACHING_HOLDERS, UNTYPED, VAULT_NAMES, VIEW_OWNERS } from "./names";
 import { isCast, layersOf, unwrapped, type Cast } from "./syntax";
-import { anyMemberCould, flattened, isNamedGlobal, isNamedOneOf, isObsidianOwnedByOneOf, isOwnedByOneOf } from "./type-shapes";
+import { anyMemberCould, flattened, isLibraryFile, isLibraryType, isNamedGlobal, isNamedOneOf, isObsidianOwnedByOneOf, isOwnedByOneOf } from "./type-shapes";
+
+const PROTOTYPE = "prototype";
+
+const PLAIN_VALUES = TypeFlags.Undefined | TypeFlags.Null | TypeFlags.Void | TypeFlags.StringLike | TypeFlags.NumberLike | TypeFlags.BooleanLike | TypeFlags.BigIntLike;
+
+function isBindingPatternInitializer(node: Expression): boolean {
+  const declaration = node.parent;
+  if (!isVariableDeclaration(declaration) && !isBindingElement(declaration) && !isParameterDeclaration(declaration)) return false;
+  const name = declaration.name;
+  return declaration.initializer === node && name !== undefined && !isIdentifier(name);
+}
 
 export class TypeQueries {
   private readonly reachingTypes = new Map<number, boolean>();
+  private readonly namedReach = new Map<number, boolean>();
 
   ownedReads(project: Project, found: Found, name: string, owners: string[]): Named[] {
     const read = this.ownedBy(project, found.members.filter((member) => member.name === name), (symbol) => isObsidianOwnedByOneOf(symbol, owners));
@@ -120,7 +132,8 @@ export class TypeQueries {
     if (cast.type.kind === SyntaxKind.AnyKeyword) return true;
     const before = project.checker.getTypeAtLocation(cast.expression);
     if (before === undefined) return true;
-    return (before.flags & (TypeFlags.Any | TypeFlags.Unknown)) !== 0;
+    if ((before.flags & (TypeFlags.Any | TypeFlags.Unknown)) !== 0) return true;
+    return flattened(this.constrained(project, before)).some((member) => (member.flags & TypeFlags.Object) !== 0 && this.isWide(project, member));
   }
 
   reachingKeys(project: Project, found: Found): Node[] {
@@ -147,17 +160,71 @@ export class TypeQueries {
     return anyMemberCould(type, (member) => this.memberCouldReach(project, member));
   }
 
+  hidingPlacements(project: Project, placed: Expression[]): Expression[] {
+    const shown = placed.filter((node) => !isBindingPatternInitializer(node));
+    if (shown.length === 0) return [];
+    const values = project.checker.getTypeAtLocation(shown);
+    return shown.filter((node, index) => {
+      const context = project.checker.getContextualType(node);
+      if (context === undefined) return false;
+      return this.holdsReach(project, values[index]) && !this.couldReach(project, context);
+    });
+  }
+
+  private holdsReach(project: Project, type: Type | undefined): boolean {
+    if (type === undefined) return false;
+    return flattened(this.constrained(project, type)).some((member) => (member.flags & TypeFlags.Object) !== 0 && this.reachesByWhatItHolds(project, member));
+  }
+
+  private reachesByWhatItHolds(project: Project, type: Type): boolean {
+    return isNamedGlobal(type) || this.holdsReachingName(project, type) || this.holdsReachingMember(project, type);
+  }
+
   private memberCouldReach(project: Project, type: Type): boolean {
+    if ((type.flags & PLAIN_VALUES) !== 0) return false;
     if ((type.flags & TypeFlags.Object) === 0) return true;
     const known = this.reachingTypes.get(type.id);
+    if (known !== undefined) return known;
+    const reaches = this.isWide(project, type) || this.reachesByWhatItHolds(project, type);
+    this.reachingTypes.set(type.id, reaches);
+    return reaches;
+  }
+
+  private isWide(project: Project, type: Type): boolean {
+    if ((type.flags & TypeFlags.NonPrimitive) !== 0) return true;
+    if (isNamedOneOf(type, [OBJECT]) && isLibraryType(type)) return true;
+    if (project.checker.getPropertiesOfType(type).length > 0) return false;
+    if (project.checker.getIndexInfosOfType(type).length > 0) return false;
+    return project.checker.getSignaturesOfType(type, SignatureKind.Call).length === 0 && project.checker.getSignaturesOfType(type, SignatureKind.Construct).length === 0;
+  }
+
+  private holdsReachingName(project: Project, type: Type): boolean {
+    const known = this.namedReach.get(type.id);
     if (known !== undefined) return known;
     const holds = (name: string) => project.checker.getPropertyOfType(type, name) !== undefined;
     const holdsEditorText = [...EDITOR_WRITES, ...EDITOR_READS].some((name) => {
       const property = project.checker.getPropertyOfType(type, name);
       return property !== undefined && this.isEditorOwned(property);
     });
-    const reaches = VAULT_NAMES.some(holds) || FORBIDDEN_NAMES.some(holds) || holdsEditorText;
-    this.reachingTypes.set(type.id, reaches);
+    const reaches = VAULT_NAMES.some(holds) || FORBIDDEN_NAMES.some(holds) || REACHING_HOLDERS.some(holds) || holdsEditorText;
+    this.namedReach.set(type.id, reaches);
     return reaches;
+  }
+
+  private holdsReachingMember(project: Project, type: Type): boolean {
+    const members = project.checker.getPropertiesOfType(type).filter((property) => property.name !== PROTOTYPE);
+    return members.some((property) => this.declaringTypesOf(project, property).some((owner) => owner.id !== type.id && this.holdsReachingName(project, owner)));
+  }
+
+  private declaringTypesOf(project: Project, property: TypeSymbol): Type[] {
+    const parent = property.getParent();
+    if (parent !== undefined) return [project.checker.getDeclaredTypeOfSymbol(parent)];
+    return property.declarations.flatMap((handle) => {
+      const owner = handle.resolve(project)?.parent;
+      if (owner === undefined || !(isInterfaceDeclaration(owner) || isClassDeclaration(owner)) || owner.name === undefined) return [];
+      const symbol = project.checker.getSymbolAtLocation(owner.name);
+      if (symbol === undefined) return [];
+      return [project.checker.getDeclaredTypeOfSymbol(symbol)];
+    });
   }
 }

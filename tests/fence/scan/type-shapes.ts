@@ -42,6 +42,12 @@ export function anyMemberCould(type: Type | undefined, could: (member: Type) => 
   return membersOf(type).some(could);
 }
 
+export function isLibraryType(type: Type): boolean {
+  const symbol = type.getSymbol();
+  if (symbol === undefined) return false;
+  return symbol.declarations.length > 0 && symbol.declarations.every((declaration) => isLibraryFile(declaration.path));
+}
+
 export function isLibraryFile(path: string): boolean {
   return path.includes(LIBRARY_FOLDER);
 }
