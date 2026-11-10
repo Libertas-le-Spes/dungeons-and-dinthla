@@ -1,10 +1,11 @@
-import { ButtonComponent, Modal, Notice, Setting, type App } from "obsidian";
+import { ButtonComponent, Setting, type App } from "obsidian";
 import type { Source } from "../campaign/campaign";
 import { CHANGED_IN_NOTE, PartlyWritten } from "../campaign/note-editor";
 import { sessionLabelOf } from "../campaign/session-file";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
-import { deleteOnSecondPress, type SecondPress } from "../views/second-press";
+import { deleteOnSecondPress } from "../views/second-press";
+import { TrackedDialog } from "../views/tracked-dialog";
 import type { SheetValue, ValueState } from "./character-sheet";
 import { shownTextOf, STATE_WORDS } from "./character-sheet-page";
 import type { ValueChoice } from "./sheet-value-writer";
@@ -51,11 +52,9 @@ export function whereText(character: string, sessionLabel: string | null): strin
   return `${learned} Override changes ${character}'s note.`;
 }
 
-export class SheetValueModal extends Modal {
+export class SheetValueModal extends TrackedDialog {
   private typed: string;
   private valueInput: HTMLInputElement | null = null;
-  private busy = false;
-  private readonly secondPresses = new Map<ValueState, SecondPress>();
 
   constructor(
     app: App,
@@ -93,15 +92,17 @@ export class SheetValueModal extends Modal {
     if (removesNoteLines(value, "learned")) contentEl.createEl("p", { cls: "dd-where", text: secondPressText(this.dialog.character, value.label) });
   }
 
-  override close(): void {
-    if (this.busy) return;
-    super.close();
+  protected override closed(): void {
+    this.onClosed();
   }
 
-  override onClose(): void {
-    for (const secondPress of this.secondPresses.values()) secondPress.stop();
-    this.contentEl.empty();
-    this.onClosed();
+  protected override finished(): void {
+    this.close();
+  }
+
+  protected override failed(error: unknown): void {
+    if (error instanceof PartlyWritten || messageOf(error) === CHANGED_IN_NOTE) this.close();
+    else if (this.valueInput !== null) this.valueInput.focus();
   }
 
   private addEarlier(): void {
@@ -126,26 +127,13 @@ export class SheetValueModal extends Modal {
     button.buttonEl.setAttr("aria-pressed", String(state === this.dialog.value.state));
     button.buttonEl.setAttr("data-state", state);
     if (removesNoteLines(this.dialog.value, state)) {
-      this.secondPresses.set(state, deleteOnSecondPress(button, STATE_WORDS[state], () => this.choose(state)));
+      this.stopOnClose(deleteOnSecondPress(button, STATE_WORDS[state], () => this.choose(state)));
       return;
     }
     button.setButtonText(STATE_WORDS[state]).onClick(() => this.choose(state));
   }
 
   private choose(state: ValueState): void {
-    if (this.busy) return;
-    this.busy = true;
-    this.dialog
-      .save({ state, value: this.typed })
-      .then(() => {
-        this.busy = false;
-        this.close();
-      })
-      .catch((error: unknown) => {
-        this.busy = false;
-        new Notice(`Couldn't change the ${this.dialog.value.label.toLowerCase()}: ${messageOf(error)}`);
-        if (error instanceof PartlyWritten || messageOf(error) === CHANGED_IN_NOTE) this.close();
-        else if (this.valueInput !== null) this.valueInput.focus();
-      });
+    this.run(() => this.dialog.save({ state, value: this.typed }), `Couldn't change the ${this.dialog.value.label.toLowerCase()}`);
   }
 }

@@ -104,6 +104,14 @@ describe("deleting a ledger entry", () => {
     expect(onClosed).not.toHaveBeenCalled();
   });
 
+  it("closes unchanged when the delete wrote nothing", async () => {
+    const { button, entry, onClosed } = openDialog(true, async () => false);
+    button("Delete entry")!.click();
+    button("Press again to delete")!.click();
+    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledWith("unchanged"));
+    expect(entry.delete).toHaveBeenCalledOnce();
+  });
+
   it("closes Add coin, which has nothing to delete", () => {
     const { button, onClosed } = openDialog(false);
     expect(button("Delete entry")).toBeUndefined();

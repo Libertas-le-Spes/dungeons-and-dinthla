@@ -1,22 +1,21 @@
 import { choiceOf } from "../views/choice-of";
-import { Modal, Notice, Setting, type App } from "obsidian";
+import { Setting, type App } from "obsidian";
 import { readCoinDraft, type CoinDraft, type CoinLine, type Direction } from "../notes/coin-lines";
 import { isSubmit } from "../views/keys";
-import { messageOf } from "../views/message-of";
-import { deleteOnSecondPress, type SecondPress } from "../views/second-press";
+import { deleteOnSecondPress } from "../views/second-press";
+import { TrackedDialog } from "../views/tracked-dialog";
 import type { CoinEntryChoices } from "./coin-entry";
 
 export type CoinOutcome = "unchanged" | "written" | "deleted";
 
 const DIRECTIONS: Direction[] = ["in", "out"];
 
-export class CoinModal extends Modal {
+export class CoinModal extends TrackedDialog {
   private readonly draft: CoinDraft;
-  private secondPress: SecondPress | null = null;
   private outcome: CoinOutcome = "unchanged";
+  private doing: CoinOutcome = "unchanged";
   private reading: HTMLElement | null = null;
   private amountInput: HTMLInputElement | null = null;
-  private busy = false;
 
   constructor(
     app: App,
@@ -81,22 +80,22 @@ export class CoinModal extends Modal {
     const entry = this.entry;
     if (entry !== null) {
       buttons.addButton((button) => {
-        this.secondPress = deleteOnSecondPress(button, "Delete entry", () => this.run("deleted", () => entry.delete()));
+        this.stopOnClose(deleteOnSecondPress(button, "Delete entry", () => this.saveAs("deleted", () => entry.delete())));
       });
     }
     this.showReading();
   }
 
-  override close(): void {
-    if (this.busy) return;
-    super.close();
-  }
-
-  override onClose(): void {
-    if (this.secondPress !== null) this.secondPress.stop();
-    this.contentEl.empty();
+  protected override closed(): void {
     this.onClosed(this.outcome);
   }
+
+  protected override finished(wrote: boolean): void {
+    if (wrote) this.outcome = this.doing;
+    this.close();
+  }
+
+  protected override failed(): void {}
 
   private showReading(): void {
     if (this.reading === null) return;
@@ -140,7 +139,7 @@ export class CoinModal extends Modal {
       if (this.amountInput !== null) this.amountInput.focus();
       return;
     }
-    this.run("written", () => this.save(reading));
+    this.saveAs("written", () => this.save(reading));
   }
 
   private failureText(): string {
@@ -148,18 +147,12 @@ export class CoinModal extends Modal {
     return "Couldn't change the entry";
   }
 
-  private run(done: CoinOutcome, change: () => Promise<boolean>): void {
-    if (this.busy) return;
-    this.busy = true;
-    change()
-      .then((wrote) => {
-        this.busy = false;
-        if (wrote) this.outcome = done;
-        this.close();
-      })
-      .catch((error: unknown) => {
-        this.busy = false;
-        new Notice(`${this.failureText()}: ${messageOf(error)}`);
-      });
+  private saveAs(done: CoinOutcome, change: () => Promise<boolean>): void {
+    this.run(() => this.start(done, change), this.failureText());
+  }
+
+  private start(done: CoinOutcome, change: () => Promise<boolean>): Promise<boolean> {
+    this.doing = done;
+    return change();
   }
 }

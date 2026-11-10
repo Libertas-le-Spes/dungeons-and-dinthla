@@ -1,16 +1,15 @@
-import { Modal, Notice, Setting, type App } from "obsidian";
+import { Setting, type App } from "obsidian";
 import { isSubmit } from "../views/keys";
-import { messageOf } from "../views/message-of";
+import { TrackedDialog } from "../views/tracked-dialog";
 
 export interface NewQuestion {
   question: string;
   answer: string;
 }
 
-export class NewQuestionModal extends Modal {
+export class NewQuestionModal extends TrackedDialog {
   private readonly entry: NewQuestion = { question: "", answer: "" };
   private questionInput: HTMLInputElement | null = null;
-  private busy = false;
 
   constructor(
     app: App,
@@ -55,28 +54,18 @@ export class NewQuestionModal extends Modal {
       .addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));
   }
 
-  override close(): void {
-    if (this.busy) return;
-    super.close();
-  }
-
-  override onClose(): void {
-    this.contentEl.empty();
+  protected override closed(): void {
     this.onClosed();
   }
 
+  protected override finished(added: boolean): void {
+    if (added) this.close();
+    else if (this.questionInput !== null) this.questionInput.focus();
+  }
+
+  protected override failed(): void {}
+
   private save(): void {
-    if (this.busy) return;
-    this.busy = true;
-    this.add(this.entry)
-      .then((added) => {
-        this.busy = false;
-        if (added) this.close();
-        else if (this.questionInput !== null) this.questionInput.focus();
-      })
-      .catch((error: unknown) => {
-        this.busy = false;
-        new Notice(`Couldn't add the question: ${messageOf(error)}`);
-      });
+    this.run(() => this.add(this.entry), "Couldn't add the question");
   }
 }

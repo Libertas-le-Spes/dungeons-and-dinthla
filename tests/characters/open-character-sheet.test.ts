@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App, TFile } from "obsidian";
 import type { SessionNote } from "../../src/campaign/campaign";
 import { CHANGED_IN_NOTE } from "../../src/campaign/note-editor";
-import { SESSIONS_SHARE_A_NUMBER } from "../../src/campaign/session-to-write";
+import { NoSessionToWrite, SESSIONS_SHARE_A_NUMBER } from "../../src/campaign/session-to-write";
 import { carriedValuesOf, characterSheetOf, type SheetValue } from "../../src/characters/character-sheet";
 import { chooseSheetValue, NO_SESSION, openCharacterSheet, sameSheetValue, saveSheetValue } from "../../src/characters/open-character-sheet";
 import { readCharacterSheet } from "../../src/characters/read-character-sheet";
@@ -143,6 +143,11 @@ describe("saveSheetValue", () => {
     await expect(saveSheetValue(app, gate, store, notes, MIRA, acOf([]), { state: "learned", value: "16" })).rejects.toThrow(NO_SESSION);
   });
 
+  it("refuses a learned value for a character outside any campaign as having no session to write in", async () => {
+    const { app, gate, store, notes } = setUp({ [MIRA.path]: "" }, { folders: [] });
+    await expect(saveSheetValue(app, gate, store, notes, MIRA, acOf([]), { state: "learned", value: "16" })).rejects.toBeInstanceOf(NoSessionToWrite);
+  });
+
   it("refuses a learned value when the campaign has no session notes", async () => {
     const { app, gate, store, notes, notesText } = setUp({ [MIRA.path]: "" });
     await expect(saveSheetValue(app, gate, store, notes, MIRA, acOf([]), { state: "learned", value: "16" })).rejects.toThrow(NO_SESSION);
@@ -172,6 +177,14 @@ describe("chooseSheetValue", () => {
     await chooseSheetValue(app, gate, store, notes, MIRA, acOf([]), vi.fn(), vi.fn());
     const modal = openedModals[openedModals.length - 1] as unknown as { dialog: SheetValueDialog };
     expect(modal.dialog.sessionLabel).toBeNull();
+  });
+
+  it("names no session for a character outside any campaign", async () => {
+    const { app, gate, store, notes } = setUp({ [MIRA.path]: "" }, { folders: [] });
+    await chooseSheetValue(app, gate, store, notes, MIRA, acOf([]), vi.fn(), vi.fn());
+    const modal = openedModals[openedModals.length - 1] as unknown as { dialog: SheetValueDialog };
+    expect(modal.dialog.sessionLabel).toBeNull();
+    expect(Notice.shown).toEqual([]);
   });
 
   it("says why when the note can't be read", async () => {
