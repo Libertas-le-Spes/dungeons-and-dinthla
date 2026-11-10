@@ -1,37 +1,30 @@
 import type { FollowUpName } from "../kinds/follow-up-name";
-import { kindFollowsUpWith } from "../kinds/follow-ups";
 import type { MarkerName } from "../kinds/marker-name";
-import type { TrackedKind } from "../kinds/tracked-kind";
 import type { FollowUp } from "../notes/follow-up";
-import type { Source, SourcedText, Thread } from "./campaign";
+import type { Source, SourcedText } from "./campaign";
 import { findSubject } from "./subject";
+import type { ThreadKind, ThreadRecord } from "./thread-kind";
 
-export abstract class ThreadBook<T extends Thread<SourcedText>> {
-  readonly threads: T[] = [];
+export class ThreadBook<Record extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName> {
+  readonly records: Record[] = [];
 
-  constructor(
-    private readonly kind: TrackedKind,
-    private readonly unmatched: SourcedText[],
-  ) {}
+  constructor(private readonly kind: ThreadKind<Record, Ending, EndingName>) {}
 
   addOpening(marker: MarkerName | null, body: string, source: Source): void {
-    if (marker !== this.kind.marker.name) return;
-    const thread = this.opened(body, source);
-    if (thread !== null) this.threads.push(thread);
+    if (marker !== this.kind.tracked.marker.name) return;
+    const record = this.kind.readOpening(body, source);
+    if (record !== null) this.records.push(record);
   }
 
-  addFollowUp(followUp: FollowUp, line: string, source: Source): void {
-    if (!kindFollowsUpWith(this.kind, followUp.kind)) return;
-    const open = this.threads.filter((thread) => thread.closing === null);
-    const found = findSubject(followUp.text, open, (thread) => thread.text);
-    if (found === null) {
-      this.unmatched.push({ text: line.trim(), source });
-      return;
-    }
-    this.attach(found.candidate, followUp.kind, { text: found.rest, source });
+  addFollowUp(followUp: FollowUp, source: Source): boolean {
+    const ending = this.kind.endingNames.find((name) => name === followUp.kind);
+    if (ending === undefined && followUp.kind !== this.kind.addingName) return false;
+    const open = this.records.filter((record) => this.kind.endingOf(record) === null);
+    const found = findSubject(followUp.text, open, (record) => this.kind.textOf(record));
+    if (found === null) return false;
+    const line = { text: found.rest, source };
+    if (ending === undefined) this.kind.additionsOf(found.candidate).push(line);
+    else this.kind.end(found.candidate, ending, line);
+    return true;
   }
-
-  protected abstract opened(body: string, source: Source): T | null;
-
-  protected abstract attach(thread: T, name: FollowUpName, followUp: SourcedText): void;
 }

@@ -1,28 +1,37 @@
-import type { SourcedText, Thread } from "../campaign/campaign";
+import type { SourcedText } from "../campaign/campaign";
+import type { AnyThreadKind, ThreadRecord } from "../campaign/thread-kind";
 import { unlink } from "../notes/link";
 import type { ListContents } from "./list-page";
 
-type FactsOf<T> = (thread: T) => string[];
+interface ListedKind<Record extends ThreadRecord, Ending extends SourcedText> {
+  kind: AnyThreadKind<Record, Ending>;
+  factsOf(record: Record): string[];
+}
 
-function searchableTextOf<T extends Thread<SourcedText>>(thread: T, factsOf: FactsOf<T>): string {
-  const texts = [thread.text, ...factsOf(thread)];
-  if (thread.closing !== null) texts.push(thread.closing.text);
+function searchableTextOf<Record extends ThreadRecord, Ending extends SourcedText>(listed: ListedKind<Record, Ending>, record: Record): string {
+  const texts = [listed.kind.textOf(record), ...listed.factsOf(record)];
+  const ending = listed.kind.endingOf(record);
+  if (ending !== null) texts.push(ending.text);
   return unlink(texts.join(" ")).toLowerCase();
 }
 
-function matchesEvery<T extends Thread<SourcedText>>(thread: T, keywords: string[], factsOf: FactsOf<T>): boolean {
-  const text = searchableTextOf(thread, factsOf);
+function matchesEvery<Record extends ThreadRecord, Ending extends SourcedText>(listed: ListedKind<Record, Ending>, record: Record, keywords: string[]): boolean {
+  const text = searchableTextOf(listed, record);
   return keywords.every((keyword) => text.includes(keyword));
 }
 
-export function listThreads<T extends Thread<SourcedText>>(threads: T[], keywords: string[], factsOf: FactsOf<T>): ListContents<T> {
-  const newestFirst = [...threads].reverse();
-  const open = newestFirst.filter((thread) => thread.closing === null);
-  const closed = newestFirst.filter((thread) => thread.closing !== null);
+export function listThreads<Record extends ThreadRecord, Ending extends SourcedText>(
+  listed: ListedKind<Record, Ending>,
+  records: Record[],
+  keywords: string[],
+): ListContents<Record> {
+  const newestFirst = [...records].reverse();
+  const open = newestFirst.filter((record) => listed.kind.endingOf(record) === null);
+  const ended = newestFirst.filter((record) => listed.kind.endingOf(record) !== null);
   return {
-    open: open.filter((thread) => matchesEvery(thread, keywords, factsOf)),
-    folded: closed.filter((thread) => matchesEvery(thread, keywords, factsOf)),
+    open: open.filter((record) => matchesEvery(listed, record, keywords)),
+    folded: ended.filter((record) => matchesEvery(listed, record, keywords)),
     openCount: open.length,
-    foldedCount: closed.length,
+    foldedCount: ended.length,
   };
 }

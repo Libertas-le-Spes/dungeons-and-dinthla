@@ -1,5 +1,7 @@
 import { partsBetweenCommas } from "./comma";
 
+export type QuestStatus = "completed" | "failed";
+
 export interface Quest {
   title: string;
   givenBy?: string;

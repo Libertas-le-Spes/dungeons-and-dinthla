@@ -65,7 +65,7 @@ describe("saving a quest", () => {
     await notes.save(0, { status: "completed", happened: "under the mill", collectReward: true }, TWO);
     expect(notes.texts.get(TWO)).toBe("!= Find the caravan: under the mill\n$ +200 gp reward, for: Find the caravan\n");
     const campaign = notes.campaign();
-    expect(campaign.quests[0]?.closing).toMatchObject({ status: "completed", text: "under the mill" });
+    expect(campaign.quests[0]?.outcome).toMatchObject({ status: "completed", text: "under the mill" });
     expect(campaign.purseCopper).toBe(20000);
   });
 
@@ -196,7 +196,7 @@ describe("refusing changes that swap same-titled quests in one note", () => {
   it("lets one of two identical finished quests change on its own", async () => {
     const notes = new FakeNotes({ [ONE]: "! X\n!= X: done\n! X\n!= X: done\n" });
     await notes.save(1, { status: "failed", happened: "done" }, ONE);
-    expect(notes.campaign().quests.map((record) => record.closing?.status)).toEqual(["completed", "failed"]);
+    expect(notes.campaign().quests.map((record) => record.outcome?.status)).toEqual(["completed", "failed"]);
   });
 
   it("refuses a plan that would move the purse by more than the reward", () => {
@@ -220,7 +220,7 @@ describe("the reward and outcome rules for recurring quests", () => {
     const notes = new FakeNotes({ [ONE]: "! Clear the rats\n!= Clear the rats: done\n", [TWO]: "! Clear the rats\n!+ Clear the rats: cellar\n" });
     await notes.save(0, { status: "failed", happened: "fled" }, TWO);
     expect(notes.texts.get(ONE)).toBe("! Clear the rats\n!x Clear the rats: fled\n");
-    expect(notes.campaign().quests.map((record) => [record.closing?.status, record.notes.map((note) => note.text)])).toEqual([
+    expect(notes.campaign().quests.map((record) => [record.outcome?.status, record.progress.map((note) => note.text)])).toEqual([
       ["failed", []],
       [undefined, ["cellar"]],
     ]);
@@ -258,7 +258,7 @@ describe("adding a quest", () => {
   it("adds the new quest's line to the session", async () => {
     const notes = new FakeNotes({ [ONE]: "We rode on.\n" });
     expect(await new QuestWriter(notes.vault).add("! Escort Mira, reward: 50 gp", ONE)).toBe(true);
-    expect(notes.campaign().quests.map((record) => [record.text, record.reward])).toEqual([["Escort Mira", "50 gp"]]);
+    expect(notes.campaign().quests.map((record) => [record.quest.title, record.quest.reward])).toEqual([["Escort Mira", "50 gp"]]);
   });
 });
 

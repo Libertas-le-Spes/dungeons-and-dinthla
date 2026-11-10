@@ -21,14 +21,14 @@ function isAt(written: Source, source: Source): boolean {
 
 function answeredQuestion(campaign: Campaign, source: Source): LineState | null {
   const question = campaign.questions.find((candidate) => isAt(candidate.source, source));
-  if (question === undefined || question.closing === null) return null;
+  if (question === undefined || question.answer === null) return null;
   return ANSWERED;
 }
 
 function finishedQuest(campaign: Campaign, source: Source): LineState | null {
   const quest = campaign.quests.find((candidate) => isAt(candidate.source, source));
-  if (quest === undefined || quest.closing === null) return null;
-  return QUEST_STATES[quest.closing.status];
+  if (quest === undefined || quest.outcome === null) return null;
+  return QUEST_STATES[quest.outcome.status];
 }
 
 function goneItem(campaign: Campaign, source: Source): LineState | null {

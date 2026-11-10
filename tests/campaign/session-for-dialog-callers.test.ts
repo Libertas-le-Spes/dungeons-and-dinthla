@@ -21,8 +21,8 @@ function storeRaisedIn(path: string): CampaignStore {
     campaignFolder: "Pale Moon",
     sessionNotes: [],
     current: {
-      questions: [{ text: "Who rang the bell", source, notes: [], closing: null }],
-      quests: [{ text: "Mend the bridge", source, notes: [], closing: null }],
+      questions: [{ text: "Who rang the bell", source, clues: [], answer: null }],
+      quests: [{ quest: { title: "Mend the bridge" }, source, progress: [], outcome: null }],
       items: [{ name: "Lantern", written: "Lantern", holder: "the party", holderLinked: false, source, history: [{ source }], gone: null }],
       coins: [],
     },

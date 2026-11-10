@@ -3,8 +3,7 @@ import type { QuestionRecord, Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
 import { sessionForDialog } from "../campaign/session-for-dialog";
-import { followUpWouldGoElsewhere, latestSessionOf, sharesTextWithEarlierOpenThread } from "../campaign/current-thread";
-import { ANSWER_GOES_ELSEWHERE, currentQuestion } from "./current-question";
+import { ANSWER_GOES_ELSEWHERE, answerWouldGoElsewhere, currentQuestion, latestSessionOfQuestion, sharesTextWithEarlierOpenQuestion } from "./current-question";
 import { QuestionModal } from "./question-modal";
 import { planQuestionSave, planReopen, refusalForQuestionPlan, type QuestionEdit, type QuestionPlan } from "./question-plan";
 import { QuestionWriter } from "./question-writer";
@@ -29,12 +28,12 @@ export function openQuestion(
     openNote();
     return;
   }
-  if (sharesTextWithEarlierOpenThread(questions, question)) {
+  if (sharesTextWithEarlierOpenQuestion(questions, question)) {
     new Notice(SAME_TEXT);
     openNote();
     return;
   }
-  const wanted = { activePath, earliestSession: latestSessionOf(question, folder), noSession: NO_SESSION };
+  const wanted = { activePath, earliestSession: latestSessionOfQuestion(question, folder), noSession: NO_SESSION };
   const sessionPath = sessionForDialog(gate.files, folder, wanted);
   if (sessionPath === null) return;
   const writer = new QuestionWriter(gate.files);
@@ -47,7 +46,7 @@ export function openQuestion(
   const choices = {
     save: async (edit: QuestionEdit) => {
       const current = latest();
-      if (followUpWouldGoElsewhere(store.current.questions, current, edit.answer)) throw new Error(ANSWER_GOES_ELSEWHERE);
+      if (answerWouldGoElsewhere(store.current.questions, current, edit.answer)) throw new Error(ANSWER_GOES_ELSEWHERE);
       return checkedApply(current, planQuestionSave(current, edit, sessionPath));
     },
     reopen: () => {
@@ -57,7 +56,7 @@ export function openQuestion(
     delete: () => writer.delete(latest()),
   };
   let answeredIn = sessionLabelOf(sessionPath);
-  if (question.closing !== null) answeredIn = sessionLabelOf(question.closing.source.path);
+  if (question.answer !== null) answeredIn = sessionLabelOf(question.answer.source.path);
   const places = { askedIn: sessionLabelOf(question.source.path), answeredIn, writesTo: sessionLabelOf(sessionPath) };
   new QuestionModal(app, question, places, choices, onClosed).open();
 }

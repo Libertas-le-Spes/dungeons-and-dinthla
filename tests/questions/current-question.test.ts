@@ -1,8 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { QuestionRecord } from "../../src/campaign/campaign";
-import { followUpWouldGoElsewhere, latestSessionOf, sharesTextWithEarlierOpenThread } from "../../src/campaign/current-thread";
-import { ANSWER_GOES_ELSEWHERE, currentQuestion, refusalForNewQuestion, SAME_TEXT_AS_EXISTING } from "../../src/questions/current-question";
+import {
+  ANSWER_GOES_ELSEWHERE,
+  answerWouldGoElsewhere,
+  currentQuestion,
+  latestSessionOfQuestion,
+  refusalForNewQuestion,
+  SAME_TEXT_AS_EXISTING,
+  sharesTextWithEarlierOpenQuestion,
+} from "../../src/questions/current-question";
 import { CHANGED_IN_NOTE } from "../../src/campaign/note-editor";
 
 function questionsOf(lines: string[], path = "Pale Moon/Sessions/Session 4.md"): QuestionRecord[] {
@@ -16,7 +23,7 @@ describe("currentQuestion", () => {
       { path: "Pale Moon/Sessions/Session 2.md", number: 2, firstLine: 0, text: "?+ Who: a\n" },
     ];
     const opened = buildCampaign(sessions("Intro\n? Who\n? Who\n")).questions[0]!;
-    expect(opened.notes).toHaveLength(1);
+    expect(opened.clues).toHaveLength(1);
     expect(() => currentQuestion(buildCampaign(sessions("? Who\n? Who\n")).questions, opened)).toThrow(CHANGED_IN_NOTE);
   });
 
@@ -41,42 +48,42 @@ describe("currentQuestion", () => {
   });
 });
 
-describe("sharesTextWithEarlierOpenThread", () => {
+describe("sharesTextWithEarlierOpenQuestion", () => {
   it("sees an earlier open question with the same text", () => {
     const questions = questionsOf(["? Who", "? Who"]);
-    expect(sharesTextWithEarlierOpenThread(questions, questions[1]!)).toBe(true);
-    expect(sharesTextWithEarlierOpenThread(questions, questions[0]!)).toBe(false);
+    expect(sharesTextWithEarlierOpenQuestion(questions, questions[1]!)).toBe(true);
+    expect(sharesTextWithEarlierOpenQuestion(questions, questions[0]!)).toBe(false);
   });
 
   it("ignores an earlier one that is already answered", () => {
     const questions = questionsOf(["? Who", "?= Who: Mira", "? Who"]);
-    expect(sharesTextWithEarlierOpenThread(questions, questions[1]!)).toBe(false);
+    expect(sharesTextWithEarlierOpenQuestion(questions, questions[1]!)).toBe(false);
   });
 });
 
-describe("latestSessionOf", () => {
+describe("latestSessionOfQuestion", () => {
   it("gives the latest session holding the question, a clue or its answer", () => {
     const questions = buildCampaign([
       { path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: "? Who" },
       { path: "Pale Moon/Sessions/Session 3.md", number: 3, firstLine: 0, text: "?+ Who: oil" },
     ]).questions;
-    expect(latestSessionOf(questions[0]!, "Pale Moon")).toBe(3);
+    expect(latestSessionOfQuestion(questions[0]!, "Pale Moon")).toBe(3);
   });
 
   it("gives the question's own session when nothing follows it", () => {
-    expect(latestSessionOf(questionsOf(["? Who"])[0]!, "Pale Moon")).toBe(4);
+    expect(latestSessionOfQuestion(questionsOf(["? Who"])[0]!, "Pale Moon")).toBe(4);
   });
 });
 
-describe("followUpWouldGoElsewhere", () => {
+describe("answerWouldGoElsewhere", () => {
   it("sees an answer that would be read as another open question's", () => {
     const questions = questionsOf(["? Who", "? Who: really"]);
-    expect(followUpWouldGoElsewhere(questions, questions[0]!, "really: Mira")).toBe(true);
+    expect(answerWouldGoElsewhere(questions, questions[0]!, "really: Mira")).toBe(true);
   });
 
   it("lets an ordinary answer through", () => {
     const questions = questionsOf(["? Who", "? Who: really"]);
-    expect(followUpWouldGoElsewhere(questions, questions[0]!, "Mira")).toBe(false);
+    expect(answerWouldGoElsewhere(questions, questions[0]!, "Mira")).toBe(false);
   });
 });
 

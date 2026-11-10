@@ -1,7 +1,7 @@
 import { AMOUNT, readLedgerEntry } from "./ledger";
 import { blankLinks } from "./link";
 import { formatMoney } from "./money";
-import { oneLine } from "./thread-lines";
+import { oneLine } from "./one-line";
 
 export type Direction = "in" | "out";
 
