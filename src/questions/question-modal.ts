@@ -1,8 +1,8 @@
-import { Modal, Notice, Setting, type App } from "obsidian";
+import { Setting, type App } from "obsidian";
 import type { QuestionRecord } from "../campaign/campaign";
 import { isSubmit } from "../views/keys";
-import { messageOf } from "../views/message-of";
-import { deleteOnSecondPress, type SecondPress } from "../views/second-press";
+import { deleteOnSecondPress } from "../views/second-press";
+import { TrackedDialog } from "../views/tracked-dialog";
 import { PartlyWritten } from "../campaign/note-editor";
 import type { QuestionEdit } from "./question-plan";
 
@@ -18,11 +18,11 @@ export interface QuestionPlaces {
   writesTo: string;
 }
 
-export class QuestionModal extends Modal {
+const FAILURE = "Couldn't change the question";
+
+export class QuestionModal extends TrackedDialog {
   private readonly edit: QuestionEdit;
-  private secondPress: SecondPress | null = null;
   private changed = false;
-  private busy = false;
 
   constructor(
     app: App,
@@ -52,7 +52,7 @@ export class QuestionModal extends Modal {
       area.inputEl.addEventListener("keydown", (event) => {
         if (!isSubmit(event, true)) return;
         event.preventDefault();
-        this.run(() => this.choices.save(this.edit));
+        this.run(() => this.choices.save(this.edit), FAILURE);
       });
       area.inputEl.focus();
     });
@@ -64,49 +64,35 @@ export class QuestionModal extends Modal {
       text.inputEl.addEventListener("keydown", (event) => {
         if (!isSubmit(event, false)) return;
         event.preventDefault();
-        this.run(() => this.choices.save(this.edit));
+        this.run(() => this.choices.save(this.edit), FAILURE);
       });
     });
     let where = `New lines go into ${this.places.writesTo}.`;
     if (this.question.answer !== null) where = `New lines go into ${this.places.writesTo}; a changed answer replaces the old one in ${this.places.answeredIn}.`;
     contentEl.createEl("p", { cls: "dd-where", text: where });
     const buttons = new Setting(contentEl);
-    buttons.addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.run(() => this.choices.save(this.edit))));
+    buttons.addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.run(() => this.choices.save(this.edit), FAILURE)));
     if (this.question.answer !== null) {
-      buttons.addButton((button) => button.setButtonText("Reopen question").onClick(() => this.run(() => this.choices.reopen())));
+      buttons.addButton((button) => button.setButtonText("Reopen question").onClick(() => this.run(() => this.choices.reopen(), FAILURE)));
     }
     buttons.addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));
     buttons.addButton((button) => {
-      this.secondPress = deleteOnSecondPress(button, "Delete question", () => this.run(() => this.choices.delete()));
+      this.stopOnClose(deleteOnSecondPress(button, "Delete question", () => this.run(() => this.choices.delete(), FAILURE)));
     });
   }
 
-  override close(): void {
-    if (this.busy) return;
-    super.close();
-  }
-
-  override onClose(): void {
-    if (this.secondPress !== null) this.secondPress.stop();
-    this.contentEl.empty();
+  protected override closed(): void {
     this.onClosed(this.changed);
   }
 
-  private run(change: () => Promise<boolean>): void {
-    if (this.busy) return;
-    this.busy = true;
-    change()
-      .then((wrote) => {
-        this.busy = false;
-        this.changed = wrote;
-        this.close();
-      })
-      .catch((error: unknown) => {
-        this.busy = false;
-        new Notice(`Couldn't change the question: ${messageOf(error)}`);
-        if (!(error instanceof PartlyWritten)) return;
-        this.changed = true;
-        this.close();
-      });
+  protected override finished(wrote: boolean): void {
+    this.changed = wrote;
+    this.close();
+  }
+
+  protected override failed(error: unknown): void {
+    if (!(error instanceof PartlyWritten)) return;
+    this.changed = true;
+    this.close();
   }
 }

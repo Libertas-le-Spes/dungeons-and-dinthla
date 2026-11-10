@@ -1,17 +1,17 @@
 import { choiceOf } from "../views/choice-of";
-import { Modal, Notice, Setting, type App } from "obsidian";
+import { Setting, type App } from "obsidian";
 import type { ItemRecord, Source } from "../campaign/campaign";
 import { PartlyWritten } from "../campaign/note-editor";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
+import { TrackedDialog } from "../views/tracked-dialog";
 import { holderNameOf } from "./item-groups";
 import { GONE_LINE_SAYS_MORE, type HolderOption, type ItemEdit, type ItemStatus } from "./item-plan";
 import { ITEM_STATUSES, STATUS_WORDS } from "./status-words";
 
-export class ItemModal extends Modal {
+export class ItemModal extends TrackedDialog {
   private readonly edit: ItemEdit;
   private changed = false;
-  private busy = false;
   private priceRow: HTMLElement | null = null;
   private openNoteButton: HTMLElement | null = null;
 
@@ -62,14 +62,14 @@ export class ItemModal extends Modal {
       text.inputEl.addEventListener("keydown", (event) => {
         if (event.defaultPrevented || !isSubmit(event, false)) return;
         event.preventDefault();
-        this.run();
+        this.saveEdit();
       });
     });
     this.priceRow = price.settingEl;
     this.showPrice();
     contentEl.createEl("p", { cls: "dd-where", text: `New lines go into ${this.writesTo}.` });
     new Setting(contentEl)
-      .addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.run()))
+      .addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.saveEdit()))
       .addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()))
       .addButton((button) => {
         button.setButtonText("Open note").onClick(() => this.openNote());
@@ -78,14 +78,20 @@ export class ItemModal extends Modal {
       });
   }
 
-  override close(): void {
-    if (this.busy) return;
-    super.close();
+  protected override closed(): void {
+    this.onClosed(this.changed);
   }
 
-  override onClose(): void {
-    this.contentEl.empty();
-    this.onClosed(this.changed);
+  protected override finished(wrote: boolean): void {
+    this.changed = wrote;
+    this.close();
+  }
+
+  protected override failed(error: unknown): void {
+    if (messageOf(error) === GONE_LINE_SAYS_MORE && this.openNoteButton !== null) this.openNoteButton.toggle(true);
+    if (!(error instanceof PartlyWritten)) return;
+    this.changed = true;
+    this.close();
   }
 
   private showPrice(): void {
@@ -104,22 +110,7 @@ export class ItemModal extends Modal {
     if (gone !== null) this.openNoteAt(gone.source);
   }
 
-  private run(): void {
-    if (this.busy) return;
-    this.busy = true;
-    this.save(this.edit)
-      .then((wrote) => {
-        this.busy = false;
-        this.changed = wrote;
-        this.close();
-      })
-      .catch((error: unknown) => {
-        this.busy = false;
-        new Notice(`Couldn't change the item: ${messageOf(error)}`);
-        if (messageOf(error) === GONE_LINE_SAYS_MORE && this.openNoteButton !== null) this.openNoteButton.toggle(true);
-        if (!(error instanceof PartlyWritten)) return;
-        this.changed = true;
-        this.close();
-      });
+  private saveEdit(): void {
+    this.run(() => this.save(this.edit), "Couldn't change the item");
   }
 }

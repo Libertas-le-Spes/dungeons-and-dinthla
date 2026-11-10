@@ -1,13 +1,12 @@
-import { Modal, Notice, Setting, type App } from "obsidian";
+import { Setting, type App } from "obsidian";
 import { isSubmit } from "../views/keys";
-import { messageOf } from "../views/message-of";
+import { TrackedDialog } from "../views/tracked-dialog";
 import { CharacterSuggest } from "./character-suggest";
 import type { NewQuest } from "./new-quest";
 
-export class NewQuestModal extends Modal {
+export class NewQuestModal extends TrackedDialog {
   private readonly entry: NewQuest = { title: "", givenBy: "", reward: "" };
   private titleInput: HTMLInputElement | null = null;
-  private busy = false;
 
   constructor(
     app: App,
@@ -52,15 +51,16 @@ export class NewQuestModal extends Modal {
       .addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));
   }
 
-  override close(): void {
-    if (this.busy) return;
-    super.close();
-  }
-
-  override onClose(): void {
-    this.contentEl.empty();
+  protected override closed(): void {
     this.onClosed();
   }
+
+  protected override finished(added: boolean): void {
+    if (added) this.close();
+    else if (this.titleInput !== null) this.titleInput.focus();
+  }
+
+  protected override failed(): void {}
 
   private saveOnEnter(input: HTMLInputElement): void {
     input.addEventListener("keydown", (event) => {
@@ -71,17 +71,6 @@ export class NewQuestModal extends Modal {
   }
 
   private save(): void {
-    if (this.busy) return;
-    this.busy = true;
-    this.add(this.entry)
-      .then((added) => {
-        this.busy = false;
-        if (added) this.close();
-        else if (this.titleInput !== null) this.titleInput.focus();
-      })
-      .catch((error: unknown) => {
-        this.busy = false;
-        new Notice(`Couldn't add the quest: ${messageOf(error)}`);
-      });
+    this.run(() => this.add(this.entry), "Couldn't add the quest");
   }
 }

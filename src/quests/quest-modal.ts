@@ -1,10 +1,10 @@
 import { choiceOf } from "../views/choice-of";
-import { Modal, Notice, Setting, type App, type TextAreaComponent } from "obsidian";
+import { Setting, type App, type TextAreaComponent } from "obsidian";
 import type { QuestRecord } from "../campaign/campaign";
 import { PartlyWritten } from "../campaign/note-editor";
 import { isSubmit } from "../views/keys";
-import { messageOf } from "../views/message-of";
-import { deleteOnSecondPress, type SecondPress } from "../views/second-press";
+import { deleteOnSecondPress } from "../views/second-press";
+import { TrackedDialog } from "../views/tracked-dialog";
 import { initialQuestEdit, type QuestEdit, type QuestStatusChoice } from "./quest-plan";
 
 export interface QuestChoices {
@@ -22,6 +22,8 @@ const STATUS_WORDS: Record<QuestStatusChoice, string> = { active: "Active", comp
 
 const STATUS_CHOICES: QuestStatusChoice[] = ["active", "completed", "failed"];
 
+const FAILURE = "Couldn't change the quest";
+
 function factsOf(record: QuestRecord): string {
   const facts: string[] = [];
   if (record.quest.givenBy !== undefined) facts.push(`From ${record.quest.givenBy}`);
@@ -29,11 +31,9 @@ function factsOf(record: QuestRecord): string {
   return facts.join(" · ");
 }
 
-export class QuestModal extends Modal {
+export class QuestModal extends TrackedDialog {
   private readonly edit: QuestEdit;
-  private secondPress: SecondPress | null = null;
   private changed = false;
-  private busy = false;
   private rewardRow: HTMLElement | null = null;
   private happenedArea: TextAreaComponent | null = null;
 
@@ -80,7 +80,7 @@ export class QuestModal extends Modal {
       area.inputEl.addEventListener("keydown", (event) => {
         if (!isSubmit(event, true)) return;
         event.preventDefault();
-        this.run(() => this.choices.save(this.edit));
+        this.run(() => this.choices.save(this.edit), FAILURE);
       });
     });
     if (this.canCollectReward) {
@@ -100,51 +100,37 @@ export class QuestModal extends Modal {
       text.inputEl.addEventListener("keydown", (event) => {
         if (!isSubmit(event, false)) return;
         event.preventDefault();
-        this.run(() => this.choices.save(this.edit));
+        this.run(() => this.choices.save(this.edit), FAILURE);
       });
     });
     let where = `New lines go into ${this.places.writesTo}.`;
     if (this.record.outcome !== null) where = `New lines go into ${this.places.writesTo}; a changed outcome, with its reward and follow-up, goes into ${this.places.finishedIn}.`;
     contentEl.createEl("p", { cls: "dd-where", text: where });
     const buttons = new Setting(contentEl);
-    buttons.addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.run(() => this.choices.save(this.edit))));
+    buttons.addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.run(() => this.choices.save(this.edit), FAILURE)));
     buttons.addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));
     buttons.addButton((button) => {
-      this.secondPress = deleteOnSecondPress(button, "Delete quest", () => this.run(() => this.choices.delete()));
+      this.stopOnClose(deleteOnSecondPress(button, "Delete quest", () => this.run(() => this.choices.delete(), FAILURE)));
     });
   }
 
-  override close(): void {
-    if (this.busy) return;
-    super.close();
+  protected override closed(): void {
+    this.onClosed(this.changed);
   }
 
-  override onClose(): void {
-    if (this.secondPress !== null) this.secondPress.stop();
-    this.contentEl.empty();
-    this.onClosed(this.changed);
+  protected override finished(wrote: boolean): void {
+    this.changed = wrote;
+    this.close();
+  }
+
+  protected override failed(error: unknown): void {
+    if (!(error instanceof PartlyWritten)) return;
+    this.changed = true;
+    this.close();
   }
 
   private showRewardRow(): void {
     if (this.rewardRow === null) return;
     this.rewardRow.toggle(this.edit.status === "completed");
-  }
-
-  private run(change: () => Promise<boolean>): void {
-    if (this.busy) return;
-    this.busy = true;
-    change()
-      .then((wrote) => {
-        this.busy = false;
-        this.changed = wrote;
-        this.close();
-      })
-      .catch((error: unknown) => {
-        this.busy = false;
-        new Notice(`Couldn't change the quest: ${messageOf(error)}`);
-        if (!(error instanceof PartlyWritten)) return;
-        this.changed = true;
-        this.close();
-      });
   }
 }
