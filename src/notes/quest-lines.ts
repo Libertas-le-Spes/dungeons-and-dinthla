@@ -1,3 +1,4 @@
+import { followUpSymbolOf } from "../kinds/follow-ups";
 import { readLedgerEntry } from "./ledger";
 import { readMarker } from "./marker";
 import { readQuest } from "./quest";
@@ -5,18 +6,16 @@ import { oneLine } from "./question-lines";
 
 type FinishedStatus = "completed" | "failed";
 
-const OUTCOME_MARKERS: Record<FinishedStatus, string> = { completed: "!=", failed: "!x" };
-
 export function questTextOf(text: string): string {
   return oneLine(text).replace(/^!\s*/, "");
 }
 
 export function progressLine(title: string, text: string): string {
-  return `!+ ${title}: ${oneLine(text)}`;
+  return `${followUpSymbolOf("progress")} ${title}: ${oneLine(text)}`;
 }
 
 export function outcomeLine(status: FinishedStatus, title: string, text: string): string {
-  return `${OUTCOME_MARKERS[status]} ${title}: ${oneLine(text)}`.trimEnd();
+  return `${followUpSymbolOf(status)} ${title}: ${oneLine(text)}`.trimEnd();
 }
 
 export function newQuestLine(title: string, givenBy: string, reward: string): string {
