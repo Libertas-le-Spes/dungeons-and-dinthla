@@ -32,6 +32,12 @@ describe("addQuestionRow", () => {
     expect(row.querySelector(".dd-abandoned")).toBeNull();
   });
 
+  it("labels an answered question's tick as answered, and leaves an open question's mark unlabelled", () => {
+    const { row } = setUp(["? Who sent the letter", "?= Who sent the letter: Vess"]);
+    expect(row.querySelector(".dd-mark")?.getAttribute("aria-label")).toBe("Answered");
+    expect(setUp(["? Who"]).row.querySelector(".dd-mark")?.hasAttribute("aria-label")).toBe(false);
+  });
+
   it("opens the session at the question's line when tapped", () => {
     const { row, actions } = setUp(["We rode on.", "? Who"]);
     row.click();
