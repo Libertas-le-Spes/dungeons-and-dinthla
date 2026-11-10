@@ -33,13 +33,14 @@ import {
   SyntaxKind,
   type BindingElement,
   type CallExpression,
+  type Identifier,
   type ElementAccessExpression,
   type Expression,
   type NewExpression,
   type Node,
   type SourceFile,
 } from "typescript/unstable/ast";
-import { APP, BOUND_READS, CALLED_ONLY, CODE_MIRROR_MODULE, CONSTRUCTOR, DOCUMENT, EDITOR_HOOKS, EDITOR_READS, EDITOR_WRITES, EVENT_LISTENER, EVENT_TRIGGER, FILE_OPENER, FILE_TREE, FORBIDDEN_NAMES, GATE_ONLY_NAMES, GUARDED_NAMES, KEY_READERS, NOTE_READS, OBJECT_CHANGERS, PROTOTYPE_SETTERS, PROTOTYPE_TAKERS, REFLECTION, STEPS, VAULT_NAMES, VIEW_ELEMENTS, VIEW_FILE, VIEW_TEXT } from "./names";
+import { OBJECT, WHOLE_COPIERS, APP, BOUND_READS, CALLED_ONLY, CODE_MIRROR_MODULE, CONSTRUCTOR, DOCUMENT, EDITOR_HOOKS, EDITOR_READS, EDITOR_WRITES, EVENT_LISTENER, EVENT_TRIGGER, FILE_OPENER, FILE_TREE, FORBIDDEN_NAMES, GATE_ONLY_NAMES, GUARDED_NAMES, KEY_READERS, NOTE_READS, OBJECT_CHANGERS, PROTOTYPE_SETTERS, PROTOTYPE_TAKERS, REFLECTION, STEPS, VAULT_NAMES, VIEW_ELEMENTS, VIEW_FILE, VIEW_TEXT } from "./names";
 import { argumentsOf, calledNameOf, isAssignment, isObjectCall, keyOfBinding, literalTextOf, nameTextOf, ownersIn, unwrapped, type Cast } from "./syntax";
 
 export interface BoundRead {
@@ -72,6 +73,7 @@ export interface Found {
   computedBindings: Node[];
   computedKeys: ElementAccessExpression[];
   readWhole: Expression[];
+  objectTaken: Node[];
   reflections: Node[];
   inOwners: Expression[];
   computedInOwners: Expression[];
@@ -114,6 +116,7 @@ function emptyFound(): Found {
     computedBindings: [],
     computedKeys: [],
     readWhole: [],
+    objectTaken: [],
     reflections: [],
     inOwners: [],
     computedInOwners: [],
@@ -277,6 +280,21 @@ function addBoundRead(found: Found, binding: BindingElement): void {
   if (name === VIEW_FILE) found.viewFiles.push(declaration.initializer);
 }
 
+function isCalledOnObject(name: Identifier): boolean {
+  const access = name.parent;
+  if (!isPropertyAccessExpression(access) || access.expression !== name) return false;
+  const call = access.parent;
+  return isCallExpression(call) && call.expression === access;
+}
+
+function isWholeCopy(call: CallExpression): boolean {
+  const callee = call.expression;
+  if (isIdentifier(callee)) return WHOLE_COPIERS.some((copier) => copier.owner === null && copier.name === callee.text);
+  if (!isPropertyAccessExpression(callee) || !isIdentifier(callee.expression)) return false;
+  const owner = callee.expression.text;
+  return WHOLE_COPIERS.some((copier) => copier.owner === owner && copier.name === callee.name.text);
+}
+
 export function foundIn(sourceFile: SourceFile): Found {
   const found = emptyFound();
   const visit = (node: Node): void => {
@@ -295,6 +313,8 @@ export function foundIn(sourceFile: SourceFile): Found {
     if (isIdentifier(node) && node.text === REFLECTION) found.reflections.push(node);
     if (isIdentifier(node)) addForbidden(found, node, node.text);
     if (isCallExpression(node) && isObjectCall(node, KEY_READERS)) found.readWhole.push(...node.arguments);
+    if (isCallExpression(node) && isWholeCopy(node)) found.readWhole.push(...node.arguments);
+    if (isIdentifier(node) && node.text === OBJECT && !isCalledOnObject(node)) found.objectTaken.push(node);
     if (isAsExpression(node) || isTypeAssertion(node)) found.casts.push(node);
     if (isSatisfiesExpression(node)) found.satisfied.push(node.type);
     addChange(found, node);

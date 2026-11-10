@@ -154,3 +154,25 @@ export const HARMLESS_SAMPLES = [
   'interface Place {\n  path: string;\n}\nexport function move(place: Pick<Place, "path">) {\n  place.path = "Pale Moon";\n}',
   "interface Step {\n  next: Step | null;\n}\nexport const first = (step: Step): Step => step;",
 ];
+
+export const WIDENING_SAMPLES = [
+  'import type { App } from "obsidian";\nexport function steal(app: App) {\n  const o: {} = app;\n  return Object.values(o);\n}',
+  'import type { App } from "obsidian";\nexport function steal(app: App) {\n  const o: Object = app;\n  return Object.values(o);\n}',
+  'import type { App } from "obsidian";\nexport function steal(app: App) {\n  const o: object = app;\n  return Object.values(o);\n}',
+  'import type { App, TFile } from "obsidian";\ninterface VaultLike {\n  read(file: TFile): Promise<string>;\n}\nexport function steal(app: App, key: string, file: TFile) {\n  const o: {} = app;\n  const r = o as Record<string, VaultLike>;\n  return r[key]?.read(file);\n}',
+  'import type { App, TFile } from "obsidian";\ninterface VaultLike {\n  read(file: TFile): Promise<string>;\n}\nexport function steal(app: App, file: TFile) {\n  const o: {} = app;\n  const r = o as Record<string, VaultLike>;\n  return Object.getOwnPropertyNames(o).map((n) => r[n]?.read(file));\n}',
+  'import type { App, TFile } from "obsidian";\ninterface VaultLike {\n  read(file: TFile): Promise<string>;\n}\nexport function steal(app: App, file: TFile) {\n  const o: Object = app;\n  const r = o as Record<string, VaultLike>;\n  return Object.keys(o).map((n) => r[n]?.read(file));\n}',
+  'import type { App } from "obsidian";\nexport function steal(app: App) {\n  const o: { scope: object } = app;\n  return Object.values(o);\n}',
+  'import type { App } from "obsidian";\nexport const steal = (app: App) => Object.keys(app);',
+  'import type { App } from "obsidian";\nexport const steal = (app: App) => Object.getOwnPropertyNames(app);',
+  'import type { App } from "obsidian";\nexport function steal(app: App) {\n  const { values } = Object;\n  return values(app);\n}',
+  'import type { App } from "obsidian";\nexport const steal = (app: App) => Object["values"](app);',
+  'import type { App } from "obsidian";\nexport const steal = (app: App, seen: unknown[]) => JSON.stringify(app, (_key, value: unknown) => seen.push(value));',
+  'import type { App } from "obsidian";\nexport function steal(app: Pick<App, "workspace" | "scope">) {\n  return Object.values(app);\n}',
+  'import type { App } from "obsidian";\nexport function steal(app: Pick<App, "scope">, key: string) {\n  const o: Record<string, unknown> = app;\n  return o[key];\n}',
+  "export const parts = (o: {}) => Object.values(o);",
+  "export const parts = (o: Object, key: string) => (o as Record<string, unknown>)[key];",
+  'import type { App } from "obsidian";\nexport const parts = (app: Pick<App, "scope" | "keymap">) => Object.values(app);',
+  'import type { ItemView } from "obsidian";\nexport const parts = (view: ItemView) => Object.values(view);',
+  'import type { FencedFiles } from "../../../../src/fence/fenced-files";\nexport const parts = (files: Pick<FencedFiles, "getFileByPath">) => Object.values(files);',
+];

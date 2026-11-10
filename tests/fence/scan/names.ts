@@ -92,7 +92,16 @@ export const REFLECTION = "Reflect";
 
 export const CONSTRUCTOR = "constructor";
 
-export const KEY_READERS = ["values", "entries", "getOwnPropertyDescriptor", "getOwnPropertyDescriptors", "assign"];
+export const KEY_READERS = ["values", "entries", "keys", "getOwnPropertyNames", "getOwnPropertySymbols", "getOwnPropertyDescriptor", "getOwnPropertyDescriptors", "assign"];
+
+export const OBJECT = "Object";
+
+export const WHOLE_COPIERS = [
+  { owner: "JSON", name: "stringify" },
+  { owner: null, name: "structuredClone" },
+];
+
+export const REACHING_HOLDERS = ["app", "workspace"];
 
 export const LIBRARY_FOLDER = "/node_modules/";
 
