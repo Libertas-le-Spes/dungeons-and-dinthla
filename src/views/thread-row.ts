@@ -13,7 +13,7 @@ function lookOf<Thread extends ThreadRecord, Ending extends SourcedText, EndingN
 ): ThreadLook {
   const ending = shown.threadKind.endingOf(thread);
   if (ending === null) return shown.openLook;
-  return shown.endedLookOf(ending).row;
+  return shown.endedLookOf(ending).look;
 }
 
 function addMark(row: HTMLElement, look: ThreadLook): void {
@@ -27,10 +27,10 @@ function addMark(row: HTMLElement, look: ThreadLook): void {
 
 function addFacts(body: HTMLElement, facts: ThreadFact[], keywords: string[], sourcePath: string, actions: LinkActions): void {
   if (facts.length === 0) return;
-  const shownFacts = body.createSpan({ cls: "dd-facts" });
+  const factsEl = body.createSpan({ cls: "dd-facts" });
   for (const fact of facts) {
-    const shownFact = shownFacts.createSpan({ text: `${fact.name} ` });
-    addLinkedText(shownFact.createEl("b"), fact.value, keywords, sourcePath, actions);
+    const factEl = factsEl.createSpan({ text: `${fact.name} ` });
+    addLinkedText(factEl.createEl("b"), fact.value, keywords, sourcePath, actions);
   }
 }
 
