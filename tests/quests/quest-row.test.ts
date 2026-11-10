@@ -40,6 +40,11 @@ describe("addQuestRow", () => {
     expect(row.querySelector(".dd-status-completed")).not.toBeNull();
   });
 
+  it("leaves a completed quest's title not struck", () => {
+    const { row } = setUp(["! Find it", "!= Find it: found under the Old Mill"]);
+    expect(row.querySelector(".dd-abandoned")).toBeNull();
+  });
+
   it("strikes through an abandoned quest and marks it abandoned", () => {
     const { row } = setUp(["! Guard the bridge", "!x Guard the bridge: it burned"]);
     expect(textOf(row, ".dd-mark-abandoned")).toBe("✕");
