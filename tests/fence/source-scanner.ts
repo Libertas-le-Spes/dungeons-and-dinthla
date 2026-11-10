@@ -1,10 +1,13 @@
 import type { FileSystem } from "typescript/unstable/fs";
-import { API, TypeFlags, type Project, type Symbol as TypeSymbol, type Type, type UnionOrIntersectionType } from "typescript/unstable/sync";
+import { API, isObjectType, ObjectFlags, SignatureKind, TypeFlags, type Project, type Symbol as TypeSymbol, type Type, type TypeReference, type UnionOrIntersectionType } from "typescript/unstable/sync";
 import {
+  isArrayLiteralExpression,
+  isArrowFunction,
   isAsExpression,
   isAwaitExpression,
   isBinaryExpression,
   isBindingElement,
+  isBlock,
   isCallExpression,
   isComputedPropertyName,
   isDeleteExpression,
@@ -13,19 +16,28 @@ import {
   isImportDeclaration,
   isForInStatement,
   isForOfStatement,
+  isHeritageClause,
   isIdentifier,
+  isNewExpression,
   isNoSubstitutionTemplateLiteral,
   isNonNullExpression,
   isNumericLiteral,
   isObjectBindingPattern,
+  isObjectLiteralExpression,
+  isParameterDeclaration,
   isParenthesizedExpression,
   isPostfixUnaryExpression,
   isPrefixUnaryExpression,
   isPropertyAccessExpression,
+  isPropertyAssignment,
+  isPropertyDeclaration,
+  isReturnStatement,
   isSatisfiesExpression,
   isSpreadAssignment,
+  isSpreadElement,
   isStringLiteral,
   isTypeAssertion,
+  isTypePredicateNode,
   isVariableDeclaration,
   isVariableDeclarationList,
   NodeFlags,
@@ -36,6 +48,7 @@ import {
   type ElementAccessExpression,
   type Expression,
   type Identifier,
+  type NewExpression,
   type Node,
   type SourceFile,
   type TypeAssertion,
@@ -90,7 +103,9 @@ const CODE_MIRROR_MODULE = "@codemirror/";
 
 const DOCUMENT = "doc";
 
-export const FORBIDDEN_NAMES = ["MarkdownRenderer", "renderMarkdown", "executeCommandById", "commands", "execCommand", "Function", "eval", "openLinkText", "openPopoutLeaf", "activeEditor", "activeLeaf", "getMostRecentLeaf", "duplicateLeaf", "plugins", "getPlugin", "enabledPlugins", "internalPlugins"];
+export const FORBIDDEN_NAMES = ["MarkdownRenderer", "renderMarkdown", "executeCommandById", "commands", "execCommand", "Function", "eval", "openLinkText", "openPopoutLeaf", "activeEditor", "activeLeaf", "getMostRecentLeaf", "duplicateLeaf", "plugins", "getPlugin", "enabledPlugins", "internalPlugins", "__proto__"];
+
+export const GATE_ONLY_NAMES = ["recurseChildren"];
 
 const EDITOR_OWNERS = [
   "Editor",
@@ -151,7 +166,15 @@ const GATE_SOURCES = ["/src/fence/fenced-files.ts", "/src/fence/fenced-metadata.
 
 const GATE_FOLDER = "/src/fence/";
 
-const GATE_TYPE_SOURCES = [...GATE_SOURCES, "/src/fence/fenced-file-actions.ts", "/src/fence/gatekeeper.ts", "/src/fence/held-files.ts", "/src/fence/fence.ts"];
+const GATE_BUILT_SOURCES = [...GATE_SOURCES, "/src/fence/fenced-file-actions.ts", "/src/fence/gatekeeper.ts", "/src/fence/held-files.ts"];
+
+const GATE_TYPE_SOURCES = [...GATE_BUILT_SOURCES, "/src/fence/fence.ts"];
+
+const GATEKEEPER = "Gatekeeper";
+
+const PROTOTYPE_TAKERS = ["create"];
+
+const PROTOTYPE_SETTERS = ["setPrototypeOf"];
 
 const OBJECT_CHANGERS = ["defineProperty", "defineProperties", "assign", "setPrototypeOf"];
 
@@ -176,7 +199,13 @@ const LEAF_OPENER = "open";
 
 const LEAF_VIEW = "view";
 
-const LEAF_READS = [LEAF_OPENER, LEAF_VIEW, VIEW_FILE];
+const EVENT_LISTENER = "on";
+
+const EVENT_OWNERS = ["Workspace", "Events"];
+
+export const NOTE_EVENTS = ["file-open", "active-leaf-change", "editor-change", "file-menu", "editor-menu", "quick-preview"];
+
+const BOUND_READS = [LEAF_OPENER, LEAF_VIEW, VIEW_FILE, EVENT_LISTENER];
 
 export type Allowed = (path: string) => boolean;
 
@@ -195,6 +224,8 @@ export interface Allowances {
   eventTrigger: Allowed;
   leafView: Allowed;
   viewFile: Allowed;
+  noteEvents: Allowed;
+  gateBuilding: Allowed;
 }
 
 interface BoundRead {
@@ -220,6 +251,7 @@ interface Found {
   documentOwners: Expression[];
   viewTextOwners: Node[];
   forbidden: Named[];
+  gateOnly: Named[];
   constructors: Node[];
   casts: Cast[];
   destructured: Named[];
@@ -234,10 +266,17 @@ interface Found {
   calledOnly: Named[];
   openings: CallExpression[];
   calledNames: Set<Node>;
+  listenedEvents: Map<Node, string>;
   viewFiles: Expression[];
   boundReads: BoundRead[];
   satisfied: Node[];
   changedOwners: Expression[];
+  placed: Expression[];
+  heritages: Node[];
+  predicates: Node[];
+  instanceClasses: Expression[];
+  prototypes: Expression[];
+  built: NewExpression[];
 }
 
 type Cast = AsExpression | TypeAssertion;
@@ -265,6 +304,7 @@ function emptyFound(): Found {
     documentOwners: [],
     viewTextOwners: [],
     forbidden: [],
+    gateOnly: [],
     constructors: [],
     casts: [],
     destructured: [],
@@ -279,10 +319,17 @@ function emptyFound(): Found {
     calledOnly: [],
     openings: [],
     calledNames: new Set(),
+    listenedEvents: new Map(),
     viewFiles: [],
     boundReads: [],
     satisfied: [],
     changedOwners: [],
+    placed: [],
+    heritages: [],
+    predicates: [],
+    instanceClasses: [],
+    prototypes: [],
+    built: [],
   };
 }
 
@@ -298,6 +345,7 @@ function addName(found: Found, node: Node, name: string): void {
 
 function addForbidden(found: Found, node: Node, name: string): void {
   if (FORBIDDEN_NAMES.includes(name)) found.forbidden.push({ node, name });
+  if (GATE_ONLY_NAMES.includes(name)) found.gateOnly.push({ node, name });
   if (GUARDED_NAMES.some((guarded) => guarded.name === name)) found.guarded.push({ node, name });
   if (CALLED_ONLY.includes(name)) found.calledOnly.push({ node, name });
   if (EDITOR_HOOKS.includes(name)) found.editorHooks.push({ node, name });
@@ -372,13 +420,13 @@ function isAssignment(kind: SyntaxKind): boolean {
 }
 
 function ownersIn(target: Node): Expression[] {
-  const owners: Expression[] = [];
-  const visit = (node: Node): void => {
-    if (isPropertyAccessExpression(node) || isElementAccessExpression(node)) owners.push(node.expression);
-    node.forEachChild(visit);
-  };
-  visit(target);
-  return owners;
+  if (isPropertyAccessExpression(target) || isElementAccessExpression(target)) return [target.expression];
+  if (isParenthesizedExpression(target) || isNonNullExpression(target) || isSatisfiesExpression(target) || isAsExpression(target) || isTypeAssertion(target)) return ownersIn(target.expression);
+  if (isSpreadElement(target) || isSpreadAssignment(target)) return ownersIn(target.expression);
+  if (isPropertyAssignment(target)) return ownersIn(target.initializer);
+  if (isArrayLiteralExpression(target)) return target.elements.flatMap(ownersIn);
+  if (isObjectLiteralExpression(target)) return target.properties.flatMap(ownersIn);
+  return [];
 }
 
 function addChange(found: Found, node: Node): void {
@@ -390,6 +438,54 @@ function addChange(found: Found, node: Node): void {
     const [target] = node.arguments;
     if (target !== undefined) found.changedOwners.push(target);
   }
+}
+
+function argumentsOf(call: CallExpression | NewExpression): readonly Expression[] {
+  if (call.arguments === undefined) return [];
+  return call.arguments;
+}
+
+function addPlaced(found: Found, node: Node): void {
+  if (isCallExpression(node) || isNewExpression(node)) found.placed.push(...argumentsOf(node));
+  if ((isVariableDeclaration(node) || isParameterDeclaration(node) || isPropertyDeclaration(node) || isBindingElement(node)) && node.initializer !== undefined) found.placed.push(node.initializer);
+  if (isReturnStatement(node) && node.expression !== undefined) found.placed.push(node.expression);
+  if (isArrowFunction(node) && !isBlock(node.body)) found.placed.push(node.body);
+  if (isBinaryExpression(node) && isAssignment(node.operatorToken.kind)) found.placed.push(node.right);
+  if (isAsExpression(node) || isTypeAssertion(node) || isSatisfiesExpression(node)) found.placed.push(node.expression);
+}
+
+function addGateShaping(found: Found, node: Node): void {
+  if (isHeritageClause(node)) found.heritages.push(...node.types);
+  if (isTypePredicateNode(node) && node.type !== undefined) found.predicates.push(node.type);
+  if (isBinaryExpression(node) && node.operatorToken.kind === SyntaxKind.InstanceOfKeyword) found.instanceClasses.push(node.right);
+  if (isNewExpression(node)) found.built.push(node);
+  if (!isCallExpression(node)) return;
+  const [first, second] = node.arguments;
+  if (isObjectCall(node, PROTOTYPE_TAKERS) && first !== undefined) found.prototypes.push(first);
+  if (isObjectCall(node, PROTOTYPE_SETTERS) && second !== undefined) found.prototypes.push(second);
+}
+
+function isThisApp(expression: Expression | undefined): boolean {
+  if (expression === undefined || !isPropertyAccessExpression(expression)) return false;
+  return expression.expression.kind === SyntaxKind.ThisKeyword && expression.name.text === APP;
+}
+
+function isLibraryReference(type: Type): type is TypeReference {
+  if (!isObjectType(type) || (type.objectFlags & ObjectFlags.Reference) === 0) return false;
+  const symbol = type.getSymbol();
+  return symbol !== undefined && symbol.declarations.length > 0 && symbol.declarations.every((declaration) => isLibraryFile(declaration.path));
+}
+
+function isOwnProperty(property: TypeSymbol): boolean {
+  return property.declarations.some((declaration) => !isLibraryFile(declaration.path));
+}
+
+function isGateDeclared(property: TypeSymbol): boolean {
+  return property.declarations.some((declaration) => GATE_TYPE_SOURCES.some((ending) => declaration.path.endsWith(ending)));
+}
+
+function isOnlyGateDeclared(property: TypeSymbol): boolean {
+  return property.declarations.length > 0 && property.declarations.every((declaration) => GATE_TYPE_SOURCES.some((ending) => declaration.path.endsWith(ending)));
 }
 
 function calledNameOf(call: CallExpression): Node | null {
@@ -413,14 +509,18 @@ function addCall(found: Found, call: CallExpression): void {
     found.calledNames.add(name);
   }
   const [event] = call.arguments;
-  if (text === EVENT_TRIGGER && event !== undefined && literalTextOf(event) !== null) found.calledNames.add(name);
+  if (event === undefined) return;
+  const eventName = literalTextOf(event);
+  if (eventName === null) return;
+  if (text === EVENT_TRIGGER) found.calledNames.add(name);
+  if (text === EVENT_LISTENER) found.listenedEvents.set(name, eventName);
 }
 
 function addBoundRead(found: Found, binding: BindingElement): void {
   const key = keyOfBinding(binding);
   if (key === undefined) return;
   const name = nameTextOf(key);
-  if (name === null || !LEAF_READS.includes(name)) return;
+  if (name === null || !BOUND_READS.includes(name)) return;
   const declaration = binding.parent.parent;
   if (!isVariableDeclaration(declaration) || declaration.initializer === undefined) {
     found.boundReads.push({ node: key, name, owner: binding.parent });
@@ -459,6 +559,8 @@ function foundIn(sourceFile: SourceFile): Found {
     if (isAsExpression(node) || isTypeAssertion(node)) found.casts.push(node);
     if (isSatisfiesExpression(node)) found.satisfied.push(node.type);
     addChange(found, node);
+    addPlaced(found, node);
+    addGateShaping(found, node);
     if (isSpreadAssignment(node)) found.readWhole.push(node.expression);
     if (isForInStatement(node)) found.readWhole.push(node.expression);
     node.forEachChild(visit);
@@ -542,6 +644,10 @@ function isLibraryFile(path: string): boolean {
 export class SourceScanner {
   private readonly api: API;
   private readonly reachingTypes = new Map<number, boolean>();
+  private readonly gateHolders = new Map<number, boolean>();
+  private readonly faithful = new Map<string, boolean>();
+  private readonly parts = new Map<number, Type[]>();
+  private readonly assumedFaithful = new Set<string>();
 
   constructor(
     private readonly root: string,
@@ -561,6 +667,9 @@ export class SourceScanner {
   breaches(configPath: string, paths: string[], allowances: Allowances): string[] {
     const project = this.project(configPath);
     this.reachingTypes.clear();
+    this.gateHolders.clear();
+    this.faithful.clear();
+    this.parts.clear();
     return paths.flatMap((path) => this.breachesInFile(project, path, allowances));
   }
 
@@ -594,10 +703,24 @@ export class SourceScanner {
       breaches.push(`${where(node)} checks for a computed key in the app, a window, globalThis or a value it can't type`);
     }
     if (!path.includes(GATE_FOLDER)) {
+      for (const { node, name } of found.gateOnly) breaches.push(`${where(node)} walks the vault's folders unfenced with ${name}`);
       const isGate = (type: Type | undefined) => this.isGateTyped(project, type);
       for (const node of this.typedBy(project, found.casts.map((cast) => cast.type), isGate)) breaches.push(`${where(node)} casts to a gate type`);
       for (const node of this.typedBy(project, found.satisfied, isGate)) breaches.push(`${where(node)} checks that a value satisfies a gate type`);
       for (const node of this.typedBy(project, found.changedOwners, isGate)) breaches.push(`${where(node)} changes a member of a gate value`);
+      for (const node of this.typedBy(project, found.changedOwners, (type) => this.isFileTyped(project, type))) breaches.push(`${where(node)} changes a member of a vault file`);
+      const holdsGate = (type: Type | undefined) => type === undefined || this.holdsGate(project, type);
+      for (const node of this.unfaithfulPlacements(project, found.placed)) breaches.push(`${where(node)} puts a value the gate didn't give where the gate's parts go`);
+      for (const node of this.typedBy(project, found.heritages, isGate)) breaches.push(`${where(node)} extends or implements a gate type`);
+      for (const node of this.typedBy(project, found.predicates, holdsGate)) breaches.push(`${where(node)} narrows a value to a type that holds the gate's parts`);
+      for (const node of this.typedBy(project, found.instanceClasses, (type) => this.buildsGateType(project, type))) breaches.push(`${where(node)} narrows a value to a gate class with instanceof`);
+      for (const node of this.typedBy(project, found.prototypes, holdsGate)) breaches.push(`${where(node)} gives a value a gate's prototype`);
+      for (const built of found.built) {
+        const name = this.builtGateName(project, built);
+        if (name === null) continue;
+        if (name === GATEKEEPER && allowances.gateBuilding(path) && isThisApp(argumentsOf(built)[0])) continue;
+        breaches.push(`${where(built)} builds the gate's ${name}`);
+      }
     }
     for (const node of this.castKeys(project, found)) breaches.push(`${where(node)} reads a computed key of a value cast through unknown or any`);
     if (!allowances.editorReading(path)) {
@@ -632,14 +755,22 @@ export class SourceScanner {
       if (name === EVENT_TRIGGER && allowances.eventTrigger(path)) continue;
       breaches.push(`${where(node)} takes ${name} without calling it with what it can read`);
     }
+    for (const { node } of this.ownedReads(project, found, EVENT_LISTENER, EVENT_OWNERS)) {
+      const event = found.listenedEvents.get(node);
+      if (event === undefined) {
+        if (!path.includes(GATE_FOLDER)) breaches.push(`${where(node)} listens to a workspace event it can't read`);
+        continue;
+      }
+      if (NOTE_EVENTS.includes(event) && !allowances.noteEvents(path)) breaches.push(`${where(node)} listens to the ${event} workspace event, which hands over any note`);
+    }
     for (const call of found.openings.filter((opening) => !this.opensFromGate(project, opening))) breaches.push(`${where(call)} opens a file that doesn't come from the gate`);
     for (const owner of found.viewFiles.filter((viewFile) => this.isActiveView(project, viewFile))) breaches.push(`${where(owner)} takes the file of the active view`);
-    for (const { node, name } of this.leafReads(project, found, LEAF_OPENER, LEAF_OWNERS)) breaches.push(`${where(node)} opens a view in a leaf with ${name}`);
+    for (const { node, name } of this.ownedReads(project, found, LEAF_OPENER, LEAF_OWNERS)) breaches.push(`${where(node)} opens a view in a leaf with ${name}`);
     if (!allowances.leafView(path)) {
-      for (const { node, name } of this.leafReads(project, found, LEAF_VIEW, LEAF_OWNERS)) breaches.push(`${where(node)} reads the ${name} of a leaf`);
+      for (const { node, name } of this.ownedReads(project, found, LEAF_VIEW, LEAF_OWNERS)) breaches.push(`${where(node)} reads the ${name} of a leaf`);
     }
     if (!allowances.viewFile(path)) {
-      for (const { node, name } of this.leafReads(project, found, VIEW_FILE, FILE_VIEW_OWNERS)) breaches.push(`${where(node)} reads the ${name} of a view`);
+      for (const { node, name } of this.ownedReads(project, found, VIEW_FILE, FILE_VIEW_OWNERS)) breaches.push(`${where(node)} reads the ${name} of a view`);
     }
     const hoverLink = sourceFile.text.indexOf(HOVER_LINK);
     if (hoverLink !== -1) breaches.push(`${path.slice(this.root.length + 1)}:${sourceFile.getLineAndCharacterOfPosition(hoverLink).line + 1} names the ${HOVER_LINK} event`);
@@ -662,7 +793,7 @@ export class SourceScanner {
     return breaches;
   }
 
-  private leafReads(project: Project, found: Found, name: string, owners: string[]): Named[] {
+  private ownedReads(project: Project, found: Found, name: string, owners: string[]): Named[] {
     const read = this.ownedBy(project, found.members.filter((member) => member.name === name), (symbol) => isObsidianOwnedByOneOf(symbol, owners));
     const bound = found.boundReads.filter((candidate) => candidate.name === name);
     const types = project.checker.getTypeAtLocation(bound.map(({ owner }) => owner));
@@ -776,6 +907,145 @@ export class SourceScanner {
     return flattened(this.constrained(project, type)).some((member) =>
       project.checker.getPropertiesOfType(member).some((property) => property.declarations.some((declaration) => GATE_TYPE_SOURCES.some((ending) => declaration.path.endsWith(ending)))),
     );
+  }
+
+  private unfaithfulPlacements(project: Project, placed: Expression[]): Expression[] {
+    if (placed.length === 0) return [];
+    const values = project.checker.getTypeAtLocation(placed);
+    return placed.filter((node, index) => {
+      const context = project.checker.getContextualType(node);
+      if (context === undefined || !this.holdsGate(project, context)) return false;
+      return !this.isFaithful(project, values[index], context);
+    });
+  }
+
+  private builtGateName(project: Project, built: NewExpression): string | null {
+    const type = project.checker.getTypeAtLocation(built);
+    if (type === undefined) return null;
+    const symbol = type.getSymbol();
+    if (symbol === undefined || !symbol.declarations.some((declaration) => GATE_BUILT_SOURCES.some((ending) => declaration.path.endsWith(ending)))) return null;
+    return symbol.name;
+  }
+
+  private buildsGateType(project: Project, type: Type | undefined): boolean {
+    if (type === undefined) return true;
+    return this.builtTypesOf(project, type).some((built) => this.isGateTyped(project, built));
+  }
+
+  private holdsGate(project: Project, type: Type): boolean {
+    const known = this.gateHolders.get(type.id);
+    if (known !== undefined) return known;
+    const holds = this.reachesGate(project, type, new Set());
+    this.gateHolders.set(type.id, holds);
+    return holds;
+  }
+
+  private reachesGate(project: Project, type: Type, seen: Set<number>): boolean {
+    const known = this.gateHolders.get(type.id);
+    if (known !== undefined) return known;
+    seen.add(type.id);
+    return flattened(this.constrained(project, type)).some((member) => this.isGateTyped(project, member) || this.partsOf(project, member).some((part) => this.reachesGate(project, part, seen)));
+  }
+
+  private partsOf(project: Project, type: Type): Type[] {
+    const known = this.parts.get(type.id);
+    if (known !== undefined) return known;
+    const parts = this.findParts(project, type);
+    this.parts.set(type.id, parts);
+    return parts;
+  }
+
+  private findParts(project: Project, type: Type): Type[] {
+    if (isLibraryReference(type)) return [...project.checker.getTypeArguments(type)];
+    const properties = project.checker.getPropertiesOfType(type).filter(isOwnProperty);
+    const propertyTypes = this.typesOf(project, properties);
+    const indexTypes = project.checker.getIndexInfosOfType(type).map((info) => info.valueType);
+    return [...propertyTypes.filter((part) => part !== undefined), ...indexTypes, ...this.returnTypesOf(project, type)];
+  }
+
+  private typesOf(project: Project, properties: readonly TypeSymbol[]): (Type | undefined)[] {
+    if (properties.length === 0) return [];
+    return project.checker.getTypeOfSymbol(properties);
+  }
+
+  private returnTypesOf(project: Project, type: Type): Type[] {
+    return this.signedTypesOf(project, type, SignatureKind.Call);
+  }
+
+  private builtTypesOf(project: Project, type: Type): Type[] {
+    return this.signedTypesOf(project, type, SignatureKind.Construct);
+  }
+
+  private signedTypesOf(project: Project, type: Type, kind: SignatureKind): Type[] {
+    return project.checker.getSignaturesOfType(type, kind).flatMap((signature) => {
+      const returned = project.checker.getReturnTypeOfSignature(signature);
+      if (returned === undefined) return [];
+      return [returned];
+    });
+  }
+
+  private isFaithful(project: Project, value: Type | undefined, context: Type): boolean {
+    if (value === undefined) return false;
+    const key = `${value.id}:${context.id}`;
+    const known = this.faithful.get(key);
+    if (known !== undefined) return known;
+    if (this.assumedFaithful.has(key)) return true;
+    const outermost = this.assumedFaithful.size === 0;
+    this.assumedFaithful.add(key);
+    const kept = flattened(this.constrained(project, value)).every((member) => this.keepsGate(project, member, context));
+    if (outermost) {
+      this.assumedFaithful.clear();
+      this.faithful.set(key, kept);
+    }
+    return kept;
+  }
+
+  private keepsGate(project: Project, value: Type, context: Type): boolean {
+    if ((value.flags & (UNTYPED | TypeFlags.Never)) !== 0) return false;
+    return flattened(this.constrained(project, context)).every((part) => !this.holdsGate(project, part) || this.keepsGateParts(project, value, part));
+  }
+
+  private keepsGateParts(project: Project, value: Type, context: Type): boolean {
+    if (isLibraryReference(context) && isLibraryReference(value)) return this.keepsTypeArguments(project, value, context);
+    const keepsProperties = project.checker.getPropertiesOfType(context).every((property) => this.keepsGateProperty(project, value, property));
+    return keepsProperties && this.keepsIndexes(project, value, context) && this.keepsReturns(project, value, context);
+  }
+
+  private keepsTypeArguments(project: Project, value: TypeReference, context: TypeReference): boolean {
+    const given = project.checker.getTypeArguments(value);
+    return project.checker.getTypeArguments(context).every((wanted, index) => !this.holdsGate(project, wanted) || this.isFaithful(project, given[index], wanted));
+  }
+
+  private keepsGateProperty(project: Project, value: Type, property: TypeSymbol): boolean {
+    const given = project.checker.getPropertyOfType(value, property.name);
+    if (given === undefined) return true;
+    const wanted = project.checker.getTypeOfSymbol(property);
+    if (wanted !== undefined && this.holdsGate(project, wanted)) return this.isFaithful(project, project.checker.getTypeOfSymbol(given), wanted);
+    if (!isGateDeclared(property)) return true;
+    return isOnlyGateDeclared(given);
+  }
+
+  private keepsIndexes(project: Project, value: Type, context: Type): boolean {
+    const wanted = project.checker.getIndexInfosOfType(context).map((info) => info.valueType).filter((type) => this.holdsGate(project, type));
+    if (wanted.length === 0) return true;
+    const propertyTypes = this.typesOf(project, project.checker.getPropertiesOfType(value));
+    const given = [...propertyTypes, ...project.checker.getIndexInfosOfType(value).map((info) => info.valueType)];
+    return wanted.every((type) => given.every((part) => this.isFaithful(project, part, type)));
+  }
+
+  private keepsReturns(project: Project, value: Type, context: Type): boolean {
+    const wanted = this.returnTypesOf(project, context).filter((type) => this.holdsGate(project, type));
+    const given = this.returnTypesOf(project, value);
+    return wanted.every((type) => given.every((part) => this.isFaithful(project, part, type)));
+  }
+
+  private isFileTyped(project: Project, type: Type | undefined): boolean {
+    if (type === undefined) return true;
+    return flattened(this.constrained(project, type)).some((member) => project.checker.getPropertiesOfType(member).some((property) => this.isObsidianFileMember(property)));
+  }
+
+  private isObsidianFileMember(property: TypeSymbol): boolean {
+    return property.declarations.some((declaration) => declaration.path.includes(OBSIDIAN_FOLDER)) && this.isFileOwned(property);
   }
 
   private isViewOrUntyped(project: Project, type: Type | undefined): boolean {
