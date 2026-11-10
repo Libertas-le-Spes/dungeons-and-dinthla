@@ -5,10 +5,10 @@ import type { Source, SourcedText } from "./campaign";
 import { findSubject } from "./subject";
 import type { ThreadKind, ThreadRecord } from "./thread-kind";
 
-export class ThreadBook<Record extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName> {
-  readonly records: Record[] = [];
+export class ThreadBook<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName> {
+  readonly records: Thread[] = [];
 
-  constructor(private readonly kind: ThreadKind<Record, Ending, EndingName>) {}
+  constructor(private readonly kind: ThreadKind<Thread, Ending, EndingName>) {}
 
   addOpening(marker: MarkerName | null, body: string, source: Source): void {
     if (marker !== this.kind.tracked.marker.name) return;

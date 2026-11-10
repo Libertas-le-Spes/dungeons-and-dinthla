@@ -1,17 +1,21 @@
+import type { FollowUpName } from "../kinds/follow-up-name";
 import type { Source, SourcedText } from "./campaign";
 import { sessionNumberOf } from "./session-file";
-import type { AnyThreadKind, ThreadRecord } from "./thread-kind";
+import type { ThreadKind, ThreadRecord } from "./thread-kind";
 
-export function placesOf<Record extends ThreadRecord, Ending extends SourcedText>(kind: AnyThreadKind<Record, Ending>, record: Record): Source[] {
+export function placesOf<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName>(
+  kind: ThreadKind<Thread, Ending, EndingName>,
+  record: Thread,
+): Source[] {
   const sources = [record.source, ...kind.additionsOf(record).map((addition) => addition.source)];
   const ending = kind.endingOf(record);
   if (ending !== null) sources.push(ending.source);
   return sources;
 }
 
-export function latestSessionOf<Record extends ThreadRecord, Ending extends SourcedText>(
-  kind: AnyThreadKind<Record, Ending>,
-  record: Record,
+export function latestSessionOf<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName>(
+  kind: ThreadKind<Thread, Ending, EndingName>,
+  record: Thread,
   campaignFolder: string,
 ): number {
   let latest = 0;
