@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { App } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
+import { PartlyWritten } from "../../src/campaign/note-editor";
 import { sessionNoteOf } from "../../src/campaign/session-file";
 import { ItemModal } from "../../src/funds/item-modal";
 import { GONE_LINE_SAYS_MORE, HOLDER_OF_GONE, initialItemEdit, type ItemEdit } from "../../src/funds/item-plan";
@@ -20,7 +21,7 @@ function openDialog(text: string, save: (edit: ItemEdit) => Promise<boolean>) {
   const price = root.querySelector('input[aria-label="Sold for"]') as HTMLInputElement;
   const status = root.querySelectorAll("select")[1] as HTMLSelectElement;
   const priceRow = price.closest(".setting-item") as HTMLElement;
-  return { openNoteAt, onClosed, button, price, status, priceRow };
+  return { root, openNoteAt, onClosed, button, price, status, priceRow };
 }
 
 const refuse = (message: string) => () => Promise.reject(new Error(message));
@@ -66,6 +67,15 @@ describe("the item dialog", () => {
     price.value = "4 gp";
     price.dispatchEvent(new window.Event("input"));
     expect(isShown(button("Open note"))).toBe(false);
+  });
+
+  it("says why and closes as changed when only part of a save was written", async () => {
+    const { root, onClosed, button } = openDialog("$ Rope\n", () => Promise.reject(new PartlyWritten("Only the new line was written.")));
+    button("Save").click();
+    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledWith(true));
+    expect(Notice.shown.at(-1)).toBe("Couldn't change the item: Only the new line was written.");
+    expect(onClosed).toHaveBeenCalledOnce();
+    expect(root.childNodes).toHaveLength(0);
   });
 
   it("doesn't offer the note for a refusal the dialog itself can fix", async () => {

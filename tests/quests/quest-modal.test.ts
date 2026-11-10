@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { App } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
+import { PartlyWritten } from "../../src/campaign/note-editor";
 import { QuestModal } from "../../src/quests/quest-modal";
 import { CONFIRM_MS } from "../../src/views/second-press";
 import { Notice } from "../stubs/obsidian";
@@ -85,6 +86,16 @@ describe("QuestModal", () => {
     deleting.click();
     expect(choices.delete).toHaveBeenCalledTimes(2);
     expect(onClosed).not.toHaveBeenCalled();
+  });
+
+  it("says why and closes as changed when only part of a save was written", async () => {
+    const { modal, button, choices, onClosed } = openDialog();
+    choices.save.mockRejectedValueOnce(new PartlyWritten("Only the answer line was written."));
+    button("Save")!.click();
+    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledWith(true));
+    expect(Notice.shown).toEqual(["Couldn't change the quest: Only the answer line was written."]);
+    expect(onClosed).toHaveBeenCalledOnce();
+    expect(modal.contentEl.childNodes).toHaveLength(0);
   });
 
   it("closes safely when it never finished opening", () => {
