@@ -12,7 +12,7 @@ const COMPLETED: LineState = { sign: "✓", label: "Completed", struck: false };
 const ABANDONED: LineState = { sign: "✕", label: "Abandoned", struck: true };
 const COMPLETED_LOOK: EndedLook = {
   state: COMPLETED,
-  row: {
+  look: {
     markClass: MARK_CLASS,
     sign: COMPLETED.sign,
     label: COMPLETED.label,
@@ -22,7 +22,7 @@ const COMPLETED_LOOK: EndedLook = {
 };
 const ABANDONED_LOOK: EndedLook = {
   state: ABANDONED,
-  row: {
+  look: {
     markClass: "dd-mark-abandoned",
     sign: ABANDONED.sign,
     label: ABANDONED.label,

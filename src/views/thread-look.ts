@@ -15,5 +15,5 @@ export interface ThreadLook {
 
 export interface EndedLook {
   state: LineState;
-  row: ThreadLook;
+  look: ThreadLook;
 }

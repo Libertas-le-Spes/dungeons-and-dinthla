@@ -11,7 +11,7 @@ const MARK_CLASS = "dd-mark-question";
 const ANSWERED: LineState = { sign: "✓", label: "Answered", struck: false };
 const ANSWERED_LOOK: EndedLook = {
   state: ANSWERED,
-  row: { markClass: MARK_CLASS, sign: ANSWERED.sign, label: ANSWERED.label, textClass: "dd-text", status: null },
+  look: { markClass: MARK_CLASS, sign: ANSWERED.sign, label: ANSWERED.label, textClass: "dd-text", status: null },
 };
 
 export const questionShownKind: ShownThreadKind<QuestionRecord, SourcedText, "answer"> = {
