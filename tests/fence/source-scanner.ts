@@ -943,6 +943,7 @@ export class SourceScanner {
   private reachesGate(project: Project, type: Type, seen: Set<number>): boolean {
     const known = this.gateHolders.get(type.id);
     if (known !== undefined) return known;
+    if (seen.has(type.id)) return false;
     seen.add(type.id);
     return flattened(this.constrained(project, type)).some((member) => this.isGateTyped(project, member) || this.partsOf(project, member).some((part) => this.reachesGate(project, part, seen)));
   }
