@@ -226,6 +226,19 @@ describe("the reward and outcome rules for recurring quests", () => {
     ]);
   });
 
+  it("opens a follow-up in an old outcome's note though a later session has a quest of that title", async () => {
+    const notes = new FakeNotes({ [ONE]: "! Find it\n!= Find it: done\n", [TWO]: "! Why, after: Find it\n" });
+    expect(await notes.save(0, { status: "failed", happened: "fled", followUp: "Why" }, TWO)).toBe(true);
+    expect(notes.texts.get(ONE)).toBe("! Find it\n!x Find it: fled\n! Why, after: Find it\n");
+    expect(notes.texts.get(TWO)).toBe("! Why, after: Find it\n");
+  });
+
+  it("opens a follow-up below an earlier quest of that title in the same note", async () => {
+    const notes = new FakeNotes({ [ONE]: "! Why, after: Find it\n! Find it\n" });
+    expect(await notes.save(1, { followUp: "Why" }, ONE)).toBe(true);
+    expect(notes.texts.get(ONE)).toBe("! Why, after: Find it\n! Find it\n! Why, after: Find it\n");
+  });
+
   it("refuses a follow-up quest that a stray line would mark finished at once", async () => {
     const notes = new FakeNotes({ [session(1)]: "! T\n", [session(2)]: "", [session(3)]: "!= Return it, after: T: done\n" });
     await expect(notes.save(0, { followUp: "Return it" }, session(2))).rejects.toThrow(CHANGES_ANOTHER_QUEST);
