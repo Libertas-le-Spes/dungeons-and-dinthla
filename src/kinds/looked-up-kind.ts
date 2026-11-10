@@ -1,4 +1,3 @@
-import type { LookupFinders } from "./lookup-finders";
 import type { LookupKindName } from "./lookup-kind-name";
 import type { LookupOpeners } from "./lookup-openers";
 import type { Source } from "./source";
@@ -15,7 +14,6 @@ export interface KindLookup {
   words: LookupWords;
   showsHolder: boolean;
   open(openers: LookupOpeners, text: string, source: Source, onClosed: () => void): void;
-  find<Match>(finders: LookupFinders<Match>, keywords: string[]): Match[];
 }
 
 export interface LookedUpKind extends TrackedKind {

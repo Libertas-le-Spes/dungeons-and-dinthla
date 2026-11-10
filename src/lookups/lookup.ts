@@ -2,16 +2,16 @@ import type { Campaign, Source, SourcedText } from "../campaign/campaign";
 import type { ThreadRecord } from "../campaign/thread-kind";
 import { holderNameOf } from "../funds/item-groups";
 import type { FollowUpName } from "../kinds/follow-up-name";
-import { LOOKUP_SYMBOL_LIST, lookedUpKindBySymbol, lookedUpKindNamed } from "../kinds/looked-up-kinds";
-import type { LookupFinders } from "../kinds/lookup-finders";
+import { itemTrackedKind } from "../kinds/item-tracked-kind";
+import { LOOKUP_SYMBOL_LIST, lookedUpKindBySymbol } from "../kinds/looked-up-kinds";
 import type { LookupKindName } from "../kinds/lookup-kind-name";
 import { symbolPatternOf } from "../kinds/symbol-pattern";
+import type { TrackedKindName } from "../kinds/tracked-kind";
 import { readItemChange } from "../notes/item-change";
 import { unlink } from "../notes/link";
-import { questionShownKind } from "../questions/question-shown-kind";
-import { questShownKind } from "../quests/quest-shown-kind";
 import { keywordsOf } from "../views/keywords";
 import type { ShownThreadKind } from "../views/shown-thread-kind";
+import { SHOWN_THREAD_KINDS } from "../views/shown-thread-kinds";
 import { listThreads } from "../views/thread-list";
 
 export interface Lookup {
@@ -40,34 +40,37 @@ export function readLookup(line: string): Lookup | null {
   return { kind, keywords: keywordsOf(typed) };
 }
 
-function openThreadMatches<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName>(
-  shown: ShownThreadKind<Thread, Ending, EndingName>,
-  campaign: Campaign,
-  keywords: string[],
-): LookupMatch[] {
-  const kind = shown.kind;
-  return listThreads(shown, campaign, keywords).open.map((thread) => ({ kind: kind.tracked.name, text: kind.textOf(thread), holder: "", source: thread.source }));
+interface LookupMatcher {
+  name: TrackedKindName;
+  matchesIn(campaign: Campaign, lookup: Lookup): LookupMatch[];
 }
 
-function heldItemMatches(campaign: Campaign, keywords: string[]): LookupMatch[] {
+function threadMatcherOf<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName>(
+  shown: ShownThreadKind<Thread, Ending, EndingName>,
+): LookupMatcher {
+  const threadKind = shown.threadKind;
+  return {
+    name: threadKind.tracked.name,
+    matchesIn: (campaign, lookup) =>
+      listThreads(shown, campaign, lookup.keywords).open.map((thread) => ({ kind: lookup.kind, text: threadKind.textOf(thread), holder: "", source: thread.source })),
+  };
+}
+
+function heldItemMatches(campaign: Campaign, lookup: Lookup): LookupMatch[] {
   const held = [...campaign.items].reverse().filter((item) => item.gone === null);
   return held
     .filter((item) => {
       const text = unlink(`${item.name} ${holderNameOf(item.holder)}`).toLowerCase();
-      return keywords.every((keyword) => text.includes(keyword));
+      return lookup.keywords.every((keyword) => text.includes(keyword));
     })
-    .map((item) => ({ kind: "item", text: item.name, holder: holderNameOf(item.holder), source: item.source }));
+    .map((item) => ({ kind: lookup.kind, text: item.name, holder: holderNameOf(item.holder), source: item.source }));
 }
 
-function findersIn(campaign: Campaign): LookupFinders<LookupMatch> {
-  return {
-    question: (keywords) => openThreadMatches(questionShownKind, campaign, keywords),
-    quest: (keywords) => openThreadMatches(questShownKind, campaign, keywords),
-    item: (keywords) => heldItemMatches(campaign, keywords),
-  };
-}
+const HELD_ITEMS: LookupMatcher = { name: itemTrackedKind.name, matchesIn: heldItemMatches };
+
+const MATCHERS: LookupMatcher[] = [...SHOWN_THREAD_KINDS.map(threadMatcherOf), HELD_ITEMS];
 
 export function lookupMatches(campaign: Campaign, lookup: Lookup): LookupMatch[] {
-  const matches = lookedUpKindNamed(lookup.kind).lookup.find(findersIn(campaign), lookup.keywords);
-  return matches.slice(0, LOOKUP_LIMIT);
+  const matchers = MATCHERS.filter((matcher) => matcher.name === lookup.kind);
+  return matchers.flatMap((matcher) => matcher.matchesIn(campaign, lookup)).slice(0, LOOKUP_LIMIT);
 }

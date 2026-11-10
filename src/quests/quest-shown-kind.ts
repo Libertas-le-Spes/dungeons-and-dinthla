@@ -1,26 +1,58 @@
-import type { Campaign, QuestOutcome, QuestRecord, QuestStatus } from "../campaign/campaign";
+import type { Campaign, QuestOutcome, QuestRecord, QuestStatus, Source } from "../campaign/campaign";
 import { questThreadKind } from "../campaign/quest-thread-kind";
+import { questTrackedKind } from "../kinds/quest-tracked-kind";
 import type { LineState } from "../views/line-state";
-import type { ShownThreadKind, ThreadFact } from "../views/shown-thread-kind";
+import type { ShownThreadKind } from "../views/shown-thread-kind";
+import type { ThreadFact } from "../views/thread-fact";
+import type { EndedLook } from "../views/thread-look";
+import type { ThreadOpeners } from "../views/thread-openers";
 
+const MARK_CLASS = "dd-mark-quest";
 const COMPLETED: LineState = { sign: "✓", label: "Completed", struck: false };
 const ABANDONED: LineState = { sign: "✕", label: "Abandoned", struck: true };
+const COMPLETED_LOOK: EndedLook = {
+  state: COMPLETED,
+  row: {
+    markClass: MARK_CLASS,
+    sign: COMPLETED.sign,
+    label: COMPLETED.label,
+    textClass: "dd-text",
+    status: { className: "dd-status dd-status-completed", label: COMPLETED.label },
+  },
+};
+const ABANDONED_LOOK: EndedLook = {
+  state: ABANDONED,
+  row: {
+    markClass: "dd-mark-abandoned",
+    sign: ABANDONED.sign,
+    label: ABANDONED.label,
+    textClass: "dd-text dd-abandoned",
+    status: { className: "dd-status", label: ABANDONED.label },
+  },
+};
 
 export const questShownKind: ShownThreadKind<QuestRecord, QuestOutcome, QuestStatus> = {
-  kind: questThreadKind,
+  threadKind: questThreadKind,
   threadsOf(campaign: Campaign): QuestRecord[] {
     return campaign.quests;
   },
-  markClass: "dd-mark-quest",
-  factsOf(record: QuestRecord): ThreadFact[] {
+  listWords: { itemName: "quest", openWord: "active", foldedWord: "finished", emptyHint: "No active quests. Start a note with ! to add one." },
+  panelWords: { title: "Active quests", link: "All quests", noneOpen: "No active quests" },
+  openLook: { markClass: MARK_CLASS, sign: questTrackedKind.marker.symbol, label: null, textClass: "dd-text", status: null },
+  endedLookOf(outcome: QuestOutcome): EndedLook {
+    if (outcome.status === "completed") return COMPLETED_LOOK;
+    return ABANDONED_LOOK;
+  },
+  factsOf(thread: QuestRecord): ThreadFact[] {
     const facts: ThreadFact[] = [];
-    if (record.quest.givenBy !== undefined) facts.push({ name: "From", value: record.quest.givenBy });
-    if (record.quest.reward !== undefined) facts.push({ name: "Reward", value: record.quest.reward });
+    if (thread.quest.givenBy !== undefined) facts.push({ name: "From", value: thread.quest.givenBy });
+    if (thread.quest.reward !== undefined) facts.push({ name: "Reward", value: thread.quest.reward });
     return facts;
   },
-  stateOf(outcome: QuestOutcome): LineState {
-    if (outcome.status === "completed") return COMPLETED;
-    return ABANDONED;
+  show(openers: ThreadOpeners): void {
+    openers.showQuests();
   },
-  showsStateInMeta: true,
+  open(openers: ThreadOpeners, source: Source, onClosed: (changed: boolean) => void): void {
+    openers.openQuest(source, onClosed);
+  },
 };
