@@ -53,11 +53,23 @@ function rewardCopperOf(reward: string, title: string): number | null {
   return own.copper;
 }
 
-export function canCollectReward(record: QuestRecord, coins: CoinRecord[]): boolean {
+interface RewardToCollect {
+  line: string;
+  copper: number;
+}
+
+function rewardToCollect(record: QuestRecord, coins: CoinRecord[]): RewardToCollect | null {
   const reward = record.quest.reward;
-  if (reward === undefined || !isCoinReward(reward) || rewardCopperOf(reward, record.quest.title) === null) return false;
+  if (reward === undefined || !isCoinReward(reward)) return null;
+  const copper = rewardCopperOf(reward, record.quest.title);
+  if (copper === null) return null;
   const collected = coins.some((coin) => coin.text.endsWith(`, for: ${record.quest.title}`));
-  return !collected;
+  if (collected) return null;
+  return { line: rewardLine(reward, record.quest.title), copper };
+}
+
+export function canCollectReward(record: QuestRecord, coins: CoinRecord[]): boolean {
+  return rewardToCollect(record, coins) !== null;
 }
 
 export function outcomeRemoval(record: QuestRecord): Removal | null {
@@ -92,9 +104,12 @@ export function planQuestSave(record: QuestRecord, edit: QuestEdit, coins: CoinR
     outcome = outcomeKey(edit.status, happened, targetPath);
   }
   let rewardCopper = 0;
-  if (edit.status === "completed" && edit.collectReward && canCollectReward(record, coins)) {
-    added.push(rewardLine(record.quest.reward!, title));
-    rewardCopper = rewardCopperOf(record.quest.reward!, title)!;
+  if (edit.status === "completed" && edit.collectReward) {
+    const reward = rewardToCollect(record, coins);
+    if (reward !== null) {
+      added.push(reward.line);
+      rewardCopper = reward.copper;
+    }
   }
   let followUpTitle: string | null = null;
   const followUp = questTextOf(edit.followUp);
@@ -130,13 +145,8 @@ function expectedSignature(record: QuestRecord, expected: ExpectedQuest): string
 function questsBesidesFollowUp(campaign: Campaign, plan: QuestPlan): QuestRecord[] {
   const quests = [...campaign.quests];
   if (plan.followUpTitle === null) return quests;
-  for (let index = quests.length - 1; index >= 0; index--) {
-    const candidate = quests[index]!;
-    if (candidate.source.path === plan.targetPath && candidate.quest.title === plan.followUpTitle) {
-      quests.splice(index, 1);
-      break;
-    }
-  }
+  const index = quests.findLastIndex((candidate) => candidate.source.path === plan.targetPath && candidate.quest.title === plan.followUpTitle);
+  if (index !== -1) quests.splice(index, 1);
   return quests;
 }
 
