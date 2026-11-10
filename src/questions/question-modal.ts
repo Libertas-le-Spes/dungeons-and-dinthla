@@ -31,13 +31,13 @@ export class QuestionModal extends RecordChangeDialog {
   ) {
     super(app, onClosed);
     let answer = "";
-    if (question.closing !== null) answer = question.closing.text;
+    if (question.answer !== null) answer = question.answer.text;
     this.edit = { answer, followUp: "" };
   }
 
   override onOpen(): void {
     const { contentEl } = this;
-    if (this.question.closing === null) this.setTitle("Answer the question");
+    if (this.question.answer === null) this.setTitle("Answer the question");
     else this.setTitle("Answered question");
     contentEl.addClass("dd-tokens", "dd-dialog");
     contentEl.createEl("p", { cls: "dd-subject", text: this.question.text });
@@ -66,11 +66,11 @@ export class QuestionModal extends RecordChangeDialog {
       });
     });
     let where = `New lines go into ${this.places.writesTo}.`;
-    if (this.question.closing !== null) where = `New lines go into ${this.places.writesTo}; a changed answer replaces the old one in ${this.places.answeredIn}.`;
+    if (this.question.answer !== null) where = `New lines go into ${this.places.writesTo}; a changed answer replaces the old one in ${this.places.answeredIn}.`;
     contentEl.createEl("p", { cls: "dd-where", text: where });
     const buttons = new Setting(contentEl);
     buttons.addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.runChange(() => this.choices.save(this.edit), FAILURE)));
-    if (this.question.closing !== null) {
+    if (this.question.answer !== null) {
       buttons.addButton((button) => button.setButtonText("Reopen question").onClick(() => this.runChange(() => this.choices.reopen(), FAILURE)));
     }
     buttons.addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));

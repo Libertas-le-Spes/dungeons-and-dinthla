@@ -1,8 +1,8 @@
 import type { QuestRecord } from "../campaign/campaign";
 import { NoteEditor, type EditorFiles } from "../campaign/note-editor";
+import { questThreadKind } from "../campaign/quest-thread-kind";
 import { followUpRemovals, openingRemoval } from "../campaign/thread-removal";
-import { isQuestLine } from "../notes/quest-lines";
-import { outcomeRemoval, type QuestPlan } from "./quest-plan";
+import type { QuestPlan } from "./quest-plan";
 
 export class QuestWriter {
   private readonly editor: NoteEditor;
@@ -21,6 +21,6 @@ export class QuestWriter {
   }
 
   async delete(record: QuestRecord): Promise<boolean> {
-    return this.editor.removeWithItsLines(openingRemoval(record, isQuestLine), followUpRemovals(record, "progress", outcomeRemoval(record)));
+    return this.editor.removeWithItsLines(openingRemoval(questThreadKind, record), followUpRemovals(questThreadKind, record));
   }
 }

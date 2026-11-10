@@ -1,10 +1,11 @@
 import type { QuestionRecord } from "../campaign/campaign";
 import { NoteEditor, PartlyWritten, type EditorFiles } from "../campaign/note-editor";
+import { questionThreadKind } from "../campaign/question-thread-kind";
 import { followUpRemovals, openingRemoval } from "../campaign/thread-removal";
 import { messageOf } from "../views/message-of";
-import { answerLine, isQuestionLine, questionLine } from "../notes/question-lines";
-import { oneLine } from "../notes/thread-lines";
-import { answerRemoval, type QuestionPlan } from "./question-plan";
+import { oneLine } from "../notes/one-line";
+import { answerLine, questionLine } from "../notes/question-lines";
+import type { QuestionPlan } from "./question-plan";
 
 export class QuestionWriter {
   private readonly editor: NoteEditor;
@@ -40,6 +41,6 @@ export class QuestionWriter {
   }
 
   async delete(question: QuestionRecord): Promise<boolean> {
-    return this.editor.removeWithItsLines(openingRemoval(question, isQuestionLine), followUpRemovals(question, "clue", answerRemoval(question)));
+    return this.editor.removeWithItsLines(openingRemoval(questionThreadKind, question), followUpRemovals(questionThreadKind, question));
   }
 }

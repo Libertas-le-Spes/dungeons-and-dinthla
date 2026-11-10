@@ -4,17 +4,17 @@ import { readLedgerEntry } from "../notes/ledger";
 import { readMarker } from "../notes/marker";
 import type { Campaign, CoinRecord, SessionNote, Source, SourcedText } from "./campaign";
 import { ItemBook } from "./item-book";
-import { QuestBook } from "./quest-book";
-import { QuestionBook } from "./question-book";
+import { questThreadKind } from "./quest-thread-kind";
+import { questionThreadKind } from "./question-thread-kind";
 import { forEachSessionLine } from "./session-lines";
+import { ThreadBook } from "./thread-book";
 
 class CampaignBuilder {
-  private readonly unmatched: SourcedText[] = [];
-  private readonly questionBook = new QuestionBook(this.unmatched);
-  private readonly questBook = new QuestBook(this.unmatched);
-  private readonly threadBooks = [this.questionBook, this.questBook];
+  private readonly questionBook = new ThreadBook(questionThreadKind);
+  private readonly questBook = new ThreadBook(questThreadKind);
   private readonly coins: CoinRecord[] = [];
   private readonly itemBook = new ItemBook();
+  private readonly unmatched: SourcedText[] = [];
 
   addLine(line: string, source: Source): void {
     const followUp = readFollowUp(line);
@@ -34,8 +34,8 @@ class CampaignBuilder {
   build(): Campaign {
     const purseCopper = this.coins.reduce((sum, coin) => sum + coin.entry.copper, 0);
     return {
-      questions: this.questionBook.threads,
-      quests: this.questBook.threads,
+      questions: this.questionBook.records,
+      quests: this.questBook.records,
       coins: this.coins,
       items: this.itemBook.items,
       purseCopper,
@@ -45,12 +45,14 @@ class CampaignBuilder {
 
   private addMarked(line: string, source: Source): void {
     const { marker, body } = readMarker(line);
-    for (const book of this.threadBooks) book.addOpening(marker, body, source);
+    this.questionBook.addOpening(marker, body, source);
+    this.questBook.addOpening(marker, body, source);
     if (marker === "ledger") this.addLedgerEntry(body, source);
   }
 
   private addFollowUp(followUp: FollowUp, line: string, source: Source): void {
-    for (const book of this.threadBooks) book.addFollowUp(followUp, line, source);
+    const taken = [this.questionBook.addFollowUp(followUp, source), this.questBook.addFollowUp(followUp, source)];
+    if (!taken.includes(true)) this.unmatched.push({ text: line.trim(), source });
   }
 
   private addLedgerEntry(body: string, source: Source): void {

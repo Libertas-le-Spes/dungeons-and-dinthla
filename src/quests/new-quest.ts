@@ -3,7 +3,7 @@ import { readMarker } from "../notes/marker";
 import { readQuest } from "../notes/quest";
 import { newQuestLine, questTextOf } from "../notes/quest-lines";
 import type { Character } from "../campaign/characters";
-import { oneLine } from "../notes/thread-lines";
+import { oneLine } from "../notes/one-line";
 
 export interface NewQuest {
   title: string;
@@ -40,7 +40,7 @@ function factOf(fact: string | undefined): string {
 }
 
 export function refusalForNewQuest(quests: QuestRecord[], plan: NewQuestPlan): string | null {
-  if (quests.some((record) => record.text === plan.title)) return SAME_TITLE_AS_EXISTING;
+  if (quests.some((record) => record.quest.title === plan.title)) return SAME_TITLE_AS_EXISTING;
   const read = readQuest(readMarker(plan.line).body);
   const readsBack = read.title === plan.title && factOf(read.givenBy) === plan.givenBy && factOf(read.reward) === plan.reward;
   if (!readsBack) return WOULD_READ_DIFFERENTLY;

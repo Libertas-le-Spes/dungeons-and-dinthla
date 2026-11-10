@@ -25,8 +25,8 @@ const FAILURE = "Couldn't change the quest";
 
 function factsOf(record: QuestRecord): string {
   const facts: string[] = [];
-  if (record.givenBy !== undefined) facts.push(`From ${record.givenBy}`);
-  if (record.reward !== undefined) facts.push(`Reward ${record.reward}`);
+  if (record.quest.givenBy !== undefined) facts.push(`From ${record.quest.givenBy}`);
+  if (record.quest.reward !== undefined) facts.push(`Reward ${record.quest.reward}`);
   return facts.join(" · ");
 }
 
@@ -51,7 +51,7 @@ export class QuestModal extends RecordChangeDialog {
     const { contentEl } = this;
     this.setTitle("Quest");
     contentEl.addClass("dd-tokens", "dd-dialog");
-    contentEl.createEl("p", { cls: "dd-subject", text: this.record.text });
+    contentEl.createEl("p", { cls: "dd-subject", text: this.record.quest.title });
     const facts = factsOf(this.record);
     if (facts !== "") contentEl.createEl("p", { cls: "dd-detail", text: facts });
     contentEl.createEl("p", { cls: "dd-detail", text: `Given in ${this.places.givenIn}` });
@@ -82,7 +82,7 @@ export class QuestModal extends RecordChangeDialog {
       });
     });
     if (this.canCollectReward) {
-      const reward = new Setting(contentEl).setName(`Reward collected: add ${this.record.reward} to the party funds`).addToggle((toggle) => {
+      const reward = new Setting(contentEl).setName(`Reward collected: add ${this.record.quest.reward} to the party funds`).addToggle((toggle) => {
         toggle.setValue(this.edit.collectReward).onChange((value) => {
           this.edit.collectReward = value;
         });
@@ -102,7 +102,7 @@ export class QuestModal extends RecordChangeDialog {
       });
     });
     let where = `New lines go into ${this.places.writesTo}.`;
-    if (this.record.closing !== null) where = `New lines go into ${this.places.writesTo}; a changed outcome, with its reward and follow-up, goes into ${this.places.finishedIn}.`;
+    if (this.record.outcome !== null) where = `New lines go into ${this.places.writesTo}; a changed outcome, with its reward and follow-up, goes into ${this.places.finishedIn}.`;
     contentEl.createEl("p", { cls: "dd-where", text: where });
     const buttons = new Setting(contentEl);
     buttons.addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.runChange(() => this.choices.save(this.edit), FAILURE)));
