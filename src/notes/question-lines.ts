@@ -1,4 +1,6 @@
-import { readFollowUp, type FollowUpKind } from "./follow-up";
+import type { FollowUpName } from "../kinds/follow-up-name";
+import { followUpSymbolOf } from "../kinds/follow-ups";
+import { readFollowUp } from "./follow-up";
 import { readMarker } from "./marker";
 
 export function oneLine(text: string): string {
@@ -14,7 +16,7 @@ export function questionLine(question: string): string {
 }
 
 export function answerLine(question: string, answer: string): string {
-  return `?= ${question}: ${oneLine(answer)}`;
+  return `${followUpSymbolOf("answer")} ${question}: ${oneLine(answer)}`;
 }
 
 export function followUpQuestionLine(followUp: string, question: string): string {
@@ -26,7 +28,7 @@ export function isQuestionLine(written: string, question: string): boolean {
   return marker === "question" && body === question;
 }
 
-export function isFollowUpLine(written: string, kind: FollowUpKind, question: string, note: string): boolean {
+export function isFollowUpLine(written: string, kind: FollowUpName, question: string, note: string): boolean {
   const followUp = readFollowUp(written);
   if (followUp === null || followUp.kind !== kind || !followUp.text.startsWith(question)) return false;
   const afterQuestion = followUp.text.slice(question.length).trimStart();
