@@ -40,6 +40,7 @@ import {
   isTypePredicateNode,
   isVariableDeclaration,
   isVariableDeclarationList,
+  isYieldExpression,
   NodeFlags,
   SyntaxKind,
   type AsExpression,
@@ -271,6 +272,7 @@ interface Found {
   boundReads: BoundRead[];
   satisfied: Node[];
   changedOwners: Expression[];
+  objectChanged: Expression[];
   placed: Expression[];
   heritages: Node[];
   predicates: Node[];
@@ -324,6 +326,7 @@ function emptyFound(): Found {
     boundReads: [],
     satisfied: [],
     changedOwners: [],
+    objectChanged: [],
     placed: [],
     heritages: [],
     predicates: [],
@@ -436,7 +439,9 @@ function addChange(found: Found, node: Node): void {
   if ((isForOfStatement(node) || isForInStatement(node)) && !isVariableDeclarationList(node.initializer)) found.changedOwners.push(...ownersIn(node.initializer));
   if (isCallExpression(node) && isObjectCall(node, OBJECT_CHANGERS)) {
     const [target] = node.arguments;
-    if (target !== undefined) found.changedOwners.push(target);
+    if (target === undefined) return;
+    found.changedOwners.push(target);
+    found.objectChanged.push(target);
   }
 }
 
@@ -449,6 +454,7 @@ function addPlaced(found: Found, node: Node): void {
   if (isCallExpression(node) || isNewExpression(node)) found.placed.push(...argumentsOf(node));
   if ((isVariableDeclaration(node) || isParameterDeclaration(node) || isPropertyDeclaration(node) || isBindingElement(node)) && node.initializer !== undefined) found.placed.push(node.initializer);
   if (isReturnStatement(node) && node.expression !== undefined) found.placed.push(node.expression);
+  if (isYieldExpression(node) && node.expression !== undefined) found.placed.push(node.expression);
   if (isArrowFunction(node) && !isBlock(node.body)) found.placed.push(node.body);
   if (isBinaryExpression(node) && isAssignment(node.operatorToken.kind)) found.placed.push(node.right);
   if (isAsExpression(node) || isTypeAssertion(node) || isSatisfiesExpression(node)) found.placed.push(node.expression);
@@ -711,6 +717,7 @@ export class SourceScanner {
       for (const node of this.typedBy(project, found.changedOwners, (type) => this.isFileTyped(project, type))) breaches.push(`${where(node)} changes a member of a vault file`);
       const holdsGate = (type: Type | undefined) => type === undefined || this.holdsGate(project, type);
       for (const node of this.unfaithfulPlacements(project, found.placed)) breaches.push(`${where(node)} puts a value the gate didn't give where the gate's parts go`);
+      for (const node of this.typedBy(project, found.objectChanged, holdsGate)) breaches.push(`${where(node)} changes a value that holds the gate's parts through Object`);
       for (const node of this.typedBy(project, found.heritages, isGate)) breaches.push(`${where(node)} extends or implements a gate type`);
       for (const node of this.typedBy(project, found.predicates, holdsGate)) breaches.push(`${where(node)} narrows a value to a type that holds the gate's parts`);
       for (const node of this.typedBy(project, found.instanceClasses, (type) => this.buildsGateType(project, type))) breaches.push(`${where(node)} narrows a value to a gate class with instanceof`);
