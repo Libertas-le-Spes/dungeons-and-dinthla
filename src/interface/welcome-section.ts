@@ -1,5 +1,6 @@
 import type { CampaignMaker } from "../campaign/campaign-maker";
 import type { CampaignsFolderSetup } from "../settings/campaigns-folder-setup";
+import { campaignsFolderThere, type FolderLookup } from "../welcome/campaigns-folder-there";
 import { WelcomePage, type WelcomeStore } from "../welcome/welcome-page";
 import type { MakePage } from "./campaign-pages";
 
@@ -7,6 +8,7 @@ export interface WelcomeNeeds {
   store: WelcomeStore;
   campaignsFolderSetup: Pick<CampaignsFolderSetup, "path" | "pick" | "make">;
   maker: Pick<CampaignMaker, "make">;
+  files: FolderLookup;
   startSession(): void;
 }
 
@@ -14,7 +16,7 @@ function nothingMore(): void {}
 
 export function welcomeSection(needs: WelcomeNeeds): MakePage {
   return (contentEl, show) =>
-    new WelcomePage(contentEl, needs.store, () => needs.campaignsFolderSetup.path, {
+    new WelcomePage(contentEl, needs.store, () => campaignsFolderThere(needs.campaignsFolderSetup.path, needs.files), {
       startSession: () => needs.startSession(),
       showCampaign: () => show({ page: "home", path: null }),
       makeCampaign: (name: string) => needs.maker.make(name),

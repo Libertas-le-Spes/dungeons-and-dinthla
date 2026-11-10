@@ -227,6 +227,7 @@ export default class DungeonsAndDinthla extends Plugin {
       store: this.store,
       campaignsFolderSetup,
       maker: new CampaignMaker(gate.files, () => this.campaignsFolderSetting.path, (folder) => this.chosen.choose(folder)),
+      files: gate.files,
       startSession: newSession,
     });
     const pages = campaignSections({

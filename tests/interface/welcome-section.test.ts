@@ -1,19 +1,26 @@
 import { describe, expect, it, vi } from "vitest";
+import type { TFolder } from "obsidian";
 import { welcomeSection } from "../../src/interface/welcome-section";
 import type { SessionNote } from "../../src/campaign/campaign";
 import { obsidianDocument } from "../views/obsidian-dom";
 
-function made(campaignFolder: string | null, sessionNotes: SessionNote[], campaignsFolder: string | null = "D&D") {
+function made(campaignFolder: string | null, sessionNotes: SessionNote[], campaignsFolder: string | null = "D&D", foldersThere: string[] = ["D&D"]) {
   const store = { campaignFolder, sessionNotes, subscribe: () => () => {} };
   const maker = { make: vi.fn(async () => {}) };
   const campaignsFolderSetup = { path: campaignsFolder, pick: vi.fn(), make: vi.fn(async () => {}) };
   const startSession = vi.fn();
   const root = obsidianDocument().body.createDiv();
   const show = vi.fn();
-  const page = welcomeSection({ store, campaignsFolderSetup, maker, startSession })(root, show, null, vi.fn());
+  const files = { getFolderByPath: vi.fn((path: string) => folderAt(path, foldersThere)) };
+  const page = welcomeSection({ store, campaignsFolderSetup, maker, files, startSession })(root, show, null, vi.fn());
   page.load();
   const button = (text: string) => Array.from(root.querySelectorAll("button")).find((candidate) => candidate.textContent === text)!;
   return { root, show, maker, campaignsFolderSetup, startSession, button };
+}
+
+function folderAt(path: string, foldersThere: string[]): TFolder | null {
+  if (!foldersThere.includes(path)) return null;
+  return { path } as TFolder;
 }
 
 function send(root: HTMLElement, typed: string): void {
@@ -41,6 +48,18 @@ describe("welcomeSection", () => {
     const { root, maker } = made(null, []);
     send(root, "Silver Road");
     expect(maker.make).toHaveBeenCalledExactlyOnceWith("Silver Road");
+  });
+
+  it("asks for the Campaigns folder again, not for a campaign, when the saved folder is no longer there", () => {
+    const { button } = made(null, [], "D&D", ["Games"]);
+    expect(button("Choose a folder")).toBeDefined();
+    expect(button("Make a campaign")).toBeUndefined();
+  });
+
+  it("asks for a campaign once the saved Campaigns folder is there", () => {
+    const { button } = made(null, [], "D&D", ["D&D"]);
+    expect(button("Make a campaign")).toBeDefined();
+    expect(button("Choose a folder")).toBeUndefined();
   });
 
   it("asks the Campaigns folder setup to pick a folder with Choose a folder", () => {
