@@ -7,6 +7,7 @@ export const ATTRIBUTES = [
   "aria-live",
   "aria-pressed",
   "aria-selected",
+  "data-item",
   "data-line",
   "data-name",
   "data-path",

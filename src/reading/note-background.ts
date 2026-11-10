@@ -19,21 +19,26 @@ export function shownBackgroundOf(
   return shownBackgroundIn(folder, metadata, urlOf);
 }
 
+const LAYERS = new WeakMap<HTMLElement, HTMLElement>();
+
 function layerIn(contentEl: HTMLElement): HTMLElement | null {
-  for (const child of Array.from(contentEl.children)) {
-    if (child.classList.contains(LAYER_CLASS)) return child as HTMLElement;
-  }
-  return null;
+  const layer = LAYERS.get(contentEl);
+  if (layer === undefined) return null;
+  return layer;
 }
 
 export function showBackground(contentEl: HTMLElement, shown: ShownBackground | null): void {
   let layer = layerIn(contentEl);
   if (shown === null) {
     if (layer !== null) layer.remove();
+    LAYERS.delete(contentEl);
     contentEl.removeClass(HOLDER_CLASS);
     return;
   }
-  if (layer === null) layer = contentEl.createDiv({ prepend: true });
+  if (layer === null) {
+    layer = contentEl.createDiv({ prepend: true });
+    LAYERS.set(contentEl, layer);
+  }
   layer.className = `dd-tokens ${LAYER_CLASS} dd-wash-${shown.wash}`;
   layer.setCssProps({ "--dd-campaign-picture": shown.picture.value });
   contentEl.addClass(HOLDER_CLASS);

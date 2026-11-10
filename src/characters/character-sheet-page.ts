@@ -1,3 +1,4 @@
+import { VALUE_BUTTONS } from "../views/row-keys";
 import { Component, type TFile } from "obsidian";
 import type { Source } from "../campaign/campaign";
 import { campaignFolderOf } from "../campaign/campaign-folders";
@@ -174,6 +175,7 @@ export class CharacterSheetPage extends Component {
       text: shownText,
       attr: { "data-name": value.name, "aria-label": `${value.label}: ${shownText}, ${STATE_WORDS[value.state]}` },
     });
+    VALUE_BUTTONS.mark(button, value.name);
     button.addEventListener("click", () => this.choose(file, value));
     if (isAbility) {
       const modifier = modifierOf(shownText);
@@ -219,7 +221,7 @@ export class CharacterSheetPage extends Component {
       return;
     }
     const button = Array.from(this.contentEl.querySelectorAll<HTMLElement>(".dd-value")).find(
-      (candidate) => candidate.dataset.name === pending.name,
+      (candidate) => VALUE_BUTTONS.keyOf(candidate) === pending.name,
     );
     if (button !== undefined) button.focus();
   }

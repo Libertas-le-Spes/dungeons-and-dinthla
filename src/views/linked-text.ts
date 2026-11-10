@@ -1,3 +1,4 @@
+import { SOURCE_ROWS, sourceKeyOf } from "./row-keys";
 import { Keymap, type PaneType } from "obsidian";
 import type { Source } from "../campaign/campaign";
 import { textRunsOf, type MarkedPiece } from "./text-parts";
@@ -68,6 +69,7 @@ export function addRowButton(list: HTMLElement, source: Source, actions: LinkAct
     cls: "dd-row",
     attr: { role: "button", tabindex: "0", "data-path": source.path, "data-line": String(source.line) },
   });
+  SOURCE_ROWS.mark(row, sourceKeyOf(source));
   row.addEventListener("click", () => actions.openRow(source));
   row.addEventListener("keydown", (event) => {
     if (event.target !== row) return;
