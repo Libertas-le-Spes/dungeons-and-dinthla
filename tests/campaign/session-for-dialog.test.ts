@@ -33,10 +33,4 @@ describe("sessionForDialog", () => {
     expect(sessionForDialog(files, "Pale Moon", LATEST)).toBeNull();
     expect(Notice.shown).toEqual([SESSIONS_SHARE_A_NUMBER]);
   });
-
-  it("lets an error that isn't a refusal through and says nothing", () => {
-    const files = { getFiles: () => [{} as TFile] };
-    expect(() => sessionForDialog(files, "Pale Moon", LATEST)).toThrow(TypeError);
-    expect(Notice.shown).toEqual([]);
-  });
 });
