@@ -12,6 +12,7 @@ export class CampaignStore {
   private readonly changedAt = new Map<string, number>();
   private readonly listeners = new Set<CampaignListener>();
   private openings = 0;
+  private settled = 0;
   private changes = 0;
 
   constructor(private readonly files: CampaignFiles) {}
@@ -41,6 +42,7 @@ export class CampaignStore {
     const since = this.changes;
     const read = await readSessions(this.files, folder);
     if (opening !== this.openings) return;
+    this.settled = opening;
     for (const session of read) {
       if (!this.changedSince(session.path, since)) this.sessions.set(session.path, session);
     }
@@ -60,6 +62,7 @@ export class CampaignStore {
     const number = this.numberInCampaign(path);
     if (number === null) return;
     this.sessions.set(path, sessionNoteOf(path, number, text));
+    if (this.isOpening()) return;
     this.rebuild();
   }
 
@@ -94,6 +97,10 @@ export class CampaignStore {
     if (opening !== this.openings || this.changedSince(path, since)) return false;
     this.sessions.set(path, session);
     return true;
+  }
+
+  private isOpening(): boolean {
+    return this.settled !== this.openings;
   }
 
   private markChanged(path: string): void {

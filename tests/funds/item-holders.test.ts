@@ -223,6 +223,25 @@ describe("ItemHolders", () => {
     expect(itemNotes.written).toEqual([{ path: LANTERN, holder: "[[Mira]]" }]);
   });
 
+  it("writes no holder from a campaign only half read when a session note changes while the campaign opens", async () => {
+    const later = `${CAMPAIGN}/Sessions/Session 2.md`;
+    const sessions = new FakeVault([
+      { path: SESSION, text: "$$ Silvered lantern :changed to [[Mira]]" },
+      { path: later, text: "$$ Silvered lantern :changed to Old Tom" },
+    ]);
+    const store = new CampaignStore(sessions.vault);
+    const itemNotes = new ItemNotes([{ path: LANTERN, properties: { holder: "Old Tom" } }]);
+    new ItemHolders(itemNotes.needsFor(store)).start();
+    const release = sessions.holdReadsOf(later);
+    const opening = store.open(CAMPAIGN);
+    store.noteChanged(SESSION, "$$ Silvered lantern :changed to [[Mira]]");
+    await settle();
+    release();
+    await opening;
+    await settle();
+    expect(itemNotes.written).toEqual([]);
+  });
+
   it("writes a note once while its write is still going when the campaign is read again", async () => {
     const lines = ["$$ Silvered lantern :changed to [[Mira]]"];
     const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
