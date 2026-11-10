@@ -20,5 +20,11 @@ export interface Allowances {
   noteEvents: Allowed;
   gateBuilding: Allowed;
   obsidianImports: AllowedName;
+  postProcessing: Allowed;
+  pageText: Allowed;
+  elementQueries: Allowed;
+  tags: AllowedName;
+  attributes: AllowedName;
+  elementOptions: AllowedName;
   globals: AllowedName;
 }

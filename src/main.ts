@@ -186,7 +186,7 @@ export default class DungeonsAndDinthla extends Plugin {
     const castNeeds = { store: this.store, characterNotes, sheetNotes, mentionNotes, actions, sheetActions, newCharacter, watchFiles };
     const openers: LookupOpeners = { question: openQuestionAt, quest: openQuestAt, item: openItem };
     const { drafts, keeping } = this.keepDrafts();
-    const { notes, wholeText } = sessionNotesWiring({
+    const sessionNotes = sessionNotesWiring({
       gate,
       store: this.store,
       drafts,
@@ -199,12 +199,12 @@ export default class DungeonsAndDinthla extends Plugin {
     const pages = campaignSections({
       home: homeSection({ store: this.store, characterNotes, news: help.whatsNew, actionsFor: dashboardActionsFor }),
       cast: castSection(castNeeds),
-      notes: notesSection(notes),
+      notes: notesSection(sessionNotes.notes),
       questions: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestionAt, questionsKind, createQuestion),
       quests: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestAt, questsKind, createQuest),
       funds: fundsSection({
         store: this.store,
-        texts: wholeText.texts,
+        texts: sessionNotes.wholeText.texts,
         actions,
         noteExists,
         addCoin,
@@ -213,7 +213,7 @@ export default class DungeonsAndDinthla extends Plugin {
         campaignFolders: () => this.campaignFolders(),
       }),
       note: noteSection({
-        ...wholeText,
+        ...sessionNotes.wholeText,
         actions,
         isCampaignNote: (path: string) => campaignFolderOf(path, this.campaignFolders()) !== null,
         openInEditor: (path: string) => void openInEditor(this.app, gate, path),

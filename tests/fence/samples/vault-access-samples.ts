@@ -151,8 +151,6 @@ export const HARMLESS_SAMPLES = [
   'import type { CachedMetadata } from "obsidian";\nexport const properties = (cache: CachedMetadata) => cache.frontmatter;',
   'export const level = (levels: Map<string, number>) => levels.get("Mira");',
   'export const listed = (levels: Map<string, number>) => [...levels.entries()];',
-  'import { ItemView } from "obsidian";\nexport class Ledger extends ItemView {\n  getViewType(): string {\n    return "ledger";\n  }\n  getDisplayText(): string {\n    return this.contentEl.textContent;\n  }\n}',
-  "export const text = (box: HTMLElement) => box.textContent;",
   "export const page = (box: HTMLElement) => box.doc.title;",
   'import type { TFile } from "obsidian";\nexport const file = (entry: { file: TFile }) => entry.file;',
   'import type { Modal } from "obsidian";\nexport const show = (modal: Modal) => modal.open();',

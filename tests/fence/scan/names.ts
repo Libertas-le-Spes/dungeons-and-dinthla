@@ -49,7 +49,7 @@ export const CODE_MIRROR_MODULE = "@codemirror/";
 
 export const DOCUMENT = "doc";
 
-export const FORBIDDEN_NAMES = ["MarkdownRenderer", "renderMarkdown", "executeCommandById", "commands", "execCommand", "Function", "eval", "openLinkText", "openPopoutLeaf", "activeEditor", "activeLeaf", "getMostRecentLeaf", "duplicateLeaf", "plugins", "getPlugin", "enabledPlugins", "internalPlugins", "__proto__", "FileSystemAdapter", "CapacitorAdapter", "DataAdapter", "readLocalFile", "getBasePath", "getFullPath", "getFullRealPath", "getFilePath", "mkdir", "MarkdownPreviewRenderer", "registerPostProcessor", "changeLayout", "getLayout", "getLastOpenFiles"];
+export const FORBIDDEN_NAMES = ["MarkdownRenderer", "renderMarkdown", "executeCommandById", "commands", "execCommand", "Function", "eval", "openLinkText", "openPopoutLeaf", "activeEditor", "activeLeaf", "getMostRecentLeaf", "duplicateLeaf", "plugins", "getPlugin", "enabledPlugins", "internalPlugins", "__proto__", "FileSystemAdapter", "CapacitorAdapter", "DataAdapter", "readLocalFile", "getBasePath", "getFullPath", "getFullRealPath", "getFilePath", "mkdir", "MarkdownPreviewRenderer", "registerPostProcessor", "changeLayout", "getLayout", "getLastOpenFiles", "registerMarkdownCodeBlockProcessor", "setCssStyles", "setProperty", "cssText", "setAttrs", "setAttributeNS", "setAttributeNode", "setAttributeNodeNS", "setNamedItem", "setNamedItemNS", "createAttribute", "createAttributeNS", "createElementNS", "createSvg"];
 
 export const GATE_ONLY_NAMES = ["recurseChildren"];
 
@@ -165,3 +165,49 @@ export const BOUND_READS = [LEAF_OPENER, LEAF_VIEW, VIEW_FILE, EVENT_LISTENER];
 export const OBSIDIAN_MODULE = "obsidian";
 
 export const ALLOWED_MODULES = [OBSIDIAN_MODULE, "@codemirror/state", "@codemirror/view"];
+
+export const TIMERS = ["setTimeout", "setInterval"];
+
+export const ATTRIBUTE_SETTERS = ["setAttribute", "setAttr", "toggleAttribute"];
+
+export const ELEMENT_MAKERS = ["createEl", "createElement"];
+
+export const OPTION_TAKERS = [
+  { name: "createEl", options: 1 },
+  { name: "createDiv", options: 0 },
+  { name: "createSpan", options: 0 },
+];
+
+export const CSS_PROPERTY_SETTERS = ["setCssProps"];
+
+export const PICTURE_CSS = "PictureCss";
+
+export const PICTURE_CSS_SOURCE = "/src/campaign/picture-css.ts";
+
+export const PICTURE_VALUE = "value";
+
+export const POST_PROCESSORS = ["registerMarkdownPostProcessor"];
+
+export const PAGE_TEXT = ["textContent", "innerText", "outerText", "nodeValue", "wholeText", "getHTML", "createRange", "createTreeWalker", "createNodeIterator", "XMLSerializer", "serializeToString"];
+
+export const CHARACTER_DATA = "data";
+
+export const CHARACTER_DATA_OWNERS = ["CharacterData", "Text", "Comment", "ProcessingInstruction", "CDATASection"];
+
+export const ELEMENT_QUERIES = ["querySelector", "querySelectorAll", "getElementsByClassName", "getElementsByTagName", "getElementsByTagNameNS", "getElementsByName", "getElementById", "closest", "elementFromPoint", "elementsFromPoint"];
+
+export const OBSIDIAN_ELEMENT_QUERIES = ["find", "findAll", "findAllSelf"];
+
+export const LOADING_MEMBERS = ["href", "src", "srcset", "action", "formAction", "poster", "background", "codebase"];
+
+export const STYLE_OWNERS = ["CSSStyleDeclaration"];
+
+export const NODE_MARK = "ownerDocument";
+
+export const OPTION_ATTRIBUTES = "attr";
+
+export const LINK_OPTION = "href";
+
+export const PAGE_LINK = "#";
+
+export const PAGE_NAMES = [...TIMERS, ...ATTRIBUTE_SETTERS, ...ELEMENT_MAKERS, ...OPTION_TAKERS.map((taker) => taker.name), ...CSS_PROPERTY_SETTERS, ...POST_PROCESSORS, ...PAGE_TEXT, CHARACTER_DATA, ...ELEMENT_QUERIES, ...OBSIDIAN_ELEMENT_QUERIES];
