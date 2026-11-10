@@ -1,7 +1,8 @@
 import type { QuestionRecord, SourcedText } from "../campaign/campaign";
 import { NoteEditor, PartlyWritten, type EditorFiles, type Removal } from "../campaign/note-editor";
 import { messageOf } from "../views/message-of";
-import { answerLine, isFollowUpLine, isQuestionLine, oneLine, questionLine } from "../notes/question-lines";
+import { answerLine, isQuestionLine, questionLine } from "../notes/question-lines";
+import { isFollowUpLine, oneLine } from "../notes/thread-lines";
 import { answerRemoval, type QuestionPlan } from "./question-plan";
 
 function clueRemoval(question: QuestionRecord, clue: SourcedText): Removal {

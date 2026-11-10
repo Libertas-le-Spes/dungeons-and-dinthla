@@ -7,7 +7,7 @@ import { appendLines, removeLines } from "../notes/note-lines";
 import { followUpQuestLine, isCoinReward, outcomeLine, progressLine, questTextOf, rewardLine } from "../notes/quest-lines";
 import { readMarker } from "../notes/marker";
 import { readQuest } from "../notes/quest";
-import { isFollowUpLine, oneLine } from "../notes/question-lines";
+import { isFollowUpLine, oneLine } from "../notes/thread-lines";
 
 export type QuestStatusChoice = "active" | QuestStatus;
 

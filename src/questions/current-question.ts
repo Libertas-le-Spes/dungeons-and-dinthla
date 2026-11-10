@@ -2,7 +2,7 @@ import type { QuestionRecord, Source } from "../campaign/campaign";
 import { keepsEveryPlace } from "../campaign/places";
 import { sessionNumberOf } from "../campaign/session-file";
 import { findSubject } from "../campaign/subject";
-import { oneLine } from "../notes/question-lines";
+import { oneLine } from "../notes/thread-lines";
 import { CHANGED_IN_NOTE } from "../campaign/note-editor";
 
 function answerTextOf(question: QuestionRecord): string | null {

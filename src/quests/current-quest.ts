@@ -3,7 +3,7 @@ import { keepsEveryPlace } from "../campaign/places";
 import { CHANGED_IN_NOTE } from "../campaign/note-editor";
 import { sessionNumberOf } from "../campaign/session-file";
 import { findSubject } from "../campaign/subject";
-import { oneLine } from "../notes/question-lines";
+import { oneLine } from "../notes/thread-lines";
 
 export const SAME_TITLE = "An earlier active quest has the same title, so changes would go to it. Reword one of them first.";
 export const GOES_ELSEWHERE = "What happened would be read as about another quest whose title starts the same way. Reword it.";
