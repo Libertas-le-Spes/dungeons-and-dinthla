@@ -1,5 +1,7 @@
 export type Allowed = (path: string) => boolean;
 
+export type AllowedName = (path: string, name: string) => boolean;
+
 export interface Allowances {
   vault: Allowed;
   keyReading: Allowed;
@@ -17,4 +19,6 @@ export interface Allowances {
   viewFile: Allowed;
   noteEvents: Allowed;
   gateBuilding: Allowed;
+  obsidianImports: AllowedName;
+  globals: AllowedName;
 }

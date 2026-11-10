@@ -7,6 +7,8 @@ import type { FileScan, Rules } from "./scan/file-scan";
 import { foundIn } from "./scan/found";
 import { GateHolding } from "./scan/gate-holding";
 import { gateForgingBreaches } from "./scan/gate-forging-rules";
+import { globalBreaches } from "./scan/global-rules";
+import { importBreaches } from "./scan/import-rules";
 import { openingBreaches } from "./scan/opening-rules";
 import { TypeQueries } from "./scan/type-queries";
 import { isLibraryFile } from "./scan/type-shapes";
@@ -15,7 +17,7 @@ import { workspaceEventBreaches } from "./scan/workspace-event-rules";
 
 export type { Allowances } from "./scan/allowances";
 
-const RULES: Rules[] = [vaultAccessBreaches, editorViewBreaches, openingBreaches, workspaceEventBreaches, gateForgingBreaches];
+const RULES: Rules[] = [vaultAccessBreaches, editorViewBreaches, openingBreaches, workspaceEventBreaches, gateForgingBreaches, importBreaches, globalBreaches];
 
 export class SourceScanner {
   private readonly api: API;

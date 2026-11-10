@@ -7,6 +7,8 @@ import { BUNDLED_PROJECT, bundledProjectFiles } from "./scan/bundled-project";
 import { ROOT, SOURCE_FOLDER, sourcePath, VIRTUAL_FOLDER } from "./scan/scan-paths";
 import { virtualFileSystem } from "./scan/virtual-files";
 import { SourceScanner } from "./source-scanner";
+import { PAGE_GLOBALS, PLAIN_GLOBALS } from "./allowed/globals";
+import { OBSIDIAN_IMPORTS } from "./allowed/obsidian-imports";
 
 const GATEKEEPER_FOLDER = "fence/";
 const PARSED_DATA = ["settings/draft-record.ts"];
@@ -27,6 +29,21 @@ const GATE_BUILDERS = ["main.ts"];
 
 function isOneOf(files: string[]): (path: string) => boolean {
   return (path) => files.some((file) => path === sourcePath(file));
+}
+
+function namesFor(path: string, allowed: Record<string, string[]>): string[] {
+  return Object.entries(allowed).flatMap(([place, names]) => {
+    if (!path.startsWith(sourcePath(place))) return [];
+    return names;
+  });
+}
+
+function isImportAllowed(path: string, name: string): boolean {
+  return namesFor(path, OBSIDIAN_IMPORTS).includes(name);
+}
+
+function isGlobalAllowed(path: string, name: string): boolean {
+  return PLAIN_GLOBALS.includes(name) || namesFor(path, PAGE_GLOBALS).includes(name);
 }
 
 const isGatekeeper = isOneOf(ALLOWED);
@@ -50,6 +67,8 @@ const SOURCE_ALLOWANCES: Allowances = {
   viewFile: isOneOf(VIEW_FILE_READERS),
   noteEvents: isOneOf(NOTE_EVENT_LISTENERS),
   gateBuilding: isOneOf(GATE_BUILDERS),
+  obsidianImports: isImportAllowed,
+  globals: isGlobalAllowed,
 };
 
 let scanner: SourceScanner;
