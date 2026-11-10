@@ -1,4 +1,5 @@
 import type { FollowUpName } from "../kinds/follow-up-name";
+import { followUpSymbolOf } from "../kinds/follow-ups";
 import { readFollowUp } from "./follow-up";
 import { readMarker } from "./marker";
 
@@ -15,7 +16,7 @@ export function questionLine(question: string): string {
 }
 
 export function answerLine(question: string, answer: string): string {
-  return `?= ${question}: ${oneLine(answer)}`;
+  return `${followUpSymbolOf("answer")} ${question}: ${oneLine(answer)}`;
 }
 
 export function followUpQuestionLine(followUp: string, question: string): string {

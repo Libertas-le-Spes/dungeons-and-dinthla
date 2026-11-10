@@ -20,7 +20,6 @@ export const COMPUTED_KEY_READERS = [
   "notes/hidden-lines.ts",
   "notes/ledger.ts",
   "notes/note-lines.ts",
-  "notes/quest-lines.ts",
   "notes/quest.ts",
   "quests/quest-plan.ts",
   "quests/quest-row.ts",
