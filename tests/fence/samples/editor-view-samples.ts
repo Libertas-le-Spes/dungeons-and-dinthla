@@ -1,0 +1,90 @@
+export const WRITING_SAMPLES = [
+  'activeEditor.editor.replaceRange("", from, to);',
+  'editor.setValue("");',
+  'view.setViewData("", false);',
+  "view.save();",
+  "const text = view.data;",
+  "view.requestSave();",
+  'editor.replaceSelection("");',
+  "const { replaceRange } = editor;",
+  'import type { Editor } from "obsidian";\nexport const clear = (editor: Editor) => editor.setValue("");',
+  'import type { MarkdownView } from "obsidian";\nexport const keep = (view: MarkdownView) => view.save();',
+  'import type { MarkdownView } from "obsidian";\nexport const saved = (view: MarkdownView) => view.data;',
+  'import type { Editor } from "obsidian";\nexport const change = (editor: Editor, key: "replaceRange") => editor[key];',
+];
+
+export const WRITE_NAME_SAMPLES = [
+  'import type { Editor } from "obsidian";\nexport const change = (editor: Editor) => editor.setLine(0, "");',
+  'import type { Editor } from "obsidian";\nexport const change = (editor: Editor) => editor.transaction({ changes: [] });',
+  'import type { Editor } from "obsidian";\nexport const change = (editor: Editor) => editor.undo();',
+  'import type { Editor } from "obsidian";\nexport const change = (editor: Editor) => editor.redo();',
+  'import type { Editor } from "obsidian";\nexport const change = (editor: Editor) => editor.exec("goUp");',
+  'import type { Editor } from "obsidian";\nexport const change = (editor: Editor) => editor.processLines(() => null, () => undefined);',
+  'import type { MarkdownView } from "obsidian";\nexport const change = (view: MarkdownView) => view.clear();',
+  'import type { MarkdownSubView } from "obsidian";\nexport const change = (mode: MarkdownSubView) => mode.set("", true);',
+  'import type { EditorView } from "@codemirror/view";\nexport const change = (view: EditorView) => view.dispatch({ changes: { from: 0, insert: "" } });',
+];
+
+export const READING_SAMPLES = [
+  'import type { Editor } from "obsidian";\nexport const text = (editor: Editor) => editor.getValue();',
+  "const line = editor.getLine(0);",
+  'import type { Editor, EditorPosition } from "obsidian";\nexport const part = (editor: Editor, from: EditorPosition, to: EditorPosition) => editor.getRange(from, to);',
+  'import type { Editor } from "obsidian";\nexport const picked = (editor: Editor) => editor.getSelection();',
+  'import type { MarkdownView } from "obsidian";\nexport const text = (view: MarkdownView) => view.getViewData();',
+  'import type { MarkdownFileInfo } from "obsidian";\nexport const text = (info: MarkdownFileInfo) => info.editor?.getValue();',
+  'import type { Editor } from "obsidian";\nexport const line = (editor: Editor) => editor["getLine"](0);',
+  "const { getValue } = editor;",
+];
+
+export const NOTE_READING_SAMPLES = [
+  'import type { MarkdownPostProcessorContext } from "obsidian";\nexport const lines = (el: HTMLElement, context: MarkdownPostProcessorContext) => context.getSectionInfo(el)?.text;',
+  'import type { MarkdownPostProcessorContext } from "obsidian";\nexport const properties = (context: MarkdownPostProcessorContext) => context.frontmatter;',
+  'import type { MarkdownView } from "obsidian";\nexport const text = (view: MarkdownView) => view.currentMode.get();',
+  'import type { MarkdownView } from "obsidian";\nexport const text = (view: MarkdownView) => view.previewMode.get();',
+  'import type { MarkdownSubView } from "obsidian";\nexport const text = (mode: MarkdownSubView) => mode.get();',
+  'import type { MarkdownPreviewView } from "obsidian";\nexport const text = (mode: MarkdownPreviewView) => mode["get"]();',
+  'import type { BasesEntry, BasesPropertyId } from "obsidian";\nexport const value = (entry: BasesEntry, id: BasesPropertyId) => entry.getValue(id);',
+  'import type { BasesView } from "obsidian";\nexport const files = (view: BasesView) => view.data.data.map((entry) => entry.file);',
+  'import type { BasesQueryResult } from "obsidian";\nexport const groups = (result: BasesQueryResult) => result.groupedData;',
+  'import type { BasesEntryGroup } from "obsidian";\nexport const listed = (group: BasesEntryGroup) => group.entries;',
+  "const { frontmatter } = context;",
+  "const { getSectionInfo } = context;",
+  "const { previewMode } = view;",
+  'import type { MarkdownView } from "obsidian";\nexport const mode = (view: MarkdownView) => view.currentMode;',
+  'import type { BasesEntry, BasesPropertyId, BasesQueryResult, QueryController } from "obsidian";\nexport const total = (result: BasesQueryResult, controller: QueryController, entries: BasesEntry[], id: BasesPropertyId) => result.getSummaryValue(controller, entries, id, "sum");',
+];
+
+export const VIEW_TEXT_SAMPLES = [
+  'import type { MarkdownView } from "obsidian";\nexport const text = (view: MarkdownView) => view.contentEl.innerText;',
+  'import type { MarkdownView } from "obsidian";\nexport const text = (view: MarkdownView) => view.containerEl.textContent;',
+  'import type { WorkspaceLeaf } from "obsidian";\nexport const text = (leaf: WorkspaceLeaf) => leaf.view.containerEl.textContent;',
+  'import type { MarkdownView } from "obsidian";\nexport const text = (view: MarkdownView) => view.previewMode.containerEl.outerText;',
+  'export const text = (view: any) => view.contentEl.innerText;',
+  'import type { ItemView } from "obsidian";\nexport const text = (view: ItemView) => (view.contentEl).textContent;',
+];
+
+export const CODE_MIRROR_SAMPLES = [
+  'import type { EditorState } from "@codemirror/state";\nexport const text = (state: EditorState) => state.doc.toString();',
+  'import type { Text } from "@codemirror/state";\nexport const line = (doc: Text) => doc.line(1).text;',
+  'import type { EditorView } from "@codemirror/view";\nexport const text = (view: EditorView) => view.state.sliceDoc();',
+  'import { EditorView } from "@codemirror/view";\nexport const listen = EditorView.updateListener.of((update) => update.state);',
+  'import { EditorState } from "@codemirror/state";\nexport const filter = EditorState.transactionFilter.of((transaction) => transaction);',
+  'import { EditorState } from "@codemirror/state";\nexport const filter = EditorState.changeFilter.of(() => true);',
+  'import { EditorView } from "@codemirror/view";\nexport const typed = EditorView.inputHandler.of(() => false);',
+  'import { editorEditorField } from "obsidian";\nexport const field = editorEditorField;',
+  'import { editorInfoField } from "obsidian";\nexport const field = editorInfoField;',
+  "export const text = (editor: any) => editor.cm.state.doc.toString();",
+  "export const text = (state: unknown) => (state as { doc: { toString(): string } }).doc.toString();",
+  'export { EditorView } from "@codemirror/view";',
+  'import type { EditorState } from "@codemirror/state";\nexport const text = (state: EditorState) => state["doc"];',
+  "const { doc } = state;",
+  'export const text = (view: import("@codemirror/view").EditorView) => view.state.sliceDoc();',
+  "export const listen = (view: { updateListener: { of(run: () => void): object } }) => view.updateListener.of(() => {});",
+  "export const filter = (state: { transactionFilter: { of(run: () => void): object } }) => state.transactionFilter.of(() => {});",
+  "export const filter = (state: { changeFilter: { of(run: () => boolean): object } }) => state.changeFilter.of(() => true);",
+  "export const typed = (view: { inputHandler: { of(run: () => boolean): object } }) => view.inputHandler.of(() => false);",
+  'import { editorViewField } from "obsidian";\nexport const field = editorViewField;',
+  'import { editorLivePreviewField } from "obsidian";\nexport const field = editorLivePreviewField;',
+  'export function text(state: unknown) {\n  const held = state as { doc: string };\n  return held["doc"];\n}',
+  "export function text(state: unknown) {\n  const held = state as { doc: string };\n  return held.doc;\n}",
+];
