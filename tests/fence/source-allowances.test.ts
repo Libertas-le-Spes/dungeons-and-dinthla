@@ -10,6 +10,7 @@ import { SourceScanner } from "./source-scanner";
 import { PAGE_GLOBALS, PLAIN_GLOBALS } from "./allowed/globals";
 import { OBSIDIAN_IMPORTS } from "./allowed/obsidian-imports";
 import { COMPUTED_KEY_READERS } from "./allowed/computed-keys";
+import { PAGE_ESCAPE_READERS, PAGE_ESCAPES, PAGE_MEMBERS } from "./allowed/page-members";
 
 const SCAN_TIME = 60_000;
 const GATEKEEPER_FOLDER = "fence/";
@@ -47,6 +48,10 @@ function isImportAllowed(path: string, name: string): boolean {
   return namesFor(path, OBSIDIAN_IMPORTS).includes(name);
 }
 
+function isPageMemberAllowed(path: string, name: string): boolean {
+  return namesFor(path, PAGE_MEMBERS).includes(name);
+}
+
 function isGlobalAllowed(path: string, name: string): boolean {
   return PLAIN_GLOBALS.includes(name) || namesFor(path, PAGE_GLOBALS).includes(name);
 }
@@ -75,6 +80,7 @@ const SOURCE_ALLOWANCES: Allowances = {
   obsidianImports: isImportAllowed,
   globals: isGlobalAllowed,
   postProcessing: isOneOf(POST_PROCESSING),
+  pageMembers: isPageMemberAllowed,
   computedKeys: isOneOf(COMPUTED_KEY_READERS),
   pageText: isOneOf(PAGE_TEXT_READERS),
   elementQueries: isOneOf(ELEMENT_QUERIERS),
@@ -191,6 +197,19 @@ describe("the plugin's own source", () => {
     const refused = namesRefused(/^src\/([^:]+):\d+ uses the global (\w+)$/, PAGE_GLOBALS, { ...SOURCE_ALLOWANCES, globals: (_path, name) => PLAIN_GLOBALS.includes(name) });
     expect(refused).toEqual(sortedLists(PAGE_GLOBALS));
   }, SCAN_TIME);
+
+  it("lists exactly the page members each file uses today, so a member no longer used leaves the list", () => {
+    const refused = namesRefused(/^src\/([^:]+):\d+ uses the page's (\S+), which/, PAGE_MEMBERS, { ...SOURCE_ALLOWANCES, pageMembers: () => false });
+    expect(refused).toEqual(sortedLists(PAGE_MEMBERS));
+  }, SCAN_TIME);
+
+  it("lets only the marker colouring reach past the plugin's own elements, and main.ts reach the page's body for the theme class", () => {
+    const reaching = Object.entries(PAGE_MEMBERS).flatMap(([file, names]) => {
+      const allowed = PAGE_ESCAPE_READERS[file];
+      return names.filter((name) => PAGE_ESCAPES.includes(name) && (allowed === undefined || !allowed.includes(name))).map((name) => `${file} ${name}`);
+    });
+    expect(reaching).toEqual([]);
+  });
 
   it.each([
     { allowance: "fileOpening", files: FILE_OPENERS, breach: "opens, shows or picks a note with openFile" },

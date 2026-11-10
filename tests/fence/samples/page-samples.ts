@@ -1,4 +1,5 @@
 export const CODE_TEXT_SAMPLES = [
+  "export function later(code: string): void {\n  const run = code as unknown as () => void;\n  window.setTimeout(run, 0);\n}",
   "export const later = (code: string) => window.setTimeout(code, 0);",
   "export const later = (code: string) => setTimeout(code, 0);",
   "export const later = (code: string) => setInterval(code, 10);",
@@ -73,3 +74,16 @@ export const ALLOWED_PAGE_SAMPLES = [
   "export const shown = (settings: { wholeText: string }) => settings.wholeText;",
   "export function keep(properties: Record<string, unknown>, link: string) {\n  properties.background = link;\n}",
 ];
+
+export const PAGE_READ_SAMPLES = [
+  "export function read(el: HTMLElement): string {\n  const out: string[] = [];\n  const visit = (node: Node): void => {\n    if (node.nodeType === 3) {\n      const text = node as CharacterData;\n      out.push(text.substringData(0, text.length));\n    }\n    node.childNodes.forEach(visit);\n  };\n  visit(el.ownerDocument.body);\n  return out.join(\"\");\n}",
+  'export function read(el: HTMLElement): string {\n  const selection = el.ownerDocument.getSelection();\n  if (selection === null) return "";\n  selection.selectAllChildren(el.ownerDocument.body);\n  return selection.toString();\n}',
+  'export function read(el: HTMLElement): string[] {\n  const out: string[] = [];\n  const visit = (node: Element): void => {\n    const target = node.getAttribute("data-href");\n    if (target !== null) out.push(target);\n    Array.from(node.children).forEach(visit);\n  };\n  visit(el.ownerDocument.body);\n  return out;\n}',
+  "export const read = (el: HTMLElement) => el.parentElement?.dataset.href;",
+  "export const read = (el: HTMLElement) => el.doc.title;",
+  "export const read = (el: HTMLElement) => el.nextElementSibling;",
+  "export function read(el: HTMLElement) {\n  const { ownerDocument } = el;\n  return ownerDocument;\n}",
+  'export const read = (el: HTMLElement) => el.attributes.getNamedItem("data-href");',
+];
+
+export const OWN_ELEMENT_SAMPLES = ['export const label = (el: HTMLElement) => el.createDiv({ cls: "dd-frame" }).addClass("dd-shown");'];

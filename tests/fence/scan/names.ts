@@ -212,4 +212,6 @@ export const PAGE_LINK = "#";
 
 export const PAGE_NAMES = [...TIMERS, ...ATTRIBUTE_SETTERS, ...ELEMENT_MAKERS, ...OPTION_TAKERS.map((taker) => taker.name), ...CSS_PROPERTY_SETTERS, ...POST_PROCESSORS, ...PAGE_TEXT, CHARACTER_DATA, ...ELEMENT_QUERIES, ...OBSIDIAN_ELEMENT_QUERIES];
 
+export const PAGE_LIBRARY = "/lib.dom.d.ts";
+
 export const UNSAFE_KEYS = ["constructor", "__proto__", "prototype"];

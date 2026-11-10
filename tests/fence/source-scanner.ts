@@ -9,6 +9,7 @@ import { computedKeyBreaches } from "./scan/computed-key-rules";
 import { foundIn } from "./scan/found";
 import { pageElementBreaches } from "./scan/page-element-rules";
 import { pageFoundIn } from "./scan/page-found";
+import { pageMemberBreaches } from "./scan/page-member-rules";
 import { pageTextBreaches } from "./scan/page-text-rules";
 import { GateHolding } from "./scan/gate-holding";
 import { gateForgingBreaches } from "./scan/gate-forging-rules";
@@ -22,7 +23,7 @@ import { workspaceEventBreaches } from "./scan/workspace-event-rules";
 
 export type { Allowances } from "./scan/allowances";
 
-const RULES: Rules[] = [vaultAccessBreaches, editorViewBreaches, openingBreaches, workspaceEventBreaches, gateForgingBreaches, importBreaches, globalBreaches, codeTextBreaches, pageElementBreaches, pageTextBreaches, computedKeyBreaches];
+const RULES: Rules[] = [vaultAccessBreaches, editorViewBreaches, openingBreaches, workspaceEventBreaches, gateForgingBreaches, importBreaches, globalBreaches, codeTextBreaches, pageElementBreaches, pageTextBreaches, computedKeyBreaches, pageMemberBreaches];
 
 export class SourceScanner {
   private readonly api: API;
