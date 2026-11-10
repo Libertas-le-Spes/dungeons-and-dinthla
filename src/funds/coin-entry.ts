@@ -2,7 +2,10 @@ import { applySessionChange } from "../campaign/apply-session-change";
 import { buildCampaign } from "../campaign/build-campaign";
 import type { CoinRecord, SessionNote, Source } from "../campaign/campaign";
 import { CHANGED_IN_NOTE, removalAsRead, type EditorFiles, type Removal } from "../campaign/note-editor";
+import type { Check, RecordChange } from "../campaign/record-change";
 import { SessionChangeWriter } from "../campaign/session-change-writer";
+import { verdictOf, writeNothingWhen } from "../campaign/verdict";
+import { writeRecordChange } from "../campaign/write-record-change";
 import { comparableLine, draftOf, readCoinDraft, type CoinDraft, type CoinLine } from "../notes/coin-lines";
 import { coinSessionChange } from "./coin-session-change";
 
@@ -41,26 +44,38 @@ function keepsTheEntry(record: CoinRecord, draft: CoinDraft): boolean {
   return comparableLine(reading.line) === comparableLine(`$ ${record.text}`);
 }
 
+interface OpenedEntry {
+  store: { readonly sessionNotes: SessionNote[] };
+  record: CoinRecord;
+  removal: Removal;
+}
+
+interface CoinPlan {
+  coinLine: CoinLine | null;
+}
+
+function entryChange(entry: OpenedEntry, coinLine: CoinLine | null, checksFirst: Check<CoinPlan>[], writer: SessionChangeWriter): RecordChange<CoinPlan> {
+  return {
+    plan: () => ({ coinLine }),
+    checks: [...checksFirst, (plan) => verdictOf(refusalForEntryChange(entry.store.sessionNotes, entry.record, entry.removal, plan.coinLine))],
+    writePlan: (plan) => writer.apply(coinSessionChange(entry.removal, plan.coinLine)),
+  };
+}
+
 export function coinEntryEdit(files: EditorFiles, store: { readonly sessionNotes: SessionNote[] }, record: CoinRecord): CoinEntryEdit {
   const writer = new SessionChangeWriter(files);
-  const removal = removalAsRead(store.sessionNotes, record.source);
+  const entry = { store, record, removal: removalAsRead(store.sessionNotes, record.source) };
   const draft = draftOf(record.text, record.entry.copper, record.entry.coins);
   let cannotSave: string | null = CANNOT_SHOW;
   if (keepsTheEntry(record, draft)) cannotSave = null;
   const opened = readCoinDraft(draft);
-  const change = async (coinLine: CoinLine | null) => {
-    const refusal = refusalForEntryChange(store.sessionNotes, record, removal, coinLine);
-    if (refusal !== null) throw new Error(refusal);
-    return writer.apply(coinSessionChange(removal, coinLine));
-  };
   return {
     draft,
     cannotSave,
     save: async (coinLine) => {
-      if (cannotSave !== null) throw new Error(cannotSave);
-      if ("line" in opened && coinLine.line === opened.line) return false;
-      return change(coinLine);
+      const unchanged = () => writeNothingWhen("line" in opened && coinLine.line === opened.line);
+      return writeRecordChange(entryChange(entry, coinLine, [() => verdictOf(cannotSave), unchanged], writer));
     },
-    delete: () => change(null),
+    delete: () => writeRecordChange(entryChange(entry, null, [], writer)),
   };
 }
