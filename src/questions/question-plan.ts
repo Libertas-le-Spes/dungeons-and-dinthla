@@ -2,10 +2,11 @@ import { buildCampaign } from "../campaign/build-campaign";
 import type { Campaign, QuestionRecord, SessionNote, SourcedText } from "../campaign/campaign";
 import type { Removal } from "../campaign/note-editor";
 import { sessionNoteOf } from "../campaign/session-file";
+import { closingRemoval } from "../campaign/thread-removal";
 import { readMarker } from "../notes/marker";
 import { appendLines, removeLines } from "../notes/note-lines";
 import { answerLine, followUpQuestionLine, questionTextOf } from "../notes/question-lines";
-import { isFollowUpLine, oneLine } from "../notes/thread-lines";
+import { oneLine } from "../notes/thread-lines";
 
 export interface QuestionEdit {
   answer: string;
@@ -26,13 +27,7 @@ export const CHANGES_MORE_THAN_ASKED = "That change wouldn't be read as asked, o
 export const FOLLOW_UP_ALREADY_ASKED = "A question already reads like that follow-up, so answers would be mixed up. Reword it.";
 
 export function answerRemoval(question: QuestionRecord): Removal | null {
-  const answer = question.answer;
-  if (answer === null) return null;
-  return {
-    path: answer.source.path,
-    line: answer.source.line,
-    matches: (written) => isFollowUpLine(written, "answer", question.text, answer.text),
-  };
+  return closingRemoval(question, () => "answer");
 }
 
 function placedAnswer(path: string, text: string): string {
@@ -41,7 +36,7 @@ function placedAnswer(path: string, text: string): string {
 
 export function planQuestionSave(question: QuestionRecord, edit: QuestionEdit, sessionPath: string): QuestionPlan {
   const newAnswer = oneLine(edit.answer);
-  const oldAnswer = question.answer;
+  const oldAnswer = question.closing;
   let expectedAnswer: string | null = null;
   if (oldAnswer !== null) expectedAnswer = placedAnswer(oldAnswer.source.path, oneLine(oldAnswer.text));
   let oldText = "";
@@ -89,12 +84,12 @@ function placedClues(clues: SourcedText[]): string[] {
 }
 
 function answerOf(question: QuestionRecord): string | null {
-  if (question.answer === null) return null;
-  return placedAnswer(question.answer.source.path, oneLine(question.answer.text));
+  if (question.closing === null) return null;
+  return placedAnswer(question.closing.source.path, oneLine(question.closing.text));
 }
 
 function signatureOf(question: QuestionRecord, answer: string | null): string {
-  return JSON.stringify([question.source.path, question.text, placedClues(question.clues), answer]);
+  return JSON.stringify([question.source.path, question.text, placedClues(question.notes), answer]);
 }
 
 function followUpIndex(campaign: Campaign, plan: QuestionPlan): number {
@@ -118,7 +113,7 @@ export function refusalForQuestionPlan(sessions: SessionNote[], question: Questi
   let followUpStartsFresh = true;
   if (index !== -1) {
     const followUp = questions.splice(index, 1)[0]!;
-    followUpStartsFresh = followUp.clues.length === 0 && followUp.answer === null;
+    followUpStartsFresh = followUp.notes.length === 0 && followUp.closing === null;
   }
   const found = questions.map((candidate) => signatureOf(candidate, answerOf(candidate)));
   if (followUpStartsFresh && JSON.stringify(wanted) === JSON.stringify(found)) return null;

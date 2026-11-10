@@ -1,21 +1,10 @@
-import type { QuestionRecord, SourcedText } from "../campaign/campaign";
-import { NoteEditor, PartlyWritten, type EditorFiles, type Removal } from "../campaign/note-editor";
+import type { QuestionRecord } from "../campaign/campaign";
+import { NoteEditor, PartlyWritten, type EditorFiles } from "../campaign/note-editor";
+import { followUpRemovals, openingRemoval } from "../campaign/thread-removal";
 import { messageOf } from "../views/message-of";
 import { answerLine, isQuestionLine, questionLine } from "../notes/question-lines";
-import { isFollowUpLine, oneLine } from "../notes/thread-lines";
+import { oneLine } from "../notes/thread-lines";
 import { answerRemoval, type QuestionPlan } from "./question-plan";
-
-function clueRemoval(question: QuestionRecord, clue: SourcedText): Removal {
-  return {
-    path: clue.source.path,
-    line: clue.source.line,
-    matches: (written) => isFollowUpLine(written, "clue", question.text, clue.text),
-  };
-}
-
-function questionRemoval(question: QuestionRecord): Removal {
-  return { path: question.source.path, line: question.source.line, matches: (written) => isQuestionLine(written, question.text) };
-}
 
 export class QuestionWriter {
   private readonly editor: NoteEditor;
@@ -51,9 +40,6 @@ export class QuestionWriter {
   }
 
   async delete(question: QuestionRecord): Promise<boolean> {
-    const others = question.clues.map((clue) => clueRemoval(question, clue));
-    const answer = answerRemoval(question);
-    if (answer !== null) others.push(answer);
-    return this.editor.removeWithItsLines(questionRemoval(question), others);
+    return this.editor.removeWithItsLines(openingRemoval(question, isQuestionLine), followUpRemovals(question, "clue", answerRemoval(question)));
   }
 }

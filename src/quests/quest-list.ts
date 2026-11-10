@@ -1,28 +1,14 @@
 import type { Campaign, QuestRecord } from "../campaign/campaign";
-import { unlink } from "../notes/link";
 import type { ListContents } from "../views/list-page";
+import { listThreads } from "../views/thread-list";
 
-function searchableTextOf(record: QuestRecord): string {
-  const texts = [record.quest.title];
-  if (record.quest.givenBy !== undefined) texts.push(record.quest.givenBy);
-  if (record.quest.reward !== undefined) texts.push(record.quest.reward);
-  if (record.outcome !== null) texts.push(record.outcome.text);
-  return unlink(texts.join(" ")).toLowerCase();
-}
-
-function matchesEvery(record: QuestRecord, keywords: string[]): boolean {
-  const text = searchableTextOf(record);
-  return keywords.every((keyword) => text.includes(keyword));
+function factsOf(record: QuestRecord): string[] {
+  const facts: string[] = [];
+  if (record.givenBy !== undefined) facts.push(record.givenBy);
+  if (record.reward !== undefined) facts.push(record.reward);
+  return facts;
 }
 
 export function listQuests(campaign: Campaign, keywords: string[]): ListContents<QuestRecord> {
-  const newestFirst = [...campaign.quests].reverse();
-  const active = newestFirst.filter((record) => record.outcome === null);
-  const finished = newestFirst.filter((record) => record.outcome !== null);
-  return {
-    open: active.filter((record) => matchesEvery(record, keywords)),
-    folded: finished.filter((record) => matchesEvery(record, keywords)),
-    openCount: active.length,
-    foldedCount: finished.length,
-  };
+  return listThreads(campaign.quests, keywords, factsOf);
 }

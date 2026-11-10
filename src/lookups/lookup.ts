@@ -50,7 +50,7 @@ function allMatches(campaign: Campaign, lookup: Lookup): LookupMatch[] {
     return listQuestions(campaign, lookup.keywords).open.map((question) => ({ kind: "question", text: question.text, holder: "", source: question.source }));
   }
   if (lookup.kind === "quest") {
-    return listQuests(campaign, lookup.keywords).open.map((record) => ({ kind: "quest", text: record.quest.title, holder: "", source: record.source }));
+    return listQuests(campaign, lookup.keywords).open.map((record) => ({ kind: "quest", text: record.text, holder: "", source: record.source }));
   }
   return heldItemMatches(campaign, lookup.keywords);
 }

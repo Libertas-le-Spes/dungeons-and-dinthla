@@ -40,7 +40,7 @@ function factOf(fact: string | undefined): string {
 }
 
 export function refusalForNewQuest(quests: QuestRecord[], plan: NewQuestPlan): string | null {
-  if (quests.some((record) => record.quest.title === plan.title)) return SAME_TITLE_AS_EXISTING;
+  if (quests.some((record) => record.text === plan.title)) return SAME_TITLE_AS_EXISTING;
   const read = readQuest(readMarker(plan.line).body);
   const readsBack = read.title === plan.title && factOf(read.givenBy) === plan.givenBy && factOf(read.reward) === plan.reward;
   if (!readsBack) return WOULD_READ_DIFFERENTLY;

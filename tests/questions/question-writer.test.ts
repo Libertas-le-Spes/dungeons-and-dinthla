@@ -57,7 +57,7 @@ describe("QuestionWriter", () => {
     await save(notes, question!, { answer: "[[Lady Vess]] sent it", followUp: "" }, TWO);
     expect(notes.texts.get(TWO)).toBe("We rode on.\n?= Who sent the letter: [[Lady Vess]] sent it\n");
     expect(notes.texts.get(ONE)).toBe("? Who sent the letter\n");
-    expect(notes.questions()[0]?.answer?.text).toBe("[[Lady Vess]] sent it");
+    expect(notes.questions()[0]?.closing?.text).toBe("[[Lady Vess]] sent it");
   });
 
   it("adds a follow-up question after the earlier one, in the same step", async () => {
@@ -92,7 +92,7 @@ describe("QuestionWriter", () => {
     const asked = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\nWe rode on.\n" });
     await reopen(asked, asked.questions()[0]!);
     expect(asked.texts.get(ONE)).toBe("? Who\nWe rode on.\n");
-    expect(asked.questions()[0]?.answer).toBeNull();
+    expect(asked.questions()[0]?.closing).toBeNull();
   });
 
   it("deletes a question with its clues and answer, wherever they were written", async () => {
@@ -259,7 +259,7 @@ describe("QuestionWriter", () => {
     expect(await writer.add("Who sent the letter", "", ONE)).toBe(true);
     expect(await writer.add("Why the mill", "  the wheel\n turns ", ONE)).toBe(true);
     expect(notes.texts.get(ONE)).toBe("We rode on.\n? Who sent the letter\n? Why the mill\n?= Why the mill: the wheel turns\n");
-    expect(notes.questions().map((question) => [question.text, question.answer?.text])).toEqual([
+    expect(notes.questions().map((question) => [question.text, question.closing?.text])).toEqual([
       ["Who sent the letter", undefined],
       ["Why the mill", "the wheel turns"],
     ]);

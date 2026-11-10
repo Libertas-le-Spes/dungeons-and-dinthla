@@ -18,8 +18,8 @@ const campaign = buildCampaign([
   },
 ]);
 
-function titlesOf(records: { quest: { title: string } }[]): string[] {
-  return records.map((record) => record.quest.title);
+function titlesOf(records: { text: string }[]): string[] {
+  return records.map((record) => record.text);
 }
 
 describe("listQuests", () => {
