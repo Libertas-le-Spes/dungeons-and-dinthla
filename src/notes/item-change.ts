@@ -17,12 +17,12 @@ export interface ItemChange {
 const ITEM_CHANGE_MARKER = /^\$\$/;
 const CHANGE_WORD = / :(changed to|sold|used|lost)\b/gi;
 
-const KINDS: Record<string, ItemChangeKind> = {
-  "changed to": "changed",
-  sold: "sold",
-  used: "used",
-  lost: "lost",
-};
+const KINDS = new Map<string, ItemChangeKind>([
+  ["changed to", "changed"],
+  ["sold", "sold"],
+  ["used", "used"],
+  ["lost", "lost"],
+]);
 
 function holderIn(rest: string): { holder: string; holderLinked: boolean } {
   const [link] = findLinks(rest);
@@ -44,7 +44,7 @@ export function readItemChange(line: string): ItemChange | null {
   if (last === undefined) return null;
   const item = withoutBlockId(body.slice(0, last.index)).trim();
   if (item === "") return null;
-  const kind = KINDS[last[1]!.toLowerCase()]!;
+  const kind = KINDS.get(last[1]!.toLowerCase())!;
   const rest = body.slice(last.index + last[0].length);
   const change: ItemChange = { text: body.trim(), item, kind };
   if (kind === "changed") {

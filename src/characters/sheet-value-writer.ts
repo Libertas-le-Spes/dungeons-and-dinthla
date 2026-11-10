@@ -1,5 +1,5 @@
-import type { TFile, Vault } from "obsidian";
-import { NoteEditor, PartlyWritten, type EditorVault } from "../campaign/note-editor";
+import type { TFile } from "obsidian";
+import { NoteEditor, PartlyWritten, type EditorFiles } from "../campaign/note-editor";
 import { sessionLabelOf } from "../campaign/session-file";
 import { latestNumberIsShared, latestSession, SESSIONS_SHARE_A_NUMBER } from "../campaign/session-to-write";
 import { linkedFactsOf } from "../notes/character-facts";
@@ -7,6 +7,7 @@ import { messageOf } from "../views/message-of";
 import { factLine, refusalForValue, withOverrides, type OverrideChange } from "./character-entry";
 import { writeOverrides } from "./character-files";
 import { NOT_KNOWN, type SheetValue, type StatedValue, type ValueState } from "./character-sheet";
+import type { FencedFiles } from "../fence/fenced-files";
 
 export interface ValueChoice {
   state: ValueState;
@@ -19,7 +20,7 @@ export interface SheetWrite {
 }
 
 export interface SheetTarget {
-  vault: EditorVault & Pick<Vault, "process">;
+  files: EditorFiles & Pick<FencedFiles, "process">;
   file: TFile;
   sessionPath(): string;
   linktextFrom(sessionPath: string): string;
@@ -118,18 +119,18 @@ function sessionLineOf(target: SheetTarget, sessionPath: string, fact: string): 
 }
 
 export async function writeSheetValue(target: SheetTarget, write: SheetWrite): Promise<boolean> {
-  const { vault, file } = target;
+  const { files, file } = target;
   const override = write.override;
   const fact = write.sessionFact;
   if (override === null && fact === null) return false;
-  if (override !== null) withOverrides(await vault.read(file), file.path, [override]);
+  if (override !== null) withOverrides(await files.read(file), file.path, [override]);
   if (fact !== null) {
     const sessionPath = target.sessionPath();
-    await new NoteEditor(vault).appendShown(sessionPath, [sessionLineOf(target, sessionPath, fact)]);
+    await new NoteEditor(files).appendShown(sessionPath, [sessionLineOf(target, sessionPath, fact)]);
   }
   if (override === null) return true;
   try {
-    await writeOverrides(vault, file, (text) => withOverrides(text, file.path, [override]));
+    await writeOverrides(files, file, (text) => withOverrides(text, file.path, [override]));
   } catch (error) {
     if (fact === null) throw error;
     throw new PartlyWritten(`The line was added to the session, but ${file.basename}'s note was left: ${messageOf(error)}`);

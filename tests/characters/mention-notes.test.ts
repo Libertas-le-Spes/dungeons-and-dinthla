@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { App, CachedMetadata, LinkCache, TFile } from "obsidian";
+import type { CachedMetadata, LinkCache, TFile } from "obsidian";
 import { mentionNotesOf } from "../../src/characters/mention-notes";
+import type { Gate } from "../../src/fence/gatekeeper";
 
 const MIRA = "Pale Moon/Characters/Mira.md";
 const VESS = "Pale Moon/Characters/Vess.md";
@@ -17,12 +18,12 @@ interface Stub {
   caches?: Record<string, CachedMetadata>;
 }
 
-function appWith({ resolvedLinks = {}, caches = {} }: Stub) {
+function notesWith({ resolvedLinks = {}, caches = {} }: Stub) {
   const events: { resolve: (file: TFile) => void } = { resolve: () => {} };
   const stopped: unknown[] = [];
-  const app = {
-    vault: { on: () => ({}), offref: () => {}, getFileByPath: () => null, cachedRead: async () => "" },
-    metadataCache: {
+  const gate = {
+    files: { on: () => ({}), offref: () => {}, getFileByPath: () => null, cachedRead: async () => "" },
+    metadata: {
       resolvedLinks,
       getCache: (path: string) => {
         const cache = caches[path];
@@ -40,55 +41,55 @@ function appWith({ resolvedLinks = {}, caches = {} }: Stub) {
       },
       offref: (event: unknown) => stopped.push(event),
     },
-  } as unknown as App;
-  return { notes: mentionNotesOf(app), events, stopped };
+  } as unknown as Gate;
+  return { notes: mentionNotesOf(gate, () => ["Pale Moon"]), events, stopped };
 }
 
 describe("mentionNotesOf", () => {
   it("finds the notes that link to a character from Obsidian's resolved links", () => {
-    const { notes } = appWith({ resolvedLinks: { [ONE]: { [MIRA]: 2 }, [TWO]: { [VESS]: 1 } } });
+    const { notes } = notesWith({ resolvedLinks: { [ONE]: { [MIRA]: 2 }, [TWO]: { [VESS]: 1 } } });
     expect(notes.linkingPaths(MIRA)).toEqual([ONE]);
   });
 
   it("finds each line with a link to the character once, however many links it has", () => {
-    const { notes } = appWith({ caches: { [ONE]: { links: [linkAt("Mira", 3), linkAt("Mira", 3), linkAt("Mira", 7)] } } });
+    const { notes } = notesWith({ caches: { [ONE]: { links: [linkAt("Mira", 3), linkAt("Mira", 3), linkAt("Mira", 7)] } } });
     expect(notes.linkedLines(ONE, MIRA)).toEqual([3, 7]);
   });
 
   it("leaves out links to other notes and links that go nowhere", () => {
-    const { notes } = appWith({ caches: { [ONE]: { links: [linkAt("Vess", 1), linkAt("Nobody", 2), linkAt("Mira", 4)] } } });
+    const { notes } = notesWith({ caches: { [ONE]: { links: [linkAt("Vess", 1), linkAt("Nobody", 2), linkAt("Mira", 4)] } } });
     expect(notes.linkedLines(ONE, MIRA)).toEqual([4]);
   });
 
   it("counts a link to a heading in the character's note", () => {
-    const { notes } = appWith({ caches: { [ONE]: { links: [linkAt("Mira#Stats", 5)] } } });
+    const { notes } = notesWith({ caches: { [ONE]: { links: [linkAt("Mira#Stats", 5)] } } });
     expect(notes.linkedLines(ONE, MIRA)).toEqual([5]);
   });
 
   it("counts an embed of the character's note as a link", () => {
-    const { notes } = appWith({ caches: { [ONE]: { embeds: [linkAt("Mira", 2), linkAt("Vess", 3)] } } });
+    const { notes } = notesWith({ caches: { [ONE]: { embeds: [linkAt("Mira", 2), linkAt("Vess", 3)] } } });
     expect(notes.linkedLines(ONE, MIRA)).toEqual([2]);
   });
 
   it("finds the lines of links and embeds together", () => {
-    const { notes } = appWith({ caches: { [ONE]: { links: [linkAt("Mira", 1)], embeds: [linkAt("Mira", 4)] } } });
+    const { notes } = notesWith({ caches: { [ONE]: { links: [linkAt("Mira", 1)], embeds: [linkAt("Mira", 4)] } } });
     expect(notes.linkedLines(ONE, MIRA)).toEqual([1, 4]);
   });
 
   it("leaves out links in the note's properties", () => {
     const cache = { frontmatterLinks: [{ key: "character", link: "Mira", original: "[[Mira]]", displayText: "Mira" }] };
-    const { notes } = appWith({ caches: { [ONE]: cache } });
+    const { notes } = notesWith({ caches: { [ONE]: cache } });
     expect(notes.linkedLines(ONE, MIRA)).toEqual([]);
   });
 
   it("finds no lines in a note Obsidian hasn't read, or with no links", () => {
-    const { notes } = appWith({ caches: { [TWO]: {} } });
+    const { notes } = notesWith({ caches: { [TWO]: {} } });
     expect(notes.linkedLines(ONE, MIRA)).toEqual([]);
     expect(notes.linkedLines(TWO, MIRA)).toEqual([]);
   });
 
   it("tells when a note's links are resolved, until stopped", () => {
-    const { notes, events, stopped } = appWith({});
+    const { notes, events, stopped } = notesWith({});
     const resolved: string[] = [];
     const stop = notes.onLinksResolved((path) => resolved.push(path));
     events.resolve({ path: ONE } as TFile);

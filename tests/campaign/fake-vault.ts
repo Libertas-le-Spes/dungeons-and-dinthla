@@ -1,5 +1,5 @@
 import type { TFile } from "obsidian";
-import type { CampaignVault } from "../../src/campaign/read-campaign";
+import type { CampaignFiles } from "../../src/campaign/read-campaign";
 
 export interface FakeNote {
   path: string;
@@ -20,7 +20,7 @@ export class FakeVault {
     this.notes = notes.map((note) => ({ ...note }));
   }
 
-  get vault(): CampaignVault {
+  get vault(): CampaignFiles {
     return {
       getFiles: () => this.notes.map((note) => fileFor(note.path)),
       cachedRead: async (file) => {

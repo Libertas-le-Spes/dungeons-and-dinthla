@@ -7,17 +7,15 @@ export interface FollowUp {
   text: string;
 }
 
-type FollowUpMarker = "?+" | "?=" | "!+" | "!=" | "!x";
-
 const FOLLOW_UP = /^(\?[+=]|![+=]|!x(?=\s|$))(.*)$/;
 
-const KINDS: Record<FollowUpMarker, FollowUpKind> = {
-  "?+": "clue",
-  "?=": "answer",
-  "!+": "progress",
-  "!=": "completed",
-  "!x": "failed",
-};
+const KINDS = new Map<string, FollowUpKind>([
+  ["?+", "clue"],
+  ["?=", "answer"],
+  ["!+", "progress"],
+  ["!=", "completed"],
+  ["!x", "failed"],
+]);
 
 export function isFollowUp(text: string): boolean {
   return FOLLOW_UP.test(text);
@@ -27,5 +25,7 @@ export function readFollowUp(line: string): FollowUp | null {
   const match = FOLLOW_UP.exec(withoutBullet(line));
   if (match === null) return null;
   const [, marker, text] = match;
-  return { kind: KINDS[marker as FollowUpMarker], text: text!.trim() };
+  const kind = KINDS.get(marker!);
+  if (kind === undefined) return null;
+  return { kind, text: text!.trim() };
 }

@@ -6,6 +6,7 @@ import { sessionNoteOf } from "../../src/campaign/session-file";
 import type { CoinEntryChoices } from "../../src/funds/coin-entry";
 import { CoinModal } from "../../src/funds/coin-modal";
 import { openCoinEntry } from "../../src/funds/open-add-coin";
+import type { Gate } from "../../src/fence/gatekeeper";
 import { CONFIRM_MS } from "../../src/views/second-press";
 import { Notice, openedModals } from "../stubs/obsidian";
 
@@ -17,7 +18,7 @@ function openEntryAt(line: number) {
   const openNote = vi.fn();
   const onClosed = vi.fn();
   const before = openedModals.length;
-  openCoinEntry({ vault: {} } as App, store, { path: ONE, line }, openNote, onClosed);
+  openCoinEntry({} as App, { files: {} } as unknown as Gate, store, { path: ONE, line }, openNote, onClosed);
   const opened = openedModals.slice(before);
   const buttons = opened.flatMap((dialog) => Array.from(dialog.contentEl.querySelectorAll("button")));
   const button = (text: string) => buttons.find((candidate) => candidate.textContent === text)!;

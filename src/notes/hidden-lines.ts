@@ -4,7 +4,11 @@ const FENCE_OPEN = /^ {0,3}(`{3,}|~{3,})/;
 const FENCE_CLOSE = /^ {0,3}(`{3,}|~{3,})\s*$/;
 const INDENTED = /^( {4}|\t)/;
 const INLINE_CODE = /`[^`\n]*`/g;
-const CLOSERS: Record<string, string> = { "%%": "%%", $$: "$$", "<!--": "-->" };
+const CLOSERS = new Map<string, string>([
+  ["%%", "%%"],
+  ["$$", "$$"],
+  ["<!--", "-->"],
+]);
 
 interface Scan {
   closer: string | null;
@@ -13,7 +17,7 @@ interface Scan {
 
 function nextOpener(prose: string, from: number): { opener: string; at: number } | null {
   let next: { opener: string; at: number } | null = null;
-  for (const opener of Object.keys(CLOSERS)) {
+  for (const opener of CLOSERS.keys()) {
     const at = prose.indexOf(opener, from);
     if (at !== -1 && (next === null || at < next.at)) next = { opener, at };
   }
@@ -36,7 +40,7 @@ function scanned(prose: string, openCloser: string | null): Scan {
     const next = nextOpener(prose, from);
     if (next === null) break;
     marked = true;
-    closer = CLOSERS[next.opener]!;
+    closer = CLOSERS.get(next.opener)!;
     from = next.at + next.opener.length;
   }
   return { closer, marked };

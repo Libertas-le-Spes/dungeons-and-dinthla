@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { Campaign, SessionNote } from "../../src/campaign/campaign";
-import { CHANGED_IN_NOTE, PROPERTIES_WOULD_CHANGE, type EditorVault } from "../../src/campaign/note-editor";
+import { CHANGED_IN_NOTE, PROPERTIES_WOULD_CHANGE, type EditorFiles } from "../../src/campaign/note-editor";
 import { sessionNoteOf } from "../../src/campaign/session-file";
 import { NO_COIN, SIGN_SAYS_OUT } from "../../src/notes/coin-lines";
 import {
@@ -31,7 +31,7 @@ class FakeNotes {
     this.texts = new Map(Object.entries(notes));
   }
 
-  get vault(): EditorVault {
+  get vault(): EditorFiles {
     return {
       getFileByPath: (path) => {
         if (!this.texts.has(path)) return null;

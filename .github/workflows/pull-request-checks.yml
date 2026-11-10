@@ -28,5 +28,7 @@ jobs:
         run: npm ci
       - name: Type check and build
         run: npm run build
+      - name: Check the bundle and styles have no network code
+        run: node scripts/check-no-network.ts main.js styles.css
       - name: Tests
         run: npm test

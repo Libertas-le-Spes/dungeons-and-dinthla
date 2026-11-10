@@ -1,4 +1,4 @@
-import type { MetadataCache } from "obsidian";
+import type { FencedMetadata } from "../fence/fenced-metadata";
 
 export interface SessionProperties {
   title: string;
@@ -10,13 +10,13 @@ function textOf(value: unknown): string {
   return value.trim();
 }
 
-function propertiesIn(path: string, metadataCache: Pick<MetadataCache, "getCache">): Record<string, unknown> {
-  const cache = metadataCache.getCache(path);
+function propertiesIn(path: string, metadata: Pick<FencedMetadata, "getCache">): Record<string, unknown> {
+  const cache = metadata.getCache(path);
   if (cache === null || cache.frontmatter === undefined) return {};
   return cache.frontmatter;
 }
 
-export function sessionPropertiesOf(path: string, metadataCache: Pick<MetadataCache, "getCache">): SessionProperties {
-  const properties = propertiesIn(path, metadataCache);
+export function sessionPropertiesOf(path: string, metadata: Pick<FencedMetadata, "getCache">): SessionProperties {
+  const properties = propertiesIn(path, metadata);
   return { title: textOf(properties.title), played: textOf(properties.played) };
 }

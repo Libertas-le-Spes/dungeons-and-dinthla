@@ -1,7 +1,8 @@
-import { getFrontMatterInfo, type Vault } from "obsidian";
+import { getFrontMatterInfo } from "obsidian";
 import { boxTextOf, withBomOf, withoutBom } from "../campaign/disk-text";
+import type { FencedFiles } from "../fence/fenced-files";
 
-export type ClearerVault = Pick<Vault, "getFileByPath" | "process">;
+export type ClearerFiles = Pick<FencedFiles, "getFileByPath" | "process">;
 
 export const SESSION_GONE = "the session's note is gone.";
 
@@ -34,13 +35,13 @@ function refusalOf(disk: string, asked: string): string | null {
 }
 
 export class SessionClearer {
-  constructor(private readonly vault: ClearerVault) {}
+  constructor(private readonly files: ClearerFiles) {}
 
   async clear(path: string, asked: string): Promise<void> {
-    const file = this.vault.getFileByPath(path);
+    const file = this.files.getFileByPath(path);
     if (file === null) throw new Error(SESSION_GONE);
     let refusal: string | null = null;
-    await this.vault.process(file, (disk) => {
+    await this.files.process(file, (disk) => {
       refusal = refusalOf(disk, asked);
       if (refusal !== null) return disk;
       return clearedText(disk);

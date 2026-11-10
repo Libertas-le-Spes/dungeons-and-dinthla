@@ -37,18 +37,18 @@ export interface CharacterSheet {
 
 const ROW_NAMES = ["type", "subtitle", "class", "AC", "HP", "speed", "alignment"];
 
-const LABELS: Record<string, string> = {
-  type: "Type line",
-  subtitle: "Subtitle",
-  class: "Class",
-  AC: "Armor Class",
-  HP: "Hit Points",
-  speed: "Speed",
-  alignment: "Alignment",
-};
+const LABELS = new Map<string, string>([
+  ["type", "Type line"],
+  ["subtitle", "Subtitle"],
+  ["class", "Class"],
+  ["AC", "Armor Class"],
+  ["HP", "Hit Points"],
+  ["speed", "Speed"],
+  ["alignment", "Alignment"],
+]);
 
 export function labelOf(name: string): string {
-  const label = LABELS[name];
+  const label = LABELS.get(name);
   if (label === undefined) return name;
   return label;
 }

@@ -1,8 +1,11 @@
+import { choiceOf } from "../views/choice-of";
 import { withoutBlockId } from "./block-id";
 import { partsBetweenCommas } from "./comma";
 import { blankLinks, findLinks, removeFirstLink } from "./link";
 
 export type CoinKind = "pp" | "gp" | "ep" | "sp" | "cp";
+
+const COIN_KINDS: CoinKind[] = ["pp", "gp", "ep", "sp", "cp"];
 
 export interface CoinAmount {
   count: number;
@@ -40,11 +43,17 @@ function isMoneyOut(sign: string | undefined, position: number, wordAt: number):
   return position > wordAt;
 }
 
+function coinKindOf(written: string): CoinKind {
+  const kind = choiceOf(COIN_KINDS, written.toLowerCase());
+  if (kind === undefined) throw new Error(`${written} isn't a coin.`);
+  return kind;
+}
+
 function readAmount(match: RegExpMatchArray, wordAt: number): CoinAmount {
   const [, sign, digits, kind] = match;
   const count = Number.parseInt(digits!.replaceAll(",", ""), 10);
   const moneyOut = isMoneyOut(sign, match.index!, wordAt);
-  return { count, kind: kind!.toLowerCase() as CoinKind, moneyOut };
+  return { count, kind: coinKindOf(kind!), moneyOut };
 }
 
 function readAmountsIn(part: string): CoinAmount[] {

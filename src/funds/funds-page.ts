@@ -1,3 +1,4 @@
+import { ITEM_ROWS } from "../views/row-keys";
 import { Component } from "obsidian";
 import { isItemNamed } from "./item-of-note";
 import type { CampaignStore } from "../campaign/campaign-store";
@@ -161,7 +162,7 @@ export class FundsPage extends Component {
 
   private focusItemRow(name: string): boolean {
     const rows = Array.from(this.items.querySelectorAll<HTMLElement>(".dd-row"));
-    const row = rows.find((candidate) => candidate.dataset.item === name);
+    const row = rows.find((candidate) => ITEM_ROWS.keyOf(candidate) === name);
     if (row === undefined) return false;
     const folded = row.closest("details");
     if (folded !== null) folded.open = true;
@@ -181,7 +182,8 @@ export class FundsPage extends Component {
       actions = { ...this.actions, openRow: () => openItem(item.name, source, (changed) => this.afterItem(item.name, changed)) };
     }
     const row = addRowButton(list, source, actions);
-    row.dataset.item = item.name;
+    row.setAttr("data-item", item.name);
+    ITEM_ROWS.mark(row, item.name);
     this.markShown(row, item);
     const goneWord = goneWordOf(item);
     if (goneWord === null) row.createSpan({ cls: "dd-mark dd-mark-ledger", text: "$" });

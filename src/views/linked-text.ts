@@ -1,9 +1,15 @@
+import { SOURCE_ROWS, sourceKeyOf } from "./row-keys";
+import { Keymap, type PaneType } from "obsidian";
 import type { Source } from "../campaign/campaign";
 import { textRunsOf, type MarkedPiece } from "./text-parts";
 
+const MIDDLE_BUTTON = 1;
+
+const ACTIVATING_KEYS = ["Enter", " "];
+
 export interface LinkActions {
   openRow(source: Source): void;
-  openLink(linktext: string, sourcePath: string): void;
+  openLink(linktext: string, sourcePath: string, newLeaf: PaneType | boolean): void;
 }
 
 function addPieces(parent: HTMLElement, pieces: MarkedPiece[]): void {
@@ -20,12 +26,20 @@ export function addNameLink(
   sourcePath: string,
   actions: LinkActions,
 ): HTMLElement {
-  const name = parent.createEl("a", { cls: "internal-link", text, href: linktext, attr: { "data-href": linktext } });
-  name.addEventListener("click", (event) => {
+  const name = parent.createEl("a", { cls: "dd-link-name", text, attr: { role: "link", tabindex: "0", draggable: "false" } });
+  const follow = (event: MouseEvent | KeyboardEvent) => {
     event.preventDefault();
     event.stopPropagation();
-    actions.openLink(linktext, sourcePath);
+    actions.openLink(linktext, sourcePath, Keymap.isModEvent(event));
+  };
+  name.addEventListener("click", follow);
+  name.addEventListener("auxclick", (event) => {
+    if (event.button === MIDDLE_BUTTON) follow(event);
   });
+  name.addEventListener("keydown", (event) => {
+    if (ACTIVATING_KEYS.includes(event.key)) follow(event);
+  });
+  name.addEventListener("dragstart", (event) => event.preventDefault());
   return name;
 }
 
@@ -55,6 +69,7 @@ export function addRowButton(list: HTMLElement, source: Source, actions: LinkAct
     cls: "dd-row",
     attr: { role: "button", tabindex: "0", "data-path": source.path, "data-line": String(source.line) },
   });
+  SOURCE_ROWS.mark(row, sourceKeyOf(source));
   row.addEventListener("click", () => actions.openRow(source));
   row.addEventListener("keydown", (event) => {
     if (event.target !== row) return;

@@ -95,7 +95,7 @@ describe("ItemPanel", () => {
     const { story, root, needs } = await openPanel(campaignOf([]), `---\nrarity: rare\n---\n${STORY}`);
     expect(story()).toEqual(["Mira found it in the cellar of the [[Gilded Stag]].", "Its light shows things the moon hides."]);
     (root.querySelector(".dd-item-story a") as HTMLElement).click();
-    expect(needs.actions.openLink).toHaveBeenCalledExactlyOnceWith("Gilded Stag", LANTERN);
+    expect(needs.actions.openLink).toHaveBeenCalledExactlyOnceWith("Gilded Stag", LANTERN, false);
   });
 
   it("says when its note has no story yet, or isn't there", async () => {

@@ -1,70 +1,62 @@
-import { normalizePath, type Vault } from "obsidian";
+import { NO_CAMPAIGNS_FOLDER } from "../fence/campaigns-folder-path";
+import type { FencedFiles } from "../fence/fenced-files";
 import { mainNotePathOf } from "./campaign-folders";
 import { messageOf } from "../views/message-of";
-import { refusalForFileName } from "./file-name";
-import { nameKeyOf } from "./name-key";
+import { refusalForFileName } from "../names/file-name";
+import { nameKeyOf } from "../names/name-key";
+import { typedPathOf } from "../names/typed-path";
 
-export type NewCampaignVault = Pick<Vault, "getRoot" | "getFolderByPath" | "createFolder" | "create" | "delete">;
+export type NewCampaignFiles = Pick<FencedFiles, "namesIn" | "createFolder" | "create" | "removeEmptyFolder">;
 
 export const NO_CAMPAIGN_NAME = "Type a name for the campaign first.";
 
-function nameTaken(name: string): string {
-  return `There is already a folder or file called ${name} at the top of the vault. To make that folder a campaign, add a note called ${name} inside it.`;
+function nameTaken(name: string, campaignsFolder: string): string {
+  return `There is already a folder or file called ${name} in ${campaignsFolder}. To make that folder a campaign, add a note called ${name} inside it.`;
 }
 
-function topLevelNameLike(vault: NewCampaignVault, name: string): string | null {
+function nameLikeIn(files: NewCampaignFiles, campaignsFolder: string, name: string): string | null {
   const wanted = nameKeyOf(name);
-  const taken = vault.getRoot().children.find((child) => nameKeyOf(child.name) === wanted);
+  const taken = files.namesIn(campaignsFolder).find((child) => nameKeyOf(child) === wanted);
   if (taken === undefined) return null;
-  return taken.name;
+  return taken;
 }
 
-function refusalForCampaign(vault: NewCampaignVault, name: string): string | null {
+function refusalForCampaign(files: NewCampaignFiles, campaignsFolder: string, name: string): string | null {
   const refusal = refusalForFileName(name);
   if (refusal !== null) return refusal;
-  const taken = topLevelNameLike(vault, name);
-  if (taken !== null) return nameTaken(taken);
+  const taken = nameLikeIn(files, campaignsFolder, name);
+  if (taken !== null) return nameTaken(taken, campaignsFolder);
   return null;
-}
-
-function nameOf(typed: string): string {
-  const trimmed = typed.trim();
-  if (trimmed === "") throw new Error(NO_CAMPAIGN_NAME);
-  return normalizePath(trimmed);
-}
-
-async function removeIfEmpty(vault: NewCampaignVault, folderPath: string): Promise<void> {
-  const folder = vault.getFolderByPath(folderPath);
-  if (folder === null || folder.children.length > 0) return;
-  await vault.delete(folder);
 }
 
 function leftBehind(error: unknown, folderPath: string): Error {
   return new Error(`${messageOf(error)} The folder ${folderPath} is left behind: it couldn't be removed.`, { cause: error });
 }
 
-async function cleanUpAfter(vault: NewCampaignVault, folderPath: string, error: unknown): Promise<never> {
+async function cleanUpAfter(files: NewCampaignFiles, folderPath: string, error: unknown): Promise<never> {
   try {
-    await removeIfEmpty(vault, folderPath);
+    await files.removeEmptyFolder(folderPath);
   } catch {
     throw leftBehind(error, folderPath);
   }
   throw error;
 }
 
-async function addMainNote(vault: NewCampaignVault, name: string): Promise<void> {
+async function addMainNote(files: NewCampaignFiles, folder: string): Promise<void> {
   try {
-    await vault.create(mainNotePathOf(name), "");
+    await files.create(mainNotePathOf(folder), "");
   } catch (error) {
-    await cleanUpAfter(vault, name, error);
+    await cleanUpAfter(files, folder, error);
   }
 }
 
-export async function makeCampaign(vault: NewCampaignVault, typed: string): Promise<string> {
-  const name = nameOf(typed);
-  const refusal = refusalForCampaign(vault, name);
+export async function makeCampaign(files: NewCampaignFiles, campaignsFolder: string | null, typed: string): Promise<string> {
+  if (campaignsFolder === null) throw new Error(NO_CAMPAIGNS_FOLDER);
+  const name = typedPathOf(typed, NO_CAMPAIGN_NAME);
+  const refusal = refusalForCampaign(files, campaignsFolder, name);
   if (refusal !== null) throw new Error(refusal);
-  await vault.createFolder(name);
-  await addMainNote(vault, name);
-  return name;
+  const folder = `${campaignsFolder}/${name}`;
+  await files.createFolder(folder);
+  await addMainNote(files, folder);
+  return folder;
 }

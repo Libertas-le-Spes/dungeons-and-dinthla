@@ -26,6 +26,7 @@ interface Setup {
 function notesWith({ sessions = {}, texts = {}, carriedFrom = null }: Setup) {
   const sessionsAskedFor: string[] = [];
   const notes: SheetNotes = {
+    holds: () => true,
     textOf: async (file) => {
       const text = texts[file.path];
       if (text === undefined) return "";

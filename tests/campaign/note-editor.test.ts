@@ -7,7 +7,7 @@ import {
   PartlyWritten,
   PROPERTIES_WOULD_CHANGE,
   WOULD_BE_HIDDEN,
-  type EditorVault,
+  type EditorFiles,
   type Removal,
 } from "../../src/campaign/note-editor";
 
@@ -19,7 +19,7 @@ class FakeNotes {
     this.texts = new Map(Object.entries(notes));
   }
 
-  get vault(): EditorVault {
+  get vault(): EditorFiles {
     return {
       getFileByPath: (path) => {
         if (!this.texts.has(path)) return null;

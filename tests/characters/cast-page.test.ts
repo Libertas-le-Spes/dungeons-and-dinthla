@@ -27,6 +27,7 @@ function openCast({ folder = "Pale Moon" as string | null, characters = ["Mira",
   const shown = { names: characters };
   const filesIn = vi.fn(() => shown.names.map(fileOf));
   const notes: CharacterNotes = {
+    holds: () => true,
     textOf: async () => "",
     pathOfLink: () => null,
     isOwnCharacter: (file) => file.basename === own,

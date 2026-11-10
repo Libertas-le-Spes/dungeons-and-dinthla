@@ -1,5 +1,7 @@
 import { ItemView, type Component, type TAbstractFile, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
+import { campaignNameOf } from "../campaign/campaign-folders";
 import type { CampaignStore } from "../campaign/campaign-store";
+import type { FencedFiles, GoneFile } from "../fence/fenced-files";
 import type { NavSection, PageEntry, PageTarget } from "./campaign-pages";
 
 export const CAMPAIGN_VIEW = "dungeons-and-dinthla-campaign";
@@ -24,6 +26,8 @@ export type FollowCampaign = (path: string) => void;
 
 export type BackdropFor = (frameEl: HTMLElement) => Component;
 
+export type ViewFiles = Pick<FencedFiles, "on" | "offref">;
+
 function pathIn(state: object): string | null {
   if (!("path" in state) || typeof state.path !== "string") return null;
   return state.path;
@@ -47,6 +51,7 @@ export class CampaignView extends ItemView {
     private readonly sections: NavSection[],
     private readonly followCampaign: FollowCampaign,
     private readonly backdropFor: BackdropFor,
+    private readonly files: ViewFiles,
   ) {
     super(leaf);
   }
@@ -97,11 +102,11 @@ export class CampaignView extends ItemView {
   }
 
   private watchShownNote(): void {
-    const vault = this.app.vault;
-    const renamed = vault.on("rename", (file: TAbstractFile, oldPath: string) => this.noteRenamed(file.path, oldPath));
-    const deleted = vault.on("delete", (file: TAbstractFile) => this.noteDeleted(file.path));
-    this.register(() => vault.offref(renamed));
-    this.register(() => vault.offref(deleted));
+    const files = this.files;
+    const renamed = files.on("rename", (file: TAbstractFile, oldPath: string) => this.noteRenamed(file.path, oldPath));
+    const deleted = files.on("delete", (file: GoneFile) => this.noteDeleted(file.path));
+    this.register(() => files.offref(renamed));
+    this.register(() => files.offref(deleted));
   }
 
   private noteRenamed(path: string, oldPath: string): void {
@@ -142,8 +147,17 @@ export class CampaignView extends ItemView {
     return current.entry === shown.entry && current.path === shown.path;
   }
 
+  showAgain(): void {
+    if (this.current === null) return;
+    this.build(this.current);
+  }
+
   private show(shown: Shown): void {
     if (this.isShowing(shown) && this.shownPage !== null) return;
+    this.build(shown);
+  }
+
+  private build(shown: Shown): void {
     this.current = shown;
     const pageEl = this.pageEl;
     if (pageEl === null) return;
@@ -188,7 +202,7 @@ export class CampaignView extends ItemView {
   private campaignTitle(): string {
     const folder = this.store.campaignFolder;
     if (folder === null) return NO_CAMPAIGN_TITLE;
-    return folder;
+    return campaignNameOf(folder);
   }
 
   private shownFor(state: unknown): Shown {

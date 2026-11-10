@@ -2,12 +2,9 @@ import { StateField } from "@codemirror/state";
 import type {
   AbstractInputSuggest as RealInputSuggest,
   BasesView as RealBasesView,
-  EditorSuggest as RealEditorSuggest,
-  EditorSuggestContext,
   FrontMatterInfo,
   FuzzySuggestModal as RealFuzzySuggestModal,
   ItemView as RealItemView,
-  TFile,
   MarkdownFileInfo,
   ViewState,
   Modal as RealModal,
@@ -75,6 +72,40 @@ export class Component {
   }
 }
 
+type EventCallback = (...data: unknown[]) => unknown;
+
+interface HeldEvent {
+  e: Events;
+  name: string;
+  fn: EventCallback;
+}
+
+export class Events {
+  private held: HeldEvent[] = [];
+
+  on(name: string, callback: EventCallback): HeldEvent {
+    const ref = { e: this, name, fn: callback };
+    this.held.push(ref);
+    return ref;
+  }
+
+  off(name: string, callback: EventCallback): void {
+    this.held = this.held.filter((ref) => ref.name !== name || ref.fn !== callback);
+  }
+
+  offref(ref: HeldEvent): void {
+    this.held = this.held.filter((each) => each !== ref);
+  }
+
+  trigger(name: string, ...data: unknown[]): void {
+    for (const ref of this.held.filter((each) => each.name === name)) ref.fn(...data);
+  }
+
+  tryTrigger(ref: HeldEvent, data: unknown[]): void {
+    ref.fn(...data);
+  }
+}
+
 export class ItemView extends Component {
   app!: RealItemView["app"];
   navigation = false;
@@ -98,6 +129,16 @@ export class ItemView extends Component {
   }
 
   async setState(..._args: Parameters<RealItemView["setState"]>): Promise<void> {}
+}
+
+const MIDDLE_BUTTON = 1;
+
+export class Keymap {
+  static isModEvent(event: MouseEvent | KeyboardEvent): "tab" | false {
+    if (event.ctrlKey || event.metaKey) return "tab";
+    if ("button" in event && event.button === MIDDLE_BUTTON) return "tab";
+    return false;
+  }
 }
 
 export class WorkspaceLeaf {
@@ -220,18 +261,6 @@ class TextAreaComponent extends AbstractTextComponent<HTMLTextAreaElement> {
 }
 
 export class MarkdownView {}
-
-export class EditorSuggest {
-  app: RealEditorSuggest<unknown>["app"];
-  context: EditorSuggestContext | null = null;
-  limit = 100;
-
-  constructor(...[app]: ConstructorParameters<typeof RealEditorSuggest>) {
-    this.app = app;
-  }
-
-  close(): void {}
-}
 
 export class AbstractInputSuggest {
   app: RealInputSuggest<unknown>["app"];
@@ -386,6 +415,12 @@ export function getLinkpath(linktext: string): string {
   return linktext.replace(/#.*$/, "");
 }
 
+export function parseLinktext(linktext: string): { path: string; subpath: string } {
+  const hash = linktext.indexOf("#");
+  if (hash === -1) return { path: linktext, subpath: "" };
+  return { path: linktext.slice(0, hash), subpath: linktext.slice(hash) };
+}
+
 export function debounce<T extends unknown[]>(callback: (...args: T) => void): ((...args: T) => void) & { cancel: () => void } {
   const debouncer = (...args: T) => callback(...args);
   debouncer.cancel = () => {};
@@ -398,3 +433,27 @@ export const Platform = {
   isIosApp: false,
   isAndroidApp: false,
 };
+
+export class TAbstractFile {
+  path = "";
+  name = "";
+}
+
+export class TFile extends TAbstractFile {
+  basename = "";
+  extension = "";
+}
+
+export class TFolder extends TAbstractFile {
+  children: TAbstractFile[] = [];
+}
+
+export class Vault {
+  static recurseChildren(root: TFolder, visit: (file: TAbstractFile) => unknown): void {
+    visit(root);
+    for (const child of root.children) {
+      if (child instanceof TFolder) Vault.recurseChildren(child, visit);
+      else visit(child);
+    }
+  }
+}

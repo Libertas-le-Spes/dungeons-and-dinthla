@@ -8,16 +8,17 @@ import type { Source } from "../campaign/campaign";
 import type { CoinLine } from "../notes/coin-lines";
 import { coinEntryEdit, entryToEdit } from "./coin-entry";
 import { CoinModal, type CoinOutcome } from "./coin-modal";
+import type { Gate } from "../fence/gatekeeper";
 
 const NO_SESSION = "Start a session first: coin is written into a session note.";
 
-export function openAddCoin(app: App, store: CampaignStore, onClosed: (outcome: CoinOutcome) => void, activePath: string | null): void {
+export function openAddCoin(app: App, gate: Gate, store: CampaignStore, onClosed: (outcome: CoinOutcome) => void, activePath: string | null): void {
   const folder = store.campaignFolder;
   if (folder === null) {
     new Notice(NO_CAMPAIGN);
     return;
   }
-  const paths = app.vault.getFiles().map((file) => file.path);
+  const paths = gate.files.getFiles().map((file) => file.path);
   const sessionPath = sessionToWriteIn(activePath, folder, paths, 0);
   if (sessionPath === null && latestNumberIsShared(folder, paths)) {
     new Notice(SESSIONS_SHARE_A_NUMBER);
@@ -27,17 +28,17 @@ export function openAddCoin(app: App, store: CampaignStore, onClosed: (outcome: 
     new Notice(NO_SESSION);
     return;
   }
-  const editor = new NoteEditor(app.vault);
+  const editor = new NoteEditor(gate.files);
   const add = (written: CoinLine) => editor.append(sessionPath, [written.line]);
   new CoinModal(app, sessionLabelOf(sessionPath), add, null, null, onClosed).open();
 }
 
-export function openCoinEntry(app: App, store: CampaignStore, source: Source, openNote: () => void, onClosed: (outcome: CoinOutcome) => void): void {
+export function openCoinEntry(app: App, gate: Gate, store: CampaignStore, source: Source, openNote: () => void, onClosed: (outcome: CoinOutcome) => void): void {
   const record = entryToEdit(store.current.coins, source);
   if (record === null) {
     openNote();
     return;
   }
-  const edit = coinEntryEdit(app.vault, store, record);
+  const edit = coinEntryEdit(gate.files, store, record);
   new CoinModal(app, sessionLabelOf(record.source.path), edit.save, edit, openNote, onClosed).open();
 }
