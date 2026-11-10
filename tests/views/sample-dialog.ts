@@ -1,6 +1,7 @@
 import type { App } from "obsidian";
+import { Notice } from "../stubs/obsidian";
 import type { SecondPress } from "../../src/views/second-press";
-import { TrackedDialog } from "../../src/views/tracked-dialog";
+import { ChangeDialog } from "../../src/views/change-dialog";
 
 export const FAILURE = "Couldn't save the sample";
 
@@ -9,13 +10,14 @@ export interface HeldChange {
   fail(error: unknown): void;
 }
 
-export class SampleDialog extends TrackedDialog {
+export class SampleDialog extends ChangeDialog {
   readonly changes: HeldChange[] = [];
   readonly finishedWith: boolean[] = [];
   readonly failedWith: unknown[] = [];
+  readonly noticesWhenFailed: number[] = [];
   closedTimes = 0;
 
-  constructor() {
+  constructor(private readonly closesWhenTold: boolean) {
     super({} as App);
   }
 
@@ -24,7 +26,7 @@ export class SampleDialog extends TrackedDialog {
   }
 
   save(): void {
-    this.run(() => this.heldChange(), FAILURE);
+    this.runChange(() => this.heldChange(), FAILURE);
   }
 
   keep(secondPress: SecondPress): void {
@@ -39,10 +41,13 @@ export class SampleDialog extends TrackedDialog {
 
   protected override finished(wrote: boolean): void {
     this.finishedWith.push(wrote);
+    if (this.closesWhenTold) this.close();
   }
 
   protected override failed(error: unknown): void {
     this.failedWith.push(error);
+    this.noticesWhenFailed.push(Notice.shown.length);
+    if (this.closesWhenTold) this.close();
   }
 
   protected override closed(): void {

@@ -3,7 +3,7 @@ import { CHANGED_IN_NOTE, PartlyWritten } from "../campaign/note-editor";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
 import { SecondPress } from "../views/second-press";
-import { TrackedDialog } from "../views/tracked-dialog";
+import { ChangeDialog } from "../views/change-dialog";
 import { NOTE_MOVED } from "./character-files";
 import { ENTRY_FIELDS, trimmedEntry, type CharacterEntry, type EntryFact, type Learned } from "./character-entry";
 
@@ -27,7 +27,7 @@ const PLACEHOLDERS: Record<keyof CharacterEntry, string> = {
   speed: "30 ft.",
 };
 
-export class CharacterModal extends TrackedDialog {
+export class CharacterModal extends ChangeDialog {
   private readonly entry: CharacterEntry;
   private nameInput: HTMLInputElement | null = null;
 
@@ -58,8 +58,8 @@ export class CharacterModal extends TrackedDialog {
     this.onClosed();
   }
 
-  protected override finished(done: boolean): void {
-    if (done) this.close();
+  protected override finished(wrote: boolean): void {
+    if (wrote) this.close();
     else if (this.nameInput !== null) this.nameInput.focus();
   }
 
@@ -94,7 +94,7 @@ export class CharacterModal extends TrackedDialog {
       if (armed) button.setButtonText(PRESS_AGAIN);
       else button.setButtonText(DELETE);
     };
-    const secondPress = new SecondPress(showArmed, () => this.run(async () => {
+    const secondPress = new SecondPress(showArmed, () => this.runChange(async () => {
       await deleteNote();
       return true;
     }, "Couldn't delete the character"));
@@ -104,6 +104,6 @@ export class CharacterModal extends TrackedDialog {
   }
 
   private save(): void {
-    this.run(() => this.dialog.save(trimmedEntry(this.entry)), "Couldn't save the character");
+    this.runChange(() => this.dialog.save(trimmedEntry(this.entry)), "Couldn't save the character");
   }
 }

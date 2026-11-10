@@ -2,7 +2,7 @@ import { Modal, Notice } from "obsidian";
 import { messageOf } from "./message-of";
 import type { SecondPress } from "./second-press";
 
-export abstract class TrackedDialog extends Modal {
+export abstract class ChangeDialog extends Modal {
   private busy = false;
   private readonly secondPresses: SecondPress[] = [];
 
@@ -21,7 +21,7 @@ export abstract class TrackedDialog extends Modal {
     this.secondPresses.push(secondPress);
   }
 
-  protected run(change: () => Promise<boolean>, failure: string): void {
+  protected runChange(change: () => Promise<boolean>, failureWords: string): void {
     if (this.busy) return;
     this.busy = true;
     change()
@@ -31,7 +31,7 @@ export abstract class TrackedDialog extends Modal {
       })
       .catch((error: unknown) => {
         this.busy = false;
-        new Notice(`${failure}: ${messageOf(error)}`);
+        new Notice(`${failureWords}: ${messageOf(error)}`);
         this.failed(error);
       });
   }

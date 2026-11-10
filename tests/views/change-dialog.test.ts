@@ -10,7 +10,13 @@ function settled(): Promise<void> {
 }
 
 function openDialog(): SampleDialog {
-  const dialog = new SampleDialog();
+  const dialog = new SampleDialog(false);
+  dialog.open();
+  return dialog;
+}
+
+function openClosingDialog(): SampleDialog {
+  const dialog = new SampleDialog(true);
   dialog.open();
   return dialog;
 }
@@ -23,7 +29,7 @@ beforeEach(() => {
   Notice.shown = [];
 });
 
-describe("a tracked dialog's change", () => {
+describe("a change dialog's change", () => {
   it("starts once when saved twice while the first save runs", () => {
     const dialog = openDialog();
     dialog.save();
@@ -67,6 +73,7 @@ describe("a tracked dialog's change", () => {
     dialog.changeAt(0).fail(BROKEN);
     await settled();
     expect(Notice.shown).toEqual([`${FAILURE}: The note is gone.`]);
+    expect(dialog.noticesWhenFailed).toEqual([1]);
     expect(dialog.failedWith).toEqual([BROKEN]);
     expect(dialog.finishedWith).toEqual([]);
   });
@@ -80,7 +87,7 @@ describe("a tracked dialog's change", () => {
   });
 });
 
-describe("closing a tracked dialog", () => {
+describe("closing a change dialog", () => {
   it("stays open when closed while a change runs", () => {
     const dialog = openDialog();
     dialog.save();
@@ -104,6 +111,22 @@ describe("closing a tracked dialog", () => {
     dialog.changeAt(0).fail(BROKEN);
     await settled();
     dialog.close();
+    expect(dialog.closedTimes).toBe(1);
+  });
+
+  it("closes once when the dialog closes as soon as its change finishes", async () => {
+    const dialog = openClosingDialog();
+    dialog.save();
+    dialog.changeAt(0).finish(true);
+    await settled();
+    expect(dialog.closedTimes).toBe(1);
+  });
+
+  it("closes once when the dialog closes as soon as its change fails", async () => {
+    const dialog = openClosingDialog();
+    dialog.save();
+    dialog.changeAt(0).fail(BROKEN);
+    await settled();
     expect(dialog.closedTimes).toBe(1);
   });
 

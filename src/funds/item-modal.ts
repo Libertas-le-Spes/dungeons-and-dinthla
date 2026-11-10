@@ -1,17 +1,15 @@
 import { choiceOf } from "../views/choice-of";
 import { Setting, type App } from "obsidian";
 import type { ItemRecord, Source } from "../campaign/campaign";
-import { PartlyWritten } from "../campaign/note-editor";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
-import { TrackedDialog } from "../views/tracked-dialog";
+import { RecordChangeDialog } from "../views/record-change-dialog";
 import { holderNameOf } from "./item-groups";
 import { GONE_LINE_SAYS_MORE, type HolderOption, type ItemEdit, type ItemStatus } from "./item-plan";
 import { ITEM_STATUSES, STATUS_WORDS } from "./status-words";
 
-export class ItemModal extends TrackedDialog {
+export class ItemModal extends RecordChangeDialog {
   private readonly edit: ItemEdit;
-  private changed = false;
   private priceRow: HTMLElement | null = null;
   private openNoteButton: HTMLElement | null = null;
 
@@ -23,9 +21,9 @@ export class ItemModal extends TrackedDialog {
     private readonly writesTo: string,
     private readonly save: (edit: ItemEdit) => Promise<boolean>,
     private readonly openNoteAt: (source: Source) => void,
-    private readonly onClosed: (changed: boolean) => void,
+    onClosed: (changed: boolean) => void,
   ) {
-    super(app);
+    super(app, onClosed);
     this.edit = { ...opened };
     const current = holders.find((option) => holderNameOf(option.text).toLowerCase() === holderNameOf(item.holder).toLowerCase());
     if (current !== undefined) this.edit.holder = current.text;
@@ -78,20 +76,9 @@ export class ItemModal extends TrackedDialog {
       });
   }
 
-  protected override closed(): void {
-    this.onClosed(this.changed);
-  }
-
-  protected override finished(wrote: boolean): void {
-    this.changed = wrote;
-    this.close();
-  }
-
   protected override failed(error: unknown): void {
     if (messageOf(error) === GONE_LINE_SAYS_MORE && this.openNoteButton !== null) this.openNoteButton.toggle(true);
-    if (!(error instanceof PartlyWritten)) return;
-    this.changed = true;
-    this.close();
+    super.failed(error);
   }
 
   private showPrice(): void {
@@ -111,6 +98,6 @@ export class ItemModal extends TrackedDialog {
   }
 
   private saveEdit(): void {
-    this.run(() => this.save(this.edit), "Couldn't change the item");
+    this.runChange(() => this.save(this.edit), "Couldn't change the item");
   }
 }
