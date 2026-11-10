@@ -14,10 +14,10 @@ describe("quest lines", () => {
       progressLine(title, "tracks lead\n to the mill"),
       outcomeLine("completed", title, "found it"),
     ]);
-    expect(campaign.quests[0]?.progress.map((note) => note.text)).toEqual(["tracks lead to the mill"]);
-    expect(campaign.quests[0]?.outcome).toMatchObject({ status: "completed", text: "found it" });
+    expect(campaign.quests[0]?.notes.map((note) => note.text)).toEqual(["tracks lead to the mill"]);
+    expect(campaign.quests[0]?.closing).toMatchObject({ status: "completed", text: "found it" });
     expect(outcomeLine("failed", title, "")).toBe(`!x ${title}:`);
-    expect(questsAfter([`! ${title}`, outcomeLine("failed", title, "")]).quests[0]?.outcome).toMatchObject({ status: "failed", text: "" });
+    expect(questsAfter([`! ${title}`, outcomeLine("failed", title, "")]).quests[0]?.closing).toMatchObject({ status: "failed", text: "" });
   });
 
   it("writes a follow-up quest after the earlier one, and reads a typed quest without its marker", () => {

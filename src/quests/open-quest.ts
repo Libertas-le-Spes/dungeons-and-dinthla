@@ -3,7 +3,8 @@ import type { Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
 import { sessionForDialog } from "../campaign/session-for-dialog";
-import { currentQuest, GOES_ELSEWHERE, happenedWouldGoElsewhere, latestSessionOfQuest, SAME_TITLE, sharesTitleWithEarlierActiveQuest } from "./current-quest";
+import { followUpWouldGoElsewhere, latestSessionOf, sharesTextWithEarlierOpenThread } from "../campaign/current-thread";
+import { currentQuest, GOES_ELSEWHERE, SAME_TITLE } from "./current-quest";
 import { QuestModal } from "./quest-modal";
 import { canCollectReward, planQuestSave, refusalForQuestPlan, type QuestEdit } from "./quest-plan";
 import { QuestWriter } from "./quest-writer";
@@ -27,12 +28,12 @@ export function openQuest(
     openNote();
     return;
   }
-  if (sharesTitleWithEarlierActiveQuest(quests, record)) {
+  if (sharesTextWithEarlierOpenThread(quests, record)) {
     new Notice(SAME_TITLE);
     openNote();
     return;
   }
-  const wanted = { activePath, earliestSession: latestSessionOfQuest(record, folder), noSession: NO_SESSION };
+  const wanted = { activePath, earliestSession: latestSessionOf(record, folder), noSession: NO_SESSION };
   const sessionPath = sessionForDialog(gate.files, folder, wanted);
   if (sessionPath === null) return;
   const writer = new QuestWriter(gate.files);
@@ -40,7 +41,7 @@ export function openQuest(
   const choices = {
     save: async (edit: QuestEdit) => {
       const current = latest();
-      if (happenedWouldGoElsewhere(store.current.quests, current, edit.happened)) throw new Error(GOES_ELSEWHERE);
+      if (followUpWouldGoElsewhere(store.current.quests, current, edit.happened)) throw new Error(GOES_ELSEWHERE);
       const plan = planQuestSave(current, edit, store.current.coins, sessionPath);
       const refusal = refusalForQuestPlan(store.sessionNotes, current, plan);
       if (refusal !== null) throw new Error(refusal);
@@ -49,7 +50,7 @@ export function openQuest(
     delete: () => writer.delete(latest()),
   };
   let finishedIn = sessionLabelOf(sessionPath);
-  if (record.outcome !== null) finishedIn = sessionLabelOf(record.outcome.source.path);
+  if (record.closing !== null) finishedIn = sessionLabelOf(record.closing.source.path);
   const places = { givenIn: sessionLabelOf(record.source.path), finishedIn, writesTo: sessionLabelOf(sessionPath) };
   new QuestModal(app, record, places, canCollectReward(record, store.current.coins), choices, onClosed).open();
 }

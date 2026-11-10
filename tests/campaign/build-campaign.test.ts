@@ -46,8 +46,8 @@ describe("buildCampaign", () => {
       {
         text: "Who sent the letter",
         source: { path: "Pale Moon/Sessions/Session 1.md", line: 5 },
-        clues: [{ text: "it smelled of lantern oil", source: { path: "Pale Moon/Sessions/Session 2.md", line: 1 } }],
-        answer: { text: "[[Lady Vess]] sent it", source: { path: "Pale Moon/Sessions/Session 3.md", line: 0 } },
+        notes: [{ text: "it smelled of lantern oil", source: { path: "Pale Moon/Sessions/Session 2.md", line: 1 } }],
+        closing: { text: "[[Lady Vess]] sent it", source: { path: "Pale Moon/Sessions/Session 3.md", line: 0 } },
       },
     ]);
   });
@@ -55,12 +55,14 @@ describe("buildCampaign", () => {
   it("reads a quest with its facts, progress and outcome", () => {
     expect(campaign.quests).toEqual([
       {
-        quest: { title: "Find the missing caravan", givenBy: "[[Lady Vess]]", reward: "200 gp" },
+        text: "Find the missing caravan",
+        givenBy: "[[Lady Vess]]",
+        reward: "200 gp",
         source: { path: "Pale Moon/Sessions/Session 1.md", line: 4 },
-        progress: [
+        notes: [
           { text: "tracks lead to [[Old Mill]]", source: { path: "Pale Moon/Sessions/Session 2.md", line: 2 } },
         ],
-        outcome: {
+        closing: {
           status: "completed",
           text: "found it under the Old Mill",
           source: { path: "Pale Moon/Sessions/Session 3.md", line: 1 },
@@ -125,35 +127,35 @@ describe("buildCampaign's follow-ups", () => {
     expect(campaign.unmatched).toEqual([
       { text: "?= Who sent a letter: Mira", source: { path: "Pale Moon/Sessions/Session 1.md", line: 1 } },
     ]);
-    expect(campaign.questions[0]?.answer).toBeNull();
+    expect(campaign.questions[0]?.closing).toBeNull();
   });
 
   it("matches only open questions, so a second answer matches nothing", () => {
     const campaign = buildCampaign([session(1, ["? Who", "?= Who: Mira", "?= Who: Lady Vess"])]);
-    expect(campaign.questions[0]?.answer?.text).toBe("Mira");
+    expect(campaign.questions[0]?.closing?.text).toBe("Mira");
     expect(campaign.unmatched.map((line) => line.text)).toEqual(["?= Who: Lady Vess"]);
   });
 
   it("matches only active quests", () => {
     const campaign = buildCampaign([session(1, ["! Find it", "!x Find it: burned", "!+ Find it: tracks"])]);
-    expect(campaign.quests[0]?.outcome?.status).toBe("failed");
-    expect(campaign.quests[0]?.progress).toEqual([]);
+    expect(campaign.quests[0]?.closing?.status).toBe("failed");
+    expect(campaign.quests[0]?.notes).toEqual([]);
     expect(campaign.unmatched.map((line) => line.text)).toEqual(["!+ Find it: tracks"]);
   });
 
   it("matches a follow-up to the longest question it starts with", () => {
     const campaign = buildCampaign([session(1, ["? Ring", "? Ring: who made it", "?= Ring: who made it: the elves"])]);
-    expect(campaign.questions.map((question) => question.answer?.text)).toEqual([undefined, "the elves"]);
+    expect(campaign.questions.map((question) => question.closing?.text)).toEqual([undefined, "the elves"]);
   });
 
   it("matches a quest follow-up by title, without the quest's facts", () => {
     const campaign = buildCampaign([session(1, ["! Find it, reward: 5 gp", "!= Find it: done"])]);
-    expect(campaign.quests[0]?.outcome?.text).toBe("done");
+    expect(campaign.quests[0]?.closing?.text).toBe("done");
   });
 
   it("keeps a question's follow-up away from a quest of the same text", () => {
     const campaign = buildCampaign([session(1, ["! Who", "?= Who: Mira"])]);
-    expect(campaign.quests[0]?.outcome).toBeNull();
+    expect(campaign.quests[0]?.closing).toBeNull();
     expect(campaign.unmatched).toHaveLength(1);
   });
 });

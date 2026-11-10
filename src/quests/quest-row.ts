@@ -5,12 +5,12 @@ import { addLinkedText, addRowButton, type LinkActions } from "../views/linked-t
 const STATUS_WORDS: Record<QuestStatus, string> = { completed: "Completed", failed: "Abandoned" };
 
 function addMark(row: HTMLElement, record: QuestRecord): void {
-  if (record.outcome === null) {
+  if (record.closing === null) {
     row.createSpan({ cls: "dd-mark dd-mark-quest", text: "!" });
     return;
   }
-  const label = STATUS_WORDS[record.outcome.status];
-  if (record.outcome.status === "completed") {
+  const label = STATUS_WORDS[record.closing.status];
+  if (record.closing.status === "completed") {
     row.createSpan({ cls: "dd-mark dd-mark-quest", text: "✓", attr: { "aria-label": label } });
     return;
   }
@@ -24,7 +24,7 @@ function addFact(facts: HTMLElement, name: string, value: string | undefined, ke
 }
 
 function addFacts(body: HTMLElement, record: QuestRecord, keywords: string[], actions: LinkActions): void {
-  const { givenBy, reward } = record.quest;
+  const { givenBy, reward } = record;
   if (givenBy === undefined && reward === undefined) return;
   const facts = body.createSpan({ cls: "dd-facts" });
   addFact(facts, "From", givenBy, keywords, record.source.path, actions);
@@ -33,9 +33,9 @@ function addFacts(body: HTMLElement, record: QuestRecord, keywords: string[], ac
 
 function addMeta(body: HTMLElement, record: QuestRecord): void {
   const meta = body.createSpan({ cls: "dd-meta" });
-  if (record.outcome !== null) {
-    const status = meta.createSpan({ cls: "dd-status", text: STATUS_WORDS[record.outcome.status] });
-    if (record.outcome.status === "completed") status.addClass("dd-status-completed");
+  if (record.closing !== null) {
+    const status = meta.createSpan({ cls: "dd-status", text: STATUS_WORDS[record.closing.status] });
+    if (record.closing.status === "completed") status.addClass("dd-status-completed");
     meta.appendText(" · ");
   }
   meta.appendText(sessionLabelOf(record.source.path));
@@ -47,11 +47,11 @@ export function addQuestRow(list: HTMLElement, record: QuestRecord, keywords: st
   addMark(row, record);
   const body = row.createSpan({ cls: "dd-body" });
   const title = body.createSpan({ cls: "dd-text" });
-  if (record.outcome !== null && record.outcome.status === "failed") title.addClass("dd-abandoned");
-  addLinkedText(title, record.quest.title, keywords, sourcePath, actions);
+  if (record.closing !== null && record.closing.status === "failed") title.addClass("dd-abandoned");
+  addLinkedText(title, record.text, keywords, sourcePath, actions);
   addFacts(body, record, keywords, actions);
-  if (record.outcome !== null) {
-    addLinkedText(body.createSpan({ cls: "dd-answer" }), record.outcome.text, keywords, record.outcome.source.path, actions);
+  if (record.closing !== null) {
+    addLinkedText(body.createSpan({ cls: "dd-answer" }), record.closing.text, keywords, record.closing.source.path, actions);
   }
   addMeta(body, record);
 }
