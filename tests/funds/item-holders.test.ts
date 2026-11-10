@@ -320,6 +320,34 @@ describe("ItemHolders", () => {
     expect(itemNotes.written).toEqual([{ path: ROPE, holder: "Old Tom" }]);
   });
 
+  it("writes a holder again once a later write to that note succeeded", async () => {
+    const lines = ["$$ Silvered lantern :changed to [[Mira]]"];
+    const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
+    const store = new CampaignStore(sessions.vault);
+    const itemNotes = new ItemNotes([{ path: LANTERN, properties: {} }]);
+    const needs = itemNotes.needsFor(store);
+    const write = needs.actions.processFrontMatter;
+    let refused = false;
+    needs.actions.processFrontMatter = async (file, change) => {
+      if (!refused) {
+        refused = true;
+        throw new Error("refused");
+      }
+      await write(file, change);
+    };
+    new ItemHolders(needs).start();
+    await store.open(CAMPAIGN);
+    await settle();
+    store.noteChanged(SESSION, [...lines, "$$ Silvered lantern :changed to Old Tom"].join("\n"));
+    await settle();
+    store.noteChanged(SESSION, lines.join("\n"));
+    await settle();
+    expect(itemNotes.written).toEqual([
+      { path: LANTERN, holder: "Old Tom" },
+      { path: LANTERN, holder: "[[Mira]]" },
+    ]);
+  });
+
   it("says once that a holder couldn't be written however often the campaign is read again", async () => {
     const lines = ["$$ Silvered lantern :changed to [[Mira]]"];
     const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
