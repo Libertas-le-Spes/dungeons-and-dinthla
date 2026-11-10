@@ -1,5 +1,5 @@
 import type { TAbstractFile, Vault } from "obsidian";
-import { OUTSIDE_FENCE, type Fence } from "./fence";
+import { NOT_WRITTEN_AS_OBSIDIAN_WRITES, OUTSIDE_FENCE, type Fence } from "./fence";
 import { pathOf } from "./path-of";
 
 export type FileLookup = Pick<Vault, "getAbstractFileByPath">;
@@ -28,8 +28,9 @@ export class HeldFiles {
   }
 
   newPath(path: unknown): string {
-    if (!this.fence.holdsNew(path)) throw new Error(OUTSIDE_FENCE);
-    return path;
+    const held = this.path(path);
+    if (!this.fence.holdsNew(held)) throw new Error(NOT_WRITTEN_AS_OBSIDIAN_WRITES);
+    return held;
   }
 
   file<T extends TAbstractFile>(file: T): T {

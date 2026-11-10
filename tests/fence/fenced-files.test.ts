@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TAbstractFile } from "obsidian";
-import { Fence, OUTSIDE_FENCE } from "../../src/fence/fence";
+import { Fence, NOT_WRITTEN_AS_OBSIDIAN_WRITES, OUTSIDE_FENCE } from "../../src/fence/fence";
 import { FencedFiles } from "../../src/fence/fenced-files";
 import { HeldFiles } from "../../src/fence/held-files";
 import { fileAt, folderAt, rawVaultWith } from "./fake-raw-vault";
@@ -130,8 +130,8 @@ describe("FencedFiles reads and writes", () => {
 
   it("refuses to make a note on a path Obsidian would write another way", async () => {
     const { files, calls } = filesWith();
-    await expect(files.create("D&D/Zoe\u0308/Sessions/Session 1.md", "")).rejects.toThrow(OUTSIDE_FENCE);
-    await expect(files.createFolder("D&D/Pale\u00a0Moon/Items")).rejects.toThrow(OUTSIDE_FENCE);
+    await expect(files.create("D&D/Zoe\u0308/Sessions/Session 1.md", "")).rejects.toThrow(NOT_WRITTEN_AS_OBSIDIAN_WRITES);
+    await expect(files.createFolder("D&D/Pale\u00a0Moon/Items")).rejects.toThrow(NOT_WRITTEN_AS_OBSIDIAN_WRITES);
     expect(calls.create).not.toHaveBeenCalled();
     expect(calls.createFolder).not.toHaveBeenCalled();
   });

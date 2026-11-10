@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { Fence, OUTSIDE_FENCE } from "../../src/fence/fence";
+import { Fence, NOT_WRITTEN_AS_OBSIDIAN_WRITES, OUTSIDE_FENCE } from "../../src/fence/fence";
 import { FencedFileActions, type RawFileManager } from "../../src/fence/fenced-file-actions";
 import { HeldFiles } from "../../src/fence/held-files";
 import { fileAt, rawVaultWith } from "./fake-raw-vault";
@@ -50,7 +50,7 @@ describe("FencedFileActions", () => {
 
   it("refuses to rename a note to a path Obsidian would write another way", async () => {
     const { actions, fileManager } = actionsWith();
-    await expect(actions.renameFile(CHARACTER, "D&D/Pale Moon/Characters/Zoe\u0308.md")).rejects.toThrow(OUTSIDE_FENCE);
+    await expect(actions.renameFile(CHARACTER, "D&D/Pale Moon/Characters/Zoe\u0308.md")).rejects.toThrow(NOT_WRITTEN_AS_OBSIDIAN_WRITES);
     expect(fileManager.renameFile).not.toHaveBeenCalled();
   });
 

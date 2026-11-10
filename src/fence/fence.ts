@@ -3,6 +3,8 @@ import { isSafeNewPath, isSafePath } from "./safe-path";
 
 export const OUTSIDE_FENCE = "it is outside the Campaigns folder, and Dungeons & Dinthla only works inside that folder.";
 
+export const NOT_WRITTEN_AS_OBSIDIAN_WRITES = "Rename the folder in Obsidian: its name isn't written the way Obsidian writes names.";
+
 export type ReadCampaignsFolder = () => string | null;
 
 export class Fence {
