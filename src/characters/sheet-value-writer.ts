@@ -28,7 +28,6 @@ export interface SheetTarget {
 
 export const NO_VALUE = "Type a value first, or choose Not known yet.";
 export const QUESTION_MARK = "A value of ? means not known yet. Choose Not known yet instead.";
-export const NO_SESSION = "There's no session to write in yet. Start one first.";
 
 export function nothingCarried(label: string): string {
   return `No campaign this character was carried from gives the ${label.toLowerCase()}, so nothing was written.`;
