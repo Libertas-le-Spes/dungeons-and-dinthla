@@ -1,4 +1,5 @@
-import { readFollowUp, type FollowUp, type FollowUpKind } from "../notes/follow-up";
+import { kindFollowedUpBy } from "../kinds/follow-up-markers";
+import { readFollowUp, type FollowUp } from "../notes/follow-up";
 import { readItemChange } from "../notes/item-change";
 import { readLedgerEntry } from "../notes/ledger";
 import { readMarker } from "../notes/marker";
@@ -15,16 +16,6 @@ import type {
 import { ItemBook } from "./item-book";
 import { forEachSessionLine } from "./session-lines";
 import { findSubject } from "./subject";
-
-type FollowUpSubject = "question" | "quest";
-
-const SUBJECT_OF: Record<FollowUpKind, FollowUpSubject> = {
-  clue: "question",
-  answer: "question",
-  progress: "quest",
-  completed: "quest",
-  failed: "quest",
-};
 
 class CampaignBuilder {
   private readonly questions: QuestionRecord[] = [];
@@ -91,7 +82,7 @@ class CampaignBuilder {
   }
 
   private addFollowUp(followUp: FollowUp, line: string, source: Source): void {
-    if (SUBJECT_OF[followUp.kind] === "question") {
+    if (kindFollowedUpBy(followUp.kind).name === "question") {
       this.addQuestionFollowUp(followUp, line, source);
       return;
     }

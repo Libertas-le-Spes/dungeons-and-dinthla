@@ -1,4 +1,5 @@
 import type { Campaign } from "../campaign/campaign";
+import { markerNamed } from "../kinds/source-markers";
 import { addLinkedText, type LinkActions } from "../views/linked-text";
 import { lineStateOf, type LineState } from "./line-state";
 import type { WrittenLine } from "./written-lines";
@@ -13,7 +14,7 @@ function countText(count: number): string {
 
 function glyphClassOf(line: WrittenLine): string {
   if (line.marker === null) return "dd-line-glyph";
-  return `dd-line-glyph dd-marker dd-marker-${line.marker}`;
+  return `dd-line-glyph dd-marker ${markerNamed(line.marker).colourClass}`;
 }
 
 function addState(row: HTMLElement, text: HTMLElement, state: LineState | null): void {
