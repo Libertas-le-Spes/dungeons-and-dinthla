@@ -55,7 +55,6 @@ import { colourMarkers } from "./reading/colour-markers";
 import { BackgroundRefresh, showBackground, shownBackgroundOf } from "./reading/note-background";
 import { CampaignSettingTab } from "./settings/campaign-setting-tab";
 import { CampaignsFolderSetting } from "./settings/campaigns-folder-setting";
-import { CampaignsFolderSetup } from "./settings/campaigns-folder-setup";
 import { FolderSuggestModal } from "./settings/folder-suggest-modal";
 import { ChosenCampaign } from "./settings/chosen-campaign";
 import { flushWhenClosing, type Closing } from "./settings/flush-when-closing";
@@ -63,26 +62,18 @@ import { LocalDrafts, type LocalStorage } from "./settings/local-drafts";
 import { OldDrafts } from "./settings/old-drafts";
 import { settingsOf, type PluginSettings } from "./settings/plugin-settings";
 import { SettingsSaver } from "./settings/settings-saver";
-import { CampaignMaker } from "./campaign/campaign-maker";
-import { Help } from "./welcome/help";
+import type { Help } from "./welcome/help";
 import { welcomeOpenerOf } from "./welcome/welcome-opener";
 import { Gatekeeper } from "./fence/gatekeeper";
 import { homeSection } from "./interface/home-section";
-import { welcomeSection } from "./interface/welcome-section";
+import { welcomeWiring } from "./interface/welcome-wiring";
+import { sessionNotesWiring } from "./interface/session-notes-wiring";
 import { campaignsFolderFirst } from "./interface/campaigns-folder-first";
-import { NEWS_BY_VERSION } from "./whats-new/news-by-version";
 import { sessionHeadingOf } from "./sessions/session-heading";
 import { startSession } from "./sessions/start-session";
-import { sessionPropertiesOf } from "./sessions/session-properties";
-import { AppendWriter } from "./session-notes/append-writer";
 import { Drafts } from "./session-notes/drafts";
 import type { KeptDrafts } from "./session-notes/kept-drafts";
 import { DraftKeeping } from "./session-notes/draft-keeping";
-import { noteTextsOf } from "./campaign/note-texts";
-import { NoteSaver } from "./note-editing/note-saver";
-import { SessionClearer } from "./session-notes/session-clearer";
-import { SessionTrash } from "./session-notes/session-trash";
-import { deletesPermanently } from "./session-notes/trash-option";
 import { ConfirmModal, type ConfirmText } from "./views/confirm-modal";
 import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
@@ -110,21 +101,23 @@ export default class DungeonsAndDinthla extends Plugin {
   private chosen = this.chosenCampaignFrom(this.settingsSaver);
 
   override async onload(): Promise<void> {
-    const saved: unknown = await this.loadData();
-    const settings = settingsOf(saved, this.gate.configDir);
-    this.oldDrafts = new OldDrafts(saved, this.localStorage);
-    this.settingsSaver = this.settingsSaverOf(settings);
-    this.chosen = this.chosenCampaignFrom(this.settingsSaver);
-    this.campaignsFolderSetting = this.campaignsFolderSettingFrom(this.settingsSaver);
+    await this.loadSettings();
     const gate = this.gate;
     this.addChild(gate.files);
-    const helpFiles = {
+    const openNotes = (path: string) => openCampaignPage(this.app, "notes", path);
+    const newSession = () => startSession(this.app, gate, this.store.campaignFolder, openNotes);
+    const { help, campaignsFolderSetup, welcome } = welcomeWiring({
+      gate,
+      store: this.store,
+      saver: this.settingsSaver,
+      manifest: this.manifest,
+      setting: this.campaignsFolderSetting,
       campaignFolders: () => this.campaignFolders(),
-      filePaths: () => gate.files.getFiles().map((file) => file.path),
-    };
-    const help = new Help(this.settingsSaver, this.manifest, NEWS_BY_VERSION, helpFiles, welcomeOpenerOf(this.app));
-    const pickFolder = (folders: string[], chosen: (folder: string) => void) => new FolderSuggestModal(this.app, folders, chosen).open();
-    const campaignsFolderSetup = new CampaignsFolderSetup(this.campaignsFolderSetting, gate.folders, pickFolder);
+      chooseCampaign: (folder: string) => this.chosen.choose(folder),
+      openWelcome: welcomeOpenerOf(this.app),
+      pickFolder: (folders: string[], chosen: (folder: string) => void) => new FolderSuggestModal(this.app, folders, chosen).open(),
+      startSession: newSession,
+    });
     const campaignChoice = {
       folders: () => this.campaignFolders(),
       chosen: () => chosenCampaignFolder(this.chosen.folder, this.campaignFolders()),
@@ -174,8 +167,6 @@ export default class DungeonsAndDinthla extends Plugin {
     const shownPath = () => shownCampaignPathOf(this.app.workspace);
     this.addCommand({ id: "edit-character", name: "Edit character", checkCallback: (checking) => editActiveCharacter(this.app, gate, characterNotes, shownPath, checking) });
     this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => addEditCharacterItem(this.app, gate, characterNotes, menu, file)));
-    const openNotes = (path: string) => openCampaignPage(this.app, "notes", path);
-    const newSession = () => startSession(this.app, gate, this.store.campaignFolder, openNotes);
     this.addRibbonIcon("calendar-plus", "Start a new session", newSession);
     const dashboardActionsFor = (show: ShowPage): DashboardActions => ({
       ...actions,
@@ -194,47 +185,26 @@ export default class DungeonsAndDinthla extends Plugin {
     const watchFiles = (changed: (path: string) => void) => this.watchFiles(changed);
     const castNeeds = { store: this.store, characterNotes, sheetNotes, mentionNotes, actions, sheetActions, newCharacter, watchFiles };
     const openers: LookupOpeners = { question: openQuestionAt, quest: openQuestAt, item: openItem };
-    const local = this.localDrafts();
-    const drafts = new Drafts(local.read(), () => local.changed(drafts.all()));
-    flushWhenClosing(local, this.closing());
-    const keeping = this.addChild(new DraftKeeping(drafts, { files: gate.files, fence: gate.fence, campaignsFolder: () => this.campaignsFolderSetting.path, now: () => Date.now() }));
-    const { keptDrafts, noteDrafts } = keeping;
-    this.moveOldDrafts(keptDrafts, local);
-    this.app.workspace.onLayoutReady(() => keeping.setAsideGoneNotes());
-    const texts = noteTextsOf(gate);
-    const wholeText = { texts, drafts: noteDrafts, saver: new NoteSaver(gate.files) };
-    const notesNeeds = {
+    const { drafts, keeping } = this.keepDrafts();
+    const { notes, wholeText } = sessionNotesWiring({
+      gate,
       store: this.store,
       drafts,
-      keptDrafts,
-      writer: new AppendWriter(gate.files),
-      propertiesOf: (path: string) => sessionPropertiesOf(path, gate.metadata),
+      keeping,
       openers,
       actions,
-      wholeText,
-      removal: {
-        clearer: new SessionClearer(gate.files),
-        trash: new SessionTrash(gate.files, gate.fileActions, () => deletesPermanently(gate.vaultSettings)),
-        confirm: (text: ConfirmText, confirmed: () => void, closed: () => void) => new ConfirmModal(this.app, text, confirmed, closed).open(),
-      },
-      startSession: newSession,
-    };
-    const welcome = welcomeSection({
-      store: this.store,
-      campaignsFolderSetup,
-      maker: new CampaignMaker(gate.files, () => this.campaignsFolderSetting.path, (folder) => this.chosen.choose(folder)),
-      files: gate.files,
+      confirm: (text: ConfirmText, confirmed: () => void, closed: () => void) => new ConfirmModal(this.app, text, confirmed, closed).open(),
       startSession: newSession,
     });
     const pages = campaignSections({
       home: homeSection({ store: this.store, characterNotes, news: help.whatsNew, actionsFor: dashboardActionsFor }),
       cast: castSection(castNeeds),
-      notes: notesSection(notesNeeds),
+      notes: notesSection(notes),
       questions: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestionAt, questionsKind, createQuestion),
       quests: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestAt, questsKind, createQuest),
       funds: fundsSection({
         store: this.store,
-        texts,
+        texts: wholeText.texts,
         actions,
         noteExists,
         addCoin,
@@ -253,23 +223,51 @@ export default class DungeonsAndDinthla extends Plugin {
     const sections = campaignsFolderFirst(pages, welcome, () => this.campaignsFolderSetting.path);
     const backdropFor = (frameEl: HTMLElement) => new TabBackground(frameEl, this.store, gate.metadata, gate.files);
     this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView(leaf, this.store, sections, (path) => void this.followCampaignOf(path), backdropFor, gate.files));
-    for (const opener of PAGE_OPENERS) {
-      const open = () => void openCampaignPage(this.app, opener.page, null);
-      this.addRibbonIcon(opener.icon, opener.name, open);
-      this.addCommand({ id: opener.id, name: opener.name, callback: open });
-    }
-    this.addCommand({ id: "start-session", name: "Start a new session", callback: newSession });
-    const inSession = (path: string) => isSessionNote(path, this.campaignsFolderSetting.path, (notePath) => gate.files.getFileByPath(notePath) !== null);
-    this.registerEditorExtension(markerColouring(inSession));
-    this.registerMarkdownPostProcessor((element, context) => {
-      if (inSession(context.sourcePath)) colourMarkers(element);
-    });
+    this.addPageOpeners(newSession);
+    this.colourSessionNotes();
     this.followTheme();
     this.app.workspace.onLayoutReady(() => {
       this.startCampaign(help).catch((error: unknown) => new Notice(`Couldn't start the campaign: ${messageOf(error)}`));
     });
     this.app.workspace.onLayoutReady(() => this.watchBackgrounds());
     this.takeOverOpening();
+  }
+
+  private async loadSettings(): Promise<void> {
+    const saved: unknown = await this.loadData();
+    const settings = settingsOf(saved, this.gate.configDir);
+    this.oldDrafts = new OldDrafts(saved, this.localStorage);
+    this.settingsSaver = this.settingsSaverOf(settings);
+    this.chosen = this.chosenCampaignFrom(this.settingsSaver);
+    this.campaignsFolderSetting = this.campaignsFolderSettingFrom(this.settingsSaver);
+  }
+
+  private keepDrafts(): { drafts: Drafts; keeping: DraftKeeping } {
+    const local = this.localDrafts();
+    const drafts = new Drafts(local.read(), () => local.changed(drafts.all()));
+    flushWhenClosing(local, this.closing());
+    const needs = { files: this.gate.files, fence: this.gate.fence, campaignsFolder: () => this.campaignsFolderSetting.path, now: () => Date.now() };
+    const keeping = this.addChild(new DraftKeeping(drafts, needs));
+    this.moveOldDrafts(keeping.keptDrafts, local);
+    this.app.workspace.onLayoutReady(() => keeping.setAsideGoneNotes());
+    return { drafts, keeping };
+  }
+
+  private addPageOpeners(newSession: () => void): void {
+    for (const opener of PAGE_OPENERS) {
+      const open = () => void openCampaignPage(this.app, opener.page, null);
+      this.addRibbonIcon(opener.icon, opener.name, open);
+      this.addCommand({ id: opener.id, name: opener.name, callback: open });
+    }
+    this.addCommand({ id: "start-session", name: "Start a new session", callback: newSession });
+  }
+
+  private colourSessionNotes(): void {
+    const inSession = (path: string) => isSessionNote(path, this.campaignsFolderSetting.path, (notePath) => this.gate.files.getFileByPath(notePath) !== null);
+    this.registerEditorExtension(markerColouring(inSession));
+    this.registerMarkdownPostProcessor((element, context) => {
+      if (inSession(context.sourcePath)) colourMarkers(element);
+    });
   }
 
   private takeOverOpening(): void {
