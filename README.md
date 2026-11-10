@@ -13,20 +13,26 @@ This README describes a project that grows in small steps: parts of it may still
 
 ## Install
 
-Each tagged version is published as a [release](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/releases) with `main.js`, `manifest.json` and `styles.css`.
+The plugin isn't in Obsidian's list of community plugins yet, and this repository is private, so it is installed by hand, by someone with read access to it. Each tagged version is published as a [release](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/releases) with three files: `main.js`, `manifest.json` and `styles.css`.
 
-On a tablet, install it with the [BRAT](https://github.com/TfTHacker/obsidian42-brat) plugin by adding `Libertas-le-Spes/dungeons-and-dinthla`. While the repository is private, BRAT needs a fine-grained GitHub personal access token that can read this repository's contents: create one on GitHub and add it in BRAT's settings first.
+1. Download the three files from the latest release, with `gh release download <version> --repo Libertas-le-Spes/dungeons-and-dinthla` or from the release's page, or build them yourself (below).
+2. If you downloaded them, check them against the release. With the [GitHub CLI](https://cli.github.com) logged in, `gh release view <version> --repo Libertas-le-Spes/dungeons-and-dinthla --json assets --jq '.assets[] | .digest + "  " + .name'` prints each file's digest, where `<version>` is the bare tag, such as `0.3.0`. In the download folder, `sha256sum main.js manifest.json styles.css` (on macOS `shasum -a 256`, on Windows `Get-FileHash`) must print the same hashes as the part after `sha256:`, ignoring upper and lower case.
+3. Put them in `<vault>/.obsidian/plugins/dungeons-and-dinthla/`. `.obsidian` is the vault's settings folder, hidden on most systems.
+4. In Obsidian, open Settings → Community plugins. If Obsidian is in Restricted mode, press *Exit Restricted mode* (*Turn on community plugins* in older versions). Then restart Obsidian, or press *Reload plugins* (the circular arrows beside *Installed plugins*), so it finds the new plugin.
+5. Turn on **Dungeons & Dinthla** there.
 
-On a computer, you can instead download the three files from a release into `<vault>/.obsidian/plugins/dungeons-and-dinthla/`. Either way, turn it on under Community plugins.
+**On a phone or tablet** whose vault is kept in a Git repository (with the Obsidian Git plugin, say): do steps 1 to 3 in a copy of that repository on a computer, commit only the plugin's folder and push, then pull on the phone or tablet and do steps 4 and 5 there. If the repository also holds `.obsidian/community-plugins.json`, that choice syncs too: other devices that pull it have the plugin turned on after Obsidian restarts.
 
-Or build it yourself, then copy `manifest.json`, `main.js` and `styles.css` into `<vault>/.obsidian/plugins/dungeons-and-dinthla/` and turn it on under Community plugins.
+**To update,** replace the three files with the new release's, the same way. Obsidian loads the new version when it starts again, or after *Reload plugins* when the plugin is turned off and on.
+
+**To build it yourself,** check out the release's tag (`git checkout 0.3.0`) and, with Node `^22.18.0 || ^24.0.0 || >=26.0.0`, run the following. It leaves the three files in the repository's root, byte for byte the same as the release's.
 
 ```
-npm install
+npm ci
 npm run build
 ```
 
-Then choose the **Campaigns folder**, on the welcome page or in the plugin's settings: the one folder of the vault where your campaigns live, such as `D&D`. The plugin reads and writes only inside it and does nothing until it is chosen, so the rest of your vault stays out of its reach. Every pull request and release scans the plugin's source for code that could go round that fence, working from allow-lists of what the plugin uses today and known patterns, and checks its released `main.js` and `styles.css` for known kinds of network code. Neither is a proof: they catch what they know to look for. [docs/note-format.md](docs/note-format.md#the-campaigns-folder) says what they check.
+Once the plugin is on, choose the **Campaigns folder**, on the welcome page or in the plugin's settings: the one folder of the vault where your campaigns live, such as `D&D`. The plugin reads and writes only inside it and does nothing until it is chosen, so the rest of your vault stays out of its reach. Every pull request and release scans the plugin's source for code that could go round that fence, working from allow-lists of what the plugin uses today and known patterns, and checks its released `main.js` and `styles.css` for known kinds of network code. Neither is a proof: they catch what they know to look for. [docs/note-format.md](docs/note-format.md#the-campaigns-folder) says what they check.
 
 The plugin checks paths, so it can't see where a folder really is: a symbolic link (or, on Windows, a junction) inside the Campaigns folder that points elsewhere on your disk lets the plugin read and write there too. Keep such links out of the Campaigns folder.
 
