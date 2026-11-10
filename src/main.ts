@@ -76,10 +76,9 @@ import { startSession } from "./sessions/start-session";
 import { sessionPropertiesOf } from "./sessions/session-properties";
 import { AppendWriter } from "./session-notes/append-writer";
 import { Drafts } from "./session-notes/drafts";
-import { KeptDrafts } from "./session-notes/kept-drafts";
-import { setAsideGoneNotes } from "./session-notes/gone-notes";
+import type { KeptDrafts } from "./session-notes/kept-drafts";
+import { DraftKeeping } from "./session-notes/draft-keeping";
 import { noteTextsOf } from "./campaign/note-texts";
-import { NoteDrafts } from "./note-editing/note-drafts";
 import { NoteSaver } from "./note-editing/note-saver";
 import { SessionClearer } from "./session-notes/session-clearer";
 import { SessionTrash } from "./session-notes/session-trash";
@@ -198,13 +197,10 @@ export default class DungeonsAndDinthla extends Plugin {
     const local = this.localDrafts();
     const drafts = new Drafts(local.read(), () => local.changed(drafts.all()));
     flushWhenClosing(local, this.closing());
-    const keptDrafts = new KeptDrafts(drafts, () => Date.now());
-    const noteDrafts = new NoteDrafts(drafts);
+    const keeping = this.addChild(new DraftKeeping(drafts, { files: gate.files, fence: gate.fence, campaignsFolder: () => this.campaignsFolderSetting.path, now: () => Date.now() }));
+    const { keptDrafts, noteDrafts } = keeping;
     this.moveOldDrafts(keptDrafts, local);
-    this.registerEvent(gate.files.on("rename", (file, oldPath) => keptDrafts.noteRenamed(oldPath, file.path)));
-    this.registerEvent(gate.files.on("rename", (file, oldPath) => noteDrafts.moved(oldPath, file.path)));
-    this.registerEvent(gate.files.on("delete", (file) => keptDrafts.noteDeleted(file.path)));
-    this.app.workspace.onLayoutReady(() => setAsideGoneNotes(keptDrafts, this.campaignsFolderSetting.path, (key) => this.draftStaysLive(noteDrafts, key)));
+    this.app.workspace.onLayoutReady(() => keeping.setAsideGoneNotes());
     const texts = noteTextsOf(gate);
     const wholeText = { texts, drafts: noteDrafts, saver: new NoteSaver(gate.files) };
     const notesNeeds = {
@@ -302,11 +298,6 @@ export default class DungeonsAndDinthla extends Plugin {
       written: () => this.oldDraftsKept(),
       failed: (error) => new Notice(`Couldn't keep the text typed in the campaign tab: ${messageOf(error)}`),
     });
-  }
-
-  private draftStaysLive(noteDrafts: NoteDrafts, key: string): boolean {
-    if (noteDrafts.owns(key)) return true;
-    return this.gate.files.getFileByPath(key) !== null;
   }
 
   private closing(): Closing {
