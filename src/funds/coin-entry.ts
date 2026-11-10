@@ -30,7 +30,7 @@ export function entryToEdit(coins: CoinRecord[], source: Source): CoinRecord | n
 
 export function refusalForEntryChange(sessions: SessionNote[], record: CoinRecord, removal: Removal, coinLine: CoinLine | null): string | null {
   const after = applySessionChange(sessions, coinSessionChange(removal, coinLine));
-  if (!after.linesWhereRead) return CHANGED_IN_NOTE;
+  if (!after.linesAsRead) return CHANGED_IN_NOTE;
   let newCopper = 0;
   if (coinLine !== null) newCopper = coinLine.copper;
   const moved = buildCampaign(after.sessions).purseCopper - buildCampaign(sessions).purseCopper;

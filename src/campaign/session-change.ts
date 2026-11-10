@@ -5,22 +5,33 @@ export interface Rewrite {
   line: string;
 }
 
-export interface AddedLines {
+export interface LaterLines {
   path: string;
   lines: string[];
-}
-
-export interface LaterLines extends AddedLines {
   partlyWritten: string;
 }
 
-export interface SessionChange {
-  removal: Removal | null;
-  rewrite: Rewrite | null;
-  added: AddedLines | null;
-  addedLater: LaterLines | null;
+export interface AddedLines {
+  path: string;
+  lines: string[];
+  later: LaterLines | null;
 }
 
+export interface RewriteChange {
+  rewrite: Rewrite;
+}
+
+export interface LinesChange {
+  removal: Removal | null;
+  added: AddedLines | null;
+}
+
+export type SessionChange = RewriteChange | LinesChange;
+
 export function linesAddedTo(path: string, lines: string[]): SessionChange {
-  return { removal: null, rewrite: null, added: { path, lines }, addedLater: null };
+  return { removal: null, added: { path, lines, later: null } };
+}
+
+export function lineTakenOut(removal: Removal): SessionChange {
+  return { removal, added: null };
 }

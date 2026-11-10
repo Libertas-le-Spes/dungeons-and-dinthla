@@ -98,6 +98,6 @@ describe("adding coin", () => {
 
 describe("linesAddedTo", () => {
   it("adds the lines to the note it names, taking out and rewriting nothing", () => {
-    expect(linesAddedTo(TWO, ["$ 5 gp found"])).toEqual({ removal: null, rewrite: null, added: { path: TWO, lines: ["$ 5 gp found"] }, addedLater: null });
+    expect(linesAddedTo(TWO, ["$ 5 gp found"])).toEqual({ removal: null, added: { path: TWO, lines: ["$ 5 gp found"], later: null } });
   });
 });
