@@ -3,3 +3,4 @@ main.js
 demo-vault/.obsidian/*
 !demo-vault/.obsidian/community-plugins.json
 styles.css
+.idea/
