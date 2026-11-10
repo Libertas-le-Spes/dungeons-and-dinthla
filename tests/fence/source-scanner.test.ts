@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Symbol as TypeSymbol, Type } from "typescript/unstable/sync";
-import { anyMemberCould, isOwnedByOneOf } from "./source-scanner";
+import { anyMemberCould, isOwnedByOneOf } from "./scan/type-shapes";
 
 const OWNERS = ["Editor"];
 
