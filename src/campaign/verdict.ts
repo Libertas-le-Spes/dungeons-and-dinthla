@@ -1,17 +1,17 @@
-export interface Refused {
-  refused: string;
+export type Verdict = "go on" | "write nothing" | { error: string };
+
+export function isError(value: unknown): value is { error: string } {
+  return typeof value === "object" && value !== null && "error" in value;
 }
 
-export type Verdict = "go on" | "write nothing" | Refused;
-
 export function refusedWhen(refuses: boolean, words: string): Verdict {
-  if (refuses) return { refused: words };
+  if (refuses) return { error: words };
   return "go on";
 }
 
 export function verdictOf(refusal: string | null): Verdict {
   if (refusal === null) return "go on";
-  return { refused: refusal };
+  return { error: refusal };
 }
 
 export function writeNothingWhen(writesNothing: boolean): Verdict {

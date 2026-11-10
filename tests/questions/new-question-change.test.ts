@@ -3,11 +3,11 @@ import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { Campaign, SessionNote } from "../../src/campaign/campaign";
 import type { EditorFiles } from "../../src/campaign/note-editor";
+import { SessionChangeWriter } from "../../src/campaign/session-change-writer";
 import { sessionNoteOf } from "../../src/campaign/session-file";
 import { writeRecordChange } from "../../src/campaign/write-record-change";
 import { SAME_TEXT_AS_EXISTING } from "../../src/questions/current-question";
-import { newQuestionAdd } from "../../src/questions/new-question-change";
-import { QuestionWriter } from "../../src/questions/question-writer";
+import { newQuestion } from "../../src/questions/new-question-change";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
@@ -62,7 +62,7 @@ class FakeNotes {
 }
 
 function add(notes: FakeNotes, question: string, answer: string): Promise<boolean> {
-  return writeRecordChange(newQuestionAdd(notes, { question, answer }, TWO, new QuestionWriter(notes.vault)));
+  return writeRecordChange(newQuestion(notes, { question, answer }, TWO), new SessionChangeWriter(notes.vault));
 }
 
 describe("adding a question", () => {
@@ -70,6 +70,12 @@ describe("adding a question", () => {
     const notes = new FakeNotes({ [ONE]: "? Who\n", [TWO]: "" });
     expect(await add(notes, " ? Why the mill ", "the wheel")).toBe(true);
     expect(notes.texts.get(TWO)).toBe("? Why the mill\n?= Why the mill: the wheel\n");
+  });
+
+  it("writes no answer line for an answer that is only spaces", async () => {
+    const notes = new FakeNotes({ [ONE]: "", [TWO]: "" });
+    expect(await add(notes, "Why the mill", "  \n ")).toBe(true);
+    expect(notes.texts.get(TWO)).toBe("? Why the mill\n");
   });
 
   it("refuses a question that already reads the same, writing nothing", async () => {

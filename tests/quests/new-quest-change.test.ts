@@ -3,11 +3,11 @@ import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { Campaign, SessionNote } from "../../src/campaign/campaign";
 import type { EditorFiles } from "../../src/campaign/note-editor";
+import { SessionChangeWriter } from "../../src/campaign/session-change-writer";
 import { sessionNoteOf } from "../../src/campaign/session-file";
 import { writeRecordChange } from "../../src/campaign/write-record-change";
 import { SAME_TITLE_AS_EXISTING, WOULD_READ_DIFFERENTLY } from "../../src/quests/new-quest";
-import { newQuestAdd } from "../../src/quests/new-quest-change";
-import { QuestWriter } from "../../src/quests/quest-writer";
+import { newQuest } from "../../src/quests/new-quest-change";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
@@ -62,7 +62,7 @@ class FakeNotes {
 }
 
 function add(notes: FakeNotes, title: string, givenBy: string, reward: string): Promise<boolean> {
-  return writeRecordChange(newQuestAdd(notes, { title, givenBy, reward }, [], TWO, new QuestWriter(notes.vault)));
+  return writeRecordChange(newQuest(notes, { title, givenBy, reward }, [], TWO), new SessionChangeWriter(notes.vault));
 }
 
 describe("adding a quest", () => {

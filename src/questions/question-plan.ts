@@ -70,10 +70,6 @@ export function planReopen(question: QuestionRecord, sessionPath: string): Quest
   return planQuestionSave(question, { answer: "", followUp: "" }, sessionPath);
 }
 
-export function applyQuestionPlan(sessions: SessionNote[], plan: QuestionPlan): SessionNote[] {
-  return applySessionChange(sessions, questionSessionChange(plan)).sessions;
-}
-
 function placedClues(clues: SourcedText[]): string[] {
   return clues.map((clue) => placedAnswer(clue.source.path, oneLine(clue.text)));
 }
@@ -97,7 +93,7 @@ export function refusalForQuestionPlan(sessions: SessionNote[], question: Questi
   if (!known.has(plan.answerPath) || !known.has(plan.followUpPath)) return CHANGES_MORE_THAN_ASKED;
   const before = buildCampaign(sessions);
   if (plan.followUpText !== null && before.questions.some((existing) => existing.text === plan.followUpText)) return FOLLOW_UP_ALREADY_ASKED;
-  const after = buildCampaign(applyQuestionPlan(sessions, plan));
+  const after = buildCampaign(applySessionChange(sessions, questionSessionChange(plan)).sessions);
   const wanted = before.questions.map((candidate) => {
     const isOpened = candidate.source.path === question.source.path && candidate.source.line === question.source.line;
     if (isOpened) return signatureOf(candidate, plan.expectedAnswer);

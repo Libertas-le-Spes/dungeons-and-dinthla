@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { SessionNote } from "../../src/campaign/campaign";
 import { sessionNoteOf } from "../../src/campaign/session-file";
-import { applyQuestionPlan, CHANGES_MORE_THAN_ASKED, FOLLOW_UP_ALREADY_ASKED, planQuestionSave, planReopen, refusalForQuestionPlan } from "../../src/questions/question-plan";
+import { applySessionChange } from "../../src/campaign/apply-session-change";
+import { CHANGES_MORE_THAN_ASKED, FOLLOW_UP_ALREADY_ASKED, planQuestionSave, planReopen, refusalForQuestionPlan } from "../../src/questions/question-plan";
+import { questionSessionChange } from "../../src/questions/question-session-change";
 
 function sessionsOf(notes: Record<number, string>): SessionNote[] {
   return Object.entries(notes).map(([number, text]) => sessionNoteOf(`Pale Moon/Sessions/Session ${number}.md`, Number(number), text));
@@ -51,7 +53,7 @@ describe("refusalForQuestionPlan", () => {
     const question = buildCampaign(sessions).questions[0]!;
     const plan = planQuestionSave(question, { answer: "Lady Vess", followUp: "Why her" }, path(3));
     expect(refusalForQuestionPlan(sessions, question, plan)).toBeNull();
-    const after = applyQuestionPlan(sessions, plan).map((session) => session.text);
+    const after = applySessionChange(sessions, questionSessionChange(plan)).sessions.map((session) => session.text);
     expect(after).toEqual(["? Who sent it\n", "?= Who sent it: Lady Vess\n", "? Why her, after: Who sent it\n"]);
   });
 

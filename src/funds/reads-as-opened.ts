@@ -2,7 +2,7 @@ import { buildCampaign } from "../campaign/build-campaign";
 import type { ItemRecord, SessionNote } from "../campaign/campaign";
 import type { EditorFiles } from "../campaign/note-editor";
 import { sessionNoteOf } from "../campaign/session-file";
-import type { ItemSource } from "./item-writer";
+import type { ItemSource } from "./item-source";
 
 function sameItem(items: ItemRecord[], item: ItemRecord): boolean {
   const now = items.find((candidate) => candidate.name === item.name);

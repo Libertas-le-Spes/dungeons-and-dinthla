@@ -2,9 +2,13 @@ import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { QuestionRecord } from "../../src/campaign/campaign";
+import { linesAddedTo } from "../../src/campaign/session-change";
+import { SessionChangeWriter } from "../../src/campaign/session-change-writer";
 import { sessionNoteOf } from "../../src/campaign/session-file";
 import { CHANGED_IN_NOTE, LINES_LEFT, PartlyWritten, PROPERTIES_WOULD_CHANGE, type EditorFiles } from "../../src/campaign/note-editor";
 import { planQuestionSave, planReopen, type QuestionEdit } from "../../src/questions/question-plan";
+import { planNewQuestion } from "../../src/questions/new-question";
+import { questionSessionChange } from "../../src/questions/question-session-change";
 import { QuestionWriter } from "../../src/questions/question-writer";
 
 class FakeNotes {
@@ -40,11 +44,15 @@ class FakeNotes {
 }
 
 function save(notes: FakeNotes, question: QuestionRecord, edit: QuestionEdit, sessionPath: string): Promise<boolean> {
-  return new QuestionWriter(notes.vault).apply(planQuestionSave(question, edit, sessionPath));
+  return new SessionChangeWriter(notes.vault).apply(questionSessionChange(planQuestionSave(question, edit, sessionPath)));
 }
 
 function reopen(notes: FakeNotes, question: QuestionRecord): Promise<boolean> {
-  return new QuestionWriter(notes.vault).apply(planReopen(question, "Pale Moon/Sessions/Session 1.md"));
+  return new SessionChangeWriter(notes.vault).apply(questionSessionChange(planReopen(question, "Pale Moon/Sessions/Session 1.md")));
+}
+
+function add(notes: FakeNotes, question: string, answer: string): Promise<boolean> {
+  return new SessionChangeWriter(notes.vault).apply(linesAddedTo(ONE, planNewQuestion({ question, answer }).lines));
 }
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
@@ -255,9 +263,8 @@ describe("QuestionWriter", () => {
 
   it("adds a new question, with its answer when one is given", async () => {
     const notes = new FakeNotes({ [ONE]: "We rode on.\n" });
-    const writer = new QuestionWriter(notes.vault);
-    expect(await writer.add("Who sent the letter", "", ONE)).toBe(true);
-    expect(await writer.add("Why the mill", "  the wheel\n turns ", ONE)).toBe(true);
+    expect(await add(notes, "Who sent the letter", "")).toBe(true);
+    expect(await add(notes, "Why the mill", "  the wheel\n turns ")).toBe(true);
     expect(notes.texts.get(ONE)).toBe("We rode on.\n? Who sent the letter\n? Why the mill\n?= Why the mill: the wheel turns\n");
     expect(notes.questions().map((question) => [question.text, question.answer?.text])).toEqual([
       ["Who sent the letter", undefined],
@@ -267,7 +274,7 @@ describe("QuestionWriter", () => {
 
   it("adds nothing for an empty question", async () => {
     const notes = new FakeNotes({ [ONE]: "" });
-    expect(await new QuestionWriter(notes.vault).add("", "Mira", ONE)).toBe(false);
+    expect(await add(notes, "", "Mira")).toBe(false);
     expect(notes.writes).toBe(0);
   });
 

@@ -1,9 +1,10 @@
-import type { Refused, Verdict } from "./verdict";
+import type { SessionChange } from "./session-change";
+import type { Verdict } from "./verdict";
 
 export type Check<Plan> = (plan: Plan) => Verdict | Promise<Verdict>;
 
-export interface RecordChange<Plan extends object> {
-  plan(): Plan | Refused;
+export interface RecordChange<Plan> {
+  plan(): Plan | { error: string };
   checks: Check<Plan>[];
-  writePlan(plan: Plan): Promise<boolean>;
+  sessionChangeOf(plan: Plan): SessionChange;
 }
