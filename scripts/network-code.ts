@@ -35,6 +35,8 @@ export const ALLOWED_IN_PLACE: AllowedCode[] = [
   { code: 'addEventListener("click", ', count: 25 },
   { code: ', "click", ', count: 12 },
   { code: 'this.input.dispatchEvent(new Event("input"))', count: 1 },
+  { code: "frameEl.setCssProps({ [PICTURE_PROPERTY]: shown.picture.value })", count: 1 },
+  { code: 'layer.setCssProps({ "--dd-campaign-picture": shown.picture.value })', count: 1 },
 ];
 
 export const WEB_ADDRESSES: NetworkCode[] = [
@@ -82,6 +84,9 @@ export const NETWORK_CODE: NetworkCode[] = [
   { name: "caches", pattern: /\bcaches\b/ },
   { name: "Notification", pattern: /\bNotification\b/ },
   { name: "an element that loads from or sends to an address", pattern: /(?<![!=]=\s*)["'`](?:img|image|link|script|style|iframe|audio|video|source|embed|object|track|meta|form|base)["'`]/i },
+  { name: "an element made from a name built in code", pattern: /\bcreate(?:El|Element|ElementNS|Svg)\s*\(\s*(?!["'][\w-]+["']\s*[,)])/ },
+  { name: "an attribute set from a name built in code, or an event handler", pattern: /\b(?:setAttribute|setAttr|toggleAttribute|setAttributeNS)\s*\(\s*(?!["'](?!on)[\w-]+["']\s*[,)])/i },
+  { name: "CSS set from code other than the background picture's", pattern: /\bsetCss(?:Props|Styles)\b|\bsetProperty\b|\bcssText\b/ },
   { name: "a module other than Obsidian or CodeMirror", pattern: /require/ },
   { name: "a Node file, network or process module", pattern: new RegExp(`require\\(\\s*["'\`](node:)?(${NODE_NETWORK_MODULES})["'\`]\\s*\\)`) },
   { name: "electron", pattern: /require\(\s*["'`]electron["'`]\s*\)/ },

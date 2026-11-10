@@ -172,6 +172,26 @@ describe("networkCodeIn", () => {
     ]);
   });
 
+  it("finds each way to load from an address or run code through a name built in code", () => {
+    expectEachFound([
+      ['layer.setCssProps({ "--dd-campaign-picture": ["u", "rl(https:", "//example.invalid/a.png)"].join("") })', "CSS set from code other than the background picture's"],
+      ["el.setCssStyles({ backgroundImage: where })", "CSS set from code other than the background picture's"],
+      ['el.style.setProperty("--dd-campaign-picture", where)', "CSS set from code other than the background picture's"],
+      ["el.style.cssText = where", "CSS set from code other than the background picture's"],
+      ['const img = doc.createElement(["i", "mg"].join(""))', "an element made from a name built in code"],
+      ["parent.createEl(tag, { cls: \"dd-frame\" })", "an element made from a name built in code"],
+      ['doc.createElementNS("http://www.w3.org/2000/svg", "image")', "an element made from a name built in code"],
+      ['img.setAttribute(["s", "rc"].join(""), where)', "an attribute set from a name built in code, or an event handler"],
+      ['el.setAttribute("onmouseover", code)', "an attribute set from a name built in code, or an event handler"],
+      ['el.setAttr("ONCLICK", code)', "an attribute set from a name built in code, or an event handler"],
+      ["el.toggleAttribute(name)", "an attribute set from a name built in code, or an event handler"],
+    ]);
+  });
+
+  it("finds nothing in elements and attributes named in place", () => {
+    expect(networkCodeIn('row.setAttribute("aria-current", "true"); parent.createEl("p", { cls: "dd-reading" }); first.ownerDocument.createElement("span"); text.inputEl.setAttr("aria-label", label);')).toEqual([]);
+  });
+
   it("finds nothing in the code allowed in its place, each as often as it is allowed", () => {
     expect(networkCodeIn(ALLOWED_TEXT)).toEqual([]);
   });
