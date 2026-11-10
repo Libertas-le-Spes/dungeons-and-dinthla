@@ -47,7 +47,7 @@ His phone pulls the change through Obsidian Git. Don't turn the plugin on for hi
 ## Running and checking
 
 - Node must be `^22.18.0 || ^24.0.0 || >=26.0.0`: the build and `scripts/` are TypeScript run by Node's own type stripping.
-- Run `npm install`, then `npm run build`. The build also copies the plugin into `demo-vault/`. Open `demo-vault` as a vault in Obsidian; the README has the steps. Its campaign still sits at the vault's top, outside any Campaigns folder, so the plugin shows no campaign there until it is moved into one.
+- Run `npm install`, then `npm run build`. The build also copies the plugin into `demo-vault/`. Open `demo-vault` as a vault in Obsidian; the README has the steps. Its campaign sits in `D&D/Curse of the Pale Moon/`, with `D&D` as the Campaigns folder. Keep the demo vault up to date: when the note format or the folder rules change, the demo notes change in the same pull request.
 - After a build, `node scripts/check-no-network.ts main.js styles.css` checks the built files for network code, as every pull request and release does. It checks only the files it is given and refuses to run with none.
 - `npx vitest run` runs the tests. Tests must not open a real browser.
 - When the owner is gaming on the machine, run builds and tests at low priority, one builder at a time:
