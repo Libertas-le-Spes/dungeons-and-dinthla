@@ -1,15 +1,15 @@
+import { applySessionChange } from "../campaign/apply-session-change";
 import { buildCampaign } from "../campaign/build-campaign";
 import type { Campaign, CoinRecord, QuestRecord, QuestStatus, SessionNote } from "../campaign/campaign";
 import type { Removal } from "../campaign/note-editor";
 import { questThreadKind } from "../campaign/quest-thread-kind";
-import { sessionNoteOf } from "../campaign/session-file";
 import { endingRemoval } from "../campaign/thread-removal";
 import { readLedgerEntry } from "../notes/ledger";
-import { appendLines, removeLines } from "../notes/note-lines";
 import { followUpQuestLine, isCoinReward, outcomeLine, progressLine, questTextOf, rewardLine } from "../notes/quest-lines";
 import { readMarker } from "../notes/marker";
 import { readQuest } from "../notes/quest";
 import { oneLine } from "../notes/one-line";
+import { questSessionChange } from "./quest-session-change";
 
 export type QuestStatusChoice = "active" | QuestStatus;
 
@@ -121,15 +121,6 @@ export function planQuestSave(record: QuestRecord, edit: QuestEdit, coins: CoinR
   return { targetPath, added, removal, expected: { progress, outcome }, rewardCopper, followUpTitle };
 }
 
-function applyPlan(sessions: SessionNote[], plan: QuestPlan): SessionNote[] {
-  return sessions.map((session) => {
-    let text = session.text;
-    if (plan.removal !== null && plan.removal.path === session.path) text = removeLines(text, [plan.removal]).text;
-    if (session.path === plan.targetPath) text = appendLines(text, plan.added);
-    return sessionNoteOf(session.path, session.number, text);
-  });
-}
-
 function signatureOf(record: QuestRecord): string {
   let outcome = "";
   if (record.outcome !== null) outcome = outcomeKey(record.outcome.status, record.outcome.text, record.outcome.source.path);
@@ -153,7 +144,7 @@ function questsBesidesFollowUp(campaign: Campaign, plan: QuestPlan): QuestRecord
 export function refusalForQuestPlan(sessions: SessionNote[], record: QuestRecord, plan: QuestPlan): string | null {
   if (!sessions.some((session) => session.path === plan.targetPath)) return CHANGES_ANOTHER_QUEST;
   const before = buildCampaign(sessions);
-  const after = buildCampaign(applyPlan(sessions, plan));
+  const after = buildCampaign(applySessionChange(sessions, questSessionChange(plan)).sessions);
   const wanted = before.quests.map((quest) => {
     const isOpened = quest.source.path === record.source.path && quest.source.line === record.source.line;
     if (isOpened) return expectedSignature(record, plan.expected);
