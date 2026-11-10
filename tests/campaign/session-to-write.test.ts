@@ -38,11 +38,13 @@ describe("sessionToWrite", () => {
 
   it("refuses with the caller's words when the campaign has no session", () => {
     expect(() => sessionToWrite("Pale Moon", ["Pale Moon/Pale Moon.md"], LATEST)).toThrow(new NoSessionToWrite(NO_SESSION));
+    expect(() => sessionToWrite("Pale Moon", ["Pale Moon/Pale Moon.md"], LATEST)).toThrow(NoSessionToWrite);
   });
 
   it("refuses to choose when two session notes share the latest number", () => {
     const paths = ["Pale Moon/Sessions/Session 3.md", "Pale Moon/Sessions/Session 03.md", "Pale Moon/Sessions/Session 2.md"];
     expect(() => sessionToWrite("Pale Moon", paths, LATEST)).toThrow(new NoSessionToWrite(SESSIONS_SHARE_A_NUMBER));
+    expect(() => sessionToWrite("Pale Moon", paths, LATEST)).toThrow(NoSessionToWrite);
   });
 
   it("writes in the open session when only the latest number is shared", () => {
