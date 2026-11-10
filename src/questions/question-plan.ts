@@ -93,9 +93,9 @@ function signatureOf(question: QuestionRecord, answer: string | null): string {
   return JSON.stringify([question.source.path, question.text, placedClues(question.clues), answer]);
 }
 
-function followUpIndex(campaign: Campaign, plan: QuestionPlan): number {
-  if (plan.followUpText === null) return -1;
-  return campaign.questions.findLastIndex((question) => question.source.path === plan.followUpPath && question.text === plan.followUpText);
+function followUpOf(campaign: Campaign, plan: QuestionPlan): QuestionRecord | undefined {
+  if (plan.followUpText === null) return undefined;
+  return campaign.questions.filter((question) => question.source.path === plan.followUpPath && question.text === plan.followUpText).pop();
 }
 
 export function refusalForQuestionPlan(sessions: SessionNote[], question: QuestionRecord, plan: QuestionPlan): string | null {
@@ -109,13 +109,10 @@ export function refusalForQuestionPlan(sessions: SessionNote[], question: Questi
     if (isOpened) return signatureOf(candidate, plan.expectedAnswer);
     return signatureOf(candidate, answerOf(candidate));
   });
-  const questions = [...after.questions];
-  const index = followUpIndex(after, plan);
+  const followUp = followUpOf(after, plan);
+  const questions = after.questions.filter((candidate) => candidate !== followUp);
   let followUpStartsFresh = true;
-  if (index !== -1) {
-    const followUp = questions.splice(index, 1)[0]!;
-    followUpStartsFresh = followUp.clues.length === 0 && followUp.answer === null;
-  }
+  if (followUp !== undefined) followUpStartsFresh = followUp.clues.length === 0 && followUp.answer === null;
   const found = questions.map((candidate) => signatureOf(candidate, answerOf(candidate)));
   if (followUpStartsFresh && JSON.stringify(wanted) === JSON.stringify(found)) return null;
   return CHANGES_MORE_THAN_ASKED;
