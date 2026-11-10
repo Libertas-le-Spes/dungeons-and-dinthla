@@ -2,12 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App, TFile } from "obsidian";
 import type { SessionNote } from "../../src/campaign/campaign";
 import { CHANGED_IN_NOTE } from "../../src/campaign/note-editor";
+import { SESSIONS_SHARE_A_NUMBER } from "../../src/campaign/session-to-write";
 import { carriedValuesOf, characterSheetOf, type SheetValue } from "../../src/characters/character-sheet";
-import { chooseSheetValue, openCharacterSheet, sameSheetValue, saveSheetValue } from "../../src/characters/open-character-sheet";
+import { chooseSheetValue, NO_SESSION, openCharacterSheet, sameSheetValue, saveSheetValue } from "../../src/characters/open-character-sheet";
 import { readCharacterSheet } from "../../src/characters/read-character-sheet";
 import type { SheetNotes } from "../../src/characters/sheet-notes";
 import type { SheetValueDialog } from "../../src/characters/sheet-value-modal";
-import { NO_SESSION } from "../../src/characters/sheet-value-writer";
 import type { SourcedFact } from "../../src/characters/sheet-values";
 import { Notice, openedModals } from "../stubs/obsidian";
 import type { Gate } from "../../src/fence/gatekeeper";
@@ -20,7 +20,7 @@ beforeEach(() => {
   Notice.shown = [];
 });
 
-function setUp(texts: Record<string, string>, { readFails = false, folders = ["Pale Moon"] } = {}) {
+function setUp(texts: Record<string, string>, { readFails = false, folders = ["Pale Moon"], sessions = [ONE, TWO] } = {}) {
   const notesText = new Map(Object.entries(texts));
   const opened: { newLeaf: unknown; path: string; options: unknown }[] = [];
   const app = {
@@ -46,7 +46,7 @@ function setUp(texts: Record<string, string>, { readFails = false, folders = ["P
     },
   } as unknown as Gate;
   const sessionNotes = (): SessionNote[] =>
-    [ONE, TWO].filter((path) => notesText.has(path)).map((path, index) => ({ path, number: index + 1, firstLine: 0, text: notesText.get(path)! }));
+    sessions.filter((path) => notesText.has(path)).map((path, index) => ({ path, number: index + 1, firstLine: 0, text: notesText.get(path)! }));
   const store = {
     campaignFolder: "Pale Moon",
     get sessionNotes() {
@@ -141,6 +141,19 @@ describe("saveSheetValue", () => {
   it("refuses a learned value for a character outside any campaign", async () => {
     const { app, gate, store, notes } = setUp({ [MIRA.path]: "" }, { folders: [] });
     await expect(saveSheetValue(app, gate, store, notes, MIRA, acOf([]), { state: "learned", value: "16" })).rejects.toThrow(NO_SESSION);
+  });
+
+  it("refuses a learned value when the campaign has no session notes", async () => {
+    const { app, gate, store, notes, notesText } = setUp({ [MIRA.path]: "" });
+    await expect(saveSheetValue(app, gate, store, notes, MIRA, acOf([]), { state: "learned", value: "16" })).rejects.toThrow(NO_SESSION);
+    expect(notesText.get(MIRA.path)).toBe("");
+  });
+
+  it("refuses a learned value when two session notes share the latest number", async () => {
+    const oneAgain = "Pale Moon/Sessions/Session 01.md";
+    const { app, gate, store, notes, notesText } = setUp({ [MIRA.path]: "", [ONE]: "", [oneAgain]: "" }, { sessions: [ONE, oneAgain] });
+    await expect(saveSheetValue(app, gate, store, notes, MIRA, acOf([]), { state: "learned", value: "16" })).rejects.toThrow(SESSIONS_SHARE_A_NUMBER);
+    expect([notesText.get(ONE), notesText.get(oneAgain)]).toEqual(["", ""]);
   });
 });
 

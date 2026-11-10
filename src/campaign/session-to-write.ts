@@ -33,7 +33,7 @@ export function latestSession(campaignFolder: string, paths: string[]): string |
   return latest;
 }
 
-export function sessionToWriteIn(
+function sessionToWriteOrNone(
   activePath: string | null,
   campaignFolder: string,
   paths: string[],
@@ -44,4 +44,23 @@ export function sessionToWriteIn(
     if (number !== null && number >= earliestSession && !numberIsShared(number, campaignFolder, paths)) return activePath;
   }
   return latestSession(campaignFolder, paths);
+}
+
+export class NoSessionToWrite extends Error {}
+
+export interface SessionWanted {
+  activePath: string | null;
+  earliestSession: number;
+  noSession: string;
+}
+
+export function latestSessionWanted(noSession: string): SessionWanted {
+  return { activePath: null, earliestSession: 0, noSession };
+}
+
+export function sessionToWrite(campaignFolder: string, paths: string[], wanted: SessionWanted): string {
+  const sessionPath = sessionToWriteOrNone(wanted.activePath, campaignFolder, paths, wanted.earliestSession);
+  if (sessionPath !== null) return sessionPath;
+  if (latestNumberIsShared(campaignFolder, paths)) throw new NoSessionToWrite(SESSIONS_SHARE_A_NUMBER);
+  throw new NoSessionToWrite(wanted.noSession);
 }
