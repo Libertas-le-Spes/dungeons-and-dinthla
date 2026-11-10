@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TFolder } from "obsidian";
-import { BAD_NAME } from "../../src/campaign/file-name";
+import { BAD_NAME } from "../../src/names/file-name";
 import { makeCampaign, NO_CAMPAIGN_NAME, type NewCampaignFiles } from "../../src/campaign/make-campaign";
 import { NO_CAMPAIGNS_FOLDER } from "../../src/fence/campaigns-folder-path";
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { nameKeyOf } from "../../src/campaign/name-key";
+import { nameKeyOf } from "../../src/names/name-key";
 
 describe("nameKeyOf", () => {
   it("gives names that differ only in capitals the same key", () => {

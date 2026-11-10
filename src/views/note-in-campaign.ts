@@ -1,5 +1,5 @@
 import type { TFile } from "obsidian";
-import { nameKeyOf } from "../campaign/name-key";
+import { nameKeyOf } from "../names/name-key";
 import type { FencedFiles } from "../fence/fenced-files";
 
 export type CampaignNoteFiles = Pick<FencedFiles, "getFiles">;

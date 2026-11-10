@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BAD_NAME } from "../../src/campaign/file-name";
+import { BAD_NAME } from "../../src/names/file-name";
 import {
   isInConfigFolder,
   newCampaignsFolderPathOf,
