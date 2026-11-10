@@ -1,5 +1,8 @@
 import type { Component } from "obsidian";
 import type { Campaign } from "../campaign/campaign";
+import { coinSourceKind } from "../kinds/coin-source-kind";
+import { questSourceKind } from "../kinds/quest-source-kind";
+import { questionSourceKind } from "../kinds/question-source-kind";
 import { questionsKind } from "../questions/questions-kind";
 import { questsKind } from "../quests/quests-kind";
 
@@ -88,37 +91,37 @@ export function campaignSections(makers: PageMakers): NavSection[] {
       heading: "From the notes",
       pages: [
         {
-          id: "questions",
+          id: questionSourceKind.page,
           label: "Questions",
           shortLabel: "Questions",
           listed: true,
           inBar: false,
-          glyph: "?",
-          glyphClass: "dd-marker-question",
+          glyph: questionSourceKind.marker.symbol,
+          glyphClass: questionSourceKind.marker.colourClass,
           make: makers.questions,
           pathAfterDelete: LEAVE_DELETED_NOTE,
           countOf: (campaign) => questionsKind.contentsOf(campaign, []).openCount,
         },
         {
-          id: "quests",
+          id: questSourceKind.page,
           label: "Quests",
           shortLabel: "Quests",
           listed: true,
           inBar: false,
-          glyph: "!",
-          glyphClass: "dd-marker-quest",
+          glyph: questSourceKind.marker.symbol,
+          glyphClass: questSourceKind.marker.colourClass,
           make: makers.quests,
           pathAfterDelete: LEAVE_DELETED_NOTE,
           countOf: (campaign) => questsKind.contentsOf(campaign, []).openCount,
         },
         {
-          id: "funds",
+          id: coinSourceKind.page,
           label: "Party funds",
           shortLabel: "Funds",
           listed: true,
           inBar: true,
-          glyph: "$",
-          glyphClass: "dd-marker-ledger",
+          glyph: coinSourceKind.marker.symbol,
+          glyphClass: coinSourceKind.marker.colourClass,
           make: makers.funds,
           pathAfterDelete: LEAVE_DELETED_NOTE,
           countOf: NO_COUNT,

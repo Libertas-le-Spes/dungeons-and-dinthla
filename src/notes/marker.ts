@@ -1,3 +1,4 @@
+import { SOURCE_MARKERS } from "../kinds/source-markers";
 import { markerStartOf, withoutBullet } from "./bullet";
 import { isFollowUp } from "./follow-up";
 import { readItemChange } from "./item-change";
@@ -9,11 +10,7 @@ export interface MarkedLine {
   body: string;
 }
 
-const MARKERS = new Map<string, Marker>([
-  ["?", "question"],
-  ["!", "quest"],
-  ["$", "ledger"],
-]);
+const MARKERS = new Map<string, Marker>(SOURCE_MARKERS.map((marker) => [marker.symbol, marker.name]));
 
 export function readMarker(line: string): MarkedLine {
   const written = line.trim();

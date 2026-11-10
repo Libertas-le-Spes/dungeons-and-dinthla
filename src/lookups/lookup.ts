@@ -1,5 +1,6 @@
 import type { Campaign, Source } from "../campaign/campaign";
 import { holderNameOf } from "../funds/item-groups";
+import { lookedUpKindOf } from "../kinds/looked-up-kinds";
 import { readItemChange } from "../notes/item-change";
 import { unlink } from "../notes/link";
 import { listQuestions } from "../questions/question-list";
@@ -22,16 +23,11 @@ export interface LookupMatch {
 
 export const LOOKUP_LIMIT = 8;
 const LOOKUP_LINE = /^\s*(\?\?|!!|\$\$)\s?(.*)$/;
-const KINDS = new Map<string, LookupKind>([
-  ["??", "question"],
-  ["!!", "quest"],
-  ["$$", "item"],
-]);
 
 export function readLookup(line: string): Lookup | null {
   const match = LOOKUP_LINE.exec(line);
   if (match === null) return null;
-  const kind = KINDS.get(match[1]!)!;
+  const kind = lookedUpKindOf(match[1]!).name;
   const typed = match[2]!;
   if (kind === "item" && readItemChange(line) !== null) return null;
   return { kind, keywords: keywordsOf(typed) };

@@ -1,3 +1,4 @@
+import { markerNamed } from "../kinds/source-markers";
 import { markerSpanOf } from "../notes/marker";
 
 const BLOCKS_WITH_LINES = "p, li";
@@ -57,7 +58,7 @@ function colourLine(nodes: Node[]): void {
   const glyph = firstText.splitText(span.start);
   glyph.splitText(span.end - span.start);
   const mark = firstText.ownerDocument.createElement("span");
-  mark.className = `dd-tokens dd-marker dd-marker-${span.marker}`;
+  mark.className = `dd-tokens dd-marker ${markerNamed(span.marker).colourClass}`;
   glyph.replaceWith(mark);
   mark.append(glyph);
 }
