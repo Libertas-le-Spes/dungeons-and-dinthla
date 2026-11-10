@@ -3,6 +3,7 @@ import { NO_CAMPAIGN } from "../campaign/campaign-folders";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
 import { sessionForDialog } from "../campaign/session-for-dialog";
+import { latestSessionWanted } from "../campaign/session-to-write";
 import { questionTextOf } from "../notes/question-lines";
 import { refusalForNewQuestion } from "./current-question";
 import { NewQuestionModal, type NewQuestion } from "./new-question-modal";
@@ -17,8 +18,7 @@ export function openNewQuestion(app: App, gate: Gate, store: CampaignStore, onCl
     new Notice(NO_CAMPAIGN);
     return;
   }
-  const wanted = { activePath: null, earliestSession: 0, noSession: NO_SESSION };
-  const sessionPath = sessionForDialog(gate.files, folder, wanted);
+  const sessionPath = sessionForDialog(gate.files, folder, latestSessionWanted(NO_SESSION));
   if (sessionPath === null) return;
   const writer = new QuestionWriter(gate.files);
   const add = async ({ question, answer }: NewQuestion) => {

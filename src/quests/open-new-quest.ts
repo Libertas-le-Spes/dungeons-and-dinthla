@@ -4,6 +4,7 @@ import { charactersIn } from "../campaign/characters";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
 import { sessionForDialog } from "../campaign/session-for-dialog";
+import { latestSessionWanted } from "../campaign/session-to-write";
 import { NewQuestModal } from "./new-quest-modal";
 import { planNewQuest, refusalForNewQuest, type NewQuest } from "./new-quest";
 import { QuestWriter } from "./quest-writer";
@@ -17,8 +18,7 @@ export function openNewQuest(app: App, gate: Gate, store: CampaignStore, onClose
     new Notice(NO_CAMPAIGN);
     return;
   }
-  const wanted = { activePath: null, earliestSession: 0, noSession: NO_SESSION };
-  const sessionPath = sessionForDialog(gate.files, folder, wanted);
+  const sessionPath = sessionForDialog(gate.files, folder, latestSessionWanted(NO_SESSION));
   if (sessionPath === null) return;
   const characters = charactersIn(gate, folder, sessionPath);
   const writer = new QuestWriter(gate.files);

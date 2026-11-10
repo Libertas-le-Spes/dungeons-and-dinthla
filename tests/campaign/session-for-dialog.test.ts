@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { sessionForDialog } from "../../src/campaign/session-for-dialog";
-import { SESSIONS_SHARE_A_NUMBER } from "../../src/campaign/session-to-write";
+import { latestSessionWanted, SESSIONS_SHARE_A_NUMBER } from "../../src/campaign/session-to-write";
 import { Notice } from "../stubs/obsidian";
 
 const NO_SESSION = "Start a session first.";
-const LATEST = { activePath: null, earliestSession: 0, noSession: NO_SESSION };
+const LATEST = latestSessionWanted(NO_SESSION);
 
 function filesAt(paths: string[]) {
   const files = paths.map((path) => ({ path }) as TFile);
@@ -32,5 +32,11 @@ describe("sessionForDialog", () => {
     const files = filesAt(["Pale Moon/Sessions/Session 1.md", "Pale Moon/Sessions/Session 01.md"]);
     expect(sessionForDialog(files, "Pale Moon", LATEST)).toBeNull();
     expect(Notice.shown).toEqual([SESSIONS_SHARE_A_NUMBER]);
+  });
+
+  it("lets an error that isn't a refusal through and says nothing", () => {
+    const files = { getFiles: () => [{} as TFile] };
+    expect(() => sessionForDialog(files, "Pale Moon", LATEST)).toThrow(TypeError);
+    expect(Notice.shown).toEqual([]);
   });
 });
