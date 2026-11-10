@@ -1,21 +1,37 @@
-import type { Campaign, QuestionRecord, SourcedText } from "../campaign/campaign";
+import type { Campaign, QuestionRecord, Source, SourcedText } from "../campaign/campaign";
 import { questionThreadKind } from "../campaign/question-thread-kind";
+import { questionTrackedKind } from "../kinds/question-tracked-kind";
 import type { LineState } from "../views/line-state";
-import type { ShownThreadKind, ThreadFact } from "../views/shown-thread-kind";
+import type { ShownThreadKind } from "../views/shown-thread-kind";
+import type { ThreadFact } from "../views/thread-fact";
+import type { EndedLook } from "../views/thread-look";
+import type { ThreadOpeners } from "../views/thread-openers";
 
+const MARK_CLASS = "dd-mark-question";
 const ANSWERED: LineState = { sign: "✓", label: "Answered", struck: false };
+const ANSWERED_LOOK: EndedLook = {
+  state: ANSWERED,
+  row: { markClass: MARK_CLASS, sign: ANSWERED.sign, label: ANSWERED.label, textClass: "dd-text", status: null },
+};
 
 export const questionShownKind: ShownThreadKind<QuestionRecord, SourcedText, "answer"> = {
-  kind: questionThreadKind,
+  threadKind: questionThreadKind,
   threadsOf(campaign: Campaign): QuestionRecord[] {
     return campaign.questions;
   },
-  markClass: "dd-mark-question",
+  listWords: { itemName: "question", openWord: "open", foldedWord: "answered", emptyHint: "No open questions. Start a note with ? to ask one." },
+  panelWords: { title: "Open questions", link: "All questions", noneOpen: "Nothing open" },
+  openLook: { markClass: MARK_CLASS, sign: questionTrackedKind.marker.symbol, label: null, textClass: "dd-text", status: null },
+  endedLookOf(): EndedLook {
+    return ANSWERED_LOOK;
+  },
   factsOf(): ThreadFact[] {
     return [];
   },
-  stateOf(): LineState {
-    return ANSWERED;
+  show(openers: ThreadOpeners): void {
+    openers.showQuestions();
   },
-  showsStateInMeta: false,
+  open(openers: ThreadOpeners, source: Source, onClosed: (changed: boolean) => void): void {
+    openers.openQuestion(source, onClosed);
+  },
 };

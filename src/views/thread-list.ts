@@ -9,8 +9,8 @@ function searchableTextOf<Thread extends ThreadRecord, Ending extends SourcedTex
   shown: ShownThreadKind<Thread, Ending, EndingName>,
   thread: Thread,
 ): string {
-  const texts = [shown.kind.textOf(thread), ...shown.factsOf(thread).map((fact) => fact.value)];
-  const ending = shown.kind.endingOf(thread);
+  const texts = [shown.threadKind.textOf(thread), ...shown.factsOf(thread).map((fact) => fact.value)];
+  const ending = shown.threadKind.endingOf(thread);
   if (ending !== null) texts.push(ending.text);
   return unlink(texts.join(" ")).toLowerCase();
 }
@@ -30,8 +30,8 @@ export function listThreads<Thread extends ThreadRecord, Ending extends SourcedT
   keywords: string[],
 ): ListContents<Thread> {
   const newestFirst = [...shown.threadsOf(campaign)].reverse();
-  const open = newestFirst.filter((thread) => shown.kind.endingOf(thread) === null);
-  const ended = newestFirst.filter((thread) => shown.kind.endingOf(thread) !== null);
+  const open = newestFirst.filter((thread) => shown.threadKind.endingOf(thread) === null);
+  const ended = newestFirst.filter((thread) => shown.threadKind.endingOf(thread) !== null);
   return {
     open: open.filter((thread) => matchesEvery(shown, thread, keywords)),
     folded: ended.filter((thread) => matchesEvery(shown, thread, keywords)),

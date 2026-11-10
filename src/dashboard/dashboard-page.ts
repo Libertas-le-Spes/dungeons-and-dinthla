@@ -15,22 +15,22 @@ import { addLedgerRow, NO_COIN_ENTRIES } from "../funds/ledger-row";
 import type { FollowUpName } from "../kinds/follow-up-name";
 import { formatMoney } from "../notes/money";
 import type { LinkActions } from "../views/linked-text";
+import type { OpenRow } from "../views/list-page";
 import { focusRowAt, NO_ROW, RowFocus, type FocusRow } from "../views/row-focus";
+import type { ShownThreadKind } from "../views/shown-thread-kind";
+import { SHOWN_THREAD_KINDS } from "../views/shown-thread-kinds";
 import { listThreads } from "../views/thread-list";
+import type { ThreadOpeners } from "../views/thread-openers";
 import { addThreadRow } from "../views/thread-row";
 import { linesWrittenIn, type WrittenLineRows } from "./latest-session";
-import { questionPanelKind } from "./question-panel-kind";
-import { questPanelKind } from "./quest-panel-kind";
 import { addShortCharacterCard } from "./short-character-card";
-import type { ThreadPanelActions } from "./thread-panel-actions";
-import type { ThreadPanelKind } from "./thread-panel-kind";
 
 const SHOWN_ROWS = 3;
 const SHOWN_SESSION_LINES = 4;
 const NO_SESSION = "No sessions yet. Start one to write in it.";
 const NO_CHARACTERS = "No characters yet. A note in the campaign’s Characters folder adds one.";
 
-export interface DashboardActions extends LinkActions, ThreadPanelActions {
+export interface DashboardActions extends LinkActions, ThreadOpeners {
   openLedgerEntry(source: Source, onClosed: (outcome: CoinOutcome) => void): void;
   showFunds(): void;
   showCharacters(): void;
@@ -48,12 +48,11 @@ interface Panel {
 }
 
 interface ThreadPanel {
+  shown: ShownThreadKind<ThreadRecord, SourcedText, FollowUpName>;
   panel: Panel;
   count: HTMLElement;
   list: HTMLElement;
 }
-
-type OpenRow = (source: Source, onClosed: (changed: boolean) => void) => void;
 
 export type NewsLineFor = (lineEl: HTMLElement) => Component;
 
@@ -63,7 +62,7 @@ function countWord(count: number, one: string, many: string): string {
 }
 
 export class DashboardPage extends Component {
-  private readonly threadRenders: ((campaign: Campaign) => void)[] = [];
+  private threadPanels: ThreadPanel[] = [];
   private purse!: Panel;
   private purseTotal!: HTMLElement;
   private inOut!: HTMLElement;
@@ -77,7 +76,7 @@ export class DashboardPage extends Component {
   private characterRenders = 0;
   private readonly rowFocus = new RowFocus();
   private readonly sessionRows: WrittenLineRows = {
-    addThread: (kind, thread) => addThreadRow(kind.shown, this.sessionList, thread, [], this.threadActions(this.session, kind)),
+    addThread: (shown, thread) => addThreadRow(shown, this.sessionList, thread, [], this.rowActions(this.session, this.openerOf(shown))),
     addLedgerLine: (ledgerLine) => addLedgerRow(this.sessionList, ledgerLine, this.ledgerActions(this.session), this.actions),
   };
 
@@ -97,8 +96,7 @@ export class DashboardPage extends Component {
     root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-dashboard");
     this.addChild(this.newsLineFor(root.createDiv({ cls: "dd-news" })));
     const grid = root.createDiv({ cls: "dd-dashboard-grid" });
-    this.buildThreads(grid, questionPanelKind);
-    this.buildThreads(grid, questPanelKind);
+    this.threadPanels = SHOWN_THREAD_KINDS.map((shown) => this.buildThreads(grid, shown));
     this.buildPurse(grid);
     this.buildCharacters(grid);
     this.buildSession(grid);
@@ -121,14 +119,11 @@ export class DashboardPage extends Component {
     return { section, title: heading, links, link };
   }
 
-  private buildThreads<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName>(
-    grid: HTMLElement,
-    kind: ThreadPanelKind<Thread, Ending, EndingName>,
-  ): void {
-    const panel = this.addPanel(grid, kind.title, kind.linkText, () => kind.show(this.actions));
+  private buildThreads(grid: HTMLElement, shown: ShownThreadKind<ThreadRecord, SourcedText, FollowUpName>): ThreadPanel {
+    const panel = this.addPanel(grid, shown.panelWords.title, shown.panelWords.link, () => shown.show(this.actions));
     const count = panel.section.createDiv({ cls: "dd-big" });
     const list = panel.section.createEl("ul", { cls: "dd-list" });
-    this.threadRenders.push((campaign) => this.renderThreads(kind, { panel, count, list }, campaign));
+    return { shown, panel, count, list };
   }
 
   private buildPurse(grid: HTMLElement): void {
@@ -155,7 +150,7 @@ export class DashboardPage extends Component {
   private render(): void {
     const campaign = this.store.current;
     const funds = summariseFunds(campaign);
-    for (const renderThreads of this.threadRenders) renderThreads(campaign);
+    for (const threadPanel of this.threadPanels) this.renderThreads(threadPanel, campaign);
     this.renderPurse(campaign, funds);
     this.renderSession(campaign, funds);
     void this.renderCharacters();
@@ -179,11 +174,10 @@ export class DashboardPage extends Component {
     };
   }
 
-  private threadActions<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName>(
-    panel: Panel,
-    kind: ThreadPanelKind<Thread, Ending, EndingName>,
-  ): LinkActions {
-    return this.rowActions(panel, (source, onClosed) => kind.open(this.actions, source, onClosed));
+  private openerOf<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName>(
+    shown: ShownThreadKind<Thread, Ending, EndingName>,
+  ): OpenRow {
+    return (source, onClosed) => shown.open(this.actions, source, onClosed);
   }
 
   private ledgerActions(panel: Panel): LinkActions {
@@ -203,16 +197,13 @@ export class DashboardPage extends Component {
     this.rowFocus.afterClose(focusRow, changed, () => panel.link.focus());
   }
 
-  private renderThreads<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName>(
-    kind: ThreadPanelKind<Thread, Ending, EndingName>,
-    threadPanel: ThreadPanel,
-    campaign: Campaign,
-  ): void {
-    const contents = listThreads(kind.shown, campaign, []);
-    this.showCount(threadPanel.count, contents.openCount, kind.countWord, kind.noneText);
+  private renderThreads(threadPanel: ThreadPanel, campaign: Campaign): void {
+    const shown = threadPanel.shown;
+    const contents = listThreads(shown, campaign, []);
+    this.showCount(threadPanel.count, contents.openCount, shown.listWords.openWord, shown.panelWords.noneOpen);
     threadPanel.list.empty();
-    const actions = this.threadActions(threadPanel.panel, kind);
-    for (const thread of contents.open.slice(0, SHOWN_ROWS)) addThreadRow(kind.shown, threadPanel.list, thread, [], actions);
+    const actions = this.rowActions(threadPanel.panel, this.openerOf(shown));
+    for (const thread of contents.open.slice(0, SHOWN_ROWS)) addThreadRow(shown, threadPanel.list, thread, [], actions);
   }
 
   private renderPurse(campaign: Campaign, funds: FundsSummary): void {

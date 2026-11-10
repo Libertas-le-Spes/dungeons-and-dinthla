@@ -8,7 +8,7 @@ export function threadStateOf<Thread extends ThreadRecord, Ending extends Source
   shown: ShownThreadKind<Thread, Ending, EndingName>,
   thread: Thread,
 ): LineState | null {
-  const ending = shown.kind.endingOf(thread);
+  const ending = shown.threadKind.endingOf(thread);
   if (ending === null) return null;
-  return shown.stateOf(ending);
+  return shown.endedLookOf(ending).state;
 }
