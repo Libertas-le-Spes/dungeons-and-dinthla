@@ -1,13 +1,15 @@
 import { buildCampaign } from "../campaign/build-campaign";
 import type { Campaign, CoinRecord, QuestRecord, QuestStatus, SessionNote } from "../campaign/campaign";
 import type { Removal } from "../campaign/note-editor";
+import { questThreadKind } from "../campaign/quest-thread-kind";
 import { sessionNoteOf } from "../campaign/session-file";
+import { endingRemoval } from "../campaign/thread-removal";
 import { readLedgerEntry } from "../notes/ledger";
 import { appendLines, removeLines } from "../notes/note-lines";
 import { followUpQuestLine, isCoinReward, outcomeLine, progressLine, questTextOf, rewardLine } from "../notes/quest-lines";
 import { readMarker } from "../notes/marker";
 import { readQuest } from "../notes/quest";
-import { isFollowUpLine, oneLine } from "../notes/question-lines";
+import { oneLine } from "../notes/one-line";
 
 export type QuestStatusChoice = "active" | QuestStatus;
 
@@ -59,13 +61,7 @@ export function canCollectReward(record: QuestRecord, coins: CoinRecord[]): bool
 }
 
 export function outcomeRemoval(record: QuestRecord): Removal | null {
-  const outcome = record.outcome;
-  if (outcome === null) return null;
-  return {
-    path: outcome.source.path,
-    line: outcome.source.line,
-    matches: (written) => isFollowUpLine(written, outcome.status, record.quest.title, outcome.text),
-  };
+  return endingRemoval(questThreadKind, record);
 }
 
 export function initialQuestEdit(record: QuestRecord): QuestEdit {

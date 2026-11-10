@@ -1,9 +1,9 @@
 import type { Source } from "../kinds/source";
 import type { ItemChangeKind } from "../notes/item-change";
 import type { CoinEntry } from "../notes/ledger";
-import type { Quest } from "../notes/quest";
+import type { Quest, QuestStatus } from "../notes/quest";
 
-export type { Source };
+export type { QuestStatus, Source };
 
 export interface SessionNote {
   path: string;
@@ -23,8 +23,6 @@ export interface QuestionRecord {
   clues: SourcedText[];
   answer: SourcedText | null;
 }
-
-export type QuestStatus = "completed" | "failed";
 
 export interface QuestOutcome extends SourcedText {
   status: QuestStatus;

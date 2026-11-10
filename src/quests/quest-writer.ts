@@ -1,21 +1,8 @@
-import type { QuestRecord, SourcedText } from "../campaign/campaign";
-import { NoteEditor, type EditorFiles, type Removal } from "../campaign/note-editor";
-import type { FollowUpName } from "../kinds/follow-up-name";
-import { isQuestLine } from "../notes/quest-lines";
-import { isFollowUpLine } from "../notes/question-lines";
-import { outcomeRemoval, type QuestPlan } from "./quest-plan";
-
-function followUpRemoval(record: QuestRecord, kind: FollowUpName, note: SourcedText): Removal {
-  return {
-    path: note.source.path,
-    line: note.source.line,
-    matches: (written) => isFollowUpLine(written, kind, record.quest.title, note.text),
-  };
-}
-
-function questRemoval(record: QuestRecord): Removal {
-  return { path: record.source.path, line: record.source.line, matches: (written) => isQuestLine(written, record.quest.title) };
-}
+import type { QuestRecord } from "../campaign/campaign";
+import { NoteEditor, type EditorFiles } from "../campaign/note-editor";
+import { questThreadKind } from "../campaign/quest-thread-kind";
+import { followUpRemovals, openingRemoval } from "../campaign/thread-removal";
+import type { QuestPlan } from "./quest-plan";
 
 export class QuestWriter {
   private readonly editor: NoteEditor;
@@ -34,9 +21,6 @@ export class QuestWriter {
   }
 
   async delete(record: QuestRecord): Promise<boolean> {
-    const others = record.progress.map((note) => followUpRemoval(record, "progress", note));
-    const outcome = outcomeRemoval(record);
-    if (outcome !== null) others.push(outcome);
-    return this.editor.removeWithItsLines(questRemoval(record), others);
+    return this.editor.removeWithItsLines(openingRemoval(questThreadKind, record), followUpRemovals(questThreadKind, record));
   }
 }
