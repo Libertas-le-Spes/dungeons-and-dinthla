@@ -281,8 +281,8 @@ const HARMLESS_SAMPLES = [
 ];
 
 const OPENING_SAMPLES = [
-  'import type { App } from "obsidian";\nexport const show = (app: App) => app.workspace.getLeaf(false).setViewState({ type: "markdown", state: { file: "Private/Recovery codes.md" } });',
-  'import type { App } from "obsidian";\nexport const peek = (app: App, event: MouseEvent, targetEl: HTMLElement) => app.workspace.trigger("hover-link", { event, source: "preview", hoverParent: targetEl, targetEl, linktext: "Private/Recovery codes", sourcePath: "" });',
+  'import type { App } from "obsidian";\nexport const show = (app: App) => app.workspace.getLeaf(false).setViewState({ type: "markdown", state: { file: "Private/Primary.md" } });',
+  'import type { App } from "obsidian";\nexport const peek = (app: App, event: MouseEvent, targetEl: HTMLElement) => app.workspace.trigger("hover-link", { event, source: "preview", hoverParent: targetEl, targetEl, linktext: "Private/Primary", sourcePath: "" });',
   'import type { App } from "obsidian";\nexport const open = (app: App) => app.workspace.getLeaf("tab").openFile(app.workspace.getActiveFile());',
   'import type { App, TFile } from "obsidian";\nexport const open = (app: App, file: TFile) => app.workspace.getLeaf(false).openFile(file);',
   'import type { App } from "obsidian";\nexport const pop = (app: App) => app.workspace.openPopoutLeaf();',
@@ -392,24 +392,24 @@ const GATE_FORGING_SAMPLES = [
 ];
 
 const FILE_CHANGING_SAMPLES = [
-  'import type { App } from "obsidian";\nimport type { Gate } from "../../../../src/fence/gatekeeper";\nexport async function open(app: App, gate: Gate, path: string) {\n  const file = gate.files.getFileByPath(path);\n  if (file === null) return;\n  file.path = "Private/Recovery codes.md";\n  await app.workspace.getLeaf(false).openFile(file);\n}',
-  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  file["path"] = "Private/Recovery codes.md";\n}',
+  'import type { App } from "obsidian";\nimport type { Gate } from "../../../../src/fence/gatekeeper";\nexport async function open(app: App, gate: Gate, path: string) {\n  const file = gate.files.getFileByPath(path);\n  if (file === null) return;\n  file.path = "Private/Primary.md";\n  await app.workspace.getLeaf(false).openFile(file);\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  file["path"] = "Private/Primary.md";\n}',
   'import type { TAbstractFile } from "obsidian";\nexport function move(file: TAbstractFile) {\n  file.name += ".md";\n}',
   'import type { TFolder } from "obsidian";\nexport function move(folder: TFolder, other: TFolder) {\n  folder.parent = other;\n}',
   'import type { TFile } from "obsidian";\nexport function forget(file: Partial<TFile>) {\n  delete file.path;\n}',
-  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  Object.assign(file, { path: "Private/Recovery codes.md" });\n}',
-  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  Object.defineProperty(file, "path", { value: "Private/Recovery codes.md" });\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  Object.assign(file, { path: "Private/Primary.md" });\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  Object.defineProperty(file, "path", { value: "Private/Primary.md" });\n}',
   'import type { TFile } from "obsidian";\nexport function move(file: TFile, other: object) {\n  Object.setPrototypeOf(file, other);\n}',
-  'import type { TFile } from "obsidian";\nexport function move(file: Pick<TFile, "path">) {\n  file.path = "Private/Recovery codes.md";\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: Pick<TFile, "path">) {\n  file.path = "Private/Primary.md";\n}',
   'import type { TFile } from "obsidian";\nexport function move(file: TFile, paths: string[]) {\n  [file.path] = paths;\n}',
-  'import type { TFile } from "obsidian";\nexport function move<T extends TFile>(file: T) {\n  file.path = "Private/Recovery codes.md";\n}',
-  'import type { TFile } from "obsidian";\nexport function rename(file: TFile) {\n  file.basename = "Recovery codes";\n}',
-  'import type { TFile } from "obsidian";\nexport function move(file: TFile, paths: string[]) {\n  [file.path = "Private/Recovery codes.md"] = paths;\n}',
-  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  (file.path) = "Private/Recovery codes.md";\n}',
-  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  (file.path as string) = "Private/Recovery codes.md";\n}',
-  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  (<string>file.path) = "Private/Recovery codes.md";\n}',
-  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  file.path! = "Private/Recovery codes.md";\n}',
-  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  (file.path satisfies string) = "Private/Recovery codes.md";\n}',
+  'import type { TFile } from "obsidian";\nexport function move<T extends TFile>(file: T) {\n  file.path = "Private/Primary.md";\n}',
+  'import type { TFile } from "obsidian";\nexport function rename(file: TFile) {\n  file.basename = "Primary";\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile, paths: string[]) {\n  [file.path = "Private/Primary.md"] = paths;\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  (file.path) = "Private/Primary.md";\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  (file.path as string) = "Private/Primary.md";\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  (<string>file.path) = "Private/Primary.md";\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  file.path! = "Private/Primary.md";\n}',
+  'import type { TFile } from "obsidian";\nexport function move(file: TFile) {\n  (file.path satisfies string) = "Private/Primary.md";\n}',
   'import type { TFile } from "obsidian";\nexport function move(file: TFile, paths: string[]) {\n  [...file.path] = paths;\n}',
   'import type { TFile } from "obsidian";\nexport function move(file: TFile, other: { path: string }) {\n  ({ path: file.path } = other);\n}',
 ];
