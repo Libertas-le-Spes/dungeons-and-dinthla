@@ -26,7 +26,7 @@ npm install
 npm run build
 ```
 
-Then choose the **Campaigns folder**, on the welcome page or in the plugin's settings: the one folder of the vault where your campaigns live, such as `D&D`. The plugin reads and writes only inside it and does nothing until it is chosen, so the rest of your vault stays out of its reach. Every pull request and release checks its released `main.js` and `styles.css` for known kinds of network code. [docs/note-format.md](docs/note-format.md#the-campaigns-folder) says what that means.
+Then choose the **Campaigns folder**, on the welcome page or in the plugin's settings: the one folder of the vault where your campaigns live, such as `D&D`. The plugin reads and writes only inside it and does nothing until it is chosen, so the rest of your vault stays out of its reach. Every pull request and release scans the plugin's source for code that could go round that fence, working from allow-lists of what the plugin uses today and known patterns, and checks its released `main.js` and `styles.css` for known kinds of network code. Neither is a proof: they catch what they know to look for. [docs/note-format.md](docs/note-format.md#the-campaigns-folder) says what they check.
 
 The plugin checks paths, so it can't see where a folder really is: a symbolic link (or, on Windows, a junction) inside the Campaigns folder that points elsewhere on your disk lets the plugin read and write there too. Keep such links out of the Campaigns folder.
 
