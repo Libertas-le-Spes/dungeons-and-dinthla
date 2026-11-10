@@ -21,10 +21,12 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Check the tag matches the manifest, package.json and versions.json
+      - name: Check the tag matches the manifest, package.json, package-lock.json and versions.json
         run: |
           version="$(jq -er .version manifest.json)"
           package_version="$(jq -er .version package.json)"
+          lock_version="$(jq -er .version package-lock.json)"
+          lock_root_version="$(jq -er '.packages[""].version' package-lock.json)"
           min_app_version="$(jq -er .minAppVersion manifest.json)"
           listed_min_app_version="$(jq -er --arg version "$GITHUB_REF_NAME" '.[$version]' versions.json)"
           if [ "$GITHUB_REF_NAME" != "$version" ]; then
@@ -33,6 +35,10 @@ jobs:
           fi
           if [ "$GITHUB_REF_NAME" != "$package_version" ]; then
             echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $package_version"
+            exit 1
+          fi
+          if [ "$GITHUB_REF_NAME" != "$lock_version" ] || [ "$GITHUB_REF_NAME" != "$lock_root_version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package-lock.json versions $lock_version and $lock_root_version"
             exit 1
           fi
           if [ "$listed_min_app_version" != "$min_app_version" ]; then
