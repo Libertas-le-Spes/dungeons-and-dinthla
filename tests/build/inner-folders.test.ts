@@ -23,12 +23,20 @@ function filesIn(folder: string): string[] {
 function folderOf(file: string, imported: string): string {
   const target = relative(SOURCE_FOLDER, resolve(dirname(file), imported));
   const [top] = target.split("/");
+  if (top === undefined) throw new Error(`${imported} names no folder`);
   return top;
 }
 
+function importedPathsIn(text: string): string[] {
+  const paths: string[] = [];
+  for (const [, imported] of text.matchAll(IMPORTED)) {
+    if (imported !== undefined) paths.push(imported);
+  }
+  return paths;
+}
+
 function importedFolders(file: string): string[] {
-  const text = readFileSync(file, "utf8");
-  return [...text.matchAll(IMPORTED)].map(([, imported]) => folderOf(file, imported));
+  return importedPathsIn(readFileSync(file, "utf8")).map((imported) => folderOf(file, imported));
 }
 
 function reachesOutward(inner: InnerFolder): string[] {
