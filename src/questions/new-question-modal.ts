@@ -1,13 +1,13 @@
 import { Setting, type App } from "obsidian";
 import { isSubmit } from "../views/keys";
-import { TrackedDialog } from "../views/tracked-dialog";
+import { ChangeDialog } from "../views/change-dialog";
 
 export interface NewQuestion {
   question: string;
   answer: string;
 }
 
-export class NewQuestionModal extends TrackedDialog {
+export class NewQuestionModal extends ChangeDialog {
   private readonly entry: NewQuestion = { question: "", answer: "" };
   private questionInput: HTMLInputElement | null = null;
 
@@ -58,14 +58,14 @@ export class NewQuestionModal extends TrackedDialog {
     this.onClosed();
   }
 
-  protected override finished(added: boolean): void {
-    if (added) this.close();
+  protected override finished(wrote: boolean): void {
+    if (wrote) this.close();
     else if (this.questionInput !== null) this.questionInput.focus();
   }
 
   protected override failed(): void {}
 
   private save(): void {
-    this.run(() => this.add(this.entry), "Couldn't add the question");
+    this.runChange(() => this.add(this.entry), "Couldn't add the question");
   }
 }

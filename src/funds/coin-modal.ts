@@ -3,17 +3,16 @@ import { Setting, type App } from "obsidian";
 import { readCoinDraft, type CoinDraft, type CoinLine, type Direction } from "../notes/coin-lines";
 import { isSubmit } from "../views/keys";
 import { deleteOnSecondPress } from "../views/second-press";
-import { TrackedDialog } from "../views/tracked-dialog";
+import { ChangeDialog } from "../views/change-dialog";
 import type { CoinEntryChoices } from "./coin-entry";
 
 export type CoinOutcome = "unchanged" | "written" | "deleted";
 
 const DIRECTIONS: Direction[] = ["in", "out"];
 
-export class CoinModal extends TrackedDialog {
+export class CoinModal extends ChangeDialog {
   private readonly draft: CoinDraft;
   private outcome: CoinOutcome = "unchanged";
-  private doing: CoinOutcome = "unchanged";
   private reading: HTMLElement | null = null;
   private amountInput: HTMLInputElement | null = null;
 
@@ -90,8 +89,7 @@ export class CoinModal extends TrackedDialog {
     this.onClosed(this.outcome);
   }
 
-  protected override finished(wrote: boolean): void {
-    if (wrote) this.outcome = this.doing;
+  protected override finished(): void {
     this.close();
   }
 
@@ -148,11 +146,12 @@ export class CoinModal extends TrackedDialog {
   }
 
   private saveAs(done: CoinOutcome, change: () => Promise<boolean>): void {
-    this.run(() => this.start(done, change), this.failureText());
+    this.runChange(() => this.noting(done, change), this.failureText());
   }
 
-  private start(done: CoinOutcome, change: () => Promise<boolean>): Promise<boolean> {
-    this.doing = done;
-    return change();
+  private async noting(done: CoinOutcome, change: () => Promise<boolean>): Promise<boolean> {
+    const wrote = await change();
+    if (wrote) this.outcome = done;
+    return wrote;
   }
 }

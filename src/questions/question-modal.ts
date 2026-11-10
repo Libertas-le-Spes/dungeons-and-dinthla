@@ -2,8 +2,7 @@ import { Setting, type App } from "obsidian";
 import type { QuestionRecord } from "../campaign/campaign";
 import { isSubmit } from "../views/keys";
 import { deleteOnSecondPress } from "../views/second-press";
-import { TrackedDialog } from "../views/tracked-dialog";
-import { PartlyWritten } from "../campaign/note-editor";
+import { RecordChangeDialog } from "../views/record-change-dialog";
 import type { QuestionEdit } from "./question-plan";
 
 export interface QuestionChoices {
@@ -20,18 +19,17 @@ export interface QuestionPlaces {
 
 const FAILURE = "Couldn't change the question";
 
-export class QuestionModal extends TrackedDialog {
+export class QuestionModal extends RecordChangeDialog {
   private readonly edit: QuestionEdit;
-  private changed = false;
 
   constructor(
     app: App,
     private readonly question: QuestionRecord,
     private readonly places: QuestionPlaces,
     private readonly choices: QuestionChoices,
-    private readonly onClosed: (changed: boolean) => void,
+    onClosed: (changed: boolean) => void,
   ) {
-    super(app);
+    super(app, onClosed);
     let answer = "";
     if (question.answer !== null) answer = question.answer.text;
     this.edit = { answer, followUp: "" };
@@ -52,7 +50,7 @@ export class QuestionModal extends TrackedDialog {
       area.inputEl.addEventListener("keydown", (event) => {
         if (!isSubmit(event, true)) return;
         event.preventDefault();
-        this.run(() => this.choices.save(this.edit), FAILURE);
+        this.runChange(() => this.choices.save(this.edit), FAILURE);
       });
       area.inputEl.focus();
     });
@@ -64,35 +62,20 @@ export class QuestionModal extends TrackedDialog {
       text.inputEl.addEventListener("keydown", (event) => {
         if (!isSubmit(event, false)) return;
         event.preventDefault();
-        this.run(() => this.choices.save(this.edit), FAILURE);
+        this.runChange(() => this.choices.save(this.edit), FAILURE);
       });
     });
     let where = `New lines go into ${this.places.writesTo}.`;
     if (this.question.answer !== null) where = `New lines go into ${this.places.writesTo}; a changed answer replaces the old one in ${this.places.answeredIn}.`;
     contentEl.createEl("p", { cls: "dd-where", text: where });
     const buttons = new Setting(contentEl);
-    buttons.addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.run(() => this.choices.save(this.edit), FAILURE)));
+    buttons.addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.runChange(() => this.choices.save(this.edit), FAILURE)));
     if (this.question.answer !== null) {
-      buttons.addButton((button) => button.setButtonText("Reopen question").onClick(() => this.run(() => this.choices.reopen(), FAILURE)));
+      buttons.addButton((button) => button.setButtonText("Reopen question").onClick(() => this.runChange(() => this.choices.reopen(), FAILURE)));
     }
     buttons.addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));
     buttons.addButton((button) => {
-      this.stopOnClose(deleteOnSecondPress(button, "Delete question", () => this.run(() => this.choices.delete(), FAILURE)));
+      this.stopOnClose(deleteOnSecondPress(button, "Delete question", () => this.runChange(() => this.choices.delete(), FAILURE)));
     });
-  }
-
-  protected override closed(): void {
-    this.onClosed(this.changed);
-  }
-
-  protected override finished(wrote: boolean): void {
-    this.changed = wrote;
-    this.close();
-  }
-
-  protected override failed(error: unknown): void {
-    if (!(error instanceof PartlyWritten)) return;
-    this.changed = true;
-    this.close();
   }
 }

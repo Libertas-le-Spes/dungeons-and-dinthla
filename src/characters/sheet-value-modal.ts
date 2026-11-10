@@ -5,7 +5,7 @@ import { sessionLabelOf } from "../campaign/session-file";
 import { isSubmit } from "../views/keys";
 import { messageOf } from "../views/message-of";
 import { deleteOnSecondPress } from "../views/second-press";
-import { TrackedDialog } from "../views/tracked-dialog";
+import { ChangeDialog } from "../views/change-dialog";
 import type { SheetValue, ValueState } from "./character-sheet";
 import { shownTextOf, STATE_WORDS } from "./character-sheet-page";
 import type { ValueChoice } from "./sheet-value-writer";
@@ -52,7 +52,7 @@ export function whereText(character: string, sessionLabel: string | null): strin
   return `${learned} Override changes ${character}'s note.`;
 }
 
-export class SheetValueModal extends TrackedDialog {
+export class SheetValueModal extends ChangeDialog {
   private typed: string;
   private valueInput: HTMLInputElement | null = null;
 
@@ -134,6 +134,6 @@ export class SheetValueModal extends TrackedDialog {
   }
 
   private choose(state: ValueState): void {
-    this.run(() => this.dialog.save({ state, value: this.typed }), `Couldn't change the ${this.dialog.value.label.toLowerCase()}`);
+    this.runChange(() => this.dialog.save({ state, value: this.typed }), `Couldn't change the ${this.dialog.value.label.toLowerCase()}`);
   }
 }

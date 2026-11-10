@@ -1,10 +1,10 @@
 import { Setting, type App } from "obsidian";
 import { isSubmit } from "../views/keys";
-import { TrackedDialog } from "../views/tracked-dialog";
+import { ChangeDialog } from "../views/change-dialog";
 import { CharacterSuggest } from "./character-suggest";
 import type { NewQuest } from "./new-quest";
 
-export class NewQuestModal extends TrackedDialog {
+export class NewQuestModal extends ChangeDialog {
   private readonly entry: NewQuest = { title: "", givenBy: "", reward: "" };
   private titleInput: HTMLInputElement | null = null;
 
@@ -55,8 +55,8 @@ export class NewQuestModal extends TrackedDialog {
     this.onClosed();
   }
 
-  protected override finished(added: boolean): void {
-    if (added) this.close();
+  protected override finished(wrote: boolean): void {
+    if (wrote) this.close();
     else if (this.titleInput !== null) this.titleInput.focus();
   }
 
@@ -71,6 +71,6 @@ export class NewQuestModal extends TrackedDialog {
   }
 
   private save(): void {
-    this.run(() => this.add(this.entry), "Couldn't add the quest");
+    this.runChange(() => this.add(this.entry), "Couldn't add the quest");
   }
 }

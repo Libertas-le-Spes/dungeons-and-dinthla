@@ -1,10 +1,9 @@
 import { choiceOf } from "../views/choice-of";
 import { Setting, type App, type TextAreaComponent } from "obsidian";
 import type { QuestRecord } from "../campaign/campaign";
-import { PartlyWritten } from "../campaign/note-editor";
 import { isSubmit } from "../views/keys";
 import { deleteOnSecondPress } from "../views/second-press";
-import { TrackedDialog } from "../views/tracked-dialog";
+import { RecordChangeDialog } from "../views/record-change-dialog";
 import { initialQuestEdit, type QuestEdit, type QuestStatusChoice } from "./quest-plan";
 
 export interface QuestChoices {
@@ -31,9 +30,8 @@ function factsOf(record: QuestRecord): string {
   return facts.join(" · ");
 }
 
-export class QuestModal extends TrackedDialog {
+export class QuestModal extends RecordChangeDialog {
   private readonly edit: QuestEdit;
-  private changed = false;
   private rewardRow: HTMLElement | null = null;
   private happenedArea: TextAreaComponent | null = null;
 
@@ -43,9 +41,9 @@ export class QuestModal extends TrackedDialog {
     private readonly places: QuestPlaces,
     private readonly canCollectReward: boolean,
     private readonly choices: QuestChoices,
-    private readonly onClosed: (changed: boolean) => void,
+    onClosed: (changed: boolean) => void,
   ) {
-    super(app);
+    super(app, onClosed);
     this.edit = initialQuestEdit(record);
   }
 
@@ -80,7 +78,7 @@ export class QuestModal extends TrackedDialog {
       area.inputEl.addEventListener("keydown", (event) => {
         if (!isSubmit(event, true)) return;
         event.preventDefault();
-        this.run(() => this.choices.save(this.edit), FAILURE);
+        this.runChange(() => this.choices.save(this.edit), FAILURE);
       });
     });
     if (this.canCollectReward) {
@@ -100,33 +98,18 @@ export class QuestModal extends TrackedDialog {
       text.inputEl.addEventListener("keydown", (event) => {
         if (!isSubmit(event, false)) return;
         event.preventDefault();
-        this.run(() => this.choices.save(this.edit), FAILURE);
+        this.runChange(() => this.choices.save(this.edit), FAILURE);
       });
     });
     let where = `New lines go into ${this.places.writesTo}.`;
     if (this.record.outcome !== null) where = `New lines go into ${this.places.writesTo}; a changed outcome, with its reward and follow-up, goes into ${this.places.finishedIn}.`;
     contentEl.createEl("p", { cls: "dd-where", text: where });
     const buttons = new Setting(contentEl);
-    buttons.addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.run(() => this.choices.save(this.edit), FAILURE)));
+    buttons.addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.runChange(() => this.choices.save(this.edit), FAILURE)));
     buttons.addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));
     buttons.addButton((button) => {
-      this.stopOnClose(deleteOnSecondPress(button, "Delete quest", () => this.run(() => this.choices.delete(), FAILURE)));
+      this.stopOnClose(deleteOnSecondPress(button, "Delete quest", () => this.runChange(() => this.choices.delete(), FAILURE)));
     });
-  }
-
-  protected override closed(): void {
-    this.onClosed(this.changed);
-  }
-
-  protected override finished(wrote: boolean): void {
-    this.changed = wrote;
-    this.close();
-  }
-
-  protected override failed(error: unknown): void {
-    if (!(error instanceof PartlyWritten)) return;
-    this.changed = true;
-    this.close();
   }
 
   private showRewardRow(): void {
