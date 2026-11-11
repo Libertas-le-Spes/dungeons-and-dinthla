@@ -3,8 +3,7 @@ import type { RecordChange } from "../campaign/changes/record-change";
 import { linesAddedTo } from "../campaign/changes/session-change";
 import { verdictOf } from "../campaign/changes/verdict";
 import { refusalForNewQuestion } from "./current-question";
-import { planNewQuestion, type NewQuestionPlan } from "./new-question";
-import type { NewQuestion } from "./new-question-modal";
+import { planNewQuestion, type NewQuestion, type NewQuestionPlan } from "./new-question";
 
 export function newQuestion(store: Pick<CampaignStore, "current">, entry: NewQuestion, sessionPath: string): RecordChange<NewQuestionPlan> {
   return {

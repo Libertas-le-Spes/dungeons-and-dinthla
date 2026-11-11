@@ -1,6 +1,10 @@
 import { oneLine } from "../notes/parts/one-line";
 import { answerLine, questionLine, questionTextOf } from "../notes/writing/question-lines";
-import type { NewQuestion } from "./new-question-modal";
+
+export interface NewQuestion {
+  question: string;
+  answer: string;
+}
 
 export interface NewQuestionPlan {
   text: string;
