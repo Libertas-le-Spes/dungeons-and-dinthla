@@ -4,7 +4,7 @@ import type { Allowances } from "../scan/reading/allowances";
 import { isNeverAllowed, isPageAttribute, isPageOption, isPageTag, NOTHING_ALLOWED } from "../scan/running/allowance-sets";
 import { fenceBreaches } from "../scan/running/bundle-check";
 import { BUNDLED_PROJECT, bundledProjectFiles } from "../scan/running/bundled-project";
-import { ROOT, SOURCE_FOLDER, sourcePath, VIRTUAL_FOLDER } from "../scan/running/scan-paths";
+import { ROOT, SOURCE_FOLDER, sourcePath, VIRTUAL_FOLDER } from "../scan/reading/scan-paths";
 import { virtualFileSystem } from "../scan/running/virtual-files";
 import { SourceScanner } from "../scan/running/source-scanner";
 import { PAGE_GLOBALS, PLAIN_GLOBALS } from "../allowed/globals";
@@ -13,7 +13,7 @@ import { COMPUTED_KEY_READERS } from "../allowed/computed-keys";
 import { PAGE_ESCAPE_READERS, PAGE_ESCAPES, PAGE_MEMBERS } from "../allowed/page-members";
 
 const SCAN_TIME = 60_000;
-const GATEKEEPER_FOLDER = "fence/";
+const GATEKEEPER_FOLDER = "fence/gate/";
 const PARSED_DATA = ["settings/drafts/draft-record.ts"];
 const ALLOWED = ["fence/gate/gatekeeper.ts", "fence/gate/fenced-files.ts", "fence/gate/fenced-file-actions.ts", "fence/gate/folder-choices.ts", "fence/gate/vault-settings.ts"];
 const EDITOR_TEXT_READERS = ["campaign/reading/editor-text.ts"];

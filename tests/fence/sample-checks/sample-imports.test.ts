@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { VIRTUAL_FOLDER } from "../scan/running/scan-paths";
+import { VIRTUAL_FOLDER } from "../scan/reading/scan-paths";
 
 const SAMPLES_FOLDER = fileURLToPath(new URL("../samples", import.meta.url));
 const SOURCE_IMPORT = /(?:\.\.\/)+src\/[A-Za-z0-9/._-]+/g;

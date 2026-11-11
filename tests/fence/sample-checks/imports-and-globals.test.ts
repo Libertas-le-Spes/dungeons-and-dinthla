@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Allowances } from "../scan/reading/allowances";
 import { NOTHING_ALLOWED } from "../scan/running/allowance-sets";
-import { SampleScan } from "../scan/running/sample-scan";
+import { numberedFileNames, SampleScan } from "../scan/running/sample-scan";
 import { ALLOWED_GLOBAL_SAMPLES, GLOBAL_SAMPLES } from "../samples/global-samples";
 import { ALLOWED_IMPORT_SAMPLES, IMPORT_SAMPLES } from "../samples/import-samples";
 
@@ -24,7 +24,7 @@ const LISTED: Allowances = { ...NOTHING_ALLOWED, obsidianImports: isSampleImport
 let scan: SampleScan;
 
 beforeAll(() => {
-  scan = new SampleScan("imports-and-globals", SAMPLES);
+  scan = new SampleScan("imports-and-globals", SAMPLES, numberedFileNames(SAMPLES));
 });
 
 afterAll(() => {

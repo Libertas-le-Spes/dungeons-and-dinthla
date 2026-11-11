@@ -1,4 +1,5 @@
-import { EVENT_LISTENER, EVENT_OWNERS, GATE_FOLDER, NOTE_EVENTS } from "../reading/names";
+import { isInGateFolder } from "../reading/gate-paths";
+import { EVENT_LISTENER, EVENT_OWNERS, NOTE_EVENTS } from "../reading/names";
 import type { FileScan } from "../reading/file-scan";
 
 export function workspaceEventBreaches(scan: FileScan): string[] {
@@ -7,7 +8,7 @@ export function workspaceEventBreaches(scan: FileScan): string[] {
   for (const { node } of types.ownedReads(project, found, EVENT_LISTENER, EVENT_OWNERS)) {
     const event = found.listenedEvents.get(node);
     if (event === undefined) {
-      if (!path.includes(GATE_FOLDER)) breaches.push(`${where(node)} listens to a workspace event it can't read`);
+      if (!isInGateFolder(path)) breaches.push(`${where(node)} listens to a workspace event it can't read`);
       continue;
     }
     if (NOTE_EVENTS.includes(event) && !allowances.noteEvents(path)) breaches.push(`${where(node)} listens to the ${event} workspace event, which hands over any note`);
