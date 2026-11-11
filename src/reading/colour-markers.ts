@@ -1,5 +1,5 @@
 import { markerNamed } from "../kinds/tracked-markers";
-import { markerSpanOf } from "../notes/marker";
+import { markerSpanOf } from "../notes/reading/marker";
 
 const BLOCKS_WITH_LINES = "p, li";
 const NESTED_BLOCKS = new Set(["P", "UL", "OL", "DIV", "BLOCKQUOTE", "PRE"]);

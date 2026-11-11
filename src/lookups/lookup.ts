@@ -7,8 +7,8 @@ import { LOOKUP_SYMBOL_LIST, lookedUpKindBySymbol } from "../kinds/looked-up-kin
 import type { LookupKindName } from "../kinds/lookup-kind-name";
 import { symbolPatternOf } from "../kinds/symbol-pattern";
 import type { TrackedKindName } from "../kinds/tracked-kind";
-import { readItemChange } from "../notes/item-change";
-import { unlink } from "../notes/link";
+import { readItemChange } from "../notes/reading/item-change";
+import { unlink } from "../notes/parts/link";
 import { keywordsOf } from "../views/lists/keywords";
 import type { ShownThreadKind } from "../views/threads/shown-thread-kind";
 import { SHOWN_THREAD_KINDS } from "../views/threads/shown-thread-kinds";

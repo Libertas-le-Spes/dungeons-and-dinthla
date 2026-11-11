@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { blankLinks, findLinks, removeFirstLink, splitLinks, unlink } from "../../src/notes/link";
+import { blankLinks, findLinks, removeFirstLink, splitLinks, unlink } from "../../../src/notes/parts/link";
 
 describe("findLinks", () => {
   it("finds every linked name in order", () => {

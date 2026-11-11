@@ -1,8 +1,8 @@
-import { questTrackedKind } from "../kinds/quest-tracked-kind";
-import { readLedgerEntry } from "./ledger";
-import { readMarker } from "./marker";
-import { oneLine } from "./one-line";
-import { readQuest, type QuestStatus } from "./quest";
+import { questTrackedKind } from "../../kinds/quest-tracked-kind";
+import { readLedgerEntry } from "../reading/ledger";
+import { readMarker } from "../reading/marker";
+import { oneLine } from "../parts/one-line";
+import { readQuest, type QuestStatus } from "../reading/quest";
 import { followUpLine, openingAfterLine, openingTextOf } from "./thread-lines";
 
 export function questTextOf(text: string): string {

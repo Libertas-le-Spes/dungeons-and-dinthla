@@ -5,8 +5,8 @@ import { lookedUpKindNamed } from "../../src/kinds/looked-up-kinds";
 import { LOOKUP_KIND_NAMES } from "../../src/kinds/lookup-kind-name";
 import { ALL_MARKERS } from "../../src/kinds/tracked-markers";
 import { readLookup } from "../../src/lookups/lookup";
-import { readFollowUp } from "../../src/notes/follow-up";
-import { readMarker } from "../../src/notes/marker";
+import { readFollowUp } from "../../src/notes/reading/follow-up";
+import { readMarker } from "../../src/notes/reading/marker";
 
 function everySymbol(): string[] {
   const markers = ALL_MARKERS.map((marker) => marker.symbol);

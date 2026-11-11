@@ -1,4 +1,4 @@
-import { markerStartOf } from "./bullet";
+import { markerStartOf } from "../parts/bullet";
 
 function lineBreakOf(text: string): string {
   if (text.includes("\r\n")) return "\r\n";

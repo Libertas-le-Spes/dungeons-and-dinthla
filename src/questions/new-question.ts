@@ -1,5 +1,5 @@
-import { oneLine } from "../notes/one-line";
-import { answerLine, questionLine, questionTextOf } from "../notes/question-lines";
+import { oneLine } from "../notes/parts/one-line";
+import { answerLine, questionLine, questionTextOf } from "../notes/writing/question-lines";
 import type { NewQuestion } from "./new-question-modal";
 
 export interface NewQuestionPlan {

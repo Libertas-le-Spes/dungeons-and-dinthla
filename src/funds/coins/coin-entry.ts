@@ -2,7 +2,7 @@ import type { CoinRecord, SessionNote, Source } from "../../campaign/record/camp
 import { removalAsRead, type EditorFiles } from "../../campaign/writing/note-editor";
 import { SessionChangeWriter } from "../../campaign/changes/session-change-writer";
 import { writeRecordChange } from "../../campaign/changes/write-record-change";
-import { comparableLine, draftOf, readCoinDraft, type CoinDraft, type CoinLine } from "../../notes/coin-lines";
+import { comparableLine, draftOf, readCoinDraft, type CoinDraft, type CoinLine } from "../../notes/writing/coin-lines";
 import { coinDelete, coinSave } from "./coin-change";
 
 export const CANNOT_SHOW = "The dialog can't show this entry as it is written, so it can only be deleted here. Change it in its note.";

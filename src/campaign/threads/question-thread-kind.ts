@@ -1,5 +1,5 @@
 import { questionTrackedKind } from "../../kinds/question-tracked-kind";
-import { isQuestionLine } from "../../notes/question-lines";
+import { isQuestionLine } from "../../notes/writing/question-lines";
 import type { QuestionRecord, Source, SourcedText } from "../record/campaign";
 import type { ThreadKind } from "./thread-kind";
 

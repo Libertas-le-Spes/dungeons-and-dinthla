@@ -1,4 +1,4 @@
-import { appendLines, removeLines, rewriteLine } from "../../notes/note-lines";
+import { appendLines, removeLines, rewriteLine } from "../../notes/writing/note-lines";
 import type { SessionNote } from "../record/campaign";
 import type { LinesChange, Rewrite, SessionChange } from "./session-change";
 import { sessionNoteOf } from "../paths/session-file";

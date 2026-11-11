@@ -2,7 +2,7 @@ import { ITEM_ROWS } from "../../views/lists/row-keys";
 import { Component } from "obsidian";
 import { isItemNamed } from "../item-notes/item-of-note";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
-import { formatMoney } from "../../notes/money";
+import { formatMoney } from "../../notes/parts/money";
 import { addNameLink, addRowButton, type LinkActions } from "../../views/lists/linked-text";
 import type { ItemEventKind, ItemRecord, Source } from "../../campaign/record/campaign";
 import { sessionLabelOf } from "../../campaign/paths/session-file";

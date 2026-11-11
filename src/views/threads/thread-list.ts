@@ -1,7 +1,7 @@
 import type { Campaign, SourcedText } from "../../campaign/record/campaign";
 import type { ThreadRecord } from "../../campaign/threads/thread-kind";
 import type { FollowUpName } from "../../kinds/follow-up-name";
-import { unlink } from "../../notes/link";
+import { unlink } from "../../notes/parts/link";
 import type { ListContents } from "../lists/list-page";
 import type { ShownThreadKind } from "./shown-thread-kind";
 

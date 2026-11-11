@@ -6,7 +6,7 @@ import { sessionLabelOf } from "../../campaign/paths/session-file";
 import { sessionForDialog } from "../../campaign/paths/session-for-dialog";
 import { writeRecordChange } from "../../campaign/changes/write-record-change";
 import type { Source } from "../../campaign/record/campaign";
-import type { CoinLine } from "../../notes/coin-lines";
+import type { CoinLine } from "../../notes/writing/coin-lines";
 import { newCoin } from "./new-coin-change";
 import { coinEntryEdit, entryToEdit } from "./coin-entry";
 import { CoinModal, type CoinOutcome } from "./coin-modal";

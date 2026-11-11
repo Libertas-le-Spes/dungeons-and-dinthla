@@ -1,7 +1,7 @@
 import { readLedgerEntry, type CoinEntry } from "./ledger";
-import { findLinks, unlink } from "./link";
-import { withoutBlockId } from "./block-id";
-import { withoutBullet } from "./bullet";
+import { findLinks, unlink } from "../parts/link";
+import { withoutBlockId } from "../parts/block-id";
+import { withoutBullet } from "../parts/bullet";
 
 export type ItemChangeKind = "changed" | "sold" | "used" | "lost";
 

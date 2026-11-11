@@ -1,8 +1,8 @@
-import type { FollowUpName } from "../kinds/follow-up-name";
-import { followUpSymbolOf } from "../kinds/follow-ups";
-import type { TrackedMarker } from "../kinds/tracked-marker";
-import { readFollowUp } from "./follow-up";
-import { oneLine } from "./one-line";
+import type { FollowUpName } from "../../kinds/follow-up-name";
+import { followUpSymbolOf } from "../../kinds/follow-ups";
+import type { TrackedMarker } from "../../kinds/tracked-marker";
+import { readFollowUp } from "../reading/follow-up";
+import { oneLine } from "../parts/one-line";
 
 export function openingTextOf(marker: TrackedMarker, text: string): string {
   const written = oneLine(text);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { answerLine, followUpQuestionLine, isQuestionLine, questionLine, questionTextOf } from "../../src/notes/question-lines";
+import { answerLine, followUpQuestionLine, isQuestionLine, questionLine, questionTextOf } from "../../../src/notes/writing/question-lines";
 
 describe("question lines", () => {
   it("writes an answer as a ?= line naming the question", () => {

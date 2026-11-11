@@ -1,7 +1,7 @@
-import { readFollowUp, type FollowUp } from "../../notes/follow-up";
-import { readItemChange } from "../../notes/item-change";
-import { readLedgerEntry } from "../../notes/ledger";
-import { readMarker } from "../../notes/marker";
+import { readFollowUp, type FollowUp } from "../../notes/reading/follow-up";
+import { readItemChange } from "../../notes/reading/item-change";
+import { readLedgerEntry } from "../../notes/reading/ledger";
+import { readMarker } from "../../notes/reading/marker";
 import type { Campaign, CoinRecord, SessionNote, Source, SourcedText } from "../record/campaign";
 import { ItemBook } from "../record/item-book";
 import { questThreadKind } from "../threads/quest-thread-kind";

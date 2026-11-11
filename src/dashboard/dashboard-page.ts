@@ -15,7 +15,7 @@ import { summariseFunds, type FundsSummary } from "../funds/page/funds-summary";
 import { summariseItems } from "../funds/items/item-groups";
 import { addLedgerRow, NO_COIN_ENTRIES } from "../funds/page/ledger-row";
 import type { FollowUpName } from "../kinds/follow-up-name";
-import { formatMoney } from "../notes/money";
+import { formatMoney } from "../notes/parts/money";
 import type { LinkActions } from "../views/lists/linked-text";
 import type { OpenRow } from "../views/lists/list-page";
 import { focusRowAt, NO_ROW, RowFocus, type FocusRow } from "../views/lists/row-focus";

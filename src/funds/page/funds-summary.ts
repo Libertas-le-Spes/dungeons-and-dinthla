@@ -1,5 +1,5 @@
 import type { Campaign, CoinRecord } from "../../campaign/record/campaign";
-import { copperOf, type CoinKind } from "../../notes/ledger";
+import { copperOf, type CoinKind } from "../../notes/reading/ledger";
 
 export interface CoinCount {
   kind: CoinKind;
