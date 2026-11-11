@@ -18,6 +18,7 @@ export const OPENING_SAMPLES = [
 ];
 
 export const ALLOWED_OPENING_SAMPLES = [
+  'import type { App, TFile } from "obsidian";\ndeclare const files: { pick(path: string): TFile };\nexport async function open(app: App, path: string) {\n  const file = files.pick(path);\n  await app.workspace.getLeaf(false).openFile(file);\n}',
   'import type { App, TFile } from "obsidian";\nfunction picked(app: App): TFile | null {\n  return app.workspace.getActiveFile();\n}\nexport async function open(app: App) {\n  const file = picked(app);\n  if (file !== null) await app.workspace.getLeaf(false).openFile(file);\n}',
   'import type { App, TFile } from "obsidian";\nimport type { Gate } from "../../../../src/fence/gate/gatekeeper";\nfunction picked(app: App, gate: Gate, path: string): TFile | null {\n  if (path === "") return app.workspace.getActiveFile();\n  return gate.files.getFileByPath(path);\n}\nexport async function open(app: App, gate: Gate, path: string) {\n  const file = picked(app, gate, path);\n  if (file !== null) await app.workspace.getLeaf(false).openFile(file);\n}',
   'import type { App, TFile } from "obsidian";\nfunction none(): TFile | null {\n  return null;\n}\nexport async function open(app: App) {\n  const file = none();\n  if (file !== null) await app.workspace.getLeaf(false).openFile(file);\n}',

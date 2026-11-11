@@ -1,6 +1,7 @@
 import type { NewExpression, Expression } from "typescript/unstable/ast";
 import { SignatureKind, TypeFlags, type Project, type Symbol as TypeSymbol, type Type, type TypeReference } from "typescript/unstable/sync";
-import { GATE_BUILT_SOURCES, GATE_TYPE_SOURCES, UNTYPED } from "./names";
+import { isGateBuiltSource, isGateTypeSource } from "./gate-paths";
+import { UNTYPED } from "./names";
 import { flattened, isGateDeclared, isLibraryReference, isOnlyGateDeclared, isOwnProperty } from "./type-shapes";
 import type { TypeQueries } from "./type-queries";
 
@@ -15,7 +16,7 @@ export class GateHolding {
   isGateTyped(project: Project, type: Type | undefined): boolean {
     if (type === undefined) return true;
     return flattened(this.types.constrained(project, type)).some((member) =>
-      project.checker.getPropertiesOfType(member).some((property) => property.declarations.some((declaration) => GATE_TYPE_SOURCES.some((ending) => declaration.path.endsWith(ending)))),
+      project.checker.getPropertiesOfType(member).some((property) => property.declarations.some((declaration) => isGateTypeSource(declaration.path))),
     );
   }
 
@@ -33,7 +34,7 @@ export class GateHolding {
     const type = project.checker.getTypeAtLocation(built);
     if (type === undefined) return null;
     const symbol = type.getSymbol();
-    if (symbol === undefined || !symbol.declarations.some((declaration) => GATE_BUILT_SOURCES.some((ending) => declaration.path.endsWith(ending)))) return null;
+    if (symbol === undefined || !symbol.declarations.some((declaration) => isGateBuiltSource(declaration.path))) return null;
     return symbol.name;
   }
 

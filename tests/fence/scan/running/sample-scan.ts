@@ -1,8 +1,17 @@
+import { relative } from "node:path";
 import type { Allowances } from "../reading/allowances";
 import { NOTHING_ALLOWED } from "./allowance-sets";
-import { ROOT, VIRTUAL_FOLDER } from "./scan-paths";
+import { ROOT, VIRTUAL_FOLDER } from "../reading/scan-paths";
 import { virtualFileSystem } from "./virtual-files";
 import { SourceScanner } from "./source-scanner";
+
+export function extendsRootConfig(folder: string): string {
+  return `${relative(folder, ROOT)}/tsconfig.json`;
+}
+
+export function numberedFileNames(samples: string[]): string[] {
+  return samples.map((_sample, index) => `sample-${index}.ts`);
+}
 
 export class SampleScan {
   private readonly folder: string;
@@ -11,7 +20,9 @@ export class SampleScan {
   constructor(
     family: string,
     private readonly samples: string[],
+    private readonly fileNames: string[],
   ) {
+    if (fileNames.length !== samples.length) throw new Error(`${samples.length} samples were given ${fileNames.length} file names.`);
     this.folder = `${VIRTUAL_FOLDER}/${family}`;
     this.scanner = new SourceScanner(ROOT, virtualFileSystem(VIRTUAL_FOLDER, this.files()));
   }
@@ -29,13 +40,14 @@ export class SampleScan {
   }
 
   private samplePath(index: number): string {
-    return `${this.folder}/sample-${index}.ts`;
+    const name = this.fileNames[index];
+    if (name === undefined) throw new Error(`Sample ${index} has no file name.`);
+    return `${this.folder}/${name}`;
   }
 
   private files(): Map<string, string> {
     const files = new Map<string, string>(this.samples.map((sample, index) => [this.samplePath(index), sample]));
-    const names = this.samples.map((_sample, index) => `sample-${index}.ts`);
-    files.set(this.project(), JSON.stringify({ extends: "../../../../tsconfig.json", files: names, include: [] }));
+    files.set(this.project(), JSON.stringify({ extends: extendsRootConfig(this.folder), files: this.fileNames, include: [] }));
     return files;
   }
 }

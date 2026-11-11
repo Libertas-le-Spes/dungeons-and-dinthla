@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { NOTHING_ALLOWED } from "../scan/running/allowance-sets";
-import { SampleScan } from "../scan/running/sample-scan";
+import { numberedFileNames, SampleScan } from "../scan/running/sample-scan";
 import { ALLOWED_PAGE_SAMPLES, CODE_TEXT_SAMPLES, OWN_ELEMENT_SAMPLES, PAGE_ELEMENT_SAMPLES, PAGE_READ_SAMPLES, PAGE_TEXT_SAMPLES } from "../samples/page-samples";
 import type { Allowances } from "../scan/reading/allowances";
 
@@ -9,7 +9,7 @@ const SAMPLES = [...CODE_TEXT_SAMPLES, ...PAGE_ELEMENT_SAMPLES, ...PAGE_TEXT_SAM
 let scan: SampleScan;
 
 beforeAll(() => {
-  scan = new SampleScan("page", SAMPLES);
+  scan = new SampleScan("page", SAMPLES, numberedFileNames(SAMPLES));
 });
 
 afterAll(() => {

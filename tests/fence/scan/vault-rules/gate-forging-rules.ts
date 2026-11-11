@@ -1,5 +1,6 @@
 import type { Type } from "typescript/unstable/sync";
-import { GATE_FOLDER, GATEKEEPER } from "../reading/names";
+import { isInGateFolder } from "../reading/gate-paths";
+import { GATEKEEPER } from "../reading/names";
 import type { FileScan } from "../reading/file-scan";
 import { argumentsOf, isThisApp } from "../reading/syntax";
 
@@ -41,6 +42,6 @@ function buildBreaches(scan: FileScan): string[] {
 }
 
 export function gateForgingBreaches(scan: FileScan): string[] {
-  if (scan.path.includes(GATE_FOLDER)) return [];
+  if (isInGateFolder(scan.path)) return [];
   return [...typeForgingBreaches(scan), ...changeBreaches(scan), ...buildBreaches(scan)];
 }
