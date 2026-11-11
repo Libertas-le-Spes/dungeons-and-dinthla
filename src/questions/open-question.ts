@@ -1,11 +1,14 @@
 import { Notice, type App } from "obsidian";
-import type { QuestionRecord, Source } from "../campaign/campaign";
+import type { Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
+import { SessionChangeWriter } from "../campaign/session-change-writer";
 import { sessionLabelOf } from "../campaign/session-file";
 import { sessionForDialog } from "../campaign/session-for-dialog";
-import { ANSWER_GOES_ELSEWHERE, answerWouldGoElsewhere, currentQuestion, latestSessionOfQuestion, sharesTextWithEarlierOpenQuestion } from "./current-question";
+import { writeRecordChange } from "../campaign/write-record-change";
+import { currentQuestion, latestSessionOfQuestion, sharesTextWithEarlierOpenQuestion } from "./current-question";
+import { questionReopen, questionSave } from "./question-change";
 import { QuestionModal } from "./question-modal";
-import { planQuestionSave, planReopen, refusalForQuestionPlan, type QuestionEdit, type QuestionPlan } from "./question-plan";
+import type { QuestionEdit } from "./question-plan";
 import { QuestionWriter } from "./question-writer";
 import type { Gate } from "../fence/gatekeeper";
 
@@ -37,22 +40,11 @@ export function openQuestion(
   const sessionPath = sessionForDialog(gate.files, folder, wanted);
   if (sessionPath === null) return;
   const writer = new QuestionWriter(gate.files);
-  const checkedApply = async (current: QuestionRecord, plan: QuestionPlan) => {
-    const refusal = refusalForQuestionPlan(store.sessionNotes, current, plan);
-    if (refusal !== null) throw new Error(refusal);
-    return writer.apply(plan);
-  };
+  const changes = new SessionChangeWriter(gate.files);
   const latest = () => currentQuestion(store.current.questions, question);
   const choices = {
-    save: async (edit: QuestionEdit) => {
-      const current = latest();
-      if (answerWouldGoElsewhere(store.current.questions, current, edit.answer)) throw new Error(ANSWER_GOES_ELSEWHERE);
-      return checkedApply(current, planQuestionSave(current, edit, sessionPath));
-    },
-    reopen: () => {
-      const current = latest();
-      return checkedApply(current, planReopen(current, sessionPath));
-    },
+    save: async (edit: QuestionEdit) => writeRecordChange(questionSave(store, latest(), edit, sessionPath), changes),
+    reopen: () => writeRecordChange(questionReopen(store, latest(), sessionPath), changes),
     delete: () => writer.delete(latest()),
   };
   let answeredIn = sessionLabelOf(sessionPath);
