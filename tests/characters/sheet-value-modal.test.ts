@@ -5,7 +5,7 @@ import { carriedValuesOf, characterSheetOf, type SheetValue } from "../../src/ch
 import { notKnownOverCarriedText, secondPressText, SheetValueModal, whereText, type SheetValueDialog } from "../../src/characters/sheet-value-modal";
 import type { ValueChoice } from "../../src/characters/sheet-value-writer";
 import type { SourcedFact } from "../../src/characters/sheet-values";
-import { PRESS_AGAIN } from "../../src/views/second-press";
+import { PRESS_AGAIN } from "../../src/views/dialogs/second-press";
 import { Notice, type Modal as StubModal } from "../stubs/obsidian";
 
 const MIRA = "Pale Moon/Characters/Mira.md";

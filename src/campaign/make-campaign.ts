@@ -1,7 +1,7 @@
 import { NO_CAMPAIGNS_FOLDER } from "../fence/campaigns-folder-path";
 import type { FencedFiles } from "../fence/fenced-files";
 import { mainNotePathOf } from "./campaign-folders";
-import { messageOf } from "../views/message-of";
+import { messageOf } from "../views/dialogs/message-of";
 import { refusalForFileName } from "../names/file-name";
 import { nameKeyOf } from "../names/name-key";
 import { typedPathOf } from "../names/typed-path";

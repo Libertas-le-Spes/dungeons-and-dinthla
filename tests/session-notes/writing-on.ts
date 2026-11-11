@@ -11,7 +11,7 @@ import { SessionClearer } from "../../src/session-notes/session-clearer";
 import { SessionTrash } from "../../src/session-notes/session-trash";
 import { SessionWriting } from "../../src/session-notes/session-writing";
 import { writtenLinesOf } from "../../src/session-notes/written-lines";
-import type { ConfirmText } from "../../src/views/confirm-modal";
+import type { ConfirmText } from "../../src/views/dialogs/confirm-modal";
 import { FakeNotes } from "../note-editing/fake-notes";
 import { isShown, obsidianDocument } from "../views/obsidian-dom";
 

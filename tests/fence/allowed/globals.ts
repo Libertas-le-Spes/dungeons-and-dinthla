@@ -3,5 +3,5 @@ export const PLAIN_GLOBALS = ["undefined", "Array", "Date", "Error", "JSON", "Ma
 export const PAGE_GLOBALS: Record<string, string[]> = {
   "main.ts": ["document", "window"],
   "quests/character-suggest.ts": ["Event"],
-  "views/second-press.ts": ["clearTimeout", "setTimeout"],
+  "views/dialogs/second-press.ts": ["clearTimeout", "setTimeout"],
 };

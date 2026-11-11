@@ -4,7 +4,7 @@ import { characterReferenceKind } from "../kinds/character-reference-kind";
 import { refusalForFileName } from "../names/file-name";
 import { nameKeyOf } from "../names/name-key";
 import { PartlyWritten } from "../campaign/note-editor";
-import { messageOf } from "../views/message-of";
+import { messageOf } from "../views/dialogs/message-of";
 import { newCharacterText, refusalForValues, valuesChanged, withEntryValues, type CharacterEntry } from "./character-entry";
 import type { FencedFileActions } from "../fence/fenced-file-actions";
 import type { FencedFiles } from "../fence/fenced-files";

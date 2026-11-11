@@ -2,7 +2,7 @@ import type { TFile } from "obsidian";
 import { NoteEditor, PartlyWritten, type EditorFiles } from "../campaign/note-editor";
 import { sessionLabelOf } from "../campaign/session-file";
 import { linkedFactsOf } from "../notes/character-facts";
-import { messageOf } from "../views/message-of";
+import { messageOf } from "../views/dialogs/message-of";
 import { factLine, refusalForValue, withOverrides, type OverrideChange } from "./character-entry";
 import { writeOverrides } from "./character-files";
 import { NOT_KNOWN, type SheetValue, type StatedValue, type ValueState } from "./character-sheet";

@@ -1,6 +1,6 @@
 import type { Campaign } from "../campaign/campaign";
 import type { NoteEditingNeeds } from "../note-editing/note-editing";
-import type { LinkActions } from "../views/linked-text";
+import type { LinkActions } from "../views/lists/linked-text";
 import { EditAllPanel } from "./edit-all-panel";
 import type { KeptDrafts } from "./kept-drafts";
 import { LinesList } from "./lines-list";

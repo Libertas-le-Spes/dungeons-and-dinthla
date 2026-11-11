@@ -1,4 +1,4 @@
-import { addRowButton, type LinkActions } from "../views/linked-text";
+import { addRowButton, type LinkActions } from "../views/lists/linked-text";
 import type { SheetValues } from "./sheet-values";
 import { fillStatBlock } from "./stat-block";
 

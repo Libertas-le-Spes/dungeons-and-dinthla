@@ -1,9 +1,9 @@
-import { choiceOf } from "../views/choice-of";
+import { choiceOf } from "../views/dialogs/choice-of";
 import { Setting, type App, type TextAreaComponent } from "obsidian";
 import type { QuestRecord } from "../campaign/campaign";
-import { isSubmit } from "../views/keys";
-import { deleteOnSecondPress } from "../views/second-press";
-import { RecordChangeDialog } from "../views/record-change-dialog";
+import { isSubmit } from "../views/dialogs/keys";
+import { deleteOnSecondPress } from "../views/dialogs/second-press";
+import { RecordChangeDialog } from "../views/dialogs/record-change-dialog";
 import { initialQuestEdit, type QuestEdit, type QuestStatusChoice } from "./quest-plan";
 
 export interface QuestChoices {

@@ -7,7 +7,7 @@ import type { CoinEntryChoices } from "../../src/funds/coin-entry";
 import { CoinModal } from "../../src/funds/coin-modal";
 import { openCoinEntry } from "../../src/funds/open-add-coin";
 import type { Gate } from "../../src/fence/gatekeeper";
-import { CONFIRM_MS } from "../../src/views/second-press";
+import { CONFIRM_MS } from "../../src/views/dialogs/second-press";
 import { Notice, openedModals } from "../stubs/obsidian";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";

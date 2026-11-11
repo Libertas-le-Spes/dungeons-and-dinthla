@@ -1,8 +1,8 @@
 import { Setting, type App } from "obsidian";
 import type { QuestionRecord } from "../campaign/campaign";
-import { isSubmit } from "../views/keys";
-import { deleteOnSecondPress } from "../views/second-press";
-import { RecordChangeDialog } from "../views/record-change-dialog";
+import { isSubmit } from "../views/dialogs/keys";
+import { deleteOnSecondPress } from "../views/dialogs/second-press";
+import { RecordChangeDialog } from "../views/dialogs/record-change-dialog";
 import type { QuestionEdit } from "./question-plan";
 
 export interface QuestionChoices {

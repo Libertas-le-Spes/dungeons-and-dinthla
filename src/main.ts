@@ -1,7 +1,7 @@
 import { debounce, MarkdownView, Notice, Plugin, WorkspaceLeaf, type MarkdownFileInfo, type PaneType, type TFile, type ViewState } from "obsidian";
 import type { Source } from "./campaign/campaign";
 import type { SheetValue } from "./characters/character-sheet";
-import { messageOf } from "./views/message-of";
+import { messageOf } from "./views/dialogs/message-of";
 import {
   campaignFolderOf,
   chosenCampaignFolder,
@@ -30,9 +30,9 @@ import { openAddCoin } from "./funds/open-add-coin";
 import { openItemDialog } from "./funds/open-item";
 import { ItemHolders } from "./funds/item-holders";
 import { ledgerEntryOpener } from "./funds/open-ledger-entry";
-import { ListPage } from "./views/list-page";
-import { activePathOf, openSource } from "./views/open-view";
-import { openLink } from "./views/open-link";
+import { ListPage } from "./views/lists/list-page";
+import { activePathOf, openSource } from "./views/opening/open-view";
+import { openLink } from "./views/opening/open-link";
 import type { DashboardActions } from "./dashboard/dashboard-page";
 import { campaignSections, type PageId, type ShowPage } from "./interface/campaign-pages";
 import { campaignStateFor, type Takeover } from "./interface/campaign-takeover";
@@ -74,7 +74,7 @@ import { startSession } from "./sessions/start-session";
 import { Drafts } from "./session-notes/drafts";
 import type { KeptDrafts } from "./session-notes/kept-drafts";
 import { DraftKeeping } from "./session-notes/draft-keeping";
-import { ConfirmModal, type ConfirmText } from "./views/confirm-modal";
+import { ConfirmModal, type ConfirmText } from "./views/dialogs/confirm-modal";
 import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
 

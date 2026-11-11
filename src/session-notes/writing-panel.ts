@@ -2,7 +2,7 @@ import type { Campaign } from "../campaign/campaign";
 import type { LookupMatch } from "../lookups/lookup";
 import type { LookupOpeners } from "../kinds/lookup-openers";
 import { openMatch } from "../lookups/open-match";
-import { messageOf } from "../views/message-of";
+import { messageOf } from "../views/dialogs/message-of";
 import type { AppendWriter } from "./append-writer";
 import { BoxLookup } from "./box-lookup";
 import { startOfLine, withoutLine } from "./box-text";

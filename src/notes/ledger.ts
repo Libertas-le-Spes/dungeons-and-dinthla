@@ -1,4 +1,4 @@
-import { choiceOf } from "../views/choice-of";
+import { choiceOf } from "../views/dialogs/choice-of";
 import { withoutBlockId } from "./block-id";
 import { partsBetweenCommas } from "./comma";
 import { blankLinks, findLinks, removeFirstLink } from "./link";

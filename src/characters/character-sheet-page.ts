@@ -1,12 +1,12 @@
-import { VALUE_BUTTONS } from "../views/row-keys";
+import { VALUE_BUTTONS } from "../views/lists/row-keys";
 import { Component, type TFile } from "obsidian";
 import type { Source } from "../campaign/campaign";
 import { campaignFolderOf } from "../campaign/campaign-folders";
 import { sessionLabelOf } from "../campaign/session-file";
-import type { LinkActions } from "../views/linked-text";
-import { PENDING_FOCUS_MS } from "../views/row-focus";
+import type { LinkActions } from "../views/lists/linked-text";
+import { PENDING_FOCUS_MS } from "../views/lists/row-focus";
 import { NOT_KNOWN, shownValuesOf, type CharacterSheet, type SheetValue, type ValueState } from "./character-sheet";
-import { messageOf } from "../views/message-of";
+import { messageOf } from "../views/dialogs/message-of";
 import { readCharacterSheet, type ReadSheet, type SheetStore } from "./read-character-sheet";
 import type { MentionNotes } from "./mention-notes";
 import { MentionsPanel } from "./mentions-panel";

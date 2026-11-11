@@ -11,7 +11,7 @@ import { NoteDrafts } from "../../src/note-editing/note-drafts";
 import type { NoteSaver } from "../../src/note-editing/note-saver";
 import type { SessionClearer } from "../../src/session-notes/session-clearer";
 import type { SessionTrash } from "../../src/session-notes/session-trash";
-import type { ConfirmText } from "../../src/views/confirm-modal";
+import type { ConfirmText } from "../../src/views/dialogs/confirm-modal";
 import { obsidianDocument } from "../views/obsidian-dom";
 
 const ELEVEN = "Pale Moon/Sessions/Session 11.md";

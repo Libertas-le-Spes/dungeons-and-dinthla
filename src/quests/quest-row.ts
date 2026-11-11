@@ -1,6 +1,6 @@
 import type { QuestRecord } from "../campaign/campaign";
-import type { LinkActions } from "../views/linked-text";
-import { addThreadRow } from "../views/thread-row";
+import type { LinkActions } from "../views/lists/linked-text";
+import { addThreadRow } from "../views/threads/thread-row";
 import { questShownKind } from "./quest-shown-kind";
 
 export function addQuestRow(list: HTMLElement, thread: QuestRecord, keywords: string[], actions: LinkActions): void {
