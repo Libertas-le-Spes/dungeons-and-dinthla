@@ -1,3 +1,5 @@
+import { characterReferenceKind } from "../kinds/character-reference-kind";
+import type { ReferenceKind } from "../kinds/reference-kind";
 import { sessionNumberOf } from "./session-file";
 
 export const NO_CAMPAIGN =
@@ -21,8 +23,12 @@ export function mainNotePathOf(folder: string): string {
   return `${folder}/${campaignNameOf(folder)}.md`;
 }
 
+export function referenceFolderOf(kind: ReferenceKind, campaignFolder: string): string {
+  return `${campaignFolder}/${kind.folder}`;
+}
+
 export function charactersFolderOf(campaignFolder: string): string {
-  return `${campaignFolder}/Characters`;
+  return referenceFolderOf(characterReferenceKind, campaignFolder);
 }
 
 export function itemsFolderOf(campaignFolder: string): string {
@@ -33,18 +39,23 @@ export function charactersBasePathOf(campaignFolder: string): string {
   return `${campaignFolder}/Characters.base`;
 }
 
-export function campaignOfCharacter(path: string, campaignFolders: string[]): string | null {
+function campaignOfNoteIn(folderName: string, path: string, campaignFolders: string[]): string | null {
   const folder = campaignFolderOf(path, campaignFolders);
   if (folder === null) return null;
-  if (!path.startsWith(`${charactersFolderOf(folder)}/`) || !path.endsWith(".md")) return null;
+  if (!path.startsWith(`${folder}/${folderName}/`) || !path.endsWith(".md")) return null;
   return folder;
 }
 
+export function campaignOfReference(kind: ReferenceKind, path: string, campaignFolders: string[]): string | null {
+  return campaignOfNoteIn(kind.folder, path, campaignFolders);
+}
+
+export function campaignOfCharacter(path: string, campaignFolders: string[]): string | null {
+  return campaignOfReference(characterReferenceKind, path, campaignFolders);
+}
+
 export function campaignOfItem(path: string, campaignFolders: string[]): string | null {
-  const folder = campaignFolderOf(path, campaignFolders);
-  if (folder === null) return null;
-  if (!path.startsWith(`${itemsFolderOf(folder)}/`) || !path.endsWith(".md")) return null;
-  return folder;
+  return campaignOfNoteIn("Items", path, campaignFolders);
 }
 
 export function campaignNotePathOf(path: string, campaignFolders: string[]): string | null {
