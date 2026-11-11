@@ -7,7 +7,8 @@ import { sessionForDialog } from "../campaign/paths/session-for-dialog";
 import { latestSessionWanted } from "../campaign/paths/session-to-write";
 import { writeRecordChange } from "../campaign/changes/write-record-change";
 import { newQuestion } from "./new-question-change";
-import { NewQuestionModal, type NewQuestion } from "./new-question-modal";
+import type { NewQuestion } from "./new-question";
+import { NewQuestionModal } from "./new-question-modal";
 import type { Gate } from "../fence/gatekeeper";
 
 const NO_SESSION = "Start a session first: questions are written into a session note.";
