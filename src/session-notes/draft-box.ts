@@ -24,7 +24,8 @@ export class DraftBox {
     private readonly save: () => void,
   ) {
     const label = parent.createEl("label", { cls: "dd-box-label", text: LABEL });
-    this.textarea = label.createEl("textarea", {
+    const frame = label.createSpan({ cls: "dd-box-frame" });
+    this.textarea = frame.createEl("textarea", {
       cls: "dd-box",
       placeholder: PLACEHOLDER,
       attr: { spellcheck: "false", rows: "8" },

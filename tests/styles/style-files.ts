@@ -53,11 +53,26 @@ function layersOf(body: string): string | null {
   return `${image}, ${colour}`;
 }
 
-export function backgroundOf(file: string, selector: string): string | null {
+function bodiesOf(file: string, selector: string): string[] {
+  const bodies: string[] = [];
   for (const [, ruleSelector, body] of readStyles(file).matchAll(/([^{}]+)\{([^}]*)\}/g)) {
-    if (ruleSelector!.trim() !== selector) continue;
-    const layers = layersOf(body!);
+    if (ruleSelector!.trim() === selector) bodies.push(body!);
+  }
+  return bodies;
+}
+
+export function backgroundOf(file: string, selector: string): string | null {
+  for (const body of bodiesOf(file, selector)) {
+    const layers = layersOf(body);
     if (layers !== null) return layers;
+  }
+  return null;
+}
+
+export function declarationOf(file: string, selector: string, property: string): string | null {
+  for (const body of bodiesOf(file, selector)) {
+    const value = declaredIn(body, property);
+    if (value !== null) return value;
   }
   return null;
 }
