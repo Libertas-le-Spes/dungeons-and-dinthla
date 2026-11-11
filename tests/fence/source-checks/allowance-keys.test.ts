@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { PAGE_GLOBALS } from "../allowed/globals";
 import { OBSIDIAN_IMPORTS } from "../allowed/obsidian-imports";
 import { PAGE_MEMBERS } from "../allowed/page-members";
-import { sourcePath } from "../scan/running/scan-paths";
+import { sourcePath } from "../scan/reading/scan-paths";
 
 interface SourcePlaces {
   isFile(key: string): boolean;

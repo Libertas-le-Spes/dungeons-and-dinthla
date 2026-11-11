@@ -5,7 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { NOTHING_ALLOWED } from "../scan/running/allowance-sets";
 import { fenceBreaches, HIDDEN_CODE, hiddenCodeIn, unscannedBundleInputs } from "../scan/running/bundle-check";
 import { BUNDLED_PROJECT, bundledProjectFiles, entryProject } from "../scan/running/bundled-project";
-import { ROOT, SOURCE_FOLDER, sourcePath, VIRTUAL_FOLDER } from "../scan/running/scan-paths";
+import { ROOT, SOURCE_FOLDER, sourcePath, VIRTUAL_FOLDER } from "../scan/reading/scan-paths";
 import { virtualFileSystem } from "../scan/running/virtual-files";
 import { SourceScanner } from "../scan/running/source-scanner";
 

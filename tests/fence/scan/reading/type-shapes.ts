@@ -1,5 +1,6 @@
 import { isObjectType, ObjectFlags, TypeFlags, type Symbol as TypeSymbol, type Type, type TypeReference, type UnionOrIntersectionType } from "typescript/unstable/sync";
-import { GATE_TYPE_SOURCES, GLOBAL_OWNERS, LIBRARY_FOLDER, OBSIDIAN_FOLDER } from "./names";
+import { isGateTypeSource } from "./gate-paths";
+import { GLOBAL_OWNERS, LIBRARY_FOLDER, OBSIDIAN_FOLDER } from "./names";
 
 export function membersOf(type: Type): readonly Type[] {
   if ((type.flags & (TypeFlags.Union | TypeFlags.Intersection)) === 0) return [type];
@@ -63,9 +64,9 @@ export function isOwnProperty(property: TypeSymbol): boolean {
 }
 
 export function isGateDeclared(property: TypeSymbol): boolean {
-  return property.declarations.some((declaration) => GATE_TYPE_SOURCES.some((ending) => declaration.path.endsWith(ending)));
+  return property.declarations.some((declaration) => isGateTypeSource(declaration.path));
 }
 
 export function isOnlyGateDeclared(property: TypeSymbol): boolean {
-  return property.declarations.length > 0 && property.declarations.every((declaration) => GATE_TYPE_SOURCES.some((ending) => declaration.path.endsWith(ending)));
+  return property.declarations.length > 0 && property.declarations.every((declaration) => isGateTypeSource(declaration.path));
 }
