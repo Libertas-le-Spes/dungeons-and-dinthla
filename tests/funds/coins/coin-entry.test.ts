@@ -6,7 +6,7 @@ import { CHANGED_IN_NOTE, removalAsRead, type EditorFiles } from "../../../src/c
 import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
 import { CHANGES_OTHER_MONEY, refusalForEntryChange } from "../../../src/funds/coins/coin-change";
 import { CANNOT_SHOW, coinEntryEdit, entryToEdit, type CoinEntryEdit } from "../../../src/funds/coins/coin-entry";
-import { readCoinDraft, type CoinDraft, type CoinLine } from "../../../src/notes/coin-lines";
+import { readCoinDraft, type CoinDraft, type CoinLine } from "../../../src/notes/writing/coin-lines";
 
 const ONE = "S/Sessions/Session 1.md";
 

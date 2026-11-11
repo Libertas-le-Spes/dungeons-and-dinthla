@@ -1,5 +1,5 @@
 import type { Campaign, ItemRecord, Source } from "../../campaign/record/campaign";
-import { unlink } from "../../notes/link";
+import { unlink } from "../../notes/parts/link";
 
 export interface HolderGroup {
   holder: string;

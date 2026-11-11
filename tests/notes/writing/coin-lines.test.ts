@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCampaign } from "../../src/campaign/reading/build-campaign";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import {
   draftOf,
   NO_AMOUNT,
@@ -11,7 +11,7 @@ import {
   WORDS_CHANGE_IT,
   WORDS_SAY_OUT,
   type CoinDraft,
-} from "../../src/notes/coin-lines";
+} from "../../../src/notes/writing/coin-lines";
 
 function purseAfter(line: string): number {
   return buildCampaign([{ path: "S/Sessions/Session 1.md", number: 1, firstLine: 0, text: line }]).purseCopper;

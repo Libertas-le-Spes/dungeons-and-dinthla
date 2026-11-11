@@ -1,6 +1,6 @@
 import type { FollowUpName } from "../../kinds/follow-up-name";
 import type { MarkerName } from "../../kinds/marker-name";
-import type { FollowUp } from "../../notes/follow-up";
+import type { FollowUp } from "../../notes/reading/follow-up";
 import type { Source, SourcedText } from "../record/campaign";
 import { findSubject } from "../record/subject";
 import type { ThreadKind, ThreadRecord } from "./thread-kind";

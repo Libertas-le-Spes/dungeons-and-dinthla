@@ -1,4 +1,4 @@
-import { formatMoney } from "../../notes/money";
+import { formatMoney } from "../../notes/parts/money";
 import { addLinkedText, addRowButton, type LinkActions } from "../../views/lists/linked-text";
 import type { LedgerLine } from "./funds-summary";
 

@@ -1,6 +1,6 @@
 import { questTrackedKind } from "../../kinds/quest-tracked-kind";
-import { readQuest, type QuestStatus } from "../../notes/quest";
-import { isQuestLine } from "../../notes/quest-lines";
+import { readQuest, type QuestStatus } from "../../notes/reading/quest";
+import { isQuestLine } from "../../notes/writing/quest-lines";
 import type { QuestOutcome, QuestRecord, Source, SourcedText } from "../record/campaign";
 import type { ThreadKind } from "./thread-kind";
 

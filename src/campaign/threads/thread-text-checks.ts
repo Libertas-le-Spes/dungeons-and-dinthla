@@ -1,5 +1,5 @@
 import type { FollowUpName } from "../../kinds/follow-up-name";
-import { oneLine } from "../../notes/one-line";
+import { oneLine } from "../../notes/parts/one-line";
 import type { SourcedText } from "../record/campaign";
 import { findSubject } from "../record/subject";
 import type { ThreadKind, ThreadRecord } from "./thread-kind";

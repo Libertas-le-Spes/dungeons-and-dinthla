@@ -4,11 +4,11 @@ import type { Campaign, CoinRecord, QuestRecord, QuestStatus, SessionNote } from
 import type { Removal } from "../campaign/writing/note-editor";
 import { questThreadKind } from "../campaign/threads/quest-thread-kind";
 import { endingRemoval } from "../campaign/threads/thread-removal";
-import { readLedgerEntry } from "../notes/ledger";
-import { followUpQuestLine, isCoinReward, outcomeLine, progressLine, questTextOf, rewardLine } from "../notes/quest-lines";
-import { readMarker } from "../notes/marker";
-import { readQuest } from "../notes/quest";
-import { oneLine } from "../notes/one-line";
+import { readLedgerEntry } from "../notes/reading/ledger";
+import { followUpQuestLine, isCoinReward, outcomeLine, progressLine, questTextOf, rewardLine } from "../notes/writing/quest-lines";
+import { readMarker } from "../notes/reading/marker";
+import { readQuest } from "../notes/reading/quest";
+import { oneLine } from "../notes/parts/one-line";
 import { questSessionChange } from "./quest-session-change";
 
 export type QuestStatusChoice = "active" | QuestStatus;

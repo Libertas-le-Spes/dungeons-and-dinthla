@@ -1,5 +1,5 @@
-import { questionTrackedKind } from "../kinds/question-tracked-kind";
-import { readMarker } from "./marker";
+import { questionTrackedKind } from "../../kinds/question-tracked-kind";
+import { readMarker } from "../reading/marker";
 import { followUpLine, openingAfterLine, openingTextOf } from "./thread-lines";
 
 export function questionTextOf(text: string): string {

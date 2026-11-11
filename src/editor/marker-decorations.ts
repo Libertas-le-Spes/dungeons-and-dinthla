@@ -5,7 +5,7 @@ import { firstLineAfterProperties } from "../campaign/paths/session-file";
 import type { MarkerName } from "../kinds/marker-name";
 import type { TrackedMarker } from "../kinds/tracked-marker";
 import { ALL_MARKERS } from "../kinds/tracked-markers";
-import { markerSpanOf } from "../notes/marker";
+import { markerSpanOf } from "../notes/reading/marker";
 
 const PROPERTIES_SEARCH_LINES = 500;
 

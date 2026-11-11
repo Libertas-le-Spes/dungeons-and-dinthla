@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { App } from "obsidian";
 import { openAddCoin } from "../../../src/funds/coins/open-add-coin";
-import { readCoinDraft, type CoinLine } from "../../../src/notes/coin-lines";
+import { readCoinDraft, type CoinLine } from "../../../src/notes/writing/coin-lines";
 import { DialogCampaign, lastDialog } from "../../campaign/dialog-campaign";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";

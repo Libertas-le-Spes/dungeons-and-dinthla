@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readLedgerEntry } from "../../src/notes/ledger";
+import { readLedgerEntry } from "../../../src/notes/reading/ledger";
 
 describe("readLedgerEntry", () => {
   it("reads coin coming in", () => {

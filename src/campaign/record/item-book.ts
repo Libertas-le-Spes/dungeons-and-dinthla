@@ -1,5 +1,5 @@
-import type { ItemChange } from "../../notes/item-change";
-import { findLinks, unlink } from "../../notes/link";
+import type { ItemChange } from "../../notes/reading/item-change";
+import { findLinks, unlink } from "../../notes/parts/link";
 import type { ItemEvent, ItemRecord, Source } from "./campaign";
 
 const ONE_LINK = /^\[\[[^[\]]+\]\]$/;

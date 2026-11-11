@@ -1,5 +1,5 @@
 import type { FollowUpName } from "../../kinds/follow-up-name";
-import { isFollowUpLine } from "../../notes/thread-lines";
+import { isFollowUpLine } from "../../notes/writing/thread-lines";
 import type { SourcedText } from "../record/campaign";
 import type { Removal } from "../writing/note-editor";
 import type { ThreadKind, ThreadRecord } from "./thread-kind";

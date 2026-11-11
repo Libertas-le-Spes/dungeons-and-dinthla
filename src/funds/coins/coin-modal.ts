@@ -1,6 +1,6 @@
 import { choiceOf } from "../../views/dialogs/choice-of";
 import { Setting, type App } from "obsidian";
-import { readCoinDraft, type CoinDraft, type CoinLine, type Direction } from "../../notes/coin-lines";
+import { readCoinDraft, type CoinDraft, type CoinLine, type Direction } from "../../notes/writing/coin-lines";
 import { isSubmit } from "../../views/dialogs/keys";
 import { deleteOnSecondPress } from "../../views/dialogs/second-press";
 import { ChangeDialog } from "../../views/dialogs/change-dialog";
