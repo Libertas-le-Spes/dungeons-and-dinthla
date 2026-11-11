@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { CampaignEnding } from "../../src/welcome/campaign-ending";
-import { CampaignsFolderEnding } from "../../src/welcome/campaigns-folder-ending";
-import { FirstSessionEnding } from "../../src/welcome/first-session-ending";
-import { NewCampaignEnding } from "../../src/welcome/new-campaign-ending";
-import type { WelcomeEnding, WelcomeState } from "../../src/welcome/welcome-ending";
+import { CampaignEnding } from "../../../src/welcome/endings/campaign-ending";
+import { CampaignsFolderEnding } from "../../../src/welcome/endings/campaigns-folder-ending";
+import { FirstSessionEnding } from "../../../src/welcome/endings/first-session-ending";
+import { NewCampaignEnding } from "../../../src/welcome/endings/new-campaign-ending";
+import type { WelcomeEnding, WelcomeState } from "../../../src/welcome/endings/welcome-ending";
 
 const NO_CAMPAIGNS_FOLDER: WelcomeState = { campaignsFolder: null, campaignFolder: null, sessionCount: 0 };
 const NO_CAMPAIGN: WelcomeState = { campaignsFolder: "D&D", campaignFolder: null, sessionCount: 0 };

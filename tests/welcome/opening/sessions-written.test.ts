@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sessionsWritten } from "../../src/welcome/sessions-written";
+import { sessionsWritten } from "../../../src/welcome/opening/sessions-written";
 
 describe("sessionsWritten", () => {
   it("is true when any campaign holds a session note", () => {

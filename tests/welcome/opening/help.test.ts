@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import type { PluginSettings } from "../../src/settings/saved/plugin-settings";
-import { SettingsSaver } from "../../src/settings/saved/settings-saver";
-import { Help, type HelpFiles } from "../../src/welcome/help";
-import type { NewsItem } from "../../src/whats-new/news-item";
+import type { PluginSettings } from "../../../src/settings/saved/plugin-settings";
+import { SettingsSaver } from "../../../src/settings/saved/settings-saver";
+import { Help, type HelpFiles } from "../../../src/welcome/opening/help";
+import type { NewsItem } from "../../../src/whats-new/news-item";
 
 const LANTERNS: NewsItem = { sentence: "Lanterns now light the party funds.", page: "funds" };
 const MADE_UP_NEWS = new Map<string, NewsItem>([["3.1.0", LANTERNS]]);

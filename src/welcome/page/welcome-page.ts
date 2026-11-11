@@ -1,8 +1,8 @@
 import { Component } from "obsidian";
-import type { CampaignStore } from "../campaign/campaign-store";
-import type { ReadCampaignsFolder } from "../fence/fence";
-import type { WelcomeActions, WelcomeEnding, WelcomeState } from "./welcome-ending";
-import { endingFor } from "./welcome-endings";
+import type { CampaignStore } from "../../campaign/campaign-store";
+import type { ReadCampaignsFolder } from "../../fence/fence";
+import type { WelcomeActions, WelcomeEnding, WelcomeState } from "../endings/welcome-ending";
+import { endingFor } from "../endings/welcome-endings";
 import { WELCOME_STEPS, WELCOME_TITLE } from "./welcome-steps";
 
 export type WelcomeStore = Pick<CampaignStore, "campaignFolder" | "sessionNotes" | "subscribe">;
