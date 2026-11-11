@@ -5,10 +5,10 @@ import type { CampaignStore } from "../../../src/campaign/reading/campaign-store
 import { SESSIONS_SHARE_A_NUMBER } from "../../../src/campaign/paths/session-to-write";
 import { openAddCoin } from "../../../src/funds/coins/open-add-coin";
 import { openItemDialog } from "../../../src/funds/items/open-item";
-import { openNewQuestion } from "../../../src/questions/open-new-question";
-import { openQuestion } from "../../../src/questions/open-question";
-import { openNewQuest } from "../../../src/quests/open-new-quest";
-import { openQuest } from "../../../src/quests/open-quest";
+import { openNewQuestion } from "../../../src/questions/dialogs/open-new-question";
+import { openQuestion } from "../../../src/questions/dialogs/open-question";
+import { openNewQuest } from "../../../src/quests/dialogs/open-new-quest";
+import { openQuest } from "../../../src/quests/dialogs/open-quest";
 import { Notice, openedModals } from "../../stubs/obsidian";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";

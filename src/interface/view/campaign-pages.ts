@@ -5,8 +5,8 @@ import { questTrackedKind } from "../../kinds/quest-tracked-kind";
 import { questionTrackedKind } from "../../kinds/question-tracked-kind";
 import type { ReferencePageId } from "../../kinds/reference-page-id";
 import type { TrackedPageId } from "../../kinds/tracked-page-id";
-import { questionsKind } from "../../questions/questions-kind";
-import { questsKind } from "../../quests/quests-kind";
+import { questionsKind } from "../../questions/list/questions-kind";
+import { questsKind } from "../../quests/list/quests-kind";
 
 export type PageId = "home" | ReferencePageId | "notes" | TrackedPageId | "welcome";
 
