@@ -9,7 +9,7 @@ import { coinSessionChange } from "./coin-session-change";
 
 export const CHANGES_OTHER_MONEY = "That change would also change other money in the purse, so nothing was written.";
 
-export interface OpenedEntry {
+export interface EntryAsOpened {
   store: { readonly sessionNotes: SessionNote[] };
   record: CoinRecord;
   removal: Removal;
@@ -25,7 +25,7 @@ export function refusalForEntryChange(sessions: SessionNote[], record: CoinRecor
   return null;
 }
 
-function entryChange(entry: OpenedEntry, coinLine: CoinLine | null, checksFirst: Check<CoinLine | null>[]): RecordChange<CoinLine | null> {
+function entryChange(entry: EntryAsOpened, coinLine: CoinLine | null, checksFirst: Check<CoinLine | null>[]): RecordChange<CoinLine | null> {
   return {
     plan: () => coinLine,
     checks: [...checksFirst, (plan) => verdictOf(refusalForEntryChange(entry.store.sessionNotes, entry.record, entry.removal, plan))],
@@ -33,11 +33,11 @@ function entryChange(entry: OpenedEntry, coinLine: CoinLine | null, checksFirst:
   };
 }
 
-export function coinSave(entry: OpenedEntry, coinLine: CoinLine, cannotSave: string | null, opened: CoinReading): RecordChange<CoinLine | null> {
+export function coinSave(entry: EntryAsOpened, coinLine: CoinLine, cannotSave: string | null, opened: CoinReading): RecordChange<CoinLine | null> {
   const unchanged = () => writeNothingWhen("line" in opened && coinLine.line === opened.line);
   return entryChange(entry, coinLine, [() => verdictOf(cannotSave), unchanged]);
 }
 
-export function coinDelete(entry: OpenedEntry): RecordChange<CoinLine | null> {
+export function coinDelete(entry: EntryAsOpened): RecordChange<CoinLine | null> {
   return entryChange(entry, null, []);
 }

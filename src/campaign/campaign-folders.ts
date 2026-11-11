@@ -1,3 +1,5 @@
+import { itemTrackedKind } from "../kinds/item-tracked-kind";
+import type { ReferenceKind } from "../kinds/reference-kind";
 import { sessionNumberOf } from "./session-file";
 
 export const NO_CAMPAIGN =
@@ -21,29 +23,41 @@ export function mainNotePathOf(folder: string): string {
   return `${folder}/${campaignNameOf(folder)}.md`;
 }
 
-export function charactersFolderOf(campaignFolder: string): string {
-  return `${campaignFolder}/Characters`;
+export function referenceFolderOf(kind: ReferenceKind, campaignFolder: string): string {
+  return `${campaignFolder}/${kind.folder}`;
+}
+
+export function isInReferenceFolder(kind: ReferenceKind, campaignFolder: string, path: string): boolean {
+  return path.startsWith(`${referenceFolderOf(kind, campaignFolder)}/`);
 }
 
 export function itemsFolderOf(campaignFolder: string): string {
-  return `${campaignFolder}/Items`;
+  return `${campaignFolder}/${itemTrackedKind.folder}`;
+}
+
+export function isInItemsFolder(campaignFolder: string, path: string): boolean {
+  return path.startsWith(`${itemsFolderOf(campaignFolder)}/`);
 }
 
 export function charactersBasePathOf(campaignFolder: string): string {
   return `${campaignFolder}/Characters.base`;
 }
 
-export function campaignOfCharacter(path: string, campaignFolders: string[]): string | null {
+function isMarkdownNote(path: string): boolean {
+  return path.endsWith(".md");
+}
+
+export function campaignOfReference(kind: ReferenceKind, path: string, campaignFolders: string[]): string | null {
   const folder = campaignFolderOf(path, campaignFolders);
   if (folder === null) return null;
-  if (!path.startsWith(`${charactersFolderOf(folder)}/`) || !path.endsWith(".md")) return null;
+  if (!isInReferenceFolder(kind, folder, path) || !isMarkdownNote(path)) return null;
   return folder;
 }
 
 export function campaignOfItem(path: string, campaignFolders: string[]): string | null {
   const folder = campaignFolderOf(path, campaignFolders);
   if (folder === null) return null;
-  if (!path.startsWith(`${itemsFolderOf(folder)}/`) || !path.endsWith(".md")) return null;
+  if (!isInItemsFolder(folder, path) || !isMarkdownNote(path)) return null;
   return folder;
 }
 

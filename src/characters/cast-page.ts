@@ -1,5 +1,6 @@
 import { Component } from "obsidian";
-import { charactersFolderOf, mainNotePathOf } from "../campaign/campaign-folders";
+import { isInReferenceFolder, mainNotePathOf } from "../campaign/campaign-folders";
+import { characterReferenceKind } from "../kinds/character-reference-kind";
 import type { CampaignStore } from "../campaign/campaign-store";
 import type { LinkActions } from "../views/linked-text";
 import { CharacterGallery } from "./character-gallery";
@@ -38,7 +39,7 @@ export class CastPage extends Component {
   private shows(path: string): boolean {
     const folder = this.store.campaignFolder;
     if (folder === null) return false;
-    return path === mainNotePathOf(folder) || path.startsWith(`${charactersFolderOf(folder)}/`);
+    return path === mainNotePathOf(folder) || isInReferenceFolder(characterReferenceKind, folder, path);
   }
 
   private render(): void {
