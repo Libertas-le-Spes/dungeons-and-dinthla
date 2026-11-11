@@ -13,6 +13,11 @@ describe("pageOfFile", () => {
     expect(pageOfFile("Ashen Road/Characters/Allies/Brother Aldric.md", FOLDERS)).toBe("cast");
   });
 
+  it("shows a note in a campaign's Places folder on its own note page", () => {
+    expect(pageOfFile("Pale Moon/Places/Old Mill.md", FOLDERS)).toBe("note");
+    expect(pageOfFile("Ashen Road/Places/Coast/Harbour.md", FOLDERS)).toBe("note");
+  });
+
   it("shows a campaign's Characters base on the Characters page", () => {
     expect(pageOfFile("Pale Moon/Characters.base", FOLDERS)).toBe("cast");
   });
