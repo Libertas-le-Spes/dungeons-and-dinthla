@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CHANGED_IN_NOTE, PROPERTIES_WOULD_CHANGE } from "../../../src/campaign/note-editor";
+import { CHANGED_IN_NOTE, PROPERTIES_WOULD_CHANGE } from "../../../src/campaign/writing/note-editor";
 import {
   entryOf,
   newCharacterText,

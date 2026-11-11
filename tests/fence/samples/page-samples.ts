@@ -65,7 +65,7 @@ export const PAGE_TEXT_SAMPLES = [
 ];
 
 export const ALLOWED_PAGE_SAMPLES = [
-  'import type { PictureCss } from "../../../../src/campaign/picture-css";\nexport const paint = (layer: HTMLElement, picture: PictureCss) => layer.setCssProps({ "--dd-campaign-picture": picture.value });',
+  'import type { PictureCss } from "../../../../src/campaign/background/picture-css";\nexport const paint = (layer: HTMLElement, picture: PictureCss) => layer.setCssProps({ "--dd-campaign-picture": picture.value });',
   'export const label = (el: HTMLElement, name: string) => el.createEl("p", { cls: "dd-reading", text: name, attr: { "aria-live": "polite", "data-name": name } });',
   'export const link = (el: HTMLElement, text: string) => el.createEl("a", { cls: "dd-source-link", text, href: "#" });',
   "export const later = (run: () => void) => setTimeout(run, 0);",

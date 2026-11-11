@@ -1,5 +1,5 @@
-import type { Campaign, QuestionRecord, Source, SourcedText } from "../campaign/campaign";
-import { questionThreadKind } from "../campaign/question-thread-kind";
+import type { Campaign, QuestionRecord, Source, SourcedText } from "../campaign/record/campaign";
+import { questionThreadKind } from "../campaign/threads/question-thread-kind";
 import { questionTrackedKind } from "../kinds/question-tracked-kind";
 import type { LineState } from "../views/threads/line-state";
 import type { ShownThreadKind } from "../views/threads/shown-thread-kind";

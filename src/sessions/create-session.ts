@@ -1,5 +1,5 @@
 import type { TFile } from "obsidian";
-import { sessionNumberOf } from "../campaign/session-file";
+import { sessionNumberOf } from "../campaign/paths/session-file";
 import type { FencedFileActions } from "../fence/fenced-file-actions";
 import type { FencedFiles } from "../fence/fenced-files";
 

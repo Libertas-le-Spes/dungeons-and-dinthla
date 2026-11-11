@@ -1,8 +1,8 @@
 import type { TFile } from "obsidian";
-import { buildCampaign } from "../../src/campaign/build-campaign";
-import type { Campaign, SessionNote } from "../../src/campaign/campaign";
-import type { CampaignStore } from "../../src/campaign/campaign-store";
-import { sessionNoteOf } from "../../src/campaign/session-file";
+import { buildCampaign } from "../../src/campaign/reading/build-campaign";
+import type { Campaign, SessionNote } from "../../src/campaign/record/campaign";
+import type { CampaignStore } from "../../src/campaign/reading/campaign-store";
+import { sessionNoteOf } from "../../src/campaign/paths/session-file";
 import type { Gate } from "../../src/fence/gatekeeper";
 import { openedModals } from "../stubs/obsidian";
 

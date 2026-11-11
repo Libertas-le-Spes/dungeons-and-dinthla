@@ -1,9 +1,9 @@
-import type { QuestionRecord } from "../campaign/campaign";
-import { currentThread } from "../campaign/current-thread";
-import { keepsEveryPlace } from "../campaign/places";
-import { questionThreadKind } from "../campaign/question-thread-kind";
-import { latestSessionOf, placesOf } from "../campaign/thread-places";
-import { followUpWouldGoElsewhere, sharesTextWithEarlierOpenThread } from "../campaign/thread-text-checks";
+import type { QuestionRecord } from "../campaign/record/campaign";
+import { currentThread } from "../campaign/threads/current-thread";
+import { keepsEveryPlace } from "../campaign/record/places";
+import { questionThreadKind } from "../campaign/threads/question-thread-kind";
+import { latestSessionOf, placesOf } from "../campaign/threads/thread-places";
+import { followUpWouldGoElsewhere, sharesTextWithEarlierOpenThread } from "../campaign/threads/thread-text-checks";
 
 function answerTextOf(question: QuestionRecord): string | null {
   if (question.answer === null) return null;

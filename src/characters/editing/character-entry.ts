@@ -1,5 +1,5 @@
-import { CHANGED_IN_NOTE, PROPERTIES_WOULD_CHANGE } from "../../campaign/note-editor";
-import { keepsProperties } from "../../campaign/session-file";
+import { CHANGED_IN_NOTE, PROPERTIES_WOULD_CHANGE } from "../../campaign/writing/note-editor";
+import { keepsProperties } from "../../campaign/paths/session-file";
 import { withoutBullet } from "../../notes/bullet";
 import { factsOf, type CharacterFact } from "../../notes/character-facts";
 import { hiddenLines } from "../../notes/hidden-lines";

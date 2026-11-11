@@ -1,6 +1,6 @@
 import type { TFile } from "obsidian";
-import { NoteEditor, PartlyWritten, type EditorFiles } from "../../campaign/note-editor";
-import { sessionLabelOf } from "../../campaign/session-file";
+import { NoteEditor, PartlyWritten, type EditorFiles } from "../../campaign/writing/note-editor";
+import { sessionLabelOf } from "../../campaign/paths/session-file";
 import { linkedFactsOf } from "../../notes/character-facts";
 import { messageOf } from "../../views/dialogs/message-of";
 import { factLine, refusalForValue, withOverrides, type OverrideChange } from "./character-entry";

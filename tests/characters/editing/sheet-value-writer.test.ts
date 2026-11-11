@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
-import { CHANGED_IN_NOTE, PartlyWritten, WOULD_BE_HIDDEN } from "../../../src/campaign/note-editor";
+import { CHANGED_IN_NOTE, PartlyWritten, WOULD_BE_HIDDEN } from "../../../src/campaign/writing/note-editor";
 import { commentMarkIn, readsBackDifferently, stillReads } from "../../../src/characters/editing/character-entry";
 import { carriedValuesOf, characterSheetOf, type SheetValue } from "../../../src/characters/reading/character-sheet";
 import {

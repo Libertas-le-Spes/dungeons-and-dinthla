@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildCampaign } from "../../src/campaign/build-campaign";
-import type { SessionNote } from "../../src/campaign/campaign";
+import { buildCampaign } from "../../src/campaign/reading/build-campaign";
+import type { SessionNote } from "../../src/campaign/record/campaign";
 import { linesWrittenIn, type WrittenLine, type WrittenLineRows } from "../../src/dashboard/latest-session";
 import { summariseFunds } from "../../src/funds/page/funds-summary";
 

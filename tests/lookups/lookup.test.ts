@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildCampaign } from "../../src/campaign/build-campaign";
-import type { Campaign } from "../../src/campaign/campaign";
+import { buildCampaign } from "../../src/campaign/reading/build-campaign";
+import type { Campaign } from "../../src/campaign/record/campaign";
 import { lookupMatches, readLookup, type Lookup } from "../../src/lookups/lookup";
 
 const SESSION = "Pale Moon/Sessions/Session 1.md";

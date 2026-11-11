@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
-import { buildCampaign } from "../../src/campaign/build-campaign";
-import type { Campaign, SessionNote } from "../../src/campaign/campaign";
-import type { EditorFiles } from "../../src/campaign/note-editor";
-import { SessionChangeWriter } from "../../src/campaign/session-change-writer";
-import { sessionNoteOf } from "../../src/campaign/session-file";
-import { writeRecordChange } from "../../src/campaign/write-record-change";
+import { buildCampaign } from "../../src/campaign/reading/build-campaign";
+import type { Campaign, SessionNote } from "../../src/campaign/record/campaign";
+import type { EditorFiles } from "../../src/campaign/writing/note-editor";
+import { SessionChangeWriter } from "../../src/campaign/changes/session-change-writer";
+import { sessionNoteOf } from "../../src/campaign/paths/session-file";
+import { writeRecordChange } from "../../src/campaign/changes/write-record-change";
 import { SAME_TEXT_AS_EXISTING } from "../../src/questions/current-question";
 import { newQuestion } from "../../src/questions/new-question-change";
 

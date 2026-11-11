@@ -1,5 +1,5 @@
 import { SOURCE_ROWS, sourceKeyOf } from "./row-keys";
-import type { Source } from "../../campaign/campaign";
+import type { Source } from "../../campaign/record/campaign";
 
 export const PENDING_FOCUS_MS = 3000;
 

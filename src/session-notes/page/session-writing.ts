@@ -1,4 +1,4 @@
-import type { Campaign } from "../../campaign/campaign";
+import type { Campaign } from "../../campaign/record/campaign";
 import type { NoteEditingNeeds } from "../../note-editing/note-editing";
 import type { LinkActions } from "../../views/lists/linked-text";
 import { EditAllPanel } from "./edit-all-panel";

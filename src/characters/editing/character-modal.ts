@@ -1,5 +1,5 @@
 import { Setting, type App, type ButtonComponent } from "obsidian";
-import { CHANGED_IN_NOTE, PartlyWritten } from "../../campaign/note-editor";
+import { CHANGED_IN_NOTE, PartlyWritten } from "../../campaign/writing/note-editor";
 import { isSubmit } from "../../views/dialogs/keys";
 import { messageOf } from "../../views/dialogs/message-of";
 import { SecondPress } from "../../views/dialogs/second-press";

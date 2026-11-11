@@ -1,11 +1,11 @@
 import { Notice, type App } from "obsidian";
-import { NO_CAMPAIGN } from "../../campaign/campaign-folders";
-import type { CampaignStore } from "../../campaign/campaign-store";
-import { SessionChangeWriter } from "../../campaign/session-change-writer";
-import { sessionLabelOf } from "../../campaign/session-file";
-import { sessionForDialog } from "../../campaign/session-for-dialog";
-import { writeRecordChange } from "../../campaign/write-record-change";
-import type { Source } from "../../campaign/campaign";
+import { NO_CAMPAIGN } from "../../campaign/paths/campaign-folders";
+import type { CampaignStore } from "../../campaign/reading/campaign-store";
+import { SessionChangeWriter } from "../../campaign/changes/session-change-writer";
+import { sessionLabelOf } from "../../campaign/paths/session-file";
+import { sessionForDialog } from "../../campaign/paths/session-for-dialog";
+import { writeRecordChange } from "../../campaign/changes/write-record-change";
+import type { Source } from "../../campaign/record/campaign";
 import type { CoinLine } from "../../notes/coin-lines";
 import { newCoin } from "./new-coin-change";
 import { coinEntryEdit, entryToEdit } from "./coin-entry";

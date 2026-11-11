@@ -13,8 +13,8 @@ function throwBroken(): never {
   throw BROKEN;
 }
 
-vi.mock("../../../src/campaign/session-to-write", async (importOriginal) => {
-  const original = await importOriginal<typeof import("../../../src/campaign/session-to-write")>();
+vi.mock("../../../src/campaign/paths/session-to-write", async (importOriginal) => {
+  const original = await importOriginal<typeof import("../../../src/campaign/paths/session-to-write")>();
   return { ...original, sessionToWrite: throwBroken };
 });
 

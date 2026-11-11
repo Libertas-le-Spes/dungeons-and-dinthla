@@ -1,4 +1,4 @@
-import type { SessionChange } from "../../campaign/session-change";
+import type { SessionChange } from "../../campaign/changes/session-change";
 import type { ItemPlan } from "./item-plan";
 
 export function itemSessionChange(plan: ItemPlan): SessionChange {

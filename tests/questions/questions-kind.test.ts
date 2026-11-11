@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildCampaign } from "../../src/campaign/build-campaign";
-import type { CampaignStore } from "../../src/campaign/campaign-store";
+import { buildCampaign } from "../../src/campaign/reading/build-campaign";
+import type { CampaignStore } from "../../src/campaign/reading/campaign-store";
 import { questionsKind } from "../../src/questions/questions-kind";
 import { ListPage } from "../../src/views/lists/list-page";
 import { obsidianDocument } from "../views/obsidian-dom";

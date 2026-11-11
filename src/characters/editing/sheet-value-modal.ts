@@ -1,7 +1,7 @@
 import { ButtonComponent, Setting, type App } from "obsidian";
-import type { Source } from "../../campaign/campaign";
-import { CHANGED_IN_NOTE, PartlyWritten } from "../../campaign/note-editor";
-import { sessionLabelOf } from "../../campaign/session-file";
+import type { Source } from "../../campaign/record/campaign";
+import { CHANGED_IN_NOTE, PartlyWritten } from "../../campaign/writing/note-editor";
+import { sessionLabelOf } from "../../campaign/paths/session-file";
 import { isSubmit } from "../../views/dialogs/keys";
 import { messageOf } from "../../views/dialogs/message-of";
 import { deleteOnSecondPress } from "../../views/dialogs/second-press";

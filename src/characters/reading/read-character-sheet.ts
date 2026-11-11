@@ -1,7 +1,7 @@
 import type { TFile } from "obsidian";
-import type { SessionNote } from "../../campaign/campaign";
-import { campaignFolderOf } from "../../campaign/campaign-folders";
-import type { CampaignStore } from "../../campaign/campaign-store";
+import type { SessionNote } from "../../campaign/record/campaign";
+import { campaignFolderOf } from "../../campaign/paths/campaign-folders";
+import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { carriedValuesOf, characterSheetOf, type CarriedValues, type CharacterSheet } from "./character-sheet";
 import { learnedFactsOf } from "./learned-facts";
 import type { SheetNotes } from "./sheet-notes";

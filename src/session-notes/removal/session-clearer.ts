@@ -1,5 +1,5 @@
 import { getFrontMatterInfo } from "obsidian";
-import { boxTextOf, withBomOf, withoutBom } from "../../campaign/disk-text";
+import { boxTextOf, withBomOf, withoutBom } from "../../campaign/writing/disk-text";
 import type { FencedFiles } from "../../fence/fenced-files";
 
 export type ClearerFiles = Pick<FencedFiles, "getFileByPath" | "process">;

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildCampaign } from "../../../src/campaign/build-campaign";
-import type { CampaignStore } from "../../../src/campaign/campaign-store";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
+import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import type { CharacterNotes } from "../../../src/characters/reading/character-notes";
 import type { DashboardActions } from "../../../src/dashboard/dashboard-page";
 import { homeSection } from "../../../src/interface/sections/home-section";

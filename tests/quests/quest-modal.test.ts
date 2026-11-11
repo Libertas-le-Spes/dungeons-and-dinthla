@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { App } from "obsidian";
-import { buildCampaign } from "../../src/campaign/build-campaign";
-import { PartlyWritten } from "../../src/campaign/note-editor";
+import { buildCampaign } from "../../src/campaign/reading/build-campaign";
+import { PartlyWritten } from "../../src/campaign/writing/note-editor";
 import { QuestModal } from "../../src/quests/quest-modal";
 import { CONFIRM_MS } from "../../src/views/dialogs/second-press";
 import { Notice } from "../stubs/obsidian";

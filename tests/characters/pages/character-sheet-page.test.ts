@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TFile } from "obsidian";
-import type { SessionNote } from "../../../src/campaign/campaign";
+import type { SessionNote } from "../../../src/campaign/record/campaign";
 import { CharacterSheetPage, couldNotRead, TAP_A_VALUE, type SheetActions } from "../../../src/characters/pages/character-sheet-page";
 import type { SheetValue } from "../../../src/characters/reading/character-sheet";
 import type { CarriedFrom, SheetNotes } from "../../../src/characters/reading/sheet-notes";

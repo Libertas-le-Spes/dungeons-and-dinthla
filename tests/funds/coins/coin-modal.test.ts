@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { App } from "obsidian";
-import { buildCampaign } from "../../../src/campaign/build-campaign";
-import type { CampaignStore } from "../../../src/campaign/campaign-store";
-import { sessionNoteOf } from "../../../src/campaign/session-file";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
+import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
+import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
 import type { CoinEntryChoices } from "../../../src/funds/coins/coin-entry";
 import { CoinModal } from "../../../src/funds/coins/coin-modal";
 import { openCoinEntry } from "../../../src/funds/coins/open-add-coin";

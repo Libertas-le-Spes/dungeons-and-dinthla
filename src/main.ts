@@ -1,5 +1,5 @@
 import { debounce, MarkdownView, Notice, Plugin, WorkspaceLeaf, type MarkdownFileInfo, type PaneType, type TFile, type ViewState } from "obsidian";
-import type { Source } from "./campaign/campaign";
+import type { Source } from "./campaign/record/campaign";
 import type { SheetValue } from "./characters/reading/character-sheet";
 import { messageOf } from "./views/dialogs/message-of";
 import {
@@ -8,16 +8,16 @@ import {
   findCampaignFolders,
   isSessionNote,
   startingCampaignFolder,
-} from "./campaign/campaign-folders";
-import { CampaignStore } from "./campaign/campaign-store";
-import { SavedCampaign } from "./campaign/saved-campaign";
+} from "./campaign/paths/campaign-folders";
+import { CampaignStore } from "./campaign/reading/campaign-store";
+import { SavedCampaign } from "./campaign/reading/saved-campaign";
 import { characterNotesOf } from "./characters/reading/character-notes";
 import { CHARACTERS_VIEW, CharactersView } from "./characters/pages/characters-view";
 import { addEditCharacterItem, editActiveCharacter, editCharacter, openNewCharacter } from "./characters/editing/open-character";
 import { chooseSheetValue, openCharacterSheet } from "./characters/editing/open-character-sheet";
 import { sheetNotesOf } from "./characters/reading/sheet-notes";
 import { mentionNotesOf } from "./characters/reading/mention-notes";
-import { editorTextOf } from "./campaign/editor-text";
+import { editorTextOf } from "./campaign/reading/editor-text";
 import { markerColouring } from "./editor/marker-decorations";
 import type { LookupOpeners } from "./kinds/lookup-openers";
 import { openNewQuestion } from "./questions/open-new-question";

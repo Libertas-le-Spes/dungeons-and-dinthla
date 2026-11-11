@@ -1,6 +1,6 @@
 import { Notice, type App, type TFile } from "obsidian";
 import { createSession, nextSessionNumber, type NewSession } from "./create-session";
-import { NO_CAMPAIGN } from "../campaign/campaign-folders";
+import { NO_CAMPAIGN } from "../campaign/paths/campaign-folders";
 import { messageOf } from "../views/dialogs/message-of";
 import { NewSessionModal } from "./new-session-modal";
 import type { Gate } from "../fence/gatekeeper";

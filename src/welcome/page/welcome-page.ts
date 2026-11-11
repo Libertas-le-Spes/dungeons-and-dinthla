@@ -1,5 +1,5 @@
 import { Component } from "obsidian";
-import type { CampaignStore } from "../../campaign/campaign-store";
+import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { ReadCampaignsFolder } from "../../fence/fence";
 import type { WelcomeActions, WelcomeEnding, WelcomeState } from "../endings/welcome-ending";
 import { endingFor } from "../endings/welcome-endings";

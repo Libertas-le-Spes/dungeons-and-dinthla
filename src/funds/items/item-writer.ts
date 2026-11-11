@@ -1,7 +1,7 @@
-import type { ItemRecord } from "../../campaign/campaign";
-import type { EditorFiles } from "../../campaign/note-editor";
-import { SessionChangeWriter } from "../../campaign/session-change-writer";
-import { writeRecordChange } from "../../campaign/write-record-change";
+import type { ItemRecord } from "../../campaign/record/campaign";
+import type { EditorFiles } from "../../campaign/writing/note-editor";
+import { SessionChangeWriter } from "../../campaign/changes/session-change-writer";
+import { writeRecordChange } from "../../campaign/changes/write-record-change";
 import { itemSave } from "./item-save";
 import { initialItemEdit, type ItemEdit } from "./item-plan";
 import type { ItemSource } from "./item-source";
