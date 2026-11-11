@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hiddenLines } from "../../../src/notes/parts/hidden-lines";
+import { hiddenLines } from "../../../src/notes/reading/hidden-lines";
 
 function hidden(lines: string[]): number[] {
   return [...hiddenLines(lines.join("\n"))];

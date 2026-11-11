@@ -2,7 +2,7 @@ import { CHANGED_IN_NOTE, PROPERTIES_WOULD_CHANGE } from "../../campaign/writing
 import { keepsProperties } from "../../campaign/paths/session-file";
 import { withoutBullet } from "../../notes/parts/bullet";
 import { factsOf, type CharacterFact } from "../../notes/reading/character-facts";
-import { hiddenLines } from "../../notes/parts/hidden-lines";
+import { hiddenLines } from "../../notes/reading/hidden-lines";
 import { appendLines, removeLines, rewriteLine } from "../../notes/writing/note-lines";
 import { overrideFacts, sameName, sheetValuesOf } from "../reading/sheet-values";
 
