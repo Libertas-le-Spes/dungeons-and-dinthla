@@ -1,5 +1,5 @@
-import { addCardButton, type CharacterCard } from "../characters/character-card";
-import { addStatBlockLine, addStatValue, startStatBlock } from "../characters/stat-block";
+import { addCardButton, type CharacterCard } from "../characters/cards/character-card";
+import { addStatBlockLine, addStatValue, startStatBlock } from "../characters/cards/stat-block";
 import type { LinkActions } from "../views/lists/linked-text";
 
 const SHORT_CARD_LINES = [

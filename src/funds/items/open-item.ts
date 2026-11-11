@@ -1,6 +1,6 @@
 import type { App } from "obsidian";
 import type { ItemRecord, Source } from "../../campaign/campaign";
-import { charactersIn } from "../../campaign/characters";
+import { charactersIn } from "../../characters/reading/characters";
 import type { CampaignStore } from "../../campaign/campaign-store";
 import { sessionLabelOf } from "../../campaign/session-file";
 import { sessionForDialog } from "../../campaign/session-for-dialog";

@@ -2,7 +2,7 @@ import type { QuestRecord } from "../campaign/campaign";
 import { readMarker } from "../notes/marker";
 import { readQuest } from "../notes/quest";
 import { newQuestLine, questTextOf } from "../notes/quest-lines";
-import type { Character } from "../campaign/characters";
+import type { Character } from "../characters/reading/characters";
 import { oneLine } from "../notes/one-line";
 
 export interface NewQuest {
