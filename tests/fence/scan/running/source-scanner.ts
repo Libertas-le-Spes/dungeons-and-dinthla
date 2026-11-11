@@ -54,6 +54,8 @@ export class SourceScanner {
     const snapshot = this.api.updateSnapshot({ openProjects: [configPath] });
     const project = snapshot.getProject(configPath);
     if (project === undefined) throw new Error(`${configPath} could not be opened`);
+    const problems = project.program.getConfigFileParsingDiagnostics();
+    if (problems.length > 0) throw new Error(`${configPath} has problems: ${problems.map((problem) => problem.text).join("; ")}`);
     return project;
   }
 
