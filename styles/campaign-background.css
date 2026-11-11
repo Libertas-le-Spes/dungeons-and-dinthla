@@ -76,9 +76,6 @@
   transition: opacity var(--dur-med) var(--ease-out);
 }
 
-.theme-dark .dd-tab-picture .dd-box-frame::before {
-  filter: none;
-}
 
 .dd-tab-picture .dd-box-frame:focus-within::before {
   opacity: 0;
