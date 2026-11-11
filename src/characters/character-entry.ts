@@ -4,7 +4,7 @@ import { withoutBullet } from "../notes/bullet";
 import { factsOf, type CharacterFact } from "../notes/character-facts";
 import { hiddenLines } from "../notes/hidden-lines";
 import { appendLines, removeLines, rewriteLine } from "../notes/note-lines";
-import { overrideFacts, sameName, sheetNameOf, sheetValuesOf, type SourcedFact } from "./sheet-values";
+import { overrideFacts, sameName, sheetValuesOf } from "./sheet-values";
 
 export interface CharacterEntry {
   name: string;
