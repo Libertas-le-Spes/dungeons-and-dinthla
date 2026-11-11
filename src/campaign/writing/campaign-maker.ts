@@ -1,5 +1,5 @@
 import { Notice } from "obsidian";
-import type { ReadCampaignsFolder } from "../../fence/fence";
+import type { ReadCampaignsFolder } from "../../fence/paths/fence";
 import { messageOf } from "../../views/dialogs/message-of";
 import { makeCampaign, type NewCampaignFiles } from "./make-campaign";
 

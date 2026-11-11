@@ -6,7 +6,7 @@ import { messageOf } from "../../views/dialogs/message-of";
 import { factLine, refusalForValue, withOverrides, type OverrideChange } from "./character-entry";
 import { writeOverrides } from "./character-files";
 import { NOT_KNOWN, type SheetValue, type StatedValue, type ValueState } from "../reading/character-sheet";
-import type { FencedFiles } from "../../fence/fenced-files";
+import type { FencedFiles } from "../../fence/gate/fenced-files";
 
 export interface ValueChoice {
   state: ValueState;

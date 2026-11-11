@@ -1,5 +1,5 @@
 import type { MarkdownFileInfo, TFile } from "obsidian";
-import type { FencedFiles } from "../../fence/fenced-files";
+import type { FencedFiles } from "../../fence/gate/fenced-files";
 
 export function editorTextOf(info: MarkdownFileInfo, file: TFile, files: Pick<FencedFiles, "getFileByPath">): string | null {
   const stillThatNote = info.file === file && files.getFileByPath(file.path) === file;

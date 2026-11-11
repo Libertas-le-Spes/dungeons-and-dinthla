@@ -1,4 +1,4 @@
-import type { FencedMetadata } from "../fence/fenced-metadata";
+import type { FencedMetadata } from "../fence/gate/fenced-metadata";
 
 export interface SessionProperties {
   title: string;

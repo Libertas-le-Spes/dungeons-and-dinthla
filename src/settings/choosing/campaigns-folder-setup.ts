@@ -1,5 +1,5 @@
 import { Notice } from "obsidian";
-import type { FolderChoices } from "../../fence/folder-choices";
+import type { FolderChoices } from "../../fence/gate/folder-choices";
 import { messageOf } from "../../views/dialogs/message-of";
 import type { CampaignsFolderSetting } from "../saved/campaigns-folder-setting";
 

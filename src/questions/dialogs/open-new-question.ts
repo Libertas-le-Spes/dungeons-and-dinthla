@@ -9,7 +9,7 @@ import { writeRecordChange } from "../../campaign/changes/write-record-change";
 import { newQuestion } from "../writing/new-question-change";
 import type { NewQuestion } from "../writing/new-question";
 import { NewQuestionModal } from "./new-question-modal";
-import type { Gate } from "../../fence/gatekeeper";
+import type { Gate } from "../../fence/gate/gatekeeper";
 
 const NO_SESSION = "Start a session first: questions are written into a session note.";
 

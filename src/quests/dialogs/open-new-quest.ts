@@ -10,7 +10,7 @@ import { writeRecordChange } from "../../campaign/changes/write-record-change";
 import { NewQuestModal } from "./new-quest-modal";
 import type { NewQuest } from "../writing/new-quest";
 import { newQuest } from "../writing/new-quest-change";
-import type { Gate } from "../../fence/gatekeeper";
+import type { Gate } from "../../fence/gate/gatekeeper";
 
 const NO_SESSION = "Start a session first: quests are written into a session note.";
 

@@ -1,7 +1,7 @@
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { noteTextsOf } from "../../campaign/reading/note-texts";
-import type { Gate } from "../../fence/gatekeeper";
-import type { VaultSettings } from "../../fence/vault-settings";
+import type { Gate } from "../../fence/gate/gatekeeper";
+import type { VaultSettings } from "../../fence/gate/vault-settings";
 import type { LookupOpeners } from "../../kinds/lookup-openers";
 import type { NoteEditingNeeds } from "../../note-editing/note-editing";
 import { NoteSaver } from "../../note-editing/note-saver";

@@ -1,4 +1,4 @@
-import type { VaultSettings } from "../../fence/vault-settings";
+import type { VaultSettings } from "../../fence/gate/vault-settings";
 
 const KEPT_IN_A_TRASH = ["system", "local"];
 

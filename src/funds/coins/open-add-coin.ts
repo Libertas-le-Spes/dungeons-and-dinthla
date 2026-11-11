@@ -10,7 +10,7 @@ import type { CoinLine } from "../../notes/writing/coin-lines";
 import { newCoin } from "./new-coin-change";
 import { coinEntryEdit, entryToEdit } from "./coin-entry";
 import { CoinModal, type CoinOutcome } from "./coin-modal";
-import type { Gate } from "../../fence/gatekeeper";
+import type { Gate } from "../../fence/gate/gatekeeper";
 
 const NO_SESSION = "Start a session first: coin is written into a session note.";
 

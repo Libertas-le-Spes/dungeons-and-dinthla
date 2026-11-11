@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App, CachedMetadata, EventRef, Plugin, TFile } from "obsidian";
-import type { Gate } from "../../../src/fence/gatekeeper";
+import type { Gate } from "../../../src/fence/gate/gatekeeper";
 import { CampaignSettingTab, type CampaignChoice } from "../../../src/settings/choosing/campaign-setting-tab";
 import { CampaignsFolderSetup } from "../../../src/settings/choosing/campaigns-folder-setup";
 import { FolderSuggestModal } from "../../../src/settings/choosing/folder-suggest-modal";
 import type { PictureSuggestModal } from "../../../src/settings/choosing/picture-suggest-modal";
 import { NO_CAMPAIGN } from "../../../src/campaign/paths/campaign-folders";
-import { NO_CAMPAIGNS_FOLDER } from "../../../src/fence/campaigns-folder-path";
+import { NO_CAMPAIGNS_FOLDER } from "../../../src/fence/paths/campaigns-folder-path";
 import { Notice, openedSuggestModals } from "../../stubs/obsidian";
 import { obsidianDocument } from "../../views/obsidian-dom";
 
