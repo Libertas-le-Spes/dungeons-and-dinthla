@@ -27,8 +27,8 @@ export function referenceFolderOf(kind: ReferenceKind, campaignFolder: string): 
   return `${campaignFolder}/${kind.folder}`;
 }
 
-export function charactersFolderOf(campaignFolder: string): string {
-  return referenceFolderOf(characterReferenceKind, campaignFolder);
+export function isInReferenceFolder(kind: ReferenceKind, campaignFolder: string, path: string): boolean {
+  return path.startsWith(`${referenceFolderOf(kind, campaignFolder)}/`);
 }
 
 export function itemsFolderOf(campaignFolder: string): string {

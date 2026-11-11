@@ -1,4 +1,5 @@
-import { charactersFolderOf } from "./campaign-folders";
+import { characterReferenceKind } from "../kinds/character-reference-kind";
+import { isInReferenceFolder } from "./campaign-folders";
 import type { Gate } from "../fence/gatekeeper";
 
 export interface Character {
@@ -7,10 +8,9 @@ export interface Character {
 }
 
 export function charactersIn(gate: Gate, campaignFolder: string, sessionPath: string): Character[] {
-  const charactersFolder = `${charactersFolderOf(campaignFolder)}/`;
   const characters: Character[] = [];
   for (const file of gate.files.getMarkdownFiles()) {
-    if (!file.path.startsWith(charactersFolder)) continue;
+    if (!isInReferenceFolder(characterReferenceKind, campaignFolder, file.path)) continue;
     if (characters.some((character) => character.name === file.basename)) continue;
     characters.push({ name: file.basename, linktext: gate.metadata.fileToLinktext(file, sessionPath, true) });
   }

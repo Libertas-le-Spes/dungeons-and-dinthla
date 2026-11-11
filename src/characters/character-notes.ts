@@ -1,6 +1,7 @@
 import type { TFile } from "obsidian";
 import type { SessionNote } from "../campaign/campaign";
-import { campaignNotePathOf, charactersFolderOf } from "../campaign/campaign-folders";
+import { campaignNotePathOf, isInReferenceFolder } from "../campaign/campaign-folders";
+import { characterReferenceKind } from "../kinds/character-reference-kind";
 import { readSessions } from "../campaign/read-campaign";
 import type { Gate } from "../fence/gatekeeper";
 
@@ -37,8 +38,7 @@ function isOwnCharacter(gate: Gate, campaignFolders: CampaignFolders, file: TFil
 }
 
 function filesIn(gate: Gate, campaignFolder: string): TFile[] {
-  const charactersFolder = `${charactersFolderOf(campaignFolder)}/`;
-  const files = gate.files.getMarkdownFiles().filter((file) => file.path.startsWith(charactersFolder));
+  const files = gate.files.getMarkdownFiles().filter((file) => isInReferenceFolder(characterReferenceKind, campaignFolder, file.path));
   return files.sort((first, second) => first.basename.localeCompare(second.basename));
 }
 

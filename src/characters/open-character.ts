@@ -1,5 +1,6 @@
 import { Notice, type App, type Menu, type TAbstractFile, type TFile } from "obsidian";
-import { campaignOfCharacter, charactersFolderOf, NO_CAMPAIGN } from "../campaign/campaign-folders";
+import { campaignOfCharacter, NO_CAMPAIGN, referenceFolderOf } from "../campaign/campaign-folders";
+import { characterReferenceKind } from "../kinds/character-reference-kind";
 import { messageOf } from "../views/message-of";
 import { blankEntry, entryOf, learnedOf, type CharacterEntry, type Learned } from "./character-entry";
 import { createCharacter, deleteCharacter, saveCharacter } from "./character-files";
@@ -46,7 +47,7 @@ export function openNewCharacter(app: App, gate: Gate, campaignFolder: string | 
     void openMade(app, gate, note);
     return true;
   };
-  const where = `Adds a note to ${charactersFolderOf(campaignFolder)}. ${NEW_WHERE}`;
+  const where = `Adds a note to ${referenceFolderOf(characterReferenceKind, campaignFolder)}. ${NEW_WHERE}`;
   const dialog = { title: "New character", entry: blankEntry(), learned: new Map(), where, save, delete: null };
   new CharacterModal(app, dialog, onClosed).open();
 }
