@@ -52,8 +52,15 @@ function stepped(colour: Colour, step: FilterStep, amount: number): Colour {
   };
 }
 
+function readsWhole(filter: string): boolean {
+  const steps: string[] = [];
+  for (const [whole] of filter.matchAll(FILTER_STEP)) steps.push(whole);
+  return steps.join(" ") === filter.trim();
+}
+
 function filtered(picture: Colour, filter: string): Colour {
   if (filter === "none") return picture;
+  if (!readsWhole(filter)) throw new Error(`The contrast test can't read the filter ${filter}`);
   let shown = picture;
   for (const [, name, amount] of filter.matchAll(FILTER_STEP)) {
     const step = FILTERS[name!];
