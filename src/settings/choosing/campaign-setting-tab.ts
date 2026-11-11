@@ -1,9 +1,9 @@
 import { ButtonComponent, DropdownComponent, Notice, PluginSettingTab, Setting, type App, type Plugin, type TFile } from "obsidian";
-import { backgroundOf, chooseWash, choosePicture, isPicture, removePicture, washOf, type Wash } from "../campaign/campaign-background";
-import { campaignNameOf, mainNotePathOf, NO_CAMPAIGN } from "../campaign/campaign-folders";
-import { NO_CAMPAIGNS_FOLDER } from "../fence/campaigns-folder-path";
-import type { Gate } from "../fence/gatekeeper";
-import { messageOf } from "../views/message-of";
+import { backgroundOf, chooseWash, choosePicture, isPicture, removePicture, washOf, type Wash } from "../../campaign/campaign-background";
+import { campaignNameOf, mainNotePathOf, NO_CAMPAIGN } from "../../campaign/campaign-folders";
+import { NO_CAMPAIGNS_FOLDER } from "../../fence/campaigns-folder-path";
+import type { Gate } from "../../fence/gatekeeper";
+import { messageOf } from "../../views/message-of";
 import type { CampaignsFolderSetup } from "./campaigns-folder-setup";
 import { PictureSuggestModal } from "./picture-suggest-modal";
 

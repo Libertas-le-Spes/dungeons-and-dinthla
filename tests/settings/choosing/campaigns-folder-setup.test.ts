@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CampaignsFolderSetting } from "../../src/settings/campaigns-folder-setting";
-import { CampaignsFolderSetup } from "../../src/settings/campaigns-folder-setup";
-import { SettingsSaver } from "../../src/settings/settings-saver";
-import { Notice } from "../stubs/obsidian";
+import { CampaignsFolderSetting } from "../../../src/settings/saved/campaigns-folder-setting";
+import { CampaignsFolderSetup } from "../../../src/settings/choosing/campaigns-folder-setup";
+import { SettingsSaver } from "../../../src/settings/saved/settings-saver";
+import { Notice } from "../../stubs/obsidian";
 
 function setupWith({ chooseFails = false, makeFails = false } = {}) {
   const setting = {

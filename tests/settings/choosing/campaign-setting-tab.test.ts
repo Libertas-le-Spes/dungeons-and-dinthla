@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App, CachedMetadata, EventRef, Plugin, TFile } from "obsidian";
-import type { Gate } from "../../src/fence/gatekeeper";
-import { CampaignSettingTab, type CampaignChoice } from "../../src/settings/campaign-setting-tab";
-import { CampaignsFolderSetup } from "../../src/settings/campaigns-folder-setup";
-import { FolderSuggestModal } from "../../src/settings/folder-suggest-modal";
-import type { PictureSuggestModal } from "../../src/settings/picture-suggest-modal";
-import { NO_CAMPAIGN } from "../../src/campaign/campaign-folders";
-import { NO_CAMPAIGNS_FOLDER } from "../../src/fence/campaigns-folder-path";
-import { Notice, openedSuggestModals } from "../stubs/obsidian";
-import { obsidianDocument } from "../views/obsidian-dom";
+import type { Gate } from "../../../src/fence/gatekeeper";
+import { CampaignSettingTab, type CampaignChoice } from "../../../src/settings/choosing/campaign-setting-tab";
+import { CampaignsFolderSetup } from "../../../src/settings/choosing/campaigns-folder-setup";
+import { FolderSuggestModal } from "../../../src/settings/choosing/folder-suggest-modal";
+import type { PictureSuggestModal } from "../../../src/settings/choosing/picture-suggest-modal";
+import { NO_CAMPAIGN } from "../../../src/campaign/campaign-folders";
+import { NO_CAMPAIGNS_FOLDER } from "../../../src/fence/campaigns-folder-path";
+import { Notice, openedSuggestModals } from "../../stubs/obsidian";
+import { obsidianDocument } from "../../views/obsidian-dom";
 
 const PALE_MOON = "D&D/Pale Moon/Pale Moon.md";
 const ASHEN_ROAD = "D&D/Ashen Road/Ashen Road.md";

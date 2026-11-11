@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TFile, TFolder } from "obsidian";
 import { welcomeWiring } from "../../src/interface/welcome-wiring";
-import { settingsOf } from "../../src/settings/plugin-settings";
-import { SettingsSaver } from "../../src/settings/settings-saver";
+import { settingsOf } from "../../src/settings/saved/plugin-settings";
+import { SettingsSaver } from "../../src/settings/saved/settings-saver";
 import { obsidianDocument } from "../views/obsidian-dom";
 
 function folderAt(path: string, foldersThere: string[]): TFolder | null {

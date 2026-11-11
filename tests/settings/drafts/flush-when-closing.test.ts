@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { flushWhenClosing } from "../../src/settings/flush-when-closing";
+import { flushWhenClosing } from "../../../src/settings/drafts/flush-when-closing";
 
 function closingWith(hidden: boolean) {
   return { onUnload: vi.fn(), onQuit: vi.fn(), onVisibilityChange: vi.fn(), onPageHide: vi.fn(), pageHidden: vi.fn(() => hidden) };

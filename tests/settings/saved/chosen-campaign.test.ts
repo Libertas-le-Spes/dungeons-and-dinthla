@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { ChosenCampaign } from "../../src/settings/chosen-campaign";
-import type { PluginSettings } from "../../src/settings/plugin-settings";
-import { SettingsSaver } from "../../src/settings/settings-saver";
+import { ChosenCampaign } from "../../../src/settings/saved/chosen-campaign";
+import type { PluginSettings } from "../../../src/settings/saved/plugin-settings";
+import { SettingsSaver } from "../../../src/settings/saved/settings-saver";
 
 function oneTick(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));
