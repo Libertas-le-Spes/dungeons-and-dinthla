@@ -22,15 +22,6 @@ beforeEach(() => {
   Notice.shown = [];
 });
 
-describe("openNewCharacter", () => {
-  it("asks for a campaign when there is none", () => {
-    const before = openedModals.length;
-    openNewCharacter({} as App, {} as Gate, null, () => {});
-    expect(Notice.shown).toEqual([NO_CAMPAIGN]);
-    expect(openedModals.length).toBe(before);
-  });
-});
-
 interface Setup {
   active?: string | null;
   files?: string[];
@@ -73,6 +64,24 @@ function setUp({ active = MIRA, files = [MIRA, "Drafts/Characters/Mira.md"], own
 function lastDialogText(): string {
   return String(openedModals[openedModals.length - 1]!.contentEl.textContent);
 }
+
+describe("openNewCharacter", () => {
+  it("asks for a campaign when there is none", () => {
+    const before = openedModals.length;
+    openNewCharacter({} as App, {} as Gate, null, () => {});
+    expect(Notice.shown).toEqual([NO_CAMPAIGN]);
+    expect(openedModals.length).toBe(before);
+  });
+
+  it("says the note goes in the campaign's Characters folder", () => {
+    const { app, gate } = setUp();
+    const before = openedModals.length;
+    openNewCharacter(app, gate, "Pale Moon", () => {});
+    expect(openedModals.length).toBe(before + 1);
+    expect(lastDialogText()).toContain("Adds a note to Pale Moon/Characters.");
+  });
+});
+
 
 describe("openEditCharacter", () => {
   it("shows what the sessions taught about the character, and that links follow only with Obsidian's setting on", async () => {
