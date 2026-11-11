@@ -35,6 +35,10 @@ export function itemsFolderOf(campaignFolder: string): string {
   return `${campaignFolder}/${itemTrackedKind.folder}`;
 }
 
+export function isInItemsFolder(campaignFolder: string, path: string): boolean {
+  return path.startsWith(`${itemsFolderOf(campaignFolder)}/`);
+}
+
 export function charactersBasePathOf(campaignFolder: string): string {
   return `${campaignFolder}/Characters.base`;
 }
@@ -53,7 +57,7 @@ export function campaignOfReference(kind: ReferenceKind, path: string, campaignF
 export function campaignOfItem(path: string, campaignFolders: string[]): string | null {
   const folder = campaignFolderOf(path, campaignFolders);
   if (folder === null) return null;
-  if (!path.startsWith(`${itemsFolderOf(folder)}/`) || !isMarkdownNote(path)) return null;
+  if (!isInItemsFolder(folder, path) || !isMarkdownNote(path)) return null;
   return folder;
 }
 
