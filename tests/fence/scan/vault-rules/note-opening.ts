@@ -1,6 +1,6 @@
 import { isCallExpression, isIdentifier, isVariableDeclaration, type CallExpression, type Expression, type Identifier } from "typescript/unstable/ast";
 import type { Project } from "typescript/unstable/sync";
-import { GATE_SOURCES } from "../reading/names";
+import { isGateSource } from "../reading/gate-paths";
 import { awaited, calledNameOf, isActiveViewCall, isConst, unwrapped } from "../reading/syntax";
 
 export function opensFromGate(project: Project, call: CallExpression): boolean {
@@ -29,7 +29,7 @@ function isGateCall(project: Project, call: CallExpression): boolean {
   const symbol = project.checker.getSymbolAtLocation(name);
   if (symbol === undefined) return false;
   const [declaration, ...others] = symbol.declarations;
-  return declaration !== undefined && others.length === 0 && GATE_SOURCES.some((ending) => declaration.path.endsWith(ending));
+  return declaration !== undefined && others.length === 0 && isGateSource(declaration.path);
 }
 
 export function isActiveView(project: Project, owner: Expression): boolean {

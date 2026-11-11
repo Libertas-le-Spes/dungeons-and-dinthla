@@ -1,4 +1,5 @@
-import { CONSTRUCTOR, FILE_TREE, GATE_FOLDER, OBJECT, REFLECTION, VAULT_NAMES } from "../reading/names";
+import { isInGateFolder } from "../reading/gate-paths";
+import { CONSTRUCTOR, FILE_TREE, OBJECT, REFLECTION, VAULT_NAMES } from "../reading/names";
 import type { FileScan } from "../reading/file-scan";
 
 function forbiddenBreaches(scan: FileScan): string[] {
@@ -36,7 +37,7 @@ function globalAppBreaches(scan: FileScan): string[] {
 function folderWalkBreaches(scan: FileScan): string[] {
   const { project, found, where, types, path } = scan;
   const breaches: string[] = [];
-  if (!path.includes(GATE_FOLDER)) {
+  if (!isInGateFolder(path)) {
     for (const { node, name } of found.gateOnly) breaches.push(`${where(node)} walks the vault's folders unfenced with ${name}`);
   }
   if (scan.allowances.fileTree(path)) return breaches;

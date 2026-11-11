@@ -117,14 +117,6 @@ export const ACTIVE_VIEW = "getActiveViewOfType";
 
 export const VIEW_FILE = "file";
 
-export const GATE_SOURCES = ["/src/fence/gate/fenced-files.ts", "/src/fence/gate/fenced-metadata.ts"];
-
-export const GATE_FOLDER = "/src/fence/";
-
-export const GATE_BUILT_SOURCES = [...GATE_SOURCES, "/src/fence/gate/fenced-file-actions.ts", "/src/fence/gate/gatekeeper.ts", "/src/fence/gate/held-files.ts"];
-
-export const GATE_TYPE_SOURCES = [...GATE_BUILT_SOURCES, "/src/fence/paths/fence.ts"];
-
 export const GATEKEEPER = "Gatekeeper";
 
 export const PROTOTYPE_TAKERS = ["create"];

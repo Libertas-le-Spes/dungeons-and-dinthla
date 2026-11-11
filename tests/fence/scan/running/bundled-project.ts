@@ -1,5 +1,5 @@
 import { PLUGIN_BUNDLE } from "../../../../scripts/bundle-options.ts";
-import { VIRTUAL_FOLDER } from "./scan-paths";
+import { VIRTUAL_FOLDER } from "../reading/scan-paths";
 
 export const BUNDLED_PROJECT = `${VIRTUAL_FOLDER}/bundled/tsconfig.json`;
 

@@ -1,8 +1,13 @@
+import { relative } from "node:path";
 import type { Allowances } from "../reading/allowances";
 import { NOTHING_ALLOWED } from "./allowance-sets";
-import { ROOT, VIRTUAL_FOLDER } from "./scan-paths";
+import { ROOT, VIRTUAL_FOLDER } from "../reading/scan-paths";
 import { virtualFileSystem } from "./virtual-files";
 import { SourceScanner } from "./source-scanner";
+
+export function extendsRootConfig(folder: string): string {
+  return `${relative(folder, ROOT)}/tsconfig.json`;
+}
 
 export class SampleScan {
   private readonly folder: string;
@@ -35,7 +40,7 @@ export class SampleScan {
   private files(): Map<string, string> {
     const files = new Map<string, string>(this.samples.map((sample, index) => [this.samplePath(index), sample]));
     const names = this.samples.map((_sample, index) => `sample-${index}.ts`);
-    files.set(this.project(), JSON.stringify({ extends: "../../../../tsconfig.json", files: names, include: [] }));
+    files.set(this.project(), JSON.stringify({ extends: extendsRootConfig(this.folder), files: names, include: [] }));
     return files;
   }
 }
