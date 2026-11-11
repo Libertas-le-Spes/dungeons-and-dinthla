@@ -10,7 +10,7 @@ import { questionReopen, questionSave } from "../writing/question-change";
 import { QuestionModal } from "./question-modal";
 import type { QuestionEdit } from "../writing/question-plan";
 import { QuestionWriter } from "../writing/question-writer";
-import type { Gate } from "../../fence/gatekeeper";
+import type { Gate } from "../../fence/gate/gatekeeper";
 
 const NO_SESSION = "Start a session first: answers are written into a session note.";
 const SAME_TEXT = "An earlier open question reads the same, so an answer would go to it. Reword one of them first.";

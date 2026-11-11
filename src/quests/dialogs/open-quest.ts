@@ -10,7 +10,7 @@ import { questSave } from "../writing/quest-change";
 import { QuestModal } from "./quest-modal";
 import { canCollectReward, type QuestEdit } from "../writing/quest-plan";
 import { QuestWriter } from "../writing/quest-writer";
-import type { Gate } from "../../fence/gatekeeper";
+import type { Gate } from "../../fence/gate/gatekeeper";
 
 const NO_SESSION = "Start a session first: quest changes are written into a session note.";
 

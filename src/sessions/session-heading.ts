@@ -1,5 +1,5 @@
 import { sessionLabelOf } from "../campaign/paths/session-file";
-import type { FencedMetadata } from "../fence/fenced-metadata";
+import type { FencedMetadata } from "../fence/gate/fenced-metadata";
 
 export function sessionHeadingOf(path: string, metadata: Pick<FencedMetadata, "getCache">): string {
   const label = sessionLabelOf(path);

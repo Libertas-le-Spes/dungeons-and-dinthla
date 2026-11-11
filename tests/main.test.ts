@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Plugin, type App, type PluginManifest } from "obsidian";
-import { NOT_THE_CONFIG_FOLDER } from "../src/fence/campaigns-folder-path";
+import { NOT_THE_CONFIG_FOLDER } from "../src/fence/paths/campaigns-folder-path";
 import DungeonsAndDinthla from "../src/main";
 import type { CampaignsFolderSetting } from "../src/settings/saved/campaigns-folder-setting";
 

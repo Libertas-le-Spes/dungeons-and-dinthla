@@ -1,7 +1,7 @@
 import type { CachedMetadata, TFile } from "obsidian";
 import { mainNotePathOf } from "../paths/campaign-folders";
-import type { FencedMetadata } from "../../fence/fenced-metadata";
-import type { FencedFileActions } from "../../fence/fenced-file-actions";
+import type { FencedMetadata } from "../../fence/gate/fenced-metadata";
+import type { FencedFileActions } from "../../fence/gate/fenced-file-actions";
 
 export const WASHES = ["subtle", "balanced", "strong"] as const;
 export type Wash = (typeof WASHES)[number];

@@ -16,8 +16,18 @@ const INNER_FOLDERS: InnerFolder[] = [
   { folder: "fence", reaches: ["fence", "names"] },
 ];
 
+function filesUnder(path: string): string[] {
+  const found: string[] = [];
+  for (const entry of readdirSync(path, { withFileTypes: true })) {
+    const inside = join(path, entry.name);
+    if (entry.isDirectory()) found.push(...filesUnder(inside));
+    if (entry.isFile()) found.push(inside);
+  }
+  return found;
+}
+
 function filesIn(folder: string): string[] {
-  return readdirSync(join(SOURCE_FOLDER, folder)).map((name) => join(SOURCE_FOLDER, folder, name));
+  return filesUnder(join(SOURCE_FOLDER, folder));
 }
 
 function folderOf(file: string, imported: string): string {
@@ -54,7 +64,18 @@ describe("the inner folders", () => {
     expect(reachesOutward(inner)).toEqual([]);
   });
 
-  it("finds an import from an outer folder", () => {
-    expect(folderOf(join(SOURCE_FOLDER, "fence", "safe-path.ts"), "../campaign/file-name")).toBe("campaign");
+  it("finds an import from an outer folder, from a file inside a folder of the inner one", () => {
+    expect(folderOf(join(SOURCE_FOLDER, "fence", "paths", "safe-path.ts"), "../../campaign/file-name")).toBe("campaign");
+  });
+
+  it("stays in the inner folder for an import between two of its own folders", () => {
+    expect(folderOf(join(SOURCE_FOLDER, "fence", "gate", "gatekeeper.ts"), "../paths/fence")).toBe("fence");
+  });
+
+  it("reads the files in the folders inside an inner folder, not only its top", () => {
+    const read = filesIn("fence").map((file) => relative(SOURCE_FOLDER, file));
+    expect(read).toContain(join("fence", "gate", "gatekeeper.ts"));
+    expect(read).toContain(join("fence", "paths", "safe-path.ts"));
+    expect(read.every((file) => file.endsWith(".ts"))).toBe(true);
   });
 });

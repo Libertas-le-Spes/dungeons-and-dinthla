@@ -3,7 +3,7 @@ import { createSession, nextSessionNumber, type NewSession } from "./create-sess
 import { NO_CAMPAIGN } from "../campaign/paths/campaign-folders";
 import { messageOf } from "../views/dialogs/message-of";
 import { NewSessionModal } from "./new-session-modal";
-import type { Gate } from "../fence/gatekeeper";
+import type { Gate } from "../fence/gate/gatekeeper";
 
 export type OpenSessionNotes = (path: string) => Promise<void>;
 

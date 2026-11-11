@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { charactersIn } from "../../../src/characters/reading/characters";
-import type { Gate } from "../../../src/fence/gatekeeper";
+import type { Gate } from "../../../src/fence/gate/gatekeeper";
 
 const PALE_MOON = "Games/D&D/Pale Moon";
 const SESSION = `${PALE_MOON}/Sessions/Session 1.md`;

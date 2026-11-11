@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CachedMetadata, TFile } from "obsidian";
-import type { Gate } from "../../../src/fence/gatekeeper";
+import type { Gate } from "../../../src/fence/gate/gatekeeper";
 import { carriedGroupsOf, sheetNotesOf } from "../../../src/characters/reading/sheet-notes";
 
 const MIRA = { path: "Pale Moon/Characters/Mira.md", basename: "Mira" } as TFile;

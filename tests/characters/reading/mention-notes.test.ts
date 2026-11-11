@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { CachedMetadata, LinkCache, TFile } from "obsidian";
 import { mentionNotesOf } from "../../../src/characters/reading/mention-notes";
-import type { Gate } from "../../../src/fence/gatekeeper";
+import type { Gate } from "../../../src/fence/gate/gatekeeper";
 
 const MIRA = "Pale Moon/Characters/Mira.md";
 const VESS = "Pale Moon/Characters/Vess.md";

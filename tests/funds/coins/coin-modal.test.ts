@@ -6,7 +6,7 @@ import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
 import type { CoinEntryChoices } from "../../../src/funds/coins/coin-entry";
 import { CoinModal } from "../../../src/funds/coins/coin-modal";
 import { openCoinEntry } from "../../../src/funds/coins/open-add-coin";
-import type { Gate } from "../../../src/fence/gatekeeper";
+import type { Gate } from "../../../src/fence/gate/gatekeeper";
 import { CONFIRM_MS } from "../../../src/views/dialogs/second-press";
 import { Notice, openedModals } from "../../stubs/obsidian";
 

@@ -1,6 +1,6 @@
 import { Component, type EventRef } from "obsidian";
-import type { Fence } from "../../fence/fence";
-import type { FencedFiles } from "../../fence/fenced-files";
+import type { Fence } from "../../fence/paths/fence";
+import type { FencedFiles } from "../../fence/gate/fenced-files";
 import { NoteDrafts } from "../../note-editing/note-drafts";
 import type { Drafts } from "../drafts/drafts";
 import { setAsideGoneNotes } from "./gone-notes";

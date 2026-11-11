@@ -1,6 +1,6 @@
 import { Notice, parseLinktext, type App, type PaneType } from "obsidian";
 import { campaignFolderOf } from "../../campaign/paths/campaign-folders";
-import type { Gate } from "../../fence/gatekeeper";
+import type { Gate } from "../../fence/gate/gatekeeper";
 import { noteInCampaignFor } from "./note-in-campaign";
 
 export interface LinkPlace {

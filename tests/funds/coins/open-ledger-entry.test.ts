@@ -6,7 +6,7 @@ import type { CampaignStore } from "../../../src/campaign/reading/campaign-store
 import type { CoinOutcome } from "../../../src/funds/coins/coin-modal";
 import { ledgerEntryOpener, routeLedgerEntry, type LedgerOpeners } from "../../../src/funds/coins/open-ledger-entry";
 import { openedModals } from "../../stubs/obsidian";
-import type { Gate } from "../../../src/fence/gatekeeper";
+import type { Gate } from "../../../src/fence/gate/gatekeeper";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";

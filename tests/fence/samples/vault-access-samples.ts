@@ -177,7 +177,7 @@ export const WIDENING_SAMPLES = [
   "export const parts = (o: Object, key: string) => (o as Record<string, unknown>)[key];",
   'import type { App } from "obsidian";\nexport const parts = (app: Pick<App, "scope" | "keymap">) => Object.values(app);',
   'import type { ItemView } from "obsidian";\nexport const parts = (view: ItemView) => Object.values(view);',
-  'import type { FencedFiles } from "../../../../src/fence/fenced-files";\nexport const parts = (files: Pick<FencedFiles, "getFileByPath">) => Object.values(files);',
+  'import type { FencedFiles } from "../../../../src/fence/gate/fenced-files";\nexport const parts = (files: Pick<FencedFiles, "getFileByPath">) => Object.values(files);',
 ];
 
 export const KEY_SAMPLES = [
