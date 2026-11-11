@@ -1,7 +1,7 @@
 import type { SourcedText } from "../../campaign/campaign";
 import type { ThreadRecord } from "../../campaign/thread-kind";
 import type { FollowUpName } from "../../kinds/follow-up-name";
-import type { LineState } from "../lists/line-state";
+import type { LineState } from "./line-state";
 import type { ShownThreadKind } from "./shown-thread-kind";
 
 export function threadStateOf<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName>(

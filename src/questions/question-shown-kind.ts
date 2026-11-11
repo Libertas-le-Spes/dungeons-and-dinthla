@@ -1,7 +1,7 @@
 import type { Campaign, QuestionRecord, Source, SourcedText } from "../campaign/campaign";
 import { questionThreadKind } from "../campaign/question-thread-kind";
 import { questionTrackedKind } from "../kinds/question-tracked-kind";
-import type { LineState } from "../views/lists/line-state";
+import type { LineState } from "../views/threads/line-state";
 import type { ShownThreadKind } from "../views/threads/shown-thread-kind";
 import type { ThreadFact } from "../views/threads/thread-fact";
 import type { EndedLook } from "../views/threads/thread-look";
