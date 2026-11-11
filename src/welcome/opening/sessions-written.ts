@@ -1,4 +1,4 @@
-import { sessionNumberOf } from "../campaign/session-file";
+import { sessionNumberOf } from "../../campaign/session-file";
 
 function holdsASession(campaignFolder: string, paths: string[]): boolean {
   return paths.some((path) => sessionNumberOf(path, campaignFolder) !== null);

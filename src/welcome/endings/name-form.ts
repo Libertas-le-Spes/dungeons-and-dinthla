@@ -1,5 +1,5 @@
 import { Notice, type Component } from "obsidian";
-import { messageOf } from "../views/message-of";
+import { messageOf } from "../../views/message-of";
 
 export interface NameForm {
   label: string;
