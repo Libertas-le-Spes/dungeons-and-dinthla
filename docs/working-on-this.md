@@ -18,7 +18,14 @@ This page is for whoever picks the work up on another machine, person or session
 
 ## Numbers in a pull request
 
-Every count a pull request states comes from a command, not from counting by hand: `git diff -M --name-status origin/main...HEAD | grep -c '^R'` for files moved, a `git diff` of the allowance lists for entries changed, the test runner's own total for tests. Two pull requests in the folder-move series stated a count that was one or two short, and a reviewer had to put it right; a wrong count reads as a proof that wasn't run.
+Every count a pull request states comes from a command, not from counting by hand, and **the command has to count the thing being claimed**:
+
+- Files moved: `git diff -M --name-status origin/main...HEAD | grep -cE '^[RA]'`. Counting only `^R` misses a short file whose imports are most of its lines, which git records as a delete and an add rather than a rename.
+- Allowance paths: `grep -o '"<area>/[^"]*"' <each allow-list file> | wc -l`, per file. The lists holding them are the `const NAME = [` lines above each hit, and there are usually more lists than there are files.
+- Which list a path sits in: `grep -n '<the file name>' tests/fence/...`, before naming that list in a proof table. A table naming the wrong list makes the proof unreproducible.
+- Tests: the runner's own total.
+
+Four pull requests in the folder-move series stated a count that was short or a list that was wrong, and a reviewer had to put each right; a wrong number reads as a proof that wasn't run.
 
 ## Before merging
 
