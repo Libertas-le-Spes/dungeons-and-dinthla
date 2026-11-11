@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { DRAFT_PAUSE_MS, DRAFTS_KEY, LocalDrafts, NOT_KEPT, type LocalStorage } from "../../src/settings/local-drafts";
+import { DRAFT_PAUSE_MS, DRAFTS_KEY, LocalDrafts, NOT_KEPT, type LocalStorage } from "../../../src/settings/drafts/local-drafts";
 
 const THREE = "Pale Moon/Sessions/Session 3.md";
 

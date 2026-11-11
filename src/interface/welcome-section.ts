@@ -1,5 +1,5 @@
 import type { CampaignMaker } from "../campaign/campaign-maker";
-import type { CampaignsFolderSetup } from "../settings/campaigns-folder-setup";
+import type { CampaignsFolderSetup } from "../settings/choosing/campaigns-folder-setup";
 import { campaignsFolderThere, type FolderLookup } from "../welcome/campaigns-folder-there";
 import { WelcomePage, type WelcomeStore } from "../welcome/welcome-page";
 import type { MakePage } from "./campaign-pages";

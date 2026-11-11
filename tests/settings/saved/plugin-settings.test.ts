@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { settingsOf } from "../../src/settings/plugin-settings";
+import { settingsOf } from "../../../src/settings/saved/plugin-settings";
 
 const CONFIG_DIR = ".obsidian";
 

@@ -14,7 +14,7 @@ import { PAGE_ESCAPE_READERS, PAGE_ESCAPES, PAGE_MEMBERS } from "./allowed/page-
 
 const SCAN_TIME = 60_000;
 const GATEKEEPER_FOLDER = "fence/";
-const PARSED_DATA = ["settings/draft-record.ts"];
+const PARSED_DATA = ["settings/drafts/draft-record.ts"];
 const ALLOWED = ["fence/gatekeeper.ts", "fence/fenced-files.ts", "fence/fenced-file-actions.ts", "fence/folder-choices.ts", "fence/vault-settings.ts"];
 const EDITOR_TEXT_READERS = ["campaign/editor-text.ts"];
 const BASES_READERS = ["characters/characters-view.ts"];

@@ -1,4 +1,4 @@
-import type { SettingsSaver } from "../settings/settings-saver";
+import type { SettingsSaver } from "../settings/saved/settings-saver";
 import type { News, NewsItem } from "./news-item";
 
 export class WhatsNew implements News {

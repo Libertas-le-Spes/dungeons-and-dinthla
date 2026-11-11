@@ -1,5 +1,5 @@
 import type { PluginManifest } from "obsidian";
-import type { SettingsSaver } from "../settings/settings-saver";
+import type { SettingsSaver } from "../settings/saved/settings-saver";
 import type { NewsItem } from "../whats-new/news-item";
 import { WhatsNew } from "../whats-new/whats-new";
 import { FirstRun, type ShowWelcome } from "./first-run";
