@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { addLinkedText, addNameLink } from "../../../src/views/lists/linked-text";
-import { obsidianDocument } from "../obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 const SOURCE = "D&D/Pale Moon/Sessions/Session 1.md";
 

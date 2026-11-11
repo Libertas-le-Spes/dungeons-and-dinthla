@@ -13,7 +13,7 @@ import { SessionWriting } from "../../src/session-notes/page/session-writing";
 import { writtenLinesOf } from "../../src/session-notes/lines/written-lines";
 import type { ConfirmText } from "../../src/views/dialogs/confirm-modal";
 import { FakeNotes } from "../note-editing/fake-notes";
-import { isShown, obsidianDocument } from "../views/obsidian-dom";
+import { isShown, obsidianDocument } from "../stubs/obsidian-dom";
 
 export const PATH = "Pale Moon/Sessions/Session 12.md";
 export const NOTE = "---\nplayed: 2026-11-09\n---\nTracks lead to the [[Old Mill]].\n? Who sent the leter";

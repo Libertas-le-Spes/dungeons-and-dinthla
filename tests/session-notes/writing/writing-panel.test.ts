@@ -4,7 +4,7 @@ import type { Campaign } from "../../../src/campaign/record/campaign";
 import type { AppendWriter } from "../../../src/session-notes/drafts/append-writer";
 import { Drafts } from "../../../src/session-notes/drafts/drafts";
 import { WritingPanel } from "../../../src/session-notes/writing/writing-panel";
-import { isShown, obsidianDocument } from "../../views/obsidian-dom";
+import { isShown, obsidianDocument } from "../../stubs/obsidian-dom";
 
 const PATH = "Pale Moon/Sessions/Session 12.md";
 const EARLIER = "Pale Moon/Sessions/Session 11.md";

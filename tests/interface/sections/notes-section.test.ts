@@ -12,7 +12,7 @@ import type { NoteSaver } from "../../../src/note-editing/note-saver";
 import type { SessionClearer } from "../../../src/session-notes/removal/session-clearer";
 import type { SessionTrash } from "../../../src/session-notes/removal/session-trash";
 import type { ConfirmText } from "../../../src/views/dialogs/confirm-modal";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 const ELEVEN = "Pale Moon/Sessions/Session 11.md";
 const TWELVE = "Pale Moon/Sessions/Session 12.md";

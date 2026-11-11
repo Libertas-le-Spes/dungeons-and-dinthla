@@ -5,7 +5,7 @@ import type { CharacterNotes } from "../../../src/characters/reading/character-n
 import type { DashboardActions } from "../../../src/dashboard/dashboard-page";
 import { homeSection } from "../../../src/interface/sections/home-section";
 import type { News } from "../../../src/whats-new/news-item";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 function made() {
   const store = { campaignFolder: "Silver Road", sessionNotes: [], current: buildCampaign([]), subscribe: () => () => {} };

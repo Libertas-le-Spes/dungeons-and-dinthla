@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import { summariseFunds } from "../../../src/funds/page/funds-summary";
 import { addLedgerRow } from "../../../src/funds/page/ledger-row";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 const SESSION = "Pale Moon/Sessions/Session 1.md";
 

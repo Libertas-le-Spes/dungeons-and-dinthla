@@ -13,7 +13,7 @@ import { SessionClearer } from "../../../src/session-notes/removal/session-clear
 import { SessionTrash } from "../../../src/session-notes/removal/session-trash";
 import type { ConfirmText } from "../../../src/views/dialogs/confirm-modal";
 import type { SessionProperties } from "../../../src/sessions/session-properties";
-import { isShown, obsidianDocument } from "../../views/obsidian-dom";
+import { isShown, obsidianDocument } from "../../stubs/obsidian-dom";
 
 const FOLDER = "Pale Moon";
 const DELETED_AT = new Date(2026, 10, 2, 21, 5).getTime();

@@ -3,7 +3,7 @@ import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { SessionNote } from "../../../src/campaign/record/campaign";
 import { LinesList } from "../../../src/session-notes/lines/lines-list";
 import { writtenLinesOf } from "../../../src/session-notes/lines/written-lines";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 const PATH = "Pale Moon/Sessions/Session 12.md";
 

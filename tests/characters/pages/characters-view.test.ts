@@ -4,7 +4,7 @@ import type { SessionNote } from "../../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import type { CharacterNotes } from "../../../src/characters/reading/character-notes";
 import { CharactersView } from "../../../src/characters/pages/characters-view";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 const FOLDER = "Pale Moon/Characters";
 

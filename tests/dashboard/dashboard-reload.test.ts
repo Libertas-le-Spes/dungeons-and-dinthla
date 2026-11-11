@@ -5,7 +5,7 @@ import type { Campaign, SessionNote } from "../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../src/campaign/reading/campaign-store";
 import type { CharacterNotes } from "../../src/characters/reading/character-notes";
 import { DashboardPage, type DashboardActions } from "../../src/dashboard/dashboard-page";
-import { obsidianDocument } from "../views/obsidian-dom";
+import { obsidianDocument } from "../stubs/obsidian-dom";
 
 const SESSION: SessionNote = { path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: "? Who sent the letter\n! Find the caravan" };
 

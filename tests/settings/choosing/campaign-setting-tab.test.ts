@@ -8,7 +8,7 @@ import type { PictureSuggestModal } from "../../../src/settings/choosing/picture
 import { NO_CAMPAIGN } from "../../../src/campaign/paths/campaign-folders";
 import { NO_CAMPAIGNS_FOLDER } from "../../../src/fence/paths/campaigns-folder-path";
 import { Notice, openedSuggestModals } from "../../stubs/obsidian";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 const PALE_MOON = "D&D/Pale Moon/Pale Moon.md";
 const ASHEN_ROAD = "D&D/Ashen Road/Ashen Road.md";
