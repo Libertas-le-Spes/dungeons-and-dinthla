@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { questTrackedKind } from "../../src/kinds/quest-tracked-kind";
-import { followUpLine, isFollowUpLine, openingAfterLine, openingTextOf } from "../../src/notes/thread-lines";
+import { questTrackedKind } from "../../../src/kinds/quest-tracked-kind";
+import { followUpLine, isFollowUpLine, openingAfterLine, openingTextOf } from "../../../src/notes/writing/thread-lines";
 
 describe("thread lines", () => {
   it("knows a follow-up line by its name, its subject and what it says", () => {

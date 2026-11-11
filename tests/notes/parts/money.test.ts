@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatMoney } from "../../src/notes/money";
+import { formatMoney } from "../../../src/notes/parts/money";
 
 describe("formatMoney", () => {
   it("writes copper as gold, silver and copper", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { oneLine } from "../../src/notes/one-line";
+import { oneLine } from "../../../src/notes/parts/one-line";
 
 describe("oneLine", () => {
   it("joins lines and runs of spaces into single spaces, trimmed", () => {

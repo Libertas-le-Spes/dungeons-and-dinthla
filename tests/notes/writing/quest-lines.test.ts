@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildCampaign } from "../../src/campaign/reading/build-campaign";
-import { followUpQuestLine, isCoinReward, isQuestLine, outcomeLine, progressLine, questTextOf, rewardLine } from "../../src/notes/quest-lines";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
+import { followUpQuestLine, isCoinReward, isQuestLine, outcomeLine, progressLine, questTextOf, rewardLine } from "../../../src/notes/writing/quest-lines";
 
 function questsAfter(lines: string[]) {
   return buildCampaign([{ path: "S/Sessions/Session 1.md", number: 1, firstLine: 0, text: lines.join("\n") }]);

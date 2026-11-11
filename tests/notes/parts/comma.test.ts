@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { partsBetweenCommas } from "../../src/notes/comma";
+import { partsBetweenCommas } from "../../../src/notes/parts/comma";
 
 describe("partsBetweenCommas", () => {
   it("splits a line at its commas", () => {

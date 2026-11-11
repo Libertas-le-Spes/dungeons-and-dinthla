@@ -1,4 +1,4 @@
-import { partsBetweenCommas } from "./comma";
+import { partsBetweenCommas } from "../parts/comma";
 
 export type QuestStatus = "completed" | "failed";
 

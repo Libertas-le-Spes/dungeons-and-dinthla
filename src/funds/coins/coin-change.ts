@@ -4,7 +4,7 @@ import type { CoinRecord, SessionNote } from "../../campaign/record/campaign";
 import { CHANGED_IN_NOTE, type Removal } from "../../campaign/writing/note-editor";
 import type { Check, RecordChange } from "../../campaign/changes/record-change";
 import { verdictOf, writeNothingWhen } from "../../campaign/changes/verdict";
-import type { CoinLine, CoinReading } from "../../notes/coin-lines";
+import type { CoinLine, CoinReading } from "../../notes/writing/coin-lines";
 import { coinSessionChange } from "./coin-session-change";
 
 export const CHANGES_OTHER_MONEY = "That change would also change other money in the purse, so nothing was written.";

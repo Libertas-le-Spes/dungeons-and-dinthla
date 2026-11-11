@@ -4,11 +4,11 @@ import type { CoinRecord, ItemEvent, ItemRecord, SessionNote } from "../../campa
 import { lineAsRead, removalAsRead, type Removal } from "../../campaign/writing/note-editor";
 import { lineTakenOut, type Rewrite } from "../../campaign/changes/session-change";
 import { sessionNumberOf } from "../../campaign/paths/session-file";
-import { withoutBullet } from "../../notes/bullet";
-import { readAmount, type AmountReading } from "../../notes/coin-lines";
-import { readItemChange } from "../../notes/item-change";
-import { findLinks } from "../../notes/link";
-import { oneLine } from "../../notes/one-line";
+import { withoutBullet } from "../../notes/parts/bullet";
+import { readAmount, type AmountReading } from "../../notes/writing/coin-lines";
+import { readItemChange } from "../../notes/reading/item-change";
+import { findLinks } from "../../notes/parts/link";
+import { oneLine } from "../../notes/parts/one-line";
 import { holderNameOf, THE_PARTY, THE_PARTY_LABEL } from "./item-groups";
 import { itemSessionChange } from "./item-session-change";
 

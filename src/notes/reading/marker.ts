@@ -1,6 +1,6 @@
-import type { MarkerName } from "../kinds/marker-name";
-import { markerBySymbol } from "../kinds/tracked-markers";
-import { markerStartOf, withoutBullet } from "./bullet";
+import type { MarkerName } from "../../kinds/marker-name";
+import { markerBySymbol } from "../../kinds/tracked-markers";
+import { markerStartOf, withoutBullet } from "../parts/bullet";
 import { isFollowUp } from "./follow-up";
 import { readItemChange } from "./item-change";
 
