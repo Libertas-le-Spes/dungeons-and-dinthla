@@ -31,7 +31,7 @@ const NOTE_EVENT_LISTENERS = ["main.ts"];
 const GATE_BUILDERS = ["main.ts"];
 const POST_PROCESSING = ["main.ts"];
 const PAGE_TEXT_READERS = ["reading/colour-markers.ts"];
-const ELEMENT_QUERIERS = ["reading/colour-markers.ts", "characters/character-sheet-page.ts", "funds/funds-page.ts", "views/lists/row-focus.ts"];
+const ELEMENT_QUERIERS = ["reading/colour-markers.ts", "characters/character-sheet-page.ts", "funds/page/funds-page.ts", "views/lists/row-focus.ts"];
 
 function isOneOf(files: string[]): (path: string) => boolean {
   return (path) => files.some((file) => path === sourcePath(file));

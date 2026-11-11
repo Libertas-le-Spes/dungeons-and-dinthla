@@ -3,7 +3,7 @@ import type { App } from "obsidian";
 import type { Gate } from "../../src/fence/gatekeeper";
 import { NO_CAMPAIGN } from "../../src/campaign/campaign-folders";
 import type { CampaignStore } from "../../src/campaign/campaign-store";
-import { openAddCoin } from "../../src/funds/open-add-coin";
+import { openAddCoin } from "../../src/funds/coins/open-add-coin";
 import { openNewQuestion } from "../../src/questions/open-new-question";
 import { openNewQuest } from "../../src/quests/open-new-quest";
 import { Notice, openedModals } from "../stubs/obsidian";

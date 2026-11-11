@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { CampaignStore } from "../../src/campaign/campaign-store";
-import { FundsPage } from "../../src/funds/funds-page";
-import { CLOSE_ITEM, EDIT_NOTE } from "../../src/funds/item-panel";
+import { FundsPage } from "../../src/funds/page/funds-page";
+import { CLOSE_ITEM, EDIT_NOTE } from "../../src/funds/item-notes/item-panel";
 import { fundsSection } from "../../src/interface/funds-section";
 import { obsidianDocument } from "../views/obsidian-dom";
 
