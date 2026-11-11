@@ -28,7 +28,7 @@ describe("where the source scan names the gate's paths", () => {
   });
 
   it("looks for the gate's file names as well as its folders, so a rule can't decide by a file name alone", () => {
-    expect(GATE_FILE_NAMES.length).toBe(GATE_TYPE_SOURCES.length);
+    for (const path of GATE_TYPE_SOURCES) expect(NAMES_THE_GATE.test(`path.endsWith("${basename(path)}")`), path).toBe(true);
     for (const name of ["gatekeeper", "fenced-files", "fence.ts"]) expect(NAMES_THE_GATE.test(`path.endsWith("${name}")`), name).toBe(true);
   });
 
