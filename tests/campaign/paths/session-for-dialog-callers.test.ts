@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App, TFile } from "obsidian";
-import type { Gate } from "../../../src/fence/gatekeeper";
+import type { Gate } from "../../../src/fence/gate/gatekeeper";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { SESSIONS_SHARE_A_NUMBER } from "../../../src/campaign/paths/session-to-write";
 import { openAddCoin } from "../../../src/funds/coins/open-add-coin";

@@ -1,6 +1,6 @@
 import { characterReferenceKind } from "../../kinds/character-reference-kind";
 import { isInReferenceFolder } from "../../campaign/paths/campaign-folders";
-import type { Gate } from "../../fence/gatekeeper";
+import type { Gate } from "../../fence/gate/gatekeeper";
 
 export interface Character {
   name: string;

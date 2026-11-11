@@ -1,7 +1,7 @@
 import type { TFile } from "obsidian";
 import type { CarriedGroup } from "./character-sheet";
 import { characterNotesOf, type CampaignFolders, type CharacterNotes } from "./character-notes";
-import type { Gate } from "../../fence/gatekeeper";
+import type { Gate } from "../../fence/gate/gatekeeper";
 
 export interface CarriedFrom {
   path: string;

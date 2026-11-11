@@ -3,7 +3,7 @@ import type { SessionNote } from "../../campaign/record/campaign";
 import { campaignNotePathOf, isInReferenceFolder } from "../../campaign/paths/campaign-folders";
 import { characterReferenceKind } from "../../kinds/character-reference-kind";
 import { readSessions } from "../../campaign/reading/read-campaign";
-import type { Gate } from "../../fence/gatekeeper";
+import type { Gate } from "../../fence/gate/gatekeeper";
 
 export interface CharacterNotes {
   holds(file: TFile): boolean;

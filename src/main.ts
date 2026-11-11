@@ -64,7 +64,7 @@ import { settingsOf, type PluginSettings } from "./settings/saved/plugin-setting
 import { SettingsSaver } from "./settings/saved/settings-saver";
 import type { Help } from "./welcome/opening/help";
 import { welcomeOpenerOf } from "./welcome/opening/welcome-opener";
-import { Gatekeeper } from "./fence/gatekeeper";
+import { Gatekeeper } from "./fence/gate/gatekeeper";
 import { homeSection } from "./interface/sections/home-section";
 import { welcomeWiring } from "./interface/sections/welcome-wiring";
 import { sessionNotesWiring } from "./interface/sections/session-notes-wiring";

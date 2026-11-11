@@ -6,8 +6,8 @@ import { nameKeyOf } from "../../names/name-key";
 import { PartlyWritten } from "../../campaign/writing/note-editor";
 import { messageOf } from "../../views/dialogs/message-of";
 import { newCharacterText, refusalForValues, valuesChanged, withEntryValues, type CharacterEntry } from "./character-entry";
-import type { FencedFileActions } from "../../fence/fenced-file-actions";
-import type { FencedFiles } from "../../fence/fenced-files";
+import type { FencedFileActions } from "../../fence/gate/fenced-file-actions";
+import type { FencedFiles } from "../../fence/gate/fenced-files";
 
 export type CharacterFiles = Pick<FencedFiles, "getFiles" | "getFolderByPath" | "createFolder" | "create" | "process">;
 export type CharacterFileActions = Pick<FencedFileActions, "renameFile" | "trashFile">;

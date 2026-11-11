@@ -1,8 +1,8 @@
 import type { TFile } from "obsidian";
 import { boxTextOf } from "../../campaign/writing/disk-text";
 import { SESSION_GONE } from "./session-clearer";
-import type { FencedFileActions } from "../../fence/fenced-file-actions";
-import type { FencedFiles } from "../../fence/fenced-files";
+import type { FencedFileActions } from "../../fence/gate/fenced-file-actions";
+import type { FencedFiles } from "../../fence/gate/fenced-files";
 
 export type TrashFiles = Pick<FencedFiles, "getFileByPath" | "read">;
 

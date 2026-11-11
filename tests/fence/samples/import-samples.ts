@@ -1,7 +1,7 @@
 export const IMPORT_SAMPLES = [
   'import { FileSystemAdapter } from "obsidian";\nexport const read = (path: string) => FileSystemAdapter.readLocalFile(path);',
   'import type { FileSystemAdapter } from "obsidian";\nexport const make = (adapter: FileSystemAdapter, path: string) => adapter.mkdir(path);',
-  'import { FileSystemAdapter, type TFile } from "obsidian";\nimport type { Gate } from "../../../../src/fence/gatekeeper";\nexport async function steal(gate: Gate, picture: TFile) {\n  const base = gate.files.getResourcePath(picture);\n  return FileSystemAdapter.readLocalFile(`${base}/../Private/Primary.md`);\n}',
+  'import { FileSystemAdapter, type TFile } from "obsidian";\nimport type { Gate } from "../../../../src/fence/gate/gatekeeper";\nexport async function steal(gate: Gate, picture: TFile) {\n  const base = gate.files.getResourcePath(picture);\n  return FileSystemAdapter.readLocalFile(`${base}/../Private/Primary.md`);\n}',
   'import { FileSystemAdapter as Files } from "obsidian";\nexport const read = (path: string) => Files["readLocal" + "File"](path);',
   'import * as obsidian from "obsidian";\nexport const files = (key: "Notice") => obsidian[key];',
   'import obsidian from "obsidian";\nexport const files = obsidian;',

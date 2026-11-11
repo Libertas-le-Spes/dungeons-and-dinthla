@@ -1,4 +1,4 @@
-import type { ReadCampaignsFolder } from "../../fence/fence";
+import type { ReadCampaignsFolder } from "../../fence/paths/fence";
 import type { MakePage, NavSection, PageEntry } from "./campaign-pages";
 
 function askingFirst(make: MakePage, ask: MakePage, readCampaignsFolder: ReadCampaignsFolder): MakePage {

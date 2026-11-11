@@ -1,6 +1,6 @@
 import type { App, WorkspaceLeaf } from "obsidian";
 import { CampaignView } from "./campaign-view";
-import type { Gate } from "../../fence/gatekeeper";
+import type { Gate } from "../../fence/gate/gatekeeper";
 
 function leafFor(app: App, path: string): WorkspaceLeaf {
   const view = app.workspace.getActiveViewOfType(CampaignView);

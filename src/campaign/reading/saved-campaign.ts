@@ -1,8 +1,8 @@
 import type { Campaign } from "../record/campaign";
 import { CampaignStore, type CampaignListener } from "./campaign-store";
 import type { CampaignFiles } from "./read-campaign";
-import type { FencedFiles } from "../../fence/fenced-files";
-import type { FencedMetadata } from "../../fence/fenced-metadata";
+import type { FencedFiles } from "../../fence/gate/fenced-files";
+import type { FencedMetadata } from "../../fence/gate/fenced-metadata";
 
 export type ShownCampaign = Pick<CampaignStore, "campaignFolder" | "subscribe">;
 

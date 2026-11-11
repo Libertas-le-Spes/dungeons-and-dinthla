@@ -10,7 +10,7 @@ import { readCharacterSheet, type ReadSheet, type SheetStore } from "../reading/
 import type { SheetNotes } from "../reading/sheet-notes";
 import { SheetValueModal } from "./sheet-value-modal";
 import { sheetWriteOf, writeSheetValue, type ValueChoice } from "./sheet-value-writer";
-import type { Gate } from "../../fence/gatekeeper";
+import type { Gate } from "../../fence/gate/gatekeeper";
 
 export const NO_SESSION = "There's no session to write in yet. Start one first.";
 

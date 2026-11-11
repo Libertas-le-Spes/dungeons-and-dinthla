@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 import type { TAbstractFile, TFile, Vault } from "obsidian";
-import type { Gate } from "../../src/fence/gatekeeper";
+import type { Gate } from "../../src/fence/gate/gatekeeper";
 import { noteTextsOf, type NoteTexts } from "../../src/campaign/reading/note-texts";
 
 export type NotesVault = Pick<Vault, "getFileByPath" | "process" | "read">;

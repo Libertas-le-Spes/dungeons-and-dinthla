@@ -8,7 +8,7 @@ import { openSource } from "../../views/opening/open-view";
 import { ItemModal } from "./item-modal";
 import { holderOptionOf, holderOptions, latestSessionOfItem } from "./item-plan";
 import { openedItem } from "./item-writer";
-import type { Gate } from "../../fence/gatekeeper";
+import type { Gate } from "../../fence/gate/gatekeeper";
 
 const NO_SESSION = "Start a session first: item changes are written into a session note.";
 

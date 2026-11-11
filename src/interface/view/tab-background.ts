@@ -2,8 +2,8 @@ import { Component, type EventRef, type TFile } from "obsidian";
 import { mainNotePathOf } from "../../campaign/paths/campaign-folders";
 import { shownBackgroundIn, type ShownBackground } from "../../campaign/background/shown-background";
 import { paintTabPicture } from "./tab-picture";
-import type { FencedMetadata } from "../../fence/fenced-metadata";
-import type { FencedFiles } from "../../fence/fenced-files";
+import type { FencedMetadata } from "../../fence/gate/fenced-metadata";
+import type { FencedFiles } from "../../fence/gate/fenced-files";
 
 export interface TabCampaign {
   readonly campaignFolder: string | null;

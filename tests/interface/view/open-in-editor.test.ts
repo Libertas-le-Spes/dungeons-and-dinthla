@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { App, TFile } from "obsidian";
 import { CampaignView } from "../../../src/interface/view/campaign-view";
 import { openInEditor } from "../../../src/interface/view/open-in-editor";
-import type { Gate } from "../../../src/fence/gatekeeper";
+import type { Gate } from "../../../src/fence/gate/gatekeeper";
 
 const MOVED = "Loose notes/Old Mill.md";
 

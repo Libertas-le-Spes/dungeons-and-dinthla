@@ -1,7 +1,7 @@
 import type { TFile } from "obsidian";
 import { boxTextOf } from "../writing/disk-text";
-import type { GoneFile } from "../../fence/fenced-files";
-import type { Gate } from "../../fence/gatekeeper";
+import type { GoneFile } from "../../fence/gate/fenced-files";
+import type { Gate } from "../../fence/gate/gatekeeper";
 
 export type NoteChanged = (path: string, text: string) => void;
 

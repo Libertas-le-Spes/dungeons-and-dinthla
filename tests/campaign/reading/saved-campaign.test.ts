@@ -3,7 +3,7 @@ import type { TFile } from "obsidian";
 import { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { SavedCampaign, type SavedCampaignNeeds } from "../../../src/campaign/reading/saved-campaign";
 import { holderPropertyOf } from "../../../src/funds/item-notes/holder-property";
-import { FakeEvents } from "../../fence/fake-raw-vault";
+import { FakeEvents } from "../../fence/gate/fake-raw-vault";
 import { FakeVault } from "../fake-vault";
 
 const CAMPAIGN = "D&D/Pale Moon";

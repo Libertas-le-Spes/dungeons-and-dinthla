@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { FrontmatterLinkCache, TFile } from "obsidian";
 import { characterNotesOf } from "../../../src/characters/reading/character-notes";
-import type { Gate } from "../../../src/fence/gatekeeper";
+import type { Gate } from "../../../src/fence/gate/gatekeeper";
 
 const CAMPAIGN_NOTE = "Pale Moon/Pale Moon.md";
 const THESSALY = { path: "Pale Moon/Characters/Thessaly.md" } as TFile;

@@ -10,7 +10,7 @@ import type { SheetNotes } from "../../../src/characters/reading/sheet-notes";
 import type { SheetValueDialog } from "../../../src/characters/editing/sheet-value-modal";
 import type { SourcedFact } from "../../../src/characters/reading/sheet-values";
 import { Notice, openedModals } from "../../stubs/obsidian";
-import type { Gate } from "../../../src/fence/gatekeeper";
+import type { Gate } from "../../../src/fence/gate/gatekeeper";
 
 const MIRA = { path: "Pale Moon/Characters/Mira.md", basename: "Mira" } as TFile;
 const ONE = "Pale Moon/Sessions/Session 1.md";

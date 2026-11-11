@@ -1,7 +1,7 @@
 import { ItemView, type Component, type TAbstractFile, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
 import { campaignNameOf } from "../../campaign/paths/campaign-folders";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
-import type { FencedFiles, GoneFile } from "../../fence/fenced-files";
+import type { FencedFiles, GoneFile } from "../../fence/gate/fenced-files";
 import type { NavSection, PageEntry, PageTarget } from "./campaign-pages";
 
 export const CAMPAIGN_VIEW = "dungeons-and-dinthla-campaign";
