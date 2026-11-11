@@ -3,7 +3,7 @@ import type { SessionNote } from "../campaign/campaign";
 import { campaignFolderOf } from "../campaign/campaign-folders";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { carriedValuesOf, characterSheetOf, type CarriedValues, type CharacterSheet } from "./character-sheet";
-import { learnedFactsOf } from "./read-character-card";
+import { learnedFactsOf } from "./learned-facts";
 import type { SheetNotes } from "./sheet-notes";
 import { overrideFacts, type SourcedFact } from "./sheet-values";
 
