@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { CampaignStore } from "../../src/campaign/campaign-store";
 import { SavedCampaign, type SavedCampaignNeeds } from "../../src/campaign/saved-campaign";
-import { holderPropertyOf } from "../../src/funds/holder-property";
+import { holderPropertyOf } from "../../src/funds/item-notes/holder-property";
 import { FakeEvents } from "../fence/fake-raw-vault";
 import { FakeVault } from "./fake-vault";
 
