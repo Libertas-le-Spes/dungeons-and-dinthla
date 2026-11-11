@@ -1,5 +1,5 @@
-import { isInConfigFolder, refusalForCampaignsFolder } from "../fence/campaigns-folder-path";
-import { Fence } from "../fence/fence";
+import { isInConfigFolder, refusalForCampaignsFolder } from "../../fence/campaigns-folder-path";
+import { Fence } from "../../fence/fence";
 
 export interface PluginSettings {
   campaignsFolder: string | null;

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { NOT_A_PLAIN_PATH, NOT_THE_CONFIG_FOLDER, NOT_THE_WHOLE_VAULT } from "../../src/fence/campaigns-folder-path";
-import { CampaignsFolderSetting } from "../../src/settings/campaigns-folder-setting";
-import type { PluginSettings } from "../../src/settings/plugin-settings";
-import { SettingsSaver } from "../../src/settings/settings-saver";
-import { Notice } from "../stubs/obsidian";
+import { NOT_A_PLAIN_PATH, NOT_THE_CONFIG_FOLDER, NOT_THE_WHOLE_VAULT } from "../../../src/fence/campaigns-folder-path";
+import { CampaignsFolderSetting } from "../../../src/settings/saved/campaigns-folder-setting";
+import type { PluginSettings } from "../../../src/settings/saved/plugin-settings";
+import { SettingsSaver } from "../../../src/settings/saved/settings-saver";
+import { Notice } from "../../stubs/obsidian";
 
 function oneTick(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));

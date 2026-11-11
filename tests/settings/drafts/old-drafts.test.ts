@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { MOVED_KEY, OldDrafts } from "../../src/settings/old-drafts";
+import { MOVED_KEY, OldDrafts } from "../../../src/settings/drafts/old-drafts";
 
 const THREE = "Pale Moon/Sessions/Session 3.md";
 const FOUR = "Pale Moon/Sessions/Session 4.md";

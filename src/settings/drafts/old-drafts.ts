@@ -1,6 +1,6 @@
 import { draftsIn, type DraftRecord } from "./draft-record";
 import type { LocalStorage } from "./local-drafts";
-import type { PluginSettings } from "./plugin-settings";
+import type { PluginSettings } from "../saved/plugin-settings";
 
 export const MOVED_KEY = "dungeons-and-dinthla-old-drafts-moved";
 
