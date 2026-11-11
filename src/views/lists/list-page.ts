@@ -1,6 +1,6 @@
 import { Component } from "obsidian";
-import type { Campaign, Source } from "../../campaign/campaign";
-import type { CampaignStore } from "../../campaign/campaign-store";
+import type { Campaign, Source } from "../../campaign/record/campaign";
+import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { keywordsOf } from "./keywords";
 import { focusRowAt, RowFocus } from "./row-focus";
 import type { LinkActions } from "./linked-text";

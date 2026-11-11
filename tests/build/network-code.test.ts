@@ -259,7 +259,7 @@ describe("networkCodeIn", () => {
       '{ on: "isDesktopApp", prefixes: ["app://"] },',
       '{ on: "isIosApp", prefixes: ["capacitor://localhost/_capacitor_file_/"] },',
       '{ on: "isAndroidApp", prefixes: ["http://localhost/_capacitor_file_/", "https://localhost/_capacitor_file_/"] },',
-      "// src/campaign/picture-css.ts",
+      "// src/campaign/background/picture-css.ts",
     ];
     expect(networkCodeIn(allowed.join("\n"))).toEqual([]);
   });

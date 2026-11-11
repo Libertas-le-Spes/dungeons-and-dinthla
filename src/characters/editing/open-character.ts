@@ -1,5 +1,5 @@
 import { Notice, type App, type Menu, type TAbstractFile, type TFile } from "obsidian";
-import { campaignOfReference, NO_CAMPAIGN, referenceFolderOf } from "../../campaign/campaign-folders";
+import { campaignOfReference, NO_CAMPAIGN, referenceFolderOf } from "../../campaign/paths/campaign-folders";
 import { characterReferenceKind } from "../../kinds/character-reference-kind";
 import { messageOf } from "../../views/dialogs/message-of";
 import { blankEntry, entryOf, learnedOf, type CharacterEntry, type Learned } from "./character-entry";

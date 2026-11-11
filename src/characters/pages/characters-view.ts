@@ -1,5 +1,5 @@
 import { BasesView, type QueryController } from "obsidian";
-import type { CampaignStore } from "../../campaign/campaign-store";
+import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { LinkActions } from "../../views/lists/linked-text";
 import { CharacterGallery } from "./character-gallery";
 import type { CharacterNotes } from "../reading/character-notes";

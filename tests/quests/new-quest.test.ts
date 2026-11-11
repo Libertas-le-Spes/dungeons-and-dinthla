@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCampaign } from "../../src/campaign/build-campaign";
+import { buildCampaign } from "../../src/campaign/reading/build-campaign";
 import { planNewQuest, refusalForNewQuest, SAME_TITLE_AS_EXISTING, WOULD_READ_DIFFERENTLY } from "../../src/quests/new-quest";
 
 const quests = buildCampaign([

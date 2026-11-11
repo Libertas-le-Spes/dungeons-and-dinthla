@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import type { App } from "obsidian";
-import { buildCampaign } from "../../../src/campaign/build-campaign";
-import { PartlyWritten } from "../../../src/campaign/note-editor";
-import { sessionNoteOf } from "../../../src/campaign/session-file";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
+import { PartlyWritten } from "../../../src/campaign/writing/note-editor";
+import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
 import { ItemModal } from "../../../src/funds/items/item-modal";
 import { GONE_LINE_SAYS_MORE, HOLDER_OF_GONE, initialItemEdit, type ItemEdit } from "../../../src/funds/items/item-plan";
 import { Notice } from "../../stubs/obsidian";

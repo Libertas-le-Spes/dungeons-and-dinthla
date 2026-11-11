@@ -1,6 +1,6 @@
-import type { SessionNote, Source } from "../../campaign/campaign";
-import { firstLineAfterProperties } from "../../campaign/session-file";
-import { forEachSessionLine } from "../../campaign/session-lines";
+import type { SessionNote, Source } from "../../campaign/record/campaign";
+import { firstLineAfterProperties } from "../../campaign/paths/session-file";
+import { forEachSessionLine } from "../../campaign/record/session-lines";
 import { withoutBullet } from "../../notes/bullet";
 import { factsOf, linkedFactsOf, type CharacterFact } from "../../notes/character-facts";
 

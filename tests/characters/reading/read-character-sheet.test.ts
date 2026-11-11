@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
-import type { SessionNote } from "../../../src/campaign/campaign";
+import type { SessionNote } from "../../../src/campaign/record/campaign";
 import type { SheetValue } from "../../../src/characters/reading/character-sheet";
 import { readCharacterSheet, type ReadSheet } from "../../../src/characters/reading/read-character-sheet";
 import type { CarriedFrom, SheetNotes } from "../../../src/characters/reading/sheet-notes";

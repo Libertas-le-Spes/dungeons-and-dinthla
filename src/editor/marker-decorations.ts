@@ -1,7 +1,7 @@
 import { RangeSetBuilder, type EditorState } from "@codemirror/state";
 import { Decoration, ViewPlugin, type DecorationSet, type EditorView, type ViewUpdate } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
-import { firstLineAfterProperties } from "../campaign/session-file";
+import { firstLineAfterProperties } from "../campaign/paths/session-file";
 import type { MarkerName } from "../kinds/marker-name";
 import type { TrackedMarker } from "../kinds/tracked-marker";
 import { ALL_MARKERS } from "../kinds/tracked-markers";

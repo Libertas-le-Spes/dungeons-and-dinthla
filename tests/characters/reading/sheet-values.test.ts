@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { SessionNote } from "../../../src/campaign/campaign";
+import type { SessionNote } from "../../../src/campaign/record/campaign";
 import { factsByCharacter, isSheetName, modifierOf, overrideFacts, sheetValuesOf } from "../../../src/characters/reading/sheet-values";
 
 function session(number: number, lines: string[], firstLine = 0): SessionNote {

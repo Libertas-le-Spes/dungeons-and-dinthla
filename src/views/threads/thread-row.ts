@@ -1,6 +1,6 @@
-import type { SourcedText } from "../../campaign/campaign";
-import { sessionLabelOf } from "../../campaign/session-file";
-import type { ThreadRecord } from "../../campaign/thread-kind";
+import type { SourcedText } from "../../campaign/record/campaign";
+import { sessionLabelOf } from "../../campaign/paths/session-file";
+import type { ThreadRecord } from "../../campaign/threads/thread-kind";
 import type { FollowUpName } from "../../kinds/follow-up-name";
 import { addLinkedText, addRowButton, type LinkActions } from "../lists/linked-text";
 import type { ShownThreadKind } from "./shown-thread-kind";

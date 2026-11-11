@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCampaign } from "../../src/campaign/build-campaign";
+import { buildCampaign } from "../../src/campaign/reading/build-campaign";
 import { followUpQuestLine, isCoinReward, isQuestLine, outcomeLine, progressLine, questTextOf, rewardLine } from "../../src/notes/quest-lines";
 
 function questsAfter(lines: string[]) {

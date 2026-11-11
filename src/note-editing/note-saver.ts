@@ -1,4 +1,4 @@
-import { boxTextOf, diskTextFor } from "../campaign/disk-text";
+import { boxTextOf, diskTextFor } from "../campaign/writing/disk-text";
 import type { NoteDraft } from "./note-drafts";
 import type { FencedFiles } from "../fence/fenced-files";
 

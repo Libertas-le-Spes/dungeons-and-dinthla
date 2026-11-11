@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TFile } from "obsidian";
-import { PROPERTIES_WOULD_CHANGE, type EditorFiles } from "../../../src/campaign/note-editor";
+import { PROPERTIES_WOULD_CHANGE, type EditorFiles } from "../../../src/campaign/writing/note-editor";
 import { AppendWriter } from "../../../src/session-notes/drafts/append-writer";
 
 const PATH = "Pale Moon/Sessions/Session 12.md";

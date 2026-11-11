@@ -1,7 +1,7 @@
-import type { CoinRecord, ItemRecord, SessionNote } from "../../campaign/campaign";
-import { CHANGED_IN_NOTE, type EditorFiles } from "../../campaign/note-editor";
-import type { RecordChange } from "../../campaign/record-change";
-import { refusedWhen, verdictOf, writeNothingWhen } from "../../campaign/verdict";
+import type { CoinRecord, ItemRecord, SessionNote } from "../../campaign/record/campaign";
+import { CHANGED_IN_NOTE, type EditorFiles } from "../../campaign/writing/note-editor";
+import type { RecordChange } from "../../campaign/changes/record-change";
+import { refusedWhen, verdictOf, writeNothingWhen } from "../../campaign/changes/verdict";
 import { planItemSave, refusalForItemPlan, type ItemEdit, type ItemPlan } from "./item-plan";
 import { itemSessionChange } from "./item-session-change";
 import type { ItemSource } from "./item-source";

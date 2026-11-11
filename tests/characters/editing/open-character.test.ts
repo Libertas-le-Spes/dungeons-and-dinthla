@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App, Menu, TAbstractFile, TFile } from "obsidian";
-import type { SessionNote } from "../../../src/campaign/campaign";
-import { NO_CAMPAIGN } from "../../../src/campaign/campaign-folders";
+import type { SessionNote } from "../../../src/campaign/record/campaign";
+import { NO_CAMPAIGN } from "../../../src/campaign/paths/campaign-folders";
 import type { CharacterNotes } from "../../../src/characters/reading/character-notes";
 import {
   addEditCharacterItem,

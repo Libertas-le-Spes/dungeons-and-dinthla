@@ -1,4 +1,4 @@
-import type { SessionNote, Source } from "../../campaign/campaign";
+import type { SessionNote, Source } from "../../campaign/record/campaign";
 import { withoutBullet } from "../../notes/bullet";
 import type { MarkerName } from "../../kinds/marker-name";
 import { markerSpanOf } from "../../notes/marker";

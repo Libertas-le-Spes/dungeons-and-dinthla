@@ -1,7 +1,7 @@
-import type { QuestionRecord } from "../campaign/campaign";
-import { NoteEditor, type EditorFiles } from "../campaign/note-editor";
-import { questionThreadKind } from "../campaign/question-thread-kind";
-import { followUpRemovals, openingRemoval } from "../campaign/thread-removal";
+import type { QuestionRecord } from "../campaign/record/campaign";
+import { NoteEditor, type EditorFiles } from "../campaign/writing/note-editor";
+import { questionThreadKind } from "../campaign/threads/question-thread-kind";
+import { followUpRemovals, openingRemoval } from "../campaign/threads/thread-removal";
 
 export class QuestionWriter {
   private readonly editor: NoteEditor;

@@ -1,4 +1,4 @@
-import type { CampaignMaker } from "../../campaign/campaign-maker";
+import type { CampaignMaker } from "../../campaign/writing/campaign-maker";
 import type { CampaignsFolderSetup } from "../../settings/choosing/campaigns-folder-setup";
 import { campaignsFolderThere, type FolderLookup } from "../../welcome/page/campaigns-folder-there";
 import { WelcomePage, type WelcomeStore } from "../../welcome/page/welcome-page";

@@ -1,4 +1,4 @@
-import type { QuestRecord } from "../campaign/campaign";
+import type { QuestRecord } from "../campaign/record/campaign";
 import { readMarker } from "../notes/marker";
 import { readQuest } from "../notes/quest";
 import { newQuestLine, questTextOf } from "../notes/quest-lines";

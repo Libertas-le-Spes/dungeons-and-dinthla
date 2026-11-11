@@ -1,4 +1,4 @@
-import type { SessionNote } from "../../campaign/campaign";
+import type { SessionNote } from "../../campaign/record/campaign";
 import type { CharacterNotes } from "./character-notes";
 import { factsByCharacter, type SourcedFact } from "./sheet-values";
 

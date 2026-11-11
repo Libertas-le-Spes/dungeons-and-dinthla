@@ -1,10 +1,10 @@
 import { Component } from "obsidian";
-import type { Campaign, Source, SourcedText } from "../campaign/campaign";
-import { isInReferenceFolder, mainNotePathOf } from "../campaign/campaign-folders";
+import type { Campaign, Source, SourcedText } from "../campaign/record/campaign";
+import { isInReferenceFolder, mainNotePathOf } from "../campaign/paths/campaign-folders";
 import { characterReferenceKind } from "../kinds/character-reference-kind";
-import type { CampaignStore } from "../campaign/campaign-store";
-import { latestNumberIsShared, latestSession, SESSIONS_SHARE_A_NUMBER } from "../campaign/session-to-write";
-import type { ThreadRecord } from "../campaign/thread-kind";
+import type { CampaignStore } from "../campaign/reading/campaign-store";
+import { latestNumberIsShared, latestSession, SESSIONS_SHARE_A_NUMBER } from "../campaign/paths/session-to-write";
+import type { ThreadRecord } from "../campaign/threads/thread-kind";
 import type { CharacterCard } from "../characters/cards/character-card";
 import type { CharacterNotes } from "../characters/reading/character-notes";
 import { ownCharacterFirst } from "../characters/cards/own-character-first";

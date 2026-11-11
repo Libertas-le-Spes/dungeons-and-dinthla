@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildCampaign } from "../../../src/campaign/build-campaign";
-import type { Campaign } from "../../../src/campaign/campaign";
-import type { NoteChanged, NoteTexts } from "../../../src/campaign/note-texts";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
+import type { Campaign } from "../../../src/campaign/record/campaign";
+import type { NoteChanged, NoteTexts } from "../../../src/campaign/reading/note-texts";
 import { CHANGE_ITEM, CLOSE_ITEM, EDIT_NOTE, EMPTY_STORY, ItemPanel, NOTE_MISSING, noLineText } from "../../../src/funds/item-notes/item-panel";
 import { obsidianDocument } from "../../views/obsidian-dom";
 

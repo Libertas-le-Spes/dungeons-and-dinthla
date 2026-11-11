@@ -1,5 +1,5 @@
-import type { Campaign, Source, SourcedText } from "../../campaign/campaign";
-import type { ThreadKind, ThreadRecord } from "../../campaign/thread-kind";
+import type { Campaign, Source, SourcedText } from "../../campaign/record/campaign";
+import type { ThreadKind, ThreadRecord } from "../../campaign/threads/thread-kind";
 import type { FollowUpName } from "../../kinds/follow-up-name";
 import type { ThreadFact } from "./thread-fact";
 import type { EndedLook, ThreadLook } from "./thread-look";

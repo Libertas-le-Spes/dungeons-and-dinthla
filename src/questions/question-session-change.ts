@@ -1,4 +1,4 @@
-import type { SessionChange } from "../campaign/session-change";
+import type { SessionChange } from "../campaign/changes/session-change";
 import type { QuestionPlan } from "./question-plan";
 
 export const FOLLOW_UP_NOT_WRITTEN = "The answer was written, but the follow-up couldn't be:";

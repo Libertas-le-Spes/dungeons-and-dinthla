@@ -1,5 +1,5 @@
-import type { Campaign, Source, SourcedText } from "../campaign/campaign";
-import type { ThreadRecord } from "../campaign/thread-kind";
+import type { Campaign, Source, SourcedText } from "../campaign/record/campaign";
+import type { ThreadRecord } from "../campaign/threads/thread-kind";
 import { holderNameOf } from "../funds/items/item-groups";
 import type { FollowUpName } from "../kinds/follow-up-name";
 import { itemTrackedKind } from "../kinds/item-tracked-kind";

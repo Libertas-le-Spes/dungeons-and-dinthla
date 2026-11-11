@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { CachedMetadata, TFile } from "obsidian";
-import { CampaignStore } from "../../../src/campaign/campaign-store";
+import { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { Fence } from "../../../src/fence/fence";
 import { FencedFileActions, type RawFileManager } from "../../../src/fence/fenced-file-actions";
 import { FencedFiles } from "../../../src/fence/fenced-files";

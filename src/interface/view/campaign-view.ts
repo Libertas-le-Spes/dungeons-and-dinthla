@@ -1,6 +1,6 @@
 import { ItemView, type Component, type TAbstractFile, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
-import { campaignNameOf } from "../../campaign/campaign-folders";
-import type { CampaignStore } from "../../campaign/campaign-store";
+import { campaignNameOf } from "../../campaign/paths/campaign-folders";
+import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { FencedFiles, GoneFile } from "../../fence/fenced-files";
 import type { NavSection, PageEntry, PageTarget } from "./campaign-pages";
 

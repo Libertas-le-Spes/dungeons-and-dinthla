@@ -1,5 +1,5 @@
 import type { App } from "obsidian";
-import { PartlyWritten } from "../../campaign/note-editor";
+import { PartlyWritten } from "../../campaign/writing/note-editor";
 import { ChangeDialog } from "./change-dialog";
 
 export abstract class RecordChangeDialog extends ChangeDialog {

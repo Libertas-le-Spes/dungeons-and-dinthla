@@ -1,4 +1,4 @@
-import type { Campaign } from "../../campaign/campaign";
+import type { Campaign } from "../../campaign/record/campaign";
 import type { LookupMatch } from "../../lookups/lookup";
 import type { LookupOpeners } from "../../kinds/lookup-openers";
 import { openMatch } from "../../lookups/open-match";

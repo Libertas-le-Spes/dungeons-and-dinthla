@@ -1,7 +1,7 @@
-import type { CoinRecord, SessionNote, Source } from "../../campaign/campaign";
-import { removalAsRead, type EditorFiles } from "../../campaign/note-editor";
-import { SessionChangeWriter } from "../../campaign/session-change-writer";
-import { writeRecordChange } from "../../campaign/write-record-change";
+import type { CoinRecord, SessionNote, Source } from "../../campaign/record/campaign";
+import { removalAsRead, type EditorFiles } from "../../campaign/writing/note-editor";
+import { SessionChangeWriter } from "../../campaign/changes/session-change-writer";
+import { writeRecordChange } from "../../campaign/changes/write-record-change";
 import { comparableLine, draftOf, readCoinDraft, type CoinDraft, type CoinLine } from "../../notes/coin-lines";
 import { coinDelete, coinSave } from "./coin-change";
 

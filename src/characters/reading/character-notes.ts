@@ -1,8 +1,8 @@
 import type { TFile } from "obsidian";
-import type { SessionNote } from "../../campaign/campaign";
-import { campaignNotePathOf, isInReferenceFolder } from "../../campaign/campaign-folders";
+import type { SessionNote } from "../../campaign/record/campaign";
+import { campaignNotePathOf, isInReferenceFolder } from "../../campaign/paths/campaign-folders";
 import { characterReferenceKind } from "../../kinds/character-reference-kind";
-import { readSessions } from "../../campaign/read-campaign";
+import { readSessions } from "../../campaign/reading/read-campaign";
 import type { Gate } from "../../fence/gatekeeper";
 
 export interface CharacterNotes {
