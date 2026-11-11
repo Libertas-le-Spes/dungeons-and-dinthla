@@ -57,6 +57,8 @@
 }
 
 .dd-tab-picture .dd-box-frame {
+  position: relative;
+  isolation: isolate;
   border-radius: var(--radius-md);
   background: var(--surface-sunken);
 }
@@ -70,11 +72,12 @@
   pointer-events: none;
   background: var(--dd-campaign-picture) center / cover no-repeat;
   opacity: var(--campaign-picture-idle);
+  filter: contrast(0.6) brightness(1.1);
   transition: opacity var(--dur-med) var(--ease-out);
 }
 
-.theme-light .dd-tab-picture .dd-box-frame::before {
-  filter: contrast(0.6) brightness(1.1);
+.theme-dark .dd-tab-picture .dd-box-frame::before {
+  filter: none;
 }
 
 .dd-tab-picture .dd-box-frame:focus-within::before {
