@@ -1,5 +1,5 @@
 import type { Source } from "../campaign/campaign";
-import { sameName } from "./character-entry";
+import { sameName } from "./sheet-values";
 import { ABILITIES, sheetNameOf, type SheetValues, type SourcedFact } from "./sheet-values";
 
 export const NOT_KNOWN = "?";

@@ -4,7 +4,7 @@ import { withoutBullet } from "../notes/bullet";
 import { factsOf, type CharacterFact } from "../notes/character-facts";
 import { hiddenLines } from "../notes/hidden-lines";
 import { appendLines, removeLines, rewriteLine } from "../notes/note-lines";
-import { overrideFacts, sheetNameOf, sheetValuesOf, type SourcedFact } from "./sheet-values";
+import { overrideFacts, sameName, sheetNameOf, sheetValuesOf, type SourcedFact } from "./sheet-values";
 
 export interface CharacterEntry {
   name: string;
@@ -60,10 +60,6 @@ export interface OverrideChange {
 
 export function factLine(name: string, value: string): string {
   return `${name}: ${value}`;
-}
-
-export function sameName(first: string, second: string): boolean {
-  return first.toLowerCase() === second.toLowerCase();
 }
 
 export function overrideValueOf(text: string, path: string, name: string): string {
