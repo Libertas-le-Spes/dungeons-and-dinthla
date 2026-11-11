@@ -100,6 +100,7 @@ describe("saving a quest", () => {
     const notes = new FakeNotes({ [ONE]: "! Guard\n! Guard: east\n" });
     notes.texts.set(NINE, "");
     await expect(save(notes, "Guard", { happened: "east: y" }, NINE)).rejects.toThrow(GOES_ELSEWHERE);
+    expect(notes.writes).toBe(0);
   });
 });
 

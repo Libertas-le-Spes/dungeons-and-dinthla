@@ -39,13 +39,13 @@ export function openQuestion(
   const wanted = { activePath, earliestSession: latestSessionOfQuestion(question, folder), noSession: NO_SESSION };
   const sessionPath = sessionForDialog(gate.files, folder, wanted);
   if (sessionPath === null) return;
-  const writer = new QuestionWriter(gate.files);
-  const changes = new SessionChangeWriter(gate.files);
+  const questionWriter = new QuestionWriter(gate.files);
+  const writer = new SessionChangeWriter(gate.files);
   const latest = () => currentQuestion(store.current.questions, question);
   const choices = {
-    save: async (edit: QuestionEdit) => writeRecordChange(questionSave(store, latest(), edit, sessionPath), changes),
-    reopen: () => writeRecordChange(questionReopen(store, latest(), sessionPath), changes),
-    delete: () => writer.delete(latest()),
+    save: async (edit: QuestionEdit) => writeRecordChange(questionSave(store, latest(), edit, sessionPath), writer),
+    reopen: () => writeRecordChange(questionReopen(store, latest(), sessionPath), writer),
+    delete: () => questionWriter.delete(latest()),
   };
   let answeredIn = sessionLabelOf(sessionPath);
   if (question.answer !== null) answeredIn = sessionLabelOf(question.answer.source.path);

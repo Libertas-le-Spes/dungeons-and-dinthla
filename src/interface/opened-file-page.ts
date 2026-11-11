@@ -1,5 +1,7 @@
-import { campaignFolderOf, campaignOfCharacter, campaignOfItem, charactersBasePathOf, mainNotePathOf } from "../campaign/campaign-folders";
+import { campaignFolderOf, campaignOfItem, campaignOfReference, charactersBasePathOf, mainNotePathOf } from "../campaign/campaign-folders";
 import { sessionNumberOf } from "../campaign/session-file";
+import type { ReferenceKind } from "../kinds/reference-kind";
+import { REFERENCE_KIND_LIST } from "../kinds/reference-kinds";
 import type { PageId } from "./campaign-pages";
 
 interface OpenedFile {
@@ -21,10 +23,6 @@ function isCharactersBase(file: OpenedFile): boolean {
   return file.path === charactersBasePathOf(file.campaignFolder);
 }
 
-function isCharacterNote(file: OpenedFile): boolean {
-  return campaignOfCharacter(file.path, file.campaignFolders) !== null;
-}
-
 function isSessionNote(file: OpenedFile): boolean {
   return sessionNumberOf(file.path, file.campaignFolder) !== null;
 }
@@ -37,10 +35,22 @@ function isMarkdownNote(file: OpenedFile): boolean {
   return file.path.endsWith(".md");
 }
 
+class ReferenceRule implements FileRule {
+  constructor(private readonly kind: ReferenceKind) {}
+
+  get page(): PageId {
+    return this.kind.page;
+  }
+
+  matches(file: OpenedFile): boolean {
+    return campaignOfReference(this.kind, file.path, file.campaignFolders) !== null;
+  }
+}
+
 const FILE_RULES: FileRule[] = [
   { page: "home", matches: isMainNote },
   { page: "cast", matches: isCharactersBase },
-  { page: "cast", matches: isCharacterNote },
+  ...REFERENCE_KIND_LIST.map((kind) => new ReferenceRule(kind)),
   { page: "notes", matches: isSessionNote },
   { page: "funds", matches: isItemNote },
   { page: "note", matches: isMarkdownNote },

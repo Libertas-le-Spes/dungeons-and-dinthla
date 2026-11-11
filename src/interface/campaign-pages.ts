@@ -3,11 +3,12 @@ import type { Campaign } from "../campaign/campaign";
 import { coinTrackedKind } from "../kinds/coin-tracked-kind";
 import { questTrackedKind } from "../kinds/quest-tracked-kind";
 import { questionTrackedKind } from "../kinds/question-tracked-kind";
+import type { ReferencePageId } from "../kinds/reference-page-id";
 import type { TrackedPageId } from "../kinds/tracked-page-id";
 import { questionsKind } from "../questions/questions-kind";
 import { questsKind } from "../quests/quests-kind";
 
-export type PageId = "home" | "cast" | "notes" | TrackedPageId | "note" | "welcome";
+export type PageId = "home" | ReferencePageId | "notes" | TrackedPageId | "welcome";
 
 export type PageTarget = { page: PageId; path: string | null };
 
