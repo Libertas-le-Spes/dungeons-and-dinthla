@@ -3,7 +3,7 @@ import type { App, TFile } from "obsidian";
 import { characterSheetOf } from "../../../src/characters/reading/character-sheet";
 import { chooseSheetValue } from "../../../src/characters/editing/open-character-sheet";
 import type { SheetNotes } from "../../../src/characters/reading/sheet-notes";
-import type { Gate } from "../../../src/fence/gatekeeper";
+import type { Gate } from "../../../src/fence/gate/gatekeeper";
 import { Notice, openedModals } from "../../stubs/obsidian";
 
 const MIRA = { path: "Pale Moon/Characters/Mira.md", basename: "Mira" } as TFile;

@@ -1,6 +1,6 @@
 import { boxTextOf, diskTextFor } from "../campaign/writing/disk-text";
 import type { NoteDraft } from "./note-drafts";
-import type { FencedFiles } from "../fence/fenced-files";
+import type { FencedFiles } from "../fence/gate/fenced-files";
 
 export type SaverFiles = Pick<FencedFiles, "getFileByPath" | "process">;
 

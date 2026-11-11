@@ -3,7 +3,7 @@ import type { App, TFile } from "obsidian";
 import { Notice, openedModals } from "../stubs/obsidian";
 import { NO_CAMPAIGN } from "../../src/campaign/paths/campaign-folders";
 import { startSession } from "../../src/sessions/start-session";
-import type { Gate } from "../../src/fence/gatekeeper";
+import type { Gate } from "../../src/fence/gate/gatekeeper";
 
 function appWith(paths: string[], { createFails = false } = {}) {
   const create = vi.fn(async (path: string) => {

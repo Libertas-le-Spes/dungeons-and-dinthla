@@ -1,9 +1,9 @@
 import type { CachedMetadata, TFile } from "obsidian";
 import type { Campaign, ItemRecord } from "../../campaign/record/campaign";
 import { itemsFolderOf } from "../../campaign/paths/campaign-folders";
-import type { FencedFileActions } from "../../fence/fenced-file-actions";
-import type { FencedFiles } from "../../fence/fenced-files";
-import type { FencedMetadata } from "../../fence/fenced-metadata";
+import type { FencedFileActions } from "../../fence/gate/fenced-file-actions";
+import type { FencedFiles } from "../../fence/gate/fenced-files";
+import type { FencedMetadata } from "../../fence/gate/fenced-metadata";
 import { HOLDER_PROPERTY, holderPropertyOf } from "./holder-property";
 import { itemOfNote } from "./item-of-note";
 

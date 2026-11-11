@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App, TFile, TFolder } from "obsidian";
-import { Fence } from "../../../src/fence/fence";
-import { FencedFiles } from "../../../src/fence/fenced-files";
-import { FencedMetadata, type RawMetadata } from "../../../src/fence/fenced-metadata";
-import { HeldFiles } from "../../../src/fence/held-files";
+import { Fence } from "../../../src/fence/paths/fence";
+import { FencedFiles } from "../../../src/fence/gate/fenced-files";
+import { FencedMetadata, type RawMetadata } from "../../../src/fence/gate/fenced-metadata";
+import { HeldFiles } from "../../../src/fence/gate/held-files";
 import { notInCampaign, openLink } from "../../../src/views/opening/open-link";
-import { fileAt, folderAt, rawVaultWith } from "../../fence/fake-raw-vault";
+import { fileAt, folderAt, rawVaultWith } from "../../fence/gate/fake-raw-vault";
 import { Notice } from "../../stubs/obsidian";
 
 const CAMPAIGN = "D&D/Pale Moon";

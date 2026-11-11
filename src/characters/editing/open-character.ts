@@ -7,7 +7,7 @@ import { createCharacter, deleteCharacter, saveCharacter } from "./character-fil
 import { CharacterModal } from "./character-modal";
 import type { CharacterNotes } from "../reading/character-notes";
 import { factsByCharacter } from "../reading/sheet-values";
-import type { Gate } from "../../fence/gatekeeper";
+import type { Gate } from "../../fence/gate/gatekeeper";
 
 const NEW_WHERE = "Every other sheet value starts as not known.";
 export const EDIT_WHERE =

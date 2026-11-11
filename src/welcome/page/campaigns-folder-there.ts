@@ -1,4 +1,4 @@
-import type { FencedFiles } from "../../fence/fenced-files";
+import type { FencedFiles } from "../../fence/gate/fenced-files";
 
 export type FolderLookup = Pick<FencedFiles, "getFolderByPath">;
 

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App } from "obsidian";
-import type { Gate } from "../../../src/fence/gatekeeper";
+import type { Gate } from "../../../src/fence/gate/gatekeeper";
 import { NO_CAMPAIGN } from "../../../src/campaign/paths/campaign-folders";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { openAddCoin } from "../../../src/funds/coins/open-add-coin";

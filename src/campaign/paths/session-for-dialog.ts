@@ -1,5 +1,5 @@
 import { Notice } from "obsidian";
-import type { FencedFiles } from "../../fence/fenced-files";
+import type { FencedFiles } from "../../fence/gate/fenced-files";
 import { NoSessionToWrite, sessionToWrite, type SessionWanted } from "./session-to-write";
 
 export function sessionForDialog(files: Pick<FencedFiles, "getFiles">, campaignFolder: string, wanted: SessionWanted): string | null {

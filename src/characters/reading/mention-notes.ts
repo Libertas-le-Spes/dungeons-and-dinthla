@@ -1,7 +1,7 @@
 import { getLinkpath, type CachedMetadata, type ReferenceCache } from "obsidian";
 import type { CampaignFolders } from "./character-notes";
 import { sheetNotesOf, type SheetNotes } from "./sheet-notes";
-import type { Gate } from "../../fence/gatekeeper";
+import type { Gate } from "../../fence/gate/gatekeeper";
 
 export interface MentionNotes extends Pick<SheetNotes, "fileAt" | "textOf" | "campaignFolders" | "onNoteMoved"> {
   linkingPaths(target: string): string[];

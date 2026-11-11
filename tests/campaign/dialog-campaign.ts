@@ -3,7 +3,7 @@ import { buildCampaign } from "../../src/campaign/reading/build-campaign";
 import type { Campaign, SessionNote } from "../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../src/campaign/reading/campaign-store";
 import { sessionNoteOf } from "../../src/campaign/paths/session-file";
-import type { Gate } from "../../src/fence/gatekeeper";
+import type { Gate } from "../../src/fence/gate/gatekeeper";
 import { openedModals } from "../stubs/obsidian";
 
 function numberOf(path: string): number {

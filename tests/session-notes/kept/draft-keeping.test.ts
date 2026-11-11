@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TFile } from "obsidian";
-import { Fence } from "../../../src/fence/fence";
+import { Fence } from "../../../src/fence/paths/fence";
 import { Drafts } from "../../../src/session-notes/drafts/drafts";
 import { DraftKeeping } from "../../../src/session-notes/kept/draft-keeping";
 import { DELETED, MISSING } from "../../../src/session-notes/kept/kinds/kept-kinds";
-import { FakeEvents, fileAt } from "../../fence/fake-raw-vault";
+import { FakeEvents, fileAt } from "../../fence/gate/fake-raw-vault";
 
 const FOLDER = "D&D";
 const ONE = "D&D/Pale Moon/Sessions/Session 1.md";

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TFile } from "obsidian";
-import type { Gate } from "../../../src/fence/gatekeeper";
+import type { Gate } from "../../../src/fence/gate/gatekeeper";
 import { noteTextsOf } from "../../../src/campaign/reading/note-texts";
 
 const OLD_MILL = "Pale Moon/Places/Old Mill.md";

@@ -1,7 +1,7 @@
 import type { TFile } from "obsidian";
 import type { SessionNote } from "../record/campaign";
 import { sessionNoteOf, sessionNumberOf } from "../paths/session-file";
-import type { FencedFiles } from "../../fence/fenced-files";
+import type { FencedFiles } from "../../fence/gate/fenced-files";
 
 export type CampaignFiles = Pick<FencedFiles, "getFiles" | "cachedRead" | "getFileByPath">;
 

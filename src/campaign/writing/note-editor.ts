@@ -4,7 +4,7 @@ import { appendLines, dropLine, removeLines, rewriteLine, type LineToRemove } fr
 import { messageOf } from "../../views/dialogs/message-of";
 import type { SessionNote, Source } from "../record/campaign";
 import { keepsProperties } from "../paths/session-file";
-import type { FencedFiles } from "../../fence/fenced-files";
+import type { FencedFiles } from "../../fence/gate/fenced-files";
 
 export type EditorFiles = Pick<FencedFiles, "getFileByPath" | "process" | "read">;
 

@@ -1,16 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import type { CachedMetadata, TFile } from "obsidian";
 import { CampaignStore } from "../../../src/campaign/reading/campaign-store";
-import { Fence } from "../../../src/fence/fence";
-import { FencedFileActions, type RawFileManager } from "../../../src/fence/fenced-file-actions";
-import { FencedFiles } from "../../../src/fence/fenced-files";
-import { FencedMetadata, type RawMetadata } from "../../../src/fence/fenced-metadata";
-import { HeldFiles } from "../../../src/fence/held-files";
+import { Fence } from "../../../src/fence/paths/fence";
+import { FencedFileActions, type RawFileManager } from "../../../src/fence/gate/fenced-file-actions";
+import { FencedFiles } from "../../../src/fence/gate/fenced-files";
+import { FencedMetadata, type RawMetadata } from "../../../src/fence/gate/fenced-metadata";
+import { HeldFiles } from "../../../src/fence/gate/held-files";
 import { sessionNotesWiring } from "../../../src/interface/sections/session-notes-wiring";
 import { NoteDrafts } from "../../../src/note-editing/note-drafts";
 import { Drafts } from "../../../src/session-notes/drafts/drafts";
 import { KeptDrafts } from "../../../src/session-notes/kept/kept-drafts";
-import { FakeEvents, fileAt, rawVaultWith } from "../../fence/fake-raw-vault";
+import { FakeEvents, fileAt, rawVaultWith } from "../../fence/gate/fake-raw-vault";
 
 const SESSION = fileAt("D&D/Pale Moon/Sessions/Session 1.md");
 const CACHE = { frontmatter: { title: "The Old Mill" } } as unknown as CachedMetadata;

@@ -13,7 +13,7 @@ import {
   openNewCharacter,
 } from "../../../src/characters/editing/open-character";
 import { Notice, openedModals } from "../../stubs/obsidian";
-import type { Gate } from "../../../src/fence/gatekeeper";
+import type { Gate } from "../../../src/fence/gate/gatekeeper";
 
 const CAMPAIGNS = ["Ashen Road", "Pale Moon"];
 const MIRA = "Pale Moon/Characters/Mira.md";

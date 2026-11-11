@@ -4,7 +4,7 @@ import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { openSource } from "../../views/opening/open-view";
 import type { CoinOutcome } from "./coin-modal";
 import { openCoinEntry } from "./open-add-coin";
-import type { Gate } from "../../fence/gatekeeper";
+import type { Gate } from "../../fence/gate/gatekeeper";
 
 export type OpenLedgerEntry = (source: Source, onClosed: (outcome: CoinOutcome) => void) => void;
 
