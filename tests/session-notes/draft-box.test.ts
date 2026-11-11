@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import { DraftBox } from "../../src/session-notes/draft-box";
 import { obsidianDocument } from "../views/obsidian-dom";
 
+function nothing(): void {}
+
 function box(): DraftBox {
   const parent = obsidianDocument().body.createDiv();
-  return new DraftBox(parent, "", () => undefined);
+  return new DraftBox(parent, "", nothing);
 }
 
 describe("DraftBox", () => {
