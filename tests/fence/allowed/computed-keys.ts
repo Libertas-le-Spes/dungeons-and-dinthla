@@ -21,7 +21,6 @@ export const COMPUTED_KEY_READERS = [
   "notes/ledger.ts",
   "notes/note-lines.ts",
   "notes/quest.ts",
-  "quests/quest-plan.ts",
   "session-notes/box-text.ts",
   "session-notes/kept-time.ts",
   "session-notes/lookup-list.ts",

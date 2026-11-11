@@ -1,15 +1,15 @@
+import { applySessionChange } from "../campaign/apply-session-change";
 import { buildCampaign } from "../campaign/build-campaign";
 import type { Campaign, CoinRecord, QuestRecord, QuestStatus, SessionNote } from "../campaign/campaign";
 import type { Removal } from "../campaign/note-editor";
 import { questThreadKind } from "../campaign/quest-thread-kind";
-import { sessionNoteOf } from "../campaign/session-file";
 import { endingRemoval } from "../campaign/thread-removal";
 import { readLedgerEntry } from "../notes/ledger";
-import { appendLines, removeLines } from "../notes/note-lines";
 import { followUpQuestLine, isCoinReward, outcomeLine, progressLine, questTextOf, rewardLine } from "../notes/quest-lines";
 import { readMarker } from "../notes/marker";
 import { readQuest } from "../notes/quest";
 import { oneLine } from "../notes/one-line";
+import { questSessionChange } from "./quest-session-change";
 
 export type QuestStatusChoice = "active" | QuestStatus;
 
@@ -53,11 +53,23 @@ function rewardCopperOf(reward: string, title: string): number | null {
   return own.copper;
 }
 
-export function canCollectReward(record: QuestRecord, coins: CoinRecord[]): boolean {
+interface RewardToCollect {
+  line: string;
+  copper: number;
+}
+
+function rewardToCollect(record: QuestRecord, coins: CoinRecord[]): RewardToCollect | null {
   const reward = record.quest.reward;
-  if (reward === undefined || !isCoinReward(reward) || rewardCopperOf(reward, record.quest.title) === null) return false;
+  if (reward === undefined || !isCoinReward(reward)) return null;
+  const copper = rewardCopperOf(reward, record.quest.title);
+  if (copper === null) return null;
   const collected = coins.some((coin) => coin.text.endsWith(`, for: ${record.quest.title}`));
-  return !collected;
+  if (collected) return null;
+  return { line: rewardLine(reward, record.quest.title), copper };
+}
+
+export function canCollectReward(record: QuestRecord, coins: CoinRecord[]): boolean {
+  return rewardToCollect(record, coins) !== null;
 }
 
 export function outcomeRemoval(record: QuestRecord): Removal | null {
@@ -92,9 +104,12 @@ export function planQuestSave(record: QuestRecord, edit: QuestEdit, coins: CoinR
     outcome = outcomeKey(edit.status, happened, targetPath);
   }
   let rewardCopper = 0;
-  if (edit.status === "completed" && edit.collectReward && canCollectReward(record, coins)) {
-    added.push(rewardLine(record.quest.reward!, title));
-    rewardCopper = rewardCopperOf(record.quest.reward!, title)!;
+  if (edit.status === "completed" && edit.collectReward) {
+    const reward = rewardToCollect(record, coins);
+    if (reward !== null) {
+      added.push(reward.line);
+      rewardCopper = reward.copper;
+    }
   }
   let followUpTitle: string | null = null;
   const followUp = questTextOf(edit.followUp);
@@ -104,15 +119,6 @@ export function planQuestSave(record: QuestRecord, edit: QuestEdit, coins: CoinR
     followUpTitle = readQuest(readMarker(line).body).title;
   }
   return { targetPath, added, removal, expected: { progress, outcome }, rewardCopper, followUpTitle };
-}
-
-function applyPlan(sessions: SessionNote[], plan: QuestPlan): SessionNote[] {
-  return sessions.map((session) => {
-    let text = session.text;
-    if (plan.removal !== null && plan.removal.path === session.path) text = removeLines(text, [plan.removal]).text;
-    if (session.path === plan.targetPath) text = appendLines(text, plan.added);
-    return sessionNoteOf(session.path, session.number, text);
-  });
 }
 
 function signatureOf(record: QuestRecord): string {
@@ -130,20 +136,15 @@ function expectedSignature(record: QuestRecord, expected: ExpectedQuest): string
 function questsBesidesFollowUp(campaign: Campaign, plan: QuestPlan): QuestRecord[] {
   const quests = [...campaign.quests];
   if (plan.followUpTitle === null) return quests;
-  for (let index = quests.length - 1; index >= 0; index--) {
-    const candidate = quests[index]!;
-    if (candidate.source.path === plan.targetPath && candidate.quest.title === plan.followUpTitle) {
-      quests.splice(index, 1);
-      break;
-    }
-  }
+  const index = quests.findLastIndex((candidate) => candidate.source.path === plan.targetPath && candidate.quest.title === plan.followUpTitle);
+  if (index !== -1) quests.splice(index, 1);
   return quests;
 }
 
 export function refusalForQuestPlan(sessions: SessionNote[], record: QuestRecord, plan: QuestPlan): string | null {
   if (!sessions.some((session) => session.path === plan.targetPath)) return CHANGES_ANOTHER_QUEST;
   const before = buildCampaign(sessions);
-  const after = buildCampaign(applyPlan(sessions, plan));
+  const after = buildCampaign(applySessionChange(sessions, questSessionChange(plan)).sessions);
   const wanted = before.quests.map((quest) => {
     const isOpened = quest.source.path === record.source.path && quest.source.line === record.source.line;
     if (isOpened) return expectedSignature(record, plan.expected);

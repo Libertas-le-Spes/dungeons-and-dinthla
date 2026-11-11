@@ -18,7 +18,8 @@ import {
   statusOf,
   type ItemEdit,
 } from "../../src/funds/item-plan";
-import { openedItem, type ItemSource } from "../../src/funds/item-writer";
+import type { ItemSource } from "../../src/funds/item-source";
+import { openedItem } from "../../src/funds/item-writer";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
