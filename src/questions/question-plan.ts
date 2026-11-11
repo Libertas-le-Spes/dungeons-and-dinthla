@@ -4,9 +4,9 @@ import type { Campaign, QuestionRecord, SessionNote, SourcedText } from "../camp
 import type { Removal } from "../campaign/writing/note-editor";
 import { questionThreadKind } from "../campaign/threads/question-thread-kind";
 import { endingRemoval } from "../campaign/threads/thread-removal";
-import { readMarker } from "../notes/marker";
-import { oneLine } from "../notes/one-line";
-import { answerLine, followUpQuestionLine, questionTextOf } from "../notes/question-lines";
+import { readMarker } from "../notes/reading/marker";
+import { oneLine } from "../notes/parts/one-line";
+import { answerLine, followUpQuestionLine, questionTextOf } from "../notes/writing/question-lines";
 import { questionSessionChange } from "./question-session-change";
 
 export interface QuestionEdit {

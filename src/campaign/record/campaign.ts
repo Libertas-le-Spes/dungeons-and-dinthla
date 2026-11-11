@@ -1,7 +1,7 @@
 import type { Source } from "../../kinds/source";
-import type { ItemChangeKind } from "../../notes/item-change";
-import type { CoinEntry } from "../../notes/ledger";
-import type { Quest, QuestStatus } from "../../notes/quest";
+import type { ItemChangeKind } from "../../notes/reading/item-change";
+import type { CoinEntry } from "../../notes/reading/ledger";
+import type { Quest, QuestStatus } from "../../notes/reading/quest";
 
 export type { QuestStatus, Source };
 

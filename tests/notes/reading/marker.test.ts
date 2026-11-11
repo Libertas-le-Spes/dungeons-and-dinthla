@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { markerSpanOf, readMarker } from "../../src/notes/marker";
+import { markerSpanOf, readMarker } from "../../../src/notes/reading/marker";
 
 describe("readMarker", () => {
   it("reads a question, a quest and a ledger line", () => {

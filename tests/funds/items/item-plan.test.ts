@@ -4,7 +4,7 @@ import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { Campaign, SessionNote } from "../../../src/campaign/record/campaign";
 import { CHANGED_IN_NOTE, PROPERTIES_WOULD_CHANGE, type EditorFiles } from "../../../src/campaign/writing/note-editor";
 import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
-import { NO_COIN, SIGN_SAYS_OUT } from "../../../src/notes/coin-lines";
+import { NO_COIN, SIGN_SAYS_OUT } from "../../../src/notes/writing/coin-lines";
 import {
   CHANGES_ANOTHER_ITEM,
   GONE_LINE_SAYS_MORE,

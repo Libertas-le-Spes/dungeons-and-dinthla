@@ -1,8 +1,8 @@
 import type { SessionNote, Source } from "../../campaign/record/campaign";
 import { firstLineAfterProperties } from "../../campaign/paths/session-file";
 import { forEachSessionLine } from "../../campaign/record/session-lines";
-import { withoutBullet } from "../../notes/bullet";
-import { factsOf, linkedFactsOf, type CharacterFact } from "../../notes/character-facts";
+import { withoutBullet } from "../../notes/parts/bullet";
+import { factsOf, linkedFactsOf, type CharacterFact } from "../../notes/reading/character-facts";
 
 export const ABILITIES = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 

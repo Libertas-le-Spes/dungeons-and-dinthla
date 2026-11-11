@@ -10,7 +10,7 @@ import { writeRecordChange } from "../../../src/campaign/changes/write-record-ch
 import { CHANGES_OTHER_MONEY } from "../../../src/funds/coins/coin-change";
 import { CANNOT_SHOW, coinEntryEdit } from "../../../src/funds/coins/coin-entry";
 import { newCoin } from "../../../src/funds/coins/new-coin-change";
-import { readCoinDraft, type CoinDraft, type CoinLine } from "../../../src/notes/coin-lines";
+import { readCoinDraft, type CoinDraft, type CoinLine } from "../../../src/notes/writing/coin-lines";
 
 const ONE = "S/Sessions/Session 1.md";
 const TWO = "S/Sessions/Session 2.md";

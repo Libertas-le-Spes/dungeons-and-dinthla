@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readItemChange } from "../../src/notes/item-change";
+import { readItemChange } from "../../../src/notes/reading/item-change";
 
 describe("readItemChange", () => {
   it("reads a change of holder", () => {

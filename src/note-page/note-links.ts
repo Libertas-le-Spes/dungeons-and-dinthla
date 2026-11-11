@@ -1,4 +1,4 @@
-import { splitLinks, type LinkedText } from "../notes/link";
+import { splitLinks, type LinkedText } from "../notes/parts/link";
 import { addNameLink, type LinkActions } from "../views/lists/linked-text";
 
 const HEADING = "Links in this note";

@@ -1,7 +1,7 @@
-import type { FollowUpName } from "../kinds/follow-up-name";
-import { FOLLOW_UP_SYMBOL_LIST, followUpNamedBy } from "../kinds/follow-ups";
-import { symbolPatternOf } from "../kinds/symbol-pattern";
-import { withoutBullet } from "./bullet";
+import type { FollowUpName } from "../../kinds/follow-up-name";
+import { FOLLOW_UP_SYMBOL_LIST, followUpNamedBy } from "../../kinds/follow-ups";
+import { symbolPatternOf } from "../../kinds/symbol-pattern";
+import { withoutBullet } from "../parts/bullet";
 
 export interface FollowUp {
   kind: FollowUpName;

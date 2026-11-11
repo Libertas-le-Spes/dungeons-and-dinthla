@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appendLines, removeLines } from "../../src/notes/note-lines";
+import { appendLines, removeLines } from "../../../src/notes/writing/note-lines";
 
 describe("appendLines", () => {
   it("adds lines at the end, after the note's last line", () => {

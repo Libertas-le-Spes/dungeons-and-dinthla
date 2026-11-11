@@ -1,7 +1,7 @@
-import { choiceOf } from "../views/dialogs/choice-of";
-import { withoutBlockId } from "./block-id";
-import { partsBetweenCommas } from "./comma";
-import { blankLinks, findLinks, removeFirstLink } from "./link";
+import { choiceOf } from "../../views/dialogs/choice-of";
+import { withoutBlockId } from "../parts/block-id";
+import { partsBetweenCommas } from "../parts/comma";
+import { blankLinks, findLinks, removeFirstLink } from "../parts/link";
 
 export type CoinKind = "pp" | "gp" | "ep" | "sp" | "cp";
 

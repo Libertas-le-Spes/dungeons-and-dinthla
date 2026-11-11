@@ -1,6 +1,6 @@
 import type { TFile } from "obsidian";
-import { hiddenLines } from "../../notes/hidden-lines";
-import { appendLines, dropLine, removeLines, rewriteLine, type LineToRemove } from "../../notes/note-lines";
+import { hiddenLines } from "../../notes/reading/hidden-lines";
+import { appendLines, dropLine, removeLines, rewriteLine, type LineToRemove } from "../../notes/writing/note-lines";
 import { messageOf } from "../../views/dialogs/message-of";
 import type { SessionNote, Source } from "../record/campaign";
 import { keepsProperties } from "../paths/session-file";

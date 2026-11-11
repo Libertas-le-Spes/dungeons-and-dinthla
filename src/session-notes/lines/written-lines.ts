@@ -1,7 +1,7 @@
 import type { SessionNote, Source } from "../../campaign/record/campaign";
-import { withoutBullet } from "../../notes/bullet";
+import { withoutBullet } from "../../notes/parts/bullet";
 import type { MarkerName } from "../../kinds/marker-name";
-import { markerSpanOf } from "../../notes/marker";
+import { markerSpanOf } from "../../notes/reading/marker";
 
 export interface WrittenLine {
   source: Source;

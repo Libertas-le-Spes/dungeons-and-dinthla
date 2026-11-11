@@ -2,7 +2,7 @@ import type { TFile } from "obsidian";
 import type { Source } from "../../campaign/record/campaign";
 import { campaignFolderOf, campaignNameOf } from "../../campaign/paths/campaign-folders";
 import { sessionLabelOf, sessionNumberOf } from "../../campaign/paths/session-file";
-import { withoutBullet } from "../../notes/bullet";
+import { withoutBullet } from "../../notes/parts/bullet";
 import type { MentionNotes } from "./mention-notes";
 
 export interface Mention {

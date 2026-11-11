@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFollowUp } from "../../src/notes/follow-up";
+import { readFollowUp } from "../../../src/notes/reading/follow-up";
 
 describe("readFollowUp", () => {
   it("reads each kind of follow-up", () => {

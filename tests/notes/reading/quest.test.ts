@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readQuest } from "../../src/notes/quest";
+import { readQuest } from "../../../src/notes/reading/quest";
 
 describe("readQuest", () => {
   it("separates the title from who gave it and the reward", () => {
