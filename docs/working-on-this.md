@@ -36,7 +36,7 @@ A type check (`tsc --noEmit`) proves the imports and nothing else. After a move,
 - **Anything computed from `import.meta.url` or a count of folders up.** `new URL("../..", import.meta.url)` is a different folder one level deeper, and nothing fails to compile.
 - **A rule that reads a folder flat.** A check that lists a folder's entries and reads each as a file sees nothing, or fails, once the files sit in subfolders.
 
-A mover that rewrites anything that looks like `from "./x"` also rewrites it inside **string fixtures**, such as a planted project held as a string in a test. When proving a move changed only paths, compare with only the real imports and the `vi.mock(…)` and `import(…)` calls set aside. Do not blank every relative-path string literal first: that hides this mistake. Then run the whole suite, since the tests are what find the rest.
+A script that moves files and rewrites their imports (a mover) also rewrites anything that looks like `from "./x"` inside **string fixtures**, such as a planted project held as a string in a test. When proving a move changed only paths, compare with only the real imports and the `vi.mock(…)` and `import(…)` calls set aside. Do not blank every relative-path string literal first: that hides this mistake. Then run the whole suite, since the tests are what find the rest, and take out one allow-list entry or guard path once to watch a test fail, since a path that went stale makes a guard stop guarding without a word.
 
 ## Before merging
 
