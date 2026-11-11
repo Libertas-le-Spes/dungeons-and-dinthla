@@ -1,9 +1,9 @@
 export const PAGE_MEMBERS: Record<string, string[]> = {
   "campaign/picture-css.ts": ["encode"],
-  "characters/character-gallery.ts": ["addEventListener", "focus"],
-  "characters/character-modal.ts": ["addEventListener", "defaultPrevented", "focus", "preventDefault"],
-  "characters/character-sheet-page.ts": ["addEventListener", "focus", "preventDefault", "querySelectorAll"],
-  "characters/sheet-value-modal.ts": ["addEventListener", "defaultPrevented", "focus", "preventDefault"],
+  "characters/editing/character-modal.ts": ["addEventListener", "defaultPrevented", "focus", "preventDefault"],
+  "characters/editing/sheet-value-modal.ts": ["addEventListener", "defaultPrevented", "focus", "preventDefault"],
+  "characters/pages/character-gallery.ts": ["addEventListener", "focus"],
+  "characters/pages/character-sheet-page.ts": ["addEventListener", "focus", "preventDefault", "querySelectorAll"],
   "dashboard/dashboard-page.ts": ["focus"],
   "funds/coins/coin-modal.ts": ["addEventListener", "defaultPrevented", "focus", "preventDefault"],
   "funds/item-notes/item-panel.ts": ["addEventListener", "focus"],

@@ -1,6 +1,6 @@
 import { Notice, type App } from "obsidian";
 import { NO_CAMPAIGN } from "../campaign/campaign-folders";
-import { charactersIn } from "../campaign/characters";
+import { charactersIn } from "../characters/reading/characters";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { SessionChangeWriter } from "../campaign/session-change-writer";
 import { sessionLabelOf } from "../campaign/session-file";

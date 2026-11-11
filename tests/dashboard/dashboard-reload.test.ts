@@ -3,7 +3,7 @@ import { Component } from "obsidian";
 import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { Campaign, SessionNote } from "../../src/campaign/campaign";
 import type { CampaignStore } from "../../src/campaign/campaign-store";
-import type { CharacterNotes } from "../../src/characters/character-notes";
+import type { CharacterNotes } from "../../src/characters/reading/character-notes";
 import { DashboardPage, type DashboardActions } from "../../src/dashboard/dashboard-page";
 import { obsidianDocument } from "../views/obsidian-dom";
 
