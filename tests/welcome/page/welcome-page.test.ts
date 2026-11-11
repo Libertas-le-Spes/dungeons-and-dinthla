@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { buildCampaign } from "../../src/campaign/build-campaign";
-import type { SessionNote } from "../../src/campaign/campaign";
-import type { CampaignListener } from "../../src/campaign/campaign-store";
-import type { WelcomeActions } from "../../src/welcome/welcome-ending";
-import { HOW_TO_CHOOSE_THE_CAMPAIGNS_FOLDER } from "../../src/welcome/campaigns-folder-ending";
-import { WelcomePage, type WelcomeStore } from "../../src/welcome/welcome-page";
-import { Notice } from "../stubs/obsidian";
-import { obsidianDocument } from "../views/obsidian-dom";
+import { buildCampaign } from "../../../src/campaign/build-campaign";
+import type { SessionNote } from "../../../src/campaign/campaign";
+import type { CampaignListener } from "../../../src/campaign/campaign-store";
+import type { WelcomeActions } from "../../../src/welcome/endings/welcome-ending";
+import { HOW_TO_CHOOSE_THE_CAMPAIGNS_FOLDER } from "../../../src/welcome/endings/campaigns-folder-ending";
+import { WelcomePage, type WelcomeStore } from "../../../src/welcome/page/welcome-page";
+import { Notice } from "../../stubs/obsidian";
+import { obsidianDocument } from "../../views/obsidian-dom";
 
 const CAMPAIGN = "D&D/Silver Road";
 
