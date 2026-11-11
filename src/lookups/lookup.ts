@@ -1,6 +1,6 @@
 import type { Campaign, Source, SourcedText } from "../campaign/campaign";
 import type { ThreadRecord } from "../campaign/thread-kind";
-import { holderNameOf } from "../funds/item-groups";
+import { holderNameOf } from "../funds/items/item-groups";
 import type { FollowUpName } from "../kinds/follow-up-name";
 import { itemTrackedKind } from "../kinds/item-tracked-kind";
 import { LOOKUP_SYMBOL_LIST, lookedUpKindBySymbol } from "../kinds/looked-up-kinds";
