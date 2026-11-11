@@ -67,8 +67,8 @@ export const GATE_SHAPING_SAMPLES = [
   "import { FencedFiles, type RawVault } from \"../../../../src/fence/fenced-files\";\nimport type { HeldFiles } from \"../../../../src/fence/held-files\";\nexport const files = (fake: RawVault, held: HeldFiles) => new FencedFiles(fake, held);",
   "import { HeldFiles, type FileLookup } from \"../../../../src/fence/held-files\";\nimport { Fence } from \"../../../../src/fence/fence\";\nexport const held = (fake: FileLookup) => new HeldFiles(fake, new Fence(() => \"Private\", \".obsidian\"));",
   "import type { App } from \"obsidian\";\nimport { Gatekeeper } from \"../../../../src/fence/gatekeeper\";\nexport const gate = (fake: App) => new Gatekeeper(fake, () => \"Private\");",
-  'import { CampaignView } from "../../../../src/interface/campaign-view";\nexport const view = (fake: object) => ({ __proto__: CampaignView.prototype, ...fake });',
-  'import { CampaignView } from "../../../../src/interface/campaign-view";\nexport const view = (fake: object) => Object.setPrototypeOf(fake, CampaignView.prototype);',
+  'import { CampaignView } from "../../../../src/interface/view/campaign-view";\nexport const view = (fake: object) => ({ __proto__: CampaignView.prototype, ...fake });',
+  'import { CampaignView } from "../../../../src/interface/view/campaign-view";\nexport const view = (fake: object) => Object.setPrototypeOf(fake, CampaignView.prototype);',
   'import { Plugin } from "obsidian";\nimport { Fence } from "../../../../src/fence/fence";\nimport { HeldFiles } from "../../../../src/fence/held-files";\nexport class Campaigns extends Plugin {\n  readonly held = new HeldFiles(this.app, new Fence(() => "D&D", ".obsidian"));\n}',
 ];
 
@@ -81,7 +81,7 @@ export const GATE_KEEPING_SAMPLES = [
   "import type { FencedFiles } from \"../../../../src/fence/fenced-files\";\nimport type { Gate } from \"../../../../src/fence/gatekeeper\";\nexport function all(gate: Gate) {\n  const listed: Pick<FencedFiles, \"getFileByPath\">[] = [gate.files];\n  return listed;\n}",
   "import { Plugin } from \"obsidian\";\nimport { Gatekeeper } from \"../../../../src/fence/gatekeeper\";\nexport class Campaigns extends Plugin {\n  readonly gate = new Gatekeeper(this.app, () => \"D&D\");\n}",
   "import { Fence } from \"../../../../src/fence/fence\";\nexport const holds = (path: string) => new Fence(() => \"D&D\", \".obsidian\").holds(path);",
-  'import type { View } from "obsidian";\nimport { CampaignView } from "../../../../src/interface/campaign-view";\nexport function campaignView(view: View) {\n  if (view instanceof CampaignView) return view;\n  return null;\n}',
+  'import type { View } from "obsidian";\nimport { CampaignView } from "../../../../src/interface/view/campaign-view";\nexport function campaignView(view: View) {\n  if (view instanceof CampaignView) return view;\n  return null;\n}',
 ];
 
 export const FILE_CHANGING_SAMPLES = [

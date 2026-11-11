@@ -1,4 +1,4 @@
-import type { PageId } from "../interface/campaign-pages";
+import type { PageId } from "../interface/view/campaign-pages";
 
 export type NewsPage = Exclude<PageId, "note">;
 
