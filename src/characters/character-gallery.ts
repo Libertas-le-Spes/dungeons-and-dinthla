@@ -6,7 +6,8 @@ import type { LinkActions } from "../views/lists/linked-text";
 import { addCharacterCard, type CharacterCard } from "./character-card";
 import type { CharacterNotes } from "./character-notes";
 import { ownCharacterFirst } from "./own-character-first";
-import { learnedFactsOf, readCharacterCard, type LearnedFacts } from "./read-character-card";
+import { learnedFactsOf, type LearnedFacts } from "./learned-facts";
+import { readCharacterCard } from "./read-character-card";
 
 const NO_CHARACTERS = "No characters yet. Add one with New character.";
 
