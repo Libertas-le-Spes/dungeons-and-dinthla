@@ -1,7 +1,7 @@
 import type { Campaign } from "../campaign/campaign";
 import { markerNamed } from "../kinds/tracked-markers";
 import { addLinkedText, type LinkActions } from "../views/lists/linked-text";
-import type { LineState } from "../views/lists/line-state";
+import type { LineState } from "../views/threads/line-state";
 import { lineStateOf } from "./line-state-of";
 import type { WrittenLine } from "./written-lines";
 

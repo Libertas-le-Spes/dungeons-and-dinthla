@@ -1,7 +1,7 @@
 import type { Campaign, QuestOutcome, QuestRecord, QuestStatus, Source } from "../campaign/campaign";
 import { questThreadKind } from "../campaign/quest-thread-kind";
 import { questTrackedKind } from "../kinds/quest-tracked-kind";
-import type { LineState } from "../views/lists/line-state";
+import type { LineState } from "../views/threads/line-state";
 import type { ShownThreadKind } from "../views/threads/shown-thread-kind";
 import type { ThreadFact } from "../views/threads/thread-fact";
 import type { EndedLook } from "../views/threads/thread-look";

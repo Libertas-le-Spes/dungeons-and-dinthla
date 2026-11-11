@@ -1,4 +1,4 @@
-import type { LineState } from "../lists/line-state";
+import type { LineState } from "./line-state";
 
 export interface ThreadStatus {
   className: string;
