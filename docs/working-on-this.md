@@ -17,6 +17,10 @@ This page is for whoever picks the work up on another machine, person or session
 - **Tests** check this project's code, not Obsidian's, with made-up names only. Each test's setup is exactly the scenario its name claims. Prove a guard by taking it out once and watching a test fail.
 - **No attribution.** Nothing in commits, pull requests or docs credits a tool.
 
+## Numbers in a pull request
+
+Every count a pull request states comes from a command, not from counting by hand: `git diff -M --name-status origin/main...HEAD | grep -c '^R'` for files moved, a `git diff` of the allowance lists for entries changed, the test runner's own total for tests. Two pull requests in the folder-move series stated a count that was one or two short, and a reviewer had to put it right; a wrong count reads as a proof that wasn't run.
+
 ## Before merging
 
 1. Fresh reviewers who know only the pull request go over it, split into security, architecture and readability, and tests and docs. Their findings are checked against the code, then fixed and proven.
