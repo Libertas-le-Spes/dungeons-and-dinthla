@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { App } from "obsidian";
-import type { Source } from "../../src/campaign/campaign";
-import { CHANGED_IN_NOTE } from "../../src/campaign/note-editor";
+import type { Source } from "../../src/campaign/record/campaign";
+import { CHANGED_IN_NOTE } from "../../src/campaign/writing/note-editor";
 import { GOES_ELSEWHERE } from "../../src/quests/current-quest";
 import { openQuest } from "../../src/quests/open-quest";
 import type { QuestEdit } from "../../src/quests/quest-plan";

@@ -1,7 +1,7 @@
-import type { QuestRecord } from "../campaign/campaign";
-import type { CampaignStore } from "../campaign/campaign-store";
-import type { RecordChange } from "../campaign/record-change";
-import { refusedWhen, verdictOf } from "../campaign/verdict";
+import type { QuestRecord } from "../campaign/record/campaign";
+import type { CampaignStore } from "../campaign/reading/campaign-store";
+import type { RecordChange } from "../campaign/changes/record-change";
+import { refusedWhen, verdictOf } from "../campaign/changes/verdict";
 import { GOES_ELSEWHERE, happenedWouldGoElsewhere } from "./current-quest";
 import { planQuestSave, refusalForQuestPlan, type QuestEdit, type QuestPlan } from "./quest-plan";
 import { questSessionChange } from "./quest-session-change";

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TFile } from "obsidian";
-import type { CampaignStore } from "../../../src/campaign/campaign-store";
+import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { CastPage } from "../../../src/characters/pages/cast-page";
 import type { CharacterNotes } from "../../../src/characters/reading/character-notes";
 import { obsidianDocument } from "../../views/obsidian-dom";

@@ -1,6 +1,6 @@
 import { choiceOf } from "../../views/dialogs/choice-of";
 import { Setting, type App } from "obsidian";
-import type { ItemRecord, Source } from "../../campaign/campaign";
+import type { ItemRecord, Source } from "../../campaign/record/campaign";
 import { isSubmit } from "../../views/dialogs/keys";
 import { messageOf } from "../../views/dialogs/message-of";
 import { RecordChangeDialog } from "../../views/dialogs/record-change-dialog";

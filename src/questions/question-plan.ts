@@ -1,9 +1,9 @@
-import { applySessionChange } from "../campaign/apply-session-change";
-import { buildCampaign } from "../campaign/build-campaign";
-import type { Campaign, QuestionRecord, SessionNote, SourcedText } from "../campaign/campaign";
-import type { Removal } from "../campaign/note-editor";
-import { questionThreadKind } from "../campaign/question-thread-kind";
-import { endingRemoval } from "../campaign/thread-removal";
+import { applySessionChange } from "../campaign/changes/apply-session-change";
+import { buildCampaign } from "../campaign/reading/build-campaign";
+import type { Campaign, QuestionRecord, SessionNote, SourcedText } from "../campaign/record/campaign";
+import type { Removal } from "../campaign/writing/note-editor";
+import { questionThreadKind } from "../campaign/threads/question-thread-kind";
+import { endingRemoval } from "../campaign/threads/thread-removal";
 import { readMarker } from "../notes/marker";
 import { oneLine } from "../notes/one-line";
 import { answerLine, followUpQuestionLine, questionTextOf } from "../notes/question-lines";

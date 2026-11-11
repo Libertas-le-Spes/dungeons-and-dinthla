@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
-import { buildCampaign } from "../../src/campaign/build-campaign";
-import type { Campaign, QuestRecord, SessionNote } from "../../src/campaign/campaign";
-import type { EditorFiles } from "../../src/campaign/note-editor";
-import { SessionChangeWriter } from "../../src/campaign/session-change-writer";
-import { sessionNoteOf } from "../../src/campaign/session-file";
-import { writeRecordChange } from "../../src/campaign/write-record-change";
+import { buildCampaign } from "../../src/campaign/reading/build-campaign";
+import type { Campaign, QuestRecord, SessionNote } from "../../src/campaign/record/campaign";
+import type { EditorFiles } from "../../src/campaign/writing/note-editor";
+import { SessionChangeWriter } from "../../src/campaign/changes/session-change-writer";
+import { sessionNoteOf } from "../../src/campaign/paths/session-file";
+import { writeRecordChange } from "../../src/campaign/changes/write-record-change";
 import { GOES_ELSEWHERE } from "../../src/quests/current-quest";
 import { questSave } from "../../src/quests/quest-change";
 import { canCollectReward, CHANGES_ANOTHER_QUEST, type QuestEdit } from "../../src/quests/quest-plan";

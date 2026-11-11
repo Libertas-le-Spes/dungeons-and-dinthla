@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCampaign } from "../../../src/campaign/build-campaign";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import { lineStateOf } from "../../../src/session-notes/lines/line-state-of";
 
 const PATH = "Pale Moon/Sessions/Session 1.md";

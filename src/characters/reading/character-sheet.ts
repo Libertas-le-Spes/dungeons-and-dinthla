@@ -1,4 +1,4 @@
-import type { Source } from "../../campaign/campaign";
+import type { Source } from "../../campaign/record/campaign";
 import { ABILITIES, sameName, sheetNameOf, type SheetValues, type SourcedFact } from "./sheet-values";
 
 export const NOT_KNOWN = "?";

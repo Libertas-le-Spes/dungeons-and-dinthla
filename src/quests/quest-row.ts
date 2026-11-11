@@ -1,4 +1,4 @@
-import type { QuestRecord } from "../campaign/campaign";
+import type { QuestRecord } from "../campaign/record/campaign";
 import type { LinkActions } from "../views/lists/linked-text";
 import { addThreadRow } from "../views/threads/thread-row";
 import { questShownKind } from "./quest-shown-kind";

@@ -1,5 +1,5 @@
-import type { CampaignStore } from "../../campaign/campaign-store";
-import { noteTextsOf } from "../../campaign/note-texts";
+import type { CampaignStore } from "../../campaign/reading/campaign-store";
+import { noteTextsOf } from "../../campaign/reading/note-texts";
 import type { Gate } from "../../fence/gatekeeper";
 import type { VaultSettings } from "../../fence/vault-settings";
 import type { LookupOpeners } from "../../kinds/lookup-openers";

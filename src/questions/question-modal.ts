@@ -1,5 +1,5 @@
 import { Setting, type App } from "obsidian";
-import type { QuestionRecord } from "../campaign/campaign";
+import type { QuestionRecord } from "../campaign/record/campaign";
 import { isSubmit } from "../views/dialogs/keys";
 import { deleteOnSecondPress } from "../views/dialogs/second-press";
 import { RecordChangeDialog } from "../views/dialogs/record-change-dialog";

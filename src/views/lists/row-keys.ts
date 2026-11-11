@@ -1,4 +1,4 @@
-import type { Source } from "../../campaign/campaign";
+import type { Source } from "../../campaign/record/campaign";
 
 export class RowKeys {
   private readonly keys = new WeakMap<Element, string>();

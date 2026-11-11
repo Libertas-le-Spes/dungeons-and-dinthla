@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildCampaign } from "../../../src/campaign/build-campaign";
-import type { Campaign } from "../../../src/campaign/campaign";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
+import type { Campaign } from "../../../src/campaign/record/campaign";
 import type { AppendWriter } from "../../../src/session-notes/drafts/append-writer";
 import { Drafts } from "../../../src/session-notes/drafts/drafts";
 import { WritingPanel } from "../../../src/session-notes/writing/writing-panel";

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { App, TFile } from "obsidian";
 import { Notice, openedModals } from "../stubs/obsidian";
-import { NO_CAMPAIGN } from "../../src/campaign/campaign-folders";
+import { NO_CAMPAIGN } from "../../src/campaign/paths/campaign-folders";
 import { startSession } from "../../src/sessions/start-session";
 import type { Gate } from "../../src/fence/gatekeeper";
 

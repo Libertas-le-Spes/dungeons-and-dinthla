@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildCampaign } from "../../src/campaign/build-campaign";
+import { buildCampaign } from "../../src/campaign/reading/build-campaign";
 import { addQuestRow } from "../../src/quests/quest-row";
 import { obsidianDocument } from "../views/obsidian-dom";
 

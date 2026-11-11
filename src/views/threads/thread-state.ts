@@ -1,5 +1,5 @@
-import type { SourcedText } from "../../campaign/campaign";
-import type { ThreadRecord } from "../../campaign/thread-kind";
+import type { SourcedText } from "../../campaign/record/campaign";
+import type { ThreadRecord } from "../../campaign/threads/thread-kind";
 import type { FollowUpName } from "../../kinds/follow-up-name";
 import type { LineState } from "./line-state";
 import type { ShownThreadKind } from "./shown-thread-kind";

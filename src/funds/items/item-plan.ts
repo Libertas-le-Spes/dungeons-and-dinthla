@@ -1,9 +1,9 @@
-import { applySessionChange } from "../../campaign/apply-session-change";
-import { buildCampaign } from "../../campaign/build-campaign";
-import type { CoinRecord, ItemEvent, ItemRecord, SessionNote } from "../../campaign/campaign";
-import { lineAsRead, removalAsRead, type Removal } from "../../campaign/note-editor";
-import { lineTakenOut, type Rewrite } from "../../campaign/session-change";
-import { sessionNumberOf } from "../../campaign/session-file";
+import { applySessionChange } from "../../campaign/changes/apply-session-change";
+import { buildCampaign } from "../../campaign/reading/build-campaign";
+import type { CoinRecord, ItemEvent, ItemRecord, SessionNote } from "../../campaign/record/campaign";
+import { lineAsRead, removalAsRead, type Removal } from "../../campaign/writing/note-editor";
+import { lineTakenOut, type Rewrite } from "../../campaign/changes/session-change";
+import { sessionNumberOf } from "../../campaign/paths/session-file";
 import { withoutBullet } from "../../notes/bullet";
 import { readAmount, type AmountReading } from "../../notes/coin-lines";
 import { readItemChange } from "../../notes/item-change";

@@ -1,7 +1,7 @@
-import type { CampaignStore } from "../campaign/campaign-store";
-import type { RecordChange } from "../campaign/record-change";
-import { linesAddedTo } from "../campaign/session-change";
-import { verdictOf } from "../campaign/verdict";
+import type { CampaignStore } from "../campaign/reading/campaign-store";
+import type { RecordChange } from "../campaign/changes/record-change";
+import { linesAddedTo } from "../campaign/changes/session-change";
+import { verdictOf } from "../campaign/changes/verdict";
 import { refusalForNewQuestion } from "./current-question";
 import { planNewQuestion, type NewQuestionPlan } from "./new-question";
 import type { NewQuestion } from "./new-question-modal";

@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
-import { buildCampaign } from "../../../src/campaign/build-campaign";
-import type { Campaign, ItemRecord, SessionNote } from "../../../src/campaign/campaign";
-import { CHANGED_IN_NOTE, type EditorFiles } from "../../../src/campaign/note-editor";
-import { sessionNoteOf } from "../../../src/campaign/session-file";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
+import type { Campaign, ItemRecord, SessionNote } from "../../../src/campaign/record/campaign";
+import { CHANGED_IN_NOTE, type EditorFiles } from "../../../src/campaign/writing/note-editor";
+import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
 import type { ItemSource } from "../../../src/funds/items/item-source";
 import { openedItem } from "../../../src/funds/items/item-writer";
 

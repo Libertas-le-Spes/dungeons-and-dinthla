@@ -1,7 +1,7 @@
 import { debounce, type Debouncer } from "obsidian";
-import type { BackgroundMetadata } from "../campaign/campaign-background";
-import { campaignFolderOf, isMainNote } from "../campaign/campaign-folders";
-import { shownBackgroundIn, type PictureUrl, type ShownBackground } from "../campaign/shown-background";
+import type { BackgroundMetadata } from "../campaign/background/campaign-background";
+import { campaignFolderOf, isMainNote } from "../campaign/paths/campaign-folders";
+import { shownBackgroundIn, type PictureUrl, type ShownBackground } from "../campaign/background/shown-background";
 import type { ReadCampaignsFolder } from "../fence/fence";
 
 const SETTLE_MS = 200;

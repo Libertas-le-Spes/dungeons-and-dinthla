@@ -1,6 +1,6 @@
 import type { TFile } from "obsidian";
-import type { Source } from "../../campaign/campaign";
-import type { CampaignStore } from "../../campaign/campaign-store";
+import type { Source } from "../../campaign/record/campaign";
+import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { CastPage, type WatchFiles } from "../../characters/pages/cast-page";
 import { castPageFor, type CastPages } from "../../characters/pages/cast-page-for";
 import { CharacterPage } from "../../characters/pages/character-page";

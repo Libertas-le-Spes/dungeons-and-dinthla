@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App, TFile } from "obsidian";
-import type { SessionNote } from "../../../src/campaign/campaign";
-import { CHANGED_IN_NOTE } from "../../../src/campaign/note-editor";
-import { NoSessionToWrite, SESSIONS_SHARE_A_NUMBER } from "../../../src/campaign/session-to-write";
+import type { SessionNote } from "../../../src/campaign/record/campaign";
+import { CHANGED_IN_NOTE } from "../../../src/campaign/writing/note-editor";
+import { NoSessionToWrite, SESSIONS_SHARE_A_NUMBER } from "../../../src/campaign/paths/session-to-write";
 import { carriedValuesOf, characterSheetOf, type SheetValue } from "../../../src/characters/reading/character-sheet";
 import { chooseSheetValue, NO_SESSION, openCharacterSheet, sameSheetValue, saveSheetValue } from "../../../src/characters/editing/open-character-sheet";
 import { readCharacterSheet } from "../../../src/characters/reading/read-character-sheet";

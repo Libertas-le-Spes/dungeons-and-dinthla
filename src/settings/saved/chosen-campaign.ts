@@ -1,4 +1,4 @@
-import type { CampaignStore } from "../../campaign/campaign-store";
+import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { PluginSettings } from "./plugin-settings";
 import type { SettingsChange, SettingsSaver } from "./settings-saver";
 

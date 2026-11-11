@@ -1,4 +1,4 @@
-import type { CampaignStore } from "../../campaign/campaign-store";
+import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { CharacterNotes } from "../../characters/reading/character-notes";
 import { DashboardPage, type DashboardActions } from "../../dashboard/dashboard-page";
 import type { News } from "../../whats-new/news-item";

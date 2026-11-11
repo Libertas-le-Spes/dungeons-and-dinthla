@@ -1,4 +1,4 @@
-import type { QuestionRecord } from "../campaign/campaign";
+import type { QuestionRecord } from "../campaign/record/campaign";
 import type { LinkActions } from "../views/lists/linked-text";
 import { addThreadRow } from "../views/threads/thread-row";
 import { questionShownKind } from "./question-shown-kind";

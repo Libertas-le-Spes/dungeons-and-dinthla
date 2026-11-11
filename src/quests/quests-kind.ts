@@ -1,4 +1,4 @@
-import type { QuestRecord } from "../campaign/campaign";
+import type { QuestRecord } from "../campaign/record/campaign";
 import type { ListKind } from "../views/lists/list-page";
 import { listQuests } from "./quest-list";
 import { addQuestRow } from "./quest-row";

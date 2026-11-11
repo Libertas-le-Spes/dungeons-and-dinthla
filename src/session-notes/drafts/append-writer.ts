@@ -1,4 +1,4 @@
-import { NoteEditor, type EditorFiles } from "../../campaign/note-editor";
+import { NoteEditor, type EditorFiles } from "../../campaign/writing/note-editor";
 import { linesToSave, lookupLinesLeft } from "./draft-lines";
 
 export class AppendWriter {

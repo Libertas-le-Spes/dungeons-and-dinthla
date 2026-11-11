@@ -1,5 +1,5 @@
 import type { Component, TFile } from "obsidian";
-import { campaignOfReference } from "../../campaign/campaign-folders";
+import { campaignOfReference } from "../../campaign/paths/campaign-folders";
 import { characterReferenceKind } from "../../kinds/character-reference-kind";
 import type { SheetNotes } from "../reading/sheet-notes";
 

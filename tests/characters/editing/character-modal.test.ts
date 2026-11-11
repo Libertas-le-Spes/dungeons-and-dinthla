@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { App } from "obsidian";
-import { CHANGED_IN_NOTE, PartlyWritten } from "../../../src/campaign/note-editor";
+import { CHANGED_IN_NOTE, PartlyWritten } from "../../../src/campaign/writing/note-editor";
 import type { CharacterEntry, Learned } from "../../../src/characters/editing/character-entry";
 import { NOTE_MOVED } from "../../../src/characters/editing/character-files";
 import { CharacterModal, type CharacterDialog } from "../../../src/characters/editing/character-modal";

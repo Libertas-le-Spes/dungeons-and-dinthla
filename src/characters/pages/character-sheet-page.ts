@@ -1,8 +1,8 @@
 import { VALUE_BUTTONS } from "../../views/lists/row-keys";
 import { Component, type TFile } from "obsidian";
-import type { Source } from "../../campaign/campaign";
-import { campaignFolderOf } from "../../campaign/campaign-folders";
-import { sessionLabelOf } from "../../campaign/session-file";
+import type { Source } from "../../campaign/record/campaign";
+import { campaignFolderOf } from "../../campaign/paths/campaign-folders";
+import { sessionLabelOf } from "../../campaign/paths/session-file";
 import type { LinkActions } from "../../views/lists/linked-text";
 import { PENDING_FOCUS_MS } from "../../views/lists/row-focus";
 import { NOT_KNOWN, shownValuesOf, type CharacterSheet, type SheetValue, type ValueState } from "../reading/character-sheet";

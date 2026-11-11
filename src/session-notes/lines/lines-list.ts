@@ -1,4 +1,4 @@
-import type { Campaign } from "../../campaign/campaign";
+import type { Campaign } from "../../campaign/record/campaign";
 import { markerNamed } from "../../kinds/tracked-markers";
 import { addLinkedText, type LinkActions } from "../../views/lists/linked-text";
 import type { LineState } from "../../views/threads/line-state";

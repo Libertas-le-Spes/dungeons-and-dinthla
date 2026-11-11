@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildCampaign } from "../../../src/campaign/build-campaign";
-import type { SessionNote } from "../../../src/campaign/campaign";
-import type { CampaignStore } from "../../../src/campaign/campaign-store";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
+import type { SessionNote } from "../../../src/campaign/record/campaign";
+import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import type { AppendWriter } from "../../../src/session-notes/drafts/append-writer";
 import { Drafts } from "../../../src/session-notes/drafts/drafts";
 import { KeptDrafts } from "../../../src/session-notes/kept/kept-drafts";

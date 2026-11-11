@@ -1,8 +1,8 @@
 import { Notice, type App, type TFile } from "obsidian";
-import type { Source } from "../../campaign/campaign";
-import { CHANGED_IN_NOTE } from "../../campaign/note-editor";
-import { sessionLabelOf } from "../../campaign/session-file";
-import { latestSessionWanted, NoSessionToWrite, sessionToWrite } from "../../campaign/session-to-write";
+import type { Source } from "../../campaign/record/campaign";
+import { CHANGED_IN_NOTE } from "../../campaign/writing/note-editor";
+import { sessionLabelOf } from "../../campaign/paths/session-file";
+import { latestSessionWanted, NoSessionToWrite, sessionToWrite } from "../../campaign/paths/session-to-write";
 import { messageOf } from "../../views/dialogs/message-of";
 import { sameName } from "../reading/sheet-values";
 import type { SheetValue, StatedValue } from "../reading/character-sheet";

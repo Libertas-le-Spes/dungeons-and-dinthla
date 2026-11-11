@@ -1,9 +1,9 @@
 import type { App } from "obsidian";
-import type { ItemRecord, Source } from "../../campaign/campaign";
+import type { ItemRecord, Source } from "../../campaign/record/campaign";
 import { charactersIn } from "../../characters/reading/characters";
-import type { CampaignStore } from "../../campaign/campaign-store";
-import { sessionLabelOf } from "../../campaign/session-file";
-import { sessionForDialog } from "../../campaign/session-for-dialog";
+import type { CampaignStore } from "../../campaign/reading/campaign-store";
+import { sessionLabelOf } from "../../campaign/paths/session-file";
+import { sessionForDialog } from "../../campaign/paths/session-for-dialog";
 import { openSource } from "../../views/opening/open-view";
 import { ItemModal } from "./item-modal";
 import { holderOptionOf, holderOptions, latestSessionOfItem } from "./item-plan";

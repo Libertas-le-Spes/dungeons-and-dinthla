@@ -1,5 +1,5 @@
 import type { TFile } from "obsidian";
-import type { CampaignFiles } from "../../src/campaign/read-campaign";
+import type { CampaignFiles } from "../../src/campaign/reading/read-campaign";
 
 export interface FakeNote {
   path: string;

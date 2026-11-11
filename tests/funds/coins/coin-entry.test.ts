@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
-import { buildCampaign } from "../../../src/campaign/build-campaign";
-import type { CoinRecord, SessionNote } from "../../../src/campaign/campaign";
-import { CHANGED_IN_NOTE, removalAsRead, type EditorFiles } from "../../../src/campaign/note-editor";
-import { sessionNoteOf } from "../../../src/campaign/session-file";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
+import type { CoinRecord, SessionNote } from "../../../src/campaign/record/campaign";
+import { CHANGED_IN_NOTE, removalAsRead, type EditorFiles } from "../../../src/campaign/writing/note-editor";
+import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
 import { CHANGES_OTHER_MONEY, refusalForEntryChange } from "../../../src/funds/coins/coin-change";
 import { CANNOT_SHOW, coinEntryEdit, entryToEdit, type CoinEntryEdit } from "../../../src/funds/coins/coin-entry";
 import { readCoinDraft, type CoinDraft, type CoinLine } from "../../../src/notes/coin-lines";

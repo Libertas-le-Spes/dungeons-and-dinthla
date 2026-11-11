@@ -1,6 +1,6 @@
-import type { Wash } from "../../src/campaign/campaign-background";
-import { PictureCss, type ResourcePlatform } from "../../src/campaign/picture-css";
-import type { ShownBackground } from "../../src/campaign/shown-background";
+import type { Wash } from "../../src/campaign/background/campaign-background";
+import { PictureCss, type ResourcePlatform } from "../../src/campaign/background/picture-css";
+import type { ShownBackground } from "../../src/campaign/background/shown-background";
 
 export const DESKTOP: ResourcePlatform = { isDesktopApp: true, isIosApp: false, isAndroidApp: false };
 export const IPHONE: ResourcePlatform = { isDesktopApp: false, isIosApp: true, isAndroidApp: false };

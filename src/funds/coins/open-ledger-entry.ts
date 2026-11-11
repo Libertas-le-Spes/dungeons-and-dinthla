@@ -1,6 +1,6 @@
 import type { App } from "obsidian";
-import type { ItemRecord, Source } from "../../campaign/campaign";
-import type { CampaignStore } from "../../campaign/campaign-store";
+import type { ItemRecord, Source } from "../../campaign/record/campaign";
+import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { openSource } from "../../views/opening/open-view";
 import type { CoinOutcome } from "./coin-modal";
 import { openCoinEntry } from "./open-add-coin";

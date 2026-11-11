@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { Component, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
-import { buildCampaign } from "../../../src/campaign/build-campaign";
-import type { Campaign } from "../../../src/campaign/campaign";
-import type { CampaignStore } from "../../../src/campaign/campaign-store";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
+import type { Campaign } from "../../../src/campaign/record/campaign";
+import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import type { NavSection, PageEntry, PageId, PathAfterDelete, ShowPage, StayOn } from "../../../src/interface/view/campaign-pages";
 import { CAMPAIGN_VIEW, CampaignView, type ViewFiles } from "../../../src/interface/view/campaign-view";
 import { campaignsFolderFirst } from "../../../src/interface/view/campaigns-folder-first";

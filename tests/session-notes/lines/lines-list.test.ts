@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildCampaign } from "../../../src/campaign/build-campaign";
-import type { SessionNote } from "../../../src/campaign/campaign";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
+import type { SessionNote } from "../../../src/campaign/record/campaign";
 import { LinesList } from "../../../src/session-notes/lines/lines-list";
 import { writtenLinesOf } from "../../../src/session-notes/lines/written-lines";
 import { obsidianDocument } from "../../views/obsidian-dom";

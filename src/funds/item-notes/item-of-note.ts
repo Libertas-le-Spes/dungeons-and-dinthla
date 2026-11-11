@@ -1,5 +1,5 @@
-import type { ItemRecord } from "../../campaign/campaign";
-import { noteNameOf } from "../../campaign/note-name";
+import type { ItemRecord } from "../../campaign/record/campaign";
+import { noteNameOf } from "../../campaign/paths/note-name";
 
 export function isItemNamed(item: ItemRecord, name: string): boolean {
   return item.name.toLowerCase() === name.toLowerCase();

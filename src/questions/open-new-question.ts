@@ -1,11 +1,11 @@
 import { Notice, type App } from "obsidian";
-import { NO_CAMPAIGN } from "../campaign/campaign-folders";
-import type { CampaignStore } from "../campaign/campaign-store";
-import { SessionChangeWriter } from "../campaign/session-change-writer";
-import { sessionLabelOf } from "../campaign/session-file";
-import { sessionForDialog } from "../campaign/session-for-dialog";
-import { latestSessionWanted } from "../campaign/session-to-write";
-import { writeRecordChange } from "../campaign/write-record-change";
+import { NO_CAMPAIGN } from "../campaign/paths/campaign-folders";
+import type { CampaignStore } from "../campaign/reading/campaign-store";
+import { SessionChangeWriter } from "../campaign/changes/session-change-writer";
+import { sessionLabelOf } from "../campaign/paths/session-file";
+import { sessionForDialog } from "../campaign/paths/session-for-dialog";
+import { latestSessionWanted } from "../campaign/paths/session-to-write";
+import { writeRecordChange } from "../campaign/changes/write-record-change";
 import { newQuestion } from "./new-question-change";
 import { NewQuestionModal, type NewQuestion } from "./new-question-modal";
 import type { Gate } from "../fence/gatekeeper";

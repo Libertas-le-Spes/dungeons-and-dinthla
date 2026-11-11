@@ -1,5 +1,5 @@
 import type { PluginManifest } from "obsidian";
-import { CampaignMaker, type ChooseCampaign } from "../../campaign/campaign-maker";
+import { CampaignMaker, type ChooseCampaign } from "../../campaign/writing/campaign-maker";
 import type { FencedFiles } from "../../fence/fenced-files";
 import type { FolderChoices } from "../../fence/folder-choices";
 import type { CampaignsFolderSetting } from "../../settings/saved/campaigns-folder-setting";

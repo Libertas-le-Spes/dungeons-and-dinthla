@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { buildCampaign } from "../../src/campaign/build-campaign";
-import type { SessionNote } from "../../src/campaign/campaign";
-import { sessionNoteOf } from "../../src/campaign/session-file";
-import { applySessionChange } from "../../src/campaign/apply-session-change";
+import { buildCampaign } from "../../src/campaign/reading/build-campaign";
+import type { SessionNote } from "../../src/campaign/record/campaign";
+import { sessionNoteOf } from "../../src/campaign/paths/session-file";
+import { applySessionChange } from "../../src/campaign/changes/apply-session-change";
 import { CHANGES_MORE_THAN_ASKED, FOLLOW_UP_ALREADY_ASKED, planQuestionSave, planReopen, refusalForQuestionPlan } from "../../src/questions/question-plan";
 import { questionSessionChange } from "../../src/questions/question-session-change";
 
