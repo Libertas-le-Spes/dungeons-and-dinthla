@@ -5,7 +5,6 @@ import { declarationOf, readStyles } from "./style-files";
 const FILE = "campaign-background.css";
 const FRAME = ".dd-tab-picture .dd-box-frame";
 const PICTURE_LAYER = ".dd-tab-picture .dd-box-frame::before";
-const DARK_LAYER = ".theme-dark .dd-tab-picture .dd-box-frame::before";
 const TOKEN = /^var\(--([\w-]+)\)$/;
 const FILTER_STEP = /([\w-]+)\(([\d.]+)\)/g;
 
@@ -59,7 +58,6 @@ function readsWhole(filter: string): boolean {
 }
 
 function filtered(picture: Colour, filter: string): Colour {
-  if (filter === "none") return picture;
   if (!readsWhole(filter)) throw new Error(`The contrast test can't read the filter ${filter}`);
   let shown = picture;
   for (const [, name, amount] of filter.matchAll(FILTER_STEP)) {
@@ -70,15 +68,10 @@ function filtered(picture: Colour, filter: string): Colour {
   return shown;
 }
 
-export function noteBoxOver(token: (name: string) => Colour, picture: Colour, dark: boolean): Colour {
+export function noteBoxOver(token: (name: string) => Colour, picture: Colour): Colour {
   const page = panelOver(token, "campaign.css", ".dd-campaign .dd-page-body", picture);
   const panel = panelOver(token, "session-notes.css", ".dd-session-notes .dd-notes-panel", page);
   const frame = panelOver(token, FILE, FRAME, panel);
-  const shown = filtered(picture, filterIn(dark));
+  const shown = filtered(picture, declared(PICTURE_LAYER, "filter"));
   return over({ ...shown, alpha: idleOpacity() }, frame);
-}
-
-function filterIn(dark: boolean): string {
-  if (dark) return declared(DARK_LAYER, "filter");
-  return declared(PICTURE_LAYER, "filter");
 }

@@ -15,7 +15,7 @@ describe("the note box's faint picture", () => {
     const token = tokensFor(context);
 
     it.each(PICTURES)("keeps typed notes at 4.5:1 over a %s picture", (_picture, colour) => {
-      const behind = noteBoxOver(token, colour, context.dark);
+      const behind = noteBoxOver(token, colour);
       expect(contrast(over(token("text-body"), behind), behind)).toBeGreaterThanOrEqual(4.5);
     });
   });
