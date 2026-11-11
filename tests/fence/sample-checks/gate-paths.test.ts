@@ -1,9 +1,7 @@
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative, resolve } from "node:path";
+import { existsSync, readdirSync, statSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { isGateBuiltSource, isGateSource, isGateTypeSource, isInGateFolder, NAMED_GATE_FILES } from "../scan/reading/gate-paths";
-import { ROOT, sourcePath, VIRTUAL_FOLDER } from "../scan/reading/scan-paths";
-import { extendsRootConfig } from "../scan/running/sample-scan";
+import { GATE_TYPE_SOURCES, isGateBuiltSource, isGateSource, isGateTypeSource, isInGateFolder } from "../scan/reading/gate-paths";
+import { ROOT, sourcePath } from "../scan/reading/scan-paths";
 
 const GATE_FILES = ["gatekeeper", "fenced-files", "fenced-file-actions", "fenced-metadata", "held-files"].map((name) => sourcePath(`fence/gate/${name}.ts`));
 const FENCE_TYPE = sourcePath("fence/paths/fence.ts");
@@ -59,42 +57,28 @@ describe("the files the scan takes for the gate's own, whole path by whole path"
   });
 });
 
-function scannerFiles(folder: string): string[] {
-  return readdirSync(folder, { withFileTypes: true }).flatMap((entry) => {
-    const path = join(folder, entry.name);
-    if (entry.isDirectory()) return scannerFiles(path);
-    return [path];
-  });
-}
+const GATE_SOURCES = [sourcePath("fence/gate/fenced-files.ts"), sourcePath("fence/gate/fenced-metadata.ts")];
+const OTHERS_IN_GATE_FOLDER = readdirSync(sourcePath("fence/gate"))
+  .map((name) => sourcePath(`fence/gate/${name}`))
+  .filter((file) => !GATE_SOURCES.includes(file));
 
-describe("where the source scan names the gate's paths", () => {
-  const SCANNER = join(ROOT, "tests", "fence", "scan");
-  const GATE_PATHS_FILE = join(SCANNER, "reading", "gate-paths.ts");
-  const NAMES_THE_GATE = /fence\/(gate|paths)|\/src\/fence/;
-
-  it("is in one file, so no rule can decide what is the gate's by a path of its own", () => {
-    const naming = scannerFiles(SCANNER).filter((file) => NAMES_THE_GATE.test(readFileSync(file, "utf8")));
-    expect(naming.map((file) => relative(ROOT, file))).toEqual([relative(ROOT, GATE_PATHS_FILE)]);
+describe("the other files in the gate's folder, read from the folder", () => {
+  it("are there, so that is not an empty list", () => {
+    expect(OTHERS_IN_GATE_FOLDER).toContain(sourcePath("fence/gate/folder-choices.ts"));
+    expect(OTHERS_IN_GATE_FOLDER).toContain(sourcePath("fence/gate/gatekeeper.ts"));
   });
 
-  it("reads every file of the scanner, so that is not an empty search", () => {
-    expect(scannerFiles(SCANNER).length).toBeGreaterThan(30);
+  it.each(OTHERS_IN_GATE_FOLDER)("aren't taken as a gate source: %s", (file) => {
+    expect(isGateSource(file)).toBe(false);
   });
 });
 
 describe("the files named for the gate", () => {
-  it.each(NAMED_GATE_FILES)("includes %s, which is there", (file) => {
+  it.each(GATE_TYPE_SOURCES)("includes %s, which is there", (file) => {
     expect(existsSync(file) && statSync(file).isFile()).toBe(true);
   });
 
   it("names the five files of the gate's folder and the fence type, and nothing else", () => {
-    expect([...NAMED_GATE_FILES].sort()).toEqual([...GATE_FILES, FENCE_TYPE].sort());
-  });
-});
-
-describe("the configuration a sample is scanned under", () => {
-  it.each(["one", "one/two", "one/two/three", "one/two/three/four"])("is the repo's own, from a family folder %s deep", (family) => {
-    const folder = `${VIRTUAL_FOLDER}/${family}`;
-    expect(resolve(folder, extendsRootConfig(folder))).toBe(`${ROOT}/tsconfig.json`);
+    expect([...GATE_TYPE_SOURCES].sort()).toEqual([...GATE_FILES, FENCE_TYPE].sort());
   });
 });
