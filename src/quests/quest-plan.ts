@@ -1,9 +1,9 @@
-import { applySessionChange } from "../campaign/apply-session-change";
-import { buildCampaign } from "../campaign/build-campaign";
-import type { Campaign, CoinRecord, QuestRecord, QuestStatus, SessionNote } from "../campaign/campaign";
-import type { Removal } from "../campaign/note-editor";
-import { questThreadKind } from "../campaign/quest-thread-kind";
-import { endingRemoval } from "../campaign/thread-removal";
+import { applySessionChange } from "../campaign/changes/apply-session-change";
+import { buildCampaign } from "../campaign/reading/build-campaign";
+import type { Campaign, CoinRecord, QuestRecord, QuestStatus, SessionNote } from "../campaign/record/campaign";
+import type { Removal } from "../campaign/writing/note-editor";
+import { questThreadKind } from "../campaign/threads/quest-thread-kind";
+import { endingRemoval } from "../campaign/threads/thread-removal";
 import { readLedgerEntry } from "../notes/ledger";
 import { followUpQuestLine, isCoinReward, outcomeLine, progressLine, questTextOf, rewardLine } from "../notes/quest-lines";
 import { readMarker } from "../notes/marker";

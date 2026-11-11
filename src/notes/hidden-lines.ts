@@ -1,4 +1,4 @@
-import { firstLineAfterProperties } from "../campaign/session-file";
+import { firstLineAfterProperties } from "../campaign/paths/session-file";
 
 const FENCE_OPEN = /^ {0,3}(`{3,}|~{3,})/;
 const FENCE_CLOSE = /^ {0,3}(`{3,}|~{3,})\s*$/;

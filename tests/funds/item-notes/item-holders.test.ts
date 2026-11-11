@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { CachedMetadata, TFile } from "obsidian";
-import { CampaignStore } from "../../../src/campaign/campaign-store";
-import { SavedCampaign, type SavedCampaignNeeds } from "../../../src/campaign/saved-campaign";
+import { CampaignStore } from "../../../src/campaign/reading/campaign-store";
+import { SavedCampaign, type SavedCampaignNeeds } from "../../../src/campaign/reading/saved-campaign";
 import { Fence } from "../../../src/fence/fence";
 import { FencedFileActions, type ChangeProperties, type RawFileManager } from "../../../src/fence/fenced-file-actions";
 import { FencedFiles } from "../../../src/fence/fenced-files";

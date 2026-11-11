@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { App } from "obsidian";
-import type { Source } from "../../src/campaign/campaign";
-import { CHANGED_IN_NOTE } from "../../src/campaign/note-editor";
+import type { Source } from "../../src/campaign/record/campaign";
+import { CHANGED_IN_NOTE } from "../../src/campaign/writing/note-editor";
 import { ANSWER_GOES_ELSEWHERE } from "../../src/questions/current-question";
 import { openQuestion } from "../../src/questions/open-question";
 import { CHANGES_MORE_THAN_ASKED, type QuestionEdit } from "../../src/questions/question-plan";

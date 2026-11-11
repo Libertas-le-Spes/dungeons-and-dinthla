@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildCampaign } from "../../../src/campaign/build-campaign";
-import type { CampaignStore } from "../../../src/campaign/campaign-store";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
+import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { FundsPage } from "../../../src/funds/page/funds-page";
 import { CLOSE_ITEM, EDIT_NOTE } from "../../../src/funds/item-notes/item-panel";
 import { fundsSection } from "../../../src/interface/sections/funds-section";

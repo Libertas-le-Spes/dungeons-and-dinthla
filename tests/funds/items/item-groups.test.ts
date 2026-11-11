@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCampaign } from "../../../src/campaign/build-campaign";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import { summariseItems } from "../../../src/funds/items/item-groups";
 
 function summaryOf(...sessions: string[][]) {

@@ -1,4 +1,4 @@
-import { sessionLabelOf } from "../../campaign/session-file";
+import { sessionLabelOf } from "../../campaign/paths/session-file";
 import { SecondPress } from "../../views/dialogs/second-press";
 import type { Drafts } from "../drafts/drafts";
 import type { KeptDraft, KeptDrafts } from "./kept-drafts";

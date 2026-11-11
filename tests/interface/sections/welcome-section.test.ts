@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TFolder } from "obsidian";
 import { welcomeSection } from "../../../src/interface/sections/welcome-section";
-import type { SessionNote } from "../../../src/campaign/campaign";
+import type { SessionNote } from "../../../src/campaign/record/campaign";
 import { obsidianDocument } from "../../views/obsidian-dom";
 
 function made(campaignFolder: string | null, sessionNotes: SessionNote[], campaignsFolder: string | null = "D&D", foldersThere: string[] = ["D&D"]) {

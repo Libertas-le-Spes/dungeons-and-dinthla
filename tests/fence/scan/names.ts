@@ -182,7 +182,7 @@ export const CSS_PROPERTY_SETTERS = ["setCssProps"];
 
 export const PICTURE_CSS = "PictureCss";
 
-export const PICTURE_CSS_SOURCE = "/src/campaign/picture-css.ts";
+export const PICTURE_CSS_SOURCE = "/src/campaign/background/picture-css.ts";
 
 export const PICTURE_VALUE = "value";
 

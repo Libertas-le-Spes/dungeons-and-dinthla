@@ -1,7 +1,7 @@
 import type { TFile } from "obsidian";
-import type { SessionNote } from "../../campaign/campaign";
-import { campaignFolderOf, campaignNotePathOf } from "../../campaign/campaign-folders";
-import type { CampaignStore } from "../../campaign/campaign-store";
+import type { SessionNote } from "../../campaign/record/campaign";
+import { campaignFolderOf, campaignNotePathOf } from "../../campaign/paths/campaign-folders";
+import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { LinkActions } from "../../views/lists/linked-text";
 import { addCharacterCard, type CharacterCard } from "../cards/character-card";
 import type { CharacterNotes } from "../reading/character-notes";

@@ -1,7 +1,7 @@
-import { buildCampaign } from "../../campaign/build-campaign";
-import type { ItemRecord, SessionNote } from "../../campaign/campaign";
-import type { EditorFiles } from "../../campaign/note-editor";
-import { sessionNoteOf } from "../../campaign/session-file";
+import { buildCampaign } from "../../campaign/reading/build-campaign";
+import type { ItemRecord, SessionNote } from "../../campaign/record/campaign";
+import type { EditorFiles } from "../../campaign/writing/note-editor";
+import { sessionNoteOf } from "../../campaign/paths/session-file";
 import type { ItemSource } from "./item-source";
 
 function sameItem(items: ItemRecord[], item: ItemRecord): boolean {

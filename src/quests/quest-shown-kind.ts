@@ -1,5 +1,5 @@
-import type { Campaign, QuestOutcome, QuestRecord, QuestStatus, Source } from "../campaign/campaign";
-import { questThreadKind } from "../campaign/quest-thread-kind";
+import type { Campaign, QuestOutcome, QuestRecord, QuestStatus, Source } from "../campaign/record/campaign";
+import { questThreadKind } from "../campaign/threads/quest-thread-kind";
 import { questTrackedKind } from "../kinds/quest-tracked-kind";
 import type { LineState } from "../views/threads/line-state";
 import type { ShownThreadKind } from "../views/threads/shown-thread-kind";

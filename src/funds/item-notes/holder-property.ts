@@ -1,4 +1,4 @@
-import type { ItemRecord } from "../../campaign/campaign";
+import type { ItemRecord } from "../../campaign/record/campaign";
 import { holderNameOf, THE_PARTY_LABEL } from "../items/item-groups";
 import { holderTextOf } from "../items/item-plan";
 

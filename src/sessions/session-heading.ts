@@ -1,4 +1,4 @@
-import { sessionLabelOf } from "../campaign/session-file";
+import { sessionLabelOf } from "../campaign/paths/session-file";
 import type { FencedMetadata } from "../fence/fenced-metadata";
 
 export function sessionHeadingOf(path: string, metadata: Pick<FencedMetadata, "getCache">): string {

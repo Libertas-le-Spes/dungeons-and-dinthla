@@ -1,5 +1,5 @@
-import { WASHES, type Wash } from "../../campaign/campaign-background";
-import type { ShownBackground } from "../../campaign/shown-background";
+import { WASHES, type Wash } from "../../campaign/background/campaign-background";
+import type { ShownBackground } from "../../campaign/background/shown-background";
 
 const PICTURE_CLASS = "dd-tab-picture";
 const PICTURE_PROPERTY = "--dd-campaign-picture";

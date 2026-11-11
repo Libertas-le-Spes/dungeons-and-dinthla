@@ -1,4 +1,4 @@
-import type { Campaign } from "../../campaign/campaign";
+import type { Campaign } from "../../campaign/record/campaign";
 import { lookupMatches, readLookup, type Lookup } from "../../lookups/lookup";
 import { lookupHeadingOf } from "../../lookups/lookup-heading";
 import { lineAt, type BoxLine } from "./box-text";

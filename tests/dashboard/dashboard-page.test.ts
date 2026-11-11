@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 import { Component, type TFile } from "obsidian";
-import { buildCampaign } from "../../src/campaign/build-campaign";
-import type { SessionNote, Source } from "../../src/campaign/campaign";
-import type { CampaignStore } from "../../src/campaign/campaign-store";
+import { buildCampaign } from "../../src/campaign/reading/build-campaign";
+import type { SessionNote, Source } from "../../src/campaign/record/campaign";
+import type { CampaignStore } from "../../src/campaign/reading/campaign-store";
 import type { CharacterNotes } from "../../src/characters/reading/character-notes";
 import { DashboardPage, type DashboardActions } from "../../src/dashboard/dashboard-page";
 import type { CoinOutcome } from "../../src/funds/coins/coin-modal";
 import { NO_COIN_ENTRIES } from "../../src/funds/page/ledger-row";
-import { SESSIONS_SHARE_A_NUMBER } from "../../src/campaign/session-to-write";
+import { SESSIONS_SHARE_A_NUMBER } from "../../src/campaign/paths/session-to-write";
 import { isShown, obsidianDocument } from "../views/obsidian-dom";
 
 const CAMPAIGN = "Pale Moon";

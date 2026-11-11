@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildCampaign } from "../../../src/campaign/build-campaign";
-import type { Campaign } from "../../../src/campaign/campaign";
-import type { CampaignStore } from "../../../src/campaign/campaign-store";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
+import type { Campaign } from "../../../src/campaign/record/campaign";
+import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { questsKind } from "../../../src/quests/quests-kind";
 import { ListPage, type ListCreate } from "../../../src/views/lists/list-page";
 import { obsidianDocument } from "../obsidian-dom";

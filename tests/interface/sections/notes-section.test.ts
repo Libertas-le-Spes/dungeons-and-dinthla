@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildCampaign } from "../../../src/campaign/build-campaign";
-import type { CampaignStore } from "../../../src/campaign/campaign-store";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
+import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { notesSection } from "../../../src/interface/sections/notes-section";
 import type { AppendWriter } from "../../../src/session-notes/drafts/append-writer";
 import { Drafts } from "../../../src/session-notes/drafts/drafts";
 import { KeptDrafts } from "../../../src/session-notes/kept/kept-drafts";
 import { SessionNotesPage } from "../../../src/session-notes/page/session-notes-page";
-import type { NoteTexts } from "../../../src/campaign/note-texts";
+import type { NoteTexts } from "../../../src/campaign/reading/note-texts";
 import { NoteDrafts } from "../../../src/note-editing/note-drafts";
 import type { NoteSaver } from "../../../src/note-editing/note-saver";
 import type { SessionClearer } from "../../../src/session-notes/removal/session-clearer";

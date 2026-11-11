@@ -1,5 +1,5 @@
-import { sessionLabelOf } from "../../campaign/session-file";
-import { latestSession } from "../../campaign/session-to-write";
+import { sessionLabelOf } from "../../campaign/paths/session-file";
+import { latestSession } from "../../campaign/paths/session-to-write";
 import { shownPlayedDate } from "../../sessions/played-date";
 import type { SessionProperties } from "../../sessions/session-properties";
 

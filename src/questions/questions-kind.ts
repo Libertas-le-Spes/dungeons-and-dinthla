@@ -1,4 +1,4 @@
-import type { QuestionRecord } from "../campaign/campaign";
+import type { QuestionRecord } from "../campaign/record/campaign";
 import type { ListKind } from "../views/lists/list-page";
 import { listQuestions } from "./question-list";
 import { addQuestionRow } from "./question-row";

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { buildCampaign } from "../../src/campaign/build-campaign";
-import type { QuestRecord } from "../../src/campaign/campaign";
-import { CHANGED_IN_NOTE } from "../../src/campaign/note-editor";
+import { buildCampaign } from "../../src/campaign/reading/build-campaign";
+import type { QuestRecord } from "../../src/campaign/record/campaign";
+import { CHANGED_IN_NOTE } from "../../src/campaign/writing/note-editor";
 import { currentQuest, happenedWouldGoElsewhere, latestSessionOfQuest, sharesTitleWithEarlierActiveQuest } from "../../src/quests/current-quest";
 
 function questsOf(...sessions: string[][]): QuestRecord[] {

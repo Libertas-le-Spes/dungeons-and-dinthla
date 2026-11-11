@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Component } from "obsidian";
-import { buildCampaign } from "../../../src/campaign/build-campaign";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import { campaignSections, type PageId, type PageMakers } from "../../../src/interface/view/campaign-pages";
 
 const campaign = buildCampaign([

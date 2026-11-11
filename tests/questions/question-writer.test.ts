@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
-import { buildCampaign } from "../../src/campaign/build-campaign";
-import type { QuestionRecord } from "../../src/campaign/campaign";
-import { linesAddedTo } from "../../src/campaign/session-change";
-import { SessionChangeWriter } from "../../src/campaign/session-change-writer";
-import { sessionNoteOf } from "../../src/campaign/session-file";
-import { CHANGED_IN_NOTE, LINES_LEFT, PartlyWritten, PROPERTIES_WOULD_CHANGE, type EditorFiles } from "../../src/campaign/note-editor";
+import { buildCampaign } from "../../src/campaign/reading/build-campaign";
+import type { QuestionRecord } from "../../src/campaign/record/campaign";
+import { linesAddedTo } from "../../src/campaign/changes/session-change";
+import { SessionChangeWriter } from "../../src/campaign/changes/session-change-writer";
+import { sessionNoteOf } from "../../src/campaign/paths/session-file";
+import { CHANGED_IN_NOTE, LINES_LEFT, PartlyWritten, PROPERTIES_WOULD_CHANGE, type EditorFiles } from "../../src/campaign/writing/note-editor";
 import { planQuestionSave, planReopen, type QuestionEdit } from "../../src/questions/question-plan";
 import { planNewQuestion } from "../../src/questions/new-question";
 import { questionSessionChange } from "../../src/questions/question-session-change";

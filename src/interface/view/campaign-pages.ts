@@ -1,5 +1,5 @@
 import type { Component } from "obsidian";
-import type { Campaign } from "../../campaign/campaign";
+import type { Campaign } from "../../campaign/record/campaign";
 import { coinTrackedKind } from "../../kinds/coin-tracked-kind";
 import { questTrackedKind } from "../../kinds/quest-tracked-kind";
 import { questionTrackedKind } from "../../kinds/question-tracked-kind";

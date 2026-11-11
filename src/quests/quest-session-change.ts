@@ -1,4 +1,4 @@
-import type { SessionChange } from "../campaign/session-change";
+import type { SessionChange } from "../campaign/changes/session-change";
 import type { QuestPlan } from "./quest-plan";
 
 export function questSessionChange(plan: QuestPlan): SessionChange {

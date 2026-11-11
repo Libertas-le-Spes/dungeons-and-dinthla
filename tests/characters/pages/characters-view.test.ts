@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { BasesQueryResult, QueryController, TFile } from "obsidian";
-import type { SessionNote } from "../../../src/campaign/campaign";
-import type { CampaignStore } from "../../../src/campaign/campaign-store";
+import type { SessionNote } from "../../../src/campaign/record/campaign";
+import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import type { CharacterNotes } from "../../../src/characters/reading/character-notes";
 import { CharactersView } from "../../../src/characters/pages/characters-view";
 import { obsidianDocument } from "../../views/obsidian-dom";

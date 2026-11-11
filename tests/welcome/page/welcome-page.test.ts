@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { buildCampaign } from "../../../src/campaign/build-campaign";
-import type { SessionNote } from "../../../src/campaign/campaign";
-import type { CampaignListener } from "../../../src/campaign/campaign-store";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
+import type { SessionNote } from "../../../src/campaign/record/campaign";
+import type { CampaignListener } from "../../../src/campaign/reading/campaign-store";
 import type { WelcomeActions } from "../../../src/welcome/endings/welcome-ending";
 import { HOW_TO_CHOOSE_THE_CAMPAIGNS_FOLDER } from "../../../src/welcome/endings/campaigns-folder-ending";
 import { WelcomePage, type WelcomeStore } from "../../../src/welcome/page/welcome-page";

@@ -1,5 +1,5 @@
 export const PAGE_MEMBERS: Record<string, string[]> = {
-  "campaign/picture-css.ts": ["encode"],
+  "campaign/background/picture-css.ts": ["encode"],
   "characters/editing/character-modal.ts": ["addEventListener", "defaultPrevented", "focus", "preventDefault"],
   "characters/editing/sheet-value-modal.ts": ["addEventListener", "defaultPrevented", "focus", "preventDefault"],
   "characters/pages/character-gallery.ts": ["addEventListener", "focus"],

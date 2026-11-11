@@ -1,5 +1,5 @@
 import type { App } from "obsidian";
-import type { Source } from "../../campaign/campaign";
+import type { Source } from "../../campaign/record/campaign";
 import type { Gate } from "../../fence/gatekeeper";
 
 export function activePathOf(app: App): string | null {

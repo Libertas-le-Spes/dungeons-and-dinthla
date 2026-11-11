@@ -1,9 +1,9 @@
-import type { QuestRecord } from "../campaign/campaign";
-import { currentThread } from "../campaign/current-thread";
-import { keepsEveryPlace } from "../campaign/places";
-import { questThreadKind } from "../campaign/quest-thread-kind";
-import { latestSessionOf, placesOf } from "../campaign/thread-places";
-import { followUpWouldGoElsewhere, sharesTextWithEarlierOpenThread } from "../campaign/thread-text-checks";
+import type { QuestRecord } from "../campaign/record/campaign";
+import { currentThread } from "../campaign/threads/current-thread";
+import { keepsEveryPlace } from "../campaign/record/places";
+import { questThreadKind } from "../campaign/threads/quest-thread-kind";
+import { latestSessionOf, placesOf } from "../campaign/threads/thread-places";
+import { followUpWouldGoElsewhere, sharesTextWithEarlierOpenThread } from "../campaign/threads/thread-text-checks";
 
 export const SAME_TITLE = "An earlier active quest has the same title, so changes would go to it. Reword one of them first.";
 export const GOES_ELSEWHERE = "What happened would be read as about another quest whose title starts the same way. Reword it.";

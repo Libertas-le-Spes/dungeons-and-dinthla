@@ -1,6 +1,6 @@
 import { choiceOf } from "../views/dialogs/choice-of";
 import { Setting, type App, type TextAreaComponent } from "obsidian";
-import type { QuestRecord } from "../campaign/campaign";
+import type { QuestRecord } from "../campaign/record/campaign";
 import { isSubmit } from "../views/dialogs/keys";
 import { deleteOnSecondPress } from "../views/dialogs/second-press";
 import { RecordChangeDialog } from "../views/dialogs/record-change-dialog";

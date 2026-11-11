@@ -1,9 +1,9 @@
-import { applySessionChange } from "../../campaign/apply-session-change";
-import { buildCampaign } from "../../campaign/build-campaign";
-import type { CoinRecord, SessionNote } from "../../campaign/campaign";
-import { CHANGED_IN_NOTE, type Removal } from "../../campaign/note-editor";
-import type { Check, RecordChange } from "../../campaign/record-change";
-import { verdictOf, writeNothingWhen } from "../../campaign/verdict";
+import { applySessionChange } from "../../campaign/changes/apply-session-change";
+import { buildCampaign } from "../../campaign/reading/build-campaign";
+import type { CoinRecord, SessionNote } from "../../campaign/record/campaign";
+import { CHANGED_IN_NOTE, type Removal } from "../../campaign/writing/note-editor";
+import type { Check, RecordChange } from "../../campaign/changes/record-change";
+import { verdictOf, writeNothingWhen } from "../../campaign/changes/verdict";
 import type { CoinLine, CoinReading } from "../../notes/coin-lines";
 import { coinSessionChange } from "./coin-session-change";
 

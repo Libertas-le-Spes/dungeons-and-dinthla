@@ -1,4 +1,4 @@
-import type { Source } from "../campaign/campaign";
+import type { Source } from "../campaign/record/campaign";
 import { lookedUpKindNamed } from "../kinds/looked-up-kinds";
 import type { LookupOpeners } from "../kinds/lookup-openers";
 import type { LookupMatch } from "./lookup";

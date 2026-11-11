@@ -1,6 +1,6 @@
 import type { CachedMetadata, TFile } from "obsidian";
-import type { Campaign, ItemRecord } from "../../campaign/campaign";
-import { itemsFolderOf } from "../../campaign/campaign-folders";
+import type { Campaign, ItemRecord } from "../../campaign/record/campaign";
+import { itemsFolderOf } from "../../campaign/paths/campaign-folders";
 import type { FencedFileActions } from "../../fence/fenced-file-actions";
 import type { FencedFiles } from "../../fence/fenced-files";
 import type { FencedMetadata } from "../../fence/fenced-metadata";

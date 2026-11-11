@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TFile, TFolder } from "obsidian";
-import { CHANGED_IN_NOTE, PartlyWritten } from "../../../src/campaign/note-editor";
+import { CHANGED_IN_NOTE, PartlyWritten } from "../../../src/campaign/writing/note-editor";
 import { readsBackDifferently, type CharacterEntry } from "../../../src/characters/editing/character-entry";
 import { BAD_NAME, LONG_NAME, RESERVED_NAME } from "../../../src/names/file-name";
 import {

@@ -1,5 +1,5 @@
-import { campaignFolderOf, campaignOfItem, campaignOfReference, charactersBasePathOf, mainNotePathOf } from "../../campaign/campaign-folders";
-import { sessionNumberOf } from "../../campaign/session-file";
+import { campaignFolderOf, campaignOfItem, campaignOfReference, charactersBasePathOf, mainNotePathOf } from "../../campaign/paths/campaign-folders";
+import { sessionNumberOf } from "../../campaign/paths/session-file";
 import type { ReferenceKind } from "../../kinds/reference-kind";
 import { REFERENCE_KIND_LIST } from "../../kinds/reference-kinds";
 import type { PageId } from "../view/campaign-pages";

@@ -1,7 +1,7 @@
 import { Component, getFrontMatterInfo } from "obsidian";
-import type { Campaign, ItemRecord, Source } from "../../campaign/campaign";
-import { noteNameOf } from "../../campaign/note-name";
-import type { NoteTexts } from "../../campaign/note-texts";
+import type { Campaign, ItemRecord, Source } from "../../campaign/record/campaign";
+import { noteNameOf } from "../../campaign/paths/note-name";
+import type { NoteTexts } from "../../campaign/reading/note-texts";
 import { addLinkedText, type LinkActions } from "../../views/lists/linked-text";
 import { messageOf } from "../../views/dialogs/message-of";
 import { holderNameOf, THE_PARTY_LABEL } from "../items/item-groups";

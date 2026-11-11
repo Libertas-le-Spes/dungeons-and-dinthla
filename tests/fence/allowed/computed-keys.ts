@@ -1,7 +1,7 @@
 export const COMPUTED_KEY_READERS = [
-  "campaign/note-editor.ts",
-  "campaign/picture-css.ts",
-  "campaign/session-lines.ts",
+  "campaign/background/picture-css.ts",
+  "campaign/record/session-lines.ts",
+  "campaign/writing/note-editor.ts",
   "characters/editing/character-entry.ts",
   "characters/editing/character-modal.ts",
   "characters/editing/sheet-value-modal.ts",

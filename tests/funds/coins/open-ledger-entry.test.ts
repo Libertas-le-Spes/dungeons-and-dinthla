@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import type { App } from "obsidian";
-import { buildCampaign } from "../../../src/campaign/build-campaign";
-import type { Campaign, Source } from "../../../src/campaign/campaign";
-import type { CampaignStore } from "../../../src/campaign/campaign-store";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
+import type { Campaign, Source } from "../../../src/campaign/record/campaign";
+import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import type { CoinOutcome } from "../../../src/funds/coins/coin-modal";
 import { ledgerEntryOpener, routeLedgerEntry, type LedgerOpeners } from "../../../src/funds/coins/open-ledger-entry";
 import { openedModals } from "../../stubs/obsidian";

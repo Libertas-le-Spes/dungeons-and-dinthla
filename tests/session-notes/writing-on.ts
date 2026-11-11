@@ -1,7 +1,7 @@
 import { expect, vi } from "vitest";
 import type { TFile } from "obsidian";
-import { buildCampaign } from "../../src/campaign/build-campaign";
-import { sessionNoteOf } from "../../src/campaign/session-file";
+import { buildCampaign } from "../../src/campaign/reading/build-campaign";
+import { sessionNoteOf } from "../../src/campaign/paths/session-file";
 import { NoteDrafts } from "../../src/note-editing/note-drafts";
 import { NoteSaver } from "../../src/note-editing/note-saver";
 import type { AppendWriter } from "../../src/session-notes/drafts/append-writer";
