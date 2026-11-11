@@ -1,4 +1,5 @@
 import { characterReferenceKind } from "../kinds/character-reference-kind";
+import { itemTrackedKind } from "../kinds/item-tracked-kind";
 import type { ReferenceKind } from "../kinds/reference-kind";
 import { sessionNumberOf } from "./session-file";
 
@@ -32,7 +33,7 @@ export function isInReferenceFolder(kind: ReferenceKind, campaignFolder: string,
 }
 
 export function itemsFolderOf(campaignFolder: string): string {
-  return `${campaignFolder}/Items`;
+  return `${campaignFolder}/${itemTrackedKind.folder}`;
 }
 
 export function charactersBasePathOf(campaignFolder: string): string {
@@ -55,7 +56,7 @@ export function campaignOfCharacter(path: string, campaignFolders: string[]): st
 }
 
 export function campaignOfItem(path: string, campaignFolders: string[]): string | null {
-  return campaignOfNoteIn("Items", path, campaignFolders);
+  return campaignOfNoteIn(itemTrackedKind.folder, path, campaignFolders);
 }
 
 export function campaignNotePathOf(path: string, campaignFolders: string[]): string | null {
