@@ -1,6 +1,6 @@
 import { Component, Notice } from "obsidian";
 import { messageOf } from "../views/dialogs/message-of";
-import type { ShowPage } from "../interface/campaign-pages";
+import type { ShowPage } from "../interface/view/campaign-pages";
 import type { News, NewsItem } from "./news-item";
 
 export const SHOW_ME = "Show me";
