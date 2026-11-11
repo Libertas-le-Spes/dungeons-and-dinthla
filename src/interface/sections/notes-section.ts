@@ -1,4 +1,4 @@
-import { SessionNotesPage, type NotesMoves, type SessionNotesNeeds } from "../../session-notes/session-notes-page";
+import { SessionNotesPage, type NotesMoves, type SessionNotesNeeds } from "../../session-notes/page/session-notes-page";
 import type { MakePage, ShowPage, StayOn } from "../view/campaign-pages";
 
 export interface NotesNeeds extends SessionNotesNeeds {
