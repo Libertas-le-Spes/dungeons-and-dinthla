@@ -1,10 +1,21 @@
 import { readdirSync, readFileSync } from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { IMPORT_FORMS } from "./import-forms";
+import { ImportedPaths } from "./imported-paths";
 
 const SOURCE_FOLDER = fileURLToPath(new URL("../../src", import.meta.url));
-const IMPORTED = /(?:\bfrom|\bimport)\s*\(?\s*"(\.{1,2}\/[^"]+)"/g;
+
+let reader: ImportedPaths;
+
+beforeAll(() => {
+  reader = new ImportedPaths();
+});
+
+afterAll(() => {
+  reader.close();
+});
 
 interface InnerFolder {
   folder: string;
@@ -44,12 +55,12 @@ function folderOf(file: string, imported: string): string {
   return top;
 }
 
+function pointsAtAFile(imported: string): boolean {
+  return imported === "." || imported === ".." || imported.startsWith("./") || imported.startsWith("../") || isAbsolute(imported);
+}
+
 function importedPathsIn(text: string): string[] {
-  const paths: string[] = [];
-  for (const [, imported] of text.matchAll(IMPORTED)) {
-    if (imported !== undefined) paths.push(imported);
-  }
-  return paths;
+  return reader.in(text).filter(pointsAtAFile);
 }
 
 function breachesIn(inner: InnerFolder, file: string, text: string): string[] {
@@ -96,30 +107,24 @@ describe("the inner folders", () => {
 });
 
 describe("the rule the inner folders are checked by, over made-up files", () => {
-  it("reads an import written as a plain import, a type import, an export from, a side-effect import and a dynamic import", () => {
-    const text = [
-      'import { a } from "../../campaign/one";',
-      'import type { B } from "../../campaign/two";',
-      'export * from "../../campaign/three";',
-      'export { c } from "../../campaign/four";',
-      'import "../../campaign/five";',
-      'const six = () => import("../../campaign/six");',
-      'const seven = await import( "../../campaign/seven" );',
-    ].join("\n");
-    expect(importedPathsIn(text)).toEqual(["../../campaign/one", "../../campaign/two", "../../campaign/three", "../../campaign/four", "../../campaign/five", "../../campaign/six", "../../campaign/seven"]);
+  it.each(IMPORT_FORMS)("refuses an outward import written as $form", ({ written }) => {
+    expect(breachesOfMadeUpFile("fence/gate", written("../../campaign/one"))).toEqual(["fence/gate/made-up.ts imports from campaign"]);
+  });
+
+  it("refuses an outward import by an absolute path", () => {
+    expect(breachesOfMadeUpFile("fence/gate", `import { a } from "${join(SOURCE_FOLDER, "campaign", "one")}";`)).toEqual(["fence/gate/made-up.ts imports from campaign"]);
+  });
+
+  it("refuses an import of the folder above, written as a bare ..", () => {
+    expect(breachesOfMadeUpFile("fence/gate", 'import { a } from "..";')).toEqual(["fence/gate/made-up.ts imports from fence"]);
   });
 
   it("reads the end of an import that runs over several lines", () => {
-    expect(importedPathsIn('import {\n  a,\n  b,\n} from "../../campaign/one";')).toEqual(["../../campaign/one"]);
+    expect(breachesOfMadeUpFile("fence/gate", 'import {\n  a,\n  b,\n} from "../../campaign/one";')).toEqual(["fence/gate/made-up.ts imports from campaign"]);
   });
 
   it("leaves out an import of a package, and a word that only ends in import", () => {
-    expect(importedPathsIn('import { a } from "obsidian";\nreimport("../../campaign/one");')).toEqual([]);
-  });
-
-  it("refuses an outward import in every form it reads", () => {
-    const forms = ['import { a } from "../../campaign/one";', 'import "../../campaign/one";', 'const x = import("../../campaign/one");', 'export * from "../../campaign/one";'];
-    for (const form of forms) expect(breachesOfMadeUpFile("fence/gate", form), form).toEqual(["fence/gate/made-up.ts imports from campaign"]);
+    expect(breachesOfMadeUpFile("fence/gate", 'import { a } from "obsidian";\nreimport("../../campaign/one");')).toEqual([]);
   });
 
   it("refuses paths importing from gate, though both are in fence", () => {
