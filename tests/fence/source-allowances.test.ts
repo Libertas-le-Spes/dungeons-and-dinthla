@@ -17,12 +17,12 @@ const GATEKEEPER_FOLDER = "fence/";
 const PARSED_DATA = ["settings/drafts/draft-record.ts"];
 const ALLOWED = ["fence/gatekeeper.ts", "fence/fenced-files.ts", "fence/fenced-file-actions.ts", "fence/folder-choices.ts", "fence/vault-settings.ts"];
 const EDITOR_TEXT_READERS = ["campaign/editor-text.ts"];
-const BASES_READERS = ["characters/characters-view.ts"];
+const BASES_READERS = ["characters/pages/characters-view.ts"];
 const CODE_MIRROR_READERS = ["editor/marker-decorations.ts"];
 const LOOSE_CASTERS = ["fence/fenced-metadata.ts", "interface/campaign-view-registered.ts", "interface/one-campaign-tab.ts", "interface/seen-tab.ts"];
-const FILE_OPENERS = ["characters/open-character-sheet.ts", "characters/open-character.ts", "interface/open-in-editor.ts", "views/opening/open-link.ts", "views/opening/open-view.ts"];
+const FILE_OPENERS = ["characters/editing/open-character-sheet.ts", "characters/editing/open-character.ts", "interface/open-in-editor.ts", "views/opening/open-link.ts", "views/opening/open-view.ts"];
 const VIEW_STATE_SETTERS = ["interface/campaign-view.ts", "interface/one-campaign-tab.ts", "interface/open-campaign.ts", "interface/take-open-leaves.ts", "interface/view-state-patch.ts"];
-const ACTIVE_FILE_READERS = ["characters/open-character.ts", "views/opening/open-view.ts"];
+const ACTIVE_FILE_READERS = ["characters/editing/open-character.ts", "views/opening/open-view.ts"];
 const ACTIVE_VIEW_READERS = ["interface/open-in-editor.ts", "interface/shown-campaign-path.ts"];
 const EVENT_TRIGGERS = ["fence/fenced-files.ts"];
 const LEAF_VIEW_READERS = ["main.ts", "interface/one-campaign-tab.ts", "interface/seen-tab.ts", "interface/view-state-patch.ts"];
@@ -31,7 +31,7 @@ const NOTE_EVENT_LISTENERS = ["main.ts"];
 const GATE_BUILDERS = ["main.ts"];
 const POST_PROCESSING = ["main.ts"];
 const PAGE_TEXT_READERS = ["reading/colour-markers.ts"];
-const ELEMENT_QUERIERS = ["reading/colour-markers.ts", "characters/character-sheet-page.ts", "funds/page/funds-page.ts", "views/lists/row-focus.ts"];
+const ELEMENT_QUERIERS = ["reading/colour-markers.ts", "characters/pages/character-sheet-page.ts", "funds/page/funds-page.ts", "views/lists/row-focus.ts"];
 
 function isOneOf(files: string[]): (path: string) => boolean {
   return (path) => files.some((file) => path === sourcePath(file));

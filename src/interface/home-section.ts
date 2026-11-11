@@ -1,5 +1,5 @@
 import type { CampaignStore } from "../campaign/campaign-store";
-import type { CharacterNotes } from "../characters/character-notes";
+import type { CharacterNotes } from "../characters/reading/character-notes";
 import { DashboardPage, type DashboardActions } from "../dashboard/dashboard-page";
 import type { News } from "../whats-new/news-item";
 import { NewsLine } from "../whats-new/news-line";

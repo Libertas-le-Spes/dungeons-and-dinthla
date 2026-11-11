@@ -1,5 +1,5 @@
 import type { CampaignStore } from "../campaign/campaign-store";
-import type { Character } from "../campaign/characters";
+import type { Character } from "../characters/reading/characters";
 import type { RecordChange } from "../campaign/record-change";
 import { linesAddedTo } from "../campaign/session-change";
 import { verdictOf, writeNothingWhen } from "../campaign/verdict";
