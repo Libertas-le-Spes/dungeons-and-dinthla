@@ -1,13 +1,13 @@
+import { applySessionChange } from "../campaign/apply-session-change";
 import { buildCampaign } from "../campaign/build-campaign";
 import type { Campaign, QuestionRecord, SessionNote, SourcedText } from "../campaign/campaign";
 import type { Removal } from "../campaign/note-editor";
 import { questionThreadKind } from "../campaign/question-thread-kind";
-import { sessionNoteOf } from "../campaign/session-file";
 import { endingRemoval } from "../campaign/thread-removal";
 import { readMarker } from "../notes/marker";
-import { appendLines, removeLines } from "../notes/note-lines";
 import { oneLine } from "../notes/one-line";
 import { answerLine, followUpQuestionLine, questionTextOf } from "../notes/question-lines";
+import { questionSessionChange } from "./question-session-change";
 
 export interface QuestionEdit {
   answer: string;
@@ -70,16 +70,6 @@ export function planReopen(question: QuestionRecord, sessionPath: string): Quest
   return planQuestionSave(question, { answer: "", followUp: "" }, sessionPath);
 }
 
-export function applyQuestionPlan(sessions: SessionNote[], plan: QuestionPlan): SessionNote[] {
-  return sessions.map((session) => {
-    let text = session.text;
-    if (plan.removal !== null && plan.removal.path === session.path) text = removeLines(text, [plan.removal]).text;
-    if (session.path === plan.answerPath) text = appendLines(text, plan.answerLines);
-    if (session.path === plan.followUpPath) text = appendLines(text, plan.followUpLines);
-    return sessionNoteOf(session.path, session.number, text);
-  });
-}
-
 function placedClues(clues: SourcedText[]): string[] {
   return clues.map((clue) => placedAnswer(clue.source.path, oneLine(clue.text)));
 }
@@ -93,9 +83,9 @@ function signatureOf(question: QuestionRecord, answer: string | null): string {
   return JSON.stringify([question.source.path, question.text, placedClues(question.clues), answer]);
 }
 
-function followUpIndex(campaign: Campaign, plan: QuestionPlan): number {
-  if (plan.followUpText === null) return -1;
-  return campaign.questions.findLastIndex((question) => question.source.path === plan.followUpPath && question.text === plan.followUpText);
+function followUpOf(campaign: Campaign, plan: QuestionPlan): QuestionRecord | undefined {
+  if (plan.followUpText === null) return undefined;
+  return campaign.questions.filter((question) => question.source.path === plan.followUpPath && question.text === plan.followUpText).pop();
 }
 
 export function refusalForQuestionPlan(sessions: SessionNote[], question: QuestionRecord, plan: QuestionPlan): string | null {
@@ -103,19 +93,16 @@ export function refusalForQuestionPlan(sessions: SessionNote[], question: Questi
   if (!known.has(plan.answerPath) || !known.has(plan.followUpPath)) return CHANGES_MORE_THAN_ASKED;
   const before = buildCampaign(sessions);
   if (plan.followUpText !== null && before.questions.some((existing) => existing.text === plan.followUpText)) return FOLLOW_UP_ALREADY_ASKED;
-  const after = buildCampaign(applyQuestionPlan(sessions, plan));
+  const after = buildCampaign(applySessionChange(sessions, questionSessionChange(plan)).sessions);
   const wanted = before.questions.map((candidate) => {
     const isOpened = candidate.source.path === question.source.path && candidate.source.line === question.source.line;
     if (isOpened) return signatureOf(candidate, plan.expectedAnswer);
     return signatureOf(candidate, answerOf(candidate));
   });
-  const questions = [...after.questions];
-  const index = followUpIndex(after, plan);
+  const followUp = followUpOf(after, plan);
+  const questions = after.questions.filter((candidate) => candidate !== followUp);
   let followUpStartsFresh = true;
-  if (index !== -1) {
-    const followUp = questions.splice(index, 1)[0]!;
-    followUpStartsFresh = followUp.clues.length === 0 && followUp.answer === null;
-  }
+  if (followUp !== undefined) followUpStartsFresh = followUp.clues.length === 0 && followUp.answer === null;
   const found = questions.map((candidate) => signatureOf(candidate, answerOf(candidate)));
   if (followUpStartsFresh && JSON.stringify(wanted) === JSON.stringify(found)) return null;
   return CHANGES_MORE_THAN_ASKED;

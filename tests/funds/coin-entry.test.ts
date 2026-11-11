@@ -4,14 +4,8 @@ import { buildCampaign } from "../../src/campaign/build-campaign";
 import type { CoinRecord, SessionNote } from "../../src/campaign/campaign";
 import { CHANGED_IN_NOTE, removalAsRead, type EditorFiles } from "../../src/campaign/note-editor";
 import { sessionNoteOf } from "../../src/campaign/session-file";
-import {
-  CANNOT_SHOW,
-  CHANGES_OTHER_MONEY,
-  coinEntryEdit,
-  entryToEdit,
-  refusalForEntryChange,
-  type CoinEntryEdit,
-} from "../../src/funds/coin-entry";
+import { CHANGES_OTHER_MONEY, refusalForEntryChange } from "../../src/funds/coin-change";
+import { CANNOT_SHOW, coinEntryEdit, entryToEdit, type CoinEntryEdit } from "../../src/funds/coin-entry";
 import { readCoinDraft, type CoinDraft, type CoinLine } from "../../src/notes/coin-lines";
 
 const ONE = "S/Sessions/Session 1.md";
