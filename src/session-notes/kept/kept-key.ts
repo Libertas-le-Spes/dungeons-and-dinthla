@@ -1,5 +1,5 @@
-import type { KeptKind } from "../kept-kinds/kept-kind";
-import { KEPT_KINDS } from "../kept-kinds/kept-kinds";
+import type { KeptKind } from "./kinds/kept-kind";
+import { KEPT_KINDS } from "./kinds/kept-kinds";
 
 const TIME_END = ":";
 

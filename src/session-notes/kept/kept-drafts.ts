@@ -1,7 +1,7 @@
 import type { Drafts } from "../drafts/drafts";
 import { keptKeyIn, keptKeyOf, type KeptKey } from "./kept-key";
-import type { KeptKind } from "../kept-kinds/kept-kind";
-import { DELETED, MISSING, MOVED } from "../kept-kinds/kept-kinds";
+import type { KeptKind } from "./kinds/kept-kind";
+import { DELETED, MISSING, MOVED } from "./kinds/kept-kinds";
 
 export interface KeptDraft extends KeptKey {
   key: string;

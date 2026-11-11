@@ -2,8 +2,8 @@ import { sessionLabelOf } from "../../campaign/session-file";
 import { SecondPress } from "../../views/dialogs/second-press";
 import type { Drafts } from "../drafts/drafts";
 import type { KeptDraft, KeptDrafts } from "./kept-drafts";
-import type { KeptKind } from "../kept-kinds/kept-kind";
-import { KEPT_KINDS } from "../kept-kinds/kept-kinds";
+import type { KeptKind } from "./kinds/kept-kind";
+import { KEPT_KINDS } from "./kinds/kept-kinds";
 import { shownKeptTime } from "./kept-time";
 
 const COPY = "Copy into this session's box";

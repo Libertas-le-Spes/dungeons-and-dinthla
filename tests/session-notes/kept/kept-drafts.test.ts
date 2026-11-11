@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { Drafts } from "../../../src/session-notes/drafts/drafts";
 import { KeptDrafts } from "../../../src/session-notes/kept/kept-drafts";
-import { DELETED, MISSING, MOVED } from "../../../src/session-notes/kept-kinds/kept-kinds";
+import { DELETED, MISSING, MOVED } from "../../../src/session-notes/kept/kinds/kept-kinds";
 
 const THREE = "Pale Moon/Sessions/Session 3.md";
 const FOUR = "Pale Moon/Sessions/Session 4.md";

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { Drafts } from "../../../src/session-notes/drafts/drafts";
 import { setAsideGoneNotes } from "../../../src/session-notes/kept/gone-notes";
 import { KeptDrafts } from "../../../src/session-notes/kept/kept-drafts";
-import { MISSING } from "../../../src/session-notes/kept-kinds/kept-kinds";
+import { MISSING } from "../../../src/session-notes/kept/kinds/kept-kinds";
 
 const THREE = "D&D/Pale Moon/Sessions/Session 3.md";
 const AT = 1_000;

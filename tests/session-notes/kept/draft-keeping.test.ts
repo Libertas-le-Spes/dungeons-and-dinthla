@@ -3,7 +3,7 @@ import type { TFile } from "obsidian";
 import { Fence } from "../../../src/fence/fence";
 import { Drafts } from "../../../src/session-notes/drafts/drafts";
 import { DraftKeeping } from "../../../src/session-notes/kept/draft-keeping";
-import { DELETED, MISSING } from "../../../src/session-notes/kept-kinds/kept-kinds";
+import { DELETED, MISSING } from "../../../src/session-notes/kept/kinds/kept-kinds";
 import { FakeEvents, fileAt } from "../../fence/fake-raw-vault";
 
 const FOLDER = "D&D";
