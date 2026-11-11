@@ -43,7 +43,9 @@ function fromCall(node: CallExpression): string[] {
   const isDynamicImport = callee.kind === SyntaxKind.ImportKeyword;
   const isRequire = isIdentifier(callee) && callee.text === REQUIRE;
   if (!isDynamicImport && !isRequire) return [];
-  return textOf(node.arguments[0]);
+  const written = textOf(node.arguments[0]);
+  if (written.length === 0) throw new Error("A dynamic import or require names a path that isn't written out as plain text, so it can't be read.");
+  return written;
 }
 
 function fromImportType(node: ImportTypeNode): string[] {

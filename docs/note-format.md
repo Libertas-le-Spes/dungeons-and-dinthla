@@ -47,7 +47,7 @@ A test, run by `npm test` on every pull request and release, reads as TypeScript
   - reach `app` through a window, `globalThis` or a value it can't type, check for a key in them with `in`, reach a `constructor` or `__proto__`, or read a computed key of a value cast through `unknown` or `any`;
   - outside `src/fence/gate/`, forge the gate: cast to or `satisfies` one of its types, put a value the gate didn't give where its parts go, change a member of a gate value or of a vault file, extend one, narrow to one, give a value its prototype, or build one (only `src/main.ts` builds the `Gatekeeper`, from the plugin's own `this.app`).
 
-The gate's exemptions from these patterns (walking the vault's folders, forging the gate's types, and listening to a workspace event that hands over a note) belong to the whole of `src/fence/gate/`, on purpose: a file added to that folder gets them, so it is reviewed as part of the gate. `src/fence/paths/` has none of them.
+The gate's exemptions from these patterns (walking the vault's folders, forging the gate's types, and listening to a workspace event whose name it can't read) belong to the whole of `src/fence/gate/`, on purpose: a file added to that folder gets them, so it is reviewed as part of the gate. `src/fence/paths/` has none of them.
 
 ## Campaign
 

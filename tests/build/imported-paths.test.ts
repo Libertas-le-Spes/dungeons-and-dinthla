@@ -25,4 +25,15 @@ describe("the paths read from the imports in a file's text", () => {
     const text = ['const a = \'import "../one";\';', '// import "../two";', 'const b = reimport("../three");', "const c = `from '../four'`;"].join("\n");
     expect(reader.in(text)).toEqual([]);
   });
+
+  it.each([
+    ["a template with a substitution", "const a = (n: string) => import(`../b/${n}`);"],
+    ["a concatenation", 'const a = (n: string) => import("../b/" + n);'],
+    ["a concatenation of constants", 'const a = () => import("../b/" + "x");'],
+    ["a name", "const a = (n: string) => import(n);"],
+    ["a require of a concatenation", 'const a = (n: string) => require("../b/" + n);'],
+    ["a call with no path", "const a = () => import();"],
+  ])("refuse a dynamic path that isn't written out, as %s", (_form, text) => {
+    expect(() => reader.in(text)).toThrow("can't be read");
+  });
 });
