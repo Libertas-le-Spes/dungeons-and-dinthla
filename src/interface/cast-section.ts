@@ -1,13 +1,13 @@
 import type { TFile } from "obsidian";
 import type { Source } from "../campaign/campaign";
 import type { CampaignStore } from "../campaign/campaign-store";
-import { CastPage, type WatchFiles } from "../characters/cast-page";
-import { castPageFor, type CastPages } from "../characters/cast-page-for";
-import { CharacterPage } from "../characters/character-page";
-import { CharacterSheetPage, type SheetActions } from "../characters/character-sheet-page";
-import type { CharacterNotes } from "../characters/character-notes";
-import type { MentionNotes } from "../characters/mention-notes";
-import type { SheetNotes } from "../characters/sheet-notes";
+import { CastPage, type WatchFiles } from "../characters/pages/cast-page";
+import { castPageFor, type CastPages } from "../characters/pages/cast-page-for";
+import { CharacterPage } from "../characters/pages/character-page";
+import { CharacterSheetPage, type SheetActions } from "../characters/pages/character-sheet-page";
+import type { CharacterNotes } from "../characters/reading/character-notes";
+import type { MentionNotes } from "../characters/reading/mention-notes";
+import type { SheetNotes } from "../characters/reading/sheet-notes";
 import type { LinkActions } from "../views/lists/linked-text";
 import type { MakePage, ShowPage } from "./campaign-pages";
 
