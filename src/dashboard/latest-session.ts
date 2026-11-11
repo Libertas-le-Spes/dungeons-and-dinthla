@@ -2,8 +2,8 @@ import type { Campaign, Source, SourcedText } from "../campaign/campaign";
 import type { ThreadRecord } from "../campaign/thread-kind";
 import type { LedgerLine } from "../funds/funds-summary";
 import type { FollowUpName } from "../kinds/follow-up-name";
-import type { ShownThreadKind } from "../views/shown-thread-kind";
-import { SHOWN_THREAD_KINDS } from "../views/shown-thread-kinds";
+import type { ShownThreadKind } from "../views/threads/shown-thread-kind";
+import { SHOWN_THREAD_KINDS } from "../views/threads/shown-thread-kinds";
 
 export interface WrittenLineRows {
   addThread<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName>(

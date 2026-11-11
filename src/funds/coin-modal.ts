@@ -1,9 +1,9 @@
-import { choiceOf } from "../views/choice-of";
+import { choiceOf } from "../views/dialogs/choice-of";
 import { Setting, type App } from "obsidian";
 import { readCoinDraft, type CoinDraft, type CoinLine, type Direction } from "../notes/coin-lines";
-import { isSubmit } from "../views/keys";
-import { deleteOnSecondPress } from "../views/second-press";
-import { ChangeDialog } from "../views/change-dialog";
+import { isSubmit } from "../views/dialogs/keys";
+import { deleteOnSecondPress } from "../views/dialogs/second-press";
+import { ChangeDialog } from "../views/dialogs/change-dialog";
 import type { CoinEntryChoices } from "./coin-entry";
 
 export type CoinOutcome = "unchanged" | "written" | "deleted";

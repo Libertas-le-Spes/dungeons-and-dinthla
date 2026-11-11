@@ -4,7 +4,7 @@ import { charactersIn } from "../campaign/characters";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { sessionLabelOf } from "../campaign/session-file";
 import { sessionForDialog } from "../campaign/session-for-dialog";
-import { openSource } from "../views/open-view";
+import { openSource } from "../views/opening/open-view";
 import { ItemModal } from "./item-modal";
 import { holderOptionOf, holderOptions, latestSessionOfItem } from "./item-plan";
 import { openedItem } from "./item-writer";

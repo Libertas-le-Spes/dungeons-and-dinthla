@@ -1,5 +1,5 @@
 import { THE_PARTY_LABEL } from "../funds/item-groups";
-import { textRunsOf } from "../views/text-parts";
+import { textRunsOf } from "../views/lists/text-parts";
 import { lookedUpKindNamed } from "../kinds/looked-up-kinds";
 import type { LookupMatch } from "./lookup";
 

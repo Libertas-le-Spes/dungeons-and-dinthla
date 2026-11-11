@@ -1,7 +1,7 @@
 import type { TFile } from "obsidian";
 import { hiddenLines } from "../notes/hidden-lines";
 import { appendLines, dropLine, removeLines, rewriteLine, type LineToRemove } from "../notes/note-lines";
-import { messageOf } from "../views/message-of";
+import { messageOf } from "../views/dialogs/message-of";
 import type { SessionNote, Source } from "./campaign";
 import { keepsProperties } from "./session-file";
 import type { FencedFiles } from "../fence/fenced-files";

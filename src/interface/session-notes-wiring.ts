@@ -12,8 +12,8 @@ import { SessionClearer } from "../session-notes/session-clearer";
 import { SessionTrash } from "../session-notes/session-trash";
 import { deletesPermanently } from "../session-notes/trash-option";
 import { sessionPropertiesOf } from "../sessions/session-properties";
-import type { OpenConfirm } from "../views/confirm-modal";
-import type { LinkActions } from "../views/linked-text";
+import type { OpenConfirm } from "../views/dialogs/confirm-modal";
+import type { LinkActions } from "../views/lists/linked-text";
 import type { NotesNeeds } from "./notes-section";
 
 export type SessionNotesGate = Gate & { vaultSettings: Pick<VaultSettings, "trashOption"> };

@@ -5,7 +5,7 @@ import type { NoteTexts } from "../campaign/note-texts";
 import { FundsPage, type ShownItem } from "../funds/funds-page";
 import { ItemPanel, type OpenItem } from "../funds/item-panel";
 import type { OpenLedgerEntry } from "../funds/open-ledger-entry";
-import type { LinkActions } from "../views/linked-text";
+import type { LinkActions } from "../views/lists/linked-text";
 import type { MakePage, ShowPage } from "./campaign-pages";
 
 export interface FundsNeeds {

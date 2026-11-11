@@ -2,7 +2,7 @@ import { Component } from "obsidian";
 import { isInReferenceFolder, mainNotePathOf } from "../campaign/campaign-folders";
 import { characterReferenceKind } from "../kinds/character-reference-kind";
 import type { CampaignStore } from "../campaign/campaign-store";
-import type { LinkActions } from "../views/linked-text";
+import type { LinkActions } from "../views/lists/linked-text";
 import { CharacterGallery } from "./character-gallery";
 import type { CharacterNotes } from "./character-notes";
 
