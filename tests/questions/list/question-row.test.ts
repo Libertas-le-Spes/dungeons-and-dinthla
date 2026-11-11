@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import { addQuestionRow } from "../../../src/questions/list/question-row";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 function setUp(lines: string[], keywords: string[] = []) {
   const campaign = buildCampaign([{ path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: lines.join("\n") }]);

@@ -6,7 +6,7 @@ import type { CampaignStore } from "../../../src/campaign/reading/campaign-store
 import type { NavSection, PageEntry, PageId, PathAfterDelete, ShowPage, StayOn } from "../../../src/interface/view/campaign-pages";
 import { CAMPAIGN_VIEW, CampaignView, type ViewFiles } from "../../../src/interface/view/campaign-view";
 import { campaignsFolderFirst } from "../../../src/interface/view/campaigns-folder-first";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 class FakePage extends Component {
   loaded = false;

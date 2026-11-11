@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { paintTabPicture } from "../../../src/interface/view/tab-picture";
 import { pictureOf, shownPicture } from "../../campaign/shown-picture";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 function frame(): HTMLElement {
   return obsidianDocument().body.createDiv({ cls: "dd-campaign-frame" });

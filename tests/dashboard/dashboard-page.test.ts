@@ -8,7 +8,7 @@ import { DashboardPage, type DashboardActions } from "../../src/dashboard/dashbo
 import type { CoinOutcome } from "../../src/funds/coins/coin-modal";
 import { NO_COIN_ENTRIES } from "../../src/funds/page/ledger-row";
 import { SESSIONS_SHARE_A_NUMBER } from "../../src/campaign/paths/session-to-write";
-import { isShown, obsidianDocument } from "../views/obsidian-dom";
+import { isShown, obsidianDocument } from "../stubs/obsidian-dom";
 
 const CAMPAIGN = "Pale Moon";
 const NO_CHARACTERS = "No characters yet. A note in the campaign’s Characters folder adds one.";

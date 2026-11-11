@@ -3,7 +3,7 @@ import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { Campaign } from "../../../src/campaign/record/campaign";
 import type { NoteChanged, NoteTexts } from "../../../src/campaign/reading/note-texts";
 import { CHANGE_ITEM, CLOSE_ITEM, EDIT_NOTE, EMPTY_STORY, ItemPanel, NOTE_MISSING, noLineText } from "../../../src/funds/item-notes/item-panel";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 const LANTERN = "Pale Moon/Items/Silvered lantern.md";
 const STORY = "Mira found it in the cellar of the [[Gilded Stag]].\n\nIts light shows things the moon hides.";

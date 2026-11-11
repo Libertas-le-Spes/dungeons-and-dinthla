@@ -3,7 +3,7 @@ import type { TFile } from "obsidian";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { CastPage } from "../../../src/characters/pages/cast-page";
 import type { CharacterNotes } from "../../../src/characters/reading/character-notes";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 function fileOf(name: string): TFile {
   return { path: `Pale Moon/Characters/${name}.md`, basename: name } as TFile;

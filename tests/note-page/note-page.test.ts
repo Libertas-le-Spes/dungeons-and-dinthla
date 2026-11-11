@@ -5,7 +5,7 @@ import { CHANGED_ELSEWHERE, NOTE_GONE_HERE } from "../../src/note-editing/note-e
 import { NotePage } from "../../src/note-page/note-page";
 import { NoteSaver } from "../../src/note-editing/note-saver";
 import { Drafts } from "../../src/session-notes/drafts/drafts";
-import { isShown, obsidianDocument } from "../views/obsidian-dom";
+import { isShown, obsidianDocument } from "../stubs/obsidian-dom";
 import { BOM, FakeNotes } from "../note-editing/fake-notes";
 
 const OLD_MILL = "Pale Moon/Places/Old Mill.md";
