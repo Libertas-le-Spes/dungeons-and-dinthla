@@ -4,8 +4,8 @@ import type { Gate } from "../../../src/fence/gatekeeper";
 import { NO_CAMPAIGN } from "../../../src/campaign/paths/campaign-folders";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { openAddCoin } from "../../../src/funds/coins/open-add-coin";
-import { openNewQuestion } from "../../../src/questions/open-new-question";
-import { openNewQuest } from "../../../src/quests/open-new-quest";
+import { openNewQuestion } from "../../../src/questions/dialogs/open-new-question";
+import { openNewQuest } from "../../../src/quests/dialogs/open-new-quest";
 import { Notice, openedModals } from "../../stubs/obsidian";
 
 const noCampaign = { campaignFolder: null } as CampaignStore;
