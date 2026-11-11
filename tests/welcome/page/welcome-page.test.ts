@@ -6,7 +6,7 @@ import type { WelcomeActions } from "../../../src/welcome/endings/welcome-ending
 import { HOW_TO_CHOOSE_THE_CAMPAIGNS_FOLDER } from "../../../src/welcome/endings/campaigns-folder-ending";
 import { WelcomePage, type WelcomeStore } from "../../../src/welcome/page/welcome-page";
 import { Notice } from "../../stubs/obsidian";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 const CAMPAIGN = "D&D/Silver Road";
 

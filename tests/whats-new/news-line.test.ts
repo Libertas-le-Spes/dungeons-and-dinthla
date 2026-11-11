@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { News, NewsItem } from "../../src/whats-new/news-item";
 import { NewsLine } from "../../src/whats-new/news-line";
 import { Notice } from "../stubs/obsidian";
-import { isShown, obsidianDocument } from "../views/obsidian-dom";
+import { isShown, obsidianDocument } from "../stubs/obsidian-dom";
 
 const LANTERNS: NewsItem = { sentence: "Lanterns now light the party funds.", page: "funds" };
 

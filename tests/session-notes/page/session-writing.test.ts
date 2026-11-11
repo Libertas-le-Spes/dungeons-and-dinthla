@@ -4,7 +4,7 @@ import { NoteDrafts } from "../../../src/note-editing/note-drafts";
 import { Drafts } from "../../../src/session-notes/drafts/drafts";
 import { NOT_SAVED_YET } from "../../../src/session-notes/page/edit-all-panel";
 import { EDIT_ALL_WAITING } from "../../../src/session-notes/writing/edit-all-reminder";
-import { isShown } from "../../views/obsidian-dom";
+import { isShown } from "../../stubs/obsidian-dom";
 import { FIXED, NOTE, PATH, writingOn } from "../writing-on";
 
 const OTHER_PATH = "Pale Moon/Sessions/Session 11.md";

@@ -4,7 +4,7 @@ import type { Campaign } from "../../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { questsKind } from "../../../src/quests/list/quests-kind";
 import { ListPage, type ListCreate } from "../../../src/views/lists/list-page";
-import { obsidianDocument } from "../obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 function campaignOf(lines: string[]): Campaign {
   return buildCampaign([{ path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: lines.join("\n") }]);

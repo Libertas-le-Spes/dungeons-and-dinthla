@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import { addQuestRow } from "../../../src/quests/list/quest-row";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 function setUpSessions(sessions: string[][], keywords: string[]) {
   const campaign = buildCampaign(

@@ -11,7 +11,7 @@ import type {
   Plugin as RealPlugin,
   PluginSettingTab as RealPluginSettingTab,
 } from "obsidian";
-import { obsidianDocument } from "../views/obsidian-dom";
+import { obsidianDocument } from "./obsidian-dom";
 
 export class Plugin {
   app: RealPlugin["app"];

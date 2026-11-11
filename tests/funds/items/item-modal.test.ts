@@ -6,7 +6,7 @@ import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
 import { ItemModal } from "../../../src/funds/items/item-modal";
 import { GONE_LINE_SAYS_MORE, HOLDER_OF_GONE, initialItemEdit, type ItemEdit } from "../../../src/funds/items/item-plan";
 import { Notice } from "../../stubs/obsidian";
-import { isShown } from "../../views/obsidian-dom";
+import { isShown } from "../../stubs/obsidian-dom";
 
 function openDialog(text: string, save: (edit: ItemEdit) => Promise<boolean>) {
   const sessions = [sessionNoteOf("Pale Moon/Sessions/Session 1.md", 1, text)];

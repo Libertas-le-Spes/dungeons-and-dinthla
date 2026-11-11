@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { RowKeys, sourceKeyOf } from "../../../src/views/lists/row-keys";
-import { obsidianDocument } from "../obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 describe("RowKeys", () => {
   it("gives back the key a row was marked with", () => {

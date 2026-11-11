@@ -5,7 +5,7 @@ import type { CampaignStore } from "../../../src/campaign/reading/campaign-store
 import type { CoinOutcome } from "../../../src/funds/coins/coin-modal";
 import { Component } from "obsidian";
 import { FundsPage, type ShownItem } from "../../../src/funds/page/funds-page";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 function campaignOf(lines: string[], ...laterSessions: string[][]): Campaign {
   return buildCampaign(
