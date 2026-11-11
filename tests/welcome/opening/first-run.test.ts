@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import type { PluginSettings } from "../../src/settings/saved/plugin-settings";
-import { SettingsSaver } from "../../src/settings/saved/settings-saver";
-import { FirstRun } from "../../src/welcome/first-run";
+import type { PluginSettings } from "../../../src/settings/saved/plugin-settings";
+import { SettingsSaver } from "../../../src/settings/saved/settings-saver";
+import { FirstRun } from "../../../src/welcome/opening/first-run";
 
 const VERSION = "1.4.0";
 

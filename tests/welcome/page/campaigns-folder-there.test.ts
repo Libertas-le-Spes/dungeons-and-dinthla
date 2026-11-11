@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TFolder } from "obsidian";
-import { campaignsFolderThere } from "../../src/welcome/campaigns-folder-there";
+import { campaignsFolderThere } from "../../../src/welcome/page/campaigns-folder-there";
 
 function filesHolding(paths: string[]) {
   return {
