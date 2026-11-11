@@ -1,4 +1,3 @@
-import { characterReferenceKind } from "../kinds/character-reference-kind";
 import { itemTrackedKind } from "../kinds/item-tracked-kind";
 import type { ReferenceKind } from "../kinds/reference-kind";
 import { sessionNumberOf } from "./session-file";
@@ -40,23 +39,22 @@ export function charactersBasePathOf(campaignFolder: string): string {
   return `${campaignFolder}/Characters.base`;
 }
 
-function campaignOfNoteIn(folderName: string, path: string, campaignFolders: string[]): string | null {
-  const folder = campaignFolderOf(path, campaignFolders);
-  if (folder === null) return null;
-  if (!path.startsWith(`${folder}/${folderName}/`) || !path.endsWith(".md")) return null;
-  return folder;
+function isMarkdownNote(path: string): boolean {
+  return path.endsWith(".md");
 }
 
 export function campaignOfReference(kind: ReferenceKind, path: string, campaignFolders: string[]): string | null {
-  return campaignOfNoteIn(kind.folder, path, campaignFolders);
-}
-
-export function campaignOfCharacter(path: string, campaignFolders: string[]): string | null {
-  return campaignOfReference(characterReferenceKind, path, campaignFolders);
+  const folder = campaignFolderOf(path, campaignFolders);
+  if (folder === null) return null;
+  if (!isInReferenceFolder(kind, folder, path) || !isMarkdownNote(path)) return null;
+  return folder;
 }
 
 export function campaignOfItem(path: string, campaignFolders: string[]): string | null {
-  return campaignOfNoteIn(itemTrackedKind.folder, path, campaignFolders);
+  const folder = campaignFolderOf(path, campaignFolders);
+  if (folder === null) return null;
+  if (!path.startsWith(`${itemsFolderOf(folder)}/`) || !isMarkdownNote(path)) return null;
+  return folder;
 }
 
 export function campaignNotePathOf(path: string, campaignFolders: string[]): string | null {

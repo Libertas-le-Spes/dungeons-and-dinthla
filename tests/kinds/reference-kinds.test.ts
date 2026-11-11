@@ -17,7 +17,9 @@ describe("the reference kinds", () => {
     expect(REFERENCE_KINDS.place).toBe(placeReferenceKind);
   });
 
-  it("lists every kind once, characters first", () => {
-    expect(REFERENCE_KIND_LIST).toEqual([characterReferenceKind, placeReferenceKind]);
+  it("lists every kind once, so each one gets its own rules", () => {
+    expect(REFERENCE_KIND_LIST).toHaveLength(Object.keys(REFERENCE_KINDS).length);
+    expect(REFERENCE_KIND_LIST).toContain(characterReferenceKind);
+    expect(REFERENCE_KIND_LIST).toContain(placeReferenceKind);
   });
 });

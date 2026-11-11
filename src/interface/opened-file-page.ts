@@ -36,10 +36,10 @@ function isMarkdownNote(file: OpenedFile): boolean {
 }
 
 class ReferenceRule implements FileRule {
-  readonly page: PageId;
+  constructor(private readonly kind: ReferenceKind) {}
 
-  constructor(private readonly kind: ReferenceKind) {
-    this.page = kind.page;
+  get page(): PageId {
+    return this.kind.page;
   }
 
   matches(file: OpenedFile): boolean {
@@ -47,14 +47,10 @@ class ReferenceRule implements FileRule {
   }
 }
 
-function referenceRuleOf(kind: ReferenceKind): FileRule {
-  return new ReferenceRule(kind);
-}
-
 const FILE_RULES: FileRule[] = [
   { page: "home", matches: isMainNote },
   { page: "cast", matches: isCharactersBase },
-  ...REFERENCE_KIND_LIST.map(referenceRuleOf),
+  ...REFERENCE_KIND_LIST.map((kind) => new ReferenceRule(kind)),
   { page: "notes", matches: isSessionNote },
   { page: "funds", matches: isItemNote },
   { page: "note", matches: isMarkdownNote },
