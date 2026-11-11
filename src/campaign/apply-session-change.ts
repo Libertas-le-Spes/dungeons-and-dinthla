@@ -20,6 +20,13 @@ function rewriteApplied(sessions: SessionNote[], rewrite: Rewrite): ChangedSessi
   return { sessions: changed, linesAsRead: found };
 }
 
+function laterLinesFor(change: LinesChange, path: string): string[] | null {
+  if (change.added === null) return null;
+  const later = change.added.later;
+  if (later === null || later.path !== path) return null;
+  return later.lines;
+}
+
 function linesApplied(sessions: SessionNote[], change: LinesChange): ChangedSessions {
   let found = change.removal === null;
   const changed = sessions.map((session) => {
@@ -30,7 +37,8 @@ function linesApplied(sessions: SessionNote[], change: LinesChange): ChangedSess
       if (removal.removed > 0) found = true;
     }
     if (change.added !== null && change.added.path === session.path) text = appendLines(text, change.added.lines);
-    if (change.added !== null && change.added.later !== null && change.added.later.path === session.path) text = appendLines(text, change.added.later.lines);
+    const later = laterLinesFor(change, session.path);
+    if (later !== null) text = appendLines(text, later);
     return sessionNoteOf(session.path, session.number, text);
   });
   return { sessions: changed, linesAsRead: found };

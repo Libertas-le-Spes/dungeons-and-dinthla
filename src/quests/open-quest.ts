@@ -38,12 +38,12 @@ export function openQuest(
   const wanted = { activePath, earliestSession: latestSessionOfQuest(record, folder), noSession: NO_SESSION };
   const sessionPath = sessionForDialog(gate.files, folder, wanted);
   if (sessionPath === null) return;
-  const writer = new QuestWriter(gate.files);
-  const changes = new SessionChangeWriter(gate.files);
+  const questWriter = new QuestWriter(gate.files);
+  const writer = new SessionChangeWriter(gate.files);
   const latest = () => currentQuest(store.current.quests, record);
   const choices = {
-    save: async (edit: QuestEdit) => writeRecordChange(questSave(store, latest(), edit, sessionPath), changes),
-    delete: () => writer.delete(latest()),
+    save: async (edit: QuestEdit) => writeRecordChange(questSave(store, latest(), edit, sessionPath), writer),
+    delete: () => questWriter.delete(latest()),
   };
   let finishedIn = sessionLabelOf(sessionPath);
   if (record.outcome !== null) finishedIn = sessionLabelOf(record.outcome.source.path);

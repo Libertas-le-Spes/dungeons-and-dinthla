@@ -82,6 +82,7 @@ describe("changing a coin entry", () => {
     const notes = new FakeNotes({ [ONE]: "$ Bought rope for 2 gp\n" });
     const edit = coinEntryEdit(notes.vault, notes, notes.entryAt(0));
     await expect(edit.save(coinLineOf(edit.draft))).rejects.toThrow(CANNOT_SHOW);
+    expect(notes.writes).toBe(0);
   });
 
   it("checks the purse against the notes as read when it saves, not as they were when it opened", async () => {
