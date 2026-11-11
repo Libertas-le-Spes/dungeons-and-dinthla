@@ -1,4 +1,4 @@
-import type { SettingsSaver } from "../settings/settings-saver";
+import type { SettingsSaver } from "../settings/saved/settings-saver";
 
 export type ShowWelcome = () => Promise<void>;
 

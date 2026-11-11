@@ -1,7 +1,7 @@
 import { Notice } from "obsidian";
-import type { FolderChoices } from "../fence/folder-choices";
-import { messageOf } from "../views/message-of";
-import type { CampaignsFolderSetting } from "./campaigns-folder-setting";
+import type { FolderChoices } from "../../fence/folder-choices";
+import { messageOf } from "../../views/message-of";
+import type { CampaignsFolderSetting } from "../saved/campaigns-folder-setting";
 
 export type PickFolder = (folders: string[], chosen: (folder: string) => void) => void;
 

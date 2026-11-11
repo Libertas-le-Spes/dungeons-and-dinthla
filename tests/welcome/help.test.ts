@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import type { PluginSettings } from "../../src/settings/plugin-settings";
-import { SettingsSaver } from "../../src/settings/settings-saver";
+import type { PluginSettings } from "../../src/settings/saved/plugin-settings";
+import { SettingsSaver } from "../../src/settings/saved/settings-saver";
 import { Help, type HelpFiles } from "../../src/welcome/help";
 import type { NewsItem } from "../../src/whats-new/news-item";
 

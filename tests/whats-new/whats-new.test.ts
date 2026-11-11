@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { PluginSettings } from "../../src/settings/plugin-settings";
-import { SettingsSaver } from "../../src/settings/settings-saver";
+import type { PluginSettings } from "../../src/settings/saved/plugin-settings";
+import { SettingsSaver } from "../../src/settings/saved/settings-saver";
 import type { NewsItem } from "../../src/whats-new/news-item";
 import { WhatsNew } from "../../src/whats-new/whats-new";
 
