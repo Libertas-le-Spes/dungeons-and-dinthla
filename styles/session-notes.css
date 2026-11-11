@@ -37,12 +37,11 @@
 }
 
 .dd-session-notes .dd-box-frame {
-  position: relative;
   display: block;
-  isolation: isolate;
 }
 
 .dd-session-notes .dd-box {
+  display: block;
   box-sizing: border-box;
   width: 100%;
   min-height: 180px;

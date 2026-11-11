@@ -5,7 +5,7 @@ import { declarationOf, readStyles } from "./style-files";
 const FILE = "campaign-background.css";
 const FRAME = ".dd-tab-picture .dd-box-frame";
 const PICTURE_LAYER = ".dd-tab-picture .dd-box-frame::before";
-const LIFTED_LAYER = ".theme-light .dd-tab-picture .dd-box-frame::before";
+const DARK_LAYER = ".theme-dark .dd-tab-picture .dd-box-frame::before";
 const TOKEN = /^var\(--([\w-]+)\)$/;
 const FILTER_STEP = /([\w-]+)\(([\d.]+)\)/g;
 
@@ -33,7 +33,7 @@ function numberToken(name: string): number {
   return Number(found[1]);
 }
 
-export function idleOpacity(): number {
+function idleOpacity(): number {
   const token = TOKEN.exec(declared(PICTURE_LAYER, "opacity"));
   if (token === null) throw new Error("The note box picture's opacity is not a token");
   return numberToken(token[1]!);
@@ -53,6 +53,7 @@ function stepped(colour: Colour, step: FilterStep, amount: number): Colour {
 }
 
 function filtered(picture: Colour, filter: string): Colour {
+  if (filter === "none") return picture;
   let shown = picture;
   for (const [, name, amount] of filter.matchAll(FILTER_STEP)) {
     const step = FILTERS[name!];
@@ -63,9 +64,14 @@ function filtered(picture: Colour, filter: string): Colour {
 }
 
 export function noteBoxOver(token: (name: string) => Colour, picture: Colour, dark: boolean): Colour {
-  const panel = panelOver(token, "campaign.css", ".dd-campaign .dd-page-body", picture);
+  const page = panelOver(token, "campaign.css", ".dd-campaign .dd-page-body", picture);
+  const panel = panelOver(token, "session-notes.css", ".dd-session-notes .dd-notes-panel", page);
   const frame = panelOver(token, FILE, FRAME, panel);
-  let shown = picture;
-  if (!dark) shown = filtered(picture, declared(LIFTED_LAYER, "filter"));
+  const shown = filtered(picture, filterIn(dark));
   return over({ ...shown, alpha: idleOpacity() }, frame);
+}
+
+function filterIn(dark: boolean): string {
+  if (dark) return declared(DARK_LAYER, "filter");
+  return declared(PICTURE_LAYER, "filter");
 }
