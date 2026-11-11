@@ -103,6 +103,7 @@ describe("saving a question", () => {
     const notes = new FakeNotes({ [ONE]: "? Whom\n? Whom: sent\n" });
     notes.texts.set(NINE, "");
     await expect(save(notes, "Whom", "sent: y", "", NINE)).rejects.toThrow(ANSWER_GOES_ELSEWHERE);
+    expect(notes.writes).toBe(0);
   });
 
   it("says the answer was written when the follow-up's note couldn't be", async () => {
