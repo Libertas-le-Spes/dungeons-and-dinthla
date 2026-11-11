@@ -1,11 +1,7 @@
 import { Setting, type App } from "obsidian";
 import { isSubmit } from "../views/dialogs/keys";
 import { ChangeDialog } from "../views/dialogs/change-dialog";
-
-export interface NewQuestion {
-  question: string;
-  answer: string;
-}
+import type { NewQuestion } from "./new-question";
 
 export class NewQuestionModal extends ChangeDialog {
   private readonly entry: NewQuestion = { question: "", answer: "" };

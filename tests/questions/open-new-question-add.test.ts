@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { App } from "obsidian";
 import { ANSWER_GOES_ELSEWHERE, SAME_TEXT_AS_EXISTING } from "../../src/questions/current-question";
-import type { NewQuestion } from "../../src/questions/new-question-modal";
+import type { NewQuestion } from "../../src/questions/new-question";
 import { openNewQuestion } from "../../src/questions/open-new-question";
 import { DialogCampaign, lastDialog } from "../campaign/dialog-campaign";
 
