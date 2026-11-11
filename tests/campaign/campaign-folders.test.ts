@@ -9,7 +9,7 @@ import {
   isSessionNote,
   mainNotePathOf,
   charactersBasePathOf,
-  charactersFolderOf,
+  isInReferenceFolder,
   campaignOfCharacter,
   campaignOfItem,
   campaignOfReference,
@@ -98,9 +98,16 @@ describe("mainNotePathOf", () => {
   });
 });
 
-describe("charactersFolderOf", () => {
-  it("is the Characters folder at the campaign's top", () => {
-    expect(charactersFolderOf(PALE_MOON)).toBe("Games/D&D/Pale Moon/Characters");
+describe("isInReferenceFolder", () => {
+  it("holds for a path in the kind's folder of that campaign, or a folder inside it", () => {
+    expect(isInReferenceFolder(characterReferenceKind, PALE_MOON, "Games/D&D/Pale Moon/Characters/Mira.md")).toBe(true);
+    expect(isInReferenceFolder(characterReferenceKind, PALE_MOON, "Games/D&D/Pale Moon/Characters/Villains/Lady Vess.md")).toBe(true);
+  });
+
+  it("doesn't hold for the folder's own note, a folder only named like it, or another campaign", () => {
+    expect(isInReferenceFolder(characterReferenceKind, PALE_MOON, "Games/D&D/Pale Moon/Characters.md")).toBe(false);
+    expect(isInReferenceFolder(characterReferenceKind, PALE_MOON, "Games/D&D/Pale Moon/Characters old/Mira.md")).toBe(false);
+    expect(isInReferenceFolder(characterReferenceKind, PALE_MOON, "Games/D&D/Ashen Road/Characters/Mira.md")).toBe(false);
   });
 });
 

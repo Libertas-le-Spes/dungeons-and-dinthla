@@ -1,6 +1,7 @@
 import { Component } from "obsidian";
 import type { Campaign, Source, SourcedText } from "../campaign/campaign";
-import { charactersFolderOf, mainNotePathOf } from "../campaign/campaign-folders";
+import { isInReferenceFolder, mainNotePathOf } from "../campaign/campaign-folders";
+import { characterReferenceKind } from "../kinds/character-reference-kind";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { latestNumberIsShared, latestSession, SESSIONS_SHARE_A_NUMBER } from "../campaign/session-to-write";
 import type { ThreadRecord } from "../campaign/thread-kind";
@@ -250,7 +251,7 @@ export class DashboardPage extends Component {
   private showsCharacterNote(path: string): boolean {
     const folder = this.store.campaignFolder;
     if (folder === null) return false;
-    return path === mainNotePathOf(folder) || path.startsWith(`${charactersFolderOf(folder)}/`);
+    return path === mainNotePathOf(folder) || isInReferenceFolder(characterReferenceKind, folder, path);
   }
 
   private async renderCharacters(): Promise<void> {

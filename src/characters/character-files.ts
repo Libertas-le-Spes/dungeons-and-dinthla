@@ -1,5 +1,6 @@
 import { normalizePath, type TFile } from "obsidian";
-import { charactersFolderOf } from "../campaign/campaign-folders";
+import { referenceFolderOf } from "../campaign/campaign-folders";
+import { characterReferenceKind } from "../kinds/character-reference-kind";
 import { refusalForFileName } from "../names/file-name";
 import { nameKeyOf } from "../names/name-key";
 import { PartlyWritten } from "../campaign/note-editor";
@@ -40,7 +41,7 @@ function refuseIfAny(refusal: string | null): void {
 
 export async function createCharacter(files: CharacterFiles, campaignFolder: string, entry: CharacterEntry): Promise<TFile | null> {
   if (entry.name === "") return null;
-  const folder = charactersFolderOf(campaignFolder);
+  const folder = referenceFolderOf(characterReferenceKind, campaignFolder);
   refuseIfAny(refusalForName(files, folder, entry.name, null));
   refuseIfAny(refusalForValues(entry));
   if (files.getFolderByPath(folder) === null) await files.createFolder(folder);
