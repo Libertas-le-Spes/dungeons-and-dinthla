@@ -36,7 +36,12 @@
   color: var(--text-muted-ui);
 }
 
+.dd-session-notes .dd-box-frame {
+  display: block;
+}
+
 .dd-session-notes .dd-box {
+  display: block;
   box-sizing: border-box;
   width: 100%;
   min-height: 180px;
