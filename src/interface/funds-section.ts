@@ -2,9 +2,9 @@ import { campaignOfItem } from "../campaign/campaign-folders";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { noteNameOf } from "../campaign/note-name";
 import type { NoteTexts } from "../campaign/note-texts";
-import { FundsPage, type ShownItem } from "../funds/funds-page";
-import { ItemPanel, type OpenItem } from "../funds/item-panel";
-import type { OpenLedgerEntry } from "../funds/open-ledger-entry";
+import { FundsPage, type ShownItem } from "../funds/page/funds-page";
+import { ItemPanel, type OpenItem } from "../funds/item-notes/item-panel";
+import type { OpenLedgerEntry } from "../funds/coins/open-ledger-entry";
 import type { LinkActions } from "../views/lists/linked-text";
 import type { MakePage, ShowPage } from "./campaign-pages";
 
