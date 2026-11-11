@@ -1,5 +1,5 @@
 import type { App, Workspace } from "obsidian";
-import { activePathOf } from "../views/open-view";
+import { activePathOf } from "../views/opening/open-view";
 import { CampaignView } from "./campaign-view";
 
 export function shownCampaignPathOf(workspace: Workspace): string | null {

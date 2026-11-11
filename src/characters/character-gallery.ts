@@ -2,7 +2,7 @@ import type { TFile } from "obsidian";
 import type { SessionNote } from "../campaign/campaign";
 import { campaignFolderOf, campaignNotePathOf } from "../campaign/campaign-folders";
 import type { CampaignStore } from "../campaign/campaign-store";
-import type { LinkActions } from "../views/linked-text";
+import type { LinkActions } from "../views/lists/linked-text";
 import { addCharacterCard, type CharacterCard } from "./character-card";
 import type { CharacterNotes } from "./character-notes";
 import { ownCharacterFirst } from "./own-character-first";

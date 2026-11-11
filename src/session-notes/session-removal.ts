@@ -1,7 +1,7 @@
 import type { NoteTexts } from "../campaign/note-texts";
 import { sessionNoteOf } from "../campaign/session-file";
-import type { ConfirmText, OpenConfirm } from "../views/confirm-modal";
-import { messageOf } from "../views/message-of";
+import type { ConfirmText, OpenConfirm } from "../views/dialogs/confirm-modal";
+import { messageOf } from "../views/dialogs/message-of";
 import type { KeptDrafts } from "./kept-drafts";
 import { clearTextOf, deleteTextOf } from "./removal-texts";
 import type { SessionClearer } from "./session-clearer";

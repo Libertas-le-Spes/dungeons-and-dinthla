@@ -1,11 +1,11 @@
 import type { Campaign, QuestionRecord, Source, SourcedText } from "../campaign/campaign";
 import { questionThreadKind } from "../campaign/question-thread-kind";
 import { questionTrackedKind } from "../kinds/question-tracked-kind";
-import type { LineState } from "../views/line-state";
-import type { ShownThreadKind } from "../views/shown-thread-kind";
-import type { ThreadFact } from "../views/thread-fact";
-import type { EndedLook } from "../views/thread-look";
-import type { ThreadOpeners } from "../views/thread-openers";
+import type { LineState } from "../views/lists/line-state";
+import type { ShownThreadKind } from "../views/threads/shown-thread-kind";
+import type { ThreadFact } from "../views/threads/thread-fact";
+import type { EndedLook } from "../views/threads/thread-look";
+import type { ThreadOpeners } from "../views/threads/thread-openers";
 
 const MARK_CLASS = "dd-mark-question";
 const ANSWERED: LineState = { sign: "✓", label: "Answered", struck: false };

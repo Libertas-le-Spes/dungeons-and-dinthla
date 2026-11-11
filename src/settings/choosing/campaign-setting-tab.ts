@@ -3,7 +3,7 @@ import { backgroundOf, chooseWash, choosePicture, isPicture, removePicture, wash
 import { campaignNameOf, mainNotePathOf, NO_CAMPAIGN } from "../../campaign/campaign-folders";
 import { NO_CAMPAIGNS_FOLDER } from "../../fence/campaigns-folder-path";
 import type { Gate } from "../../fence/gatekeeper";
-import { messageOf } from "../../views/message-of";
+import { messageOf } from "../../views/dialogs/message-of";
 import type { CampaignsFolderSetup } from "./campaigns-folder-setup";
 import { PictureSuggestModal } from "./picture-suggest-modal";
 

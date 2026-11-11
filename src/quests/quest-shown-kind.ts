@@ -1,11 +1,11 @@
 import type { Campaign, QuestOutcome, QuestRecord, QuestStatus, Source } from "../campaign/campaign";
 import { questThreadKind } from "../campaign/quest-thread-kind";
 import { questTrackedKind } from "../kinds/quest-tracked-kind";
-import type { LineState } from "../views/line-state";
-import type { ShownThreadKind } from "../views/shown-thread-kind";
-import type { ThreadFact } from "../views/thread-fact";
-import type { EndedLook } from "../views/thread-look";
-import type { ThreadOpeners } from "../views/thread-openers";
+import type { LineState } from "../views/lists/line-state";
+import type { ShownThreadKind } from "../views/threads/shown-thread-kind";
+import type { ThreadFact } from "../views/threads/thread-fact";
+import type { EndedLook } from "../views/threads/thread-look";
+import type { ThreadOpeners } from "../views/threads/thread-openers";
 
 const MARK_CLASS = "dd-mark-quest";
 const COMPLETED: LineState = { sign: "✓", label: "Completed", struck: false };

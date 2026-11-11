@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { TFile } from "obsidian";
 import type { MentionNotes } from "../../src/characters/mention-notes";
 import { couldNotReadMentions, IN_THE_NOTES, MentionsPanel, noMentions } from "../../src/characters/mentions-panel";
-import type { LinkActions } from "../../src/views/linked-text";
+import type { LinkActions } from "../../src/views/lists/linked-text";
 import { obsidianDocument } from "../views/obsidian-dom";
 
 const waiting = vi.hoisted(() => ({ calls: [] as (() => void)[] }));

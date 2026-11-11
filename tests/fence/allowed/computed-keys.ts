@@ -25,5 +25,5 @@ export const COMPUTED_KEY_READERS = [
   "session-notes/kept-time.ts",
   "session-notes/lookup-list.ts",
   "sessions/played-date.ts",
-  "views/note-in-campaign.ts",
+  "views/opening/note-in-campaign.ts",
 ];

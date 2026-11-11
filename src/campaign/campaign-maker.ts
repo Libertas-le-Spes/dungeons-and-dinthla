@@ -1,6 +1,6 @@
 import { Notice } from "obsidian";
 import type { ReadCampaignsFolder } from "../fence/fence";
-import { messageOf } from "../views/message-of";
+import { messageOf } from "../views/dialogs/message-of";
 import { makeCampaign, type NewCampaignFiles } from "./make-campaign";
 
 export type ChooseCampaign = (folder: string) => Promise<void>;

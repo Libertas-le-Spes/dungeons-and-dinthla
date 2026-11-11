@@ -1,5 +1,5 @@
 import { formatMoney } from "../notes/money";
-import { addLinkedText, addRowButton, type LinkActions } from "../views/linked-text";
+import { addLinkedText, addRowButton, type LinkActions } from "../views/lists/linked-text";
 import type { LedgerLine } from "./funds-summary";
 
 export const NO_COIN_ENTRIES = "No coin entries yet.";

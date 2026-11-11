@@ -1,6 +1,6 @@
 import { addCardButton, type CharacterCard } from "../characters/character-card";
 import { addStatBlockLine, addStatValue, startStatBlock } from "../characters/stat-block";
-import type { LinkActions } from "../views/linked-text";
+import type { LinkActions } from "../views/lists/linked-text";
 
 const SHORT_CARD_LINES = [
   { label: "Class", name: "class" },
