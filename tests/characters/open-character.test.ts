@@ -82,7 +82,6 @@ describe("openNewCharacter", () => {
   });
 });
 
-
 describe("openEditCharacter", () => {
   it("shows what the sessions taught about the character, and that links follow only with Obsidian's setting on", async () => {
     const sessions = [{ path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: "[[Mira]] speed: 30 ft.\n[[Vess]] type: fiend\n" }];

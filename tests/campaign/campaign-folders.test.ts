@@ -10,7 +10,6 @@ import {
   mainNotePathOf,
   charactersBasePathOf,
   isInReferenceFolder,
-  campaignOfCharacter,
   campaignOfItem,
   campaignOfReference,
   referenceFolderOf,
@@ -117,28 +116,28 @@ describe("charactersBasePathOf", () => {
   });
 });
 
-describe("campaignOfCharacter", () => {
+describe("campaignOfReference, for a character", () => {
   const folders = [ASHEN_ROAD, PALE_MOON];
 
   it("is the campaign of a Markdown note in its Characters folder, or a folder inside it", () => {
-    expect(campaignOfCharacter("Games/D&D/Pale Moon/Characters/Mira.md", folders)).toBe(PALE_MOON);
-    expect(campaignOfCharacter("Games/D&D/Ashen Road/Characters/Villains/Lady Vess.md", folders)).toBe(ASHEN_ROAD);
+    expect(campaignOfReference(characterReferenceKind, "Games/D&D/Pale Moon/Characters/Mira.md", folders)).toBe(PALE_MOON);
+    expect(campaignOfReference(characterReferenceKind, "Games/D&D/Ashen Road/Characters/Villains/Lady Vess.md", folders)).toBe(ASHEN_ROAD);
   });
 
   it("is nothing for another file in the Characters folder", () => {
-    expect(campaignOfCharacter("Games/D&D/Pale Moon/Characters/Mira.png", folders)).toBeNull();
+    expect(campaignOfReference(characterReferenceKind, "Games/D&D/Pale Moon/Characters/Mira.png", folders)).toBeNull();
   });
 
   it("is nothing for a note elsewhere in the campaign, or in a folder only named like Characters", () => {
-    expect(campaignOfCharacter("Games/D&D/Pale Moon/Sessions/Session 1.md", folders)).toBeNull();
-    expect(campaignOfCharacter("Games/D&D/Pale Moon/Characters.md", folders)).toBeNull();
-    expect(campaignOfCharacter("Games/D&D/Pale Moon/Characters.base", folders)).toBeNull();
-    expect(campaignOfCharacter("Games/D&D/Pale Moon/Characters old/Mira.md", folders)).toBeNull();
+    expect(campaignOfReference(characterReferenceKind, "Games/D&D/Pale Moon/Sessions/Session 1.md", folders)).toBeNull();
+    expect(campaignOfReference(characterReferenceKind, "Games/D&D/Pale Moon/Characters.md", folders)).toBeNull();
+    expect(campaignOfReference(characterReferenceKind, "Games/D&D/Pale Moon/Characters.base", folders)).toBeNull();
+    expect(campaignOfReference(characterReferenceKind, "Games/D&D/Pale Moon/Characters old/Mira.md", folders)).toBeNull();
   });
 
   it("is nothing for a Characters folder of a folder that isn't a campaign", () => {
-    expect(campaignOfCharacter("Games/D&D/Gilded Stag/Characters/Mira.md", folders)).toBeNull();
-    expect(campaignOfCharacter("Pale Moon/Characters/Mira.md", folders)).toBeNull();
+    expect(campaignOfReference(characterReferenceKind, "Games/D&D/Gilded Stag/Characters/Mira.md", folders)).toBeNull();
+    expect(campaignOfReference(characterReferenceKind, "Pale Moon/Characters/Mira.md", folders)).toBeNull();
   });
 });
 
