@@ -61,3 +61,12 @@ export function backgroundOf(file: string, selector: string): string | null {
   }
   return null;
 }
+
+export function declarationOf(file: string, selector: string, property: string): string | null {
+  for (const [, ruleSelector, body] of readStyles(file).matchAll(/([^{}]+)\{([^}]*)\}/g)) {
+    if (ruleSelector!.trim() !== selector) continue;
+    const value = declaredIn(body!, property);
+    if (value !== null) return value;
+  }
+  return null;
+}
