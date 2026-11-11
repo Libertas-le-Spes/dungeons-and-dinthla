@@ -1,4 +1,4 @@
-import type { DraftListener, Drafts } from "../session-notes/drafts";
+import type { DraftListener, Drafts } from "../session-notes/drafts/drafts";
 
 export interface NoteDraft {
   base: string;

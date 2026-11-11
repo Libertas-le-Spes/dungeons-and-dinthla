@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { Drafts } from "../../src/session-notes/drafts";
+import { Drafts } from "../../src/session-notes/drafts/drafts";
 import { NoteDrafts } from "../../src/note-editing/note-drafts";
 
 const OLD_MILL = "Pale Moon/Places/Old Mill.md";
