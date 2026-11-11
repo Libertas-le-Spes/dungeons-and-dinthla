@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ALL_ALLOWED, isAlwaysAllowed, LOOSE_CASTS_ALLOWED, NOTHING_ALLOWED } from "../scan/running/allowance-sets";
-import { SampleScan } from "../scan/running/sample-scan";
+import { numberedFileNames, SampleScan } from "../scan/running/sample-scan";
 import {
   CAST_SAMPLES,
   CONSTRUCTOR_SAMPLES,
@@ -22,7 +22,7 @@ const SAMPLES = [...REACHING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES
 let scan: SampleScan;
 
 beforeAll(() => {
-  scan = new SampleScan("vault-access", SAMPLES);
+  scan = new SampleScan("vault-access", SAMPLES, numberedFileNames(SAMPLES));
 });
 
 afterAll(() => {

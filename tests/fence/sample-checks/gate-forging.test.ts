@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ALL_ALLOWED } from "../scan/running/allowance-sets";
-import { SampleScan } from "../scan/running/sample-scan";
+import { numberedFileNames, SampleScan } from "../scan/running/sample-scan";
 import { FILE_CHANGING_SAMPLES, GATE_FORGING_SAMPLES, GATE_KEEPING_SAMPLES, GATE_PLACING_SAMPLES, GATE_SHAPING_SAMPLES } from "../samples/gate-forging-samples";
 
 const SAMPLES = [...GATE_FORGING_SAMPLES, ...GATE_PLACING_SAMPLES, ...GATE_SHAPING_SAMPLES, ...GATE_KEEPING_SAMPLES, ...FILE_CHANGING_SAMPLES];
@@ -8,7 +8,7 @@ const SAMPLES = [...GATE_FORGING_SAMPLES, ...GATE_PLACING_SAMPLES, ...GATE_SHAPI
 let scan: SampleScan;
 
 beforeAll(() => {
-  scan = new SampleScan("gate-forging", SAMPLES);
+  scan = new SampleScan("gate-forging", SAMPLES, numberedFileNames(SAMPLES));
 });
 
 afterAll(() => {

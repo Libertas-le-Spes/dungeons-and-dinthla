@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ALL_ALLOWED, isNeverAllowed } from "../scan/running/allowance-sets";
-import { SampleScan } from "../scan/running/sample-scan";
+import { numberedFileNames, SampleScan } from "../scan/running/sample-scan";
 import { HARMLESS_EVENT_SAMPLES, NOTE_EVENT_SAMPLES, UNREAD_EVENT_SAMPLES } from "../samples/workspace-event-samples";
 
 const SAMPLES = [...NOTE_EVENT_SAMPLES, ...UNREAD_EVENT_SAMPLES, ...HARMLESS_EVENT_SAMPLES];
@@ -8,7 +8,7 @@ const SAMPLES = [...NOTE_EVENT_SAMPLES, ...UNREAD_EVENT_SAMPLES, ...HARMLESS_EVE
 let scan: SampleScan;
 
 beforeAll(() => {
-  scan = new SampleScan("workspace-events", SAMPLES);
+  scan = new SampleScan("workspace-events", SAMPLES, numberedFileNames(SAMPLES));
 });
 
 afterAll(() => {

@@ -3,7 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { OPTION_DEPENDENT_SAMPLES, OPTION_FREE_SAMPLE } from "../../samples/compiler-option-samples";
 import { ROOT, VIRTUAL_FOLDER } from "../reading/scan-paths";
 import { ALL_ALLOWED } from "./allowance-sets";
-import { extendsRootConfig, SampleScan } from "./sample-scan";
+import { extendsRootConfig, numberedFileNames, SampleScan } from "./sample-scan";
 import { SourceScanner } from "./source-scanner";
 import { virtualFileSystem } from "./virtual-files";
 
@@ -21,7 +21,7 @@ describe("a sample scan, from a family folder at each depth", () => {
   const scans = new Map<string, SampleScan>();
 
   beforeAll(() => {
-    for (const family of FAMILIES) scans.set(family, new SampleScan(family, SAMPLES));
+    for (const family of FAMILIES) scans.set(family, new SampleScan(family, SAMPLES, numberedFileNames(SAMPLES)));
   });
 
   afterAll(() => {

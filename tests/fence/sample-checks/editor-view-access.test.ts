@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ALL_ALLOWED, LOOSE_CASTS_ALLOWED } from "../scan/running/allowance-sets";
-import { SampleScan } from "../scan/running/sample-scan";
+import { numberedFileNames, SampleScan } from "../scan/running/sample-scan";
 import { CODE_MIRROR_SAMPLES, NOTE_READING_SAMPLES, READING_SAMPLES, VIEW_TEXT_SAMPLES, WRITE_NAME_SAMPLES, WRITING_SAMPLES } from "../samples/editor-view-samples";
 
 const SAMPLES = [...WRITING_SAMPLES, ...WRITE_NAME_SAMPLES, ...READING_SAMPLES, ...NOTE_READING_SAMPLES, ...VIEW_TEXT_SAMPLES, ...CODE_MIRROR_SAMPLES];
@@ -8,7 +8,7 @@ const SAMPLES = [...WRITING_SAMPLES, ...WRITE_NAME_SAMPLES, ...READING_SAMPLES, 
 let scan: SampleScan;
 
 beforeAll(() => {
-  scan = new SampleScan("editor-view", SAMPLES);
+  scan = new SampleScan("editor-view", SAMPLES, numberedFileNames(SAMPLES));
 });
 
 afterAll(() => {
