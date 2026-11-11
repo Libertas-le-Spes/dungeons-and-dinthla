@@ -4,7 +4,7 @@ import type { CampaignStore } from "../../../src/campaign/reading/campaign-store
 import { FundsPage } from "../../../src/funds/page/funds-page";
 import { CLOSE_ITEM, EDIT_NOTE } from "../../../src/funds/item-notes/item-panel";
 import { fundsSection } from "../../../src/interface/sections/funds-section";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 const LANTERN = "Pale Moon/Items/Silvered lantern.md";
 

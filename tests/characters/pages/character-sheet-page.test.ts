@@ -6,7 +6,7 @@ import type { SheetValue } from "../../../src/characters/reading/character-sheet
 import type { CarriedFrom, SheetNotes } from "../../../src/characters/reading/sheet-notes";
 import type { MentionNotes } from "../../../src/characters/reading/mention-notes";
 import { IN_THE_NOTES } from "../../../src/characters/pages/mentions-panel";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 function fileAt(path: string): TFile {
   return { path, basename: path.slice(path.lastIndexOf("/") + 1, -3) } as TFile;

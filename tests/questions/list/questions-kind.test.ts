@@ -3,7 +3,7 @@ import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { questionsKind } from "../../../src/questions/list/questions-kind";
 import { ListPage } from "../../../src/views/lists/list-page";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 function openQuestions(lines: string[]): HTMLElement {
   const campaign = buildCampaign([{ path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: lines.join("\n") }]);

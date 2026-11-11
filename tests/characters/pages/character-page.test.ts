@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { Component, type TFile } from "obsidian";
 import { ALL_CHARACTERS, CharacterPage } from "../../../src/characters/pages/character-page";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 const MIRA = { path: "Pale Moon/Characters/Mira.md", basename: "Mira" } as TFile;
 

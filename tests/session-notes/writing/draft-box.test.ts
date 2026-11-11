@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DraftBox } from "../../../src/session-notes/writing/draft-box";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 function nothing(): void {}
 

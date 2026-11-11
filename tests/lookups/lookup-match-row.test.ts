@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { LookupMatch } from "../../src/lookups/lookup";
 import { addLookupMatch } from "../../src/lookups/lookup-match-row";
-import { obsidianDocument } from "../views/obsidian-dom";
+import { obsidianDocument } from "../stubs/obsidian-dom";
 
 const SOURCE = { path: "Pale Moon/Sessions/Session 1.md", line: 0 };
 

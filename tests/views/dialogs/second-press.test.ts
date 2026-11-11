@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ButtonComponent as ObsidianButton } from "obsidian";
 import { CONFIRM_MS, deleteOnSecondPress, PRESS_AGAIN, SecondPress } from "../../../src/views/dialogs/second-press";
 import { ButtonComponent } from "../../stubs/obsidian";
-import { obsidianDocument } from "../obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 function pressed() {
   const shown: boolean[] = [];

@@ -5,7 +5,7 @@ import { NoteDrafts } from "../../../src/note-editing/note-drafts";
 import { NotePage } from "../../../src/note-page/note-page";
 import type { NoteSaver } from "../../../src/note-editing/note-saver";
 import { Drafts } from "../../../src/session-notes/drafts/drafts";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 function made(path: string | null) {
   const texts = { read: vi.fn(async () => "The wheel turns."), onChanged: () => () => {}, onGone: () => () => {} };

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { CachedMetadata, EventRef, TFile } from "obsidian";
 import { TabBackground, type TabCampaign, type TabMetadata, type TabFiles } from "../../../src/interface/view/tab-background";
 import { pictureOf } from "../../campaign/shown-picture";
-import { obsidianDocument } from "../../views/obsidian-dom";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 type Listener = (file: { path: string }) => void;
 

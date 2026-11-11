@@ -27,6 +27,16 @@ Every count a pull request states comes from a command, not from counting by han
 
 Four pull requests in the folder-move series stated a count that was short or a list that was wrong, and a reviewer had to put each right; a wrong number reads as a proof that wasn't run.
 
+## Moving files
+
+A type check (`tsc --noEmit`) proves the imports and nothing else. After a move, look for what it cannot see:
+
+- **String paths.** A path inside a string is only text to it: the strings in allow-lists and in scanner samples, `vi.mock("…")`, and the folders named in docs.
+- **Anything computed from `import.meta.url` or a count of folders up.** `new URL("../..", import.meta.url)` is a different folder one level deeper, and nothing fails to compile.
+- **A rule that reads a folder flat.** A check that lists a folder's entries and reads each as a file sees nothing, or fails, once the files sit in subfolders.
+
+A script that moves files and rewrites their imports (a mover) also rewrites anything that looks like `from "./x"` inside **string fixtures**, such as a planted project held as a string in a test. When proving a move changed only paths, compare with only the real imports and the `vi.mock(…)` and `import(…)` calls set aside. Do not blank every relative-path string literal first: that hides this mistake. Then run the whole suite, since the tests are what find the rest, and take out one allow-list entry or guard path once to watch a test fail, since a path that went stale makes a guard stop guarding without a word.
+
 ## Before merging
 
 1. Fresh reviewers who know only the pull request go over it, split into security, architecture and readability, and tests and docs. Their findings are checked against the code, then fixed and proven.
