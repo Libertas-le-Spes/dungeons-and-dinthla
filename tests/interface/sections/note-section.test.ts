@@ -4,7 +4,7 @@ import { NoNotePage } from "../../../src/note-page/no-note-page";
 import { NoteDrafts } from "../../../src/note-editing/note-drafts";
 import { NotePage } from "../../../src/note-page/note-page";
 import type { NoteSaver } from "../../../src/note-editing/note-saver";
-import { Drafts } from "../../../src/session-notes/drafts";
+import { Drafts } from "../../../src/session-notes/drafts/drafts";
 import { obsidianDocument } from "../../views/obsidian-dom";
 
 function made(path: string | null) {
