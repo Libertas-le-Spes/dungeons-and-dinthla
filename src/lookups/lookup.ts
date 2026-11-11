@@ -9,10 +9,10 @@ import { symbolPatternOf } from "../kinds/symbol-pattern";
 import type { TrackedKindName } from "../kinds/tracked-kind";
 import { readItemChange } from "../notes/item-change";
 import { unlink } from "../notes/link";
-import { keywordsOf } from "../views/keywords";
-import type { ShownThreadKind } from "../views/shown-thread-kind";
-import { SHOWN_THREAD_KINDS } from "../views/shown-thread-kinds";
-import { listThreads } from "../views/thread-list";
+import { keywordsOf } from "../views/lists/keywords";
+import type { ShownThreadKind } from "../views/threads/shown-thread-kind";
+import { SHOWN_THREAD_KINDS } from "../views/threads/shown-thread-kinds";
+import { listThreads } from "../views/threads/thread-list";
 
 export interface Lookup {
   kind: LookupKindName;

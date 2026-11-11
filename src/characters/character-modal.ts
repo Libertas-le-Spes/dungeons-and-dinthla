@@ -1,9 +1,9 @@
 import { Setting, type App, type ButtonComponent } from "obsidian";
 import { CHANGED_IN_NOTE, PartlyWritten } from "../campaign/note-editor";
-import { isSubmit } from "../views/keys";
-import { messageOf } from "../views/message-of";
-import { SecondPress } from "../views/second-press";
-import { ChangeDialog } from "../views/change-dialog";
+import { isSubmit } from "../views/dialogs/keys";
+import { messageOf } from "../views/dialogs/message-of";
+import { SecondPress } from "../views/dialogs/second-press";
+import { ChangeDialog } from "../views/dialogs/change-dialog";
 import { NOTE_MOVED } from "./character-files";
 import { ENTRY_FIELDS, trimmedEntry, type CharacterEntry, type EntryFact, type Learned } from "./character-entry";
 

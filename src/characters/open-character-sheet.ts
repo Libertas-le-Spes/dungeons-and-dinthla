@@ -3,7 +3,7 @@ import type { Source } from "../campaign/campaign";
 import { CHANGED_IN_NOTE } from "../campaign/note-editor";
 import { sessionLabelOf } from "../campaign/session-file";
 import { latestSessionWanted, NoSessionToWrite, sessionToWrite } from "../campaign/session-to-write";
-import { messageOf } from "../views/message-of";
+import { messageOf } from "../views/dialogs/message-of";
 import { sameName } from "./character-entry";
 import type { SheetValue, StatedValue } from "./character-sheet";
 import { readCharacterSheet, type ReadSheet, type SheetStore } from "./read-character-sheet";

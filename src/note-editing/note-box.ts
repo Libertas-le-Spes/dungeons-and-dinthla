@@ -1,5 +1,5 @@
-import { isSubmit } from "../views/keys";
-import { SecondPress } from "../views/second-press";
+import { isSubmit } from "../views/dialogs/keys";
+import { SecondPress } from "../views/dialogs/second-press";
 
 const LABEL = "The note's text";
 const SAVE_HINT = "Ctrl + Enter saves";

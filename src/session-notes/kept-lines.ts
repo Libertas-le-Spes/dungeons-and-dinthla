@@ -1,5 +1,5 @@
 import { sessionLabelOf } from "../campaign/session-file";
-import { SecondPress } from "../views/second-press";
+import { SecondPress } from "../views/dialogs/second-press";
 import type { Drafts } from "./drafts";
 import type { KeptDraft, KeptDrafts } from "./kept-drafts";
 import type { KeptKind } from "./kept-kind";

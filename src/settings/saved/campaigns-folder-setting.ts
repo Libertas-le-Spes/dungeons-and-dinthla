@@ -1,6 +1,6 @@
 import { Notice } from "obsidian";
 import { isInConfigFolder, NOT_THE_CONFIG_FOLDER, refusalForCampaignsFolder } from "../../fence/campaigns-folder-path";
-import { messageOf } from "../../views/message-of";
+import { messageOf } from "../../views/dialogs/message-of";
 import type { PluginSettings } from "./plugin-settings";
 import type { SettingsChange, SettingsSaver } from "./settings-saver";
 

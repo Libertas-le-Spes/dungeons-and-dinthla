@@ -1,6 +1,6 @@
 import { Component } from "obsidian";
 import { noteNameOf } from "../campaign/note-name";
-import type { LinkActions } from "../views/linked-text";
+import type { LinkActions } from "../views/lists/linked-text";
 import { LeftCampaign } from "./left-campaign";
 import { NoteEditing, type NoteEditingNeeds } from "../note-editing/note-editing";
 import { NoteLinks } from "./note-links";

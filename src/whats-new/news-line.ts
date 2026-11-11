@@ -1,5 +1,5 @@
 import { Component, Notice } from "obsidian";
-import { messageOf } from "../views/message-of";
+import { messageOf } from "../views/dialogs/message-of";
 import type { ShowPage } from "../interface/campaign-pages";
 import type { News, NewsItem } from "./news-item";
 

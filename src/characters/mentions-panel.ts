@@ -1,6 +1,6 @@
 import { debounce, type Debouncer, type TFile } from "obsidian";
-import { addLinkedText, addRowButton, type LinkActions } from "../views/linked-text";
-import { messageOf } from "../views/message-of";
+import { addLinkedText, addRowButton, type LinkActions } from "../views/lists/linked-text";
+import { messageOf } from "../views/dialogs/message-of";
 import type { MentionNotes } from "./mention-notes";
 import { readMentions, type Mention } from "./mentions";
 

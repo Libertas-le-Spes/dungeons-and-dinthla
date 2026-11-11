@@ -8,7 +8,7 @@ import { CharacterSheetPage, type SheetActions } from "../characters/character-s
 import type { CharacterNotes } from "../characters/character-notes";
 import type { MentionNotes } from "../characters/mention-notes";
 import type { SheetNotes } from "../characters/sheet-notes";
-import type { LinkActions } from "../views/linked-text";
+import type { LinkActions } from "../views/lists/linked-text";
 import type { MakePage, ShowPage } from "./campaign-pages";
 
 export interface CastNeeds {

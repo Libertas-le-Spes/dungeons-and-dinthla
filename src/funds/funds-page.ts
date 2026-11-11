@@ -1,9 +1,9 @@
-import { ITEM_ROWS } from "../views/row-keys";
+import { ITEM_ROWS } from "../views/lists/row-keys";
 import { Component } from "obsidian";
 import { isItemNamed } from "./item-of-note";
 import type { CampaignStore } from "../campaign/campaign-store";
 import { formatMoney } from "../notes/money";
-import { addNameLink, addRowButton, type LinkActions } from "../views/linked-text";
+import { addNameLink, addRowButton, type LinkActions } from "../views/lists/linked-text";
 import type { ItemEventKind, ItemRecord, Source } from "../campaign/campaign";
 import { sessionLabelOf } from "../campaign/session-file";
 import { summariseFunds, type CoinCount, type FundsSummary, type LedgerLine } from "./funds-summary";
@@ -11,7 +11,7 @@ import { summariseItems, THE_PARTY_LABEL, type ItemSummary } from "./item-groups
 import type { CoinOutcome } from "./coin-modal";
 import { addLedgerRow, NO_COIN_ENTRIES } from "./ledger-row";
 import type { OpenLedgerEntry } from "./open-ledger-entry";
-import { focusRowAt, NO_ROW, RowFocus } from "../views/row-focus";
+import { focusRowAt, NO_ROW, RowFocus } from "../views/lists/row-focus";
 
 const HOW_LINES_ARE_READ =
   "A $ line with an amount is coin; without one, it is an item. An amount is money out when it has a minus sign, or when “paid”, “spent”, “bought”, “gave” or “lost” comes before it with no comma between. A plus sign keeps it in.";

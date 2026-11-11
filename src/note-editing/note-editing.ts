@@ -1,5 +1,5 @@
 import type { NoteTexts } from "../campaign/note-texts";
-import { messageOf } from "../views/message-of";
+import { messageOf } from "../views/dialogs/message-of";
 import { NoteBox } from "./note-box";
 import type { NoteDraft, NoteDrafts } from "./note-drafts";
 import { NoteChangedSince, type NoteSaver } from "./note-saver";

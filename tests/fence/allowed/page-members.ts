@@ -31,11 +31,11 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "session-notes/session-picker.ts": ["addEventListener", "value"],
   "session-notes/writing-panel.ts": ["addEventListener", "setSelectionRange"],
   "sessions/new-session-modal.ts": ["addEventListener", "focus", "key", "preventDefault", "type"],
-  "views/confirm-modal.ts": ["addEventListener", "focus"],
-  "views/keys.ts": ["ctrlKey", "isComposing", "key", "metaKey"],
-  "views/linked-text.ts": ["addEventListener", "button", "key", "preventDefault", "stopPropagation", "target"],
-  "views/list-page.ts": ["focus", "value"],
-  "views/row-focus.ts": ["closest", "focus", "open", "querySelectorAll"],
+  "views/dialogs/confirm-modal.ts": ["addEventListener", "focus"],
+  "views/dialogs/keys.ts": ["ctrlKey", "isComposing", "key", "metaKey"],
+  "views/lists/linked-text.ts": ["addEventListener", "button", "key", "preventDefault", "stopPropagation", "target"],
+  "views/lists/list-page.ts": ["focus", "value"],
+  "views/lists/row-focus.ts": ["closest", "focus", "open", "querySelectorAll"],
   "welcome/endings/name-form.ts": ["disabled", "preventDefault", "value"],
 };
 

@@ -1,4 +1,4 @@
-import { messageOf } from "../views/message-of";
+import { messageOf } from "../views/dialogs/message-of";
 import { NoteEditor, PartlyWritten, type EditorFiles, type Removal } from "./note-editor";
 import type { AddedLines, LaterLines, LinesChange, SessionChange } from "./session-change";
 

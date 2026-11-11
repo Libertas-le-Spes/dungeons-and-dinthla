@@ -1,6 +1,6 @@
 import { Setting, type App } from "obsidian";
-import { isSubmit } from "../views/keys";
-import { ChangeDialog } from "../views/change-dialog";
+import { isSubmit } from "../views/dialogs/keys";
+import { ChangeDialog } from "../views/dialogs/change-dialog";
 
 export interface NewQuestion {
   question: string;

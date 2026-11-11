@@ -1,10 +1,10 @@
 import type { Campaign, Source, SourcedText } from "../campaign/campaign";
 import type { ThreadRecord } from "../campaign/thread-kind";
 import type { FollowUpName } from "../kinds/follow-up-name";
-import type { LineState } from "../views/line-state";
-import type { ShownThreadKind } from "../views/shown-thread-kind";
-import { SHOWN_THREAD_KINDS } from "../views/shown-thread-kinds";
-import { threadStateOf } from "../views/thread-state";
+import type { LineState } from "../views/lists/line-state";
+import type { ShownThreadKind } from "../views/threads/shown-thread-kind";
+import { SHOWN_THREAD_KINDS } from "../views/threads/shown-thread-kinds";
+import { threadStateOf } from "../views/threads/thread-state";
 
 type ReadState = (campaign: Campaign, source: Source) => LineState | null;
 

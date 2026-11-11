@@ -1,9 +1,9 @@
-import { choiceOf } from "../views/choice-of";
+import { choiceOf } from "../views/dialogs/choice-of";
 import { Setting, type App } from "obsidian";
 import type { ItemRecord, Source } from "../campaign/campaign";
-import { isSubmit } from "../views/keys";
-import { messageOf } from "../views/message-of";
-import { RecordChangeDialog } from "../views/record-change-dialog";
+import { isSubmit } from "../views/dialogs/keys";
+import { messageOf } from "../views/dialogs/message-of";
+import { RecordChangeDialog } from "../views/dialogs/record-change-dialog";
 import { holderNameOf } from "./item-groups";
 import { GONE_LINE_SAYS_MORE, type HolderOption, type ItemEdit, type ItemStatus } from "./item-plan";
 import { ITEM_STATUSES, STATUS_WORDS } from "./status-words";
