@@ -1,0 +1,119 @@
+import { choiceOf } from "../../views/dialogs/choice-of";
+import { Setting, type App, type TextAreaComponent } from "obsidian";
+import type { QuestRecord } from "../../campaign/record/campaign";
+import { isSubmit } from "../../views/dialogs/keys";
+import { deleteOnSecondPress } from "../../views/dialogs/second-press";
+import { RecordChangeDialog } from "../../views/dialogs/record-change-dialog";
+import { initialQuestEdit, type QuestEdit, type QuestStatusChoice } from "../writing/quest-plan";
+
+export interface QuestChoices {
+  save(edit: QuestEdit): Promise<boolean>;
+  delete(): Promise<boolean>;
+}
+
+export interface QuestPlaces {
+  givenIn: string;
+  finishedIn: string;
+  writesTo: string;
+}
+
+const STATUS_WORDS: Record<QuestStatusChoice, string> = { active: "Active", completed: "Completed", failed: "Abandoned" };
+
+const STATUS_CHOICES: QuestStatusChoice[] = ["active", "completed", "failed"];
+
+const FAILURE = "Couldn't change the quest";
+
+function factsOf(record: QuestRecord): string {
+  const facts: string[] = [];
+  if (record.quest.givenBy !== undefined) facts.push(`From ${record.quest.givenBy}`);
+  if (record.quest.reward !== undefined) facts.push(`Reward ${record.quest.reward}`);
+  return facts.join(" · ");
+}
+
+export class QuestModal extends RecordChangeDialog {
+  private readonly edit: QuestEdit;
+  private rewardRow: HTMLElement | null = null;
+  private happenedArea: TextAreaComponent | null = null;
+
+  constructor(
+    app: App,
+    private readonly record: QuestRecord,
+    private readonly places: QuestPlaces,
+    private readonly canCollectReward: boolean,
+    private readonly choices: QuestChoices,
+    onClosed: (changed: boolean) => void,
+  ) {
+    super(app, onClosed);
+    this.edit = initialQuestEdit(record);
+  }
+
+  override onOpen(): void {
+    const { contentEl } = this;
+    this.setTitle("Quest");
+    contentEl.addClass("dd-tokens", "dd-dialog");
+    contentEl.createEl("p", { cls: "dd-subject", text: this.record.quest.title });
+    const facts = factsOf(this.record);
+    if (facts !== "") contentEl.createEl("p", { cls: "dd-detail", text: facts });
+    contentEl.createEl("p", { cls: "dd-detail", text: `Given in ${this.places.givenIn}` });
+    new Setting(contentEl).setName("Status").addDropdown((dropdown) => {
+      for (const [value, word] of Object.entries(STATUS_WORDS)) dropdown.addOption(value, word);
+      dropdown.setValue(this.edit.status).onChange((value) => {
+        const status = choiceOf(STATUS_CHOICES, value);
+        if (status === undefined) return;
+        this.edit.status = status;
+        if (this.edit.status === "active" && this.happenedArea !== null) {
+          this.happenedArea.setValue("");
+          this.edit.happened = "";
+        }
+        this.showRewardRow();
+      });
+      dropdown.selectEl.focus();
+    });
+    new Setting(contentEl).setName("What happened (optional)").addTextArea((area) => {
+      area.setPlaceholder("Found it under the Old Mill; [[Mira]] took the lead").setValue(this.edit.happened).onChange((value) => {
+        this.edit.happened = value;
+      });
+      this.happenedArea = area;
+      area.inputEl.setAttr("aria-label", "What happened");
+      area.inputEl.addEventListener("keydown", (event) => {
+        if (!isSubmit(event, true)) return;
+        event.preventDefault();
+        this.runChange(() => this.choices.save(this.edit), FAILURE);
+      });
+    });
+    if (this.canCollectReward) {
+      const reward = new Setting(contentEl).setName(`Reward collected: add ${this.record.quest.reward} to the party funds`).addToggle((toggle) => {
+        toggle.setValue(this.edit.collectReward).onChange((value) => {
+          this.edit.collectReward = value;
+        });
+      });
+      this.rewardRow = reward.settingEl;
+      this.showRewardRow();
+    }
+    new Setting(contentEl).setName("Follow-up quest (optional)").addText((text) => {
+      text.setPlaceholder("Return the caravan to [[Lady Vess]]").onChange((value) => {
+        this.edit.followUp = value;
+      });
+      text.inputEl.setAttr("aria-label", "Follow-up quest");
+      text.inputEl.addEventListener("keydown", (event) => {
+        if (!isSubmit(event, false)) return;
+        event.preventDefault();
+        this.runChange(() => this.choices.save(this.edit), FAILURE);
+      });
+    });
+    let where = `New lines go into ${this.places.writesTo}.`;
+    if (this.record.outcome !== null) where = `New lines go into ${this.places.writesTo}; a changed outcome, with its reward and follow-up, goes into ${this.places.finishedIn}.`;
+    contentEl.createEl("p", { cls: "dd-where", text: where });
+    const buttons = new Setting(contentEl);
+    buttons.addButton((button) => button.setButtonText("Save").setCta().onClick(() => this.runChange(() => this.choices.save(this.edit), FAILURE)));
+    buttons.addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));
+    buttons.addButton((button) => {
+      this.stopOnClose(deleteOnSecondPress(button, "Delete quest", () => this.runChange(() => this.choices.delete(), FAILURE)));
+    });
+  }
+
+  private showRewardRow(): void {
+    if (this.rewardRow === null) return;
+    this.rewardRow.toggle(this.edit.status === "completed");
+  }
+}
