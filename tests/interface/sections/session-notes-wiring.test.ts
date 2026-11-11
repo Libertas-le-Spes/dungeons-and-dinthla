@@ -8,8 +8,8 @@ import { FencedMetadata, type RawMetadata } from "../../../src/fence/fenced-meta
 import { HeldFiles } from "../../../src/fence/held-files";
 import { sessionNotesWiring } from "../../../src/interface/sections/session-notes-wiring";
 import { NoteDrafts } from "../../../src/note-editing/note-drafts";
-import { Drafts } from "../../../src/session-notes/drafts";
-import { KeptDrafts } from "../../../src/session-notes/kept-drafts";
+import { Drafts } from "../../../src/session-notes/drafts/drafts";
+import { KeptDrafts } from "../../../src/session-notes/kept/kept-drafts";
 import { FakeEvents, fileAt, rawVaultWith } from "../../fence/fake-raw-vault";
 
 const SESSION = fileAt("D&D/Pale Moon/Sessions/Session 1.md");
