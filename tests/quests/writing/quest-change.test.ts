@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { Campaign, QuestRecord, SessionNote } from "../../../src/campaign/record/campaign";
-import type { EditorFiles } from "../../../src/campaign/writing/note-editor";
+import { WOULD_BE_HIDDEN, type EditorFiles } from "../../../src/campaign/writing/note-editor";
 import { SessionChangeWriter } from "../../../src/campaign/changes/session-change-writer";
 import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
 import { writeRecordChange } from "../../../src/campaign/changes/write-record-change";
 import { GOES_ELSEWHERE } from "../../../src/quests/writing/current-quest";
 import { questSave } from "../../../src/quests/writing/quest-change";
-import { canCollectReward, CHANGES_ANOTHER_QUEST, type QuestEdit } from "../../../src/quests/writing/quest-plan";
+import { canCollectReward, CHANGES_ANOTHER_QUEST, FOLLOW_UP_TITLE_TAKEN, type QuestEdit } from "../../../src/quests/writing/quest-plan";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
@@ -93,6 +93,30 @@ describe("saving a quest", () => {
   it("refuses a follow-up quest that a stray line would mark finished at once, writing nothing", async () => {
     const notes = new FakeNotes({ [ONE]: "! T\n", [TWO]: "", [THREE]: "!= Return it, after: T: done\n" });
     await expect(save(notes, "T", { followUp: "Return it" }, TWO)).rejects.toThrow(CHANGES_ANOTHER_QUEST);
+    expect(notes.writes).toBe(0);
+  });
+
+  it("refuses a follow-up quest that would land below a comment that never closes, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "! Find it\n%% a note to self\n" });
+    await expect(save(notes, "Find it", { followUp: "Other" }, ONE)).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.writes).toBe(0);
+  });
+
+  it("writes a follow-up quest below a comment that has closed", async () => {
+    const notes = new FakeNotes({ [ONE]: "! Find it\n%% a note to self %%\n" });
+    expect(await save(notes, "Find it", { followUp: "Other" }, ONE)).toBe(true);
+    expect(notes.texts.get(ONE)).toBe("! Find it\n%% a note to self %%\n! Other, after: Find it\n");
+  });
+
+  it("refuses a follow-up quest a quest already reads like, so saving it twice writes it once", async () => {
+    const notes = new FakeNotes({ [ONE]: "! Find it\n! Other, after: Find it\n" });
+    await expect(save(notes, "Find it", { followUp: "Other" }, ONE)).rejects.toThrow(FOLLOW_UP_TITLE_TAKEN);
+    expect(notes.writes).toBe(0);
+  });
+
+  it("refuses a follow-up quest a quest already reads like, even when that quest is in another session", async () => {
+    const notes = new FakeNotes({ [ONE]: "! Find it\n", [TWO]: "! Other, after: Find it\n" });
+    await expect(save(notes, "Find it", { followUp: "Other" }, TWO)).rejects.toThrow(FOLLOW_UP_TITLE_TAKEN);
     expect(notes.writes).toBe(0);
   });
 

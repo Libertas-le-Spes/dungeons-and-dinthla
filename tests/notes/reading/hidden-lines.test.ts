@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hiddenLines } from "../../../src/notes/reading/hidden-lines";
+import { addedLinesHidden, hiddenLines } from "../../../src/notes/reading/hidden-lines";
 
 function hidden(lines: string[]): number[] {
   return [...hiddenLines(lines.join("\n"))];
@@ -77,5 +77,31 @@ describe("hiddenLines", () => {
 
   it("hides nothing in plain lines", () => {
     expect(hidden(["a", "b"])).toEqual([]);
+  });
+});
+
+describe("addedLinesHidden", () => {
+  it("says no when the last lines sit in plain text", () => {
+    expect(addedLinesHidden("a\nb\n! Find it\n", 1)).toBe(false);
+  });
+
+  it("says yes when the last line sits below a comment that never closes", () => {
+    expect(addedLinesHidden("a\n%% aside\n! Find it\n", 1)).toBe(true);
+  });
+
+  it("says yes when only the last of the added lines is hidden", () => {
+    expect(addedLinesHidden("a\n! Find it\n```\n", 2)).toBe(true);
+  });
+
+  it("says yes when only the first of the added lines is hidden", () => {
+    expect(addedLinesHidden("a\n%% aside %%\n! Find it\n", 2)).toBe(true);
+  });
+
+  it("looks only at the added lines, not at hidden lines above them", () => {
+    expect(addedLinesHidden("%% aside %%\n! Find it\n", 1)).toBe(false);
+  });
+
+  it("says no when nothing was added", () => {
+    expect(addedLinesHidden("a\n%% aside\n", 0)).toBe(false);
   });
 });
