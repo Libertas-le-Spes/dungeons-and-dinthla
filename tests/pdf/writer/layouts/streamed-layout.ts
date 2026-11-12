@@ -12,9 +12,21 @@ export interface StreamedOptions {
   trailerExtra: string;
   objectStreamExtra: string;
   junkBefore: string;
+  objectStreamText: RawObjectStream | null;
+}
+
+export interface RawObjectStream {
+  count: number;
+  first: number;
+  text: string;
 }
 
 const ROW_BYTES = 7;
+
+function rawObjectStreamBody(raw: RawObjectStream, extra: string): Buffer {
+  const data = deflateSync(bytesOf(raw.text));
+  return Buffer.concat([bytesOf(`<< /Type /ObjStm /N ${raw.count} /First ${raw.first} /Filter /FlateDecode ${extra} /Length ${data.length} >>\nstream\n`), data, bytesOf("\nendstream")]);
+}
 
 function objectStreamBody(writer: PdfWriter, packed: number[], extra: string): Buffer {
   let header = "";
@@ -49,7 +61,7 @@ function predictorParameters(options: StreamedOptions): string {
 }
 
 export function streamedPdf(writer: PdfWriter, given: Partial<StreamedOptions>): Buffer {
-  const options: StreamedOptions = { packed: [], predictor: false, root: 1, trailerExtra: "", objectStreamExtra: "", junkBefore: "", ...given };
+  const options: StreamedOptions = { packed: [], predictor: false, root: 1, trailerExtra: "", objectStreamExtra: "", junkBefore: "", objectStreamText: null, ...given };
   const packed = [...options.packed].sort(byValue);
   const containerNumber = writer.highestNumber() + 1;
   const xrefNumber = containerNumber + 1;
@@ -65,7 +77,7 @@ export function streamedPdf(writer: PdfWriter, given: Partial<StreamedOptions>):
     output.put("\nendobj\n");
   }
   offsets.set(containerNumber, output.put(`${containerNumber} 0 obj\n`));
-  output.put(objectStreamBody(writer, packed, options.objectStreamExtra));
+  output.put(chosenObjectStream(writer, packed, options));
   output.put("\nendobj\n");
   const xrefOffset = output.put(`${xrefNumber} 0 obj\n`);
   offsets.set(xrefNumber, xrefOffset);
@@ -81,4 +93,9 @@ export function streamedPdf(writer: PdfWriter, given: Partial<StreamedOptions>):
 function rowsBytes(rows: Buffer[], options: StreamedOptions): Buffer {
   if (options.predictor) return withUpPredictor(rows);
   return Buffer.concat(rows);
+}
+
+function chosenObjectStream(writer: PdfWriter, packed: number[], options: StreamedOptions): Buffer {
+  if (options.objectStreamText !== null) return rawObjectStreamBody(options.objectStreamText, options.objectStreamExtra);
+  return objectStreamBody(writer, packed, options.objectStreamExtra);
 }

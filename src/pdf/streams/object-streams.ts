@@ -1,3 +1,4 @@
+import { MAX_OBJECT_STREAM_BYTES } from "../limits/pdf-limits";
 import type { ValueParser } from "../parsing/value-parser";
 import { PdfRefusal } from "../refusals/pdf-refusal";
 import type { PdfValue } from "../values/pdf-value";
@@ -36,6 +37,7 @@ export class ObjectStreams {
     const first = stream.dictionary.get("First").asInteger();
     if (count === null || count < 0 || first === null || first < 0) throw new PdfRefusal(NOT_A_GROUP);
     const decoded = await this.decoder.decode(stream, false);
+    if (decoded.byteLength > MAX_OBJECT_STREAM_BYTES) throw new PdfRefusal("A group of objects packed inside the file unpacks to too much, so the file was not read.");
     return ObjectStreamContents.read(decoded, count, first, this.work);
   }
 }

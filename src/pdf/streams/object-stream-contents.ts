@@ -12,6 +12,7 @@ const BAD_STREAM = "A group of objects packed inside the file is not packed the 
 interface Placed {
   number: number;
   offset: number;
+  end: number;
 }
 
 export class ObjectStreamContents {
@@ -26,6 +27,7 @@ export class ObjectStreamContents {
     const header = new ByteCursor(decoded, work, 0);
     const placed = new Map<number, Placed>();
     const numbers = new Set<number>();
+    let previous: Placed | null = null;
     for (let index = 0; index < count; index += 1) {
       const number = readDigits(header, "An object number inside a packed group");
       skipSpace(header);
@@ -33,7 +35,11 @@ export class ObjectStreamContents {
       skipSpace(header);
       if (numbers.has(number)) throw new PdfRefusal(BAD_STREAM);
       numbers.add(number);
-      placed.set(index, { number, offset });
+      const entry: Placed = { number, offset, end: decoded.byteLength };
+      if (previous !== null) previous.end = first + offset;
+      if (previous !== null && offset <= previous.offset) throw new PdfRefusal(BAD_STREAM);
+      placed.set(index, entry);
+      previous = entry;
     }
     return new ObjectStreamContents(decoded, first, placed);
   }
@@ -43,6 +49,8 @@ export class ObjectStreamContents {
     if (entry === undefined || entry.number !== number) throw new PdfRefusal(BAD_STREAM);
     const cursor = new ByteCursor(this.decoded, work, 0);
     cursor.moveTo(this.first + entry.offset);
-    return parser.read(cursor, 0);
+    const value = parser.read(cursor, 0);
+    if (cursor.position() > entry.end) throw new PdfRefusal(BAD_STREAM);
+    return value;
   }
 }
