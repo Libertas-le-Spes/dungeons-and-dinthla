@@ -17,6 +17,6 @@ describe("TemporaryHitPointsRule", () => {
   });
 
   it("does not know them when they are missing", () => {
-    expect(numberNamed(madeUpRuleCharacter({ temporaryHitPoints: null }), "Temporary HP").isKnown).toBe(false);
+    expect(numberNamed(madeUpRuleCharacter({ temporaryHitPoints: null }), "Temporary HP").explanation).toBe("The temporary hit points are missing.");
   });
 });
