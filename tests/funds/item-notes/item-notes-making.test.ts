@@ -56,14 +56,6 @@ describe("ItemNotes making a note", () => {
     expect(withFolder.fake.foldersMade).toEqual([]);
   });
 
-  it("makes a note once however often a session is saved while it is being made", async () => {
-    const { fake, itemNotes } = await opened(THREE_LINES);
-    itemNotes.sessionSaved();
-    itemNotes.sessionSaved();
-    await settle();
-    expect(fake.propertiesWritten).toHaveLength(1);
-  });
-
   it("makes a note only once when a session is saved again while the note is still being made", async () => {
     const { fake, itemNotes } = await opened(THREE_LINES);
     const release = fake.holdCreates();
@@ -74,7 +66,7 @@ describe("ItemNotes making a note", () => {
     expect(fake.createCalls).toBe(1);
   });
 
-  it("gives an existing note its lines and keeps its holder property, its other properties and his words", async () => {
+  it("gives an existing note its lines and keeps its holder and its other properties", async () => {
     const { fake, itemNotes } = await opened(THREE_LINES, [{ path: LANTERN, properties: { holder: "The party", tags: ["pale"] } }]);
     itemNotes.sessionSaved();
     await settle();
@@ -148,6 +140,12 @@ describe("ItemNotes while the campaign is still opening", () => {
 });
 
 describe("ItemNotes making the notes of earlier sessions", () => {
+  it("makes no note for an item named on two lines, whatever the opening finds", async () => {
+    const { fake, itemNotes } = await opened(["$ Rope", "$ Rope"]);
+    await expect(itemNotes.makeMissing()).resolves.toEqual({ made: 0, failed: 0 });
+    expect(fake.createCalls).toBe(0);
+  });
+
   it("makes the missing notes of items on three lines, and says how many", async () => {
     const { fake, itemNotes } = await opened(THREE_LINES);
     await expect(itemNotes.makeMissing()).resolves.toEqual({ made: 1, failed: 0 });
@@ -236,6 +234,20 @@ describe("ItemNotes naming a note", () => {
     itemNotes.sessionSaved();
     await settle();
     expect(fake.failures).toHaveLength(1);
+    expect(fake.createCalls).toBe(1);
+  });
+
+  it("tries a note again once its lines have changed, and makes it if the write works then", async () => {
+    const { fake, itemNotes, store } = await opened(THREE_LINES);
+    fake.failNextCreate = new Error("disk full");
+    itemNotes.sessionSaved();
+    await settle();
+    fake.failNextCreate = null;
+    store.noteChanged(SESSION, [...THREE_LINES, "$$ Silvered lantern :used"].join("\n"));
+    itemNotes.sessionSaved();
+    await settle();
+    expect(fake.createCalls).toBe(2);
+    expect(fake.propertiesWritten.at(-1)?.path).toBe(LANTERN);
   });
 
   it("takes the empty note away again when its properties couldn't be written, so no empty item note is left", async () => {

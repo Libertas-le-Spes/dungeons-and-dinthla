@@ -1,8 +1,6 @@
 import { withoutBullet } from "../../notes/parts/bullet";
 import type { SessionNote, Source } from "./campaign";
 
-const CARRIAGE_RETURN = /\r$/;
-
 function lineNumbersIn(sources: Source[], session: SessionNote): Set<number> {
   const numbers = new Set<number>();
   for (const source of sources) {
@@ -15,7 +13,7 @@ export function lineTextsOf(session: SessionNote, sources: Source[]): string[] {
   const wanted = lineNumbersIn(sources, session);
   const texts: string[] = [];
   for (const [number, line] of session.text.split("\n").entries()) {
-    if (wanted.has(number)) texts.push(withoutBullet(line.replace(CARRIAGE_RETURN, "")));
+    if (wanted.has(number)) texts.push(withoutBullet(line));
   }
   return texts;
 }

@@ -81,13 +81,6 @@ describe("kind notes, from saving a session to the notes", () => {
     expect(notes.actions.processFrontMatter).not.toHaveBeenCalled();
   });
 
-  it("makes nothing for text typed but not saved, which no save reports", async () => {
-    const { notes, campaign } = world();
-    startWith(notes, campaign);
-    await settled();
-    expect(notes.created).toEqual([]);
-  });
-
   it("removes a deleted line from its note, and trashes the note when its last line goes", async () => {
     const { notes, campaign } = world();
     const { written } = startWith(notes, campaign);

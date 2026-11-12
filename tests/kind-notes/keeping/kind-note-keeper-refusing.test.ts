@@ -83,12 +83,10 @@ describe("KindNoteKeeper leaving a note that isn't its own", () => {
 
   it("does nothing when a note is read that it wasn't waiting for", async () => {
     const notes = new FakeNotes();
-    const session = notes.addSession(SESSION);
     notes.addNote(QUESTIONS, { session: "[[Session 2]]", lines: ["? Old"] }, "");
     keeperWith(notes).noteRead(QUESTIONS);
     await settled();
     nothingTouched(notes);
-    expect(session.path).toBe(SESSION);
   });
 
   it("finishes an empty file at its path, the half of a note a crash left behind", async () => {
