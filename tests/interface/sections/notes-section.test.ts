@@ -13,6 +13,7 @@ import type { SessionClearer } from "../../../src/session-notes/removal/session-
 import type { SessionTrash } from "../../../src/session-notes/removal/session-trash";
 import type { ConfirmText } from "../../../src/views/dialogs/confirm-modal";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { stubRenumbering } from "../../session-notes/renumbering/stub-renumbering";
 
 const ELEVEN = "Pale Moon/Sessions/Session 11.md";
 const TWELVE = "Pale Moon/Sessions/Session 12.md";
@@ -22,7 +23,7 @@ const BOTH = [
   { path: TWELVE, number: 12, firstLine: 0, text: "" },
 ];
 
-function made(path: string | null, sessions = BOTH) {
+function made(path: string | null, sessions = BOTH, latestAfterDelete: string | null = ELEVEN) {
   const store = { campaignFolder: "Pale Moon", sessionNotes: sessions, current: buildCampaign(sessions), subscribe: () => () => {} };
   const startSession = vi.fn();
   const drafts = new Drafts({}, () => {});
@@ -45,7 +46,7 @@ function made(path: string | null, sessions = BOTH) {
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
     actions: { openRow: vi.fn(), openLink: vi.fn() },
     wholeText: { texts: texts as unknown as NoteTexts, drafts: new NoteDrafts(drafts), saver: {} as NoteSaver },
-    removal: { clearer: {} as SessionClearer, trash: trash as unknown as SessionTrash, confirm },
+    removal: { clearer: {} as SessionClearer, trash: trash as unknown as SessionTrash, renumbering: stubRenumbering({ latest: latestAfterDelete }), confirm, report: vi.fn() },
     startSession,
   };
   const root = obsidianDocument().createElement("div");
@@ -87,7 +88,7 @@ describe("notesSection", () => {
   });
 
   it("shows the Notes page with no session after deleting the last one", async () => {
-    const { root, show } = made(TWELVE, [BOTH[1]!]);
+    const { root, show } = made(TWELVE, [BOTH[1]!], null);
     root.querySelector<HTMLButtonElement>(".dd-delete-session")!.click();
     await vi.waitFor(() => expect(show).toHaveBeenCalledExactlyOnceWith({ page: "notes", path: null }));
   });

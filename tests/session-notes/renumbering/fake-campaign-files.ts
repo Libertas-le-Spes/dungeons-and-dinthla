@@ -8,6 +8,7 @@ export class FakeCampaignFiles {
   private readonly filesByPath = new Map<string, TFile>();
   private readonly renameFailures = new Map<string, string>();
   private readonly changeFailures = new Map<string, string>();
+  private readonly readFailures = new Map<string, string>();
 
   constructor(notes: Record<string, string>) {
     for (const [path, text] of Object.entries(notes)) this.add(path, text);
@@ -23,7 +24,11 @@ export class FakeCampaignFiles {
     return file;
   });
 
-  readonly read = vi.fn(async (file: TFile): Promise<string> => this.textOf(file.path));
+  readonly read = vi.fn(async (file: TFile): Promise<string> => {
+    const failure = this.readFailures.get(file.path);
+    if (failure !== undefined) throw new Error(failure);
+    return this.textOf(file.path);
+  });
 
   readonly process = vi.fn(async (file: TFile, change: (text: string) => string): Promise<string> => {
     const failure = this.changeFailures.get(file.path);
@@ -57,6 +62,10 @@ export class FakeCampaignFiles {
 
   failRenameOf(path: string, message: string): void {
     this.renameFailures.set(path, message);
+  }
+
+  failReadOf(path: string, message: string): void {
+    this.readFailures.set(path, message);
   }
 
   failChangeOf(path: string, message: string): void {

@@ -194,6 +194,8 @@ export default class DungeonsAndDinthla extends Plugin {
       openers,
       actions,
       confirm: (text: ConfirmText, confirmed: () => void, closed: () => void) => new ConfirmModal(this.app, text, confirmed, closed).open(),
+      campaignFolders: () => this.campaignFolders(),
+      report: (message: string) => new Notice(message, 0),
       startSession: newSession,
     });
     const pages = campaignSections({

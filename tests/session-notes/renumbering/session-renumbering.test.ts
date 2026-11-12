@@ -191,6 +191,15 @@ describe("SessionRenumbering.carryOut", () => {
     expect(files.textAt(pale(3))).toBe("Five, after [[Session 2]]\n");
   });
 
+  it("goes on with the other notes when one note can't be read before the sessions are renamed, and says which", async () => {
+    const files = campaignFiles({ [MIRA]: "Met [[Session 4]].\n" });
+    files.failReadOf(MIRA, "the disk is gone.");
+    const { report } = await renumberedAfterDeleting(files, pale(2));
+    expect(report.linksNotUpdated).toEqual([`${MIRA} (the disk is gone.)`]);
+    expect(files.textAt(MIRA)).toBe("Met [[Session 4]].\n");
+    expect(files.textAt(pale(3))).toBe("Five, after [[Session 2]]\n");
+  });
+
   it("renames nothing and writes nothing when no session moves", async () => {
     const files = new FakeCampaignFiles({ [`${PALE}/Pale Moon.md`]: "", [pale(1)]: "", [pale(2)]: "[[Session 1]]\n" });
     await renumberedAfterDeleting(files, pale(2));
