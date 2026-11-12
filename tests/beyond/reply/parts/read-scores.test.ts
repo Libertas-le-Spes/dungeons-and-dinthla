@@ -37,14 +37,21 @@ describe("scoresOf", () => {
     expect(scoresOf(reply.reader()).strength.isKnown).toBe(false);
   });
 
-  it("ignores an override whose value is null", () => {
-    expect(scoresOf(overrides({ id: 1, value: null }).reader()).strength.isKnown).toBe(false);
+  it("ignores an override whose value is null, as an ability with no override", () => {
+    const found = scoresOf(overrides({ id: 1, value: null }).reader()).strength;
+    expect(found.isKnown).toBe(false);
+    expect(found.explanation).toContain("states only the base score");
   });
 
   it("ignores an override with no id or no value", () => {
     const scores = scoresOf(overrides({ value: 12 }, { id: 2 }).reader());
     expect(scores.strength.isKnown).toBe(false);
     expect(scores.dexterity.isKnown).toBe(false);
+  });
+
+  it("ignores two overrides that have no id without taking them for the same ability", () => {
+    const scores = scoresOf(overrides({ value: 12 }, { value: 13 }, { id: 3, value: 14 }).reader());
+    expect(scores.constitution.valueOr(0)).toBe(14);
   });
 
   it.each(["1", null, 1.5, [1], {}])("ignores an override whose id is %j", (id) => {
