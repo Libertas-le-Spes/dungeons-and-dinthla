@@ -1,6 +1,6 @@
 import type { CachedMetadata } from "obsidian";
-import type { ChangeProperties } from "../../kind-notes/property-writer";
-import { linesIn, sameLines } from "../../kind-notes/note-properties";
+import type { ChangeProperties } from "../../fence/gate/fenced-file-actions";
+import { linesIn, sameLines } from "../../note-keeping/note-properties";
 
 export interface WantedProperties {
   holder: string;
@@ -36,11 +36,15 @@ function differs(cache: CachedMetadata, wanted: WantedProperties): boolean {
   return wanted.alias !== null && !holdsAlias(cache, wanted.alias);
 }
 
-export function itemNoteChange(cache: CachedMetadata, wanted: WantedProperties): ChangeProperties | null {
-  if (!differs(cache, wanted)) return null;
+export function changeFor(wanted: WantedProperties): ChangeProperties {
   return (properties) => {
     properties.holder = wanted.holder;
     if (wanted.lines !== null) properties.lines = wanted.lines;
     if (wanted.alias !== null) properties.aliases = aliasesWith(properties, wanted.alias);
   };
+}
+
+export function itemNoteChange(cache: CachedMetadata, wanted: WantedProperties): ChangeProperties | null {
+  if (!differs(cache, wanted)) return null;
+  return changeFor(wanted);
 }

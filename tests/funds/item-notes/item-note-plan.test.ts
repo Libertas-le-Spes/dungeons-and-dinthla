@@ -19,7 +19,7 @@ function times(count: number, line: string): string[] {
 describe("planItemNotes", () => {
   it("plans a note for each named item at Items/<name>.md with its holder and every line", () => {
     const plan = planFor(["$ [[Mira]] Rope", "$ Rope"]);
-    expect(plan.notes).toEqual([{ name: "Rope", path: `${ITEMS}/Rope.md`, file: null, holder: "[[Mira]]", lines: ["$ [[Mira]] Rope", "$ Rope"], alias: null }]);
+    expect(plan.notes).toEqual([{ name: "Rope", path: `${ITEMS}/Rope.md`, file: null, holder: "[[Mira]]", lines: ["$ [[Mira]] Rope", "$ Rope"], alias: null, makes: false }]);
     expect(plan.refusals).toEqual([]);
   });
 
@@ -62,6 +62,12 @@ describe("planItemNotes", () => {
     const plan = planFor([...times(3, "$ Ring: +1"), "$ Ring? +1"]);
     expect(plan.notes).toHaveLength(1);
     expect(plan.refusals).toEqual([]);
+  });
+
+  it("marks a note to be made only when the item is named on three lines and has no note yet", () => {
+    expect(planFor(times(3, "$ Rope")).notes.map((note) => note.makes)).toEqual([true]);
+    expect(planFor(times(2, "$ Rope")).notes.map((note) => note.makes)).toEqual([false]);
+    expect(planFor(times(3, "$ Rope"), [`${ITEMS}/Rope.md`]).notes.map((note) => note.makes)).toEqual([false]);
   });
 
   it("plans an item named on fewer than three lines too, so an existing note of it gets its lines", () => {

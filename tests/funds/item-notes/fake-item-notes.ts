@@ -38,11 +38,13 @@ export class FakeItemNotes {
   readonly failures: unknown[] = [];
   readonly foldersListed: string[] = [];
   failNextCreate: Error | null = null;
+  failProperties: Error | null = null;
   wordsChangeOnWrite = false;
   createCalls = 0;
   private createHeld: Promise<void> = Promise.resolve();
   restores = 0;
   readonly foldersMade: string[] = [];
+  readonly trashed: string[] = [];
   readonly foldersThere = new Set<string>([`${CAMPAIGN}/Items`]);
   readonly said: string[] = [];
   readonly propertiesWritten: { path: string; properties: Properties }[] = [];
@@ -84,7 +86,7 @@ export class FakeItemNotes {
           return cacheOf(properties);
         },
       },
-      actions: { processFrontMatter: async (file: TFile, change: ChangeProperties) => this.write(file, change) },
+      actions: { processFrontMatter: async (file: TFile, change: ChangeProperties) => this.write(file, change), trashFile: async (file: TFile) => this.trash(file) },
       failed: (error: unknown) => this.failures.push(error),
       say: (message: string) => this.said.push(message),
     };
@@ -114,6 +116,12 @@ export class FakeItemNotes {
     return change("");
   }
 
+  private async trash(file: TFile): Promise<void> {
+    this.trashed.push(file.path);
+    const index = this.notes.findIndex((note) => note.path === file.path);
+    this.notes.splice(index, 1);
+  }
+
   private folderAt(path: string): TFolder | null {
     if (!this.foldersThere.has(path)) return null;
     return {} as TFolder;
@@ -138,6 +146,7 @@ export class FakeItemNotes {
 
   private async write(file: TFile, change: ChangeProperties): Promise<void> {
     await this.held;
+    if (this.failProperties !== null) throw this.failProperties;
     const note = this.noteAt(file.path);
     const properties = { ...note.properties };
     change(properties);

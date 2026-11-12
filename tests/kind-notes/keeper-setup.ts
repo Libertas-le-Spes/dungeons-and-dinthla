@@ -1,6 +1,6 @@
 import type { TFile } from "obsidian";
-import { KindNoteKeeper } from "../../src/kind-notes/kind-note-keeper";
-import type { WantedNote } from "../../src/kind-notes/wanted-note";
+import { KindNoteKeeper } from "../../src/kind-notes/keeping/kind-note-keeper";
+import type { WantedNote } from "../../src/kind-notes/wanting/wanted-note";
 import { FakeNotes } from "./fake-notes";
 
 export const CAMPAIGN = "D&D/Pale Moon";
