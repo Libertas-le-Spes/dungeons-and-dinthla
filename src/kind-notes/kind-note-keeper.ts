@@ -71,6 +71,10 @@ export class KindNoteKeeper {
     return !sameLines(linesIn(cache), note.lines);
   }
 
+  async idle(path: string): Promise<void> {
+    await this.queue.run(path, async () => {});
+  }
+
   noteRead(path: string): void {
     if (!this.waiting.delete(path)) return;
     void this.queue.run(path, () => this.settle(path));

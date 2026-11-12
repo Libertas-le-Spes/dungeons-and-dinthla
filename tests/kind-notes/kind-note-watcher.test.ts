@@ -15,10 +15,11 @@ function watcherWith(campaign: FakeCampaign) {
   const keeper = { keep: vi.fn(), noteRead: vi.fn() };
   const differing = { check: vi.fn(), checkAll: vi.fn(), forget: vi.fn() };
   const items = { sessionSaved: vi.fn() };
+  const mover = { sessionRenamed: vi.fn() };
   const files = { getFileByPath: (path: string) => fileAt(path) };
-  const watcher = new KindNoteWatcher({ store: campaign, wants: new SessionWants(campaign, files), written: written.notes, keeper, differing, saves: new SavesHere(), items });
+  const watcher = new KindNoteWatcher({ store: campaign, wants: new SessionWants(campaign, files), written: written.notes, keeper, differing, saves: new SavesHere(), items, mover });
   const stop = watcher.start();
-  return { written, keeper, differing, watcher, stop, items };
+  return { written, keeper, differing, watcher, stop, items, mover };
 }
 
 function linesWanted(call: unknown[] | undefined): Record<string, string[]> {
@@ -30,7 +31,7 @@ describe("KindNoteWatcher", () => {
   it("keeps the notes of a session saved here once the campaign has read what was saved", () => {
     const campaign = new FakeCampaign();
     const { written, keeper, differing } = watcherWith(campaign);
-    written.changed(SESSION, TEXT);
+    written.textSaved(SESSION, TEXT);
     expect(keeper.keep).not.toHaveBeenCalled();
     campaign.arrive(SESSION, TEXT);
     expect(keeper.keep).toHaveBeenCalledOnce();
@@ -43,7 +44,7 @@ describe("KindNoteWatcher", () => {
     const { written, items } = watcherWith(campaign);
     campaign.arrive(SESSION, "? Who sent Baka");
     expect(items.sessionSaved).not.toHaveBeenCalled();
-    written.changed(SESSION, TEXT);
+    written.textSaved(SESSION, TEXT);
     campaign.arrive(SESSION, TEXT);
     expect(items.sessionSaved).toHaveBeenCalledOnce();
   });
@@ -58,7 +59,7 @@ describe("KindNoteWatcher", () => {
   it("wants the notes at the paths inside the campaign, linked to the session's file", () => {
     const campaign = new FakeCampaign();
     const { written, keeper } = watcherWith(campaign);
-    written.changed(SESSION, TEXT);
+    written.textSaved(SESSION, TEXT);
     campaign.arrive(SESSION, TEXT);
     const notes = keeper.keep.mock.calls[0]?.[0] as WantedNote[];
     expect(notes.map((note) => note.path)).toEqual([QUESTIONS, `${CAMPAIGN}/Quests/Session 2.md`, `${CAMPAIGN}/Funds/Session 2.md`]);
@@ -76,7 +77,7 @@ describe("KindNoteWatcher", () => {
   it("treats a read of other text than was saved here as arriving by sync", () => {
     const campaign = new FakeCampaign();
     const { written, keeper, differing } = watcherWith(campaign);
-    written.changed(SESSION, TEXT);
+    written.textSaved(SESSION, TEXT);
     campaign.arrive(SESSION, "? Who sent Baka");
     expect(keeper.keep).not.toHaveBeenCalled();
     expect(differing.check).toHaveBeenCalledOnce();
@@ -85,7 +86,7 @@ describe("KindNoteWatcher", () => {
   it("forgets what a save made the notes differ about, so a later difference is asked again", () => {
     const campaign = new FakeCampaign();
     const { written, differing } = watcherWith(campaign);
-    written.changed(SESSION, TEXT);
+    written.textSaved(SESSION, TEXT);
     campaign.arrive(SESSION, TEXT);
     expect(differing.forget).toHaveBeenCalledOnce();
   });
@@ -104,9 +105,9 @@ describe("KindNoteWatcher", () => {
   it("ignores what is written to a note that isn't a session of the open campaign", () => {
     const campaign = new FakeCampaign();
     const { written, keeper, differing } = watcherWith(campaign);
-    written.changed(QUESTIONS, TEXT);
+    written.textSaved(QUESTIONS, TEXT);
     written.trashed(QUESTIONS);
-    written.changed("D&D/Silver Road/Sessions/Session 2.md", TEXT);
+    written.textSaved("D&D/Silver Road/Sessions/Session 2.md", TEXT);
     campaign.arrive(QUESTIONS, TEXT);
     expect(keeper.keep).not.toHaveBeenCalled();
     expect(differing.check).not.toHaveBeenCalled();
@@ -116,7 +117,7 @@ describe("KindNoteWatcher", () => {
     const campaign = new FakeCampaign();
     campaign.campaignFolder = null;
     const { written, keeper } = watcherWith(campaign);
-    written.changed(SESSION, TEXT);
+    written.textSaved(SESSION, TEXT);
     written.trashed(SESSION);
     expect(keeper.keep).not.toHaveBeenCalled();
   });
@@ -142,7 +143,7 @@ describe("KindNoteWatcher", () => {
     const campaign = new FakeCampaign();
     const { written, keeper, stop } = watcherWith(campaign);
     stop();
-    written.changed(SESSION, TEXT);
+    written.textSaved(SESSION, TEXT);
     campaign.arrive(SESSION, TEXT);
     expect(keeper.keep).not.toHaveBeenCalled();
     expect(campaign.stopped).toHaveBeenCalledOnce();
@@ -152,7 +153,7 @@ describe("KindNoteWatcher", () => {
     const campaign = new FakeCampaign();
     campaign.opening = true;
     const { written, keeper, differing, items } = watcherWith(campaign);
-    written.changed(SESSION, TEXT);
+    written.textSaved(SESSION, TEXT);
     campaign.arrive(SESSION, TEXT);
     expect(keeper.keep).not.toHaveBeenCalled();
     expect(differing.check).not.toHaveBeenCalled();
@@ -163,7 +164,7 @@ describe("KindNoteWatcher", () => {
     const campaign = new FakeCampaign();
     campaign.opening = true;
     const { written, keeper, differing } = watcherWith(campaign);
-    written.changed(SESSION, TEXT);
+    written.textSaved(SESSION, TEXT);
     campaign.arrive(SESSION, TEXT);
     campaign.opening = false;
     campaign.arrive(SESSION, TEXT);
@@ -178,5 +179,12 @@ describe("KindNoteWatcher", () => {
     written.trashed(SESSION);
     expect(keeper.keep).toHaveBeenCalledOnce();
     expect(items.sessionSaved).not.toHaveBeenCalled();
+  });
+
+  it("tells the mover when a file is renamed, whichever file it is, for it to decide", () => {
+    const campaign = new FakeCampaign();
+    const { written, mover } = watcherWith(campaign);
+    written.renamed(`${CAMPAIGN}/Sessions/Session 3.md`, SESSION);
+    expect(mover.sessionRenamed).toHaveBeenCalledExactlyOnceWith(`${CAMPAIGN}/Sessions/Session 3.md`, SESSION);
   });
 });

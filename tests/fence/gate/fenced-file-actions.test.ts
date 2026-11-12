@@ -3,6 +3,7 @@ import { Fence, NOT_WRITTEN_AS_OBSIDIAN_WRITES, OUTSIDE_FENCE } from "../../../s
 import { FencedFileActions, type RawFileManager } from "../../../src/fence/gate/fenced-file-actions";
 import { HeldFiles } from "../../../src/fence/gate/held-files";
 import { NoteReporter } from "../../../src/fence/gate/written-notes";
+import { reportListenerSpy } from "./report-listener";
 import { fileAt, rawVaultWith } from "./fake-raw-vault";
 
 const CONFIG_DIR = ".obsidian";
@@ -19,7 +20,7 @@ function actionsWith() {
   };
   const held = new HeldFiles(vault, new Fence(() => "D&D", CONFIG_DIR));
   const reporter = new NoteReporter();
-  const heard = vi.fn();
+  const heard = reportListenerSpy();
   reporter.notes.listen(heard);
   return { actions: new FencedFileActions(fileManager as unknown as RawFileManager, held, reporter), fileManager, heard };
 }
@@ -65,22 +66,28 @@ describe("FencedFileActions", () => {
     expect(fileManager.trashFile).toHaveBeenCalledExactlyOnceWith(CHARACTER);
   });
 
-  it("reports a note whose properties it changed, with no text", async () => {
-    const { actions, heard } = actionsWith();
-    await actions.processFrontMatter(CHARACTER, () => {});
-    expect(heard).toHaveBeenCalledExactlyOnceWith({ change: "changed", path: CHARACTER.path, text: null });
-  });
-
   it("reports a note it trashed", async () => {
     const { actions, heard } = actionsWith();
     await actions.trashFile(CHARACTER);
-    expect(heard).toHaveBeenCalledExactlyOnceWith({ change: "trashed", path: CHARACTER.path, text: null });
+    expect(heard.trashed).toHaveBeenCalledExactlyOnceWith(CHARACTER.path);
   });
 
-  it("reports nothing for a note it refused to change or trash", async () => {
+  it("reports a rename with the path the note had and the path it has", async () => {
     const { actions, heard } = actionsWith();
-    await expect(actions.processFrontMatter(PRIVATE, () => {})).rejects.toThrow(OUTSIDE_FENCE);
+    await actions.renameFile(CHARACTER, "D&D/Pale Moon/Characters/Mira Vale.md");
+    expect(heard.renamed).toHaveBeenCalledExactlyOnceWith(CHARACTER.path, "D&D/Pale Moon/Characters/Mira Vale.md");
+  });
+
+  it("reports nothing for a change of properties, which isn't a save of text", async () => {
+    const { actions, heard } = actionsWith();
+    await actions.processFrontMatter(CHARACTER, () => {});
+    expect(heard.heardNothing()).toBe(true);
+  });
+
+  it("reports nothing for a note it refused to rename or trash", async () => {
+    const { actions, heard } = actionsWith();
     await expect(actions.trashFile(PRIVATE)).rejects.toThrow(OUTSIDE_FENCE);
-    expect(heard).not.toHaveBeenCalled();
+    await expect(actions.renameFile(PRIVATE, "D&D/Pale Moon/Primary.md")).rejects.toThrow(OUTSIDE_FENCE);
+    expect(heard.heardNothing()).toBe(true);
   });
 });

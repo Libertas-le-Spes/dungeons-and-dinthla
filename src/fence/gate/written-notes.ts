@@ -1,12 +1,8 @@
-export type NoteChange = "changed" | "made" | "trashed";
-
-export interface WrittenNote {
-  change: NoteChange;
-  path: string;
-  text: string | null;
+export interface WrittenListener {
+  textSaved(path: string, text: string): void;
+  trashed(path: string): void;
+  renamed(from: string, to: string): void;
 }
-
-export type WrittenListener = (written: WrittenNote) => void;
 
 export class WrittenNotes {
   constructor(private readonly listeners: Set<WrittenListener>) {}
@@ -21,25 +17,25 @@ export class NoteReporter {
   private readonly listeners = new Set<WrittenListener>();
   readonly notes = new WrittenNotes(this.listeners);
 
-  changed(path: string, text: string | null): void {
-    this.tell({ change: "changed", path, text });
-  }
-
-  made(path: string): void {
-    this.tell({ change: "made", path, text: null });
+  textSaved(path: string, text: string): void {
+    this.tell((listener) => listener.textSaved(path, text));
   }
 
   trashed(path: string): void {
-    this.tell({ change: "trashed", path, text: null });
+    this.tell((listener) => listener.trashed(path));
   }
 
-  private tell(written: WrittenNote): void {
-    for (const listener of this.listeners) this.tellOne(listener, written);
+  renamed(from: string, to: string): void {
+    this.tell((listener) => listener.renamed(from, to));
   }
 
-  private tellOne(listener: WrittenListener, written: WrittenNote): void {
+  private tell(tellOne: (listener: WrittenListener) => void): void {
+    for (const listener of this.listeners) this.tryOne(listener, tellOne);
+  }
+
+  private tryOne(listener: WrittenListener, tellOne: (listener: WrittenListener) => void): void {
     try {
-      listener(written);
+      tellOne(listener);
     } catch {
       return;
     }

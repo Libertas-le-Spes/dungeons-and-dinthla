@@ -32,7 +32,7 @@ function startWith(notes: FakeNotes, campaign: FakeCampaign, alreadyMade: string
 }
 
 function saveHere(written: NoteReporter, campaign: FakeCampaign, path: string, text: string): void {
-  written.changed(path, text);
+  written.textSaved(path, text);
   campaign.arrive(path, text);
 }
 
@@ -243,5 +243,58 @@ describe("kind notes, for sessions written before", () => {
     saveHere(written, campaign, SESSION, "? Who sent Mira");
     await settled();
     expect(notes.created).toEqual([]);
+  });
+});
+
+describe("kind notes, when a session is deleted and the ones after it are renumbered", () => {
+  function deleteSessionTwo(notes: FakeNotes, campaign: FakeCampaign, written: NoteReporter, three: ReturnType<FakeNotes["addSession"]>): void {
+    written.trashed(SESSION);
+    campaign.drop(SESSION);
+    notes.removeSession(SESSION);
+    notes.files.rename(three, SESSION);
+    campaign.drop(SESSION_THREE);
+    campaign.hold(SESSION, "? Was three");
+    written.renamed(SESSION_THREE, SESSION);
+  }
+
+  it("trashes the deleted session's notes and moves the next session's notes into their place, linked to the new name", async () => {
+    const notes = new FakeNotes();
+    notes.addSession(SESSION);
+    const three = notes.addSession(SESSION_THREE);
+    const campaign = new FakeCampaign();
+    campaign.hold(SESSION, "? Was two");
+    campaign.hold(SESSION_THREE, "? Was three");
+    notes.addNote(QUESTIONS, { session: "[[Session 2]]", lines: ["? Was two"] }, "");
+    const questionsThree = `${CAMPAIGN}/Questions/Session 3.md`;
+    notes.addNote(questionsThree, { session: "[[Session 3]]", lines: ["? Was three"] }, "His words");
+    const { written } = startWith(notes, campaign);
+    deleteSessionTwo(notes, campaign, written, three);
+    await settled();
+    await settled();
+    expect(notes.trashed).toEqual([QUESTIONS]);
+    expect(notes.noteAt(questionsThree)).toBeNull();
+    expect(notes.noteAt(QUESTIONS)?.properties).toEqual({ session: "[[Session 2]]", lines: ["? Was three"] });
+    expect(notes.noteAt(QUESTIONS)?.words).toBe("His words");
+    expect(notes.said).toEqual([]);
+  });
+
+  it("leaves the notes of the next session where they are, and says so, when the deleted session's note has his words", async () => {
+    const notes = new FakeNotes();
+    notes.addSession(SESSION);
+    const three = notes.addSession(SESSION_THREE);
+    const campaign = new FakeCampaign();
+    campaign.hold(SESSION, "? Was two");
+    campaign.hold(SESSION_THREE, "? Was three");
+    notes.addNote(QUESTIONS, { session: "[[Session 2]]", lines: ["? Was two"] }, "His words about two");
+    const questionsThree = `${CAMPAIGN}/Questions/Session 3.md`;
+    notes.addNote(questionsThree, { session: "[[Session 3]]", lines: ["? Was three"] }, "");
+    const { written } = startWith(notes, campaign);
+    deleteSessionTwo(notes, campaign, written, three);
+    await settled();
+    await settled();
+    expect(notes.noteAt(QUESTIONS)?.words).toBe("His words about two");
+    expect(notes.noteAt(questionsThree)).not.toBeNull();
+    expect(notes.said).toHaveLength(1);
+    expect(notes.said[0]).toContain("stays where it is");
   });
 });
