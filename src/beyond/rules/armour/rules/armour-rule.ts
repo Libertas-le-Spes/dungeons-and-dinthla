@@ -4,5 +4,5 @@ import type { ArmourCandidate } from "../choice/armour-candidate";
 import type { WornArmour } from "../choice/worn-armour";
 
 export interface ArmourRule {
-  candidate(character: RuleCharacter, worn: WornArmour, earlier: EarlierNumbers): ArmourCandidate | null;
+  candidates(character: RuleCharacter, worn: WornArmour, earlier: EarlierNumbers): readonly ArmourCandidate[];
 }

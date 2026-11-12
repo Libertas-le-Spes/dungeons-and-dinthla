@@ -7,8 +7,7 @@ import type { WornArmour } from "./worn-armour";
 export function candidatesFor(character: RuleCharacter, worn: WornArmour, earlier: EarlierNumbers): readonly ArmourCandidate[] {
   const found: ArmourCandidate[] = [];
   for (const rule of ARMOUR_RULES_FIRST_WINS_A_TIE) {
-    const candidate = rule.candidate(character, worn, earlier);
-    if (candidate !== null) found.push(candidate);
+    found.push(...rule.candidates(character, worn, earlier));
   }
   return found;
 }
