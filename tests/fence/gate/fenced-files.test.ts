@@ -3,6 +3,7 @@ import type { TAbstractFile } from "obsidian";
 import { Fence, NOT_WRITTEN_AS_OBSIDIAN_WRITES, OUTSIDE_FENCE } from "../../../src/fence/paths/fence";
 import { FencedFiles } from "../../../src/fence/gate/fenced-files";
 import { HeldFiles } from "../../../src/fence/gate/held-files";
+import { WrittenNotes } from "../../../src/fence/gate/written-notes";
 import { fileAt, folderAt, rawVaultWith } from "./fake-raw-vault";
 
 const SESSION = fileAt("D&D/Pale Moon/Sessions/Session 1.md");
@@ -296,5 +297,46 @@ describe("FencedFiles events", () => {
     const { files, events } = listeningFiles();
     files.unload();
     expect(events.stopped).toHaveLength(4);
+  });
+});
+
+describe("FencedFiles report of what it wrote", () => {
+  function reportedWith() {
+    const raw = rawVaultWith([SESSION, PRIVATE]);
+    const written = new WrittenNotes();
+    const heard = vi.fn();
+    written.listen(heard);
+    const files = new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => "D&D", ".obsidian")), written);
+    return { files, heard };
+  }
+
+  it("reports a change with the text it left in the note", async () => {
+    const { files, heard } = reportedWith();
+    await files.process(SESSION, (text) => `${text}!`);
+    expect(heard).toHaveBeenCalledExactlyOnceWith({ change: "changed", path: SESSION.path, text: `text of ${SESSION.path}!` });
+  });
+
+  it("reports a note it made", async () => {
+    const { files, heard } = reportedWith();
+    await files.create("D&D/Pale Moon/Questions/Session 2.md", "");
+    expect(heard).toHaveBeenCalledExactlyOnceWith({ change: "made", path: "D&D/Pale Moon/Questions/Session 2.md", text: null });
+  });
+
+  it("reports nothing for a change it refused", async () => {
+    const { files, heard } = reportedWith();
+    await expect(files.process(PRIVATE, (text) => text)).rejects.toThrow(OUTSIDE_FENCE);
+    await expect(files.create("Private/Secondary.md", "")).rejects.toThrow(OUTSIDE_FENCE);
+    expect(heard).not.toHaveBeenCalled();
+  });
+
+  it("reports nothing for a change that arrives from outside the plugin", () => {
+    const raw = rawVaultWith([SESSION]);
+    const written = new WrittenNotes();
+    const heard = vi.fn();
+    written.listen(heard);
+    const files = new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => "D&D", ".obsidian")), written);
+    files.onload();
+    raw.events.trigger("modify", SESSION);
+    expect(heard).not.toHaveBeenCalled();
   });
 });
