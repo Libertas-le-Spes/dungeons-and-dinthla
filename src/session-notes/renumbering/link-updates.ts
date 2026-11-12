@@ -7,6 +7,7 @@ import type { NewTarget } from "./wiki-links";
 export interface LinkUpdateReport {
   notUpdated: string[];
   leftAsWritten: string[];
+  skipped: string[];
 }
 
 function pathNowOf(path: string, renames: SessionRename[]): string {
@@ -23,11 +24,12 @@ export class LinkUpdates {
   }
 
   async apply(decisions: Decisions, renames: SessionRename[]): Promise<LinkUpdateReport> {
-    const report: LinkUpdateReport = { notUpdated: [...decisions.unread], leftAsWritten: [] };
+    const report: LinkUpdateReport = { notUpdated: [...decisions.unread], leftAsWritten: [], skipped: [] };
     for (const note of decisions.notes) {
       const nowAt = pathNowOf(note.path, renames);
       if (note.changes) await this.rewrite(nowAt, note.newTarget, report);
       if (note.leftAsWritten) report.leftAsWritten.push(nowAt);
+      if (note.skipped) report.skipped.push(nowAt);
     }
     return report;
   }

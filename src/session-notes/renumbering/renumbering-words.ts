@@ -6,6 +6,7 @@ export interface RenumberingReport {
   renameFailure: string | null;
   linksNotUpdated: string[];
   linksLeft: string[];
+  linksSkipped: string[];
 }
 
 export const SESSIONS_CHANGED_SINCE_ASKED = "the sessions changed since you were asked, so nothing was deleted. Look at the session again first.";
@@ -53,6 +54,9 @@ function linkWords(report: RenumberingReport): string[] {
   if (report.linksNotUpdated.length > 0) words.push(`Links weren't updated in: ${report.linksNotUpdated.join(", ")}.`);
   if (report.linksLeft.length > 0) {
     words.push(`These notes link to a Session that more than one campaign has, so those links were left as written: ${report.linksLeft.join(", ")}.`);
+  }
+  if (report.linksSkipped.length > 0) {
+    words.push(`These notes still link to a session that moved on a line that isn't rewritten (properties, code, a comment, math or an indented list), so the link keeps its old number: ${report.linksSkipped.join(", ")}.`);
   }
   return words;
 }

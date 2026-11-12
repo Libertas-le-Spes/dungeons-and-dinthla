@@ -47,6 +47,15 @@ function lineKeptOrRetargeted(index: number, was: string, now: string, rules: Li
   return was === now;
 }
 
+export function linkOnSkippedLine(text: string, newTarget: NewTarget): boolean {
+  const rules = rulesOf(text);
+  for (const [index, line] of text.split("\n").entries()) {
+    if (isRewritable(index, rules)) continue;
+    if (lineWithTargetsReplaced(line, newTarget) !== line) return true;
+  }
+  return false;
+}
+
 export function onlyLinkTargetsChanged(before: string, after: string, newTarget: NewTarget): boolean {
   const rules = rulesOf(before);
   const lines = paired(before.split("\n"), after.split("\n"));

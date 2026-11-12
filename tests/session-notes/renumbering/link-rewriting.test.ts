@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { onlyLinkTargetsChanged, withLinksRewritten } from "../../../src/session-notes/renumbering/link-rewriting";
+import { linkOnSkippedLine, onlyLinkTargetsChanged, withLinksRewritten } from "../../../src/session-notes/renumbering/link-rewriting";
 import type { NewTarget } from "../../../src/session-notes/renumbering/wiki-links";
 
 const FOUR_TO_THREE: NewTarget = (target) => {
@@ -34,6 +34,23 @@ describe("withLinksRewritten", () => {
 
   it("gives back the same text when no link has a new target", () => {
     expect(withLinksRewritten("See [[Mira]].\n", FOUR_TO_THREE)).toBe("See [[Mira]].\n");
+  });
+});
+
+describe("linkOnSkippedLine", () => {
+  it("says yes for a link with a new target in the properties, a code block, a comment line or an indented list", () => {
+    expect(linkOnSkippedLine(note(["---", "from: \"[[Session 4]]\"", "---", "Done."]), FOUR_TO_THREE)).toBe(true);
+    expect(linkOnSkippedLine(note(["```", "[[Session 4]]", "```"]), FOUR_TO_THREE)).toBe(true);
+    expect(linkOnSkippedLine("Met [[Session 4]] %%x%%", FOUR_TO_THREE)).toBe(true);
+    expect(linkOnSkippedLine(note(["Plans:", "", "    - [[Session 4]]"]), FOUR_TO_THREE)).toBe(true);
+  });
+
+  it("says no when the only links on skipped lines have no new target", () => {
+    expect(linkOnSkippedLine(note(["```", "[[Mira]]", "```", "[[Session 4]]"]), FOUR_TO_THREE)).toBe(false);
+  });
+
+  it("says no when links with new targets are all on lines that are rewritten", () => {
+    expect(linkOnSkippedLine(PLAIN, FOUR_TO_THREE)).toBe(false);
   });
 });
 
