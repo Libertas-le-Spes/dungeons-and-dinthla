@@ -11,7 +11,7 @@ import { standardHandlers } from "../modifiers/standard-handlers";
 import { SubTypeFamily } from "../modifiers/sub-type-family";
 import { tallyModifiers } from "../modifiers/tally-modifiers";
 import { unknownModifiers } from "../modifiers/unknown-modifiers";
-import type { Skill } from "../proficiency/skill";
+import type { Skill } from "../proficiency/skills/skill";
 
 export class PassiveScoreRule implements Rule {
   constructor(private readonly skill: Skill) {}

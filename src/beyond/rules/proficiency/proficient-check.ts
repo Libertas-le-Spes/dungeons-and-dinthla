@@ -10,8 +10,8 @@ import { standardHandlers } from "../modifiers/standard-handlers";
 import type { SubTypeFamily } from "../modifiers/sub-type-family";
 import { tallyModifiers } from "../modifiers/tally-modifiers";
 import { unknownModifiers } from "../modifiers/unknown-modifiers";
-import { grantFor } from "./grant-for";
-import type { ProficiencyClaim } from "./proficiency-grant";
+import { grantFor } from "./grants/grant-for";
+import type { ProficiencyClaim } from "./grants/proficiency-grant";
 
 export interface ProficientCheck {
   readonly abilityShort: string;

@@ -1,5 +1,5 @@
 import { NotKnownValue } from "../../shape/not-known-value";
-import { wornArmourOf } from "../armour/worn-armour";
+import { wornArmourOf } from "../armour/choice/worn-armour";
 import type { RuleCharacter } from "../input/rule-character";
 import type { RuleItem } from "../input/rule-item";
 

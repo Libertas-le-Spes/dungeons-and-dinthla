@@ -10,7 +10,8 @@ import { HitDiceRule } from "./level/hit-dice-rule";
 import { ProficiencyBonusRule } from "./level/proficiency-bonus-rule";
 import { TotalLevelRule } from "./level/total-level-rule";
 import { PASSIVE_RULES } from "./passive/passive-rules";
-import { SAVING_THROW_RULES, SKILL_RULES } from "./proficiency/skill-rules";
+import { SAVING_THROW_RULES } from "./proficiency/saves/saving-throw-rules";
+import { SKILL_RULES } from "./proficiency/skills/skill-rules";
 import { SpeedRule } from "./speed/speed-rule";
 import { SPELL_RULES } from "./spells/spell-rules";
 

@@ -9,12 +9,12 @@ import { reasonedWorking, withConditional } from "../core/working-text";
 import type { RuleCharacter } from "../input/rule-character";
 import type { RuleItem } from "../input/rule-item";
 import { unknownModifiers } from "../modifiers/unknown-modifiers";
-import type { ArmourCandidate } from "./armour-candidate";
-import { armourModifiersOf } from "./armour-modifiers";
-import { ARMOUR_BONUSES } from "./armour-bonuses";
-import { bestOf, candidatesFor, firstUnknown } from "./armour-choice";
-import { wornArmourOf } from "./worn-armour";
-import type { WornArmour } from "./worn-armour";
+import type { ArmourCandidate } from "./choice/armour-candidate";
+import { armourModifiersOf } from "./bonuses/armour-modifiers";
+import { ARMOUR_BONUSES } from "./bonuses/armour-bonuses";
+import { bestOf, candidatesFor, firstUnknown } from "./choice/armour-choice";
+import { wornArmourOf } from "./choice/worn-armour";
+import type { WornArmour } from "./choice/worn-armour";
 
 function names(items: readonly RuleItem[]): string {
   return items.map((item) => item.name).join(", ");
