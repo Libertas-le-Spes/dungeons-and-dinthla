@@ -22,6 +22,10 @@ export class SessionWants {
     private readonly files: Pick<FencedFiles, "getFileByPath">,
   ) {}
 
+  get campaignFolder(): string | null {
+    return this.store.campaignFolder;
+  }
+
   get opening(): boolean {
     return this.store.opening;
   }

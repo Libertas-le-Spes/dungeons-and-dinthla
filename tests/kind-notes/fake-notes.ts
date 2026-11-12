@@ -54,6 +54,7 @@ export class FakeNotes {
   readonly unread = new Set<string>();
   readonly folders = new Set<string>();
   failProperties: Error | null = null;
+  failRename: Error | null = null;
   alsoChangeWords: string | null = null;
   typedBeforePutBack: string | null = null;
   holdProperties: Promise<void> = Promise.resolve();
@@ -66,6 +67,11 @@ export class FakeNotes {
     const file = fileAt(path);
     this.sessions.push(file);
     return file;
+  }
+
+  removeSession(path: string): void {
+    const index = this.sessions.findIndex((session) => session.path === path);
+    this.sessions.splice(index, 1);
   }
 
   addNote(path: string, properties: Properties | null, words: string): TFile {
@@ -93,6 +99,7 @@ export class FakeNotes {
       return this.addNote(path, null, text);
     }),
     read: vi.fn(async (file: TFile) => textOf(this.noteOf(file))),
+    rename: vi.fn(async (file: TFile, newPath: string) => this.renamed(file, newPath)),
     process: vi.fn(async (file: TFile, change: (text: string) => string) => {
       this.processed.push(file.path);
       if (this.typedBeforePutBack !== null) this.noteOf(file).words = this.typedBeforePutBack;
@@ -147,6 +154,16 @@ export class FakeNotes {
 
   needs() {
     return { files: this.files, metadata: this.metadata, actions: this.actions, say: (message: string) => this.said.push(message) };
+  }
+
+  private renamed(file: TFile, newPath: string): void {
+    if (this.failRename !== null) throw this.failRename;
+    const note = this.notes.get(file.path);
+    if (note !== undefined) {
+      this.notes.delete(file.path);
+      this.notes.set(newPath, note);
+    }
+    Object.assign(file, { path: newPath, name: nameOf(newPath), basename: nameOf(newPath).replace(/\.md$/, "") });
   }
 
   private fileAt(path: string): TFile | null {

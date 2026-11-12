@@ -4,6 +4,7 @@ import { Fence, NOT_WRITTEN_AS_OBSIDIAN_WRITES, OUTSIDE_FENCE } from "../../../s
 import { FencedFiles } from "../../../src/fence/gate/fenced-files";
 import { HeldFiles } from "../../../src/fence/gate/held-files";
 import { NoteReporter } from "../../../src/fence/gate/written-notes";
+import { reportListenerSpy } from "./report-listener";
 import { fileAt, folderAt, rawVaultWith } from "./fake-raw-vault";
 
 const SESSION = fileAt("D&D/Pale Moon/Sessions/Session 1.md");
@@ -304,39 +305,42 @@ describe("FencedFiles report of what it wrote", () => {
   function reportedWith() {
     const raw = rawVaultWith([SESSION, PRIVATE]);
     const reporter = new NoteReporter();
-    const heard = vi.fn();
+    const heard = reportListenerSpy();
     reporter.notes.listen(heard);
     const files = new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => "D&D", ".obsidian")), reporter);
-    return { files, heard };
+    return { files, heard, raw };
   }
 
   it("reports a change with the text it left in the note", async () => {
     const { files, heard } = reportedWith();
     await files.process(SESSION, (text) => `${text}!`);
-    expect(heard).toHaveBeenCalledExactlyOnceWith({ change: "changed", path: SESSION.path, text: `text of ${SESSION.path}!` });
+    expect(heard.textSaved).toHaveBeenCalledExactlyOnceWith(SESSION.path, `text of ${SESSION.path}!`);
   });
 
-  it("reports a note it made", async () => {
+  it("reports a rename with the path it had and the path it has", async () => {
     const { files, heard } = reportedWith();
-    await files.create("D&D/Pale Moon/Questions/Session 2.md", "");
-    expect(heard).toHaveBeenCalledExactlyOnceWith({ change: "made", path: "D&D/Pale Moon/Questions/Session 2.md", text: null });
+    await files.rename(SESSION, "D&D/Pale Moon/Sessions/Session 2.md");
+    expect(heard.renamed).toHaveBeenCalledExactlyOnceWith(SESSION.path, "D&D/Pale Moon/Sessions/Session 2.md");
   });
 
-  it("reports nothing for a change it refused", async () => {
+  it("reports nothing for a change or rename it refused", async () => {
     const { files, heard } = reportedWith();
     await expect(files.process(PRIVATE, (text) => text)).rejects.toThrow(OUTSIDE_FENCE);
+    await expect(files.rename(SESSION, "Private/Session 2.md")).rejects.toThrow(OUTSIDE_FENCE);
     await expect(files.create("Private/Secondary.md", "")).rejects.toThrow(OUTSIDE_FENCE);
-    expect(heard).not.toHaveBeenCalled();
+    expect(heard.heardNothing()).toBe(true);
+  });
+
+  it("reports nothing for a note it made, which isn't a save of anything", async () => {
+    const { files, heard } = reportedWith();
+    await files.create("D&D/Pale Moon/Questions/Session 2.md", "");
+    expect(heard.heardNothing()).toBe(true);
   });
 
   it("reports nothing for a change that arrives from outside the plugin", () => {
-    const raw = rawVaultWith([SESSION]);
-    const reporter = new NoteReporter();
-    const heard = vi.fn();
-    reporter.notes.listen(heard);
-    const files = new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => "D&D", ".obsidian")), reporter);
+    const { files, heard, raw } = reportedWith();
     files.onload();
     raw.events.trigger("modify", SESSION);
-    expect(heard).not.toHaveBeenCalled();
+    expect(heard.heardNothing()).toBe(true);
   });
 });

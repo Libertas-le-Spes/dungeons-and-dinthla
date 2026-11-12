@@ -2,7 +2,7 @@ import type { Symbol as TypeSymbol } from "typescript/unstable/sync";
 import { isInGateFolder, isReportSource } from "../reading/gate-paths";
 import type { FileScan } from "../reading/file-scan";
 
-const REPORT_CALLS = ["changed", "made", "trashed"];
+const REPORT_CALLS = ["textSaved", "trashed", "renamed"];
 
 function isOfTheReport(symbol: TypeSymbol | undefined): boolean {
   if (symbol === undefined) return false;

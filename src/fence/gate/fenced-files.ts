@@ -86,18 +86,18 @@ export class FencedFiles extends Component {
 
   async process(file: TFile, change: (text: string) => string): Promise<string> {
     const text = await this.vault.process(this.held.file(file), change);
-    this.written.changed(file.path, text);
+    this.written.textSaved(file.path, text);
     return text;
   }
 
   async create(path: string, text: string): Promise<TFile> {
-    const made = await this.vault.create(this.held.newPath(path), text);
-    this.written.made(made.path);
-    return made;
+    return this.vault.create(this.held.newPath(path), text);
   }
 
   async rename(file: TFile, newPath: string): Promise<void> {
+    const from = file.path;
     await this.vault.rename(this.held.file(file), this.held.newPath(newPath));
+    this.written.renamed(from, newPath);
   }
 
   async createFolder(path: string): Promise<TFolder> {

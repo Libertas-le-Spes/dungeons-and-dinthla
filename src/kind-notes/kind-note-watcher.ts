@@ -1,7 +1,8 @@
 import type { SessionNote } from "../campaign/record/campaign";
-import type { WrittenNote, WrittenNotes } from "../fence/gate/written-notes";
+import type { WrittenNotes } from "../fence/gate/written-notes";
 import type { DifferingNotes } from "./differing-notes";
 import type { ItemNotesPart } from "./item-notes-part";
+import type { KindNoteMover } from "./kind-note-mover";
 import type { KindNoteKeeper } from "./kind-note-keeper";
 import type { SavesHere } from "./saves-here";
 import type { SessionWants, WantedStore } from "./session-wants";
@@ -18,6 +19,7 @@ export interface KindNoteWatcherNeeds {
   differing: Pick<DifferingNotes, "check" | "checkAll" | "forget">;
   saves: SavesHere;
   items: Pick<ItemNotesPart, "sessionSaved">;
+  mover: Pick<KindNoteMover, "sessionRenamed">;
 }
 
 function pathOfSession(session: SessionNote): string {
@@ -28,7 +30,11 @@ export class KindNoteWatcher {
   constructor(private readonly needs: KindNoteWatcherNeeds) {}
 
   start(): () => void {
-    const stopWritten = this.needs.written.listen((written) => this.written(written));
+    const stopWritten = this.needs.written.listen({
+      textSaved: (path, text) => this.textSaved(path, text),
+      trashed: (path) => this.sessionGone(path),
+      renamed: (from, to) => this.needs.mover.sessionRenamed(from, to),
+    });
     const stopRead = this.needs.store.onNoteRead((path, text) => this.read(path, text));
     return () => {
       stopWritten();
@@ -40,10 +46,8 @@ export class KindNoteWatcher {
     this.needs.differing.checkAll(this.needs.store.sessionNotes.map(pathOfSession));
   }
 
-  private written(written: WrittenNote): void {
-    if (!this.needs.wants.isSession(written.path)) return;
-    if (written.change === "changed" && written.text !== null) this.needs.saves.saved(written.path, written.text);
-    if (written.change === "trashed") this.sessionGone(written.path);
+  private textSaved(path: string, text: string): void {
+    if (this.needs.wants.isSession(path)) this.needs.saves.saved(path, text);
   }
 
   private read(path: string, text: string): void {
@@ -61,6 +65,7 @@ export class KindNoteWatcher {
   }
 
   private sessionGone(path: string): void {
+    if (!this.needs.wants.isSession(path)) return;
     this.needs.saves.forget(path);
     this.needs.differing.forget(path);
     this.needs.keeper.keep(this.needs.wants.notesOfGoneSession(path));

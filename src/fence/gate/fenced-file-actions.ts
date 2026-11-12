@@ -15,16 +15,18 @@ export class FencedFileActions {
 
   async processFrontMatter(file: TFile, change: ChangeProperties): Promise<void> {
     await this.fileManager.processFrontMatter(this.held.file(file), change);
-    this.written.changed(file.path, null);
   }
 
   async renameFile(file: TFile, newPath: string): Promise<void> {
     const held = this.held.file(file);
+    const from = file.path;
     await this.fileManager.renameFile(held, this.held.newPath(newPath));
+    this.written.renamed(from, newPath);
   }
 
   async trashFile(file: TFile): Promise<void> {
+    const path = file.path;
     await this.fileManager.trashFile(this.held.file(file));
-    this.written.trashed(file.path);
+    this.written.trashed(path);
   }
 }

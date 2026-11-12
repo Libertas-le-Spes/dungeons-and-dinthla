@@ -1,0 +1,85 @@
+import { messageOf } from "../views/dialogs/message-of";
+import type { FencedFiles } from "../fence/gate/fenced-files";
+import type { FencedMetadata } from "../fence/gate/fenced-metadata";
+import type { KindNoteKeeper } from "./kind-note-keeper";
+import { kindNotePathOf, kindNoteTitleOf } from "./kind-note-path";
+import { sessionPropertyIn } from "./note-properties";
+import { PropertyWriter, type PropertyActions } from "./property-writer";
+import { SaidOnce } from "./said-once";
+import { linksToSession, sessionLinkFor, type LinkMetadata } from "./session-link";
+import type { SessionWants } from "./session-wants";
+import { kindNoteFolders } from "./sources/kind-note-sources";
+
+export interface KindNoteMoverNeeds {
+  files: Pick<FencedFiles, "getFileByPath" | "rename" | "read" | "process">;
+  metadata: LinkMetadata & Pick<FencedMetadata, "getFileCache">;
+  actions: PropertyActions;
+  keeper: Pick<KindNoteKeeper, "idle">;
+  wants: Pick<SessionWants, "isSession" | "campaignFolder">;
+  say(message: string): void;
+}
+
+function nothing(): void {}
+
+export function targetTakenMessage(oldPath: string, newPath: string): string {
+  return `${oldPath} stays where it is, since ${newPath} is already there. Its session link now points to the session that took that number, so use Fix on the sessions that moved.`;
+}
+
+export function notMovedMessage(path: string): string {
+  return `${path} wasn't moved with its session, since it isn't linked to that session in its properties, or Obsidian hasn't read it yet.`;
+}
+
+export class KindNoteMover {
+  private running: Promise<void> = Promise.resolve();
+  private readonly said: SaidOnce;
+  private readonly properties: PropertyWriter;
+
+  constructor(private readonly needs: KindNoteMoverNeeds) {
+    this.said = new SaidOnce(needs.say);
+    this.properties = new PropertyWriter(needs.files, needs.actions);
+  }
+
+  sessionRenamed(from: string, to: string): void {
+    if (!this.needs.wants.isSession(from) || !this.needs.wants.isSession(to)) return;
+    this.running = this.running.then(() => this.moveAll(from, to)).then(nothing, nothing);
+  }
+
+  private async moveAll(from: string, to: string): Promise<void> {
+    for (const folder of kindNoteFolders()) await this.moveOne(folder, from, to);
+  }
+
+  private async moveOne(folder: string, from: string, to: string): Promise<void> {
+    const campaignFolder = this.needs.wants.campaignFolder;
+    if (campaignFolder === null) return;
+    const oldPath = kindNotePathOf(campaignFolder, folder, from);
+    const newPath = kindNotePathOf(campaignFolder, folder, to);
+    await this.needs.keeper.idle(oldPath);
+    await this.needs.keeper.idle(newPath);
+    try {
+      await this.move(oldPath, newPath, from, to);
+    } catch (error) {
+      this.said.say(`move:${oldPath}`, `Couldn't move ${kindNoteTitleOf(folder, from)} with its session: ${messageOf(error)}`);
+    }
+  }
+
+  private async move(oldPath: string, newPath: string, from: string, to: string): Promise<void> {
+    const { files, metadata } = this.needs;
+    const file = files.getFileByPath(oldPath);
+    const sessionFile = files.getFileByPath(to);
+    if (file === null || sessionFile === null) return;
+    if (files.getFileByPath(newPath) !== null) {
+      this.said.say(`taken:${oldPath}`, targetTakenMessage(oldPath, newPath));
+      return;
+    }
+    const cache = metadata.getFileCache(file);
+    if (cache === null || !linksToSession(metadata, sessionPropertyIn(cache), oldPath, { path: from, file: null })) {
+      this.said.say(`link:${oldPath}`, notMovedMessage(oldPath));
+      return;
+    }
+    await files.rename(file, newPath);
+    const link = sessionLinkFor(metadata, sessionFile, newPath);
+    await this.properties.set(file, (properties) => {
+      properties.session = link;
+    });
+  }
+}
