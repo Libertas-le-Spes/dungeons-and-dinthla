@@ -132,6 +132,21 @@ describe("ItemNotes making a note", () => {
   });
 });
 
+describe("ItemNotes while the campaign is still opening", () => {
+  it("plans nothing from a campaign not yet built, whether a session was saved or the notes of earlier sessions are made", async () => {
+    const sessions = new FakeVault([{ path: SESSION, text: THREE_LINES.join("\n") }]);
+    const built = new CampaignStore(sessions.vault);
+    await built.open(CAMPAIGN);
+    const store = { current: built.current, campaignFolder: CAMPAIGN, sessionNotes: built.sessionNotes, opening: true, subscribe: () => () => {} };
+    const fake = new FakeItemNotes([]);
+    const itemNotes = new ItemNotes(fake.needsFor(store));
+    itemNotes.sessionSaved();
+    await expect(itemNotes.makeMissing()).resolves.toBe(0);
+    await settle();
+    expect(fake.createCalls).toBe(0);
+  });
+});
+
 describe("ItemNotes making the notes of earlier sessions", () => {
   it("makes the missing notes of items on three lines, and says how many", async () => {
     const { fake, itemNotes } = await opened(THREE_LINES);

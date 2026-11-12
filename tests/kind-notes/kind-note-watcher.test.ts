@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { WrittenNotes } from "../../src/fence/gate/written-notes";
+import { SessionWants } from "../../src/kind-notes/session-wants";
 import { KindNoteWatcher } from "../../src/kind-notes/kind-note-watcher";
 import { SavesHere } from "../../src/kind-notes/saves-here";
 import type { WantedNote } from "../../src/kind-notes/wanted-note";
@@ -15,7 +16,7 @@ function watcherWith(campaign: FakeCampaign) {
   const differing = { check: vi.fn(), forget: vi.fn() };
   const items = { sessionSaved: vi.fn() };
   const files = { getFileByPath: (path: string) => fileAt(path) };
-  const watcher = new KindNoteWatcher({ store: campaign, files, written, keeper, differing, saves: new SavesHere(), items });
+  const watcher = new KindNoteWatcher({ store: campaign, wants: new SessionWants(campaign, files), written, keeper, differing, saves: new SavesHere(), items });
   const stop = watcher.start();
   return { written, keeper, differing, watcher, stop, items };
 }
@@ -145,5 +146,37 @@ describe("KindNoteWatcher", () => {
     campaign.arrive(SESSION, TEXT);
     expect(keeper.keep).not.toHaveBeenCalled();
     expect(campaign.stopped).toHaveBeenCalledOnce();
+  });
+
+  it("keeps nothing and checks nothing for a save read while the campaign is still opening, since the campaign isn't built yet", () => {
+    const campaign = new FakeCampaign();
+    campaign.opening = true;
+    const { written, keeper, differing, items } = watcherWith(campaign);
+    written.changed(SESSION, TEXT);
+    campaign.arrive(SESSION, TEXT);
+    expect(keeper.keep).not.toHaveBeenCalled();
+    expect(differing.check).not.toHaveBeenCalled();
+    expect(items.sessionSaved).not.toHaveBeenCalled();
+  });
+
+  it("doesn't treat a later read of the same text as a save once the campaign was opening during the first", () => {
+    const campaign = new FakeCampaign();
+    campaign.opening = true;
+    const { written, keeper, differing } = watcherWith(campaign);
+    written.changed(SESSION, TEXT);
+    campaign.arrive(SESSION, TEXT);
+    campaign.opening = false;
+    campaign.arrive(SESSION, TEXT);
+    expect(keeper.keep).not.toHaveBeenCalled();
+    expect(differing.check).toHaveBeenCalledOnce();
+  });
+
+  it("still takes the lines out of the notes of a session trashed while the campaign opens, but leaves the item notes", () => {
+    const campaign = new FakeCampaign();
+    campaign.opening = true;
+    const { written, keeper, items } = watcherWith(campaign);
+    written.trashed(SESSION);
+    expect(keeper.keep).toHaveBeenCalledOnce();
+    expect(items.sessionSaved).not.toHaveBeenCalled();
   });
 });

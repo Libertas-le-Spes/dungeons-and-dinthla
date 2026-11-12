@@ -90,4 +90,41 @@ describe("KindNoteKeeper leaving a note that isn't its own", () => {
     nothingTouched(notes);
     expect(session.path).toBe(SESSION);
   });
+
+  it("finishes an empty file at its path, the half of a note a crash left behind", async () => {
+    const notes = new FakeNotes();
+    const session = notes.addSession(SESSION);
+    notes.addNote(QUESTIONS, null, "");
+    keeperWith(notes).keep([wanted(QUESTIONS, session, LINES)]);
+    await settled();
+    expect(notes.noteAt(QUESTIONS)?.properties).toEqual({ session: "[[Session 2]]", lines: LINES });
+    expect(notes.said).toEqual([]);
+  });
+
+  it("doesn't finish a file with one character in it, which is somebody's", async () => {
+    const notes = new FakeNotes();
+    const session = notes.addSession(SESSION);
+    notes.addNote(QUESTIONS, null, "x");
+    keeperWith(notes).keep([wanted(QUESTIONS, session, LINES)]);
+    await settled();
+    nothingTouched(notes);
+    expect(notes.said).toEqual([NOT_LINKED]);
+  });
+
+  it("doesn't finish an empty file when the session has no line of that kind", async () => {
+    const notes = new FakeNotes();
+    const session = notes.addSession(SESSION);
+    notes.addNote(QUESTIONS, null, "");
+    keeperWith(notes).keep([wanted(QUESTIONS, session, [])]);
+    await settled();
+    nothingTouched(notes);
+  });
+
+  it("doesn't finish an empty file for a session that is gone", async () => {
+    const notes = new FakeNotes();
+    notes.addNote(QUESTIONS, null, "");
+    keeperWith(notes).keep([wanted(QUESTIONS, null, LINES)]);
+    await settled();
+    nothingTouched(notes);
+  });
 });

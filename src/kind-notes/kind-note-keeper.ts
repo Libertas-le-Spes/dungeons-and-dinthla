@@ -99,6 +99,10 @@ export class KindNoteKeeper {
   }
 
   private async settleExisting(file: TFile, note: WantedNote, key: string): Promise<void> {
+    if (await this.isHalfMade(file, note)) {
+      await this.attempt(note, key, () => this.finishNew(file, note));
+      return;
+    }
     const cache = this.needs.metadata.getFileCache(file);
     if (cache === null) {
       this.waiting.add(note.path);
@@ -118,6 +122,17 @@ export class KindNoteKeeper {
       return;
     }
     await this.attempt(note, key, () => this.writer.setLines(file, note.lines));
+  }
+
+  private async isHalfMade(file: TFile, note: WantedNote): Promise<boolean> {
+    if (note.sessionFile === null || note.lines.length === 0) return false;
+    return (await this.needs.files.read(file)) === "";
+  }
+
+  private async finishNew(file: TFile, note: WantedNote): Promise<void> {
+    const sessionFile = note.sessionFile;
+    if (sessionFile === null) return;
+    await this.writer.fill(file, sessionLinkFor(this.needs.metadata, sessionFile, note.path), note.lines);
   }
 
   private async makeNew(note: WantedNote, sessionFile: TFile): Promise<void> {

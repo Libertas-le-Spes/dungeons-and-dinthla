@@ -3,6 +3,7 @@ import type { Gate } from "../fence/gate/gatekeeper";
 import type { WrittenNotes } from "../fence/gate/written-notes";
 import { messageOf } from "../views/dialogs/message-of";
 import type { NotesMade } from "../settings/saved/notes-made";
+import { SessionWants } from "./session-wants";
 import { DifferingNotes, type AskAboutDifference } from "./differing-notes";
 import type { ItemNotesPart } from "./item-notes-part";
 import { KindNoteBackfill } from "./kind-note-backfill";
@@ -23,8 +24,9 @@ export interface KindNotesNeeds {
 export function startKindNotes(needs: KindNotesNeeds): () => void {
   const { gate, saved, made, items, say } = needs;
   const keeper = new KindNoteKeeper({ files: gate.files, metadata: gate.metadata, actions: gate.fileActions, say });
-  const differing = new DifferingNotes(keeper, needs.ask);
-  const watcher = new KindNoteWatcher({ store: saved, files: gate.files, written: needs.written, keeper, differing, saves: new SavesHere(), items });
+  const wants = new SessionWants(saved, gate.files);
+  const differing = new DifferingNotes(keeper, wants, needs.ask);
+  const watcher = new KindNoteWatcher({ store: saved, wants, written: needs.written, keeper, differing, saves: new SavesHere(), items });
   const backfill = new KindNoteBackfill({ store: saved, files: gate.files, keeper, items, made, say });
   const stopWatching = watcher.start();
   const opened = async (folder: string): Promise<void> => {
