@@ -5,7 +5,7 @@ import { CHANGED_IN_NOTE } from "../../../src/campaign/writing/note-editor";
 import { GOES_ELSEWHERE } from "../../../src/quests/writing/current-quest";
 import { openQuest } from "../../../src/quests/dialogs/open-quest";
 import type { QuestEdit } from "../../../src/quests/writing/quest-plan";
-import { DialogCampaign, lastDialog } from "../../campaign/dialog-campaign";
+import { DialogCampaign, lastDialog, SESSION_TWO_LOST } from "../../campaign/dialog-campaign";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
@@ -56,11 +56,11 @@ describe("the quest dialog's delete", () => {
 });
 
 describe("the quest dialog's choices, when the session they write into is gone", () => {
-  it("refuses a save with the session gone words, writing nothing", async () => {
+  it.each(SESSION_TWO_LOST)("refuses a save with the session gone words, writing nothing when its session was %s", async (_how, lost) => {
     const campaign = new DialogCampaign({ [ONE]: "! Find it\n", [TWO]: "We camped.\n" });
     const choices = questChoices(campaign, { path: ONE, line: 0 }, TWO);
-    campaign.texts.delete(TWO);
-    await expect(choices.save(edit({ happened: "tracks" }))).rejects.toThrow("Session 2's note is gone, so nothing was written.");
+    lost(campaign);
+    await expect(choices.save(edit({ happened: "tracks" }))).rejects.toThrow("Session 2 was moved or deleted, so nothing was written.");
     expect(campaign.writes).toBe(0);
     expect(campaign.texts.get(ONE)).toBe("! Find it\n");
   });

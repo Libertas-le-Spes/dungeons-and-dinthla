@@ -2,6 +2,7 @@ import type { ItemRecord } from "../../campaign/record/campaign";
 import type { EditorFiles } from "../../campaign/writing/note-editor";
 import { SessionChangeWriter } from "../../campaign/changes/session-change-writer";
 import { writeInSession } from "../../campaign/changes/write-in-session";
+import { OpenedSession } from "../../campaign/paths/session-gone";
 import { itemSave } from "./item-save";
 import { initialItemEdit, type ItemEdit } from "./item-plan";
 import type { ItemSource } from "./item-source";
@@ -13,9 +14,10 @@ export interface OpenedItem {
 
 export function openedItem(files: EditorFiles, store: ItemSource, item: ItemRecord, sessionPath: string): OpenedItem {
   const writer = new SessionChangeWriter(files);
+  const session = new OpenedSession(files, sessionPath);
   const asOpened = { files, store, sessions: store.sessionNotes, coins: store.current.coins };
   return {
     edit: initialItemEdit(item, asOpened.sessions),
-    save: async (edit) => writeInSession(files, sessionPath, () => itemSave(asOpened, item, edit, sessionPath), writer),
+    save: async (edit) => writeInSession(session, () => itemSave(asOpened, item, edit, sessionPath), writer),
   };
 }

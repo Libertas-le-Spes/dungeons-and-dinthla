@@ -7,6 +7,7 @@ import { sessionLabelOf } from "../../campaign/paths/session-file";
 import { sessionForDialog } from "../../campaign/paths/session-for-dialog";
 import { latestSessionWanted } from "../../campaign/paths/session-to-write";
 import { writeInSession } from "../../campaign/changes/write-in-session";
+import { OpenedSession } from "../../campaign/paths/session-gone";
 import { NewQuestModal } from "./new-quest-modal";
 import type { NewQuest } from "../writing/new-quest";
 import { newQuest } from "../writing/new-quest-change";
@@ -24,7 +25,8 @@ export function openNewQuest(app: App, gate: Gate, store: CampaignStore, onClose
   if (sessionPath === null) return;
   const characters = charactersIn(gate, folder, sessionPath);
   const writer = new SessionChangeWriter(gate.files);
-  const add = async (entry: NewQuest) => writeInSession(gate.files, sessionPath, () => newQuest(store, entry, characters, sessionPath), writer);
+  const opened = new OpenedSession(gate.files, sessionPath);
+  const add = async (entry: NewQuest) => writeInSession(opened, () => newQuest(store, entry, characters, sessionPath), writer);
   const names = characters.map((character) => character.name);
   new NewQuestModal(app, sessionLabelOf(sessionPath), names, add, onClosed).open();
 }

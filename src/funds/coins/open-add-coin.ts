@@ -5,6 +5,7 @@ import { SessionChangeWriter } from "../../campaign/changes/session-change-write
 import { sessionLabelOf } from "../../campaign/paths/session-file";
 import { sessionForDialog } from "../../campaign/paths/session-for-dialog";
 import { writeInSession } from "../../campaign/changes/write-in-session";
+import { OpenedSession } from "../../campaign/paths/session-gone";
 import type { Source } from "../../campaign/record/campaign";
 import type { CoinLine } from "../../notes/writing/coin-lines";
 import { newCoin } from "./new-coin-change";
@@ -24,7 +25,8 @@ export function openAddCoin(app: App, gate: Gate, store: CampaignStore, onClosed
   const sessionPath = sessionForDialog(gate.files, folder, wanted);
   if (sessionPath === null) return;
   const writer = new SessionChangeWriter(gate.files);
-  const add = (written: CoinLine) => writeInSession(gate.files, sessionPath, () => newCoin(written, sessionPath), writer);
+  const opened = new OpenedSession(gate.files, sessionPath);
+  const add = (written: CoinLine) => writeInSession(opened, () => newCoin(written, sessionPath), writer);
   new CoinModal(app, sessionLabelOf(sessionPath), add, null, null, onClosed).open();
 }
 

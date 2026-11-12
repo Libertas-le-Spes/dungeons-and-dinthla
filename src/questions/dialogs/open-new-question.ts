@@ -6,6 +6,7 @@ import { sessionLabelOf } from "../../campaign/paths/session-file";
 import { sessionForDialog } from "../../campaign/paths/session-for-dialog";
 import { latestSessionWanted } from "../../campaign/paths/session-to-write";
 import { writeInSession } from "../../campaign/changes/write-in-session";
+import { OpenedSession } from "../../campaign/paths/session-gone";
 import { newQuestion } from "../writing/new-question-change";
 import type { NewQuestion } from "../writing/new-question";
 import { NewQuestionModal } from "./new-question-modal";
@@ -22,6 +23,7 @@ export function openNewQuestion(app: App, gate: Gate, store: CampaignStore, onCl
   const sessionPath = sessionForDialog(gate.files, folder, latestSessionWanted(NO_SESSION));
   if (sessionPath === null) return;
   const writer = new SessionChangeWriter(gate.files);
-  const add = async (entry: NewQuestion) => writeInSession(gate.files, sessionPath, () => newQuestion(store, entry, sessionPath), writer);
+  const opened = new OpenedSession(gate.files, sessionPath);
+  const add = async (entry: NewQuestion) => writeInSession(opened, () => newQuestion(store, entry, sessionPath), writer);
   new NewQuestionModal(app, sessionLabelOf(sessionPath), add, onClosed).open();
 }

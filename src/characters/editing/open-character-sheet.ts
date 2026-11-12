@@ -2,7 +2,7 @@ import { Notice, type App, type TFile } from "obsidian";
 import type { Source } from "../../campaign/record/campaign";
 import { CHANGED_IN_NOTE } from "../../campaign/writing/note-editor";
 import { sessionLabelOf } from "../../campaign/paths/session-file";
-import { refuseIfSessionGone } from "../../campaign/paths/session-gone";
+import { OpenedSession } from "../../campaign/paths/session-gone";
 import { latestSessionWanted, NoSessionToWrite, sessionToWrite } from "../../campaign/paths/session-to-write";
 import { messageOf } from "../../views/dialogs/message-of";
 import { sameName } from "../reading/sheet-values";
@@ -40,24 +40,24 @@ function sessionPathIn(read: ReadSheet): string {
   return sessionToWrite(read.campaignFolder, paths, latestSessionWanted(NO_SESSION));
 }
 
-function openedSessionIn(read: ReadSheet): string | null {
+function openedSessionIn(gate: Gate, read: ReadSheet): OpenedSession | null {
   try {
-    return sessionPathIn(read);
+    return new OpenedSession(gate.files, sessionPathIn(read));
   } catch (error) {
     if (!(error instanceof NoSessionToWrite)) throw error;
     return null;
   }
 }
 
-function sessionPathToSave(gate: Gate, read: ReadSheet, openedSession: string | null): string {
-  if (openedSession === null) return sessionPathIn(read);
-  refuseIfSessionGone(gate.files, openedSession);
-  return openedSession;
+function sessionPathToSave(openedSession: OpenedSession | null): string {
+  if (openedSession === null) throw new NoSessionToWrite(NO_SESSION);
+  openedSession.refuseIfMoved();
+  return openedSession.path;
 }
 
-function labelOf(sessionPath: string | null): string | null {
-  if (sessionPath === null) return null;
-  return sessionLabelOf(sessionPath);
+function labelOf(session: OpenedSession | null): string | null {
+  if (session === null) return null;
+  return sessionLabelOf(session.path);
 }
 
 export async function saveSheetValue(
@@ -68,7 +68,7 @@ export async function saveSheetValue(
   file: TFile,
   opened: SheetValue,
   choice: ValueChoice,
-  openedSession: string | null,
+  openedSession: OpenedSession | null,
 ): Promise<boolean> {
   const read = await readCharacterSheet(file, store, notes);
   const current = valueIn(read, opened.name);
@@ -77,7 +77,7 @@ export async function saveSheetValue(
     {
       files: gate.files,
       file,
-      sessionPath: () => sessionPathToSave(gate, read, openedSession),
+      sessionPath: () => sessionPathToSave(openedSession),
       linktextFrom: (sessionPath) => gate.metadata.fileToLinktext(file, sessionPath, true),
       pathOfLink: (linktext, sourcePath) => notes.pathOfLink(linktext, sourcePath),
     },
@@ -95,9 +95,9 @@ export async function chooseSheetValue(
   openSource: (source: Source) => void,
   onClosed: () => void,
 ): Promise<void> {
-  let openedSession: string | null;
+  let openedSession: OpenedSession | null;
   try {
-    openedSession = openedSessionIn(await readCharacterSheet(file, store, notes));
+    openedSession = openedSessionIn(gate, await readCharacterSheet(file, store, notes));
   } catch (error) {
     new Notice(`Couldn't read ${file.basename}: ${messageOf(error)}`);
     return;

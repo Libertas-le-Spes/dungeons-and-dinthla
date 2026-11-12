@@ -1,10 +1,23 @@
+import type { TFile } from "obsidian";
 import type { FencedFiles } from "../../fence/gate/fenced-files";
 import { sessionLabelOf } from "./session-file";
 
 export function sessionGoneWords(sessionPath: string): string {
-  return `${sessionLabelOf(sessionPath)}'s note is gone, so nothing was written.`;
+  return `${sessionLabelOf(sessionPath)} was moved or deleted, so nothing was written.`;
 }
 
-export function refuseIfSessionGone(files: Pick<FencedFiles, "getFileByPath">, sessionPath: string): void {
-  if (files.getFileByPath(sessionPath) === null) throw new Error(sessionGoneWords(sessionPath));
+export class OpenedSession {
+  private readonly file: TFile | null;
+
+  constructor(
+    private readonly files: Pick<FencedFiles, "getFileByPath">,
+    readonly path: string,
+  ) {
+    this.file = files.getFileByPath(path);
+  }
+
+  refuseIfMoved(): void {
+    const current = this.files.getFileByPath(this.path);
+    if (current === null || current !== this.file) throw new Error(sessionGoneWords(this.path));
+  }
 }
