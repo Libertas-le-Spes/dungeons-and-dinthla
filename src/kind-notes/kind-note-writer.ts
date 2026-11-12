@@ -20,6 +20,10 @@ export class KindNoteWriter {
   async make(path: string, folder: string, sessionLink: string, lines: string[]): Promise<void> {
     if (this.files.getFolderByPath(folder) === null) await this.files.createFolder(folder);
     const file = await this.files.create(path, "");
+    await this.fill(file, sessionLink, lines);
+  }
+
+  async fill(file: TFile, sessionLink: string, lines: string[]): Promise<void> {
     try {
       await this.properties.set(file, (properties) => {
         properties.session = sessionLink;

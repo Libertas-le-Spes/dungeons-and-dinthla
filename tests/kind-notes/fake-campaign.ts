@@ -7,6 +7,7 @@ import { CAMPAIGN } from "./keeper-setup";
 
 export class FakeCampaign implements WatchedCampaign {
   campaignFolder: string | null = CAMPAIGN;
+  opening = false;
   current: Campaign = buildCampaign([]);
   private readonly sessions = new Map<string, SessionNote>();
   private readonly readListeners = new Set<(path: string, text: string) => void>();

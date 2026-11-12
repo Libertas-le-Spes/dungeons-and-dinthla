@@ -1,29 +1,27 @@
-import type { Campaign, SessionNote } from "../campaign/record/campaign";
-import { sessionNumberOf } from "../campaign/paths/session-file";
-import type { FencedFiles } from "../fence/gate/fenced-files";
+import type { SessionNote } from "../campaign/record/campaign";
 import type { WrittenNote, WrittenNotes } from "../fence/gate/written-notes";
 import type { DifferingNotes } from "./differing-notes";
 import type { ItemNotesPart } from "./item-notes-part";
 import type { KindNoteKeeper } from "./kind-note-keeper";
 import type { SavesHere } from "./saves-here";
-import type { WantedNote } from "./wanted-note";
-import { wantedNotesFor } from "./wanted-notes";
+import type { SessionWants, WantedStore } from "./session-wants";
 
-export interface WatchedCampaign {
-  readonly current: Campaign;
-  readonly sessionNotes: SessionNote[];
-  readonly campaignFolder: string | null;
+export interface WatchedCampaign extends WantedStore {
   onNoteRead(listener: (path: string, text: string) => void): () => void;
 }
 
 export interface KindNoteWatcherNeeds {
-  store: WatchedCampaign;
-  files: Pick<FencedFiles, "getFileByPath">;
+  store: Pick<WatchedCampaign, "onNoteRead" | "sessionNotes">;
+  wants: SessionWants;
   written: Pick<WrittenNotes, "listen">;
   keeper: Pick<KindNoteKeeper, "keep" | "noteRead">;
   differing: Pick<DifferingNotes, "check" | "forget">;
   saves: SavesHere;
   items: Pick<ItemNotesPart, "sessionSaved">;
+}
+
+function pathOfSession(session: SessionNote): string {
+  return session.path;
 }
 
 export class KindNoteWatcher {
@@ -39,56 +37,33 @@ export class KindNoteWatcher {
   }
 
   checkAll(): void {
-    for (const session of this.needs.store.sessionNotes) this.needs.differing.check(this.wantedFor(session.path));
+    for (const session of this.needs.store.sessionNotes) this.needs.differing.check(pathOfSession(session));
   }
 
   private written(written: WrittenNote): void {
-    if (!this.isSession(written.path)) return;
+    if (!this.needs.wants.isSession(written.path)) return;
     if (written.change === "changed" && written.text !== null) this.needs.saves.saved(written.path, written.text);
     if (written.change === "trashed") this.sessionGone(written.path);
   }
 
   private read(path: string, text: string): void {
     this.needs.keeper.noteRead(path);
-    if (!this.isSession(path)) return;
-    const wanted = this.wantedFor(path);
-    if (this.needs.saves.takeIfSavedHere(path, text)) {
-      this.needs.differing.forget(wanted);
-      this.needs.keeper.keep(wanted);
-      this.needs.items.sessionSaved();
+    if (!this.needs.wants.isSession(path)) return;
+    const savedHere = this.needs.saves.takeIfSavedHere(path, text);
+    if (this.needs.wants.opening) return;
+    if (!savedHere) {
+      this.needs.differing.check(path);
       return;
     }
-    this.needs.differing.check(wanted);
+    this.needs.differing.forget(path);
+    this.needs.keeper.keep(this.needs.wants.notesFor(path));
+    this.needs.items.sessionSaved();
   }
 
   private sessionGone(path: string): void {
     this.needs.saves.forget(path);
-    const wanted = wantedNotesFor(this.folderOf(), this.needs.store.current, { path, file: null, note: null });
-    this.needs.differing.forget(wanted);
-    this.needs.keeper.keep(wanted);
-    this.needs.items.sessionSaved();
-  }
-
-  private isSession(path: string): boolean {
-    const folder = this.needs.store.campaignFolder;
-    if (folder === null) return false;
-    return sessionNumberOf(path, folder) !== null;
-  }
-
-  private wantedFor(path: string): WantedNote[] {
-    const { store, files } = this.needs;
-    const note = store.sessionNotes.find((session) => session.path === path);
-    return wantedNotesFor(this.folderOf(), store.current, { path, file: files.getFileByPath(path), note: this.heldNote(note) });
-  }
-
-  private heldNote(note: SessionNote | undefined): SessionNote | null {
-    if (note === undefined) return null;
-    return note;
-  }
-
-  private folderOf(): string {
-    const folder = this.needs.store.campaignFolder;
-    if (folder === null) throw new Error("No campaign is open.");
-    return folder;
+    this.needs.differing.forget(path);
+    this.needs.keeper.keep(this.needs.wants.notesOfGoneSession(path));
+    if (!this.needs.wants.opening) this.needs.items.sessionSaved();
   }
 }

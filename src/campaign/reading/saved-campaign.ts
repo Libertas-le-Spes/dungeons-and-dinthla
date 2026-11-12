@@ -34,6 +34,10 @@ export class SavedCampaign {
     return this.saved.campaignFolder;
   }
 
+  get opening(): boolean {
+    return this.saved.opening;
+  }
+
   get sessionNotes(): SessionNote[] {
     return this.saved.sessionNotes;
   }

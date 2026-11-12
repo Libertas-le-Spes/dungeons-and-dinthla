@@ -1,4 +1,5 @@
 import { kindNoteTitleOf } from "./kind-note-path";
+import type { SessionWants } from "./session-wants";
 import { wantedKeyOf, type WantedNote } from "./wanted-note";
 
 export interface DifferingKeeper {
@@ -19,21 +20,28 @@ export class DifferingNotes {
 
   constructor(
     private readonly keeper: DifferingKeeper,
+    private readonly wants: Pick<SessionWants, "notesFor">,
     private readonly ask: AskAboutDifference,
   ) {}
 
-  check(notes: WantedNote[]): void {
-    for (const note of notes) this.checkOne(note);
+  check(sessionPath: string): void {
+    for (const note of this.wants.notesFor(sessionPath)) this.checkOne(sessionPath, note);
   }
 
-  forget(notes: WantedNote[]): void {
-    for (const note of notes) this.asked.delete(note.path);
+  forget(sessionPath: string): void {
+    for (const note of this.wants.notesFor(sessionPath)) this.asked.delete(note.path);
   }
 
-  private checkOne(note: WantedNote): void {
+  private checkOne(sessionPath: string, note: WantedNote): void {
     const key = wantedKeyOf(note);
     if (this.asked.get(note.path) === key || !this.keeper.isOutOfStep(note)) return;
     this.asked.set(note.path, key);
-    this.ask(differsMessage(note), () => this.keeper.keep([note]), leaveAsItIs);
+    this.ask(differsMessage(note), () => this.fixIfStillSo(sessionPath, note.path, key), leaveAsItIs);
+  }
+
+  private fixIfStillSo(sessionPath: string, notePath: string, key: string): void {
+    const current = this.wants.notesFor(sessionPath).find((note) => note.path === notePath);
+    if (current === undefined || current.sessionFile === null || wantedKeyOf(current) !== key) return;
+    this.keeper.keep([current]);
   }
 }

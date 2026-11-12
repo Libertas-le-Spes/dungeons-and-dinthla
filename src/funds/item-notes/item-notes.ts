@@ -14,6 +14,7 @@ import { itemOfNote } from "./item-of-note";
 export interface ItemNotesStore {
   readonly current: Campaign;
   readonly campaignFolder: string | null;
+  readonly opening: boolean;
   readonly sessionNotes: SessionNote[];
   subscribe(listener: (campaign: Campaign) => void): () => void;
 }
@@ -80,7 +81,7 @@ export class ItemNotes {
   private plan(): ItemNotePlan | null {
     const { store, files } = this.needs;
     const folder = store.campaignFolder;
-    if (folder === null) return null;
+    if (folder === null || store.opening) return null;
     const itemsFolder = itemsFolderOf(folder);
     return planItemNotes(store.current, store.sessionNotes, itemsFolder, files.markdownFilesUnder(itemsFolder));
   }
