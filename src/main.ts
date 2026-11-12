@@ -28,7 +28,7 @@ import { openQuest } from "./quests/dialogs/open-quest";
 import { questsKind } from "./quests/list/quests-kind";
 import { openAddCoin } from "./funds/coins/open-add-coin";
 import { openItemDialog } from "./funds/items/open-item";
-import { ItemHolders } from "./funds/item-notes/item-holders";
+import { ItemNotes } from "./funds/item-notes/item-notes";
 import { askInNotice } from "./kind-notes/differing-notice";
 import { startKindNotes } from "./kind-notes/kind-notes-wiring";
 import { NotesMade } from "./settings/saved/notes-made";
@@ -415,7 +415,7 @@ export default class DungeonsAndDinthla extends Plugin {
 
   private async watchCampaign(): Promise<void> {
     this.watchNotes();
-    this.keepItemHolders();
+    this.keepNotes();
     const folder = this.startingCampaignFolder();
     if (folder !== null) await this.chosen.choose(folder);
   }
@@ -437,16 +437,16 @@ export default class DungeonsAndDinthla extends Plugin {
     }));
   }
 
-  private keepItemHolders(): void {
+  private keepNotes(): void {
     const gate = this.gate;
     const notRead = (error: unknown) => new Notice(`Couldn't read the saved session notes: ${messageOf(error)}`);
     const saved = new SavedCampaign({ shown: this.store, files: gate.files, metadata: gate.metadata, failed: notRead });
-    const failed = (error: unknown) => new Notice(`Couldn't write an item's holder: ${messageOf(error)}`);
-    const holders = new ItemHolders({ store: saved, files: gate.files, metadata: gate.metadata, actions: gate.fileActions, failed });
     const say = (message: string) => new Notice(message, NOTICE_STAYS_UNTIL_DISMISSED);
+    const failed = (error: unknown) => new Notice(`Couldn't write an item's note: ${messageOf(error)}`);
+    const items = new ItemNotes({ store: saved, files: gate.files, metadata: gate.metadata, actions: gate.fileActions, failed, say });
     const made = new NotesMade(this.settingsSaver);
-    this.register(holders.start());
-    this.register(startKindNotes({ gate, written: gate.written, saved, made, say, ask: askInNotice }));
+    this.register(items.start());
+    this.register(startKindNotes({ gate, written: gate.written, saved, made, items, say, ask: askInNotice }));
     this.register(saved.start());
   }
 

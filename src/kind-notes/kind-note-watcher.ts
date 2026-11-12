@@ -3,6 +3,7 @@ import { sessionNumberOf } from "../campaign/paths/session-file";
 import type { FencedFiles } from "../fence/gate/fenced-files";
 import type { WrittenNote, WrittenNotes } from "../fence/gate/written-notes";
 import type { DifferingNotes } from "./differing-notes";
+import type { ItemNotesPart } from "./item-notes-part";
 import type { KindNoteKeeper } from "./kind-note-keeper";
 import type { SavesHere } from "./saves-here";
 import type { WantedNote } from "./wanted-note";
@@ -22,6 +23,7 @@ export interface KindNoteWatcherNeeds {
   keeper: Pick<KindNoteKeeper, "keep" | "noteRead">;
   differing: Pick<DifferingNotes, "check" | "forget">;
   saves: SavesHere;
+  items: Pick<ItemNotesPart, "sessionSaved">;
 }
 
 export class KindNoteWatcher {
@@ -53,6 +55,7 @@ export class KindNoteWatcher {
     if (this.needs.saves.takeIfSavedHere(path, text)) {
       this.needs.differing.forget(wanted);
       this.needs.keeper.keep(wanted);
+      this.needs.items.sessionSaved();
       return;
     }
     this.needs.differing.check(wanted);
@@ -63,6 +66,7 @@ export class KindNoteWatcher {
     const wanted = wantedNotesFor(this.folderOf(), this.needs.store.current, { path, file: null, note: null });
     this.needs.differing.forget(wanted);
     this.needs.keeper.keep(wanted);
+    this.needs.items.sessionSaved();
   }
 
   private isSession(path: string): boolean {
