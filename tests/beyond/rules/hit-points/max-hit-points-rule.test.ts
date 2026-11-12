@@ -91,6 +91,11 @@ describe("MaxHitPointsRule", () => {
     expect([hitPoints.isKnown, hitPoints.explanation]).toEqual([false, 'D&D Beyond names a rule I can\'t work out here: "hit-points-per-level". Type it on your note to set it.']);
   });
 
+  it("does not know the hit points when a modifier adds flat hit points under a name it does not know", () => {
+    const character = madeUpRuleCharacter({ modifiers: [modifierOf("bonus", "hit-points", 5, "Pale Charm")] });
+    expect(numberNamed(character, "HP").isKnown).toBe(false);
+  });
+
   it("leaves out an unknown per-level modifier that does not apply now", () => {
     const character = madeUpRuleCharacter({ baseHitPoints: 10, modifiers: [{ ...modifierOf("bonus", "hit-points-per-level", 1, "Pale Charm"), inForce: false }] });
     expect(numberNamed(character, "HP").valueOr(-1)).toBe(10);
