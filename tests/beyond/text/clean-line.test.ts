@@ -45,6 +45,10 @@ describe("CleanLine.of", () => {
     expect(() => CleanLine.of(`<b>${"a".repeat(300)}</b>`)).toThrow("A line of text is over the limit of 300 characters.");
   });
 
+  it("refuses text over the line cap even when hidden characters would bring it under, before cleaning it", () => {
+    expect(() => CleanLine.of(`${"a".repeat(100)}${"\u200b".repeat(201)}`)).toThrow("A line of text is over the limit of 300 characters.");
+  });
+
   it("removes tags before counting against the name cap", () => {
     expect(textOf(`<b>${"a".repeat(100)}</b>`)).toBe("a".repeat(100));
   });
