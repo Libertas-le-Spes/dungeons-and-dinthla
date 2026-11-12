@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { AbilityTable } from "../../../../src/beyond/rules/input/by-ability";
-import { classOf, madeUpRuleCharacter, modifierOf, numberNamed, scoresOf } from "../../builders/made-up-rule-character";
+import { classOf, madeUpRuleCharacter, modifierOf, scoresOf } from "../../builders/made-up-rule-character";
+import { numberNamed } from "../../builders/rule-numbers";
 import type { RuleCharacter } from "../../../../src/beyond/rules/input/rule-character";
 
 function passive(name: string, changes: Partial<RuleCharacter>) {

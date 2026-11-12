@@ -3,7 +3,9 @@ import { HeavyArmour } from "../../../../../src/beyond/rules/input/armour/heavy-
 import { Shield } from "../../../../../src/beyond/rules/input/armour/shield";
 import { DEXTERITY } from "../../../../../src/beyond/rules/input/ability";
 import { AbilityTable } from "../../../../../src/beyond/rules/input/by-ability";
-import { armourClassOf, classOf, itemOf, madeUpRuleCharacter, numberNamed, scoresOf } from "../../../builders/made-up-rule-character";
+import { classOf, itemOf, madeUpRuleCharacter, scoresOf } from "../../../builders/made-up-rule-character";
+import { numberNamed } from "../../../builders/rule-numbers";
+import { armourClassOf } from "../../../builders/rule-test-helpers";
 
 describe("MonkDefenceRule for a monk", () => {
   const monk = [classOf("Monk", 1, 8)];

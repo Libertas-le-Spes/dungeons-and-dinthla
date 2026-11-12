@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { AbilityTable } from "../../../../src/beyond/rules/input/by-ability";
-import { classOf, madeUpRuleCharacter, modifierOf, numberNamed, withDexterity } from "../../builders/made-up-rule-character";
+import { classOf, madeUpRuleCharacter, modifierOf } from "../../builders/made-up-rule-character";
+import { numberNamed } from "../../builders/rule-numbers";
+import { withDexterity } from "../../builders/rule-test-helpers";
 import type { RuleCharacter } from "../../../../src/beyond/rules/input/rule-character";
 
 function initiative(changes: Partial<RuleCharacter>) {

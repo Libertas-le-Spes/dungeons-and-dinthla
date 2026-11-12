@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { HeavyArmour } from "../../../../../src/beyond/rules/input/armour/heavy-armour";
 import { Shield } from "../../../../../src/beyond/rules/input/armour/shield";
-import { armourClassOf, itemOf } from "../../../builders/made-up-rule-character";
+import { itemOf } from "../../../builders/made-up-rule-character";
+import { armourClassOf } from "../../../builders/rule-test-helpers";
 
 describe("DefenceStyleBonus", () => {
   it("adds one for the Defense fighting style in armour", () => {

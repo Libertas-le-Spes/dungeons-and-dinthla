@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { LightArmour } from "../../../../../src/beyond/rules/input/armour/light-armour";
 import { Shield } from "../../../../../src/beyond/rules/input/armour/shield";
-import { armourClassOf, classOf, itemOf, scoresOf } from "../../../builders/made-up-rule-character";
+import { classOf, itemOf, scoresOf } from "../../../builders/made-up-rule-character";
+import { armourClassOf } from "../../../builders/rule-test-helpers";
 
 describe("BarbarianDefenceRule for a barbarian", () => {
   const barbarian = [classOf("Barbarian", 1, 12)];

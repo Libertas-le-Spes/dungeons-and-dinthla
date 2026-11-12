@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { AbilityTable } from "../../../src/beyond/rules/input/by-ability";
-import { STRENGTH } from "../../../src/beyond/rules/input/ability";
+import { ABILITIES, STRENGTH } from "../../../src/beyond/rules/input/ability";
+import type { Ability } from "../../../src/beyond/rules/input/ability";
 import { workedOut } from "../../../src/beyond/rules/worked-out";
-import { classOf, madeUpRuleCharacter, namesWorkedOut, numberNamed, scoresOf } from "../builders/made-up-rule-character";
+import { classOf, madeUpRuleCharacter, scoresOf } from "../builders/made-up-rule-character";
+import { knownNamesWorkedOut, namesWorkedOut, numberNamed, routesWorkedOut } from "../builders/rule-numbers";
 
 const SKILL_NAMES = [
   "Acrobatics",
@@ -27,6 +29,20 @@ const SKILL_NAMES = [
 
 const ABILITY_NAMES = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 
+function modifierNameOf(ability: Ability): string {
+  return ability.modifierName;
+}
+
+function saveNameOf(ability: Ability): string {
+  return ability.saveName;
+}
+
+function placeIn(names: readonly string[]): (name: string) => number {
+  return function placeOf(name: string): number {
+    return names.indexOf(name);
+  };
+}
+
 function byPlace(first: number, second: number): number {
   return first - second;
 }
@@ -37,7 +53,7 @@ describe("workedOut", () => {
       "Total level",
       "Proficiency bonus",
       ...ABILITY_NAMES,
-      ...ABILITY_NAMES.map((name) => `${name} modifier`),
+      ...ABILITIES.map(modifierNameOf),
       "Hit dice",
       "HP",
       "Current HP",
@@ -45,7 +61,7 @@ describe("workedOut", () => {
       "AC",
       "Initiative",
       "Speed",
-      ...ABILITY_NAMES.map((name) => `${name} save`),
+      ...ABILITIES.map(saveNameOf),
       ...SKILL_NAMES,
       "Passive Perception",
       "Passive Investigation",
@@ -56,7 +72,7 @@ describe("workedOut", () => {
 
   it("puts the spell numbers after the passive scores and before the carrying capacity", () => {
     const names = namesWorkedOut(madeUpRuleCharacter({ classes: [classOf("Wizard", 3, 6)] }));
-    const places = ["Passive Insight", "Wizard spell save DC", "Wizard spell attack bonus", "Spell slots level 1", "Spell slots level 2", "Carrying capacity"].map((name) => names.indexOf(name));
+    const places = ["Passive Insight", "Wizard spell save DC", "Wizard spell attack bonus", "Spell slots level 1", "Spell slots level 2", "Carrying capacity"].map(placeIn(names));
     expect(places).toEqual([...places].sort(byPlace));
     expect(places).not.toContain(-1);
   });
@@ -81,13 +97,12 @@ describe("workedOut", () => {
 
   it("leaves every value that does not need a missing score standing", () => {
     const character = madeUpRuleCharacter({ baseScores: new AbilityTable<number>().with(STRENGTH, 14) });
-    const known = workedOut(character).filter((number) => number.value.isKnown).map((number) => number.name);
+    const known = knownNamesWorkedOut(character);
     expect(known).toEqual(["Total level", "Proficiency bonus", "STR", "STR modifier", "Hit dice", "Temporary HP", "Speed", "STR save", "Athletics", "Carrying capacity"]);
   });
 
   it("gives every number the route of the character", () => {
     const character = madeUpRuleCharacter({ classes: [classOf("Wizard", 3, 6)] });
-    const routes = workedOut(character).map((number) => number.value.route);
-    expect(routes.every((route) => route === character.route)).toBe(true);
+    expect(routesWorkedOut(character)).toEqual(Array(workedOut(character).length).fill(character.route));
   });
 });

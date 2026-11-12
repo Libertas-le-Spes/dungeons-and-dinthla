@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { HeavyArmour } from "../../../../../src/beyond/rules/input/armour/heavy-armour";
 import { LightArmour } from "../../../../../src/beyond/rules/input/armour/light-armour";
 import { MediumArmour } from "../../../../../src/beyond/rules/input/armour/medium-armour";
-import { armourClassOf, itemOf, withDexterity } from "../../../builders/made-up-rule-character";
+import { itemOf } from "../../../builders/made-up-rule-character";
+import { armourClassOf, withDexterity } from "../../../builders/rule-test-helpers";
 
 describe("BodyArmourRule with body armour", () => {
   it("adds all of a high dexterity modifier to light armour", () => {

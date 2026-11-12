@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
+import type { Ability } from "../../../../src/beyond/rules/input/ability";
 import { ABILITIES, CHARISMA, DEXTERITY, STRENGTH } from "../../../../src/beyond/rules/input/ability";
 import { AbilityTable } from "../../../../src/beyond/rules/input/by-ability";
+
+function namesOf(ability: Ability): string[] {
+  return [ability.short, ability.subTypeName];
+}
 
 describe("AbilityTable", () => {
   it("holds a value for each ability it was given", () => {
@@ -9,7 +14,7 @@ describe("AbilityTable", () => {
   });
 
   it("names the six abilities with their short names and lower-case sub-type names", () => {
-    expect(ABILITIES.map((ability) => [ability.short, ability.subTypeName])).toEqual([
+    expect(ABILITIES.map(namesOf)).toEqual([
       ["STR", "strength"],
       ["DEX", "dexterity"],
       ["CON", "constitution"],

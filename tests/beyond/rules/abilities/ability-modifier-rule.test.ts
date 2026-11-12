@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { AbilityTable } from "../../../../src/beyond/rules/input/by-ability";
-import { madeUpRuleCharacter, numberNamed, scoresOf } from "../../builders/made-up-rule-character";
+import { madeUpRuleCharacter, scoresOf } from "../../builders/made-up-rule-character";
+import { numberNamed } from "../../builders/rule-numbers";
 
 describe("AbilityModifierRule", () => {
   it.each([

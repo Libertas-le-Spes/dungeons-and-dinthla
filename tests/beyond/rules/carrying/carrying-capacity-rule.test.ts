@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { madeUpRuleCharacter, numberNamed, scoresOf } from "../../builders/made-up-rule-character";
+import { madeUpRuleCharacter, scoresOf } from "../../builders/made-up-rule-character";
+import { numberNamed } from "../../builders/rule-numbers";
 
 describe("CarryingCapacityRule", () => {
   it.each([

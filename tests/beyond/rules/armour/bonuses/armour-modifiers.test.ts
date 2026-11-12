@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { armourClassOf, modifierOf } from "../../../builders/made-up-rule-character";
+import { modifierOf } from "../../../builders/made-up-rule-character";
+import { armourClassOf } from "../../../builders/rule-test-helpers";
 
 describe("armourModifiersOf", () => {
   it("adds a plain armour class modifier from a worn item and shows its source", () => {

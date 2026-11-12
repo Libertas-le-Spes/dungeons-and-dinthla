@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { classOf, madeUpRuleCharacter, namesWorkedOut, numberNamed } from "../../../builders/made-up-rule-character";
+import { classOf, madeUpRuleCharacter } from "../../../builders/made-up-rule-character";
+import { namesStartingWith, numberNamed } from "../../../builders/rule-numbers";
 
 function pactOf(level: number) {
   const character = madeUpRuleCharacter({ classes: [classOf("Warlock", level, 8)] });
@@ -26,12 +27,11 @@ describe("PactSlotsRule", () => {
   });
 
   it("gives a warlock no ordinary slots", () => {
-    const names = namesWorkedOut(madeUpRuleCharacter({ classes: [classOf("Warlock", 5, 8)] }));
-    expect(names.filter((name) => name.startsWith("Spell slots"))).toEqual([]);
+    expect(namesStartingWith(madeUpRuleCharacter({ classes: [classOf("Warlock", 5, 8)] }), "Spell slots")).toEqual([]);
   });
 
   it("names no pact slots for another class", () => {
-    expect(namesWorkedOut(madeUpRuleCharacter({ classes: [classOf("Wizard", 5, 6)] })).filter((name) => name.startsWith("Pact"))).toEqual([]);
+    expect(namesStartingWith(madeUpRuleCharacter({ classes: [classOf("Wizard", 5, 6)] }), "Pact")).toEqual([]);
   });
 
   it("does not know the pact slots when the total level is not known", () => {

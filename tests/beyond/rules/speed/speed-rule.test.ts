@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { HeavyArmour } from "../../../../src/beyond/rules/input/armour/heavy-armour";
 import { LightArmour } from "../../../../src/beyond/rules/input/armour/light-armour";
-import { itemOf, madeUpRuleCharacter, modifierOf, numberNamed, scoresOf } from "../../builders/made-up-rule-character";
+import { itemOf, madeUpRuleCharacter, modifierOf, scoresOf } from "../../builders/made-up-rule-character";
+import { numberNamed } from "../../builders/rule-numbers";
 import type { RuleCharacter } from "../../../../src/beyond/rules/input/rule-character";
 
 function speedOf(changes: Partial<RuleCharacter>) {
