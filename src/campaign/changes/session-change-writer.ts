@@ -1,6 +1,9 @@
 import { messageOf } from "../../views/dialogs/message-of";
-import { NoteEditor, PartlyWritten, type EditorFiles, type Removal } from "../writing/note-editor";
+import { NoteEditor, PartlyWritten, WOULD_BE_HIDDEN, type EditorFiles, type Removal } from "../writing/note-editor";
 import type { AddedLines, LaterLines, LinesChange, SessionChange } from "./session-change";
+
+export const LATER_NOTE_HIDDEN =
+  "The first lines were written, but the later note has a block that never closes, so the rest was left out. Close the block in the note and add the rest by hand.";
 
 export class SessionChangeWriter {
   private readonly editor: NoteEditor;
@@ -39,6 +42,7 @@ export class SessionChangeWriter {
       return wrote;
     } catch (error) {
       if (!wrote) throw error;
+      if (messageOf(error) === WOULD_BE_HIDDEN) throw new PartlyWritten(LATER_NOTE_HIDDEN);
       throw new PartlyWritten(`${later.partlyWritten} ${messageOf(error)}`);
     }
   }

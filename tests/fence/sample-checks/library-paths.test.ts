@@ -1,8 +1,5 @@
-import { mkdirSync, mkdtempSync, rmSync, symlinkSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { isInCodeMirrorFolder, isInLibraryFolder, isInObsidianFolder, isPictureCssSource, isUnderOneOf, libraryRootsOf } from "../scan/reading/library-paths";
+import { isInCodeMirrorFolder, isInLibraryFolder, isInObsidianFolder, isPictureCssSource, isUnderOneOf, libraryRootsOf, type Disk } from "../scan/reading/library-paths";
 import { ROOT, sourcePath } from "../scan/reading/scan-paths";
 
 const OBSIDIAN_TYPES = `${ROOT}/node_modules/obsidian/obsidian.d.ts`;
@@ -105,38 +102,59 @@ describe("the picture CSS file, as the source scan decides it", () => {
   });
 });
 
+const PROJECT = "/work/project";
+
+function diskWithLinks(links: Record<string, string>): Disk {
+  const present = [`${PROJECT}/node_modules`, PROJECT];
+  const pointing = new Map(Object.entries(links));
+  const realpath = (path: string): string => {
+    const real = pointing.get(path);
+    if (real === undefined) return path;
+    return real;
+  };
+  return { exists: (path) => present.includes(path), realpath };
+}
+
 describe("the library roots of a project whose node_modules is a link", () => {
-  function projectWithLinkedLibraries(): { root: string; store: string; clean: () => void } {
-    const base = mkdtempSync(join(tmpdir(), "dd-linked-"));
-    const root = join(base, "project");
-    const store = join(base, "store");
-    mkdirSync(root);
-    mkdirSync(join(store, "obsidian"), { recursive: true });
-    symlinkSync(store, join(root, "node_modules"));
-    return { root, store, clean: () => rmSync(base, { recursive: true, force: true }) };
-  }
-
   it("takes the folder where the link points as a library root too", () => {
-    const linked = projectWithLinkedLibraries();
-    try {
-      expect(libraryRootsOf(linked.root).sort()).toEqual([`${linked.root}/node_modules/`, `${linked.store}/`].sort());
-      expect(isUnderOneOf(libraryRootsOf(linked.root), `${linked.store}/obsidian/obsidian.d.ts`)).toBe(true);
-    } finally {
-      linked.clean();
-    }
+    const disk = diskWithLinks({ [`${PROJECT}/node_modules`]: "/work/store" });
+    const roots = libraryRootsOf(PROJECT, disk);
+    expect(roots).toEqual([`${PROJECT}/node_modules/`, "/work/store/"]);
+    expect(isUnderOneOf(roots, "/work/store/obsidian/obsidian.d.ts")).toBe(true);
   });
 
-  it("doesn't take a file beside the folder where the link points", () => {
-    const linked = projectWithLinkedLibraries();
-    try {
-      expect(isUnderOneOf(libraryRootsOf(linked.root), `${linked.store}-extra/obsidian/obsidian.d.ts`)).toBe(false);
-      expect(isUnderOneOf(libraryRootsOf(linked.root), `${linked.root}/src/main.ts`)).toBe(false);
-    } finally {
-      linked.clean();
-    }
+  it("doesn't take a file beside the folder where the link points, or in the project", () => {
+    const roots = libraryRootsOf(PROJECT, diskWithLinks({ [`${PROJECT}/node_modules`]: "/work/store" }));
+    expect(isUnderOneOf(roots, "/work/store-extra/obsidian/obsidian.d.ts")).toBe(false);
+    expect(isUnderOneOf(roots, `${PROJECT}/src/main.ts`)).toBe(false);
   });
 
-  it("has only the project's own node_modules as a root when there is none on disk", () => {
-    expect(libraryRootsOf("/nowhere/project")).toEqual(["/nowhere/project/node_modules/"]);
+  it("has one root when node_modules is a plain folder", () => {
+    expect(libraryRootsOf(PROJECT, diskWithLinks({}))).toEqual([`${PROJECT}/node_modules/`]);
+  });
+
+  it("has one root when the project itself is reached through a link and node_modules is plain", () => {
+    const disk = diskWithLinks({ [PROJECT]: "/real/project", [`${PROJECT}/node_modules`]: "/real/project/node_modules" });
+    expect(libraryRootsOf(PROJECT, disk)).toEqual([`${PROJECT}/node_modules/`, "/real/project/node_modules/"]);
+  });
+
+  it("has only the project's own node_modules as a root when there is none", () => {
+    const disk: Disk = { exists: () => false, realpath: (path) => path };
+    expect(libraryRootsOf("/nowhere/project", disk)).toEqual(["/nowhere/project/node_modules/"]);
+  });
+
+  it("refuses a node_modules that points at the project itself", () => {
+    const disk = diskWithLinks({ [`${PROJECT}/node_modules`]: PROJECT });
+    expect(() => libraryRootsOf(PROJECT, disk)).toThrow("is the project");
+  });
+
+  it("refuses a node_modules that points at a folder inside the project", () => {
+    const disk = diskWithLinks({ [`${PROJECT}/node_modules`]: `${PROJECT}/src` });
+    expect(() => libraryRootsOf(PROJECT, disk)).toThrow("is the project");
+  });
+
+  it("refuses a node_modules that points at a folder around the project", () => {
+    const disk = diskWithLinks({ [`${PROJECT}/node_modules`]: "/work" });
+    expect(() => libraryRootsOf(PROJECT, disk)).toThrow("is the project");
   });
 });

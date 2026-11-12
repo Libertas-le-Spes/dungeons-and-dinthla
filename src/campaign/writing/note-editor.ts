@@ -16,7 +16,7 @@ export const LINES_LEFT = "It was deleted, but some of its lines had changed or 
 export const PROPERTIES_WOULD_CHANGE = "That change would turn lines of the note into its properties, hiding them, because a --- line would come first.";
 
 export const WOULD_BE_HIDDEN =
-  "The new line would land inside a code block or comment that never closes, so nothing was written. Close it in the note.";
+  "The new line would land inside a code block, comment or math block that never closes, so nothing was written. Close it in the note.";
 
 export class PartlyWritten extends Error {}
 
