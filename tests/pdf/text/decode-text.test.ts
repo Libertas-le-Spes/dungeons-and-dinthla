@@ -82,7 +82,7 @@ describe("decodeText in UTF-16", () => {
   });
 
   it("refuses a string that starts with the little-endian byte order mark", () => {
-    expect(refusalFrom(() => decodeText(bytes(0xff, 0xfe, 0x41, 0x00)))).toContain("text that is not written the way PDF writes it");
+    expect(refusalFrom(() => decodeText(bytes(0xff, 0xfe, 0x41, 0x42)))).toContain("text that is not written the way PDF writes it");
   });
 
   it("refuses text that stops in the middle of a unit", () => {

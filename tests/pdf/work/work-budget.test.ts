@@ -62,6 +62,15 @@ describe("WorkBudget", () => {
     expect(refusalFrom(() => work.checkTime())).toContain("clock went backwards");
   });
 
+  it("refuses a clock that goes backwards after it has gone forwards, even if it stays after the start", () => {
+    let now = 1000;
+    const work = new WorkBudget(10, () => now);
+    now = 1500;
+    work.checkTime();
+    now = 1200;
+    expect(refusalFrom(() => work.checkTime())).toContain("clock went backwards");
+  });
+
   it("accepts a clock that stands still", () => {
     const work = new WorkBudget(10, () => 5);
     work.checkTime();
