@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addedLinesHidden, hiddenLines } from "../../../src/notes/reading/hidden-lines";
+import { addedLinesHidden, addedLinesHiddenWith, CLOSERS_WITHOUT_MATH, hiddenLines } from "../../../src/notes/reading/hidden-lines";
 
 function hidden(lines: string[]): number[] {
   return [...hiddenLines(lines.join("\n"))];
@@ -103,5 +103,27 @@ describe("addedLinesHidden", () => {
 
   it("says no when nothing was added", () => {
     expect(addedLinesHidden("a\n%% aside\n", 0)).toBe(false);
+  });
+
+  it("counts a math block as hiding the lines after it", () => {
+    expect(addedLinesHidden("$$ Rope :lost\n! Find it\n", 1)).toBe(true);
+  });
+});
+
+describe("addedLinesHiddenWith, leaving math out", () => {
+  it("doesn't count a line starting with $$ as opening a block", () => {
+    expect(addedLinesHiddenWith(CLOSERS_WITHOUT_MATH, "$$ Rope :lost\n! Find it\n", 1)).toBe(false);
+  });
+
+  it("still counts a comment that never closes", () => {
+    expect(addedLinesHiddenWith(CLOSERS_WITHOUT_MATH, "$$ Rope :lost\n%% aside\n! Find it\n", 1)).toBe(true);
+  });
+
+  it("still counts an HTML comment that never closes", () => {
+    expect(addedLinesHiddenWith(CLOSERS_WITHOUT_MATH, "<!-- aside\n! Find it\n", 1)).toBe(true);
+  });
+
+  it("still counts a code block that never closes", () => {
+    expect(addedLinesHiddenWith(CLOSERS_WITHOUT_MATH, "```\n! Find it\n", 1)).toBe(true);
   });
 });
