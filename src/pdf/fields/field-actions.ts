@@ -9,14 +9,11 @@ import type { PdfValue } from "../values/pdf-value";
 const UNREADABLE = "A field has an action the reader can't make sense of, so the file was not read.";
 
 export class FieldActions {
-  private readonly checkedObjects = new Set<number>();
   private readonly walkedActions = new Set<number>();
 
   constructor(private readonly store: ObjectStore) {}
 
-  check(number: number, dictionary: PdfDictionary): void {
-    if (this.checkedObjects.has(number)) return;
-    this.checkedObjects.add(number);
+  check(dictionary: PdfDictionary): void {
     this.checkAction(dictionary.get("A"), 0);
     this.checkTriggers(dictionary.get("AA"));
   }

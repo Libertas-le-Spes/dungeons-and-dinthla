@@ -76,8 +76,8 @@ describe("BoundedInflater", () => {
   });
 
   it("accepts a ratio of exactly the most allowed, once over the size the ratio is checked above", async () => {
-    const size = RATIO_CHECKED_ABOVE_BYTES + 1;
-    const packed = new Uint8Array(Math.ceil(size / MAX_RATIO));
+    const packed = new Uint8Array(Math.ceil((RATIO_CHECKED_ABOVE_BYTES + 1) / MAX_RATIO));
+    const size = MAX_RATIO * packed.byteLength;
     const result = await inflaterOver(new StubChunks([size])).inflate(packed);
     expect(result.byteLength).toBe(size);
   });
@@ -107,10 +107,11 @@ describe("BoundedInflater", () => {
   it("refuses the stream that takes the file's total one byte over, and cancels it once", async () => {
     const totals = new DecompressedTotals();
     await inflaterOver(new StubChunks([MAX_STREAM_BYTES]), totals).inflate(new Uint8Array(MAX_STREAM_BYTES));
-    const second = new StubChunks([MAX_ALL_STREAM_BYTES - MAX_STREAM_BYTES + 1, 5]);
-    expect(await refusalFromAsync(() => inflaterOver(second, totals).inflate(new Uint8Array(MAX_ALL_STREAM_BYTES)))).toContain("unpacks to too much");
-    expect(second.cancels).toBe(1);
-    expect(second.reads).toBe(1);
+    await inflaterOver(new StubChunks([MAX_ALL_STREAM_BYTES - MAX_STREAM_BYTES]), totals).inflate(new Uint8Array(MAX_ALL_STREAM_BYTES));
+    const third = new StubChunks([1, 5]);
+    expect(await refusalFromAsync(() => inflaterOver(third, totals).inflate(new Uint8Array(MAX_ALL_STREAM_BYTES)))).toContain("unpacks to too much");
+    expect(third.cancels).toBe(1);
+    expect(third.reads).toBe(1);
   });
 
   it("refuses with its own words when the platform fails while unpacking", async () => {

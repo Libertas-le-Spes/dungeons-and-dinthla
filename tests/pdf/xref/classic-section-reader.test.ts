@@ -54,6 +54,15 @@ describe("reading a classic cross-reference table", () => {
     expect(await refusalOf(fileWith(`xref\n0 1\n0000000042 0000 n \n`))).toContain("A line of the file's index");
   });
 
+  it("refuses a line whose two last bytes are not a line end", async () => {
+    expect(await refusalOf(fileWith(`xref\n0 1\n${entryLine(0, 65535, "f", "ab")}`))).toContain("A line of the file's index");
+  });
+
+  it("refuses a line whose separators are not spaces", async () => {
+    expect(await refusalOf(fileWith(`xref\n0 1\n0000000042X00000 n \n`))).toContain("A line of the file's index");
+    expect(await refusalOf(fileWith(`xref\n0 1\n0000000042 00000Xn \n`))).toContain("A line of the file's index");
+  });
+
   it("refuses a line whose mark is neither n nor f", async () => {
     expect(await refusalOf(fileWith(`xref\n0 1\n0000000042 00000 x \n`))).toContain("not written the way PDF writes it");
   });

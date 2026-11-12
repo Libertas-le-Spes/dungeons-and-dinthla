@@ -81,6 +81,10 @@ describe("readIndirectObject with a stream", () => {
     expect(refusalFrom(() => read("5 0 obj << /Length 4 >> stream\rabcd\nendstream endobj"))).toContain("does not end the way PDF writes it");
   });
 
+  it("does not read the carriage return as data, even when the length would then fit", () => {
+    expect(refusalFrom(() => read("5 0 obj << /Length 4 >> stream\rabc\nendstream endobj"))).toContain("does not end the way PDF writes it");
+  });
+
   it("refuses a stream keyword with no line end after it", () => {
     expect(refusalFrom(() => read("5 0 obj << /Length 4 >> stream abcd\nendstream endobj"))).toContain("does not end the way PDF writes it");
   });

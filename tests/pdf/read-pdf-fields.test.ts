@@ -51,6 +51,10 @@ describe("reading a made-up character sheet end to end", () => {
     expect(await fieldsOf(sheet().classic({ junkBefore: "some junk\n" }))).toEqual(EXPECTED);
   });
 
+  it("reads a streamed file that has bytes before its header", async () => {
+    expect(await fieldsOf(sheet().streamed({ junkBefore: "some junk\n" }))).toEqual(EXPECTED);
+  });
+
   it("returns every field as plain text, a flag or a list", async () => {
     const result = await readPdfFieldsWith(sheet().classic(), testParts());
     if (!result.ok) throw new Error(result.reason);

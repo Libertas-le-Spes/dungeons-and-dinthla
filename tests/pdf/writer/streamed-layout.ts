@@ -11,6 +11,7 @@ export interface StreamedOptions {
   root: number;
   trailerExtra: string;
   objectStreamExtra: string;
+  junkBefore: string;
 }
 
 const ROW_BYTES = 7;
@@ -48,11 +49,13 @@ function predictorParameters(options: StreamedOptions): string {
 }
 
 export function streamedPdf(writer: PdfWriter, given: Partial<StreamedOptions>): Buffer {
-  const options: StreamedOptions = { packed: [], predictor: false, root: 1, trailerExtra: "", objectStreamExtra: "", ...given };
+  const options: StreamedOptions = { packed: [], predictor: false, root: 1, trailerExtra: "", objectStreamExtra: "", junkBefore: "", ...given };
   const packed = [...options.packed].sort(byValue);
   const containerNumber = writer.highestNumber() + 1;
   const xrefNumber = containerNumber + 1;
   const output = new PdfOutput();
+  output.put(options.junkBefore);
+  output.startFileHere();
   output.put(HEADER);
   const offsets = new Map<number, number>();
   for (const number of writer.numbers()) {

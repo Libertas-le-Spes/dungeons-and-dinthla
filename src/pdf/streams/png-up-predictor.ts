@@ -2,7 +2,6 @@ import { PdfRefusal } from "../refusals/pdf-refusal";
 import type { WorkBudget } from "../work/work-budget";
 
 const UP_TAG = 2;
-const BYTE_MASK = 0xff;
 const BAD_ROWS = "A compressed part of the file is laid out in rows the reader does not understand, so it was not read.";
 
 function aboveByte(unrolled: DataView, row: number, column: number, columns: number): number {
@@ -22,7 +21,7 @@ export function undoUpPredictor(packed: Uint8Array, columns: number, work: WorkB
     for (let column = 0; column < columns; column += 1) {
       work.spend();
       const delta = input.getUint8(row * rowSize + 1 + column);
-      output.setUint8(row * columns + column, (delta + aboveByte(output, row, column, columns)) & BYTE_MASK);
+      output.setUint8(row * columns + column, delta + aboveByte(output, row, column, columns));
     }
   }
   return unrolled;

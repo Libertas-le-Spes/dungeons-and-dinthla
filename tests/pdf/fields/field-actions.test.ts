@@ -119,6 +119,14 @@ describe("a field's own action that does something else", () => {
     expect(await refusalOf(bytes)).toContain("send its form somewhere");
   });
 
+  it("refuses the file for a refused action on an unnamed widget kid beside a named field kid", async () => {
+    const bytes = treeDocument({
+      objects: { 10: "<< /T (Top) /Kids [11 0 R 12 0 R] >>", 11: `<< ${WIDGET} /FT /Tx /T (Leaf) /V (x) >>`, 12: `<< ${WIDGET} /A << /S /Launch >> >>` },
+      formFields: [10],
+    });
+    expect(await refusalOf(bytes)).toContain("another program");
+  });
+
   it("refuses the file for a refused action on a field that has no value", async () => {
     const bytes = treeDocument({ objects: { 10: `<< ${WIDGET} /FT /Tx /T (Empty) /A << /S /Launch >> >>` }, annotations: [10] });
     expect(await refusalOf(bytes)).toContain("another program");

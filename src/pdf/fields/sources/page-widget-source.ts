@@ -15,7 +15,6 @@ const BAD_ANNOTATION = "A page holds something that is not a plain object, so th
 
 export class PageWidgetSource implements FieldSource, WidgetSink {
   private readonly visitedPages = new Set<number>();
-  private readonly seenWidgets = new Set<number>();
   private readonly recordedFields = new Set<number>();
 
   constructor(
@@ -30,8 +29,6 @@ export class PageWidgetSource implements FieldSource, WidgetSink {
   }
 
   widget(annotation: IndirectDictionary): void {
-    if (this.seenWidgets.has(annotation.number)) return;
-    this.seenWidgets.add(annotation.number);
     const field = this.nodes.climbed(annotation, 1).nearestNamed();
     if (field === null || this.recordedFields.has(field.number)) return;
     this.recordedFields.add(field.number);

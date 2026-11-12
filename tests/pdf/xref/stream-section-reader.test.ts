@@ -114,6 +114,10 @@ describe("reading a cross-reference stream", () => {
     expect(await refusalOf(xrefStreamFile("/Size 1000 /W [1 4 2]", rowOf(0, 0, 0), true))).toContain(BAD_STREAM);
   });
 
+  it("refuses rows without a type field that are fewer than /Size says, instead of reading past them", async () => {
+    expect(await refusalOf(xrefStreamFile("/Size 3 /W [0 4 2]", Buffer.from([0, 0, 0, 90, 0, 4]), true))).toContain(BAD_STREAM);
+  });
+
   it("undoes the up predictor", async () => {
     const data = withUpPredictor([rowOf(1, 90, 0), rowOf(1, 120, 0)]);
     const index = await indexOf(xrefStreamFile("/Size 2 /W [1 4 2] /DecodeParms << /Predictor 12 /Columns 7 >>", data, true));
