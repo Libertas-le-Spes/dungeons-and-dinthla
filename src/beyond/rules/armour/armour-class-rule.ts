@@ -1,16 +1,16 @@
 import type { ImportedNumber } from "../../shape/imported-number";
 import { ARMOUR_CLASS } from "../../shape/import-limits";
-import type { NotKnownValue } from "../../shape/not-known-value";
 import type { WorkedValue } from "../../shape/worked-value";
 import type { EarlierNumbers } from "../core/earlier-numbers";
 import { ARMOUR_CLASS_NAME } from "../core/number-names";
 import type { Rule } from "../core/rule";
 import { ARMOUR_CLASS_TOUCHING } from "../core/touching-lists";
 import { knownIn, notKnown } from "../core/worked";
-import { reasonedWorking, shortList, withConditional } from "../core/working-text";
+import { reasonedWorking, withConditional } from "../core/working-text";
 import type { RuleCharacter } from "../input/rule-character";
 import type { RuleItem } from "../input/rule-item";
 import { unknownModifiers } from "../modifiers/unknown-modifiers";
+import { conflictIn } from "./choice/armour-conflict";
 import { ARMOUR_BONUSES } from "./bonuses/armour-bonuses";
 import { armourModifiersOf } from "./bonuses/armour-modifiers";
 import type { ArmourBonus } from "./bonuses/armour-bonus";
@@ -18,20 +18,6 @@ import type { ArmourCandidate } from "./choice/armour-candidate";
 import { bestOf, candidatesFor, firstUnknown } from "./choice/armour-choice";
 import { wornArmourOf } from "./choice/worn-armour";
 import type { WornArmour } from "./choice/worn-armour";
-
-function nameOf(item: RuleItem): string {
-  return item.name.text;
-}
-
-function namesOf(items: readonly RuleItem[]): string {
-  return shortList(items.map(nameOf));
-}
-
-function conflictIn(worn: WornArmour, character: RuleCharacter): NotKnownValue<number> | null {
-  if (worn.body.length > 1) return notKnown(`More than one body armour is worn (${namesOf(worn.body)}). Settle it on D&D Beyond.`, character.route);
-  if (worn.shields.length > 1) return notKnown(`More than one shield is held (${namesOf(worn.shields)}). Settle it on D&D Beyond.`, character.route);
-  return null;
-}
 
 function shieldTerm(shield: RuleItem): string {
   return `${shield.name.text} ${shield.armourClass}`;
