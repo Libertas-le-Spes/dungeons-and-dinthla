@@ -4,11 +4,16 @@ export function byteOf(character: string): number {
 
 export const NO_BYTE = -1;
 export const NUL = 0;
+export const BACKSPACE = 8;
 export const TAB = 9;
 export const LINE_FEED = 10;
 export const FORM_FEED = 12;
 export const CARRIAGE_RETURN = 13;
 export const SPACE = 32;
+export const OCTAL_BASE = 8;
+export const DECIMAL_BASE = 10;
+export const HEX_BASE = 16;
+export const BYTE_VALUES = 256;
 export const PERCENT = byteOf("%");
 export const SLASH = byteOf("/");
 export const LEFT_PAREN = byteOf("(");

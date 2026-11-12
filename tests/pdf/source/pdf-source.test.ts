@@ -1,7 +1,7 @@
 import { readdirSync } from "node:fs";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { fenceBreaches } from "../../fence/scan/running/bundle-check";
-import { entryProject } from "../../fence/scan/running/bundled-project";
+import { BUNDLED_PROJECT, bundledProjectFiles, entryProject } from "../../fence/scan/running/bundled-project";
 import { ROOT, SOURCE_FOLDER, sourcePath, VIRTUAL_FOLDER } from "../../fence/scan/reading/scan-paths";
 import { NOTHING_ALLOWED } from "../../fence/scan/running/allowance-sets";
 import type { Allowances } from "../../fence/scan/reading/allowances";
@@ -65,12 +65,19 @@ describe("the PDF reader's own source", () => {
     expect(fenceBreaches(scanner, PDF_PROJECT, pdfListing(), PDF_ALLOWANCES)).toEqual([]);
   }, SCAN_TIME);
 
+  it("is not reached by the plugin's bundle yet; once it is, move PDF_FILE_GLOBALS and PDF_PLAIN_GLOBALS into the shared allowed globals and the source allowances, and delete tests/pdf/source/pdf-globals.ts", () => {
+    const bundled = new SourceScanner(ROOT, virtualFileSystem(VIRTUAL_FOLDER, bundledProjectFiles()));
+    const reached = bundled.loadedFiles(BUNDLED_PROJECT).filter((path) => path.startsWith(sourcePath("pdf/")));
+    bundled.close();
+    expect(reached).toEqual([]);
+  }, SCAN_TIME);
+
   it("is scanned in every file under src/pdf", () => {
     const scanned = scanner.loadedFiles(PDF_PROJECT).filter((path) => path.startsWith(sourcePath("pdf/")));
     expect(scanned.sort()).toEqual(pdfListing().sort());
   }, SCAN_TIME);
 
-  it("lets only the platform inflating file name DecompressionStream and Blob, which it still needs", () => {
+  it("lets only the platform inflating file name DecompressionStream and Blob, and only the clock file name performance, each of which it still needs", () => {
     const refused = globalsRefused({ ...PDF_ALLOWANCES, globals: allowsOnlyPlainGlobals });
     const named: Record<string, string[]> = {};
     for (const [file, names] of Object.entries(refused)) named[file] = sortedUnique(names);

@@ -62,7 +62,7 @@ describe("ObjectStore", () => {
 
   it("refuses an object the index says was deleted", () => {
     const store = storeOver(TEXT, new Map<number, XrefEntry>([[1, new FreeEntry()]]));
-    expect(refusalFrom(() => store.load(1, 0))).toContain("object that is not there");
+    expect(refusalFrom(() => store.load(1, 0))).toContain("an object it says was deleted");
   });
 
   it("refuses an object whose place holds another object", () => {

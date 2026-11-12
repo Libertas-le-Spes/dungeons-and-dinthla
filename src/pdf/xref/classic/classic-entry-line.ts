@@ -5,6 +5,8 @@ import { PdfRefusal } from "../../refusals/pdf-refusal";
 import { CLASSIC_ENTRY_KINDS } from "./classic-entry-kinds";
 import type { XrefEntry } from "../entries/xref-entry";
 
+const OFFSET_DIGITS = 10;
+const GENERATION_DIGITS = 5;
 const BAD_LINE = "A line of the file's index is not written the way PDF writes it, so the file was not read.";
 
 function expectByte(cursor: ByteCursor, expected: number): void {
@@ -24,9 +26,9 @@ function skipLineEnd(cursor: ByteCursor): void {
 }
 
 export function readClassicEntry(cursor: ByteCursor): XrefEntry {
-  const offset = readExactDigits(cursor, 10, "A line of the file's index");
+  const offset = readExactDigits(cursor, OFFSET_DIGITS, "A line of the file's index");
   expectByte(cursor, SPACE);
-  const generation = readExactDigits(cursor, 5, "A line of the file's index");
+  const generation = readExactDigits(cursor, GENERATION_DIGITS, "A line of the file's index");
   expectByte(cursor, SPACE);
   const mark = cursor.current();
   cursor.advance();

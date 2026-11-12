@@ -1,3 +1,4 @@
+import { BYTE_VALUES } from "../../bytes/byte-codes";
 import { ByteCursor } from "../../bytes/byte-cursor";
 import { isDigit } from "../../bytes/byte-kinds";
 import { readIndirectObject } from "../../file/indirect-object";
@@ -16,7 +17,7 @@ const FILE_KIND = 1;
 function readWidth(rows: ByteCursor, width: number): number {
   let value = 0;
   for (let index = 0; index < width; index += 1) {
-    value = value * 256 + rows.current();
+    value = value * BYTE_VALUES + rows.current();
     rows.advance();
   }
   return value;

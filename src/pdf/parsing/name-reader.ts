@@ -1,3 +1,4 @@
+import { HEX_BASE } from "../bytes/byte-codes";
 import { ByteSink } from "../bytes/byte-sink";
 import { HASH, NO_BYTE, SLASH } from "../bytes/byte-codes";
 import type { ByteCursor } from "../bytes/byte-cursor";
@@ -18,7 +19,7 @@ function readEscapedByte(cursor: ByteCursor): number {
   const low = hexValueOf(cursor.current());
   cursor.advance();
   if (high === NO_BYTE || low === NO_BYTE) throw new PdfRefusal(BAD_ESCAPE);
-  const byte = high * 16 + low;
+  const byte = high * HEX_BASE + low;
   if (byte === 0) throw new PdfRefusal(BAD_ESCAPE);
   return byte;
 }

@@ -4,6 +4,7 @@ export const PDF_PLAIN_GLOBALS = ["DataView", "Uint8Array"];
 
 export const PDF_FILE_GLOBALS: Record<string, string[]> = {
   "pdf/streams/inflate/platform-inflating.ts": ["Blob", "DecompressionStream"],
+  "pdf/work/clock.ts": ["performance"],
 };
 
 export function isPlainGlobal(name: string): boolean {

@@ -1,4 +1,4 @@
-import { GREATER_THAN, LESS_THAN, NO_BYTE } from "../../bytes/byte-codes";
+import { GREATER_THAN, HEX_BASE, LESS_THAN, NO_BYTE } from "../../bytes/byte-codes";
 import type { ByteCursor } from "../../bytes/byte-cursor";
 import { ByteSink } from "../../bytes/byte-sink";
 import { hexValueOf, isWhitespace } from "../../bytes/byte-kinds";
@@ -30,13 +30,13 @@ export class HexStringReader implements ObjectReader {
       if (digit === NO_BYTE) throw new PdfRefusal(BAD_TEXT);
       if (high === NO_BYTE) high = digit;
       else {
-        sink.push(high * 16 + digit);
+        sink.push(high * HEX_BASE + digit);
         high = NO_BYTE;
       }
       cursor.advance();
     }
     cursor.advance();
-    if (high !== NO_BYTE) sink.push(high * 16);
+    if (high !== NO_BYTE) sink.push(high * HEX_BASE);
     return new PdfString(sink.toBytes());
   }
 }
