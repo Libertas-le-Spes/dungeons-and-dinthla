@@ -1,9 +1,11 @@
+import type { TFile } from "obsidian";
 import { messageOf } from "../../views/dialogs/message-of";
 import type { FencedFiles } from "../../fence/gate/fenced-files";
 import type { FencedMetadata } from "../../fence/gate/fenced-metadata";
 import type { KindNoteKeeper } from "./kind-note-keeper";
 import { kindNotePathOf, kindNoteTitleOf } from "../wanting/kind-note-path";
 import { sessionPropertyIn } from "../../note-keeping/note-properties";
+import { nothing } from "../../note-keeping/nothing";
 import { PropertyWriter, type PropertyActions } from "../../note-keeping/property-writer";
 import { SaidOnce } from "../../note-keeping/said-once";
 import { linksToSession, sessionLinkFor, type LinkMetadata } from "./session-link";
@@ -19,10 +21,12 @@ export interface KindNoteMoverNeeds {
   say(message: string): void;
 }
 
-function nothing(): void {}
-
 export function targetTakenMessage(oldPath: string, newPath: string): string {
   return `${oldPath} stays where it is, since ${newPath} is already there. Its session link now points to the session that took that number, so use Fix on the sessions that moved.`;
+}
+
+export function stuckMessage(newPath: string, error: unknown): string {
+  return `${newPath} moved with its session, but its session link wasn't updated (${messageOf(error)}). Change the session property in its properties to the session by hand, or use Fix on that session.`;
 }
 
 export function notMovedMessage(path: string): string {
@@ -78,8 +82,27 @@ export class KindNoteMover {
     }
     await files.rename(file, newPath);
     const link = sessionLinkFor(metadata, sessionFile, newPath);
-    await this.properties.set(file, (properties) => {
-      properties.session = link;
-    });
+    try {
+      await this.properties.set(file, (properties) => {
+        properties.session = link;
+      });
+    } catch (error) {
+      await this.undoMove(file, oldPath, newPath, error);
+    }
+  }
+
+  private async undoMove(file: TFile, oldPath: string, newPath: string, error: unknown): Promise<void> {
+    const { files } = this.needs;
+    if (files.getFileByPath(oldPath) === null) {
+      try {
+        await files.rename(file, oldPath);
+        this.said.say(`move:${oldPath}`, `${oldPath} wasn't moved with its session: its session link couldn't be updated (${messageOf(error)}), so it was put back.`);
+        return;
+      } catch {
+        this.said.say(`stuck:${oldPath}`, stuckMessage(newPath, error));
+        return;
+      }
+    }
+    this.said.say(`stuck:${oldPath}`, stuckMessage(newPath, error));
   }
 }

@@ -3,34 +3,16 @@ import { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import type { ChangeProperties } from "../../../src/fence/gate/fenced-file-actions";
 import { ItemNotes, type ItemNotesStore } from "../../../src/funds/item-notes/item-notes";
 import { FakeVault } from "../../campaign/fake-vault";
-import { TFile as StubFile } from "../../stubs/obsidian";
+import { CAMPAIGN, cacheOf, fileAt, type Properties } from "../../stubs/note-files";
 
-export const CAMPAIGN = "D&D/Pale Moon";
+export { CAMPAIGN, cacheOf, fileAt, type Properties };
 export const SESSION = `${CAMPAIGN}/Sessions/Session 1.md`;
 export const LANTERN = `${CAMPAIGN}/Items/Silvered lantern.md`;
 export const ROPE = `${CAMPAIGN}/Items/Rope.md`;
 
-export type Properties = Record<string, unknown>;
-
 export interface ItemNote {
   path: string;
   properties: Properties | null;
-}
-
-function nameOf(path: string): string {
-  return path.slice(path.lastIndexOf("/") + 1);
-}
-
-export function fileAt(path: string): TFile {
-  const name = nameOf(path);
-  const dot = name.lastIndexOf(".");
-  const file = Object.assign(new StubFile(), { path, name, basename: name.slice(0, dot), extension: name.slice(dot + 1) });
-  return file as unknown as TFile;
-}
-
-export function cacheOf(properties: Properties): CachedMetadata {
-  if (Object.keys(properties).length === 0) return {};
-  return { frontmatter: { ...properties } };
 }
 
 export class FakeItemNotes {
@@ -42,7 +24,6 @@ export class FakeItemNotes {
   wordsChangeOnWrite = false;
   createCalls = 0;
   private createHeld: Promise<void> = Promise.resolve();
-  restores = 0;
   readonly foldersMade: string[] = [];
   readonly trashed: string[] = [];
   readonly foldersThere = new Set<string>([`${CAMPAIGN}/Items`]);
@@ -77,7 +58,7 @@ export class FakeItemNotes {
         createFolder: async (path: string) => this.folderMade(path),
         create: async (path: string) => this.created(path),
         read: async () => this.textRead(),
-        process: async (_file: TFile, change: (text: string) => string) => this.restored(change),
+        process: async (_file: TFile, change: (text: string) => string) => change(""),
       },
       metadata: {
         getFileCache: (file: TFile) => {
@@ -109,11 +90,6 @@ export class FakeItemNotes {
   private textRead(): string {
     if (this.wordsChangeOnWrite && this.propertiesWritten.length > 0) return "Changed words";
     return "";
-  }
-
-  private restored(change: (text: string) => string): string {
-    this.restores += 1;
-    return change("");
   }
 
   private async trash(file: TFile): Promise<void> {

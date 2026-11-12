@@ -33,8 +33,9 @@ export class KindNoteWriter {
     });
   }
 
-  async trashOrEmpty(file: TFile, linesToEmpty: boolean): Promise<void> {
-    if (await this.maker.trashIfNothingOfHis(file)) return;
+  async trashOrEmpty(file: TFile, linesToEmpty: boolean): Promise<boolean> {
+    if (await this.maker.trashIfNothingOfHis(file)) return true;
     if (linesToEmpty) await this.setLines(file, []);
+    return false;
   }
 }

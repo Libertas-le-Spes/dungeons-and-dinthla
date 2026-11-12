@@ -28,8 +28,8 @@ describe("the paths read from the imports in a file's text", () => {
 
   it.each([
     ["a template with a substitution", "const a = (n: string) => import(`../b/${n}`);"],
-    ["a concatenation", 'const a = (n: string) => import("../b" + n);'],
-    ["a concatenation of constants", 'const a = () => import("../b" + "x");'],
+    ["a concatenation", 'const a = (n: string) => import("../b/" + n);'],
+    ["a concatenation of constants", 'const a = () => import("../b/" + "x");'],
     ["a name", "const a = (n: string) => import(n);"],
     ["a require of a concatenation", 'const a = (n: string) => require("../b/" + n);'],
     ["a call with no path", "const a = () => import();"],

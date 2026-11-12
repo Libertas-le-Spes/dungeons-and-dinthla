@@ -1,8 +1,11 @@
 import { vi } from "vitest";
 import type { CachedMetadata, TFile } from "obsidian";
-import { getFrontMatterInfo, TFile as StubFile } from "../stubs/obsidian";
+import { HALF_MADE_AFTER_MS } from "../../src/kind-notes/keeping/kind-note-keeper";
+import { wordsOf } from "../../src/note-keeping/note-words";
+import { fileAt, nameOf, type Properties } from "../stubs/note-files";
+import { getFrontMatterInfo } from "../stubs/obsidian";
 
-export type Properties = Record<string, unknown>;
+export { fileAt, type Properties };
 
 interface Note {
   file: TFile;
@@ -10,14 +13,10 @@ interface Note {
   words: string;
 }
 
-function nameOf(path: string): string {
-  return path.slice(path.lastIndexOf("/") + 1);
-}
-
-export function fileAt(path: string): TFile {
-  const name = nameOf(path);
-  const dot = name.lastIndexOf(".");
-  return Object.assign(new StubFile(), { path, name, basename: name.slice(0, dot), extension: name.slice(dot + 1) }) as unknown as TFile;
+function firstOrNull(files: TFile[]): TFile | null {
+  const [first] = files;
+  if (first === undefined) return null;
+  return first;
 }
 
 function textOf(note: Note): string {
@@ -26,9 +25,13 @@ function textOf(note: Note): string {
   return `---\n${lines.join("")}---\n${note.words}`;
 }
 
+const PROPERTY_LINE = /^([^:]+): (.*)$/;
+
 function propertyOf(line: string): [string, unknown] {
-  const colon = line.indexOf(": ");
-  return [line.slice(0, colon), JSON.parse(line.slice(colon + 2))];
+  const match = PROPERTY_LINE.exec(line);
+  if (match === null) throw new Error(`${line} isn't a property line`);
+  const [, key, value] = match;
+  return [String(key), JSON.parse(String(value))];
 }
 
 function propertiesIn(text: string): Properties | null {
@@ -36,12 +39,6 @@ function propertiesIn(text: string): Properties | null {
   if (!info.exists) return null;
   const entries = info.frontmatter.split("\n").filter((line) => line !== "");
   return Object.fromEntries(entries.map(propertyOf));
-}
-
-function firstOf(files: TFile[]): TFile | null {
-  const [first] = files;
-  if (first === undefined) return null;
-  return first;
 }
 
 export class FakeNotes {
@@ -54,9 +51,12 @@ export class FakeNotes {
   readonly unread = new Set<string>();
   readonly folders = new Set<string>();
   failProperties: Error | null = null;
+  failReadOnce: Error | null = null;
+  readonly clock = 10 * HALF_MADE_AFTER_MS;
   failRename: Error | null = null;
+  failRenamesFrom: number | null = null;
+  private renameCalls = 0;
   alsoChangeWords: string | null = null;
-  typedBeforePutBack: string | null = null;
   holdProperties: Promise<void> = Promise.resolve();
   inside = 0;
   mostInside = 0;
@@ -74,8 +74,8 @@ export class FakeNotes {
     this.sessions.splice(index, 1);
   }
 
-  addNote(path: string, properties: Properties | null, words: string): TFile {
-    const file = fileAt(path);
+  addNote(path: string, properties: Properties | null, words: string, mtime = 0): TFile {
+    const file = fileAt(path, mtime);
     this.notes.set(path, { file, properties, words });
     return file;
   }
@@ -98,15 +98,14 @@ export class FakeNotes {
       this.created.push(path);
       return this.addNote(path, null, text);
     }),
-    read: vi.fn(async (file: TFile) => textOf(this.noteOf(file))),
+    read: vi.fn(async (file: TFile) => this.readOf(file)),
     rename: vi.fn(async (file: TFile, newPath: string) => this.renamed(file, newPath)),
     process: vi.fn(async (file: TFile, change: (text: string) => string) => {
       this.processed.push(file.path);
-      if (this.typedBeforePutBack !== null) this.noteOf(file).words = this.typedBeforePutBack;
       const text = change(textOf(this.noteOf(file)));
       const note = this.noteOf(file);
       note.properties = propertiesIn(text);
-      note.words = text.slice(getFrontMatterInfo(text).contentStart);
+      note.words = wordsOf(text);
       return text;
     }),
   };
@@ -144,20 +143,23 @@ export class FakeNotes {
       return file.basename;
     }),
     getFirstLinkpathDest: vi.fn((target: string, source: string): TFile | null => {
-      const campaign = source.slice(0, source.indexOf("/", source.indexOf("/") + 1));
+      const [top, name] = source.split("/");
+      const campaign = `${top}/${name}`;
       const named = this.sessions.filter((session) => session.path === `${target}.md` || session.basename === target);
       const inCampaign = named.filter((session) => session.path.startsWith(`${campaign}/`));
-      if (inCampaign.length > 0) return firstOf(inCampaign);
-      return firstOf(named);
+      if (inCampaign.length > 0) return firstOrNull(inCampaign);
+      return firstOrNull(named);
     }),
   };
 
   needs() {
-    return { files: this.files, metadata: this.metadata, actions: this.actions, say: (message: string) => this.said.push(message) };
+    return { files: this.files, metadata: this.metadata, actions: this.actions, now: () => this.clock, say: (message: string) => this.said.push(message) };
   }
 
   private renamed(file: TFile, newPath: string): void {
+    this.renameCalls += 1;
     if (this.failRename !== null) throw this.failRename;
+    if (this.failRenamesFrom !== null && this.renameCalls >= this.failRenamesFrom) throw new Error("can't move back");
     const note = this.notes.get(file.path);
     if (note !== undefined) {
       this.notes.delete(file.path);
@@ -166,10 +168,19 @@ export class FakeNotes {
     Object.assign(file, { path: newPath, name: nameOf(newPath), basename: nameOf(newPath).replace(/\.md$/, "") });
   }
 
+  private readOf(file: TFile): string {
+    if (this.failReadOnce !== null) {
+      const failure = this.failReadOnce;
+      this.failReadOnce = null;
+      throw failure;
+    }
+    return textOf(this.noteOf(file));
+  }
+
   private fileAt(path: string): TFile | null {
     const note = this.notes.get(path);
     if (note !== undefined) return note.file;
-    return firstOf(this.sessions.filter((session) => session.path === path));
+    return firstOrNull(this.sessions.filter((session) => session.path === path));
   }
 
   private folderAt(path: string): never | null {

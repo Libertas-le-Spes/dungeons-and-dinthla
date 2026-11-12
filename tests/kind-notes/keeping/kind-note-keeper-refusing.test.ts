@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { HALF_MADE_AFTER_MS } from "../../../src/kind-notes/keeping/kind-note-keeper";
 import { FakeNotes } from "../fake-notes";
 import { keeperWith, QUESTIONS, SESSION, settled, wanted } from "../keeper-setup";
 
@@ -124,5 +125,47 @@ describe("KindNoteKeeper leaving a note that isn't its own", () => {
     keeperWith(notes).keep([wanted(QUESTIONS, null, LINES)]);
     await settled();
     nothingTouched(notes);
+  });
+
+  it("leaves a zero-byte file made seconds ago alone, since somebody may be about to write in it", async () => {
+    const notes = new FakeNotes();
+    const session = notes.addSession(SESSION);
+    notes.addNote(QUESTIONS, null, "", notes.clock - 1000);
+    keeperWith(notes).keep([wanted(QUESTIONS, session, LINES)]);
+    await settled();
+    nothingTouched(notes);
+    expect(notes.said).toEqual([]);
+  });
+
+  it("finishes a zero-byte file that is older than the threshold, and not one a moment younger", async () => {
+    const old = new FakeNotes();
+    const oldSession = old.addSession(SESSION);
+    old.addNote(QUESTIONS, null, "", old.clock - HALF_MADE_AFTER_MS);
+    keeperWith(old).keep([wanted(QUESTIONS, oldSession, LINES)]);
+    await settled();
+    expect(old.noteAt(QUESTIONS)?.properties?.lines).toEqual(LINES);
+    const young = new FakeNotes();
+    const youngSession = young.addSession(SESSION);
+    young.addNote(QUESTIONS, null, "", young.clock - HALF_MADE_AFTER_MS + 1);
+    keeperWith(young).keep([wanted(QUESTIONS, youngSession, LINES)]);
+    await settled();
+    expect(young.noteAt(QUESTIONS)?.properties).toBeNull();
+  });
+
+  it("says once that a note couldn't be read, writes nothing, and tries again when its lines change", async () => {
+    const notes = new FakeNotes();
+    const session = notes.addSession(SESSION);
+    notes.addNote(QUESTIONS, { session: "[[Session 2]]", lines: ["? Old"] }, "");
+    const keeper = keeperWith(notes);
+    notes.failReadOnce = new Error("disk gone");
+    keeper.keep([wanted(QUESTIONS, session, LINES)]);
+    await settled();
+    keeper.keep([wanted(QUESTIONS, session, LINES)]);
+    await settled();
+    expect(notes.said).toEqual(["Couldn't write Questions for Session 2: disk gone"]);
+    expect(notes.actions.processFrontMatter).not.toHaveBeenCalled();
+    keeper.keep([wanted(QUESTIONS, session, ["? Another"])]);
+    await settled();
+    expect(notes.noteAt(QUESTIONS)?.properties?.lines).toEqual(["? Another"]);
   });
 });

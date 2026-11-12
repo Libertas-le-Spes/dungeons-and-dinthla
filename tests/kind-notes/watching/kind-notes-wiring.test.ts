@@ -4,6 +4,7 @@ import type { Gate } from "../../../src/fence/gate/gatekeeper";
 import { NoteReporter } from "../../../src/fence/gate/written-notes";
 import { startKindNotes } from "../../../src/kind-notes/watching/kind-notes-wiring";
 import type { NotesMade } from "../../../src/settings/saved/notes-made";
+import { firstOf } from "../../stubs/lists";
 import { FakeCampaign } from "../fake-campaign";
 import { FakeNotes } from "../fake-notes";
 import { CAMPAIGN, FUNDS, QUESTIONS, SESSION, settled } from "../keeper-setup";
@@ -132,7 +133,7 @@ describe("kind notes, when a session changed on another device", () => {
     const { asked } = startWith(notes, campaign);
     notes.addNote(QUESTIONS, { session: "[[Session 2]]", tags: ["pale"], lines: ["? Old"] }, "His words");
     campaign.arrive(SESSION, "? Who sent Mira");
-    asked[0]?.fix();
+    firstOf(asked).fix();
     await settled();
     expect(notes.noteAt(QUESTIONS)?.properties).toEqual({ session: "[[Session 2]]", tags: ["pale"], lines: ["? Who sent Mira"] });
     expect(notes.noteAt(QUESTIONS)?.words).toBe("His words");
@@ -143,7 +144,7 @@ describe("kind notes, when a session changed on another device", () => {
     const { asked, written } = startWith(notes, campaign);
     notes.addNote(QUESTIONS, { session: "[[Session 2]]", lines: ["? Old"] }, "");
     campaign.arrive(SESSION, "? Who sent Mira");
-    asked[0]?.keep();
+    firstOf(asked).keep();
     campaign.arrive(SESSION, "? Who sent Mira");
     await settled();
     expect(asked).toHaveLength(1);
@@ -287,7 +288,8 @@ describe("kind notes, when a session is deleted and the ones after it are renumb
     await settled();
     expect(notes.noteAt(QUESTIONS)?.words).toBe("His words about two");
     expect(notes.noteAt(questionsThree)).not.toBeNull();
-    expect(notes.said).toHaveLength(1);
-    expect(notes.said[0]).toContain("stays where it is");
+    expect(notes.said).toHaveLength(2);
+    expect(notes.said.some((message) => message.includes("holds your words, so it stays"))).toBe(true);
+    expect(notes.said.some((message) => message.includes("stays where it is"))).toBe(true);
   });
 });

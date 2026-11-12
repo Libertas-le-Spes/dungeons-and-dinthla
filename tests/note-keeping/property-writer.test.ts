@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PropertyWriter, WORDS_CHANGED, WORDS_CHANGED_AGAIN } from "../../src/note-keeping/property-writer";
+import { PropertyWriter, WORDS_CHANGED } from "../../src/note-keeping/property-writer";
 import { FakeNotes } from "../kind-notes/fake-notes";
 
 const PATH = "D&D/Pale Moon/Funds/Session 2.md";
@@ -15,20 +15,19 @@ describe("PropertyWriter", () => {
     expect(notes.noteAt(PATH)?.words).toBe("His words\r\n");
   });
 
-  it("puts the note back as it was, and says so, when his words changed with the write", async () => {
+  it("leaves the note as it is, with what he added, and says so, when his words changed with the write", async () => {
     const notes = new FakeNotes();
     const file = notes.addNote(PATH, { lines: [] }, "His words");
-    notes.alsoChangeWords = "Other words";
+    notes.alsoChangeWords = "His words, and what he added meanwhile";
     await expect(new PropertyWriter(notes.files, notes.actions).set(file, () => {})).rejects.toThrow(WORDS_CHANGED);
-    expect(notes.noteAt(PATH)?.words).toBe("His words");
+    expect(notes.noteAt(PATH)?.words).toBe("His words, and what he added meanwhile");
   });
 
-  it("leaves the note as it is now, and says so, when it changed again before it could be put back", async () => {
+  it("never rewrites the note's text itself", async () => {
     const notes = new FakeNotes();
     const file = notes.addNote(PATH, { lines: [] }, "His words");
-    notes.alsoChangeWords = "Other words";
-    notes.typedBeforePutBack = "Typed meanwhile";
-    await expect(new PropertyWriter(notes.files, notes.actions).set(file, () => {})).rejects.toThrow(WORDS_CHANGED_AGAIN);
-    expect(notes.noteAt(PATH)?.words).toBe("Typed meanwhile");
+    notes.alsoChangeWords = "Other";
+    await expect(new PropertyWriter(notes.files, notes.actions).set(file, () => {})).rejects.toThrow();
+    expect(notes.files.process).not.toHaveBeenCalled();
   });
 });

@@ -38,6 +38,7 @@ vi.mock("obsidian", () => {
   return { Notice, ButtonComponent };
 });
 
+import { firstOf, secondOf } from "../../stubs/lists";
 import { askInNotice } from "../../../src/views/dialogs/differing-notice";
 
 beforeEach(() => {
@@ -49,8 +50,8 @@ describe("askInNotice", () => {
   it("shows one notice that stays until it is dismissed, holding the message", () => {
     askInNotice("Questions for Session 2 differ from the session.", vi.fn(), vi.fn());
     expect(made.notices).toHaveLength(1);
-    expect(made.notices[0]?.timeout).toBe(0);
-    expect(made.notices[0]?.spans).toEqual(["Questions for Session 2 differ from the session. "]);
+    expect(firstOf(made.notices).timeout).toBe(0);
+    expect(firstOf(made.notices).spans).toEqual(["Questions for Session 2 differ from the session. "]);
   });
 
   it("offers Fix and Keep, in that order", () => {
@@ -62,19 +63,19 @@ describe("askInNotice", () => {
     const fix = vi.fn();
     const keep = vi.fn();
     askInNotice("message", fix, keep);
-    made.buttons[0]?.click();
+    firstOf(made.buttons).click();
     expect(fix).toHaveBeenCalledOnce();
     expect(keep).not.toHaveBeenCalled();
-    expect(made.notices[0]?.hide).toHaveBeenCalledOnce();
+    expect(firstOf(made.notices).hide).toHaveBeenCalledOnce();
   });
 
   it("calls keep once, and not fix, when Keep is pressed, and hides the notice", () => {
     const fix = vi.fn();
     const keep = vi.fn();
     askInNotice("message", fix, keep);
-    made.buttons[1]?.click();
+    secondOf(made.buttons).click();
     expect(keep).toHaveBeenCalledOnce();
     expect(fix).not.toHaveBeenCalled();
-    expect(made.notices[0]?.hide).toHaveBeenCalledOnce();
+    expect(firstOf(made.notices).hide).toHaveBeenCalledOnce();
   });
 });

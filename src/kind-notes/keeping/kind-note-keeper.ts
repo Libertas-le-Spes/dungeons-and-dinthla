@@ -2,6 +2,7 @@ import type { TFile } from "obsidian";
 import type { FencedFiles } from "../../fence/gate/fenced-files";
 import type { MakeResult } from "../../note-keeping/make-result";
 import type { MakerActions, MakerFiles } from "../../note-keeping/new-note-maker";
+import { nothingAsync } from "../../note-keeping/nothing";
 import { PathQueue } from "../../note-keeping/path-queue";
 import { SaidOnce } from "../../note-keeping/said-once";
 import { messageOf } from "../../views/dialogs/message-of";
@@ -16,11 +17,20 @@ export interface KindNoteKeeperNeeds {
   files: MakerFiles & Pick<FencedFiles, "getFileByPath">;
   metadata: ExistingMetadata;
   actions: MakerActions;
+  now(): number;
   say(message: string): void;
 }
 
+export const HALF_MADE_AFTER_MS = 60_000;
+
+type HalfMade = "no" | "yes" | "too new" | "unreadable";
+
 export function notLinkedMessage(wanted: WantedNote): string {
   return `${wanted.path} already exists but isn't linked to its session in its properties, so it was left alone.`;
+}
+
+export function staysMessage(wanted: WantedNote): string {
+  return `${wanted.path} holds your words, so it stays, though its session is gone. A session that takes the number of ${wanted.sessionPath} will adopt it: Fix rewrites only its lines.`;
 }
 
 export function failedMessage(wanted: WantedNote, error: unknown): string {
@@ -61,7 +71,7 @@ export class KindNoteKeeper {
   }
 
   async idle(path: string): Promise<void> {
-    await this.queue.run(path, async () => {});
+    await this.queue.run(path, nothingAsync);
   }
 
   noteRead(path: string): void {
@@ -80,7 +90,9 @@ export class KindNoteKeeper {
   }
 
   private async settleExisting(file: TFile, note: WantedNote): Promise<void> {
-    if (canMake(note) && (await this.needs.files.read(file)) === "") {
+    const halfMade = await this.halfMadeState(file, note);
+    if (halfMade === "unreadable" || halfMade === "too new") return;
+    if (halfMade === "yes" && canMake(note)) {
       await this.attempt(note, () => this.writer.fill(file, this.linkOf(note), note.lines));
       return;
     }
@@ -93,8 +105,8 @@ export class KindNoteKeeper {
       this.said.say(`link:${note.path}`, notLinkedMessage(note));
       return;
     }
-    if (note.lines.length === 0 && existing.onlyPluginProperties) {
-      await this.attempt(note, () => this.writer.trashOrEmpty(file, !existing.alreadyThere));
+    if (note.lines.length === 0) {
+      await this.attempt(note, () => this.removeLines(file, note, !existing.alreadyThere));
       return;
     }
     if (existing.alreadyThere) {
@@ -102,6 +114,23 @@ export class KindNoteKeeper {
       return;
     }
     await this.attempt(note, () => this.writer.setLines(file, note.lines));
+  }
+
+  private async halfMadeState(file: TFile, note: WantedNote): Promise<HalfMade> {
+    if (!canMake(note)) return "no";
+    try {
+      if ((await this.needs.files.read(file)) !== "") return "no";
+    } catch (error) {
+      this.fail(note, error);
+      return "unreadable";
+    }
+    if (this.needs.now() - file.stat.mtime < HALF_MADE_AFTER_MS) return "too new";
+    return "yes";
+  }
+
+  private async removeLines(file: TFile, note: WantedNote, linesToEmpty: boolean): Promise<void> {
+    const trashed = await this.writer.trashOrEmpty(file, linesToEmpty);
+    if (!trashed && note.sessionFile === null) this.said.say(`stays:${note.path}`, staysMessage(note));
   }
 
   private linkOf(note: MakeableNote): string {
@@ -121,9 +150,14 @@ export class KindNoteKeeper {
       this.memos.settle(note.path, key);
       return true;
     } catch (error) {
-      this.memos.fail(note.path, key);
-      this.said.say(`${note.path}:${key}`, failedMessage(note, error));
+      this.fail(note, error);
       return false;
     }
+  }
+
+  private fail(note: WantedNote, error: unknown): void {
+    const key = wantedKeyOf(note);
+    this.memos.fail(note.path, key);
+    this.said.say(`${note.path}:${key}`, failedMessage(note, error));
   }
 }

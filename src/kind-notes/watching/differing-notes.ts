@@ -1,3 +1,4 @@
+import { nothing } from "../../note-keeping/nothing";
 import { kindNoteTitleOf } from "../wanting/kind-note-path";
 import type { SessionWants } from "../wanting/session-wants";
 import { wantedKeyOf, type WantedNote } from "../wanting/wanted-note";
@@ -12,8 +13,6 @@ export type AskAboutDifference = (message: string, fix: () => void, keepAsItIs: 
 export function differsMessage(note: WantedNote): string {
   return `${kindNoteTitleOf(note.folder, note.sessionPath)} differ from the session.`;
 }
-
-function leaveAsItIs(): void {}
 
 interface Differing {
   sessionPath: string;
@@ -62,7 +61,7 @@ export class DifferingNotes {
     if (first === undefined) return;
     for (const one of differing) this.asked.set(one.note.path, one.key);
     const message = this.messageFor(first, differing.length);
-    this.ask(message, () => this.fixEach(differing), leaveAsItIs);
+    this.ask(message, () => this.fixEach(differing), nothing);
   }
 
   private messageFor(first: Differing, count: number): string {

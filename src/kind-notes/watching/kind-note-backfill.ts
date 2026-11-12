@@ -43,13 +43,13 @@ export class KindNoteBackfill {
     const campaign = this.needs.store.current;
     const sessions = [...this.needs.store.sessionNotes].sort(bySessionNumber);
     if (sessions.length === 0) return;
-    const tally: MakeTally = { made: 0, failed: 0 };
+    let failedNotes = 0;
     let sessionsMade = 0;
     for (const session of sessions) {
       if (!this.isOpen(campaignFolder)) break;
       const sessionTally = await this.makeFor(campaignFolder, campaign, session);
       if (sessionTally.made > 0) sessionsMade += 1;
-      tally.failed += sessionTally.failed;
+      failedNotes += sessionTally.failed;
     }
     if (!this.isOpen(campaignFolder)) {
       this.tell(sessionsMade, 0);
@@ -57,7 +57,7 @@ export class KindNoteBackfill {
     }
     const items = await this.needs.items.makeMissing();
     this.tell(sessionsMade, items.made);
-    if (tally.failed + items.failed > 0 || !this.isOpen(campaignFolder)) return;
+    if (failedNotes + items.failed > 0 || !this.isOpen(campaignFolder)) return;
     await this.needs.made.markMadeFor(campaignFolder);
   }
 

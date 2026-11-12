@@ -1,12 +1,12 @@
 import type { TFile } from "obsidian";
 import type { FencedMetadata } from "../../fence/gate/fenced-metadata";
-import { holdsOnlyPluginProperties, linesIn, sameLines, sessionPropertyIn } from "../../note-keeping/note-properties";
+import { linesIn, sameLines, sessionPropertyIn } from "../../note-keeping/note-properties";
 import type { WantedNote } from "../wanting/wanted-note";
 import { linksToSession, type LinkMetadata } from "./session-link";
 
 export type ExistingMetadata = LinkMetadata & Pick<FencedMetadata, "getFileCache">;
 
-export type ExistingNote = { read: false } | { read: true; linked: boolean; alreadyThere: boolean; onlyPluginProperties: boolean };
+export type ExistingNote = { read: false } | { read: true; linked: boolean; alreadyThere: boolean };
 
 export function readExistingNote(metadata: ExistingMetadata, file: TFile, note: WantedNote): ExistingNote {
   const cache = metadata.getFileCache(file);
@@ -16,7 +16,6 @@ export function readExistingNote(metadata: ExistingMetadata, file: TFile, note: 
     read: true,
     linked: linksToSession(metadata, sessionPropertyIn(cache), note.path, session),
     alreadyThere: sameLines(linesIn(cache), note.lines),
-    onlyPluginProperties: holdsOnlyPluginProperties(cache),
   };
 }
 

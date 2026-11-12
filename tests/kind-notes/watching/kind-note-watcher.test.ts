@@ -4,6 +4,7 @@ import { SessionWants } from "../../../src/kind-notes/wanting/session-wants";
 import { KindNoteWatcher } from "../../../src/kind-notes/watching/kind-note-watcher";
 import { SavesHere } from "../../../src/kind-notes/watching/saves-here";
 import type { WantedNote } from "../../../src/kind-notes/wanting/wanted-note";
+import { firstOf } from "../../stubs/lists";
 import { FakeCampaign } from "../fake-campaign";
 import { fileAt } from "../fake-notes";
 import { CAMPAIGN, QUESTIONS, SESSION } from "../keeper-setup";
@@ -22,8 +23,12 @@ function watcherWith(campaign: FakeCampaign) {
   return { written, keeper, differing, watcher, stop, items, mover };
 }
 
-function linesWanted(call: unknown[] | undefined): Record<string, string[]> {
-  const notes = call?.[0] as WantedNote[];
+function keptNotes(keep: { mock: { calls: unknown[][] } }): WantedNote[] {
+  const [notes] = firstOf(keep.mock.calls);
+  return notes as WantedNote[];
+}
+
+function linesWanted(notes: WantedNote[]): Record<string, string[]> {
   return Object.fromEntries(notes.map((note) => [note.folder, note.lines]));
 }
 
@@ -35,7 +40,7 @@ describe("KindNoteWatcher", () => {
     expect(keeper.keep).not.toHaveBeenCalled();
     campaign.arrive(SESSION, TEXT);
     expect(keeper.keep).toHaveBeenCalledOnce();
-    expect(linesWanted(keeper.keep.mock.calls[0])).toEqual({ Questions: [TEXT], Quests: [], Funds: [] });
+    expect(linesWanted(keptNotes(keeper.keep))).toEqual({ Questions: [TEXT], Quests: [], Funds: [] });
     expect(differing.check).not.toHaveBeenCalled();
   });
 
@@ -61,7 +66,7 @@ describe("KindNoteWatcher", () => {
     const { written, keeper } = watcherWith(campaign);
     written.textSaved(SESSION, TEXT);
     campaign.arrive(SESSION, TEXT);
-    const notes = keeper.keep.mock.calls[0]?.[0] as WantedNote[];
+    const notes = keptNotes(keeper.keep);
     expect(notes.map((note) => note.path)).toEqual([QUESTIONS, `${CAMPAIGN}/Quests/Session 2.md`, `${CAMPAIGN}/Funds/Session 2.md`]);
     expect(notes.map((note) => note.sessionFile?.path)).toEqual([SESSION, SESSION, SESSION]);
   });
@@ -97,7 +102,7 @@ describe("KindNoteWatcher", () => {
     const { written, keeper } = watcherWith(campaign);
     written.trashed(SESSION);
     expect(keeper.keep).toHaveBeenCalledOnce();
-    const notes = keeper.keep.mock.calls[0]?.[0] as WantedNote[];
+    const notes = keptNotes(keeper.keep);
     expect(notes.map((note) => note.lines)).toEqual([[], [], []]);
     expect(notes.map((note) => note.sessionFile)).toEqual([null, null, null]);
   });
