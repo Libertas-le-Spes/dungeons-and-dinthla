@@ -17,8 +17,8 @@ interface QuestionChoices {
 
 const app = {} as App;
 
-function questionChoices(campaign: DialogCampaign, source: Source): QuestionChoices {
-  openQuestion(app, campaign.gate, campaign.store, source, () => undefined, () => undefined, ONE);
+function questionChoices(campaign: DialogCampaign, source: Source, activePath: string = ONE): QuestionChoices {
+  openQuestion(app, campaign.gate, campaign.store, source, () => undefined, () => undefined, activePath);
   return lastDialog<{ choices: QuestionChoices }>().choices;
 }
 
@@ -52,6 +52,25 @@ describe("the question dialog's choices", () => {
     campaign.texts.set(ONE, "? Who\n?= Who: Lady Vess\n");
     campaign.readAgain();
     await expect(async () => choices.reopen()).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(campaign.writes).toBe(0);
+  });
+});
+
+describe("the question dialog's choices, when the session they write into is gone", () => {
+  it("refuses a save with the session gone words, writing nothing", async () => {
+    const campaign = new DialogCampaign({ [ONE]: "? Who\n", [TWO]: "We camped.\n" });
+    const choices = questionChoices(campaign, { path: ONE, line: 0 }, TWO);
+    campaign.texts.delete(TWO);
+    await expect(choices.save({ answer: "Mira", followUp: "" })).rejects.toThrow("Session 2's note is gone, so nothing was written.");
+    expect(campaign.writes).toBe(0);
+    expect(campaign.texts.get(ONE)).toBe("? Who\n");
+  });
+
+  it("refuses a reopen with the session gone words, writing nothing", async () => {
+    const campaign = new DialogCampaign({ [ONE]: "? Who\n?= Who: Mira\n", [TWO]: "We camped.\n" });
+    const choices = questionChoices(campaign, { path: ONE, line: 0 }, TWO);
+    campaign.texts.delete(TWO);
+    await expect(choices.reopen()).rejects.toThrow("Session 2's note is gone, so nothing was written.");
     expect(campaign.writes).toBe(0);
   });
 });

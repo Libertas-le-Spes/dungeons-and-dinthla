@@ -6,6 +6,7 @@ import { openNewQuestion } from "../../../src/questions/dialogs/open-new-questio
 import { DialogCampaign, lastDialog } from "../../campaign/dialog-campaign";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
+const TWO = "Pale Moon/Sessions/Session 2.md";
 
 const app = {} as App;
 
@@ -31,5 +32,16 @@ describe("the new question dialog", () => {
     const campaign = new DialogCampaign({ [ONE]: "? Whom: sent\n" });
     await expect(addThroughDialog(campaign, { question: "Whom", answer: "sent: y" })).rejects.toThrow(ANSWER_GOES_ELSEWHERE);
     expect(campaign.writes).toBe(0);
+  });
+});
+
+describe("the new question dialog, when the session it writes into is gone", () => {
+  it("refuses with the session gone words, writing nothing", async () => {
+    const campaign = new DialogCampaign({ [ONE]: "We rode on.\n", [TWO]: "We camped.\n" });
+    openNewQuestion(app, campaign.gate, campaign.store, () => undefined);
+    campaign.texts.delete(TWO);
+    await expect(lastDialog<{ add(entry: NewQuestion): Promise<boolean> }>().add({ question: "Who", answer: "" })).rejects.toThrow("Session 2's note is gone, so nothing was written.");
+    expect(campaign.writes).toBe(0);
+    expect(campaign.texts.get(ONE)).toBe("We rode on.\n");
   });
 });

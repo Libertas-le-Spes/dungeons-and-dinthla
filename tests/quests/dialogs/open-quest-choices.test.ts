@@ -8,6 +8,7 @@ import type { QuestEdit } from "../../../src/quests/writing/quest-plan";
 import { DialogCampaign, lastDialog } from "../../campaign/dialog-campaign";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
+const TWO = "Pale Moon/Sessions/Session 2.md";
 
 interface QuestChoices {
   save(edit: QuestEdit): Promise<boolean>;
@@ -15,8 +16,8 @@ interface QuestChoices {
 
 const app = {} as App;
 
-function questChoices(campaign: DialogCampaign, source: Source): QuestChoices {
-  openQuest(app, campaign.gate, campaign.store, source, () => undefined, () => undefined, ONE);
+function questChoices(campaign: DialogCampaign, source: Source, activePath: string = ONE): QuestChoices {
+  openQuest(app, campaign.gate, campaign.store, source, () => undefined, () => undefined, activePath);
   return lastDialog<{ choices: QuestChoices }>().choices;
 }
 
@@ -39,5 +40,16 @@ describe("the quest dialog's choices", () => {
     campaign.readAgain();
     await expect(choices.save(edit({ happened: "tracks" }))).rejects.toThrow(CHANGED_IN_NOTE);
     expect(campaign.texts.get(ONE)).toBe("We waited.\n! Find it\n");
+  });
+});
+
+describe("the quest dialog's choices, when the session they write into is gone", () => {
+  it("refuses a save with the session gone words, writing nothing", async () => {
+    const campaign = new DialogCampaign({ [ONE]: "! Find it\n", [TWO]: "We camped.\n" });
+    const choices = questChoices(campaign, { path: ONE, line: 0 }, TWO);
+    campaign.texts.delete(TWO);
+    await expect(choices.save(edit({ happened: "tracks" }))).rejects.toThrow("Session 2's note is gone, so nothing was written.");
+    expect(campaign.writes).toBe(0);
+    expect(campaign.texts.get(ONE)).toBe("! Find it\n");
   });
 });

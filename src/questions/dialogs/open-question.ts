@@ -4,7 +4,7 @@ import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { SessionChangeWriter } from "../../campaign/changes/session-change-writer";
 import { sessionLabelOf } from "../../campaign/paths/session-file";
 import { sessionForDialog } from "../../campaign/paths/session-for-dialog";
-import { writeRecordChange } from "../../campaign/changes/write-record-change";
+import { writeInSession } from "../../campaign/changes/write-in-session";
 import { currentQuestion, latestSessionOfQuestion, sharesTextWithEarlierOpenQuestion } from "../writing/current-question";
 import { questionReopen, questionSave } from "../writing/question-change";
 import { QuestionModal } from "./question-modal";
@@ -43,8 +43,8 @@ export function openQuestion(
   const writer = new SessionChangeWriter(gate.files);
   const latest = () => currentQuestion(store.current.questions, question);
   const choices = {
-    save: async (edit: QuestionEdit) => writeRecordChange(questionSave(store, latest(), edit, sessionPath), writer),
-    reopen: () => writeRecordChange(questionReopen(store, latest(), sessionPath), writer),
+    save: async (edit: QuestionEdit) => writeInSession(gate.files, sessionPath, () => questionSave(store, latest(), edit, sessionPath), writer),
+    reopen: () => writeInSession(gate.files, sessionPath, () => questionReopen(store, latest(), sessionPath), writer),
     delete: () => questionWriter.delete(latest()),
   };
   let answeredIn = sessionLabelOf(sessionPath);

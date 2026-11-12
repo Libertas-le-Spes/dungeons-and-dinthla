@@ -2,6 +2,7 @@ import { Notice, type App, type TFile } from "obsidian";
 import type { Source } from "../../campaign/record/campaign";
 import { CHANGED_IN_NOTE } from "../../campaign/writing/note-editor";
 import { sessionLabelOf } from "../../campaign/paths/session-file";
+import { refuseIfSessionGone } from "../../campaign/paths/session-gone";
 import { latestSessionWanted, NoSessionToWrite, sessionToWrite } from "../../campaign/paths/session-to-write";
 import { messageOf } from "../../views/dialogs/message-of";
 import { sameName } from "../reading/sheet-values";
@@ -39,13 +40,24 @@ function sessionPathIn(read: ReadSheet): string {
   return sessionToWrite(read.campaignFolder, paths, latestSessionWanted(NO_SESSION));
 }
 
-function sessionLabelIn(read: ReadSheet): string | null {
+function openedSessionIn(read: ReadSheet): string | null {
   try {
-    return sessionLabelOf(sessionPathIn(read));
+    return sessionPathIn(read);
   } catch (error) {
     if (!(error instanceof NoSessionToWrite)) throw error;
     return null;
   }
+}
+
+function sessionPathToSave(gate: Gate, read: ReadSheet, openedSession: string | null): string {
+  if (openedSession === null) return sessionPathIn(read);
+  refuseIfSessionGone(gate.files, openedSession);
+  return openedSession;
+}
+
+function labelOf(sessionPath: string | null): string | null {
+  if (sessionPath === null) return null;
+  return sessionLabelOf(sessionPath);
 }
 
 export async function saveSheetValue(
@@ -56,6 +68,7 @@ export async function saveSheetValue(
   file: TFile,
   opened: SheetValue,
   choice: ValueChoice,
+  openedSession: string | null,
 ): Promise<boolean> {
   const read = await readCharacterSheet(file, store, notes);
   const current = valueIn(read, opened.name);
@@ -64,7 +77,7 @@ export async function saveSheetValue(
     {
       files: gate.files,
       file,
-      sessionPath: () => sessionPathIn(read),
+      sessionPath: () => sessionPathToSave(gate, read, openedSession),
       linktextFrom: (sessionPath) => gate.metadata.fileToLinktext(file, sessionPath, true),
       pathOfLink: (linktext, sourcePath) => notes.pathOfLink(linktext, sourcePath),
     },
@@ -82,9 +95,9 @@ export async function chooseSheetValue(
   openSource: (source: Source) => void,
   onClosed: () => void,
 ): Promise<void> {
-  let sessionLabel: string | null;
+  let openedSession: string | null;
   try {
-    sessionLabel = sessionLabelIn(await readCharacterSheet(file, store, notes));
+    openedSession = openedSessionIn(await readCharacterSheet(file, store, notes));
   } catch (error) {
     new Notice(`Couldn't read ${file.basename}: ${messageOf(error)}`);
     return;
@@ -93,8 +106,8 @@ export async function chooseSheetValue(
     character: file.basename,
     notePath: file.path,
     value,
-    sessionLabel,
-    save: (choice: ValueChoice) => saveSheetValue(app, gate, store, notes, file, value, choice),
+    sessionLabel: labelOf(openedSession),
+    save: (choice: ValueChoice) => saveSheetValue(app, gate, store, notes, file, value, choice, openedSession),
     openSource,
   };
   new SheetValueModal(app, dialog, onClosed).open();
