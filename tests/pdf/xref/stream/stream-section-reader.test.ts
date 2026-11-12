@@ -1,6 +1,9 @@
 import { deflateSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { MAX_ENTRY_FIELD_WIDTH, MAX_XREF_ENTRIES } from "../../../../src/pdf/limits/pdf-limits";
+import { refusalFrom } from "../../support/parsed";
+import { firstBytes } from "../../support/first-bytes";
+import { present } from "../../support/present";
 import { RecordingLoading } from "../../support/recording-loading";
 import { refusalOf } from "../../support/read-buffer";
 import { indexOf, rowOf, textFile, xrefStreamFile } from "../../support/xref-files";
@@ -20,7 +23,7 @@ describe("reading a cross-reference stream", () => {
     const loading = new RecordingLoading();
     index.crossReference.get(1)?.load(loading, 1);
     index.crossReference.get(2)?.load(loading, 2);
-    expect(index.crossReference.get(0)?.acceptsGeneration(0)).toBe(false);
+    expect(refusalFrom(() => present(index.crossReference.get(0)).load(new RecordingLoading(), 0))).toContain("an object it says was deleted");
     expect(loading.offsets).toEqual([90]);
     expect(loading.generations).toEqual([4]);
     expect(loading.containers).toEqual([30]);
@@ -137,7 +140,7 @@ describe("reading a cross-reference stream", () => {
   });
 
   it("refuses data that is not a whole deflate stream", async () => {
-    const broken = Buffer.from(deflateSync(rowOf(0, 0, 0))).subarray(0, 5);
+    const broken = firstBytes(deflateSync(rowOf(0, 0, 0)), 5);
     const text = xrefStreamFile("/Size 1 /W [1 4 2]", broken, false).toString("latin1").replace("/Length", "/Filter /FlateDecode /Length");
     expect(await refusalOf(textFile(text))).toBe("A compressed part of the file could not be unpacked, so it was not read.");
   });

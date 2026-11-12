@@ -7,6 +7,7 @@ export class WorkBudget {
   private values = 0;
   private allowedSteps: number;
   private readonly startedAt: number;
+  private lastLook: number;
 
   constructor(
     inputBytes: number,
@@ -14,6 +15,7 @@ export class WorkBudget {
   ) {
     this.allowedSteps = WORK_EXTRA + WORK_PER_BYTE * inputBytes;
     this.startedAt = clock();
+    this.lastLook = this.startedAt;
   }
 
   addInput(bytes: number): void {
@@ -32,7 +34,10 @@ export class WorkBudget {
   }
 
   checkTime(): void {
-    if (this.clock() - this.startedAt > TIME_LIMIT_MS) throw new PdfRefusal("This file took too long to read, so it was not read.");
+    const now = this.clock();
+    if (now < this.lastLook) throw new PdfRefusal("The clock went backwards while this file was read, so it was not read.");
+    this.lastLook = now;
+    if (now - this.startedAt > TIME_LIMIT_MS) throw new PdfRefusal("This file took too long to read, so it was not read.");
   }
 
   stepsTaken(): number {

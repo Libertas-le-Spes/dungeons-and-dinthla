@@ -5,6 +5,7 @@ import { utf16TextOf } from "../utf16-text";
 import type { TextEncoding } from "./text-encoding";
 
 const MARK = [0xfe, 0xff];
+const UNIT_BYTES = 2;
 
 export class Utf16BigEndianEncoding implements TextEncoding {
   matches(bytes: Uint8Array): boolean {
@@ -13,9 +14,9 @@ export class Utf16BigEndianEncoding implements TextEncoding {
 
   decode(bytes: Uint8Array): string {
     const view = dataViewOf(bytes);
-    if ((bytes.byteLength - MARK.length) % 2 !== 0) throw unreadableText();
+    if ((bytes.byteLength - MARK.length) % UNIT_BYTES !== 0) throw unreadableText();
     const units: number[] = [];
-    for (let at = MARK.length; at < bytes.byteLength; at += 2) units.push(view.getUint16(at, false));
+    for (let at = MARK.length; at < bytes.byteLength; at += UNIT_BYTES) units.push(view.getUint16(at, false));
     return utf16TextOf(units);
   }
 }

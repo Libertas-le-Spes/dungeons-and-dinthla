@@ -1,4 +1,4 @@
-import { BACKSLASH, CARRIAGE_RETURN, LEFT_PAREN, LINE_FEED, NO_BYTE, RIGHT_PAREN, SEVEN, ZERO, byteOf } from "../../bytes/byte-codes";
+import { BACKSLASH, BACKSPACE, FORM_FEED, OCTAL_BASE, TAB, CARRIAGE_RETURN, LEFT_PAREN, LINE_FEED, NO_BYTE, RIGHT_PAREN, SEVEN, ZERO, byteOf } from "../../bytes/byte-codes";
 import type { ByteCursor } from "../../bytes/byte-cursor";
 import { ByteSink } from "../../bytes/byte-sink";
 import { isDigit } from "../../bytes/byte-kinds";
@@ -15,9 +15,9 @@ const MAX_BYTE = 255;
 const SIMPLE_ESCAPES: ReadonlyMap<number, number> = new Map([
   [byteOf("n"), LINE_FEED],
   [byteOf("r"), CARRIAGE_RETURN],
-  [byteOf("t"), 9],
-  [byteOf("b"), 8],
-  [byteOf("f"), 12],
+  [byteOf("t"), TAB],
+  [byteOf("b"), BACKSPACE],
+  [byteOf("f"), FORM_FEED],
   [LEFT_PAREN, LEFT_PAREN],
   [RIGHT_PAREN, RIGHT_PAREN],
   [BACKSLASH, BACKSLASH],
@@ -31,7 +31,7 @@ function readOctalByte(cursor: ByteCursor): number {
   let value = 0;
   let digits = 0;
   while (digits < MAX_OCTAL_DIGITS && isOctalDigit(cursor.current())) {
-    value = value * 8 + (cursor.current() - ZERO);
+    value = value * OCTAL_BASE + (cursor.current() - ZERO);
     digits += 1;
     cursor.advance();
   }

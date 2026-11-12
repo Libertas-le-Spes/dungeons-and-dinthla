@@ -4,7 +4,7 @@ import type { XrefEntry } from "./xref-entry";
 
 export class FreeEntry implements XrefEntry {
   acceptsGeneration(): boolean {
-    return false;
+    return true;
   }
 
   containerNumber(): null {

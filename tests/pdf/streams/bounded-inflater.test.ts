@@ -23,7 +23,7 @@ class StubChunks implements InflatedChunks {
     if (this.reads - 1 === this.failAt) throw new Error("the platform failed");
     const step = this.sizes.next();
     if (step.done === true) return null;
-    return new Uint8Array(step.value);
+    return new Uint8Array(step.value).fill(this.reads);
   }
 
   async cancel(): Promise<void> {
@@ -38,7 +38,7 @@ function inflaterOver(chunks: InflatedChunks, totals = new DecompressedTotals(),
 describe("BoundedInflater", () => {
   it("joins the chunks in order", async () => {
     const result = await inflaterOver(new StubChunks([2, 3])).inflate(new Uint8Array(10));
-    expect(result.byteLength).toBe(5);
+    expect([...result]).toEqual([1, 1, 2, 2, 2]);
   });
 
   it("gives an empty result for no chunks", async () => {

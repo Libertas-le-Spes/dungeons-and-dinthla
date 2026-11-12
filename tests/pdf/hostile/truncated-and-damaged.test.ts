@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readPdfFieldsWith, UNEXPECTED_WORDS } from "../../../src/pdf/read-pdf-fields";
 import { FormDocument } from "../writer/documents/form-document";
+import { firstBytes } from "../support/first-bytes";
 import { present } from "../support/present";
 import { literal } from "../writer/pdf-text";
 import { testParts } from "../writer/zlib-chunks";
@@ -16,12 +17,6 @@ function endOfStartxref(bytes: Buffer): number {
   const at = text.lastIndexOf("startxref\n");
   const digits = String(parseInt(present(text.split("startxref\n").pop()), 10)).length;
   return at + "startxref\n".length + digits;
-}
-
-function firstBytes(bytes: Buffer, length: number): Buffer {
-  const cut = Buffer.alloc(length);
-  bytes.copy(cut, 0, 0, length);
-  return cut;
 }
 
 function damagedAt(bytes: Buffer, place: number, value: number): Buffer {

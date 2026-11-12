@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MAX_XREF_ENTRIES } from "../../../../src/pdf/limits/pdf-limits";
+import { refusalFrom } from "../../support/parsed";
+import { present } from "../../support/present";
 import { RecordingLoading } from "../../support/recording-loading";
 import { refusalOf } from "../../support/read-buffer";
 import { classicEntries, indexOf, textFile } from "../../support/xref-files";
@@ -26,7 +28,7 @@ describe("reading a classic cross-reference table", () => {
 
   it("reads a free entry as an entry that cannot be loaded", async () => {
     const index = await indexOf(fileWith(`xref\n0 2\n${entryLine(0, 65535, "f")}${entryLine(0, 0, "f")}`));
-    expect(index.crossReference.get(1)?.acceptsGeneration(0)).toBe(false);
+    expect(refusalFrom(() => present(index.crossReference.get(1)).load(new RecordingLoading(), 1))).toContain("an object it says was deleted");
   });
 
   it("reads several subsections, each starting at its own object number", async () => {

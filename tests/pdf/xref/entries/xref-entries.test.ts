@@ -41,9 +41,9 @@ describe("CompressedEntry", () => {
 });
 
 describe("FreeEntry", () => {
-  it("accepts no generation and refuses to load", () => {
+  it("accepts any generation and refuses to load, saying the object was deleted", () => {
     const entry: XrefEntry = new FreeEntry();
-    expect(entry.acceptsGeneration(0)).toBe(false);
+    expect(entry.acceptsGeneration(0)).toBe(true);
     expect(refusalFrom(() => entry.load(new RecordingLoading(), 5))).toContain("an object it says was deleted");
     expect(entry.containerNumber()).toBeNull();
   });

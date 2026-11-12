@@ -55,6 +55,19 @@ describe("WorkBudget", () => {
     expect(work.stepsTaken()).toBe(STEPS_PER_TIME_CHECK);
   });
 
+  it("refuses a clock that goes backwards, so it cannot be used to stay under the limit", () => {
+    let now = 1000;
+    const work = new WorkBudget(10, () => now);
+    now = 999;
+    expect(refusalFrom(() => work.checkTime())).toContain("clock went backwards");
+  });
+
+  it("accepts a clock that stands still", () => {
+    const work = new WorkBudget(10, () => 5);
+    work.checkTime();
+    expect(work.stepsTaken()).toBe(0);
+  });
+
   it("checks the time on request without spending a step", () => {
     let now = 0;
     const work = new WorkBudget(10, () => now);
