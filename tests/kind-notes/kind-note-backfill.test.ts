@@ -10,7 +10,7 @@ function session(number: number, text: string): SessionNote {
   return { path: `${CAMPAIGN}/Sessions/Session ${number}.md`, number, text, firstLine: 0 };
 }
 
-function backfillWith(sessions: SessionNote[], alreadyMade: string[] = [], makes: (note: WantedNote) => boolean = () => true) {
+function backfillWith(sessions: SessionNote[], alreadyMade: string[] = [], makes: (note: WantedNote) => boolean = () => true, itemsMade = 0) {
   const calls: string[] = [];
   let inside = 0;
   let mostInside = 0;
@@ -25,10 +25,11 @@ function backfillWith(sessions: SessionNote[], alreadyMade: string[] = [], makes
   const marked: string[] = [];
   const made = { hasMadeFor: (folder: string) => alreadyMade.includes(folder), markMadeFor: vi.fn(async (folder: string) => void marked.push(folder)) };
   const say = vi.fn();
+  const items = { makeMissing: vi.fn(async () => itemsMade) };
   const store = { current: buildCampaign(sessions), sessionNotes: sessions };
   const files = { getFileByPath: (path: string) => fileAt(path) };
-  const backfill = new KindNoteBackfill({ store, files, keeper: { makeIfMissing }, made, say });
-  return { backfill, calls, marked, say, made, makeIfMissing, mostInside: () => mostInside };
+  const backfill = new KindNoteBackfill({ store, files, keeper: { makeIfMissing }, items, made, say });
+  return { backfill, calls, marked, say, made, makeIfMissing, items, mostInside: () => mostInside };
 }
 
 describe("KindNoteBackfill", () => {
@@ -95,5 +96,25 @@ describe("KindNoteBackfill", () => {
     const { backfill, made } = backfillWith([session(1, "? Who sent Mira")]);
     made.markMadeFor.mockRejectedValueOnce(new Error("disk full"));
     await expect(backfill.run(CAMPAIGN)).rejects.toThrow("disk full");
+  });
+
+  it("makes the item notes after the session notes, and says how many sessions and items got notes", async () => {
+    const { backfill, say, items, calls } = backfillWith([session(1, "? Who sent Mira")], [], () => true, 2);
+    await backfill.run(CAMPAIGN);
+    expect(items.makeMissing).toHaveBeenCalledOnce();
+    expect(calls).toHaveLength(3);
+    expect(say).toHaveBeenCalledExactlyOnceWith("Made notes for 1 session and 2 items.");
+  });
+
+  it("says only the items when no session got a note, in the singular for one", async () => {
+    const { backfill, say } = backfillWith([session(1, "We rested.")], [], () => true, 1);
+    await backfill.run(CAMPAIGN);
+    expect(say).toHaveBeenCalledExactlyOnceWith("Made notes for 1 item.");
+  });
+
+  it("makes no item note for a campaign it already made notes for", async () => {
+    const { backfill, items } = backfillWith([session(1, "? Who sent Mira")], [CAMPAIGN], () => true, 2);
+    await backfill.run(CAMPAIGN);
+    expect(items.makeMissing).not.toHaveBeenCalled();
   });
 });

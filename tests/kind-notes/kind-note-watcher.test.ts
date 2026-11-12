@@ -13,10 +13,11 @@ function watcherWith(campaign: FakeCampaign) {
   const written = new WrittenNotes();
   const keeper = { keep: vi.fn(), noteRead: vi.fn() };
   const differing = { check: vi.fn(), forget: vi.fn() };
+  const items = { sessionSaved: vi.fn() };
   const files = { getFileByPath: (path: string) => fileAt(path) };
-  const watcher = new KindNoteWatcher({ store: campaign, files, written, keeper, differing, saves: new SavesHere() });
+  const watcher = new KindNoteWatcher({ store: campaign, files, written, keeper, differing, saves: new SavesHere(), items });
   const stop = watcher.start();
-  return { written, keeper, differing, watcher, stop };
+  return { written, keeper, differing, watcher, stop, items };
 }
 
 function linesWanted(call: unknown[] | undefined): Record<string, string[]> {
@@ -34,6 +35,23 @@ describe("KindNoteWatcher", () => {
     expect(keeper.keep).toHaveBeenCalledOnce();
     expect(linesWanted(keeper.keep.mock.calls[0])).toEqual({ Questions: [TEXT], Quests: [], Funds: [] });
     expect(differing.check).not.toHaveBeenCalled();
+  });
+
+  it("lets the item notes know a session was saved here, and not when a change arrives by sync", () => {
+    const campaign = new FakeCampaign();
+    const { written, items } = watcherWith(campaign);
+    campaign.arrive(SESSION, "? Who sent Baka");
+    expect(items.sessionSaved).not.toHaveBeenCalled();
+    written.changed(SESSION, TEXT);
+    campaign.arrive(SESSION, TEXT);
+    expect(items.sessionSaved).toHaveBeenCalledOnce();
+  });
+
+  it("lets the item notes know a session was deleted", () => {
+    const campaign = new FakeCampaign();
+    const { written, items } = watcherWith(campaign);
+    written.trashed(SESSION);
+    expect(items.sessionSaved).toHaveBeenCalledOnce();
   });
 
   it("wants the notes at the paths inside the campaign, linked to the session's file", () => {

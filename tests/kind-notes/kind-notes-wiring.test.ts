@@ -17,16 +17,18 @@ function startWith(notes: FakeNotes, campaign: FakeCampaign, alreadyMade: string
   const asked: { message: string; fix: () => void; keep: () => void }[] = [];
   const marked: string[] = [];
   const made = { hasMadeFor: (folder: string) => alreadyMade.includes(folder), markMadeFor: vi.fn(async (folder: string) => void marked.push(folder)) };
+  const items = { sessionSaved: vi.fn(), makeMissing: vi.fn(async () => 0) };
   const gate = { files: notes.files, metadata: notes.metadata, fileActions: notes.actions } as unknown as Gate;
   const stop = startKindNotes({
     gate,
     written,
     saved: campaign as unknown as SavedCampaign,
     made: made as unknown as NotesMade,
+    items,
     say: (message) => notes.said.push(message),
     ask: (message, fix, keep) => void asked.push({ message, fix, keep }),
   });
-  return { written, asked, marked, stop, made };
+  return { written, asked, marked, stop, made, items };
 }
 
 function saveHere(written: WrittenNotes, campaign: FakeCampaign, path: string, text: string): void {
@@ -179,6 +181,17 @@ describe("kind notes, for sessions written before", () => {
     expect(notes.created.sort()).toEqual([QUESTIONS, `${CAMPAIGN}/Quests/Session 3.md`].sort());
     expect(notes.said).toEqual(["Made notes for 2 sessions."]);
     expect(marked).toEqual([CAMPAIGN]);
+  });
+
+  it("lets the item notes make theirs, and lets them know when a session is saved", async () => {
+    const { notes, campaign } = world();
+    campaign.hold(SESSION, "? Who sent Mira");
+    const { items, written } = startWith(notes, campaign);
+    campaign.open(CAMPAIGN);
+    await settled();
+    expect(items.makeMissing).toHaveBeenCalledOnce();
+    saveHere(written, campaign, SESSION, "? Who sent Baka");
+    expect(items.sessionSaved).toHaveBeenCalledOnce();
   });
 
   it("makes nothing when the campaign was opened after the update before", async () => {

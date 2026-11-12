@@ -1,6 +1,7 @@
 import type { Campaign, SessionNote } from "../campaign/record/campaign";
 import type { FencedFiles } from "../fence/gate/fenced-files";
 import type { NotesMade } from "../settings/saved/notes-made";
+import type { ItemNotesPart } from "./item-notes-part";
 import type { KindNoteKeeper } from "./kind-note-keeper";
 import { wantedNotesFor } from "./wanted-notes";
 
@@ -13,13 +14,21 @@ export interface KindNoteBackfillNeeds {
   store: BackfilledCampaign;
   files: Pick<FencedFiles, "getFileByPath">;
   keeper: Pick<KindNoteKeeper, "makeIfMissing">;
+  items: Pick<ItemNotesPart, "makeMissing">;
   made: Pick<NotesMade, "hasMadeFor" | "markMadeFor">;
   say(message: string): void;
 }
 
-export function madeNotesMessage(sessions: number): string {
-  if (sessions === 1) return "Made notes for 1 session.";
-  return `Made notes for ${sessions} sessions.`;
+function countOf(count: number, thing: string): string {
+  if (count === 1) return `1 ${thing}`;
+  return `${count} ${thing}s`;
+}
+
+export function madeNotesMessage(sessions: number, items: number): string {
+  const counts: string[] = [];
+  if (sessions > 0) counts.push(countOf(sessions, "session"));
+  if (items > 0) counts.push(countOf(items, "item"));
+  return `Made notes for ${counts.join(" and ")}.`;
 }
 
 function byNumber(first: SessionNote, second: SessionNote): number {
@@ -35,7 +44,8 @@ export class KindNoteBackfill {
     for (const session of [...this.needs.store.sessionNotes].sort(byNumber)) {
       if (await this.makeFor(campaignFolder, session)) sessionsMade += 1;
     }
-    if (sessionsMade > 0) this.needs.say(madeNotesMessage(sessionsMade));
+    const itemsMade = await this.needs.items.makeMissing();
+    if (sessionsMade > 0 || itemsMade > 0) this.needs.say(madeNotesMessage(sessionsMade, itemsMade));
     await this.needs.made.markMadeFor(campaignFolder);
   }
 

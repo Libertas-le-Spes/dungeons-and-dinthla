@@ -1,24 +1,27 @@
 import type { TFile } from "obsidian";
 import type { FencedFileActions } from "../fence/gate/fenced-file-actions";
 import type { FencedFiles } from "../fence/gate/fenced-files";
-import { hasNoWords, wordsOf } from "./note-words";
+import { hasNoWords } from "./note-words";
+import { PropertyWriter } from "./property-writer";
 
 export type WriterFiles = Pick<FencedFiles, "getFolderByPath" | "createFolder" | "create" | "read" | "process">;
 export type WriterActions = Pick<FencedFileActions, "processFrontMatter" | "trashFile">;
 
-export const WORDS_CHANGED = "its own words changed while its properties were written, so the note was put back as it was.";
-
 export class KindNoteWriter {
+  private readonly properties: PropertyWriter;
+
   constructor(
     private readonly files: WriterFiles,
     private readonly actions: WriterActions,
-  ) {}
+  ) {
+    this.properties = new PropertyWriter(files, actions);
+  }
 
   async make(path: string, folder: string, sessionLink: string, lines: string[]): Promise<void> {
     if (this.files.getFolderByPath(folder) === null) await this.files.createFolder(folder);
     const file = await this.files.create(path, "");
     try {
-      await this.changeProperties(file, (properties) => {
+      await this.properties.set(file, (properties) => {
         properties.session = sessionLink;
         properties.lines = lines;
       });
@@ -29,7 +32,7 @@ export class KindNoteWriter {
   }
 
   async setLines(file: TFile, lines: string[]): Promise<void> {
-    await this.changeProperties(file, (properties) => {
+    await this.properties.set(file, (properties) => {
       properties.lines = lines;
     });
   }
@@ -48,14 +51,5 @@ export class KindNoteWriter {
     } catch {
       return;
     }
-  }
-
-  private async changeProperties(file: TFile, change: (properties: Record<string, unknown>) => void): Promise<void> {
-    const before = await this.files.read(file);
-    await this.actions.processFrontMatter(file, change);
-    const after = await this.files.read(file);
-    if (wordsOf(after) === wordsOf(before)) return;
-    await this.files.process(file, () => before);
-    throw new Error(WORDS_CHANGED);
   }
 }
