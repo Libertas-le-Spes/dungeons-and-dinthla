@@ -1,6 +1,7 @@
 import type { QuestionRecord } from "../../campaign/record/campaign";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { RecordChange } from "../../campaign/changes/record-change";
+import { notHidden } from "../../campaign/changes/hidden-refusal";
 import { refusedWhen, verdictOf } from "../../campaign/changes/verdict";
 import { ANSWER_GOES_ELSEWHERE, answerWouldGoElsewhere } from "./current-question";
 import { planQuestionSave, planReopen, refusalForQuestionPlan, type QuestionEdit, type QuestionPlan } from "./question-plan";
@@ -14,6 +15,7 @@ export function questionSave(store: QuestionStore, question: QuestionRecord, edi
     checks: [
       () => refusedWhen(answerWouldGoElsewhere(store.current.questions, question, edit.answer), ANSWER_GOES_ELSEWHERE),
       (plan) => verdictOf(refusalForQuestionPlan(store.sessionNotes, question, plan)),
+      notHidden(() => store.sessionNotes, questionSessionChange),
     ],
     sessionChangeOf: questionSessionChange,
   };

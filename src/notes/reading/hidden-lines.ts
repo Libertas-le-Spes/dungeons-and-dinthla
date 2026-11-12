@@ -4,27 +4,31 @@ const FENCE_OPEN = /^ {0,3}(`{3,}|~{3,})/;
 const FENCE_CLOSE = /^ {0,3}(`{3,}|~{3,})\s*$/;
 const INDENTED = /^( {4}|\t)/;
 const INLINE_CODE = /`[^`\n]*`/g;
-const CLOSERS = new Map<string, string>([
+
+export type Closers = Map<string, string>;
+
+export const CLOSERS_WITHOUT_MATH: Closers = new Map([
   ["%%", "%%"],
-  ["$$", "$$"],
   ["<!--", "-->"],
 ]);
+
+export const COMMENT_AND_MATH_CLOSERS: Closers = new Map([...CLOSERS_WITHOUT_MATH, ["$$", "$$"]]);
 
 interface Scan {
   closer: string | null;
   marked: boolean;
 }
 
-function nextOpener(prose: string, from: number): { opener: string; at: number } | null {
+function nextOpener(closers: Closers, prose: string, from: number): { opener: string; at: number } | null {
   let next: { opener: string; at: number } | null = null;
-  for (const opener of CLOSERS.keys()) {
+  for (const opener of closers.keys()) {
     const at = prose.indexOf(opener, from);
     if (at !== -1 && (next === null || at < next.at)) next = { opener, at };
   }
   return next;
 }
 
-function scanned(prose: string, openCloser: string | null): Scan {
+function scanned(closers: Closers, prose: string, openCloser: string | null): Scan {
   let closer = openCloser;
   let marked = false;
   let from = 0;
@@ -37,10 +41,10 @@ function scanned(prose: string, openCloser: string | null): Scan {
       closer = null;
       continue;
     }
-    const next = nextOpener(prose, from);
+    const next = nextOpener(closers, prose, from);
     if (next === null) break;
     marked = true;
-    closer = CLOSERS.get(next.opener)!;
+    closer = closers.get(next.opener)!;
     from = next.at + next.opener.length;
   }
   return { closer, marked };
@@ -51,7 +55,7 @@ function closesFence(line: string, fence: string): boolean {
   return closing !== null && closing[1]!.startsWith(fence);
 }
 
-export function hiddenLines(text: string): Set<number> {
+export function hiddenLinesWith(closers: Closers, text: string): Set<number> {
   const hidden = new Set<number>();
   const lines = text.split("\n");
   let fence: string | null = null;
@@ -69,7 +73,7 @@ export function hiddenLines(text: string): Set<number> {
       continue;
     }
     const wasOpen = closer !== null;
-    const scan = scanned(line.replace(INLINE_CODE, ""), closer);
+    const scan = scanned(closers, line.replace(INLINE_CODE, ""), closer);
     closer = scan.closer;
     if (wasOpen || scan.marked) {
       hidden.add(index);
@@ -90,11 +94,19 @@ export function hiddenLines(text: string): Set<number> {
   return hidden;
 }
 
-export function addedLinesHidden(textWithAddedLinesLast: string, addedCount: number): boolean {
+export function hiddenLines(text: string): Set<number> {
+  return hiddenLinesWith(COMMENT_AND_MATH_CLOSERS, text);
+}
+
+export function addedLinesHiddenWith(closers: Closers, textWithAddedLinesLast: string, addedCount: number): boolean {
   const lineCount = textWithAddedLinesLast.split("\n").length - 1;
-  const hidden = hiddenLines(textWithAddedLinesLast);
+  const hidden = hiddenLinesWith(closers, textWithAddedLinesLast);
   for (let line = lineCount - addedCount; line < lineCount; line++) {
     if (hidden.has(line)) return true;
   }
   return false;
+}
+
+export function addedLinesHidden(textWithAddedLinesLast: string, addedCount: number): boolean {
+  return addedLinesHiddenWith(COMMENT_AND_MATH_CLOSERS, textWithAddedLinesLast, addedCount);
 }
