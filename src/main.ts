@@ -79,6 +79,7 @@ import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
 
 const TYPING_PAUSE_MS = 250;
+const NOTICE_STAYS_UNTIL_DISMISSED = 0;
 
 const PAGE_OPENERS: { page: PageId; id: string; name: string; icon: string }[] = [
   { page: "home", id: "open-dashboard", name: "Open dashboard", icon: "layout-dashboard" },
@@ -195,7 +196,7 @@ export default class DungeonsAndDinthla extends Plugin {
       actions,
       confirm: (text: ConfirmText, confirmed: () => void, closed: () => void) => new ConfirmModal(this.app, text, confirmed, closed).open(),
       campaignFolders: () => this.campaignFolders(),
-      report: (message: string) => new Notice(message, 0),
+      report: (message: string) => new Notice(message, NOTICE_STAYS_UNTIL_DISMISSED),
       startSession: newSession,
     });
     const pages = campaignSections({

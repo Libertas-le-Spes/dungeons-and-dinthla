@@ -24,7 +24,7 @@ export abstract class ChangeDialog extends Modal {
   protected runChange(change: () => Promise<boolean>, failureWords: string): void {
     if (this.busy) return;
     this.busy = true;
-    this.started(change)
+    this.settled(change)
       .then((wrote) => {
         this.busy = false;
         this.finished(wrote);
@@ -36,7 +36,7 @@ export abstract class ChangeDialog extends Modal {
       });
   }
 
-  private async started(change: () => Promise<boolean>): Promise<boolean> {
+  private async settled(change: () => Promise<boolean>): Promise<boolean> {
     return change();
   }
 

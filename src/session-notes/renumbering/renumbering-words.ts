@@ -9,6 +9,18 @@ export interface RenumberingReport {
   linksSkipped: string[];
 }
 
+export function sharedNumberWords(number: number): string {
+  return `Two session notes are numbered ${number}, so it isn't clear how to number the sessions again. Rename one first. Nothing was deleted.`;
+}
+
+export function nameTakenWords(path: string): string {
+  return `${path} is already taken by another file, so the sessions can't be numbered again. Nothing was deleted.`;
+}
+
+export function renameSourceGoneWords(path: string): string {
+  return `${path} is gone.`;
+}
+
 export const SESSIONS_CHANGED_SINCE_ASKED = "the sessions changed since you were asked, so nothing was deleted. Look at the session again first.";
 
 export const NOT_IN_A_CAMPAIGN = "The session isn't in a campaign, so the sessions can't be numbered again. Nothing was deleted.";

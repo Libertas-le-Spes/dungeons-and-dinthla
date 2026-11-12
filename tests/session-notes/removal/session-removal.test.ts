@@ -155,7 +155,7 @@ describe("Clear notes and Delete session", () => {
     expect(keptDrafts.kept()).toEqual([]);
   });
 
-  it("moves the note to Obsidian's trash once confirmed, keeps unsaved lines apart, and moves on", async () => {
+  it("moves the note to Obsidian's trash once confirmed, keeps unsaved lines apart, and moves on to no session when the plan has none left", async () => {
     const drafts = new Drafts({}, () => {});
     const { button, asked, trashFile, moves, keptDrafts, typeLines } = writingOn(NOTE, drafts);
     typeLines("! Ride to Thessaly");

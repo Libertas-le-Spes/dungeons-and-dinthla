@@ -1,6 +1,7 @@
 import { campaignFolderOf } from "../../campaign/paths/campaign-folders";
 import type { FencedFiles } from "../../fence/gate/fenced-files";
 import { messageOf } from "../../views/dialogs/message-of";
+import { DecidedTargets } from "./decided-targets";
 import { linkOnSkippedLine, withLinksRewritten } from "./link-rewriting";
 import { NoteLinks } from "./note-links";
 import type { SessionRename } from "./renumbering-plan";
@@ -26,25 +27,6 @@ export interface NoteDecision {
 export interface Decisions {
   notes: NoteDecision[];
   unread: string[];
-}
-
-class DecidedTargets {
-  readonly newTarget: NewTarget = (target) => this.lookup(target);
-  private readonly decided = new Map<string, string | null>();
-
-  record(target: string, replacement: string | null): void {
-    this.decided.set(target, replacement);
-  }
-
-  hasChange(): boolean {
-    return [...this.decided.values()].some((replacement) => replacement !== null);
-  }
-
-  private lookup(target: string): string | null {
-    const replacement = this.decided.get(target);
-    if (replacement === undefined) return null;
-    return replacement;
-  }
 }
 
 function candidateCampaigns(notePath: string, plan: DecisionPlan): string[] {
