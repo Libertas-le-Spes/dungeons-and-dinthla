@@ -55,6 +55,7 @@ export class FakeNotes {
   readonly folders = new Set<string>();
   failProperties: Error | null = null;
   alsoChangeWords: string | null = null;
+  typedBeforePutBack: string | null = null;
   holdProperties: Promise<void> = Promise.resolve();
   inside = 0;
   mostInside = 0;
@@ -94,6 +95,7 @@ export class FakeNotes {
     read: vi.fn(async (file: TFile) => textOf(this.noteOf(file))),
     process: vi.fn(async (file: TFile, change: (text: string) => string) => {
       this.processed.push(file.path);
+      if (this.typedBeforePutBack !== null) this.noteOf(file).words = this.typedBeforePutBack;
       const text = change(textOf(this.noteOf(file)));
       const note = this.noteOf(file);
       note.properties = propertiesIn(text);

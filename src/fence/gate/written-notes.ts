@@ -9,12 +9,17 @@ export interface WrittenNote {
 export type WrittenListener = (written: WrittenNote) => void;
 
 export class WrittenNotes {
-  private readonly listeners = new Set<WrittenListener>();
+  constructor(private readonly listeners: Set<WrittenListener>) {}
 
   listen(listener: WrittenListener): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   }
+}
+
+export class NoteReporter {
+  private readonly listeners = new Set<WrittenListener>();
+  readonly notes = new WrittenNotes(this.listeners);
 
   changed(path: string, text: string | null): void {
     this.tell({ change: "changed", path, text });
@@ -29,6 +34,14 @@ export class WrittenNotes {
   }
 
   private tell(written: WrittenNote): void {
-    for (const listener of this.listeners) listener(written);
+    for (const listener of this.listeners) this.tellOne(listener, written);
+  }
+
+  private tellOne(listener: WrittenListener, written: WrittenNote): void {
+    try {
+      listener(written);
+    } catch {
+      return;
+    }
   }
 }

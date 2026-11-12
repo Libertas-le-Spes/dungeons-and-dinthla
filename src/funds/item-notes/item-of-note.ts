@@ -1,5 +1,6 @@
 import type { ItemRecord } from "../../campaign/record/campaign";
 import { noteNameOf } from "../../campaign/paths/note-name";
+import { nameKeyOf } from "../../names/name-key";
 import { itemFileNameOf } from "./item-file-name";
 
 export function isItemNamed(item: ItemRecord, name: string): boolean {
@@ -7,7 +8,7 @@ export function isItemNamed(item: ItemRecord, name: string): boolean {
 }
 
 export function hasNoteNamed(item: ItemRecord, noteName: string): boolean {
-  return itemFileNameOf(item.name).toLowerCase() === noteName.toLowerCase();
+  return nameKeyOf(itemFileNameOf(item.name)) === nameKeyOf(noteName);
 }
 
 export function itemOfNote(items: ItemRecord[], path: string): ItemRecord | null {

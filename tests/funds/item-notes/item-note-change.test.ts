@@ -28,8 +28,8 @@ describe("aliasesWith", () => {
     expect(aliasesWith({ aliases: "The Ring" }, "Ring: +1")).toEqual(["The Ring", "Ring: +1"]);
   });
 
-  it("drops what isn't a text from a list of aliases", () => {
-    expect(aliasesWith({ aliases: ["The Ring", 4, null] }, "Ring: +1")).toEqual(["The Ring", "Ring: +1"]);
+  it("keeps what isn't a text in a list of aliases, since it is his", () => {
+    expect(aliasesWith({ aliases: ["The Ring", 4, null] }, "Ring: +1")).toEqual(["The Ring", 4, null, "Ring: +1"]);
   });
 
   it("starts the aliases when what the note has isn't a list or a text", () => {

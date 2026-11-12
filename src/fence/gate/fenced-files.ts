@@ -1,6 +1,6 @@
 import { Component, Events, type EventRef, type TAbstractFile, type TFile, type TFolder, type Vault } from "obsidian";
 import type { HeldFiles } from "./held-files";
-import { WrittenNotes } from "./written-notes";
+import { NoteReporter } from "./written-notes";
 
 export type RawVault = Pick<
   Vault,
@@ -36,7 +36,7 @@ export class FencedFiles extends Component {
   constructor(
     private readonly vault: RawVault,
     private readonly held: HeldFiles,
-    private readonly written: WrittenNotes = new WrittenNotes(),
+    private readonly written: NoteReporter,
   ) {
     super();
   }

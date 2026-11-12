@@ -83,4 +83,48 @@ describe("KindNoteKeeper updating a note", () => {
     await settled();
     expect(notes.actions.processFrontMatter).toHaveBeenCalledTimes(2);
   });
+
+  it("leaves his typing alone, and says so, when he typed again after the note was written and before it was put back", async () => {
+    const notes = new FakeNotes();
+    const session = notes.addSession(SESSION);
+    noteWith(notes, { session: "[[Session 2]]", lines: OLD });
+    notes.alsoChangeWords = "Something else";
+    notes.typedBeforePutBack = "What he typed meanwhile";
+    keeperWith(notes).keep([wanted(QUESTIONS, session, NEW)]);
+    await settled();
+    expect(notes.noteAt(QUESTIONS)?.words).toBe("What he typed meanwhile");
+    expect(notes.said).toEqual(["Couldn't write Questions for Session 2: its own words changed while its properties were written, and again after, so the note was left as it is now."]);
+  });
+
+  it("tries lines again that failed before when the lines come back to them after other lines were written", async () => {
+    const notes = new FakeNotes();
+    const session = notes.addSession(SESSION);
+    noteWith(notes, { session: "[[Session 2]]", lines: OLD });
+    const keeper = keeperWith(notes);
+    notes.failProperties = new Error("disk full");
+    keeper.keep([wanted(QUESTIONS, session, NEW)]);
+    await settled();
+    notes.failProperties = null;
+    keeper.keep([wanted(QUESTIONS, session, ["? Another"])]);
+    await settled();
+    keeper.keep([wanted(QUESTIONS, session, NEW)]);
+    await settled();
+    expect(notes.noteAt(QUESTIONS)?.properties?.lines).toEqual(NEW);
+  });
+
+  it("tries failed lines again after the session went back to what the note holds and then to the failed lines", async () => {
+    const notes = new FakeNotes();
+    const session = notes.addSession(SESSION);
+    noteWith(notes, { session: "[[Session 2]]", lines: OLD });
+    const keeper = keeperWith(notes);
+    notes.failProperties = new Error("disk full");
+    keeper.keep([wanted(QUESTIONS, session, NEW)]);
+    await settled();
+    notes.failProperties = null;
+    keeper.keep([wanted(QUESTIONS, session, OLD)]);
+    await settled();
+    keeper.keep([wanted(QUESTIONS, session, NEW)]);
+    await settled();
+    expect(notes.noteAt(QUESTIONS)?.properties?.lines).toEqual(NEW);
+  });
 });

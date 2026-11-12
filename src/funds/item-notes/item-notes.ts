@@ -4,6 +4,7 @@ import { itemsFolderOf } from "../../campaign/paths/campaign-folders";
 import type { FencedFileActions } from "../../fence/gate/fenced-file-actions";
 import type { FencedFiles } from "../../fence/gate/fenced-files";
 import type { FencedMetadata } from "../../fence/gate/fenced-metadata";
+import type { MakeResult, MakeTally } from "../../kind-notes/make-result";
 import { PropertyWriter, type ChangeProperties } from "../../kind-notes/property-writer";
 import { SaidOnce } from "../../kind-notes/said-once";
 import { holderPropertyOf } from "./holder-property";
@@ -67,15 +68,18 @@ export class ItemNotes {
     for (const note of plan.notes) this.noteSaved(note);
   }
 
-  async makeMissing(): Promise<number> {
+  async makeMissing(): Promise<MakeTally> {
+    const tally: MakeTally = { made: 0, failed: 0 };
     const plan = this.plan();
-    if (plan === null) return 0;
+    if (plan === null) return tally;
     for (const message of plan.refusals) this.said.say(message, message);
-    let made = 0;
     for (const note of plan.notes) {
-      if (note.file === null && (await this.makeNew(note))) made += 1;
+      if (note.file !== null) continue;
+      const result = await this.makeNew(note);
+      if (result === "made") tally.made += 1;
+      if (result === "failed") tally.failed += 1;
     }
-    return made;
+    return tally;
   }
 
   private plan(): ItemNotePlan | null {
@@ -111,18 +115,18 @@ export class ItemNotes {
     this.writeWanted(note.file);
   }
 
-  private async makeNew(note: PlannedItemNote): Promise<boolean> {
-    if (note.lines.length < LINES_FOR_A_NOTE || this.writing.has(note.path)) return false;
+  private async makeNew(note: PlannedItemNote): Promise<MakeResult> {
+    if (note.lines.length < LINES_FOR_A_NOTE || this.writing.has(note.path)) return "left";
     const key = keyOf(note.holder, { lines: note.lines, alias: note.alias });
-    if (this.failedWrites.get(note.path) === key) return false;
+    if (this.failedWrites.get(note.path) === key) return "failed";
     this.writing.add(note.path);
     try {
       await this.makeNote(note);
-      return true;
+      return "made";
     } catch (error) {
       this.failedWrites.set(note.path, key);
       this.needs.failed(error);
-      return false;
+      return "failed";
     } finally {
       this.writing.delete(note.path);
     }

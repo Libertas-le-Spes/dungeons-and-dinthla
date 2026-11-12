@@ -1,6 +1,7 @@
 import type { Campaign, SessionNote } from "../campaign/record/campaign";
 import type { FencedFiles } from "../fence/gate/fenced-files";
 import type { NotesMade } from "../settings/saved/notes-made";
+import type { MakeTally } from "./make-result";
 import type { ItemNotesPart } from "./item-notes-part";
 import type { KindNoteKeeper } from "./kind-note-keeper";
 import { wantedNotesFor } from "./wanted-notes";
@@ -8,6 +9,8 @@ import { wantedNotesFor } from "./wanted-notes";
 export interface BackfilledCampaign {
   readonly current: Campaign;
   readonly sessionNotes: SessionNote[];
+  readonly campaignFolder: string | null;
+  readonly opening: boolean;
 }
 
 export interface KindNoteBackfillNeeds {
@@ -40,22 +43,45 @@ export class KindNoteBackfill {
 
   async run(campaignFolder: string): Promise<void> {
     if (this.needs.made.hasMadeFor(campaignFolder)) return;
+    const campaign = this.needs.store.current;
+    const sessions = [...this.needs.store.sessionNotes].sort(byNumber);
+    if (sessions.length === 0) return;
+    const tally: MakeTally = { made: 0, failed: 0 };
     let sessionsMade = 0;
-    for (const session of [...this.needs.store.sessionNotes].sort(byNumber)) {
-      if (await this.makeFor(campaignFolder, session)) sessionsMade += 1;
+    for (const session of sessions) {
+      if (!this.isOpen(campaignFolder)) break;
+      const sessionTally = await this.makeFor(campaignFolder, campaign, session);
+      if (sessionTally.made > 0) sessionsMade += 1;
+      tally.failed += sessionTally.failed;
     }
-    const itemsMade = await this.needs.items.makeMissing();
-    if (sessionsMade > 0 || itemsMade > 0) this.needs.say(madeNotesMessage(sessionsMade, itemsMade));
+    if (!this.isOpen(campaignFolder)) {
+      this.tell(sessionsMade, 0);
+      return;
+    }
+    const items = await this.needs.items.makeMissing();
+    this.tell(sessionsMade, items.made);
+    if (tally.failed + items.failed > 0 || !this.isOpen(campaignFolder)) return;
     await this.needs.made.markMadeFor(campaignFolder);
   }
 
-  private async makeFor(campaignFolder: string, session: SessionNote): Promise<boolean> {
+  private isOpen(campaignFolder: string): boolean {
+    const { store } = this.needs;
+    return store.campaignFolder === campaignFolder && !store.opening;
+  }
+
+  private tell(sessionsMade: number, itemsMade: number): void {
+    if (sessionsMade > 0 || itemsMade > 0) this.needs.say(madeNotesMessage(sessionsMade, itemsMade));
+  }
+
+  private async makeFor(campaignFolder: string, campaign: Campaign, session: SessionNote): Promise<MakeTally> {
     const file = this.needs.files.getFileByPath(session.path);
-    const wanted = wantedNotesFor(campaignFolder, this.needs.store.current, { path: session.path, file, note: session });
-    let made = false;
+    const wanted = wantedNotesFor(campaignFolder, campaign, { path: session.path, file, note: session });
+    const tally: MakeTally = { made: 0, failed: 0 };
     for (const note of wanted) {
-      if (await this.needs.keeper.makeIfMissing(note)) made = true;
+      const result = await this.needs.keeper.makeIfMissing(note);
+      if (result === "made") tally.made += 1;
+      if (result === "failed") tally.failed += 1;
     }
-    return made;
+    return tally;
   }
 }

@@ -141,7 +141,7 @@ describe("ItemNotes while the campaign is still opening", () => {
     const fake = new FakeItemNotes([]);
     const itemNotes = new ItemNotes(fake.needsFor(store));
     itemNotes.sessionSaved();
-    await expect(itemNotes.makeMissing()).resolves.toBe(0);
+    await expect(itemNotes.makeMissing()).resolves.toEqual({ made: 0, failed: 0 });
     await settle();
     expect(fake.createCalls).toBe(0);
   });
@@ -150,27 +150,27 @@ describe("ItemNotes while the campaign is still opening", () => {
 describe("ItemNotes making the notes of earlier sessions", () => {
   it("makes the missing notes of items on three lines, and says how many", async () => {
     const { fake, itemNotes } = await opened(THREE_LINES);
-    await expect(itemNotes.makeMissing()).resolves.toBe(1);
+    await expect(itemNotes.makeMissing()).resolves.toEqual({ made: 1, failed: 0 });
     expect(fake.propertiesWritten.map((write) => write.path)).toEqual([LANTERN]);
   });
 
   it("leaves a note that is already there as it is", async () => {
     const { fake, itemNotes } = await opened(THREE_LINES, [{ path: LANTERN, properties: { holder: "The party", lines: ["$ Old"] } }]);
     const before = fake.propertiesWritten.length;
-    await expect(itemNotes.makeMissing()).resolves.toBe(0);
+    await expect(itemNotes.makeMissing()).resolves.toEqual({ made: 0, failed: 0 });
     expect(fake.propertiesWritten).toHaveLength(before);
   });
 
   it("finds an existing note in a folder inside Items, so makes no second note", async () => {
     const { fake, itemNotes } = await opened(THREE_LINES, [{ path: `${ITEMS}/Lights/silvered lantern.md`, properties: { holder: "The party" } }]);
-    await expect(itemNotes.makeMissing()).resolves.toBe(0);
+    await expect(itemNotes.makeMissing()).resolves.toEqual({ made: 0, failed: 0 });
     expect(fake.foldersMade).toEqual([]);
   });
 
   it("makes nothing while no campaign is open", async () => {
     const { itemNotes, store } = await opened(THREE_LINES);
     store.close();
-    await expect(itemNotes.makeMissing()).resolves.toBe(0);
+    await expect(itemNotes.makeMissing()).resolves.toEqual({ made: 0, failed: 0 });
   });
 });
 
@@ -224,7 +224,7 @@ describe("ItemNotes naming a note", () => {
   it("says that the second name has no note when the earlier notes are made at the opening too", async () => {
     const lines = [...RING_LINES, "$ Ring? +1", "$ Ring? +1", "$ Ring? +1"];
     const { fake, itemNotes } = await opened(lines);
-    await expect(itemNotes.makeMissing()).resolves.toBe(1);
+    await expect(itemNotes.makeMissing()).resolves.toEqual({ made: 1, failed: 0 });
     expect(fake.said).toHaveLength(1);
   });
 

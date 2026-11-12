@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { Fence, NOT_WRITTEN_AS_OBSIDIAN_WRITES, OUTSIDE_FENCE } from "../../../src/fence/paths/fence";
 import { FencedFileActions, type RawFileManager } from "../../../src/fence/gate/fenced-file-actions";
 import { HeldFiles } from "../../../src/fence/gate/held-files";
-import { WrittenNotes } from "../../../src/fence/gate/written-notes";
+import { NoteReporter } from "../../../src/fence/gate/written-notes";
 import { fileAt, rawVaultWith } from "./fake-raw-vault";
 
 const CONFIG_DIR = ".obsidian";
@@ -18,10 +18,10 @@ function actionsWith() {
     trashFile: vi.fn(async () => {}),
   };
   const held = new HeldFiles(vault, new Fence(() => "D&D", CONFIG_DIR));
-  const written = new WrittenNotes();
+  const reporter = new NoteReporter();
   const heard = vi.fn();
-  written.listen(heard);
-  return { actions: new FencedFileActions(fileManager as unknown as RawFileManager, held, written), fileManager, heard };
+  reporter.notes.listen(heard);
+  return { actions: new FencedFileActions(fileManager as unknown as RawFileManager, held, reporter), fileManager, heard };
 }
 
 describe("FencedFileActions", () => {
