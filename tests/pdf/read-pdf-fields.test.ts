@@ -70,7 +70,6 @@ describe("a file with packed objects that the reader cannot follow", () => {
     expect(await refusalOf(Buffer.from(text, "latin1"))).toContain("not a group of objects");
   });
 });
-});
 
 describe("a later update of the file", () => {
   it("overrides the value of the earlier one", async () => {
