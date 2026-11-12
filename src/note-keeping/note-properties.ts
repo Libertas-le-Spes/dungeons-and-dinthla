@@ -1,6 +1,6 @@
 import type { CachedMetadata } from "obsidian";
 
-const PLUGIN_PROPERTIES = ["session", "lines"];
+export const PLUGIN_PROPERTIES = ["session", "lines"];
 
 function isText(value: unknown): value is string {
   return typeof value === "string";
@@ -19,16 +19,6 @@ export function sessionPropertyIn(cache: CachedMetadata): unknown {
   const properties = cache.frontmatter;
   if (properties === undefined) return undefined;
   return properties.session;
-}
-
-function isPluginProperty(name: string): boolean {
-  return PLUGIN_PROPERTIES.includes(name);
-}
-
-export function holdsOnlyPluginProperties(cache: CachedMetadata): boolean {
-  const properties = cache.frontmatter;
-  if (properties === undefined) return true;
-  return Object.keys(properties).every(isPluginProperty);
 }
 
 export function sameLines(first: string[] | null, second: string[]): boolean {

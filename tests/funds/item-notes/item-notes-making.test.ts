@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { firstOf } from "../../stubs/lists";
 import { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { ItemNotes } from "../../../src/funds/item-notes/item-notes";
 import { FakeVault } from "../../campaign/fake-vault";
@@ -193,7 +194,7 @@ describe("ItemNotes naming a note", () => {
     itemNotes.sessionSaved();
     await settle();
     expect(fake.propertiesWritten.map((write) => write.path)).toEqual([`${ITEMS}/Ring+1.md`]);
-    expect(fake.propertiesWritten[0]?.properties).not.toHaveProperty("aliases");
+    expect(firstOf(fake.propertiesWritten).properties).not.toHaveProperty("aliases");
   });
 
   it("adds the real name to the aliases an existing note already has, and keeps them", async () => {
@@ -209,7 +210,7 @@ describe("ItemNotes naming a note", () => {
     itemNotes.sessionSaved();
     await settle();
     expect(fake.said).toHaveLength(1);
-    expect(fake.said[0]).toContain("No note was made for the item Staff.");
+    expect(firstOf(fake.said)).toContain("No note was made for the item Staff.");
     expect(fake.propertiesWritten).toEqual([]);
   });
 
@@ -221,7 +222,7 @@ describe("ItemNotes naming a note", () => {
     await settle();
     expect(fake.propertiesWritten.map((write) => write.path)).toEqual([RING]);
     expect(fake.said).toHaveLength(1);
-    expect(fake.said[0]).toContain("Ring? +1");
+    expect(firstOf(fake.said)).toContain("Ring? +1");
   });
 
   it("says that the second name has no note when the earlier notes are made at the opening too", async () => {
@@ -267,12 +268,11 @@ describe("ItemNotes naming a note", () => {
     await expect(again.itemNotes.makeMissing()).resolves.toEqual({ made: 0, failed: 1 });
   });
 
-  it("puts a note back as it was and says so when his words change while its properties are written", async () => {
+  it("leaves a note as it is and says so when his words change while its properties are written", async () => {
     const { fake, itemNotes } = await opened(["$ Rope"], [{ path: ROPE, properties: { holder: "The party" } }]);
     fake.wordsChangeOnWrite = true;
     itemNotes.sessionSaved();
     await settle();
-    expect(fake.restores).toBe(1);
-    expect(String(fake.failures[0])).toContain("its own words changed");
+    expect(String(firstOf(fake.failures))).toContain("its own words changed");
   });
 });

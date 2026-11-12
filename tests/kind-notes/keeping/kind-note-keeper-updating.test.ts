@@ -48,16 +48,15 @@ describe("KindNoteKeeper updating a note", () => {
     expect(notes.noteAt(QUESTIONS)?.properties).toEqual({ session: "[[Session 2]]", tags: ["pale"], lines: NEW });
   });
 
-  it("puts the note back as it was and says so when his words change while it writes", async () => {
+  it("leaves his words as they are now, with what he added, and says so, when they change while it writes", async () => {
     const notes = new FakeNotes();
     const session = notes.addSession(SESSION);
     noteWith(notes, { session: "[[Session 2]]", lines: OLD });
-    notes.alsoChangeWords = "Something else";
+    notes.alsoChangeWords = `${HIS_WORDS} and what he added`;
     keeperWith(notes).keep([wanted(QUESTIONS, session, NEW)]);
     await settled();
-    expect(notes.noteAt(QUESTIONS)?.words).toBe(HIS_WORDS);
-    expect(notes.noteAt(QUESTIONS)?.properties?.lines).toEqual(OLD);
-    expect(notes.said).toEqual(["Couldn't write Questions for Session 2: its own words changed while its properties were written, so the note was put back as it was."]);
+    expect(notes.noteAt(QUESTIONS)?.words).toBe(`${HIS_WORDS} and what he added`);
+    expect(notes.said).toEqual(["Couldn't write Questions for Session 2: its own words changed while its properties were written, so the note was left as it is now. Look at it."]);
   });
 
   it("sets the lines of a note whose lines property isn't a list, since the session link says it is the plugin's", async () => {
@@ -82,18 +81,6 @@ describe("KindNoteKeeper updating a note", () => {
     keeper.keep([wanted(QUESTIONS, session, OLD)]);
     await settled();
     expect(notes.actions.processFrontMatter).toHaveBeenCalledTimes(2);
-  });
-
-  it("leaves his typing alone, and says so, when he typed again after the note was written and before it was put back", async () => {
-    const notes = new FakeNotes();
-    const session = notes.addSession(SESSION);
-    noteWith(notes, { session: "[[Session 2]]", lines: OLD });
-    notes.alsoChangeWords = "Something else";
-    notes.typedBeforePutBack = "What he typed meanwhile";
-    keeperWith(notes).keep([wanted(QUESTIONS, session, NEW)]);
-    await settled();
-    expect(notes.noteAt(QUESTIONS)?.words).toBe("What he typed meanwhile");
-    expect(notes.said).toEqual(["Couldn't write Questions for Session 2: its own words changed while its properties were written, and again after, so the note was left as it is now."]);
   });
 
   it("tries lines again that failed before when the lines come back to them after other lines were written", async () => {

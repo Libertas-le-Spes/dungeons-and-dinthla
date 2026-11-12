@@ -24,7 +24,7 @@ export interface KindNotesNeeds {
 
 export function startKindNotes(needs: KindNotesNeeds): () => void {
   const { gate, saved, made, items, say } = needs;
-  const keeper = new KindNoteKeeper({ files: gate.files, metadata: gate.metadata, actions: gate.fileActions, say });
+  const keeper = new KindNoteKeeper({ files: gate.files, metadata: gate.metadata, actions: gate.fileActions, now: () => Date.now(), say });
   const wants = new SessionWants(saved, gate.files);
   const mover = new KindNoteMover({ files: gate.files, metadata: gate.metadata, actions: gate.fileActions, keeper, wants, say });
   const differing = new DifferingNotes(keeper, wants, needs.ask);

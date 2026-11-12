@@ -1,4 +1,4 @@
-function nothing(): void {}
+import { nothing } from "./nothing";
 
 export class PathQueue {
   private readonly chains = new Map<string, Promise<void>>();

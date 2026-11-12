@@ -4,7 +4,9 @@ import { kindNoteFolders } from "../../src/kind-notes/wanting/sources/kind-note-
 import type { WantedNote } from "../../src/kind-notes/wanting/wanted-note";
 import { FakeNotes } from "./fake-notes";
 
-export const CAMPAIGN = "D&D/Pale Moon";
+import { CAMPAIGN } from "../stubs/note-files";
+
+export { CAMPAIGN };
 export const SESSION = `${CAMPAIGN}/Sessions/Session 2.md`;
 export const QUESTIONS = `${CAMPAIGN}/Questions/Session 2.md`;
 export const FUNDS = `${CAMPAIGN}/Funds/Session 2.md`;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CachedMetadata } from "obsidian";
-import { holdsOnlyPluginProperties, linesIn, sameLines, sessionPropertyIn } from "../../src/note-keeping/note-properties";
+import { linesIn, sameLines, sessionPropertyIn } from "../../src/note-keeping/note-properties";
 
 function cacheOf(properties: Record<string, unknown> | undefined): CachedMetadata {
   if (properties === undefined) return {};
@@ -29,17 +29,6 @@ describe("sessionPropertyIn", () => {
     expect(sessionPropertyIn(cacheOf({ session: "[[Session 2]]" }))).toBe("[[Session 2]]");
     expect(sessionPropertyIn(cacheOf({}))).toBeUndefined();
     expect(sessionPropertyIn(cacheOf(undefined))).toBeUndefined();
-  });
-});
-
-describe("holdsOnlyPluginProperties", () => {
-  it("is true when the only properties are session and lines, or there are none", () => {
-    expect(holdsOnlyPluginProperties(cacheOf({ session: "[[Session 2]]", lines: [] }))).toBe(true);
-    expect(holdsOnlyPluginProperties(cacheOf(undefined))).toBe(true);
-  });
-
-  it("is false when another property is there", () => {
-    expect(holdsOnlyPluginProperties(cacheOf({ session: "[[Session 2]]", tags: [] }))).toBe(false);
   });
 });
 

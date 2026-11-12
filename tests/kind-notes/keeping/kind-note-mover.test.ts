@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { KindNoteMover } from "../../../src/kind-notes/keeping/kind-note-mover";
+import { firstOf } from "../../stubs/lists";
 import { FakeNotes } from "../fake-notes";
 import { CAMPAIGN, settled } from "../keeper-setup";
 
@@ -76,7 +77,7 @@ describe("KindNoteMover", () => {
     expect(notes.files.rename).not.toHaveBeenCalled();
     expect(notes.noteAt(Q2)?.words).toBe("His words about the deleted session");
     expect(notes.said).toHaveLength(1);
-    expect(notes.said[0]).toContain(`${Q3} stays where it is`);
+    expect(firstOf(notes.said)).toContain(`${Q3} stays where it is`);
   });
 
   it("leaves a note that isn't linked to the session it follows, and says so once", async () => {
@@ -193,5 +194,65 @@ describe("KindNoteMover", () => {
     await settled();
     expect(notes.noteAt(Q3)?.properties?.lines).toEqual(["? Was four"]);
     expect(notes.said).toEqual([]);
+  });
+
+  it("puts a note back where it was, and says so, when its session link can't be written after the move", async () => {
+    const notes = new FakeNotes();
+    renumbered(notes);
+    notes.addNote(Q3, { session: "[[Session 3]]", lines: [] }, "His words");
+    notes.failProperties = new Error("disk full");
+    moverWith(notes).mover.sessionRenamed(THREE, TWO);
+    await settled();
+    expect(notes.noteAt(Q3)?.words).toBe("His words");
+    expect(notes.noteAt(Q2)).toBeNull();
+    expect(notes.said).toHaveLength(1);
+    expect(firstOf(notes.said)).toContain("so it was put back");
+  });
+
+  it("says the note moved but its session link wasn't updated, and how to fix it, when it can't be put back either", async () => {
+    const notes = new FakeNotes();
+    renumbered(notes);
+    notes.addNote(Q3, { session: "[[Session 3]]", lines: [] }, "");
+    notes.failProperties = new Error("disk full");
+    notes.failRenamesFrom = 2;
+    moverWith(notes).mover.sessionRenamed(THREE, TWO);
+    await settled();
+    expect(notes.said).toHaveLength(1);
+    expect(firstOf(notes.said)).toContain(`${Q2} moved with its session, but its session link wasn't updated`);
+    expect(firstOf(notes.said)).toContain("use Fix");
+  });
+
+  it("says it can't put a note back when something else took its old place meanwhile", async () => {
+    const notes = new FakeNotes();
+    renumbered(notes);
+    notes.addNote(Q3, { session: "[[Session 3]]", lines: [] }, "");
+    notes.failProperties = new Error("disk full");
+    notes.actions.processFrontMatter.mockImplementationOnce(async () => {
+      notes.addNote(Q3, null, "Another note made at the old place");
+      throw new Error("disk full");
+    });
+    moverWith(notes).mover.sessionRenamed(THREE, TWO);
+    await settled();
+    expect(notes.said).toHaveLength(1);
+    expect(firstOf(notes.said)).toContain("moved with its session, but its session link wasn't updated");
+  });
+
+  it("waits for a pending write at the note's old place as well as at its new one", async () => {
+    const notes = new FakeNotes();
+    renumbered(notes);
+    notes.addNote(Q3, { session: "[[Session 3]]", lines: [] }, "");
+    let release: () => void = () => {};
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const { mover } = moverWith(notes, async (path) => {
+      if (path === Q3) await held;
+    });
+    mover.sessionRenamed(THREE, TWO);
+    await settled();
+    expect(notes.files.rename).not.toHaveBeenCalled();
+    release();
+    await settled();
+    expect(notes.files.rename).toHaveBeenCalledOnce();
   });
 });

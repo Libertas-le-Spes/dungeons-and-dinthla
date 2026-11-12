@@ -32,20 +32,20 @@ describe("readExistingNote", () => {
 
   it("says whether the note is linked, holds the wanted lines and holds only the plugin's properties", () => {
     const cache = cacheOf({ session: "[[Session 2]]", lines: ["? One"], tags: [] });
-    expect(readExistingNote(metadataWith(cache), fileAt(NOTE.path), NOTE)).toEqual({ read: true, linked: true, alreadyThere: true, onlyPluginProperties: false });
+    expect(readExistingNote(metadataWith(cache), fileAt(NOTE.path), NOTE)).toEqual({ read: true, linked: true, alreadyThere: true });
   });
 
   it("says a note linked to no session isn't linked", () => {
     const cache = cacheOf({ lines: ["? Old"] });
-    expect(readExistingNote(metadataWith(cache, false), fileAt(NOTE.path), NOTE)).toEqual({ read: true, linked: false, alreadyThere: false, onlyPluginProperties: true });
+    expect(readExistingNote(metadataWith(cache, false), fileAt(NOTE.path), NOTE)).toEqual({ read: true, linked: false, alreadyThere: false });
   });
 });
 
 describe("isOutOfStep", () => {
   it("is true only for a note that is read, linked, and holds other lines", () => {
-    expect(isOutOfStep({ read: true, linked: true, alreadyThere: false, onlyPluginProperties: true })).toBe(true);
-    expect(isOutOfStep({ read: true, linked: true, alreadyThere: true, onlyPluginProperties: true })).toBe(false);
-    expect(isOutOfStep({ read: true, linked: false, alreadyThere: false, onlyPluginProperties: true })).toBe(false);
+    expect(isOutOfStep({ read: true, linked: true, alreadyThere: false })).toBe(true);
+    expect(isOutOfStep({ read: true, linked: true, alreadyThere: true })).toBe(false);
+    expect(isOutOfStep({ read: true, linked: false, alreadyThere: false })).toBe(false);
     expect(isOutOfStep({ read: false })).toBe(false);
   });
 });

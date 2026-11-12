@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { firstOf } from "../../stubs/lists";
 import { FakeNotes } from "../fake-notes";
-import { keeperWith, QUESTIONS, SESSION, settled, wanted } from "../keeper-setup";
+import { CAMPAIGN, keeperWith, QUESTIONS, SESSION, settled, wanted } from "../keeper-setup";
 
 describe("KindNoteKeeper when a note's last line goes", () => {
   it("trashes a note that holds nothing of his", async () => {
@@ -106,5 +107,30 @@ describe("KindNoteKeeper when a note's last line goes", () => {
     keeperWith(notes).keep([wanted(QUESTIONS, session, [])]);
     await settled();
     expect(notes.trashed).toEqual([QUESTIONS]);
+  });
+
+  it("says once that a note with his words stays when its session is gone, and that the session taking the number adopts it", async () => {
+    const notes = new FakeNotes();
+    notes.addNote(QUESTIONS, { session: "[[Session 2]]", lines: ["? Who sent Mira"] }, "His words");
+    const keeper = keeperWith(notes);
+    keeper.keep([wanted(QUESTIONS, null, [])]);
+    await settled();
+    keeper.keep([wanted(QUESTIONS, null, [])]);
+    await settled();
+    expect(notes.said).toHaveLength(1);
+    expect(firstOf(notes.said)).toContain(`${QUESTIONS} holds your words, so it stays`);
+    expect(firstOf(notes.said)).toContain("will adopt it");
+  });
+
+  it("says nothing about adoption when the note goes to the trash, or when its session is still there", async () => {
+    const notes = new FakeNotes();
+    const session = notes.addSession(SESSION);
+    notes.addNote(QUESTIONS, { session: "[[Session 2]]", lines: ["? A"] }, "");
+    notes.addNote(`${CAMPAIGN}/Funds/Session 2.md`, { session: "[[Session 2]]", lines: ["$ 5 gp"] }, "His words");
+    const keeper = keeperWith(notes);
+    keeper.keep([wanted(QUESTIONS, null, [])]);
+    keeper.keep([wanted(`${CAMPAIGN}/Funds/Session 2.md`, session, [])]);
+    await settled();
+    expect(notes.said).toEqual([]);
   });
 });

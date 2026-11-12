@@ -48,6 +48,6 @@ describe("refusalForItemNote", () => {
   });
 
   it("refuses a name with an invisible character in it", () => {
-    expect(refusalForItemNote("Ring​1")).toBe(BAD_NAME);
+    expect(refusalForItemNote("Ring\u200b1")).toBe(BAD_NAME);
   });
 });

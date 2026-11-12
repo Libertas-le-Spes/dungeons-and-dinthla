@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { DifferingNotes } from "../../../src/kind-notes/watching/differing-notes";
 import type { WantedNote } from "../../../src/kind-notes/wanting/wanted-note";
+import { firstOf } from "../../stubs/lists";
 import { fileAt } from "../fake-notes";
 
 const SESSION = "D&D/Pale Moon/Sessions/Session 2.md";
@@ -12,6 +13,11 @@ const NOTE: WantedNote = {
   sessionFile: fileAt(SESSION),
   lines: ["? Who sent Mira"],
 };
+
+function asked(ask: { mock: { calls: unknown[][] } }) {
+  const [message, fix, keep] = firstOf(ask.mock.calls);
+  return { message: String(message), fix: fix as () => void, keep: keep as () => void };
+}
 
 function notesOf(path: string, mine: WantedNote[], other: WantedNote): WantedNote[] {
   if (path === SESSION) return mine;
@@ -32,7 +38,7 @@ describe("DifferingNotes", () => {
     differing.check(SESSION);
     differing.check(SESSION);
     expect(ask).toHaveBeenCalledOnce();
-    expect(ask.mock.calls[0]?.[0]).toBe("Questions for Session 2 differ from the session.");
+    expect(asked(ask).message).toBe("Questions for Session 2 differ from the session.");
   });
 
   it("asks about nothing when the note matches its session", () => {
@@ -45,7 +51,7 @@ describe("DifferingNotes", () => {
     const { differing, ask, keeper } = differingWith(true);
     differing.check(SESSION);
     expect(keeper.keep).not.toHaveBeenCalled();
-    ask.mock.calls[0]?.[1]();
+    asked(ask).fix();
     expect(keeper.keep).toHaveBeenCalledExactlyOnceWith([NOTE]);
   });
 
@@ -53,7 +59,7 @@ describe("DifferingNotes", () => {
     const { differing, ask, keeper, current } = differingWith(true);
     differing.check(SESSION);
     current.notes = [{ ...NOTE, lines: ["? Who sent Baka"] }];
-    ask.mock.calls[0]?.[1]();
+    asked(ask).fix();
     expect(keeper.keep).not.toHaveBeenCalled();
   });
 
@@ -61,7 +67,7 @@ describe("DifferingNotes", () => {
     const { differing, ask, keeper, current } = differingWith(true);
     differing.check(SESSION);
     current.notes = [{ ...NOTE, sessionFile: null }];
-    ask.mock.calls[0]?.[1]();
+    asked(ask).fix();
     expect(keeper.keep).not.toHaveBeenCalled();
   });
 
@@ -69,14 +75,14 @@ describe("DifferingNotes", () => {
     const { differing, ask, keeper, current } = differingWith(true);
     differing.check(SESSION);
     current.notes = [];
-    ask.mock.calls[0]?.[1]();
+    asked(ask).fix();
     expect(keeper.keep).not.toHaveBeenCalled();
   });
 
   it("writes nothing when the answer is Keep, and doesn't ask again about the same lines", () => {
     const { differing, ask, keeper } = differingWith(true);
     differing.check(SESSION);
-    ask.mock.calls[0]?.[2]();
+    asked(ask).keep();
     differing.check(SESSION);
     expect(keeper.keep).not.toHaveBeenCalled();
     expect(ask).toHaveBeenCalledOnce();
@@ -106,15 +112,15 @@ describe("DifferingNotes", () => {
     const ask = vi.fn();
     new DifferingNotes(keeper, wants, ask).checkAll([SESSION, "D&D/Pale Moon/Sessions/Session 3.md"]);
     expect(ask).toHaveBeenCalledOnce();
-    expect(ask.mock.calls[0]?.[0]).toBe("3 notes differ from their sessions.");
-    ask.mock.calls[0]?.[1]();
+    expect(asked(ask).message).toBe("3 notes differ from their sessions.");
+    asked(ask).fix();
     expect(keeper.keep).toHaveBeenCalledTimes(3);
   });
 
   it("asks in the note's own words when only one note differs at the opening", () => {
     const { differing, ask } = differingWith(true);
     differing.checkAll([SESSION]);
-    expect(ask.mock.calls[0]?.[0]).toBe("Questions for Session 2 differ from the session.");
+    expect(asked(ask).message).toBe("Questions for Session 2 differ from the session.");
   });
 
   it("asks about nothing at the opening when no note differs", () => {
@@ -133,7 +139,7 @@ describe("DifferingNotes", () => {
   it("leaves every note of a group as it is on Keep", () => {
     const { differing, ask, keeper } = differingWith(true);
     differing.checkAll([SESSION, SESSION]);
-    ask.mock.calls[0]?.[2]();
+    asked(ask).keep();
     expect(keeper.keep).not.toHaveBeenCalled();
   });
 });
