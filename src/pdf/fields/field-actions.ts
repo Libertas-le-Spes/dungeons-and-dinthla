@@ -29,6 +29,7 @@ export class FieldActions {
   }
 
   private checkAction(value: PdfValue, depth: number): void {
+    this.store.chargeStep();
     if (!value.isPresent()) return;
     if (depth > MAX_NESTING) throw new PdfRefusal(UNREADABLE);
     if (this.isAlreadyWalked(value)) return;
