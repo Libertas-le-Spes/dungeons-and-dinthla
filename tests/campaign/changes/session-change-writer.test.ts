@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { CHANGED_IN_NOTE, PartlyWritten, WOULD_BE_HIDDEN, type EditorFiles, type Removal } from "../../../src/campaign/writing/note-editor";
 import type { SessionChange } from "../../../src/campaign/changes/session-change";
-import { SessionChangeWriter } from "../../../src/campaign/changes/session-change-writer";
+import { LATER_NOTE_HIDDEN, SessionChangeWriter } from "../../../src/campaign/changes/session-change-writer";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
@@ -148,7 +148,7 @@ describe("SessionChangeWriter", () => {
     const change = { ...NOTHING, added: { path: ONE, lines: ["?= Who: Mira"], later: { path: TWO, lines: ["? Why, after: Who"], partlyWritten: WORDS } } };
     const writing = apply(notes, change);
     await expect(writing).rejects.toBeInstanceOf(PartlyWritten);
-    await expect(writing).rejects.toThrow(`${WORDS} ${WOULD_BE_HIDDEN}`);
+    await expect(writing).rejects.toThrow(LATER_NOTE_HIDDEN);
     expect(notes.texts.get(ONE)).toBe("? Who\n?= Who: Mira\n");
     expect(notes.texts.get(TWO)).toBe("%% added by a sync\n");
   });

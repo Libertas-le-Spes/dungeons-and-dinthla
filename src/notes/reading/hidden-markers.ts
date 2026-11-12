@@ -6,7 +6,7 @@ interface Opening {
 
 export interface BlockMarker {
   opener: string;
-  opening(prose: string, at: number): Opening;
+  opening(at: number, prose: string): Opening;
 }
 
 class CommentMarker implements BlockMarker {
@@ -15,7 +15,7 @@ class CommentMarker implements BlockMarker {
     private readonly closer: string,
   ) {}
 
-  opening(_prose: string, at: number): Opening {
+  opening(at: number): Opening {
     return { closer: this.closer, next: at + this.opener.length, hides: true };
   }
 }
@@ -23,13 +23,16 @@ class CommentMarker implements BlockMarker {
 const MATH_MARK = "$$";
 
 function nothingFrom(prose: string, from: number): boolean {
-  return prose.substring(from).trim() === "";
+  for (let index = from; index < prose.length; index++) {
+    if (prose.charAt(index).trim() !== "") return false;
+  }
+  return true;
 }
 
 class MathMarker implements BlockMarker {
   readonly opener = MATH_MARK;
 
-  opening(prose: string, at: number): Opening {
+  opening(at: number, prose: string): Opening {
     const after = at + MATH_MARK.length;
     const end = prose.indexOf(MATH_MARK, after);
     if (end !== -1) return { closer: null, next: end + MATH_MARK.length, hides: true };

@@ -1,5 +1,5 @@
 import { firstLineAfterProperties } from "../../campaign/paths/session-file";
-import { BLOCK_MARKERS, type BlockMarker } from "./hidden-closers";
+import { BLOCK_MARKERS, type BlockMarker } from "./hidden-markers";
 
 const FENCE_OPEN = /^ {0,3}(`{3,}|~{3,})/;
 const FENCE_CLOSE = /^ {0,3}(`{3,}|~{3,})\s*$/;
@@ -40,7 +40,7 @@ function scanned(prose: string, openCloser: string | null): Scan {
     }
     const next = nextMarker(prose, from);
     if (next === null) break;
-    const opening = next.marker.opening(prose, next.at);
+    const opening = next.marker.opening(next.at, prose);
     if (opening.hides) marked = true;
     closer = opening.closer;
     from = opening.next;
