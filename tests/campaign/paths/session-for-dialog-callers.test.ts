@@ -31,7 +31,12 @@ function storeRaisedIn(path: string): CampaignStore {
 
 function gateWith(paths: string[]): Gate {
   const files = paths.map((path) => ({ path }) as TFile);
-  return { files: { getFiles: () => files, getMarkdownFiles: () => files } } as unknown as Gate;
+  const fileAt = (path: string) => {
+    const found = files.find((file) => file.path === path);
+    if (found === undefined) return null;
+    return found;
+  };
+  return { files: { getFiles: () => files, getMarkdownFiles: () => files, getFileByPath: fileAt } } as unknown as Gate;
 }
 
 type Open = (gate: Gate, store: CampaignStore, openNote: () => void, activePath: string | null) => void;

@@ -5,7 +5,7 @@ import { CHANGED_IN_NOTE } from "../../../src/campaign/writing/note-editor";
 import { ANSWER_GOES_ELSEWHERE } from "../../../src/questions/writing/current-question";
 import { openQuestion } from "../../../src/questions/dialogs/open-question";
 import { CHANGES_MORE_THAN_ASKED, type QuestionEdit } from "../../../src/questions/writing/question-plan";
-import { DialogCampaign, lastDialog } from "../../campaign/dialog-campaign";
+import { DialogCampaign, lastDialog, SESSION_TWO_LOST } from "../../campaign/dialog-campaign";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
@@ -69,20 +69,20 @@ describe("the question dialog's delete", () => {
 });
 
 describe("the question dialog's choices, when the session they write into is gone", () => {
-  it("refuses a save with the session gone words, writing nothing", async () => {
+  it.each(SESSION_TWO_LOST)("refuses a save with the session gone words, writing nothing when its session was %s", async (_how, lost) => {
     const campaign = new DialogCampaign({ [ONE]: "? Who\n", [TWO]: "We camped.\n" });
     const choices = questionChoices(campaign, { path: ONE, line: 0 }, TWO);
-    campaign.texts.delete(TWO);
-    await expect(choices.save({ answer: "Mira", followUp: "" })).rejects.toThrow("Session 2's note is gone, so nothing was written.");
+    lost(campaign);
+    await expect(choices.save({ answer: "Mira", followUp: "" })).rejects.toThrow("Session 2 was moved or deleted, so nothing was written.");
     expect(campaign.writes).toBe(0);
     expect(campaign.texts.get(ONE)).toBe("? Who\n");
   });
 
-  it("refuses a reopen with the session gone words, writing nothing", async () => {
+  it.each(SESSION_TWO_LOST)("refuses a reopen with the session gone words, writing nothing when its session was %s", async (_how, lost) => {
     const campaign = new DialogCampaign({ [ONE]: "? Who\n?= Who: Mira\n", [TWO]: "We camped.\n" });
     const choices = questionChoices(campaign, { path: ONE, line: 0 }, TWO);
-    campaign.texts.delete(TWO);
-    await expect(choices.reopen()).rejects.toThrow("Session 2's note is gone, so nothing was written.");
+    lost(campaign);
+    await expect(choices.reopen()).rejects.toThrow("Session 2 was moved or deleted, so nothing was written.");
     expect(campaign.writes).toBe(0);
   });
 });

@@ -20,6 +20,7 @@ function numberOf(path: string): number {
 class FakeNotes {
   readonly texts: Map<string, string>;
   writes = 0;
+  private readonly files = new Map<string, TFile>();
 
   constructor(notes: Record<string, string>) {
     this.texts = new Map(Object.entries(notes));
@@ -29,7 +30,11 @@ class FakeNotes {
     return {
       getFileByPath: (path) => {
         if (!this.texts.has(path)) return null;
-        return { path } as TFile;
+        const known = this.files.get(path);
+        if (known !== undefined) return known;
+        const made = { path } as TFile;
+        this.files.set(path, made);
+        return made;
       },
       process: async (file, change) => {
         this.writes += 1;
@@ -62,10 +67,9 @@ class FakeNotes {
 
 describe("saving an item through its change", () => {
   it("says the notes changed, before any other refusal, when they changed since the dialog opened", async () => {
-    const notes = new FakeNotes({ [ONE]: "$ Rope\n" });
+    const notes = new FakeNotes({ [ONE]: "$ Rope\n", [NINE]: "" });
     const store = notes.readNow();
     const opened = openedItem(notes.vault, store, notes.item(store, "Rope"), NINE);
-    notes.texts.set(NINE, "");
     notes.texts.set(ONE, "$ Rope\n$$ Rope :lost\n");
     await expect(opened.save({ ...opened.edit, status: "used" })).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notes.texts.get(NINE)).toBe("");
