@@ -1,7 +1,7 @@
 import { byteCountOf } from "../../shape/byte-count";
 import { REPLY_DEPTH, REPLY_SIZE } from "../../shape/import-limits";
 import { refuseAbove } from "../../shape/refuse-above";
-import { notJson } from "../reply-refusals";
+import { notJson } from "../common/reply-refusals";
 import { keptValue } from "./dropped-keys";
 import { deepestNestingOf } from "./nesting-depth";
 
@@ -14,6 +14,7 @@ function parsed(text: string): unknown {
 }
 
 export function safeJsonOf(text: string): unknown {
+  refuseAbove(REPLY_SIZE, text.length);
   refuseAbove(REPLY_SIZE, byteCountOf(text));
   refuseAbove(REPLY_DEPTH, deepestNestingOf(text));
   return parsed(text);

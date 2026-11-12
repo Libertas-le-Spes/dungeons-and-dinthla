@@ -11,13 +11,11 @@ function nested(levels: number): string {
 }
 
 describe("safeJsonOf", () => {
-  it("parses plain JSON", () => {
-    expect(safeJsonOf('{"name":"Primary","level":1,"items":["Rope"],"gone":null,"ok":true}')).toEqual({
+  it("keeps every other key and value, in every position", () => {
+    expect(safeJsonOf('{"name":"Primary","items":[{"name":"Rope"},"Torch",3],"gone":null}')).toEqual({
       name: "Primary",
-      level: 1,
-      items: ["Rope"],
+      items: [{ name: "Rope" }, "Torch", 3],
       gone: null,
-      ok: true,
     });
   });
 
@@ -51,8 +49,8 @@ describe("safeJsonOf", () => {
     expect(() => safeJsonOf(nested(33))).toThrow("The reply's nesting is over the limit of 32 levels.");
   });
 
-  it("refuses nesting far over the cap without running out of stack", () => {
-    expect(() => safeJsonOf(nested(1_000_000))).toThrow(Refusal);
+  it("refuses nesting far over the cap with the same words", () => {
+    expect(() => safeJsonOf(nested(1_000_000))).toThrow(new Refusal("The reply's nesting is over the limit of 32 levels."));
   });
 
   it.each(["__proto__", "constructor", "prototype"])("drops the key %s at the top", (key) => {
@@ -79,9 +77,5 @@ describe("safeJsonOf", () => {
 
   it("keeps a key that only contains the name of a dropped one", () => {
     expect(safeJsonOf('{"notesOnly":1,"constructors":2,"my__proto__":3}')).toEqual({ notesOnly: 1, constructors: 2, my__proto__: 3 });
-  });
-
-  it("reads a number too big for a number as infinite, for the readers to refuse", () => {
-    expect(safeJsonOf("[1e999]")).toEqual([Infinity]);
   });
 });

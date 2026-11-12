@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { classesOf } from "../../../../src/beyond/reply/parts/read-classes";
 import { MadeUpReply } from "../../builders/made-up-reply";
+import { firstOf } from "../../builders/first-of";
 
 function classAt(level: unknown, name = "Monk"): object {
   return { level, definition: { name } };
@@ -12,8 +13,8 @@ function levelsOf(reply: MadeUpReply): number[] {
 
 describe("classesOf", () => {
   it("reads a class and its level with the working", () => {
-    const [monk] = classesOf(MadeUpReply.levelOneMonk().reader());
-    expect(monk?.name).toBe("Monk");
+    const monk = firstOf(classesOf(MadeUpReply.levelOneMonk().reader()));
+    expect(monk?.name.text).toBe("Monk");
     expect(monk?.level.valueOr(0)).toBe(1);
     expect(monk?.level.explanation).toBe("Level: 1");
     expect(monk?.level.route.name).toBe("online");
@@ -21,7 +22,7 @@ describe("classesOf", () => {
 
   it("reads each class of a multiclass character", () => {
     const reply = MadeUpReply.levelOneMonk().with(["classes"], [classAt(3), classAt(2, "Secondary")]);
-    expect(classesOf(reply.reader()).map((imported) => imported.name)).toEqual(["Monk", "Secondary"]);
+    expect(classesOf(reply.reader()).map((imported) => imported.name.text)).toEqual(["Monk", "Secondary"]);
     expect(levelsOf(reply)).toEqual([3, 2]);
   });
 
@@ -51,20 +52,20 @@ describe("classesOf", () => {
     expect(() => classesOf(MadeUpReply.levelOneMonk().with(["classes"], [5]).reader())).toThrow("is missing");
   });
 
-  it("makes a class name inert for a note", () => {
+  it("keeps the characters a note would escape in a class name, for the file name", () => {
     const reply = MadeUpReply.levelOneMonk().with(["classes", 0, "definition", "name"], "#Monk");
-    expect(classesOf(reply.reader()).map((imported) => imported.name)).toEqual(["\\#Monk"]);
+    expect(classesOf(reply.reader()).map((imported) => imported.name.text)).toEqual(["#Monk"]);
   });
 
   it("marks only the level not known when it is missing, and says why", () => {
-    const [monk] = classesOf(MadeUpReply.levelOneMonk().without(["classes", 0, "level"]).reader());
-    expect(monk?.name).toBe("Monk");
+    const monk = firstOf(classesOf(MadeUpReply.levelOneMonk().without(["classes", 0, "level"]).reader()));
+    expect(monk?.name.text).toBe("Monk");
     expect(monk?.level.isKnown).toBe(false);
     expect(monk?.level.explanation).toBe("A class level is missing or is not a number.");
   });
 
   it.each(["1", null, true, [1], { level: 1 }, 1.5, 0, 21, -1])("marks the level %j not known", (level) => {
-    const [monk] = classesOf(MadeUpReply.levelOneMonk().with(["classes", 0, "level"], level).reader());
+    const monk = firstOf(classesOf(MadeUpReply.levelOneMonk().with(["classes", 0, "level"], level).reader()));
     expect(monk?.level.isKnown).toBe(false);
   });
 
@@ -80,7 +81,7 @@ describe("classesOf", () => {
   it("marks every level not known when the classes add up to 41", () => {
     const reply = MadeUpReply.levelOneMonk().with(["classes"], [classAt(20), classAt(20), classAt(1)]);
     const found = classesOf(reply.reader());
-    expect(found.map((imported) => imported.name)).toEqual(["Monk", "Monk", "Monk"]);
+    expect(found.map((imported) => imported.name.text)).toEqual(["Monk", "Monk", "Monk"]);
     expect(found.map((imported) => imported.level.isKnown)).toEqual([false, false, false]);
     expect(found.map((imported) => imported.level.explanation)).toEqual(Array(3).fill("The total level has to be at most 40."));
   });

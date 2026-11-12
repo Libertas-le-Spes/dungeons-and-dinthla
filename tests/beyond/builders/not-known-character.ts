@@ -1,3 +1,4 @@
+import { CleanLine } from "../../../src/beyond/text/clean-line";
 import type { ImportedCharacter } from "../../../src/beyond/shape/imported-character";
 import { NotKnownValue } from "../../../src/beyond/shape/not-known-value";
 import { Pdf } from "../../../src/beyond/shape/route";
@@ -12,9 +13,9 @@ function missing(): WorkedValue<number> {
 export function notKnownCharacter(): ImportedCharacter {
   return {
     route: ROUTE,
-    name: "Primary Monk",
-    species: "Human",
-    classes: [{ name: "Monk", level: missing() }],
+    name: CleanLine.of("Primary Monk"),
+    species: CleanLine.of("Human"),
+    classes: [{ name: CleanLine.of("Monk"), level: missing() }],
     scores: {
       strength: missing(),
       dexterity: missing(),
@@ -24,7 +25,7 @@ export function notKnownCharacter(): ImportedCharacter {
       charisma: missing(),
     },
     numbers: [{ name: "AC", value: missing() }],
-    inventory: [{ name: "Rope", count: missing() }],
+    inventory: [{ name: CleanLine.of("Rope"), count: missing() }],
     purse: { platinum: missing(), gold: missing(), electrum: missing(), silver: missing(), copper: missing() },
     spells: [],
     features: [],
