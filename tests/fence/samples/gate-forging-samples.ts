@@ -106,3 +106,6 @@ export const FILE_CHANGING_SAMPLES = [
   'import type { TFile } from "obsidian";\nexport function move(file: TFile, paths: string[]) {\n  [...file.path] = paths;\n}',
   'import type { TFile } from "obsidian";\nexport function move(file: TFile, other: { path: string }) {\n  ({ path: file.path } = other);\n}',
 ];
+
+export const TWO_FORGED_PLACEMENTS_SAMPLE =
+  'import type { TFile } from "obsidian";\nimport type { FencedFiles } from "../../../../src/fence/gate/fenced-files";\ninterface Child {\n  parent: Parent;\n}\ninterface Parent {\n  child: Child;\n  files: Pick<FencedFiles, "getFileByPath">;\n}\ninterface ForgedChild {\n  parent: ForgedParent;\n}\ninterface ForgedParent {\n  child: ForgedChild;\n  files: { getFileByPath: () => TFile | null };\n}\ndeclare function showParent(parent: Parent): void;\ndeclare function showChild(child: Child): void;\ndeclare const forged: ForgedParent;\nshowParent(forged);\nshowChild(forged.child);';
