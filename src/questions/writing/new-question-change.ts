@@ -1,6 +1,6 @@
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
-import type { RecordChange } from "../../campaign/changes/record-change";
 import { notHidden } from "../../campaign/changes/hidden-refusal";
+import type { RecordChange } from "../../campaign/changes/record-change";
 import { linesAddedTo } from "../../campaign/changes/session-change";
 import { verdictOf } from "../../campaign/changes/verdict";
 import { refusalForNewQuestion } from "./current-question";

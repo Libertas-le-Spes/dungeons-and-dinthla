@@ -90,6 +90,13 @@ describe("adding a question", () => {
     expect(notes.writes).toBe(0);
   });
 
+  it("refuses a question when the note, changed since it was read, now has a comment that never closes, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "", [TWO]: "" });
+    notes.texts.set(TWO, "%% added by a sync\n");
+    await expect(add(notes, "Why the mill", "")).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.texts.get(TWO)).toBe("%% added by a sync\n");
+  });
+
   it("writes a question below a comment that has closed", async () => {
     const notes = new FakeNotes({ [ONE]: "", [TWO]: "%% a note to self %%\n" });
     expect(await add(notes, "Why the mill", "")).toBe(true);

@@ -26,7 +26,7 @@ export class SessionChangeWriter {
   }
 
   private async addWithRemoval(added: AddedLines, removal: Removal | null): Promise<boolean> {
-    if (removal === null) return this.editor.append(added.path, added.lines);
+    if (removal === null) return this.editor.appendShown(added.path, added.lines);
     return this.editor.replace(added.path, added.lines, removal);
   }
 
@@ -34,7 +34,7 @@ export class SessionChangeWriter {
     this.editor.ensureExists([added.path, later.path]);
     const wrote = await this.addWithRemoval(added, removal);
     try {
-      const wroteLater = await this.editor.append(later.path, later.lines);
+      const wroteLater = await this.editor.appendShown(later.path, later.lines);
       if (wroteLater) return true;
       return wrote;
     } catch (error) {

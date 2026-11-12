@@ -124,6 +124,13 @@ describe("saving a question", () => {
     expect(notes.writes).toBe(0);
   });
 
+  it("refuses a follow-up when the note, changed since it was read, now has a comment that never closes, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n", [TWO]: "" });
+    notes.texts.set(TWO, "%% added by a sync\n");
+    await expect(save(notes, "Who", "", "Why", TWO)).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.texts.get(TWO)).toBe("%% added by a sync\n");
+  });
+
   it("writes a follow-up below a comment that has closed", async () => {
     const notes = new FakeNotes({ [ONE]: "? Who\n", [TWO]: "%% a note to self %%\n" });
     expect(await save(notes, "Who", "", "Why", TWO)).toBe(true);
