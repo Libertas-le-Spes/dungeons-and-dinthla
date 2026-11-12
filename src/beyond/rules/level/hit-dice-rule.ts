@@ -1,18 +1,13 @@
 import type { ImportedNumber } from "../../shape/imported-number";
 import type { WorkedValue } from "../../shape/worked-value";
 import type { EarlierNumbers } from "../core/earlier-numbers";
+import { isHitDie } from "../classes/hit-die";
 import { NeededNumbers } from "../core/needed-numbers";
 import { HIT_DICE_NAME, TOTAL_LEVEL_NAME } from "../core/number-names";
 import type { Rule } from "../core/rule";
 import { knownNumber, notKnown } from "../core/worked";
 import type { RuleCharacter } from "../input/rule-character";
 import type { RuleClass } from "../input/rule-class";
-
-const DICE_SIDES = [4, 6, 8, 10, 12];
-
-function isHitDie(ruleClass: RuleClass): boolean {
-  return DICE_SIDES.includes(ruleClass.hitDie);
-}
 
 function diceTerm(ruleClass: RuleClass): string {
   return `${ruleClass.name.text} ${ruleClass.level}d${ruleClass.hitDie}`;

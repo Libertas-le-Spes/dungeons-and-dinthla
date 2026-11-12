@@ -140,6 +140,59 @@ describe("MaxHitPointsRule", () => {
 
   it("does not know the hit points when the constitution modifier is not known", () => {
     const character = madeUpRuleCharacter({ baseScores: scoresOf(10, 10, 0, 10, 10, 10) });
-    expect(numberNamed(character, "HP").explanation).toBe("It needs CON modifier, which is not known: It needs CON, which is not known: An ability score has to be a whole number from 1 to 30.");
+    expect(numberNamed(character, "HP").explanation).toBe("It needs CON modifier, which is not known.");
+  });
+});
+
+const DIE_REASON = "A hit die is not a d4, d6, d8, d10 or d12, so I could not tell whether the minimum of 1 hit point a level applies.";
+
+describe("MaxHitPointsRule with a hit die that is not a die", () => {
+  it.each([Number.NaN, 0, 3, 20, Number.POSITIVE_INFINITY])("does not know the hit points for a die of %s with a negative constitution modifier", (hitDie) => {
+    const character = madeUpRuleCharacter({ classes: [classOf("Wizard", 2, hitDie)], baseHitPoints: 12, baseScores: withConstitution(8) });
+    expect(numberNamed(character, "HP").explanation).toBe(DIE_REASON);
+  });
+
+  it("does not know them when only one of two classes has a bad die", () => {
+    const character = madeUpRuleCharacter({ classes: [classOf("Wizard", 1, 6), classOf("Fighter", 1, Number.NaN)], baseHitPoints: 12, baseScores: withConstitution(8) });
+    expect(numberNamed(character, "HP").explanation).toBe(DIE_REASON);
+  });
+
+  it("leaves the hit points alone when the constitution modifier is not negative, since the minimum cannot apply", () => {
+    const character = madeUpRuleCharacter({ classes: [classOf("Wizard", 2, 0)], baseHitPoints: 12 });
+    expect(numberNamed(character, "HP").valueOr(-1)).toBe(12);
+  });
+
+  it.each([4, 6, 8, 10, 12])("proves the minimum with a d%s", (hitDie) => {
+    const character = madeUpRuleCharacter({ classes: [classOf("Wizard", 1, hitDie)], baseHitPoints: hitDie, baseScores: withConstitution(8) });
+    expect(numberNamed(character, "HP").valueOr(-1)).toBe(hitDie - 1);
+  });
+});
+
+describe("MaxHitPointsRule with a modifier named like a source it works out itself", () => {
+  const LEVEL_FIVE = [classOf("Fighter", 5, 10)];
+
+  it.each(["Tough", "Dwarven Toughness"])("does not know the hit points for a %s modifier when the feature is not there", (source) => {
+    const character = madeUpRuleCharacter({ classes: LEVEL_FIVE, baseHitPoints: 40, modifiers: [modifierOf("bonus", "hit-points-per-level", 2, source)] });
+    expect(numberNamed(character, "HP").isKnown).toBe(false);
+  });
+
+  it("does not know them for a huge amount from a source named Tough, with no feature", () => {
+    const character = madeUpRuleCharacter({ classes: LEVEL_FIVE, baseHitPoints: 40, modifiers: [modifierOf("bonus", "hit-points-per-level", 50, "Tough")] });
+    expect(numberNamed(character, "HP").explanation).toBe('D&D Beyond names a rule I can\'t work out here: "hit-points-per-level". Type it on your note to set it.');
+  });
+
+  it("does not know them for a Draconic Resilience modifier with no draconic sorcerer", () => {
+    const character = madeUpRuleCharacter({ classes: LEVEL_FIVE, modifiers: [modifierOf("bonus", "hit-points-per-level", 1, "Draconic Resilience")] });
+    expect(numberNamed(character, "HP").isKnown).toBe(false);
+  });
+
+  it("ignores a Draconic Resilience modifier when the draconic sorcerer adds its own", () => {
+    const character = madeUpRuleCharacter({ classes: [classOf("Sorcerer", 3, 6, "Draconic Bloodline")], baseHitPoints: 20, modifiers: [modifierOf("bonus", "hit-points-per-level", 1, "Draconic Resilience")] });
+    expect(numberNamed(character, "HP").valueOr(-1)).toBe(23);
+  });
+
+  it("matches the source name without regard to case or spaces", () => {
+    const character = madeUpRuleCharacter({ classes: LEVEL_FIVE, baseHitPoints: 40, features: ["tough"], modifiers: [modifierOf("bonus", "hit-points-per-level", 2, " TOUGH ")] });
+    expect(numberNamed(character, "HP").valueOr(-1)).toBe(50);
   });
 });

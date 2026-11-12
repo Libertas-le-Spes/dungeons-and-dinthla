@@ -25,7 +25,7 @@ export class NeededNumbers {
 function firstMissing(names: readonly string[], earlier: EarlierNumbers, route: Route): NotKnownValue<number> | null {
   for (const name of names) {
     const value = earlier.valueOf(name, route);
-    if (!value.isKnown) return notKnown(`It needs ${name}, which is not known: ${value.explanation}`, route);
+    if (!value.isKnown) return notKnown(`It needs ${name}, which is not known.`, route);
   }
   return null;
 }

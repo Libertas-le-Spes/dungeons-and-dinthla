@@ -45,6 +45,6 @@ describe("PassiveScoreRule", () => {
 
   it("does not know a passive when the skill is not known, and says which", () => {
     const value = numberNamed(madeUpRuleCharacter({ baseScores: new AbilityTable<number>() }), "Passive Perception");
-    expect(value.explanation).toBe("It needs Perception, which is not known: It needs WIS modifier, which is not known: It needs WIS, which is not known: Wisdom is missing a base score or its bonus.");
+    expect(value.explanation).toBe("It needs Perception, which is not known.");
   });
 });

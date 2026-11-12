@@ -123,3 +123,14 @@ describe("ArmourClassRule names that carry markup", () => {
     expect([text.includes("[["), text.includes("\n"), text.includes("\\[\\[x")]).toEqual([false, false, true]);
   });
 });
+
+describe("ArmourClassRule and modifier values that are too big or not exact", () => {
+  it.each([9_007_199_254_740_993, -9_007_199_254_740_992, 1e300, -1e300, 101, -101])("does not use a modifier of %s, and names it", (amount) => {
+    const value = numberNamed(madeUpRuleCharacter({ modifiers: [modifierOf("bonus", "armor-class", amount, "Pale Ring")] }), "AC");
+    expect([value.isKnown, value.explanation]).toEqual([false, 'D&D Beyond names a rule I can\'t work out here: "armor-class". Type it on your note to set it.']);
+  });
+
+  it("uses a modifier of 1 exactly", () => {
+    expect(armourClassOf({ modifiers: [modifierOf("bonus", "armor-class", 1, "Pale Ring")] }).value).toBe(11);
+  });
+});

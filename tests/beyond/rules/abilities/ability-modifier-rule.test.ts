@@ -25,6 +25,6 @@ describe("AbilityModifierRule", () => {
   it("does not know a modifier whose score is not known, and says which score", () => {
     const character = madeUpRuleCharacter({ baseScores: new AbilityTable<number>() });
     const modifier = numberNamed(character, "STR modifier");
-    expect([modifier.isKnown, modifier.explanation]).toEqual([false, "It needs STR, which is not known: Strength is missing a base score or its bonus."]);
+    expect([modifier.isKnown, modifier.explanation]).toEqual([false, "It needs STR, which is not known."]);
   });
 });

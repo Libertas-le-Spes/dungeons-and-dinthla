@@ -1,3 +1,4 @@
+import { hasFeature } from "../core/has-feature";
 import { knownNumber } from "../core/worked";
 import type { WorkedValue } from "../../shape/worked-value";
 import type { RuleCharacter } from "../input/rule-character";
@@ -10,7 +11,7 @@ export class FeaturePerLevel implements PerLevelSource {
   ) {}
 
   addition(character: RuleCharacter, totalLevel: number): WorkedValue<number> | null {
-    if (!character.features.includes(this.sourceName)) return null;
+    if (!hasFeature(character, this.sourceName)) return null;
     return knownNumber(this.perLevel * totalLevel, `${this.sourceName} ${this.perLevel} x ${totalLevel}`, character.route);
   }
 }

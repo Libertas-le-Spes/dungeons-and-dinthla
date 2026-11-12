@@ -37,11 +37,11 @@ describe("NeededNumbers", () => {
 
   it("names the first one that is not known and why", () => {
     const needed = NeededNumbers.of(["STR", "DEX", "CON"], earlier, ROUTE);
-    expect(needed.missing?.explanation).toBe("It needs DEX, which is not known: Left blank.");
+    expect(needed.missing?.explanation).toBe("It needs DEX, which is not known.");
   });
 
   it("counts a name that was never worked out as not known", () => {
-    expect(NeededNumbers.of(["CON"], earlier, ROUTE).missing?.explanation).toBe("It needs CON, which is not known: CON has not been worked out.");
+    expect(NeededNumbers.of(["CON"], earlier, ROUTE).missing?.explanation).toBe("It needs CON, which is not known.");
   });
 
   it("refuses to hand out a number that is not known, so it cannot be used by mistake", () => {

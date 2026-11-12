@@ -76,3 +76,25 @@ describe("what makes the other values not known", () => {
     expect([numberNamed(character, "AC").isKnown, numberNamed(character, "Speed").isKnown, numberNamed(character, "Initiative").isKnown]).toEqual([true, true, true]);
   });
 });
+
+describe("FeatureTouching and the way names are written", () => {
+  it.each(["Thri-Kreen", "tortle", "  TORTLE  ", "WARFORGED"])("makes armour class not known for the species written as %s", (species) => {
+    expect(numberNamed(madeUpRuleCharacter({ species }), "AC").isKnown).toBe(false);
+  });
+
+  it.each(["alert", " ALERT ", "Alert"])("makes initiative not known for the feature written as %s", (feature) => {
+    expect(numberNamed(madeUpRuleCharacter({ features: [feature] }), "Initiative").isKnown).toBe(false);
+  });
+
+  it("finds a class written in lower case", () => {
+    expect(numberNamed(madeUpRuleCharacter({ classes: [classOf("artificer", 3, 8)] }), "Spell slots").isKnown).toBe(false);
+  });
+
+  it("makes armour class not known for Soul of the Forge", () => {
+    expect(numberNamed(madeUpRuleCharacter({ features: ["Soul of the Forge"] }), "AC").isKnown).toBe(false);
+  });
+
+  it.each(["Roving", "Aura of Alacrity", "Drunken Technique", "Unarmored Movement Improvement"])("makes speed not known for %s", (feature) => {
+    expect(numberNamed(madeUpRuleCharacter({ features: [feature] }), "Speed").isKnown).toBe(false);
+  });
+});

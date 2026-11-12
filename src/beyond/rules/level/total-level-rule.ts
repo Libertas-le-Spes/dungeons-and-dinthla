@@ -3,6 +3,7 @@ import { CHARACTER_LEVEL, CLASS_LEVEL } from "../../shape/import-limits";
 import type { WorkedValue } from "../../shape/worked-value";
 import { isPlainWholeNumber } from "../../shape/whole-number";
 import type { Rule } from "../core/rule";
+import { normal } from "../core/same-name";
 import { TOTAL_LEVEL_NAME } from "../core/number-names";
 import { knownIn, notKnown } from "../core/worked";
 import type { RuleCharacter } from "../input/rule-character";
@@ -33,8 +34,8 @@ function nameOf(ruleClass: RuleClass): string {
 function firstRepeated(classes: readonly RuleClass[]): string | undefined {
   const seen = new Set<string>();
   for (const name of namesOf(classes)) {
-    if (seen.has(name)) return name;
-    seen.add(name);
+    if (seen.has(normal(name))) return name;
+    seen.add(normal(name));
   }
   return undefined;
 }
