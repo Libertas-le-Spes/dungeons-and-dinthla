@@ -38,6 +38,10 @@ export class ObjectStore implements ObjectLoading, LengthSource, ContainerSource
     this.streams = streams;
   }
 
+  chargeStep(): void {
+    this.work.spend();
+  }
+
   resolve(value: PdfValue): PdfValue {
     const reference = value.asReference();
     if (reference === null) return value;
