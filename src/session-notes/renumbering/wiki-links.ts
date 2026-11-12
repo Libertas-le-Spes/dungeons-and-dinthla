@@ -1,24 +1,24 @@
-const LINK_OR_CODE = /(`[^`\n]*`)|(!?\[\[)([^\]|#^\n]*)([^\]\n]*\]\])/g;
+const LINK_OR_CODE = /(`[^`\n]*`)|(!?\[\[)([^\]|#^\\\n]*)(\\?)([^\]\n]*\]\])/g;
 
 export type NewTarget = (target: string) => string | null;
 
-type LinkMatch = [match: string, code: string | undefined, opener: string, target: string, rest: string];
+type LinkMatch = [match: string, code: string | undefined, opener: string, target: string, escape: string, rest: string];
 
 function rewrittenBy(newTarget: NewTarget): (...found: LinkMatch) => string {
   function rewritten(...found: LinkMatch): string {
-    const [match, code, opener, target, rest] = found;
+    const [match, code, opener, target, escape, rest] = found;
     if (code !== undefined) return match;
     const replacement = newTarget(target);
     if (replacement === null) return match;
-    return `${opener}${replacement}${rest}`;
+    return `${opener}${replacement}${escape}${rest}`;
   }
   return rewritten;
 }
 
 function maskedLink(...found: LinkMatch): string {
-  const [match, code, opener, , rest] = found;
+  const [match, code, opener, , escape, rest] = found;
   if (code !== undefined) return match;
-  return `${opener}${rest}`;
+  return `${opener}${escape}${rest}`;
 }
 
 function collectingInto(targets: string[]): (...found: LinkMatch) => string {

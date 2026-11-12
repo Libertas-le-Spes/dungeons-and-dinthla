@@ -434,6 +434,17 @@ describe("Delete session, with the sessions numbered again", () => {
     expect(tell).toHaveBeenCalledExactlyOnceWith("Links weren't updated in: Pale Moon/Notes.md (the disk is full.).");
   });
 
+  it("moves on to the latest session that exists when a rename failed", async () => {
+    const report: RenumberingReport = { ...NOTHING_WRONG, notRenamed: [rename(7, 3)], renameFailure: "the disk is full." };
+    const { button, asked, renumbering, moves } = writingOn(NOTE);
+    renumbering.planFor.mockReturnValue({ campaignFolder: "Pale Moon", renames: [rename(7, 3)], latest: "Pale Moon/Sessions/Session 3.md" });
+    renumbering.carryOut.mockResolvedValue(report);
+    button(".dd-delete-session").click();
+    await flushed();
+    pressConfirm(asked);
+    await vi.waitFor(() => expect(moves.deleted).toHaveBeenCalledExactlyOnceWith("Pale Moon/Sessions/Session 7.md"));
+  });
+
   it("tells the person nothing when the renumbering went through", async () => {
     const { button, asked, report: tell, moves } = writingOn(NOTE);
     button(".dd-delete-session").click();
