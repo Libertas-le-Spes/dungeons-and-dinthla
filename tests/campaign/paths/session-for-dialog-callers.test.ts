@@ -97,6 +97,13 @@ describe("a dialog that writes into a session, with sessions to write in", () =>
     expect(whereOfLastModal()).toBe(`${where} Session 2.`);
   });
 
+  it.each(FINDING)("%s writes in the latest session when the open session's note is gone", (_name, where, open) => {
+    const before = openedModals.length;
+    open(gateWith([ONE, THREE]), storeRaisedIn(ONE), vi.fn(), TWO);
+    expect(openedModals.length).toBe(before + 1);
+    expect(whereOfLastModal()).toBe(`${where} Session 3.`);
+  });
+
   it.each(RAISED_IN)("%s writes in the latest session when the open one is earlier than the record's", (_name, where, open) => {
     const before = openedModals.length;
     open(gateWith([ONE, TWO, THREE]), storeRaisedIn(TWO), vi.fn(), ONE);
