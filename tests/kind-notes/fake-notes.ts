@@ -149,8 +149,8 @@ export class FakeNotes {
 
   private fileAt(path: string): TFile | null {
     const note = this.notes.get(path);
-    if (note === undefined) return null;
-    return note.file;
+    if (note !== undefined) return note.file;
+    return firstOf(this.sessions.filter((session) => session.path === path));
   }
 
   private folderAt(path: string): never | null {

@@ -58,6 +58,16 @@ export class KindNoteKeeper {
     return made;
   }
 
+  isOutOfStep(note: WantedNote): boolean {
+    const file = this.needs.files.getFileByPath(note.path);
+    if (file === null || this.settled.get(note.path) === wantedKeyOf(note)) return false;
+    const cache = this.needs.metadata.getFileCache(file);
+    if (cache === null) return false;
+    const session = { path: note.sessionPath, file: note.sessionFile };
+    if (!linksToSession(this.needs.metadata, sessionPropertyIn(cache), note.path, session)) return false;
+    return !sameLines(linesIn(cache), note.lines);
+  }
+
   noteRead(path: string): void {
     if (!this.waiting.delete(path)) return;
     void this.queue.run(path, () => this.settle(path));
