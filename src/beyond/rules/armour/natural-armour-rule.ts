@@ -1,7 +1,7 @@
 import type { RuleCharacter } from "../input/rule-character";
-import type { ArmourCandidate } from "./armour-candidate";
-import { UnknownCandidate } from "./armour-candidate";
-import type { ArmourRule } from "./armour-rule";
+import type { ArmourCandidate } from "./choice/armour-candidate";
+import { UnknownCandidate } from "./choice/armour-candidate";
+import type { ArmourRule } from "./rules/armour-rule";
 import { NATURAL_ARMOUR_SPECIES } from "./natural-armour-species";
 
 export class NaturalArmourRule implements ArmourRule {
