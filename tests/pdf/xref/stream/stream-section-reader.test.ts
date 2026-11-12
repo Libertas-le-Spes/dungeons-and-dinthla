@@ -139,6 +139,6 @@ describe("reading a cross-reference stream", () => {
   it("refuses data that is not a whole deflate stream", async () => {
     const broken = Buffer.from(deflateSync(rowOf(0, 0, 0))).subarray(0, 5);
     const text = xrefStreamFile("/Size 1 /W [1 4 2]", broken, false).toString("latin1").replace("/Length", "/Filter /FlateDecode /Length");
-    expect(await refusalOf(textFile(text))).not.toBe("");
+    expect(await refusalOf(textFile(text))).toBe("A compressed part of the file could not be unpacked, so it was not read.");
   });
 });

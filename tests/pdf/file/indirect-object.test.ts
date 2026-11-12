@@ -51,12 +51,19 @@ describe("readIndirectObject", () => {
     expect(readIndirectObject(cursorOver("77 3 obj 1 endobj"), VALUE_PARSER, new AnyId(), new DirectLengths()).number).toBe(77);
   });
 
-  it.each(["5 0obj 1 endobj", "5obj 0 1 endobj", "50 obj 1 endobj", "5 0 object 1 endobj", " 5 0 obj 1 endobj", "x"])("refuses the header in %j", (text) => {
-    expect(refusalFrom(() => read(text))).not.toBe("");
+  it.each([
+    ["5 0obj 1 endobj", "An object in the file is not where the file's index says it is, so the file was not read."],
+    ["5obj 0 1 endobj", "An object in the file is not where the file's index says it is, so the file was not read."],
+    ["50 obj 1 endobj", "An object's generation is missing, so the file was not read."],
+    ["5 0 object 1 endobj", "An object in the file is not where the file's index says it is, so the file was not read."],
+    [" 5 0 obj 1 endobj", "An object number is missing, so the file was not read."],
+    ["x", "An object number is missing, so the file was not read."],
+  ])("refuses the header in %j", (text, words) => {
+    expect(refusalFrom(() => read(text))).toBe(words);
   });
 
   it.each(["5 0 obj 1", "5 0 obj 1 endob", "5 0 obj 1 endobject", "5 0 obj 1 2 endobj"])("refuses %j, which does not end as an object ends", (text) => {
-    expect(refusalFrom(() => read(text))).not.toBe("");
+    expect(refusalFrom(() => read(text))).toBe("An object in the file does not end the way PDF writes it, so the file was not read.");
   });
 
   it("refuses an object cut off before its value", () => {
@@ -141,6 +148,6 @@ describe("readIndirectObject with a stream", () => {
   });
 
   it("does not take an array followed by the word stream for a stream", () => {
-    expect(refusalFrom(() => read("5 0 obj [1] stream\nabcd\nendstream endobj"))).not.toBe("");
+    expect(refusalFrom(() => read("5 0 obj [1] stream\nabcd\nendstream endobj"))).toBe("An object in the file does not end the way PDF writes it, so the file was not read.");
   });
 });

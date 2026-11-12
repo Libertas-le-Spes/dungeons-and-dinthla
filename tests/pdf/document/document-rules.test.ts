@@ -53,7 +53,7 @@ describe("what refuses the whole file, in the catalogue", () => {
   });
 
   it("a catalogue that is not where the trailer says", async () => {
-    expect(await refusalOf(plain().classic({ root: 2 }))).not.toBe("");
+    expect(await refusalOf(plain().classic({ root: 2 }))).toBe("The file's pages could not be read, so it was not read.");
   });
 
   it("a trailer with no /Root", async () => {

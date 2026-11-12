@@ -19,6 +19,12 @@ function sheet(options: ConstructorParameters<typeof FormDocument>[0] = {}): For
   return new FormDocument(options).text("Primary Name", literal("Aria Vell")).text("Primary Class", literal("Wizard")).check("Primary Flag", "/Yes").check("Secondary Flag", "/Off").choice("Primary Pick", literal("Red"));
 }
 
+const NOT_A_PDF = "This is not a PDF file, so it was not read.";
+const NO_STARTXREF = "The file has no startxref near its end, so it was not read.";
+const NUMBER_MISSING = "An object number is missing, so the file was not read.";
+const NOT_WHERE = "An object in the file is not where the file's index says it is, so the file was not read.";
+const NO_INDEX = "The file's index could not be found where the file says it is, so it was not read.";
+
 const EXPECTED = { "Primary Name": "Aria Vell", "Primary Class": "Wizard", "Primary Flag": true, "Secondary Flag": false, "Primary Pick": "Red" };
 
 describe("reading a made-up character sheet end to end", () => {
@@ -90,8 +96,12 @@ describe("a later update of the file", () => {
 });
 
 describe("what the file must be", () => {
-  it.each(["", "not a pdf at all", "%PDF-1.7"])("refuses %j", async (text) => {
-    expect(await refusalOf(Buffer.from(text, "latin1"))).not.toBe("");
+  it.each([
+    ["", NOT_A_PDF],
+    ["not a pdf at all", NOT_A_PDF],
+    ["%PDF-1.7", NO_STARTXREF],
+  ])("refuses %j", async (text, words) => {
+    expect(await refusalOf(Buffer.from(text, "latin1"))).toBe(words);
   });
 
   it("accepts a file of exactly the most bytes allowed", async () => {
@@ -182,18 +192,18 @@ function oneByteInto(bytes: Buffer): number {
 }
 
 describe("a file with bad offsets", () => {
-  const PLACES: [string, (bytes: Buffer) => number][] = [
-    ["inside a string", insideAString],
-    ["at the start of the file", atTheStart],
-    ["at the cross-reference table itself", atTheTable],
-    ["at another object", atAnotherObject],
-    ["one byte before its object", oneByteBefore],
-    ["one byte into its object", oneByteInto],
+  const PLACES: [string, (bytes: Buffer) => number, string][] = [
+    ["inside a string", insideAString, NUMBER_MISSING],
+    ["at the start of the file", atTheStart, NUMBER_MISSING],
+    ["at the cross-reference table itself", atTheTable, NUMBER_MISSING],
+    ["at another object", atAnotherObject, NOT_WHERE],
+    ["one byte before its object", oneByteBefore, NUMBER_MISSING],
+    ["one byte into its object", oneByteInto, NOT_WHERE],
   ];
 
-  it.each(PLACES)("is refused when an object's offset points %s", async (_where, place) => {
+  it.each(PLACES)("is refused when an object's offset points %s", async (_where, place, words) => {
     const bytes = sheet().classic();
-    expect(await refusalOf(withEntryOffset(bytes, FIRST_FIELD_NUMBER, place(bytes)))).not.toBe("");
+    expect(await refusalOf(withEntryOffset(bytes, FIRST_FIELD_NUMBER, place(bytes)))).toBe(words);
   });
 
   it("is refused when an offset points past the end", async () => {
@@ -206,6 +216,6 @@ describe("a file with bad offsets", () => {
     const startxref = `startxref\n${tableOffsetOf(bytes)}`;
     const at = String(insideAString(bytes)).padStart(String(tableOffsetOf(bytes)).length, "0");
     const damaged = bytes.toString("latin1").replace(startxref, `startxref\n${at}`);
-    expect(await refusalOf(Buffer.from(damaged, "latin1"))).not.toBe("");
+    expect(await refusalOf(Buffer.from(damaged, "latin1"))).toBe(NO_INDEX);
   });
 });

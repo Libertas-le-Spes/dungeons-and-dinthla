@@ -43,7 +43,7 @@ describe("reading a classic cross-reference table", () => {
 
   it.each(["\n", "\r", "  ", "\n\n", " ", ""])("refuses the line end %j, which is not two bytes of PDF's", async (ending) => {
     const reason = await refusalOf(fileWith(`xref\n0 2\n${entryLine(0, 65535, "f", ending)}${entryLine(9, 0, "n", ending)}`));
-    expect(reason).not.toBe("");
+    expect(reason).toBe("A line of the file's index is not written the way PDF writes it, so the file was not read.");
   });
 
   it("refuses a line whose offset is not ten digits", async () => {

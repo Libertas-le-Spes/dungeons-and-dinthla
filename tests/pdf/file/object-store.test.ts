@@ -72,7 +72,7 @@ describe("ObjectStore", () => {
 
   it("refuses an object whose place is the middle of another object", () => {
     const store = storeOver(TEXT, new Map<number, XrefEntry>([[1, new InFileEntry(TEXT.indexOf("(text)"), 0)]]));
-    expect(refusalFrom(() => store.load(1, 0))).not.toBe("");
+    expect(refusalFrom(() => store.load(1, 0))).toBe("An object number is missing, so the file was not read.");
   });
 
   it("looks up a stream's length that is written as a reference", () => {
