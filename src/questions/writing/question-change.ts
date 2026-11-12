@@ -1,7 +1,7 @@
 import type { QuestionRecord } from "../../campaign/record/campaign";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
-import type { RecordChange } from "../../campaign/changes/record-change";
 import { notHidden } from "../../campaign/changes/hidden-refusal";
+import type { RecordChange } from "../../campaign/changes/record-change";
 import { refusedWhen, verdictOf } from "../../campaign/changes/verdict";
 import { ANSWER_GOES_ELSEWHERE, answerWouldGoElsewhere } from "./current-question";
 import { planQuestionSave, planReopen, refusalForQuestionPlan, type QuestionEdit, type QuestionPlan } from "./question-plan";

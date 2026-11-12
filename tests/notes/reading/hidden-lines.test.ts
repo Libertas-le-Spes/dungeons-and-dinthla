@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addedLinesHidden, addedLinesHiddenWith, CLOSERS_WITHOUT_MATH, hiddenLines } from "../../../src/notes/reading/hidden-lines";
+import { addedLinesHidden, hiddenLines } from "../../../src/notes/reading/hidden-lines";
 
 function hidden(lines: string[]): number[] {
   return [...hiddenLines(lines.join("\n"))];
@@ -68,7 +68,7 @@ describe("hiddenLines", () => {
   });
 
   it("opens the block whose mark comes first on the line", () => {
-    expect(hidden(["a $$ b %% c", "x $$", "y"])).toEqual([0, 1]);
+    expect(hidden(["a $$", "x $$", "y"])).toEqual([0, 1]);
   });
 
   it("ends a block only at its own mark", () => {
@@ -105,25 +105,47 @@ describe("addedLinesHidden", () => {
     expect(addedLinesHidden("a\n%% aside\n", 0)).toBe(false);
   });
 
-  it("counts a math block as hiding the lines after it", () => {
-    expect(addedLinesHidden("$$ Rope :lost\n! Find it\n", 1)).toBe(true);
+  it("counts a bare $$ line that never closes as hiding the lines after it", () => {
+    expect(addedLinesHidden("$$\n! Find it\n", 1)).toBe(true);
+  });
+
+  it("doesn't count an item line starting with $$ as hiding the line after it", () => {
+    expect(addedLinesHidden("$$ Rope :lost\n! Find it\n", 1)).toBe(false);
   });
 });
 
-describe("addedLinesHiddenWith, leaving math out", () => {
-  it("doesn't count a line starting with $$ as opening a block", () => {
-    expect(addedLinesHiddenWith(CLOSERS_WITHOUT_MATH, "$$ Rope :lost\n! Find it\n", 1)).toBe(false);
+describe("hiddenLines and $$", () => {
+  it("hides a block opened by a line that is only $$, up to its closing $$", () => {
+    expect(hidden(["a", "$$", "x: 2", "$$", "b"])).toEqual([1, 2, 3]);
   });
 
-  it("still counts a comment that never closes", () => {
-    expect(addedLinesHiddenWith(CLOSERS_WITHOUT_MATH, "$$ Rope :lost\n%% aside\n! Find it\n", 1)).toBe(true);
+  it("opens a block with $$ and spaces only", () => {
+    expect(hidden(["a", "  $$  ", "x", "b"])).toEqual([1, 2, 3]);
   });
 
-  it("still counts an HTML comment that never closes", () => {
-    expect(addedLinesHiddenWith(CLOSERS_WITHOUT_MATH, "<!-- aside\n! Find it\n", 1)).toBe(true);
+  it("hides every line after a bare $$ that never closes", () => {
+    expect(hidden(["a", "$$", "x", "y"])).toEqual([1, 2, 3]);
   });
 
-  it("still counts a code block that never closes", () => {
-    expect(addedLinesHiddenWith(CLOSERS_WITHOUT_MATH, "```\n! Find it\n", 1)).toBe(true);
+  it("hides a one-line block with both markers, and nothing after it", () => {
+    expect(hidden(["a", "$$ x: 2 $$", "b"])).toEqual([1]);
+  });
+
+  it("opens nothing for an item line with words after the marker", () => {
+    expect(hidden(["a", "$$ Rope :lost", "b"])).toEqual([]);
+  });
+
+  it("opens nothing for any number of item lines, odd or even", () => {
+    expect(hidden(["$$ Rope :lost"])).toEqual([]);
+    expect(hidden(["$$ Rope :lost", "$$ Torch :sold 3 gp", "b"])).toEqual([]);
+    expect(hidden(["$$ Rope :lost", "$$ Torch :sold 3 gp", "$$ Lamp :used", "b"])).toEqual([]);
+  });
+
+  it("still hides a comment that follows words after the marker", () => {
+    expect(hidden(["$$ Rope :lost %% aside", "b"])).toEqual([0, 1]);
+  });
+
+  it("doesn't let an item line end a comment it sits inside", () => {
+    expect(hidden(["%% aside", "$$ Rope :lost", "b"])).toEqual([0, 1, 2]);
   });
 });

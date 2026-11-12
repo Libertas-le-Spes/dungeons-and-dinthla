@@ -120,6 +120,14 @@ describe("adding coin", () => {
     expect(notes.writes).toBe(0);
   });
 
+  it("refuses a line when the note, changed since it was read, now has a comment that never closes, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "", [TWO]: "" });
+    notes.texts.set(TWO, "%% added by a sync\n");
+    const written = coinLineOf({ direction: "in", amount: "5 gp", what: "found" });
+    await expect(writeRecordChange(newCoin(notes, written, TWO), new SessionChangeWriter(notes.vault))).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.texts.get(TWO)).toBe("%% added by a sync\n");
+  });
+
   it("writes a line below an item line, which opens no comment", async () => {
     const notes = new FakeNotes({ [ONE]: "", [TWO]: "$$ Rope :lost\n" });
     const written = coinLineOf({ direction: "in", amount: "5 gp", what: "found" });

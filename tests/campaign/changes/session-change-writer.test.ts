@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
-import { CHANGED_IN_NOTE, PartlyWritten, type EditorFiles, type Removal } from "../../../src/campaign/writing/note-editor";
+import { CHANGED_IN_NOTE, PartlyWritten, WOULD_BE_HIDDEN, type EditorFiles, type Removal } from "../../../src/campaign/writing/note-editor";
 import type { SessionChange } from "../../../src/campaign/changes/session-change";
 import { SessionChangeWriter } from "../../../src/campaign/changes/session-change-writer";
 
@@ -120,6 +120,37 @@ describe("SessionChangeWriter", () => {
     const notes = new FakeNotes({ [ONE]: "We waited.\n$ +5 gp found\n" });
     await expect(apply(notes, { rewrite: { old: lineAt(ONE, 0, "$ +5 gp found"), line: "$ +6 gp found" } })).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notes.texts.get(ONE)).toBe("We waited.\n$ +5 gp found\n");
+  });
+
+  it("refuses lines that would land below a comment that never closes in the note as it is now, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n%% added by a sync\n" });
+    await expect(apply(notes, { ...NOTHING, added: { path: ONE, lines: ["?= Who: Mira"], later: null } })).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.texts.get(ONE)).toBe("? Who\n%% added by a sync\n");
+  });
+
+  it("refuses lines added with a taken-out line when they would land hidden in the same note, keeping the old line", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n%% added by a sync\n" });
+    const change = { ...NOTHING, removal: lineAt(ONE, 1, "?= Who: Mira"), added: { path: ONE, lines: ["?= Who: Vess"], later: null } };
+    await expect(apply(notes, change)).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.texts.get(ONE)).toBe("? Who\n?= Who: Mira\n%% added by a sync\n");
+  });
+
+  it("refuses lines that would land hidden in another note than the one the line is taken out of, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "! Find it\n!= Find it: done\n", [TWO]: "%% added by a sync\n" });
+    const change = { ...NOTHING, removal: lineAt(ONE, 1, "!= Find it: done"), added: { path: TWO, lines: ["!+ Find it: tracks"], later: null } };
+    await expect(apply(notes, change)).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.texts.get(ONE)).toBe("! Find it\n!= Find it: done\n");
+    expect(notes.texts.get(TWO)).toBe("%% added by a sync\n");
+  });
+
+  it("says the first note was written when the later note's lines would land hidden", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n", [TWO]: "%% added by a sync\n" });
+    const change = { ...NOTHING, added: { path: ONE, lines: ["?= Who: Mira"], later: { path: TWO, lines: ["? Why, after: Who"], partlyWritten: WORDS } } };
+    const writing = apply(notes, change);
+    await expect(writing).rejects.toBeInstanceOf(PartlyWritten);
+    await expect(writing).rejects.toThrow(`${WORDS} ${WOULD_BE_HIDDEN}`);
+    expect(notes.texts.get(ONE)).toBe("? Who\n?= Who: Mira\n");
+    expect(notes.texts.get(TWO)).toBe("%% added by a sync\n");
   });
 
   it("writes the later note after the first", async () => {
