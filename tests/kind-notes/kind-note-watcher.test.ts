@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { WrittenNotes } from "../../src/fence/gate/written-notes";
+import { NoteReporter } from "../../src/fence/gate/written-notes";
 import { SessionWants } from "../../src/kind-notes/session-wants";
 import { KindNoteWatcher } from "../../src/kind-notes/kind-note-watcher";
 import { SavesHere } from "../../src/kind-notes/saves-here";
@@ -11,12 +11,12 @@ import { CAMPAIGN, QUESTIONS, SESSION } from "./keeper-setup";
 const TEXT = "? Who sent Mira";
 
 function watcherWith(campaign: FakeCampaign) {
-  const written = new WrittenNotes();
+  const written = new NoteReporter();
   const keeper = { keep: vi.fn(), noteRead: vi.fn() };
-  const differing = { check: vi.fn(), forget: vi.fn() };
+  const differing = { check: vi.fn(), checkAll: vi.fn(), forget: vi.fn() };
   const items = { sessionSaved: vi.fn() };
   const files = { getFileByPath: (path: string) => fileAt(path) };
-  const watcher = new KindNoteWatcher({ store: campaign, wants: new SessionWants(campaign, files), written, keeper, differing, saves: new SavesHere(), items });
+  const watcher = new KindNoteWatcher({ store: campaign, wants: new SessionWants(campaign, files), written: written.notes, keeper, differing, saves: new SavesHere(), items });
   const stop = watcher.start();
   return { written, keeper, differing, watcher, stop, items };
 }
@@ -134,7 +134,7 @@ describe("KindNoteWatcher", () => {
     campaign.hold(`${CAMPAIGN}/Sessions/Session 3.md`, "! Find the caravan");
     const { watcher, differing, keeper } = watcherWith(campaign);
     watcher.checkAll();
-    expect(differing.check).toHaveBeenCalledTimes(2);
+    expect(differing.checkAll).toHaveBeenCalledExactlyOnceWith([SESSION, `${CAMPAIGN}/Sessions/Session 3.md`]);
     expect(keeper.keep).not.toHaveBeenCalled();
   });
 

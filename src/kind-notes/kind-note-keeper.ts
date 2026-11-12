@@ -5,6 +5,7 @@ import type { FencedMetadata } from "../fence/gate/fenced-metadata";
 import { KindNoteWriter, type WriterActions, type WriterFiles } from "./kind-note-writer";
 import { kindNoteTitleOf } from "./kind-note-path";
 import { holdsOnlyPluginProperties, linesIn, sameLines, sessionPropertyIn } from "./note-properties";
+import type { MakeResult } from "./make-result";
 import { PathQueue } from "./path-queue";
 import { SaidOnce } from "./said-once";
 import { linksToSession, sessionLinkFor, type LinkMetadata } from "./session-link";
@@ -47,15 +48,17 @@ export class KindNoteKeeper {
     for (const note of notes) this.keepOne(note);
   }
 
-  async makeIfMissing(note: WantedNote): Promise<boolean> {
-    let made = false;
+  async makeIfMissing(note: WantedNote): Promise<MakeResult> {
+    let result: MakeResult = "left";
     await this.queue.run(note.path, async () => {
       const sessionFile = note.sessionFile;
       if (sessionFile === null || note.lines.length === 0) return;
       if (this.needs.files.getFileByPath(note.path) !== null) return;
-      made = await this.attempt(note, wantedKeyOf(note), () => this.makeNew(note, sessionFile));
+      const made = await this.attempt(note, wantedKeyOf(note), () => this.makeNew(note, sessionFile));
+      if (made) result = "made";
+      else result = "failed";
     });
-    return made;
+    return result;
   }
 
   isOutOfStep(note: WantedNote): boolean {
@@ -76,6 +79,7 @@ export class KindNoteKeeper {
   private keepOne(note: WantedNote): void {
     this.wanted.set(note.path, note);
     this.settled.delete(note.path);
+    if (this.failed.get(note.path) !== wantedKeyOf(note)) this.failed.delete(note.path);
     void this.queue.run(note.path, () => this.settle(note.path));
   }
 
@@ -113,12 +117,13 @@ export class KindNoteKeeper {
       this.said.say(`link:${note.path}`, notLinkedMessage(note));
       return;
     }
-    if (sameLines(linesIn(cache), note.lines)) {
-      this.settled.set(note.path, key);
+    const alreadyThere = sameLines(linesIn(cache), note.lines);
+    if (note.lines.length === 0 && holdsOnlyPluginProperties(cache)) {
+      await this.attempt(note, key, () => this.writer.trashOrEmpty(file, !alreadyThere));
       return;
     }
-    if (note.lines.length === 0 && holdsOnlyPluginProperties(cache)) {
-      await this.attempt(note, key, () => this.writer.trashIfNothingOfHis(file));
+    if (alreadyThere) {
+      this.settled.set(note.path, key);
       return;
     }
     await this.attempt(note, key, () => this.writer.setLines(file, note.lines));

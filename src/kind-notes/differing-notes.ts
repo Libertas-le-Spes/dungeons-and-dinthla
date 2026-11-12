@@ -15,6 +15,16 @@ export function differsMessage(note: WantedNote): string {
 
 function leaveAsItIs(): void {}
 
+interface Differing {
+  sessionPath: string;
+  note: WantedNote;
+  key: string;
+}
+
+export function manyDifferMessage(count: number): string {
+  return `${count} notes differ from their sessions.`;
+}
+
 export class DifferingNotes {
   private readonly asked = new Map<string, string>();
 
@@ -25,22 +35,47 @@ export class DifferingNotes {
   ) {}
 
   check(sessionPath: string): void {
-    for (const note of this.wants.notesFor(sessionPath)) this.checkOne(sessionPath, note);
+    this.askAbout(this.differingIn(sessionPath));
+  }
+
+  checkAll(sessionPaths: string[]): void {
+    const differing: Differing[] = [];
+    for (const sessionPath of sessionPaths) differing.push(...this.differingIn(sessionPath));
+    this.askAbout(differing);
   }
 
   forget(sessionPath: string): void {
     for (const note of this.wants.notesFor(sessionPath)) this.asked.delete(note.path);
   }
 
-  private checkOne(sessionPath: string, note: WantedNote): void {
-    const key = wantedKeyOf(note);
-    if (this.asked.get(note.path) === key || !this.keeper.isOutOfStep(note)) return;
-    this.asked.set(note.path, key);
-    this.ask(differsMessage(note), () => this.fixIfStillSo(sessionPath, note.path, key), leaveAsItIs);
+  private differingIn(sessionPath: string): Differing[] {
+    const differing: Differing[] = [];
+    for (const note of this.wants.notesFor(sessionPath)) {
+      const key = wantedKeyOf(note);
+      if (this.asked.get(note.path) !== key && this.keeper.isOutOfStep(note)) differing.push({ sessionPath, note, key });
+    }
+    return differing;
   }
 
-  private fixIfStillSo(sessionPath: string, notePath: string, key: string): void {
-    const current = this.wants.notesFor(sessionPath).find((note) => note.path === notePath);
+  private askAbout(differing: Differing[]): void {
+    const [first] = differing;
+    if (first === undefined) return;
+    for (const one of differing) this.asked.set(one.note.path, one.key);
+    const message = this.messageFor(first, differing.length);
+    this.ask(message, () => this.fixEach(differing), leaveAsItIs);
+  }
+
+  private messageFor(first: Differing, count: number): string {
+    if (count === 1) return differsMessage(first.note);
+    return manyDifferMessage(count);
+  }
+
+  private fixEach(differing: Differing[]): void {
+    for (const one of differing) this.fixIfStillSo(one);
+  }
+
+  private fixIfStillSo({ sessionPath, note, key }: Differing): void {
+    const current = this.wants.notesFor(sessionPath).find((candidate) => candidate.path === note.path);
     if (current === undefined || current.sessionFile === null || wantedKeyOf(current) !== key) return;
     this.keeper.keep([current]);
   }

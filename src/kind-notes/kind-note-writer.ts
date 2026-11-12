@@ -1,7 +1,7 @@
 import type { TFile } from "obsidian";
 import type { FencedFileActions } from "../fence/gate/fenced-file-actions";
 import type { FencedFiles } from "../fence/gate/fenced-files";
-import { hasNoWords } from "./note-words";
+import { hasNoWords, holdsOnlyPluginPropertiesIn } from "./note-words";
 import { PropertyWriter } from "./property-writer";
 
 export type WriterFiles = Pick<FencedFiles, "getFolderByPath" | "createFolder" | "create" | "read" | "process">;
@@ -41,12 +41,16 @@ export class KindNoteWriter {
     });
   }
 
-  async trashIfNothingOfHis(file: TFile): Promise<void> {
-    if (hasNoWords(await this.files.read(file))) {
-      await this.actions.trashFile(file);
-      return;
-    }
-    await this.setLines(file, []);
+  async trashIfNothingOfHis(file: TFile): Promise<boolean> {
+    const text = await this.files.read(file);
+    if (!hasNoWords(text) || !holdsOnlyPluginPropertiesIn(text)) return false;
+    await this.actions.trashFile(file);
+    return true;
+  }
+
+  async trashOrEmpty(file: TFile, linesToEmpty: boolean): Promise<void> {
+    if (await this.trashIfNothingOfHis(file)) return;
+    if (linesToEmpty) await this.setLines(file, []);
   }
 
   private async discard(file: TFile): Promise<void> {

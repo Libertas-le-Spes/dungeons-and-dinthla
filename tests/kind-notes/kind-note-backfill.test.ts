@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { buildCampaign } from "../../src/campaign/reading/build-campaign";
 import type { SessionNote } from "../../src/campaign/record/campaign";
 import { KindNoteBackfill } from "../../src/kind-notes/kind-note-backfill";
+import type { MakeResult } from "../../src/kind-notes/make-result";
 import type { WantedNote } from "../../src/kind-notes/wanted-note";
 import { fileAt } from "./fake-notes";
 import { CAMPAIGN } from "./keeper-setup";
@@ -10,26 +11,30 @@ function session(number: number, text: string): SessionNote {
   return { path: `${CAMPAIGN}/Sessions/Session ${number}.md`, number, text, firstLine: 0 };
 }
 
-function backfillWith(sessions: SessionNote[], alreadyMade: string[] = [], makes: (note: WantedNote) => boolean = () => true, itemsMade = 0) {
+function backfillWith(sessions: SessionNote[], alreadyMade: string[] = [], makes: (note: WantedNote) => MakeResult = () => "made", itemsMade = 0, itemsFailed = 0) {
   const calls: string[] = [];
+  const hooks = { whileMaking: (_note: WantedNote): void => {} };
+  const whileMaking = (note: WantedNote) => hooks.whileMaking(note);
   let inside = 0;
   let mostInside = 0;
-  const makeIfMissing = vi.fn(async (note: WantedNote) => {
+  const store = { current: buildCampaign(sessions), sessionNotes: sessions, campaignFolder: CAMPAIGN as string | null, opening: false };
+  const makeIfMissing = vi.fn(async (note: WantedNote): Promise<MakeResult> => {
     inside += 1;
     mostInside = Math.max(mostInside, inside);
     await Promise.resolve();
     inside -= 1;
     calls.push(note.path);
-    return note.lines.length > 0 && makes(note);
+    if (note.lines.length === 0) return "left";
+    whileMaking(note);
+    return makes(note);
   });
   const marked: string[] = [];
   const made = { hasMadeFor: (folder: string) => alreadyMade.includes(folder), markMadeFor: vi.fn(async (folder: string) => void marked.push(folder)) };
   const say = vi.fn();
-  const items = { makeMissing: vi.fn(async () => itemsMade) };
-  const store = { current: buildCampaign(sessions), sessionNotes: sessions };
+  const items = { makeMissing: vi.fn(async () => ({ made: itemsMade, failed: itemsFailed })) };
   const files = { getFileByPath: (path: string) => fileAt(path) };
   const backfill = new KindNoteBackfill({ store, files, keeper: { makeIfMissing }, items, made, say });
-  return { backfill, calls, marked, say, made, makeIfMissing, items, mostInside: () => mostInside };
+  return { backfill, calls, marked, say, made, makeIfMissing, items, store, hooks, mostInside: () => mostInside };
 }
 
 describe("KindNoteBackfill", () => {
@@ -67,7 +72,7 @@ describe("KindNoteBackfill", () => {
   });
 
   it("doesn't count a session whose notes were all there already, and says nothing when none were made", async () => {
-    const { backfill, say } = backfillWith([session(1, "? Who sent Mira")], [], () => false);
+    const { backfill, say } = backfillWith([session(1, "? Who sent Mira")], [], () => "left");
     await backfill.run(CAMPAIGN);
     expect(say).not.toHaveBeenCalled();
   });
@@ -99,7 +104,7 @@ describe("KindNoteBackfill", () => {
   });
 
   it("makes the item notes after the session notes, and says how many sessions and items got notes", async () => {
-    const { backfill, say, items, calls } = backfillWith([session(1, "? Who sent Mira")], [], () => true, 2);
+    const { backfill, say, items, calls } = backfillWith([session(1, "? Who sent Mira")], [], () => "made", 2);
     await backfill.run(CAMPAIGN);
     expect(items.makeMissing).toHaveBeenCalledOnce();
     expect(calls).toHaveLength(3);
@@ -107,14 +112,88 @@ describe("KindNoteBackfill", () => {
   });
 
   it("says only the items when no session got a note, in the singular for one", async () => {
-    const { backfill, say } = backfillWith([session(1, "We rested.")], [], () => true, 1);
+    const { backfill, say } = backfillWith([session(1, "We rested.")], [], () => "made", 1);
     await backfill.run(CAMPAIGN);
     expect(say).toHaveBeenCalledExactlyOnceWith("Made notes for 1 item.");
   });
 
   it("makes no item note for a campaign it already made notes for", async () => {
-    const { backfill, items } = backfillWith([session(1, "? Who sent Mira")], [CAMPAIGN], () => true, 2);
+    const { backfill, items } = backfillWith([session(1, "? Who sent Mira")], [CAMPAIGN], () => "made", 2);
     await backfill.run(CAMPAIGN);
     expect(items.makeMissing).not.toHaveBeenCalled();
+  });
+
+  it("doesn't mark the campaign done when a note couldn't be made, but still says what was made", async () => {
+    const { backfill, marked, say } = backfillWith([session(1, "? Who sent Mira\n! Find the caravan")], [], (note) => {
+      if (note.folder === "Quests") return "failed";
+      return "made";
+    });
+    await backfill.run(CAMPAIGN);
+    expect(marked).toEqual([]);
+    expect(say).toHaveBeenCalledExactlyOnceWith("Made notes for 1 session.");
+  });
+
+  it("doesn't mark the campaign done when an item note couldn't be made", async () => {
+    const { backfill, marked } = backfillWith([session(1, "We rested.")], [], () => "made", 1, 1);
+    await backfill.run(CAMPAIGN);
+    expect(marked).toEqual([]);
+  });
+
+  it("stops, makes no item note and doesn't mark the campaign done when another campaign is open by the next session", async () => {
+    const { backfill, marked, hooks, store, items, calls } = backfillWith([session(1, "? Who sent Mira"), session(2, "? Who sent Baka")]);
+    hooks.whileMaking = () => {
+      store.campaignFolder = "D&D/Silver Road";
+    };
+    await backfill.run(CAMPAIGN);
+    expect(calls.every((path) => path.endsWith("Session 1.md"))).toBe(true);
+    expect(items.makeMissing).not.toHaveBeenCalled();
+    expect(marked).toEqual([]);
+  });
+
+  it("doesn't mark the campaign done when it was closed after the last session", async () => {
+    const { backfill, marked, hooks, store } = backfillWith([session(1, "? Who sent Mira")]);
+    hooks.whileMaking = () => {
+      store.campaignFolder = null;
+    };
+    await backfill.run(CAMPAIGN);
+    expect(marked).toEqual([]);
+  });
+
+  it("does nothing while the campaign is still opening, or is no longer the one that was opened", async () => {
+    const opening = backfillWith([session(1, "? Who sent Mira")]);
+    opening.store.opening = true;
+    await opening.backfill.run(CAMPAIGN);
+    const other = backfillWith([session(1, "? Who sent Mira")]);
+    await other.backfill.run("D&D/Silver Road");
+    expect(opening.makeIfMissing).not.toHaveBeenCalled();
+    expect(other.makeIfMissing).not.toHaveBeenCalled();
+    expect(opening.marked).toEqual([]);
+  });
+
+  it("doesn't mark a campaign done that it saw no session of", async () => {
+    const { backfill, marked, items } = backfillWith([]);
+    await backfill.run(CAMPAIGN);
+    expect(marked).toEqual([]);
+    expect(items.makeMissing).not.toHaveBeenCalled();
+  });
+
+  it("doesn't mark the campaign done when it was closed while its item notes were made", async () => {
+    const { backfill, marked, store, items } = backfillWith([session(1, "We rested.")]);
+    items.makeMissing.mockImplementation(async () => {
+      store.campaignFolder = null;
+      return { made: 0, failed: 0 };
+    });
+    await backfill.run(CAMPAIGN);
+    expect(marked).toEqual([]);
+  });
+
+  it("makes every note from the campaign it first saw, though the campaign the store holds changes as it goes", async () => {
+    const { backfill, hooks, store, makeIfMissing } = backfillWith([session(1, "? Who sent Mira"), session(2, "? Who sent Baka")]);
+    hooks.whileMaking = () => {
+      store.current = buildCampaign([]);
+    };
+    await backfill.run(CAMPAIGN);
+    const lines = makeIfMissing.mock.calls.filter(([note]) => note.folder === "Questions").map(([note]) => note.lines);
+    expect(lines).toEqual([["? Who sent Mira"], ["? Who sent Baka"]]);
   });
 });

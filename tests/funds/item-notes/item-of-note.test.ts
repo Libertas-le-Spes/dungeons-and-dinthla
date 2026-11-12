@@ -27,4 +27,11 @@ describe("itemOfNote", () => {
   it("is the item with a plus sign in its name for a note named like it", () => {
     expect(itemOfNote(ITEMS, "Pale Moon/Items/Ring+1.md")?.name).toBe("Ring+1");
   });
+
+  it("is the item for a note whose name is written in decomposed letters, or with a no-break space or an invisible character", () => {
+    const items = buildCampaign([{ path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: "$ Zoë lantern" }]).items;
+    expect(itemOfNote(items, "Pale Moon/Items/Zoe\u0308 lantern.md")?.name).toBe("Zoë lantern");
+    expect(itemOfNote(items, "Pale Moon/Items/Zoë\u00a0lantern.md")?.name).toBe("Zoë lantern");
+    expect(itemOfNote(items, "Pale Moon/Items/Zoë\u200b lantern.md")?.name).toBe("Zoë lantern");
+  });
 });

@@ -8,18 +8,14 @@ export interface WantedProperties {
   alias: string | null;
 }
 
-function isText(value: unknown): value is string {
-  return typeof value === "string";
-}
-
-function aliasesIn(properties: Record<string, unknown>): string[] {
+function aliasesIn(properties: Record<string, unknown>): unknown[] {
   const aliases = properties.aliases;
-  if (isText(aliases)) return [aliases];
+  if (typeof aliases === "string") return [aliases];
   if (!Array.isArray(aliases)) return [];
-  return aliases.filter(isText);
+  return aliases;
 }
 
-export function aliasesWith(properties: Record<string, unknown>, alias: string): string[] {
+export function aliasesWith(properties: Record<string, unknown>, alias: string): unknown[] {
   const aliases = aliasesIn(properties);
   if (aliases.includes(alias)) return aliases;
   return [...aliases, alias];

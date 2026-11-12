@@ -8,6 +8,7 @@ export type PropertyActions = Pick<FencedFileActions, "processFrontMatter">;
 export type ChangeProperties = (properties: Record<string, unknown>) => void;
 
 export const WORDS_CHANGED = "its own words changed while its properties were written, so the note was put back as it was.";
+export const WORDS_CHANGED_AGAIN = "its own words changed while its properties were written, and again after, so the note was left as it is now.";
 
 export class PropertyWriter {
   constructor(
@@ -20,7 +21,13 @@ export class PropertyWriter {
     await this.actions.processFrontMatter(file, change);
     const after = await this.files.read(file);
     if (wordsOf(after) === wordsOf(before)) return;
-    await this.files.process(file, () => before);
-    throw new Error(WORDS_CHANGED);
+    const result = await this.files.process(file, (current) => this.putBack(current, after, before));
+    if (result === before) throw new Error(WORDS_CHANGED);
+    throw new Error(WORDS_CHANGED_AGAIN);
+  }
+
+  private putBack(current: string, written: string, before: string): string {
+    if (current === written) return before;
+    return current;
   }
 }

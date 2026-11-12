@@ -15,7 +15,7 @@ export interface KindNoteWatcherNeeds {
   wants: SessionWants;
   written: Pick<WrittenNotes, "listen">;
   keeper: Pick<KindNoteKeeper, "keep" | "noteRead">;
-  differing: Pick<DifferingNotes, "check" | "forget">;
+  differing: Pick<DifferingNotes, "check" | "checkAll" | "forget">;
   saves: SavesHere;
   items: Pick<ItemNotesPart, "sessionSaved">;
 }
@@ -37,7 +37,7 @@ export class KindNoteWatcher {
   }
 
   checkAll(): void {
-    for (const session of this.needs.store.sessionNotes) this.needs.differing.check(pathOfSession(session));
+    this.needs.differing.checkAll(this.needs.store.sessionNotes.map(pathOfSession));
   }
 
   private written(written: WrittenNote): void {

@@ -7,6 +7,7 @@ import { FencedFileActions, type ChangeProperties, type RawFileManager } from ".
 import { FencedFiles } from "../../../src/fence/gate/fenced-files";
 import { FencedMetadata, type RawMetadata } from "../../../src/fence/gate/fenced-metadata";
 import { HeldFiles } from "../../../src/fence/gate/held-files";
+import { NoteReporter } from "../../../src/fence/gate/written-notes";
 import { ItemNotes } from "../../../src/funds/item-notes/item-notes";
 import { FakeVault } from "../../campaign/fake-vault";
 import { FakeEvents, rawVaultWith } from "../../fence/gate/fake-raw-vault";
@@ -313,6 +314,7 @@ describe("ItemNotes through the gate", () => {
     const fence = new Fence(() => "D&D", ".obsidian");
     const held = new HeldFiles(raw.vault, fence);
     const processFrontMatter = vi.fn(async (_file: TFile, change: ChangeProperties) => change({}));
+    const reporter = new NoteReporter();
     const rawFileManager = { processFrontMatter } as unknown as RawFileManager;
     const rawMetadata = { getFileCache: () => cacheOf({}) } as unknown as RawMetadata;
     const sessions = new FakeVault([{ path: `${campaign}/Sessions/Session 1.md`, text: "$$ Silvered lantern :changed to [[Mira]]" }]);
@@ -320,9 +322,9 @@ describe("ItemNotes through the gate", () => {
     const failures: unknown[] = [];
     const needs = {
       store,
-      files: new FencedFiles(raw.vault, held),
+      files: new FencedFiles(raw.vault, held, reporter),
       metadata: new FencedMetadata(rawMetadata, held),
-      actions: new FencedFileActions(rawFileManager, held),
+      actions: new FencedFileActions(rawFileManager, held, reporter),
       failed: (error: unknown) => failures.push(error),
       say: () => {},
     };

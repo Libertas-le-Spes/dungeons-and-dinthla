@@ -1,8 +1,13 @@
 export class SavesHere {
-  private readonly texts = new Map<string, string>();
+  private readonly texts = new Map<string, Set<string>>();
 
   saved(path: string, text: string): void {
-    this.texts.set(path, text);
+    const kept = this.texts.get(path);
+    if (kept === undefined) {
+      this.texts.set(path, new Set([text]));
+      return;
+    }
+    kept.add(text);
   }
 
   forget(path: string): void {
@@ -10,8 +15,10 @@ export class SavesHere {
   }
 
   takeIfSavedHere(path: string, text: string): boolean {
-    const saved = this.texts.get(path);
-    this.texts.delete(path);
-    return saved === text;
+    const kept = this.texts.get(path);
+    if (kept === undefined) return false;
+    const wasSaved = kept.delete(text);
+    if (kept.size === 0) this.texts.delete(path);
+    return wasSaved;
   }
 }

@@ -3,7 +3,7 @@ import type { TAbstractFile } from "obsidian";
 import { Fence, NOT_WRITTEN_AS_OBSIDIAN_WRITES, OUTSIDE_FENCE } from "../../../src/fence/paths/fence";
 import { FencedFiles } from "../../../src/fence/gate/fenced-files";
 import { HeldFiles } from "../../../src/fence/gate/held-files";
-import { WrittenNotes } from "../../../src/fence/gate/written-notes";
+import { NoteReporter } from "../../../src/fence/gate/written-notes";
 import { fileAt, folderAt, rawVaultWith } from "./fake-raw-vault";
 
 const SESSION = fileAt("D&D/Pale Moon/Sessions/Session 1.md");
@@ -18,7 +18,7 @@ function filesWith(campaignsFolder: string | null = "D&D") {
   const outside = folderAt("Private", []);
   const campaigns = folderAt("D&D", [folderAt("D&D/Pale Moon", [empty, full])]);
   const raw = rawVaultWith([SESSION, PRIVATE, BESIDE, DECOMPOSED, NO_BREAK], [empty, full, outside, campaigns]);
-  return { files: new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => campaignsFolder, ".obsidian"))), ...raw };
+  return { files: new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => campaignsFolder, ".obsidian")), new NoteReporter()), ...raw };
 }
 
 describe("FencedFiles lookups", () => {
@@ -60,7 +60,7 @@ describe("FencedFiles lookups", () => {
     const lantern = fileAt("D&D/Pale Moon/Items/Silvered lantern.md");
     const refused = fileAt("D&D/Pale Moon/Items/Old./Lantern.md");
     const raw = rawVaultWith([SESSION, lantern, refused]);
-    const files = new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => "D&D", ".obsidian")));
+    const files = new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => "D&D", ".obsidian")), new NoteReporter());
     expect(files.markdownFilesUnder("D&D/Pale Moon/Items")).toEqual([lantern]);
   });
 
@@ -303,10 +303,10 @@ describe("FencedFiles events", () => {
 describe("FencedFiles report of what it wrote", () => {
   function reportedWith() {
     const raw = rawVaultWith([SESSION, PRIVATE]);
-    const written = new WrittenNotes();
+    const reporter = new NoteReporter();
     const heard = vi.fn();
-    written.listen(heard);
-    const files = new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => "D&D", ".obsidian")), written);
+    reporter.notes.listen(heard);
+    const files = new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => "D&D", ".obsidian")), reporter);
     return { files, heard };
   }
 
@@ -331,10 +331,10 @@ describe("FencedFiles report of what it wrote", () => {
 
   it("reports nothing for a change that arrives from outside the plugin", () => {
     const raw = rawVaultWith([SESSION]);
-    const written = new WrittenNotes();
+    const reporter = new NoteReporter();
     const heard = vi.fn();
-    written.listen(heard);
-    const files = new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => "D&D", ".obsidian")), written);
+    reporter.notes.listen(heard);
+    const files = new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => "D&D", ".obsidian")), reporter);
     files.onload();
     raw.events.trigger("modify", SESSION);
     expect(heard).not.toHaveBeenCalled();

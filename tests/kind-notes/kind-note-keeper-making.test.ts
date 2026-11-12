@@ -123,7 +123,7 @@ describe("KindNoteKeeper making only what is missing", () => {
   it("makes a note that isn't there and says it did", async () => {
     const notes = new FakeNotes();
     const session = notes.addSession(SESSION);
-    await expect(keeperWith(notes).makeIfMissing(wanted(QUESTIONS, session, LINES))).resolves.toBe(true);
+    await expect(keeperWith(notes).makeIfMissing(wanted(QUESTIONS, session, LINES))).resolves.toBe("made");
     expect(notes.noteAt(QUESTIONS)?.properties?.lines).toEqual(LINES);
   });
 
@@ -131,7 +131,7 @@ describe("KindNoteKeeper making only what is missing", () => {
     const notes = new FakeNotes();
     const session = notes.addSession(SESSION);
     notes.addNote(QUESTIONS, { session: "[[Session 2]]", lines: ["? Old"] }, "His words");
-    await expect(keeperWith(notes).makeIfMissing(wanted(QUESTIONS, session, LINES))).resolves.toBe(false);
+    await expect(keeperWith(notes).makeIfMissing(wanted(QUESTIONS, session, LINES))).resolves.toBe("left");
     expect(notes.actions.processFrontMatter).not.toHaveBeenCalled();
     expect(notes.files.create).not.toHaveBeenCalled();
     expect(notes.noteAt(QUESTIONS)?.properties?.lines).toEqual(["? Old"]);
@@ -140,7 +140,7 @@ describe("KindNoteKeeper making only what is missing", () => {
   it("makes nothing for a session with no line of that kind", async () => {
     const notes = new FakeNotes();
     const session = notes.addSession(SESSION);
-    await expect(keeperWith(notes).makeIfMissing(wanted(QUESTIONS, session, []))).resolves.toBe(false);
+    await expect(keeperWith(notes).makeIfMissing(wanted(QUESTIONS, session, []))).resolves.toBe("left");
     expect(notes.created).toEqual([]);
   });
 
@@ -149,7 +149,7 @@ describe("KindNoteKeeper making only what is missing", () => {
     const session = notes.addSession(SESSION);
     notes.failProperties = new Error("disk full");
     const keeper = keeperWith(notes);
-    await expect(keeper.makeIfMissing(wanted(QUESTIONS, session, LINES))).resolves.toBe(false);
+    await expect(keeper.makeIfMissing(wanted(QUESTIONS, session, LINES))).resolves.toBe("failed");
     expect(notes.said).toEqual(["Couldn't write Questions for Session 2: disk full"]);
   });
 });
