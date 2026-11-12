@@ -7,7 +7,6 @@ export class PlainBonus implements ModifierHandler {
 
   handles(modifier: RuleModifier): boolean {
     if (modifier.type !== "bonus") return false;
-    if (modifier.value === null) return false;
     if (!Number.isInteger(modifier.value)) return false;
     return this.subTypes.includes(modifier.subType.text);
   }

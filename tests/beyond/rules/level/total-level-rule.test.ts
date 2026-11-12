@@ -24,6 +24,11 @@ describe("TotalLevelRule", () => {
     expect(numberNamed(character, "Total level").isKnown).toBe(known);
   });
 
+  it("says a class level over 20 is the problem, not the total", () => {
+    const character = madeUpRuleCharacter({ classes: [classOf("Fighter", 21, 10)] });
+    expect(numberNamed(character, "Total level").explanation).toBe("A class level has to be a whole number from 1 to 20.");
+  });
+
   it("knows twenty levels in all across classes", () => {
     const character = madeUpRuleCharacter({ classes: [classOf("Fighter", 12, 10), classOf("Wizard", 8, 6)] });
     expect(numberNamed(character, "Total level").valueOr(-1)).toBe(20);
