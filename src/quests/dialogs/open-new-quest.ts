@@ -6,7 +6,7 @@ import { SessionChangeWriter } from "../../campaign/changes/session-change-write
 import { sessionLabelOf } from "../../campaign/paths/session-file";
 import { sessionForDialog } from "../../campaign/paths/session-for-dialog";
 import { latestSessionWanted } from "../../campaign/paths/session-to-write";
-import { writeRecordChange } from "../../campaign/changes/write-record-change";
+import { writeInSession } from "../../campaign/changes/write-in-session";
 import { NewQuestModal } from "./new-quest-modal";
 import type { NewQuest } from "../writing/new-quest";
 import { newQuest } from "../writing/new-quest-change";
@@ -24,7 +24,7 @@ export function openNewQuest(app: App, gate: Gate, store: CampaignStore, onClose
   if (sessionPath === null) return;
   const characters = charactersIn(gate, folder, sessionPath);
   const writer = new SessionChangeWriter(gate.files);
-  const add = async (entry: NewQuest) => writeRecordChange(newQuest(store, entry, characters, sessionPath), writer);
+  const add = async (entry: NewQuest) => writeInSession(gate.files, sessionPath, () => newQuest(store, entry, characters, sessionPath), writer);
   const names = characters.map((character) => character.name);
   new NewQuestModal(app, sessionLabelOf(sessionPath), names, add, onClosed).open();
 }

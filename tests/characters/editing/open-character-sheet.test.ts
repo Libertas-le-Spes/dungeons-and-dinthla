@@ -114,14 +114,14 @@ describe("sameSheetValue", () => {
 describe("saveSheetValue", () => {
   it("adds a learned value to the latest session, linked to the character", async () => {
     const { app, gate, store, notes, notesText } = setUp({ [MIRA.path]: "", [ONE]: "[[Mira]] AC: 15", [TWO]: "Notes\n" });
-    expect(await saveSheetValue(app, gate, store, notes, MIRA, acOf([LEARNED_15]), { state: "learned", value: "16" })).toBe(true);
+    expect(await saveSheetValue(app, gate, store, notes, MIRA, acOf([LEARNED_15]), { state: "learned", value: "16" }, null)).toBe(true);
     expect(notesText.get(TWO)).toBe("Notes\n[[Mira]] AC: 16\n");
   });
 
   it("marks a value not known in the latest session, so a value learned later still shows", async () => {
     const { app, gate, store, notes, notesText } = setUp({ [MIRA.path]: "AC: 16", [ONE]: "[[Mira]] AC: 15", [TWO]: "" });
     const opened = acOf([LEARNED_15], [{ name: "AC", value: "16", source: { path: MIRA.path, line: 0 } }]);
-    expect(await saveSheetValue(app, gate, store, notes, MIRA, opened, { state: "unknown", value: "" })).toBe(true);
+    expect(await saveSheetValue(app, gate, store, notes, MIRA, opened, { state: "unknown", value: "" }, null)).toBe(true);
     expect(notesText.get(TWO)).toBe("[[Mira]] AC: ?\n");
     expect(notesText.get(MIRA.path)).toBe("");
     let read = await readCharacterSheet(MIRA, store, notes);
@@ -134,31 +134,51 @@ describe("saveSheetValue", () => {
 
   it("writes nothing when the value changed since the dialog opened", async () => {
     const { app, gate, store, notes, notesText } = setUp({ [MIRA.path]: "AC: 18", [ONE]: "[[Mira]] AC: 15" });
-    await expect(saveSheetValue(app, gate, store, notes, MIRA, acOf([LEARNED_15]), { state: "override", value: "16" })).rejects.toThrow(CHANGED_IN_NOTE);
+    await expect(saveSheetValue(app, gate, store, notes, MIRA, acOf([LEARNED_15]), { state: "override", value: "16" }, null)).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notesText.get(MIRA.path)).toBe("AC: 18");
   });
 
   it("refuses a learned value for a character outside any campaign", async () => {
     const { app, gate, store, notes } = setUp({ [MIRA.path]: "" }, { folders: [] });
-    await expect(saveSheetValue(app, gate, store, notes, MIRA, acOf([]), { state: "learned", value: "16" })).rejects.toThrow(NO_SESSION);
+    await expect(saveSheetValue(app, gate, store, notes, MIRA, acOf([]), { state: "learned", value: "16" }, null)).rejects.toThrow(NO_SESSION);
   });
 
   it("refuses a learned value for a character outside any campaign as having no session to write in", async () => {
     const { app, gate, store, notes } = setUp({ [MIRA.path]: "" }, { folders: [] });
-    await expect(saveSheetValue(app, gate, store, notes, MIRA, acOf([]), { state: "learned", value: "16" })).rejects.toBeInstanceOf(NoSessionToWrite);
+    await expect(saveSheetValue(app, gate, store, notes, MIRA, acOf([]), { state: "learned", value: "16" }, null)).rejects.toBeInstanceOf(NoSessionToWrite);
   });
 
   it("refuses a learned value when the campaign has no session notes", async () => {
     const { app, gate, store, notes, notesText } = setUp({ [MIRA.path]: "" });
-    await expect(saveSheetValue(app, gate, store, notes, MIRA, acOf([]), { state: "learned", value: "16" })).rejects.toThrow(NO_SESSION);
+    await expect(saveSheetValue(app, gate, store, notes, MIRA, acOf([]), { state: "learned", value: "16" }, null)).rejects.toThrow(NO_SESSION);
     expect(notesText.get(MIRA.path)).toBe("");
   });
 
   it("refuses a learned value when two session notes share the latest number", async () => {
     const oneAgain = "Pale Moon/Sessions/Session 01.md";
     const { app, gate, store, notes, notesText } = setUp({ [MIRA.path]: "", [ONE]: "", [oneAgain]: "" }, { sessions: [ONE, oneAgain] });
-    await expect(saveSheetValue(app, gate, store, notes, MIRA, acOf([]), { state: "learned", value: "16" })).rejects.toThrow(SESSIONS_SHARE_A_NUMBER);
+    await expect(saveSheetValue(app, gate, store, notes, MIRA, acOf([]), { state: "learned", value: "16" }, null)).rejects.toThrow(SESSIONS_SHARE_A_NUMBER);
     expect([notesText.get(ONE), notesText.get(oneAgain)]).toEqual(["", ""]);
+  });
+});
+
+describe("saveSheetValue, with the session the dialog named", () => {
+  it("writes in the session the dialog named, not the latest", async () => {
+    const { app, gate, store, notes, notesText } = setUp({ [MIRA.path]: "", [ONE]: "Notes\n", [TWO]: "Later\n" });
+    expect(await saveSheetValue(app, gate, store, notes, MIRA, acOf([]), { state: "learned", value: "16" }, ONE)).toBe(true);
+    expect(notesText.get(ONE)).toBe("Notes\n[[Mira]] AC: 16\n");
+    expect(notesText.get(TWO)).toBe("Later\n");
+  });
+
+  it.each([
+    ["Learned at the table", { state: "learned", value: "16" }],
+    ["Not known yet", { state: "unknown", value: "" }],
+  ] as const)("refuses %s with the session gone words when the session's note is gone, writing nothing and not using another session", async (_name, choice) => {
+    const { app, gate, store, notes, notesText } = setUp({ [MIRA.path]: "AC: 16", [ONE]: "[[Mira]] AC: 15\n", [TWO]: "Later\n" });
+    const opened = acOf([LEARNED_15], [{ name: "AC", value: "16", source: { path: MIRA.path, line: 0 } }]);
+    notesText.delete(TWO);
+    await expect(saveSheetValue(app, gate, store, notes, MIRA, opened, choice, TWO)).rejects.toThrow("Session 2's note is gone, so nothing was written.");
+    expect([notesText.get(MIRA.path), notesText.get(ONE)]).toEqual(["AC: 16", "[[Mira]] AC: 15\n"]);
   });
 });
 

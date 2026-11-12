@@ -4,7 +4,7 @@ import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { SessionChangeWriter } from "../../campaign/changes/session-change-writer";
 import { sessionLabelOf } from "../../campaign/paths/session-file";
 import { sessionForDialog } from "../../campaign/paths/session-for-dialog";
-import { writeRecordChange } from "../../campaign/changes/write-record-change";
+import { writeInSession } from "../../campaign/changes/write-in-session";
 import { currentQuest, latestSessionOfQuest, SAME_TITLE, sharesTitleWithEarlierActiveQuest } from "../writing/current-quest";
 import { questSave } from "../writing/quest-change";
 import { QuestModal } from "./quest-modal";
@@ -42,7 +42,7 @@ export function openQuest(
   const writer = new SessionChangeWriter(gate.files);
   const latest = () => currentQuest(store.current.quests, record);
   const choices = {
-    save: async (edit: QuestEdit) => writeRecordChange(questSave(store, latest(), edit, sessionPath), writer),
+    save: async (edit: QuestEdit) => writeInSession(gate.files, sessionPath, () => questSave(store, latest(), edit, sessionPath), writer),
     delete: () => questWriter.delete(latest()),
   };
   let finishedIn = sessionLabelOf(sessionPath);

@@ -20,3 +20,16 @@ describe("the add coin dialog", () => {
     expect(campaign.texts.get(ONE)).toBe("We rode on.\n");
   });
 });
+
+describe("the add coin dialog, when the session it writes into is gone", () => {
+  it("refuses with the session gone words, writing nothing", async () => {
+    const campaign = new DialogCampaign({ [ONE]: "We rode on.\n", [TWO]: "We camped.\n" });
+    openAddCoin(app, campaign.gate, campaign.store, () => undefined, null);
+    campaign.texts.delete(TWO);
+    const written = readCoinDraft({ direction: "in", amount: "5 gp", what: "found" });
+    if ("error" in written) throw new Error(written.error);
+    await expect(lastDialog<{ save(line: CoinLine): Promise<boolean> }>().save(written)).rejects.toThrow("Session 2's note is gone, so nothing was written.");
+    expect(campaign.writes).toBe(0);
+    expect(campaign.texts.get(ONE)).toBe("We rode on.\n");
+  });
+});
