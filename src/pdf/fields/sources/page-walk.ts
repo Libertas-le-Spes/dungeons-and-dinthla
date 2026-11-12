@@ -4,8 +4,6 @@ import { MAX_PAGE_TREE_DEPTH } from "../../limits/pdf-limits";
 import { PdfRefusal } from "../../refusals/pdf-refusal";
 import { refuseKeys } from "../../refusals/refused-key";
 import type { PdfDictionary } from "../../values/pdf-dictionary";
-import type { FieldCollector } from "../field-collector";
-import type { FieldNodes } from "../field-nodes";
 import { ANNOTATION_KINDS } from "./annotation-kinds";
 import type { WidgetSink } from "./annotation-kind";
 import type { FieldSource } from "./field-source";
@@ -13,26 +11,17 @@ import type { FieldSource } from "./field-source";
 const BAD_PAGES = "The file's pages could not be read, so it was not read.";
 const BAD_ANNOTATION = "A page holds something that is not a plain object, so the file was not read.";
 
-export class PageWidgetSource implements FieldSource, WidgetSink {
+export class PageWalk implements FieldSource {
   private readonly visitedPages = new Set<number>();
-  private readonly recordedFields = new Set<number>();
 
   constructor(
     private readonly catalog: PdfDictionary,
     private readonly store: ObjectStore,
-    private readonly nodes: FieldNodes,
-    private readonly collector: FieldCollector,
+    private readonly widgets: WidgetSink,
   ) {}
 
   collect(): void {
     this.walk(this.store.indirectDictionary(this.catalog.get("Pages"), BAD_PAGES), 1);
-  }
-
-  widget(annotation: IndirectDictionary): void {
-    const field = this.nodes.climbed(annotation, 1).nearestNamed();
-    if (field === null || this.recordedFields.has(field.number)) return;
-    this.recordedFields.add(field.number);
-    this.collector.record(field);
   }
 
   private walk(node: IndirectDictionary, depth: number): void {
@@ -61,7 +50,7 @@ export class PageWidgetSource implements FieldSource, WidgetSink {
     const subtype = this.store.resolve(annotation.dictionary.get("Subtype")).asName();
     for (const kind of ANNOTATION_KINDS) {
       if (kind.handles(subtype)) {
-        kind.handle(annotation, subtype, this);
+        kind.handle(annotation, subtype, this.widgets);
         return;
       }
     }

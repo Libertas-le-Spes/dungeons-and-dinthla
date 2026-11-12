@@ -137,10 +137,25 @@ describe("what refuses the whole file, in the form and on the pages", () => {
     expect(await refusalOf(classicPdf(writer))).toContain("not a form field");
   });
 
-  it("a link on a page that the form's field list does not lead to, because that page is not read", async () => {
+  it("a page with additional actions, in a file that has a form too", async () => {
+    const bytes = new FormDocument({ acroForm: true, pageExtra: "/AA << /O << /S /JavaScript /JS (x) >> >>" }).text("Primary Name", literal("Aria")).classic();
+    expect(await refusalOf(bytes)).toContain("runs actions when a page opens");
+  });
+
+  it.each([
+    ["a link with a web address", "/Subtype /Link /A << /S /URI /URI (http://example.test) >>", "not a form field"],
+    ["a file attachment", "/Subtype /FileAttachment", "carries files inside it"],
+    ["a link with a script", "/Subtype /Link /A << /S /JavaScript /JS (x) >>", "not a form field"],
+  ])("%s, in a file that has a form too", async (_what, entries, words) => {
     const doc = new FormDocument({ acroForm: true, extraAnnotations: [30] }).text("Primary Name", literal("Aria"));
     const writer = doc.writer();
-    writer.set(30, "<< /Type /Annot /Subtype /Link /Rect [0 0 1 1] /A << /S /URI /URI (http://example.test) >> >>");
-    expect(await fieldsOf(classicPdf(writer))).toEqual({ "Primary Name": "Aria" });
+    writer.set(30, `<< /Type /Annot /Rect [0 0 1 1] ${entries} >>`);
+    expect(await refusalOf(classicPdf(writer))).toContain(words);
+  });
+
+  it("a form in a file whose catalogue has no pages", async () => {
+    const writer = new FormDocument({ acroForm: true }).text("Primary Name", literal("Aria")).writer();
+    writer.set(1, "<< /Type /Catalog /AcroForm << /Fields [10 0 R] >> >>");
+    expect(await refusalOf(classicPdf(writer))).toContain("pages could not be read");
   });
 });

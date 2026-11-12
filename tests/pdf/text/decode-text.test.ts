@@ -69,8 +69,20 @@ describe("decodeText in UTF-16", () => {
     expect(decodeText(utf16("😀"))).toBe("😀");
   });
 
-  it("keeps a control character, because this reader returns the text raw", () => {
-    expect(decodeText(utf16("a\u0000b"))).toBe("a\u0000b");
+  it("keeps a tab, a line feed and a carriage return", () => {
+    expect(decodeText(utf16("a\t\n\rb"))).toBe("a\t\n\rb");
+  });
+
+  it.each([0x00, 0x01, 0x08, 0x0b, 0x0c, 0x1b, 0x1f, 0x7f, 0x80, 0x85, 0x9f, 0xfdd0, 0xfdef, 0xfffe, 0xffff])("refuses the unit %s, which PDFDocEncoding would refuse too", (unit) => {
+    expect(refusalFrom(() => decodeText(utf16(`a${String.fromCharCode(unit)}b`)))).toContain("text that is not written the way PDF writes it");
+  });
+
+  it.each([0x20, 0x7e, 0xa0, 0xfdcf, 0xfdf0, 0xfffd, 0x4e2d])("keeps the unit %s", (unit) => {
+    expect(decodeText(utf16(String.fromCharCode(unit)))).toBe(String.fromCharCode(unit));
+  });
+
+  it("refuses a string that starts with the little-endian byte order mark", () => {
+    expect(refusalFrom(() => decodeText(bytes(0xff, 0xfe, 0x41, 0x00)))).toContain("text that is not written the way PDF writes it");
   });
 
   it("refuses text that stops in the middle of a unit", () => {

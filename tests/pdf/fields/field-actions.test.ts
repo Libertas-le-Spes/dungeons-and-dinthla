@@ -17,14 +17,8 @@ function documentWithField(extra: string, more: Record<number, string> = {}): Bu
   return treeDocument({ objects: { 10: fieldWith(extra), ...more }, annotations: [10] });
 }
 
-const REFUSED_ACTIONS = [
-  ["Launch", "another program"],
-  ["URI", "web address"],
-  ["SubmitForm", "send its form somewhere"],
-  ["ImportData", "pull in data"],
-  ["GoToR", "open another file"],
-  ["GoToE", "open an embedded file"],
-];
+const NOT_A_SCRIPT = "an action that is not a script";
+const REFUSED_ACTIONS = ["Launch", "URI", "SubmitForm", "ImportData", "GoToR", "GoToE", "Rendition", "GoTo3DView", "Movie", "Sound", "Named", "ResetForm", "Hide", "GoTo", "SetOCGState", "javascript", "JavaScript2"];
 
 describe("a field's own script", () => {
   it("is read past, and the value is read", async () => {
@@ -69,38 +63,30 @@ describe("a field's own script", () => {
     expect(await fieldsOf(bytes)).toEqual({ Top: "x" });
   });
 
-  it("is read past when the action has no kind", async () => {
-    expect(await fieldsOf(documentWithField("/A << /JS (x) >>"))).toEqual({ "Primary Name": "Aria" });
-  });
-
-  it.each(["Named", "ResetForm", "Hide", "GoTo", "SetOCGState"])("is read past for an action of the kind %s, which this reader does not list as refused", async (kind) => {
-    expect(await fieldsOf(documentWithField(`/A << /S /${kind} >>`))).toEqual({ "Primary Name": "Aria" });
-  });
-
   it("is read past when a trigger is null", async () => {
     expect(await fieldsOf(documentWithField("/AA << /K null >> /A null"))).toEqual({ "Primary Name": "Aria" });
   });
 });
 
 describe("a field's own action that does something else", () => {
-  it.each(REFUSED_ACTIONS)("refuses the file for a %s action in /A", async (kind, words) => {
-    expect(await refusalOf(documentWithField(`/A << /S /${kind} >>`))).toContain(words);
+  it.each(REFUSED_ACTIONS)("refuses the file for a %s action in /A", async (kind) => {
+    expect(await refusalOf(documentWithField(`/A << /S /${kind} >>`))).toContain(NOT_A_SCRIPT);
   });
 
-  it.each(REFUSED_ACTIONS)("refuses the file for a %s action in a trigger", async (kind, words) => {
-    expect(await refusalOf(documentWithField(`/AA << /K ${SCRIPT} /E << /S /${kind} >> >>`))).toContain(words);
+  it.each(REFUSED_ACTIONS)("refuses the file for a %s action in a trigger", async (kind) => {
+    expect(await refusalOf(documentWithField(`/AA << /K ${SCRIPT} /E << /S /${kind} >> >>`))).toContain(NOT_A_SCRIPT);
   });
 
-  it.each(REFUSED_ACTIONS)("refuses the file for a %s action that is an object of its own", async (kind, words) => {
-    expect(await refusalOf(documentWithField("/A 30 0 R", { 30: `<< /S /${kind} >>` }))).toContain(words);
+  it.each(REFUSED_ACTIONS)("refuses the file for a %s action that is an object of its own", async (kind) => {
+    expect(await refusalOf(documentWithField("/A 30 0 R", { 30: `<< /S /${kind} >>` }))).toContain(NOT_A_SCRIPT);
   });
 
-  it.each(REFUSED_ACTIONS)("refuses the file for a %s action that follows a script", async (kind, words) => {
-    expect(await refusalOf(documentWithField(`/A << /S /JavaScript /JS (x) /Next << /S /${kind} >> >>`))).toContain(words);
+  it.each(REFUSED_ACTIONS)("refuses the file for a %s action that follows a script", async (kind) => {
+    expect(await refusalOf(documentWithField(`/A << /S /JavaScript /JS (x) /Next << /S /${kind} >> >>`))).toContain(NOT_A_SCRIPT);
   });
 
   it("refuses the file for a refused action in a list that follows a script", async () => {
-    expect(await refusalOf(documentWithField(`/A << /S /JavaScript /JS (x) /Next [${SCRIPT} << /S /Launch >>] >>`))).toContain("another program");
+    expect(await refusalOf(documentWithField(`/A << /S /JavaScript /JS (x) /Next [${SCRIPT} << /S /Launch >>] >>`))).toContain(NOT_A_SCRIPT);
   });
 
   it("refuses the file for a refused action on a parent field", async () => {
@@ -108,7 +94,7 @@ describe("a field's own action that does something else", () => {
       objects: { 10: "<< /T (Top) /A << /S /URI >> /Kids [11 0 R] >>", 11: fieldWith("/Parent 10 0 R") },
       annotations: [11],
     });
-    expect(await refusalOf(bytes)).toContain("web address");
+    expect(await refusalOf(bytes)).toContain(NOT_A_SCRIPT);
   });
 
   it("refuses the file for a refused action on a widget kid of a field in the form", async () => {
@@ -116,7 +102,7 @@ describe("a field's own action that does something else", () => {
       objects: { 10: "<< /T (Top) /FT /Tx /V (x) /Kids [11 0 R] >>", 11: `<< ${WIDGET} /A << /S /SubmitForm >> >>` },
       formFields: [10],
     });
-    expect(await refusalOf(bytes)).toContain("send its form somewhere");
+    expect(await refusalOf(bytes)).toContain(NOT_A_SCRIPT);
   });
 
   it("refuses the file for a refused action on an unnamed widget kid beside a named field kid", async () => {
@@ -124,17 +110,37 @@ describe("a field's own action that does something else", () => {
       objects: { 10: "<< /T (Top) /Kids [11 0 R 12 0 R] >>", 11: `<< ${WIDGET} /FT /Tx /T (Leaf) /V (x) >>`, 12: `<< ${WIDGET} /A << /S /Launch >> >>` },
       formFields: [10],
     });
-    expect(await refusalOf(bytes)).toContain("another program");
+    expect(await refusalOf(bytes)).toContain(NOT_A_SCRIPT);
   });
 
   it("refuses the file for a refused action on a field that has no value", async () => {
     const bytes = treeDocument({ objects: { 10: `<< ${WIDGET} /FT /Tx /T (Empty) /A << /S /Launch >> >>` }, annotations: [10] });
-    expect(await refusalOf(bytes)).toContain("another program");
+    expect(await refusalOf(bytes)).toContain(NOT_A_SCRIPT);
   });
 
   it("refuses the file for a refused action on a field of a kind the reader leaves out", async () => {
     const bytes = treeDocument({ objects: { 10: `<< ${WIDGET} /FT /Sig /T (Signature) /A << /S /Launch >> >>` }, annotations: [10] });
-    expect(await refusalOf(bytes)).toContain("another program");
+    expect(await refusalOf(bytes)).toContain(NOT_A_SCRIPT);
+  });
+
+  it.each(["/A << >>", "/A << /S (JavaScript) >>", "/A << /S 5 >>", "/A << /S [/JavaScript] >>", "/A << /S null >>"])("refuses the file for a script that is not named as one, written %s", async (extra) => {
+    expect(await refusalOf(documentWithField(extra))).toContain(NOT_A_SCRIPT);
+  });
+
+  it("refuses the file for an action that has only a web address", async () => {
+    expect(await refusalOf(documentWithField("/A << /URI (http://example.test) >>"))).toContain("web address");
+  });
+
+  it("refuses the file for a script that also names a web address", async () => {
+    expect(await refusalOf(documentWithField("/A << /S /JavaScript /JS (x) /URI (http://example.test) >>"))).toContain("web address");
+  });
+
+  it("refuses the file for a web address on an action that follows a script", async () => {
+    expect(await refusalOf(documentWithField("/A << /S /JavaScript /JS (x) /Next << /S /JavaScript /URI (u) >> >>"))).toContain("web address");
+  });
+
+  it("refuses the file for an action with no kind that follows a script", async () => {
+    expect(await refusalOf(documentWithField("/A << /S /JavaScript /Next << /JS (x) >> >>"))).toContain(NOT_A_SCRIPT);
   });
 
   it.each(["/A 5", "/A [1]", "/A (x)", "/AA 5", "/AA [1]", "/AA << /K 5 >>"])("refuses the file for the action entry %s, which the reader can't make sense of", async (extra) => {
@@ -166,7 +172,7 @@ describe("a chain of actions", () => {
   });
 
   it("is followed to its end, where a refused action is found", async () => {
-    expect(await refusalOf(chainOfActions(MAX_NESTING + 1, "Launch"))).toContain("another program");
+    expect(await refusalOf(chainOfActions(MAX_NESTING + 1, "Launch"))).toContain(NOT_A_SCRIPT);
   });
 
   it("is not followed round a circle for ever", async () => {

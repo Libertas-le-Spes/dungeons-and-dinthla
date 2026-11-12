@@ -1,3 +1,4 @@
+import { isForbiddenUnit } from "./forbidden-characters";
 import { unreadableText } from "./unreadable-text";
 
 const HIGH_START = 0xd800;
@@ -17,6 +18,7 @@ export function utf16TextOf(units: number[]): string {
   let text = "";
   let waitingFor: number | null = null;
   for (const unit of units) {
+    if (isForbiddenUnit(unit)) throw unreadableText();
     if (waitingFor !== null && !isLowSurrogate(unit)) throw unreadableText();
     if (waitingFor === null && isLowSurrogate(unit)) throw unreadableText();
     if (isHighSurrogate(unit)) waitingFor = unit;

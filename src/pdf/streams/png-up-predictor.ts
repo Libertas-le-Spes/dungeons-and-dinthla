@@ -1,3 +1,4 @@
+import { dataViewOf } from "../bytes/data-view-of";
 import { PdfRefusal } from "../refusals/pdf-refusal";
 import type { WorkBudget } from "../work/work-budget";
 
@@ -14,8 +15,8 @@ export function undoUpPredictor(packed: Uint8Array, columns: number, work: WorkB
   if (columns < 1 || packed.byteLength % rowSize !== 0) throw new PdfRefusal(BAD_ROWS);
   const rows = packed.byteLength / rowSize;
   const unrolled = new Uint8Array(rows * columns);
-  const input = new DataView(packed.buffer, packed.byteOffset, packed.byteLength);
-  const output = new DataView(unrolled.buffer, unrolled.byteOffset, unrolled.byteLength);
+  const input = dataViewOf(packed);
+  const output = dataViewOf(unrolled);
   for (let row = 0; row < rows; row += 1) {
     if (input.getUint8(row * rowSize) !== UP_TAG) throw new PdfRefusal(BAD_ROWS);
     for (let column = 0; column < columns; column += 1) {
