@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 import type { CachedMetadata, TFile } from "obsidian";
-import { HALF_MADE_AFTER_MS } from "../../src/kind-notes/keeping/kind-note-keeper";
+import { HALF_MADE_AFTER_MS } from "../../src/kind-notes/keeping/half-made-note";
 import { wordsOf } from "../../src/note-keeping/note-words";
 import { fileAt, nameOf, type Properties } from "../stubs/note-files";
 import { getFrontMatterInfo } from "../stubs/obsidian";

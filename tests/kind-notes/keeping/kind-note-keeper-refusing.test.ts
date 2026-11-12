@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { HALF_MADE_AFTER_MS } from "../../../src/kind-notes/keeping/kind-note-keeper";
+import { HALF_MADE_AFTER_MS } from "../../../src/kind-notes/keeping/half-made-note";
 import { FakeNotes } from "../fake-notes";
 import { keeperWith, QUESTIONS, SESSION, settled, wanted } from "../keeper-setup";
 
