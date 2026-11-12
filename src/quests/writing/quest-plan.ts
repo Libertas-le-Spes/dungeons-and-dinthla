@@ -1,9 +1,10 @@
 import { applySessionChange } from "../../campaign/changes/apply-session-change";
 import { buildCampaign } from "../../campaign/reading/build-campaign";
 import type { Campaign, CoinRecord, QuestRecord, QuestStatus, SessionNote } from "../../campaign/record/campaign";
-import type { Removal } from "../../campaign/writing/note-editor";
+import { WOULD_BE_HIDDEN, type Removal } from "../../campaign/writing/note-editor";
 import { questThreadKind } from "../../campaign/threads/quest-thread-kind";
 import { endingRemoval } from "../../campaign/threads/thread-removal";
+import { addedLinesHidden } from "../../notes/reading/hidden-lines";
 import { readLedgerEntry } from "../../notes/reading/ledger";
 import { followUpQuestLine, isCoinReward, outcomeLine, progressLine, questTextOf, rewardLine } from "../../notes/writing/quest-lines";
 import { readMarker } from "../../notes/reading/marker";
@@ -33,6 +34,8 @@ export interface QuestPlan {
   rewardCopper: number;
   followUpTitle: string | null;
 }
+
+export const FOLLOW_UP_TITLE_TAKEN = "A quest already has the same title as that follow-up, so changes would be mixed up between them. Reword it.";
 
 export const CHANGES_ANOTHER_QUEST =
   "That change wouldn't be read as asked, or would change another quest or the purse beyond the reward, so nothing was written.";
@@ -141,10 +144,28 @@ function questsBesidesFollowUp(campaign: Campaign, plan: QuestPlan): QuestRecord
   return quests;
 }
 
+function followUpTitleRefusal(before: Campaign, plan: QuestPlan): string | null {
+  if (plan.followUpTitle === null) return null;
+  if (before.quests.some((quest) => quest.quest.title === plan.followUpTitle)) return FOLLOW_UP_TITLE_TAKEN;
+  return null;
+}
+
+function hiddenRefusal(changed: SessionNote[], plan: QuestPlan): string | null {
+  const target = changed.find((session) => session.path === plan.targetPath);
+  if (target === undefined) return null;
+  if (addedLinesHidden(target.text, plan.added.length)) return WOULD_BE_HIDDEN;
+  return null;
+}
+
 export function refusalForQuestPlan(sessions: SessionNote[], record: QuestRecord, plan: QuestPlan): string | null {
   if (!sessions.some((session) => session.path === plan.targetPath)) return CHANGES_ANOTHER_QUEST;
   const before = buildCampaign(sessions);
-  const after = buildCampaign(applySessionChange(sessions, questSessionChange(plan)).sessions);
+  const changed = applySessionChange(sessions, questSessionChange(plan)).sessions;
+  const after = buildCampaign(changed);
+  const titleRefused = followUpTitleRefusal(before, plan);
+  if (titleRefused !== null) return titleRefused;
+  const hiddenRefused = hiddenRefusal(changed, plan);
+  if (hiddenRefused !== null) return hiddenRefused;
   const wanted = before.quests.map((quest) => {
     const isOpened = quest.source.path === record.source.path && quest.source.line === record.source.line;
     if (isOpened) return expectedSignature(record, plan.expected);
