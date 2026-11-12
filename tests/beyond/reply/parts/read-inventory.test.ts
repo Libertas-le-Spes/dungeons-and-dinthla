@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { inventoryOf } from "../../../../src/beyond/reply/parts/read-inventory";
 import { MadeUpReply } from "../../builders/made-up-reply";
+import { firstOf } from "../../builders/first-of";
 
 function item(name: unknown, quantity: unknown): object {
   return { quantity, definition: { name } };
@@ -13,7 +14,7 @@ function manyItems(count: number): object[] {
 describe("inventoryOf", () => {
   it("reads each item's name and count with the working", () => {
     const found = inventoryOf(MadeUpReply.levelOneMonk().reader());
-    expect(found.map((entry) => entry.name)).toEqual(["Quarterstaff", "Rope", "Torch"]);
+    expect(found.map((entry) => entry.name.text)).toEqual(["Quarterstaff", "Rope", "Torch"]);
     expect(found.map((entry) => entry.count.valueOr(0))).toEqual([1, 50, 3]);
     expect(found.map((entry) => entry.count.explanation)).toEqual(["Quantity: 1", "Quantity: 50", "Quantity: 3"]);
   });
@@ -48,8 +49,8 @@ describe("inventoryOf", () => {
     expect(() => inventoryOf(MadeUpReply.levelOneMonk().with(["inventory"], ["Rope"]).reader())).toThrow("is missing");
   });
 
-  it("makes an item name inert for a note", () => {
-    expect(inventoryOf(MadeUpReply.levelOneMonk().with(["inventory"], [item("[[Rope]]", 1)]).reader()).map((entry) => entry.name)).toEqual(["\\[\\[Rope\\]\\]"]);
+  it("keeps the characters a note would escape in an item name, for the file name", () => {
+    expect(inventoryOf(MadeUpReply.levelOneMonk().with(["inventory"], [item("[[Rope]]", 1)]).reader()).map((entry) => entry.name.text)).toEqual(["[[Rope]]"]);
   });
 
   it("refuses an item name over the name cap", () => {
@@ -57,24 +58,24 @@ describe("inventoryOf", () => {
   });
 
   it("marks only the count not known when the quantity is missing", () => {
-    const [rope] = inventoryOf(MadeUpReply.levelOneMonk().with(["inventory"], [{ definition: { name: "Rope" } }]).reader());
-    expect(rope?.name).toBe("Rope");
+    const rope = firstOf(inventoryOf(MadeUpReply.levelOneMonk().with(["inventory"], [{ definition: { name: "Rope" } }]).reader()));
+    expect(rope?.name.text).toBe("Rope");
     expect(rope?.count.isKnown).toBe(false);
     expect(rope?.count.explanation).toBe("An item count is missing or is not a number.");
   });
 
   it.each(["3", null, true, [3], 2.5, -1, 10_000, Infinity])("marks the quantity %j not known", (quantity) => {
-    const [rope] = inventoryOf(MadeUpReply.levelOneMonk().with(["inventory"], [item("Rope", quantity)]).reader());
+    const rope = firstOf(inventoryOf(MadeUpReply.levelOneMonk().with(["inventory"], [item("Rope", quantity)]).reader()));
     expect(rope?.count.isKnown).toBe(false);
   });
 
   it.each([0, 9_999])("takes the quantity %i at the edge of the range", (quantity) => {
-    const [rope] = inventoryOf(MadeUpReply.levelOneMonk().with(["inventory"], [item("Rope", quantity)]).reader());
+    const rope = firstOf(inventoryOf(MadeUpReply.levelOneMonk().with(["inventory"], [item("Rope", quantity)]).reader()));
     expect(rope?.count.valueOr(-1)).toBe(quantity);
   });
 
   it("ignores fields it does not read", () => {
-    const [rope] = inventoryOf(MadeUpReply.levelOneMonk().with(["inventory"], [{ quantity: 1, definition: { name: "Rope", weight: 10 }, equipped: true }]).reader());
-    expect(rope).toEqual({ name: "Rope", count: rope?.count });
+    const rope = firstOf(inventoryOf(MadeUpReply.levelOneMonk().with(["inventory"], [{ quantity: 1, definition: { name: "Rope", weight: 10 }, equipped: true }]).reader()));
+    expect(Object.keys(rope)).toEqual(["name", "count"]);
   });
 });

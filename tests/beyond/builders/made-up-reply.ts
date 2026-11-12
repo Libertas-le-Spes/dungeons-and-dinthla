@@ -1,46 +1,10 @@
 import { JsonReader } from "../../../src/beyond/reply/json/json-reader";
+import { madeUpData } from "./made-up-data";
+import type { Node } from "./made-up-data";
+
+export { BACKSTORY_MARKER, TRAIT_MARKER } from "./made-up-data";
 
 export type Step = string | number;
-
-type Node = Record<string, unknown>;
-
-export const BACKSTORY_MARKER = "Mira grew up beneath the Pale Moon";
-export const TRAIT_MARKER = "Primary is always calm";
-
-const SIX = [1, 2, 3, 4, 5, 6];
-
-function scoreList(value: number | null): Node[] {
-  return SIX.map((id) => ({ id, value }));
-}
-
-function madeUpData(): Node {
-  return {
-    id: 4242,
-    name: "Primary Monk",
-    race: { fullName: "Human" },
-    classes: [{ level: 1, definition: { name: "Monk" } }],
-    stats: scoreList(10),
-    bonusStats: scoreList(null),
-    overrideStats: scoreList(null),
-    baseHitPoints: 12,
-    bonusHitPoints: null,
-    overrideHitPoints: null,
-    removedHitPoints: 0,
-    temporaryHitPoints: 0,
-    inventory: [
-      { quantity: 1, definition: { name: "Quarterstaff" } },
-      { quantity: 50, definition: { name: "Rope" } },
-      { quantity: 3, definition: { name: "Torch" } },
-    ],
-    currencies: { cp: 5, sp: 4, ep: 0, gp: 15, pp: 1 },
-    spells: { race: null, class: null, background: null, item: [{ definition: { name: "Light" } }], feat: null },
-    classSpells: [{ spells: [{ definition: { name: "Mage Hand" } }] }],
-    feats: [{ definition: { name: "Alert" } }],
-    modifiers: { race: [], class: [], background: [], item: [], feat: [], condition: [] },
-    notes: { backstory: BACKSTORY_MARKER, allies: "Secondary Monk", enemies: "", organizations: "", otherHoldings: "", otherNotes: "", personalPossessions: "" },
-    traits: { personalityTraits: TRAIT_MARKER },
-  };
-}
 
 interface Place {
   readonly parent: Node;
@@ -54,7 +18,7 @@ function placeAt(root: Node, path: readonly Step[]): Place {
   for (const step of path) {
     remaining -= 1;
     if (remaining === 0) key = step;
-    else parent = Reflect.get(parent, step) as Node;
+    else parent = Reflect.get(parent, step);
   }
   return { parent, key };
 }

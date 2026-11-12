@@ -1,4 +1,4 @@
-import { Refusal } from "../shape/refusal";
+import { Refusal } from "../../shape/refusal";
 
 export function notJson(): Refusal {
   return new Refusal("The reply is not valid JSON.");

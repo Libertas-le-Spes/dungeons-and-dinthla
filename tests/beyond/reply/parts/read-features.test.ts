@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { featuresOf } from "../../../../src/beyond/reply/parts/read-features";
+import type { CleanLine } from "../../../../src/beyond/text/clean-line";
 import { MadeUpReply } from "../../builders/made-up-reply";
+
+function textsOf(lines: readonly CleanLine[]): string[] {
+  return lines.map((line) => line.text);
+}
 
 function feat(name: unknown): object {
   return { definition: { name } };
@@ -8,7 +13,7 @@ function feat(name: unknown): object {
 
 describe("featuresOf", () => {
   it("reads the name of each feat", () => {
-    expect(featuresOf(MadeUpReply.levelOneMonk().with(["feats"], [feat("Alert"), feat("Tough")]).reader())).toEqual(["Alert", "Tough"]);
+    expect(textsOf(featuresOf(MadeUpReply.levelOneMonk().with(["feats"], [feat("Alert"), feat("Tough")]).reader()))).toEqual(["Alert", "Tough"]);
   });
 
   it("reads no feats", () => {
@@ -28,8 +33,8 @@ describe("featuresOf", () => {
     expect(() => featuresOf(MadeUpReply.levelOneMonk().with(["feats"], [feat(3)]).reader())).toThrow("not text");
   });
 
-  it("makes a feat name inert for a note", () => {
-    expect(featuresOf(MadeUpReply.levelOneMonk().with(["feats"], [feat("# Alert")]).reader())).toEqual(["\\# Alert"]);
+  it("keeps the characters a note would escape in a feat name, for the file name", () => {
+    expect(textsOf(featuresOf(MadeUpReply.levelOneMonk().with(["feats"], [feat("# Alert")]).reader()))).toEqual(["# Alert"]);
   });
 
   it("takes 500 feats and refuses 501", () => {

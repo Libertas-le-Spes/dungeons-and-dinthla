@@ -18,6 +18,7 @@ export const FEATURE_COUNT: Cap = { what: "The list of features", most: 500, uni
 export const SCORE: NumberRange = { what: "An ability score", lowest: 1, highest: 30 };
 export const ARMOUR_CLASS: NumberRange = { what: "Armor class", lowest: 0, highest: 40 };
 export const HIT_POINTS: NumberRange = { what: "Hit points", lowest: 0, highest: 9_999 };
+export const MAX_HIT_POINTS: NumberRange = { what: "Maximum hit points", lowest: 1, highest: 9_999 };
 export const CLASS_LEVEL: NumberRange = { what: "A class level", lowest: 1, highest: 20 };
 export const TOTAL_LEVEL: NumberRange = { what: "The total level", lowest: 1, highest: 40 };
 export const SPEED: NumberRange = { what: "Speed", lowest: 0, highest: 500 };
