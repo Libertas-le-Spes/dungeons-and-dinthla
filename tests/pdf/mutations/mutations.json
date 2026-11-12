@@ -1,0 +1,2186 @@
+[
+ {
+  "id": "file size",
+  "file": "src/pdf/read-file-index.ts",
+  "find": "bytes.byteLength > MAX_FILE_BYTES",
+  "replace": "bytes.byteLength >= MAX_FILE_BYTES",
+  "group": "cap"
+ },
+ {
+  "id": "sections followed",
+  "file": "src/pdf/xref/xref-chain.ts",
+  "find": "seen.size >= MAX_XREF_SECTIONS",
+  "replace": "seen.size > MAX_XREF_SECTIONS",
+  "group": "cap"
+ },
+ {
+  "id": "xref entries",
+  "file": "src/pdf/xref/entries/cross-reference.ts",
+  "find": "this.seen > MAX_XREF_ENTRIES",
+  "replace": "this.seen >= MAX_XREF_ENTRIES",
+  "group": "cap"
+ },
+ {
+  "id": "objects parsed",
+  "file": "src/pdf/file/object-store.ts",
+  "find": "this.parsed > MAX_OBJECTS_PARSED",
+  "replace": "this.parsed >= MAX_OBJECTS_PARSED",
+  "group": "cap"
+ },
+ {
+  "id": "objects in one stream",
+  "file": "src/pdf/streams/object-stream-contents.ts",
+  "find": "count > MAX_OBJECTS_IN_STREAM",
+  "replace": "count >= MAX_OBJECTS_IN_STREAM",
+  "group": "cap"
+ },
+ {
+  "id": "nesting",
+  "file": "src/pdf/parsing/containers/nesting.ts",
+  "find": "level > MAX_NESTING",
+  "replace": "level >= MAX_NESTING",
+  "group": "cap"
+ },
+ {
+  "id": "field depth, parents",
+  "file": "src/pdf/fields/field-nodes.ts",
+  "find": "depth > MAX_FIELD_DEPTH",
+  "replace": "depth >= MAX_FIELD_DEPTH",
+  "group": "cap"
+ },
+ {
+  "id": "field depth, kids",
+  "file": "src/pdf/fields/sources/acro-form-source.ts",
+  "find": "depth > MAX_FIELD_DEPTH ||",
+  "replace": "depth >= MAX_FIELD_DEPTH ||",
+  "group": "cap"
+ },
+ {
+  "id": "page tree depth",
+  "file": "src/pdf/fields/sources/page-walk.ts",
+  "find": "depth > MAX_PAGE_TREE_DEPTH",
+  "replace": "depth >= MAX_PAGE_TREE_DEPTH",
+  "group": "cap"
+ },
+ {
+  "id": "fields read",
+  "file": "src/pdf/fields/field-collector.ts",
+  "find": "this.names.size >= MAX_FIELDS",
+  "replace": "this.names.size > MAX_FIELDS",
+  "group": "cap"
+ },
+ {
+  "id": "items in an array",
+  "file": "src/pdf/parsing/containers/array-reader.ts",
+  "find": "items.length >= MAX_ITEMS_IN_CONTAINER",
+  "replace": "items.length > MAX_ITEMS_IN_CONTAINER",
+  "group": "cap"
+ },
+ {
+  "id": "entries in a dictionary",
+  "file": "src/pdf/parsing/containers/dictionary-reader.ts",
+  "find": "entries.size >= MAX_ITEMS_IN_CONTAINER",
+  "replace": "entries.size > MAX_ITEMS_IN_CONTAINER",
+  "group": "cap"
+ },
+ {
+  "id": "one stream's bytes",
+  "file": "src/pdf/streams/inflate/bounded-inflater.ts",
+  "find": "if (unpacked > MAX_STREAM_BYTES) return true;",
+  "replace": "if (unpacked >= MAX_STREAM_BYTES) return true;",
+  "group": "cap"
+ },
+ {
+  "id": "ratio checked above",
+  "file": "src/pdf/streams/inflate/bounded-inflater.ts",
+  "find": "unpacked > RATIO_CHECKED_ABOVE_BYTES &&",
+  "replace": "unpacked >= RATIO_CHECKED_ABOVE_BYTES &&",
+  "group": "cap"
+ },
+ {
+  "id": "ratio",
+  "file": "src/pdf/streams/inflate/bounded-inflater.ts",
+  "find": "unpacked > MAX_RATIO * packed",
+  "replace": "unpacked >= MAX_RATIO * packed",
+  "group": "cap"
+ },
+ {
+  "id": "all streams' bytes",
+  "file": "src/pdf/streams/inflate/decompressed-totals.ts",
+  "find": "return this.total <= MAX_ALL_STREAM_BYTES;",
+  "replace": "return this.total < MAX_ALL_STREAM_BYTES;",
+  "group": "cap"
+ },
+ {
+  "id": "string bytes, literal",
+  "file": "src/pdf/parsing/strings/literal-string-reader.ts",
+  "find": "new ByteSink(MAX_STRING_BYTES, TOO_LONG)",
+  "replace": "new ByteSink(MAX_STRING_BYTES + 1, TOO_LONG)",
+  "group": "cap"
+ },
+ {
+  "id": "string bytes, hex",
+  "file": "src/pdf/parsing/strings/hex-string-reader.ts",
+  "find": "new ByteSink(MAX_STRING_BYTES, TOO_LONG)",
+  "replace": "new ByteSink(MAX_STRING_BYTES + 1, TOO_LONG)",
+  "group": "cap"
+ },
+ {
+  "id": "name bytes",
+  "file": "src/pdf/parsing/name-reader.ts",
+  "find": "new ByteSink(MAX_NAME_BYTES, TOO_LONG)",
+  "replace": "new ByteSink(MAX_NAME_BYTES + 1, TOO_LONG)",
+  "group": "cap"
+ },
+ {
+  "id": "sink capacity",
+  "file": "src/pdf/bytes/byte-sink.ts",
+  "find": "this.collected.length >= this.capacity",
+  "replace": "this.collected.length > this.capacity",
+  "group": "cap"
+ },
+ {
+  "id": "number characters, digits",
+  "file": "src/pdf/bytes/read-integer.ts",
+  "find": "count > MAX_NUMBER_CHARACTERS",
+  "replace": "count >= MAX_NUMBER_CHARACTERS",
+  "group": "cap"
+ },
+ {
+  "id": "number characters, token",
+  "file": "src/pdf/parsing/numbers/number-token.ts",
+  "find": "text.length >= MAX_NUMBER_CHARACTERS",
+  "replace": "text.length > MAX_NUMBER_CHARACTERS",
+  "group": "cap"
+ },
+ {
+  "id": "field text",
+  "file": "src/pdf/fields/field-text.ts",
+  "find": "text.length > MAX_FIELD_TEXT_CHARACTERS",
+  "replace": "text.length >= MAX_FIELD_TEXT_CHARACTERS",
+  "group": "cap"
+ },
+ {
+  "id": "time check every thousand steps",
+  "file": "src/pdf/work/work-budget.ts",
+  "find": "this.steps % STEPS_PER_TIME_CHECK === 0",
+  "replace": "this.steps % STEPS_PER_TIME_CHECK === 1",
+  "group": "cap"
+ },
+ {
+  "id": "work allowed",
+  "file": "src/pdf/work/work-budget.ts",
+  "find": "this.steps > this.allowedSteps",
+  "replace": "this.steps >= this.allowedSteps",
+  "group": "cap"
+ },
+ {
+  "id": "work allowed, extra",
+  "file": "src/pdf/work/work-budget.ts",
+  "find": "this.allowedSteps = WORK_EXTRA + WORK_PER_BYTE * inputBytes;",
+  "replace": "this.allowedSteps = WORK_PER_BYTE * inputBytes;",
+  "group": "cap"
+ },
+ {
+  "id": "work allowed, unpacked input",
+  "file": "src/pdf/work/work-budget.ts",
+  "find": "this.allowedSteps += WORK_PER_BYTE * bytes;",
+  "replace": "this.allowedSteps += 0;",
+  "group": "cap"
+ },
+ {
+  "id": "work raised after inflating",
+  "file": "src/pdf/streams/inflate/bounded-inflater.ts",
+  "find": "this.work.addInput(total);",
+  "replace": "",
+  "group": "cap"
+ },
+ {
+  "id": "entry width",
+  "file": "src/pdf/xref/stream/stream-row-layout.ts",
+  "find": "return width > MAX_ENTRY_FIELD_WIDTH;",
+  "replace": "return width >= MAX_ENTRY_FIELD_WIDTH;",
+  "group": "cap"
+ },
+ {
+  "id": "header window",
+  "file": "src/pdf/file/file-header.ts",
+  "find": "cursor.position() < window",
+  "replace": "cursor.position() <= window",
+  "group": "cap"
+ },
+ {
+  "id": "trailer window",
+  "file": "src/pdf/file/start-of-cross-reference.ts",
+  "find": "cursor.length() - TRAILER_WINDOW_BYTES",
+  "replace": "cursor.length() - TRAILER_WINDOW_BYTES - 1",
+  "group": "cap"
+ },
+ {
+  "id": "time checked while unpacking",
+  "file": "src/pdf/streams/inflate/bounded-inflater.ts",
+  "find": "this.work.checkTime();",
+  "replace": "",
+  "group": "cap"
+ },
+ {
+  "id": "one step charged for each object loaded",
+  "file": "src/pdf/file/object-store.ts",
+  "find": "    this.work.spend();\n    const entry",
+  "replace": "    const entry",
+  "group": "cap"
+ },
+ {
+  "id": "one step charged for each action",
+  "file": "src/pdf/fields/field-actions.ts",
+  "find": "this.store.chargeStep();",
+  "replace": "",
+  "group": "cap"
+ },
+ {
+  "id": "one step charged for each advance",
+  "file": "src/pdf/bytes/byte-cursor.ts",
+  "find": "    this.work.spend();\n    if (this.next < this.size)",
+  "replace": "    if (this.next < this.size)",
+  "group": "cap"
+ },
+ {
+  "id": "predictor charged",
+  "file": "src/pdf/streams/png-up-predictor.ts",
+  "find": "      work.spend();\n",
+  "replace": "",
+  "group": "cap"
+ },
+ {
+  "id": "unpacked bytes counted by chunk",
+  "file": "src/pdf/streams/inflate/bounded-inflater.ts",
+  "find": "total += chunk.byteLength;",
+  "replace": "total = chunk.byteLength;",
+  "group": "cap"
+ },
+ {
+  "id": "unpacked bytes counted for the file",
+  "file": "src/pdf/streams/inflate/bounded-inflater.ts",
+  "find": "|| !this.totals.add(chunk.byteLength)",
+  "replace": "",
+  "group": "cap"
+ },
+ {
+  "id": "cancel called",
+  "file": "src/pdf/streams/inflate/bounded-inflater.ts",
+  "find": "        await chunks.cancel();\n",
+  "replace": "",
+  "group": "cap"
+ },
+ {
+  "id": "nothing read after the limit",
+  "file": "src/pdf/streams/inflate/bounded-inflater.ts",
+  "find": "        throw new PdfRefusal(TOO_BIG);\n      }\n",
+  "replace": "      }\n",
+  "group": "cap"
+ },
+ {
+  "id": "platform failure refused",
+  "file": "src/pdf/streams/inflate/bounded-inflater.ts",
+  "find": "      throw new PdfRefusal(BROKEN);",
+  "replace": "      throw new Error(\"x\");",
+  "group": "cap"
+ },
+ {
+  "id": "Encrypt",
+  "file": "src/pdf/xref/trailer-keys.ts",
+  "find": "new RefusedKey(\"Encrypt\"",
+  "replace": "new RefusedKey(\"NeverThere\"",
+  "group": "refusal"
+ },
+ {
+  "id": "XRefStm",
+  "file": "src/pdf/xref/trailer-keys.ts",
+  "find": "new RefusedKey(\"XRefStm\"",
+  "replace": "new RefusedKey(\"NeverThere\"",
+  "group": "refusal"
+ },
+ {
+  "id": "OpenAction",
+  "file": "src/pdf/document/refused-entries.ts",
+  "find": "new RefusedKey(\"OpenAction\"",
+  "replace": "new RefusedKey(\"NeverThere\"",
+  "group": "refusal"
+ },
+ {
+  "id": "AF",
+  "file": "src/pdf/document/refused-entries.ts",
+  "find": "new RefusedKey(\"AF\"",
+  "replace": "new RefusedKey(\"NeverThere\"",
+  "group": "refusal"
+ },
+ {
+  "id": "names JavaScript",
+  "file": "src/pdf/document/refused-entries.ts",
+  "find": "new RefusedKey(\"JavaScript\"",
+  "replace": "new RefusedKey(\"NeverThere\"",
+  "group": "refusal"
+ },
+ {
+  "id": "names EmbeddedFiles",
+  "file": "src/pdf/document/refused-entries.ts",
+  "find": "new RefusedKey(\"EmbeddedFiles\"",
+  "replace": "new RefusedKey(\"NeverThere\"",
+  "group": "refusal"
+ },
+ {
+  "id": "XFA",
+  "file": "src/pdf/document/refused-entries.ts",
+  "find": "new RefusedKey(\"XFA\"",
+  "replace": "new RefusedKey(\"NeverThere\"",
+  "group": "refusal"
+ },
+ {
+  "id": "annotation kind FileAttachment",
+  "file": "src/pdf/document/refused-entries.ts",
+  "find": "new RefusedName(\"FileAttachment\"",
+  "replace": "new RefusedName(\"NeverThere\"",
+  "group": "refusal"
+ },
+ {
+  "id": "annotation kind RichMedia",
+  "file": "src/pdf/document/refused-entries.ts",
+  "find": "new RefusedName(\"RichMedia\"",
+  "replace": "new RefusedName(\"NeverThere\"",
+  "group": "refusal"
+ },
+ {
+  "id": "annotation kind Screen",
+  "file": "src/pdf/document/refused-entries.ts",
+  "find": "new RefusedName(\"Screen\"",
+  "replace": "new RefusedName(\"NeverThere\"",
+  "group": "refusal"
+ },
+ {
+  "id": "annotation kind Movie",
+  "file": "src/pdf/document/refused-entries.ts",
+  "find": "new RefusedName(\"Movie\"",
+  "replace": "new RefusedName(\"NeverThere\"",
+  "group": "refusal"
+ },
+ {
+  "id": "annotation kind Sound",
+  "file": "src/pdf/document/refused-entries.ts",
+  "find": "new RefusedName(\"Sound\"",
+  "replace": "new RefusedName(\"NeverThere\"",
+  "group": "refusal"
+ },
+ {
+  "id": "annotation kind 3D",
+  "file": "src/pdf/document/refused-entries.ts",
+  "find": "new RefusedName(\"3D\"",
+  "replace": "new RefusedName(\"NeverThere\"",
+  "group": "refusal"
+ },
+ {
+  "id": "catalogue keys rule listed",
+  "file": "src/pdf/document/document-rules.ts",
+  "find": "[new CatalogKeysRule(), new NamesTreeRule()]",
+  "replace": "[new NamesTreeRule()]",
+  "group": "refusal"
+ },
+ {
+  "id": "names tree rule listed",
+  "file": "src/pdf/document/document-rules.ts",
+  "find": "[new CatalogKeysRule(), new NamesTreeRule()]",
+  "replace": "[new CatalogKeysRule()]",
+  "group": "refusal"
+ },
+ {
+  "id": "names tree unreadable",
+  "file": "src/pdf/document/names-tree-rule.ts",
+  "find": "    if (names === null) throw new PdfRefusal(\"This PDF's list of named things could not be read, so it was not read.\");\n",
+  "replace": "    if (names === null) return;\n",
+  "group": "refusal"
+ },
+ {
+  "id": "names tree keys refused",
+  "file": "src/pdf/document/names-tree-rule.ts",
+  "find": "    refuseKeys(names, REFUSED_NAMES_KEYS);\n",
+  "replace": "",
+  "group": "refusal"
+ },
+ {
+  "id": "catalogue keys refused",
+  "file": "src/pdf/document/catalog-keys-rule.ts",
+  "find": "    refuseKeys(catalog, REFUSED_CATALOG_KEYS);\n",
+  "replace": "",
+  "group": "refusal"
+ },
+ {
+  "id": "form keys refused",
+  "file": "src/pdf/fields/sources/acro-form-source.ts",
+  "find": "    refuseKeys(this.form, REFUSED_FORM_KEYS);\n",
+  "replace": "",
+  "group": "refusal"
+ },
+ {
+  "id": "page keys refused",
+  "file": "src/pdf/fields/sources/page-walk.ts",
+  "find": "    refuseKeys(page, REFUSED_PAGE_KEYS);\n",
+  "replace": "",
+  "group": "refusal"
+ },
+ {
+  "id": "other annotation kinds refused",
+  "file": "src/pdf/fields/sources/annotation-kinds.ts",
+  "find": "    refuseNamed(subtype, REFUSED_ANNOTATION_KINDS);\n",
+  "replace": "",
+  "group": "refusal"
+ },
+ {
+  "id": "other annotation keys refused",
+  "file": "src/pdf/fields/sources/annotation-kinds.ts",
+  "find": "    refuseKeys(annotation.dictionary, REFUSED_OTHER_ANNOTATION_KEYS);\n",
+  "replace": "",
+  "group": "refusal"
+ },
+ {
+  "id": "widgets are read as fields",
+  "file": "src/pdf/fields/sources/annotation-kinds.ts",
+  "find": "    widgets.widget(annotation);\n",
+  "replace": "",
+  "group": "refusal"
+ },
+ {
+  "id": "field action /A looked at",
+  "file": "src/pdf/fields/field-actions.ts",
+  "find": "    this.checkAction(dictionary.get(\"A\"), 0);\n",
+  "replace": "",
+  "group": "refusal"
+ },
+ {
+  "id": "field action /AA looked at",
+  "file": "src/pdf/fields/field-actions.ts",
+  "find": "    this.checkTriggers(dictionary.get(\"AA\"));\n",
+  "replace": "",
+  "group": "refusal"
+ },
+ {
+  "id": "actions that follow looked at",
+  "file": "src/pdf/fields/field-actions.ts",
+  "find": "    this.checkFollowing(action.get(\"Next\"), depth + 1);\n",
+  "replace": "",
+  "group": "refusal"
+ },
+ {
+  "id": "actions walked once",
+  "file": "src/pdf/fields/field-actions.ts",
+  "find": "    if (this.isAlreadyWalked(value)) return;\n",
+  "replace": "",
+  "group": "refusal"
+ },
+ {
+  "id": "action chain depth",
+  "file": "src/pdf/fields/field-actions.ts",
+  "find": "    if (depth > MAX_NESTING) throw new PdfRefusal(UNREADABLE);\n",
+  "replace": "",
+  "group": "refusal"
+ },
+ {
+  "id": "action not a dictionary",
+  "file": "src/pdf/fields/field-actions.ts",
+  "find": "    if (action === null) throw new PdfRefusal(UNREADABLE);\n",
+  "replace": "    if (action === null) return;\n",
+  "group": "refusal"
+ },
+ {
+  "id": "triggers not a dictionary",
+  "file": "src/pdf/fields/field-actions.ts",
+  "find": "    if (dictionary === null) throw new PdfRefusal(UNREADABLE);\n",
+  "replace": "    if (dictionary === null) return;\n",
+  "group": "refusal"
+ },
+ {
+  "id": "widget kids checked",
+  "file": "src/pdf/fields/sources/acro-form-source.ts",
+  "find": "      for (const widget of kids) this.nodes.created(widget, node);\n",
+  "replace": "",
+  "group": "refusal"
+ },
+ {
+  "id": "unnamed kid of a parent checked",
+  "file": "src/pdf/fields/sources/acro-form-source.ts",
+  "find": "    else this.nodes.created(kid, parent);\n",
+  "replace": "    else return;\n",
+  "group": "refusal"
+ },
+ {
+  "id": "fields listed once",
+  "file": "src/pdf/fields/sources/acro-form-source.ts",
+  "find": " || this.visited.has(indirect.number)",
+  "replace": "",
+  "group": "walk"
+ },
+ {
+  "id": "pages visited once",
+  "file": "src/pdf/fields/sources/page-walk.ts",
+  "find": " || this.visitedPages.has(node.number)",
+  "replace": "",
+  "group": "walk"
+ },
+ {
+  "id": "duplicate names refused",
+  "file": "src/pdf/fields/field-collector.ts",
+  "find": "    if (this.names.has(name)) throw new PdfRefusal(\"Two form fields in the file share one name, so it was not read.\");\n",
+  "replace": "",
+  "group": "walk"
+ },
+ {
+  "id": "empty names skipped",
+  "file": "src/pdf/fields/field-collector.ts",
+  "find": "    if (name === \"\") return;\n",
+  "replace": "",
+  "group": "walk"
+ },
+ {
+  "id": "no fields refused",
+  "file": "src/pdf/fields/read-fields.ts",
+  "find": "collector.fieldCount() === 0",
+  "replace": "false",
+  "group": "walk"
+ },
+ {
+  "id": "form not a dictionary",
+  "file": "src/pdf/fields/read-fields.ts",
+  "find": "  if (dictionary === null) throw new PdfRefusal(\"The file's form could not be read, so it was not read.\");\n",
+  "replace": "",
+  "group": "walk"
+ },
+ {
+  "id": "form field list not an array",
+  "file": "src/pdf/fields/sources/acro-form-source.ts",
+  "find": "    if (array === null) throw new PdfRefusal(refusal);\n",
+  "replace": "    if (array === null) return [];\n",
+  "group": "walk"
+ },
+ {
+  "id": "pages not an array",
+  "file": "src/pdf/fields/sources/page-walk.ts",
+  "find": "    if (array === null) throw new PdfRefusal(BAD_PAGES);\n",
+  "replace": "    return;\n",
+  "group": "walk"
+ },
+ {
+  "id": "annotations not an array",
+  "file": "src/pdf/fields/sources/page-walk.ts",
+  "find": "    if (array === null) throw new PdfRefusal(BAD_ANNOTATION);\n",
+  "replace": "    return;\n",
+  "group": "walk"
+ },
+ {
+  "id": "indirect required",
+  "file": "src/pdf/file/object-store.ts",
+  "find": "    if (reference === null) throw new PdfRefusal(refusal);\n",
+  "replace": "    if (reference === null) return { number: -1, dictionary: this.dictionaryOf(value) as PdfDictionary };\n",
+  "group": "walk"
+ },
+ {
+  "id": "indirect dictionary required",
+  "file": "src/pdf/file/object-store.ts",
+  "find": "    if (dictionary === null) throw new PdfRefusal(refusal);\n    return { number",
+  "replace": "    if (dictionary === null) return { number: -2, dictionary: this.dictionaryOf(value) as PdfDictionary };\n    return { number",
+  "group": "walk"
+ },
+ {
+  "id": "nearest named",
+  "file": "src/pdf/fields/field-node.ts",
+  "find": "    if (this.hasOwnName()) return this;\n",
+  "replace": "",
+  "group": "walk"
+ },
+ {
+  "id": "name not text",
+  "file": "src/pdf/fields/field-node.ts",
+  "find": "    if (text === null) throw new PdfRefusal(\"A field's name is not text, so the file was not read.\");\n",
+  "replace": "",
+  "group": "walk"
+ },
+ {
+  "id": "name joined from the top",
+  "file": "src/pdf/fields/field-node.ts",
+  "find": "return [...this.parent.partialNames(), ...own];",
+  "replace": "return [...own, ...this.parent.partialNames()];",
+  "group": "walk"
+ },
+ {
+  "id": "values inherited",
+  "file": "src/pdf/fields/field-node.ts",
+  "find": "    if (own.isPresent() || this.parent === null) return own;\n",
+  "replace": "    return own;\n",
+  "group": "walk"
+ },
+ {
+  "id": "name length limited",
+  "file": "src/pdf/fields/field-name.ts",
+  "find": "return limitedFieldText(node.partialNames().join(\".\"));",
+  "replace": "return node.partialNames().join(\".\");",
+  "group": "walk"
+ },
+ {
+  "id": "stream value refused",
+  "file": "src/pdf/fields/field-reading.ts",
+  "find": "  if (value.asStream() !== null) throw new PdfRefusal(\"A field's value is a stream, which the reader does not read, so the file was not read.\");\n",
+  "replace": "",
+  "group": "value"
+ },
+ {
+  "id": "flags not whole",
+  "file": "src/pdf/fields/field-reading.ts",
+  "find": "  if (whole === null) throw new PdfRefusal(\"A field has settings the reader does not understand, so the file was not read.\");\n",
+  "replace": "  if (whole === null) return 0;\n",
+  "group": "value"
+ },
+ {
+  "id": "type inherited",
+  "file": "src/pdf/fields/field-reading.ts",
+  "find": "store.resolve(node.inherited(\"FT\"))",
+  "replace": "store.resolve(node.dictionary.get(\"FT\"))",
+  "group": "value"
+ },
+ {
+  "id": "flags inherited",
+  "file": "src/pdf/fields/field-reading.ts",
+  "find": "store.resolve(node.inherited(\"Ff\"))",
+  "replace": "store.resolve(node.dictionary.get(\"Ff\"))",
+  "group": "value"
+ },
+ {
+  "id": "value inherited",
+  "file": "src/pdf/fields/field-reading.ts",
+  "find": "store.resolve(node.inherited(\"V\"))",
+  "replace": "store.resolve(node.dictionary.get(\"V\"))",
+  "group": "value"
+ },
+ {
+  "id": "no value is no entry",
+  "file": "src/pdf/fields/field-reading.ts",
+  "find": "  if (kind === null || !value.isPresent()) return null;\n",
+  "replace": "  if (kind === null) return null;\n",
+  "group": "value"
+ },
+ {
+  "id": "text field value",
+  "file": "src/pdf/fields/kinds/text-field.ts",
+  "find": "    if (text === null) throw wrongFieldValue();\n",
+  "replace": "    if (text === null) return \"\";\n",
+  "group": "value"
+ },
+ {
+  "id": "choice value",
+  "file": "src/pdf/fields/kinds/choice-field.ts",
+  "find": "  if (text === null) throw wrongFieldValue();\n",
+  "replace": "  if (text === null) return \"\";\n",
+  "group": "value"
+ },
+ {
+  "id": "choice list",
+  "file": "src/pdf/fields/kinds/choice-field.ts",
+  "find": "    for (const item of array.items) chosen.push(textOrRefuse(item));\n",
+  "replace": "",
+  "group": "value"
+ },
+ {
+  "id": "text kind listed",
+  "file": "src/pdf/fields/kinds/field-kinds.ts",
+  "find": "[new TextField(), new ButtonField(), new ChoiceField()]",
+  "replace": "[new ButtonField(), new ChoiceField()]",
+  "group": "value"
+ },
+ {
+  "id": "button kind listed",
+  "file": "src/pdf/fields/kinds/field-kinds.ts",
+  "find": "[new TextField(), new ButtonField(), new ChoiceField()]",
+  "replace": "[new TextField(), new ChoiceField()]",
+  "group": "value"
+ },
+ {
+  "id": "choice kind listed",
+  "file": "src/pdf/fields/kinds/field-kinds.ts",
+  "find": "[new TextField(), new ButtonField(), new ChoiceField()]",
+  "replace": "[new TextField(), new ButtonField()]",
+  "group": "value"
+ },
+ {
+  "id": "UTF-16 high half unpaired",
+  "file": "src/pdf/text/utf16-text.ts",
+  "find": "    if (waitingFor !== null && !isLowSurrogate(unit)) throw unreadableText();\n",
+  "replace": "",
+  "group": "text"
+ },
+ {
+  "id": "UTF-16 low half unpaired",
+  "file": "src/pdf/text/utf16-text.ts",
+  "find": "    if (waitingFor === null && isLowSurrogate(unit)) throw unreadableText();\n",
+  "replace": "",
+  "group": "text"
+ },
+ {
+  "id": "UTF-16 trailing high half",
+  "file": "src/pdf/text/utf16-text.ts",
+  "find": "  if (waitingFor !== null) throw unreadableText();\n  return text;",
+  "replace": "  return text;",
+  "group": "text"
+ },
+ {
+  "id": "PDFDocEncoding specials",
+  "file": "src/pdf/text/pdf-doc-encoding.ts",
+  "find": "  [0x80, 0x2022],\n",
+  "replace": "",
+  "group": "text"
+ },
+ {
+  "id": "PDFDocEncoding Euro",
+  "file": "src/pdf/text/pdf-doc-encoding.ts",
+  "find": "  [0xa0, 0x20ac],\n",
+  "replace": "",
+  "group": "text"
+ },
+ {
+  "id": "PDFDocEncoding accents",
+  "file": "src/pdf/text/pdf-doc-encoding.ts",
+  "find": "  [0x18, 0x02d8],\n",
+  "replace": "",
+  "group": "text"
+ },
+ {
+  "id": "soft hyphen undefined",
+  "file": "src/pdf/text/pdf-doc-encoding.ts",
+  "find": "code >= FIRST_LATIN && code !== SOFT_HYPHEN",
+  "replace": "code >= FIRST_LATIN",
+  "group": "text"
+ },
+ {
+  "id": "tab allowed",
+  "file": "src/pdf/text/pdf-doc-encoding.ts",
+  "find": "code === TAB || code === LINE_FEED || code === CARRIAGE_RETURN",
+  "replace": "code === LINE_FEED || code === CARRIAGE_RETURN",
+  "group": "text"
+ },
+ {
+  "id": "duplicate entries",
+  "file": "src/pdf/parsing/containers/dictionary-reader.ts",
+  "find": "  if (entries.has(key)) throw new PdfRefusal(\"A group in the file names the same entry twice, so it was not read.\");\n",
+  "replace": "",
+  "group": "parse"
+ },
+ {
+  "id": "dictionary key must be a name",
+  "file": "src/pdf/parsing/containers/dictionary-reader.ts",
+  "find": "      if (cursor.current() !== SLASH) throw new PdfRefusal(\"A group in the file is not written the way PDF writes it, so the file was not read.\");\n",
+  "replace": "",
+  "group": "parse"
+ },
+ {
+  "id": "octal overflow",
+  "file": "src/pdf/parsing/strings/literal-string-reader.ts",
+  "find": "  if (value > MAX_BYTE) throw new PdfRefusal(BAD_TEXT);\n",
+  "replace": "",
+  "group": "parse"
+ },
+ {
+  "id": "octal digits",
+  "file": "src/pdf/parsing/strings/literal-string-reader.ts",
+  "find": "digits < MAX_OCTAL_DIGITS &&",
+  "replace": "digits < MAX_OCTAL_DIGITS + 1 &&",
+  "group": "parse"
+ },
+ {
+  "id": "unknown escape",
+  "file": "src/pdf/parsing/strings/literal-string-reader.ts",
+  "find": "  if (simple === undefined) throw new PdfRefusal(BAD_TEXT);\n",
+  "replace": "  if (simple === undefined) return;\n",
+  "group": "parse"
+ },
+ {
+  "id": "string never closes",
+  "file": "src/pdf/parsing/strings/literal-string-reader.ts",
+  "find": "      if (byte === NO_BYTE) throw new PdfRefusal(BAD_TEXT);\n",
+  "replace": "      if (byte === NO_BYTE) break;\n",
+  "group": "parse"
+ },
+ {
+  "id": "line break in a string",
+  "file": "src/pdf/parsing/strings/literal-string-reader.ts",
+  "find": "      else if (isLineBreak(byte)) readLineBreak(cursor, sink);\n",
+  "replace": "      else if (false) readLineBreak(cursor, sink);\n",
+  "group": "parse"
+ },
+ {
+  "id": "escaped line break",
+  "file": "src/pdf/parsing/strings/literal-string-reader.ts",
+  "find": "  if (isLineBreak(byte)) {\n    skipLineBreak(cursor);\n    return;\n  }\n",
+  "replace": "",
+  "group": "parse"
+ },
+ {
+  "id": "balanced brackets",
+  "file": "src/pdf/parsing/strings/literal-string-reader.ts",
+  "find": "        if (byte === LEFT_PAREN) open += 1;\n",
+  "replace": "",
+  "group": "parse"
+ },
+ {
+  "id": "hex digit",
+  "file": "src/pdf/parsing/strings/hex-string-reader.ts",
+  "find": "      if (digit === NO_BYTE) throw new PdfRefusal(BAD_TEXT);\n",
+  "replace": "      if (digit === NO_BYTE) { cursor.advance(); continue; }\n",
+  "group": "parse"
+ },
+ {
+  "id": "hex whitespace",
+  "file": "src/pdf/parsing/strings/hex-string-reader.ts",
+  "find": "      if (isWhitespace(byte)) {\n        cursor.advance();\n        continue;\n      }\n",
+  "replace": "",
+  "group": "parse"
+ },
+ {
+  "id": "name escape",
+  "file": "src/pdf/parsing/name-reader.ts",
+  "find": "  if (cursor.current() === HASH) return readEscapedByte(cursor);\n",
+  "replace": "",
+  "group": "parse"
+ },
+ {
+  "id": "name escape zero",
+  "file": "src/pdf/parsing/name-reader.ts",
+  "find": "  if (byte === 0) throw new PdfRefusal(BAD_ESCAPE);\n",
+  "replace": "",
+  "group": "parse"
+ },
+ {
+  "id": "name escape digits",
+  "file": "src/pdf/parsing/name-reader.ts",
+  "find": "  if (high === NO_BYTE || low === NO_BYTE) throw new PdfRefusal(BAD_ESCAPE);\n",
+  "replace": "",
+  "group": "parse"
+ },
+ {
+  "id": "number safe",
+  "file": "src/pdf/parsing/numbers/number-token.ts",
+  "find": "  if (dots === 0 && !Number.isSafeInteger(value)) throw new PdfRefusal(TOO_LONG);\n",
+  "replace": "",
+  "group": "parse"
+ },
+ {
+  "id": "number whole",
+  "file": "src/pdf/values/scalars/pdf-number.ts",
+  "find": "    if (!this.isWhole) return null;\n",
+  "replace": "",
+  "group": "parse"
+ },
+ {
+  "id": "negative is no reference",
+  "file": "src/pdf/parsing/numbers/number-reader.ts",
+  "find": "if (whole === null || whole < 0) return number;",
+  "replace": "if (whole === null) return number;",
+  "group": "parse"
+ },
+ {
+  "id": "reference mark",
+  "file": "src/pdf/parsing/numbers/number-reader.ts",
+  "find": " || cursor.current() !== REFERENCE_MARK ||",
+  "replace": " ||",
+  "group": "parse"
+ },
+ {
+  "id": "reference word end",
+  "file": "src/pdf/parsing/numbers/number-reader.ts",
+  "find": " || !endsAWord(cursor.peek(1))) return null;",
+  "replace": ") return null;",
+  "group": "parse"
+ },
+ {
+  "id": "reference generation whole",
+  "file": "src/pdf/parsing/numbers/number-reader.ts",
+  "find": "if (generation === null ||",
+  "replace": "if (",
+  "group": "parse"
+ },
+ {
+  "id": "rewind when not a reference",
+  "file": "src/pdf/parsing/numbers/number-reader.ts",
+  "find": "    cursor.moveTo(start);\n",
+  "replace": "",
+  "group": "parse"
+ },
+ {
+  "id": "words end",
+  "file": "src/pdf/bytes/expect-word.ts",
+  "find": "return cursor.startsWith(word) && endsAWord(cursor.peek(word.length));",
+  "replace": "return cursor.startsWith(word);",
+  "group": "parse"
+ },
+ {
+  "id": "array item cap message",
+  "file": "src/pdf/parsing/containers/array-reader.ts",
+  "find": "if (items.length >= MAX_ITEMS_IN_CONTAINER)",
+  "replace": "if (false)",
+  "group": "parse"
+ },
+ {
+  "id": "dictionary entry cap",
+  "file": "src/pdf/parsing/containers/dictionary-reader.ts",
+  "find": "if (entries.size >= MAX_ITEMS_IN_CONTAINER)",
+  "replace": "if (false)",
+  "group": "parse"
+ },
+ {
+  "id": "name cap",
+  "file": "src/pdf/parsing/name-reader.ts",
+  "find": "new ByteSink(MAX_NAME_BYTES, TOO_LONG)",
+  "replace": "new ByteSink(1000000, TOO_LONG)",
+  "group": "cap"
+ },
+ {
+  "id": "string cap, literal",
+  "file": "src/pdf/parsing/strings/literal-string-reader.ts",
+  "find": "new ByteSink(MAX_STRING_BYTES, TOO_LONG)",
+  "replace": "new ByteSink(100000000, TOO_LONG)",
+  "group": "cap"
+ },
+ {
+  "id": "string cap, hex",
+  "file": "src/pdf/parsing/strings/hex-string-reader.ts",
+  "find": "new ByteSink(MAX_STRING_BYTES, TOO_LONG)",
+  "replace": "new ByteSink(100000000, TOO_LONG)",
+  "group": "cap"
+ },
+ {
+  "id": "nesting cap",
+  "file": "src/pdf/parsing/containers/nesting.ts",
+  "find": "  if (level > MAX_NESTING) throw new PdfRefusal(\"The file nests lists or groups too deeply, so it was not read.\");\n",
+  "replace": "",
+  "group": "cap"
+ },
+ {
+  "id": "comments skipped",
+  "file": "src/pdf/bytes/skip-space.ts",
+  "find": "    if (cursor.current() === PERCENT) skipComment(cursor);\n    else cursor.advance();",
+  "replace": "    cursor.advance();",
+  "group": "parse"
+ },
+ {
+  "id": "moveTo bounds",
+  "file": "src/pdf/bytes/byte-cursor.ts",
+  "find": "if (!Number.isSafeInteger(position) || place < this.origin || place > this.size) {",
+  "replace": "if (false) {",
+  "group": "parse"
+ },
+ {
+  "id": "moveTo end allowed",
+  "file": "src/pdf/bytes/byte-cursor.ts",
+  "find": "place > this.size",
+  "replace": "place >= this.size",
+  "group": "parse"
+ },
+ {
+  "id": "peek before start",
+  "file": "src/pdf/bytes/byte-cursor.ts",
+  "find": "if (place < this.origin || place >= this.size) return NO_BYTE;",
+  "replace": "if (place >= this.size) return NO_BYTE;",
+  "group": "parse"
+ },
+ {
+  "id": "header version",
+  "file": "src/pdf/file/file-header.ts",
+  "find": "if (cursor.startsWith(MARK) && hasVersionAfterMark(cursor))",
+  "replace": "if (cursor.startsWith(MARK))",
+  "group": "file"
+ },
+ {
+  "id": "header required",
+  "file": "src/pdf/file/file-header.ts",
+  "find": "  throw new PdfRefusal(NOT_A_PDF);\n",
+  "replace": "  return 0;\n",
+  "group": "file"
+ },
+ {
+  "id": "startxref required",
+  "file": "src/pdf/file/start-of-cross-reference.ts",
+  "find": "  if (mark < 0) throw new PdfRefusal(\"The file has no startxref near its end, so it was not read.\");\n",
+  "replace": "",
+  "group": "file"
+ },
+ {
+  "id": "last startxref",
+  "file": "src/pdf/file/start-of-cross-reference.ts",
+  "find": "    if (cursor.startsWith(MARK)) found = cursor.position();\n",
+  "replace": "    if (cursor.startsWith(MARK) && found < 0) found = cursor.position();\n",
+  "group": "file"
+ },
+ {
+  "id": "object number match",
+  "file": "src/pdf/file/indirect-object.ts",
+  "find": "  if (!expected.accepts(number, generation)) throw new PdfRefusal(BAD_OBJECT);\n",
+  "replace": "",
+  "group": "file"
+ },
+ {
+  "id": "object generation match",
+  "file": "src/pdf/file/object-id.ts",
+  "find": "return number === this.number && generation === this.generation;",
+  "replace": "return number === this.number;",
+  "group": "file"
+ },
+ {
+  "id": "object header space",
+  "file": "src/pdf/file/indirect-object.ts",
+  "find": "  if (!isWhitespace(cursor.current())) throw new PdfRefusal(BAD_OBJECT);\n",
+  "replace": "",
+  "group": "file"
+ },
+ {
+  "id": "obj keyword",
+  "file": "src/pdf/file/indirect-object.ts",
+  "find": "  expectWord(cursor, \"obj\", BAD_OBJECT);\n",
+  "replace": "",
+  "group": "file"
+ },
+ {
+  "id": "endobj keyword",
+  "file": "src/pdf/file/indirect-object.ts",
+  "find": "  expectWord(cursor, \"endobj\", BAD_END);\n",
+  "replace": "",
+  "group": "file"
+ },
+ {
+  "id": "endstream keyword",
+  "file": "src/pdf/file/indirect-object.ts",
+  "find": "  expectWord(cursor, \"endstream\", BAD_END);\n",
+  "replace": "",
+  "group": "file"
+ },
+ {
+  "id": "stream keyword",
+  "file": "src/pdf/file/indirect-object.ts",
+  "find": "  expectWord(cursor, \"stream\", BAD_END);\n",
+  "replace": "",
+  "group": "file"
+ },
+ {
+  "id": "stream line end",
+  "file": "src/pdf/file/indirect-object.ts",
+  "find": "  throw new PdfRefusal(BAD_END);\n}\n\nfunction readStream",
+  "replace": "  return;\n}\n\nfunction readStream",
+  "group": "file"
+ },
+ {
+  "id": "stream length jump",
+  "file": "src/pdf/file/indirect-object.ts",
+  "find": "  cursor.moveTo(start + length);\n",
+  "replace": "",
+  "group": "file"
+ },
+ {
+  "id": "stream length direct",
+  "file": "src/pdf/file/length-source.ts",
+  "find": "length === null || length < 0",
+  "replace": "length === null",
+  "group": "file"
+ },
+ {
+  "id": "store length",
+  "file": "src/pdf/file/object-store.ts",
+  "find": "length === null || length < 0) throw",
+  "replace": "length === null) throw",
+  "group": "file"
+ },
+ {
+  "id": "missing object",
+  "file": "src/pdf/file/object-store.ts",
+  "find": "entry === undefined || !entry.acceptsGeneration(generation)",
+  "replace": "entry === undefined",
+  "group": "file"
+ },
+ {
+  "id": "generation accepted",
+  "file": "src/pdf/xref/entries/in-file-entry.ts",
+  "find": "return generation === this.generation;",
+  "replace": "return true;",
+  "group": "file"
+ },
+ {
+  "id": "compressed generation",
+  "file": "src/pdf/xref/entries/compressed-entry.ts",
+  "find": "return generation === 0;",
+  "replace": "return true;",
+  "group": "file"
+ },
+ {
+  "id": "loading marked",
+  "file": "src/pdf/file/object-store.ts",
+  "find": "    this.loading.add(number);\n",
+  "replace": "",
+  "group": "file"
+ },
+ {
+  "id": "loading cycle",
+  "file": "src/pdf/file/object-store.ts",
+  "find": "    if (this.loading.has(number)) throw new PdfRefusal(CYCLE);\n",
+  "replace": "",
+  "group": "file"
+ },
+ {
+  "id": "reference only objects",
+  "file": "src/pdf/file/object-store.ts",
+  "find": "    if (value.asReference() !== null) throw new PdfRefusal(CYCLE);\n",
+  "replace": "",
+  "group": "file"
+ },
+ {
+  "id": "cache",
+  "file": "src/pdf/file/object-store.ts",
+  "find": "    if (cached !== undefined) return cached;\n",
+  "replace": "",
+  "group": "file"
+ },
+ {
+  "id": "packed before groups read",
+  "file": "src/pdf/file/object-store.ts",
+  "find": "    if (this.streams === null) throw new PdfRefusal(\"The file packs an object inside a group of objects that is itself packed, so it was not read.\");\n",
+  "replace": "",
+  "group": "file"
+ },
+ {
+  "id": "classic entry line end",
+  "file": "src/pdf/xref/classic/classic-entry-line.ts",
+  "find": "  if (!isTwoByteLineEnd(cursor.current(), cursor.peek(1))) throw new PdfRefusal(BAD_LINE);\n",
+  "replace": "",
+  "group": "xref"
+ },
+ {
+  "id": "classic entry space",
+  "file": "src/pdf/xref/classic/classic-entry-line.ts",
+  "find": "  if (cursor.current() !== expected) throw new PdfRefusal(BAD_LINE);\n",
+  "replace": "",
+  "group": "xref"
+ },
+ {
+  "id": "classic entry mark",
+  "file": "src/pdf/xref/classic/classic-entry-line.ts",
+  "find": "  throw new PdfRefusal(BAD_LINE);\n}\n",
+  "replace": "  return new FreeEntry();\n}\n",
+  "group": "xref"
+ },
+ {
+  "id": "classic entry digits",
+  "file": "src/pdf/bytes/read-integer.ts",
+  "find": "    if (!isDigit(cursor.current())) throw new PdfRefusal(`${what} is not written",
+  "replace": "    if (false) throw new PdfRefusal(`${what} is not written",
+  "group": "xref"
+ },
+ {
+  "id": "classic offset in the file",
+  "file": "src/pdf/xref/classic/classic-entry-kinds.ts",
+  "find": "if (offset >= fileLength)",
+  "replace": "if (offset > fileLength)",
+  "group": "xref"
+ },
+ {
+  "id": "classic offset checked",
+  "file": "src/pdf/xref/classic/classic-entry-kinds.ts",
+  "find": "    if (offset >= fileLength) throw",
+  "replace": "    if (false) throw",
+  "group": "xref"
+ },
+ {
+  "id": "classic entries counted",
+  "file": "src/pdf/xref/classic/classic-section-reader.ts",
+  "find": "  context.crossReference.count(count);\n",
+  "replace": "",
+  "group": "xref"
+ },
+ {
+  "id": "classic trailer dictionary",
+  "file": "src/pdf/xref/classic/classic-section-reader.ts",
+  "find": "  if (trailer === null) throw new PdfRefusal(BAD_TABLE);\n",
+  "replace": "  if (trailer === null) return new PdfDictionary(new Map());\n",
+  "group": "xref"
+ },
+ {
+  "id": "classic trailer word",
+  "file": "src/pdf/xref/classic/classic-section-reader.ts",
+  "find": "  expectWord(context.cursor, \"trailer\", BAD_TABLE);\n",
+  "replace": "",
+  "group": "xref"
+ },
+ {
+  "id": "first entry wins",
+  "file": "src/pdf/xref/entries/cross-reference.ts",
+  "find": "    if (!this.entries.has(number)) this.entries.set(number, entry);\n",
+  "replace": "    this.entries.set(number, entry);\n",
+  "group": "xref"
+ },
+ {
+  "id": "chain loop",
+  "file": "src/pdf/xref/xref-chain.ts",
+  "find": "    if (seen.has(offset)) throw new PdfRefusal(LOOP);\n",
+  "replace": "",
+  "group": "xref"
+ },
+ {
+  "id": "chain section cap",
+  "file": "src/pdf/xref/xref-chain.ts",
+  "find": "    if (seen.size >= MAX_XREF_SECTIONS) throw new PdfRefusal(TOO_LONG);\n",
+  "replace": "",
+  "group": "xref"
+ },
+ {
+  "id": "chain prev whole",
+  "file": "src/pdf/xref/xref-chain.ts",
+  "find": "  if (offset === null || offset < 0) throw new PdfRefusal(NO_INDEX);\n",
+  "replace": "  if (offset === null) return null;\n",
+  "group": "xref"
+ },
+ {
+  "id": "chain section kind",
+  "file": "src/pdf/xref/xref-chain.ts",
+  "find": "  throw new PdfRefusal(NO_INDEX);\n}\n\nexport",
+  "replace": "  return new PdfDictionary(new Map());\n}\n\nexport",
+  "group": "xref"
+ },
+ {
+  "id": "chain trailer keys refused",
+  "file": "src/pdf/xref/xref-chain.ts",
+  "find": "    refuseKeys(trailer, REFUSED_TRAILER_KEYS);\n",
+  "replace": "",
+  "group": "xref"
+ },
+ {
+  "id": "stream index type",
+  "file": "src/pdf/xref/stream/stream-section-reader.ts",
+  "find": " || stream.dictionary.get(\"Type\").asName() !== \"XRef\"",
+  "replace": "",
+  "group": "xref"
+ },
+ {
+  "id": "stream index is a stream",
+  "file": "src/pdf/xref/stream/stream-section-reader.ts",
+  "find": "if (stream === null ||",
+  "replace": "if (",
+  "group": "xref"
+ },
+ {
+  "id": "stream index rows at the end",
+  "file": "src/pdf/xref/stream/stream-section-reader.ts",
+  "find": "  if (!rows.isAtEnd()) throw new PdfRefusal(BAD_STREAM);\n",
+  "replace": "",
+  "group": "xref"
+ },
+ {
+  "id": "stream index rows fit",
+  "file": "src/pdf/xref/stream/stream-section-reader.ts",
+  "find": "    if (subrange.count * layout.rowBytes > rows.length() - rows.position()) throw new PdfRefusal(BAD_STREAM);\n",
+  "replace": "",
+  "group": "xref"
+ },
+ {
+  "id": "stream index entries counted",
+  "file": "src/pdf/xref/stream/stream-section-reader.ts",
+  "find": "    context.crossReference.count(subrange.count);\n",
+  "replace": "",
+  "group": "xref"
+ },
+ {
+  "id": "stream index row kind",
+  "file": "src/pdf/xref/stream/stream-section-reader.ts",
+  "find": "  throw new PdfRefusal(BAD_STREAM);\n}\n\nfunction readRows",
+  "replace": "  return new FreeEntry();\n}\n\nfunction readRows",
+  "group": "xref"
+ },
+ {
+  "id": "stream index default kind",
+  "file": "src/pdf/xref/stream/stream-section-reader.ts",
+  "find": "const FILE_KIND = 1;",
+  "replace": "const FILE_KIND = 0;",
+  "group": "xref"
+ },
+ {
+  "id": "stream index width",
+  "file": "src/pdf/xref/stream/stream-row-layout.ts",
+  "find": "widths.length !== WIDTH_COUNT ||",
+  "replace": "",
+  "group": "xref"
+ },
+ {
+  "id": "stream index too wide",
+  "file": "src/pdf/xref/stream/stream-row-layout.ts",
+  "find": " || widths.some(isTooWide)",
+  "replace": "",
+  "group": "xref"
+ },
+ {
+  "id": "stream index row bytes",
+  "file": "src/pdf/xref/stream/stream-row-layout.ts",
+  "find": "  if (rowBytes < 1) throw new PdfRefusal(BAD_LAYOUT);\n",
+  "replace": "",
+  "group": "xref"
+ },
+ {
+  "id": "stream index size",
+  "file": "src/pdf/xref/stream/stream-row-layout.ts",
+  "find": "if (size === null || size < 0)",
+  "replace": "if (size === null)",
+  "group": "xref"
+ },
+ {
+  "id": "stream index odd pairs",
+  "file": "src/pdf/xref/stream/stream-row-layout.ts",
+  "find": "  if (numbers.remaining() % 2 !== 0) throw new PdfRefusal(BAD_LAYOUT);\n",
+  "replace": "",
+  "group": "xref"
+ },
+ {
+  "id": "stream index numbers whole",
+  "file": "src/pdf/xref/stream/stream-row-layout.ts",
+  "find": "if (whole === null || whole < 0) throw new PdfRefusal(BAD_LAYOUT);",
+  "replace": "if (whole === null) throw new PdfRefusal(BAD_LAYOUT);",
+  "group": "xref"
+ },
+ {
+  "id": "stream index W array",
+  "file": "src/pdf/xref/stream/stream-row-layout.ts",
+  "find": "  if (array === null) throw new PdfRefusal(BAD_LAYOUT);\n",
+  "replace": "  if (array === null) return [];\n",
+  "group": "xref"
+ },
+ {
+  "id": "filter named",
+  "file": "src/pdf/streams/stream-decoder.ts",
+  "find": "    throw new PdfRefusal(UNKNOWN_FILTER);\n  }\n}",
+  "replace": "    return raw;\n  }\n}",
+  "group": "stream"
+ },
+ {
+  "id": "filter list of one",
+  "file": "src/pdf/streams/stream-decoder.ts",
+  "find": "  if (only === null) throw new PdfRefusal(UNKNOWN_FILTER);\n",
+  "replace": "",
+  "group": "stream"
+ },
+ {
+  "id": "filter is a name",
+  "file": "src/pdf/streams/stream-decoder.ts",
+  "find": "  if (name === null) throw new PdfRefusal(UNKNOWN_FILTER);\n",
+  "replace": "  if (name === null) return null as unknown as string;\n",
+  "group": "stream"
+ },
+ {
+  "id": "raw stream view origin",
+  "file": "src/pdf/streams/stream-decoder.ts",
+  "find": "this.origin + stream.start",
+  "replace": "stream.start",
+  "group": "stream"
+ },
+ {
+  "id": "flate name",
+  "file": "src/pdf/streams/flate-filter.ts",
+  "find": "return name === \"FlateDecode\";",
+  "replace": "return name === \"FlateDecode\" || name === \"Fl\";",
+  "group": "stream"
+ },
+ {
+  "id": "predictor applied",
+  "file": "src/pdf/streams/flate-filter.ts",
+  "find": "    if (prediction === null) return unpacked;\n",
+  "replace": "    return unpacked;\n",
+  "group": "stream"
+ },
+ {
+  "id": "predictor before inflate",
+  "file": "src/pdf/streams/flate-filter.ts",
+  "find": "    const prediction = predictionOf(parameters, predictorAllowed);\n    const unpacked = await this.inflater.inflate(raw);",
+  "replace": "    const unpacked = await this.inflater.inflate(raw);\n    const prediction = predictionOf(parameters, predictorAllowed);",
+  "group": "stream"
+ },
+ {
+  "id": "predictor allowed",
+  "file": "src/pdf/streams/decode-parameters.ts",
+  "find": "  if (predictor !== UP_PREDICTOR || !predictorAllowed) throw new PdfRefusal(BAD_PARAMETERS);\n",
+  "replace": "  if (predictor !== UP_PREDICTOR) throw new PdfRefusal(BAD_PARAMETERS);\n",
+  "group": "stream"
+ },
+ {
+  "id": "predictor kind",
+  "file": "src/pdf/streams/decode-parameters.ts",
+  "find": "  if (predictor !== UP_PREDICTOR || !predictorAllowed)",
+  "replace": "  if (!predictorAllowed)",
+  "group": "stream"
+ },
+ {
+  "id": "predictor pixels",
+  "file": "src/pdf/streams/decode-parameters.ts",
+  "find": "  refuseUnusualPixels(dictionary);\n",
+  "replace": "",
+  "group": "stream"
+ },
+ {
+  "id": "predictor colours",
+  "file": "src/pdf/streams/decode-parameters.ts",
+  "find": "colors !== PLAIN_COLORS ||",
+  "replace": "",
+  "group": "stream"
+ },
+ {
+  "id": "predictor bits",
+  "file": "src/pdf/streams/decode-parameters.ts",
+  "find": " || bits !== PLAIN_BITS",
+  "replace": "",
+  "group": "stream"
+ },
+ {
+  "id": "predictor whole",
+  "file": "src/pdf/streams/decode-parameters.ts",
+  "find": "  if (whole === null) throw new PdfRefusal(BAD_PARAMETERS);\n",
+  "replace": "  if (whole === null) return fallback;\n",
+  "group": "stream"
+ },
+ {
+  "id": "parameters one item",
+  "file": "src/pdf/streams/decode-parameters.ts",
+  "find": "  if (only === null) throw new PdfRefusal(BAD_PARAMETERS);\n",
+  "replace": "  if (only === null) return null;\n",
+  "group": "stream"
+ },
+ {
+  "id": "parameters dictionary",
+  "file": "src/pdf/streams/decode-parameters.ts",
+  "find": "  if (dictionary === null) throw new PdfRefusal(BAD_PARAMETERS);\n  return dictionary;",
+  "replace": "  return dictionary;",
+  "group": "stream"
+ },
+ {
+  "id": "up tag",
+  "file": "src/pdf/streams/png-up-predictor.ts",
+  "find": "    if (input.getUint8(row * rowSize) !== UP_TAG) throw new PdfRefusal(BAD_ROWS);\n",
+  "replace": "",
+  "group": "stream"
+ },
+ {
+  "id": "up rows",
+  "file": "src/pdf/streams/png-up-predictor.ts",
+  "find": "columns < 1 || packed.byteLength % rowSize !== 0",
+  "replace": "columns < 1",
+  "group": "stream"
+ },
+ {
+  "id": "up above",
+  "file": "src/pdf/streams/png-up-predictor.ts",
+  "find": "  if (row === 0) return 0;\n",
+  "replace": "",
+  "group": "stream"
+ },
+ {
+  "id": "platform check",
+  "file": "src/pdf/streams/inflate/platform-inflating.ts",
+  "find": "  if (typeof DecompressionStream === \"undefined\") throw new PdfRefusal(\"This device can't read PDFs, so the file was not read.\");\n",
+  "replace": "",
+  "group": "stream"
+ },
+ {
+  "id": "platform format",
+  "file": "src/pdf/streams/inflate/platform-inflating.ts",
+  "find": "new DecompressionStream(\"deflate\")",
+  "replace": "new DecompressionStream(\"gzip\")",
+  "group": "stream"
+ },
+ {
+  "id": "object stream type",
+  "file": "src/pdf/streams/object-streams.ts",
+  "find": " || stream.dictionary.get(\"Type\").asName() !== \"ObjStm\"",
+  "replace": "",
+  "group": "stream"
+ },
+ {
+  "id": "object stream is a stream",
+  "file": "src/pdf/streams/object-streams.ts",
+  "find": "if (stream === null ||",
+  "replace": "if (",
+  "group": "stream"
+ },
+ {
+  "id": "object stream N",
+  "file": "src/pdf/streams/object-streams.ts",
+  "find": "count === null || count < 0 ||",
+  "replace": "",
+  "group": "stream"
+ },
+ {
+  "id": "object stream First",
+  "file": "src/pdf/streams/object-streams.ts",
+  "find": " || first === null || first < 0)",
+  "replace": ")",
+  "group": "stream"
+ },
+ {
+  "id": "object stream no predictor",
+  "file": "src/pdf/streams/object-streams.ts",
+  "find": "this.decoder.decode(stream, false)",
+  "replace": "this.decoder.decode(stream, true)",
+  "group": "stream"
+ },
+ {
+  "id": "object stream container known",
+  "file": "src/pdf/streams/object-streams.ts",
+  "find": "    if (contents === undefined) throw new PdfRefusal(NOT_A_GROUP);\n",
+  "replace": "",
+  "group": "stream"
+ },
+ {
+  "id": "object stream numbers unique",
+  "file": "src/pdf/streams/object-stream-contents.ts",
+  "find": "      if (numbers.has(number)) throw new PdfRefusal(BAD_STREAM);\n",
+  "replace": "",
+  "group": "stream"
+ },
+ {
+  "id": "object stream number match",
+  "file": "src/pdf/streams/object-stream-contents.ts",
+  "find": "entry === undefined || entry.number !== number",
+  "replace": "entry === undefined",
+  "group": "stream"
+ },
+ {
+  "id": "object stream first",
+  "file": "src/pdf/streams/object-stream-contents.ts",
+  "find": "cursor.moveTo(this.first + entry.offset);",
+  "replace": "cursor.moveTo(entry.offset);",
+  "group": "stream"
+ },
+ {
+  "id": "objects packed prepared",
+  "file": "src/pdf/open-document.ts",
+  "find": "  await streams.prepare(store, index.crossReference.containerNumbers());\n",
+  "replace": "",
+  "group": "stream"
+ },
+ {
+  "id": "objects packed attached",
+  "file": "src/pdf/open-document.ts",
+  "find": "  store.useObjectStreams(streams);\n",
+  "replace": "",
+  "group": "stream"
+ },
+ {
+  "id": "container numbers listed",
+  "file": "src/pdf/xref/entries/cross-reference.ts",
+  "find": "      if (container !== null) numbers.add(container);\n",
+  "replace": "",
+  "group": "stream"
+ },
+ {
+  "id": "answer, not throw",
+  "file": "src/pdf/read-pdf-fields.ts",
+  "find": "    return { ok: false, reason: refusalWords(error) };",
+  "replace": "    throw error;",
+  "group": "entry"
+ },
+ {
+  "id": "header position used",
+  "file": "src/pdf/read-file-index.ts",
+  "find": "const cursor = new ByteCursor(bytes, work, origin);",
+  "replace": "const cursor = new ByteCursor(bytes, work, 0);",
+  "group": "entry"
+ },
+ {
+  "id": "store origin used",
+  "file": "src/pdf/open-document.ts",
+  "find": "new ObjectStore(bytes, index.origin,",
+  "replace": "new ObjectStore(bytes, 0,",
+  "group": "entry"
+ },
+ {
+  "id": "decoder origin used",
+  "file": "src/pdf/read-file-index.ts",
+  "find": "new StreamDecoder(bytes, origin,",
+  "replace": "new StreamDecoder(bytes, 0,",
+  "group": "entry"
+ },
+ {
+  "id": "allow-list entry for the platform file",
+  "file": "tests/pdf/source/pdf-globals.ts",
+  "find": "\"pdf/streams/inflate/platform-inflating.ts\": [\"Blob\", \"DecompressionStream\"],",
+  "replace": "",
+  "group": "allow"
+ },
+ {
+  "id": "allow-list names only what is used",
+  "file": "tests/pdf/source/pdf-globals.ts",
+  "find": "[\"Blob\", \"DecompressionStream\"]",
+  "replace": "[\"Blob\", \"DecompressionStream\", \"TextDecoder\"]",
+  "group": "allow"
+ },
+ {
+  "id": "typed arrays listed",
+  "file": "tests/pdf/source/pdf-globals.ts",
+  "find": "export const PDF_PLAIN_GLOBALS = [\"DataView\", \"Uint8Array\"];",
+  "replace": "export const PDF_PLAIN_GLOBALS = [\"DataView\", \"Uint8Array\", \"Float32Array\"];",
+  "group": "allow"
+ },
+ {
+  "id": "inner folder entry",
+  "file": "tests/build/inner-folders.test.ts",
+  "find": "  { folder: \"pdf\", reaches: [\"pdf\"] },\n",
+  "replace": "",
+  "group": "allow"
+ },
+ {
+  "id": "inner folder reach",
+  "file": "tests/build/inner-folders.test.ts",
+  "find": "{ folder: \"pdf\", reaches: [\"pdf\"] }",
+  "replace": "{ folder: \"pdf\", reaches: [\"pdf\", \"names\"] }",
+  "group": "allow"
+ },
+ {
+  "id": "packed offsets increasing",
+  "file": "src/pdf/streams/object-stream-contents.ts",
+  "find": "      if (previous !== null && offset <= previous.offset) throw new PdfRefusal(BAD_STREAM);\n",
+  "replace": "",
+  "group": "overlap"
+ },
+ {
+  "id": "packed objects do not overlap",
+  "file": "src/pdf/streams/object-stream-contents.ts",
+  "find": "    if (cursor.position() > entry.end) throw new PdfRefusal(BAD_STREAM);\n",
+  "replace": "",
+  "group": "overlap"
+ },
+ {
+  "id": "packed object end is the next start",
+  "file": "src/pdf/streams/object-stream-contents.ts",
+  "find": "      if (previous !== null) previous.end = first + offset;\n",
+  "replace": "",
+  "group": "overlap"
+ },
+ {
+  "id": "packed group bytes",
+  "file": "src/pdf/streams/object-streams.ts",
+  "find": "decoded.byteLength > MAX_OBJECT_STREAM_BYTES",
+  "replace": "decoded.byteLength >= MAX_OBJECT_STREAM_BYTES",
+  "group": "overlap"
+ },
+ {
+  "id": "packed group bytes, removed",
+  "file": "src/pdf/streams/object-streams.ts",
+  "find": "    if (decoded.byteLength > MAX_OBJECT_STREAM_BYTES) throw new PdfRefusal(\"A group of objects packed inside the file unpacks to too much, so the file was not read.\");\n",
+  "replace": "",
+  "group": "overlap"
+ },
+ {
+  "id": "values parsed",
+  "file": "src/pdf/work/work-budget.ts",
+  "find": "this.values > MAX_VALUES_PARSED",
+  "replace": "this.values >= MAX_VALUES_PARSED",
+  "group": "overlap"
+ },
+ {
+  "id": "values counted by the parser",
+  "file": "src/pdf/parsing/value-parser.ts",
+  "find": "    cursor.countValue();\n",
+  "replace": "",
+  "group": "overlap"
+ },
+ {
+  "id": "values counted by the cursor",
+  "file": "src/pdf/bytes/byte-cursor.ts",
+  "find": "    this.work.countValue();\n",
+  "replace": "",
+  "group": "overlap"
+ },
+ {
+  "id": "every peek throws",
+  "file": "src/pdf/bytes/byte-cursor.ts",
+  "find": "    const place = this.next + ahead;\n",
+  "replace": "    const place = this.next + ahead;\n    throw new RangeError(\"x\");\n",
+  "group": "proof"
+ },
+ {
+  "id": "backwards clock",
+  "file": "src/pdf/work/work-budget.ts",
+  "find": "    if (now < this.lastLook) throw new PdfRefusal(\"The clock went backwards while this file was read, so it was not read.\");\n",
+  "replace": "",
+  "group": "clock"
+ },
+ {
+  "id": "clock remembered",
+  "file": "src/pdf/work/work-budget.ts",
+  "find": "    this.lastLook = now;\n",
+  "replace": "",
+  "group": "clock"
+ },
+ {
+  "id": "free entry throws",
+  "file": "src/pdf/xref/entries/free-entry.ts",
+  "find": "    throw new PdfRefusal(\"The file points at an object it says was deleted, so it was not read.\");",
+  "replace": "    return PdfNull.NULL;",
+  "group": "xref-free"
+ },
+ {
+  "id": "page walk in a file with a form",
+  "file": "src/pdf/fields/read-fields.ts",
+  "find": ", new PageWalk(catalog, store, new CheckingWidgets(nodes))]",
+  "replace": "]",
+  "group": "pages"
+ },
+ {
+  "id": "checking widgets climb",
+  "file": "src/pdf/fields/sources/checking-widgets.ts",
+  "find": "    this.nodes.climbed(annotation, 1);\n",
+  "replace": "",
+  "group": "pages"
+ },
+ {
+  "id": "only scripts read past",
+  "file": "src/pdf/fields/field-actions.ts",
+  "find": "    if (this.store.resolve(action.get(\"S\")).asName() !== READ_PAST_ACTION) throw new PdfRefusal(NOT_A_SCRIPT);\n",
+  "replace": "",
+  "group": "actions"
+ },
+ {
+  "id": "web address key",
+  "file": "src/pdf/fields/field-actions.ts",
+  "find": "    refuseKeys(action, REFUSED_ACTION_KEYS);\n",
+  "replace": "",
+  "group": "actions"
+ },
+ {
+  "id": "script kind name",
+  "file": "src/pdf/fields/field-actions.ts",
+  "find": "const READ_PAST_ACTION = \"JavaScript\";",
+  "replace": "const READ_PAST_ACTION = \"JavaScript2\";",
+  "group": "actions"
+ },
+ {
+  "id": "action key URI listed",
+  "file": "src/pdf/document/refused-entries.ts",
+  "find": "new RefusedKey(\"URI\", WEB_ADDRESS)",
+  "replace": "new RefusedKey(\"NeverThere\", WEB_ADDRESS)",
+  "group": "actions"
+ },
+ {
+  "id": "UTF-16 forbidden units",
+  "file": "src/pdf/text/utf16-text.ts",
+  "find": "    if (isForbiddenUnit(unit)) throw unreadableText();\n",
+  "replace": "",
+  "group": "text2"
+ },
+ {
+  "id": "little-endian mark refused",
+  "file": "src/pdf/text/encodings/text-encodings.ts",
+  "find": "new RefusedEncoding([0xff, 0xfe]), ",
+  "replace": "",
+  "group": "text2"
+ },
+ {
+  "id": "UTF-8 mark refused (2)",
+  "file": "src/pdf/text/encodings/text-encodings.ts",
+  "find": "new RefusedEncoding([0xef, 0xbb, 0xbf]), ",
+  "replace": "",
+  "group": "text2"
+ },
+ {
+  "id": "UTF-16 listed",
+  "file": "src/pdf/text/encodings/text-encodings.ts",
+  "find": "[new Utf16BigEndianEncoding(), ",
+  "replace": "[",
+  "group": "text2"
+ },
+ {
+  "id": "PDFDoc listed",
+  "file": "src/pdf/text/encodings/text-encodings.ts",
+  "find": ", new PdfDocTextEncoding()]",
+  "replace": "]",
+  "group": "text2"
+ },
+ {
+  "id": "control range",
+  "file": "src/pdf/text/forbidden-characters.ts",
+  "find": "  if (unit <= LAST_CONTROL) return !isAllowedControl(unit);\n",
+  "replace": "  if (unit <= LAST_CONTROL) return false;\n",
+  "group": "text2"
+ },
+ {
+  "id": "tab allowed (2)",
+  "file": "src/pdf/text/forbidden-characters.ts",
+  "find": "return unit === TAB || unit === LINE_FEED || unit === CARRIAGE_RETURN;",
+  "replace": "return unit === LINE_FEED || unit === CARRIAGE_RETURN;",
+  "group": "text2"
+ },
+ {
+  "id": "C1 controls",
+  "file": "src/pdf/text/forbidden-characters.ts",
+  "find": "  return unit >= FIRST_DELETE_OR_C1 && unit <= LAST_C1;\n",
+  "replace": "  return false;\n",
+  "group": "text2"
+ },
+ {
+  "id": "noncharacter block",
+  "file": "src/pdf/text/forbidden-characters.ts",
+  "find": "  if (unit >= FIRST_NONCHARACTER && unit <= LAST_NONCHARACTER) return true;\n",
+  "replace": "",
+  "group": "text2"
+ },
+ {
+  "id": "noncharacters FFFE and FFFF",
+  "file": "src/pdf/text/forbidden-characters.ts",
+  "find": "  return unit === NOT_A_CHARACTER || unit === NOT_A_CHARACTER_TOO;\n",
+  "replace": "  return false;\n",
+  "group": "text2"
+ },
+ {
+  "id": "radio off",
+  "file": "src/pdf/fields/kinds/buttons/radio-button.ts",
+  "find": "    if (name === OFF) return null;\n",
+  "replace": "",
+  "group": "buttons"
+ },
+ {
+  "id": "checkbox off",
+  "file": "src/pdf/fields/kinds/buttons/check-box.ts",
+  "find": "buttonStateName(value) !== OFF",
+  "replace": "buttonStateName(value) === OFF",
+  "group": "buttons"
+ },
+ {
+  "id": "button name plain",
+  "file": "src/pdf/fields/kinds/buttons/button-state-name.ts",
+  "find": "    if (!isPlain(character)) throw wrongFieldValue();\n",
+  "replace": "",
+  "group": "buttons"
+ },
+ {
+  "id": "button name present",
+  "file": "src/pdf/fields/kinds/buttons/button-state-name.ts",
+  "find": "if (name === null || name === \"\")",
+  "replace": "if (name === null)",
+  "group": "buttons"
+ },
+ {
+  "id": "push button kind",
+  "file": "src/pdf/fields/kinds/buttons/button-kinds.ts",
+  "find": "[new PushButton(), new RadioButton(), new CheckBox()]",
+  "replace": "[new RadioButton(), new CheckBox()]",
+  "group": "buttons"
+ },
+ {
+  "id": "radio button kind",
+  "file": "src/pdf/fields/kinds/buttons/button-kinds.ts",
+  "find": "[new PushButton(), new RadioButton(), new CheckBox()]",
+  "replace": "[new PushButton(), new CheckBox()]",
+  "group": "buttons"
+ },
+ {
+  "id": "check box kind",
+  "file": "src/pdf/fields/kinds/buttons/button-kinds.ts",
+  "find": "[new PushButton(), new RadioButton(), new CheckBox()]",
+  "replace": "[new PushButton(), new RadioButton()]",
+  "group": "buttons"
+ },
+ {
+  "id": "push button flag",
+  "file": "src/pdf/fields/kinds/buttons/push-button.ts",
+  "find": "const PUSH_BUTTON_FLAG = 1 << 16;",
+  "replace": "const PUSH_BUTTON_FLAG = 1 << 17;",
+  "group": "buttons"
+ },
+ {
+  "id": "radio flag",
+  "file": "src/pdf/fields/kinds/buttons/radio-button.ts",
+  "find": "const RADIO_FLAG = 1 << 15;",
+  "replace": "const RADIO_FLAG = 1 << 14;",
+  "group": "buttons"
+ },
+ {
+  "id": "time limit",
+  "file": "src/pdf/work/work-budget.ts",
+  "find": "now - this.startedAt > TIME_LIMIT_MS",
+  "replace": "now - this.startedAt >= TIME_LIMIT_MS",
+  "group": "cap"
+ },
+ {
+  "id": "catalogue AA",
+  "file": "src/pdf/document/refused-entries.ts",
+  "find": "new RefusedKey(\"AA\", DOCUMENT_ACTIONS)",
+  "replace": "new RefusedKey(\"NeverThere\", DOCUMENT_ACTIONS)",
+  "group": "refusal"
+ },
+ {
+  "id": "page AA",
+  "file": "src/pdf/document/refused-entries.ts",
+  "find": "new RefusedKey(\"AA\", PAGE_ACTIONS)",
+  "replace": "new RefusedKey(\"NeverThere\", PAGE_ACTIONS)",
+  "group": "refusal"
+ },
+ {
+  "id": "other annotation A",
+  "file": "src/pdf/document/refused-entries.ts",
+  "find": "new RefusedKey(\"A\", OTHER_ACTION)",
+  "replace": "new RefusedKey(\"NeverThere\", OTHER_ACTION)",
+  "group": "refusal"
+ },
+ {
+  "id": "other annotation AA",
+  "file": "src/pdf/document/refused-entries.ts",
+  "find": "new RefusedKey(\"AA\", OTHER_ACTIONS)",
+  "replace": "new RefusedKey(\"NeverThere\", OTHER_ACTIONS)",
+  "group": "refusal"
+ },
+ {
+  "id": "field nodes check actions",
+  "file": "src/pdf/fields/field-nodes.ts",
+  "find": "    this.actions.check(indirect.dictionary);\n",
+  "replace": "",
+  "group": "refusal"
+ },
+ {
+  "id": "fields recorded once",
+  "file": "src/pdf/fields/sources/collecting-widgets.ts",
+  "find": "this.recordedFields.has(field.number)",
+  "replace": "false",
+  "group": "walk"
+ },
+ {
+  "id": "form chosen when present",
+  "file": "src/pdf/fields/read-fields.ts",
+  "find": "if (!form.isPresent()) return [new PageWalk",
+  "replace": "if (true) return [new PageWalk",
+  "group": "walk"
+ },
+ {
+  "id": "UTF-16 odd length",
+  "file": "src/pdf/text/encodings/utf16-big-endian-encoding.ts",
+  "find": "    if ((bytes.byteLength - MARK.length) % UNIT_BYTES !== 0) throw unreadableText();\n",
+  "replace": "",
+  "group": "text"
+ },
+ {
+  "id": "undefined code refused",
+  "file": "src/pdf/text/encodings/pdf-doc-text-encoding.ts",
+  "find": "      if (point === null) throw unreadableText();\n",
+  "replace": "      if (point === null) continue;\n",
+  "group": "text"
+ },
+ {
+  "id": "hex odd digit",
+  "file": "src/pdf/parsing/strings/hex-string-reader.ts",
+  "find": "    if (high !== NO_BYTE) sink.push(high * HEX_BASE);\n",
+  "replace": "",
+  "group": "parse"
+ },
+ {
+  "id": "number ends a word",
+  "file": "src/pdf/parsing/numbers/number-token.ts",
+  "find": "  if (!endsAWord(cursor.current())) throw new PdfRefusal(BAD_NUMBER);\n",
+  "replace": "",
+  "group": "parse"
+ },
+ {
+  "id": "unexpected errors refused",
+  "file": "src/pdf/read-pdf-fields.ts",
+  "find": "  if (error instanceof PdfRefusal) return error.reason;\n  return UNEXPECTED_WORDS;",
+  "replace": "  return UNEXPECTED_WORDS;",
+  "group": "entry"
+ },
+ {
+  "id": "each action is a script",
+  "file": "src/pdf/fields/field-actions.ts",
+  "find": "    this.checkIsScript(action);\n",
+  "replace": "",
+  "group": "actions"
+ },
+ {
+  "id": "limit MAX_FILE_BYTES plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const MAX_FILE_BYTES = 10 * MEBIBYTE;",
+  "replace": "export const MAX_FILE_BYTES = 10 * MEBIBYTE + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit MAX_XREF_SECTIONS plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const MAX_XREF_SECTIONS = 32;",
+  "replace": "export const MAX_XREF_SECTIONS = 32 + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit MAX_XREF_ENTRIES plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const MAX_XREF_ENTRIES = 100_000;",
+  "replace": "export const MAX_XREF_ENTRIES = 100_000 + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit MAX_OBJECTS_PARSED plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const MAX_OBJECTS_PARSED = 20_000;",
+  "replace": "export const MAX_OBJECTS_PARSED = 20_000 + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit MAX_OBJECTS_IN_STREAM plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const MAX_OBJECTS_IN_STREAM = 10_000;",
+  "replace": "export const MAX_OBJECTS_IN_STREAM = 10_000 + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit MAX_NESTING plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const MAX_NESTING = 32;",
+  "replace": "export const MAX_NESTING = 32 + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit MAX_FIELD_DEPTH plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const MAX_FIELD_DEPTH = 16;",
+  "replace": "export const MAX_FIELD_DEPTH = 16 + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit MAX_FIELDS plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const MAX_FIELDS = 2_000;",
+  "replace": "export const MAX_FIELDS = 2_000 + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit MAX_ITEMS_IN_CONTAINER plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const MAX_ITEMS_IN_CONTAINER = 10_000;",
+  "replace": "export const MAX_ITEMS_IN_CONTAINER = 10_000 + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit MAX_STREAM_BYTES plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const MAX_STREAM_BYTES = 16 * MEBIBYTE;",
+  "replace": "export const MAX_STREAM_BYTES = 16 * MEBIBYTE + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit MAX_OBJECT_STREAM_BYTES plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const MAX_OBJECT_STREAM_BYTES = 4 * MEBIBYTE;",
+  "replace": "export const MAX_OBJECT_STREAM_BYTES = 4 * MEBIBYTE + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit MAX_VALUES_PARSED plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const MAX_VALUES_PARSED = 1_000_000;",
+  "replace": "export const MAX_VALUES_PARSED = 1_000_000 + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit MAX_ALL_STREAM_BYTES plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const MAX_ALL_STREAM_BYTES = 32 * MEBIBYTE;",
+  "replace": "export const MAX_ALL_STREAM_BYTES = 32 * MEBIBYTE + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit RATIO_CHECKED_ABOVE_BYTES plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const RATIO_CHECKED_ABOVE_BYTES = MEBIBYTE;",
+  "replace": "export const RATIO_CHECKED_ABOVE_BYTES = MEBIBYTE + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit MAX_RATIO plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const MAX_RATIO = 200;",
+  "replace": "export const MAX_RATIO = 200 + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit MAX_STRING_BYTES plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const MAX_STRING_BYTES = 64 * KIBIBYTE;",
+  "replace": "export const MAX_STRING_BYTES = 64 * KIBIBYTE + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit MAX_FIELD_TEXT_CHARACTERS plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const MAX_FIELD_TEXT_CHARACTERS = 8_000;",
+  "replace": "export const MAX_FIELD_TEXT_CHARACTERS = 8_000 + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit MAX_NAME_BYTES plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const MAX_NAME_BYTES = 127;",
+  "replace": "export const MAX_NAME_BYTES = 127 + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit MAX_NUMBER_CHARACTERS plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const MAX_NUMBER_CHARACTERS = 20;",
+  "replace": "export const MAX_NUMBER_CHARACTERS = 20 + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit MAX_ENTRY_FIELD_WIDTH plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const MAX_ENTRY_FIELD_WIDTH = 4;",
+  "replace": "export const MAX_ENTRY_FIELD_WIDTH = 4 + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit TIME_LIMIT_MS plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const TIME_LIMIT_MS = 5_000;",
+  "replace": "export const TIME_LIMIT_MS = 5_000 + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit STEPS_PER_TIME_CHECK plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const STEPS_PER_TIME_CHECK = 1_000;",
+  "replace": "export const STEPS_PER_TIME_CHECK = 1_000 + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit WORK_PER_BYTE plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const WORK_PER_BYTE = 8;",
+  "replace": "export const WORK_PER_BYTE = 8 + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit WORK_EXTRA plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const WORK_EXTRA = MEBIBYTE;",
+  "replace": "export const WORK_EXTRA = MEBIBYTE + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit HEADER_WINDOW_BYTES plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const HEADER_WINDOW_BYTES = KIBIBYTE;",
+  "replace": "export const HEADER_WINDOW_BYTES = KIBIBYTE + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit TRAILER_WINDOW_BYTES plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const TRAILER_WINDOW_BYTES = KIBIBYTE;",
+  "replace": "export const TRAILER_WINDOW_BYTES = KIBIBYTE + 1;",
+  "group": "limits"
+ },
+ {
+  "id": "limit MAX_PAGE_TREE_DEPTH plus one",
+  "file": "src/pdf/limits/pdf-limits.ts",
+  "find": "export const MAX_PAGE_TREE_DEPTH = 16;",
+  "replace": "export const MAX_PAGE_TREE_DEPTH = 16 + 1;",
+  "group": "limits"
+ }
+]
