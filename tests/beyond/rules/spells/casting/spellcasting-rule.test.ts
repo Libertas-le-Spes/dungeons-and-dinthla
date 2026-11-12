@@ -146,3 +146,9 @@ describe("SpellcastingRule and modifiers", () => {
 function isSpellNumber(name: string): boolean {
   return name.includes("spell");
 }
+
+describe("SpellcastingRule and the way the class is written", () => {
+  it("finds a wizard written in lower case", () => {
+    expect(numberNamed(madeUpRuleCharacter({ classes: [classOf(" WIZARD ", 5, 6)] }), "Wizard spell save DC").valueOr(-1)).toBe(11);
+  });
+});
