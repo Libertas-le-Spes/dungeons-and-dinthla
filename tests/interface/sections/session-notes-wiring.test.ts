@@ -45,6 +45,8 @@ function wiredWith(trashOption: string) {
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
     actions: { openRow: vi.fn(), openLink: vi.fn() },
     confirm: vi.fn(),
+    campaignFolders: vi.fn(() => ["D&D/Pale Moon"]),
+    report: vi.fn(),
     startSession: vi.fn(),
   };
   return { wiring: sessionNotesWiring(needs), needs, rawMetadata };
@@ -73,6 +75,18 @@ describe("sessionNotesWiring", () => {
   it("deletes a session note for good only when Obsidian keeps no trash", () => {
     expect(wiredWith("none").wiring.notes.removal.trash.deletesPermanently()).toBe(true);
     expect(wiredWith("local").wiring.notes.removal.trash.deletesPermanently()).toBe(false);
+  });
+
+  it("plans how the sessions are numbered again in the campaign folders it is given", () => {
+    const { wiring, needs } = wiredWith("local");
+    expect(wiring.notes.removal.renumbering.planFor(SESSION.path)).toEqual({ campaignFolder: "D&D/Pale Moon", renames: [], latest: null });
+    expect(needs.campaignFolders).toHaveBeenCalled();
+  });
+
+  it("tells the person what it is given to tell with the reporter it is given", () => {
+    const { wiring, needs } = wiredWith("local");
+    wiring.notes.removal.report("Links weren't updated in: Pale Moon/Notes.md.");
+    expect(needs.report).toHaveBeenCalledExactlyOnceWith("Links weren't updated in: Pale Moon/Notes.md.");
   });
 
   it("asks with the confirm it is given and starts a session with the starter it is given", () => {

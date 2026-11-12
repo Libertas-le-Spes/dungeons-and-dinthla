@@ -27,6 +27,7 @@ const TWO = "Pale Moon/Sessions/Session 2.md";
 class FakeNotes {
   readonly texts: Map<string, string>;
   writes = 0;
+  private readonly files = new Map<string, TFile>();
 
   constructor(notes: Record<string, string>) {
     this.texts = new Map(Object.entries(notes));
@@ -36,7 +37,11 @@ class FakeNotes {
     return {
       getFileByPath: (path) => {
         if (!this.texts.has(path)) return null;
-        return { path } as TFile;
+        const known = this.files.get(path);
+        if (known !== undefined) return known;
+        const made = { path } as TFile;
+        this.files.set(path, made);
+        return made;
       },
       process: async (file, change) => {
         this.writes += 1;
@@ -418,8 +423,9 @@ describe("saving an item", () => {
   it("refuses to write into a session note the campaign hasn't read yet", async () => {
     const notes = new FakeNotes({ [ONE]: "$ Rope\n" });
     const three = "Pale Moon/Sessions/Session 3.md";
-    const opened = notes.open("Rope", three, notes.readBefore());
+    const readBefore = notes.readBefore();
     notes.texts.set(three, "");
+    const opened = notes.open("Rope", three, readBefore);
     await expect(opened.save({ ...opened.edit, status: "lost" })).rejects.toThrow(CHANGES_ANOTHER_ITEM);
     expect(notes.texts.get(three)).toBe("");
   });

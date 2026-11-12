@@ -31,7 +31,12 @@ function storeRaisedIn(path: string): CampaignStore {
 
 function gateWith(paths: string[]): Gate {
   const files = paths.map((path) => ({ path }) as TFile);
-  return { files: { getFiles: () => files, getMarkdownFiles: () => files } } as unknown as Gate;
+  const fileAt = (path: string) => {
+    const found = files.find((file) => file.path === path);
+    if (found === undefined) return null;
+    return found;
+  };
+  return { files: { getFiles: () => files, getMarkdownFiles: () => files, getFileByPath: fileAt } } as unknown as Gate;
 }
 
 type Open = (gate: Gate, store: CampaignStore, openNote: () => void, activePath: string | null) => void;
@@ -95,6 +100,13 @@ describe("a dialog that writes into a session, with sessions to write in", () =>
     open(gateWith([ONE, TWO, THREE]), storeRaisedIn(ONE), vi.fn(), TWO);
     expect(openedModals.length).toBe(before + 1);
     expect(whereOfLastModal()).toBe(`${where} Session 2.`);
+  });
+
+  it.each(FINDING)("%s writes in the latest session when the open session's note is gone", (_name, where, open) => {
+    const before = openedModals.length;
+    open(gateWith([ONE, THREE]), storeRaisedIn(ONE), vi.fn(), TWO);
+    expect(openedModals.length).toBe(before + 1);
+    expect(whereOfLastModal()).toBe(`${where} Session 3.`);
   });
 
   it.each(RAISED_IN)("%s writes in the latest session when the open one is earlier than the record's", (_name, where, open) => {

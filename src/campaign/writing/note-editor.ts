@@ -1,5 +1,5 @@
 import type { TFile } from "obsidian";
-import { hiddenLines } from "../../notes/reading/hidden-lines";
+import { addedLinesHidden } from "../../notes/reading/hidden-lines";
 import { appendLines, dropLine, removeLines, rewriteLine, type LineToRemove } from "../../notes/writing/note-lines";
 import { messageOf } from "../../views/dialogs/message-of";
 import type { SessionNote, Source } from "../record/campaign";
@@ -50,11 +50,7 @@ export class NoteEditor {
     if (added.length === 0) return false;
     await this.changeOrRefuse(this.fileAt(targetPath), WOULD_BE_HIDDEN, (text) => {
       const changed = appendLines(text, added);
-      const firstAdded = changed.split("\n").length - 1 - added.length;
-      const hidden = hiddenLines(changed);
-      for (let line = firstAdded; line < firstAdded + added.length; line++) {
-        if (hidden.has(line)) return null;
-      }
+      if (addedLinesHidden(changed, added.length)) return null;
       return changed;
     });
     return true;
@@ -94,6 +90,10 @@ export class NoteEditor {
   async drop(old: Removal): Promise<boolean> {
     await this.changeOrRefuse(this.fileAt(old.path), CHANGED_IN_NOTE, (text) => dropLine(text, old));
     return true;
+  }
+
+  async changeText(path: string, refusal: string, change: (text: string) => string | null): Promise<void> {
+    await this.changeOrRefuse(this.fileAt(path), refusal, change);
   }
 
   ensureExists(paths: string[]): void {

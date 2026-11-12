@@ -33,16 +33,20 @@ export function latestSession(campaignFolder: string, paths: string[]): string |
   return latest;
 }
 
+function isOpenSessionToWrite(activePath: string, campaignFolder: string, paths: string[], earliestSession: number): boolean {
+  if (!paths.includes(activePath)) return false;
+  const number = sessionNumberOf(activePath, campaignFolder);
+  if (number === null || number < earliestSession) return false;
+  return !numberIsShared(number, campaignFolder, paths);
+}
+
 function sessionToWriteOrNone(
   activePath: string | null,
   campaignFolder: string,
   paths: string[],
   earliestSession: number,
 ): string | null {
-  if (activePath !== null) {
-    const number = sessionNumberOf(activePath, campaignFolder);
-    if (number !== null && number >= earliestSession && !numberIsShared(number, campaignFolder, paths)) return activePath;
-  }
+  if (activePath !== null && isOpenSessionToWrite(activePath, campaignFolder, paths, earliestSession)) return activePath;
   return latestSession(campaignFolder, paths);
 }
 

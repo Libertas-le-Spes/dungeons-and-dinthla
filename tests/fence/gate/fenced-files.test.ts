@@ -142,6 +142,39 @@ describe("FencedFiles reads and writes", () => {
     expect(calls.create).not.toHaveBeenCalled();
   });
 
+  it("renames a file inside to a path inside", async () => {
+    const { files, calls } = filesWith();
+    await files.rename(SESSION, "D&D/Pale Moon/Sessions/Session 2.md");
+    expect(calls.rename).toHaveBeenCalledExactlyOnceWith(SESSION, "D&D/Pale Moon/Sessions/Session 2.md");
+  });
+
+  it("refuses to rename a file outside, or a stand-in that only carries an inside path", async () => {
+    const { files, calls } = filesWith();
+    await expect(files.rename(PRIVATE, "D&D/Pale Moon/Sessions/Session 2.md")).rejects.toThrow(OUTSIDE_FENCE);
+    await expect(files.rename(fileAt(SESSION.path), "D&D/Pale Moon/Sessions/Session 2.md")).rejects.toThrow(OUTSIDE_FENCE);
+    expect(calls.rename).not.toHaveBeenCalled();
+  });
+
+  it("refuses to rename a file to a path outside, or one that climbs out", async () => {
+    const { files, calls } = filesWith();
+    await expect(files.rename(SESSION, "Private/Session 2.md")).rejects.toThrow(OUTSIDE_FENCE);
+    await expect(files.rename(SESSION, "D&D/../Private/Session 2.md")).rejects.toThrow(OUTSIDE_FENCE);
+    await expect(files.rename(SESSION, "/D&D/Pale Moon/Sessions/Session 2.md")).rejects.toThrow(OUTSIDE_FENCE);
+    expect(calls.rename).not.toHaveBeenCalled();
+  });
+
+  it("refuses to rename a file to a path Obsidian would write another way", async () => {
+    const { files, calls } = filesWith();
+    await expect(files.rename(SESSION, "D&D/Pale\u00a0Moon/Sessions/Session 2.md")).rejects.toThrow(NOT_WRITTEN_AS_OBSIDIAN_WRITES);
+    expect(calls.rename).not.toHaveBeenCalled();
+  });
+
+  it("refuses to rename anything while no Campaigns folder is set", async () => {
+    const { files, calls } = filesWith(null);
+    await expect(files.rename(SESSION, "D&D/Pale Moon/Sessions/Session 2.md")).rejects.toThrow(OUTSIDE_FENCE);
+    expect(calls.rename).not.toHaveBeenCalled();
+  });
+
   it("removes an empty folder inside, and leaves one that holds something", async () => {
     const { files, calls } = filesWith();
     await files.removeEmptyFolder("D&D/Pale Moon/Items");

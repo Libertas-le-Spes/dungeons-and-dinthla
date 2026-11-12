@@ -5,7 +5,7 @@ import { CHANGED_IN_NOTE, LINES_LEFT, type EditorFiles } from "../../../src/camp
 import { linesAddedTo } from "../../../src/campaign/changes/session-change";
 import { SessionChangeWriter } from "../../../src/campaign/changes/session-change-writer";
 import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
-import { canCollectReward, CHANGES_ANOTHER_QUEST, initialQuestEdit, planQuestSave, refusalForQuestPlan, type QuestEdit } from "../../../src/quests/writing/quest-plan";
+import { canCollectReward, CHANGES_ANOTHER_QUEST, FOLLOW_UP_TITLE_TAKEN, initialQuestEdit, planQuestSave, refusalForQuestPlan, type QuestEdit } from "../../../src/quests/writing/quest-plan";
 import { questSessionChange } from "../../../src/quests/writing/quest-session-change";
 import { QuestWriter } from "../../../src/quests/writing/quest-writer";
 
@@ -229,17 +229,23 @@ describe("the reward and outcome rules for recurring quests", () => {
     ]);
   });
 
-  it("opens a follow-up in an old outcome's note though a later session has a quest of that title", async () => {
-    const notes = new FakeNotes({ [ONE]: "! Find it\n!= Find it: done\n", [TWO]: "! Why, after: Find it\n" });
+  it("opens a follow-up in an old outcome's note", async () => {
+    const notes = new FakeNotes({ [ONE]: "! Find it\n!= Find it: done\n", [TWO]: "We camped.\n" });
     expect(await notes.save(0, { status: "failed", happened: "fled", followUp: "Why" }, TWO)).toBe(true);
     expect(notes.texts.get(ONE)).toBe("! Find it\n!x Find it: fled\n! Why, after: Find it\n");
-    expect(notes.texts.get(TWO)).toBe("! Why, after: Find it\n");
+    expect(notes.texts.get(TWO)).toBe("We camped.\n");
   });
 
-  it("opens a follow-up below an earlier quest of that title in the same note", async () => {
+  it("refuses a follow-up when a later session has a quest of that title, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "! Find it\n!= Find it: done\n", [TWO]: "! Why, after: Find it\n" });
+    await expect(notes.save(0, { status: "failed", happened: "fled", followUp: "Why" }, TWO)).rejects.toThrow(FOLLOW_UP_TITLE_TAKEN);
+    expect(notes.texts.get(ONE)).toBe("! Find it\n!= Find it: done\n");
+  });
+
+  it("refuses a follow-up when an earlier quest in the same note has that title, writing nothing", async () => {
     const notes = new FakeNotes({ [ONE]: "! Why, after: Find it\n! Find it\n" });
-    expect(await notes.save(1, { followUp: "Why" }, ONE)).toBe(true);
-    expect(notes.texts.get(ONE)).toBe("! Why, after: Find it\n! Find it\n! Why, after: Find it\n");
+    await expect(notes.save(1, { followUp: "Why" }, ONE)).rejects.toThrow(FOLLOW_UP_TITLE_TAKEN);
+    expect(notes.texts.get(ONE)).toBe("! Why, after: Find it\n! Find it\n");
   });
 
   it("refuses a follow-up quest that a stray line would mark finished at once", async () => {

@@ -13,6 +13,7 @@ import { SessionWriting } from "../../src/session-notes/page/session-writing";
 import { writtenLinesOf } from "../../src/session-notes/lines/written-lines";
 import type { ConfirmText } from "../../src/views/dialogs/confirm-modal";
 import { FakeNotes } from "../note-editing/fake-notes";
+import { stubRenumbering } from "./renumbering/stub-renumbering";
 import { isShown, obsidianDocument } from "../stubs/obsidian-dom";
 
 export const PATH = "Pale Moon/Sessions/Session 12.md";
@@ -51,6 +52,8 @@ export function writingOn(text: string | null, drafts = new Drafts({}, () => {})
     asked.push({ text: confirmText, confirmed: pressConfirm, kept: closed });
   });
   const permanently = vi.fn(() => false);
+  const renumbering = stubRenumbering();
+  const report = vi.fn();
   const moves = { heading: vi.fn(() => HEADING), deleted: vi.fn() };
   const session = new SessionWriting(
     root,
@@ -63,7 +66,7 @@ export function writingOn(text: string | null, drafts = new Drafts({}, () => {})
       campaign: () => buildCampaign([]),
       actions: { openRow: vi.fn(), openLink: vi.fn() },
       wholeText: { texts: notes.texts, drafts: noteDrafts, saver: new NoteSaver(notes.vault) },
-      removal: { clearer: new SessionClearer(notes.vault), trash: new SessionTrash(notes.vault, { trashFile }, permanently), confirm },
+      removal: { clearer: new SessionClearer(notes.vault), trash: new SessionTrash(notes.vault, { trashFile }, permanently), renumbering, confirm, report },
     },
     moves,
   );
@@ -102,6 +105,8 @@ export function writingOn(text: string | null, drafts = new Drafts({}, () => {})
     trashFile,
     confirm,
     permanently,
+    renumbering,
+    report,
     asked,
     moves,
     showNote,

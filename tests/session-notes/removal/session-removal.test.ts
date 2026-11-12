@@ -3,6 +3,9 @@ import { Drafts } from "../../../src/session-notes/drafts/drafts";
 import { PROPERTIES_NOT_FOUND } from "../../../src/session-notes/removal/session-clearer";
 import { NOTE_GONE_NOW, SAVE_RUNNING } from "../../../src/session-notes/removal/session-removal";
 import { CHANGED_SINCE_ASKED_TO_DELETE } from "../../../src/session-notes/removal/session-trash";
+import type { SessionRename } from "../../../src/session-notes/renumbering/renumbering-plan";
+import { SESSIONS_CHANGED_SINCE_ASKED, type RenumberingReport } from "../../../src/session-notes/renumbering/renumbering-words";
+import { NOTHING_WRONG } from "../renumbering/stub-renumbering";
 import { flushed, HEADING, NOTE, PATH, writingOn } from "../writing-on";
 
 const TWO_LINES = "Tracks lead to the [[Old Mill]].\n? Who sent the letter";
@@ -152,14 +155,14 @@ describe("Clear notes and Delete session", () => {
     expect(keptDrafts.kept()).toEqual([]);
   });
 
-  it("moves the note to Obsidian's trash once confirmed, keeps unsaved lines apart, and moves on", async () => {
+  it("moves the note to Obsidian's trash once confirmed, keeps unsaved lines apart, and moves on to no session when the plan has none left", async () => {
     const drafts = new Drafts({}, () => {});
     const { button, asked, trashFile, moves, keptDrafts, typeLines } = writingOn(NOTE, drafts);
     typeLines("! Ride to Thessaly");
     button(".dd-delete-session").click();
     await flushed();
     asked[0]!.confirmed();
-    await vi.waitFor(() => expect(moves.deleted).toHaveBeenCalledExactlyOnceWith(PATH));
+    await vi.waitFor(() => expect(moves.deleted).toHaveBeenCalledExactlyOnceWith(null));
     expect(trashFile).toHaveBeenCalledExactlyOnceWith({ path: PATH });
     expect(keptDrafts.kept().map((kept) => [kept.path, kept.text])).toEqual([[PATH, "! Ride to Thessaly"]]);
     expect(drafts.textOf(PATH)).toBe("");
@@ -294,5 +297,170 @@ describe("Clear notes and Delete session", () => {
     await vi.waitFor(() => expect(message()).toBe(`Couldn't clear the notes: ${PROPERTIES_NOT_FOUND}`));
     expect(notes.writes).toEqual([]);
     expect(notes.text).toBe(unclosed);
+  });
+});
+
+function rename(from: number, to: number): SessionRename {
+  return { from: `Pale Moon/Sessions/Session ${from}.md`, to: `Pale Moon/Sessions/Session ${to}.md`, fromNumber: from, toNumber: to };
+}
+
+const OTHERS_STAY = "Other sessions, and values learned on character sheets, stay.";
+
+interface AskedDialog {
+  text: { body: string };
+  confirmed: () => void;
+}
+
+function firstAsked(asked: AskedDialog[]): AskedDialog {
+  const [first] = asked;
+  if (first === undefined) throw new Error("Nothing was asked.");
+  return first;
+}
+
+function pressConfirm(asked: AskedDialog[]): void {
+  firstAsked(asked).confirmed();
+}
+
+function bodyAsked(asked: AskedDialog[]): string {
+  return firstAsked(asked).text.body;
+}
+
+function firstCallOrder(mock: { mock: { invocationCallOrder: number[] } }): number {
+  const [first] = mock.mock.invocationCallOrder;
+  if (first === undefined) throw new Error("It was never called.");
+  return first;
+}
+
+describe("Delete session, with the sessions numbered again", () => {
+  it("names the sessions that move when it asks, after what it always says", async () => {
+    const { button, asked, renumbering } = writingOn("? Who sent the letter");
+    renumbering.planFor.mockReturnValue({ campaignFolder: "Pale Moon", renames: [rename(5, 2), rename(7, 3)], latest: null });
+    button(".dd-delete-session").click();
+    await flushed();
+    expect(bodyAsked(asked)).toBe(`Its 1 note goes with it, including any question, quest or ledger line first written in it. ${OTHERS_STAY} Sessions 5 and 7 become 2 and 3.`);
+  });
+
+  it("names the sessions that move before it warns the note can't be taken back", async () => {
+    const { button, asked, renumbering, permanently } = writingOn("? Who sent the letter");
+    permanently.mockReturnValue(true);
+    renumbering.planFor.mockReturnValue({ campaignFolder: "Pale Moon", renames: [rename(5, 4)], latest: null });
+    button(".dd-delete-session").click();
+    await flushed();
+    expect(bodyAsked(asked)).toBe(
+      `Its 1 note goes with it, including any question, quest or ledger line first written in it. ${OTHERS_STAY} Session 5 becomes 4. Obsidian is set to delete files permanently, so the note can't be taken back from a trash.`,
+    );
+  });
+
+  it("asks for the plan of the session being deleted", async () => {
+    const { button, renumbering } = writingOn(NOTE);
+    button(".dd-delete-session").click();
+    await flushed();
+    expect(renumbering.planFor).toHaveBeenCalledExactlyOnceWith(PATH);
+  });
+
+  it("asks nothing and says why when the sessions can't be numbered again, and can ask again after", async () => {
+    const { button, asked, renumbering, message, trashFile } = writingOn(NOTE);
+    renumbering.planFor.mockReturnValueOnce({ error: "Two session notes are numbered 3. Nothing was deleted." });
+    button(".dd-delete-session").click();
+    await flushed();
+    expect(asked).toEqual([]);
+    expect(message()).toBe("Two session notes are numbered 3. Nothing was deleted.");
+    expect(trashFile).not.toHaveBeenCalled();
+    button(".dd-delete-session").click();
+    await flushed();
+    expect(asked).toHaveLength(1);
+  });
+
+  it("checks the plan again before the note goes to the trash, with the plan it asked about", async () => {
+    const { button, asked, renumbering, trashFile } = writingOn(NOTE);
+    const plan = { campaignFolder: "Pale Moon", renames: [rename(5, 2)], latest: "Pale Moon/Sessions/Session 2.md" };
+    renumbering.planFor.mockReturnValue(plan);
+    button(".dd-delete-session").click();
+    await flushed();
+    pressConfirm(asked);
+    await vi.waitFor(() => expect(trashFile).toHaveBeenCalledOnce());
+    expect(renumbering.confirmed).toHaveBeenCalledExactlyOnceWith(PATH, plan);
+  });
+
+  it("deletes nothing and says why when the plan no longer holds", async () => {
+    const stubbed = writingOn(NOTE);
+    stubbed.renumbering.confirmed.mockImplementation(() => {
+      throw new Error(SESSIONS_CHANGED_SINCE_ASKED);
+    });
+    stubbed.button(".dd-delete-session").click();
+    await flushed();
+    pressConfirm(stubbed.asked);
+    await vi.waitFor(() => expect(stubbed.message()).toBe(`Couldn't delete the session: ${SESSIONS_CHANGED_SINCE_ASKED}`));
+    expect(stubbed.trashFile).not.toHaveBeenCalled();
+    expect(stubbed.renumbering.carryOut).not.toHaveBeenCalled();
+    expect(stubbed.moves.deleted).not.toHaveBeenCalled();
+  });
+
+  it("numbers the sessions again once the note is in the trash, then moves on to the latest session", async () => {
+    const { button, asked, renumbering, trashFile, moves } = writingOn(NOTE);
+    const plan = { campaignFolder: "Pale Moon", renames: [rename(5, 2)], latest: "Pale Moon/Sessions/Session 2.md" };
+    renumbering.planFor.mockReturnValue(plan);
+    button(".dd-delete-session").click();
+    await flushed();
+    pressConfirm(asked);
+    await vi.waitFor(() => expect(moves.deleted).toHaveBeenCalledExactlyOnceWith("Pale Moon/Sessions/Session 2.md"));
+    expect(renumbering.carryOut).toHaveBeenCalledExactlyOnceWith(plan);
+    expect(firstCallOrder(trashFile)).toBeLessThan(firstCallOrder(renumbering.carryOut));
+  });
+
+  it("sets the box's lines aside before any session is renamed", async () => {
+    const { button, asked, renumbering, keptDrafts, typeLines } = writingOn(NOTE);
+    typeLines("! Ride to Thessaly");
+    let keptWhenRenaming: string[] = [];
+    renumbering.carryOut.mockImplementation(async () => {
+      keptWhenRenaming = keptDrafts.kept().map((kept) => kept.text);
+      return NOTHING_WRONG;
+    });
+    button(".dd-delete-session").click();
+    await flushed();
+    pressConfirm(asked);
+    await vi.waitFor(() => expect(renumbering.carryOut).toHaveBeenCalledOnce());
+    expect(keptWhenRenaming).toEqual(["! Ride to Thessaly"]);
+  });
+
+  it("tells the person what went wrong with the renumbering, and still moves on", async () => {
+    const report: RenumberingReport = { ...NOTHING_WRONG, linksNotUpdated: ["Pale Moon/Notes.md (the disk is full.)"] };
+    const { button, asked, renumbering, report: tell, moves } = writingOn(NOTE);
+    renumbering.carryOut.mockResolvedValue(report);
+    button(".dd-delete-session").click();
+    await flushed();
+    pressConfirm(asked);
+    await vi.waitFor(() => expect(moves.deleted).toHaveBeenCalledOnce());
+    expect(tell).toHaveBeenCalledExactlyOnceWith("Links weren't updated in: Pale Moon/Notes.md (the disk is full.).");
+  });
+
+  it("moves on to the latest session that exists when a rename failed", async () => {
+    const report: RenumberingReport = { ...NOTHING_WRONG, notRenamed: [rename(7, 3)], renameFailure: "the disk is full." };
+    const { button, asked, renumbering, moves } = writingOn(NOTE);
+    renumbering.planFor.mockReturnValue({ campaignFolder: "Pale Moon", renames: [rename(7, 3)], latest: "Pale Moon/Sessions/Session 3.md" });
+    renumbering.carryOut.mockResolvedValue(report);
+    button(".dd-delete-session").click();
+    await flushed();
+    pressConfirm(asked);
+    await vi.waitFor(() => expect(moves.deleted).toHaveBeenCalledExactlyOnceWith("Pale Moon/Sessions/Session 7.md"));
+  });
+
+  it("tells the person nothing when the renumbering went through", async () => {
+    const { button, asked, report: tell, moves } = writingOn(NOTE);
+    button(".dd-delete-session").click();
+    await flushed();
+    pressConfirm(asked);
+    await vi.waitFor(() => expect(moves.deleted).toHaveBeenCalledOnce());
+    expect(tell).not.toHaveBeenCalled();
+  });
+
+  it("doesn't number the sessions again when the note can't be trashed", async () => {
+    const { button, asked, renumbering, trashFile, message } = writingOn(NOTE);
+    trashFile.mockRejectedValueOnce(new Error("the trash is full."));
+    button(".dd-delete-session").click();
+    await flushed();
+    pressConfirm(asked);
+    await vi.waitFor(() => expect(message()).toBe("Couldn't delete the session: the trash is full."));
+    expect(renumbering.carryOut).not.toHaveBeenCalled();
   });
 });

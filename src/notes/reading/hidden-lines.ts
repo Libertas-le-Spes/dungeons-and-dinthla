@@ -89,3 +89,12 @@ export function hiddenLines(text: string): Set<number> {
   }
   return hidden;
 }
+
+export function addedLinesHidden(textWithAddedLinesLast: string, addedCount: number): boolean {
+  const lineCount = textWithAddedLinesLast.split("\n").length - 1;
+  const hidden = hiddenLines(textWithAddedLinesLast);
+  for (let line = lineCount - addedCount; line < lineCount; line++) {
+    if (hidden.has(line)) return true;
+  }
+  return false;
+}

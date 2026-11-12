@@ -4,7 +4,8 @@ import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { SessionChangeWriter } from "../../campaign/changes/session-change-writer";
 import { sessionLabelOf } from "../../campaign/paths/session-file";
 import { sessionForDialog } from "../../campaign/paths/session-for-dialog";
-import { writeRecordChange } from "../../campaign/changes/write-record-change";
+import { writeInSession } from "../../campaign/changes/write-in-session";
+import { OpenedSession } from "../../campaign/paths/session-gone";
 import { currentQuestion, latestSessionOfQuestion, sharesTextWithEarlierOpenQuestion } from "../writing/current-question";
 import { questionReopen, questionSave } from "../writing/question-change";
 import { QuestionModal } from "./question-modal";
@@ -41,11 +42,12 @@ export function openQuestion(
   if (sessionPath === null) return;
   const questionWriter = new QuestionWriter(gate.files);
   const writer = new SessionChangeWriter(gate.files);
+  const opened = new OpenedSession(gate.files, sessionPath);
   const latest = () => currentQuestion(store.current.questions, question);
   const choices = {
-    save: async (edit: QuestionEdit) => writeRecordChange(questionSave(store, latest(), edit, sessionPath), writer),
-    reopen: () => writeRecordChange(questionReopen(store, latest(), sessionPath), writer),
-    delete: () => questionWriter.delete(latest()),
+    save: async (edit: QuestionEdit) => writeInSession(opened, () => questionSave(store, latest(), edit, sessionPath), writer),
+    reopen: () => writeInSession(opened, () => questionReopen(store, latest(), sessionPath), writer),
+    delete: async () => questionWriter.delete(latest()),
   };
   let answeredIn = sessionLabelOf(sessionPath);
   if (question.answer !== null) answeredIn = sessionLabelOf(question.answer.source.path);
