@@ -54,7 +54,9 @@ describe("a packed group whose objects overlap", () => {
     expect(reasonOf(counted)).toContain("not packed the way PDF packs them");
     expect(counted.steps).toBeLessThanOrEqual(2 * bytes.length + 2 * body.length);
   });
+});
 
+describe("a packed group that unpacks to too much", () => {
   it("is refused when one group unpacks to more than the most bytes allowed", async () => {
     const header = "10 0 ";
     const numbers = new SeededNumbers();
