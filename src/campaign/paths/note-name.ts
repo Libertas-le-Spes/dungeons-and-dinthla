@@ -7,6 +7,12 @@ export function noteNameOf(path: string): string {
   return fileName.replace(MARKDOWN_ENDING, "");
 }
 
+export function parentFolderOf(path: string): string {
+  const names = path.split("/");
+  names.pop();
+  return names.join("/");
+}
+
 export function markdownEndingOf(path: string): string {
   if (path.endsWith(NOTE_ENDING)) return NOTE_ENDING;
   return "";

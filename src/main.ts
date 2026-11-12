@@ -29,8 +29,8 @@ import { questsKind } from "./quests/list/quests-kind";
 import { openAddCoin } from "./funds/coins/open-add-coin";
 import { openItemDialog } from "./funds/items/open-item";
 import { ItemNotes } from "./funds/item-notes/item-notes";
-import { askInNotice } from "./kind-notes/differing-notice";
-import { startKindNotes } from "./kind-notes/kind-notes-wiring";
+import { askInNotice } from "./views/dialogs/differing-notice";
+import { startKindNotes } from "./kind-notes/watching/kind-notes-wiring";
 import { NotesMade } from "./settings/saved/notes-made";
 import { ledgerEntryOpener } from "./funds/coins/open-ledger-entry";
 import { ListPage } from "./views/lists/list-page";
@@ -77,12 +77,12 @@ import { startSession } from "./sessions/start-session";
 import { Drafts } from "./session-notes/drafts/drafts";
 import type { KeptDrafts } from "./session-notes/kept/kept-drafts";
 import { DraftKeeping } from "./session-notes/kept/draft-keeping";
+import { NOTICE_STAYS_UNTIL_DISMISSED } from "./views/dialogs/notice-stays";
 import { ConfirmModal, type ConfirmText } from "./views/dialogs/confirm-modal";
 import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
 
 const TYPING_PAUSE_MS = 250;
-const NOTICE_STAYS_UNTIL_DISMISSED = 0;
 
 const PAGE_OPENERS: { page: PageId; id: string; name: string; icon: string }[] = [
   { page: "home", id: "open-dashboard", name: "Open dashboard", icon: "layout-dashboard" },

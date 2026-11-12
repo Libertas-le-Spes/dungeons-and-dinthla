@@ -238,6 +238,18 @@ describe("ItemNotes naming a note", () => {
     expect(fake.failures).toHaveLength(1);
   });
 
+  it("takes the empty note away again when its properties couldn't be written, so no empty item note is left", async () => {
+    const { fake, itemNotes } = await opened(THREE_LINES);
+    fake.failProperties = new Error("disk full");
+    itemNotes.sessionSaved();
+    await settle();
+    expect(fake.trashed).toEqual([LANTERN]);
+    expect(fake.failures).toHaveLength(1);
+    const again = await opened(THREE_LINES);
+    again.fake.failProperties = new Error("disk full");
+    await expect(again.itemNotes.makeMissing()).resolves.toEqual({ made: 0, failed: 1 });
+  });
+
   it("puts a note back as it was and says so when his words change while its properties are written", async () => {
     const { fake, itemNotes } = await opened(["$ Rope"], [{ path: ROPE, properties: { holder: "The party" } }]);
     fake.wordsChangeOnWrite = true;

@@ -2,7 +2,7 @@ import { vi } from "vitest";
 import { buildCampaign } from "../../src/campaign/reading/build-campaign";
 import type { Campaign, SessionNote } from "../../src/campaign/record/campaign";
 import { sessionNoteOf, sessionNumberOf } from "../../src/campaign/paths/session-file";
-import type { WatchedCampaign } from "../../src/kind-notes/kind-note-watcher";
+import type { WatchedCampaign } from "../../src/kind-notes/watching/kind-note-watcher";
 import { CAMPAIGN } from "./keeper-setup";
 
 export class FakeCampaign implements WatchedCampaign {

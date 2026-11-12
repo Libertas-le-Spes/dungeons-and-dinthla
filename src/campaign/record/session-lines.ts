@@ -1,6 +1,6 @@
 import type { SessionNote, Source } from "./campaign";
 
-function bySessionNumber(first: SessionNote, second: SessionNote): number {
+export function bySessionNumber(first: SessionNote, second: SessionNote): number {
   return first.number - second.number;
 }
 

@@ -16,6 +16,7 @@ export interface PlannedItemNote {
   holder: string;
   lines: string[];
   alias: string | null;
+  makes: boolean;
 }
 
 export interface ItemNotePlan {
@@ -35,6 +36,10 @@ function existingNoteOf(item: ItemRecord, existing: TFile[]): TFile | null {
   const found = existing.find((file) => hasNoteNamed(item, noteNameOf(file.path)));
   if (found === undefined) return null;
   return found;
+}
+
+function isToBeMade(file: TFile | null, lines: string[]): boolean {
+  return file === null && lines.length >= LINES_FOR_A_NOTE;
 }
 
 function aliasFor(item: ItemRecord): string | null {
@@ -62,22 +67,22 @@ class ItemNotePlanner {
     const file = existingNoteOf(item, this.existing);
     const reason = refusalForItemNote(item.name);
     if (reason !== null) {
-      this.refuse(file, lines, noNoteMessage(item.name, reason));
+      this.refuse(isToBeMade(file, lines), noNoteMessage(item.name, reason));
       return;
     }
     const key = nameKeyOf(itemFileNameOf(item.name));
     const owner = this.owners.get(key);
     if (owner !== undefined) {
-      this.refuse(file, lines, sharedNameMessage(item.name, owner));
+      this.refuse(isToBeMade(file, lines), sharedNameMessage(item.name, owner));
       return;
     }
     this.owners.set(key, item.name);
     const path = pathFor(item, file, this.itemsFolder);
-    this.plan.notes.push({ name: item.name, path, file, holder: holderPropertyOf(item), lines, alias: aliasFor(item) });
+    this.plan.notes.push({ name: item.name, path, file, holder: holderPropertyOf(item), lines, alias: aliasFor(item), makes: isToBeMade(file, lines) });
   }
 
-  private refuse(file: TFile | null, lines: string[], message: string): void {
-    if (file === null && lines.length >= LINES_FOR_A_NOTE) this.plan.refusals.push(message);
+  private refuse(wouldBeMade: boolean, message: string): void {
+    if (wouldBeMade) this.plan.refusals.push(message);
   }
 }
 
