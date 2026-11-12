@@ -55,8 +55,8 @@ export class SessionRenumbering {
     });
     const outcome = await this.renamer.rename(plan.renames);
     const stopped = { renamed: outcome.renamed, notRenamed: outcome.notRenamed, renameFailure: outcome.failure };
-    if (outcome.failure !== null) return { ...stopped, linksNotUpdated: [], linksLeft: [] };
+    if (outcome.failure !== null) return { ...stopped, linksNotUpdated: [], linksLeft: [], linksSkipped: [] };
     const links = await this.updates.apply(decisions, plan.renames);
-    return { ...stopped, linksNotUpdated: links.notUpdated, linksLeft: links.leftAsWritten };
+    return { ...stopped, linksNotUpdated: links.notUpdated, linksLeft: links.leftAsWritten, linksSkipped: links.skipped };
   }
 }

@@ -6,7 +6,7 @@ function rename(from: number, to: number): SessionRename {
   return { from: `Pale Moon/Sessions/Session ${from}.md`, to: `Pale Moon/Sessions/Session ${to}.md`, fromNumber: from, toNumber: to };
 }
 
-const CLEAN: RenumberingReport = { renamed: [], notRenamed: [], renameFailure: null, linksNotUpdated: [], linksLeft: [] };
+const CLEAN: RenumberingReport = { renamed: [], notRenamed: [], renameFailure: null, linksNotUpdated: [], linksLeft: [], linksSkipped: [] };
 
 describe("movesWords", () => {
   it("says nothing when no session moves", () => {
@@ -51,6 +51,13 @@ describe("reportWordsOf", () => {
   it("says which notes had links left as written because more than one campaign has that session", () => {
     const report = { ...CLEAN, linksLeft: ["D&D/Ideas.md"] };
     expect(reportWordsOf(report)).toBe("These notes link to a Session that more than one campaign has, so those links were left as written: D&D/Ideas.md.");
+  });
+
+  it("says in which notes a link to a session that moved sits on a line that isn't rewritten", () => {
+    const report = { ...CLEAN, linksSkipped: ["Pale Moon/Notes.md"] };
+    expect(reportWordsOf(report)).toBe(
+      "These notes still link to a session that moved on a line that isn't rewritten (properties, code, a comment, math or an indented list), so the link keeps its old number: Pale Moon/Notes.md.",
+    );
   });
 
   it("says both about links when both happened", () => {

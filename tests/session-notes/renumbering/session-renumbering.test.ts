@@ -150,6 +150,24 @@ describe("SessionRenumbering.carryOut", () => {
     expect(report.linksLeft).toEqual([IDEAS]);
   });
 
+  it("says which notes still hold a link to a session that moved on a line it doesn't rewrite", async () => {
+    const files = campaignFiles({
+      [MIRA]: "Met [[Session 4]] %%aside%%\n",
+      [`${PALE}/Characters/Brother Aldric.md`]: "---\nfrom: \"[[Session 4]]\"\n---\nBody.\n",
+      [`${PALE}/Characters/Lady Vess.md`]: "Plans:\n\n    - see [[Session 4]]\n",
+      [`${PALE}/Characters/Thessaly.md`]: "```\n[[Session 4]]\n```\n[[Session 1]] %%x%%\n",
+    });
+    const { report } = await renumberedAfterDeleting(files, pale(2));
+    expect(report.linksSkipped.sort()).toEqual([MIRA, `${PALE}/Characters/Brother Aldric.md`, `${PALE}/Characters/Lady Vess.md`, `${PALE}/Characters/Thessaly.md`].sort());
+    expect(files.textAt(MIRA)).toBe("Met [[Session 4]] %%aside%%\n");
+  });
+
+  it("doesn't say a note still holds a link on a skipped line when that link is to a session that doesn't move", async () => {
+    const files = campaignFiles({ [MIRA]: "Met [[Session 1]] %%aside%%\n" });
+    const { report } = await renumberedAfterDeleting(files, pale(2));
+    expect(report.linksSkipped).toEqual([]);
+  });
+
   it("leaves another campaign's notes alone", async () => {
     const files = campaignFiles();
     const { report } = await renumberedAfterDeleting(files, pale(2));
@@ -166,7 +184,7 @@ describe("SessionRenumbering.carryOut", () => {
 
   it("reports nothing wrong when it all went through", async () => {
     const { report } = await renumberedAfterDeleting(campaignFiles(), pale(2));
-    expect(report).toEqual({ renamed: expect.any(Array), notRenamed: [], renameFailure: null, linksNotUpdated: [], linksLeft: [] });
+    expect(report).toEqual({ renamed: expect.any(Array), notRenamed: [], renameFailure: null, linksNotUpdated: [], linksLeft: [], linksSkipped: [] });
     expect(report.renamed).toHaveLength(3);
   });
 

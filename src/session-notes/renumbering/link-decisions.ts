@@ -1,7 +1,7 @@
 import { campaignFolderOf } from "../../campaign/paths/campaign-folders";
 import type { FencedFiles } from "../../fence/gate/fenced-files";
 import { messageOf } from "../../views/dialogs/message-of";
-import { withLinksRewritten } from "./link-rewriting";
+import { linkOnSkippedLine, withLinksRewritten } from "./link-rewriting";
 import { NoteLinks } from "./note-links";
 import type { SessionRename } from "./renumbering-plan";
 import type { NewTarget } from "./wiki-links";
@@ -19,6 +19,7 @@ export interface NoteDecision {
   path: string;
   changes: boolean;
   leftAsWritten: boolean;
+  skipped: boolean;
   newTarget: NewTarget;
 }
 
@@ -80,6 +81,7 @@ export class LinkDecider {
       targets.record(target, replacement);
       return replacement;
     });
-    return { path, changes: targets.hasChange(), leftAsWritten: links.leftAsWritten().length > 0, newTarget: targets.newTarget };
+    const skipped = linkOnSkippedLine(text, links.newTarget);
+    return { path, changes: targets.hasChange(), leftAsWritten: links.leftAsWritten().length > 0, skipped, newTarget: targets.newTarget };
   }
 }

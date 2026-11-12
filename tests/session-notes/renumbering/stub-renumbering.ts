@@ -5,7 +5,7 @@ import type { SessionRenumbering } from "../../../src/session-notes/renumbering/
 
 export type RenumberingTool = Pick<SessionRenumbering, "planFor" | "confirmed" | "carryOut">;
 
-export const NOTHING_WRONG: RenumberingReport = { renamed: [], notRenamed: [], renameFailure: null, linksNotUpdated: [], linksLeft: [] };
+export const NOTHING_WRONG: RenumberingReport = { renamed: [], notRenamed: [], renameFailure: null, linksNotUpdated: [], linksLeft: [], linksSkipped: [] };
 
 export interface StubbedRenumbering {
   latest?: string | null;
