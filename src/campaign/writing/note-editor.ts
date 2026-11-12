@@ -92,6 +92,10 @@ export class NoteEditor {
     return true;
   }
 
+  async changeText(path: string, refusal: string, change: (text: string) => string | null): Promise<void> {
+    await this.changeOrRefuse(this.fileAt(path), refusal, change);
+  }
+
   ensureExists(paths: string[]): void {
     for (const path of paths) this.fileAt(path);
   }

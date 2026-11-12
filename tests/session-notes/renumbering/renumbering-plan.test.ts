@@ -58,6 +58,10 @@ describe("planRenumbering", () => {
     expect(planned(sessions([1, 2, 3]), 3).renames).toEqual([]);
   });
 
+  it("names the campaign the sessions are in", () => {
+    expect(planned(sessions([1, 2]), 2).campaignFolder).toBe(FOLDER);
+  });
+
   it("names each move's old and new file, lowest first", () => {
     expect(planned(sessions([1, 2, 5, 7]), 2).renames).toEqual([
       { from: session(5), to: session(2), fromNumber: 5, toNumber: 2 },
@@ -78,7 +82,7 @@ describe("planRenumbering", () => {
   });
 
   it("says there is no latest session when the only one is deleted", () => {
-    expect(planned(sessions([4]), 4)).toEqual({ renames: [], latest: null });
+    expect(planned(sessions([4]), 4)).toEqual({ campaignFolder: FOLDER, renames: [], latest: null });
   });
 
   it("leaves out files that are not session notes of the campaign", () => {
