@@ -74,3 +74,12 @@ export function namesWorkedOut(character: RuleCharacter): string[] {
   return workedOut(character).map((number) => number.name);
 }
 
+
+export function armourClassOf(changes: Partial<RuleCharacter>): { value: number; working: string } {
+  const value = numberNamed(madeUpRuleCharacter(changes), "AC");
+  return { value: value.valueOr(-1), working: value.explanation };
+}
+
+export function withDexterity(score: number): AbilityTable<number> {
+  return scoresOf(10, score, 10, 10, 10, 10);
+}
