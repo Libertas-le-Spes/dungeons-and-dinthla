@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { STEPS_PER_TIME_CHECK, TIME_LIMIT_MS, WORK_EXTRA, WORK_PER_BYTE } from "../../../src/pdf/limits/pdf-limits";
+import { MAX_VALUES_PARSED, STEPS_PER_TIME_CHECK, TIME_LIMIT_MS, WORK_EXTRA, WORK_PER_BYTE } from "../../../src/pdf/limits/pdf-limits";
 import { WorkBudget } from "../../../src/pdf/work/work-budget";
 import { refusalFrom } from "../support/parsed";
 
@@ -61,5 +61,11 @@ describe("WorkBudget", () => {
     now = TIME_LIMIT_MS + 1;
     expect(refusalFrom(() => work.checkTime())).toContain("took too long");
     expect(work.stepsTaken()).toBe(0);
+  });
+
+  it("counts exactly the most values allowed", () => {
+    const work = new WorkBudget(10, () => 0);
+    for (let value = 0; value < MAX_VALUES_PARSED; value += 1) work.countValue();
+    expect(refusalFrom(() => work.countValue())).toContain("too many values to read");
   });
 });

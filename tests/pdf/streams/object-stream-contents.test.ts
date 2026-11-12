@@ -58,12 +58,41 @@ describe("ObjectStreamContents", () => {
 
   it("reads a header of exactly the most objects allowed", () => {
     let header = "";
-    for (let number = 1; number <= MAX_OBJECTS_IN_STREAM; number += 1) header += `${number} 0 `;
+    for (let number = 1; number <= MAX_OBJECTS_IN_STREAM; number += 1) header += `${number} ${number} `;
     expect(refusalFrom(() => contentsOf(`${header}1`, MAX_OBJECTS_IN_STREAM, header.length))).toBe("");
   });
 
   it("refuses a count one more than that, before reading the header", () => {
     expect(refusalFrom(() => contentsOf("", MAX_OBJECTS_IN_STREAM + 1, 0))).toContain("holds too many objects");
+  });
+
+  it("refuses two header entries at the same offset", () => {
+    expect(refusalFrom(() => contentsOf("7 0 9 0 [2]", 2, 8))).toContain("not packed the way PDF packs them");
+  });
+
+  it("refuses offsets that go backwards", () => {
+    expect(refusalFrom(() => contentsOf("7 5 9 0 [2] [3]", 2, 8))).toContain("not packed the way PDF packs them");
+  });
+
+  it("refuses an object that runs into the next object's place", () => {
+    const contents = contentsOf("7 0 9 2 [1 2 3] [4]", 2, 8);
+    expect(refusalFrom(() => valueAt(contents, 0, 7, 100))).toContain("not packed the way PDF packs them");
+  });
+
+  it("reads an object that ends exactly where the next one starts", () => {
+    const contents = contentsOf("7 0 9 3 [1] [4]", 2, 8);
+    expect(valueAt(contents, 0, 7, 100).asArray()?.items.length).toBe(1);
+  });
+
+  it("reads thousands of small objects, each at its own place", () => {
+    let header = "";
+    let bodies = "";
+    for (let number = 1; number <= 5000; number += 1) {
+      header += `${number} ${bodies.length} `;
+      bodies += "7 ";
+    }
+    const contents = contentsOf(header + bodies, 5000, header.length);
+    expect(valueAt(contents, 4999, 5000, 100000).asInteger()).toBe(7);
   });
 
   it("reads an object whose value starts at the first offset itself", () => {

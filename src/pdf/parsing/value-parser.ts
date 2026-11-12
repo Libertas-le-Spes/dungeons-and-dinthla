@@ -9,6 +9,7 @@ export class ValueParser {
 
   read(cursor: ByteCursor, depth: number): PdfValue {
     skipSpace(cursor);
+    cursor.countValue();
     for (const reader of this.readers) {
       if (reader.begins(cursor)) return reader.read(cursor, this, depth);
     }

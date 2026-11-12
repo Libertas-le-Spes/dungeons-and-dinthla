@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { MAX_OBJECT_STREAM_BYTES } from "../../../src/pdf/limits/pdf-limits";
 import { VALUE_PARSER } from "../../../src/pdf/parsing/object-readers";
 import { ObjectStreams, type ContainerSource } from "../../../src/pdf/streams/object-streams";
 import { StreamDecoder } from "../../../src/pdf/streams/stream-decoder";
@@ -56,6 +57,19 @@ describe("ObjectStreams", () => {
     const { streams, containers } = streamsOver(DATA, new Map([[30, containerStream(GOOD, DATA)]]));
     await streams.prepare(containers, [30]);
     expect(refusalFrom(() => streams.objectAt(31, 0, 7, VALUE_PARSER))).toContain("something that is not a group of objects");
+  });
+
+  it("reads a container of exactly the most bytes allowed", async () => {
+    const data = " ".repeat(MAX_OBJECT_STREAM_BYTES);
+    const { streams, containers } = streamsOver(data, new Map([[30, containerStream("/Type /ObjStm /N 0 /First 0", data)]]));
+    await streams.prepare(containers, [30]);
+    expect(containers.asked).toEqual([30]);
+  });
+
+  it("refuses a container one byte over", async () => {
+    const data = " ".repeat(MAX_OBJECT_STREAM_BYTES + 1);
+    const { streams, containers } = streamsOver(data, new Map([[30, containerStream("/Type /ObjStm /N 0 /First 0", data)]]));
+    expect(await refusalFromAsync(() => streams.prepare(containers, [30]))).toContain("unpacks to too much");
   });
 
   it("refuses a container that is not a stream", async () => {

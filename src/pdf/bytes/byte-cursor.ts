@@ -39,6 +39,10 @@ export class ByteCursor {
     return this.view.getUint8(place);
   }
 
+  countValue(): void {
+    this.work.countValue();
+  }
+
   advance(): void {
     this.work.spend();
     if (this.next < this.size) this.next += 1;
