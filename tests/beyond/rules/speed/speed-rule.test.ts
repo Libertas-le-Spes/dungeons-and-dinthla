@@ -54,3 +54,10 @@ describe("SpeedRule", () => {
     expect(speedOf({ walkingSpeed: speed }).isKnown).toBe(known);
   });
 });
+
+describe("SpeedRule and a strength need that is not a number", () => {
+  it.each([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])("does not know speed in armour that needs %s strength", (needed) => {
+    const odd = { ...itemOf("Plate", new HeavyArmour(), 18), strengthRequired: needed };
+    expect(numberNamed(madeUpRuleCharacter({ items: [odd] }), "Speed").isKnown).toBe(false);
+  });
+});

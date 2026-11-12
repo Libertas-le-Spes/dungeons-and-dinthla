@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ARMOUR_CLASS, CLASS_LEVEL, HIT_POINTS, ITEM_COUNT, SCORE, SPEED, TOTAL_LEVEL, COIN_COUNT, ABILITY_MODIFIER, PROFICIENCY_BONUS, TEMPORARY_HIT_POINTS, SAVING_THROW, SKILL_BONUS, INITIATIVE, PASSIVE_SCORE, SPELL_SAVE_DC, SPELL_ATTACK, SPELL_SLOTS, CARRYING_CAPACITY } from "../../../src/beyond/shape/import-limits";
+import { ARMOUR_CLASS, CHARACTER_LEVEL, CLASS_LEVEL, HIT_POINTS, ITEM_COUNT, SCORE, SPEED, TOTAL_LEVEL, COIN_COUNT, ABILITY_MODIFIER, PROFICIENCY_BONUS, TEMPORARY_HIT_POINTS, SAVING_THROW, SKILL_BONUS, INITIATIVE, PASSIVE_SCORE, SPELL_SAVE_DC, SPELL_ATTACK, SPELL_SLOTS, CARRYING_CAPACITY } from "../../../src/beyond/shape/import-limits";
 import { Online, Pdf } from "../../../src/beyond/shape/route";
 import { numberInRange } from "../../../src/beyond/shape/number-in-range";
 
@@ -11,6 +11,7 @@ const EDGES = [
   { name: "hit points", range: HIT_POINTS, lowest: 0, highest: 9_999 },
   { name: "a class level", range: CLASS_LEVEL, lowest: 1, highest: 20 },
   { name: "the total level", range: TOTAL_LEVEL, lowest: 1, highest: 40 },
+  { name: "the character level", range: CHARACTER_LEVEL, lowest: 1, highest: 20 },
   { name: "speed", range: SPEED, lowest: 0, highest: 500 },
   { name: "a coin count", range: COIN_COUNT, lowest: 0, highest: 1_000_000 },
   { name: "an item count", range: ITEM_COUNT, lowest: 0, highest: 9_999 },

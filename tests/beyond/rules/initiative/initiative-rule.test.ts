@@ -42,3 +42,9 @@ describe("InitiativeRule", () => {
     expect(initiative({ baseScores: new AbilityTable<number>() }).isKnown).toBe(false);
   });
 });
+
+describe("InitiativeRule and a plain ability checks bonus", () => {
+  it("adds it and shows its source", () => {
+    expect(initiative({ modifiers: [modifierOf("bonus", "ability-checks", 1, "Pale Charm")] })).toEqual({ value: 1, working: "DEX 0 + Pale Charm 1 = 1", isKnown: true });
+  });
+});

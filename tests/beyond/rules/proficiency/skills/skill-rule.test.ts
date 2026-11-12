@@ -100,3 +100,17 @@ describe("SkillRule modifiers", () => {
     expect(skillValue("Stealth", { classes: [] }).isKnown).toBe(false);
   });
 });
+
+describe("SkillRule and modifiers that cover every skill", () => {
+  it("adds a plain ability checks bonus to a skill and shows its source", () => {
+    expect(skillValue("Stealth", { modifiers: [modifierOf("bonus", "ability-checks", 1, "Pale Charm")] })).toEqual({ value: 1, working: "DEX 0 + Pale Charm 1 = 1", isKnown: true });
+  });
+
+  it("adds a plain skill checks bonus to a skill", () => {
+    expect(skillValue("Arcana", { modifiers: [modifierOf("bonus", "skill-checks", 2, "Pale Charm")] }).value).toBe(2);
+  });
+
+  it("does not know a skill when an ability checks modifier is one it does not know", () => {
+    expect(skillValue("Stealth", { modifiers: [modifierOf("set", "ability-checks", 20, "Pale Charm")] }).isKnown).toBe(false);
+  });
+});

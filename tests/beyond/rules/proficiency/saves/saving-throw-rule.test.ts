@@ -49,3 +49,10 @@ describe("SavingThrowRule", () => {
     expect(saveValue("STR save", { baseScores: new AbilityTable<number>() }).isKnown).toBe(false);
   });
 });
+
+describe("SavingThrowRule and a modifier it does not know that covers every save", () => {
+  it("does not know any save", () => {
+    const character = { modifiers: [modifierOf("set", "saving-throws", 20, "Pale Charm")] };
+    expect([saveValue("STR save", character).isKnown, saveValue("CHA save", character).isKnown]).toEqual([false, false]);
+  });
+});

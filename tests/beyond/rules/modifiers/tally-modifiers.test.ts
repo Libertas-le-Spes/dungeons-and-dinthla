@@ -44,7 +44,7 @@ describe("tallyModifiers", () => {
     expect([tally.added, tally.conditional]).toEqual([1, ["Hood"]]);
   });
 
-  it("ignores a modifier whose source does not apply now before anything else", () => {
+  it("ignores a modifier that is not in force (its item is unequipped or not attuned) before anything else", () => {
     const unworn = { ...modifierOf("set", "stealth", 20, "Pale Charm"), inForce: false };
     expect(tallyModifiers([unworn], FAMILY, HANDLERS).unknown).toEqual([]);
   });

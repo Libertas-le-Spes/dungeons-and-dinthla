@@ -85,3 +85,41 @@ describe("ArmourClassRule range", () => {
     expect(numberNamed(madeUpRuleCharacter({ items: [heavy] }), "AC").isKnown).toBe(known);
   });
 });
+
+describe("ArmourClassRule when two formulas give the same number", () => {
+  it("shows the plain formula, which is listed first, when the monk's formula gives the same", () => {
+    const character = { classes: [classOf("Monk", 1, 8)], baseScores: scoresOf(10, 14, 10, 10, 10, 10) };
+    expect(armourClassOf(character)).toEqual({ value: 12, working: "10 + DEX 2 = 12, no armour" });
+  });
+
+  it("shows the monk's formula, which is listed before the barbarian's, when both give the same", () => {
+    const character = { classes: [classOf("Monk", 1, 8), classOf("Barbarian", 1, 12)], baseScores: scoresOf(10, 14, 14, 10, 14, 10) };
+    expect(armourClassOf(character).working).toBe("10 + DEX 2 + WIS 2 = 14, monk's unarmoured defence");
+  });
+
+  it("shows the barbarian's formula, listed before the draconic one, when both give 15", () => {
+    const character = { classes: [classOf("Barbarian", 1, 12), classOf("Sorcerer", 1, 6, "Draconic Bloodline")], baseScores: scoresOf(10, 14, 16, 10, 10, 10) };
+    expect(armourClassOf(character).working).toBe("10 + DEX 2 + CON 3 = 15, barbarian's unarmoured defence");
+  });
+});
+
+describe("ArmourClassRule and whole numbers", () => {
+  it("does not apply two modifiers of one half each as a known bonus", () => {
+    const halves = [modifierOf("bonus", "armor-class", 0.5, "Pale Ring"), modifierOf("bonus", "armor-class", 0.5, "Pale Cloak")];
+    expect(numberNamed(madeUpRuleCharacter({ modifiers: halves }), "AC").isKnown).toBe(false);
+  });
+
+  it("names the modifier it could not use", () => {
+    const value = numberNamed(madeUpRuleCharacter({ modifiers: [modifierOf("bonus", "armor-class", 0.5, "Pale Ring")] }), "AC");
+    expect(value.explanation).toBe('D&D Beyond names a rule I can\'t work out here: "armor-class". Type it on your note to set it.');
+  });
+});
+
+describe("ArmourClassRule names that carry markup", () => {
+  it("keeps a body armour name with markup from reaching the working as markup", () => {
+    const evil = "Evil ## Heading [[x]]";
+    const character = madeUpRuleCharacter({ items: [itemOf(evil, new LightArmour(), 11), itemOf("Chain Mail", new HeavyArmour(), 16)] });
+    const text = numberNamed(character, "AC").explanation;
+    expect([text.includes("[["), text.includes("\n"), text.includes("\\[\\[x")]).toEqual([false, false, true]);
+  });
+});
