@@ -11,6 +11,7 @@ export const questionTrackedKind = {
   marker: { name: "question", symbol: "?", colourClass: "dd-marker-question" },
   followUps: { clue: "?+", answer: "?=" },
   folder: "Questions",
+  kindNoteFolder: "Questions",
   page: "questions",
   lookup: {
     symbol: "??",
