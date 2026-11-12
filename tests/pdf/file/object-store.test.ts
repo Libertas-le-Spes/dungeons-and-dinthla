@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MAX_OBJECTS_PARSED } from "../../../src/pdf/limits/pdf-limits";
+import { CompressedEntry } from "../../../src/pdf/xref/compressed-entry";
 import { FreeEntry } from "../../../src/pdf/xref/free-entry";
 import { InFileEntry } from "../../../src/pdf/xref/in-file-entry";
 import type { XrefEntry } from "../../../src/pdf/xref/xref-entry";
@@ -122,6 +123,11 @@ describe("ObjectStore", () => {
 
   it("refuses to read an object packed in a group before the groups have been read", () => {
     expect(refusalFrom(() => storeOfObjects(TEXT, NUMBERS).readCompressed(5, 30, 0))).toContain("itself packed");
+  });
+
+  it("refuses a group of packed objects that is itself packed", () => {
+    const store = storeOver(TEXT, new Map<number, XrefEntry>([[30, new CompressedEntry(31, 0)]]));
+    expect(refusalFrom(() => store.loadContainer(30))).toContain("itself packed");
   });
 
   it("spends a step each time it is asked for an object, even one it already has", () => {

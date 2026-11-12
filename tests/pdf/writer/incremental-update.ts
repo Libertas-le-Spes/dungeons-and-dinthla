@@ -1,9 +1,9 @@
 import { bytesOf, padded } from "./object-bytes";
 
 function lastStartxref(base: Buffer): number {
-  const text = base.toString("latin1");
-  const at = text.lastIndexOf("startxref");
-  return Number(text.slice(at + "startxref".length).trim().split("\n")[0]);
+  let last = 0;
+  for (const match of base.toString("latin1").matchAll(/startxref\n(?<offset>\d+)/g)) last = Number(match.groups?.offset);
+  return last;
 }
 
 export function withUpdate(base: Buffer, number: number, body: string, size: number): Buffer {
