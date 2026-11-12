@@ -12,6 +12,7 @@ const TWO = "Pale Moon/Sessions/Session 2.md";
 
 interface QuestChoices {
   save(edit: QuestEdit): Promise<boolean>;
+  delete(): Promise<boolean>;
 }
 
 const app = {} as App;
@@ -40,6 +41,17 @@ describe("the quest dialog's choices", () => {
     campaign.readAgain();
     await expect(choices.save(edit({ happened: "tracks" }))).rejects.toThrow(CHANGED_IN_NOTE);
     expect(campaign.texts.get(ONE)).toBe("We waited.\n! Find it\n");
+  });
+});
+
+describe("the quest dialog's delete", () => {
+  it("takes the quest as the campaign reads it now, so one changed since the dialog opened is refused with a promise that rejects", async () => {
+    const campaign = new DialogCampaign({ [ONE]: "! Find it\n" });
+    const choices = questChoices(campaign, { path: ONE, line: 0 });
+    campaign.texts.set(ONE, "We waited.\n! Find it\n");
+    campaign.readAgain();
+    await expect(choices.delete()).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(campaign.writes).toBe(0);
   });
 });
 

@@ -43,7 +43,7 @@ export function openQuest(
   const latest = () => currentQuest(store.current.quests, record);
   const choices = {
     save: async (edit: QuestEdit) => writeInSession(gate.files, sessionPath, () => questSave(store, latest(), edit, sessionPath), writer),
-    delete: () => questWriter.delete(latest()),
+    delete: async () => questWriter.delete(latest()),
   };
   let finishedIn = sessionLabelOf(sessionPath);
   if (record.outcome !== null) finishedIn = sessionLabelOf(record.outcome.source.path);

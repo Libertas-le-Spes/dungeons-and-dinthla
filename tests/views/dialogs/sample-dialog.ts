@@ -29,6 +29,10 @@ export class SampleDialog extends ChangeDialog {
     this.runChange(() => this.heldChange(), FAILURE);
   }
 
+  saveFailingAtOnce(error: unknown): void {
+    this.runChange(() => this.failingAtOnce(error), FAILURE);
+  }
+
   keep(secondPress: SecondPress): void {
     this.stopOnClose(secondPress);
   }
@@ -52,6 +56,10 @@ export class SampleDialog extends ChangeDialog {
 
   protected override closed(): void {
     this.closedTimes += 1;
+  }
+
+  private failingAtOnce(error: unknown): Promise<boolean> {
+    throw error;
   }
 
   private heldChange(): Promise<boolean> {

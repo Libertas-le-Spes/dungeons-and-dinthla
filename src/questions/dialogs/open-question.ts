@@ -45,7 +45,7 @@ export function openQuestion(
   const choices = {
     save: async (edit: QuestionEdit) => writeInSession(gate.files, sessionPath, () => questionSave(store, latest(), edit, sessionPath), writer),
     reopen: () => writeInSession(gate.files, sessionPath, () => questionReopen(store, latest(), sessionPath), writer),
-    delete: () => questionWriter.delete(latest()),
+    delete: async () => questionWriter.delete(latest()),
   };
   let answeredIn = sessionLabelOf(sessionPath);
   if (question.answer !== null) answeredIn = sessionLabelOf(question.answer.source.path);
