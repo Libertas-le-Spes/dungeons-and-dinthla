@@ -4,7 +4,10 @@ import { ModifierTally } from "./modifier-tally";
 import type { SubTypeFamily } from "./sub-type-family";
 
 function handlerFor(handlers: readonly ModifierHandler[], modifier: RuleModifier): ModifierHandler | undefined {
-  return handlers.find((handler) => handler.handles(modifier));
+  for (const handler of handlers) {
+    if (handler.handles(modifier)) return handler;
+  }
+  return undefined;
 }
 
 function tallyOne(tally: ModifierTally, handlers: readonly ModifierHandler[], modifier: RuleModifier): void {

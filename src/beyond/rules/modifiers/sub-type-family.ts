@@ -13,6 +13,9 @@ export class SubTypeFamily {
   touches(modifier: RuleModifier): boolean {
     const subType = modifier.subType.text;
     if (this.names.includes(subType)) return true;
-    return this.stems.some((stem) => holdsStem(subType, stem));
+    for (const stem of this.stems) {
+      if (holdsStem(subType, stem)) return true;
+    }
+    return false;
   }
 }

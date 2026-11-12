@@ -142,3 +142,25 @@ describe("SpellSlotsRule for a class that does not cast", () => {
     expect(numberNamed(madeUpRuleCharacter({ classes: [classOf("Wizard", 0, 6)] }), "Spell slots").isKnown).toBe(false);
   });
 });
+
+describe("SpellSlotsRule and an Artificer", () => {
+  it("does not know any slots for Wizard 5 and Artificer 3, so no table is shown as known", () => {
+    const character = madeUpRuleCharacter({ classes: [classOf("Wizard", 5, 6), classOf("Artificer", 3, 8)] });
+    const names = namesWorkedOut(character).filter((name) => name.startsWith("Spell slots"));
+    expect([names, numberNamed(character, "Spell slots").explanation]).toEqual([["Spell slots"], "Artificer is not built here yet."]);
+  });
+
+  it("does not know the slots of an Artificer alone", () => {
+    expect(numberNamed(madeUpRuleCharacter({ classes: [classOf("Artificer", 3, 8)] }), "Spell slots").isKnown).toBe(false);
+  });
+
+  it("leaves a warlock's pact slots standing beside an Artificer", () => {
+    const character = madeUpRuleCharacter({ classes: [classOf("Warlock", 2, 8), classOf("Artificer", 3, 8)] });
+    expect(numberNamed(character, "Pact slots").isKnown).toBe(true);
+  });
+
+  it("shows no slot entry for a combined caster level under 1", () => {
+    const character = madeUpRuleCharacter({ classes: [classOf("Paladin", 1, 10), classOf("Ranger", 1, 10)] });
+    expect(namesWorkedOut(character).filter((name) => name.startsWith("Spell slots"))).toEqual([]);
+  });
+});
