@@ -5,7 +5,6 @@ import { PdfRefusal } from "../refusals/pdf-refusal";
 import { CLASSIC_ENTRY_KINDS } from "./classic-entry-kinds";
 import type { XrefEntry } from "./xref-entry";
 
-export const ENTRY_LINE_BYTES = 20;
 const BAD_LINE = "A line of the file's index is not written the way PDF writes it, so the file was not read.";
 
 function expectByte(cursor: ByteCursor, expected: number): void {

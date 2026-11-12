@@ -25,16 +25,14 @@ function readSign(cursor: ByteCursor): string {
 
 export function readNumberToken(cursor: ByteCursor): PdfNumber {
   let text = readSign(cursor);
-  let digits = 0;
   let dots = 0;
   while (isNumberCharacter(cursor.current())) {
     if (text.length >= MAX_NUMBER_CHARACTERS) throw new PdfRefusal(TOO_LONG);
     if (cursor.current() === DOT) dots += 1;
-    else digits += 1;
     text += String.fromCharCode(cursor.current());
     cursor.advance();
   }
-  if (digits === 0 || dots > 1 || !endsAWord(cursor.current())) throw new PdfRefusal(BAD_NUMBER);
+  if (!endsAWord(cursor.current())) throw new PdfRefusal(BAD_NUMBER);
   const value = Number(text);
   if (!Number.isFinite(value)) throw new PdfRefusal(BAD_NUMBER);
   if (dots === 0 && !Number.isSafeInteger(value)) throw new PdfRefusal(TOO_LONG);
