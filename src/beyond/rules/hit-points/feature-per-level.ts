@@ -1,4 +1,4 @@
-import { knownNumber, notKnown } from "../core/worked";
+import { knownNumber } from "../core/worked";
 import type { WorkedValue } from "../../shape/worked-value";
 import type { RuleCharacter } from "../input/rule-character";
 import type { PerLevelSource } from "./per-level-source";

@@ -1,6 +1,5 @@
 import type { ImportedNumber } from "../../../shape/imported-number";
 import { SPELL_ATTACK, SPELL_SAVE_DC } from "../../../shape/import-limits";
-import type { NumberRange } from "../../../shape/number-range";
 import type { WorkedValue } from "../../../shape/worked-value";
 import type { EarlierNumbers } from "../../core/earlier-numbers";
 import { firstFound } from "../../core/first-found";
@@ -15,6 +14,7 @@ import type { CasterClass } from "../casters/caster-class";
 import { castingClassesOf } from "../casters/casting-class";
 import type { CastingClass } from "../casters/casting-class";
 import { castingInputsOf } from "./casting-inputs";
+import type { WorkedKind } from "./worked-kind";
 
 const DC_NAMES = ["spell-save-dc"];
 const ATTACK_NAMES = ["spell-attacks"];
@@ -69,11 +69,4 @@ export class SpellcastingRule implements Rule {
     const terms = [...kind.startTerms, ...inputs.terms, ...tally.applied];
     return knownIn(total, kind.range, withConditional(reasonedWorking(terms, total, this.reason()), tally.conditional), character.route);
   }
-}
-
-interface WorkedKind {
-  readonly names: readonly string[];
-  readonly range: NumberRange;
-  readonly start: number;
-  readonly startTerms: readonly string[];
 }
