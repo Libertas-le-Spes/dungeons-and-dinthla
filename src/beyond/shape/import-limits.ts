@@ -23,3 +23,15 @@ export const TOTAL_LEVEL: NumberRange = { what: "The total level", lowest: 1, hi
 export const SPEED: NumberRange = { what: "Speed", lowest: 0, highest: 500 };
 export const COIN_COUNT: NumberRange = { what: "A coin count", lowest: 0, highest: 1_000_000 };
 export const ITEM_COUNT: NumberRange = { what: "An item count", lowest: 0, highest: 9_999 };
+
+export const ABILITY_MODIFIER: NumberRange = { what: "An ability modifier", lowest: -5, highest: 10 };
+export const PROFICIENCY_BONUS: NumberRange = { what: "The proficiency bonus", lowest: 2, highest: 11 };
+export const TEMPORARY_HIT_POINTS: NumberRange = { what: "Temporary hit points", lowest: 0, highest: 9_999 };
+export const SAVING_THROW: NumberRange = { what: "A saving throw bonus", lowest: -20, highest: 50 };
+export const SKILL_BONUS: NumberRange = { what: "A skill bonus", lowest: -20, highest: 60 };
+export const INITIATIVE: NumberRange = { what: "Initiative", lowest: -20, highest: 50 };
+export const PASSIVE_SCORE: NumberRange = { what: "A passive score", lowest: 0, highest: 80 };
+export const SPELL_SAVE_DC: NumberRange = { what: "A spell save DC", lowest: 0, highest: 60 };
+export const SPELL_ATTACK: NumberRange = { what: "A spell attack bonus", lowest: -20, highest: 50 };
+export const SPELL_SLOTS: NumberRange = { what: "A count of spell slots", lowest: 0, highest: 9 };
+export const CARRYING_CAPACITY: NumberRange = { what: "Carrying capacity", lowest: 15, highest: 450 };
