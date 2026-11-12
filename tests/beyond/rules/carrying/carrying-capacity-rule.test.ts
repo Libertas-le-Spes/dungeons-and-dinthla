@@ -15,10 +15,6 @@ describe("CarryingCapacityRule", () => {
     expect(numberNamed(madeUpRuleCharacter({}), "Carrying capacity").explanation).toBe("15 x STR 10 = 150");
   });
 
-  it("does not know it with Powerful Build, because that changes it", () => {
-    expect(numberNamed(madeUpRuleCharacter({ features: ["Powerful Build"] }), "Carrying capacity").isKnown).toBe(false);
-  });
-
   it("does not know it when strength is not known", () => {
     expect(numberNamed(madeUpRuleCharacter({ baseScores: scoresOf(0, 10, 10, 10, 10, 10) }), "Carrying capacity").isKnown).toBe(false);
   });

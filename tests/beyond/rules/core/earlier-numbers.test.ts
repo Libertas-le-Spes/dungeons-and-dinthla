@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EarlierNumbers } from "../../../../src/beyond/rules/core/earlier-numbers";
-import { unknownAmong } from "../../../../src/beyond/rules/core/unknown-among";
+import { NeededNumbers } from "../../../../src/beyond/rules/core/needed-numbers";
 import { KnownValue } from "../../../../src/beyond/shape/known-value";
 import { NotKnownValue } from "../../../../src/beyond/shape/not-known-value";
 import { ROUTE } from "../../builders/made-up-rule-character";
@@ -24,22 +24,27 @@ describe("EarlierNumbers", () => {
   });
 });
 
-describe("unknownAmong", () => {
+describe("NeededNumbers", () => {
   const earlier = EarlierNumbers.none().withAll([
     { name: "STR", value: KnownValue.wholeNumber(12, "set", ROUTE) },
     { name: "DEX", value: new NotKnownValue("Left blank.", ROUTE) },
   ]);
 
-  it("is null when every name is known", () => {
-    expect(unknownAmong(["STR"], earlier, ROUTE)).toBeNull();
+  it("has nothing missing when every name is known, and gives the numbers", () => {
+    const needed = NeededNumbers.of(["STR"], earlier, ROUTE);
+    expect([needed.missing, needed.numberOf("STR")]).toEqual([null, 12]);
   });
 
   it("names the first one that is not known and why", () => {
-    const missing = unknownAmong(["STR", "DEX", "CON"], earlier, ROUTE);
-    expect(missing?.explanation).toBe("It needs DEX, which is not known: Left blank.");
+    const needed = NeededNumbers.of(["STR", "DEX", "CON"], earlier, ROUTE);
+    expect(needed.missing?.explanation).toBe("It needs DEX, which is not known: Left blank.");
   });
 
   it("counts a name that was never worked out as not known", () => {
-    expect(unknownAmong(["CON"], earlier, ROUTE)?.explanation).toBe("It needs CON, which is not known: CON has not been worked out.");
+    expect(NeededNumbers.of(["CON"], earlier, ROUTE).missing?.explanation).toBe("It needs CON, which is not known: CON has not been worked out.");
+  });
+
+  it("refuses to hand out a number that is not known, so it cannot be used by mistake", () => {
+    expect(() => NeededNumbers.of(["DEX"], earlier, ROUTE).numberOf("DEX")).toThrow("DEX was used before it was known.");
   });
 });

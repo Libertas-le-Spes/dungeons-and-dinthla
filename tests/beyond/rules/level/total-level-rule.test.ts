@@ -24,13 +24,26 @@ describe("TotalLevelRule", () => {
     expect(numberNamed(character, "Total level").isKnown).toBe(known);
   });
 
-  it("knows two classes at level 20 together, forty in all", () => {
-    const character = madeUpRuleCharacter({ classes: [classOf("Fighter", 20, 10), classOf("Wizard", 20, 6)] });
-    expect(numberNamed(character, "Total level").valueOr(-1)).toBe(40);
+  it("knows twenty levels in all across classes", () => {
+    const character = madeUpRuleCharacter({ classes: [classOf("Fighter", 12, 10), classOf("Wizard", 8, 6)] });
+    expect(numberNamed(character, "Total level").valueOr(-1)).toBe(20);
   });
 
-  it("does not know forty-one levels in all", () => {
-    const character = madeUpRuleCharacter({ classes: [classOf("Fighter", 20, 10), classOf("Wizard", 20, 6), classOf("Rogue", 1, 8)] });
-    expect(numberNamed(character, "Total level").isKnown).toBe(false);
+  it("does not know twenty-one levels in all, because 5e stops at 20", () => {
+    const character = madeUpRuleCharacter({ classes: [classOf("Fighter", 12, 10), classOf("Wizard", 9, 6)] });
+    expect(numberNamed(character, "Total level").explanation).toBe("The character level has to be a whole number from 1 to 20.");
+  });
+
+  it.each([
+    { first: "Wizard", second: "Wizard", firstLevel: 10, secondLevel: 10 },
+    { first: "Warlock", second: "Warlock", firstLevel: 2, secondLevel: 10 },
+  ])("does not know the level when $first is listed twice", ({ first, second, firstLevel, secondLevel }) => {
+    const character = madeUpRuleCharacter({ classes: [classOf(first, firstLevel, 6), classOf(second, secondLevel, 6)] });
+    expect(numberNamed(character, "Total level").explanation).toBe(`The class ${first} is listed more than once.`);
+  });
+
+  it("names classes apart by their text, so two different classes are fine", () => {
+    const character = madeUpRuleCharacter({ classes: [classOf("Wizard", 5, 6), classOf("Warlock", 5, 8)] });
+    expect(numberNamed(character, "Total level").valueOr(-1)).toBe(10);
   });
 });

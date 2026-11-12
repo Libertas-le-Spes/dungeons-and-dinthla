@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ABILITIES, CHARISMA, INTELLIGENCE, WISDOM } from "../../../../../src/beyond/rules/input/ability";
 import { AbilityTable } from "../../../../../src/beyond/rules/input/by-ability";
-import { classOf, madeUpRuleCharacter, namesWorkedOut, numberNamed, scoresOf } from "../../../builders/made-up-rule-character";
+import { classOf, madeUpRuleCharacter, namesWorkedOut, numberNamed, scoresOf, onlyAbilityRaised } from "../../../builders/made-up-rule-character";
 
 const CASTERS = [
   { label: "Bard", className: "Bard", subclass: "", ability: CHARISMA },
@@ -15,15 +15,6 @@ const CASTERS = [
   { label: "Eldritch Knight", className: "Fighter", subclass: "Eldritch Knight", ability: INTELLIGENCE },
   { label: "Arcane Trickster", className: "Rogue", subclass: "Arcane Trickster", ability: INTELLIGENCE },
 ];
-
-function onlyAbilityRaised(raised: string): AbilityTable<number> {
-  const scores = new AbilityTable<number>();
-  for (const ability of ABILITIES) {
-    if (ability.short === raised) scores.with(ability, 14);
-    else scores.with(ability, 10);
-  }
-  return scores;
-}
 
 describe("SpellcastingRule", () => {
   it("works out the save DC and the attack bonus of a wizard and shows the working", () => {

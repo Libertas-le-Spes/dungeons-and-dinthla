@@ -45,7 +45,7 @@ describe("tallyModifiers", () => {
   });
 
   it("ignores a modifier whose source does not apply now before anything else", () => {
-    const unworn = { ...modifierOf("set", "stealth", 20, "Pale Charm"), appliesNow: false };
+    const unworn = { ...modifierOf("set", "stealth", 20, "Pale Charm"), inForce: false };
     expect(tallyModifiers([unworn], FAMILY, HANDLERS).unknown).toEqual([]);
   });
 

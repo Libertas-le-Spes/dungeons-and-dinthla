@@ -1,15 +1,19 @@
 import type { ImportedNumber } from "../../shape/imported-number";
-import { HIT_POINTS } from "../../shape/import-limits";
-import { NotKnownValue } from "../../shape/not-known-value";
-import { numberInRange } from "../../shape/number-in-range";
+import { MAX_HIT_POINTS } from "../../shape/import-limits";
 import type { WorkedValue } from "../../shape/worked-value";
 import type { EarlierNumbers } from "../core/earlier-numbers";
+import { NeededNumbers } from "../core/needed-numbers";
+import { MAX_HIT_POINTS_NAME, TOTAL_LEVEL_NAME } from "../core/number-names";
 import type { Rule } from "../core/rule";
-import { unknownAmong } from "../core/unknown-among";
+import { knownIn, notKnown } from "../core/worked";
 import { sumWorking } from "../core/working-text";
+import { CONSTITUTION } from "../input/ability";
 import type { RuleCharacter } from "../input/rule-character";
+import { minimumMayApply } from "./minimum-per-level";
 import { addedAmount, explanationOf, firstNotKnown, perLevelAdditions } from "./per-level-additions";
 import { unfamiliarPerLevelModifier } from "./per-level-modifiers";
+
+const MINIMUM_REASON = "I could not tell whether the minimum of 1 hit point a level applies, because the constitution modifier is negative and the dice total is only a sum.";
 
 function bonusTerms(bonus: number): readonly string[] {
   if (bonus === 0) return [];
@@ -18,30 +22,28 @@ function bonusTerms(bonus: number): readonly string[] {
 
 export class MaxHitPointsRule implements Rule {
   workOut(character: RuleCharacter, earlier: EarlierNumbers): readonly ImportedNumber[] {
-    return [{ name: "HP", value: this.maximum(character, earlier) }];
+    return [{ name: MAX_HIT_POINTS_NAME, value: this.maximum(character, earlier) }];
   }
 
   private maximum(character: RuleCharacter, earlier: EarlierNumbers): WorkedValue<number> {
     if (character.overrideHitPoints !== null) {
-      return numberInRange(character.overrideHitPoints, HIT_POINTS, `Hit points set on D&D Beyond: ${character.overrideHitPoints}`, character.route);
+      return knownIn(character.overrideHitPoints, MAX_HIT_POINTS, `Hit points set on D&D Beyond: ${character.overrideHitPoints}`, character.route);
     }
-    const missing = unknownAmong(["Total level", "CON modifier"], earlier, character.route);
-    if (missing !== null) return missing;
-    return this.fromDice(character, earlier);
+    const needed = NeededNumbers.of([TOTAL_LEVEL_NAME, CONSTITUTION.modifierName], earlier, character.route);
+    if (needed.missing !== null) return needed.missing;
+    return this.fromDice(character, needed);
   }
 
-  private fromDice(character: RuleCharacter, earlier: EarlierNumbers): WorkedValue<number> {
+  private fromDice(character: RuleCharacter, needed: NeededNumbers): WorkedValue<number> {
     const base = character.baseHitPoints;
     const bonus = character.bonusHitPoints;
     if (base === null) return this.missingDice(character);
     if (bonus === null) return this.missingDice(character);
-    const level = earlier.valueOf("Total level", character.route).valueOr(0);
-    const constitution = earlier.valueOf("CON modifier", character.route).valueOr(0);
-    return this.withAdditions(character, base, bonus, constitution, level);
+    return this.withAdditions(character, base, bonus, needed.numberOf(CONSTITUTION.modifierName), needed.numberOf(TOTAL_LEVEL_NAME));
   }
 
   private missingDice(character: RuleCharacter): WorkedValue<number> {
-    return new NotKnownValue("The dice total or the bonus hit points are missing.", character.route);
+    return notKnown("The dice total or the bonus hit points are missing.", character.route);
   }
 
   private withAdditions(character: RuleCharacter, base: number, bonus: number, constitution: number, level: number): WorkedValue<number> {
@@ -49,10 +51,10 @@ export class MaxHitPointsRule implements Rule {
     if (unfamiliar !== null) return unfamiliar;
     const additions = perLevelAdditions(character, level);
     const unknownAddition = firstNotKnown(additions);
-    if (unknownAddition !== undefined) return new NotKnownValue(unknownAddition.explanation, character.route);
-    if (base + constitution * level < level) return new NotKnownValue("With this constitution the dice total may fall under 1 hit point a level, and the dice total is only a sum, so I can't tell.", character.route);
+    if (unknownAddition !== undefined) return notKnown(unknownAddition.explanation, character.route);
+    if (minimumMayApply(character, base, constitution, level)) return notKnown(MINIMUM_REASON, character.route);
     const total = base + constitution * level + bonus + additions.reduce(addedAmount, 0);
     const terms = [`${base}`, `CON ${constitution} x ${level}`, ...bonusTerms(bonus), ...additions.map(explanationOf)];
-    return numberInRange(total, HIT_POINTS, sumWorking(terms, total), character.route);
+    return knownIn(total, MAX_HIT_POINTS, sumWorking(terms, total), character.route);
   }
 }

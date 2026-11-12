@@ -1,53 +1,76 @@
 import type { ImportedNumber } from "../../shape/imported-number";
 import { ARMOUR_CLASS } from "../../shape/import-limits";
-import { NotKnownValue } from "../../shape/not-known-value";
-import { numberInRange } from "../../shape/number-in-range";
+import type { NotKnownValue } from "../../shape/not-known-value";
 import type { WorkedValue } from "../../shape/worked-value";
 import type { EarlierNumbers } from "../core/earlier-numbers";
+import { ARMOUR_CLASS_NAME } from "../core/number-names";
 import type { Rule } from "../core/rule";
-import { reasonedWorking, withConditional } from "../core/working-text";
+import { ARMOUR_CLASS_TOUCHING } from "../core/touching-lists";
+import { knownIn, notKnown } from "../core/worked";
+import { reasonedWorking, shortList, withConditional } from "../core/working-text";
 import type { RuleCharacter } from "../input/rule-character";
 import type { RuleItem } from "../input/rule-item";
 import { unknownModifiers } from "../modifiers/unknown-modifiers";
-import type { ArmourCandidate } from "./choice/armour-candidate";
-import { armourModifiersOf } from "./bonuses/armour-modifiers";
 import { ARMOUR_BONUSES } from "./bonuses/armour-bonuses";
+import { armourModifiersOf } from "./bonuses/armour-modifiers";
+import type { ArmourBonus } from "./bonuses/armour-bonus";
+import type { ArmourCandidate } from "./choice/armour-candidate";
 import { bestOf, candidatesFor, firstUnknown } from "./choice/armour-choice";
 import { wornArmourOf } from "./choice/worn-armour";
 import type { WornArmour } from "./choice/worn-armour";
 
-function names(items: readonly RuleItem[]): string {
-  return items.map((item) => item.name).join(", ");
+function nameOf(item: RuleItem): string {
+  return item.name.text;
+}
+
+function namesOf(items: readonly RuleItem[]): string {
+  return shortList(items.map(nameOf));
 }
 
 function conflictIn(worn: WornArmour, character: RuleCharacter): NotKnownValue<number> | null {
-  if (worn.body.length > 1) return new NotKnownValue(`More than one body armour is worn: ${names(worn.body)}. Settle it on D&D Beyond.`, character.route);
-  if (worn.shields.length > 1) return new NotKnownValue(`More than one shield is held: ${names(worn.shields)}. Settle it on D&D Beyond.`, character.route);
+  if (worn.body.length > 1) return notKnown(`More than one body armour is worn (${namesOf(worn.body)}). Settle it on D&D Beyond.`, character.route);
+  if (worn.shields.length > 1) return notKnown(`More than one shield is held (${namesOf(worn.shields)}). Settle it on D&D Beyond.`, character.route);
   return null;
 }
 
-function shieldTerms(worn: WornArmour): readonly string[] {
-  return worn.shields.map((shield) => `${shield.name} ${shield.armourClass}`);
+function shieldTerm(shield: RuleItem): string {
+  return `${shield.name.text} ${shield.armourClass}`;
 }
 
-function shieldAmount(worn: WornArmour): number {
-  return worn.shields.reduce((total, shield) => total + shield.armourClass, 0);
+function addedShield(total: number, shield: RuleItem): number {
+  return total + shield.armourClass;
+}
+
+function addedBonus(total: number, bonus: ArmourBonus): number {
+  return total + bonus.amount;
+}
+
+function termOf(bonus: ArmourBonus): string {
+  return bonus.term;
+}
+
+function appliesFor(character: RuleCharacter, worn: WornArmour): (bonus: ArmourBonus) => boolean {
+  return function applies(bonus: ArmourBonus): boolean {
+    return bonus.appliesTo(character, worn);
+  };
 }
 
 export class ArmourClassRule implements Rule {
   workOut(character: RuleCharacter, earlier: EarlierNumbers): readonly ImportedNumber[] {
-    return [{ name: "AC", value: this.armourClass(character, earlier) }];
+    return [{ name: ARMOUR_CLASS_NAME, value: this.armourClass(character, earlier) }];
   }
 
   private armourClass(character: RuleCharacter, earlier: EarlierNumbers): WorkedValue<number> {
+    const touching = ARMOUR_CLASS_TOUCHING.unknownFor(character);
+    if (touching !== null) return touching;
     const worn = wornArmourOf(character);
     const conflict = conflictIn(worn, character);
     if (conflict !== null) return conflict;
     const candidates = candidatesFor(character, worn, earlier);
     const unknown = firstUnknown(candidates);
-    if (unknown !== undefined) return new NotKnownValue(unknown.reason, character.route);
+    if (unknown !== undefined) return notKnown(unknown.reason, character.route);
     const best = bestOf(candidates);
-    if (best === undefined) return new NotKnownValue("No way of working out armor class applies.", character.route);
+    if (best === undefined) return notKnown("No way of working out armor class applies.", character.route);
     return this.withBonuses(character, worn, best);
   }
 
@@ -55,10 +78,10 @@ export class ArmourClassRule implements Rule {
     const tally = armourModifiersOf(character);
     const unfamiliar = unknownModifiers(tally, character.route);
     if (unfamiliar !== null) return unfamiliar;
-    const bonuses = ARMOUR_BONUSES.filter((bonus) => bonus.appliesTo(character, worn));
-    const total = best.total + shieldAmount(worn) + tally.added + bonuses.reduce((sum, bonus) => sum + bonus.amount, 0);
-    const terms = [...best.terms, ...shieldTerms(worn), ...bonuses.map((bonus) => bonus.term), ...tally.applied];
+    const bonuses = ARMOUR_BONUSES.filter(appliesFor(character, worn));
+    const total = best.total + worn.shields.reduce(addedShield, 0) + tally.added + bonuses.reduce(addedBonus, 0);
+    const terms = [...best.terms, ...worn.shields.map(shieldTerm), ...bonuses.map(termOf), ...tally.applied];
     const working = withConditional(reasonedWorking(terms, total, best.reason), tally.conditional);
-    return numberInRange(total, ARMOUR_CLASS, working, character.route);
+    return knownIn(total, ARMOUR_CLASS, working, character.route);
   }
 }

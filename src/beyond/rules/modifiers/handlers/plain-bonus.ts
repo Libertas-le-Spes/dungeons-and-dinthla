@@ -8,11 +8,12 @@ export class PlainBonus implements ModifierHandler {
   handles(modifier: RuleModifier): boolean {
     if (modifier.type !== "bonus") return false;
     if (modifier.value === null) return false;
-    return this.subTypes.includes(modifier.subType);
+    if (!Number.isInteger(modifier.value)) return false;
+    return this.subTypes.includes(modifier.subType.text);
   }
 
   applyTo(tally: ModifierTally, modifier: RuleModifier): void {
     if (modifier.value === null) return;
-    tally.add(modifier.value, modifier.sourceName);
+    tally.add(modifier.value, modifier.sourceName.text);
   }
 }

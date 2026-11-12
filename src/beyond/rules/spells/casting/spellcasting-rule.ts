@@ -1,24 +1,49 @@
 import type { ImportedNumber } from "../../../shape/imported-number";
 import { SPELL_ATTACK, SPELL_SAVE_DC } from "../../../shape/import-limits";
-import { numberInRange } from "../../../shape/number-in-range";
+import type { NumberRange } from "../../../shape/number-range";
 import type { WorkedValue } from "../../../shape/worked-value";
 import type { EarlierNumbers } from "../../core/earlier-numbers";
+import { firstFound } from "../../core/first-found";
 import type { Rule } from "../../core/rule";
-import { reasonedWorking } from "../../core/working-text";
+import { knownIn, notKnown } from "../../core/worked";
+import { reasonedWorking, withConditional } from "../../core/working-text";
 import type { RuleCharacter } from "../../input/rule-character";
+import { SubTypeFamily } from "../../modifiers/sub-type-family";
+import { tallyFor } from "../../modifiers/tally-for";
+import { unknownModifiers } from "../../modifiers/unknown-modifiers";
 import type { CasterClass } from "../casters/caster-class";
 import { castingClassesOf } from "../casters/casting-class";
+import type { CastingClass } from "../casters/casting-class";
 import { castingInputsOf } from "./casting-inputs";
+
+const DC_NAMES = ["spell-save-dc"];
+const ATTACK_NAMES = ["spell-attacks"];
+const CANNOT_TELL = "I can't tell whether this class casts yet in this edition.";
+
+function isCasting(caster: CasterClass): (casting: CastingClass) => boolean {
+  return function isOfCaster(casting: CastingClass): boolean {
+    return casting.caster === caster;
+  };
+}
 
 export class SpellcastingRule implements Rule {
   constructor(private readonly caster: CasterClass) {}
 
   workOut(character: RuleCharacter, earlier: EarlierNumbers): readonly ImportedNumber[] {
-    const casts = castingClassesOf(character).some((casting) => casting.caster === this.caster);
-    if (!casts) return [];
+    const casting = firstFound(castingClassesOf(character).filter(isCasting(this.caster)));
+    if (casting === undefined) return [];
+    if (casting.ruleClass.level < this.caster.kind.firstCastingLevel) return this.beforeCasting(character);
     return [
-      { name: `${this.caster.label} spell save DC`, value: this.saveDc(character, earlier) },
-      { name: `${this.caster.label} spell attack bonus`, value: this.attack(character, earlier) },
+      { name: this.caster.saveDcName, value: this.saveDc(character, earlier) },
+      { name: this.caster.attackName, value: this.attack(character, earlier) },
+    ];
+  }
+
+  private beforeCasting(character: RuleCharacter): readonly ImportedNumber[] {
+    if (this.caster.kind.editionKnows(character.edition)) return [];
+    return [
+      { name: this.caster.saveDcName, value: notKnown(CANNOT_TELL, character.route) },
+      { name: this.caster.attackName, value: notKnown(CANNOT_TELL, character.route) },
     ];
   }
 
@@ -27,16 +52,28 @@ export class SpellcastingRule implements Rule {
   }
 
   private saveDc(character: RuleCharacter, earlier: EarlierNumbers): WorkedValue<number> {
-    const inputs = castingInputsOf(this.caster, character, earlier);
-    if (inputs.missing !== null) return inputs.missing;
-    const total = 8 + inputs.bonus + inputs.modifier;
-    return numberInRange(total, SPELL_SAVE_DC, reasonedWorking(["8", ...inputs.terms], total, this.reason()), character.route);
+    return this.worked(character, earlier, { names: DC_NAMES, range: SPELL_SAVE_DC, start: 8, startTerms: ["8"] });
   }
 
   private attack(character: RuleCharacter, earlier: EarlierNumbers): WorkedValue<number> {
+    return this.worked(character, earlier, { names: ATTACK_NAMES, range: SPELL_ATTACK, start: 0, startTerms: [] });
+  }
+
+  private worked(character: RuleCharacter, earlier: EarlierNumbers, kind: WorkedKind): WorkedValue<number> {
     const inputs = castingInputsOf(this.caster, character, earlier);
     if (inputs.missing !== null) return inputs.missing;
-    const total = inputs.bonus + inputs.modifier;
-    return numberInRange(total, SPELL_ATTACK, reasonedWorking(inputs.terms, total, this.reason()), character.route);
+    const tally = tallyFor(character, new SubTypeFamily(kind.names, []), kind.names);
+    const unfamiliar = unknownModifiers(tally, character.route);
+    if (unfamiliar !== null) return unfamiliar;
+    const total = kind.start + inputs.bonus + inputs.modifier + tally.added;
+    const terms = [...kind.startTerms, ...inputs.terms, ...tally.applied];
+    return knownIn(total, kind.range, withConditional(reasonedWorking(terms, total, this.reason()), tally.conditional), character.route);
   }
+}
+
+interface WorkedKind {
+  readonly names: readonly string[];
+  readonly range: NumberRange;
+  readonly start: number;
+  readonly startTerms: readonly string[];
 }

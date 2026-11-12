@@ -5,7 +5,11 @@ export class PactCaster implements CasterKind {
   readonly label = "pact caster";
   readonly table = new SlotTable([]);
   readonly contributes = false;
-  readonly differsByEdition = false;
+  readonly firstCastingLevel = 1;
+
+  editionKnows(): boolean {
+    return true;
+  }
 
   casterLevelOf(): number {
     return 0;

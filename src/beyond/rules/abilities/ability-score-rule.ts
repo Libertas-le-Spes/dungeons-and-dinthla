@@ -1,15 +1,13 @@
 import type { ImportedNumber } from "../../shape/imported-number";
 import { SCORE } from "../../shape/import-limits";
-import { NotKnownValue } from "../../shape/not-known-value";
-import { numberInRange } from "../../shape/number-in-range";
 import type { WorkedValue } from "../../shape/worked-value";
 import type { Rule } from "../core/rule";
+import { knownIn, notKnown } from "../core/worked";
 import { sumWorking } from "../core/working-text";
 import type { Ability } from "../input/ability";
 import type { RuleCharacter } from "../input/rule-character";
 import { SubTypeFamily } from "../modifiers/sub-type-family";
-import { standardHandlers } from "../modifiers/standard-handlers";
-import { tallyModifiers } from "../modifiers/tally-modifiers";
+import { tallyFor } from "../modifiers/tally-for";
 import { unknownModifiers } from "../modifiers/unknown-modifiers";
 
 export class AbilityScoreRule implements Rule {
@@ -21,7 +19,7 @@ export class AbilityScoreRule implements Rule {
 
   private score(character: RuleCharacter): WorkedValue<number> {
     const override = character.scoreOverrides.get(this.ability);
-    if (override !== undefined) return numberInRange(override, SCORE, `${this.ability.label} set on D&D Beyond: ${override}`, character.route);
+    if (override !== undefined) return knownIn(override, SCORE, `${this.ability.label} set on D&D Beyond: ${override}`, character.route);
     return this.fromBase(character);
   }
 
@@ -34,15 +32,15 @@ export class AbilityScoreRule implements Rule {
   }
 
   private missing(character: RuleCharacter): WorkedValue<number> {
-    return new NotKnownValue(`${this.ability.label} is missing a base score or its bonus.`, character.route);
+    return notKnown(`${this.ability.label} is missing a base score or its bonus.`, character.route);
   }
 
   private withModifiers(character: RuleCharacter, base: number, bonus: number): WorkedValue<number> {
-    const family = new SubTypeFamily([`${this.ability.subTypeName}-score`], []);
-    const tally = tallyModifiers(character.modifiers, family, standardHandlers([`${this.ability.subTypeName}-score`]));
+    const own = `${this.ability.subTypeName}-score`;
+    const tally = tallyFor(character, new SubTypeFamily([], [own]), [own]);
     const unknown = unknownModifiers(tally, character.route);
     if (unknown !== null) return unknown;
-    const terms = [`base ${base}`, `bonus ${bonus}`, ...tally.applied];
-    return numberInRange(base + bonus + tally.added, SCORE, sumWorking(terms, base + bonus + tally.added), character.route);
+    const total = base + bonus + tally.added;
+    return knownIn(total, SCORE, sumWorking([`base ${base}`, `bonus ${bonus}`, ...tally.applied], total), character.route);
   }
 }

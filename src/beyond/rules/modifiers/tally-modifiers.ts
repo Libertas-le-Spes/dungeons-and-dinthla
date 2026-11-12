@@ -10,7 +10,7 @@ function handlerFor(handlers: readonly ModifierHandler[], modifier: RuleModifier
 function tallyOne(tally: ModifierTally, handlers: readonly ModifierHandler[], modifier: RuleModifier): void {
   const handler = handlerFor(handlers, modifier);
   if (handler === undefined) {
-    tally.noteUnknown(modifier.subType);
+    tally.noteUnknown(modifier.subType.text);
     return;
   }
   handler.applyTo(tally, modifier);

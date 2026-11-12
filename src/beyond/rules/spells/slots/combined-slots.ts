@@ -20,5 +20,5 @@ export function combinedSlots(character: RuleCharacter, standard: readonly Casti
   const level = standard.reduce(addedCasterLevel, 0);
   const slots = FULL_SLOTS.slotsAt(level);
   if (slots === undefined) return slotsNotKnown(`The combined caster level ${level} is not in the multiclass table.`, character);
-  return slotNumbersFrom(slots, `multiclass: ${standard.map(levelTerm).join(", ")}, caster level ${level}`, character);
+  return slotNumbersFrom(slots, `Caster level ${level} from ${standard.map(levelTerm).join(", ")}`, character);
 }

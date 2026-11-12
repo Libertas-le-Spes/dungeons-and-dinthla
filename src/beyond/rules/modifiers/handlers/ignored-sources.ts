@@ -5,7 +5,7 @@ export class IgnoredSources implements ModifierHandler {
   constructor(private readonly sources: readonly string[]) {}
 
   handles(modifier: RuleModifier): boolean {
-    return this.sources.includes(modifier.sourceName);
+    return this.sources.includes(modifier.sourceName.text);
   }
 
   applyTo(): void {}

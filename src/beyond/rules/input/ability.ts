@@ -7,6 +7,14 @@ export class Ability {
   get subTypeName(): string {
     return this.label.toLowerCase();
   }
+
+  get modifierName(): string {
+    return `${this.short} modifier`;
+  }
+
+  get saveName(): string {
+    return `${this.short} save`;
+  }
 }
 
 export const STRENGTH = new Ability("STR", "Strength");

@@ -3,6 +3,7 @@ export class ModifierTally {
   readonly applied: string[] = [];
   readonly conditional: string[] = [];
   readonly unknown: string[] = [];
+  private readonly conditionalSources = new Set<string>();
 
   add(amount: number, source: string): void {
     this.added += amount;
@@ -10,7 +11,8 @@ export class ModifierTally {
   }
 
   noteConditional(source: string): void {
-    if (this.conditional.includes(source)) return;
+    if (this.conditionalSources.has(source)) return;
+    this.conditionalSources.add(source);
     this.conditional.push(source);
   }
 
