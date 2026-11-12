@@ -28,3 +28,9 @@ describe("MonkDefenceRule for a monk", () => {
     expect(numberNamed(madeUpRuleCharacter({ classes: monk, baseScores: scores }), "AC").isKnown).toBe(false);
   });
 });
+
+describe("MonkDefenceRule and the way the class is written", () => {
+  it("finds a monk written in lower case", () => {
+    expect(armourClassOf({ classes: [classOf("monk", 1, 8)], baseScores: scoresOf(10, 18, 10, 10, 14, 10) }).working).toBe("10 + DEX 4 + WIS 2 = 16, monk's unarmoured defence");
+  });
+});

@@ -192,6 +192,11 @@ describe("MaxHitPointsRule with a modifier named like a source it works out itse
     expect(numberNamed(character, "HP").valueOr(-1)).toBe(23);
   });
 
+  it("finds a draconic sorcerer written in lower case when it adds its resilience", () => {
+    const character = madeUpRuleCharacter({ classes: [classOf("sorcerer", 3, 6, "Draconic Bloodline")], baseHitPoints: 20 });
+    expect(numberNamed(character, "HP").valueOr(-1)).toBe(23);
+  });
+
   it("matches the source name without regard to case or spaces", () => {
     const character = madeUpRuleCharacter({ classes: LEVEL_FIVE, baseHitPoints: 40, features: ["tough"], modifiers: [modifierOf("bonus", "hit-points-per-level", 2, " TOUGH ")] });
     expect(numberNamed(character, "HP").valueOr(-1)).toBe(50);

@@ -23,3 +23,9 @@ describe("DraconicDefenceRule for a draconic sorcerer", () => {
     expect(armourClassOf({ classes: [classOf("Sorcerer", 1, 6, "Wild Magic")], baseScores: withDexterity(14) }).working).toBe("10 + DEX 2 = 12, no armour");
   });
 });
+
+describe("DraconicDefenceRule and the way the class is written", () => {
+  it("finds a sorcerer written in lower case", () => {
+    expect(armourClassOf({ classes: [classOf("sorcerer", 1, 6, "Draconic Bloodline")], baseScores: withDexterity(14) }).working).toBe("13 + DEX 2 = 15, draconic bloodline's natural armour");
+  });
+});
