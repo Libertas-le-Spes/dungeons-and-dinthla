@@ -7,6 +7,11 @@ import { CAMPAIGN, FakeItemNotes, LANTERN, ROPE, SESSION, settle, type ItemNote 
 const THREE_LINES = ["$ [[Mira]] Silvered lantern", "We rested.", "$$ Silvered lantern :changed to [[Baka]]", "$$ Silvered lantern :changed to the party"];
 const ITEMS = `${CAMPAIGN}/Items`;
 
+function lastWrite(fake: FakeItemNotes) {
+  const [last] = [...fake.propertiesWritten].reverse();
+  return last;
+}
+
 async function opened(lines: string[], notes: ItemNote[] = [], folderThere = true) {
   const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
   const store = new CampaignStore(sessions.vault);
@@ -70,7 +75,7 @@ describe("ItemNotes making a note", () => {
     const { fake, itemNotes } = await opened(THREE_LINES, [{ path: LANTERN, properties: { holder: "The party", tags: ["pale"] } }]);
     itemNotes.sessionSaved();
     await settle();
-    const last = fake.propertiesWritten.at(-1);
+    const last = lastWrite(fake);
     expect(last?.properties).toEqual({
       holder: "The party",
       tags: ["pale"],
@@ -82,7 +87,7 @@ describe("ItemNotes making a note", () => {
     const { fake, itemNotes } = await opened(["$ Rope"], [{ path: ROPE, properties: { holder: "The party" } }]);
     itemNotes.sessionSaved();
     await settle();
-    expect(fake.propertiesWritten.at(-1)?.properties).toEqual({ holder: "The party", lines: ["$ Rope"] });
+    expect(lastWrite(fake)?.properties).toEqual({ holder: "The party", lines: ["$ Rope"] });
   });
 
   it("doesn't touch an existing note's lines when a change merely arrives without a save here", async () => {
@@ -195,7 +200,7 @@ describe("ItemNotes naming a note", () => {
     const { fake, itemNotes } = await opened(RING_LINES, [{ path: RING, properties: { holder: "The party", aliases: ["The Ring"] } }]);
     itemNotes.sessionSaved();
     await settle();
-    expect(fake.propertiesWritten.at(-1)?.properties.aliases).toEqual(["The Ring", "Ring: +1"]);
+    expect(lastWrite(fake)?.properties.aliases).toEqual(["The Ring", "Ring: +1"]);
   });
 
   it("says once that an item named on three lines can't have a note when its name can't be a file name", async () => {
@@ -247,7 +252,7 @@ describe("ItemNotes naming a note", () => {
     itemNotes.sessionSaved();
     await settle();
     expect(fake.createCalls).toBe(2);
-    expect(fake.propertiesWritten.at(-1)?.path).toBe(LANTERN);
+    expect(lastWrite(fake)?.path).toBe(LANTERN);
   });
 
   it("takes the empty note away again when its properties couldn't be written, so no empty item note is left", async () => {

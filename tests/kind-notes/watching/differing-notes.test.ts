@@ -13,6 +13,11 @@ const NOTE: WantedNote = {
   lines: ["? Who sent Mira"],
 };
 
+function notesOf(path: string, mine: WantedNote[], other: WantedNote): WantedNote[] {
+  if (path === SESSION) return mine;
+  return [other];
+}
+
 function differingWith(outOfStep: boolean) {
   const keeper = { isOutOfStep: vi.fn(() => outOfStep), keep: vi.fn() };
   const current = { notes: [NOTE] };
@@ -97,7 +102,7 @@ describe("DifferingNotes", () => {
     const keeper = { isOutOfStep: vi.fn(() => true), keep: vi.fn() };
     const mine = [NOTE, { ...NOTE, path: "D&D/Pale Moon/Quests/Session 2.md", folder: "Quests" }];
     const other = { ...NOTE, path: "D&D/Pale Moon/Funds/Session 3.md", folder: "Funds", sessionPath: "D&D/Pale Moon/Sessions/Session 3.md" };
-    const wants = { notesFor: vi.fn((path: string) => (path === SESSION ? mine : [other])) };
+    const wants = { notesFor: vi.fn((path: string) => notesOf(path, mine, other)) };
     const ask = vi.fn();
     new DifferingNotes(keeper, wants, ask).checkAll([SESSION, "D&D/Pale Moon/Sessions/Session 3.md"]);
     expect(ask).toHaveBeenCalledOnce();

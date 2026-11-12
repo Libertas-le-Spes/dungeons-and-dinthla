@@ -1,5 +1,6 @@
 import type { TFile } from "obsidian";
 import { KindNoteKeeper } from "../../src/kind-notes/keeping/kind-note-keeper";
+import { kindNoteFolders } from "../../src/kind-notes/wanting/sources/kind-note-sources";
 import type { WantedNote } from "../../src/kind-notes/wanting/wanted-note";
 import { FakeNotes } from "./fake-notes";
 
@@ -12,8 +13,14 @@ export function keeperWith(notes: FakeNotes): KindNoteKeeper {
   return new KindNoteKeeper(notes.needs());
 }
 
+function folderOf(path: string): string {
+  const found = kindNoteFolders().find((folder) => path.includes(`/${folder}/`));
+  if (found === undefined) throw new Error(`${path} isn't in a kind note folder`);
+  return found;
+}
+
 export function wanted(path: string, sessionFile: TFile | null, lines: string[], sessionPath = SESSION): WantedNote {
-  const folder = path.slice(path.lastIndexOf("/", path.lastIndexOf("/") - 1) + 1, path.lastIndexOf("/"));
+  const folder = folderOf(path);
   return { path, folder, sessionPath, sessionFile, lines };
 }
 
