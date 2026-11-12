@@ -16,6 +16,10 @@ export class OpenedSession {
     this.file = files.getFileByPath(path);
   }
 
+  get label(): string {
+    return sessionLabelOf(this.path);
+  }
+
   refuseIfMoved(): void {
     const current = this.files.getFileByPath(this.path);
     if (current === null || current !== this.file) throw new Error(sessionGoneWords(this.path));

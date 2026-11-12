@@ -1,8 +1,8 @@
 import { Notice, type App, type TFile } from "obsidian";
 import type { Source } from "../../campaign/record/campaign";
 import { CHANGED_IN_NOTE } from "../../campaign/writing/note-editor";
-import { sessionLabelOf } from "../../campaign/paths/session-file";
 import { OpenedSession } from "../../campaign/paths/session-gone";
+import { NoSessionNamed } from "./no-session-named";
 import { latestSessionWanted, NoSessionToWrite, sessionToWrite } from "../../campaign/paths/session-to-write";
 import { messageOf } from "../../views/dialogs/message-of";
 import { sameName } from "../reading/sheet-values";
@@ -40,24 +40,20 @@ function sessionPathIn(read: ReadSheet): string {
   return sessionToWrite(read.campaignFolder, paths, latestSessionWanted(NO_SESSION));
 }
 
-function openedSessionIn(gate: Gate, read: ReadSheet): OpenedSession | null {
+export type SheetSession = OpenedSession | NoSessionNamed;
+
+function openedSessionIn(gate: Gate, read: ReadSheet): SheetSession {
   try {
     return new OpenedSession(gate.files, sessionPathIn(read));
   } catch (error) {
     if (!(error instanceof NoSessionToWrite)) throw error;
-    return null;
+    return new NoSessionNamed(error.message);
   }
 }
 
-function sessionPathToSave(openedSession: OpenedSession | null): string {
-  if (openedSession === null) throw new NoSessionToWrite(NO_SESSION);
+function sessionPathToSave(openedSession: SheetSession): string {
   openedSession.refuseIfMoved();
   return openedSession.path;
-}
-
-function labelOf(session: OpenedSession | null): string | null {
-  if (session === null) return null;
-  return sessionLabelOf(session.path);
 }
 
 export async function saveSheetValue(
@@ -68,7 +64,7 @@ export async function saveSheetValue(
   file: TFile,
   opened: SheetValue,
   choice: ValueChoice,
-  openedSession: OpenedSession | null,
+  openedSession: SheetSession,
 ): Promise<boolean> {
   const read = await readCharacterSheet(file, store, notes);
   const current = valueIn(read, opened.name);
@@ -95,7 +91,7 @@ export async function chooseSheetValue(
   openSource: (source: Source) => void,
   onClosed: () => void,
 ): Promise<void> {
-  let openedSession: OpenedSession | null;
+  let openedSession: SheetSession;
   try {
     openedSession = openedSessionIn(gate, await readCharacterSheet(file, store, notes));
   } catch (error) {
@@ -106,7 +102,7 @@ export async function chooseSheetValue(
     character: file.basename,
     notePath: file.path,
     value,
-    sessionLabel: labelOf(openedSession),
+    sessionLabel: openedSession.label,
     save: (choice: ValueChoice) => saveSheetValue(app, gate, store, notes, file, value, choice, openedSession),
     openSource,
   };

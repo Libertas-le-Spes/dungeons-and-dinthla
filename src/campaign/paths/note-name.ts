@@ -13,5 +13,7 @@ export function markdownEndingOf(path: string): string {
 }
 
 export function foldersPartOf(path: string): string {
-  return path.slice(0, path.lastIndexOf("/") + 1);
+  const names = path.split("/");
+  names.pop();
+  return names.map((name) => `${name}/`).join("");
 }
