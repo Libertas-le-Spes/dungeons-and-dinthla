@@ -56,6 +56,11 @@ const PLANTED_ON_DISK: PlantedOnDisk[] = [
     },
     found: ["src/other.ts is bundled but not scanned", "src/reader.ts holds code but is scanned and not bundled"],
   },
+  {
+    name: "ts in a folder of src named node_modules",
+    files: { "src/main.ts": 'export { files } from "./node_modules/reader";\n', "src/node_modules/reader.ts": "export const files = 1;\n" },
+    found: [],
+  },
 ];
 
 function plantedFolder(planted: Planted): string {
