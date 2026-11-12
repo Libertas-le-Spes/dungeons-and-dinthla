@@ -11,6 +11,7 @@ export const questTrackedKind = {
   marker: { name: "quest", symbol: "!", colourClass: "dd-marker-quest" },
   followUps: { progress: "!+", completed: "!=", failed: "!x" },
   folder: "Quests",
+  kindNoteFolder: "Quests",
   page: "quests",
   lookup: {
     symbol: "!!",
