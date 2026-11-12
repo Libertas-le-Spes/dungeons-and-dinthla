@@ -37,4 +37,6 @@ export const PASSIVE_SCORE: NumberRange = { what: "A passive score", lowest: 0, 
 export const SPELL_SAVE_DC: NumberRange = { what: "A spell save DC", lowest: 0, highest: 60 };
 export const SPELL_ATTACK: NumberRange = { what: "A spell attack bonus", lowest: -20, highest: 50 };
 export const SPELL_SLOTS: NumberRange = { what: "A count of spell slots", lowest: 0, highest: 9 };
+export const MODIFIER_VALUE: NumberRange = { what: "A modifier's value", lowest: -100, highest: 100 };
+export const SCORE_MODIFIER_VALUE: NumberRange = { what: "A score modifier's value", lowest: -30, highest: 30 };
 export const CARRYING_CAPACITY: NumberRange = { what: "Carrying capacity", lowest: 15, highest: 450 };

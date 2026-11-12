@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { SCORE_MODIFIER_VALUE } from "../../../../src/beyond/shape/import-limits";
 import { ConditionalSubTypes } from "../../../../src/beyond/rules/modifiers/handlers/conditional-sub-types";
 import { SubTypeFamily } from "../../../../src/beyond/rules/modifiers/sub-type-family";
 import { standardHandlers } from "../../../../src/beyond/rules/modifiers/standard-handlers";
@@ -64,5 +65,30 @@ describe("tallyModifiers", () => {
     const handlers = standardHandlers(["stealth"], [new ConditionalSubTypes(["stealth"])]);
     const tally = tallyModifiers([modifierOf("bonus", "stealth", 1, "Hood")], FAMILY, handlers);
     expect([tally.added, tally.conditional]).toEqual([0, ["Hood"]]);
+  });
+});
+
+describe("tallyModifiers and the size of a modifier", () => {
+  it.each([
+    { amount: 100, known: true },
+    { amount: -100, known: true },
+    { amount: 101, known: false },
+    { amount: -101, known: false },
+    { amount: 0.5, known: false },
+    { amount: Number.NaN, known: false },
+    { amount: Number.POSITIVE_INFINITY, known: false },
+  ])("uses a plain bonus of $amount: $known", ({ amount, known }) => {
+    const tally = tallyModifiers([modifierOf("bonus", "stealth", amount, "Boots")], FAMILY, HANDLERS);
+    expect(tally.unknown.length === 0).toBe(known);
+  });
+
+  it.each([
+    { amount: 30, known: true },
+    { amount: -30, known: true },
+    { amount: 31, known: false },
+    { amount: -31, known: false },
+  ])("uses a score bonus of $amount: $known", ({ amount, known }) => {
+    const tally = tallyModifiers([modifierOf("bonus", "stealth", amount, "Gloves")], FAMILY, standardHandlers(["stealth"], [], SCORE_MODIFIER_VALUE));
+    expect(tally.unknown.length === 0).toBe(known);
   });
 });

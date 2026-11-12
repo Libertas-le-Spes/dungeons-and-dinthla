@@ -1,4 +1,6 @@
 import type { RuleCharacter } from "../input/rule-character";
+import { hasFeature } from "./has-feature";
+import { sameName } from "./same-name";
 import { notKnown } from "./worked";
 import { shortList } from "./working-text";
 import type { NotKnownValue } from "../../shape/not-known-value";
@@ -25,10 +27,10 @@ export class FeatureTouching {
 }
 
 function isPresentIn(character: RuleCharacter, name: string): boolean {
-  if (character.species === name) return true;
-  if (character.features.includes(name)) return true;
+  if (sameName(character.species, name)) return true;
+  if (hasFeature(character, name)) return true;
   for (const ruleClass of character.classes) {
-    if (ruleClass.name.text === name) return true;
+    if (sameName(ruleClass.name.text, name)) return true;
   }
   return false;
 }

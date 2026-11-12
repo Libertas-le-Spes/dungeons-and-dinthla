@@ -1,5 +1,5 @@
 import type { ImportedNumber } from "../../shape/imported-number";
-import { SCORE } from "../../shape/import-limits";
+import { SCORE, SCORE_MODIFIER_VALUE } from "../../shape/import-limits";
 import type { WorkedValue } from "../../shape/worked-value";
 import type { Rule } from "../core/rule";
 import { knownIn, notKnown } from "../core/worked";
@@ -37,7 +37,7 @@ export class AbilityScoreRule implements Rule {
 
   private withModifiers(character: RuleCharacter, base: number, bonus: number): WorkedValue<number> {
     const own = `${this.ability.subTypeName}-score`;
-    const tally = tallyFor(character, new SubTypeFamily([], [own]), [own]);
+    const tally = tallyFor(character, new SubTypeFamily([], [own]), [own], [], SCORE_MODIFIER_VALUE);
     const unknown = unknownModifiers(tally, character.route);
     if (unknown !== null) return unknown;
     const total = base + bonus + tally.added;

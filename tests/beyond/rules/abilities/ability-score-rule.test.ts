@@ -79,3 +79,18 @@ describe("AbilityScoreRule", () => {
     expect(numberNamed(character, "STR").isKnown).toBe(known);
   });
 });
+
+describe("AbilityScoreRule and the size of a score modifier", () => {
+  it("does not use a score bonus of 31, and names it", () => {
+    const value = numberNamed(madeUpRuleCharacter({ modifiers: [modifierOf("bonus", "dexterity-score", 31, "Gloves")] }), "DEX");
+    expect(value.explanation).toBe('D&D Beyond names a rule I can\'t work out here: "dexterity-score". Type it on your note to set it.');
+  });
+
+  it("does not use a huge score bonus", () => {
+    expect(numberNamed(madeUpRuleCharacter({ modifiers: [modifierOf("bonus", "dexterity-score", 1e300, "Gloves")] }), "DEX").isKnown).toBe(false);
+  });
+
+  it("uses a score bonus of 2", () => {
+    expect(numberNamed(madeUpRuleCharacter({ modifiers: [modifierOf("bonus", "dexterity-score", 2, "Gloves")] }), "DEX").valueOr(-1)).toBe(12);
+  });
+});

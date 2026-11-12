@@ -23,7 +23,7 @@ function rowFor(level: number): (candidate: { readonly level: number }) => boole
 
 function pactFor(character: RuleCharacter, earlier: EarlierNumbers, warlock: RuleClass): readonly ImportedNumber[] {
   const needed = NeededNumbers.of([TOTAL_LEVEL_NAME], earlier, character.route);
-  if (needed.missing !== null) return pactNotKnown(needed.missing.explanation, character);
+  if (needed.missing !== null) return [{ name: PACT_SLOTS_NAME, value: needed.missing }];
   const row = PACT_SLOTS.find(rowFor(warlock.level));
   if (row === undefined) return pactNotKnown("The warlock level is not in the pact slot table.", character);
   const working = `Warlock ${warlock.level}: ${row.count} slots of level ${row.slotLevel}`;

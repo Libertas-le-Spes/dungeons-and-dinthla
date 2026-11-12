@@ -1,3 +1,4 @@
+import { hasFeature } from "../../core/has-feature";
 import type { RuleCharacter } from "../../input/rule-character";
 import type { ArmourBonus } from "./armour-bonus";
 import type { WornArmour } from "../choice/worn-armour";
@@ -8,6 +9,6 @@ export class DefenceStyleBonus implements ArmourBonus {
 
   appliesTo(character: RuleCharacter, worn: WornArmour): boolean {
     if (worn.body.length === 0) return false;
-    return character.features.includes("Defense");
+    return hasFeature(character, "Defense");
   }
 }

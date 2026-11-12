@@ -9,11 +9,9 @@ import { knownIn, notKnown } from "../core/worked";
 import { sumWorking } from "../core/working-text";
 import { CONSTITUTION } from "../input/ability";
 import type { RuleCharacter } from "../input/rule-character";
-import { minimumMayApply } from "./minimum-per-level";
-import { addedAmount, explanationOf, firstNotKnown, perLevelAdditions } from "./per-level-additions";
+import { minimumProblemOf } from "./minimum-per-level";
+import { addedAmount, addedSourceNames, explanationOf, firstNotKnown, perLevelAdditions } from "./per-level-additions";
 import { unfamiliarPerLevelModifier } from "./per-level-modifiers";
-
-const MINIMUM_REASON = "I could not tell whether the minimum of 1 hit point a level applies, because the constitution modifier is negative and the dice total is only a sum.";
 
 function bonusTerms(bonus: number): readonly string[] {
   if (bonus === 0) return [];
@@ -47,12 +45,13 @@ export class MaxHitPointsRule implements Rule {
   }
 
   private withAdditions(character: RuleCharacter, base: number, bonus: number, constitution: number, level: number): WorkedValue<number> {
-    const unfamiliar = unfamiliarPerLevelModifier(character);
+    const unfamiliar = unfamiliarPerLevelModifier(character, addedSourceNames(character, level));
     if (unfamiliar !== null) return unfamiliar;
     const additions = perLevelAdditions(character, level);
     const unknownAddition = firstNotKnown(additions);
     if (unknownAddition !== undefined) return notKnown(unknownAddition.explanation, character.route);
-    if (minimumMayApply(character, base, constitution, level)) return notKnown(MINIMUM_REASON, character.route);
+    const problem = minimumProblemOf(character, base, constitution, level);
+    if (problem !== null) return notKnown(problem, character.route);
     const total = base + constitution * level + bonus + additions.reduce(addedAmount, 0);
     const terms = [`${base}`, `CON ${constitution} x ${level}`, ...bonusTerms(bonus), ...additions.map(explanationOf)];
     return knownIn(total, MAX_HIT_POINTS, sumWorking(terms, total), character.route);

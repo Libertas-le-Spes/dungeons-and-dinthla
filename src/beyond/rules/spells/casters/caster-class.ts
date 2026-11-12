@@ -1,3 +1,4 @@
+import { sameName } from "../../core/same-name";
 import type { Ability } from "../../input/ability";
 import type { RuleClass } from "../../input/rule-class";
 import type { CasterKind } from "./caster-kind";
@@ -24,7 +25,7 @@ export class CasterClass {
   }
 
   matches(ruleClass: RuleClass): boolean {
-    if (ruleClass.name.text !== this.className) return false;
+    if (!sameName(ruleClass.name.text, this.className)) return false;
     if (this.subclass === "") return true;
     return ruleClass.subclass === this.subclass;
   }

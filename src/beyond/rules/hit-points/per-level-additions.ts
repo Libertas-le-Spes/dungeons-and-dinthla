@@ -15,6 +15,14 @@ export function perLevelAdditions(character: RuleCharacter, totalLevel: number):
   return found;
 }
 
+export function addedSourceNames(character: RuleCharacter, totalLevel: number): readonly string[] {
+  const found: string[] = [];
+  for (const source of PER_LEVEL_SOURCES) {
+    if (source.addition(character, totalLevel) !== null) found.push(source.sourceName);
+  }
+  return found;
+}
+
 export function firstNotKnown(values: readonly WorkedValue<number>[]): WorkedValue<number> | undefined {
   return values.find(isNotKnown);
 }
