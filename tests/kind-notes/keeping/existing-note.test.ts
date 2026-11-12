@@ -7,11 +7,17 @@ import { fileAt } from "../fake-notes";
 const SESSION = "D&D/Pale Moon/Sessions/Session 2.md";
 const NOTE: WantedNote = { path: "D&D/Pale Moon/Questions/Session 2.md", folder: "Questions", sessionPath: SESSION, sessionFile: fileAt(SESSION), lines: ["? One"] };
 
+function resolvedTo(resolves: boolean) {
+  if (resolves) return fileAt(SESSION);
+  return null;
+}
+
 function metadataWith(cache: CachedMetadata | null, resolves = true) {
+  const resolved = resolvedTo(resolves);
   return {
     getFileCache: vi.fn(() => cache),
     fileToLinktext: vi.fn(() => "Session 2"),
-    getFirstLinkpathDest: vi.fn(() => (resolves ? fileAt(SESSION) : null)),
+    getFirstLinkpathDest: vi.fn(() => resolved),
   };
 }
 

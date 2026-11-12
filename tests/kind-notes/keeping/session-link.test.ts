@@ -5,10 +5,16 @@ import { fileAt } from "../fake-notes";
 const NOTE = "D&D/Pale Moon/Questions/Session 2.md";
 const SESSION = "D&D/Pale Moon/Sessions/Session 2.md";
 
+function resolvedAt(found: string | null) {
+  if (found === null) return null;
+  return fileAt(found);
+}
+
 function metadataResolving(found: string | null) {
+  const resolved = resolvedAt(found);
   return {
     fileToLinktext: vi.fn(() => "Session 2"),
-    getFirstLinkpathDest: vi.fn(() => (found === null ? null : fileAt(found))),
+    getFirstLinkpathDest: vi.fn(() => resolved),
   };
 }
 
