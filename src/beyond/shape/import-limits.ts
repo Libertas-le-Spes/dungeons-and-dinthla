@@ -3,10 +3,13 @@ import type { NumberRange } from "./number-range";
 
 export const REPLY_SIZE: Cap = { what: "The reply", most: 5_000_000, unit: "bytes" };
 
+export const REPLY_DEPTH: Cap = { what: "The reply's nesting", most: 32, unit: "levels" };
+
 export const NAME_LENGTH: Cap = { what: "A name", most: 100, unit: "characters" };
 export const LINE_LENGTH: Cap = { what: "A line of text", most: 300, unit: "characters" };
 
 export const CLASS_COUNT: Cap = { what: "The list of classes", most: 20, unit: "classes" };
+export const ABILITY_COUNT: Cap = { what: "The list of ability overrides", most: 6, unit: "overrides" };
 export const NUMBER_COUNT: Cap = { what: "The list of numbers", most: 100, unit: "numbers" };
 export const INVENTORY_COUNT: Cap = { what: "The inventory", most: 500, unit: "items" };
 export const SPELL_COUNT: Cap = { what: "The list of spells", most: 500, unit: "spells" };

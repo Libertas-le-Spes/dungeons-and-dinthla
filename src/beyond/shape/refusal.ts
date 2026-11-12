@@ -9,3 +9,7 @@ export function overTheLimit(cap: Cap): Refusal {
 export function lineBreakInOneLine(): Refusal {
   return new Refusal("A value that has to be on one line holds a line break.");
 }
+
+export function emptyName(): Refusal {
+  return new Refusal("A name has no text in it.");
+}
