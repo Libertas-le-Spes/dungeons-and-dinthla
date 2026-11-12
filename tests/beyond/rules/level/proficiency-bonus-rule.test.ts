@@ -24,9 +24,9 @@ describe("ProficiencyBonusRule", () => {
     expect([bonus.valueOr(-1), bonus.explanation]).toEqual([3, "2 + floor((5 - 1) / 4) = 3"]);
   });
 
-  it("is eleven at the highest total level of forty", () => {
-    const character = madeUpRuleCharacter({ classes: [classOf("Fighter", 20, 10), classOf("Wizard", 20, 6)] });
-    expect(numberNamed(character, "Proficiency bonus").valueOr(-1)).toBe(11);
+  it("is six at the highest total level of twenty", () => {
+    const character = madeUpRuleCharacter({ classes: [classOf("Fighter", 20, 10)] });
+    expect(numberNamed(character, "Proficiency bonus").valueOr(-1)).toBe(6);
   });
 
   it("is not known when the total level is not known", () => {

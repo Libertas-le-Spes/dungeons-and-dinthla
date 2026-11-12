@@ -29,7 +29,7 @@ describe("SpeedRule", () => {
 
   it("does not know speed in armour that needs more strength than the character has", () => {
     const heavy = { ...itemOf("Plate", new HeavyArmour(), 18), strengthRequired: 15 };
-    expect(numberNamed(madeUpRuleCharacter({ items: [heavy] }), "Speed").explanation).toBe("Plate needs Strength 15, and it is more than 10. I don't work out what that does to speed.");
+    expect(numberNamed(madeUpRuleCharacter({ items: [heavy] }), "Speed").explanation).toBe("Plate needs Strength 15, and it is more than 10, or the need is not a number. I don't work out what that does to speed.");
   });
 
   it("knows speed in armour when the strength is exactly the requirement", () => {

@@ -37,12 +37,12 @@ describe("ArmourClassRule with more than one", () => {
   it("does not know the armour class with two body armours, and names both", () => {
     const character = madeUpRuleCharacter({ items: [itemOf("Leather", new LightArmour(), 11), itemOf("Chain Mail", new HeavyArmour(), 16)] });
     const value = numberNamed(character, "AC");
-    expect([value.isKnown, value.explanation]).toEqual([false, "More than one body armour is worn: Leather, Chain Mail. Settle it on D&D Beyond."]);
+    expect([value.isKnown, value.explanation]).toEqual([false, "More than one body armour is worn (Leather, Chain Mail). Settle it on D&D Beyond."]);
   });
 
   it("does not know the armour class with two shields", () => {
     const character = madeUpRuleCharacter({ items: [itemOf("Oak Shield", new Shield(), 2), itemOf("Pale Shield", new Shield(), 2)] });
-    expect(numberNamed(character, "AC").explanation).toBe("More than one shield is held: Oak Shield, Pale Shield. Settle it on D&D Beyond.");
+    expect(numberNamed(character, "AC").explanation).toBe("More than one shield is held (Oak Shield, Pale Shield). Settle it on D&D Beyond.");
   });
 
   it("knows the armour class when the second body armour is not equipped", () => {

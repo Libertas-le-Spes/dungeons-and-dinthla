@@ -1,21 +1,21 @@
-import type { EarlierNumbers } from "../../core/earlier-numbers";
 import { draconicSorcerers } from "../../classes/draconic-sorcerer";
+import type { EarlierNumbers } from "../../core/earlier-numbers";
 import { isTwentyFourteen } from "../../input/edition";
 import type { RuleCharacter } from "../../input/rule-character";
 import type { ArmourCandidate } from "../choice/armour-candidate";
-import { KnownCandidate, UnknownCandidate } from "../choice/armour-candidate";
-import type { ArmourRule } from "./armour-rule";
-import { unknownCandidateAmong } from "../choice/unknown-candidate-among";
+import { UnknownCandidate } from "../choice/armour-candidate";
+import { FullDexterity } from "../choice/dexterity-part";
+import { formulaCandidate } from "../choice/formula-candidate";
 import type { WornArmour } from "../choice/worn-armour";
+import type { ArmourRule } from "./armour-rule";
+
+const EDITION_REASON = "The draconic sorcerer's armour class is worked differently in the 2014 and 2024 rules, and the edition is not 2014.";
 
 export class DraconicDefenceRule implements ArmourRule {
   candidate(character: RuleCharacter, worn: WornArmour, earlier: EarlierNumbers): ArmourCandidate | null {
     if (worn.body.length > 0) return null;
     if (draconicSorcerers(character.classes).length === 0) return null;
-    if (!isTwentyFourteen(character.edition)) return new UnknownCandidate("The draconic sorcerer's armour class is worked differently in the 2014 and 2024 rules, and the edition is not 2014.");
-    const unknown = unknownCandidateAmong(["DEX modifier"], character, earlier);
-    if (unknown !== null) return unknown;
-    const dexterity = earlier.valueOf("DEX modifier", character.route).valueOr(0);
-    return new KnownCandidate(13 + dexterity, ["13", `DEX ${dexterity}`], "draconic bloodline's natural armour");
+    if (!isTwentyFourteen(character.edition)) return new UnknownCandidate(EDITION_REASON);
+    return formulaCandidate(character, earlier, { baseText: "13", baseAmount: 13, dexterity: new FullDexterity(), others: [], reason: "draconic bloodline's natural armour" });
   }
 }

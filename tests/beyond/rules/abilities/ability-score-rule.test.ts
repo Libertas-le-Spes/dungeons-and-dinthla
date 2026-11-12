@@ -40,7 +40,7 @@ describe("AbilityScoreRule", () => {
   });
 
   it("leaves out a score bonus whose item is not worn", () => {
-    const character = madeUpRuleCharacter({ modifiers: [{ ...modifierOf("bonus", "dexterity-score", 2, "Gloves"), appliesNow: false }] });
+    const character = madeUpRuleCharacter({ modifiers: [{ ...modifierOf("bonus", "dexterity-score", 2, "Gloves"), inForce: false }] });
     expect(numberNamed(character, "DEX").valueOr(-1)).toBe(10);
   });
 

@@ -9,6 +9,6 @@ export class RestrictedBonus implements ModifierHandler {
   }
 
   applyTo(tally: ModifierTally, modifier: RuleModifier): void {
-    tally.noteConditional(modifier.sourceName);
+    tally.noteConditional(modifier.sourceName.text);
   }
 }

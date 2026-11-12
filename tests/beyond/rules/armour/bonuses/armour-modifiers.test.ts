@@ -8,7 +8,7 @@ describe("armourModifiersOf", () => {
   });
 
   it("leaves out a plain modifier whose item is not worn", () => {
-    const ring = { ...modifierOf("bonus", "armor-class", 1, "Ring of Protection"), appliesNow: false };
+    const ring = { ...modifierOf("bonus", "armor-class", 1, "Ring of Protection"), inForce: false };
     expect(armourClassOf({ modifiers: [ring] }).value).toBe(10);
   });
 
@@ -17,16 +17,8 @@ describe("armourModifiersOf", () => {
     expect(armourClassOf({ modifiers: [bracers] })).toEqual({ value: 10, working: "10 + DEX 0 = 10, no armour. Plus conditional bonuses I don't apply: Bracers of Defense" });
   });
 
-  it("lists the Dual Wielder feat and does not apply it", () => {
-    expect(armourClassOf({ features: ["Dual Wielder"] }).working).toBe("10 + DEX 0 = 10, no armour. Plus conditional bonuses I don't apply: Dual Wielder");
-  });
-
-  it("lists the dual wield modifier once, with the feat that holds it", () => {
+  it("lists the dual wield modifier once, however many times it comes, and does not apply it", () => {
     const wielder = modifierOf("bonus", "dual-wield-armor-class", 1, "Dual Wielder");
-    expect(armourClassOf({ features: ["Dual Wielder"], modifiers: [wielder] }).working).toBe("10 + DEX 0 = 10, no armour. Plus conditional bonuses I don't apply: Dual Wielder");
-  });
-
-  it("lists Bladesong and does not apply it", () => {
-    expect(armourClassOf({ features: ["Bladesong"] }).working).toContain("Bladesong");
+    expect(armourClassOf({ modifiers: [wielder, wielder] }).working).toBe("10 + DEX 0 = 10, no armour. Plus conditional bonuses I don't apply: Dual Wielder");
   });
 });

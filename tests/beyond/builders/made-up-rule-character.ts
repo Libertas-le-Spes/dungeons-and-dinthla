@@ -1,11 +1,12 @@
 import { AbilityTable } from "../../../src/beyond/rules/input/by-ability";
-import { CHARISMA, CONSTITUTION, DEXTERITY, INTELLIGENCE, STRENGTH, WISDOM } from "../../../src/beyond/rules/input/ability";
+import { ABILITIES, CHARISMA, CONSTITUTION, DEXTERITY, INTELLIGENCE, STRENGTH, WISDOM } from "../../../src/beyond/rules/input/ability";
 import type { ArmourKind } from "../../../src/beyond/rules/input/armour/armour-kind";
 import { NotArmour } from "../../../src/beyond/rules/input/armour/not-armour";
 import type { RuleCharacter } from "../../../src/beyond/rules/input/rule-character";
 import type { RuleClass } from "../../../src/beyond/rules/input/rule-class";
 import type { RuleItem } from "../../../src/beyond/rules/input/rule-item";
 import type { RuleModifier } from "../../../src/beyond/rules/input/rule-modifier";
+import { CleanLine } from "../../../src/beyond/text/clean-line";
 import { workedOut } from "../../../src/beyond/rules/worked-out";
 import type { WorkedValue } from "../../../src/beyond/shape/worked-value";
 import { Online } from "../../../src/beyond/shape/route";
@@ -27,11 +28,11 @@ export function noBonuses(): AbilityTable<number> {
 }
 
 export function classOf(name: string, level: number, hitDie: number, subclass = ""): RuleClass {
-  return { name, subclass, level, hitDie };
+  return { name: CleanLine.of(name), subclass, level, hitDie };
 }
 
 export function itemOf(name: string, armour: ArmourKind, armourClass: number): RuleItem {
-  return { name, equipped: true, attuned: false, needsAttunement: false, armour, armourClass, strengthRequired: 0 };
+  return { name: CleanLine.of(name), equipped: true, attuned: false, needsAttunement: false, armour, armourClass, strengthRequired: 0 };
 }
 
 export function otherItem(name: string): RuleItem {
@@ -39,7 +40,7 @@ export function otherItem(name: string): RuleItem {
 }
 
 export function modifierOf(type: string, subType: string, value: number | null, sourceName: string, restriction = ""): RuleModifier {
-  return { type, subType, value, restriction, sourceName, appliesNow: true };
+  return { type, subType: CleanLine.of(subType), value, restriction, sourceName: CleanLine.of(sourceName), inForce: true };
 }
 
 export function madeUpRuleCharacter(changes: Partial<RuleCharacter> = {}): RuleCharacter {
@@ -82,4 +83,13 @@ export function armourClassOf(changes: Partial<RuleCharacter>): { value: number;
 
 export function withDexterity(score: number): AbilityTable<number> {
   return scoresOf(10, score, 10, 10, 10, 10);
+}
+
+export function onlyAbilityRaised(raised: string): AbilityTable<number> {
+  const scores = new AbilityTable<number>();
+  for (const ability of ABILITIES) {
+    if (ability.short === raised) scores.with(ability, 14);
+    else scores.with(ability, 10);
+  }
+  return scores;
 }

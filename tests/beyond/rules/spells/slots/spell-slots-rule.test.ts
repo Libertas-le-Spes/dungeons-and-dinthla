@@ -95,7 +95,7 @@ describe("SpellSlotsRule for a multiclass character", () => {
 
   it("shows the sum it worked", () => {
     const character = madeUpRuleCharacter({ classes: [classOf("Paladin", 4, 10), classOf("Wizard", 4, 6)] });
-    expect(numberNamed(character, "Spell slots level 1").explanation).toBe("multiclass: Paladin 4 gives 2, Wizard 4 gives 4, caster level 6");
+    expect(numberNamed(character, "Spell slots level 1").explanation).toBe("Caster level 6 from Paladin 4 gives 2, Wizard 4 gives 4");
   });
 
   it("gives no slots when the combined caster level is under 1", () => {

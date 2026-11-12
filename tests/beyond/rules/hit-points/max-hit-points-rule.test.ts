@@ -5,6 +5,8 @@ function withConstitution(score: number) {
   return scoresOf(10, 10, score, 10, 10, 10);
 }
 
+const MINIMUM_REASON = "I could not tell whether the minimum of 1 hit point a level applies, because the constitution modifier is negative and the dice total is only a sum.";
+
 describe("MaxHitPointsRule", () => {
   it("adds the constitution modifier for the one level: 12 + 2 = 14", () => {
     const character = madeUpRuleCharacter({ baseHitPoints: 12, baseScores: withConstitution(14) });
@@ -25,7 +27,7 @@ describe("MaxHitPointsRule", () => {
     { constitution: 11, modifier: 0, hitPoints: 30 },
     { constitution: 15, modifier: 2, hitPoints: 40 },
   ])("gives $hitPoints at level 5 with a constitution of $constitution (modifier $modifier)", ({ constitution, hitPoints }) => {
-    const character = madeUpRuleCharacter({ classes: [classOf("Fighter", 5, 10)], baseHitPoints: 30, baseScores: withConstitution(constitution) });
+    const character = madeUpRuleCharacter({ classes: [classOf("Fighter", 5, 6)], baseHitPoints: 30, baseScores: withConstitution(constitution) });
     expect(numberNamed(character, "HP").valueOr(-1)).toBe(hitPoints);
   });
 
@@ -42,7 +44,8 @@ describe("MaxHitPointsRule", () => {
   });
 
   it.each([
-    { override: 0, known: true },
+    { override: 0, known: false },
+    { override: 1, known: true },
     { override: 9_999, known: true },
     { override: 10_000, known: false },
     { override: -1, known: false },
@@ -89,18 +92,38 @@ describe("MaxHitPointsRule", () => {
   });
 
   it("leaves out an unknown per-level modifier that does not apply now", () => {
-    const character = madeUpRuleCharacter({ baseHitPoints: 10, modifiers: [{ ...modifierOf("bonus", "hit-points-per-level", 1, "Pale Charm"), appliesNow: false }] });
+    const character = madeUpRuleCharacter({ baseHitPoints: 10, modifiers: [{ ...modifierOf("bonus", "hit-points-per-level", 1, "Pale Charm"), inForce: false }] });
     expect(numberNamed(character, "HP").valueOr(-1)).toBe(10);
   });
 
-  it("knows the hit points when the dice total is exactly one a level", () => {
-    const character = madeUpRuleCharacter({ classes: [classOf("Fighter", 5, 10)], baseHitPoints: 10, baseScores: withConstitution(8) });
+  it("knows level 1 with a negative constitution when the first die leaves at least 1", () => {
+    const character = madeUpRuleCharacter({ classes: [classOf("Wizard", 1, 6)], baseHitPoints: 6, baseScores: withConstitution(8) });
     expect(numberNamed(character, "HP").valueOr(-1)).toBe(5);
   });
 
-  it("does not know the hit points when the dice total could be under one a level", () => {
-    const character = madeUpRuleCharacter({ classes: [classOf("Fighter", 5, 10)], baseHitPoints: 9, baseScores: withConstitution(8) });
-    expect(numberNamed(character, "HP").isKnown).toBe(false);
+  it("does not know level 1 with a negative constitution when the minimum of 1 could apply", () => {
+    const character = madeUpRuleCharacter({ classes: [classOf("Wizard", 1, 6)], baseHitPoints: 1, baseScores: withConstitution(8) });
+    expect(numberNamed(character, "HP").explanation).toBe(MINIMUM_REASON);
+  });
+
+  it("knows level 2 with constitution -1 when no split of the dice could need the minimum", () => {
+    const character = madeUpRuleCharacter({ classes: [classOf("Wizard", 2, 6)], baseHitPoints: 8, baseScores: withConstitution(8) });
+    expect(numberNamed(character, "HP").valueOr(-1)).toBe(6);
+  });
+
+  it("does not know level 2 with constitution -1 when one die could have rolled a 1", () => {
+    const character = madeUpRuleCharacter({ classes: [classOf("Wizard", 2, 6)], baseHitPoints: 7, baseScores: withConstitution(8) });
+    expect(numberNamed(character, "HP").explanation).toBe(MINIMUM_REASON);
+  });
+
+  it("proves the minimum on the largest die of a multiclass character", () => {
+    const character = madeUpRuleCharacter({ classes: [classOf("Wizard", 1, 6), classOf("Fighter", 1, 10)], baseHitPoints: 11, baseScores: withConstitution(8) });
+    expect(numberNamed(character, "HP").explanation).toBe(MINIMUM_REASON);
+  });
+
+  it("does not look at the minimum when the constitution modifier is zero or more", () => {
+    const character = madeUpRuleCharacter({ classes: [classOf("Wizard", 5, 6)], baseHitPoints: 5 });
+    expect(numberNamed(character, "HP").valueOr(-1)).toBe(5);
   });
 
   it.each([

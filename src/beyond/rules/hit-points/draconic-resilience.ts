@@ -1,5 +1,4 @@
-import { KnownValue } from "../../shape/known-value";
-import { NotKnownValue } from "../../shape/not-known-value";
+import { knownNumber, notKnown } from "../core/worked";
 import type { WorkedValue } from "../../shape/worked-value";
 import { draconicSorcerers } from "../classes/draconic-sorcerer";
 import { isTwentyFourteen } from "../input/edition";
@@ -17,8 +16,8 @@ export class DraconicResilience implements PerLevelSource {
   addition(character: RuleCharacter): WorkedValue<number> | null {
     const sorcerers = draconicSorcerers(character.classes);
     if (sorcerers.length === 0) return null;
-    if (!isTwentyFourteen(character.edition)) return new NotKnownValue("Draconic Resilience is worked differently in the 2014 and 2024 rules, and the edition is not 2014.", character.route);
+    if (!isTwentyFourteen(character.edition)) return notKnown("Draconic Resilience is worked differently in the 2014 and 2024 rules, and the edition is not 2014.", character.route);
     const levels = sorcerers.reduce(addedLevel, 0);
-    return KnownValue.wholeNumber(levels, `Draconic Resilience 1 x ${levels}`, character.route);
+    return knownNumber(levels, `Draconic Resilience 1 x ${levels}`, character.route);
   }
 }

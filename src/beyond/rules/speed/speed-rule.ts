@@ -1,40 +1,44 @@
 import type { ImportedNumber } from "../../shape/imported-number";
 import { SPEED } from "../../shape/import-limits";
-import { NotKnownValue } from "../../shape/not-known-value";
-import { numberInRange } from "../../shape/number-in-range";
 import type { WorkedValue } from "../../shape/worked-value";
 import type { EarlierNumbers } from "../core/earlier-numbers";
+import { NeededNumbers } from "../core/needed-numbers";
+import { SPEED_NAME } from "../core/number-names";
 import type { Rule } from "../core/rule";
-import { unknownAmong } from "../core/unknown-among";
+import { SPEED_TOUCHING } from "../core/touching-lists";
+import { knownIn, notKnown } from "../core/worked";
 import { sumWorking } from "../core/working-text";
+import { STRENGTH } from "../input/ability";
 import type { RuleCharacter } from "../input/rule-character";
-import { standardHandlers } from "../modifiers/standard-handlers";
 import { SubTypeFamily } from "../modifiers/sub-type-family";
-import { tallyModifiers } from "../modifiers/tally-modifiers";
+import { tallyFor } from "../modifiers/tally-for";
 import { unknownModifiers } from "../modifiers/unknown-modifiers";
 import { armourTooHeavy } from "./armour-too-heavy";
 
-const FAMILY = new SubTypeFamily(["speed", "unarmored-movement"], []);
+const NAMES = ["speed", "unarmored-movement"];
+const FAMILY = new SubTypeFamily(NAMES, []);
 
 export class SpeedRule implements Rule {
   workOut(character: RuleCharacter, earlier: EarlierNumbers): readonly ImportedNumber[] {
-    return [{ name: "Speed", value: this.speed(character, earlier) }];
+    return [{ name: SPEED_NAME, value: this.speed(character, earlier) }];
   }
 
   private speed(character: RuleCharacter, earlier: EarlierNumbers): WorkedValue<number> {
-    if (character.walkingSpeed === null) return new NotKnownValue("The walking speed is missing.", character.route);
-    const missing = unknownAmong(["STR"], earlier, character.route);
-    if (missing !== null) return missing;
-    const heavy = armourTooHeavy(character, earlier.valueOf("STR", character.route).valueOr(0));
+    const touching = SPEED_TOUCHING.unknownFor(character);
+    if (touching !== null) return touching;
+    if (character.walkingSpeed === null) return notKnown("The walking speed is missing.", character.route);
+    const needed = NeededNumbers.of([STRENGTH.short], earlier, character.route);
+    if (needed.missing !== null) return needed.missing;
+    const heavy = armourTooHeavy(character, needed.numberOf(STRENGTH.short));
     if (heavy !== null) return heavy;
     return this.withModifiers(character, character.walkingSpeed);
   }
 
   private withModifiers(character: RuleCharacter, base: number): WorkedValue<number> {
-    const tally = tallyModifiers(character.modifiers, FAMILY, standardHandlers(["speed"]));
+    const tally = tallyFor(character, FAMILY, ["speed"]);
     const unfamiliar = unknownModifiers(tally, character.route);
     if (unfamiliar !== null) return unfamiliar;
     const total = base + tally.added;
-    return numberInRange(total, SPEED, sumWorking([`walking ${base}`, ...tally.applied], total), character.route);
+    return knownIn(total, SPEED, sumWorking([`walking ${base}`, ...tally.applied], total), character.route);
   }
 }

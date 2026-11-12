@@ -1,19 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { ABILITIES } from "../../../../../src/beyond/rules/input/ability";
 import { AbilityTable } from "../../../../../src/beyond/rules/input/by-ability";
-import { classOf, madeUpRuleCharacter, modifierOf, numberNamed } from "../../../builders/made-up-rule-character";
+import { classOf, madeUpRuleCharacter, modifierOf, numberNamed, onlyAbilityRaised } from "../../../builders/made-up-rule-character";
 import type { RuleCharacter } from "../../../../../src/beyond/rules/input/rule-character";
 
 const LEVEL_FIVE = [classOf("Fighter", 5, 10)];
-
-function onlyAbilityRaised(raised: string): AbilityTable<number> {
-  const scores = new AbilityTable<number>();
-  for (const ability of ABILITIES) {
-    if (ability.short === raised) scores.with(ability, 14);
-    else scores.with(ability, 10);
-  }
-  return scores;
-}
 
 function saveValue(name: string, changes: Partial<RuleCharacter>) {
   const value = numberNamed(madeUpRuleCharacter({ classes: LEVEL_FIVE, ...changes }), name);

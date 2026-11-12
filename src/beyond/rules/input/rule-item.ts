@@ -1,7 +1,8 @@
+import type { CleanLine } from "../../text/clean-line";
 import type { ArmourKind } from "./armour/armour-kind";
 
 export interface RuleItem {
-  readonly name: string;
+  readonly name: CleanLine;
   readonly equipped: boolean;
   readonly attuned: boolean;
   readonly needsAttunement: boolean;

@@ -29,9 +29,9 @@ describe("InitiativeRule", () => {
     expect(initiative({ classes: [classOf("Bard", 5, 8)], modifiers: [modifierOf("proficiency", "initiative", null, "Class")] }).value).toBe(3);
   });
 
-  it("does not know initiative with the Alert feat, because the editions differ", () => {
+  it("does not know initiative with the Alert feat, whatever the edition", () => {
     const value = numberNamed(madeUpRuleCharacter({ features: ["Alert"] }), "Initiative");
-    expect([value.isKnown, value.explanation]).toEqual([false, "The Alert feat works differently in the 2014 and 2024 rules, and I can't tell which this is."]);
+    expect([value.isKnown, value.explanation]).toEqual([false, "Alert may change this value and is not worked out here."]);
   });
 
   it("does not know initiative with a modifier it does not know", () => {

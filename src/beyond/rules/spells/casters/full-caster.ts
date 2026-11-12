@@ -5,7 +5,11 @@ export class FullCaster implements CasterKind {
   readonly label = "full caster";
   readonly table = FULL_SLOTS;
   readonly contributes = true;
-  readonly differsByEdition = false;
+  readonly firstCastingLevel = 1;
+
+  editionKnows(): boolean {
+    return true;
+  }
 
   casterLevelOf(classLevel: number): number {
     return classLevel;

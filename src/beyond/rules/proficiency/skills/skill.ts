@@ -6,4 +6,8 @@ export class Skill {
     readonly ability: Ability,
     readonly subType: string,
   ) {}
+
+  get passiveName(): string {
+    return `Passive ${this.name}`;
+  }
 }

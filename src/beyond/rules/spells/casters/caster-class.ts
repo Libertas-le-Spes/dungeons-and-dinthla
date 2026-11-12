@@ -15,8 +15,16 @@ export class CasterClass {
     return this.subclass;
   }
 
+  get saveDcName(): string {
+    return `${this.label} spell save DC`;
+  }
+
+  get attackName(): string {
+    return `${this.label} spell attack bonus`;
+  }
+
   matches(ruleClass: RuleClass): boolean {
-    if (ruleClass.name !== this.className) return false;
+    if (ruleClass.name.text !== this.className) return false;
     if (this.subclass === "") return true;
     return ruleClass.subclass === this.subclass;
   }

@@ -2,19 +2,10 @@ import { describe, expect, it } from "vitest";
 import { ABILITIES } from "../../../../../src/beyond/rules/input/ability";
 import { AbilityTable } from "../../../../../src/beyond/rules/input/by-ability";
 import { SKILLS } from "../../../../../src/beyond/rules/proficiency/skills/skills";
-import { classOf, madeUpRuleCharacter, modifierOf, numberNamed, scoresOf } from "../../../builders/made-up-rule-character";
+import { classOf, madeUpRuleCharacter, modifierOf, numberNamed, scoresOf, onlyAbilityRaised } from "../../../builders/made-up-rule-character";
 import type { RuleCharacter } from "../../../../../src/beyond/rules/input/rule-character";
 
 const LEVEL_FIVE = [classOf("Fighter", 5, 10)];
-
-function onlyAbilityRaised(raised: string): AbilityTable<number> {
-  const scores = new AbilityTable<number>();
-  for (const ability of ABILITIES) {
-    if (ability.short === raised) scores.with(ability, 14);
-    else scores.with(ability, 10);
-  }
-  return scores;
-}
 
 function skillValue(skillName: string, changes: Partial<RuleCharacter>) {
   const value = numberNamed(madeUpRuleCharacter({ classes: LEVEL_FIVE, ...changes }), skillName);
@@ -58,7 +49,7 @@ describe("SkillRule proficiency levels", () => {
   });
 
   it("ignores a proficiency whose source does not apply now", () => {
-    const unworn = { ...modifierOf("proficiency", "acrobatics", null, "Hat"), appliesNow: false };
+    const unworn = { ...modifierOf("proficiency", "acrobatics", null, "Hat"), inForce: false };
     expect(skillValue(acrobatics, { modifiers: [unworn] }).value).toBe(0);
   });
 
