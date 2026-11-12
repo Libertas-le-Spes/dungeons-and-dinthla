@@ -2,6 +2,7 @@ import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/reading/build-campaign";
 import type { Campaign, SessionNote } from "../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../src/campaign/reading/campaign-store";
+import { noteNameOf } from "../../src/campaign/paths/note-name";
 import { sessionNoteOf } from "../../src/campaign/paths/session-file";
 import type { Gate } from "../../src/fence/gate/gatekeeper";
 import { openedModals } from "../stubs/obsidian";
@@ -94,7 +95,7 @@ export class DialogCampaign {
   private fileAt(path: string): TFile {
     const known = this.files.get(path);
     if (known !== undefined) return known;
-    const made = { path, basename: path.slice(path.lastIndexOf("/") + 1).replace(/\.md$/, "") } as TFile;
+    const made = { path, basename: noteNameOf(path) } as TFile;
     this.files.set(path, made);
     return made;
   }

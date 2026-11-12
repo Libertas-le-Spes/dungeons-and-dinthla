@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { latestThatExists } from "../../../src/session-notes/renumbering/latest-that-exists";
 import type { RenumberingPlan, SessionRename } from "../../../src/session-notes/renumbering/renumbering-plan";
+import { renameSourceGoneWords } from "../../../src/session-notes/renumbering/renumbering-words";
 import { NOTHING_WRONG } from "./stub-renumbering";
 
 function session(number: number): string {
@@ -27,6 +28,17 @@ describe("latestThatExists", () => {
     const plan = { campaignFolder: "Pale Moon", renames: [rename(5, 2)], latest: session(9) };
     const report = { ...NOTHING_WRONG, notRenamed: [rename(5, 2)], renameFailure: "the disk is full." };
     expect(latestThatExists(plan, report)).toBe(session(9));
+  });
+
+  it("is the session below it, under its current name, when the latest session's note was gone so its rename failed", () => {
+    const report = { ...NOTHING_WRONG, renamed: [rename(5, 2)], notRenamed: [rename(7, 3)], renameFailure: renameSourceGoneWords(session(7)) };
+    expect(latestThatExists(PLAN, report)).toBe(session(2));
+  });
+
+  it("is no session when every session in the plan is gone", () => {
+    const plan = { campaignFolder: "Pale Moon", renames: [rename(5, 2)], latest: session(2) };
+    const report = { ...NOTHING_WRONG, notRenamed: [rename(5, 2)], renameFailure: renameSourceGoneWords(session(5)) };
+    expect(latestThatExists(plan, report)).toBeNull();
   });
 
   it("is no session when the plan has none", () => {

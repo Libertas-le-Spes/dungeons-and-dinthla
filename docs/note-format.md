@@ -433,7 +433,7 @@ The sheet refuses, and writes nothing, when:
 | Carried over when the value was learned in this campaign | What was learned here wins over a carried value |
 | Carried over when a `?` line in this campaign marks the value not known | That line wins over the carried value until a later line states it. The dialog says so before Not known yet is chosen over a carried value |
 | Carried over with a value other than the carried one | That value belongs to the other campaign's note. Change it there, or choose Override |
-| Learned at the table or Not known yet when the dialog opened with no session named (none started, or two sharing the latest number) | It never picks one at save time: the line would go somewhere the dialog didn't show |
+| Learned at the table or Not known yet when the dialog opened with no session named | It never picks one at save time: the line would go somewhere the dialog didn't show. It says why: *There's no session to write in yet. Start one first.*, or that two session notes share the latest number and one must be renamed |
 | Learned at the table or Not known yet when the session the dialog named has been moved, deleted or made again since, as when another session was renumbered into its name | The line would go into another session than the one shown. It says the session was moved or deleted |
 | Learned at the table or Not known yet when the link wouldn't point to this character from the session | The line would be about someone else |
 | Learned at the table or Not known yet when the new line would land in a code block or comment that never closes | It would be hidden |

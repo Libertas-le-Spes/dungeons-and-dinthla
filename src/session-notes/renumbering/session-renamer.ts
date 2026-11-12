@@ -11,8 +11,8 @@ export interface RenameOutcome {
   failure: string | null;
 }
 
-function notYetRenamed(renames: SessionRename[], doneCount: number): SessionRename[] {
-  return renames.slice(doneCount);
+function notYetRenamed(renames: SessionRename[], renamed: SessionRename[]): SessionRename[] {
+  return renames.filter((rename) => !renamed.includes(rename));
 }
 
 export class SessionRenamer {
@@ -22,7 +22,7 @@ export class SessionRenamer {
     const renamed: SessionRename[] = [];
     for (const rename of renames) {
       const failure = await this.renameOne(rename);
-      if (failure !== null) return { renamed, notRenamed: notYetRenamed(renames, renamed.length), failure };
+      if (failure !== null) return { renamed, notRenamed: notYetRenamed(renames, renamed), failure };
       renamed.push(rename);
     }
     return { renamed, notRenamed: [], failure: null };
