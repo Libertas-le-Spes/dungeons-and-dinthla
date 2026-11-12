@@ -4,7 +4,7 @@ import type { ByteCursor } from "../bytes/byte-cursor";
 import { hexValueOf, isRegular } from "../bytes/byte-kinds";
 import { MAX_NAME_BYTES } from "../limits/pdf-limits";
 import { PdfRefusal } from "../refusals/pdf-refusal";
-import { PdfName } from "../values/pdf-name";
+import { PdfName } from "../values/scalars/pdf-name";
 import type { PdfValue } from "../values/pdf-value";
 import type { ObjectReader } from "./object-reader";
 

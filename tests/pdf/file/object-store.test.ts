@@ -1,17 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { MAX_OBJECTS_PARSED } from "../../../src/pdf/limits/pdf-limits";
-import { CompressedEntry } from "../../../src/pdf/xref/compressed-entry";
-import { FreeEntry } from "../../../src/pdf/xref/free-entry";
-import { InFileEntry } from "../../../src/pdf/xref/in-file-entry";
-import type { XrefEntry } from "../../../src/pdf/xref/xref-entry";
-import { PdfAbsent } from "../../../src/pdf/values/pdf-absent";
+import { CompressedEntry } from "../../../src/pdf/xref/entries/compressed-entry";
+import { FreeEntry } from "../../../src/pdf/xref/entries/free-entry";
+import { InFileEntry } from "../../../src/pdf/xref/entries/in-file-entry";
+import type { XrefEntry } from "../../../src/pdf/xref/entries/xref-entry";
+import { PdfAbsent } from "../../../src/pdf/values/scalars/pdf-absent";
 import { budgetFor } from "../support/cursors";
 import { parsed, refusalFrom } from "../support/parsed";
 import { present } from "../support/present";
 import { opened } from "../support/opened";
 import { storeOfObjects, storeOver } from "../support/store-over";
 import { PdfWriter } from "../writer/pdf-writer";
-import { classicPdf } from "../writer/classic-layout";
+import { classicPdf } from "../writer/layouts/classic-layout";
 
 const TEXT = [
   "%PDF-1.7",

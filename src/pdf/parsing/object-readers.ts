@@ -1,11 +1,11 @@
-import { PdfBoolean } from "../values/pdf-boolean";
-import { PdfNull } from "../values/pdf-null";
-import { ArrayReader } from "./array-reader";
-import { DictionaryReader } from "./dictionary-reader";
-import { HexStringReader } from "./hex-string-reader";
-import { LiteralStringReader } from "./literal-string-reader";
+import { PdfBoolean } from "../values/scalars/pdf-boolean";
+import { PdfNull } from "../values/scalars/pdf-null";
+import { ArrayReader } from "./containers/array-reader";
+import { DictionaryReader } from "./containers/dictionary-reader";
+import { HexStringReader } from "./strings/hex-string-reader";
+import { LiteralStringReader } from "./strings/literal-string-reader";
 import { NameReader } from "./name-reader";
-import { NumberReader } from "./number-reader";
+import { NumberReader } from "./numbers/number-reader";
 import type { ObjectReader } from "./object-reader";
 import { ValueParser } from "./value-parser";
 import { WordReader } from "./word-reader";

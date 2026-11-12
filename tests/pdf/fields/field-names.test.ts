@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MAX_FIELD_DEPTH, MAX_FIELD_TEXT_CHARACTERS } from "../../../src/pdf/limits/pdf-limits";
-import { treeDocument } from "../writer/tree-document";
+import { treeDocument } from "../writer/documents/tree-document";
 import { utf16Hex } from "../writer/pdf-text";
 import { fieldsOf, refusalOf } from "../support/read-buffer";
 

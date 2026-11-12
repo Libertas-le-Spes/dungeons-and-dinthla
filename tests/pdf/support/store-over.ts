@@ -1,8 +1,8 @@
 import { ObjectStore } from "../../../src/pdf/file/object-store";
 import { VALUE_PARSER } from "../../../src/pdf/parsing/object-readers";
-import { CrossReference } from "../../../src/pdf/xref/cross-reference";
-import { InFileEntry } from "../../../src/pdf/xref/in-file-entry";
-import type { XrefEntry } from "../../../src/pdf/xref/xref-entry";
+import { CrossReference } from "../../../src/pdf/xref/entries/cross-reference";
+import { InFileEntry } from "../../../src/pdf/xref/entries/in-file-entry";
+import type { XrefEntry } from "../../../src/pdf/xref/entries/xref-entry";
 import type { WorkBudget } from "../../../src/pdf/work/work-budget";
 import { bytesOfText, budgetFor } from "./cursors";
 

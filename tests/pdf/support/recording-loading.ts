@@ -1,6 +1,6 @@
 import type { PdfValue } from "../../../src/pdf/values/pdf-value";
-import { PdfNull } from "../../../src/pdf/values/pdf-null";
-import type { ObjectLoading } from "../../../src/pdf/xref/xref-entry";
+import { PdfNull } from "../../../src/pdf/values/scalars/pdf-null";
+import type { ObjectLoading } from "../../../src/pdf/xref/entries/xref-entry";
 
 export class RecordingLoading implements ObjectLoading {
   offsets: number[] = [];

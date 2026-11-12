@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readPdfFieldsWith } from "../../../src/pdf/read-pdf-fields";
-import { FormDocument } from "../writer/form-document";
+import { FormDocument } from "../writer/documents/form-document";
 import { literal } from "../writer/pdf-text";
 import { testParts } from "../writer/zlib-chunks";
 

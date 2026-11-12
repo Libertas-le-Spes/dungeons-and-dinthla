@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { MAX_ITEMS_IN_CONTAINER, WORK_EXTRA, WORK_PER_BYTE } from "../../../src/pdf/limits/pdf-limits";
-import { classicPdf } from "../writer/classic-layout";
-import { FormDocument } from "../writer/form-document";
+import { classicPdf } from "../writer/layouts/classic-layout";
+import { FormDocument } from "../writer/documents/form-document";
 import { literal } from "../writer/pdf-text";
-import { treeDocument, treeWriter } from "../writer/tree-document";
+import { treeDocument, treeWriter } from "../writer/documents/tree-document";
 import { readCounting, reasonOf } from "./step-counting";
 
 const FIVE_MEGABYTES = 5_000_000;

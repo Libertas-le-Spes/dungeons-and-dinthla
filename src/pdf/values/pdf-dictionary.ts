@@ -1,4 +1,4 @@
-import { PdfAbsent } from "./pdf-absent";
+import { PdfAbsent } from "./scalars/pdf-absent";
 import { PdfValue } from "./pdf-value";
 
 export class PdfDictionary extends PdfValue {

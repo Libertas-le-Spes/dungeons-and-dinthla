@@ -4,7 +4,7 @@ import { BoundedInflater } from "../../../src/pdf/streams/inflate/bounded-inflat
 import { DecompressedTotals } from "../../../src/pdf/streams/inflate/decompressed-totals";
 import type { InflatedChunks } from "../../../src/pdf/streams/inflate/inflated-chunks";
 import { WorkBudget } from "../../../src/pdf/work/work-budget";
-import { PdfAbsent } from "../../../src/pdf/values/pdf-absent";
+import { PdfAbsent } from "../../../src/pdf/values/scalars/pdf-absent";
 import { parsed, refusalFromAsync } from "../support/parsed";
 
 class OneChunk implements InflatedChunks {

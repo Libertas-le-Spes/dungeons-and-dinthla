@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { undoUpPredictor } from "../../../src/pdf/streams/png-up-predictor";
 import { budgetFor } from "../support/cursors";
 import { refusalFrom } from "../support/parsed";
-import { withUpPredictor } from "../writer/up-predictor";
+import { withUpPredictor } from "../writer/layouts/up-predictor";
 
 function unrolled(packed: Uint8Array, columns: number): number[] {
   return [...undoUpPredictor(packed, columns, budgetFor(packed.byteLength))];
