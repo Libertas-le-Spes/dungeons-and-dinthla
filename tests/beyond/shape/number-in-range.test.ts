@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ARMOUR_CLASS, CLASS_LEVEL, HIT_POINTS, ITEM_COUNT, SCORE, SPEED, TOTAL_LEVEL, COIN_COUNT } from "../../../src/beyond/shape/import-limits";
 import { Online, Pdf } from "../../../src/beyond/shape/route";
-import { numberInRange } from "../../../src/beyond/text/number-in-range";
+import { numberInRange } from "../../../src/beyond/shape/number-in-range";
 
 const ROUTE = new Pdf();
 

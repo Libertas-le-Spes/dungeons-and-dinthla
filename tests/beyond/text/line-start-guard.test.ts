@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { withoutFactStart, withoutMarkerStart } from "../../../src/beyond/text/line-start-guard";
+import { withoutFactStart, withoutListNumberStart, withoutMarkerStart } from "../../../src/beyond/text/line-start-guard";
 
 const ASCII_PUNCTUATION = Array.from("!\"#$%&'()*+,-./:;<=>?@[]^_`{|}~");
 
@@ -31,6 +31,24 @@ describe("withoutFactStart", () => {
 
   it("leaves a line with no colon", () => {
     expect(withoutFactStart("Range 60 feet")).toBe("Range 60 feet");
+  });
+});
+
+describe("withoutListNumberStart", () => {
+  it("escapes the dot after a number that starts a line", () => {
+    expect(withoutListNumberStart("1. first")).toBe("1\\. first");
+  });
+
+  it("escapes the bracket after a number that starts a line", () => {
+    expect(withoutListNumberStart("12) first")).toBe("12\\) first");
+  });
+
+  it("leaves a number with no dot or bracket after it", () => {
+    expect(withoutListNumberStart("12 first")).toBe("12 first");
+  });
+
+  it("leaves a dot that comes later in the line", () => {
+    expect(withoutListNumberStart("a 1. first")).toBe("a 1. first");
   });
 });
 
