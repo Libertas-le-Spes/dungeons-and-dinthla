@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { linkedFactsOf, factsOf } from "../../../src/notes/reading/character-facts";
 import { readMarker } from "../../../src/notes/reading/marker";
-import { Refusal } from "../../../src/beyond/shape/refusal";
+import { CleanLine } from "../../../src/beyond/text/clean-line";
 import { NeutralText } from "../../../src/beyond/text/neutral-text";
 
 function neutralTextOf(text: string): string {
@@ -9,13 +9,13 @@ function neutralTextOf(text: string): string {
 }
 
 function neutralLineOf(text: string): string {
-  return NeutralText.ofOneLine(text).written;
+  return NeutralText.ofOneLine(CleanLine.of(text)).written;
 }
 
 const MARKER_LINES = ["? Who sent it", "! Find the caravan", "$ 35 gp", "$ [[Mira]] Rope", "$$ Rope :sold 3gp", "?? letter", "!! caravan", "- ? Who", "* ! Find", "+ $ 5 gp", "  - ? Who", "\t? Who", "    ? Who"];
 const FACT_LINES = ["[[Mira]] AC: 15", "- [[Mira]] AC: 15", "AC: 16", "Range: 60 feet", "  Personality: grumpy", "- Range: 60 feet"];
 
-describe("neutralTextOf", () => {
+describe("NeutralText.ofLines", () => {
   it("leaves plain words as they are", () => {
     expect(neutralTextOf("Primary Monk, Human, level 4 (12:30, 50%)")).toBe("Primary Monk, Human, level 4 (12:30, 50%)");
   });
@@ -98,13 +98,5 @@ describe("neutralTextOf", () => {
 describe("a one-line neutral text", () => {
   it("is made inert like any other", () => {
     expect(neutralLineOf("? Mira [[x]]")).toBe("\\? Mira \\[\\[x\\]\\]");
-  });
-
-  it.each(["one\ntwo", "one\r\ntwo", "one\u2028two", "one\u0085two"])("refuses the line break in %j", (text) => {
-    expect(() => neutralLineOf(text)).toThrow(Refusal);
-  });
-
-  it("takes a line break that is only a hidden character", () => {
-    expect(neutralLineOf("one\u200btwo")).toBe("onetwo");
   });
 });

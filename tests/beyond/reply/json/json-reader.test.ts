@@ -1,6 +1,31 @@
 import { describe, expect, it } from "vitest";
 import { JsonReader } from "../../../../src/beyond/reply/json/json-reader";
 import type { Cap } from "../../../../src/beyond/shape/cap";
+import { firstOf } from "../../builders/first-of";
+
+function hasKeys(reader: JsonReader, keys: string[]): boolean[] {
+  return keys.map((key) => reader.hasKey(key));
+}
+
+function nullKeys(reader: JsonReader, keys: string[]): boolean[] {
+  return keys.map((key) => reader.isNullAt(key));
+}
+
+function trueKeys(reader: JsonReader, keys: string[]): boolean[] {
+  return keys.map((key) => reader.isTrueAt(key));
+}
+
+function emptyKeys(reader: JsonReader, keys: string[]): boolean[] {
+  return keys.map((key) => reader.holdsNothingAt(key));
+}
+
+function numbersAt(reader: JsonReader, keys: string[]): (number | null)[] {
+  return keys.map((key) => reader.numberAt(key));
+}
+
+function namesOfEntries(entries: readonly JsonReader[]): string[] {
+  return entries.map((entry) => entry.textAt("name"));
+}
 
 const TWO: Cap = { what: "The list", most: 2, unit: "things" };
 
@@ -15,7 +40,7 @@ describe("JsonReader.hasKey", () => {
 
   it("is true for a key holding null, false or zero", () => {
     const reader = JsonReader.of({ a: null, b: false, c: 0, d: "" });
-    expect(["a", "b", "c", "d"].map((key) => reader.hasKey(key))).toEqual([true, true, true, true]);
+    expect(hasKeys(reader, ["a", "b", "c", "d"])).toEqual([true, true, true, true]);
   });
 
   it("is false for a key the object lacks", () => {
@@ -39,14 +64,25 @@ describe("JsonReader.hasKey", () => {
 describe("JsonReader.isNullAt", () => {
   it("is true only for null", () => {
     const reader = JsonReader.of({ a: null, b: 0, c: "", d: false, e: [] });
-    expect(["a", "b", "c", "d", "e", "missing"].map((key) => reader.isNullAt(key))).toEqual([true, false, false, false, false, false]);
+    expect(nullKeys(reader, ["a", "b", "c", "d", "e", "missing"])).toEqual([true, false, false, false, false, false]);
+  });
+});
+
+describe("JsonReader.holdsNothingAt", () => {
+  it("is true for null and for a missing key, and for nothing else", () => {
+    const reader = JsonReader.of({ a: null, b: 0, c: "", d: false, e: [], f: {} });
+    expect(emptyKeys(reader, ["a", "missing", "b", "c", "d", "e", "f"])).toEqual([true, true, false, false, false, false, false]);
+  });
+
+  it("is true for a key only the prototype holds", () => {
+    expect(JsonReader.of(inheriting("name", "Primary")).holdsNothingAt("name")).toBe(true);
   });
 });
 
 describe("JsonReader.isTrueAt", () => {
   it("is true only for the value true", () => {
     const reader = JsonReader.of({ a: true, b: "true", c: 1, d: false, e: null });
-    expect(["a", "b", "c", "d", "e", "missing"].map((key) => reader.isTrueAt(key))).toEqual([true, false, false, false, false, false]);
+    expect(trueKeys(reader, ["a", "b", "c", "d", "e", "missing"])).toEqual([true, false, false, false, false, false]);
   });
 });
 
@@ -83,7 +119,7 @@ describe("JsonReader.numberAt", () => {
 
   it("returns a negative number and a fraction as they are, for the range checks to judge", () => {
     const reader = JsonReader.of({ a: -3, b: 1.5, c: 0 });
-    expect(["a", "b", "c"].map((key) => reader.numberAt(key))).toEqual([-3, 1.5, 0]);
+    expect(numbersAt(reader, ["a", "b", "c"])).toEqual([-3, 1.5, 0]);
   });
 
   it.each(["4", "", "NaN", true, null, [4], { level: 4 }])("gives nothing for %j, which is not a number", (value) => {
@@ -128,7 +164,7 @@ describe("JsonReader.readerAt", () => {
 describe("JsonReader.listAt", () => {
   it("reads each entry of a list", () => {
     const entries = JsonReader.of({ items: [{ name: "Rope" }, { name: "Torch" }] }).listAt("items", TWO);
-    expect(entries.map((entry) => entry.textAt("name"))).toEqual(["Rope", "Torch"]);
+    expect(namesOfEntries(entries)).toEqual(["Rope", "Torch"]);
   });
 
   it("reads an empty list", () => {
@@ -136,7 +172,7 @@ describe("JsonReader.listAt", () => {
   });
 
   it("hands out an entry that is not an object as a reader that finds nothing", () => {
-    const [entry] = JsonReader.of({ items: [5] }).listAt("items", TWO);
+    const entry = firstOf(JsonReader.of({ items: [5] }).listAt("items", TWO));
     expect(entry?.hasKey("name")).toBe(false);
   });
 

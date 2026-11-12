@@ -2,8 +2,8 @@ import type { ImportedClass } from "../../shape/imported-class";
 import { CLASS_COUNT, CLASS_LEVEL, TOTAL_LEVEL } from "../../shape/import-limits";
 import { NotKnownValue } from "../../shape/not-known-value";
 import type { JsonReader } from "../json/json-reader";
-import { ONLINE } from "../online-route";
-import { noClass } from "../reply-refusals";
+import { ONLINE } from "../common/online-route";
+import { noClass } from "../common/reply-refusals";
 import { definitionNameOf } from "./definition-name";
 import { numberValueOf } from "./number-value";
 

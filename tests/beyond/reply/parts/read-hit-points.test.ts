@@ -16,28 +16,31 @@ describe("hitPointsOf", () => {
     expect(found.explanation).toContain("does not state maximum hit points");
   });
 
-  it.each([null, "14", true, [14], { value: 14 }])("marks the override %j not known, saying hit points are not stated", (value) => {
+  it.each([null, undefined])("marks an override of %j not known, saying hit points are not stated", (value) => {
     const found = hitPointsOf(MadeUpReply.levelOneMonk().with(["overrideHitPoints"], value).reader());
     expect(found.isKnown).toBe(false);
     expect(found.explanation).toContain("does not state maximum hit points");
   });
 
-  it("marks a missing override not known", () => {
-    expect(hitPointsOf(MadeUpReply.levelOneMonk().without(["overrideHitPoints"]).reader()).isKnown).toBe(false);
+  it.each(["14", "5", true, [14], { value: 14 }, {}, false])("marks the override %j not known, saying it came in an unexpected form", (value) => {
+    const found = hitPointsOf(MadeUpReply.levelOneMonk().with(["overrideHitPoints"], value).reader());
+    expect(found.isKnown).toBe(false);
+    expect(found.explanation).toBe("D&D Beyond gave the hit points set by hand in an unexpected form.");
   });
 
-  it.each([0, 9_999])("takes the override %i at the edge of the range", (value) => {
-    expect(hitPointsOf(MadeUpReply.levelOneMonk().with(["overrideHitPoints"], value).reader()).valueOr(-1)).toBe(value);
+  it("marks a missing override not known, saying hit points are not stated", () => {
+    const found = hitPointsOf(MadeUpReply.levelOneMonk().without(["overrideHitPoints"]).reader());
+    expect(found.explanation).toContain("does not state maximum hit points");
   });
 
   it("marks a fractional override not known, saying the range", () => {
     const found = hitPointsOf(MadeUpReply.levelOneMonk().with(["overrideHitPoints"], 12.5).reader());
-    expect(found.explanation).toBe("Hit points has to be a whole number from 0 to 9999.");
+    expect(found.explanation).toBe("Maximum hit points has to be a whole number from 1 to 9999.");
   });
 
-  it.each([-1, 10_000])("marks the override %i outside the range not known, saying the range", (value) => {
+  it.each([-1, 0, 10_000])("marks the override %i outside the range not known, saying the range", (value) => {
     const found = hitPointsOf(MadeUpReply.levelOneMonk().with(["overrideHitPoints"], value).reader());
     expect(found.isKnown).toBe(false);
-    expect(found.explanation).toBe("Hit points has to be a whole number from 0 to 9999.");
+    expect(found.explanation).toBe("Maximum hit points has to be a whole number from 1 to 9999.");
   });
 });

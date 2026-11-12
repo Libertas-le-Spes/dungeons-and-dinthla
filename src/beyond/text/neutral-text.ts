@@ -1,4 +1,4 @@
-import { lineBreakInOneLine } from "../shape/refusal";
+import type { CleanLine } from "./clean-line";
 import { cleanTextOf, NEW_LINE } from "./clean-text";
 import { withEscapedCharacters } from "./character-escapes";
 import { withoutFactStart, withoutListNumberStart, withoutMarkerStart } from "./line-start-guard";
@@ -19,9 +19,7 @@ export class NeutralText {
     return new NeutralText(neutralLinesOf(cleanTextOf(text)));
   }
 
-  static ofOneLine(text: string): NeutralText {
-    const cleaned = cleanTextOf(text);
-    if (cleaned.includes(NEW_LINE)) throw lineBreakInOneLine();
-    return new NeutralText(neutralLineOf(cleaned));
+  static ofOneLine(line: CleanLine): NeutralText {
+    return new NeutralText(neutralLineOf(line.text));
   }
 }
