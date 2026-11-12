@@ -9,6 +9,7 @@ export interface SessionRename {
 }
 
 export interface RenumberingPlan {
+  campaignFolder: string;
   renames: SessionRename[];
   latest: string | null;
 }
@@ -103,5 +104,5 @@ export function planRenumbering(campaignFolder: string, paths: string[], deleted
   const renames = closedUp(campaignFolder, remaining.filter(isCounted));
   const taken = takenName(paths, deleted, renames);
   if (taken !== null) return { error: nameTakenWords(taken) };
-  return { renames, latest: latestAfter(remaining, renames) };
+  return { campaignFolder, renames, latest: latestAfter(remaining, renames) };
 }
