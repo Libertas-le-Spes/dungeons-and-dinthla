@@ -1,0 +1,51 @@
+export interface SheetNumber {
+  readonly field: string;
+  readonly printed: string;
+  readonly name: string;
+  readonly value: number;
+}
+
+export const SHEET_NUMBERS: readonly SheetNumber[] = [
+  { field: "AC", printed: "18", name: "AC", value: 18 },
+  { field: "MaxHP", printed: "51", name: "HP", value: 51 },
+  { field: "CurrentHP", printed: "49", name: "Current HP", value: 49 },
+  { field: "TempHP", printed: "7", name: "Temporary HP", value: 7 },
+  { field: "Init", printed: "+9", name: "Initiative", value: 9 },
+  { field: "Speed", printed: "35 ft. (walking)", name: "Speed", value: 35 },
+  { field: "ProfBonus", printed: "+3", name: "Proficiency bonus", value: 3 },
+  { field: "STRmod", printed: "+1", name: "STR modifier", value: 1 },
+  { field: "DEXmod ", printed: "-2", name: "DEX modifier", value: -2 },
+  { field: "CONmod", printed: "+3", name: "CON modifier", value: 3 },
+  { field: "INTmod", printed: "+4", name: "INT modifier", value: 4 },
+  { field: "WISmod", printed: "+5", name: "WIS modifier", value: 5 },
+  { field: "CHamod", printed: "+6", name: "CHA modifier", value: 6 },
+  { field: "ST Strength", printed: "+11", name: "STR save", value: 11 },
+  { field: "ST Dexterity", printed: "+12", name: "DEX save", value: 12 },
+  { field: "ST Constitution", printed: "-4", name: "CON save", value: -4 },
+  { field: "ST Intelligence", printed: "+14", name: "INT save", value: 14 },
+  { field: "ST Wisdom", printed: "+15", name: "WIS save", value: 15 },
+  { field: "ST Charisma", printed: "+16", name: "CHA save", value: 16 },
+  { field: "Acrobatics", printed: "+21", name: "Acrobatics", value: 21 },
+  { field: "Animal", printed: "+22", name: "Animal Handling", value: 22 },
+  { field: "Arcana", printed: "+23", name: "Arcana", value: 23 },
+  { field: "Athletics", printed: "+24", name: "Athletics", value: 24 },
+  { field: "Deception", printed: "+25", name: "Deception", value: 25 },
+  { field: "History", printed: "+26", name: "History", value: 26 },
+  { field: "Insight", printed: "+27", name: "Insight", value: 27 },
+  { field: "Intimidation", printed: "+28", name: "Intimidation", value: 28 },
+  { field: "Investigation", printed: "+29", name: "Investigation", value: 29 },
+  { field: "Medicine", printed: "+30", name: "Medicine", value: 30 },
+  { field: "Nature", printed: "+31", name: "Nature", value: 31 },
+  { field: "Perception", printed: "+32", name: "Perception", value: 32 },
+  { field: "Performance", printed: "+33", name: "Performance", value: 33 },
+  { field: "Persuasion", printed: "+34", name: "Persuasion", value: 34 },
+  { field: "Religion", printed: "+35", name: "Religion", value: 35 },
+  { field: "SleightofHand", printed: "+36", name: "Sleight of Hand", value: 36 },
+  { field: "Stealth ", printed: "+37", name: "Stealth", value: 37 },
+  { field: "Survival", printed: "+38", name: "Survival", value: 38 },
+  { field: "Passive1", printed: "41", name: "Passive Perception", value: 41 },
+  { field: "Passive2", printed: "42", name: "Passive Insight", value: 42 },
+  { field: "Passive3", printed: "43", name: "Passive Investigation", value: 43 },
+  { field: "spellSaveDC0", printed: "19", name: "Spell save DC", value: 19 },
+  { field: "spellAtkBonus0", printed: "+8", name: "Spell attack bonus", value: 8 },
+];

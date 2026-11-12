@@ -31,6 +31,7 @@ const INNER_FOLDERS: InnerFolder[] = [
 ];
 
 const BEYOND_IMPORTERS: string[] = [];
+const PDF_IMPORTERS: string[] = ["beyond"];
 
 function filesUnder(path: string): string[] {
   const found: string[] = [];
@@ -76,16 +77,24 @@ function breachesIn(inner: InnerFolder, file: string, text: string): string[] {
   return found;
 }
 
-function importersOfBeyondIn(allowed: string[], file: string, text: string): string[] {
+function importersOfIn(target: string, allowed: string[], file: string, text: string): string[] {
   const where = relative(SOURCE_FOLDER, file);
-  if (isInside(where, "beyond")) return [];
+  if (isInside(where, target)) return [];
   if (allowed.some((folder) => isInside(where, folder))) return [];
-  const imports = importedPathsIn(text).filter((imported) => folderOf(file, imported) === "beyond");
-  return imports.map(() => `${where} imports from beyond`);
+  const imports = importedPathsIn(text).filter((imported) => folderOf(file, imported) === target);
+  return imports.map(() => `${where} imports from ${target}`);
 }
 
-function importersOfBeyond(allowed: string[]): string[] {
-  return filesUnder(SOURCE_FOLDER).flatMap((file) => importersOfBeyondIn(allowed, file, readFileSync(file, "utf8")));
+function importersOfBeyondIn(allowed: string[], file: string, text: string): string[] {
+  return importersOfIn("beyond", allowed, file, text);
+}
+
+function importersOfPdfIn(allowed: string[], file: string, text: string): string[] {
+  return importersOfIn("pdf", allowed, file, text);
+}
+
+function importersOf(target: string, allowed: string[]): string[] {
+  return filesUnder(SOURCE_FOLDER).flatMap((file) => importersOfIn(target, allowed, file, readFileSync(file, "utf8")));
 }
 
 function reachesOutward(inner: InnerFolder): string[] {
@@ -126,7 +135,11 @@ describe("the inner folders", () => {
   });
 
   it("let no folder outside src/beyond import from it, except the folders listed as importers", () => {
-    expect(importersOfBeyond(BEYOND_IMPORTERS)).toEqual([]);
+    expect(importersOf("beyond", BEYOND_IMPORTERS)).toEqual([]);
+  });
+
+  it("let no folder outside src/pdf import from it, except the folders listed as importers", () => {
+    expect(importersOf("pdf", PDF_IMPORTERS)).toEqual([]);
   });
 
   it("read the files inside the folders of src/beyond, not only its top", () => {
@@ -205,6 +218,28 @@ describe("the rule the inner folders are checked by, over made-up files", () => 
 
   it("refuses names importing from fence", () => {
     expect(breachesOfMadeUpFile("names", 'import { a } from "../fence/paths/fence";')).toEqual(["names/made-up.ts imports from fence/paths"]);
+  });
+});
+
+describe("the rule for who may import src/pdf, over made-up files", () => {
+  it.each(IMPORT_FORMS)("refuses a file outside pdf that imports from it, written as $form", ({ written }) => {
+    const file = join(SOURCE_FOLDER, "campaign", "made-up.ts");
+    expect(importersOfPdfIn(PDF_IMPORTERS, file, written("../pdf/read-pdf-fields"))).toEqual(["campaign/made-up.ts imports from pdf"]);
+  });
+
+  it("allows a file inside beyond, at any depth, to import from pdf", () => {
+    const file = join(SOURCE_FOLDER, "beyond", "sheet", "parts", "made-up.ts");
+    expect(importersOfPdfIn(PDF_IMPORTERS, file, 'import { a } from "../../../pdf/read-pdf-fields";')).toEqual([]);
+  });
+
+  it("allows a file inside pdf to import from pdf", () => {
+    const file = join(SOURCE_FOLDER, "pdf", "fields", "made-up.ts");
+    expect(importersOfPdfIn(PDF_IMPORTERS, file, 'import { a } from "../read-pdf-fields";')).toEqual([]);
+  });
+
+  it("refuses names importing from pdf", () => {
+    const file = join(SOURCE_FOLDER, "names", "made-up.ts");
+    expect(importersOfPdfIn(PDF_IMPORTERS, file, 'import { a } from "../pdf/read-pdf-fields";')).toEqual(["names/made-up.ts imports from pdf"]);
   });
 });
 
