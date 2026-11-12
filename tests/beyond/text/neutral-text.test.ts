@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { linkedFactsOf, factsOf } from "../../../src/notes/reading/character-facts";
 import { readMarker } from "../../../src/notes/reading/marker";
-import { neutralTextOf } from "../../../src/beyond/text/neutral-text";
+import { Refusal } from "../../../src/beyond/shape/refusal";
+import { NeutralText } from "../../../src/beyond/text/neutral-text";
+
+function neutralTextOf(text: string): string {
+  return NeutralText.ofLines(text).written;
+}
+
+function neutralLineOf(text: string): string {
+  return NeutralText.ofOneLine(text).written;
+}
 
 const MARKER_LINES = ["? Who sent it", "! Find the caravan", "$ 35 gp", "$ [[Mira]] Rope", "$$ Rope :sold 3gp", "?? letter", "!! caravan", "- ? Who", "* ! Find", "+ $ 5 gp", "  - ? Who", "\t? Who", "    ? Who"];
 const FACT_LINES = ["[[Mira]] AC: 15", "- [[Mira]] AC: 15", "AC: 16", "Range: 60 feet", "  Personality: grumpy", "- Range: 60 feet"];
@@ -74,5 +83,28 @@ describe("neutralTextOf", () => {
 
   it("treats a carriage return as a line break, so it can't hide a line start", () => {
     expect(neutralTextOf("one\r? Who")).toBe("one\n\\? Who");
+  });
+
+  it("makes a numbered line no list item", () => {
+    expect(neutralTextOf("1. first\n2) second")).toBe("1\\. first\n2\\) second");
+  });
+
+  it("is not safe to run twice, so the result is a NeutralText that is not a string", () => {
+    expect(NeutralText.ofLines("a#b")).toBeInstanceOf(NeutralText);
+    expect(typeof NeutralText.ofLines("a#b")).toBe("object");
+  });
+});
+
+describe("a one-line neutral text", () => {
+  it("is made inert like any other", () => {
+    expect(neutralLineOf("? Mira [[x]]")).toBe("\\? Mira \\[\\[x\\]\\]");
+  });
+
+  it.each(["one\ntwo", "one\r\ntwo", "one\u2028two", "one\u0085two"])("refuses the line break in %j", (text) => {
+    expect(() => neutralLineOf(text)).toThrow(Refusal);
+  });
+
+  it("takes a line break that is only a hidden character", () => {
+    expect(neutralLineOf("one\u200btwo")).toBe("onetwo");
   });
 });

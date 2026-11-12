@@ -32,7 +32,7 @@ describe("withEscapedCharacters", () => {
     expect(withEscapedCharacters("Primary Monk, Human (Pale Moon)")).toBe("Primary Monk, Human (Pale Moon)");
   });
 
-  it("escapes a backslash before the escaped bracket it was put in front of", () => {
+  it("escapes the backslash before every other escape, so the backslash an escape adds is not doubled", () => {
     expect(withEscapedCharacters("\\[")).toBe("\\\\\\[");
   });
 

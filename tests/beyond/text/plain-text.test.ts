@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { Refusal } from "../../../src/beyond/shape/refusal";
 import { plainTextOf } from "../../../src/beyond/text/plain-text";
 
 describe("plainTextOf", () => {
@@ -14,12 +15,12 @@ describe("plainTextOf", () => {
     expect(plainTextOf("<p><i><b>deep</b></i></p>")).toBe("deep");
   });
 
-  it("removes a tag whose attributes hold another bracket pair", () => {
+  it("removes a tag with attributes", () => {
     expect(plainTextOf('<a title="x">link</a>')).toBe("link");
   });
 
-  it("removes a tag that a removed tag was hiding", () => {
-    expect(plainTextOf("<scr<b>ipt>go</scr<b>ipt>")).toBe("go");
+  it("leaves no tag where a removed tag was hiding one", () => {
+    expect(plainTextOf("<scr<b>ipt>go</scr<b>ipt>")).toBe("ipt>goipt>");
   });
 
   it("removes the tags of a script and keeps what was inside as text", () => {
@@ -44,5 +45,34 @@ describe("plainTextOf", () => {
 
   it("removes a comment's tag", () => {
     expect(plainTextOf("a<!-- note -->b")).toBe("ab");
+  });
+
+  it("removes a processing tag", () => {
+    expect(plainTextOf("a<?x y?>b")).toBe("ab");
+  });
+
+  it("removes a closing tag", () => {
+    expect(plainTextOf("a</b>c")).toBe("ac");
+  });
+
+  it("keeps a less-than and a greater-than that are not a tag", () => {
+    expect(plainTextOf("HP < 10 and AC > 5")).toBe("HP < 10 and AC > 5");
+  });
+
+  it("keeps a less-than before a digit and a greater-than after it", () => {
+    expect(plainTextOf("a <5 and 6> b")).toBe("a <5 and 6> b");
+  });
+
+  it("takes text exactly at the line limit", () => {
+    const text = "<b>".repeat(100);
+    expect(plainTextOf(text)).toBe("");
+  });
+
+  it("refuses text one over the line limit, so a huge nest is never scanned", () => {
+    expect(() => plainTextOf("<<".repeat(5000) + ">>".repeat(5000))).toThrow(Refusal);
+  });
+
+  it("refuses text one character over the line limit", () => {
+    expect(() => plainTextOf("a".repeat(301))).toThrow(new Refusal("A line of text is over the limit of 300 characters."));
   });
 });

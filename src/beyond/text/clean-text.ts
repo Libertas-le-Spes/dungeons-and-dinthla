@@ -2,7 +2,7 @@ const LINE_BREAKS = /\r\n|[\r\u0085\u2028\u2029]/g;
 const TABS = /\t/g;
 const SPACES = /\p{Zs}/gu;
 const HIDDEN_BUT_NEW_LINE = /(?!\n)[\p{Cc}\p{Cf}\p{Cs}\p{Co}\p{Cn}\p{Default_Ignorable_Code_Point}]/gu;
-const NEW_LINE = "\n";
+export const NEW_LINE = "\n";
 const SPACE = " ";
 
 function withPlainBreaksAndSpaces(text: string): string {

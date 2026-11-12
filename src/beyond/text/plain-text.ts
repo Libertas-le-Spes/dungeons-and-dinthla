@@ -1,15 +1,8 @@
-const INNERMOST_TAG = /<[^<>]*>/g;
+import { LINE_LENGTH } from "../shape/import-limits";
+import { limitedText } from "./limited-text";
 
-function withoutInnermostTags(text: string): string {
-  return text.replace(INNERMOST_TAG, "");
-}
+const TAG = /<[A-Za-z/!?][^>]*>/g;
 
 export function plainTextOf(text: string): string {
-  let plain = text;
-  let shorter = withoutInnermostTags(plain);
-  while (shorter !== plain) {
-    plain = shorter;
-    shorter = withoutInnermostTags(plain);
-  }
-  return plain;
+  return limitedText(text, LINE_LENGTH).replace(TAG, "");
 }

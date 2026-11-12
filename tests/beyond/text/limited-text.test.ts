@@ -22,6 +22,19 @@ describe("limitedText", () => {
     expect(() => limitedText("a".repeat(301), LINE_LENGTH)).toThrow(Refusal);
   });
 
+  it("counts an emoji as one character, so 100 emoji pass a limit of 100 characters", () => {
+    const names = "\u{1f319}".repeat(100);
+    expect(limitedText(names, NAME_LENGTH)).toBe(names);
+  });
+
+  it("refuses 101 emoji over a limit of 100 characters", () => {
+    expect(() => limitedText("\u{1f319}".repeat(101), NAME_LENGTH)).toThrow(Refusal);
+  });
+
+  it("counts a lone surrogate as a character", () => {
+    expect(() => limitedText("\ud800".repeat(101), NAME_LENGTH)).toThrow(Refusal);
+  });
+
   it("takes nothing", () => {
     expect(limitedText("", NAME_LENGTH)).toBe("");
   });
