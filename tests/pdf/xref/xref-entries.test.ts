@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CompressedEntry } from "../../../src/pdf/xref/compressed-entry";
 import { FreeEntry } from "../../../src/pdf/xref/free-entry";
 import { InFileEntry } from "../../../src/pdf/xref/in-file-entry";
+import type { XrefEntry } from "../../../src/pdf/xref/xref-entry";
 import { RecordingLoading } from "../support/recording-loading";
 import { refusalFrom } from "../support/parsed";
 
@@ -41,9 +42,9 @@ describe("CompressedEntry", () => {
 
 describe("FreeEntry", () => {
   it("accepts no generation and refuses to load", () => {
-    const entry = new FreeEntry();
+    const entry: XrefEntry = new FreeEntry();
     expect(entry.acceptsGeneration(0)).toBe(false);
-    expect(refusalFrom(() => entry.load())).toContain("an object it says was deleted");
+    expect(refusalFrom(() => entry.load(new RecordingLoading(), 5))).toContain("an object it says was deleted");
     expect(entry.containerNumber()).toBeNull();
   });
 });
