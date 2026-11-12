@@ -10,10 +10,10 @@ import type { WornArmour } from "../choice/worn-armour";
 import type { ArmourRule } from "./armour-rule";
 
 export class MonkDefenceRule implements ArmourRule {
-  candidate(character: RuleCharacter, worn: WornArmour, earlier: EarlierNumbers): ArmourCandidate | null {
-    if (worn.body.length > 0) return null;
-    if (worn.shields.length > 0) return null;
-    if (!hasClass(character, MONK_NAME)) return null;
-    return formulaCandidate(character, earlier, { baseText: "10", baseAmount: 10, dexterity: new FullDexterity(), others: [WISDOM], reason: "monk's unarmoured defence" });
+  candidates(character: RuleCharacter, worn: WornArmour, earlier: EarlierNumbers): readonly ArmourCandidate[] {
+    if (worn.body.length > 0) return [];
+    if (worn.shields.length > 0) return [];
+    if (!hasClass(character, MONK_NAME)) return [];
+    return [formulaCandidate(character, earlier, { baseText: "10", baseAmount: 10, dexterity: new FullDexterity(), others: [WISDOM], reason: "monk's unarmoured defence" })];
   }
 }

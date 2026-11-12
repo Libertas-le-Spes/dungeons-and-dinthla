@@ -10,9 +10,9 @@ import type { WornArmour } from "../choice/worn-armour";
 import type { ArmourRule } from "./armour-rule";
 
 export class BarbarianDefenceRule implements ArmourRule {
-  candidate(character: RuleCharacter, worn: WornArmour, earlier: EarlierNumbers): ArmourCandidate | null {
-    if (worn.body.length > 0) return null;
-    if (!hasClass(character, BARBARIAN_NAME)) return null;
-    return formulaCandidate(character, earlier, { baseText: "10", baseAmount: 10, dexterity: new FullDexterity(), others: [CONSTITUTION], reason: "barbarian's unarmoured defence" });
+  candidates(character: RuleCharacter, worn: WornArmour, earlier: EarlierNumbers): readonly ArmourCandidate[] {
+    if (worn.body.length > 0) return [];
+    if (!hasClass(character, BARBARIAN_NAME)) return [];
+    return [formulaCandidate(character, earlier, { baseText: "10", baseAmount: 10, dexterity: new FullDexterity(), others: [CONSTITUTION], reason: "barbarian's unarmoured defence" })];
   }
 }

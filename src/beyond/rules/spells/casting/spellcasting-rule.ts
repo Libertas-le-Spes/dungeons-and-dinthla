@@ -2,7 +2,6 @@ import type { ImportedNumber } from "../../../shape/imported-number";
 import { SPELL_ATTACK, SPELL_SAVE_DC } from "../../../shape/import-limits";
 import type { WorkedValue } from "../../../shape/worked-value";
 import type { EarlierNumbers } from "../../core/earlier-numbers";
-import { firstFound } from "../../core/first-found";
 import type { Rule } from "../../core/rule";
 import { knownIn, notKnown } from "../../core/worked";
 import { reasonedWorking, withConditional } from "../../core/working-text";
@@ -20,18 +19,18 @@ const DC_NAMES = ["spell-save-dc"];
 const ATTACK_NAMES = ["spell-attacks"];
 const CANNOT_TELL = "I can't tell whether this class casts yet in this edition.";
 
-function isCasting(caster: CasterClass): (casting: CastingClass) => boolean {
-  return function isOfCaster(casting: CastingClass): boolean {
-    return casting.caster === caster;
-  };
-}
-
 export class SpellcastingRule implements Rule {
   constructor(private readonly caster: CasterClass) {}
 
   workOut(character: RuleCharacter, earlier: EarlierNumbers): readonly ImportedNumber[] {
-    const casting = firstFound(castingClassesOf(character).filter(isCasting(this.caster)));
-    if (casting === undefined) return [];
+    const found: ImportedNumber[] = [];
+    for (const casting of castingClassesOf(character)) {
+      if (casting.caster === this.caster) found.push(...this.numbersFor(casting, character, earlier));
+    }
+    return found;
+  }
+
+  private numbersFor(casting: CastingClass, character: RuleCharacter, earlier: EarlierNumbers): readonly ImportedNumber[] {
     if (casting.ruleClass.level < this.caster.kind.firstCastingLevel) return this.beforeCasting(character);
     return [
       { name: this.caster.saveDcName, value: this.saveDc(character, earlier) },

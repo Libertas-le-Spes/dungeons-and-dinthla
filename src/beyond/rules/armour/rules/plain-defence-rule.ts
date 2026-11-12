@@ -7,8 +7,8 @@ import type { WornArmour } from "../choice/worn-armour";
 import type { ArmourRule } from "./armour-rule";
 
 export class PlainDefenceRule implements ArmourRule {
-  candidate(character: RuleCharacter, worn: WornArmour, earlier: EarlierNumbers): ArmourCandidate | null {
-    if (worn.body.length > 0) return null;
-    return formulaCandidate(character, earlier, { baseText: "10", baseAmount: 10, dexterity: new FullDexterity(), others: [], reason: "no armour" });
+  candidates(character: RuleCharacter, worn: WornArmour, earlier: EarlierNumbers): readonly ArmourCandidate[] {
+    if (worn.body.length > 0) return [];
+    return [formulaCandidate(character, earlier, { baseText: "10", baseAmount: 10, dexterity: new FullDexterity(), others: [], reason: "no armour" })];
   }
 }
