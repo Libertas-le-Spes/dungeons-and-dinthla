@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { AbilityTable } from "../../../../src/beyond/rules/input/by-ability";
 import { classOf, madeUpRuleCharacter, modifierOf, numberNamed, withDexterity } from "../../builders/made-up-rule-character";
+import type { RuleCharacter } from "../../../../src/beyond/rules/input/rule-character";
 
-function initiative(changes: Parameters<typeof madeUpRuleCharacter>[0]) {
+function initiative(changes: Partial<RuleCharacter>) {
   const value = numberNamed(madeUpRuleCharacter(changes), "Initiative");
   return { value: value.valueOr(-99), working: value.explanation, isKnown: value.isKnown };
 }

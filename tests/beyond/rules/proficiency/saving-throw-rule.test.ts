@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ABILITIES } from "../../../../src/beyond/rules/input/ability";
 import { AbilityTable } from "../../../../src/beyond/rules/input/by-ability";
 import { classOf, madeUpRuleCharacter, modifierOf, numberNamed } from "../../builders/made-up-rule-character";
+import type { RuleCharacter } from "../../../../src/beyond/rules/input/rule-character";
 
 const LEVEL_FIVE = [classOf("Fighter", 5, 10)];
 
@@ -14,7 +15,7 @@ function onlyAbilityRaised(raised: string): AbilityTable<number> {
   return scores;
 }
 
-function saveValue(name: string, changes: Parameters<typeof madeUpRuleCharacter>[0]) {
+function saveValue(name: string, changes: Partial<RuleCharacter>) {
   const value = numberNamed(madeUpRuleCharacter({ classes: LEVEL_FIVE, ...changes }), name);
   return { value: value.valueOr(-99), working: value.explanation, isKnown: value.isKnown };
 }

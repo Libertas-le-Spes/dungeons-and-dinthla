@@ -3,6 +3,7 @@ import { ABILITIES } from "../../../../src/beyond/rules/input/ability";
 import { AbilityTable } from "../../../../src/beyond/rules/input/by-ability";
 import { SKILLS } from "../../../../src/beyond/rules/proficiency/skills";
 import { classOf, madeUpRuleCharacter, modifierOf, numberNamed, scoresOf } from "../../builders/made-up-rule-character";
+import type { RuleCharacter } from "../../../../src/beyond/rules/input/rule-character";
 
 const LEVEL_FIVE = [classOf("Fighter", 5, 10)];
 
@@ -15,7 +16,7 @@ function onlyAbilityRaised(raised: string): AbilityTable<number> {
   return scores;
 }
 
-function skillValue(skillName: string, changes: Parameters<typeof madeUpRuleCharacter>[0]) {
+function skillValue(skillName: string, changes: Partial<RuleCharacter>) {
   const value = numberNamed(madeUpRuleCharacter({ classes: LEVEL_FIVE, ...changes }), skillName);
   return { value: value.valueOr(-99), working: value.explanation, isKnown: value.isKnown };
 }

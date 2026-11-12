@@ -4,11 +4,11 @@ import { numberInRange } from "../../shape/number-in-range";
 import type { WorkedValue } from "../../shape/worked-value";
 import type { EarlierNumbers } from "../core/earlier-numbers";
 import type { Rule } from "../core/rule";
-import { unknownAmong } from "../core/unknown-among";
 import { reasonedWorking } from "../core/working-text";
 import type { RuleCharacter } from "../input/rule-character";
 import type { CasterClass } from "./caster-class";
 import { castingClassesOf } from "./casting-class";
+import { castingInputsOf } from "./casting-inputs";
 
 export class SpellcastingRule implements Rule {
   constructor(private readonly caster: CasterClass) {}
@@ -27,22 +27,16 @@ export class SpellcastingRule implements Rule {
   }
 
   private saveDc(character: RuleCharacter, earlier: EarlierNumbers): WorkedValue<number> {
-    const modifierName = `${this.caster.ability.short} modifier`;
-    const missing = unknownAmong([modifierName, "Proficiency bonus"], earlier, character.route);
-    if (missing !== null) return missing;
-    const bonus = earlier.valueOf("Proficiency bonus", character.route).valueOr(0);
-    const modifier = earlier.valueOf(modifierName, character.route).valueOr(0);
-    const terms = ["8", `proficiency ${bonus}`, `${this.caster.ability.short} ${modifier}`];
-    return numberInRange(8 + bonus + modifier, SPELL_SAVE_DC, reasonedWorking(terms, 8 + bonus + modifier, this.reason()), character.route);
+    const inputs = castingInputsOf(this.caster, character, earlier);
+    if (inputs.missing !== null) return inputs.missing;
+    const total = 8 + inputs.bonus + inputs.modifier;
+    return numberInRange(total, SPELL_SAVE_DC, reasonedWorking(["8", ...inputs.terms], total, this.reason()), character.route);
   }
 
   private attack(character: RuleCharacter, earlier: EarlierNumbers): WorkedValue<number> {
-    const modifierName = `${this.caster.ability.short} modifier`;
-    const missing = unknownAmong([modifierName, "Proficiency bonus"], earlier, character.route);
-    if (missing !== null) return missing;
-    const bonus = earlier.valueOf("Proficiency bonus", character.route).valueOr(0);
-    const modifier = earlier.valueOf(modifierName, character.route).valueOr(0);
-    const terms = [`proficiency ${bonus}`, `${this.caster.ability.short} ${modifier}`];
-    return numberInRange(bonus + modifier, SPELL_ATTACK, reasonedWorking(terms, bonus + modifier, this.reason()), character.route);
+    const inputs = castingInputsOf(this.caster, character, earlier);
+    if (inputs.missing !== null) return inputs.missing;
+    const total = inputs.bonus + inputs.modifier;
+    return numberInRange(total, SPELL_ATTACK, reasonedWorking(inputs.terms, total, this.reason()), character.route);
   }
 }
