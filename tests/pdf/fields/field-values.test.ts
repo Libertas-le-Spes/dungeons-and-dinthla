@@ -104,6 +104,10 @@ describe("the value of a checkbox", () => {
     expect(await fieldsOf(new FormDocument().check("Primary Flag", "/O#66f").classic())).toEqual({ "Primary Flag": false });
   });
 
+  it.each(["/Off#20", "/#20Yes", "/Yes#09", "/"])("refuses the name %s, which is not a plain name", async (value) => {
+    expect(await refusalOf(new FormDocument().check("Primary Flag", value).classic())).toContain(WRONG_VALUE);
+  });
+
   it.each(["(Yes)", "1", "true", "[/Yes]"])("refuses the value %s in a checkbox", async (value) => {
     expect(await refusalOf(new FormDocument().check("Primary Flag", value).classic())).toContain(WRONG_VALUE);
   });
@@ -113,6 +117,15 @@ describe("the value of a radio button and a push button", () => {
   it("reads a radio group's chosen name as text", async () => {
     const fields = await fieldsOf(new FormDocument().check("Primary Group", "/Second", `/Ff ${RADIO}`).classic());
     expect(fields).toEqual({ "Primary Group": "Second" });
+  });
+
+  it("gives no entry for a radio group whose value is /Off, which is no selection", async () => {
+    const fields = await fieldsOf(new FormDocument().check("Primary Group", "/Off", `/Ff ${RADIO}`).text("Primary Name", literal("Aria")).classic());
+    expect(fields).toEqual({ "Primary Name": "Aria" });
+  });
+
+  it("refuses a radio value that is not a plain name", async () => {
+    expect(await refusalOf(new FormDocument().check("Primary Group", "/Second#20", `/Ff ${RADIO}`).classic())).toContain(WRONG_VALUE);
   });
 
   it("gives no entry for a push button, which has no value", async () => {

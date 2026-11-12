@@ -1,3 +1,4 @@
+import { dataViewOf } from "./data-view-of";
 import { PdfRefusal } from "../refusals/pdf-refusal";
 import type { WorkBudget } from "../work/work-budget";
 import { NO_BYTE, byteOf } from "./byte-codes";
@@ -12,7 +13,7 @@ export class ByteCursor {
     private readonly work: WorkBudget,
     private readonly origin: number,
   ) {
-    this.view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    this.view = dataViewOf(bytes);
     this.size = bytes.byteLength;
     this.next = origin;
   }

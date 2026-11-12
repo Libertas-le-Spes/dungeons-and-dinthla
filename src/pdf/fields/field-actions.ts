@@ -1,11 +1,12 @@
-import { REFUSED_ACTION_KINDS } from "../document/refused-entries";
+import { NOT_A_SCRIPT, REFUSED_ACTION_KEYS } from "../document/refused-entries";
 import type { ObjectStore } from "../file/object-store";
 import { MAX_NESTING } from "../limits/pdf-limits";
 import { PdfRefusal } from "../refusals/pdf-refusal";
-import { refuseNamed } from "../refusals/refused-name";
+import { refuseKeys } from "../refusals/refused-key";
 import type { PdfDictionary } from "../values/pdf-dictionary";
 import type { PdfValue } from "../values/pdf-value";
 
+const READ_PAST_ACTION = "JavaScript";
 const UNREADABLE = "A field has an action the reader can't make sense of, so the file was not read.";
 
 export class FieldActions {
@@ -32,8 +33,13 @@ export class FieldActions {
     if (this.isAlreadyWalked(value)) return;
     const action = this.store.dictionaryOf(value);
     if (action === null) throw new PdfRefusal(UNREADABLE);
-    refuseNamed(this.store.resolve(action.get("S")).asName(), REFUSED_ACTION_KINDS);
+    this.checkIsScript(action);
     this.checkFollowing(action.get("Next"), depth + 1);
+  }
+
+  private checkIsScript(action: PdfDictionary): void {
+    refuseKeys(action, REFUSED_ACTION_KEYS);
+    if (this.store.resolve(action.get("S")).asName() !== READ_PAST_ACTION) throw new PdfRefusal(NOT_A_SCRIPT);
   }
 
   private checkFollowing(next: PdfValue, depth: number): void {
