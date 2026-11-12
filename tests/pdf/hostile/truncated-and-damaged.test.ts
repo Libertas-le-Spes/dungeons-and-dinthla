@@ -9,10 +9,9 @@ function sheet(): FormDocument {
 }
 
 function endOfStartxref(bytes: Buffer): number {
-  const text = bytes.toString("latin1");
-  const at = text.lastIndexOf("startxref");
-  const number = text.slice(at).split("\n").at(1) ?? "";
-  return at + "startxref\n".length + number.length;
+  let end = 0;
+  for (const match of bytes.toString("latin1").matchAll(/startxref\n\d+/g)) end = match.index + match[0].length;
+  return end;
 }
 
 async function isRefused(bytes: Uint8Array): Promise<boolean> {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { MAX_NUMBER_CHARACTERS } from "../../../src/pdf/limits/pdf-limits";
 import { readDigits, readExactDigits } from "../../../src/pdf/bytes/read-integer";
 import { cursorOver } from "../support/cursors";
 import { refusalFrom } from "../support/parsed";
@@ -19,11 +20,11 @@ describe("readDigits", () => {
   });
 
   it("reads a number of exactly the longest length", () => {
-    expect(readDigits(cursorOver("1".repeat(15)), "A number")).toBe(111111111111111);
+    expect(readDigits(cursorOver("0".repeat(MAX_NUMBER_CHARACTERS - 1) + "7"), "A number")).toBe(7);
   });
 
   it("refuses a number longer than the longest length", () => {
-    expect(refusalFrom(() => readDigits(cursorOver("1".repeat(21)), "A number"))).toContain("too long");
+    expect(refusalFrom(() => readDigits(cursorOver("0".repeat(MAX_NUMBER_CHARACTERS) + "7"), "A number"))).toContain("too long");
   });
 
   it("refuses a number that is not exact in a double", () => {

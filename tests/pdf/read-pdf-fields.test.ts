@@ -6,7 +6,6 @@ import { PdfRefusal } from "../../src/pdf/refusals/pdf-refusal";
 import { FormDocument, FIRST_FIELD_NUMBER } from "./writer/form-document";
 import { withUpdate } from "./writer/incremental-update";
 import { literal } from "./writer/pdf-text";
-import { padded } from "./writer/object-bytes";
 import { offsetOf, tableOffsetOf, withEntryOffset } from "./writer/table-patch";
 import { fieldsOf, refusalOf } from "./support/read-buffer";
 import { pdfOfExactly } from "./support/padded-pdf";
@@ -58,6 +57,19 @@ describe("reading a made-up character sheet end to end", () => {
     expect(result.fields).toBeInstanceOf(Map);
     expect(result.fields.get("Primary Flag")).toBe(true);
   });
+});
+
+describe("a file with packed objects that the reader cannot follow", () => {
+  it("is refused when the group of packed objects uses a predictor", async () => {
+    const bytes = sheet().streamed({ objectStreamExtra: "/DecodeParms << /Predictor 12 /Columns 1 >>" });
+    expect(await refusalOf(bytes)).toContain("settings the reader does not understand");
+  });
+
+  it("is refused when the group of packed objects is typed as something else", async () => {
+    const text = sheet().streamed().toString("latin1").replace("/Type /ObjStm", "/Type /Other");
+    expect(await refusalOf(Buffer.from(text, "latin1"))).toContain("not a group of objects");
+  });
+});
 });
 
 describe("a later update of the file", () => {
@@ -123,44 +135,74 @@ describe("a device without DecompressionStream", () => {
   });
 });
 
+class SteppingClock {
+  private time = 0;
+
+  constructor(private readonly step: number) {}
+
+  now(): number {
+    this.time += this.step;
+    return this.time;
+  }
+}
+
 describe("the time limit", () => {
   it("refuses a file that takes longer to read than the limit, by the clock the parts give", async () => {
-    let now = 0;
-    const bigFill = Buffer.alloc(300_000, 32);
-    const form = sheet();
-    const writer = form.writer();
-    writer.stream(90, "", bigFill, String(bigFill.length));
-    const parts = { startInflating: testParts().startInflating, clock: () => (now += 3_000) };
-    expect(await refusalOf(form.classic(), parts)).toContain("took too long");
+    const clock = new SteppingClock(3_000);
+    const parts = { startInflating: testParts().startInflating, clock: () => clock.now() };
+    expect(await refusalOf(sheet().classic(), parts)).toContain("took too long");
   });
 });
 
-describe("a file with bad offsets", () => {
-  function fieldBytes(): Buffer {
-    return sheet().classic();
-  }
+function insideAString(bytes: Buffer): number {
+  return bytes.toString("latin1").indexOf("Aria Vell") + 2;
+}
 
-  it.each([
-    ["inside a string", (bytes: Buffer) => bytes.toString("latin1").indexOf("Aria Vell") + 2],
-    ["at the start of the file", () => 0],
-    ["at the cross-reference table itself", (bytes: Buffer) => tableOffsetOf(bytes)],
-    ["at another object", (bytes: Buffer) => offsetOf(bytes, FIRST_FIELD_NUMBER + 1)],
-    ["one byte before its object", (bytes: Buffer) => offsetOf(bytes, FIRST_FIELD_NUMBER) - 1],
-    ["one byte into its object", (bytes: Buffer) => offsetOf(bytes, FIRST_FIELD_NUMBER) + 1],
-  ])("is refused when an object's offset points %s", async (_where, place) => {
-    const bytes = fieldBytes();
-    const patched = withEntryOffset(bytes, FIRST_FIELD_NUMBER, place(bytes));
-    expect(await refusalOf(patched)).not.toBe("");
+function atTheStart(): number {
+  return 0;
+}
+
+function atTheTable(bytes: Buffer): number {
+  return tableOffsetOf(bytes);
+}
+
+function atAnotherObject(bytes: Buffer): number {
+  return offsetOf(bytes, FIRST_FIELD_NUMBER + 1);
+}
+
+function oneByteBefore(bytes: Buffer): number {
+  return offsetOf(bytes, FIRST_FIELD_NUMBER) - 1;
+}
+
+function oneByteInto(bytes: Buffer): number {
+  return offsetOf(bytes, FIRST_FIELD_NUMBER) + 1;
+}
+
+describe("a file with bad offsets", () => {
+  const PLACES: [string, (bytes: Buffer) => number][] = [
+    ["inside a string", insideAString],
+    ["at the start of the file", atTheStart],
+    ["at the cross-reference table itself", atTheTable],
+    ["at another object", atAnotherObject],
+    ["one byte before its object", oneByteBefore],
+    ["one byte into its object", oneByteInto],
+  ];
+
+  it.each(PLACES)("is refused when an object's offset points %s", async (_where, place) => {
+    const bytes = sheet().classic();
+    expect(await refusalOf(withEntryOffset(bytes, FIRST_FIELD_NUMBER, place(bytes)))).not.toBe("");
   });
 
   it("is refused when an offset points past the end", async () => {
-    const bytes = fieldBytes();
+    const bytes = sheet().classic();
     expect(await refusalOf(withEntryOffset(bytes, FIRST_FIELD_NUMBER, bytes.length + 5))).toContain("outside the file");
   });
 
   it("is refused when startxref points into the middle of a string", async () => {
-    const bytes = fieldBytes();
-    const at = bytes.toString("latin1").indexOf("Aria Vell");
-    expect(await refusalOf(Buffer.from(bytes.toString("latin1").replace(new RegExp(`startxref\\n${tableOffsetOf(bytes)}`), `startxref\n${padded(at, String(tableOffsetOf(bytes)).length)}`), "latin1"))).not.toBe("");
+    const bytes = sheet().classic();
+    const startxref = `startxref\n${tableOffsetOf(bytes)}`;
+    const at = String(insideAString(bytes)).padStart(String(tableOffsetOf(bytes)).length, "0");
+    const damaged = bytes.toString("latin1").replace(startxref, `startxref\n${at}`);
+    expect(await refusalOf(Buffer.from(damaged, "latin1"))).not.toBe("");
   });
 });

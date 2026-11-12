@@ -19,8 +19,8 @@ export function rowOf(type: number, second: number, third: number): Buffer {
 }
 
 export function xrefStreamFile(dictionary: string, data: Buffer, deflate: boolean): Buffer {
-  const body = deflate ? deflateSync(data) : data;
-  const filter = deflate ? "/Filter /FlateDecode" : "";
+  const body = packedOrRaw(data, deflate);
+  const filter = filterEntry(deflate);
   const header = "%PDF-1.7\n";
   const object = `7 0 obj\n<< /Type /XRef ${dictionary} ${filter} /Length ${body.length} >>\nstream\n`;
   const after = `\nendstream\nendobj\nstartxref\n${header.length}\n%%EOF\n`;
@@ -30,4 +30,14 @@ export function xrefStreamFile(dictionary: string, data: Buffer, deflate: boolea
 export function classicEntries(count: number, mark: string): string {
   const line = `0000000000 00000 ${mark} \n`;
   return line.repeat(count);
+}
+
+function packedOrRaw(data: Buffer, deflate: boolean): Buffer {
+  if (deflate) return deflateSync(data);
+  return data;
+}
+
+function filterEntry(deflate: boolean): string {
+  if (deflate) return "/Filter /FlateDecode";
+  return "";
 }

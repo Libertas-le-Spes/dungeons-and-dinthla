@@ -55,7 +55,8 @@ describe("StreamDecoder", () => {
     expect(first.decoded).toEqual([]);
     expect(second.decoded).toEqual([[97, 98, 99, 100]]);
     expect(second.allowed).toEqual([false]);
-    expect(second.parameters.at(0)?.asDictionary()?.get("Columns").asInteger()).toBe(5);
+    const [passed] = second.parameters;
+    expect(present(passed).asDictionary()?.get("Columns").asInteger()).toBe(5);
   });
 
   it("reads a filter named in a list of one", async () => {

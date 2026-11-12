@@ -7,9 +7,13 @@ import { indexOf, textFile } from "../support/xref-files";
 const HEADER = "%PDF-1.7\n";
 const FREE = "0000000000 65535 f \n";
 
+function prevEntry(previous: number | null): string {
+  if (previous === null) return "";
+  return `/Prev ${previous}`;
+}
+
 function section(previous: number | null, extra = ""): string {
-  const prev = previous === null ? "" : `/Prev ${previous}`;
-  return `xref\n0 1\n${FREE}trailer\n<< /Size 1 /Root 1 0 R ${prev} ${extra} >>\n`;
+  return `xref\n0 1\n${FREE}trailer\n<< /Size 1 /Root 1 0 R ${prevEntry(previous)} ${extra} >>\n`;
 }
 
 function chainOf(count: number): Buffer {
