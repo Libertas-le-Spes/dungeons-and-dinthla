@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ARMOUR_CLASS, CLASS_LEVEL, HIT_POINTS, ITEM_COUNT, SCORE, SPEED, TOTAL_LEVEL, COIN_COUNT } from "../../../src/beyond/shape/import-limits";
+import { ARMOUR_CLASS, CLASS_LEVEL, HIT_POINTS, ITEM_COUNT, SCORE, SPEED, TOTAL_LEVEL, COIN_COUNT, ABILITY_MODIFIER, PROFICIENCY_BONUS, TEMPORARY_HIT_POINTS, SAVING_THROW, SKILL_BONUS, INITIATIVE, PASSIVE_SCORE, SPELL_SAVE_DC, SPELL_ATTACK, SPELL_SLOTS, CARRYING_CAPACITY } from "../../../src/beyond/shape/import-limits";
 import { Online, Pdf } from "../../../src/beyond/shape/route";
 import { numberInRange } from "../../../src/beyond/shape/number-in-range";
 
@@ -14,6 +14,17 @@ const EDGES = [
   { name: "speed", range: SPEED, lowest: 0, highest: 500 },
   { name: "a coin count", range: COIN_COUNT, lowest: 0, highest: 1_000_000 },
   { name: "an item count", range: ITEM_COUNT, lowest: 0, highest: 9_999 },
+  { name: "an ability modifier", range: ABILITY_MODIFIER, lowest: -5, highest: 10 },
+  { name: "the proficiency bonus", range: PROFICIENCY_BONUS, lowest: 2, highest: 11 },
+  { name: "temporary hit points", range: TEMPORARY_HIT_POINTS, lowest: 0, highest: 9_999 },
+  { name: "a saving throw bonus", range: SAVING_THROW, lowest: -20, highest: 50 },
+  { name: "a skill bonus", range: SKILL_BONUS, lowest: -20, highest: 60 },
+  { name: "initiative", range: INITIATIVE, lowest: -20, highest: 50 },
+  { name: "a passive score", range: PASSIVE_SCORE, lowest: 0, highest: 80 },
+  { name: "a spell save DC", range: SPELL_SAVE_DC, lowest: 0, highest: 60 },
+  { name: "a spell attack bonus", range: SPELL_ATTACK, lowest: -20, highest: 50 },
+  { name: "a count of spell slots", range: SPELL_SLOTS, lowest: 0, highest: 9 },
+  { name: "carrying capacity", range: CARRYING_CAPACITY, lowest: 15, highest: 450 },
 ];
 
 describe("numberInRange", () => {

@@ -10,8 +10,3 @@ export function withConditional(working: string, conditional: readonly string[])
   if (conditional.length === 0) return working;
   return `${working}. Plus conditional bonuses I don't apply: ${conditional.join(", ")}`;
 }
-
-export function signed(amount: number): string {
-  if (amount < 0) return `${amount}`;
-  return `+${amount}`;
-}
