@@ -28,8 +28,13 @@ export class AbilityScoreRule implements Rule {
   private fromBase(character: RuleCharacter): WorkedValue<number> {
     const base = character.baseScores.get(this.ability);
     const bonus = character.bonusScores.get(this.ability);
-    if (base === undefined || bonus === undefined) return new NotKnownValue(`${this.ability.label} is missing a base score or its bonus.`, character.route);
+    if (base === undefined) return this.missing(character);
+    if (bonus === undefined) return this.missing(character);
     return this.withModifiers(character, base, bonus);
+  }
+
+  private missing(character: RuleCharacter): WorkedValue<number> {
+    return new NotKnownValue(`${this.ability.label} is missing a base score or its bonus.`, character.route);
   }
 
   private withModifiers(character: RuleCharacter, base: number, bonus: number): WorkedValue<number> {

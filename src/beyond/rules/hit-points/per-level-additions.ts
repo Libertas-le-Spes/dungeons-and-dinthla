@@ -10,3 +10,15 @@ export function perLevelAdditions(character: RuleCharacter, totalLevel: number):
   }
   return found;
 }
+
+export function explanationOf(value: WorkedValue<number>): string {
+  return value.explanation;
+}
+
+export function firstNotKnown(values: readonly WorkedValue<number>[]): WorkedValue<number> | undefined {
+  return values.find((value) => !value.isKnown);
+}
+
+export function addedAmount(total: number, value: WorkedValue<number>): number {
+  return total + value.valueOr(0);
+}

@@ -8,24 +8,12 @@ import type { Rule } from "../core/rule";
 import { unknownAmong } from "../core/unknown-among";
 import { sumWorking } from "../core/working-text";
 import type { RuleCharacter } from "../input/rule-character";
-import { perLevelAdditions } from "./per-level-additions";
+import { addedAmount, explanationOf, firstNotKnown, perLevelAdditions } from "./per-level-additions";
 import { unfamiliarPerLevelModifier } from "./per-level-modifiers";
-
-function explanationOf(value: WorkedValue<number>): string {
-  return value.explanation;
-}
-
-function firstNotKnown(values: readonly WorkedValue<number>[]): WorkedValue<number> | undefined {
-  return values.find((value) => !value.isKnown);
-}
 
 function bonusTerms(bonus: number): readonly string[] {
   if (bonus === 0) return [];
   return [`bonus ${bonus}`];
-}
-
-function addedAmount(total: number, value: WorkedValue<number>): number {
-  return total + value.valueOr(0);
 }
 
 export class MaxHitPointsRule implements Rule {
@@ -45,10 +33,15 @@ export class MaxHitPointsRule implements Rule {
   private fromDice(character: RuleCharacter, earlier: EarlierNumbers): WorkedValue<number> {
     const base = character.baseHitPoints;
     const bonus = character.bonusHitPoints;
-    if (base === null || bonus === null) return new NotKnownValue("The dice total or the bonus hit points are missing.", character.route);
+    if (base === null) return this.missingDice(character);
+    if (bonus === null) return this.missingDice(character);
     const level = earlier.valueOf("Total level", character.route).valueOr(0);
     const constitution = earlier.valueOf("CON modifier", character.route).valueOr(0);
     return this.withAdditions(character, base, bonus, constitution, level);
+  }
+
+  private missingDice(character: RuleCharacter): WorkedValue<number> {
+    return new NotKnownValue("The dice total or the bonus hit points are missing.", character.route);
   }
 
   private withAdditions(character: RuleCharacter, base: number, bonus: number, constitution: number, level: number): WorkedValue<number> {

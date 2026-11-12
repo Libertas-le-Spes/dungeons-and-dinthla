@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import { HeavyArmour } from "../../../../src/beyond/rules/input/armour/heavy-armour";
 import { LightArmour } from "../../../../src/beyond/rules/input/armour/light-armour";
 import { itemOf, madeUpRuleCharacter, modifierOf, numberNamed, scoresOf } from "../../builders/made-up-rule-character";
+import type { RuleCharacter } from "../../../../src/beyond/rules/input/rule-character";
 
-function speedOf(changes: Parameters<typeof madeUpRuleCharacter>[0]) {
+function speedOf(changes: Partial<RuleCharacter>) {
   const value = numberNamed(madeUpRuleCharacter(changes), "Speed");
   return { value: value.valueOr(-1), working: value.explanation, isKnown: value.isKnown };
 }
