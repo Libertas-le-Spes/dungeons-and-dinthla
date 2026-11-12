@@ -93,6 +93,30 @@ describe("KindNoteKeeper making a note", () => {
     expect(notes.mostInside).toBe(1);
     expect(notes.noteAt(QUESTIONS)?.properties?.lines).toEqual(["? One", "? Two"]);
   });
+
+  it("takes the empty note away again when its properties couldn't be written, so no half-made note is left", async () => {
+    const notes = new FakeNotes();
+    const session = notes.addSession(SESSION);
+    notes.failProperties = new Error("disk full");
+    keeperWith(notes).keep([wanted(QUESTIONS, session, LINES)]);
+    await settled();
+    expect(notes.trashed).toEqual([QUESTIONS]);
+    expect(notes.noteAt(QUESTIONS)).toBeNull();
+  });
+
+  it("tries a failed note again when its lines change, and says nothing more if it works", async () => {
+    const notes = new FakeNotes();
+    const session = notes.addSession(SESSION);
+    notes.failProperties = new Error("disk full");
+    const keeper = keeperWith(notes);
+    keeper.keep([wanted(QUESTIONS, session, LINES)]);
+    await settled();
+    notes.failProperties = null;
+    keeper.keep([wanted(QUESTIONS, session, ["? Another"])]);
+    await settled();
+    expect(notes.noteAt(QUESTIONS)?.properties?.lines).toEqual(["? Another"]);
+    expect(notes.said).toHaveLength(1);
+  });
 });
 
 describe("KindNoteKeeper making only what is missing", () => {
