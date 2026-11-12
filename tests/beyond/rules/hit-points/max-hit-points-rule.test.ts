@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { classOf, madeUpRuleCharacter, modifierOf, numberNamed, scoresOf } from "../../builders/made-up-rule-character";
+import { classOf, madeUpRuleCharacter, modifierOf, scoresOf } from "../../builders/made-up-rule-character";
+import { numberNamed } from "../../builders/rule-numbers";
 
 function withConstitution(score: number) {
   return scoresOf(10, 10, score, 10, 10, 10);

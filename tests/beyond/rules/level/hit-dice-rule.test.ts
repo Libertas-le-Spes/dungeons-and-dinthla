@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { classOf, madeUpRuleCharacter, numberNamed } from "../../builders/made-up-rule-character";
+import { classOf, madeUpRuleCharacter } from "../../builders/made-up-rule-character";
+import { numberNamed } from "../../builders/rule-numbers";
 
 describe("HitDiceRule", () => {
   it("counts one die a level and names each class's die", () => {

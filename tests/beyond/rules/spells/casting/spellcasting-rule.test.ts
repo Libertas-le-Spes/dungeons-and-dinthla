@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { INTELLIGENCE, WISDOM } from "../../../../../src/beyond/rules/input/ability";
+import type { CasterClass } from "../../../../../src/beyond/rules/spells/casters/caster-class";
 import { CASTER_CLASSES } from "../../../../../src/beyond/rules/spells/casters/caster-classes";
 import { AbilityTable } from "../../../../../src/beyond/rules/input/by-ability";
-import { classOf, madeUpRuleCharacter, modifierOf, namesWorkedOut, numberNamed, scoresOf, onlyAbilityRaised } from "../../../builders/made-up-rule-character";
+import { classOf, madeUpRuleCharacter, modifierOf, scoresOf } from "../../../builders/made-up-rule-character";
+import { namesWorkedOut, numberNamed } from "../../../builders/rule-numbers";
+import { onlyAbilityRaised } from "../../../builders/rule-test-helpers";
 
 const ABILITY_OF = new Map<string, string>([
   ["Bard", "CHA"],
@@ -23,6 +26,10 @@ function abilityShortOf(label: string): string {
   return found;
 }
 
+function labelOf(caster: CasterClass): string {
+  return caster.label;
+}
+
 describe("SpellcastingRule", () => {
   it("works out the save DC and the attack bonus of a wizard and shows the working", () => {
     const character = madeUpRuleCharacter({ classes: [classOf("Wizard", 5, 6)], baseScores: scoresOf(10, 10, 10, 16, 10, 10) });
@@ -37,7 +44,7 @@ describe("SpellcastingRule", () => {
   });
 
   it("knows the casting ability of every caster the source lists, and no other", () => {
-    expect([...ABILITY_OF.keys()].sort()).toEqual(CASTER_CLASSES.map((caster) => caster.label).sort());
+    expect([...ABILITY_OF.keys()].sort()).toEqual(CASTER_CLASSES.map(labelOf).sort());
   });
 
   it.each(CASTER_CLASSES)("casts $label with its own ability only", (caster) => {

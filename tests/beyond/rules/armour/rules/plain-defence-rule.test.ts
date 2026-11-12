@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { LightArmour } from "../../../../../src/beyond/rules/input/armour/light-armour";
-import { armourClassOf, itemOf, otherItem, withDexterity } from "../../../builders/made-up-rule-character";
+import { itemOf, otherItem } from "../../../builders/made-up-rule-character";
+import { armourClassOf, withDexterity } from "../../../builders/rule-test-helpers";
 
 describe("PlainDefenceRule with no armour", () => {
   it("is 10 plus the dexterity modifier", () => {

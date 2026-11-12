@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { ABILITIES } from "../../../../../src/beyond/rules/input/ability";
 import { AbilityTable } from "../../../../../src/beyond/rules/input/by-ability";
-import { classOf, madeUpRuleCharacter, modifierOf, numberNamed, onlyAbilityRaised } from "../../../builders/made-up-rule-character";
+import { classOf, madeUpRuleCharacter, modifierOf } from "../../../builders/made-up-rule-character";
+import { numberNamed } from "../../../builders/rule-numbers";
+import { onlyAbilityRaised } from "../../../builders/rule-test-helpers";
 import type { RuleCharacter } from "../../../../../src/beyond/rules/input/rule-character";
 
 const LEVEL_FIVE = [classOf("Fighter", 5, 10)];

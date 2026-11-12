@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { classOf, madeUpRuleCharacter, numberNamed } from "../../builders/made-up-rule-character";
+import { classOf, madeUpRuleCharacter } from "../../builders/made-up-rule-character";
+import { numberNamed } from "../../builders/rule-numbers";
 
 describe("TotalLevelRule", () => {
   it("adds the levels of every class and shows each", () => {

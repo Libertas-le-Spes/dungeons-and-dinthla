@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { FeatureTouching } from "../../../../src/beyond/rules/core/feature-touching";
-import { classOf, madeUpRuleCharacter, numberNamed } from "../../builders/made-up-rule-character";
+import { classOf, madeUpRuleCharacter } from "../../builders/made-up-rule-character";
+import { numberNamed } from "../../builders/rule-numbers";
 
 const AC_FEATURES = ["Medium Armor Master", "Dual Wielder", "Bladesong"];
 const AC_SPECIES = ["Autognome", "Lizardfolk", "Locathah", "Loxodon", "Simic Hybrid", "Thri-kreen", "Tortle", "Warforged"];

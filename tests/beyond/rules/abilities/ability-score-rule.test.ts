@@ -1,7 +1,22 @@
 import { describe, expect, it } from "vitest";
+import type { Ability } from "../../../../src/beyond/rules/input/ability";
+import type { RuleCharacter } from "../../../../src/beyond/rules/input/rule-character";
 import { ABILITIES, CHARISMA, DEXTERITY, STRENGTH } from "../../../../src/beyond/rules/input/ability";
 import { AbilityTable } from "../../../../src/beyond/rules/input/by-ability";
-import { madeUpRuleCharacter, modifierOf, noBonuses, numberNamed, scoresOf } from "../../builders/made-up-rule-character";
+import { madeUpRuleCharacter, modifierOf, noBonuses, scoresOf } from "../../builders/made-up-rule-character";
+import { numberNamed } from "../../builders/rule-numbers";
+
+function isNot(ability: Ability): (other: Ability) => boolean {
+  return function isOther(other: Ability): boolean {
+    return other !== ability;
+  };
+}
+
+function valueIn(character: RuleCharacter): (ability: Ability) => number {
+  return function valueOfAbility(ability: Ability): number {
+    return numberNamed(character, ability.short).valueOr(-1);
+  };
+}
 
 describe("AbilityScoreRule", () => {
   it("adds the bonus score to the base score and shows both", () => {
@@ -29,8 +44,8 @@ describe("AbilityScoreRule", () => {
     for (const other of ABILITIES) bonuses.with(other, 0);
     bonuses.with(ability, 4);
     const character = madeUpRuleCharacter({ bonusScores: bonuses });
-    const others = ABILITIES.filter((other) => other !== ability);
-    expect(others.map((other) => numberNamed(character, other.short).valueOr(-1))).toEqual([10, 10, 10, 10, 10]);
+    const others = ABILITIES.filter(isNot(ability));
+    expect(others.map(valueIn(character))).toEqual([10, 10, 10, 10, 10]);
   });
 
   it("adds a plain score bonus from a modifier that applies now", () => {

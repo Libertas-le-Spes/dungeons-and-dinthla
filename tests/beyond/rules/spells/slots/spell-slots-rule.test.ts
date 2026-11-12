@@ -1,13 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { classOf, madeUpRuleCharacter, namesWorkedOut, numberNamed } from "../../../builders/made-up-rule-character";
-import type { RuleCharacter } from "../../../../../src/beyond/rules/input/rule-character";
-import { workedOut } from "../../../../../src/beyond/rules/worked-out";
-
-function slotCounts(character: RuleCharacter): number[] {
-  return workedOut(character)
-    .filter((number) => number.name.startsWith("Spell slots level"))
-    .map((number) => number.value.valueOr(-1));
-}
+import { classOf, madeUpRuleCharacter } from "../../../builders/made-up-rule-character";
+import { namesStartingWith, numberNamed, slotCounts } from "../../../builders/rule-numbers";
 
 function slotsOf(className: string, level: number, subclass = ""): number[] {
   return slotCounts(madeUpRuleCharacter({ classes: [classOf(className, level, 8, subclass)] }));
@@ -135,7 +128,7 @@ describe("SpellSlotsRule and the edition", () => {
 
 describe("SpellSlotsRule for a class that does not cast", () => {
   it("names no slots", () => {
-    expect(namesWorkedOut(madeUpRuleCharacter({ classes: [classOf("Barbarian", 5, 12)] })).filter((name) => name.startsWith("Spell slots"))).toEqual([]);
+    expect(namesStartingWith(madeUpRuleCharacter({ classes: [classOf("Barbarian", 5, 12)] }), "Spell slots")).toEqual([]);
   });
 
   it("does not know the slots when the total level is not known", () => {
@@ -146,7 +139,7 @@ describe("SpellSlotsRule for a class that does not cast", () => {
 describe("SpellSlotsRule and an Artificer", () => {
   it("does not know any slots for Wizard 5 and Artificer 3, so no table is shown as known", () => {
     const character = madeUpRuleCharacter({ classes: [classOf("Wizard", 5, 6), classOf("Artificer", 3, 8)] });
-    const names = namesWorkedOut(character).filter((name) => name.startsWith("Spell slots"));
+    const names = namesStartingWith(character, "Spell slots");
     expect([names, numberNamed(character, "Spell slots").explanation]).toEqual([["Spell slots"], "Artificer is not built here yet."]);
   });
 
@@ -161,6 +154,6 @@ describe("SpellSlotsRule and an Artificer", () => {
 
   it("shows no slot entry for a combined caster level under 1", () => {
     const character = madeUpRuleCharacter({ classes: [classOf("Paladin", 1, 10), classOf("Ranger", 1, 10)] });
-    expect(namesWorkedOut(character).filter((name) => name.startsWith("Spell slots"))).toEqual([]);
+    expect(namesStartingWith(character, "Spell slots")).toEqual([]);
   });
 });

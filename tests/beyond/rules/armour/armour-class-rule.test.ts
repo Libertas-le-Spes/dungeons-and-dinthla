@@ -3,7 +3,9 @@ import { HeavyArmour } from "../../../../src/beyond/rules/input/armour/heavy-arm
 import { LightArmour } from "../../../../src/beyond/rules/input/armour/light-armour";
 import { Shield } from "../../../../src/beyond/rules/input/armour/shield";
 import { AbilityTable } from "../../../../src/beyond/rules/input/by-ability";
-import { armourClassOf, classOf, itemOf, madeUpRuleCharacter, modifierOf, numberNamed, scoresOf } from "../../builders/made-up-rule-character";
+import { classOf, itemOf, madeUpRuleCharacter, modifierOf, scoresOf } from "../../builders/made-up-rule-character";
+import { numberNamed } from "../../builders/rule-numbers";
+import { armourClassOf } from "../../builders/rule-test-helpers";
 
 describe("ArmourClassRule with a shield", () => {
   const shield = itemOf("Oak Shield", new Shield(), 2);

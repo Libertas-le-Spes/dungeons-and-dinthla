@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { madeUpRuleCharacter, numberNamed } from "../../builders/made-up-rule-character";
+import { madeUpRuleCharacter } from "../../builders/made-up-rule-character";
+import { numberNamed } from "../../builders/rule-numbers";
 
 describe("TemporaryHitPointsRule", () => {
   it("shows the temporary hit points on their own", () => {

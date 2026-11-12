@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { LightArmour } from "../../../../../src/beyond/rules/input/armour/light-armour";
-import { armourClassOf, classOf, itemOf, madeUpRuleCharacter, numberNamed, withDexterity } from "../../../builders/made-up-rule-character";
+import { classOf, itemOf, madeUpRuleCharacter } from "../../../builders/made-up-rule-character";
+import { numberNamed } from "../../../builders/rule-numbers";
+import { armourClassOf, withDexterity } from "../../../builders/rule-test-helpers";
 
 describe("DraconicDefenceRule for a draconic sorcerer", () => {
   const draconic = [classOf("Sorcerer", 1, 6, "Draconic Bloodline")];
