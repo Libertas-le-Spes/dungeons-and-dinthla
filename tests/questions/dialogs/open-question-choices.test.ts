@@ -13,6 +13,7 @@ const TWO = "Pale Moon/Sessions/Session 2.md";
 interface QuestionChoices {
   save(edit: QuestionEdit): Promise<boolean>;
   reopen(): Promise<boolean>;
+  delete(): Promise<boolean>;
 }
 
 const app = {} as App;
@@ -52,6 +53,17 @@ describe("the question dialog's choices", () => {
     campaign.texts.set(ONE, "? Who\n?= Who: Lady Vess\n");
     campaign.readAgain();
     await expect(async () => choices.reopen()).rejects.toThrow(CHANGED_IN_NOTE);
+    expect(campaign.writes).toBe(0);
+  });
+});
+
+describe("the question dialog's delete", () => {
+  it("takes the question as the campaign reads it now, so one changed since the dialog opened is refused with a promise that rejects", async () => {
+    const campaign = new DialogCampaign({ [ONE]: "? Who\n" });
+    const choices = questionChoices(campaign, { path: ONE, line: 0 });
+    campaign.texts.set(ONE, "We waited.\n? Who\n");
+    campaign.readAgain();
+    await expect(choices.delete()).rejects.toThrow(CHANGED_IN_NOTE);
     expect(campaign.writes).toBe(0);
   });
 });
