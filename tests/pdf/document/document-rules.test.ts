@@ -153,6 +153,13 @@ describe("what refuses the whole file, in the form and on the pages", () => {
     expect(await refusalOf(classicPdf(writer))).toContain(words);
   });
 
+  it("a refused action on a widget that is on a page but not in the form's field list", async () => {
+    const doc = new FormDocument({ acroForm: true, extraAnnotations: [30] }).text("Primary Name", literal("Aria"));
+    const writer = doc.writer();
+    writer.set(30, "<< /Type /Annot /Subtype /Widget /Rect [0 0 1 1] /FT /Tx /T (Hidden) /A << /S /Launch >> >>");
+    expect(await refusalOf(classicPdf(writer))).toContain("an action that is not a script");
+  });
+
   it("a form in a file whose catalogue has no pages", async () => {
     const writer = new FormDocument({ acroForm: true }).text("Primary Name", literal("Aria")).writer();
     writer.set(1, "<< /Type /Catalog /AcroForm << /Fields [10 0 R] >> >>");
