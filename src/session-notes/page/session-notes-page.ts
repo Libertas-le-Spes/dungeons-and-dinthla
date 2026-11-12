@@ -105,7 +105,7 @@ export class SessionNotesPage extends Component {
       root,
       path,
       { ...this.needs, campaign: () => this.needs.store.current },
-      { heading: () => this.headingOf(path), deleted: (deleted) => this.sessionDeleted(deleted) },
+      { heading: () => this.headingOf(path), deleted: (latest) => this.sessionDeleted(latest) },
     );
     this.drawn = { path, picker, gone, kept, session };
     this.update(this.drawn);
@@ -151,10 +151,7 @@ export class SessionNotesPage extends Component {
     session.show([], this.needs.store.current);
   }
 
-  private sessionDeleted(path: string): void {
-    const store = this.needs.store;
-    const left = store.sessionNotes.filter((session) => session.path !== path);
-    const latest = sessionShown(null, store.campaignFolder, left);
+  private sessionDeleted(latest: string | null): void {
     if (latest === null) {
       this.moves.showNoSession();
       return;

@@ -14,6 +14,7 @@ import { SessionTrash } from "../../../src/session-notes/removal/session-trash";
 import type { ConfirmText } from "../../../src/views/dialogs/confirm-modal";
 import type { SessionProperties } from "../../../src/sessions/session-properties";
 import { isShown, obsidianDocument } from "../../stubs/obsidian-dom";
+import { stubRenumbering } from "../renumbering/stub-renumbering";
 
 const FOLDER = "Pale Moon";
 const DELETED_AT = new Date(2026, 10, 2, 21, 5).getTime();
@@ -36,7 +37,7 @@ function propertiesOf(path: string): SessionProperties {
 function pageWith(
   sessions: SessionNote[],
   asked: string | null,
-  { folder = FOLDER as string | null, drafts = new Drafts({}, () => {}), notes = new FakeNotes(`${FOLDER}/Sessions/Session 12.md`, "") } = {},
+  { folder = FOLDER as string | null, drafts = new Drafts({}, () => {}), notes = new FakeNotes(`${FOLDER}/Sessions/Session 12.md`, ""), latestAfterDelete = null as string | null } = {},
 ) {
   let listener = () => {};
   const unsubscribe = vi.fn();
@@ -74,7 +75,7 @@ function pageWith(
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
     actions: { openRow: vi.fn(), openLink: vi.fn() },
     wholeText: { texts: notes.texts, drafts: new NoteDrafts(drafts), saver: new NoteSaver(notes.vault) },
-    removal: { clearer: new SessionClearer(notes.vault), trash: new SessionTrash(notes.vault, { trashFile }, () => false), confirm },
+    removal: { clearer: new SessionClearer(notes.vault), trash: new SessionTrash(notes.vault, { trashFile }, () => false), renumbering: stubRenumbering({ latest: latestAfterDelete }), confirm, report: vi.fn() },
   };
   const page = new SessionNotesPage(root, asked, needs, moves);
   page.load();
@@ -326,7 +327,7 @@ describe("SessionNotesPage", () => {
   it("asks before deleting the session shown, naming it, then shows the latest session left", async () => {
     const twelve = `${FOLDER}/Sessions/Session 12.md`;
     const notes = new FakeNotes(twelve, "Tracks lead to the [[Old Mill]].\n! Find the caravan");
-    const { root, moves, confirm, trashFile } = pageWith(SESSIONS, twelve, { notes });
+    const { root, moves, confirm, trashFile } = pageWith(SESSIONS, twelve, { notes, latestAfterDelete: `${FOLDER}/Sessions/Session 11.md` });
     root.querySelector<HTMLButtonElement>(".dd-delete-session")!.click();
     await vi.waitFor(() => expect(moves.showSession).toHaveBeenCalledExactlyOnceWith(`${FOLDER}/Sessions/Session 11.md`));
     expect(confirm.mock.calls[0]![0].title).toBe("Delete Session 12 · The Old Mill?");

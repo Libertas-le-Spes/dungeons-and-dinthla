@@ -1,5 +1,6 @@
 import { firstLineAfterProperties } from "../../campaign/paths/session-file";
 import { hiddenLines } from "../../notes/reading/hidden-lines";
+import { paired } from "./paired";
 import { lineWithTargetsMasked, lineWithTargetsReplaced, targetsOf, type NewTarget } from "./wiki-links";
 
 interface LineRules {
@@ -15,18 +16,15 @@ function isRewritable(index: number, rules: LineRules): boolean {
   return index >= rules.firstLine && !rules.hidden.has(index);
 }
 
-function targetKeptOrRenamed(was: string, now: string | undefined, newTarget: NewTarget): boolean {
+function targetKeptOrRenamed(was: string, now: string, newTarget: NewTarget): boolean {
   if (now === was) return true;
   return now === newTarget(was);
 }
 
 function targetsKeptOrRenamed(before: string, after: string, newTarget: NewTarget): boolean {
-  const wasTargets = targetsOf(before);
-  const nowTargets = targetsOf(after);
-  for (const [index, was] of wasTargets.entries()) {
-    if (!targetKeptOrRenamed(was, nowTargets[index], newTarget)) return false;
-  }
-  return true;
+  const targets = paired(targetsOf(before), targetsOf(after));
+  if (targets === null) return false;
+  return targets.every(([was, now]) => targetKeptOrRenamed(was, now, newTarget));
 }
 
 function lineChangedOnlyInTargets(before: string, after: string, newTarget: NewTarget): boolean {
@@ -51,12 +49,9 @@ function lineKeptOrRetargeted(index: number, was: string, now: string, rules: Li
 
 export function onlyLinkTargetsChanged(before: string, after: string, newTarget: NewTarget): boolean {
   const rules = rulesOf(before);
-  const beforeLines = before.split("\n");
-  const afterLines = after.split("\n");
-  if (beforeLines.length !== afterLines.length) return false;
-  for (const [index, now] of afterLines.entries()) {
-    const was = beforeLines[index];
-    if (was === undefined) return false;
+  const lines = paired(before.split("\n"), after.split("\n"));
+  if (lines === null) return false;
+  for (const [index, [was, now]] of lines.entries()) {
     if (!lineKeptOrRetargeted(index, was, now, rules, newTarget)) return false;
   }
   return true;

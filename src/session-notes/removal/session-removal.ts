@@ -3,6 +3,9 @@ import { sessionNoteOf } from "../../campaign/paths/session-file";
 import type { ConfirmText, OpenConfirm } from "../../views/dialogs/confirm-modal";
 import { messageOf } from "../../views/dialogs/message-of";
 import type { KeptDrafts } from "../kept/kept-drafts";
+import type { RenumberingPlan } from "../renumbering/renumbering-plan";
+import { movesWords, reportWordsOf, type RenumberingReport } from "../renumbering/renumbering-words";
+import type { SessionRenumbering } from "../renumbering/session-renumbering";
 import { clearTextOf, deleteTextOf } from "./removal-texts";
 import type { SessionClearer } from "./session-clearer";
 import type { AskedNote, SessionTrash } from "./session-trash";
@@ -14,7 +17,9 @@ export const SAVE_RUNNING = "A save is running for this session. Try again once 
 export interface RemovalTools {
   clearer: SessionClearer;
   trash: SessionTrash;
+  renumbering: Pick<SessionRenumbering, "planFor" | "confirmed" | "carryOut">;
   confirm: OpenConfirm;
+  report(message: string): void;
 }
 
 export interface RemovalNeeds extends RemovalTools {
@@ -27,7 +32,7 @@ export interface RemovalMoves {
   busy(): boolean;
   say(message: string): void;
   changed(): void;
-  deleted(path: string): void;
+  deleted(latest: string | null): void;
 }
 
 type Work = () => Promise<void>;
@@ -66,9 +71,15 @@ export class SessionRemoval {
   async deleteSession(): Promise<void> {
     const asked = await this.readToAsk(() => this.needs.trash.ask(this.path));
     if (asked === null) return;
+    const plan = this.needs.renumbering.planFor(this.path);
+    if ("error" in plan) {
+      this.moves.say(plan.error);
+      this.answered();
+      return;
+    }
     const permanently = this.needs.trash.deletesPermanently();
-    const confirmText = deleteTextOf(this.moves.heading(), countOf(this.path, asked.text), permanently);
-    this.ask(confirmText, () => void this.remove(asked));
+    const confirmText = deleteTextOf(this.moves.heading(), countOf(this.path, asked.text), movesWords(plan.renames), permanently);
+    this.ask(confirmText, () => void this.remove(asked, plan));
   }
 
   private async readToAsk<T>(read: Read<T>): Promise<T | null> {
@@ -104,11 +115,23 @@ export class SessionRemoval {
     await this.run(() => this.needs.clearer.clear(this.path, asked), "Couldn't clear the notes");
   }
 
-  private async remove(asked: AskedNote): Promise<void> {
-    const trashed = await this.run(() => this.needs.trash.trash(this.path, asked), "Couldn't delete the session");
+  private async remove(asked: AskedNote, askedPlan: RenumberingPlan): Promise<void> {
+    let report: RenumberingReport | null = null;
+    const trashed = await this.run(async () => {
+      const plan = this.needs.renumbering.confirmed(this.path, askedPlan);
+      await this.needs.trash.trash(this.path, asked);
+      this.needs.keptDrafts.noteDeleted(this.path);
+      report = await this.needs.renumbering.carryOut(plan);
+    }, "Couldn't delete the session");
     if (!trashed) return;
-    this.needs.keptDrafts.noteDeleted(this.path);
-    this.moves.deleted(this.path);
+    this.tellAbout(report);
+    this.moves.deleted(askedPlan.latest);
+  }
+
+  private tellAbout(report: RenumberingReport | null): void {
+    if (report === null) return;
+    const words = reportWordsOf(report);
+    if (words !== null) this.needs.report(words);
   }
 
   private async run(work: Work, failed: string): Promise<boolean> {

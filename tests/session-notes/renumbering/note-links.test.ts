@@ -1,16 +1,17 @@
 import { describe, expect, it } from "vitest";
+import type { TFile } from "obsidian";
 import { NoteLinks } from "../../../src/session-notes/renumbering/note-links";
 import type { SessionRename } from "../../../src/session-notes/renumbering/renumbering-plan";
 
 const PALE = "D&D/Pale Moon";
 const ASHEN = "D&D/Ashen Road";
 
-function sessionsOf(campaign: string, numbers: number[]): { path: string }[] {
-  return numbers.map((number) => ({ path: `${campaign}/Sessions/Session ${number}.md` }));
+function sessionsOf(campaign: string, numbers: number[]): TFile[] {
+  return numbers.map((number) => ({ path: `${campaign}/Sessions/Session ${number}.md` }) as TFile);
 }
 
 const FILES = {
-  getFiles: () => [...sessionsOf(PALE, [1, 2, 4, 5, 6]), ...sessionsOf(ASHEN, [1, 2, 3, 4]), { path: `${PALE}/Characters/Mira.md` }],
+  getFiles: () => [...sessionsOf(PALE, [1, 2, 4, 5, 6]), ...sessionsOf(ASHEN, [1, 2, 3, 4]), ({ path: `${PALE}/Characters/Mira.md` }) as TFile],
 };
 
 function rename(from: number, to: number): SessionRename {

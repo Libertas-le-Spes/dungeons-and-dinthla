@@ -1,19 +1,17 @@
 import { campaignFolderOf } from "../../campaign/paths/campaign-folders";
 import type { FencedFiles } from "../../fence/gate/fenced-files";
-import { LinkUpdates, type LinkUpdateFiles, type NotePath } from "./link-updates";
+import { LinkDecider, type DecisionFiles } from "./link-decisions";
+import { LinkUpdates } from "./link-updates";
+import type { LinkFiles } from "./link-writer";
 import { planRenumbering, type NoRenumbering, type RenumberingPlan } from "./renumbering-plan";
 import { NOT_IN_A_CAMPAIGN, SESSIONS_CHANGED_SINCE_ASKED, type RenumberingReport } from "./renumbering-words";
 import { SessionRenamer, type RenameFiles } from "./session-renamer";
 
-export type RenumberingFiles = RenameFiles & LinkUpdateFiles & Pick<FencedFiles, "getFiles" | "getMarkdownFiles">;
+export type RenumberingFiles = RenameFiles & LinkFiles & DecisionFiles & Pick<FencedFiles, "getMarkdownFiles">;
 
 export type CampaignFolders = () => string[];
 
-function pathsOf(files: NotePath[]): NotePath[] {
-  return files.map((file) => ({ path: file.path }));
-}
-
-function namesOf(files: NotePath[]): string[] {
+function namesOf(files: { path: string }[]): string[] {
   return files.map((file) => file.path);
 }
 
@@ -23,6 +21,7 @@ function samePlan(first: RenumberingPlan, second: RenumberingPlan): boolean {
 
 export class SessionRenumbering {
   private readonly renamer: SessionRenamer;
+  private readonly decider: LinkDecider;
   private readonly updates: LinkUpdates;
 
   constructor(
@@ -30,6 +29,7 @@ export class SessionRenumbering {
     private readonly campaignFolders: CampaignFolders,
   ) {
     this.renamer = new SessionRenamer(files);
+    this.decider = new LinkDecider(files);
     this.updates = new LinkUpdates(files);
   }
 
@@ -47,13 +47,16 @@ export class SessionRenumbering {
   }
 
   async carryOut(plan: RenumberingPlan): Promise<RenumberingReport> {
-    const filesBeforeRenames = pathsOf(this.files.getFiles());
-    const notes = pathsOf(this.files.getMarkdownFiles());
+    const decisions = await this.decider.decide({
+      campaignFolder: plan.campaignFolder,
+      campaignFolders: this.campaignFolders(),
+      notes: namesOf(this.files.getMarkdownFiles()),
+      renames: plan.renames,
+    });
     const outcome = await this.renamer.rename(plan.renames);
     const stopped = { renamed: outcome.renamed, notRenamed: outcome.notRenamed, renameFailure: outcome.failure };
     if (outcome.failure !== null) return { ...stopped, linksNotUpdated: [], linksLeft: [] };
-    const campaigns = this.campaignFolders();
-    const links = await this.updates.update({ campaignFolder: plan.campaignFolder, campaignFolders: campaigns, notes, filesBeforeRenames, renames: plan.renames });
+    const links = await this.updates.apply(decisions, plan.renames);
     return { ...stopped, linksNotUpdated: links.notUpdated, linksLeft: links.leftAsWritten };
   }
 }
