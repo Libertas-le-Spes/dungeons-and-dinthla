@@ -48,6 +48,11 @@ describe("TotalLevelRule", () => {
     expect(numberNamed(character, "Total level").explanation).toBe(`The class ${first} is listed more than once.`);
   });
 
+  it("does not know the level when a class is listed twice in different case", () => {
+    const character = madeUpRuleCharacter({ classes: [classOf("Wizard", 5, 6), classOf("wizard", 5, 6)] });
+    expect(numberNamed(character, "Total level").explanation).toBe("The class wizard is listed more than once.");
+  });
+
   it("names classes apart by their text, so two different classes are fine", () => {
     const character = madeUpRuleCharacter({ classes: [classOf("Wizard", 5, 6), classOf("Warlock", 5, 8)] });
     expect(numberNamed(character, "Total level").valueOr(-1)).toBe(10);
