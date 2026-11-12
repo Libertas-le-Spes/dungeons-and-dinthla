@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { Fence, NOT_WRITTEN_AS_OBSIDIAN_WRITES, OUTSIDE_FENCE } from "../../../src/fence/paths/fence";
 import { FencedFileActions, type RawFileManager } from "../../../src/fence/gate/fenced-file-actions";
 import { HeldFiles } from "../../../src/fence/gate/held-files";
+import { WrittenNotes } from "../../../src/fence/gate/written-notes";
 import { fileAt, rawVaultWith } from "./fake-raw-vault";
 
 const CONFIG_DIR = ".obsidian";
@@ -17,7 +18,10 @@ function actionsWith() {
     trashFile: vi.fn(async () => {}),
   };
   const held = new HeldFiles(vault, new Fence(() => "D&D", CONFIG_DIR));
-  return { actions: new FencedFileActions(fileManager as unknown as RawFileManager, held), fileManager };
+  const written = new WrittenNotes();
+  const heard = vi.fn();
+  written.listen(heard);
+  return { actions: new FencedFileActions(fileManager as unknown as RawFileManager, held, written), fileManager, heard };
 }
 
 describe("FencedFileActions", () => {
@@ -59,5 +63,24 @@ describe("FencedFileActions", () => {
     await actions.trashFile(CHARACTER);
     await expect(actions.trashFile(PRIVATE)).rejects.toThrow(OUTSIDE_FENCE);
     expect(fileManager.trashFile).toHaveBeenCalledExactlyOnceWith(CHARACTER);
+  });
+
+  it("reports a note whose properties it changed, with no text", async () => {
+    const { actions, heard } = actionsWith();
+    await actions.processFrontMatter(CHARACTER, () => {});
+    expect(heard).toHaveBeenCalledExactlyOnceWith({ change: "changed", path: CHARACTER.path, text: null });
+  });
+
+  it("reports a note it trashed", async () => {
+    const { actions, heard } = actionsWith();
+    await actions.trashFile(CHARACTER);
+    expect(heard).toHaveBeenCalledExactlyOnceWith({ change: "trashed", path: CHARACTER.path, text: null });
+  });
+
+  it("reports nothing for a note it refused to change or trash", async () => {
+    const { actions, heard } = actionsWith();
+    await expect(actions.processFrontMatter(PRIVATE, () => {})).rejects.toThrow(OUTSIDE_FENCE);
+    await expect(actions.trashFile(PRIVATE)).rejects.toThrow(OUTSIDE_FENCE);
+    expect(heard).not.toHaveBeenCalled();
   });
 });

@@ -54,4 +54,14 @@ describe("Gatekeeper", () => {
     expect(gate.fence.holds("Vault Settings/D&D/Pale Moon.md")).toBe(false);
     expect(gate.files.getFiles()).toEqual([]);
   });
+
+  it("gives one report of what its files and its file actions wrote", async () => {
+    const { app } = appWith();
+    const gate = new Gatekeeper(app, () => "D&D");
+    const heard = vi.fn();
+    gate.written.listen(heard);
+    await gate.files.process(MAIN_NOTE, (text) => text);
+    await gate.fileActions.trashFile(MAIN_NOTE);
+    expect(heard.mock.calls.map(([written]) => written.change)).toEqual(["changed", "trashed"]);
+  });
 });
