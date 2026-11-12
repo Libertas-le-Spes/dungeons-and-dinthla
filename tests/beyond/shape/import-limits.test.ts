@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  ABILITY_COUNT,
   ARMOUR_CLASS,
   CLASS_COUNT,
   CLASS_LEVEL,
@@ -11,6 +12,7 @@ import {
   LINE_LENGTH,
   NAME_LENGTH,
   NUMBER_COUNT,
+  REPLY_DEPTH,
   REPLY_SIZE,
   SCORE,
   SPEED,
@@ -21,9 +23,11 @@ import { refuseAbove } from "../../../src/beyond/shape/refuse-above";
 
 const CAPS = [
   { name: "the reply", cap: REPLY_SIZE, most: 5_000_000, unit: "bytes" },
+  { name: "the reply's nesting", cap: REPLY_DEPTH, most: 32, unit: "levels" },
   { name: "a name", cap: NAME_LENGTH, most: 100, unit: "characters" },
   { name: "a line of text", cap: LINE_LENGTH, most: 300, unit: "characters" },
   { name: "the classes", cap: CLASS_COUNT, most: 20, unit: "classes" },
+  { name: "the ability overrides", cap: ABILITY_COUNT, most: 6, unit: "overrides" },
   { name: "the numbers", cap: NUMBER_COUNT, most: 100, unit: "numbers" },
   { name: "the inventory", cap: INVENTORY_COUNT, most: 500, unit: "items" },
   { name: "the spells", cap: SPELL_COUNT, most: 500, unit: "spells" },
