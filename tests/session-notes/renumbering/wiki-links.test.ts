@@ -23,6 +23,10 @@ describe("lineWithTargetsReplaced", () => {
     expect(lineWithTargetsReplaced("![[Session 4]]", FOUR_TO_THREE)).toBe("![[Session 3]]");
   });
 
+  it("keeps the backslash that escapes the bar of an alias in a table cell, and replaces the target before it", () => {
+    expect(lineWithTargetsReplaced("| [[Session 4\\|the mill]] |", FOUR_TO_THREE)).toBe("| [[Session 3\\|the mill]] |");
+  });
+
   it("replaces every link on the line that has a new target and leaves the others", () => {
     expect(lineWithTargetsReplaced("[[Session 4]] and [[Mira]] and [[Session 4|again]]", FOUR_TO_THREE)).toBe("[[Session 3]] and [[Mira]] and [[Session 3|again]]");
   });
@@ -64,6 +68,10 @@ describe("lineWithTargetsMasked", () => {
     expect(lineWithTargetsMasked("see ![[Session 4#Plans]] and [[Mira|her]]")).toBe("see ![[#Plans]] and [[|her]]");
   });
 
+  it("keeps an escaping backslash", () => {
+    expect(lineWithTargetsMasked("[[Session 4\\|the mill]]")).toBe("[[\\|the mill]]");
+  });
+
   it("keeps inline code as it is", () => {
     expect(lineWithTargetsMasked("`[[Session 4]]` [[Session 4]]")).toBe("`[[Session 4]]` [[]]");
   });
@@ -72,6 +80,10 @@ describe("lineWithTargetsMasked", () => {
 describe("targetsOf", () => {
   it("lists the targets of the links on a line, not those in inline code", () => {
     expect(targetsOf("[[Session 4|x]] `[[Mira]]` ![[Sessions/Session 5#Plans]]")).toEqual(["Session 4", "Sessions/Session 5"]);
+  });
+
+  it("lists the target without the backslash that escapes an alias's bar", () => {
+    expect(targetsOf("[[Session 4\\|x]]")).toEqual(["Session 4"]);
   });
 
   it("lists nothing for a line without links", () => {

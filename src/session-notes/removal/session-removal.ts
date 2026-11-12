@@ -4,6 +4,7 @@ import type { ConfirmText, OpenConfirm } from "../../views/dialogs/confirm-modal
 import { messageOf } from "../../views/dialogs/message-of";
 import type { KeptDrafts } from "../kept/kept-drafts";
 import type { RenumberingPlan } from "../renumbering/renumbering-plan";
+import { latestThatExists } from "../renumbering/latest-that-exists";
 import { movesWords, reportWordsOf, type RenumberingReport } from "../renumbering/renumbering-words";
 import type { SessionRenumbering } from "../renumbering/session-renumbering";
 import { clearTextOf, deleteTextOf } from "./removal-texts";
@@ -35,7 +36,7 @@ export interface RemovalMoves {
   deleted(latest: string | null): void;
 }
 
-type Work = () => Promise<void>;
+type Work<T> = () => Promise<T>;
 
 type Read<T> = () => Promise<T | null>;
 
@@ -116,38 +117,37 @@ export class SessionRemoval {
   }
 
   private async remove(asked: AskedNote, askedPlan: RenumberingPlan): Promise<void> {
-    let report: RenumberingReport | null = null;
-    const trashed = await this.run(async () => {
-      const plan = this.needs.renumbering.confirmed(this.path, askedPlan);
-      await this.needs.trash.trash(this.path, asked);
-      this.needs.keptDrafts.noteDeleted(this.path);
-      report = await this.needs.renumbering.carryOut(plan);
-    }, "Couldn't delete the session");
-    if (!trashed) return;
+    const report = await this.run(() => this.trashAndRenumber(asked, askedPlan), "Couldn't delete the session");
+    if (report === null) return;
     this.tellAbout(report);
-    this.moves.deleted(askedPlan.latest);
+    this.moves.deleted(latestThatExists(askedPlan, report));
   }
 
-  private tellAbout(report: RenumberingReport | null): void {
-    if (report === null) return;
+  private async trashAndRenumber(asked: AskedNote, askedPlan: RenumberingPlan): Promise<RenumberingReport> {
+    const plan = this.needs.renumbering.confirmed(this.path, askedPlan);
+    await this.needs.trash.trash(this.path, asked);
+    this.needs.keptDrafts.noteDeleted(this.path);
+    return this.needs.renumbering.carryOut(plan);
+  }
+
+  private tellAbout(report: RenumberingReport): void {
     const words = reportWordsOf(report);
     if (words !== null) this.needs.report(words);
   }
 
-  private async run(work: Work, failed: string): Promise<boolean> {
-    if (this.running) return false;
+  private async run<T>(work: Work<T>, failed: string): Promise<T | null> {
+    if (this.running) return null;
     if (this.moves.busy()) {
       this.moves.say(SAVE_RUNNING);
-      return false;
+      return null;
     }
     this.running = true;
     this.moves.changed();
     try {
-      await work();
-      return true;
+      return await work();
     } catch (error) {
       this.moves.say(`${failed}: ${messageOf(error)}`);
-      return false;
+      return null;
     } finally {
       this.running = false;
       this.moves.changed();
