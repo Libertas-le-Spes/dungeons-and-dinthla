@@ -6,6 +6,8 @@ export interface FormOptions {
   acroForm: boolean;
   catalogExtra: string;
   pageExtra: string;
+  formExtra: string;
+  extraAnnotations: number[];
 }
 
 export const FIRST_FIELD_NUMBER = 10;
@@ -25,7 +27,7 @@ export class FormDocument {
   private readonly fields: FieldSpec[] = [];
 
   constructor(given: Partial<FormOptions> = {}) {
-    this.options = { acroForm: false, catalogExtra: "", pageExtra: "", ...given };
+    this.options = { acroForm: false, catalogExtra: "", pageExtra: "", formExtra: "", extraAnnotations: [], ...given };
   }
 
   text(name: string, value: string, extra = ""): this {
@@ -54,7 +56,7 @@ export class FormDocument {
     const references = this.referencesText();
     writer.set(CATALOG, `<< /Type /Catalog /Pages ${PAGES} 0 R ${this.formEntry(references)} ${this.options.catalogExtra} >>`);
     writer.set(PAGES, `<< /Type /Pages /Kids [${PAGE} 0 R] /Count 1 >>`);
-    writer.set(PAGE, `<< /Type /Page /Parent ${PAGES} 0 R /Annots [${references}] ${this.options.pageExtra} >>`);
+    writer.set(PAGE, `<< /Type /Page /Parent ${PAGES} 0 R /Annots [${references} ${this.extraAnnotationReferences()}] ${this.options.pageExtra} >>`);
     for (const [position, field] of this.fields.entries()) writer.set(this.numberOfField(position), this.fieldBody(field));
     return writer;
   }
@@ -80,9 +82,15 @@ export class FormDocument {
     return references.join(" ");
   }
 
+  private extraAnnotationReferences(): string {
+    const references: string[] = [];
+    for (const number of this.options.extraAnnotations) references.push(`${number} 0 R`);
+    return references.join(" ");
+  }
+
   private formEntry(references: string): string {
     if (!this.options.acroForm) return "";
-    return `/AcroForm << /Fields [${references}] >>`;
+    return `/AcroForm << /Fields [${references}] ${this.options.formExtra} >>`;
   }
 
   private fieldBody(field: FieldSpec): string {
