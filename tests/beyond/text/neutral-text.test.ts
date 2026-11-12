@@ -15,7 +15,7 @@ function neutralLineOf(text: string): string {
 const MARKER_LINES = ["? Who sent it", "! Find the caravan", "$ 35 gp", "$ [[Mira]] Rope", "$$ Rope :sold 3gp", "?? letter", "!! caravan", "- ? Who", "* ! Find", "+ $ 5 gp", "  - ? Who", "\t? Who", "    ? Who"];
 const FACT_LINES = ["[[Mira]] AC: 15", "- [[Mira]] AC: 15", "AC: 16", "Range: 60 feet", "  Personality: grumpy", "- Range: 60 feet"];
 
-describe("neutralTextOf", () => {
+describe("NeutralText.ofLines", () => {
   it("leaves plain words as they are", () => {
     expect(neutralTextOf("Primary Monk, Human, level 4 (12:30, 50%)")).toBe("Primary Monk, Human, level 4 (12:30, 50%)");
   });
