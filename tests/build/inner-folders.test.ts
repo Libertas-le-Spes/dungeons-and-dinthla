@@ -26,7 +26,8 @@ const INNER_FOLDERS: InnerFolder[] = [
   { folder: "names", reaches: ["names"] },
   { folder: "fence/paths", reaches: ["fence/paths", "names"] },
   { folder: "fence/gate", reaches: ["fence/gate", "fence/paths", "names"] },
-  { folder: "beyond", reaches: ["beyond", "names"] },
+  { folder: "beyond", reaches: ["beyond", "names", "pdf"] },
+  { folder: "pdf", reaches: ["pdf"] },
 ];
 
 const BEYOND_IMPORTERS: string[] = [];
@@ -99,6 +100,10 @@ function innerFolderNamed(folder: string): InnerFolder {
 
 function breachesOfMadeUpFile(folder: string, text: string): string[] {
   return breachesIn(innerFolderNamed(folder), join(SOURCE_FOLDER, folder, "made-up.ts"), text);
+}
+
+function breachesOfMadeUpFileInside(folder: string, inside: string, text: string): string[] {
+  return breachesIn(innerFolderNamed(folder), join(SOURCE_FOLDER, folder, inside, "made-up.ts"), text);
 }
 
 describe("the inner folders", () => {
@@ -189,8 +194,8 @@ describe("the rule the inner folders are checked by, over made-up files", () => 
     expect(breachesOfMadeUpFile("beyond", 'import { a } from "../fence/gate/gatekeeper";')).toEqual(["beyond/made-up.ts imports from fence/gate"]);
   });
 
-  it("allows beyond to import from itself and from names", () => {
-    const text = ['import { a } from "./shape/route";', 'import { b } from "../names/name-key";'].join("\n");
+  it("allows beyond to import from itself, from names and from pdf", () => {
+    const text = ['import { a } from "./shape/route";', 'import { b } from "../names/name-key";', 'import { c } from "../pdf/read-pdf-fields";'].join("\n");
     expect(breachesOfMadeUpFile("beyond", text)).toEqual([]);
   });
 
@@ -200,5 +205,34 @@ describe("the rule the inner folders are checked by, over made-up files", () => 
 
   it("refuses names importing from fence", () => {
     expect(breachesOfMadeUpFile("names", 'import { a } from "../fence/paths/fence";')).toEqual(["names/made-up.ts imports from fence/paths"]);
+  });
+});
+
+describe("the rule for src/pdf, over made-up files", () => {
+  it.each(IMPORT_FORMS)("refuses an import of the campaign folder written as $form", ({ written }) => {
+    expect(breachesOfMadeUpFile("pdf", written("../campaign/one"))).toEqual(["pdf/made-up.ts imports from campaign"]);
+  });
+
+  it("refuses an import of names, which the reader has no need of", () => {
+    expect(breachesOfMadeUpFile("pdf", 'import { a } from "../names/file-name";')).toEqual(["pdf/made-up.ts imports from names"]);
+  });
+
+  it("refuses an import of the fence folders, so the reader can't touch the vault", () => {
+    expect(breachesOfMadeUpFile("pdf", 'import { a } from "../fence/gate/gatekeeper";')).toEqual(["pdf/made-up.ts imports from fence/gate"]);
+  });
+
+  it("refuses a file deep inside src/pdf importing outward", () => {
+    expect(breachesOfMadeUpFileInside("pdf", "fields/sources", 'import { a } from "../../../beyond/one";')).toEqual(["pdf/fields/sources/made-up.ts imports from beyond"]);
+  });
+
+  it("allows the files of src/pdf to import from each other, at any depth", () => {
+    const text = ['import { a } from "./one";', 'import { b } from "../fields/two";', 'import { c } from "../../pdf/three";'].join("\n");
+    expect(breachesOfMadeUpFileInside("pdf", "streams", text)).toEqual([]);
+  });
+
+  it("reads every file under src/pdf, including those in subfolders", () => {
+    const read = filesIn("pdf").map((file) => relative(SOURCE_FOLDER, file));
+    expect(read).toContain(join("pdf", "read-pdf-fields.ts"));
+    expect(read).toContain(join("pdf", "streams", "inflate", "bounded-inflater.ts"));
   });
 });
