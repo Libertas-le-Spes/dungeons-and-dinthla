@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { MAX_NESTING } from "../../../src/pdf/limits/pdf-limits";
-import { classicPdf } from "../writer/classic-layout";
-import { FormDocument } from "../writer/form-document";
+import { classicPdf } from "../writer/layouts/classic-layout";
+import { FormDocument } from "../writer/documents/form-document";
 import { literal } from "../writer/pdf-text";
-import { treeDocument, treeWriter } from "../writer/tree-document";
+import { treeDocument, treeWriter } from "../writer/documents/tree-document";
 import { fieldsOf, refusalOf } from "../support/read-buffer";
 
 const WIDGET = "/Type /Annot /Subtype /Widget /Rect [0 0 1 1]";

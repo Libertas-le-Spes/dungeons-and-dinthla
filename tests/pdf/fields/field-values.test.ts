@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MAX_FIELD_TEXT_CHARACTERS } from "../../../src/pdf/limits/pdf-limits";
-import { classicPdf } from "../writer/classic-layout";
-import { FormDocument } from "../writer/form-document";
+import { classicPdf } from "../writer/layouts/classic-layout";
+import { FormDocument } from "../writer/documents/form-document";
 import { literal, utf16Hex } from "../writer/pdf-text";
 import { fieldsOf, refusalOf } from "../support/read-buffer";
 

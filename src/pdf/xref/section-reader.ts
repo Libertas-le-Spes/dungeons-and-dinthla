@@ -3,7 +3,7 @@ import type { ValueParser } from "../parsing/value-parser";
 import type { StreamDecoder } from "../streams/stream-decoder";
 import type { PdfDictionary } from "../values/pdf-dictionary";
 import type { WorkBudget } from "../work/work-budget";
-import type { CrossReference } from "./cross-reference";
+import type { CrossReference } from "./entries/cross-reference";
 
 export interface SectionContext {
   cursor: ByteCursor;

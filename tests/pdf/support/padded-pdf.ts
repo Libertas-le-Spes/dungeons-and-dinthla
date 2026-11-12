@@ -1,5 +1,5 @@
-import { classicPdf } from "../writer/classic-layout";
-import { FormDocument } from "../writer/form-document";
+import { classicPdf } from "../writer/layouts/classic-layout";
+import { FormDocument } from "../writer/documents/form-document";
 import { literal } from "../writer/pdf-text";
 
 const FILLER = 90;

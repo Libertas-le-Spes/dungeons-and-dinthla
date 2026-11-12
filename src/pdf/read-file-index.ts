@@ -11,7 +11,7 @@ import { DecompressedTotals } from "./streams/inflate/decompressed-totals";
 import { StreamDecoder } from "./streams/stream-decoder";
 import type { PdfDictionary } from "./values/pdf-dictionary";
 import { WorkBudget } from "./work/work-budget";
-import { CrossReference } from "./xref/cross-reference";
+import { CrossReference } from "./xref/entries/cross-reference";
 import type { SectionContext } from "./xref/section-reader";
 import { readCrossReferenceChain } from "./xref/xref-chain";
 

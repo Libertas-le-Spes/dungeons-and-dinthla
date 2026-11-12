@@ -1,6 +1,6 @@
 import type { PdfArray } from "./pdf-array";
 import type { PdfDictionary } from "./pdf-dictionary";
-import type { PdfReference } from "./pdf-reference";
+import type { PdfReference } from "./scalars/pdf-reference";
 import type { PdfStream } from "./pdf-stream";
 
 export abstract class PdfValue {

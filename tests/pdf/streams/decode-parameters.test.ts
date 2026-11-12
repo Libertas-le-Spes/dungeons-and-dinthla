@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { predictionOf } from "../../../src/pdf/streams/decode-parameters";
-import { PdfAbsent } from "../../../src/pdf/values/pdf-absent";
+import { PdfAbsent } from "../../../src/pdf/values/scalars/pdf-absent";
 import { parsed, refusalFrom } from "../support/parsed";
 
 describe("predictionOf", () => {
