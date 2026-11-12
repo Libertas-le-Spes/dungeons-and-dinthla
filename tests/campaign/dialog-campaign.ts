@@ -2,6 +2,7 @@ import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/reading/build-campaign";
 import type { Campaign, SessionNote } from "../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../src/campaign/reading/campaign-store";
+import { noteNameOf } from "../../src/campaign/paths/note-name";
 import { sessionNoteOf } from "../../src/campaign/paths/session-file";
 import type { Gate } from "../../src/fence/gate/gatekeeper";
 import { openedModals } from "../stubs/obsidian";
@@ -15,6 +16,7 @@ function numberOf(path: string): number {
 export class DialogCampaign {
   readonly texts: Map<string, string>;
   writes = 0;
+  private files = new Map<string, TFile>();
   read: Map<string, string>;
   private campaign: Campaign | null = null;
 
@@ -24,13 +26,13 @@ export class DialogCampaign {
   }
 
   get gate(): Gate {
-    const fileOf = (path: string) => ({ path, basename: path.slice(path.lastIndexOf("/") + 1).replace(/\.md$/, "") }) as TFile;
+    const fileOf = (path: string) => this.fileAt(path);
     const files = {
       getFiles: () => [...this.texts.keys()].map(fileOf),
       getMarkdownFiles: () => [...this.texts.keys()].map(fileOf),
       getFileByPath: (path: string) => {
         if (!this.texts.has(path)) return null;
-        return fileOf(path);
+        return this.fileAt(path);
       },
       process: async (file: TFile, change: (text: string) => string) => {
         this.writes += 1;
@@ -65,9 +67,37 @@ export class DialogCampaign {
     return this.campaign;
   }
 
+  addNote(path: string, text: string): void {
+    this.files.delete(path);
+    this.texts.set(path, text);
+  }
+
+  deleteNote(path: string): void {
+    this.files.delete(path);
+    this.texts.delete(path);
+  }
+
+  moveNote(from: string, to: string): void {
+    const file = this.fileAt(from);
+    const text = this.textOf(from);
+    this.files.delete(from);
+    this.texts.delete(from);
+    file.path = to;
+    this.files.set(to, file);
+    this.texts.set(to, text);
+  }
+
   readAgain(): void {
     this.read = new Map(this.texts);
     this.campaign = null;
+  }
+
+  private fileAt(path: string): TFile {
+    const known = this.files.get(path);
+    if (known !== undefined) return known;
+    const made = { path, basename: noteNameOf(path) } as TFile;
+    this.files.set(path, made);
+    return made;
   }
 
   private textOf(path: string): string {
@@ -80,3 +110,25 @@ export class DialogCampaign {
 export function lastDialog<T>(): T {
   return openedModals[openedModals.length - 1] as unknown as T;
 }
+
+const SESSION_TWO = "Pale Moon/Sessions/Session 2.md";
+const SESSION_THREE = "Pale Moon/Sessions/Session 3.md";
+
+export const SESSION_TWO_LOST: [string, (campaign: DialogCampaign) => void][] = [
+  ["deleted", (campaign) => campaign.deleteNote(SESSION_TWO)],
+  [
+    "deleted and the next session renumbered into its path",
+    (campaign) => {
+      campaign.addNote(SESSION_THREE, "Later\n");
+      campaign.deleteNote(SESSION_TWO);
+      campaign.moveNote(SESSION_THREE, SESSION_TWO);
+    },
+  ],
+  [
+    "deleted and made again",
+    (campaign) => {
+      campaign.deleteNote(SESSION_TWO);
+      campaign.addNote(SESSION_TWO, "");
+    },
+  ],
+];

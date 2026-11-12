@@ -10,6 +10,7 @@ import type { DraftKeeping } from "../../session-notes/kept/draft-keeping";
 import type { Drafts } from "../../session-notes/drafts/drafts";
 import { SessionClearer } from "../../session-notes/removal/session-clearer";
 import { SessionTrash } from "../../session-notes/removal/session-trash";
+import { SessionRenumbering } from "../../session-notes/renumbering/session-renumbering";
 import { deletesPermanently } from "../../session-notes/removal/trash-option";
 import { sessionPropertiesOf } from "../../sessions/session-properties";
 import type { OpenConfirm } from "../../views/dialogs/confirm-modal";
@@ -26,6 +27,8 @@ export interface SessionNotesWiringNeeds {
   openers: LookupOpeners;
   actions: LinkActions;
   confirm: OpenConfirm;
+  campaignFolders(): string[];
+  report(message: string): void;
   startSession(): void;
 }
 
@@ -49,7 +52,9 @@ export function sessionNotesWiring(needs: SessionNotesWiringNeeds): SessionNotes
     removal: {
       clearer: new SessionClearer(gate.files),
       trash: new SessionTrash(gate.files, gate.fileActions, () => deletesPermanently(gate.vaultSettings)),
+      renumbering: new SessionRenumbering(gate.files, () => needs.campaignFolders()),
       confirm: needs.confirm,
+      report: (message: string) => needs.report(message),
     },
     startSession: () => needs.startSession(),
   };

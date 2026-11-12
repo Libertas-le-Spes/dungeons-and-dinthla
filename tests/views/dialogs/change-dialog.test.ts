@@ -78,6 +78,23 @@ describe("a change dialog's change", () => {
     expect(dialog.finishedWith).toEqual([]);
   });
 
+  it("says why a change failed when it fails before it hands back anything to wait for, then hands the dialog the error", async () => {
+    const dialog = openDialog();
+    dialog.saveFailingAtOnce(BROKEN);
+    await settled();
+    expect(Notice.shown).toEqual([`${FAILURE}: The note is gone.`]);
+    expect(dialog.failedWith).toEqual([BROKEN]);
+    expect(dialog.finishedWith).toEqual([]);
+  });
+
+  it("can start again once a change has failed before it hands back anything to wait for", async () => {
+    const dialog = openDialog();
+    dialog.saveFailingAtOnce(BROKEN);
+    await settled();
+    dialog.save();
+    expect(dialog.changes).toHaveLength(1);
+  });
+
   it("says nothing when a change finishes", async () => {
     const dialog = openDialog();
     dialog.save();
@@ -100,6 +117,14 @@ describe("closing a change dialog", () => {
     const dialog = openDialog();
     dialog.save();
     dialog.changeAt(0).finish(false);
+    await settled();
+    dialog.close();
+    expect(dialog.closedTimes).toBe(1);
+  });
+
+  it("closes once the change it was running has failed before it handed back anything to wait for", async () => {
+    const dialog = openDialog();
+    dialog.saveFailingAtOnce(BROKEN);
     await settled();
     dialog.close();
     expect(dialog.closedTimes).toBe(1);

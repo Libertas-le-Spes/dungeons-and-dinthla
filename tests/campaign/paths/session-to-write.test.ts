@@ -20,6 +20,10 @@ describe("sessionToWrite", () => {
     expect(sessionToWrite("Pale Moon", PATHS, openAt("Ashen Road/Sessions/Session 11.md", 1))).toBe("Pale Moon/Sessions/Session 10.md");
   });
 
+  it("writes in the campaign's latest session when the open session's note is no longer among the campaign's files", () => {
+    expect(sessionToWrite("Pale Moon", PATHS, openAt("Pale Moon/Sessions/Session 4.md", 1))).toBe("Pale Moon/Sessions/Session 10.md");
+  });
+
   it("writes in the campaign's latest session when the latest is wanted", () => {
     expect(sessionToWrite("Pale Moon", PATHS, LATEST)).toBe("Pale Moon/Sessions/Session 10.md");
   });

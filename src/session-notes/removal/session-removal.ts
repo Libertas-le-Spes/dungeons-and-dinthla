@@ -3,6 +3,10 @@ import { sessionNoteOf } from "../../campaign/paths/session-file";
 import type { ConfirmText, OpenConfirm } from "../../views/dialogs/confirm-modal";
 import { messageOf } from "../../views/dialogs/message-of";
 import type { KeptDrafts } from "../kept/kept-drafts";
+import type { RenumberingPlan } from "../renumbering/renumbering-plan";
+import { latestThatExists } from "../renumbering/latest-that-exists";
+import { movesWords, reportWordsOf, type RenumberingReport } from "../renumbering/renumbering-words";
+import type { SessionRenumbering } from "../renumbering/session-renumbering";
 import { clearTextOf, deleteTextOf } from "./removal-texts";
 import type { SessionClearer } from "./session-clearer";
 import type { AskedNote, SessionTrash } from "./session-trash";
@@ -14,7 +18,9 @@ export const SAVE_RUNNING = "A save is running for this session. Try again once 
 export interface RemovalTools {
   clearer: SessionClearer;
   trash: SessionTrash;
+  renumbering: Pick<SessionRenumbering, "planFor" | "confirmed" | "carryOut">;
   confirm: OpenConfirm;
+  report(message: string): void;
 }
 
 export interface RemovalNeeds extends RemovalTools {
@@ -27,10 +33,10 @@ export interface RemovalMoves {
   busy(): boolean;
   say(message: string): void;
   changed(): void;
-  deleted(path: string): void;
+  deleted(latest: string | null): void;
 }
 
-type Work = () => Promise<void>;
+type Work<T> = () => Promise<T>;
 
 type Read<T> = () => Promise<T | null>;
 
@@ -66,9 +72,15 @@ export class SessionRemoval {
   async deleteSession(): Promise<void> {
     const asked = await this.readToAsk(() => this.needs.trash.ask(this.path));
     if (asked === null) return;
+    const plan = this.needs.renumbering.planFor(this.path);
+    if ("error" in plan) {
+      this.moves.say(plan.error);
+      this.answered();
+      return;
+    }
     const permanently = this.needs.trash.deletesPermanently();
-    const confirmText = deleteTextOf(this.moves.heading(), countOf(this.path, asked.text), permanently);
-    this.ask(confirmText, () => void this.remove(asked));
+    const confirmText = deleteTextOf(this.moves.heading(), countOf(this.path, asked.text), movesWords(plan.renames), permanently);
+    this.ask(confirmText, () => void this.remove(asked, plan));
   }
 
   private async readToAsk<T>(read: Read<T>): Promise<T | null> {
@@ -104,27 +116,38 @@ export class SessionRemoval {
     await this.run(() => this.needs.clearer.clear(this.path, asked), "Couldn't clear the notes");
   }
 
-  private async remove(asked: AskedNote): Promise<void> {
-    const trashed = await this.run(() => this.needs.trash.trash(this.path, asked), "Couldn't delete the session");
-    if (!trashed) return;
-    this.needs.keptDrafts.noteDeleted(this.path);
-    this.moves.deleted(this.path);
+  private async remove(asked: AskedNote, askedPlan: RenumberingPlan): Promise<void> {
+    const report = await this.run(() => this.trashAndRenumber(asked, askedPlan), "Couldn't delete the session");
+    if (report === null) return;
+    this.tellAbout(report);
+    this.moves.deleted(latestThatExists(askedPlan, report));
   }
 
-  private async run(work: Work, failed: string): Promise<boolean> {
-    if (this.running) return false;
+  private async trashAndRenumber(asked: AskedNote, askedPlan: RenumberingPlan): Promise<RenumberingReport> {
+    const plan = this.needs.renumbering.confirmed(this.path, askedPlan);
+    await this.needs.trash.trash(this.path, asked);
+    this.needs.keptDrafts.noteDeleted(this.path);
+    return this.needs.renumbering.carryOut(plan);
+  }
+
+  private tellAbout(report: RenumberingReport): void {
+    const words = reportWordsOf(report);
+    if (words !== null) this.needs.report(words);
+  }
+
+  private async run<T>(work: Work<T>, failed: string): Promise<T | null> {
+    if (this.running) return null;
     if (this.moves.busy()) {
       this.moves.say(SAVE_RUNNING);
-      return false;
+      return null;
     }
     this.running = true;
     this.moves.changed();
     try {
-      await work();
-      return true;
+      return await work();
     } catch (error) {
       this.moves.say(`${failed}: ${messageOf(error)}`);
-      return false;
+      return null;
     } finally {
       this.running = false;
       this.moves.changed();

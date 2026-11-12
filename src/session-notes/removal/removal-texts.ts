@@ -14,16 +14,17 @@ function notesGo(count: number): string {
   return `Its ${count} notes go, including any questions, quests and ledger lines first written in them.`;
 }
 
-function deleteBodyOf(count: number, permanently: boolean): string {
-  const body = `${notesGoWithIt(count)} ${OTHERS_STAY}`;
-  if (!permanently) return body;
-  return `${body} ${DELETED_PERMANENTLY}`;
+function deleteBodyOf(count: number, moves: string, permanently: boolean): string {
+  const sentences = [notesGoWithIt(count), OTHERS_STAY];
+  if (moves !== "") sentences.push(moves);
+  if (permanently) sentences.push(DELETED_PERMANENTLY);
+  return sentences.join(" ");
 }
 
-export function deleteTextOf(heading: string, count: number, permanently: boolean): ConfirmText {
+export function deleteTextOf(heading: string, count: number, moves: string, permanently: boolean): ConfirmText {
   return {
     title: `Delete ${heading}?`,
-    body: deleteBodyOf(count, permanently),
+    body: deleteBodyOf(count, moves, permanently),
     confirm: "Delete session",
     keep: "Keep session",
   };

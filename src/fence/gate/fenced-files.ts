@@ -13,6 +13,7 @@ export type RawVault = Pick<
   | "process"
   | "create"
   | "createFolder"
+  | "rename"
   | "delete"
   | "getResourcePath"
 > &
@@ -87,6 +88,10 @@ export class FencedFiles extends Component {
 
   async create(path: string, text: string): Promise<TFile> {
     return this.vault.create(this.held.newPath(path), text);
+  }
+
+  async rename(file: TFile, newPath: string): Promise<void> {
+    await this.vault.rename(this.held.file(file), this.held.newPath(newPath));
   }
 
   async createFolder(path: string): Promise<TFolder> {

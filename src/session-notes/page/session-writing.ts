@@ -18,7 +18,7 @@ export interface SessionWritingNeeds extends WritingNeeds {
 
 export interface SessionMoves {
   heading(): string;
-  deleted(path: string): void;
+  deleted(latest: string | null): void;
 }
 
 export class SessionWriting {
@@ -49,7 +49,7 @@ export class SessionWriting {
       busy: () => this.isSaving(),
       say: (message) => this.buttons.say(message),
       changed: () => this.removalChanged(),
-      deleted: (deleted) => moves.deleted(deleted),
+      deleted: (latest) => moves.deleted(latest),
     });
     this.stops = [
       needs.wholeText.drafts.subscribe((changed) => this.wholeTextKept(changed)),

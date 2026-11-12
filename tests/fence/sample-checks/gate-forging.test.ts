@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ALL_ALLOWED } from "../scan/running/allowance-sets";
 import { numberedFileNames, SampleScan } from "../scan/running/sample-scan";
-import { FILE_CHANGING_SAMPLES, GATE_FORGING_SAMPLES, GATE_KEEPING_SAMPLES, GATE_PLACING_SAMPLES, GATE_SHAPING_SAMPLES } from "../samples/gate-forging-samples";
+import { FILE_CHANGING_SAMPLES, GATE_FORGING_SAMPLES, GATE_KEEPING_SAMPLES, GATE_PLACING_SAMPLES, GATE_SHAPING_SAMPLES, TWO_FORGED_PLACEMENTS_SAMPLE } from "../samples/gate-forging-samples";
 
-const SAMPLES = [...GATE_FORGING_SAMPLES, ...GATE_PLACING_SAMPLES, ...GATE_SHAPING_SAMPLES, ...GATE_KEEPING_SAMPLES, ...FILE_CHANGING_SAMPLES];
+const SAMPLES = [...GATE_FORGING_SAMPLES, ...GATE_PLACING_SAMPLES, ...GATE_SHAPING_SAMPLES, ...GATE_KEEPING_SAMPLES, ...FILE_CHANGING_SAMPLES, TWO_FORGED_PLACEMENTS_SAMPLE];
 
 let scan: SampleScan;
 
@@ -34,5 +34,12 @@ describe("the source scan's gate forging rules", () => {
 
   it.each(GATE_KEEPING_SAMPLES)("lets %s pass in a file allowed everything else, since every gate part comes from the gate", (sample) => {
     expect(scan.breaches(sample, ALL_ALLOWED)).toEqual([]);
+  });
+});
+
+describe("the source scan's answers about values that refer to each other", () => {
+  it("flags the second forged placement too, when the first one's check went through the same pair of types", () => {
+    const breaches = scan.breaches(TWO_FORGED_PLACEMENTS_SAMPLE, ALL_ALLOWED);
+    expect(breaches.filter((breach) => breach.includes("puts a value the gate didn't give where the gate's parts go"))).toHaveLength(2);
   });
 });
