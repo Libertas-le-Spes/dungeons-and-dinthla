@@ -37,7 +37,7 @@ function isTooWide(width: number): boolean {
 
 function subrangesOf(dictionary: PdfDictionary): Subrange[] {
   const size = dictionary.get("Size").asInteger();
-  if (size === null) throw new PdfRefusal(BAD_LAYOUT);
+  if (size === null || size < 0) throw new PdfRefusal(BAD_LAYOUT);
   if (!dictionary.get("Index").isPresent()) return [{ first: 0, count: size }];
   const numbers = new Sequence(wholeNumbersOf(dictionary, "Index"));
   if (numbers.remaining() % 2 !== 0) throw new PdfRefusal(BAD_LAYOUT);

@@ -1,6 +1,6 @@
 export function withUpPredictor(rows: Buffer[]): Buffer {
   const encoded: Buffer[] = [];
-  let above = Buffer.alloc(0);
+  let above: Buffer = Buffer.alloc(0);
   for (const row of rows) {
     const aboveRow = rowOrZeros(above, row.length);
     const tagged = Buffer.alloc(row.length + 1);
