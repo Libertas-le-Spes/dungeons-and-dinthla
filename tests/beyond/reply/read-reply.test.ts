@@ -21,6 +21,14 @@ const PLACES: { where: string; path: (string | number)[] }[] = [
   { where: "the modifiers", path: ["modifiers"] },
 ];
 
+function placesWithEachKey(): { where: string; path: (string | number)[]; key: string }[] {
+  const found: { where: string; path: (string | number)[]; key: string }[] = [];
+  for (const place of PLACES) {
+    for (const key of PROTOTYPE_KEYS) found.push({ where: place.where, path: place.path, key });
+  }
+  return found;
+}
+
 function clean(): MadeUpReply {
   return MadeUpReply.levelOneMonk();
 }
@@ -35,13 +43,13 @@ describe("readReply", () => {
     const { id, character } = readReply(clean().wholeText());
     expect(id).toBe(4242);
     expect(character.route.name).toBe("online");
-    expect(character.name).toBe("Primary Monk");
-    expect(character.species).toBe("Human");
-    expect(character.classes.map((imported) => [imported.name, imported.level.valueOr(0)])).toEqual([["Monk", 1]]);
-    expect(character.inventory.map((item) => item.name)).toEqual(["Quarterstaff", "Rope", "Torch"]);
+    expect(character.name.text).toBe("Primary Monk");
+    expect(character.species.text).toBe("Human");
+    expect(character.classes.map((imported) => [imported.name.text, imported.level.valueOr(0)])).toEqual([["Monk", 1]]);
+    expect(character.inventory.map((item) => item.name.text)).toEqual(["Quarterstaff", "Rope", "Torch"]);
     expect(character.purse.gold.valueOr(0)).toBe(15);
-    expect(character.spells).toEqual(["Light", "Mage Hand"]);
-    expect(character.features).toEqual(["Alert"]);
+    expect(character.spells.map((spell) => spell.text)).toEqual(["Light", "Mage Hand"]);
+    expect(character.features.map((feature) => feature.text)).toEqual(["Alert"]);
     expect(character.numbers.map((number) => number.name)).toEqual(["AC", "HP"]);
   });
 
@@ -104,7 +112,7 @@ describe("readReply", () => {
     expect(readReply(extra.wholeText())).toEqual(readReply(clean().wholeText()));
   });
 
-  it.each(PLACES.flatMap((place) => PROTOTYPE_KEYS.map((key) => ({ ...place, key }))))("reads the same character with $key planted in $where", ({ path, key }) => {
+  it.each(placesWithEachKey())("reads the same character with $key planted in $where", ({ path, key }) => {
     const hostile = clean().withHostileKey(path, key);
     expect(readReply(hostile.wholeText())).toEqual(readReply(clean().wholeText()));
   });

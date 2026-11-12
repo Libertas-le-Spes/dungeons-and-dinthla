@@ -1,6 +1,6 @@
 import type { Cap } from "../../shape/cap";
 import { refuseAbove } from "../../shape/refuse-above";
-import { needsList, needsObject, needsText } from "../reply-refusals";
+import { needsList, needsObject, needsText } from "../common/reply-refusals";
 
 function isPlainObject(value: unknown): value is object {
   if (typeof value !== "object") return false;
@@ -21,6 +21,11 @@ export class JsonReader {
 
   hasKey(key: string): boolean {
     return this.valueAt(key) !== undefined;
+  }
+
+  holdsNothingAt(key: string): boolean {
+    const found = this.valueAt(key);
+    return found === undefined || found === null;
   }
 
   isNullAt(key: string): boolean {

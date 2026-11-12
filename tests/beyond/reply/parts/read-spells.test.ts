@@ -1,13 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { spellsOf } from "../../../../src/beyond/reply/parts/read-spells";
+import type { CleanLine } from "../../../../src/beyond/text/clean-line";
 import { MadeUpReply } from "../../builders/made-up-reply";
 
 function spell(name: unknown): object {
   return { definition: { name } };
 }
 
-function spells(count: number): object[] {
-  return Array.from({ length: count }, () => spell("Light"));
+function spells(count: number, prefix = "Spell"): object[] {
+  return Array.from({ length: count }, (_each, index) => spell(`${prefix} ${index}`));
+}
+
+function textsOf(lines: readonly CleanLine[]): string[] {
+  return lines.map((line) => line.text);
 }
 
 function reply(): MadeUpReply {
@@ -18,25 +23,35 @@ const SOURCES = ["race", "class", "background", "item", "feat"];
 
 describe("spellsOf", () => {
   it("reads the spells of the sources, then of the classes", () => {
-    expect(spellsOf(reply().reader())).toEqual(["Light", "Mage Hand"]);
+    expect(textsOf(spellsOf(reply().reader()))).toEqual(["Light", "Mage Hand"]);
   });
 
   it("reads the five sources in their order", () => {
     const sources = { race: [spell("Race")], class: [spell("Class")], background: [spell("Background")], item: [spell("Item")], feat: [spell("Feat")] };
-    expect(spellsOf(reply().with(["spells"], sources).with(["classSpells"], []).reader())).toEqual(["Race", "Class", "Background", "Item", "Feat"]);
+    expect(textsOf(spellsOf(reply().with(["spells"], sources).with(["classSpells"], []).reader()))).toEqual(["Race", "Class", "Background", "Item", "Feat"]);
   });
 
   it("reads the spells of every class", () => {
     const classes = [{ spells: [spell("First")] }, { spells: [spell("Second"), spell("Third")] }];
-    expect(spellsOf(reply().with(["spells", "item"], null).with(["classSpells"], classes).reader())).toEqual(["First", "Second", "Third"]);
+    expect(textsOf(spellsOf(reply().with(["spells", "item"], null).with(["classSpells"], classes).reader()))).toEqual(["First", "Second", "Third"]);
   });
 
   it("reads no spells when every source is null and no class has any", () => {
-    expect(spellsOf(reply().with(["spells", "item"], null).with(["classSpells"], []).reader())).toEqual([]);
+    expect(textsOf(spellsOf(reply().with(["spells", "item"], null).with(["classSpells"], []).reader()))).toEqual([]);
   });
 
-  it("lists a spell twice when two sources give it", () => {
-    expect(spellsOf(reply().with(["spells", "race"], [spell("Light")]).reader())).toEqual(["Light", "Light", "Mage Hand"]);
+  it("lists a spell once when two sources give it", () => {
+    expect(textsOf(spellsOf(reply().with(["spells", "race"], [spell("Light")]).reader()))).toEqual(["Light", "Mage Hand"]);
+  });
+
+  it("lists a spell once when two classes give it, at its first place", () => {
+    const classes = [{ spells: [spell("First"), spell("Second")] }, { spells: [spell("Second"), spell("Third")] }];
+    expect(textsOf(spellsOf(reply().with(["spells", "item"], null).with(["classSpells"], classes).reader()))).toEqual(["First", "Second", "Third"]);
+  });
+
+  it("keeps two spells whose names differ only in capitals", () => {
+    const classes = [{ spells: [spell("Light"), spell("light")] }];
+    expect(textsOf(spellsOf(reply().with(["spells", "item"], null).with(["classSpells"], classes).reader()))).toEqual(["Light", "light"]);
   });
 
   it("refuses missing spells", () => {
@@ -69,8 +84,8 @@ describe("spellsOf", () => {
     expect(() => spellsOf(reply().with(["classSpells"], [{ spells: [spell(null)] }]).reader())).toThrow("not text");
   });
 
-  it("makes a spell name inert for a note", () => {
-    expect(spellsOf(reply().with(["spells", "item"], [spell("[[Light]]")]).reader())).toContain("\\[\\[Light\\]\\]");
+  it("keeps the characters a note would escape in a spell name, for the file name", () => {
+    expect(textsOf(spellsOf(reply().with(["spells", "item"], [spell("[[Light]]")]).reader()))).toContain("[[Light]]");
   });
 
   it("takes 500 spells from one source and refuses 501", () => {
@@ -83,7 +98,7 @@ describe("spellsOf", () => {
   });
 
   it("refuses 501 spells spread over several places, each place under the cap", () => {
-    const sources = { race: spells(300), class: null, background: null, item: spells(201), feat: null };
+    const sources = { race: spells(300, "Race"), class: null, background: null, item: spells(201, "Item"), feat: null };
     expect(() => spellsOf(reply().with(["spells"], sources).with(["classSpells"], []).reader())).toThrow("The list of spells is over the limit of 500 spells.");
   });
 

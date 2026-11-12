@@ -1,6 +1,6 @@
 import { characterNumberOf } from "./character-number";
 import { JsonReader } from "./json/json-reader";
-import { ONLINE } from "./online-route";
+import { ONLINE } from "./common/online-route";
 import { classesOf } from "./parts/read-classes";
 import { featuresOf } from "./parts/read-features";
 import { nameOf, speciesOf } from "./parts/read-identity";
