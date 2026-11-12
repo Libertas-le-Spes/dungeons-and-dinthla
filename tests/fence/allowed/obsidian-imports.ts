@@ -6,6 +6,7 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "fence/": ["App", "CachedMetadata", "Component", "EventRef", "Events", "FileManager", "MetadataCache", "TAbstractFile", "TFile", "TFolder", "Vault", "normalizePath"],
   "funds/": ["App", "CachedMetadata", "Component", "Notice", "Setting", "TFile", "getFrontMatterInfo"],
   "interface/": ["App", "Component", "EventRef", "ItemView", "PluginManifest", "TAbstractFile", "TFile", "ViewState", "ViewStateResult", "Workspace", "WorkspaceLeaf"],
+  "kind-notes/": ["ButtonComponent", "CachedMetadata", "Notice", "TFile", "getFrontMatterInfo"],
   "main.ts": ["MarkdownFileInfo", "MarkdownView", "Notice", "PaneType", "Plugin", "TFile", "ViewState", "WorkspaceLeaf", "debounce"],
   "names/": ["normalizePath"],
   "note-page/": ["Component"],

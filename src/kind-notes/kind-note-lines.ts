@@ -23,7 +23,7 @@ function lineNumbersIn(sources: Source[], session: SessionNote): number[] {
 }
 
 function lineOf(lines: string[], number: number): string {
-  const line = lines[number];
+  const line = lines.at(number);
   if (line === undefined) return "";
   return line;
 }

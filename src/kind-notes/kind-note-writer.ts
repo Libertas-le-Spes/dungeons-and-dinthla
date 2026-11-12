@@ -2,7 +2,6 @@ import type { TFile } from "obsidian";
 import type { FencedFileActions } from "../fence/gate/fenced-file-actions";
 import type { FencedFiles } from "../fence/gate/fenced-files";
 import { hasNoWords, wordsOf } from "./note-words";
-import { LINES_PROPERTY, SESSION_PROPERTY } from "./note-properties";
 
 export type WriterFiles = Pick<FencedFiles, "getFolderByPath" | "createFolder" | "create" | "read" | "process">;
 export type WriterActions = Pick<FencedFileActions, "processFrontMatter" | "trashFile">;
@@ -20,8 +19,8 @@ export class KindNoteWriter {
     const file = await this.files.create(path, "");
     try {
       await this.changeProperties(file, (properties) => {
-        properties[SESSION_PROPERTY] = sessionLink;
-        properties[LINES_PROPERTY] = lines;
+        properties.session = sessionLink;
+        properties.lines = lines;
       });
     } catch (error) {
       await this.discard(file);
@@ -31,7 +30,7 @@ export class KindNoteWriter {
 
   async setLines(file: TFile, lines: string[]): Promise<void> {
     await this.changeProperties(file, (properties) => {
-      properties[LINES_PROPERTY] = lines;
+      properties.lines = lines;
     });
   }
 

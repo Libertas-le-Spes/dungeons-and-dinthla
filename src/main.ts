@@ -29,6 +29,9 @@ import { questsKind } from "./quests/list/quests-kind";
 import { openAddCoin } from "./funds/coins/open-add-coin";
 import { openItemDialog } from "./funds/items/open-item";
 import { ItemHolders } from "./funds/item-notes/item-holders";
+import { askInNotice } from "./kind-notes/differing-notice";
+import { startKindNotes } from "./kind-notes/kind-notes-wiring";
+import { NotesMade } from "./settings/saved/notes-made";
 import { ledgerEntryOpener } from "./funds/coins/open-ledger-entry";
 import { ListPage } from "./views/lists/list-page";
 import { activePathOf, openSource } from "./views/opening/open-view";
@@ -440,7 +443,10 @@ export default class DungeonsAndDinthla extends Plugin {
     const saved = new SavedCampaign({ shown: this.store, files: gate.files, metadata: gate.metadata, failed: notRead });
     const failed = (error: unknown) => new Notice(`Couldn't write an item's holder: ${messageOf(error)}`);
     const holders = new ItemHolders({ store: saved, files: gate.files, metadata: gate.metadata, actions: gate.fileActions, failed });
+    const say = (message: string) => new Notice(message, NOTICE_STAYS_UNTIL_DISMISSED);
+    const made = new NotesMade(this.settingsSaver);
     this.register(holders.start());
+    this.register(startKindNotes({ gate, written: gate.written, saved, made, say, ask: askInNotice }));
     this.register(saved.start());
   }
 
