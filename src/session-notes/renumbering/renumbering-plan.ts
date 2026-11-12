@@ -1,5 +1,6 @@
-import { sessionNumberOf } from "../../campaign/paths/session-file";
 import { nameKeyOf } from "../../names/name-key";
+import { byNumber, isCounted, sessionPathOf, sessionsIn, sharedNumberIn, type NumberedSession } from "./numbered-sessions";
+import { nameTakenWords, sharedNumberWords } from "./renumbering-words";
 
 export interface SessionRename {
   from: string;
@@ -16,49 +17,6 @@ export interface RenumberingPlan {
 
 export interface NoRenumbering {
   error: string;
-}
-
-interface NumberedSession {
-  path: string;
-  number: number;
-}
-
-export function sharedNumberWords(number: number): string {
-  return `Two session notes are numbered ${number}, so it isn't clear how to number the sessions again. Rename one first. Nothing was deleted.`;
-}
-
-export function nameTakenWords(path: string): string {
-  return `${path} is already taken by another file, so the sessions can't be numbered again. Nothing was deleted.`;
-}
-
-function sessionsIn(campaignFolder: string, paths: string[]): NumberedSession[] {
-  const sessions: NumberedSession[] = [];
-  for (const path of paths) {
-    const number = sessionNumberOf(path, campaignFolder);
-    if (number !== null) sessions.push({ path, number });
-  }
-  return sessions;
-}
-
-function sharedNumberIn(sessions: NumberedSession[]): number | null {
-  const seen = new Set<number>();
-  for (const session of sessions) {
-    if (seen.has(session.number)) return session.number;
-    seen.add(session.number);
-  }
-  return null;
-}
-
-function byNumber(first: NumberedSession, second: NumberedSession): number {
-  return first.number - second.number;
-}
-
-function isCounted(session: NumberedSession): boolean {
-  return session.number >= 1;
-}
-
-function sessionPathOf(campaignFolder: string, number: number): string {
-  return `${campaignFolder}/Sessions/Session ${number}.md`;
 }
 
 function closedUp(campaignFolder: string, counted: NumberedSession[]): SessionRename[] {

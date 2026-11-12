@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  nameTakenWords,
-  planRenumbering,
-  sharedNumberWords,
-  type NoRenumbering,
-  type RenumberingPlan,
-} from "../../../src/session-notes/renumbering/renumbering-plan";
+import { planRenumbering, type NoRenumbering, type RenumberingPlan } from "../../../src/session-notes/renumbering/renumbering-plan";
+import { nameTakenWords, sharedNumberWords } from "../../../src/session-notes/renumbering/renumbering-words";
 
 const FOLDER = "Pale Moon";
 

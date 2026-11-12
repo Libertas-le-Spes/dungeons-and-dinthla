@@ -1,27 +1,10 @@
+import { foldersPartOf, markdownEndingOf, noteNameOf } from "../../campaign/paths/note-name";
 import { noteInCampaignFor, type CampaignNoteFiles } from "../../views/opening/note-in-campaign";
 import type { SessionRename } from "./renumbering-plan";
 import type { NewTarget } from "./wiki-links";
 
-const NOTE_ENDING = ".md";
-
-function lastSlashIn(path: string): number {
-  return path.lastIndexOf("/");
-}
-
-function noteNameOf(path: string): string {
-  const name = path.slice(lastSlashIn(path) + 1);
-  if (name.endsWith(NOTE_ENDING)) return name.slice(0, -NOTE_ENDING.length);
-  return name;
-}
-
-function endingOf(target: string): string {
-  if (target.endsWith(NOTE_ENDING)) return NOTE_ENDING;
-  return "";
-}
-
 function retargeted(target: string, rename: SessionRename): string {
-  const folders = target.slice(0, lastSlashIn(target) + 1);
-  return `${folders}${noteNameOf(rename.to)}${endingOf(target)}`;
+  return `${foldersPartOf(target)}${noteNameOf(rename.to)}${markdownEndingOf(target)}`;
 }
 
 export class NoteLinks {

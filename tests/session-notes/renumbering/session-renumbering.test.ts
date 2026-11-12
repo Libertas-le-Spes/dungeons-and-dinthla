@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { nameTakenWords, type RenumberingPlan } from "../../../src/session-notes/renumbering/renumbering-plan";
-import { NOT_IN_A_CAMPAIGN, SESSIONS_CHANGED_SINCE_ASKED } from "../../../src/session-notes/renumbering/renumbering-words";
+import type { RenumberingPlan } from "../../../src/session-notes/renumbering/renumbering-plan";
+import { nameTakenWords, NOT_IN_A_CAMPAIGN, SESSIONS_CHANGED_SINCE_ASKED } from "../../../src/session-notes/renumbering/renumbering-words";
 import { SessionRenumbering } from "../../../src/session-notes/renumbering/session-renumbering";
 import { FakeCampaignFiles } from "./fake-campaign-files";
 

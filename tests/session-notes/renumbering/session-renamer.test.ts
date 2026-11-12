@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { SessionRename } from "../../../src/session-notes/renumbering/renumbering-plan";
-import { SessionRenamer, sessionGoneWords } from "../../../src/session-notes/renumbering/session-renamer";
+import { renameSourceGoneWords } from "../../../src/session-notes/renumbering/renumbering-words";
+import { SessionRenamer } from "../../../src/session-notes/renumbering/session-renamer";
 import { FakeCampaignFiles } from "./fake-campaign-files";
 
 const FOLDER = "Pale Moon/Sessions";
@@ -55,6 +56,6 @@ describe("SessionRenamer", () => {
     const files = filesWith([1, 5, 6]);
     const outcome = await new SessionRenamer(files).rename([rename(4, 2), rename(5, 3), rename(6, 4)]);
     expect(files.rename).not.toHaveBeenCalled();
-    expect(outcome).toEqual({ renamed: [], notRenamed: [rename(4, 2), rename(5, 3), rename(6, 4)], failure: sessionGoneWords(session(4)) });
+    expect(outcome).toEqual({ renamed: [], notRenamed: [rename(4, 2), rename(5, 3), rename(6, 4)], failure: renameSourceGoneWords(session(4)) });
   });
 });
