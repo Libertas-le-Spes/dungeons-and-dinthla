@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Refusal } from "../../../src/beyond/shape/refusal";
-import { plainTextOf } from "../../../src/beyond/text/plain-text";
+import { NeutralText } from "../../../src/beyond/text/neutral-text";
+import { plainTextOf, TAG } from "../../../src/beyond/text/plain-text";
 
 describe("plainTextOf", () => {
   it("leaves text with no tags as it is", () => {
@@ -74,5 +75,29 @@ describe("plainTextOf", () => {
 
   it("refuses text one character over the line limit", () => {
     expect(() => plainTextOf("a".repeat(301))).toThrow(new Refusal("A line of text is over the limit of 300 characters."));
+  });
+
+  it("refuses 80,000 characters of unclosed tag starts before the pattern reads any", () => {
+    const scanning = vi.spyOn(String.prototype, "replace");
+    expect(() => plainTextOf("<a".repeat(40000))).toThrow(Refusal);
+    expect(scanning).not.toHaveBeenCalled();
+    scanning.mockRestore();
+  });
+
+  it("matches no tag with more than 300 characters after its first two, so the pattern alone is linear", () => {
+    expect(`<a${"x".repeat(301)}>`.match(TAG)).toBeNull();
+    expect(`<a${"x".repeat(300)}>`.match(TAG)).not.toBeNull();
+  });
+});
+
+describe("the output of plainTextOf is not neutral and has to go through NeutralText", () => {
+  it.each(["<<b>c>", "<<b>script>x", "<<i><b>img src=x>"])("makes a tag again from %j, which NeutralText.ofLines makes inert", (text) => {
+    const plain = plainTextOf(text);
+    expect(plain).toMatch(/<[a-z]/);
+    expect(NeutralText.ofLines(plain).written).not.toMatch(/(^|[^\\])</);
+  });
+
+  it("is made inert by NeutralText.ofOneLine too", () => {
+    expect(NeutralText.ofOneLine(plainTextOf("<<b>script>x")).written).toBe("\\<script\\>x");
   });
 });

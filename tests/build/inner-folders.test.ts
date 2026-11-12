@@ -161,9 +161,9 @@ describe("the rule the inner folders are checked by, over made-up files", () => 
     expect(breachesOfMadeUpFile("fence/gate", text)).toEqual([]);
   });
 
-  it("refuses a file outside beyond that imports from it", () => {
+  it.each(IMPORT_FORMS)("refuses a file outside beyond that imports from it, written as $form", ({ written }) => {
     const file = join(SOURCE_FOLDER, "campaign", "made-up.ts");
-    expect(importersOfBeyondIn([], file, 'import { a } from "../beyond/shape/route";')).toEqual(["campaign/made-up.ts imports from beyond"]);
+    expect(importersOfBeyondIn([], file, written("../beyond/shape/route"))).toEqual(["campaign/made-up.ts imports from beyond"]);
   });
 
   it("allows a folder listed as an importer to import from beyond", () => {
