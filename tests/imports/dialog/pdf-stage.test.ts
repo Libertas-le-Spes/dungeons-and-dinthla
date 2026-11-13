@@ -4,7 +4,7 @@ import { STILL_READING } from "../../../src/imports/dialog/import-words";
 import { DialogShown } from "../../../src/imports/dialog/stages/dialog-shown";
 import { PdfStage, type SheetArrival, type SheetReader } from "../../../src/imports/dialog/stages/pdf-stage";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
-import { PendingWork } from "../../../src/views/drawing/pending-work";
+import { PendingWork } from "../../../src/views/pending/pending-work";
 
 class WaitingReader implements SheetReader {
   reads = 0;

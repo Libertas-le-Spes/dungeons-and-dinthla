@@ -1,7 +1,7 @@
 import { MOST_PDF_BYTES } from "../../../beyond/sheet/from-pdf/sheet-from-pdf";
 import { CHOOSE_A_FILE, FILE_NOT_READ, fileTooBig } from "../import-words";
 import type { PickedPdf } from "./picked-pdf";
-import type { PendingWork } from "../../../views/drawing/pending-work";
+import type { PendingWork } from "../../../views/pending/pending-work";
 
 const FIRST_FILE = 0;
 

@@ -17,6 +17,8 @@ import { READING_WENT_WRONG, WRITING_WENT_WRONG } from "../../../src/imports/dia
 import { typedTextNotShown } from "../../../src/imports/note/writing/guarding/refusals";
 import { IMPORT_TITLE, STILL_READING, UPDATE_TITLE } from "../../../src/imports/dialog/import-words";
 import type { Modal as StubModal } from "../../stubs/obsidian";
+import { queuedWorkRan } from "../../stubs/queued-work";
+import { SettleWatch } from "../../stubs/settle-watch";
 
 const TYPED_TEXT_NOT_SHOWN = typedTextNotShown().message;
 
@@ -53,31 +55,12 @@ function monkNoteText(before: string): string {
   return importedNoteText(before, printedOf(MadeUpSheet.monk()), TODAY);
 }
 
-class SettleWatch {
-  settled = false;
-  readonly done: Promise<void>;
-
-  constructor(dialog: DialogDriver) {
-    this.done = dialog.modal.allSettled().then(this.markSettled.bind(this));
-  }
-
-  private markSettled(): void {
-    this.settled = true;
-  }
-}
-
-function queuedWorkRan(): Promise<void> {
-  return new Promise(function afterQueuedWork(ran): void {
-    setTimeout(ran, 0);
-  });
-}
-
 describe("the import dialog's own work, which its tests await", () => {
   it("counts a file still being read as work not yet done", async () => {
     const bytes = new HeldCalls<ArrayBuffer>();
     const dialog = importDialog();
     dialog.pick({ size: 10, arrayBuffer: bytes.hold.bind(bytes) });
-    const watch = new SettleWatch(dialog);
+    const watch = new SettleWatch(dialog.modal.allSettled());
     await queuedWorkRan();
     expect(watch.settled).toBe(false);
     bytes.resolve(0, new Uint8Array(monkPdf()).buffer);
@@ -91,7 +74,7 @@ describe("the import dialog's own work, which its tests await", () => {
     const dialog = updateDialog(NEW_NOTE);
     dialog.pick(pickedFileOf(monkPdf()));
     await reads.made(1);
-    const watch = new SettleWatch(dialog);
+    const watch = new SettleWatch(dialog.modal.allSettled());
     await queuedWorkRan();
     expect(watch.settled).toBe(false);
     reads.resolve(0, "Notes of mine.\n");
@@ -279,7 +262,7 @@ describe("importing a character from a made-up PDF", () => {
   it("stays on the file picker when it closes with no file chosen", async () => {
     const dialog = importDialog();
     dialog.pickNothing();
-    await new Promise(soon);
+    await queuedWorkRan();
     expect(dialog.root.querySelectorAll('input[type="file"]')).toHaveLength(1);
     expect(dialog.root.querySelector(".dd-import-reading")).toBeNull();
     expect(dialog.root.querySelector(".dd-import-refusal")).toBeNull();
@@ -294,10 +277,6 @@ describe("importing a character from a made-up PDF", () => {
     expect(dialog.root.querySelector(".dd-import-write")).toBeNull();
   });
 });
-
-function soon(resolve: (value: unknown) => void): void {
-  setTimeout(resolve, 0);
-}
 
 async function failingRead(): Promise<ArrayBuffer> {
   throw new Error("The disk went away.");

@@ -4,7 +4,7 @@ import { DialogShown } from "./stages/dialog-shown";
 import { PdfSheetReader } from "./stages/pdf-sheet-reader";
 import { PdfStage, type SheetArrival } from "./stages/pdf-stage";
 import { ReviewStage, type StagesHost } from "./stages/review-stage";
-import { PendingWork } from "../../views/drawing/pending-work";
+import { PendingWork } from "../../views/pending/pending-work";
 
 export interface StepsHost {
   runWrite(change: () => Promise<boolean>, failureWords: string): void;

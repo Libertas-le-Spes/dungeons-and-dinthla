@@ -6,7 +6,7 @@ import type { Review, ReviewActions } from "../steps/review";
 import { drawReview } from "../steps/review-step";
 import type { ImportTarget } from "../targets/import-target";
 import type { DialogShown } from "./dialog-shown";
-import type { PendingWork } from "../../../views/drawing/pending-work";
+import type { PendingWork } from "../../../views/pending/pending-work";
 
 export interface StagesHost {
   runWrite(change: () => Promise<boolean>, failureWords: string): void;

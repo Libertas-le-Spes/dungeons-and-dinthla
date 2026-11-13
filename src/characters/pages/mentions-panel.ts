@@ -3,7 +3,7 @@ import { addLinkedText, addRowButton, type LinkActions } from "../../views/lists
 import { messageOf } from "../../views/dialogs/message-of";
 import type { MentionNotes } from "../reading/mention-notes";
 import { readMentions, type Mention } from "../reading/mentions";
-import { PendingWork } from "../../views/drawing/pending-work";
+import { PendingWork } from "../../views/pending/pending-work";
 
 export const IN_THE_NOTES = "In the notes";
 

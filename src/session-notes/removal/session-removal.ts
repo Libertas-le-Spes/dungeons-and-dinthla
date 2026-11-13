@@ -11,7 +11,7 @@ import { clearTextOf, deleteTextOf } from "./removal-texts";
 import type { SessionClearer } from "./session-clearer";
 import type { AskedNote, SessionTrash } from "./session-trash";
 import { writtenLinesOf } from "../lines/written-lines";
-import { PendingWork } from "../../views/drawing/pending-work";
+import { PendingWork } from "../../views/pending/pending-work";
 
 export const NOTE_GONE_NOW = "The session's note is gone, so there is nothing to clear or delete.";
 export const SAVE_RUNNING = "A save is running for this session. Try again once it is done.";
