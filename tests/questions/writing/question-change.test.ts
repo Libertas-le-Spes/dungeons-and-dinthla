@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { Campaign, QuestionRecord, SessionNote } from "../../../src/campaign/record/campaign";
-import { PartlyWritten, type EditorFiles } from "../../../src/campaign/writing/note-editor";
+import { PartlyWritten, WOULD_BE_HIDDEN, type EditorFiles } from "../../../src/campaign/writing/note-editor";
 import { SessionChangeWriter } from "../../../src/campaign/changes/session-change-writer";
 import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
 import { writeRecordChange } from "../../../src/campaign/changes/write-record-change";
@@ -104,6 +104,37 @@ describe("saving a question", () => {
     notes.texts.set(NINE, "");
     await expect(save(notes, "Whom", "sent: y", "", NINE)).rejects.toThrow(ANSWER_GOES_ELSEWHERE);
     expect(notes.writes).toBe(0);
+  });
+
+  it("refuses a follow-up that would land below a comment that never closes, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n", [TWO]: "%% a note to self\n" });
+    await expect(save(notes, "Who", "", "Why", TWO)).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.writes).toBe(0);
+  });
+
+  it("refuses an answer that would land below a comment that never closes, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n%% a note to self\n", [TWO]: "" });
+    await expect(save(notes, "Who", "Vess", "", TWO)).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.writes).toBe(0);
+  });
+
+  it("refuses a follow-up that would land hidden in another session than the answer, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n", [TWO]: "%% a note to self\n" });
+    await expect(save(notes, "Who", "Vess", "Why", TWO)).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.writes).toBe(0);
+  });
+
+  it("refuses a follow-up when the note, changed since it was read, now has a comment that never closes, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n", [TWO]: "" });
+    notes.texts.set(TWO, "%% added by a sync\n");
+    await expect(save(notes, "Who", "", "Why", TWO)).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.texts.get(TWO)).toBe("%% added by a sync\n");
+  });
+
+  it("writes a follow-up below a comment that has closed", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n", [TWO]: "%% a note to self %%\n" });
+    expect(await save(notes, "Who", "", "Why", TWO)).toBe(true);
+    expect(notes.texts.get(TWO)).toBe("%% a note to self %%\n? Why, after: Who\n");
   });
 
   it("says the answer was written when the follow-up's note couldn't be", async () => {

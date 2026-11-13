@@ -1,5 +1,6 @@
 import type { FileManager, TFile } from "obsidian";
 import type { HeldFiles } from "./held-files";
+import type { NoteReporter } from "./written-notes";
 
 export type RawFileManager = Pick<FileManager, "processFrontMatter" | "renameFile" | "trashFile">;
 
@@ -9,6 +10,7 @@ export class FencedFileActions {
   constructor(
     private readonly fileManager: RawFileManager,
     private readonly held: HeldFiles,
+    private readonly written: NoteReporter,
   ) {}
 
   async processFrontMatter(file: TFile, change: ChangeProperties): Promise<void> {
@@ -17,10 +19,14 @@ export class FencedFileActions {
 
   async renameFile(file: TFile, newPath: string): Promise<void> {
     const held = this.held.file(file);
+    const from = file.path;
     await this.fileManager.renameFile(held, this.held.newPath(newPath));
+    this.written.renamed(from, newPath);
   }
 
   async trashFile(file: TFile): Promise<void> {
+    const path = file.path;
     await this.fileManager.trashFile(this.held.file(file));
+    this.written.trashed(path);
   }
 }

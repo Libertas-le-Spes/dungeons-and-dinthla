@@ -1,5 +1,5 @@
 import type { FileSystem } from "typescript/unstable/fs";
-import { API, type Project } from "typescript/unstable/sync";
+import { API, type Project, type Snapshot } from "typescript/unstable/sync";
 import type { Node } from "typescript/unstable/ast";
 import type { Allowances } from "../reading/allowances";
 import { editorViewBreaches } from "../vault-rules/editor-view-rules";
@@ -20,13 +20,15 @@ import { TypeQueries } from "../reading/type-queries";
 import { isLibraryFile } from "../reading/type-shapes";
 import { vaultAccessBreaches } from "../vault-rules/vault-access-rules";
 import { workspaceEventBreaches } from "../vault-rules/workspace-event-rules";
+import { writtenReportBreaches } from "../vault-rules/written-report-rules";
 
 export type { Allowances } from "../reading/allowances";
 
-const RULES: Rules[] = [vaultAccessBreaches, editorViewBreaches, openingBreaches, workspaceEventBreaches, gateForgingBreaches, importBreaches, globalBreaches, codeTextBreaches, pageElementBreaches, pageTextBreaches, computedKeyBreaches, pageMemberBreaches];
+const RULES: Rules[] = [vaultAccessBreaches, editorViewBreaches, openingBreaches, workspaceEventBreaches, writtenReportBreaches, gateForgingBreaches, importBreaches, globalBreaches, codeTextBreaches, pageElementBreaches, pageTextBreaches, computedKeyBreaches, pageMemberBreaches];
 
 export class SourceScanner {
   private readonly api: API;
+  private readonly openedProjects = new Map<string, Project>();
 
   constructor(
     private readonly root: string,
@@ -36,6 +38,7 @@ export class SourceScanner {
   }
 
   close(): void {
+    this.openedProjects.clear();
     this.api.close();
   }
 
@@ -51,7 +54,24 @@ export class SourceScanner {
   }
 
   private project(configPath: string): Project {
+    const opened = this.openedProjects.get(configPath);
+    if (opened !== undefined) return opened;
+    const project = this.openProject(configPath);
+    this.openedProjects.set(configPath, project);
+    return project;
+  }
+
+  private openProject(configPath: string): Project {
     const snapshot = this.api.updateSnapshot({ openProjects: [configPath] });
+    try {
+      return this.checkedProject(snapshot, configPath);
+    } catch (error) {
+      snapshot.dispose();
+      throw error;
+    }
+  }
+
+  private checkedProject(snapshot: Snapshot, configPath: string): Project {
     const project = snapshot.getProject(configPath);
     if (project === undefined) throw new Error(`${configPath} could not be opened`);
     const problems = project.program.getConfigFileParsingDiagnostics();

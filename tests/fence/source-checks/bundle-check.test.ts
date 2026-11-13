@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -55,6 +55,11 @@ const PLANTED_ON_DISK: PlantedOnDisk[] = [
       "src/other.ts": "export const files = 2;\n",
     },
     found: ["src/other.ts is bundled but not scanned", "src/reader.ts holds code but is scanned and not bundled"],
+  },
+  {
+    name: "ts in a folder of src named node_modules",
+    files: { "src/main.ts": 'export { files } from "./node_modules/reader";\n', "src/node_modules/reader.ts": "export const files = 1;\n" },
+    found: [],
   },
 ];
 
@@ -125,6 +130,21 @@ describe("the bundle check", () => {
       expect(found.map((breach) => breach.replace(`${root}/`, ""))).toEqual(planted.found);
     } finally {
       rmSync(root, { recursive: true, force: true });
+    }
+  }, 30_000);
+
+  it("reads a library the bundle takes from where a linked node_modules points as a library", async () => {
+    const root = plantOnDisk({ name: "linked", files: { "src/main.ts": 'export { value } from "pkg";\n' }, found: [] });
+    const store = mkdtempSync(join(tmpdir(), "dd-store-"));
+    try {
+      mkdirSync(join(store, "pkg"));
+      writeFileSync(join(store, "pkg", "package.json"), JSON.stringify({ name: "pkg", main: "index.js" }));
+      writeFileSync(join(store, "pkg", "index.js"), "export const value = 1;\n");
+      symlinkSync(store, join(root, "node_modules"));
+      expect(await unscannedBundleInputs(scanner, root, `${root}/tsconfig.json`)).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+      rmSync(store, { recursive: true, force: true });
     }
   }, 30_000);
 

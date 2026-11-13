@@ -26,7 +26,7 @@ export function openAddCoin(app: App, gate: Gate, store: CampaignStore, onClosed
   if (sessionPath === null) return;
   const writer = new SessionChangeWriter(gate.files);
   const opened = new OpenedSession(gate.files, sessionPath);
-  const add = (written: CoinLine) => writeInSession(opened, () => newCoin(written, sessionPath), writer);
+  const add = (written: CoinLine) => writeInSession(opened, () => newCoin(store, written, sessionPath), writer);
   new CoinModal(app, sessionLabelOf(sessionPath), add, null, null, onClosed).open();
 }
 

@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { Snapshot } from "typescript/unstable/sync";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { OPTION_DEPENDENT_SAMPLES, OPTION_FREE_SAMPLE } from "../../samples/compiler-option-samples";
 import { ROOT, VIRTUAL_FOLDER } from "../reading/scan-paths";
 import { ALL_ALLOWED } from "./allowance-sets";
@@ -57,6 +58,22 @@ describe("a scan whose configuration extends a file that isn't there", () => {
     try {
       expect(() => scanner.breaches(CONFIG, [SAMPLE], ALL_ALLOWED)).toThrow("Cannot read file");
     } finally {
+      scanner.close();
+    }
+  });
+
+  it("releases the snapshot it opened before failing", () => {
+    const files = new Map<string, string>([
+      [SAMPLE, OPTION_FREE_SAMPLE],
+      [CONFIG, JSON.stringify({ extends: "./nothing-here.json", files: ["sample.ts"], include: [] })],
+    ]);
+    const scanner = new SourceScanner(ROOT, virtualFileSystem(VIRTUAL_FOLDER, files));
+    const dispose = vi.spyOn(Snapshot.prototype, "dispose");
+    try {
+      expect(() => scanner.breaches(CONFIG, [SAMPLE], ALL_ALLOWED)).toThrow("Cannot read file");
+      expect(dispose).toHaveBeenCalledTimes(1);
+    } finally {
+      dispose.mockRestore();
       scanner.close();
     }
   });

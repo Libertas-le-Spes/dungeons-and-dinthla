@@ -20,3 +20,9 @@ export function isGateBuiltSource(path: string): boolean {
 export function isGateTypeSource(path: string): boolean {
   return GATE_TYPE_SOURCES.includes(path);
 }
+
+const REPORT_SOURCE = `${GATE_FOLDER}written-notes.ts`;
+
+export function isReportSource(path: string): boolean {
+  return path === REPORT_SOURCE;
+}
