@@ -8,6 +8,7 @@ import { MadeUpSheet } from "../../beyond/builders/made-up-sheet";
 import { printedOf } from "../../beyond/builders/sheet-reading";
 import { Notice } from "../../stubs/obsidian";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { HeldCalls } from "../../stubs/held-calls";
 import { CHARACTERS_FOLDER, FakeNoteVault } from "../builders/fake-note-vault";
 import { DialogDriver, pickedFileOf } from "../builders/dialog-driver";
 import { madeUpPdf, notAPdf } from "../builders/made-up-pdf";
@@ -51,6 +52,53 @@ function updateDialog(path: string): DialogDriver {
 function monkNoteText(before: string): string {
   return importedNoteText(before, printedOf(MadeUpSheet.monk()), TODAY);
 }
+
+class SettleWatch {
+  settled = false;
+  readonly done: Promise<void>;
+
+  constructor(dialog: DialogDriver) {
+    this.done = dialog.modal.allSettled().then(this.markSettled.bind(this));
+  }
+
+  private markSettled(): void {
+    this.settled = true;
+  }
+}
+
+function queuedWorkRan(): Promise<void> {
+  return new Promise(function afterQueuedWork(ran): void {
+    setTimeout(ran, 0);
+  });
+}
+
+describe("the import dialog's own work, which its tests await", () => {
+  it("counts a file still being read as work not yet done", async () => {
+    const bytes = new HeldCalls<ArrayBuffer>();
+    const dialog = importDialog();
+    dialog.pick({ size: 10, arrayBuffer: bytes.hold.bind(bytes) });
+    const watch = new SettleWatch(dialog);
+    await queuedWorkRan();
+    expect(watch.settled).toBe(false);
+    bytes.resolve(0, new Uint8Array(monkPdf()).buffer);
+    await watch.done;
+    expect(dialog.texts(".dd-import-summary h3")).toEqual(["Primary Monk"]);
+  });
+
+  it("counts a note still being read for the review as work not yet done", async () => {
+    vault.note(NEW_NOTE, "Notes of mine.\n");
+    const reads = vault.holdReads();
+    const dialog = updateDialog(NEW_NOTE);
+    dialog.pick(pickedFileOf(monkPdf()));
+    await reads.made(1);
+    const watch = new SettleWatch(dialog);
+    await queuedWorkRan();
+    expect(watch.settled).toBe(false);
+    reads.resolve(0, "Notes of mine.\n");
+    await watch.done;
+    expect(dialog.texts(".dd-import-write")).toHaveLength(1);
+  });
+});
 
 describe("importing a character from a made-up PDF", () => {
   it("asks for the PDF first, saying where D&D Beyond makes it", () => {
