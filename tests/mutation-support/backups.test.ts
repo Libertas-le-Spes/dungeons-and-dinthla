@@ -32,27 +32,27 @@ function backupsWith(names: string[], texts: string[]): InstanceType<typeof Back
 
 describe("the backups of mutated files", () => {
   it("are kept under the checkout, with the checkout's root, before a file changes", () => {
-    new Backups(ROOT, "area").keep("src/one.ts", "original");
+    new Backups(ROOT, "area").keep("plain/one.ts", "original");
     expect(fs.mkdirSync).toHaveBeenCalledWith(FOLDER, { recursive: true });
     expect(fs.writeFileSync).toHaveBeenCalledOnce();
-    expect(fs.writeFileSync).toHaveBeenCalledWith(`${FOLDER}/src__one.ts.json`, backupText(ROOT, "src/one.ts", "original"));
+    expect(fs.writeFileSync).toHaveBeenCalledWith(`${FOLDER}/plain__one.ts.json`, backupText(ROOT, "plain/one.ts", "original"));
   });
 
   it("are dropped without failing when already gone", () => {
-    new Backups(ROOT, "area").drop("src/one.ts");
-    expect(fs.rmSync).toHaveBeenCalledWith(`${FOLDER}/src__one.ts.json`, { force: true });
+    new Backups(ROOT, "area").drop("plain/one.ts");
+    expect(fs.rmSync).toHaveBeenCalledWith(`${FOLDER}/plain__one.ts.json`, { force: true });
   });
 
   it("restore a leftover of this checkout and remove it", () => {
-    const restored = backupsWith(["src__one.ts.json"], [backupText(ROOT, "src/one.ts", "original")]).restoreAll();
-    expect(restored).toEqual(["src/one.ts"]);
+    const restored = backupsWith(["plain__one.ts.json"], [backupText(ROOT, "plain/one.ts", "original")]).restoreAll();
+    expect(restored).toEqual(["plain/one.ts"]);
     expect(fs.writeFileSync).toHaveBeenCalledOnce();
-    expect(fs.writeFileSync).toHaveBeenCalledWith(`${ROOT}/src/one.ts`, "original");
-    expect(fs.rmSync).toHaveBeenCalledWith(`${FOLDER}/src__one.ts.json`, { force: true });
+    expect(fs.writeFileSync).toHaveBeenCalledWith(`${ROOT}/plain/one.ts`, "original");
+    expect(fs.rmSync).toHaveBeenCalledWith(`${FOLDER}/plain__one.ts.json`, { force: true });
   });
 
   it("leave a leftover of another checkout alone", () => {
-    const restored = backupsWith(["src__one.ts.json"], [backupText(OTHER_ROOT, "src/one.ts", "theirs")]).restoreAll();
+    const restored = backupsWith(["plain__one.ts.json"], [backupText(OTHER_ROOT, "plain/one.ts", "theirs")]).restoreAll();
     expect(restored).toEqual([]);
     expect(fs.writeFileSync).not.toHaveBeenCalled();
     expect(fs.rmSync).not.toHaveBeenCalled();
@@ -67,7 +67,7 @@ describe("the backups of mutated files", () => {
 
 describe("stopping a run with a signal", () => {
   it("listens for each stopping signal, and on one restores the backups and then exits", () => {
-    const backups = backupsWith(["src__one.ts.json"], [backupText(ROOT, "src/one.ts", "original")]);
+    const backups = backupsWith(["plain__one.ts.json"], [backupText(ROOT, "plain/one.ts", "original")]);
     const on = vi.fn();
     const exit = vi.fn();
     restoreOnSignal(backups, { on, exit: exit as never });
@@ -77,7 +77,7 @@ describe("stopping a run with a signal", () => {
     const listener = call.at(1);
     if (typeof listener !== "function") throw new Error("No listener was registered.");
     listener();
-    expect(fs.writeFileSync).toHaveBeenCalledWith(`${ROOT}/src/one.ts`, "original");
+    expect(fs.writeFileSync).toHaveBeenCalledWith(`${ROOT}/plain/one.ts`, "original");
     expect(exit).toHaveBeenCalledOnce();
     expect(exit).toHaveBeenCalledWith(130);
     expect(Math.min(...vi.mocked(fs.writeFileSync).mock.invocationCallOrder)).toBeLessThan(Math.min(...exit.mock.invocationCallOrder));
