@@ -3,6 +3,7 @@ import { firstLineAfterProperties } from "../../campaign/paths/session-file";
 import { forEachSessionLine } from "../../campaign/record/session-lines";
 import { withoutBullet } from "../../notes/parts/bullet";
 import { factsOf, linkedFactsOf, type CharacterFact } from "../../notes/reading/character-facts";
+import { pluginSectionLinesOf } from "../imported/plugin-section-lines";
 
 export const ABILITIES = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 
@@ -51,15 +52,18 @@ export function factsByCharacter(
 export function overrideFacts(ownNote: string, path: string): SourcedFact[] {
   const lines = ownNote.split("\n");
   const facts: SourcedFact[] = [];
-  for (let line = firstLineAfterProperties(ownNote); line < lines.length; line++) {
+  const bodyStart = firstLineAfterProperties(ownNote);
+  const skipped = pluginSectionLinesOf(lines, bodyStart);
+  for (let line = bodyStart; line < lines.length; line++) {
+    if (skipped.has(line)) continue;
     facts.push(...factsOf(withoutBullet(lines[line]!)).map((fact) => ({ ...fact, source: { path, line } })));
   }
   return facts;
 }
 
-export function sheetValuesOf(learned: CharacterFact[], overrides: CharacterFact[]): SheetValues {
+export function sheetValuesOf(learned: CharacterFact[], imported: CharacterFact[], overrides: CharacterFact[]): SheetValues {
   const values: SheetValues = new Map();
-  for (const fact of [...learned, ...overrides]) values.set(sheetNameOf(fact.name), fact.value);
+  for (const fact of [...learned, ...imported, ...overrides]) values.set(sheetNameOf(fact.name), fact.value);
   return values;
 }
 

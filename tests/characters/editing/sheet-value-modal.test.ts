@@ -11,7 +11,7 @@ import { Notice, type Modal as StubModal } from "../../stubs/obsidian";
 const MIRA = "Pale Moon/Characters/Mira.md";
 
 function hpOf(learned: SourcedFact[], overrides: SourcedFact[] = []): SheetValue {
-  return characterSheetOf(learned, overrides, null).values.find((value) => value.name === "HP")!;
+  return characterSheetOf(learned, [], overrides, null).values.find((value) => value.name === "HP")!;
 }
 
 function inSession(number: number, value: string): SourcedFact {
@@ -102,16 +102,16 @@ describe("SheetValueModal", () => {
   });
 
   it("says that Not known yet over a carried value wins over it", () => {
-    const carried = carriedValuesOf("Ashen Road", [], [{ name: "HP", value: "30", source: { path: "Ashen Road/Characters/Mira.md", line: 0 } }], ["values"]);
-    const value = characterSheetOf([], [], carried).values.find((sheetValue) => sheetValue.name === "HP")!;
+    const carried = carriedValuesOf("Ashen Road", [], [], [{ name: "HP", value: "30", source: { path: "Ashen Road/Characters/Mira.md", line: 0 } }], ["values"]);
+    const value = characterSheetOf([], [], [], carried).values.find((sheetValue) => sheetValue.name === "HP")!;
     const wheres = Array.from(openDialog({ value }).root.querySelectorAll(".dd-where")).map((where) => where.textContent);
     expect(wheres).toContain(notKnownOverCarriedText("Hit Points"));
     expect(notKnownOverCarriedText("Hit Points")).toBe("Not known yet adds a ? line, which wins over the carried hit points until a later line states it.");
   });
 
   it("gives no carried hint when the value was learned in this campaign", () => {
-    const carried = carriedValuesOf("Ashen Road", [], [{ name: "HP", value: "30", source: { path: "Ashen Road/Characters/Mira.md", line: 0 } }], ["values"]);
-    const value = characterSheetOf([inSession(1, "38")], [], carried).values.find((sheetValue) => sheetValue.name === "HP")!;
+    const carried = carriedValuesOf("Ashen Road", [], [], [{ name: "HP", value: "30", source: { path: "Ashen Road/Characters/Mira.md", line: 0 } }], ["values"]);
+    const value = characterSheetOf([inSession(1, "38")], [], [], carried).values.find((sheetValue) => sheetValue.name === "HP")!;
     expect(openDialog({ value }).root.querySelectorAll(".dd-where")).toHaveLength(1);
   });
 
@@ -197,7 +197,7 @@ describe("SheetValueModal on a value only the character's note states, under a n
   const PERSONALITY: SourcedFact = { name: "Personality", value: "grumpy, but kind", source: { path: MIRA, line: 2 } };
 
   function personality(): SheetValue {
-    return characterSheetOf([], [PERSONALITY], null).values.find((value) => value.name === "Personality")!;
+    return characterSheetOf([], [], [PERSONALITY], null).values.find((value) => value.name === "Personality")!;
   }
 
   it("asks for a second press before a choice that removes its line from the note", async () => {
@@ -258,7 +258,7 @@ describe("SheetValueModal on a value only the character's note states, under a n
 
   it("saves on the first press when nothing is on the note to remove", async () => {
     const learned = { ...PERSONALITY, source: { path: "Pale Moon/Sessions/Session 1.md", line: 0 } };
-    const value = characterSheetOf([learned], [], null).values.find((sheetValue) => sheetValue.name === "Personality")!;
+    const value = characterSheetOf([learned], [], [], null).values.find((sheetValue) => sheetValue.name === "Personality")!;
     const { choice, saved } = openDialog({ value });
     choice("unknown").click();
     await vi.waitFor(() => expect(saved).toHaveLength(1));

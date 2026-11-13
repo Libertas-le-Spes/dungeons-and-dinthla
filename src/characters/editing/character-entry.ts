@@ -28,7 +28,7 @@ export function blankEntry(): CharacterEntry {
 export type Learned = Map<EntryFact, string>;
 
 export function learnedOf(facts: CharacterFact[]): Learned {
-  const values = sheetValuesOf(facts, []);
+  const values = sheetValuesOf(facts, [], []);
   const learned: Learned = new Map();
   for (const { fact } of ENTRY_FIELDS) {
     const value = values.get(fact);
