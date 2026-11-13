@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   ABILITY_COUNT,
   ARMOUR_CLASS,
+  CHARACTER_LEVEL,
   CLASS_COUNT,
   CLASS_LEVEL,
   COIN_COUNT,
@@ -11,6 +12,7 @@ import {
   ITEM_COUNT,
   MAX_HIT_POINTS,
   LINE_LENGTH,
+  MODIFIER_COUNT,
   NAME_LENGTH,
   NUMBER_COUNT,
   REPLY_DEPTH,
@@ -19,6 +21,17 @@ import {
   SPEED,
   SPELL_COUNT,
   TOTAL_LEVEL,
+  ABILITY_MODIFIER,
+  PROFICIENCY_BONUS,
+  TEMPORARY_HIT_POINTS,
+  SAVING_THROW,
+  SKILL_BONUS,
+  INITIATIVE,
+  PASSIVE_SCORE,
+  SPELL_SAVE_DC,
+  SPELL_ATTACK,
+  SPELL_SLOTS,
+  CARRYING_CAPACITY,
 } from "../../../src/beyond/shape/import-limits";
 import { refuseAbove } from "../../../src/beyond/shape/refuse-above";
 
@@ -30,6 +43,7 @@ const CAPS = [
   { name: "the classes", cap: CLASS_COUNT, most: 20, unit: "classes" },
   { name: "the ability overrides", cap: ABILITY_COUNT, most: 6, unit: "overrides" },
   { name: "the numbers", cap: NUMBER_COUNT, most: 100, unit: "numbers" },
+  { name: "the modifiers", cap: MODIFIER_COUNT, most: 2_000, unit: "modifiers" },
   { name: "the inventory", cap: INVENTORY_COUNT, most: 500, unit: "items" },
   { name: "the spells", cap: SPELL_COUNT, most: 500, unit: "spells" },
   { name: "the features", cap: FEATURE_COUNT, most: 500, unit: "features" },
@@ -42,9 +56,21 @@ const RANGES = [
   { name: "maximum hit points", range: MAX_HIT_POINTS, lowest: 1, highest: 9_999 },
   { name: "a class level", range: CLASS_LEVEL, lowest: 1, highest: 20 },
   { name: "the total level", range: TOTAL_LEVEL, lowest: 1, highest: 40 },
+  { name: "the character level", range: CHARACTER_LEVEL, lowest: 1, highest: 20 },
   { name: "speed", range: SPEED, lowest: 0, highest: 500 },
   { name: "a coin count", range: COIN_COUNT, lowest: 0, highest: 1_000_000 },
   { name: "an item count", range: ITEM_COUNT, lowest: 0, highest: 9_999 },
+  { name: "an ability modifier", range: ABILITY_MODIFIER, lowest: -5, highest: 10 },
+  { name: "the proficiency bonus", range: PROFICIENCY_BONUS, lowest: 2, highest: 11 },
+  { name: "temporary hit points", range: TEMPORARY_HIT_POINTS, lowest: 0, highest: 9_999 },
+  { name: "a saving throw bonus", range: SAVING_THROW, lowest: -20, highest: 50 },
+  { name: "a skill bonus", range: SKILL_BONUS, lowest: -20, highest: 60 },
+  { name: "initiative", range: INITIATIVE, lowest: -20, highest: 50 },
+  { name: "a passive score", range: PASSIVE_SCORE, lowest: 0, highest: 80 },
+  { name: "a spell save DC", range: SPELL_SAVE_DC, lowest: 0, highest: 60 },
+  { name: "a spell attack bonus", range: SPELL_ATTACK, lowest: -20, highest: 50 },
+  { name: "a count of spell slots", range: SPELL_SLOTS, lowest: 0, highest: 9 },
+  { name: "carrying capacity", range: CARRYING_CAPACITY, lowest: 15, highest: 450 },
 ];
 
 describe("the caps", () => {

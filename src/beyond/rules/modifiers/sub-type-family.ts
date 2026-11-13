@@ -1,0 +1,21 @@
+import type { RuleModifier } from "../input/rule-modifier";
+
+function holdsStem(subType: string, stem: string): boolean {
+  return subType.includes(stem);
+}
+
+export class SubTypeFamily {
+  constructor(
+    private readonly names: readonly string[],
+    private readonly stems: readonly string[],
+  ) {}
+
+  touches(modifier: RuleModifier): boolean {
+    const subType = modifier.subType.text;
+    if (this.names.includes(subType)) return true;
+    for (const stem of this.stems) {
+      if (holdsStem(subType, stem)) return true;
+    }
+    return false;
+  }
+}
