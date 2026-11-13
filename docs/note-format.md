@@ -468,18 +468,18 @@ Which value shows: his own override on the character's note first, then the impo
 
 A value with earlier lines shows how many (↺ 2). *Edit character*, at the top, opens the character dialog. On a sheet with an imported value, *Update from D&D Beyond* beside it opens the [import dialog](#importing-from-a-pdf) for this note.
 
-The override reader skips the import's five sections, from each `## … (from D&D Beyond)` heading to the next heading of level one or two, so a line typed there such as `Range: 60 feet` is never read as an override. It reads the line as written; a heading inside a code block or comment in those sections still ends the skipping, which only matters for a line typed there by hand.
+The override reader skips the import's five sections, from each `## … (from D&D Beyond)` heading to the next heading of level one or two, so a line typed there such as `Range: 60 feet` is never read as an override. It finds the sections with the note writer's own reader, so a heading inside a code block or comment is no heading to either: it neither ends a section nor starts one.
 
 Under the values is the character's stat block, built from the values the sheet shows: their name, the type line and subtitle when known, then class, Armor Class, Hit Points and speed, and the six ability scores with their modifiers. It is the stat block the Characters page's cards show, in the same colours, and it shows carried-over values too. A value not known shows as a greyed `?`, never blank, whether no line states it or the newest line says `?`. The stat block only shows the values; they are changed by tapping them above it.
 
 Tapping a value opens a dialog with the value, its earlier values newest first, each with its session (tapping one opens its line), and a button for each state. The button you tap saves the value typed in that state:
 
 - **Learned at the table** adds `[[Mira]] AC: 16` at the end of the campaign's latest session, and clears the character's override, which would otherwise cover it. If the newest learned value is already the one typed, only the override is cleared.
-- **Override** writes `AC: 16` on the character's own note, as the character dialog does: it rewrites the last line that states it on its own, or adds a line at the end.
+- **Override** writes `AC: 16` on the character's own note, as the character dialog does: it rewrites the last line that states it on its own, or adds a line at the end. On a note the import wrote, a new line goes after your own text and before the import's first section, where the sheet reads it; the character dialog does the same.
 - **Carried over** clears the override, so the value carried from another campaign shows again.
 - **Not known yet** adds `[[Mira]] AC: ?` at the end of the campaign's latest session when a learned or carried value would otherwise show, and clears the override, as *Learned at the table* does. Like any learned line, it is newest only until a later session states the value again.
 
-Enter saves the value in its own state, as learned when it wasn't known, and as an override when it was imported. The dialog on an imported value says *Change this on D&D Beyond too, or the next update will replace it.* Lines on the character's note are written and removed by the rules in [Making, renaming and deleting a character](#making-renaming-and-deleting-a-character), with the same last check.
+Enter saves the value in its own state, as learned when it wasn't known, and as an override when it was imported. On a value that shows from D&D Beyond, the dialog shows *From D&D Beyond* as the current state, which can't be pressed, and offers only *Override*, saying that an override is the only thing that shows over an imported value. Any dialog on a value with an import says *Change this on D&D Beyond too, or the next update will replace it.* Lines on the character's note are written and removed by the rules in [Making, renaming and deleting a character](#making-renaming-and-deleting-a-character), with the same last check.
 
 Clearing an override removes every line on the character's note that states the value on its own. For the sheet's own names (`type`, `subtitle`, `speed`, the six scores, `class`, `AC`, `HP` and `alignment`) that happens on the first press. For any other name the line may be prose, so *Learned at the table*, *Carried over* and *Not known yet* need a second press within four seconds, as deleting does, and the dialog says why. *Override* rewrites the line with the value typed and needs only one press.
 
@@ -532,10 +532,12 @@ An import goes into the character's own note. Nothing else is touched.
 
 *Import from D&D Beyond* on the Characters page, and *Update from D&D Beyond* on an imported character's sheet, open one dialog. It asks for the PDF that D&D Beyond's *Export to PDF* makes (open your character, choose *Manage* next to the name, then *Export to PDF* at the bottom of the menu), from anywhere on the device; the file is read in memory and never copied into the vault.
 
-- A file over 10 MB is refused before it is read. The PDF reader's and the sheet's own refusals are shown in words, and the dialog asks for a file again.
+- A file over 10 MB is refused before it is read. The PDF reader's and the sheet's own refusals are shown in words, and the dialog asks for a file again. *Update* refuses a PDF for another character: *This PDF is for Primary Monk, not Secondary. Nothing was changed.*
+- Anything that goes wrong other than a refusal is shown as a plain sentence (*Something went wrong while reading the note, so nothing was written.*, or *…while writing the note. Look at the note before you try again.*), never as the error's own words.
 - The dialog then shows the character's name, species and class, how many items, spells and feature lines come in, how many lines were left out of each list (too long or not clean), and that the PDF doesn't give proficiency marks, attacks, alignment, spell slots, total level, hit dice or carrying capacity.
 - *Import* matches the name to the notes directly in the campaign's `Characters` folder. When a note is named for the first words of the character's name, or more of it, it asks which note this is, closest first, with *Make a new note* last; with none, it goes straight on to a new note.
-- For a note that exists, it lists every property and section line the update would replace, with text typed inside the import's sections listed first as a warning. *Update* writes exactly that; if the note changed since, it refuses in words and writes nothing. When nothing would change it says so and offers only *Close*.
+- For a note that exists, it lists every property and section line the update would replace, with text typed inside the import's sections listed first as a warning. *Update* writes exactly that; if the note changed since, it refuses in words, writes nothing, shows the refusal above the changes as they are now and offers *Update* again. When nothing would change it says so and offers only *Close*.
+- For a new note, a name that isn't a safe file name or that another note has is refused before *Import* is offered.
 - After a new note is written its sheet opens. *Choose another file* goes back to the start.
 
 ### Calling a character over
