@@ -59,6 +59,10 @@ The plugin follows the Dungeons & Dinthla design system. With Obsidian's default
 
 [docs/note-format.md](docs/note-format.md) says how a campaign is kept in plain notes: the folders, sessions, marked lines and character facts the plugin reads and writes.
 
+## Importing a character from D&D Beyond
+
+On D&D Beyond, open your character, choose *Manage* next to the name, then *Export to PDF* at the bottom of the menu. In the plugin, press *Import from D&D Beyond* on the Characters page and choose that PDF. The plugin reads the file on your device and sends nothing anywhere; it shows what will be written before it writes. [docs/note-format.md](docs/note-format.md#importing-from-a-pdf) has the details.
+
 ## Planning
 
 Work is planned as epics, stories and tasks on the [Dungeons & Dinthla Backlog](https://github.com/orgs/Libertas-le-Spes/projects/1) board. [docs/project-board.md](docs/project-board.md) says how the board works and why.
