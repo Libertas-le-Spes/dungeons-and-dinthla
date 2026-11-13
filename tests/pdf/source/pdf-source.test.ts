@@ -48,6 +48,10 @@ function shownPath(path: string): string {
   return relative(SOURCE_FOLDER, path);
 }
 
+function isPdfSource(path: string): boolean {
+  return path.startsWith(sourcePath(PDF_FOLDER));
+}
+
 describe("the PDF reader's own source", () => {
   it("holds no code the scan can't read, and loads only plain TypeScript from its entry point", () => {
     expect(unreadableCode(pdfListing(), LOADED)).toEqual([]);
@@ -59,7 +63,7 @@ describe("the PDF reader's own source", () => {
 
   it("is reached by the plugin's bundle, through the import dialog, so the bundle's own scan covers it too", () => {
     const bundled = new SourceScanner(ROOT, virtualFileSystem(VIRTUAL_FOLDER, bundledProjectFiles()));
-    const reached = bundled.loadedFiles(BUNDLED_PROJECT).filter((path) => path.startsWith(sourcePath(PDF_FOLDER)));
+    const reached = bundled.loadedFiles(BUNDLED_PROJECT).filter(isPdfSource);
     bundled.close();
     expect(reached.sort()).toEqual(pdfListing().sort());
   });
