@@ -24,6 +24,9 @@ const ACTIVE_ON_THE_PAGE = [
   "[[Rope#Top]]",
   "[[Rope^top]]",
   "[[Rope_x]]",
+  "1. Rope",
+  "? Rope",
+  "Potion: Healing",
 ];
 
 const INERT_ON_THE_PAGE = ["Rope", "Rope (50 ft) \\*silk\\*", "[[Rope]]", "[[Silk Rope]]"];
