@@ -1,6 +1,6 @@
 import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
-import { WORKER_HEAP_LIMIT_MB } from "./tests/setup/memory-limits.ts";
+import { MOST_TEST_WORKERS, WORKER_HEAP_LIMIT_MB } from "./tests/setup/memory-limits.ts";
 
 export default defineConfig({
   resolve: {
@@ -11,6 +11,7 @@ export default defineConfig({
   test: {
     include: ["tests/**/*.test.ts"],
     passWithNoTests: true,
+    maxWorkers: MOST_TEST_WORKERS,
     setupFiles: ["tests/setup/heap-guard.ts"],
     execArgv: [`--max-old-space-size=${WORKER_HEAP_LIMIT_MB}`, "--expose-gc"],
   },
