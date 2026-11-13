@@ -40,5 +40,12 @@
   "find": "    void stillReported(work);\n",
   "replace": "",
   "group": "pending"
+ },
+ {
+  "id": "forget before waiting",
+  "file": "src/views/pending/pending-work.ts",
+  "find": "      await Promise.all(awaited);\n      for (const piece of awaited) this.pending.delete(piece);\n",
+  "replace": "      for (const piece of awaited) this.pending.delete(piece);\n      await Promise.all(awaited);\n",
+  "group": "pending"
  }
 ]
