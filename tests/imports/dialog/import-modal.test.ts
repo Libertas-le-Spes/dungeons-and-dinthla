@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { TFile } from "obsidian";
 import { NewImportFlow } from "../../../src/imports/dialog/flows/new-import-flow";
 import { UpdateFlow } from "../../../src/imports/dialog/flows/update-flow";
 import { ImportWriter } from "../../../src/imports/note/writing/import-writer";
@@ -11,6 +12,12 @@ import { CHARACTERS_FOLDER, FakeNoteVault } from "../builders/fake-note-vault";
 import { DialogDriver, pickedFileOf } from "../builders/dialog-driver";
 import { madeUpPdf, notAPdf } from "../builders/made-up-pdf";
 import { TODAY } from "../builders/made-up-import";
+import { READING_WENT_WRONG, WRITING_WENT_WRONG } from "../../../src/imports/dialog/failure-words";
+import { typedTextNotShown } from "../../../src/imports/note/writing/guarding/refusals";
+import { IMPORT_TITLE, STILL_READING, UPDATE_TITLE } from "../../../src/imports/dialog/import-words";
+import type { Modal as StubModal } from "../../stubs/obsidian";
+
+const TYPED_TEXT_NOT_SHOWN = typedTextNotShown().message;
 
 const NEW_NOTE = `${CHARACTERS_FOLDER}/Primary Monk.md`;
 const SHORT_NOTE = `${CHARACTERS_FOLDER}/Primary.md`;
@@ -125,18 +132,32 @@ describe("importing a character from a made-up PDF", () => {
     expect(vault.textAt(SHORT_NOTE)).not.toContain("Range: 60 feet");
   });
 
-  it("refuses in words, and writes nothing, when the note changed since the changes were shown", async () => {
+  it("refuses in words when the note changed since the changes were shown, shows the new changes under the refusal, and offers Update again", async () => {
     vault.note(SHORT_NOTE, "Notes of mine.\n");
     const dialog = updateDialog(SHORT_NOTE);
     dialog.pick(pickedFileOf(monkPdf()));
     await dialog.settled(".dd-import-write");
     vault.texts.set(SHORT_NOTE, "Notes of mine.\n## Spells (from D&D Beyond)\nTyped later\n");
     dialog.press("Update");
-    const refusal = await dialog.settled(".dd-import-refusal");
-    expect(refusal.textContent).toContain("is not the text that was shown before, so nothing was written");
+    const failure = await dialog.settled(".dd-import-failure");
+    expect(failure.textContent).toBe(TYPED_TEXT_NOT_SHOWN);
     expect(vault.processed).toEqual([]);
-    expect(dialog.root.querySelector(".dd-import-write")).toBeNull();
+    expect(dialog.texts(".dd-import-warning li")).toEqual(["Typed later"]);
+    expect(dialog.root.querySelector(".dd-import-write")).not.toBeNull();
     expect(dialog.closed).not.toHaveBeenCalled();
+  });
+
+  it("writes on the second Update, once the typed text it now warns about is the text in the note", async () => {
+    vault.note(SHORT_NOTE, "Notes of mine.\n");
+    const dialog = updateDialog(SHORT_NOTE);
+    dialog.pick(pickedFileOf(monkPdf()));
+    await dialog.settled(".dd-import-write");
+    vault.texts.set(SHORT_NOTE, "Notes of mine.\n## Spells (from D&D Beyond)\nTyped later\n");
+    dialog.press("Update");
+    await dialog.settled(".dd-import-failure");
+    dialog.press("Update");
+    await expect.poll(closedWith(dialog)).toEqual([[SHORT_NOTE]]);
+    expect(vault.textAt(SHORT_NOTE)).not.toContain("Typed later");
   });
 
   it("says nothing would change for a note already up to date, and offers no Update", async () => {
@@ -187,7 +208,7 @@ describe("importing a character from a made-up PDF", () => {
     const dialog = importDialog();
     dialog.pick({ size: 10, arrayBuffer: failingRead });
     const refusal = await dialog.settled(".dd-import-refusal");
-    expect(refusal.textContent).toBe("The file could not be read, so nothing was read.");
+    expect(refusal.textContent).toBe("The file could not be read, so nothing was imported.");
   });
 
   it("is refused by the gate for a Characters folder outside the Campaigns folder, and writes nothing", async () => {
@@ -196,7 +217,8 @@ describe("importing a character from a made-up PDF", () => {
     dialog.pick(pickedFileOf(monkPdf()));
     await dialog.settled(".dd-import-write");
     dialog.press("Import");
-    await dialog.settled(".dd-import-refusal");
+    const failure = await dialog.settled(".dd-import-failure");
+    expect(failure.textContent).toBe(WRITING_WENT_WRONG);
     expect(vault.created).toEqual([]);
     expect(vault.createdFolders).toEqual([]);
     expect(dialog.closed).not.toHaveBeenCalled();
@@ -205,7 +227,7 @@ describe("importing a character from a made-up PDF", () => {
   it("stays on the file picker when it closes with no file chosen", async () => {
     const dialog = importDialog();
     dialog.pickNothing();
-    await Promise.resolve();
+    await new Promise(soon);
     expect(dialog.root.querySelectorAll('input[type="file"]')).toHaveLength(1);
     expect(dialog.root.querySelector(".dd-import-reading")).toBeNull();
     expect(dialog.root.querySelector(".dd-import-refusal")).toBeNull();
@@ -221,6 +243,10 @@ describe("importing a character from a made-up PDF", () => {
   });
 });
 
+function soon(resolve: (value: unknown) => void): void {
+  setTimeout(resolve, 0);
+}
+
 async function failingRead(): Promise<ArrayBuffer> {
   throw new Error("The disk went away.");
 }
@@ -230,3 +256,81 @@ function closedWith(dialog: DialogDriver): () => unknown[][] {
     return dialog.closed.mock.calls;
   };
 }
+
+describe("the import dialog's words when something other than a refusal goes wrong", () => {
+  it("shows a plain sentence, not the error's own words, when the note can't be read", async () => {
+    vault.note(SHORT_NOTE, "Notes of mine.\n");
+    vault.failReadsWith(new Error("EIO: i/o error, read"));
+    const dialog = updateDialog(SHORT_NOTE);
+    dialog.pick(pickedFileOf(monkPdf()));
+    const refusal = await dialog.settled(".dd-import-refusal");
+    expect(refusal.textContent).toBe(READING_WENT_WRONG);
+    expect(dialog.root.querySelector(".dd-import-write")).toBeNull();
+  });
+
+  it("shows a plain sentence, in the dialog and the notice, when making the note fails", async () => {
+    vault.failCreatesWith(new Error("File already exists."));
+    const dialog = importDialog();
+    dialog.pick(pickedFileOf(monkPdf()));
+    await dialog.settled(".dd-import-write");
+    dialog.press("Import");
+    const failure = await dialog.settled(".dd-import-failure");
+    expect(failure.textContent).toBe(WRITING_WENT_WRONG);
+    expect(Notice.shown).toEqual([`Couldn't write the import: ${WRITING_WENT_WRONG}`]);
+    expect(WRITING_WENT_WRONG).toBe("Something went wrong while writing the note. Look at the note before you try again.");
+    expect(READING_WENT_WRONG).toBe("Something went wrong while reading the note, so nothing was written.");
+  });
+});
+
+describe("Update from D&D Beyond with another character's PDF", () => {
+  it("refuses in plain words before showing any change, and changes nothing", async () => {
+    vault.note(`${CHARACTERS_FOLDER}/Secondary.md`, "Notes of mine.\n");
+    const dialog = updateDialog(`${CHARACTERS_FOLDER}/Secondary.md`);
+    dialog.pick(pickedFileOf(monkPdf()));
+    const refusal = await dialog.settled(".dd-import-refusal");
+    expect(refusal.textContent).toBe("This PDF is for Primary Monk, not Secondary. Nothing was changed.");
+    expect(dialog.root.querySelectorAll('input[type="file"]')).toHaveLength(1);
+    expect(vault.processed).toEqual([]);
+  });
+});
+
+describe("a new note whose name is taken", () => {
+  it("is refused in the review, before any Import button", async () => {
+    vault.note(`${CHARACTERS_FOLDER}/primary monk.md`, "Notes of mine.\n");
+    const dialog = new DialogDriver(new NewImportFlow(new ImportWriter(vault.gate, CHARACTERS_FOLDER), CHARACTERS_FOLDER, noNotes), TODAY);
+    dialog.pick(pickedFileOf(monkPdf()));
+    const refusal = await dialog.settled(".dd-import-refusal");
+    expect(refusal.textContent).toBe("There is already a note called primary monk in the Characters folder.");
+    expect(dialog.root.querySelector(".dd-import-write")).toBeNull();
+    expect(vault.created).toEqual([]);
+  });
+});
+
+describe("the dialog's title and first focus", () => {
+  it("is titled Import from D&D Beyond for a new character", () => {
+    const dialog = importDialog();
+    expect(titleOf(dialog)).toBe(IMPORT_TITLE);
+    expect(IMPORT_TITLE).toBe("Import from D&D Beyond");
+  });
+
+  it("is titled Update from D&D Beyond for a note", () => {
+    vault.note(SHORT_NOTE, "Notes of mine.\n");
+    const dialog = updateDialog(SHORT_NOTE);
+    expect(titleOf(dialog)).toBe(UPDATE_TITLE);
+    expect(UPDATE_TITLE).toBe("Update from D&D Beyond");
+  });
+
+  it("puts the focus on the file picker", () => {
+    const dialog = importDialog();
+    expect(dialog.root.ownerDocument.activeElement).toBe(dialog.root.querySelector('input[type="file"]'));
+  });
+});
+
+function noNotes(): TFile[] {
+  return [];
+}
+
+function titleOf(dialog: DialogDriver): string {
+  return (dialog.modal as unknown as StubModal).title;
+}
+

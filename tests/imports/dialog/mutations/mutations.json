@@ -344,22 +344,22 @@
  },
  {
   "id": "dialog: one target goes straight on",
-  "file": "src/imports/dialog/import-steps.ts",
+  "file": "src/imports/dialog/stages/review-stage.ts",
   "find": "    if (only !== null) return null;\n",
   "replace": "",
   "group": "dialog"
  },
  {
   "id": "dialog: note refusal shown",
-  "file": "src/imports/dialog/import-steps.ts",
-  "find": "      review = { sheet, target, changes: null, refusal: messageOf(error) };",
-  "replace": "      review = { sheet, target, changes: null, refusal: null };",
+  "file": "src/imports/dialog/stages/review-stage.ts",
+  "find": "refusal: wordsOf(error, READING_WENT_WRONG), failure };",
+  "replace": "refusal: null, failure };",
   "group": "dialog"
  },
  {
   "id": "dialog: write failure shown",
-  "file": "src/imports/dialog/import-steps.ts",
-  "find": "void this.reviewWith(review.sheet, review.target, messageOf(error));",
+  "file": "src/imports/dialog/stages/review-stage.ts",
+  "find": "void this.reviewWith(review.sheet, review.target, wordsOf(error, WRITING_WENT_WRONG));",
   "replace": "void this.reviewWith(review.sheet, review.target, null);",
   "group": "dialog"
  },
@@ -421,9 +421,9 @@
  },
  {
   "id": "dialog: written path handed on",
-  "file": "src/imports/dialog/import-steps.ts",
-  "find": "    this.writtenPath = await review.target.bringIn(",
-  "replace": "    await review.target.bringIn(",
+  "file": "src/imports/dialog/stages/review-stage.ts",
+  "find": "      this.writtenPath = await review.target.bringIn(",
+  "replace": "      await review.target.bringIn(",
   "group": "dialog"
  },
  {
@@ -544,5 +544,82 @@
   "find": "if (stateWrite === undefined) throw new Error(NOT_A_CHOICE);",
   "replace": "if (stateWrite === undefined) return { override: null, sessionFact: null };",
   "group": "modal"
+ },
+ {
+  "id": "dialog: refusal words kept",
+  "file": "src/imports/dialog/failure-words.ts",
+  "find": "  if (error instanceof Refusal) return error.message;\n",
+  "replace": "",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: other errors made plain",
+  "file": "src/imports/dialog/failure-words.ts",
+  "find": "  if (error instanceof Refusal) return error;\n",
+  "replace": "  if (error instanceof Error) return new Refusal(error.message);\n",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: other errors' words hidden",
+  "file": "src/imports/dialog/failure-words.ts",
+  "find": "  return otherwise;\n}",
+  "replace": "  if (error instanceof Error) return error.message;\n  return otherwise;\n}",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: write errors made plain",
+  "file": "src/imports/dialog/stages/review-stage.ts",
+  "find": "      throw plainRefusalOf(error, WRITING_WENT_WRONG);",
+  "replace": "      throw error;",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: failure shown above the changes",
+  "file": "src/imports/dialog/steps/review-step.ts",
+  "find": "  drawFailure(parent, review);\n",
+  "replace": "",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: still reading said",
+  "file": "src/imports/dialog/stages/pdf-stage.ts",
+  "find": "      this.contentEl.createEl(\"p\", { cls: \"dd-import-reading dd-still-reading\", text: STILL_READING });\n",
+  "replace": "",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: second file not read",
+  "file": "src/imports/dialog/stages/pdf-stage.ts",
+  "find": "text: STILL_READING });\n      return;",
+  "replace": "text: STILL_READING });",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: flow refusal stops the review",
+  "file": "src/imports/dialog/import-steps.ts",
+  "find": "    if (refusal !== null) {\n      this.pdf.show(refusal);\n      return;\n    }\n",
+  "replace": "",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: update matches the PDF's name",
+  "file": "src/imports/dialog/flows/update-flow.ts",
+  "find": "if (notesLikeName(name, [this.file]).length > 0) return null;",
+  "replace": "return null;",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: new note checked in the review",
+  "file": "src/imports/dialog/targets/new-note-target.ts",
+  "find": "    this.writer.refuseUnlessCreatable(sheet, today);\n",
+  "replace": "",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: update words outside a campaign",
+  "file": "src/imports/dialog/opening/beyond-openers.ts",
+  "find": "this.wiring.tell(NOT_IN_A_CAMPAIGN);",
+  "replace": "this.wiring.tell(NO_CAMPAIGN);",
+  "group": "dialog"
  }
 ]

@@ -10,12 +10,13 @@ export class NewNoteTarget implements ImportTarget {
 
   constructor(
     private readonly writer: ImportWriter,
-    readonly noteName: string,
+    private readonly noteName: string,
   ) {
     this.choiceWords = newNoteWords(noteName);
   }
 
-  async changesFor(): Promise<ImportChanges | null> {
+  async changesFor(sheet: PrintedSheet, today: string): Promise<ImportChanges | null> {
+    this.writer.refuseUnlessCreatable(sheet, today);
     return null;
   }
 

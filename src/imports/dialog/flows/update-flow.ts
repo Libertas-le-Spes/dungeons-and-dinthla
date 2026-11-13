@@ -1,16 +1,25 @@
 import type { TFile } from "obsidian";
+import type { PrintedSheet } from "../../../beyond/sheet/printed-sheet";
+import { notesLikeName } from "../../note/matching/note-match";
 import type { ImportWriter } from "../../note/writing/import-writer";
-import { UPDATE_TITLE } from "../import-words";
+import { notThisCharacter, UPDATE_TITLE } from "../import-words";
 import { ExistingNoteTarget } from "../targets/existing-note-target";
 import type { ImportTarget } from "../targets/import-target";
+import type { ImportFlow } from "./import-flow";
 
-export class UpdateFlow {
+export class UpdateFlow implements ImportFlow {
   readonly title = UPDATE_TITLE;
 
   constructor(
     private readonly writer: ImportWriter,
     private readonly file: TFile,
   ) {}
+
+  refusalFor(sheet: PrintedSheet): string | null {
+    const name = sheet.character.name.text;
+    if (notesLikeName(name, [this.file]).length > 0) return null;
+    return notThisCharacter(name, this.file.basename);
+  }
 
   targetsFor(): ImportTarget[] {
     return [new ExistingNoteTarget(this.writer, this.file)];
