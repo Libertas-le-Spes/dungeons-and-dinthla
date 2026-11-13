@@ -1,3 +1,4 @@
+import { spellAttackNameOf, spellSaveDcNameOf } from "../../core/number-names";
 import { sameName } from "../../core/same-name";
 import type { Ability } from "../../input/ability";
 import type { RuleClass } from "../../input/rule-class";
@@ -17,11 +18,11 @@ export class CasterClass {
   }
 
   get saveDcName(): string {
-    return `${this.label} spell save DC`;
+    return spellSaveDcNameOf(this.label);
   }
 
   get attackName(): string {
-    return `${this.label} spell attack bonus`;
+    return spellAttackNameOf(this.label);
   }
 
   matches(ruleClass: RuleClass): boolean {

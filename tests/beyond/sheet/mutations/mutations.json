@@ -1,0 +1,2235 @@
+[
+ {
+  "id": "field STR",
+  "file": "src/beyond/sheet/table/numbers/score-rows.ts",
+  "find": "new PrintedNumber(\"STR\", SCORE",
+  "replace": "new PrintedNumber(\"STRX\", SCORE",
+  "group": "field name"
+ },
+ {
+  "id": "field DEX",
+  "file": "src/beyond/sheet/table/numbers/score-rows.ts",
+  "find": "new PrintedNumber(\"DEX\", SCORE",
+  "replace": "new PrintedNumber(\"DEXX\", SCORE",
+  "group": "field name"
+ },
+ {
+  "id": "field CON",
+  "file": "src/beyond/sheet/table/numbers/score-rows.ts",
+  "find": "new PrintedNumber(\"CON\", SCORE",
+  "replace": "new PrintedNumber(\"CONX\", SCORE",
+  "group": "field name"
+ },
+ {
+  "id": "field INT",
+  "file": "src/beyond/sheet/table/numbers/score-rows.ts",
+  "find": "new PrintedNumber(\"INT\", SCORE",
+  "replace": "new PrintedNumber(\"INTX\", SCORE",
+  "group": "field name"
+ },
+ {
+  "id": "field WIS",
+  "file": "src/beyond/sheet/table/numbers/score-rows.ts",
+  "find": "new PrintedNumber(\"WIS\", SCORE",
+  "replace": "new PrintedNumber(\"WISX\", SCORE",
+  "group": "field name"
+ },
+ {
+  "id": "field CHA",
+  "file": "src/beyond/sheet/table/numbers/score-rows.ts",
+  "find": "new PrintedNumber(\"CHA\", SCORE",
+  "replace": "new PrintedNumber(\"CHAX\", SCORE",
+  "group": "field name"
+ },
+ {
+  "id": "field PP",
+  "file": "src/beyond/sheet/table/purse-rows.ts",
+  "find": "new PrintedNumber(\"PP\", COIN_COUNT",
+  "replace": "new PrintedNumber(\"PPX\", COIN_COUNT",
+  "group": "field name"
+ },
+ {
+  "id": "field GP",
+  "file": "src/beyond/sheet/table/purse-rows.ts",
+  "find": "new PrintedNumber(\"GP\", COIN_COUNT",
+  "replace": "new PrintedNumber(\"GPX\", COIN_COUNT",
+  "group": "field name"
+ },
+ {
+  "id": "field EP",
+  "file": "src/beyond/sheet/table/purse-rows.ts",
+  "find": "new PrintedNumber(\"EP\", COIN_COUNT",
+  "replace": "new PrintedNumber(\"EPX\", COIN_COUNT",
+  "group": "field name"
+ },
+ {
+  "id": "field SP",
+  "file": "src/beyond/sheet/table/purse-rows.ts",
+  "find": "new PrintedNumber(\"SP\", COIN_COUNT",
+  "replace": "new PrintedNumber(\"SPX\", COIN_COUNT",
+  "group": "field name"
+ },
+ {
+  "id": "field CP",
+  "file": "src/beyond/sheet/table/purse-rows.ts",
+  "find": "new PrintedNumber(\"CP\", COIN_COUNT",
+  "replace": "new PrintedNumber(\"CPX\", COIN_COUNT",
+  "group": "field name"
+ },
+ {
+  "id": "field STRmod",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": ", \"STRmod\", ",
+  "replace": ", \"STRmodX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of STRmod",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": "\"STRmod\", ABILITY_MODIFIER",
+  "replace": "\"STRmod\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field DEXmod ",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": ", \"DEXmod \", ",
+  "replace": ", \"DEXmod X\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of DEXmod ",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": "\"DEXmod \", ABILITY_MODIFIER",
+  "replace": "\"DEXmod \", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field CONmod",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": ", \"CONmod\", ",
+  "replace": ", \"CONmodX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of CONmod",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": "\"CONmod\", ABILITY_MODIFIER",
+  "replace": "\"CONmod\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field INTmod",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": ", \"INTmod\", ",
+  "replace": ", \"INTmodX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of INTmod",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": "\"INTmod\", ABILITY_MODIFIER",
+  "replace": "\"INTmod\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field WISmod",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": ", \"WISmod\", ",
+  "replace": ", \"WISmodX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of WISmod",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": "\"WISmod\", ABILITY_MODIFIER",
+  "replace": "\"WISmod\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field CHamod",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": ", \"CHamod\", ",
+  "replace": ", \"CHamodX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of CHamod",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": "\"CHamod\", ABILITY_MODIFIER",
+  "replace": "\"CHamod\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field ST Strength",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": ", \"ST Strength\", ",
+  "replace": ", \"ST StrengthX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of ST Strength",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": "\"ST Strength\", SAVING_THROW",
+  "replace": "\"ST Strength\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field ST Dexterity",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": ", \"ST Dexterity\", ",
+  "replace": ", \"ST DexterityX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of ST Dexterity",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": "\"ST Dexterity\", SAVING_THROW",
+  "replace": "\"ST Dexterity\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field ST Constitution",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": ", \"ST Constitution\", ",
+  "replace": ", \"ST ConstitutionX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of ST Constitution",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": "\"ST Constitution\", SAVING_THROW",
+  "replace": "\"ST Constitution\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field ST Intelligence",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": ", \"ST Intelligence\", ",
+  "replace": ", \"ST IntelligenceX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of ST Intelligence",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": "\"ST Intelligence\", SAVING_THROW",
+  "replace": "\"ST Intelligence\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field ST Wisdom",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": ", \"ST Wisdom\", ",
+  "replace": ", \"ST WisdomX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of ST Wisdom",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": "\"ST Wisdom\", SAVING_THROW",
+  "replace": "\"ST Wisdom\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field ST Charisma",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": ", \"ST Charisma\", ",
+  "replace": ", \"ST CharismaX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of ST Charisma",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": "\"ST Charisma\", SAVING_THROW",
+  "replace": "\"ST Charisma\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Acrobatics",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": ", \"Acrobatics\", ",
+  "replace": ", \"AcrobaticsX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Acrobatics",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Acrobatics\", SKILL_BONUS",
+  "replace": "\"Acrobatics\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Animal",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": ", \"Animal\", ",
+  "replace": ", \"AnimalX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Animal",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Animal\", SKILL_BONUS",
+  "replace": "\"Animal\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Arcana",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": ", \"Arcana\", ",
+  "replace": ", \"ArcanaX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Arcana",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Arcana\", SKILL_BONUS",
+  "replace": "\"Arcana\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Athletics",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": ", \"Athletics\", ",
+  "replace": ", \"AthleticsX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Athletics",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Athletics\", SKILL_BONUS",
+  "replace": "\"Athletics\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Deception",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": ", \"Deception\", ",
+  "replace": ", \"DeceptionX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Deception",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Deception\", SKILL_BONUS",
+  "replace": "\"Deception\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field History",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": ", \"History\", ",
+  "replace": ", \"HistoryX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of History",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"History\", SKILL_BONUS",
+  "replace": "\"History\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Insight",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": ", \"Insight\", ",
+  "replace": ", \"InsightX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Insight",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Insight\", SKILL_BONUS",
+  "replace": "\"Insight\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Intimidation",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": ", \"Intimidation\", ",
+  "replace": ", \"IntimidationX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Intimidation",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Intimidation\", SKILL_BONUS",
+  "replace": "\"Intimidation\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Investigation",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": ", \"Investigation\", ",
+  "replace": ", \"InvestigationX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Investigation",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Investigation\", SKILL_BONUS",
+  "replace": "\"Investigation\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Medicine",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": ", \"Medicine\", ",
+  "replace": ", \"MedicineX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Medicine",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Medicine\", SKILL_BONUS",
+  "replace": "\"Medicine\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Nature",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": ", \"Nature\", ",
+  "replace": ", \"NatureX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Nature",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Nature\", SKILL_BONUS",
+  "replace": "\"Nature\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Perception",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": ", \"Perception\", ",
+  "replace": ", \"PerceptionX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Perception",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Perception\", SKILL_BONUS",
+  "replace": "\"Perception\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Performance",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": ", \"Performance\", ",
+  "replace": ", \"PerformanceX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Performance",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Performance\", SKILL_BONUS",
+  "replace": "\"Performance\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Persuasion",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": ", \"Persuasion\", ",
+  "replace": ", \"PersuasionX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Persuasion",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Persuasion\", SKILL_BONUS",
+  "replace": "\"Persuasion\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Religion",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": ", \"Religion\", ",
+  "replace": ", \"ReligionX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Religion",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Religion\", SKILL_BONUS",
+  "replace": "\"Religion\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field SleightofHand",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": ", \"SleightofHand\", ",
+  "replace": ", \"SleightofHandX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of SleightofHand",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"SleightofHand\", SKILL_BONUS",
+  "replace": "\"SleightofHand\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Stealth ",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": ", \"Stealth \", ",
+  "replace": ", \"Stealth X\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Stealth ",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Stealth \", SKILL_BONUS",
+  "replace": "\"Stealth \", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Survival",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": ", \"Survival\", ",
+  "replace": ", \"SurvivalX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Survival",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Survival\", SKILL_BONUS",
+  "replace": "\"Survival\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Passive1",
+  "file": "src/beyond/sheet/table/numbers/passive-rows.ts",
+  "find": ", \"Passive1\", ",
+  "replace": ", \"Passive1X\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Passive1",
+  "file": "src/beyond/sheet/table/numbers/passive-rows.ts",
+  "find": "\"Passive1\", PASSIVE_SCORE",
+  "replace": "\"Passive1\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Passive2",
+  "file": "src/beyond/sheet/table/numbers/passive-rows.ts",
+  "find": ", \"Passive2\", ",
+  "replace": ", \"Passive2X\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Passive2",
+  "file": "src/beyond/sheet/table/numbers/passive-rows.ts",
+  "find": "\"Passive2\", PASSIVE_SCORE",
+  "replace": "\"Passive2\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Passive3",
+  "file": "src/beyond/sheet/table/numbers/passive-rows.ts",
+  "find": ", \"Passive3\", ",
+  "replace": ", \"Passive3X\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Passive3",
+  "file": "src/beyond/sheet/table/numbers/passive-rows.ts",
+  "find": "\"Passive3\", PASSIVE_SCORE",
+  "replace": "\"Passive3\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field AC",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": ", \"AC\", ",
+  "replace": ", \"ACX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of AC",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "\"AC\", ARMOUR_CLASS",
+  "replace": "\"AC\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field MaxHP",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": ", \"MaxHP\", ",
+  "replace": ", \"MaxHPX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of MaxHP",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "\"MaxHP\", MAX_HIT_POINTS",
+  "replace": "\"MaxHP\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field CurrentHP",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": ", \"CurrentHP\", ",
+  "replace": ", \"CurrentHPX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of CurrentHP",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "\"CurrentHP\", HIT_POINTS",
+  "replace": "\"CurrentHP\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field TempHP",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": ", \"TempHP\", ",
+  "replace": ", \"TempHPX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of TempHP",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "\"TempHP\", TEMPORARY_HIT_POINTS",
+  "replace": "\"TempHP\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Init",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": ", \"Init\", ",
+  "replace": ", \"InitX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Init",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "\"Init\", INITIATIVE",
+  "replace": "\"Init\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field Speed",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": ", \"Speed\", ",
+  "replace": ", \"SpeedX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of Speed",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "\"Speed\", SPEED",
+  "replace": "\"Speed\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field ProfBonus",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": ", \"ProfBonus\", ",
+  "replace": ", \"ProfBonusX\", ",
+  "group": "field name"
+ },
+ {
+  "id": "range of ProfBonus",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "\"ProfBonus\", PROFICIENCY_BONUS",
+  "replace": "\"ProfBonus\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "range of STR",
+  "file": "src/beyond/sheet/table/numbers/score-rows.ts",
+  "find": "new PrintedNumber(\"STR\", SCORE",
+  "replace": "new PrintedNumber(\"STR\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "range of DEX",
+  "file": "src/beyond/sheet/table/numbers/score-rows.ts",
+  "find": "new PrintedNumber(\"DEX\", SCORE",
+  "replace": "new PrintedNumber(\"DEX\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "range of CON",
+  "file": "src/beyond/sheet/table/numbers/score-rows.ts",
+  "find": "new PrintedNumber(\"CON\", SCORE",
+  "replace": "new PrintedNumber(\"CON\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "range of INT",
+  "file": "src/beyond/sheet/table/numbers/score-rows.ts",
+  "find": "new PrintedNumber(\"INT\", SCORE",
+  "replace": "new PrintedNumber(\"INT\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "range of WIS",
+  "file": "src/beyond/sheet/table/numbers/score-rows.ts",
+  "find": "new PrintedNumber(\"WIS\", SCORE",
+  "replace": "new PrintedNumber(\"WIS\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "range of CHA",
+  "file": "src/beyond/sheet/table/numbers/score-rows.ts",
+  "find": "new PrintedNumber(\"CHA\", SCORE",
+  "replace": "new PrintedNumber(\"CHA\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "range of PP",
+  "file": "src/beyond/sheet/table/purse-rows.ts",
+  "find": "new PrintedNumber(\"PP\", COIN_COUNT",
+  "replace": "new PrintedNumber(\"PP\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "range of GP",
+  "file": "src/beyond/sheet/table/purse-rows.ts",
+  "find": "new PrintedNumber(\"GP\", COIN_COUNT",
+  "replace": "new PrintedNumber(\"GP\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "range of EP",
+  "file": "src/beyond/sheet/table/purse-rows.ts",
+  "find": "new PrintedNumber(\"EP\", COIN_COUNT",
+  "replace": "new PrintedNumber(\"EP\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "range of SP",
+  "file": "src/beyond/sheet/table/purse-rows.ts",
+  "find": "new PrintedNumber(\"SP\", COIN_COUNT",
+  "replace": "new PrintedNumber(\"SP\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "range of CP",
+  "file": "src/beyond/sheet/table/purse-rows.ts",
+  "find": "new PrintedNumber(\"CP\", COIN_COUNT",
+  "replace": "new PrintedNumber(\"CP\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "range of item quantity",
+  "file": "src/beyond/sheet/table/item-rows.ts",
+  "find": "`Eq Qty${position}`, ITEM_COUNT",
+  "replace": "`Eq Qty${position}`, { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "field CharacterName",
+  "file": "src/beyond/sheet/table/identity-fields.ts",
+  "find": "CHARACTER_NAME = \"CharacterName\"",
+  "replace": "CHARACTER_NAME = \"CharacterNameX\"",
+  "group": "field name"
+ },
+ {
+  "id": "field CLASS  LEVEL",
+  "file": "src/beyond/sheet/table/identity-fields.ts",
+  "find": "CLASS_AND_LEVEL = \"CLASS  LEVEL\"",
+  "replace": "CLASS_AND_LEVEL = \"CLASS  LEVELX\"",
+  "group": "field name"
+ },
+ {
+  "id": "field RACE",
+  "file": "src/beyond/sheet/table/identity-fields.ts",
+  "find": "SPECIES = \"RACE\"",
+  "replace": "SPECIES = \"RACEX\"",
+  "group": "field name"
+ },
+ {
+  "id": "field FeaturesTraits1",
+  "file": "src/beyond/sheet/table/feature-fields.ts",
+  "find": "\"FeaturesTraits1\"",
+  "replace": "\"FeaturesTraits1X\"",
+  "group": "field name"
+ },
+ {
+  "id": "field FeaturesTraits2",
+  "file": "src/beyond/sheet/table/feature-fields.ts",
+  "find": "\"FeaturesTraits2\"",
+  "replace": "\"FeaturesTraits2X\"",
+  "group": "field name"
+ },
+ {
+  "id": "field FeaturesTraits3",
+  "file": "src/beyond/sheet/table/feature-fields.ts",
+  "find": "\"FeaturesTraits3\"",
+  "replace": "\"FeaturesTraits3X\"",
+  "group": "field name"
+ },
+ {
+  "id": "field Eq Name",
+  "file": "src/beyond/sheet/table/item-rows.ts",
+  "find": "`Eq Name${position}`",
+  "replace": "`Eq Nam${position}`",
+  "group": "field name"
+ },
+ {
+  "id": "field Eq Qty",
+  "file": "src/beyond/sheet/table/item-rows.ts",
+  "find": "`Eq Qty${position}`",
+  "replace": "`Eq Qt${position}`",
+  "group": "field name"
+ },
+ {
+  "id": "item rows end early",
+  "file": "src/beyond/sheet/table/item-rows.ts",
+  "find": "LAST_ROW = 25",
+  "replace": "LAST_ROW = 24",
+  "group": "field name"
+ },
+ {
+  "id": "item rows run on",
+  "file": "src/beyond/sheet/table/item-rows.ts",
+  "find": "LAST_ROW = 25",
+  "replace": "LAST_ROW = 26",
+  "group": "field name"
+ },
+ {
+  "id": "spell rows: numberedNames(\"spellNam\", 0, 4)",
+  "file": "src/beyond/sheet/table/spell-names.ts",
+  "find": "numberedNames(\"spellName\", 0, 4)",
+  "replace": "numberedNames(\"spellNam\", 0, 4)",
+  "group": "field name"
+ },
+ {
+  "id": "spell rows: numberedNames(\"spellName\", 1, 4)",
+  "file": "src/beyond/sheet/table/spell-names.ts",
+  "find": "numberedNames(\"spellName\", 0, 4)",
+  "replace": "numberedNames(\"spellName\", 1, 4)",
+  "group": "field name"
+ },
+ {
+  "id": "spell rows: numberedNames(\"spellName\", 0, 3)",
+  "file": "src/beyond/sheet/table/spell-names.ts",
+  "find": "numberedNames(\"spellName\", 0, 4)",
+  "replace": "numberedNames(\"spellName\", 0, 3)",
+  "group": "field name"
+ },
+ {
+  "id": "spell rows: numberedNames(\"spellName\", 0, 5)",
+  "file": "src/beyond/sheet/table/spell-names.ts",
+  "find": "numberedNames(\"spellName\", 0, 4)",
+  "replace": "numberedNames(\"spellName\", 0, 5)",
+  "group": "field name"
+ },
+ {
+  "id": "spell rows: numberedNames(\"spellName\", 8, 49)",
+  "file": "src/beyond/sheet/table/spell-names.ts",
+  "find": "numberedNames(\"SpellName\", 8, 49)",
+  "replace": "numberedNames(\"spellName\", 8, 49)",
+  "group": "field name"
+ },
+ {
+  "id": "spell rows: numberedNames(\"SpellName\", 9, 49)",
+  "file": "src/beyond/sheet/table/spell-names.ts",
+  "find": "numberedNames(\"SpellName\", 8, 49)",
+  "replace": "numberedNames(\"SpellName\", 9, 49)",
+  "group": "field name"
+ },
+ {
+  "id": "spell rows: numberedNames(\"SpellName\", 7, 49)",
+  "file": "src/beyond/sheet/table/spell-names.ts",
+  "find": "numberedNames(\"SpellName\", 8, 49)",
+  "replace": "numberedNames(\"SpellName\", 7, 49)",
+  "group": "field name"
+ },
+ {
+  "id": "spell rows: numberedNames(\"SpellName\", 8, 48)",
+  "file": "src/beyond/sheet/table/spell-names.ts",
+  "find": "numberedNames(\"SpellName\", 8, 49)",
+  "replace": "numberedNames(\"SpellName\", 8, 48)",
+  "group": "field name"
+ },
+ {
+  "id": "spell rows: numberedNames(\"SpellName\", 8, 50)",
+  "file": "src/beyond/sheet/table/spell-names.ts",
+  "find": "numberedNames(\"SpellName\", 8, 49)",
+  "replace": "numberedNames(\"SpellName\", 8, 50)",
+  "group": "field name"
+ },
+ {
+  "id": "numbered names start",
+  "file": "src/beyond/sheet/table/numbered-names.ts",
+  "find": "let number = first",
+  "replace": "let number = first + 1",
+  "group": "field name"
+ },
+ {
+  "id": "numbered names end",
+  "file": "src/beyond/sheet/table/numbered-names.ts",
+  "find": "number <= last",
+  "replace": "number < last",
+  "group": "field name"
+ },
+ {
+  "id": "modifier name STRENGTH",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": "new NumberRow(STRENGTH.modifierName",
+  "replace": "new NumberRow(DEXTERITY.modifierName",
+  "group": "number name"
+ },
+ {
+  "id": "save name STRENGTH",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": "new NumberRow(STRENGTH.saveName",
+  "replace": "new NumberRow(DEXTERITY.saveName",
+  "group": "number name"
+ },
+ {
+  "id": "modifier name DEXTERITY",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": "new NumberRow(DEXTERITY.modifierName",
+  "replace": "new NumberRow(STRENGTH.modifierName",
+  "group": "number name"
+ },
+ {
+  "id": "save name DEXTERITY",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": "new NumberRow(DEXTERITY.saveName",
+  "replace": "new NumberRow(STRENGTH.saveName",
+  "group": "number name"
+ },
+ {
+  "id": "modifier name CONSTITUTION",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": "new NumberRow(CONSTITUTION.modifierName",
+  "replace": "new NumberRow(DEXTERITY.modifierName",
+  "group": "number name"
+ },
+ {
+  "id": "save name CONSTITUTION",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": "new NumberRow(CONSTITUTION.saveName",
+  "replace": "new NumberRow(DEXTERITY.saveName",
+  "group": "number name"
+ },
+ {
+  "id": "modifier name INTELLIGENCE",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": "new NumberRow(INTELLIGENCE.modifierName",
+  "replace": "new NumberRow(DEXTERITY.modifierName",
+  "group": "number name"
+ },
+ {
+  "id": "save name INTELLIGENCE",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": "new NumberRow(INTELLIGENCE.saveName",
+  "replace": "new NumberRow(DEXTERITY.saveName",
+  "group": "number name"
+ },
+ {
+  "id": "modifier name WISDOM",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": "new NumberRow(WISDOM.modifierName",
+  "replace": "new NumberRow(DEXTERITY.modifierName",
+  "group": "number name"
+ },
+ {
+  "id": "save name WISDOM",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": "new NumberRow(WISDOM.saveName",
+  "replace": "new NumberRow(DEXTERITY.saveName",
+  "group": "number name"
+ },
+ {
+  "id": "modifier name CHARISMA",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": "new NumberRow(CHARISMA.modifierName",
+  "replace": "new NumberRow(DEXTERITY.modifierName",
+  "group": "number name"
+ },
+ {
+  "id": "save name CHARISMA",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": "new NumberRow(CHARISMA.saveName",
+  "replace": "new NumberRow(DEXTERITY.saveName",
+  "group": "number name"
+ },
+ {
+  "id": "passive name PERCEPTION",
+  "file": "src/beyond/sheet/table/numbers/passive-rows.ts",
+  "find": "new NumberRow(PERCEPTION.passiveName",
+  "replace": "new NumberRow(INSIGHT.passiveName",
+  "group": "number name"
+ },
+ {
+  "id": "passive name INSIGHT",
+  "file": "src/beyond/sheet/table/numbers/passive-rows.ts",
+  "find": "new NumberRow(INSIGHT.passiveName",
+  "replace": "new NumberRow(PERCEPTION.passiveName",
+  "group": "number name"
+ },
+ {
+  "id": "passive name INVESTIGATION",
+  "file": "src/beyond/sheet/table/numbers/passive-rows.ts",
+  "find": "new NumberRow(INVESTIGATION.passiveName",
+  "replace": "new NumberRow(INSIGHT.passiveName",
+  "group": "number name"
+ },
+ {
+  "id": "vital name ARMOUR_CLASS_NAME",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "new NumberRow(ARMOUR_CLASS_NAME, ",
+  "replace": "new NumberRow(\"Secondary\", ",
+  "group": "number name"
+ },
+ {
+  "id": "vital name MAX_HIT_POINTS_NAME",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "new NumberRow(MAX_HIT_POINTS_NAME, ",
+  "replace": "new NumberRow(\"Secondary\", ",
+  "group": "number name"
+ },
+ {
+  "id": "vital name CURRENT_HIT_POINTS_NAME",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "new NumberRow(CURRENT_HIT_POINTS_NAME, ",
+  "replace": "new NumberRow(\"Secondary\", ",
+  "group": "number name"
+ },
+ {
+  "id": "vital name TEMPORARY_HIT_POINTS_NAME",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "new NumberRow(TEMPORARY_HIT_POINTS_NAME, ",
+  "replace": "new NumberRow(\"Secondary\", ",
+  "group": "number name"
+ },
+ {
+  "id": "vital name INITIATIVE_NAME",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "new NumberRow(INITIATIVE_NAME, ",
+  "replace": "new NumberRow(\"Secondary\", ",
+  "group": "number name"
+ },
+ {
+  "id": "vital name SPEED_NAME",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "new NumberRow(SPEED_NAME, ",
+  "replace": "new NumberRow(\"Secondary\", ",
+  "group": "number name"
+ },
+ {
+  "id": "vital name PROFICIENCY_BONUS_NAME",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "new NumberRow(PROFICIENCY_BONUS_NAME, ",
+  "replace": "new NumberRow(\"Secondary\", ",
+  "group": "number name"
+ },
+ {
+  "id": "text kind of AC",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "\"AC\", ARMOUR_CLASS, WHOLE",
+  "replace": "\"AC\", ARMOUR_CLASS, SIGNED",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of MaxHP",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "\"MaxHP\", MAX_HIT_POINTS, WHOLE",
+  "replace": "\"MaxHP\", MAX_HIT_POINTS, SIGNED",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of CurrentHP",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "\"CurrentHP\", HIT_POINTS, WHOLE",
+  "replace": "\"CurrentHP\", HIT_POINTS, SIGNED",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of TempHP",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "\"TempHP\", TEMPORARY_HIT_POINTS, WHOLE",
+  "replace": "\"TempHP\", TEMPORARY_HIT_POINTS, SIGNED",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Init",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "\"Init\", INITIATIVE, SIGNED",
+  "replace": "\"Init\", INITIATIVE, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Speed",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "\"Speed\", SPEED, FEET",
+  "replace": "\"Speed\", SPEED, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of ProfBonus",
+  "file": "src/beyond/sheet/table/numbers/vital-rows.ts",
+  "find": "\"ProfBonus\", PROFICIENCY_BONUS, SIGNED",
+  "replace": "\"ProfBonus\", PROFICIENCY_BONUS, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "VITAL_ROWS left out",
+  "file": "src/beyond/sheet/table/numbers/number-rows.ts",
+  "find": "...VITAL_ROWS",
+  "replace": "",
+  "group": "family"
+ },
+ {
+  "id": "MODIFIER_ROWS left out",
+  "file": "src/beyond/sheet/table/numbers/number-rows.ts",
+  "find": "...MODIFIER_ROWS",
+  "replace": "",
+  "group": "family"
+ },
+ {
+  "id": "SAVE_ROWS left out",
+  "file": "src/beyond/sheet/table/numbers/number-rows.ts",
+  "find": "...SAVE_ROWS",
+  "replace": "",
+  "group": "family"
+ },
+ {
+  "id": "SKILL_ROWS left out",
+  "file": "src/beyond/sheet/table/numbers/number-rows.ts",
+  "find": "...SKILL_ROWS",
+  "replace": "",
+  "group": "family"
+ },
+ {
+  "id": "PASSIVE_ROWS left out",
+  "file": "src/beyond/sheet/table/numbers/number-rows.ts",
+  "find": "...PASSIVE_ROWS",
+  "replace": "",
+  "group": "family"
+ },
+ {
+  "id": "whole text open end",
+  "file": "src/beyond/sheet/numbers/whole-number-text.ts",
+  "find": "/^\\d+$/",
+  "replace": "/^\\d+/",
+  "group": "text kind"
+ },
+ {
+  "id": "whole text open start",
+  "file": "src/beyond/sheet/numbers/whole-number-text.ts",
+  "find": "/^\\d+$/",
+  "replace": "/\\d+$/",
+  "group": "text kind"
+ },
+ {
+  "id": "signed text any signs",
+  "file": "src/beyond/sheet/numbers/signed-number-text.ts",
+  "find": "[+-]?",
+  "replace": "[+-]*",
+  "group": "text kind"
+ },
+ {
+  "id": "signed text open end",
+  "file": "src/beyond/sheet/numbers/signed-number-text.ts",
+  "find": "\\d+$/",
+  "replace": "\\d+/",
+  "group": "text kind"
+ },
+ {
+  "id": "signed text open start",
+  "file": "src/beyond/sheet/numbers/signed-number-text.ts",
+  "find": "/^[+-]",
+  "replace": "/[+-]",
+  "group": "text kind"
+ },
+ {
+  "id": "feet text open start",
+  "file": "src/beyond/sheet/numbers/feet-number-text.ts",
+  "find": "/^\\d+ ?ft",
+  "replace": "/\\d+ ?ft",
+  "group": "text kind"
+ },
+ {
+  "id": "missing field check",
+  "file": "src/beyond/sheet/numbers/printed-number.ts",
+  "find": "if (printed === null) return this.notKnown(\"is missing or is not text\");",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "blank check",
+  "file": "src/beyond/sheet/numbers/printed-number.ts",
+  "find": "if (trimmed === \"\") return this.notKnown(\"is blank\");",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "no trim",
+  "file": "src/beyond/sheet/numbers/printed-number.ts",
+  "find": "const trimmed = printed.trim();",
+  "replace": "const trimmed = printed;",
+  "group": "guard"
+ },
+ {
+  "id": "form check",
+  "file": "src/beyond/sheet/numbers/printed-number.ts",
+  "find": "if (found === null) return this.notKnown(\"does not hold a number in the form the sheet prints\");",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "the sane range",
+  "file": "src/beyond/sheet/numbers/printed-number.ts",
+  "find": "numberInRange(found, this.range, NO_WORKING, PRINTED)",
+  "replace": "numberInRange(found, { what: \"A wide range\", lowest: -100000, highest: 100000 }, NO_WORKING, PRINTED)",
+  "group": "range"
+ },
+ {
+  "id": "known route in printed number",
+  "file": "src/beyond/sheet/numbers/printed-number.ts",
+  "find": "numberInRange(found, this.range, NO_WORKING, PRINTED)",
+  "replace": "numberInRange(found, this.range, NO_WORKING, { name: \"online\", source: \"Worked out\" })",
+  "group": "route"
+ },
+ {
+  "id": "not-known route in printed number",
+  "file": "src/beyond/sheet/numbers/printed-number.ts",
+  "find": "why}.`, PRINTED)",
+  "replace": "why}.`, { name: \"online\", source: \"Worked out\" })",
+  "group": "route"
+ },
+ {
+  "id": "working text",
+  "file": "src/beyond/sheet/numbers/printed-number.ts",
+  "find": "NO_WORKING = \"\"",
+  "replace": "NO_WORKING = \"worked\"",
+  "group": "guard"
+ },
+ {
+  "id": "route of the sheet",
+  "file": "src/beyond/sheet/printed-route.ts",
+  "find": "new Pdf()",
+  "replace": "{ name: \"online\", source: \"Worked out\" }",
+  "group": "route"
+ },
+ {
+  "id": "route on the character",
+  "file": "src/beyond/sheet/read-printed-sheet.ts",
+  "find": "route: PRINTED",
+  "replace": "route: { name: \"online\", source: \"Worked out\" }",
+  "group": "route"
+ },
+ {
+  "id": "route of an unknown level",
+  "file": "src/beyond/sheet/classes/class-piece.ts",
+  "find": "NO_LEVEL, PRINTED)",
+  "replace": "NO_LEVEL, { name: \"online\", source: \"x\" })",
+  "group": "route"
+ },
+ {
+  "id": "route of a known level",
+  "file": "src/beyond/sheet/classes/class-piece.ts",
+  "find": "CLASS_LEVEL, \"\", PRINTED)",
+  "replace": "CLASS_LEVEL, \"\", { name: \"online\", source: \"x\" })",
+  "group": "route"
+ },
+ {
+  "id": "route of levels over the total",
+  "file": "src/beyond/sheet/classes/within-total-level.ts",
+  "find": "TOTAL_LEVEL.highest}.`, PRINTED)",
+  "replace": "TOTAL_LEVEL.highest}.`, { name: \"online\", source: \"x\" })",
+  "group": "route"
+ },
+ {
+  "id": "text only",
+  "file": "src/beyond/sheet/sheet-fields.ts",
+  "find": "typeof value === \"string\"",
+  "replace": "typeof value !== \"undefined\"",
+  "group": "guard"
+ },
+ {
+  "id": "line cleaned in lineOrNothing",
+  "file": "src/beyond/sheet/lines/line-or-nothing.ts",
+  "find": "return CleanLine.of(text);",
+  "replace": "return { text } as never;",
+  "group": "neutralising"
+ },
+ {
+  "id": "only refusals are swallowed",
+  "file": "src/beyond/sheet/lines/line-or-nothing.ts",
+  "find": "if (error instanceof Refusal) return null;",
+  "replace": "return null;",
+  "group": "guard"
+ },
+ {
+  "id": "missing line",
+  "file": "src/beyond/sheet/lines/printed-line.ts",
+  "find": "if (printed === null) throw this.whenMissing();",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "blank line",
+  "file": "src/beyond/sheet/lines/printed-line.ts",
+  "find": "if (printed.trim() === \"\") throw this.whenMissing();",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "class separator",
+  "file": "src/beyond/sheet/classes/read-classes.ts",
+  "find": "BETWEEN_CLASSES = \"/\"",
+  "replace": "BETWEEN_CLASSES = \",\"",
+  "group": "guard"
+ },
+ {
+  "id": "no class field",
+  "file": "src/beyond/sheet/classes/read-classes.ts",
+  "find": "if (printed === null) throw noClass();",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "no class found",
+  "file": "src/beyond/sheet/classes/read-classes.ts",
+  "find": "if (found.length === 0) throw noClass();",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "class cap",
+  "file": "src/beyond/sheet/classes/read-classes.ts",
+  "find": "limitedList(usableClasses(printed), CLASS_COUNT)",
+  "replace": "usableClasses(printed)",
+  "group": "cap"
+ },
+ {
+  "id": "unusable class kept",
+  "file": "src/beyond/sheet/classes/read-classes.ts",
+  "find": "if (imported !== null) found.push(imported);",
+  "replace": "found.push(imported as never);",
+  "group": "guard"
+ },
+ {
+  "id": "total level not checked",
+  "file": "src/beyond/sheet/classes/read-classes.ts",
+  "find": "return withinTotalLevel(found);",
+  "replace": "return found;",
+  "group": "range"
+ },
+ {
+  "id": "class name unusable",
+  "file": "src/beyond/sheet/classes/class-piece.ts",
+  "find": "if (name === null) return null;",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "total level edge",
+  "file": "src/beyond/sheet/classes/within-total-level.ts",
+  "find": "<= TOTAL_LEVEL.highest",
+  "replace": "< TOTAL_LEVEL.highest",
+  "group": "range"
+ },
+ {
+  "id": "total level over edge",
+  "file": "src/beyond/sheet/classes/within-total-level.ts",
+  "find": "<= TOTAL_LEVEL.highest",
+  "replace": "<= TOTAL_LEVEL.highest + 1",
+  "group": "range"
+ },
+ {
+  "id": "total level reason",
+  "file": "src/beyond/sheet/classes/within-total-level.ts",
+  "find": "TOTAL_LEVEL.highest}.`",
+  "replace": "TOTAL_LEVEL.lowest}.`",
+  "group": "guard"
+ },
+ {
+  "id": "total level adds",
+  "file": "src/beyond/sheet/classes/within-total-level.ts",
+  "find": "total + imported.level.valueOr(0)",
+  "replace": "imported.level.valueOr(0)",
+  "group": "guard"
+ },
+ {
+  "id": "feature cap one over",
+  "file": "src/beyond/sheet/parts/read-features.ts",
+  "find": "FEATURE_COUNT)",
+  "replace": "FEATURE_COUNT + 1)",
+  "group": "cap"
+ },
+ {
+  "id": "spell cap one over",
+  "file": "src/beyond/sheet/parts/read-spells.ts",
+  "find": "SPELL_COUNT))",
+  "replace": "SPELL_COUNT + 1))",
+  "group": "cap"
+ },
+ {
+  "id": "item without a name kept",
+  "file": "src/beyond/sheet/parts/read-inventory.ts",
+  "find": "if (printed === null) return null;",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "item with an unusable name kept",
+  "file": "src/beyond/sheet/parts/read-inventory.ts",
+  "find": "if (name === null) return null;",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "item without a row quantity",
+  "file": "src/beyond/sheet/parts/read-inventory.ts",
+  "find": "count: row.quantity.read(fields)",
+  "replace": "count: row.quantity.read(new SheetFields(new Map()))",
+  "group": "guard"
+ },
+ {
+  "id": "unusable item kept",
+  "file": "src/beyond/sheet/parts/read-inventory.ts",
+  "find": "if (item !== null) found.push(item);",
+  "replace": "found.push(item as never);",
+  "group": "guard"
+ },
+ {
+  "id": "species from the name field",
+  "file": "src/beyond/sheet/table/identity-fields.ts",
+  "find": "new PrintedLine(SPECIES, noSpecies)",
+  "replace": "new PrintedLine(CHARACTER_NAME, noSpecies)",
+  "group": "field name"
+ },
+ {
+  "id": "name reason",
+  "file": "src/beyond/sheet/table/identity-fields.ts",
+  "find": "new PrintedLine(CHARACTER_NAME, noCharacterName)",
+  "replace": "new PrintedLine(CHARACTER_NAME, noSpecies)",
+  "group": "guard"
+ },
+ {
+  "id": "species reason",
+  "file": "src/beyond/sheet/table/identity-fields.ts",
+  "find": "new PrintedLine(SPECIES, noSpecies)",
+  "replace": "new PrintedLine(SPECIES, noCharacterName)",
+  "group": "guard"
+ },
+ {
+  "id": "text kind of STRmod",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": "\"STRmod\", ABILITY_MODIFIER, SIGNED",
+  "replace": "\"STRmod\", ABILITY_MODIFIER, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of DEXmod ",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": "\"DEXmod \", ABILITY_MODIFIER, SIGNED",
+  "replace": "\"DEXmod \", ABILITY_MODIFIER, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of CONmod",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": "\"CONmod\", ABILITY_MODIFIER, SIGNED",
+  "replace": "\"CONmod\", ABILITY_MODIFIER, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of INTmod",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": "\"INTmod\", ABILITY_MODIFIER, SIGNED",
+  "replace": "\"INTmod\", ABILITY_MODIFIER, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of WISmod",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": "\"WISmod\", ABILITY_MODIFIER, SIGNED",
+  "replace": "\"WISmod\", ABILITY_MODIFIER, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of CHamod",
+  "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
+  "find": "\"CHamod\", ABILITY_MODIFIER, SIGNED",
+  "replace": "\"CHamod\", ABILITY_MODIFIER, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of ST Strength",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": "\"ST Strength\", SAVING_THROW, SIGNED",
+  "replace": "\"ST Strength\", SAVING_THROW, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of ST Dexterity",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": "\"ST Dexterity\", SAVING_THROW, SIGNED",
+  "replace": "\"ST Dexterity\", SAVING_THROW, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of ST Constitution",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": "\"ST Constitution\", SAVING_THROW, SIGNED",
+  "replace": "\"ST Constitution\", SAVING_THROW, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of ST Intelligence",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": "\"ST Intelligence\", SAVING_THROW, SIGNED",
+  "replace": "\"ST Intelligence\", SAVING_THROW, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of ST Wisdom",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": "\"ST Wisdom\", SAVING_THROW, SIGNED",
+  "replace": "\"ST Wisdom\", SAVING_THROW, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of ST Charisma",
+  "file": "src/beyond/sheet/table/numbers/save-rows.ts",
+  "find": "\"ST Charisma\", SAVING_THROW, SIGNED",
+  "replace": "\"ST Charisma\", SAVING_THROW, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Acrobatics",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Acrobatics\", SKILL_BONUS, SIGNED",
+  "replace": "\"Acrobatics\", SKILL_BONUS, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Animal",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Animal\", SKILL_BONUS, SIGNED",
+  "replace": "\"Animal\", SKILL_BONUS, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Arcana",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Arcana\", SKILL_BONUS, SIGNED",
+  "replace": "\"Arcana\", SKILL_BONUS, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Athletics",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Athletics\", SKILL_BONUS, SIGNED",
+  "replace": "\"Athletics\", SKILL_BONUS, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Deception",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Deception\", SKILL_BONUS, SIGNED",
+  "replace": "\"Deception\", SKILL_BONUS, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of History",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"History\", SKILL_BONUS, SIGNED",
+  "replace": "\"History\", SKILL_BONUS, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Insight",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Insight\", SKILL_BONUS, SIGNED",
+  "replace": "\"Insight\", SKILL_BONUS, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Intimidation",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Intimidation\", SKILL_BONUS, SIGNED",
+  "replace": "\"Intimidation\", SKILL_BONUS, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Investigation",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Investigation\", SKILL_BONUS, SIGNED",
+  "replace": "\"Investigation\", SKILL_BONUS, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Medicine",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Medicine\", SKILL_BONUS, SIGNED",
+  "replace": "\"Medicine\", SKILL_BONUS, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Nature",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Nature\", SKILL_BONUS, SIGNED",
+  "replace": "\"Nature\", SKILL_BONUS, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Perception",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Perception\", SKILL_BONUS, SIGNED",
+  "replace": "\"Perception\", SKILL_BONUS, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Performance",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Performance\", SKILL_BONUS, SIGNED",
+  "replace": "\"Performance\", SKILL_BONUS, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Persuasion",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Persuasion\", SKILL_BONUS, SIGNED",
+  "replace": "\"Persuasion\", SKILL_BONUS, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Religion",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Religion\", SKILL_BONUS, SIGNED",
+  "replace": "\"Religion\", SKILL_BONUS, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of SleightofHand",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"SleightofHand\", SKILL_BONUS, SIGNED",
+  "replace": "\"SleightofHand\", SKILL_BONUS, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Stealth ",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Stealth \", SKILL_BONUS, SIGNED",
+  "replace": "\"Stealth \", SKILL_BONUS, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Survival",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "\"Survival\", SKILL_BONUS, SIGNED",
+  "replace": "\"Survival\", SKILL_BONUS, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Passive1",
+  "file": "src/beyond/sheet/table/numbers/passive-rows.ts",
+  "find": "\"Passive1\", PASSIVE_SCORE, WHOLE",
+  "replace": "\"Passive1\", PASSIVE_SCORE, SIGNED",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Passive2",
+  "file": "src/beyond/sheet/table/numbers/passive-rows.ts",
+  "find": "\"Passive2\", PASSIVE_SCORE, WHOLE",
+  "replace": "\"Passive2\", PASSIVE_SCORE, SIGNED",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of Passive3",
+  "file": "src/beyond/sheet/table/numbers/passive-rows.ts",
+  "find": "\"Passive3\", PASSIVE_SCORE, WHOLE",
+  "replace": "\"Passive3\", PASSIVE_SCORE, SIGNED",
+  "group": "text kind"
+ },
+ {
+  "id": "beyond may not reach pdf",
+  "file": "tests/build/inner-folders.test.ts",
+  "find": "reaches: [\"beyond\", \"names\", \"pdf\"]",
+  "replace": "reaches: [\"beyond\", \"names\"]",
+  "group": "inner folders"
+ },
+ {
+  "id": "beyond not listed as a pdf importer",
+  "file": "tests/build/inner-folders.test.ts",
+  "find": "PDF_IMPORTERS: string[] = [\"beyond\"]",
+  "replace": "PDF_IMPORTERS: string[] = []",
+  "group": "inner folders"
+ },
+ {
+  "id": "any folder may import pdf",
+  "file": "tests/build/inner-folders.test.ts",
+  "find": "PDF_IMPORTERS: string[] = [\"beyond\"]",
+  "replace": "PDF_IMPORTERS: string[] = [\"beyond\", \"campaign\", \"names\", \"fence\"]",
+  "group": "inner folders"
+ },
+ {
+  "id": "field spellSaveDC0",
+  "file": "src/beyond/sheet/table/numbers/casting-fields.ts",
+  "find": "\"spellSaveDC0\"",
+  "replace": "\"spellSaveDC0X\"",
+  "group": "field name"
+ },
+ {
+  "id": "field spellAtkBonus0",
+  "file": "src/beyond/sheet/table/numbers/casting-fields.ts",
+  "find": "\"spellAtkBonus0\"",
+  "replace": "\"spellAtkBonus0X\"",
+  "group": "field name"
+ },
+ {
+  "id": "field spellCastingClass0",
+  "file": "src/beyond/sheet/table/numbers/casting-fields.ts",
+  "find": "\"spellCastingClass0\"",
+  "replace": "\"spellCastingClass0X\"",
+  "group": "field name"
+ },
+ {
+  "id": "range of spellSaveDC0",
+  "file": "src/beyond/sheet/table/numbers/casting-fields.ts",
+  "find": "(\"spellSaveDC0\", SPELL_SAVE_DC",
+  "replace": "(\"spellSaveDC0\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "range of spellAtkBonus0",
+  "file": "src/beyond/sheet/table/numbers/casting-fields.ts",
+  "find": "(\"spellAtkBonus0\", SPELL_ATTACK",
+  "replace": "(\"spellAtkBonus0\", { what: \"A wide range\", lowest: -100000, highest: 100000 }",
+  "group": "range"
+ },
+ {
+  "id": "text kind of spellSaveDC0",
+  "file": "src/beyond/sheet/table/numbers/casting-fields.ts",
+  "find": "SPELL_SAVE_DC, WHOLE",
+  "replace": "SPELL_SAVE_DC, SIGNED",
+  "group": "text kind"
+ },
+ {
+  "id": "text kind of spellAtkBonus0",
+  "file": "src/beyond/sheet/table/numbers/casting-fields.ts",
+  "find": "SPELL_ATTACK, SIGNED",
+  "replace": "SPELL_ATTACK, WHOLE",
+  "group": "text kind"
+ },
+ {
+  "id": "casting names swapped",
+  "file": "src/beyond/sheet/parts/read-casting.ts",
+  "find": "saveDc: spellSaveDcNameOf(label), attack: spellAttackNameOf(label)",
+  "replace": "saveDc: spellAttackNameOf(label), attack: spellSaveDcNameOf(label)",
+  "group": "number name"
+ },
+ {
+  "id": "casting generic save name",
+  "file": "src/beyond/sheet/parts/read-casting.ts",
+  "find": "saveDc: GENERIC_SPELL_SAVE_DC_NAME",
+  "replace": "saveDc: \"Spell save\"",
+  "group": "number name"
+ },
+ {
+  "id": "casting generic attack name",
+  "file": "src/beyond/sheet/parts/read-casting.ts",
+  "find": "attack: GENERIC_SPELL_ATTACK_NAME",
+  "replace": "attack: \"Spell attack\"",
+  "group": "number name"
+ },
+ {
+  "id": "casting label missing",
+  "file": "src/beyond/sheet/parts/read-casting.ts",
+  "find": "if (printed === null) return null;",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "casting label unusable",
+  "file": "src/beyond/sheet/parts/read-casting.ts",
+  "find": "if (line === null) return null;",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "casting label without letters",
+  "file": "src/beyond/sheet/parts/read-casting.ts",
+  "find": "if (!hasLetterOrDigit(line.text)) return null;",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "casting numbers left out",
+  "file": "src/beyond/sheet/parts/read-numbers.ts",
+  "find": ", ...castingNumbersOf(fields)",
+  "replace": "",
+  "group": "family"
+ },
+ {
+  "id": "skill name ACROBATICS",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "new NumberRow(ACROBATICS.name,",
+  "replace": "new NumberRow(ANIMAL_HANDLING.name,",
+  "group": "number name"
+ },
+ {
+  "id": "skill name ANIMAL_HANDLING",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "new NumberRow(ANIMAL_HANDLING.name,",
+  "replace": "new NumberRow(ARCANA.name,",
+  "group": "number name"
+ },
+ {
+  "id": "skill name ARCANA",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "new NumberRow(ARCANA.name,",
+  "replace": "new NumberRow(ATHLETICS.name,",
+  "group": "number name"
+ },
+ {
+  "id": "skill name ATHLETICS",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "new NumberRow(ATHLETICS.name,",
+  "replace": "new NumberRow(DECEPTION.name,",
+  "group": "number name"
+ },
+ {
+  "id": "skill name DECEPTION",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "new NumberRow(DECEPTION.name,",
+  "replace": "new NumberRow(HISTORY.name,",
+  "group": "number name"
+ },
+ {
+  "id": "skill name HISTORY",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "new NumberRow(HISTORY.name,",
+  "replace": "new NumberRow(INSIGHT.name,",
+  "group": "number name"
+ },
+ {
+  "id": "skill name INSIGHT",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "new NumberRow(INSIGHT.name,",
+  "replace": "new NumberRow(INTIMIDATION.name,",
+  "group": "number name"
+ },
+ {
+  "id": "skill name INTIMIDATION",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "new NumberRow(INTIMIDATION.name,",
+  "replace": "new NumberRow(INVESTIGATION.name,",
+  "group": "number name"
+ },
+ {
+  "id": "skill name INVESTIGATION",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "new NumberRow(INVESTIGATION.name,",
+  "replace": "new NumberRow(MEDICINE.name,",
+  "group": "number name"
+ },
+ {
+  "id": "skill name MEDICINE",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "new NumberRow(MEDICINE.name,",
+  "replace": "new NumberRow(NATURE.name,",
+  "group": "number name"
+ },
+ {
+  "id": "skill name NATURE",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "new NumberRow(NATURE.name,",
+  "replace": "new NumberRow(PERCEPTION.name,",
+  "group": "number name"
+ },
+ {
+  "id": "skill name PERCEPTION",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "new NumberRow(PERCEPTION.name,",
+  "replace": "new NumberRow(PERFORMANCE.name,",
+  "group": "number name"
+ },
+ {
+  "id": "skill name PERFORMANCE",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "new NumberRow(PERFORMANCE.name,",
+  "replace": "new NumberRow(PERSUASION.name,",
+  "group": "number name"
+ },
+ {
+  "id": "skill name PERSUASION",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "new NumberRow(PERSUASION.name,",
+  "replace": "new NumberRow(RELIGION.name,",
+  "group": "number name"
+ },
+ {
+  "id": "skill name RELIGION",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "new NumberRow(RELIGION.name,",
+  "replace": "new NumberRow(SLEIGHT_OF_HAND.name,",
+  "group": "number name"
+ },
+ {
+  "id": "skill name SLEIGHT_OF_HAND",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "new NumberRow(SLEIGHT_OF_HAND.name,",
+  "replace": "new NumberRow(STEALTH.name,",
+  "group": "number name"
+ },
+ {
+  "id": "skill name STEALTH",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "new NumberRow(STEALTH.name,",
+  "replace": "new NumberRow(SURVIVAL.name,",
+  "group": "number name"
+ },
+ {
+  "id": "skill name SURVIVAL",
+  "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
+  "find": "new NumberRow(SURVIVAL.name,",
+  "replace": "new NumberRow(ACROBATICS.name,",
+  "group": "number name"
+ },
+ {
+  "id": "feet text open end",
+  "file": "src/beyond/sheet/numbers/feet-number-text.ts",
+  "find": ")$/i",
+  "replace": ")/i",
+  "group": "text kind"
+ },
+ {
+  "id": "feet text no bracketed form",
+  "file": "src/beyond/sheet/numbers/feet-number-text.ts",
+  "find": "\\(walking\\)|",
+  "replace": "",
+  "group": "text kind"
+ },
+ {
+  "id": "feet text no bare form",
+  "file": "src/beyond/sheet/numbers/feet-number-text.ts",
+  "find": "|walking)",
+  "replace": "|walking(?!))",
+  "group": "text kind"
+ },
+ {
+  "id": "feet text case",
+  "file": "src/beyond/sheet/numbers/feet-number-text.ts",
+  "find": ")$/i",
+  "replace": ")$/",
+  "group": "text kind"
+ },
+ {
+  "id": "feet text number",
+  "file": "src/beyond/sheet/numbers/feet-number-text.ts",
+  "find": "Number.parseInt(text, 10)",
+  "replace": "0",
+  "group": "text kind"
+ },
+ {
+  "id": "feet text any bracket",
+  "file": "src/beyond/sheet/numbers/feet-number-text.ts",
+  "find": "(?:\\(walking\\)|walking)",
+  "replace": "\\(?walking\\)?",
+  "group": "text kind"
+ },
+ {
+  "id": "line cleaned in PrintedLine",
+  "file": "src/beyond/sheet/lines/printed-line.ts",
+  "find": "const line = CleanLine.of(printed);",
+  "replace": "const line = { text: printed } as never as CleanLine;",
+  "group": "neutralising"
+ },
+ {
+  "id": "printed line needs a letter",
+  "file": "src/beyond/sheet/lines/printed-line.ts",
+  "find": "if (!hasLetterOrDigit(line.text)) throw this.whenMissing();",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "letter or digit: letters only",
+  "file": "src/beyond/sheet/lines/letter-or-digit.ts",
+  "find": "[\\p{L}\\p{N}]",
+  "replace": "[\\p{L}]",
+  "group": "guard"
+ },
+ {
+  "id": "letter or digit: digits only",
+  "file": "src/beyond/sheet/lines/letter-or-digit.ts",
+  "find": "[\\p{L}\\p{N}]",
+  "replace": "[\\p{N}]",
+  "group": "guard"
+ },
+ {
+  "id": "letter or digit: anything",
+  "file": "src/beyond/sheet/lines/letter-or-digit.ts",
+  "find": "[\\p{L}\\p{N}]",
+  "replace": "[\\s\\S]",
+  "group": "guard"
+ },
+ {
+  "id": "class level at the end",
+  "file": "src/beyond/sheet/classes/class-piece.ts",
+  "find": "(?<level>\\d+)$/",
+  "replace": "(?<level>\\d+)/",
+  "group": "guard"
+ },
+ {
+  "id": "class level after space",
+  "file": "src/beyond/sheet/classes/class-piece.ts",
+  "find": "/\\s+(?<level>",
+  "replace": "/\\s*(?<level>",
+  "group": "guard"
+ },
+ {
+  "id": "class level range",
+  "file": "src/beyond/sheet/classes/class-piece.ts",
+  "find": "CLASS_LEVEL, \"\", PRINTED)",
+  "replace": "{ what: \"A wide range\", lowest: -100000, highest: 100000 }, \"\", PRINTED)",
+  "group": "range"
+ },
+ {
+  "id": "class level missing",
+  "file": "src/beyond/sheet/classes/class-piece.ts",
+  "find": "if (level === undefined) return new NotKnownValue<number>(NO_LEVEL, PRINTED);",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "class name without letters",
+  "file": "src/beyond/sheet/classes/class-piece.ts",
+  "find": "if (!hasLetterOrDigit(name.text)) return null;",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "class cleaned before split",
+  "file": "src/beyond/sheet/classes/read-classes.ts",
+  "find": "plainTextOf(cleanTextOf(printed)).split",
+  "replace": "printed.split",
+  "group": "neutralising"
+ },
+ {
+  "id": "class markup left in",
+  "file": "src/beyond/sheet/classes/read-classes.ts",
+  "find": "plainTextOf(cleanTextOf(printed))",
+  "replace": "cleanTextOf(printed)",
+  "group": "neutralising"
+ },
+ {
+  "id": "negative zero",
+  "file": "src/beyond/sheet/numbers/printed-number.ts",
+  "find": "if (Object.is(found, -0)) return this.notKnown(\"holds a negative zero\");",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "tally blank check",
+  "file": "src/beyond/sheet/lines/line-tally.ts",
+  "find": "if (cleaned.trim() === \"\") return null;",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "tally too long over 300",
+  "file": "src/beyond/sheet/lines/line-tally.ts",
+  "find": "> LINE_LENGTH.most",
+  "replace": ">= LINE_LENGTH.most",
+  "group": "cap"
+ },
+ {
+  "id": "tally too long over 100",
+  "file": "src/beyond/sheet/lines/line-tally.ts",
+  "find": "> NAME_LENGTH.most",
+  "replace": ">= NAME_LENGTH.most",
+  "group": "cap"
+ },
+ {
+  "id": "tally too long without 300 rule",
+  "file": "src/beyond/sheet/lines/line-tally.ts",
+  "find": "if (characterCountOf(cleaned) > LINE_LENGTH.most) return true;",
+  "replace": "",
+  "group": "cap"
+ },
+ {
+  "id": "tally strips tags before counting",
+  "file": "src/beyond/sheet/lines/line-tally.ts",
+  "find": "cleaned.replace(TAG, \"\").trim()",
+  "replace": "cleaned",
+  "group": "cap"
+ },
+ {
+  "id": "tally counts too long",
+  "file": "src/beyond/sheet/lines/line-tally.ts",
+  "find": "this.tooLong += 1;",
+  "replace": "this.tooLong += 0;",
+  "group": "count"
+ },
+ {
+  "id": "tally counts not clean",
+  "file": "src/beyond/sheet/lines/line-tally.ts",
+  "find": "this.notClean += 1;",
+  "replace": "this.notClean += 0;",
+  "group": "count"
+ },
+ {
+  "id": "tally mixes the counts",
+  "file": "src/beyond/sheet/lines/line-tally.ts",
+  "find": "this.notClean += 1;",
+  "replace": "this.tooLong += 1;",
+  "group": "count"
+ },
+ {
+  "id": "tally keeps unusable",
+  "file": "src/beyond/sheet/lines/line-tally.ts",
+  "find": "if (line === null) {",
+  "replace": "if (false) {",
+  "group": "guard"
+ },
+ {
+  "id": "tally keeps nothing",
+  "file": "src/beyond/sheet/lines/line-tally.ts",
+  "find": "this.kept.push(line);",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "tally gives back nothing",
+  "file": "src/beyond/sheet/lines/line-tally.ts",
+  "find": "    this.kept.push(line);\n    return line;",
+  "replace": "    this.kept.push(line);\n    return null;",
+  "group": "guard"
+ },
+ {
+  "id": "tally split",
+  "file": "src/beyond/sheet/lines/line-tally.ts",
+  "find": "for (const line of splitLines(text)) this.take(line);",
+  "replace": "this.take(text);",
+  "group": "guard"
+ },
+ {
+  "id": "lineOrNothing blank check",
+  "file": "src/beyond/sheet/lines/line-or-nothing.ts",
+  "find": "if (cleanTextOf(text).trim() === \"\") return null;",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "lineOrNothing only refusals",
+  "file": "src/beyond/sheet/lines/line-or-nothing.ts",
+  "find": "if (error instanceof Refusal) return null;",
+  "replace": "return null;",
+  "group": "guard"
+ },
+ {
+  "id": "split on every break",
+  "file": "src/beyond/sheet/lines/split-lines.ts",
+  "find": "cleanTextOf(text).split(NEW_LINE)",
+  "replace": "text.split(NEW_LINE)",
+  "group": "neutralising"
+ },
+ {
+  "id": "list field cap",
+  "file": "src/beyond/sheet/lines/list-text.ts",
+  "find": "refuseAbove(LIST_FIELD, text.length);",
+  "replace": "",
+  "group": "cap"
+ },
+ {
+  "id": "list field cap one over",
+  "file": "src/beyond/sheet/lines/list-text.ts",
+  "find": "most: MAX_FIELD_TEXT_CHARACTERS,",
+  "replace": "most: MAX_FIELD_TEXT_CHARACTERS + 1,",
+  "group": "cap"
+ },
+ {
+  "id": "list field cap one under",
+  "file": "src/beyond/sheet/lines/list-text.ts",
+  "find": "most: MAX_FIELD_TEXT_CHARACTERS,",
+  "replace": "most: MAX_FIELD_TEXT_CHARACTERS - 1,",
+  "group": "cap"
+ },
+ {
+  "id": "list field null check",
+  "file": "src/beyond/sheet/lines/list-text.ts",
+  "find": "if (text === null) return null;",
+  "replace": "",
+  "group": "guard"
+ },
+ {
+  "id": "list texts null check",
+  "file": "src/beyond/sheet/lines/list-text.ts",
+  "find": "if (text !== null) texts.push(text);",
+  "replace": "texts.push(text as never);",
+  "group": "guard"
+ },
+ {
+  "id": "item cap",
+  "file": "src/beyond/sheet/parts/read-inventory.ts",
+  "find": "listTextAt(fields, row.nameField)",
+  "replace": "fields.textAt(row.nameField)",
+  "group": "cap"
+ },
+ {
+  "id": "item loss",
+  "file": "src/beyond/sheet/parts/read-inventory.ts",
+  "find": "loss: tally.loss()",
+  "replace": "loss: { tooLong: 0, notClean: 0 }",
+  "group": "count"
+ },
+ {
+  "id": "feature cap",
+  "file": "src/beyond/sheet/parts/read-features.ts",
+  "find": "limitedList(tally.lines(), FEATURE_COUNT)",
+  "replace": "tally.lines()",
+  "group": "cap"
+ },
+ {
+  "id": "feature loss",
+  "file": "src/beyond/sheet/parts/read-features.ts",
+  "find": "loss: tally.loss()",
+  "replace": "loss: { tooLong: 0, notClean: 0 }",
+  "group": "count"
+ },
+ {
+  "id": "spell cap",
+  "file": "src/beyond/sheet/parts/read-spells.ts",
+  "find": "limitedList(tally.lines(), SPELL_COUNT)",
+  "replace": "tally.lines()",
+  "group": "cap"
+ },
+ {
+  "id": "spell loss",
+  "file": "src/beyond/sheet/parts/read-spells.ts",
+  "find": "loss: tally.loss()",
+  "replace": "loss: { tooLong: 0, notClean: 0 }",
+  "group": "count"
+ },
+ {
+  "id": "spells listed once",
+  "file": "src/beyond/sheet/parts/read-spells.ts",
+  "find": "uniqueLines(limitedList(tally.lines(), SPELL_COUNT))",
+  "replace": "limitedList(tally.lines(), SPELL_COUNT)",
+  "group": "guard"
+ },
+ {
+  "id": "left out items swapped",
+  "file": "src/beyond/sheet/read-printed-sheet.ts",
+  "find": "items: inventory.loss",
+  "replace": "items: spells.loss",
+  "group": "count"
+ },
+ {
+  "id": "left out spells swapped",
+  "file": "src/beyond/sheet/read-printed-sheet.ts",
+  "find": "spells: spells.loss",
+  "replace": "spells: features.loss",
+  "group": "count"
+ },
+ {
+  "id": "left out features swapped",
+  "file": "src/beyond/sheet/read-printed-sheet.ts",
+  "find": "features: features.loss",
+  "replace": "features: inventory.loss",
+  "group": "count"
+ }
+]
