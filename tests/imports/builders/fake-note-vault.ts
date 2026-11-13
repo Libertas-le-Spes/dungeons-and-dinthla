@@ -3,6 +3,7 @@ import type { TFile, TFolder } from "obsidian";
 import { Fence } from "../../../src/fence/paths/fence";
 import { FencedFiles, type RawVault } from "../../../src/fence/gate/fenced-files";
 import { HeldFiles } from "../../../src/fence/gate/held-files";
+import { NoteReporter } from "../../../src/fence/gate/written-notes";
 
 export const CAMPAIGNS_FOLDER = "D&D";
 export const CHARACTERS_FOLDER = "D&D/Primary Campaign/Characters";
@@ -36,7 +37,7 @@ export class FakeNoteVault {
   constructor() {
     const fence = new Fence(campaignsFolder, ".obsidian");
     const raw = this.rawVault();
-    this.gate = new FencedFiles(raw, new HeldFiles(raw, fence));
+    this.gate = new FencedFiles(raw, new HeldFiles(raw, fence), new NoteReporter());
   }
 
   note(path: string, text: string): TFile {

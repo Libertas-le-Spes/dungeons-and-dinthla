@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { foldersPartOf, markdownEndingOf, noteNameOf } from "../../../src/campaign/paths/note-name";
+import { foldersPartOf, markdownEndingOf, noteNameOf, parentFolderOf } from "../../../src/campaign/paths/note-name";
 
 describe("noteNameOf", () => {
   it("is the note's file name without its folders or the Markdown ending", () => {
@@ -25,5 +25,15 @@ describe("foldersPartOf", () => {
   it("is the folders of the path with the slash after the last, and nothing for a bare name", () => {
     expect(foldersPartOf("Pale Moon/Sessions/Session 4")).toBe("Pale Moon/Sessions/");
     expect(foldersPartOf("Session 4")).toBe("");
+  });
+});
+
+describe("parentFolderOf", () => {
+  it("is the folder the file is in, without a slash at its end", () => {
+    expect(parentFolderOf("D&D/Pale Moon/Items/Rope.md")).toBe("D&D/Pale Moon/Items");
+  });
+
+  it("is empty for a file at the top of the vault", () => {
+    expect(parentFolderOf("Rope.md")).toBe("");
   });
 });

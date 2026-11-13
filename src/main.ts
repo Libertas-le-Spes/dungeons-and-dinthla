@@ -29,7 +29,10 @@ import { openQuest } from "./quests/dialogs/open-quest";
 import { questsKind } from "./quests/list/quests-kind";
 import { openAddCoin } from "./funds/coins/open-add-coin";
 import { openItemDialog } from "./funds/items/open-item";
-import { ItemHolders } from "./funds/item-notes/item-holders";
+import { ItemNotes } from "./funds/item-notes/item-notes";
+import { askInNotice } from "./views/dialogs/differing-notice";
+import { startKindNotes } from "./kind-notes/watching/kind-notes-wiring";
+import { NotesMade } from "./settings/saved/notes-made";
 import { ledgerEntryOpener } from "./funds/coins/open-ledger-entry";
 import { ListPage } from "./views/lists/list-page";
 import { activePathOf, openSource } from "./views/opening/open-view";
@@ -75,6 +78,7 @@ import { startSession } from "./sessions/start-session";
 import { Drafts } from "./session-notes/drafts/drafts";
 import type { KeptDrafts } from "./session-notes/kept/kept-drafts";
 import { DraftKeeping } from "./session-notes/kept/draft-keeping";
+import { NOTICE_STAYS_UNTIL_DISMISSED } from "./views/dialogs/notice-stays";
 import { ConfirmModal, type ConfirmText } from "./views/dialogs/confirm-modal";
 import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
@@ -82,7 +86,6 @@ import { BeyondOpeners } from "./imports/dialog/opening/beyond-openers";
 import { characterReferenceKind } from "./kinds/character-reference-kind";
 
 const TYPING_PAUSE_MS = 250;
-const NOTICE_STAYS_UNTIL_DISMISSED = 0;
 
 const PAGE_OPENERS: { page: PageId; id: string; name: string; icon: string }[] = [
   { page: "home", id: "open-dashboard", name: "Open dashboard", icon: "layout-dashboard" },
@@ -427,7 +430,7 @@ export default class DungeonsAndDinthla extends Plugin {
 
   private async watchCampaign(): Promise<void> {
     this.watchNotes();
-    this.keepItemHolders();
+    this.keepNotes();
     const folder = this.startingCampaignFolder();
     if (folder !== null) await this.chosen.choose(folder);
   }
@@ -449,13 +452,16 @@ export default class DungeonsAndDinthla extends Plugin {
     }));
   }
 
-  private keepItemHolders(): void {
+  private keepNotes(): void {
     const gate = this.gate;
     const notRead = (error: unknown) => new Notice(`Couldn't read the saved session notes: ${messageOf(error)}`);
     const saved = new SavedCampaign({ shown: this.store, files: gate.files, metadata: gate.metadata, failed: notRead });
-    const failed = (error: unknown) => new Notice(`Couldn't write an item's holder: ${messageOf(error)}`);
-    const holders = new ItemHolders({ store: saved, files: gate.files, metadata: gate.metadata, actions: gate.fileActions, failed });
-    this.register(holders.start());
+    const say = (message: string) => new Notice(message, NOTICE_STAYS_UNTIL_DISMISSED);
+    const failed = (error: unknown) => new Notice(`Couldn't write an item's note: ${messageOf(error)}`);
+    const items = new ItemNotes({ store: saved, files: gate.files, metadata: gate.metadata, actions: gate.fileActions, failed, say });
+    const made = new NotesMade(this.settingsSaver);
+    this.register(items.start());
+    this.register(startKindNotes({ gate, written: gate.written, saved, made, items, say, ask: askInNotice }));
     this.register(saved.start());
   }
 

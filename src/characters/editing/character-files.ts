@@ -1,3 +1,4 @@
+import { parentFolderOf } from "../../campaign/paths/note-name";
 import { normalizePath, type TFile } from "obsidian";
 import { referenceFolderOf } from "../../campaign/paths/campaign-folders";
 import { characterReferenceKind } from "../../kinds/character-reference-kind";
@@ -13,10 +14,6 @@ export type CharacterFiles = Pick<FencedFiles, "getFiles" | "getFolderByPath" | 
 export type CharacterFileActions = Pick<FencedFileActions, "renameFile" | "trashFile">;
 
 export const NOTE_MOVED = "The note was moved or renamed since the dialog opened, so nothing was written. Open the dialog again.";
-
-function folderOf(path: string): string {
-  return path.slice(0, path.lastIndexOf("/"));
-}
 
 function notePathOf(folder: string, name: string): string {
   return normalizePath(`${folder}/${name}.md`);
@@ -70,7 +67,7 @@ export async function saveCharacter(
   after: CharacterEntry,
 ): Promise<boolean> {
   if (after.name === "") return false;
-  const folder = folderOf(file.path);
+  const folder = parentFolderOf(file.path);
   const renamed = after.name !== before.name;
   if (renamed && file.path !== openedPath) throw new Error(NOTE_MOVED);
   if (renamed) refuseIfAny(refusalForName(files, folder, after.name, file.path));

@@ -10,7 +10,7 @@ function oneTick(): Promise<void> {
 }
 
 function settingFrom(campaignsFolder: string | null, configDir = ".obsidian") {
-  const settings: PluginSettings = { campaignsFolder, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null };
+  const settings: PluginSettings = { campaignsFolder, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null, notesMadeFor: [] };
   const order: string[] = [];
   const save = vi.fn(async (written: PluginSettings) => {
     await oneTick();

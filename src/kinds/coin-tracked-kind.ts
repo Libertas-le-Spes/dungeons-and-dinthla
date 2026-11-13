@@ -6,5 +6,6 @@ export const coinTrackedKind = {
   marker: ledgerMarker,
   followUps: {},
   folder: "Funds",
+  kindNoteFolder: "Funds",
   page: "funds",
 } satisfies TrackedKind;
