@@ -62,6 +62,6 @@ export const SHEET_NUMBERS: readonly SheetNumber[] = [
   { field: "Passive1", printed: "41", name: "Passive Perception", value: 41, lowest: 0, highest: 80, print: printedWhole },
   { field: "Passive2", printed: "42", name: "Passive Insight", value: 42, lowest: 0, highest: 80, print: printedWhole },
   { field: "Passive3", printed: "43", name: "Passive Investigation", value: 43, lowest: 0, highest: 80, print: printedWhole },
-  { field: "spellSaveDC0", printed: "19", name: "Spell save DC", value: 19, lowest: 0, highest: 60, print: printedWhole },
-  { field: "spellAtkBonus0", printed: "+8", name: "Spell attack bonus", value: 8, lowest: -20, highest: 50, print: printedSigned },
+  { field: "spellSaveDC0", printed: "19", name: "Monk spell save DC", value: 19, lowest: 0, highest: 60, print: printedWhole },
+  { field: "spellAtkBonus0", printed: "+8", name: "Monk spell attack bonus", value: 8, lowest: -20, highest: 50, print: printedSigned },
 ];

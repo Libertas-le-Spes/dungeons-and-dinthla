@@ -21,9 +21,10 @@ export class MadeUpSheet {
     values.set("CharacterName", "Primary Monk");
     values.set("RACE", "Human");
     values.set("CLASS  LEVEL", "Monk 4");
-    for (const score of Object.values(SHEET_SCORES)) values.set(score.field, score.printed);
+    values.set("spellCastingClass0", "Monk");
+    for (const score of SHEET_SCORES) values.set(score.field, score.printed);
     for (const number of SHEET_NUMBERS) values.set(number.field, number.printed);
-    for (const coin of Object.values(SHEET_PURSE)) values.set(coin.field, coin.printed);
+    for (const coin of SHEET_PURSE) values.set(coin.field, coin.printed);
     for (let row = 0; row < ITEM_ROW_COUNT; row += 1) {
       values.set(`Eq Name${row}`, `Item ${row}`);
       values.set(`Eq Qty${row}`, String(row + 1));

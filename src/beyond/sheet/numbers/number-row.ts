@@ -16,10 +16,6 @@ export class NumberRow {
     this.printed = new PrintedNumber(fieldName, range, text);
   }
 
-  get fieldName(): string {
-    return this.printed.fieldName;
-  }
-
   read(fields: SheetFields): ImportedNumber {
     return { name: this.name, value: this.printed.read(fields) };
   }
