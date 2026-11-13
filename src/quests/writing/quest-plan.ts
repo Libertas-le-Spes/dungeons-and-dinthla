@@ -1,10 +1,10 @@
 import { applySessionChange } from "../../campaign/changes/apply-session-change";
+import { hiddenRefusal } from "../../campaign/changes/hidden-refusal";
 import { buildCampaign } from "../../campaign/reading/build-campaign";
 import type { Campaign, CoinRecord, QuestRecord, QuestStatus, SessionNote } from "../../campaign/record/campaign";
-import { WOULD_BE_HIDDEN, type Removal } from "../../campaign/writing/note-editor";
+import type { Removal } from "../../campaign/writing/note-editor";
 import { questThreadKind } from "../../campaign/threads/quest-thread-kind";
 import { endingRemoval } from "../../campaign/threads/thread-removal";
-import { addedLinesHidden } from "../../notes/reading/hidden-lines";
 import { readLedgerEntry } from "../../notes/reading/ledger";
 import { followUpQuestLine, isCoinReward, outcomeLine, progressLine, questTextOf, rewardLine } from "../../notes/writing/quest-lines";
 import { readMarker } from "../../notes/reading/marker";
@@ -150,13 +150,6 @@ function followUpTitleRefusal(before: Campaign, plan: QuestPlan): string | null 
   return null;
 }
 
-function hiddenRefusal(changed: SessionNote[], plan: QuestPlan): string | null {
-  const target = changed.find((session) => session.path === plan.targetPath);
-  if (target === undefined) return null;
-  if (addedLinesHidden(target.text, plan.added.length)) return WOULD_BE_HIDDEN;
-  return null;
-}
-
 export function refusalForQuestPlan(sessions: SessionNote[], record: QuestRecord, plan: QuestPlan): string | null {
   if (!sessions.some((session) => session.path === plan.targetPath)) return CHANGES_ANOTHER_QUEST;
   const before = buildCampaign(sessions);
@@ -164,7 +157,7 @@ export function refusalForQuestPlan(sessions: SessionNote[], record: QuestRecord
   const after = buildCampaign(changed);
   const titleRefused = followUpTitleRefusal(before, plan);
   if (titleRefused !== null) return titleRefused;
-  const hiddenRefused = hiddenRefusal(changed, plan);
+  const hiddenRefused = hiddenRefusal(sessions, questSessionChange(plan));
   if (hiddenRefused !== null) return hiddenRefused;
   const wanted = before.quests.map((quest) => {
     const isOpened = quest.source.path === record.source.path && quest.source.line === record.source.line;

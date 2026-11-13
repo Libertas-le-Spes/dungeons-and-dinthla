@@ -16,9 +16,19 @@ export const LINES_LEFT = "It was deleted, but some of its lines had changed or 
 export const PROPERTIES_WOULD_CHANGE = "That change would turn lines of the note into its properties, hiding them, because a --- line would come first.";
 
 export const WOULD_BE_HIDDEN =
-  "The new line would land inside a code block or comment that never closes, so nothing was written. Close it in the note.";
+  "The new line would land inside a code block, comment or math block that never closes, so nothing was written. Close it in the note.";
 
 export class PartlyWritten extends Error {}
+
+interface Refusal {
+  refusal: string;
+}
+
+function appendedShown(text: string, added: string[]): string | Refusal {
+  const changed = appendLines(text, added);
+  if (addedLinesHidden(changed, added.length)) return { refusal: WOULD_BE_HIDDEN };
+  return changed;
+}
 
 export interface Removal extends LineToRemove {
   path: string;
@@ -48,11 +58,7 @@ export class NoteEditor {
 
   async appendShown(targetPath: string, added: string[]): Promise<boolean> {
     if (added.length === 0) return false;
-    await this.changeOrRefuse(this.fileAt(targetPath), WOULD_BE_HIDDEN, (text) => {
-      const changed = appendLines(text, added);
-      if (addedLinesHidden(changed, added.length)) return null;
-      return changed;
-    });
+    await this.changeOrRefuse(this.fileAt(targetPath), WOULD_BE_HIDDEN, (text) => appendedShown(text, added));
     return true;
   }
 
@@ -62,7 +68,7 @@ export class NoteEditor {
       await this.changeOrRefuse(target, CHANGED_IN_NOTE, (text) => {
         const removal = removeLines(text, [old]);
         if (removal.removed === 0) return null;
-        return appendLines(removal.text, added);
+        return appendedShown(removal.text, added);
       });
       return true;
     }
@@ -72,7 +78,7 @@ export class NoteEditor {
       await this.removeOrRefuse(oldNote, [old], CHANGED_IN_NOTE);
       return true;
     }
-    await this.changeOrRefuse(target, CHANGED_IN_NOTE, (text) => appendLines(text, added));
+    await this.changeOrRefuse(target, CHANGED_IN_NOTE, (text) => appendedShown(text, added));
     try {
       await this.removeOrRefuse(oldNote, [old], OLD_LINE_LEFT);
     } catch (error) {
@@ -161,12 +167,16 @@ export class NoteEditor {
     });
   }
 
-  private async changeOrRefuse(file: TFile, message: string, change: (text: string) => string | null): Promise<void> {
+  private async changeOrRefuse(file: TFile, message: string, change: (text: string) => string | Refusal | null): Promise<void> {
     let refusal: string | null = null;
     await this.files.process(file, (text) => {
       const changed = change(text);
       if (changed === null) {
         refusal = message;
+        return text;
+      }
+      if (typeof changed !== "string") {
+        refusal = changed.refusal;
         return text;
       }
       if (!keepsProperties(text, changed)) {

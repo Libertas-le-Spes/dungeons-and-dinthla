@@ -1,5 +1,6 @@
 import { Component, Events, type EventRef, type TAbstractFile, type TFile, type TFolder, type Vault } from "obsidian";
 import type { HeldFiles } from "./held-files";
+import { NoteReporter } from "./written-notes";
 
 export type RawVault = Pick<
   Vault,
@@ -35,6 +36,7 @@ export class FencedFiles extends Component {
   constructor(
     private readonly vault: RawVault,
     private readonly held: HeldFiles,
+    private readonly written: NoteReporter,
   ) {
     super();
   }
@@ -83,7 +85,9 @@ export class FencedFiles extends Component {
   }
 
   async process(file: TFile, change: (text: string) => string): Promise<string> {
-    return this.vault.process(this.held.file(file), change);
+    const text = await this.vault.process(this.held.file(file), change);
+    this.written.textSaved(file.path, text);
+    return text;
   }
 
   async create(path: string, text: string): Promise<TFile> {
@@ -91,7 +95,9 @@ export class FencedFiles extends Component {
   }
 
   async rename(file: TFile, newPath: string): Promise<void> {
+    const from = file.path;
     await this.vault.rename(this.held.file(file), this.held.newPath(newPath));
+    this.written.renamed(from, newPath);
   }
 
   async createFolder(path: string): Promise<TFolder> {
