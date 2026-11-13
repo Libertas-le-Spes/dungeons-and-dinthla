@@ -27,6 +27,7 @@ const RULES: Rules[] = [vaultAccessBreaches, editorViewBreaches, openingBreaches
 
 export class SourceScanner {
   private readonly api: API;
+  private readonly openedProjects = new Map<string, Project>();
 
   constructor(
     private readonly root: string,
@@ -36,6 +37,7 @@ export class SourceScanner {
   }
 
   close(): void {
+    this.openedProjects.clear();
     this.api.close();
   }
 
@@ -51,6 +53,14 @@ export class SourceScanner {
   }
 
   private project(configPath: string): Project {
+    const opened = this.openedProjects.get(configPath);
+    if (opened !== undefined) return opened;
+    const project = this.openProject(configPath);
+    this.openedProjects.set(configPath, project);
+    return project;
+  }
+
+  private openProject(configPath: string): Project {
     const snapshot = this.api.updateSnapshot({ openProjects: [configPath] });
     const project = snapshot.getProject(configPath);
     if (project === undefined) throw new Error(`${configPath} could not be opened`);
