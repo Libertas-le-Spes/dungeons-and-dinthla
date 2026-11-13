@@ -1,0 +1,660 @@
+[
+ {
+  "id": "rank: imported ? means not known",
+  "file": "src/characters/reading/character-sheet.ts",
+  "find": "{ state: \"imported\", stated: value.imported, questionMarkMeansUnknown: true }",
+  "replace": "{ state: \"imported\", stated: value.imported, questionMarkMeansUnknown: false }",
+  "group": "rank"
+ },
+ {
+  "id": "rank: override over imported",
+  "file": "src/characters/reading/character-sheet.ts",
+  "find": "    { state: \"override\", stated: value.override, questionMarkMeansUnknown: false },\n    { state: \"imported\", stated: value.imported, questionMarkMeansUnknown: true },",
+  "replace": "    { state: \"imported\", stated: value.imported, questionMarkMeansUnknown: true },\n    { state: \"override\", stated: value.override, questionMarkMeansUnknown: false },",
+  "group": "rank"
+ },
+ {
+  "id": "rank: imported over learned",
+  "file": "src/characters/reading/character-sheet.ts",
+  "find": "    { state: \"imported\", stated: value.imported, questionMarkMeansUnknown: true },\n    { state: \"learned\", stated: value.learned, questionMarkMeansUnknown: true },",
+  "replace": "    { state: \"learned\", stated: value.learned, questionMarkMeansUnknown: true },\n    { state: \"imported\", stated: value.imported, questionMarkMeansUnknown: true },",
+  "group": "rank"
+ },
+ {
+  "id": "rank: learned over carried",
+  "file": "src/characters/reading/character-sheet.ts",
+  "find": "    { state: \"learned\", stated: value.learned, questionMarkMeansUnknown: true },\n    { state: \"carried\", stated: value.carried, questionMarkMeansUnknown: true },",
+  "replace": "    { state: \"carried\", stated: value.carried, questionMarkMeansUnknown: true },\n    { state: \"learned\", stated: value.learned, questionMarkMeansUnknown: true },",
+  "group": "rank"
+ },
+ {
+  "id": "rank: imported value read",
+  "file": "src/characters/reading/character-sheet.ts",
+  "find": "    imported: importedFor(imported, name),",
+  "replace": "    imported: null,",
+  "group": "rank"
+ },
+ {
+  "id": "rank: imported value by name",
+  "file": "src/characters/reading/character-sheet.ts",
+  "find": "if (sameName(fact.name, name)) found =",
+  "replace": "if (fact.name !== \"\") found =",
+  "group": "rank"
+ },
+ {
+  "id": "rank: first stated wins",
+  "file": "src/characters/reading/value-ranks.ts",
+  "find": "if (shown !== null) return",
+  "replace": "if (shown === null) return",
+  "group": "rank"
+ },
+ {
+  "id": "rank: ? kept for an override",
+  "file": "src/characters/reading/value-ranks.ts",
+  "find": "if (rank.questionMarkMeansUnknown && shown.value === notKnown)",
+  "replace": "if (shown.value === notKnown)",
+  "group": "rank"
+ },
+ {
+  "id": "rank: carried takes imported",
+  "file": "src/characters/reading/character-sheet.ts",
+  "find": "for (const fact of [...learned, ...imported, ...overrides]) {\n    const name = sheetNameOf(fact.name);",
+  "replace": "for (const fact of [...learned, ...overrides]) {\n    const name = sheetNameOf(fact.name);",
+  "group": "rank"
+ },
+ {
+  "id": "rank: cards take imported",
+  "file": "src/characters/cards/read-character-card.ts",
+  "find": "sheetValuesOf(learned, importedFactsOf(ownNote, file.path),",
+  "replace": "sheetValuesOf(learned, [],",
+  "group": "rank"
+ },
+ {
+  "id": "skip: plugin lines skipped",
+  "file": "src/characters/reading/sheet-values.ts",
+  "find": "    if (skipped.has(line)) continue;\n",
+  "replace": "",
+  "group": "skip"
+ },
+ {
+  "id": "skip: only plugin headings open",
+  "file": "src/characters/imported/reading/plugin-section-lines.ts",
+  "find": "    if (span.section === null) continue;\n",
+  "replace": "",
+  "group": "skip"
+ },
+ {
+  "id": "skip: a big heading closes",
+  "file": "src/characters/imported/reading/heading-spans.ts",
+  "find": "end: heading.index",
+  "replace": "end: lines.length",
+  "group": "skip"
+ },
+ {
+  "id": "skip: from the body only",
+  "file": "src/characters/imported/reading/heading-spans.ts",
+  "find": "sectionHeadingsIn(lines, bodyStart)",
+  "replace": "sectionHeadingsIn(lines, 0)",
+  "group": "skip"
+ },
+ {
+  "id": "read: no route, no import",
+  "file": "src/characters/imported/reading/imported-facts.ts",
+  "find": "  if (route === null) return [];\n",
+  "replace": "",
+  "group": "read"
+ },
+ {
+  "id": "read: only the import's names",
+  "file": "src/characters/imported/reading/imported-facts.ts",
+  "find": "    if (!SHEET_VALUE_PROPERTIES.includes(entry.key)) continue;\n",
+  "replace": "",
+  "group": "read"
+ },
+ {
+  "id": "read: empty values left out",
+  "file": "src/characters/imported/reading/imported-facts.ts",
+  "find": "    if (value === \"\") continue;\n",
+  "replace": "",
+  "group": "read"
+ },
+ {
+  "id": "read: unknown route words",
+  "file": "src/characters/imported/reading/imported-facts.ts",
+  "find": "    if (words === undefined) return UNNAMED_ROUTE_WORDS;\n",
+  "replace": "    if (words === undefined) return \"\";\n",
+  "group": "read"
+ },
+ {
+  "id": "read: route by the imported-from key",
+  "file": "src/characters/imported/reading/imported-facts.ts",
+  "find": "if (entry.key !== IMPORTED_FROM_PROPERTY) continue;",
+  "replace": "if (entry.key === \"\") continue;",
+  "group": "read"
+ },
+ {
+  "id": "read: quotes taken off",
+  "file": "src/characters/imported/reading/shown-text.ts",
+  "find": "  return withoutEscapes(insideQuotes(trimmed));",
+  "replace": "  return withoutEscapes(trimmed);",
+  "group": "read"
+ },
+ {
+  "id": "read: YAML escapes taken off",
+  "file": "src/characters/imported/reading/shown-text.ts",
+  "find": "  return withoutEscapes(text.substring(1, text.length - 1));",
+  "replace": "  return text.substring(1, text.length - 1);",
+  "group": "read"
+ },
+ {
+  "id": "read: escape takes one backslash",
+  "file": "src/characters/imported/reading/shown-text.ts",
+  "find": "    escaping = false;\n",
+  "replace": "",
+  "group": "read"
+ },
+ {
+  "id": "read: backslash escapes",
+  "file": "src/characters/imported/reading/shown-text.ts",
+  "find": "if (character === BACKSLASH && !escaping) {",
+  "replace": "if (character === \"\") {",
+  "group": "read"
+ },
+ {
+  "id": "read: quoted key",
+  "file": "src/characters/imported/reading/property-entries.ts",
+  "find": "  if (!QUOTES.includes(quote)) return key;",
+  "replace": "  return key;",
+  "group": "read"
+ },
+ {
+  "id": "read: working by name",
+  "file": "src/characters/imported/reading/number-workings.ts",
+  "find": "if (sameName(working.name, name)) return working.working;",
+  "replace": "return working.working;",
+  "group": "read"
+ },
+ {
+  "id": "read: working after the value",
+  "file": "src/characters/imported/reading/number-workings.ts",
+  "find": "position >= FIRST_WORKING_PART && position < last",
+  "replace": "position >= 1 && position < last",
+  "group": "read"
+ },
+ {
+  "id": "read: working before the route",
+  "file": "src/characters/imported/reading/number-workings.ts",
+  "find": "position >= FIRST_WORKING_PART && position < last",
+  "replace": "position >= FIRST_WORKING_PART",
+  "group": "read"
+ },
+ {
+  "id": "read: working escapes taken off",
+  "file": "src/characters/imported/reading/number-workings.ts",
+  "find": "working: withoutEscapes(workingParts(parts).join(PART_SEPARATOR))",
+  "replace": "working: workingParts(parts).join(PART_SEPARATOR)",
+  "group": "read"
+ },
+ {
+  "id": "read: working only in Numbers",
+  "file": "src/characters/imported/reading/section-lines.ts",
+  "find": "span.section === section && index > span.heading",
+  "replace": "index > span.heading",
+  "group": "read"
+ },
+ {
+  "id": "draw: route only when imported shows",
+  "file": "src/characters/imported/drawing/imported-lines.ts",
+  "find": "if (value.state !== \"imported\" || imported === null) return;",
+  "replace": "if (imported === null) return;",
+  "group": "draw"
+ },
+ {
+  "id": "draw: working only when given",
+  "file": "src/characters/imported/drawing/imported-lines.ts",
+  "find": "if (imported.working !== \"\") parent",
+  "replace": "if (imported.working === imported.working) parent",
+  "group": "draw"
+ },
+ {
+  "id": "draw: route line",
+  "file": "src/characters/imported/drawing/imported-lines.ts",
+  "find": "  parent.createDiv({ cls: \"dd-value-route\", text: imported.route });\n",
+  "replace": "",
+  "group": "draw"
+ },
+ {
+  "id": "draw: update only on imported sheets",
+  "file": "src/characters/imported/drawing/update-button.ts",
+  "find": "  if (!isImportedSheet(sheet)) return;\n",
+  "replace": "",
+  "group": "draw"
+ },
+ {
+  "id": "draw: imported sheet found",
+  "file": "src/characters/imported/drawing/update-button.ts",
+  "find": "    if (value.imported !== null) return true;",
+  "replace": "    if (value.imported === null) return true;",
+  "group": "draw"
+ },
+ {
+  "id": "draw: update asks for this file",
+  "file": "src/characters/imported/drawing/update-button.ts",
+  "find": "this.action.updateFromBeyond(this.file, returnFocus);",
+  "replace": "this.action.updateFromBeyond(this.file, function nothing(): void {});",
+  "group": "draw"
+ },
+ {
+  "id": "draw: import button asks",
+  "file": "src/characters/imported/drawing/import-button.ts",
+  "find": "    this.creators.importCharacter(returnFocus);\n",
+  "replace": "",
+  "group": "draw"
+ },
+ {
+  "id": "draw: focus returns",
+  "file": "src/characters/imported/drawing/beyond-button.ts",
+  "find": "    this.button.buttonEl.focus();\n",
+  "replace": "",
+  "group": "draw"
+ },
+ {
+  "id": "draw: state words",
+  "file": "src/characters/pages/character-sheet-page.ts",
+  "find": "imported: \"From D&D Beyond\",",
+  "replace": "imported: \"Imported\",",
+  "group": "draw"
+ },
+ {
+  "id": "modal: hint on imported values",
+  "file": "src/characters/editing/sheet-value-modal.ts",
+  "find": "if (value.imported !== null) contentEl",
+  "replace": "if (value.label !== \"\") contentEl",
+  "group": "modal"
+ },
+ {
+  "id": "modal: Enter overrides an import",
+  "file": "src/characters/editing/sheet-value-modal.ts",
+  "find": "  [\"imported\", \"override\"],\n]);",
+  "replace": "]);",
+  "group": "modal"
+ },
+ {
+  "id": "modal: imported compared before saving",
+  "file": "src/characters/editing/open-character-sheet.ts",
+  "find": " && sameStated(first.imported, second.imported)",
+  "replace": "",
+  "group": "modal"
+ },
+ {
+  "id": "dialog: size over the most",
+  "file": "src/imports/dialog/picking/pdf-picker.ts",
+  "find": "file.size > MOST_PDF_BYTES",
+  "replace": "file.size >= MOST_PDF_BYTES",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: size checked",
+  "file": "src/imports/dialog/picking/pdf-picker.ts",
+  "find": "    if (file.size > MOST_PDF_BYTES) {",
+  "replace": "    if (file.size < 0) {",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: unreadable file words",
+  "file": "src/imports/dialog/picking/pdf-picker.ts",
+  "find": "    } catch {\n      this.picked.pdfRefused(FILE_NOT_READ);",
+  "replace": "    } catch {\n      this.picked.pdfRefused(\"\");",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: no file, nothing read",
+  "file": "src/imports/dialog/picking/pdf-picker.ts",
+  "find": "    if (file === null) return;\n",
+  "replace": "",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: most bytes",
+  "file": "src/beyond/sheet/from-pdf/sheet-from-pdf.ts",
+  "find": "export const MOST_PDF_BYTES = MAX_FILE_BYTES;",
+  "replace": "export const MOST_PDF_BYTES = MAX_FILE_BYTES + 1;",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: PDF refusal passed on",
+  "file": "src/beyond/sheet/from-pdf/sheet-from-pdf.ts",
+  "find": "  if (!read.ok) return refusedWith(read.reason);\n",
+  "replace": "  if (!read.ok) return refusedWith(SHEET_NOT_READ);\n",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: sheet refusal passed on",
+  "file": "src/beyond/sheet/from-pdf/sheet-from-pdf.ts",
+  "find": "  if (error instanceof Refusal) return error.message;\n",
+  "replace": "",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: other failures in own words",
+  "file": "src/beyond/sheet/from-pdf/sheet-from-pdf.ts",
+  "find": "  return SHEET_NOT_READ;\n}",
+  "replace": "  return String(error);\n}",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: one target goes straight on",
+  "file": "src/imports/dialog/stages/review-stage.ts",
+  "find": "    if (only !== null) return null;\n",
+  "replace": "",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: note refusal shown",
+  "file": "src/imports/dialog/stages/review-stage.ts",
+  "find": "refusal: wordsOf(error, READING_WENT_WRONG), failure };",
+  "replace": "refusal: null, failure };",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: write failure shown",
+  "file": "src/imports/dialog/stages/review-stage.ts",
+  "find": "void this.reviewWith(review.sheet, review.target, wordsOf(error, WRITING_WENT_WRONG));",
+  "replace": "void this.reviewWith(review.sheet, review.target, null);",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: refusal stops the write",
+  "file": "src/imports/dialog/steps/review-step.ts",
+  "find": "  if (review.refusal !== null) return false;\n",
+  "replace": "",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: nothing to change, no Update",
+  "file": "src/imports/dialog/targets/existing-note-target.ts",
+  "find": "    return !changesNothing(changes);",
+  "replace": "    return true;",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: typed text handed back",
+  "file": "src/imports/dialog/targets/existing-note-target.ts",
+  "find": "    if (changes !== null) shown = changes.typed;\n",
+  "replace": "",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: typed warning drawn",
+  "file": "src/imports/dialog/review/change-list.ts",
+  "find": "  drawTyped(parent, changes.typed);\n",
+  "replace": "",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: typed warning first",
+  "file": "src/imports/dialog/review/change-list.ts",
+  "find": "  drawTyped(parent, changes.typed);\n  drawProperties(parent, changes.properties);\n",
+  "replace": "  drawProperties(parent, changes.properties);\n  drawTyped(parent, changes.typed);\n",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: nothing-changes words",
+  "file": "src/imports/dialog/review/change-list.ts",
+  "find": "  if (changesNothing(changes)) {",
+  "replace": "  if (changes.typed.length > 99) {",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: only notes directly in the folder",
+  "file": "src/imports/dialog/flows/new-import-flow.ts",
+  "find": "if (file.path === `${this.charactersFolder}/${file.basename}.md`) direct.push(file);",
+  "replace": "direct.push(file);",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: new note offered",
+  "file": "src/imports/dialog/flows/new-import-flow.ts",
+  "find": "    targets.push(new NewNoteTarget(this.writer, name));\n",
+  "replace": "",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: written path handed on",
+  "file": "src/imports/dialog/stages/review-stage.ts",
+  "find": "      this.writtenPath = await review.target.bringIn(",
+  "replace": "      await review.target.bringIn(",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: month counted from one",
+  "file": "src/imports/dialog/today.ts",
+  "find": "moment.getMonth() + MONTHS_START_AT",
+  "replace": "moment.getMonth()",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: sheet shown after a new note",
+  "file": "src/imports/dialog/opening/after-import.ts",
+  "find": "    this.showSheet(writtenPath);\n",
+  "replace": "",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: no campaign, no dialog",
+  "file": "src/imports/dialog/opening/beyond-openers.ts",
+  "find": "      this.wiring.tell(NO_CAMPAIGN);\n      return;\n    }\n    openImport(",
+  "replace": "      this.wiring.tell(NO_CAMPAIGN);\n    }\n    openImport(",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: left-out lines",
+  "file": "src/imports/dialog/review/sheet-summary.ts",
+  "find": "  if (loss.tooLong + loss.notClean === 0) return null;",
+  "replace": "  return null;",
+  "group": "dialog"
+ },
+ {
+  "id": "layout: route words",
+  "file": "src/imports/layout/import-routes.ts",
+  "find": "[\"pdf\", \"Printed on D&D Beyond's PDF\"]",
+  "replace": "[\"pdf\", \"Printed on the PDF\"]",
+  "group": "layout"
+ },
+ {
+  "id": "skip: the last section runs to the end",
+  "file": "src/characters/imported/reading/heading-spans.ts",
+  "find": "heading: open.heading, end: lines.length",
+  "replace": "heading: open.heading, end: open.heading + 1",
+  "group": "skip"
+ },
+ {
+  "id": "read: a section's lines start under its heading",
+  "file": "src/characters/imported/reading/section-lines.ts",
+  "find": "index > span.heading &&",
+  "replace": "index >= span.heading - 1 &&",
+  "group": "read"
+ },
+ {
+  "id": "modal: Enter learns a value not known",
+  "file": "src/characters/editing/sheet-value-modal.ts",
+  "find": "  [\"unknown\", \"learned\"],\n",
+  "replace": "",
+  "group": "modal"
+ },
+ {
+  "id": "modal: only Override on an imported value",
+  "file": "src/characters/editing/sheet-value-modal.ts",
+  "find": "new Map([[\"imported\", IMPORTED_CHOICES]])",
+  "replace": "new Map()",
+  "group": "modal"
+ },
+ {
+  "id": "modal: imported shown as the current choice",
+  "file": "src/characters/editing/sheet-value-modal.ts",
+  "find": "const IMPORTED_CHOICES: ValueState[] = [\"imported\", \"override\"];",
+  "replace": "const IMPORTED_CHOICES: ValueState[] = [\"override\"];",
+  "group": "modal"
+ },
+ {
+  "id": "modal: imported choice can't be pressed",
+  "file": "src/characters/editing/sheet-value-modal.ts",
+  "find": "setButtonText(STATE_WORDS[state]).setDisabled(true);",
+  "replace": "setButtonText(STATE_WORDS[state]);",
+  "group": "modal"
+ },
+ {
+  "id": "modal: the only-override line",
+  "file": "src/characters/editing/sheet-value-modal.ts",
+  "find": "if (value.state === \"imported\") contentEl.createEl(\"p\", { cls: \"dd-where dd-only-override\"",
+  "replace": "if (value.state === \"learned\") contentEl.createEl(\"p\", { cls: \"dd-where dd-only-override\"",
+  "group": "modal"
+ },
+ {
+  "id": "writer: learned writes learned",
+  "file": "src/characters/editing/sheet-value-writer.ts",
+  "find": "  [\"learned\", new LearnedWrite()],\n",
+  "replace": "  [\"learned\", new OverrideWrite()],\n",
+  "group": "modal"
+ },
+ {
+  "id": "writer: unknown writes a question mark",
+  "file": "src/characters/editing/sheet-value-writer.ts",
+  "find": "  [\"unknown\", new UnknownWrite()],\n",
+  "replace": "  [\"unknown\", new OverrideWrite()],\n",
+  "group": "modal"
+ },
+ {
+  "id": "writer: carried checks the carried value",
+  "file": "src/characters/editing/sheet-value-writer.ts",
+  "find": "  [\"carried\", new CarriedWrite()],\n",
+  "replace": "  [\"carried\", new OverrideWrite()],\n",
+  "group": "modal"
+ },
+ {
+  "id": "writer: override writes the note",
+  "file": "src/characters/editing/sheet-value-writer.ts",
+  "find": "  [\"override\", new OverrideWrite()],\n",
+  "replace": "  [\"override\", new LearnedWrite()],\n",
+  "group": "modal"
+ },
+ {
+  "id": "writer: an unknown choice is refused",
+  "file": "src/characters/editing/sheet-value-writer.ts",
+  "find": "if (stateWrite === undefined) throw new Error(NOT_A_CHOICE);",
+  "replace": "if (stateWrite === undefined) return { override: null, sessionFact: null };",
+  "group": "modal"
+ },
+ {
+  "id": "dialog: refusal words kept",
+  "file": "src/imports/dialog/failure-words.ts",
+  "find": "  if (error instanceof Refusal) return error.message;\n",
+  "replace": "",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: other errors made plain",
+  "file": "src/imports/dialog/failure-words.ts",
+  "find": "  if (error instanceof Refusal) return error;\n",
+  "replace": "  if (error instanceof Error) return new Refusal(error.message);\n",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: other errors' words hidden",
+  "file": "src/imports/dialog/failure-words.ts",
+  "find": "  return otherwise;\n}",
+  "replace": "  if (error instanceof Error) return error.message;\n  return otherwise;\n}",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: write errors made plain",
+  "file": "src/imports/dialog/stages/review-stage.ts",
+  "find": "      throw plainRefusalOf(error, WRITING_WENT_WRONG);",
+  "replace": "      throw error;",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: failure shown above the changes",
+  "file": "src/imports/dialog/steps/review-step.ts",
+  "find": "  drawFailure(parent, review);\n",
+  "replace": "",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: still reading said",
+  "file": "src/imports/dialog/stages/pdf-stage.ts",
+  "find": "      this.contentEl.createEl(\"p\", { cls: \"dd-import-reading dd-still-reading\", text: STILL_READING });\n",
+  "replace": "",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: second file not read",
+  "file": "src/imports/dialog/stages/pdf-stage.ts",
+  "find": "text: STILL_READING });\n      return;",
+  "replace": "text: STILL_READING });",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: flow refusal stops the review",
+  "file": "src/imports/dialog/import-steps.ts",
+  "find": "    if (refusal !== null) {\n      this.pdf.show(refusal);\n      return;\n    }\n",
+  "replace": "",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: update matches the PDF's name",
+  "file": "src/imports/dialog/flows/update-flow.ts",
+  "find": "if (notesLikeName(name, [this.file]).length > 0) return null;",
+  "replace": "return null;",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: new note checked in the review",
+  "file": "src/imports/dialog/targets/new-note-target.ts",
+  "find": "    this.writer.refuseUnlessCreatable(sheet, today);\n",
+  "replace": "",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: update words outside a campaign",
+  "file": "src/imports/dialog/opening/beyond-openers.ts",
+  "find": "this.wiring.tell(NOT_IN_A_CAMPAIGN);",
+  "replace": "this.wiring.tell(NO_CAMPAIGN);",
+  "group": "dialog"
+ },
+ {
+  "id": "entry: override goes before the import's sections",
+  "file": "src/characters/editing/character-entry.ts",
+  "find": "  return withInserted(draft, written, afterHisOwnText(lines, bodyStart, heading));",
+  "replace": "  return withAppended(draft, written);",
+  "group": "entry"
+ },
+ {
+  "id": "entry: after his own text, not after blank lines",
+  "file": "src/characters/editing/character-entry.ts",
+  "find": " && line.trim() !== \"\") at = index + 1;",
+  "replace": ") at = index + 1;",
+  "group": "entry"
+ },
+ {
+  "id": "entry: before the first of the import's sections",
+  "file": "src/characters/editing/character-entry.ts",
+  "find": "if (first === null || index < first) first = index;",
+  "replace": "first = index;",
+  "group": "entry"
+ },
+ {
+  "id": "entry: words when nothing reads back",
+  "file": "src/characters/editing/character-entry.ts",
+  "find": "  if (value === \"\") return `After that change the note wouldn't give",
+  "replace": "  if (value === \"-\") return `After that change the note wouldn't give",
+  "group": "entry"
+ },
+ {
+  "id": "lines: an inserted line keeps the note's line breaks",
+  "file": "src/notes/writing/note-lines.ts",
+  "find": "lines.push(`${line}${carriage}`);",
+  "replace": "lines.push(line);",
+  "group": "entry"
+ }
+]
