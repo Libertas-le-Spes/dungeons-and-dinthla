@@ -44,7 +44,7 @@ function openDialog({ save = async () => true, canDelete = true, learned = new M
     field.value = value;
     field.dispatchEvent(new field.ownerDocument.defaultView!.Event("input"));
   };
-  return { root, input, button, type, saved, deleteNote, onClosed };
+  return { modal, root, input, button, type, saved, deleteNote, onClosed };
 }
 
 beforeEach(() => {
@@ -69,63 +69,71 @@ describe("CharacterModal", () => {
   });
 
   it("saves the values trimmed and closes", async () => {
-    const { type, button, saved, onClosed } = openDialog();
+    const { modal, type, button, saved, onClosed } = openDialog();
     type("Name", " Mirabel ");
     type("Type line", " elf ");
     button("Save")!.click();
-    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledOnce());
+    await modal.changeSettled();
+    expect(onClosed).toHaveBeenCalledOnce();
     expect(saved).toEqual([entry({ name: "Mirabel", type: "elf" })]);
   });
 
   it("saves once however often Save is pressed while saving", async () => {
-    const { button, saved, onClosed } = openDialog();
+    const { modal, button, saved, onClosed } = openDialog();
     button("Save")!.click();
     button("Save")!.click();
-    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledOnce());
+    await modal.changeSettled();
+    expect(onClosed).toHaveBeenCalledOnce();
     expect(saved).toHaveLength(1);
   });
 
   it("stays open on the name when nothing was saved", async () => {
-    const { input, button, saved, onClosed } = openDialog({ save: async () => false });
+    const { modal, input, button, saved, onClosed } = openDialog({ save: async () => false });
     input("Speed").focus();
     button("Save")!.click();
-    await vi.waitFor(() => expect(saved).toHaveLength(1));
-    await vi.waitFor(() => expect(input("Name").ownerDocument.activeElement).toBe(input("Name")));
+    await modal.changeSettled();
+    expect(saved).toHaveLength(1);
+    expect(input("Name").ownerDocument.activeElement).toBe(input("Name"));
     expect(onClosed).not.toHaveBeenCalled();
   });
 
   it("says why and stays open when a save is refused", async () => {
-    const { button, onClosed } = openDialog({ save: async () => Promise.reject(new Error("There is already a note called Vess.")) });
+    const { modal, button, onClosed } = openDialog({ save: async () => Promise.reject(new Error("There is already a note called Vess.")) });
     button("Save")!.click();
-    await vi.waitFor(() => expect(Notice.shown).toEqual(["Couldn't save the character: There is already a note called Vess."]));
+    await modal.changeSettled();
+    expect(Notice.shown).toEqual(["Couldn't save the character: There is already a note called Vess."]);
     expect(onClosed).not.toHaveBeenCalled();
   });
 
   it("closes when part of a save was written", async () => {
-    const { button, onClosed } = openDialog({ save: async () => Promise.reject(new PartlyWritten("The values were saved.")) });
+    const { modal, button, onClosed } = openDialog({ save: async () => Promise.reject(new PartlyWritten("The values were saved.")) });
     button("Save")!.click();
-    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledOnce());
+    await modal.changeSettled();
+    expect(onClosed).toHaveBeenCalledOnce();
   });
 
   it("closes when the note changed since it opened, as its values are out of date", async () => {
-    const { button, onClosed } = openDialog({ save: async () => Promise.reject(new Error(CHANGED_IN_NOTE)) });
+    const { modal, button, onClosed } = openDialog({ save: async () => Promise.reject(new Error(CHANGED_IN_NOTE)) });
     button("Save")!.click();
-    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledOnce());
+    await modal.changeSettled();
+    expect(onClosed).toHaveBeenCalledOnce();
     expect(Notice.shown).toEqual([`Couldn't save the character: ${CHANGED_IN_NOTE}`]);
   });
 
   it("closes when the note was moved since it opened", async () => {
-    const { button, onClosed } = openDialog({ save: async () => Promise.reject(new Error(NOTE_MOVED)) });
+    const { modal, button, onClosed } = openDialog({ save: async () => Promise.reject(new Error(NOTE_MOVED)) });
     button("Save")!.click();
-    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledOnce());
+    await modal.changeSettled();
+    expect(onClosed).toHaveBeenCalledOnce();
   });
 
   it("deletes only on a second press, then closes", async () => {
-    const { button, deleteNote, onClosed } = openDialog();
+    const { modal, button, deleteNote, onClosed } = openDialog();
     button("Delete character")!.click();
     expect(deleteNote).not.toHaveBeenCalled();
     button("Press again to delete")!.click();
-    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledOnce());
+    await modal.changeSettled();
+    expect(onClosed).toHaveBeenCalledOnce();
     expect(deleteNote).toHaveBeenCalledOnce();
   });
 

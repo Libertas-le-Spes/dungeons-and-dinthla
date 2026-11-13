@@ -13,6 +13,7 @@ export interface NotePageNeeds extends NoteEditingNeeds {
 
 export class NotePage extends Component {
   private links!: NoteLinks;
+  private editing: NoteEditing | null = null;
   private left: LeftCampaign | null = null;
 
   constructor(
@@ -33,7 +34,12 @@ export class NotePage extends Component {
     this.links = new NoteLinks(root, this.path, this.needs.actions);
     this.links.show("");
     const editing = new NoteEditing(panel, this.path, this.needs, this);
+    this.editing = editing;
     this.register(() => editing.close());
+  }
+
+  async editingSettled(): Promise<void> {
+    if (this.editing !== null) await this.editing.settled();
   }
 
   textShown(text: string, unsaved: boolean): void {

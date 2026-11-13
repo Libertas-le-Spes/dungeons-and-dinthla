@@ -13,6 +13,7 @@ import { MentionsPanel } from "./mentions-panel";
 import type { SheetNotes } from "../reading/sheet-notes";
 import { modifierOf } from "../reading/sheet-values";
 import { fillStatBlock } from "../cards/stat-block";
+import { PendingWork } from "../../views/pending/pending-work";
 import { addImportedLines } from "../imported/drawing/imported-lines";
 import { addUpdateButton } from "../imported/drawing/update-button";
 import { addImportedPanels } from "../imported/panels/imported-panels";
@@ -61,6 +62,7 @@ export class CharacterSheetPage extends Component {
   private renders = 0;
   private watched: string[] = [];
   private pendingFocus: { name: string; until: number } | null = null;
+  private readonly drawing = new PendingWork();
   private readonly mentions: MentionsPanel;
 
   constructor(
@@ -92,8 +94,13 @@ export class CharacterSheetPage extends Component {
     this.contentEl.empty();
   }
 
+  async rendered(): Promise<void> {
+    await this.drawing.settled();
+    await this.mentions.readSettled();
+  }
+
   private refresh(): void {
-    void this.render(this.file);
+    this.drawing.add(this.render(this.file));
   }
 
   private watches(path: string): boolean {

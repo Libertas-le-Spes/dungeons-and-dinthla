@@ -65,54 +65,56 @@ function names(root: HTMLElement): string[] {
   return [...root.querySelectorAll(".dd-gallery .dd-stat-block-name")].map((name) => name.textContent!);
 }
 
-async function shownNames(root: HTMLElement, expected: string[]): Promise<void> {
-  await vi.waitFor(() => expect(names(root)).toEqual(expected));
+async function shownNames(page: CastPage, root: HTMLElement, expected: string[]): Promise<void> {
+  await page.rendered();
+  expect(names(root)).toEqual(expected);
 }
 
 describe("CastPage", () => {
   it("shows the cards of the open campaign's characters", async () => {
-    const { root, filesIn } = openCast();
-    await shownNames(root, ["Mira", "Thessaly"]);
+    const { page, root, filesIn } = openCast();
+    await shownNames(page, root, ["Mira", "Thessaly"]);
     expect(filesIn).toHaveBeenCalledWith("Pale Moon");
   });
 
   it("shows the player's own character first, and the others in the order the Characters folder lists them", async () => {
-    const { root } = openCast({ characters: ["Brother Aldric", "Lady Vess", "Mira", "Thessaly"], own: "Lady Vess" });
-    await shownNames(root, ["Lady Vess", "Brother Aldric", "Mira", "Thessaly"]);
+    const { page, root } = openCast({ characters: ["Brother Aldric", "Lady Vess", "Mira", "Thessaly"], own: "Lady Vess" });
+    await shownNames(page, root, ["Lady Vess", "Brother Aldric", "Mira", "Thessaly"]);
   });
 
   it("says there are no characters when no campaign is open", async () => {
-    const { root, filesIn } = openCast({ folder: null });
-    await vi.waitFor(() => expect(root.querySelector(".dd-empty")?.textContent).toBe("No characters yet. Add one with New character."));
+    const { page, root, filesIn } = openCast({ folder: null });
+    await page.rendered();
+    expect(root.querySelector(".dd-empty")?.textContent).toBe("No characters yet. Add one with New character.");
     expect(filesIn).not.toHaveBeenCalled();
   });
 
   it("shows a character added to the campaign's Characters folder", async () => {
-    const { root, shown, fileChanged } = openCast();
-    await shownNames(root, ["Mira", "Thessaly"]);
+    const { page, root, shown, fileChanged } = openCast();
+    await shownNames(page, root, ["Mira", "Thessaly"]);
     shown.names = ["Brother Aldric", "Mira", "Thessaly"];
     fileChanged("Pale Moon/Characters/Brother Aldric.md");
-    await shownNames(root, ["Brother Aldric", "Mira", "Thessaly"]);
+    await shownNames(page, root, ["Brother Aldric", "Mira", "Thessaly"]);
   });
 
   it("reads the cards again when the campaign note changes", async () => {
-    const { root, filesIn, noteChanged } = openCast();
-    await shownNames(root, ["Mira", "Thessaly"]);
+    const { page, root, filesIn, noteChanged } = openCast();
+    await shownNames(page, root, ["Mira", "Thessaly"]);
     noteChanged("Pale Moon/Pale Moon.md");
     expect(filesIn).toHaveBeenCalledTimes(2);
   });
 
   it("leaves the cards alone when a note outside the Characters folder changes", async () => {
-    const { root, filesIn, noteChanged, fileChanged } = openCast();
-    await shownNames(root, ["Mira", "Thessaly"]);
+    const { page, root, filesIn, noteChanged, fileChanged } = openCast();
+    await shownNames(page, root, ["Mira", "Thessaly"]);
     noteChanged("Pale Moon/Sessions/Session 1.md");
     fileChanged("Ashen Road/Characters/Old Tom.md");
     expect(filesIn).toHaveBeenCalledOnce();
   });
 
   it("reads the cards again when the campaign changes", async () => {
-    const { root, filesIn, campaignChanged } = openCast();
-    await shownNames(root, ["Mira", "Thessaly"]);
+    const { page, root, filesIn, campaignChanged } = openCast();
+    await shownNames(page, root, ["Mira", "Thessaly"]);
     campaignChanged();
     expect(filesIn).toHaveBeenCalledTimes(2);
   });
