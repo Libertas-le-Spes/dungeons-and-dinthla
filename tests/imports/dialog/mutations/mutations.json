@@ -656,5 +656,33 @@
   "find": "lines.push(`${line}${carriage}`);",
   "replace": "lines.push(line);",
   "group": "entry"
+ },
+ {
+  "id": "picker: reading not awaited",
+  "file": "src/imports/dialog/picking/pdf-picker.ts",
+  "find": "    this.work.add(this.readSafely());",
+  "replace": "    void this.readSafely();",
+  "group": "waiting"
+ },
+ {
+  "id": "pdf stage: sheet reading not awaited",
+  "file": "src/imports/dialog/stages/pdf-stage.ts",
+  "find": "    this.work.add(this.readSheet(bytes));",
+  "replace": "    void this.readSheet(bytes);",
+  "group": "waiting"
+ },
+ {
+  "id": "review: single target's review not awaited",
+  "file": "src/imports/dialog/stages/review-stage.ts",
+  "find": "      this.work.add(this.reviewWith(sheet, only, null));",
+  "replace": "      void this.reviewWith(sheet, only, null);",
+  "group": "waiting"
+ },
+ {
+  "id": "dialog: write not awaited",
+  "file": "src/imports/dialog/import-modal.ts",
+  "find": "    await this.changeSettled();\n",
+  "replace": "",
+  "group": "waiting"
  }
 ]
