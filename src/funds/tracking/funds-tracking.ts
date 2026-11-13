@@ -14,6 +14,7 @@ import { itemNamed } from "../items/item-named";
 import { openItemDialogAs } from "../items/open-item";
 import { ItemsLook, type HolderPaths } from "./items-look";
 import { TrackItemModal } from "./track-item-modal";
+import { textToTrack } from "./text-to-track";
 import { trackedItemOf } from "./tracked-item";
 import { TrackingSave } from "./tracking-save";
 
@@ -76,7 +77,8 @@ export class FundsTracking implements ItemTracking {
     const sessionPath = sessionForDialog(this.gate.files, folder, { activePath: null, earliestSession: 0, noSession: NO_SESSION });
     if (sessionPath === null) return;
     const holder = `[[${this.gate.metadata.fileToLinktext(file, sessionPath, true)}]]`;
-    const saving = new TrackingSave(this.gate.files, this.store, trackedItemOf(holder, written, file.basename), sessionPath);
+    const tracked = trackedItemOf(holder, textToTrack(this.store.current.items, written), file.basename);
+    const saving = new TrackingSave(this.gate.files, this.store, tracked, sessionPath);
     const shown = { name: withoutEscapes(written), holder: file.basename, writesTo: sessionLabelOf(sessionPath) };
     new TrackItemModal(this.app, shown, saving, returnFocus).open();
   }

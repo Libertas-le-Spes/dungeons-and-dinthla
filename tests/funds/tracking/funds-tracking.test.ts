@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { App, TFile } from "obsidian";
 import { FundsTracking, ITEM_GONE, NO_SESSION, NOT_AS_IMPORTED, NOT_IN_A_CAMPAIGN, NOT_THE_SHOWN_CAMPAIGN } from "../../../src/funds/tracking/funds-tracking";
-import { heldByWords } from "../../../src/funds/tracking/items-look";
+import { heldByNamesakeWords, heldByWords } from "../../../src/funds/tracking/items-look";
 import { SESSIONS_SHARE_A_NUMBER } from "../../../src/campaign/paths/session-to-write";
 import { sessionGoneWords } from "../../../src/campaign/paths/session-gone";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
@@ -154,6 +154,27 @@ describe("Track on the funds page", () => {
     expect(itemsHeldBy(campaign, "Primary Monk")).toEqual(["Rope"]);
   });
 
+  it("tracks again a sold item typed at the table under the name the table wrote, so the funds page keeps one item", async () => {
+    const campaign = new DialogCampaign({ [ONE]: "$ [[Secondary]] Rope (50 ft) *silk*\n$$ Rope (50 ft) *silk* :sold\n" });
+    trackingIn(campaign).track(PRIMARY, "Rope (50 ft) \\*silk\\*", noFocus);
+    expect(lastDialog<TrackShownDialog>().shown.name).toBe("Rope (50 ft) *silk*");
+    expect(await lastDialog<TrackShownDialog>().saving.save()).toBe(true);
+    expect(campaign.texts.get(ONE)).toBe("$ [[Secondary]] Rope (50 ft) *silk*\n$$ Rope (50 ft) *silk* :sold\n$ [[Primary Monk]] Rope (50 ft) *silk*\n");
+    campaign.readAgain();
+    expect(campaign.current.items).toHaveLength(1);
+    expect(itemsHeldBy(campaign, "Primary Monk")).toEqual(["Rope (50 ft) *silk*"]);
+  });
+
+  it("tracks again a sold item the table linked under its link, so the funds page keeps one item", async () => {
+    const campaign = new DialogCampaign({ [ONE]: "$ [[Secondary]] [[Rope]]\n$$ Rope :sold\n" });
+    trackingIn(campaign).track(PRIMARY, "Rope", noFocus);
+    expect(await lastDialog<TrackShownDialog>().saving.save()).toBe(true);
+    expect(campaign.texts.get(ONE)).toBe("$ [[Secondary]] [[Rope]]\n$$ Rope :sold\n$ [[Primary Monk]] [[Rope]]\n");
+    campaign.readAgain();
+    expect(campaign.current.items).toHaveLength(1);
+    expect(itemsHeldBy(campaign, "Primary Monk")).toEqual(["Rope"]);
+  });
+
   it("doesn't add an item typed at the table again under the name the import escaped", async () => {
     const campaign = new DialogCampaign({ [ONE]: "$ [[Primary Monk]] Rope (50 ft) *silk*\n" });
     trackingIn(campaign).track(PRIMARY, "Rope (50 ft) \\*silk\\*", noFocus);
@@ -219,6 +240,16 @@ describe("what the funds page says about an imported list", () => {
     expect(look.standingOf("Rope")).toBe(heldByWords("Secondary"));
     expect(heldByWords("Secondary")).toBe("Held by Secondary, on the funds page");
     expect(look.canTrack("Rope")).toBe(false);
+  });
+
+  it("says an item is held by another note of the character's name, not by him, and offers no tracking for it", () => {
+    const campaign = new DialogCampaign({ [ONE]: "$ [[People/primary monk]] Cloak\n$ Lantern\n$$ Lantern :changed to Primary Monk\n" });
+    campaign.addCharacterNote(PEOPLE_PRIMARY);
+    const look = lookOf(campaign, ["Cloak", "Lantern"]);
+    expect(look.standingOf("Cloak")).toBe(heldByNamesakeWords("primary monk"));
+    expect(heldByNamesakeWords("Primary Monk")).toBe("Held by another note named Primary Monk, on the funds page");
+    expect(look.canTrack("Cloak")).toBe(false);
+    expect(look.standingOf("Lantern")).toBe(heldByWords("Primary Monk"));
   });
 
   it("offers tracking again for an item gone from the funds page, saying how it went", () => {
