@@ -7,6 +7,8 @@
 
 An Obsidian plugin for tabletop campaign notes. You write what happens at the table, and the plugin keeps track of the open questions, quests and money, and fills in sheets for the people, places, factions and items you meet.
 
+Each session's `?`, `!` and `$` lines also show in notes of their own, `Questions/Session 2.md`, `Quests/Session 2.md` and `Funds/Session 2.md`, linked back to the session, and an item named on three lines gets `Items/<item>.md`. The session lines stay the record, and the words you write below a note's properties are never touched (see [Kind notes](docs/note-format.md#kind-notes)).
+
 It is built for players first, and for DMs and researchers on the same footing. It works on Obsidian mobile, since most notes are taken on a tablet at the table.
 
 This README describes a project that grows in small steps: parts of it may still be planned, and whoever's change makes any of it untrue updates it in the same change.

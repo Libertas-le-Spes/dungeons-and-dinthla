@@ -68,7 +68,7 @@ describe("hiddenLines", () => {
   });
 
   it("opens the block whose mark comes first on the line", () => {
-    expect(hidden(["a $$ b %% c", "x $$", "y"])).toEqual([0, 1]);
+    expect(hidden(["a $$", "x $$", "y"])).toEqual([0, 1]);
   });
 
   it("ends a block only at its own mark", () => {
@@ -103,5 +103,49 @@ describe("addedLinesHidden", () => {
 
   it("says no when nothing was added", () => {
     expect(addedLinesHidden("a\n%% aside\n", 0)).toBe(false);
+  });
+
+  it("counts a bare $$ line that never closes as hiding the lines after it", () => {
+    expect(addedLinesHidden("$$\n! Find it\n", 1)).toBe(true);
+  });
+
+  it("doesn't count an item line starting with $$ as hiding the line after it", () => {
+    expect(addedLinesHidden("$$ Rope :lost\n! Find it\n", 1)).toBe(false);
+  });
+});
+
+describe("hiddenLines and $$", () => {
+  it("hides a block opened by a line that is only $$, up to its closing $$", () => {
+    expect(hidden(["a", "$$", "x: 2", "$$", "b"])).toEqual([1, 2, 3]);
+  });
+
+  it("opens a block with $$ and spaces only", () => {
+    expect(hidden(["a", "  $$  ", "x", "b"])).toEqual([1, 2, 3]);
+  });
+
+  it("hides every line after a bare $$ that never closes", () => {
+    expect(hidden(["a", "$$", "x", "y"])).toEqual([1, 2, 3]);
+  });
+
+  it("hides a one-line block with both markers, and nothing after it", () => {
+    expect(hidden(["a", "$$ x: 2 $$", "b"])).toEqual([1]);
+  });
+
+  it("opens nothing for an item line with words after the marker", () => {
+    expect(hidden(["a", "$$ Rope :lost", "b"])).toEqual([]);
+  });
+
+  it("opens nothing for any number of item lines, odd or even", () => {
+    expect(hidden(["$$ Rope :lost"])).toEqual([]);
+    expect(hidden(["$$ Rope :lost", "$$ Torch :sold 3 gp", "b"])).toEqual([]);
+    expect(hidden(["$$ Rope :lost", "$$ Torch :sold 3 gp", "$$ Lamp :used", "b"])).toEqual([]);
+  });
+
+  it("still hides a comment that follows words after the marker", () => {
+    expect(hidden(["$$ Rope :lost %% aside", "b"])).toEqual([0, 1]);
+  });
+
+  it("doesn't let an item line end a comment it sits inside", () => {
+    expect(hidden(["%% aside", "$$ Rope :lost", "b"])).toEqual([0, 1, 2]);
   });
 });

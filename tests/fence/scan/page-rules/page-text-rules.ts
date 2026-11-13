@@ -1,7 +1,8 @@
 import { isBindingElement } from "typescript/unstable/ast";
 import type { FileScan } from "../reading/file-scan";
-import { CHARACTER_DATA, CHARACTER_DATA_OWNERS, ELEMENT_QUERIES, OBSIDIAN_ELEMENT_QUERIES, OBSIDIAN_FOLDER, PAGE_TEXT, POST_PROCESSORS } from "../reading/names";
+import { CHARACTER_DATA, CHARACTER_DATA_OWNERS, ELEMENT_QUERIES, OBSIDIAN_ELEMENT_QUERIES, PAGE_TEXT, POST_PROCESSORS } from "../reading/names";
 import type { NameUse } from "../reading/page-found";
+import { isInObsidianFolder } from "../reading/library-paths";
 import { isLibraryFile, isOwnedByOneOf } from "../reading/type-shapes";
 
 function symbolsOf(scan: FileScan, uses: NameUse[]) {
@@ -21,7 +22,7 @@ function obsidianQueries(scan: FileScan): NameUse[] {
   return uses.filter((_use, index) => {
     const symbol = symbols[index];
     if (symbol === undefined) return true;
-    return symbol.declarations.some((declaration) => declaration.path.includes(OBSIDIAN_FOLDER));
+    return symbol.declarations.some((declaration) => isInObsidianFolder(declaration.path));
   });
 }
 

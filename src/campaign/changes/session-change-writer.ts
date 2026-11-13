@@ -1,6 +1,9 @@
 import { messageOf } from "../../views/dialogs/message-of";
-import { NoteEditor, PartlyWritten, type EditorFiles, type Removal } from "../writing/note-editor";
+import { NoteEditor, PartlyWritten, WOULD_BE_HIDDEN, type EditorFiles, type Removal } from "../writing/note-editor";
 import type { AddedLines, LaterLines, LinesChange, SessionChange } from "./session-change";
+
+export const LATER_NOTE_HIDDEN =
+  "The first lines were written, but the later note has a block that never closes, so the rest was left out. Close the block in the note and add the rest by hand.";
 
 export class SessionChangeWriter {
   private readonly editor: NoteEditor;
@@ -26,7 +29,7 @@ export class SessionChangeWriter {
   }
 
   private async addWithRemoval(added: AddedLines, removal: Removal | null): Promise<boolean> {
-    if (removal === null) return this.editor.append(added.path, added.lines);
+    if (removal === null) return this.editor.appendShown(added.path, added.lines);
     return this.editor.replace(added.path, added.lines, removal);
   }
 
@@ -34,11 +37,12 @@ export class SessionChangeWriter {
     this.editor.ensureExists([added.path, later.path]);
     const wrote = await this.addWithRemoval(added, removal);
     try {
-      const wroteLater = await this.editor.append(later.path, later.lines);
+      const wroteLater = await this.editor.appendShown(later.path, later.lines);
       if (wroteLater) return true;
       return wrote;
     } catch (error) {
       if (!wrote) throw error;
+      if (messageOf(error) === WOULD_BE_HIDDEN) throw new PartlyWritten(LATER_NOTE_HIDDEN);
       throw new PartlyWritten(`${later.partlyWritten} ${messageOf(error)}`);
     }
   }

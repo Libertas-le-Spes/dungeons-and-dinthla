@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { Campaign, SessionNote } from "../../../src/campaign/record/campaign";
-import type { EditorFiles } from "../../../src/campaign/writing/note-editor";
+import { WOULD_BE_HIDDEN, type EditorFiles } from "../../../src/campaign/writing/note-editor";
 import { SessionChangeWriter } from "../../../src/campaign/changes/session-change-writer";
 import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
 import { writeRecordChange } from "../../../src/campaign/changes/write-record-change";
@@ -82,5 +82,24 @@ describe("adding a question", () => {
     const notes = new FakeNotes({ [ONE]: "? Who\n", [TWO]: "" });
     await expect(add(notes, "? Who", "")).rejects.toThrow(SAME_TEXT_AS_EXISTING);
     expect(notes.writes).toBe(0);
+  });
+
+  it("refuses a question that would land below a comment that never closes, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "? Who\n", [TWO]: "%% a note to self\n" });
+    await expect(add(notes, "Why the mill", "")).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.writes).toBe(0);
+  });
+
+  it("refuses a question when the note, changed since it was read, now has a comment that never closes, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "", [TWO]: "" });
+    notes.texts.set(TWO, "%% added by a sync\n");
+    await expect(add(notes, "Why the mill", "")).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.texts.get(TWO)).toBe("%% added by a sync\n");
+  });
+
+  it("writes a question below a comment that has closed", async () => {
+    const notes = new FakeNotes({ [ONE]: "", [TWO]: "%% a note to self %%\n" });
+    expect(await add(notes, "Why the mill", "")).toBe(true);
+    expect(notes.texts.get(TWO)).toBe("%% a note to self %%\n? Why the mill\n");
   });
 });

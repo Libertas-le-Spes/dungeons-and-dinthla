@@ -4,6 +4,7 @@ import { Fence } from "../../../src/fence/paths/fence";
 import { FencedFiles } from "../../../src/fence/gate/fenced-files";
 import { FencedMetadata, type RawMetadata } from "../../../src/fence/gate/fenced-metadata";
 import { HeldFiles } from "../../../src/fence/gate/held-files";
+import { NoteReporter } from "../../../src/fence/gate/written-notes";
 import { notInCampaign, openLink } from "../../../src/views/opening/open-link";
 import { fileAt, folderAt, rawVaultWith } from "../../fence/gate/fake-raw-vault";
 import { Notice } from "../../stubs/obsidian";
@@ -17,7 +18,7 @@ function placeWith(linkLeadsTo: TFile | null, files: TFile[] = [SESSION, MIRA, P
   const { vault, calls } = rawVaultWith(files, folders);
   const raw = { getFirstLinkpathDest: vi.fn(() => linkLeadsTo) };
   const held = new HeldFiles(vault, new Fence(() => "D&D", ".obsidian"));
-  const gate = { files: new FencedFiles(vault, held), metadata: new FencedMetadata(raw as unknown as RawMetadata, held) };
+  const gate = { files: new FencedFiles(vault, held, new NoteReporter()), metadata: new FencedMetadata(raw as unknown as RawMetadata, held) };
   const leaf = { openFile: vi.fn(async () => {}) };
   const openLinkText = vi.fn(async () => {});
   const app = { workspace: { getLeaf: vi.fn(() => leaf), openLinkText } } as unknown as App;
