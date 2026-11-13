@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Refusal } from "../../../../src/beyond/shape/refusal";
+import { CleanLine } from "../../../../src/beyond/text/clean-line";
 import { MOST_NOTE_LINES, MOST_PROPERTY_LINE } from "../../../../src/imports/note/reading/note-limits";
 import { importedNoteText } from "../../../../src/imports/note/writing/rewriting/imported-note";
 import { MadeUpSheet } from "../../../beyond/builders/made-up-sheet";
@@ -302,5 +303,18 @@ describe("importedNoteText on a big note", () => {
   it("replaces a section in a note that is nearly the most lines", () => {
     const earlier = importedNoteText(`${manyLines(MOST_NOTE_LINES - 300)}\n`, monkSheet(), "2026-01-02");
     expect(headingsOf(importedNoteText(earlier, monkSheet(), TODAY))).toEqual(ALL_HEADINGS);
+  });
+});
+
+describe("importedNoteText for a feature whose text holds a comment opener", () => {
+  const sheet = sheetWithCharacter(monkSheet(), { features: [CleanLine.of("Open Hand <!-- and %% both")] });
+
+  it("writes the opener escaped, so the note it writes reads as closed", () => {
+    expect(importedNoteText("", sheet, TODAY)).toContain("Open Hand \\<!-- and \\%\\% both");
+  });
+
+  it("updates the note it wrote, so such a PDF can be brought in again", () => {
+    const earlier = importedNoteText("", sheet, "2026-01-02");
+    expect(linesStartingWith(importedNoteText(earlier, sheet, TODAY), "imported:")).toEqual(["imported: 2026-11-13"]);
   });
 });
