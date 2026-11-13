@@ -114,6 +114,15 @@ describe("sameSheetValue", () => {
     expect(sameSheetValue(acOf([], [override("16")]), acOf([], [override("18")]))).toBe(false);
   });
 
+  it("tells apart a value imported again with another number", () => {
+    const importedAc = (value: string) => {
+      const imported = { name: "AC", value, source: { path: MIRA.path, line: 2 }, route: "Printed on D&D Beyond's PDF", working: "" };
+      return characterSheetOf([LEARNED_15], [imported], [], null).values.find((sheetValue) => sheetValue.name === "AC")!;
+    };
+    expect(sameSheetValue(importedAc("16"), importedAc("16"))).toBe(true);
+    expect(sameSheetValue(importedAc("16"), importedAc("17"))).toBe(false);
+  });
+
   it("tells apart a value carried from another campaign that changed there", () => {
     const carriedAc = (value: string) => {
       const carried = carriedValuesOf("Ashen Road", [], [], [{ name: "AC", value, source: { path: "Ashen Road/Characters/Mira.md", line: 0 } }], ["values"]);

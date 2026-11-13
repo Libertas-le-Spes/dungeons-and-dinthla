@@ -516,3 +516,52 @@ describe("CharacterSheetPage", () => {
     await vi.waitFor(() => expect(textsOf(sheet.root, ".dd-sheet-name")).toEqual(["Mirabel"]));
   });
 });
+
+describe("CharacterSheetPage for an imported character", () => {
+  const IMPORTED = [
+    "---",
+    "imported-from: online",
+    "AC: 16",
+    "HP: 14",
+    "---",
+    "## Numbers (from D&D Beyond)",
+    "- AC · 16 · 10 + DEX 4 + WIS 2 · Worked out here",
+    "- HP · 14 · Worked out here",
+    "",
+  ].join("\n");
+
+  it("shows the route under an imported value, and its working when it has one", async () => {
+    const { load, rowOf } = openSheet({ texts: { [MIRA.path]: IMPORTED } });
+    await load();
+    const armour = rowOf("Armor Class");
+    expect(armour.querySelector(".dd-value")!.textContent).toBe("16");
+    expect(armour.querySelector(".dd-value-source")!.textContent).toBe("From D&D Beyond");
+    expect(armour.querySelector(".dd-value-working")!.textContent).toBe("10 + DEX 4 + WIS 2");
+    expect(armour.querySelector(".dd-value-route")!.textContent).toBe("Worked out here, from D&D Beyond (online)");
+    expect(rowOf("Hit Points").querySelector(".dd-value-working")).toBeNull();
+  });
+
+  it("shows no route under a value his own note overrides", async () => {
+    const { load, rowOf } = openSheet({ texts: { [MIRA.path]: IMPORTED.replace("## Numbers", "AC: 18\n## Numbers") } });
+    await load();
+    expect(rowOf("Armor Class").querySelector(".dd-value")!.textContent).toBe("18");
+    expect(rowOf("Armor Class").querySelector(".dd-value-route")).toBeNull();
+  });
+
+  it("offers Update from D&D Beyond, which asks once for this character's update", async () => {
+    const { load, root, actions } = openSheet({ texts: { [MIRA.path]: IMPORTED } });
+    await load();
+    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>("button")).filter((button) => button.textContent === "Update from D&D Beyond");
+    expect(buttons).toHaveLength(1);
+    buttons[0]!.click();
+    expect(actions.updateFromBeyond).toHaveBeenCalledOnce();
+    expect(vi.mocked(actions.updateFromBeyond).mock.calls[0]![0]).toBe(MIRA);
+  });
+
+  it("offers no update on a sheet nothing was imported into", async () => {
+    const { load, root } = openSheet({ texts: { [MIRA.path]: "AC: 16\n" } });
+    await load();
+    const labels = Array.from(root.querySelectorAll("button")).map((button) => button.textContent);
+    expect(labels).not.toContain("Update from D&D Beyond");
+  });
+});

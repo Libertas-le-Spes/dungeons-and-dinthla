@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App } from "obsidian";
 import { CHANGED_IN_NOTE, PartlyWritten } from "../../../src/campaign/writing/note-editor";
 import { carriedValuesOf, characterSheetOf, type SheetValue } from "../../../src/characters/reading/character-sheet";
-import { notKnownOverCarriedText, secondPressText, SheetValueModal, whereText, type SheetValueDialog } from "../../../src/characters/editing/sheet-value-modal";
+import { CHANGE_ON_BEYOND, notKnownOverCarriedText, secondPressText, SheetValueModal, whereText, type SheetValueDialog } from "../../../src/characters/editing/sheet-value-modal";
 import type { ValueChoice } from "../../../src/characters/editing/sheet-value-writer";
 import type { SourcedFact } from "../../../src/characters/reading/sheet-values";
 import { PRESS_AGAIN } from "../../../src/views/dialogs/second-press";
@@ -262,5 +262,30 @@ describe("SheetValueModal on a value only the character's note states, under a n
     const { choice, saved } = openDialog({ value });
     choice("unknown").click();
     await vi.waitFor(() => expect(saved).toHaveLength(1));
+  });
+});
+
+describe("SheetValueModal on an imported value", () => {
+  function importedHp(): SheetValue {
+    const imported = { name: "HP", value: "14", source: { path: MIRA, line: 2 }, route: "Printed on D&D Beyond's PDF", working: "" };
+    return characterSheetOf([inSession(1, "31")], [imported], [], null).values.find((value) => value.name === "HP")!;
+  }
+
+  it("says to change it on D&D Beyond too", () => {
+    const { root } = openDialog({ value: importedHp() });
+    expect(Array.from(root.querySelectorAll(".dd-where")).map((line) => line.textContent)).toContain(CHANGE_ON_BEYOND);
+    expect(CHANGE_ON_BEYOND).toBe("Change this on D&D Beyond too, or the next update will replace it.");
+  });
+
+  it("does not say so for a value nothing imported", () => {
+    const { root } = openDialog();
+    expect(Array.from(root.querySelectorAll(".dd-where")).map((line) => line.textContent)).not.toContain(CHANGE_ON_BEYOND);
+  });
+
+  it("saves what is typed over an imported value as an override on Enter", () => {
+    const { type, enter, saved } = openDialog({ value: importedHp() });
+    type("20");
+    enter();
+    expect(saved).toEqual([{ state: "override", value: "20" }]);
   });
 });

@@ -230,6 +230,20 @@ describe("CharactersView", () => {
     expect(gallery.newCharacter).toHaveBeenCalledOnce();
   });
 
+  it("opens the import from D&D Beyond once from its button, beside New character", async () => {
+    const gallery = openGallery();
+    gallery.container.ownerDocument.body.append(gallery.container);
+    await gallery.show([]);
+    const importButton = gallery.container.querySelector<HTMLElement>(".dd-head .dd-beyond")!;
+    expect(importButton.textContent).toBe("Import from D&D Beyond");
+    importButton.click();
+    expect(gallery.importCharacter).toHaveBeenCalledOnce();
+    expect(gallery.newCharacter).not.toHaveBeenCalled();
+    const [[returnFocus]] = gallery.importCharacter.mock.calls as [[() => void]];
+    returnFocus();
+    expect(gallery.container.ownerDocument.activeElement).toBe(importButton);
+  });
+
   it("returns focus to the new character button drawn since the dialog opened", async () => {
     const gallery = openGallery();
     gallery.container.ownerDocument.body.append(gallery.container);
