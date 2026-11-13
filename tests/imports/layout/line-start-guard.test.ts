@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { withoutFactStart, withoutListNumberStart, withoutMarkerStart } from "../../../src/beyond/text/line-start-guard";
+import { withoutFactStart, withoutListNumberStart, withoutMarkerStart } from "../../../src/imports/layout/line-start-guard";
 
 const ASCII_PUNCTUATION = Array.from("!\"#$%&'()*+,-./:;<=>?@[]^_`{|}~");
 
