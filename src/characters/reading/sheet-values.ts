@@ -3,7 +3,7 @@ import { firstLineAfterProperties } from "../../campaign/paths/session-file";
 import { forEachSessionLine } from "../../campaign/record/session-lines";
 import { withoutBullet } from "../../notes/parts/bullet";
 import { factsOf, linkedFactsOf, type CharacterFact } from "../../notes/reading/character-facts";
-import { pluginSectionLinesOf } from "../imported/plugin-section-lines";
+import { pluginSectionLinesOf } from "../imported/reading/plugin-section-lines";
 
 export const ABILITIES = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 

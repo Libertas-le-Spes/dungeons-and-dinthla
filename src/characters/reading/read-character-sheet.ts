@@ -6,8 +6,8 @@ import { carriedValuesOf, characterSheetOf, type CarriedValues, type CharacterSh
 import { learnedFactsOf } from "./learned-facts";
 import type { SheetNotes } from "./sheet-notes";
 import { overrideFacts, type SourcedFact } from "./sheet-values";
-import { importedFactsOf } from "../imported/imported-facts";
-import type { ImportedFact } from "../imported/imported-fact";
+import { importedFactsOf } from "../imported/reading/imported-facts";
+import type { ImportedFact } from "../imported/reading/imported-fact";
 
 export type SheetStore = Pick<CampaignStore, "campaignFolder" | "sessionNotes">;
 

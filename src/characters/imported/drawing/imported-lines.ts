@@ -1,4 +1,4 @@
-import type { SheetValue } from "../reading/character-sheet";
+import type { SheetValue } from "../../reading/character-sheet";
 
 export function addImportedLines(parent: HTMLElement, value: SheetValue): void {
   const imported = value.imported;

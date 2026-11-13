@@ -13,8 +13,8 @@ import { MentionsPanel } from "./mentions-panel";
 import type { SheetNotes } from "../reading/sheet-notes";
 import { modifierOf } from "../reading/sheet-values";
 import { fillStatBlock } from "../cards/stat-block";
-import { addImportedLines } from "../imported/imported-lines";
-import { addUpdateButton } from "../imported/update-button";
+import { addImportedLines } from "../imported/drawing/imported-lines";
+import { addUpdateButton } from "../imported/drawing/update-button";
 
 export const TAP_A_VALUE = "Tap a value to change it or its state.";
 

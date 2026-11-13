@@ -1,6 +1,6 @@
 import type { Source } from "../../campaign/record/campaign";
 import { ABILITIES, sameName, sheetNameOf, type SheetValues, type SourcedFact } from "./sheet-values";
-import type { ImportedFact } from "../imported/imported-fact";
+import type { ImportedFact } from "../imported/reading/imported-fact";
 import { firstRanked, type Rank } from "./value-ranks";
 
 export const NOT_KNOWN = "?";

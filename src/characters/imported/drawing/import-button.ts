@@ -1,4 +1,4 @@
-import type { CharacterCreators } from "../pages/character-creators";
+import type { CharacterCreators } from "../../pages/character-creators";
 import { addBeyondButton, type ButtonAction } from "./beyond-button";
 
 export const IMPORT_FROM_BEYOND = "Import from D&D Beyond";

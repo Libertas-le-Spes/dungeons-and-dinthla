@@ -1,5 +1,5 @@
 import { isBigHeading } from "./big-heading";
-import { PLUGIN_SECTIONS } from "../../imports/layout/plugin-sections";
+import { PLUGIN_SECTIONS } from "../../../imports/layout/plugin-sections";
 
 function isPluginHeading(line: string): boolean {
   const written = line.trimEnd();

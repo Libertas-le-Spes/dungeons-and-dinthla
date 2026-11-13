@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { overrideFacts, type SourcedFact } from "../../../src/characters/reading/sheet-values";
-import { pluginSectionLinesOf } from "../../../src/characters/imported/plugin-section-lines";
+import { pluginSectionLinesOf } from "../../../src/characters/imported/reading/plugin-section-lines";
 import { textOf } from "../../imports/builders/line-helpers";
 
 const PATH = "D&D/Primary Campaign/Characters/Primary Monk.md";

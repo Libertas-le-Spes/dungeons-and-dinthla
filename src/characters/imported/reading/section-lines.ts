@@ -1,5 +1,5 @@
 import { isBigHeading } from "./big-heading";
-import type { PluginSection } from "../../imports/layout/plugin-section";
+import type { PluginSection } from "../../../imports/layout/plugin-section";
 
 export interface SectionLine {
   readonly text: string;

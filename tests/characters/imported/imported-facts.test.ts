@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { importedFactsOf } from "../../../src/characters/imported/imported-facts";
-import type { ImportedFact } from "../../../src/characters/imported/imported-fact";
+import { importedFactsOf } from "../../../src/characters/imported/reading/imported-facts";
+import type { ImportedFact } from "../../../src/characters/imported/reading/imported-fact";
 import { importedNoteText } from "../../../src/imports/note/writing/rewriting/imported-note";
 import { monkSheet, sheetWithCharacter, TODAY } from "../../imports/builders/made-up-import";
 import { CleanLine } from "../../../src/beyond/text/clean-line";
