@@ -2,7 +2,8 @@ import type { Project, Symbol as TypeSymbol, Type } from "typescript/unstable/sy
 import { SignatureKind, TypeFlags } from "typescript/unstable/sync";
 import { isBindingElement, isClassDeclaration, isIdentifier, isInterfaceDeclaration, isParameterDeclaration, isVariableDeclaration, SyntaxKind, type Expression, type Node } from "typescript/unstable/ast";
 import type { Found, Named } from "./found";
-import { CODE_MIRROR_FOLDER, DOCUMENT, EDITOR_OWNERS, EDITOR_READS, EDITOR_WRITES, FILE_OWNERS, FORBIDDEN_NAMES, OBJECT, OBSIDIAN_FOLDER, REACHING_HOLDERS, UNTYPED, VAULT_NAMES, VIEW_OWNERS } from "./names";
+import { isInCodeMirrorFolder, isInObsidianFolder } from "./library-paths";
+import { DOCUMENT, EDITOR_OWNERS, EDITOR_READS, EDITOR_WRITES, FILE_OWNERS, FORBIDDEN_NAMES, OBJECT, REACHING_HOLDERS, UNTYPED, VAULT_NAMES, VIEW_OWNERS } from "./names";
 import { isCast, layersOf, unwrapped, type Cast } from "./syntax";
 import { anyMemberCould, flattened, isLibraryFile, isLibraryType, isNamedGlobal, isNamedOneOf, isObsidianOwnedByOneOf, isOwnedByOneOf } from "./type-shapes";
 
@@ -50,7 +51,7 @@ export class TypeQueries {
     return found.members.filter(({ name }, index) => {
       const symbol = symbols[index];
       if (symbol === undefined) return name === DOCUMENT;
-      return symbol.declarations.some((declaration) => declaration.path.includes(CODE_MIRROR_FOLDER));
+      return symbol.declarations.some((declaration) => isInCodeMirrorFolder(declaration.path));
     });
   }
 
@@ -95,7 +96,7 @@ export class TypeQueries {
   }
 
   private isObsidianFileMember(property: TypeSymbol): boolean {
-    return property.declarations.some((declaration) => declaration.path.includes(OBSIDIAN_FOLDER)) && this.isFileOwned(property);
+    return property.declarations.some((declaration) => isInObsidianFolder(declaration.path)) && this.isFileOwned(property);
   }
 
   isViewOrUntyped(project: Project, type: Type | undefined): boolean {

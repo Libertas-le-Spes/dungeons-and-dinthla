@@ -1,25 +1,26 @@
 import { firstLineAfterProperties } from "../../campaign/paths/session-file";
+import { BLOCK_MARKERS, type BlockMarker } from "./hidden-markers";
 
 const FENCE_OPEN = /^ {0,3}(`{3,}|~{3,})/;
 const FENCE_CLOSE = /^ {0,3}(`{3,}|~{3,})\s*$/;
 const INDENTED = /^( {4}|\t)/;
 const INLINE_CODE = /`[^`\n]*`/g;
-const CLOSERS = new Map<string, string>([
-  ["%%", "%%"],
-  ["$$", "$$"],
-  ["<!--", "-->"],
-]);
 
 interface Scan {
   closer: string | null;
   marked: boolean;
 }
 
-function nextOpener(prose: string, from: number): { opener: string; at: number } | null {
-  let next: { opener: string; at: number } | null = null;
-  for (const opener of CLOSERS.keys()) {
-    const at = prose.indexOf(opener, from);
-    if (at !== -1 && (next === null || at < next.at)) next = { opener, at };
+interface NextMarker {
+  marker: BlockMarker;
+  at: number;
+}
+
+function nextMarker(prose: string, from: number): NextMarker | null {
+  let next: NextMarker | null = null;
+  for (const marker of BLOCK_MARKERS) {
+    const at = prose.indexOf(marker.opener, from);
+    if (at !== -1 && (next === null || at < next.at)) next = { marker, at };
   }
   return next;
 }
@@ -37,18 +38,22 @@ function scanned(prose: string, openCloser: string | null): Scan {
       closer = null;
       continue;
     }
-    const next = nextOpener(prose, from);
+    const next = nextMarker(prose, from);
     if (next === null) break;
-    marked = true;
-    closer = CLOSERS.get(next.opener)!;
-    from = next.at + next.opener.length;
+    const opening = next.marker.opening(next.at, prose);
+    if (opening.hides) marked = true;
+    closer = opening.closer;
+    from = opening.next;
   }
   return { closer, marked };
 }
 
 function closesFence(line: string, fence: string): boolean {
   const closing = FENCE_CLOSE.exec(line);
-  return closing !== null && closing[1]!.startsWith(fence);
+  if (closing === null) return false;
+  const closingFence = closing[1];
+  if (closingFence === undefined) return false;
+  return closingFence.startsWith(fence);
 }
 
 export function hiddenLines(text: string): Set<number> {
@@ -59,7 +64,9 @@ export function hiddenLines(text: string): Set<number> {
   let afterBlank = true;
   let inIndented = false;
   for (let index = firstLineAfterProperties(text); index < lines.length; index++) {
-    const line = lines[index]!.replace(/\r$/, "");
+    const raw = lines[index];
+    if (raw === undefined) continue;
+    const line = raw.replace(/\r$/, "");
     const blank = line.trim() === "";
     if (fence !== null) {
       hidden.add(index);
@@ -80,7 +87,8 @@ export function hiddenLines(text: string): Set<number> {
     const opening = FENCE_OPEN.exec(line);
     if (opening !== null) {
       hidden.add(index);
-      fence = opening[1]!;
+      const openingFence = opening[1];
+      if (openingFence !== undefined) fence = openingFence;
       continue;
     }
     if (!blank) inIndented = INDENTED.test(line) && (afterBlank || inIndented);

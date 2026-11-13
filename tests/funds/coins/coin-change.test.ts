@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { CoinRecord, SessionNote } from "../../../src/campaign/record/campaign";
-import type { EditorFiles } from "../../../src/campaign/writing/note-editor";
+import { WOULD_BE_HIDDEN, type EditorFiles } from "../../../src/campaign/writing/note-editor";
 import { linesAddedTo } from "../../../src/campaign/changes/session-change";
 import { SessionChangeWriter } from "../../../src/campaign/changes/session-change-writer";
 import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
@@ -108,9 +108,38 @@ describe("adding coin", () => {
   it("writes the line into the session it was given", async () => {
     const notes = new FakeNotes({ [ONE]: "We rode on.\n", [TWO]: "" });
     const written = coinLineOf({ direction: "in", amount: "5 gp", what: "found" });
-    expect(await writeRecordChange(newCoin(written, TWO), new SessionChangeWriter(notes.vault))).toBe(true);
+    expect(await writeRecordChange(newCoin(notes, written, TWO), new SessionChangeWriter(notes.vault))).toBe(true);
     expect(notes.texts.get(TWO)).toBe(`${written.line}\n`);
     expect(notes.texts.get(ONE)).toBe("We rode on.\n");
+  });
+
+  it("refuses a line that would land below a comment that never closes, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "We rode on.\n", [TWO]: "%% a note to self\n" });
+    const written = coinLineOf({ direction: "in", amount: "5 gp", what: "found" });
+    await expect(writeRecordChange(newCoin(notes, written, TWO), new SessionChangeWriter(notes.vault))).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.writes).toBe(0);
+  });
+
+  it("refuses a line when the note, changed since it was read, now has a comment that never closes, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "", [TWO]: "" });
+    notes.texts.set(TWO, "%% added by a sync\n");
+    const written = coinLineOf({ direction: "in", amount: "5 gp", what: "found" });
+    await expect(writeRecordChange(newCoin(notes, written, TWO), new SessionChangeWriter(notes.vault))).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.texts.get(TWO)).toBe("%% added by a sync\n");
+  });
+
+  it("writes a line below an item line, which opens no comment", async () => {
+    const notes = new FakeNotes({ [ONE]: "", [TWO]: "$$ Rope :lost\n" });
+    const written = coinLineOf({ direction: "in", amount: "5 gp", what: "found" });
+    expect(await writeRecordChange(newCoin(notes, written, TWO), new SessionChangeWriter(notes.vault))).toBe(true);
+    expect(notes.texts.get(TWO)).toBe(`$$ Rope :lost\n${written.line}\n`);
+  });
+
+  it("writes a line below a comment that has closed", async () => {
+    const notes = new FakeNotes({ [ONE]: "", [TWO]: "%% a note to self %%\n" });
+    const written = coinLineOf({ direction: "in", amount: "5 gp", what: "found" });
+    expect(await writeRecordChange(newCoin(notes, written, TWO), new SessionChangeWriter(notes.vault))).toBe(true);
+    expect(notes.texts.get(TWO)).toBe(`%% a note to self %%\n${written.line}\n`);
   });
 });
 
