@@ -5,9 +5,10 @@ import type { ImportWriter } from "../../note/writing/import-writer";
 import { IMPORT_TITLE } from "../import-words";
 import { ExistingNoteTarget } from "../targets/existing-note-target";
 import type { ImportTarget } from "../targets/import-target";
+import type { ImportFlow } from "./import-flow";
 import { NewNoteTarget } from "../targets/new-note-target";
 
-export class NewImportFlow {
+export class NewImportFlow implements ImportFlow {
   readonly title = IMPORT_TITLE;
 
   constructor(
@@ -15,6 +16,10 @@ export class NewImportFlow {
     private readonly charactersFolder: string,
     private readonly notes: () => readonly TFile[],
   ) {}
+
+  refusalFor(): string | null {
+    return null;
+  }
 
   targetsFor(sheet: PrintedSheet): ImportTarget[] {
     const name = sheet.character.name.text;

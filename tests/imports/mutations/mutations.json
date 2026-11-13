@@ -1129,8 +1129,8 @@
  {
   "id": "writing:     this.refuseUnlessNew(name, path);\n",
   "file": "src/imports/note/writing/import-writer.ts",
-  "find": "    this.refuseUnlessNew(name, path);\n",
-  "replace": "",
+  "find": "    this.refuseUnlessNew(name);\n    const text",
+  "replace": "    const text",
   "group": "writing"
  },
  {
@@ -2224,5 +2224,12 @@
   "find": "at = line.indexOf(opener, at + 1);",
   "replace": "at = -1;",
   "group": "blocks"
+ },
+ {
+  "id": "writing: creatable checks the name",
+  "file": "src/imports/note/writing/import-writer.ts",
+  "find": "    this.refuseUnlessNew(sheet.character.name.text);\n",
+  "replace": "",
+  "group": "writing"
  }
 ]
