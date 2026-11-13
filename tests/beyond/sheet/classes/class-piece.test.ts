@@ -42,15 +42,15 @@ describe("one class and level printed on the sheet", () => {
     expect(classOfPiece(piece)?.level.isKnown).toBe(true);
   });
 
-  it("takes markup out of the name", () => {
-    expect(classOfPiece("<b>Monk</b> 3")?.name.text).toBe("Monk");
-  });
-
-  it.each(["", "   ", "<i></i> 3"])("is nothing for %j", (piece) => {
+  it.each(["", "   ", "<br> 3", "⠀ 3", "́ 3", "-- 3"])("is nothing for %j, which names no class", (piece) => {
     expect(classOfPiece(piece)).toBeNull();
   });
 
-  it("refuses a piece longer than a line", () => {
-    expect(() => classOfPiece(`${"x".repeat(301)} 3`)).toThrow("A line of text is over the limit");
+  it("is nothing for a name of 101 characters, which is too long to keep", () => {
+    expect(classOfPiece(`${"x".repeat(101)} 3`)).toBeNull();
+  });
+
+  it("is a class of a name of 100 characters", () => {
+    expect(classOfPiece(`${"x".repeat(100)} 3`)?.name.text).toHaveLength(100);
   });
 });

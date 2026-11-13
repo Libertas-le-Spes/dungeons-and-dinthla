@@ -28,6 +28,14 @@ describe("a line the sheet must have", () => {
     expect(() => readWith(held)).toThrow(REASON);
   });
 
+  it.each(["\u2800", "\u0301", "-- ** --", "<b>-</b>"])("is refused for %j, which holds no letter or digit", (held) => {
+    expect(() => readWith(held)).toThrow(REASON);
+  });
+
+  it("is kept when it holds one digit", () => {
+    expect(readWith("7")).toBe("7");
+  });
+
   it.each(["two\nlines", "x".repeat(101), "<b></b>"])("is refused for %j, which is no clean line", (held) => {
     expect(() => readWith(held)).toThrow(Refusal);
   });

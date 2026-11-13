@@ -22,6 +22,7 @@ export class PrintedNumber {
     if (trimmed === "") return this.notKnown("is blank");
     const found = this.text.numberIn(trimmed);
     if (found === null) return this.notKnown("does not hold a number in the form the sheet prints");
+    if (Object.is(found, -0)) return this.notKnown("holds a negative zero");
     return numberInRange(found, this.range, NO_WORKING, PRINTED);
   }
 

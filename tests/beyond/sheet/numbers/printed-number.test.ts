@@ -51,8 +51,14 @@ describe("a number printed on the sheet", () => {
     expect(readWith(printed).isKnown).toBe(true);
   });
 
-  it("is not known for a negative zero", () => {
+  it("is not known for a negative zero, and says so", () => {
     const signed = new PrintedNumber(FIELD, { what: "A bonus", lowest: -5, highest: 5 }, SIGNED);
-    expect(signed.read(new SheetFields(MadeUpSheet.empty().with(FIELD, "-0").fields())).isKnown).toBe(false);
+    const value = signed.read(new SheetFields(MadeUpSheet.empty().with(FIELD, "-0").fields()));
+    expect([value.isKnown, value.explanation]).toEqual([false, `The sheet's field "${FIELD}" holds a negative zero.`]);
+  });
+
+  it("is known for a positive zero", () => {
+    const signed = new PrintedNumber(FIELD, { what: "A bonus", lowest: -5, highest: 5 }, SIGNED);
+    expect(signed.read(new SheetFields(MadeUpSheet.empty().with(FIELD, "+0").fields())).isKnown).toBe(true);
   });
 });

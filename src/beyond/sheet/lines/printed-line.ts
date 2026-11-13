@@ -1,6 +1,7 @@
 import type { Refusal } from "../../shape/refusal";
 import { CleanLine } from "../../text/clean-line";
 import type { SheetFields } from "../sheet-fields";
+import { hasLetterOrDigit } from "./letter-or-digit";
 
 export class PrintedLine {
   constructor(
@@ -12,6 +13,8 @@ export class PrintedLine {
     const printed = fields.textAt(this.fieldName);
     if (printed === null) throw this.whenMissing();
     if (printed.trim() === "") throw this.whenMissing();
-    return CleanLine.of(printed);
+    const line = CleanLine.of(printed);
+    if (!hasLetterOrDigit(line.text)) throw this.whenMissing();
+    return line;
   }
 }

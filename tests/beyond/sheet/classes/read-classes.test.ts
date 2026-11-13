@@ -46,7 +46,20 @@ describe("the classes of a sheet", () => {
     expect(() => classesOf(new SheetFields(new Map()))).toThrow(NONE);
   });
 
-  it.each([true, ["Monk 4"], "", "   ", " / / ", "<br> 3"])("are refused for %j", (held) => {
+  it("cleans the markup out of the text before it splits at a slash", () => {
+    expect(summaryOf("<b>Bold</b> 3")).toEqual(["Bold:true:3"]);
+  });
+
+  it("splits at a slash that stands in the text, not in a tag", () => {
+    expect(summaryOf("Monk 3 / <i>Wizard</i> 1")).toEqual(["Monk:true:3", "Wizard:true:1"]);
+  });
+
+  it("refuses a text over 300 characters, though a piece of 101 to 300 is only dropped", () => {
+    expect(() => summaryOf(`${"x".repeat(301)} 3`)).toThrow("A line of text is over the limit");
+    expect(summaryOf(`Monk 3 / ${"x".repeat(150)} 2`)).toEqual(["Monk:true:3"]);
+  });
+
+  it.each([true, ["Monk 4"], "", "   ", " / / ", "<br>", "\u2800", "\u0301 2", "- / * 3"])("are refused for %j", (held) => {
     expect(() => classesOf(fieldsWith(held))).toThrow(Refusal);
   });
 

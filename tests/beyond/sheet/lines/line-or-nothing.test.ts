@@ -6,6 +6,10 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+function failWithTypeError(): CleanLine {
+  throw new TypeError("Primary failure");
+}
+
 describe("a line from the sheet that may be unusable", () => {
   it("is the clean line when the text is usable", () => {
     expect(lineOrNothing("Primary Staff")?.text).toBe("Primary Staff");
@@ -23,12 +27,14 @@ describe("a line from the sheet that may be unusable", () => {
     expect(lineOrNothing("x".repeat(100))?.text).toBe("x".repeat(100));
   });
 
+  it.each(["", "   ", "​\u0007"])("is nothing for %j without asking the line guard", (blank) => {
+    const guard = vi.spyOn(CleanLine, "of");
+    lineOrNothing(blank);
+    expect(guard).not.toHaveBeenCalled();
+  });
+
   it("passes on an error that is not a refusal, so a fault is never taken for a bad line", () => {
     vi.spyOn(CleanLine, "of").mockImplementation(failWithTypeError);
     expect(() => lineOrNothing("Primary Staff")).toThrow("Primary failure");
   });
 });
-
-function failWithTypeError(): CleanLine {
-  throw new TypeError("Primary failure");
-}

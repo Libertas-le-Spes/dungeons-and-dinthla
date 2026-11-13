@@ -60,7 +60,7 @@ function occurrences(text: string, find: string): number {
 
 function runTests(): SuiteResult[] | null {
   const report = join(REPORT_FOLDER, "report.json");
-  const result = spawnSync("systemd-run", [...BOX, "timeout", "-k", "5", "120", "npx", "vitest", "run", "tests/beyond/sheet", "tests/build/inner-folders.test.ts", "--maxWorkers=2", "--reporter=json", `--outputFile=${report}`], { cwd: ROOT, encoding: "utf8" });
+  const result = spawnSync("systemd-run", [...BOX, "timeout", "-k", "5", "120", "npx", "vitest", "run", "tests/beyond/sheet", "tests/build/inner-folders.test.ts", "--maxWorkers=1", "--reporter=json", `--outputFile=${report}`], { cwd: ROOT, encoding: "utf8" });
   if (result.error !== undefined || !existsSync(report)) return null;
   return JSON.parse(readFileSync(report, "utf8")).testResults;
 }

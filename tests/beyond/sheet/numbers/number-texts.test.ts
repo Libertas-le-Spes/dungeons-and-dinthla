@@ -30,11 +30,11 @@ describe("the text of a signed number", () => {
 });
 
 describe("the text of a walking speed", () => {
-  it.each(["30 ft. (walking)", "30ft walking", "30 FT. (WALKING)", "30 ft (walking)"])("reads %j", (text) => {
+  it.each(["30 ft. (walking)", "30ft walking", "30 FT. (WALKING)", "30 ft (walking)", "30 ft.(walking)", "30 ft. walking"])("reads %j", (text) => {
     expect(FEET.numberIn(text)).toBe(30);
   });
 
-  it.each(["30", "30 ft.", "30 ft., fly 60 ft.", "30 ft. (walking) 40", "-30 ft. (walking)", "ft. (walking)", "30 miles (walking)"])("refuses %j", (text) => {
+  it.each(["30", "30 ft.", "30 ft., fly 60 ft.", "30 ft. (walking", "30 ft. walking)", "30 ft. ((walking))", "30 ft. (walking))", "30 ft. (walking) 40", "-30 ft. (walking)", "ft. (walking)", "30 miles (walking)"])("refuses %j", (text) => {
     expect(FEET.numberIn(text)).toBeNull();
   });
 });
