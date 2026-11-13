@@ -50,6 +50,16 @@ export class FakeNoteVault {
     this.folders.set(path, folderAt(path));
   }
 
+  allNotes(): TFile[] {
+    return this.allFiles();
+  }
+
+  fileAt(path: string): TFile {
+    const file = this.files.get(path);
+    if (file === undefined) throw new Error(`No note at ${path}.`);
+    return file;
+  }
+
   textAt(path: string): string {
     const text = this.texts.get(path);
     if (text === undefined) throw new Error(`No note at ${path}.`);
