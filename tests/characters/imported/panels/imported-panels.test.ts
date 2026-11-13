@@ -2,15 +2,15 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { ImportedLists } from "../../../../src/characters/imported/lists/imported-lists";
 import { addImportedPanels } from "../../../../src/characters/imported/panels/imported-panels";
-import { HELD_NOT_IMPORTED, PICK_WHAT_HAPPENED } from "../../../../src/characters/imported/panels/held-not-imported";
-import { OTHER_CAMPAIGN, TRACK_ON_FUNDS } from "../../../../src/characters/imported/panels/inventory-panel";
+import { HELD_NOT_IMPORTED, MAY_BE_LEFT_OUT, PICK_WHAT_HAPPENED } from "../../../../src/characters/imported/panels/held-not-imported";
+import { TRACK_ON_FUNDS } from "../../../../src/characters/imported/panels/inventory-panel";
 import { NOTHING_CAME_IN } from "../../../../src/characters/imported/panels/panel-parts";
 import { NO_COIN, NOT_IN_THE_PARTY_PURSE } from "../../../../src/characters/imported/purse/coin-chips";
 import { NOT_IN_THE_PDF } from "../../../../src/imports/layout/pdf-gaps";
 import { obsidianDocument } from "../../../stubs/obsidian-dom";
 import { textOf } from "../../../imports/builders/line-helpers";
-import { MadeUpLook, RecordingTracking } from "../builders/recording-tracking";
-import { madeUpFile } from "../builders/fake-purse-notes";
+import { MADE_UP_ADVICE, MadeUpLook, RecordingTracking } from "../builders/recording-tracking";
+import { madeUpFile } from "../builders/made-up-file";
 
 const PRIMARY = madeUpFile("D&D/Primary Campaign/Characters/Primary Monk.md");
 
@@ -70,8 +70,8 @@ function buttonsIn(root: Element, words: string): HTMLButtonElement[] {
   return found;
 }
 
-function lookWith(standings: [string, string][], notImported: string[]): MadeUpLook {
-  return new MadeUpLook(new Map(standings), notImported);
+function lookWith(standings: [string, string][], notImported: string[], trackableAnyway: string[] = []): MadeUpLook {
+  return new MadeUpLook(new Map(standings), notImported, trackableAnyway);
 }
 
 afterEach(() => {
@@ -147,7 +147,13 @@ describe("the inventory panel", () => {
     const root = drawn(noteText("pdf"), new RecordingTracking(null));
     const inventory = panelTitled(root, "Inventory");
     expect(buttonsIn(inventory, TRACK_ON_FUNDS)).toHaveLength(0);
-    expect(textsIn(inventory, ".dd-note")).toContain(OTHER_CAMPAIGN);
+    expect(textsIn(inventory, ".dd-note")).toContain(MADE_UP_ADVICE);
+  });
+
+  it("gives no advice about tracking when the inventory is empty", () => {
+    const empty = textOf("---", "imported-from: pdf", "---", "## Inventory (from D&D Beyond)", "");
+    const inventory = panelTitled(drawn(empty, new RecordingTracking(null)), "Inventory");
+    expect(textsIn(inventory, ".dd-note")).toEqual([]);
   });
 
   it("marks items held on the funds page that this import doesn't have, offering the four choices", () => {
@@ -173,6 +179,40 @@ describe("the inventory panel", () => {
       { path: PRIMARY.path, name: "Silvered dagger", status: "held" },
     ]);
     expect(tracking.tracked).toEqual([]);
+  });
+
+  it("marks nothing when the note has no inventory section, since nothing can be said to be missing", () => {
+    const noInventory = textOf("---", "imported-from: pdf", "---", "## Purse (from D&D Beyond)", "- gp · 1", "");
+    const tracking = new RecordingTracking(lookWith([], ["Silvered dagger"]));
+    expect(drawn(noInventory, tracking).querySelector(".dd-held-not-imported")).toBeNull();
+  });
+
+  it("says some marked items may be among the lines the import left out", () => {
+    const root = drawn(noteText("pdf"), new RecordingTracking(lookWith([], ["Silvered dagger"])));
+    expect(textsIn(panelTitled(root, "Inventory"), ".dd-may-be-left-out")).toEqual([MAY_BE_LEFT_OUT]);
+  });
+
+  it("says nothing of lines left out when the import left none out", () => {
+    const whole = textOf("---", "imported-from: pdf", "---", "## Inventory (from D&D Beyond)", "- Rope", "- Left out: 0 too long, 0 not clean", "");
+    const root = drawn(whole, new RecordingTracking(lookWith([], ["Silvered dagger"])));
+    expect(root.querySelector(".dd-may-be-left-out")).toBeNull();
+  });
+
+  it("offers Track beside a line whose item has gone from the funds page, with where it stands", () => {
+    const root = drawn(noteText("pdf"), new RecordingTracking(lookWith([["Rope", "Sold, on the funds page"]], [], ["Rope"])));
+    const inventory = panelTitled(root, "Inventory");
+    expect(buttonsIn(inventory, TRACK_ON_FUNDS)).toHaveLength(2);
+    expect(textsIn(inventory, ".dd-panel-standing")).toEqual(["Sold, on the funds page"]);
+  });
+
+  it.each(["Rope #loot", "Bag:: x", "Rope ==mark=="])("offers no Track for %s, a line the import couldn't have written", function noTrack(line: string): void {
+    const typed = textOf("---", "imported-from: pdf", "---", "## Inventory (from D&D Beyond)", `- ${line}`, "");
+    expect(buttonsIn(drawn(typed, new RecordingTracking(lookWith([], []))), TRACK_ON_FUNDS)).toEqual([]);
+  });
+
+  it("offers no Track for a name longer than the import writes", () => {
+    const long = textOf("---", "imported-from: pdf", "---", "## Inventory (from D&D Beyond)", `- ${"r".repeat(101)}`, "");
+    expect(buttonsIn(drawn(long, new RecordingTracking(lookWith([], []))), TRACK_ON_FUNDS)).toEqual([]);
   });
 
   it("marks nothing when every held item is on the import", () => {

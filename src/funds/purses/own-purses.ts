@@ -1,7 +1,6 @@
 import type { TFile } from "obsidian";
-import { PURSE_SECTION } from "../../../imports/layout/plugin-sections";
-import { ImportedLists } from "../lists/imported-lists";
-import { purseCoinsOf, type PurseCoin } from "../lists/purse-coin";
+import { importedPurseOf } from "../../characters/imported/purse/note-purse";
+import type { PurseCoin } from "../../characters/imported/lists/purse-coin";
 
 export interface OwnPurseNotes {
   filesIn(campaignFolder: string): TFile[];
@@ -16,9 +15,9 @@ export interface OwnPurse {
 }
 
 async function ownPurseOf(notes: OwnPurseNotes, file: TFile): Promise<OwnPurse | null> {
-  const lists = ImportedLists.of(await notes.textOf(file));
-  if (lists === null) return null;
-  return { name: file.basename, coins: purseCoinsOf(lists.of(PURSE_SECTION).entries) };
+  const coins = importedPurseOf(await notes.textOf(file));
+  if (coins === null) return null;
+  return { name: file.basename, coins };
 }
 
 export async function ownPursesIn(notes: OwnPurseNotes, campaignFolder: string): Promise<OwnPurse[]> {

@@ -5,9 +5,7 @@ import type { PluginSection } from "../../../imports/layout/plugin-section";
 import { PLUGIN_SECTIONS } from "../../../imports/layout/plugin-sections";
 import { noteLinesOf } from "../reading/note-lines";
 import { propertyEntriesOf, type PropertyEntry } from "../reading/property-entries";
-import { sectionEntriesOf, type SectionEntries } from "./section-entries";
-
-const NOTHING_LISTED: SectionEntries = { entries: [], leftOut: null };
+import { NOTHING_LISTED, sectionEntriesOf, type SectionEntries } from "./section-entries";
 
 function routeNameOf(entries: readonly PropertyEntry[]): string | null {
   for (const entry of entries) {

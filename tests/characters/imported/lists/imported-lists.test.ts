@@ -47,7 +47,12 @@ describe("the lists an import wrote into a note", () => {
 
   it("are empty, with nothing left out, for a section the note doesn't have", () => {
     const text = textOf("---", "imported-from: pdf", "---", "");
-    expect(listsOf(text).of(SPELLS_SECTION)).toEqual({ entries: [], leftOut: null });
+    expect(listsOf(text).of(SPELLS_SECTION)).toEqual({ present: false, entries: [], leftOut: null });
+  });
+
+  it("say a section is there when its heading is, even with nothing under it", () => {
+    const text = textOf("---", "imported-from: pdf", "---", "## Spells (from D&D Beyond)", "");
+    expect(listsOf(text).of(SPELLS_SECTION)).toEqual({ present: true, entries: [], leftOut: null });
   });
 
   it("know a PDF import from any other", () => {

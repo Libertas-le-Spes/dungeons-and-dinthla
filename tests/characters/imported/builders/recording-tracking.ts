@@ -1,5 +1,5 @@
 import type { TFile } from "obsidian";
-import type { FundsLook, ItemTracking, SettledStatus } from "../../../../src/characters/imported/tracking/item-tracking";
+import type { FundsLook, HeldItem, ItemTracking, SettledStatus } from "../../../../src/characters/imported/tracking/item-tracking";
 
 export interface TrackCall {
   path: string;
@@ -17,11 +17,22 @@ export interface LookCall {
   written: readonly string[];
 }
 
+export const MADE_UP_ADVICE = "Made-up advice for a character that can't be tracked.";
+
+function heldItemOf(name: string): HeldItem {
+  return { name, shown: name };
+}
+
 export class MadeUpLook implements FundsLook {
+  private readonly trackableAnyway: ReadonlySet<string>;
+
   constructor(
     private readonly standings: ReadonlyMap<string, string>,
     private readonly notImported: readonly string[],
-  ) {}
+    trackableAnyway: readonly string[] = [],
+  ) {
+    this.trackableAnyway = new Set(trackableAnyway);
+  }
 
   standingOf(written: string): string | null {
     const standing = this.standings.get(written);
@@ -29,8 +40,12 @@ export class MadeUpLook implements FundsLook {
     return standing;
   }
 
-  heldButNotImported(): readonly string[] {
-    return this.notImported;
+  canTrack(written: string): boolean {
+    return this.trackableAnyway.has(written) || !this.standings.has(written);
+  }
+
+  heldButNotImported(): readonly HeldItem[] {
+    return this.notImported.map(heldItemOf);
   }
 }
 
@@ -45,6 +60,10 @@ export class RecordingTracking implements ItemTracking {
   lookAt(file: TFile, written: readonly string[]): FundsLook | null {
     this.looks.push({ path: file.path, written });
     return this.look;
+  }
+
+  whyNotTracked(_file: TFile): string {
+    return MADE_UP_ADVICE;
   }
 
   track(file: TFile, written: string, returnFocus: () => void): void {
