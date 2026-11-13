@@ -1,9 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, type Mock } from "vitest";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { Campaign } from "../../../src/campaign/record/campaign";
 import type { NoteChanged, NoteTexts } from "../../../src/campaign/reading/note-texts";
 import { CHANGE_ITEM, CLOSE_ITEM, EDIT_NOTE, EMPTY_STORY, ItemPanel, NOTE_MISSING, noLineText } from "../../../src/funds/item-notes/item-panel";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { HeldCalls } from "../../stubs/held-calls";
+import { queuedWorkRan } from "../../stubs/queued-work";
+import { SettleWatch } from "../../stubs/settle-watch";
 
 const LANTERN = "Pale Moon/Items/Silvered lantern.md";
 const STORY = "Mira found it in the cellar of the [[Gilded Stag]].\n\nIts light shows things the moon hides.";
@@ -14,7 +17,7 @@ function campaignOf(...sessions: string[][]): Campaign {
   );
 }
 
-async function openPanel(campaign: Campaign, story: string | null = STORY, path = LANTERN) {
+async function openPanel(campaign: Campaign, story: string | null = STORY, path = LANTERN, read: Mock<NoteTexts["read"]> = vi.fn(async () => story)) {
   let campaignChanged = () => {};
   const stopHearingCampaign = vi.fn();
   const store = {
@@ -25,7 +28,6 @@ async function openPanel(campaign: Campaign, story: string | null = STORY, path 
     },
   };
   const changedListeners = new Set<NoteChanged>();
-  const read = vi.fn(async () => story);
   const texts: NoteTexts = {
     read,
     onChanged: (changed) => {
@@ -56,6 +58,17 @@ async function openPanel(campaign: Campaign, story: string | null = STORY, path 
 }
 
 describe("ItemPanel", () => {
+  it("hands out its story reading, which isn't done until the note has been read", async () => {
+    const reads = new HeldCalls<string | null>();
+    const opening = new SettleWatch(openPanel(campaignOf(["$ [[Mira]] [[Silvered lantern]]"]), STORY, LANTERN, vi.fn(reads.hold.bind(reads))));
+    await reads.made(1);
+    await queuedWorkRan();
+    expect(opening.settled).toBe(false);
+    reads.resolve(0, STORY);
+    await opening.done;
+    expect(opening.settled).toBe(true);
+  });
+
   it("shows the item's name, who holds it and that it is held", async () => {
     const { root, facts } = await openPanel(campaignOf(["$ [[Mira]] [[Silvered lantern]]"]));
     expect(root.querySelector(".dd-item-name")!.textContent).toBe("Silvered lantern");
