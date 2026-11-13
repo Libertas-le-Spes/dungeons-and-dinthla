@@ -11,7 +11,7 @@ import { hasLinesToSave } from "../drafts/draft-lines";
 import type { Drafts } from "../drafts/drafts";
 import { EditAllReminder } from "./edit-all-reminder";
 import { LookupList } from "./lookup-list";
-import { PendingWork } from "../../views/drawing/pending-work";
+import { PendingWork } from "../../views/pending/pending-work";
 
 export interface WritingNeeds {
   drafts: Drafts;

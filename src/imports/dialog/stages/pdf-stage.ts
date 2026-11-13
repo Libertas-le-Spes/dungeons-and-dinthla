@@ -4,7 +4,7 @@ import { READING, STILL_READING } from "../import-words";
 import type { PickedPdf } from "../picking/picked-pdf";
 import { drawChoosePdf } from "../steps/choose-pdf-step";
 import type { DialogShown } from "./dialog-shown";
-import type { PendingWork } from "../../../views/drawing/pending-work";
+import type { PendingWork } from "../../../views/pending/pending-work";
 
 export interface SheetArrival {
   sheetRead(sheet: PrintedSheet): void;

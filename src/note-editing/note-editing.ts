@@ -3,7 +3,7 @@ import { messageOf } from "../views/dialogs/message-of";
 import { NoteBox } from "./note-box";
 import type { NoteDraft, NoteDrafts } from "./note-drafts";
 import { NoteChangedSince, type NoteSaver } from "./note-saver";
-import { PendingWork } from "../views/drawing/pending-work";
+import { PendingWork } from "../views/pending/pending-work";
 
 export const NOTE_GONE_HERE = "This note was deleted, so nothing can be saved to it. What you typed is still in the box.";
 export const CHANGED_ELSEWHERE =

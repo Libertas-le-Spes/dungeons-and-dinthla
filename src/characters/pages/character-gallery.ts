@@ -8,7 +8,7 @@ import type { CharacterNotes } from "../reading/character-notes";
 import { ownCharacterFirst } from "../cards/own-character-first";
 import { learnedFactsOf, type LearnedFacts } from "../reading/learned-facts";
 import { readCharacterCard } from "../cards/read-character-card";
-import { PendingWork } from "../../views/drawing/pending-work";
+import { PendingWork } from "../../views/pending/pending-work";
 import type { CharacterCreators } from "./character-creators";
 import { addImportButton } from "../imported/drawing/import-button";
 

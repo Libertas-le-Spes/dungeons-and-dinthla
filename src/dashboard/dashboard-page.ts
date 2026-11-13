@@ -26,7 +26,7 @@ import type { ThreadOpeners } from "../views/threads/thread-openers";
 import { addThreadRow } from "../views/threads/thread-row";
 import { linesWrittenIn, type WrittenLineRows } from "./latest-session";
 import { addShortCharacterCard } from "./short-character-card";
-import { PendingWork } from "../views/drawing/pending-work";
+import { PendingWork } from "../views/pending/pending-work";
 
 const SHOWN_ROWS = 3;
 const SHOWN_SESSION_LINES = 4;

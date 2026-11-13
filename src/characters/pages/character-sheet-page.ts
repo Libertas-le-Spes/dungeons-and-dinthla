@@ -13,7 +13,7 @@ import { MentionsPanel } from "./mentions-panel";
 import type { SheetNotes } from "../reading/sheet-notes";
 import { modifierOf } from "../reading/sheet-values";
 import { fillStatBlock } from "../cards/stat-block";
-import { PendingWork } from "../../views/drawing/pending-work";
+import { PendingWork } from "../../views/pending/pending-work";
 import { addImportedLines } from "../imported/drawing/imported-lines";
 import { addUpdateButton } from "../imported/drawing/update-button";
 
