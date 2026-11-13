@@ -36,7 +36,7 @@
  },
  {
   "id": "probe memory",
-  "file": "tests/mutation-support/memory-box.ts",
+  "file": "scripts/memory-box.ts",
   "find": "\"-p\", \"MemoryMax=64M\", ",
   "replace": "",
   "group": "support"
@@ -65,14 +65,14 @@
  {
   "id": "signal gives null",
   "file": "tests/mutation-support/boxed-test-run.ts",
-  "find": "  if (result.signal !== null) return null;\n",
+  "find": "  if (end.signal !== null) return null;\n",
   "replace": "",
   "group": "support"
  },
  {
   "id": "error gives null",
   "file": "tests/mutation-support/boxed-test-run.ts",
-  "find": "  if (result.error !== undefined) return null;\n",
+  "find": "  if (end.started === false) return null;\n",
   "replace": "",
   "group": "support"
  },
@@ -149,7 +149,7 @@
  {
   "id": "signal exits",
   "file": "tests/mutation-support/signal-restore.ts",
-  "find": "    this.running.exit(STOPPED_BY_SIGNAL);\n",
+  "find": "    this.host.exit(STOPPED_BY_SIGNAL);\n",
   "replace": "",
   "group": "support"
  },
@@ -158,6 +158,111 @@
   "file": "tests/mutation-support/signal-restore.ts",
   "find": "[\"SIGINT\", \"SIGTERM\"]",
   "replace": "[\"SIGINT\"]",
+  "group": "support"
+ },
+ {
+  "id": "unit named in the box",
+  "file": "tests/mutation-support/memory-box.ts",
+  "find": "...SCOPE, `--unit=${unit}`, ",
+  "replace": "...SCOPE, ",
+  "group": "support"
+ },
+ {
+  "id": "own process group",
+  "file": "tests/mutation-support/running-units.ts",
+  "find": "detached: true",
+  "replace": "detached: false",
+  "group": "support"
+ },
+ {
+  "id": "signal stops the unit",
+  "file": "tests/mutation-support/signal-restore.ts",
+  "find": "    this.running.stopCurrent();\n",
+  "replace": "",
+  "group": "support"
+ },
+ {
+  "id": "signal leaves the lock",
+  "file": "tests/mutation-support/signal-restore.ts",
+  "find": "    this.leaving.leave();\n",
+  "replace": "",
+  "group": "support"
+ },
+ {
+  "id": "stop names the scope",
+  "file": "tests/mutation-support/running-units.ts",
+  "find": "`${current.unit}.scope`",
+  "replace": "current.unit",
+  "group": "support"
+ },
+ {
+  "id": "stop kills the group",
+  "file": "tests/mutation-support/running-units.ts",
+  "find": "    killGroup(current.child);\n",
+  "replace": "",
+  "group": "support"
+ },
+ {
+  "id": "group, not the one process",
+  "file": "tests/mutation-support/running-units.ts",
+  "find": "process.kill(-child.pid, GROUP_KILL);",
+  "replace": "process.kill(child.pid, GROUP_KILL);",
+  "group": "support"
+ },
+ {
+  "id": "time limit stops the unit",
+  "file": "tests/mutation-support/running-units.ts",
+  "find": "    this.timer = setTimeout(stop, timeoutMs);\n",
+  "replace": "",
+  "group": "support"
+ },
+ {
+  "id": "ended run forgotten",
+  "file": "tests/mutation-support/running-units.ts",
+  "find": "        units.forget(child);\n",
+  "replace": "",
+  "group": "support"
+ },
+ {
+  "id": "exit signal kept",
+  "file": "tests/mutation-support/running-units.ts",
+  "find": "this.end({ started: true, signal });",
+  "replace": "this.end({ started: true, signal: null });",
+  "group": "support"
+ },
+ {
+  "id": "failed start said",
+  "file": "tests/mutation-support/running-units.ts",
+  "find": "this.end({ started: false, signal: null });",
+  "replace": "this.end({ started: true, signal: null });",
+  "group": "support"
+ },
+ {
+  "id": "unknown flag refused",
+  "file": "tests/mutation-support/mutation-list.ts",
+  "find": "      choice.unknownFlags.push(argument);\n",
+  "replace": "",
+  "group": "support"
+ },
+ {
+  "id": "lock refuses a live holder",
+  "file": "tests/mutation-support/run-lock.ts",
+  "find": "if (holder !== null && this.holders.isAlive(holder)) return",
+  "replace": "if (holder !== null && holder < 0) return",
+  "group": "support"
+ },
+ {
+  "id": "lock written only when new",
+  "file": "tests/mutation-support/run-lock.ts",
+  "find": "{ flag: \"wx\" }",
+  "replace": "{ flag: \"w\" }",
+  "group": "support"
+ },
+ {
+  "id": "lock left once",
+  "file": "tests/mutation-support/run-lock.ts",
+  "find": "    if (this.held === false) return;\n",
+  "replace": "",
   "group": "support"
  }
 ]
