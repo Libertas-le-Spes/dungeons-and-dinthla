@@ -302,49 +302,49 @@
  },
  {
   "id": "reading: #{1,2}",
-  "file": "src/imports/note/reading/section-boundaries.ts",
+  "file": "src/imports/layout/blocks/section-headings.ts",
   "find": "#{1,2}",
   "replace": "#{1,3}",
   "group": "reading"
  },
  {
   "id": "reading: level one not a boundary",
-  "file": "src/imports/note/reading/section-boundaries.ts",
+  "file": "src/imports/layout/blocks/section-headings.ts",
   "find": "#{1,2}",
   "replace": "#{2,2}",
   "group": "reading"
  },
  {
   "id": "reading: ^ {0,3}#",
-  "file": "src/imports/note/reading/section-boundaries.ts",
+  "file": "src/imports/layout/blocks/section-headings.ts",
   "find": "^ {0,3}#",
   "replace": "^ {0,4}#",
   "group": "reading"
  },
  {
   "id": "reading: (?:[ \\t]|$)",
-  "file": "src/imports/note/reading/section-boundaries.ts",
+  "file": "src/imports/layout/blocks/section-headings.ts",
   "find": "(?:[ \\t]|$)",
   "replace": "(?:[ \\t])",
   "group": "reading"
  },
  {
   "id": "reading: section.heading === written",
-  "file": "src/imports/note/reading/section-boundaries.ts",
+  "file": "src/imports/layout/blocks/section-headings.ts",
   "find": "section.heading === written",
   "replace": "section.heading === line",
   "group": "reading"
  },
  {
   "id": "reading: line.trimEnd()",
-  "file": "src/imports/note/reading/section-boundaries.ts",
+  "file": "src/imports/layout/blocks/section-headings.ts",
   "find": "line.trimEnd()",
   "replace": "line",
   "group": "reading"
  },
  {
   "id": "reading: if (!BIG_HEADING.test(line)) continue;",
-  "file": "src/imports/note/reading/section-boundaries.ts",
+  "file": "src/imports/layout/blocks/section-headings.ts",
   "find": "if (!BIG_HEADING.test(line)) continue;",
   "replace": "",
   "group": "reading"
@@ -1359,175 +1359,175 @@
  },
  {
   "id": "blocks: block-states.ts: {0,3}(?<marker>",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "{0,3}(?<marker>",
   "replace": "{0,}(?<marker>",
   "group": "blocks"
  },
  {
   "id": "blocks: block-states.ts: `{3,}|~{3,}",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "`{3,}|~{3,}",
   "replace": "`{2,}|~{3,}",
   "group": "blocks"
  },
  {
   "id": "blocks: block-states.ts: |~{3,})",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "|~{3,})",
   "replace": "|~{2,})",
   "group": "blocks"
  },
  {
   "id": "blocks: block-states.ts: { opener: \"<!--\", closer: \"-->\" }",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "{ opener: \"<!--\", closer: \"-->\" }",
   "replace": "{ opener: \"<!-x\", closer: \"-->\" }",
   "group": "blocks"
  },
  {
   "id": "blocks: block-states.ts: closer: \"-->\"",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "closer: \"-->\"",
   "replace": "closer: \"--x\"",
   "group": "blocks"
  },
  {
   "id": "blocks: block-states.ts: { opener: \"%%\", closer: \"%%\" }",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "{ opener: \"%%\", closer: \"%%\" }",
   "replace": "{ opener: \"%x\", closer: \"%%\" }",
   "group": "blocks"
  },
  {
   "id": "blocks: block-states.ts: opener: \"%%\", closer: \"%%\"",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "opener: \"%%\", closer: \"%%\"",
   "replace": "opener: \"%%\", closer: \"%x\"",
   "group": "blocks"
  },
  {
   "id": "blocks: block-states.ts: if (found === null || at < found.at) found",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "if (found === null || at < found.at) found",
   "replace": "if (found === null || at > found.at) found",
   "group": "blocks"
  },
  {
   "id": "blocks: block-states.ts: if (found === null || at < found.at) found #",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "if (found === null || at < found.at) found",
   "replace": "if (at < 0) found",
   "group": "blocks"
  },
  {
   "id": "blocks: block-states.ts: if (at === -1) continue;",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "if (at === -1) continue;",
   "replace": "",
   "group": "blocks"
  },
  {
   "id": "blocks: block-states.ts: if (marker.charAt(0) !== this.opening.charAt(0)) r",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "if (marker.charAt(0) !== this.opening.charAt(0)) return this;",
   "replace": "",
   "group": "blocks"
  },
  {
   "id": "blocks: block-states.ts: if (marker.length < this.opening.length) return th",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "if (marker.length < this.opening.length) return this;",
   "replace": "",
   "group": "blocks"
  },
  {
   "id": "blocks: block-states.ts:     if (marker.length < this.opening.length) retur",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "    if (marker.length < this.opening.length) return this;\n    return OPEN_TEXT;",
   "replace": "    return this;",
   "group": "blocks"
  },
  {
   "id": "blocks: block-states.ts: if (marker !== null) return new InFence(marker);",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "if (marker !== null) return new InFence(marker);",
   "replace": "",
   "group": "blocks"
  },
  {
   "id": "blocks: block-states.ts: if (comment === null) return OPEN_TEXT;",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "if (comment === null) return OPEN_TEXT;",
   "replace": "",
   "group": "blocks"
  },
  {
   "id": "blocks: block-states.ts: readonly allowsHeading = true;",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "readonly allowsHeading = true;",
   "replace": "readonly allowsHeading = false;",
   "group": "blocks"
  },
  {
   "id": "blocks: block-states.ts: readonly allowsHeading = false;\n  readonly isClose",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "readonly allowsHeading = false;\n  readonly isClosed = false;\n\n  constructor(private readonly kind",
   "replace": "readonly allowsHeading = true;\n  readonly isClosed = false;\n\n  constructor(private readonly kind",
   "group": "blocks"
  },
  {
   "id": "blocks: block-states.ts: readonly allowsHeading = false;\n  readonly isClose #",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "readonly allowsHeading = false;\n  readonly isClosed = false;\n\n  constructor(private readonly opening",
   "replace": "readonly allowsHeading = true;\n  readonly isClosed = false;\n\n  constructor(private readonly opening",
   "group": "blocks"
  },
  {
   "id": "blocks: block-states.ts: readonly isClosed = true;",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "readonly isClosed = true;",
   "replace": "readonly isClosed = false;",
   "group": "blocks"
  },
  {
   "id": "blocks: block-states.ts: readonly isClosed = false;\n\n  constructor(private ",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "readonly isClosed = false;\n\n  constructor(private readonly kind",
   "replace": "readonly isClosed = true;\n\n  constructor(private readonly kind",
   "group": "blocks"
  },
  {
   "id": "blocks: block-states.ts: readonly isClosed = false;\n\n  constructor(private  #",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "readonly isClosed = false;\n\n  constructor(private readonly opening",
   "replace": "readonly isClosed = true;\n\n  constructor(private readonly opening",
   "group": "blocks"
  },
  {
   "id": "blocks: block-tracker.ts:     return allowed;",
-  "file": "src/imports/note/reading/blocks/block-tracker.ts",
+  "file": "src/imports/layout/blocks/block-tracker.ts",
   "find": "    return allowed;",
   "replace": "    return this.state.allowsHeading;",
   "group": "blocks"
  },
  {
   "id": "blocks: block-tracker.ts:     this.state = this.state.after(line);\n",
-  "file": "src/imports/note/reading/blocks/block-tracker.ts",
+  "file": "src/imports/layout/blocks/block-tracker.ts",
   "find": "    this.state = this.state.after(line);\n",
   "replace": "",
   "group": "blocks"
  },
  {
   "id": "blocks: block-tracker.ts: return this.state.isClosed;",
-  "file": "src/imports/note/reading/blocks/block-tracker.ts",
+  "file": "src/imports/layout/blocks/block-tracker.ts",
   "find": "return this.state.isClosed;",
   "replace": "return true;",
   "group": "blocks"
  },
  {
   "id": "reading: section-boundaries.ts: if (!blocks.allowsHeading(line)) continue;",
-  "file": "src/imports/note/reading/section-boundaries.ts",
+  "file": "src/imports/layout/blocks/section-headings.ts",
   "find": "if (!blocks.allowsHeading(line)) continue;",
   "replace": "blocks.allowsHeading(line);",
   "group": "reading"
@@ -1541,7 +1541,7 @@
  },
  {
   "id": "reading: section-boundaries.ts: if (index < from) continue;",
-  "file": "src/imports/note/reading/section-boundaries.ts",
+  "file": "src/imports/layout/blocks/section-headings.ts",
   "find": "if (index < from) continue;",
   "replace": "",
   "group": "reading"
@@ -1549,13 +1549,13 @@
  {
   "id": "reading: section-boundaries.ts: if (!blocks.isClosed()) throw unclosedBlock();",
   "file": "src/imports/note/reading/section-boundaries.ts",
-  "find": "if (!blocks.isClosed()) throw unclosedBlock();",
+  "find": "if (!headings.closed) throw unclosedBlock();",
   "replace": "",
   "group": "reading"
  },
  {
   "id": "reading: section-boundaries.ts: if (!BIG_HEADING.test(line)) continue;",
-  "file": "src/imports/note/reading/section-boundaries.ts",
+  "file": "src/imports/layout/blocks/section-headings.ts",
   "find": "if (!BIG_HEADING.test(line)) continue;",
   "replace": "",
   "group": "reading"
@@ -2115,35 +2115,35 @@
  },
  {
   "id": "blocks: loop: a comment left open at the end of a line stays open",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "if (at === -1) return new InComment(open);",
   "replace": "if (at === -1) return OPEN_TEXT;",
   "group": "blocks"
  },
  {
   "id": "blocks: loop: an opener starts a comment",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "      open = comment.kind;\n",
   "replace": "      open = null;\n",
   "group": "blocks"
  },
  {
   "id": "blocks: loop: a closer ends the comment",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "      offset = at + open.closer.length;\n      open = null;\n",
   "replace": "      offset = at + open.closer.length;\n",
   "group": "blocks"
  },
  {
   "id": "blocks: loop: the walk starts at the line's start",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "let offset = 0;",
   "replace": "let offset = 1;",
   "group": "blocks"
  },
  {
   "id": "blocks: loop: no comment left means open text",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "if (comment === null) return OPEN_TEXT;",
   "replace": "if (comment === null) return new InComment(COMMENT_KINDS[0]);",
   "group": "blocks"
@@ -2151,7 +2151,7 @@
  {
   "id": "reading: body line cap checked",
   "file": "src/imports/note/reading/section-boundaries.ts",
-  "find": "    if (line.length > MOST_BODY_LINE) throw bodyLineTooLong();\n",
+  "find": "    if (index >= from && line.length > MOST_BODY_LINE) throw bodyLineTooLong();\n",
   "replace": "",
   "group": "reading"
  },
@@ -2206,21 +2206,21 @@
  },
  {
   "id": "blocks: escaped opener skipped",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "  while (at !== -1 && isEscapedAt(line, at)) at = line.indexOf(opener, at + 1);\n",
   "replace": "",
   "group": "blocks"
  },
  {
   "id": "blocks: odd backslashes escape",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "backslashesBefore(line, at) % 2 === 1",
   "replace": "backslashesBefore(line, at) > 0",
   "group": "blocks"
  },
  {
   "id": "blocks: search on after an escaped opener",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "file": "src/imports/layout/blocks/block-states.ts",
   "find": "at = line.indexOf(opener, at + 1);",
   "replace": "at = -1;",
   "group": "blocks"
