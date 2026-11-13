@@ -39,6 +39,11 @@ describe("the probe for a memory box", () => {
     expect(assertMemoryBox).toThrow("A memory box could not be made");
   });
 
+  it("refuses to go on when the probe ends with any status but 0", () => {
+    vi.mocked(spawnSync).mockReturnValue({ status: 2, error: undefined } as never);
+    expect(memoryBoxIsAvailable()).toBe(false);
+  });
+
   it("refuses to go on when systemd-run can't be started", () => {
     vi.mocked(spawnSync).mockReturnValue({ status: null, error: new Error("not found") } as never);
     expect(assertMemoryBox).toThrow("A memory box could not be made");

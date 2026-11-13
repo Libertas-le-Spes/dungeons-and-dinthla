@@ -45,9 +45,12 @@ describe("a boxed test run", () => {
     expect(existsSync).not.toHaveBeenCalled();
   });
 
-  it("gives no results when the run could not start", () => {
+  it("gives no results when the run could not start, even with a report on disk", () => {
     vi.mocked(spawnSync).mockReturnValue({ status: null, signal: null, error: new Error("not found") } as never);
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ testResults: [] }));
     expect(boxedTestRun(RUN)).toBeNull();
+    expect(readFileSync).not.toHaveBeenCalled();
   });
 });
 

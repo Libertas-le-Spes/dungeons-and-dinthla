@@ -49,13 +49,6 @@
   "group": "support"
  },
  {
-  "id": "probe error",
-  "file": "tests/mutation-support/memory-box.ts",
-  "find": "result.error === undefined && ",
-  "replace": "",
-  "group": "support"
- },
- {
   "id": "assert throws",
   "file": "tests/mutation-support/boxed-test-run.ts",
   "find": "  if (!memoryBoxIsAvailable()) throw",

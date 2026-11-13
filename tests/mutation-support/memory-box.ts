@@ -18,7 +18,7 @@ const KILL_AFTER_SECONDS = 5;
 
 export function memoryBoxIsAvailable(): boolean {
   const result = spawnSync(PROBE.program, PROBE.args, { stdio: "ignore" });
-  return result.error === undefined && result.status === 0;
+  return result.status === 0;
 }
 
 export function boxed(limits: Limits, command: Command): Command {
