@@ -59,3 +59,21 @@ describe("the override reader and the import's sections", () => {
     expect(sorted(pluginSectionLinesOf(["## Purse (from D&D Beyond)", "a", "    ## Code", "b"], 0))).toEqual([0, 1, 2, 3]);
   });
 });
+
+describe("the override reader and the note writer read the same sections", () => {
+  it("keeps skipping past a heading inside a percent comment, as the writer does", () => {
+    const text = textOf("## Spells (from D&D Beyond)", "- Fire Bolt", "%%", "## scratch", "%%", "Range: 60 feet", "");
+    expect(overrideFacts(text, PATH)).toEqual([]);
+  });
+
+  it("reads a fact after one of the import's headings written inside a fence in his own section", () => {
+    const text = textOf("## Notes", "```", "## Features (from D&D Beyond)", "```", "HP: 30", "");
+    expect(namesOf(overrideFacts(text, PATH))).toEqual(["HP"]);
+  });
+
+  it("reads a fact after a section the import wrote when the next heading closes it", () => {
+    const text = textOf("## Spells (from D&D Beyond)", "- Fire Bolt", "## Notes", "HP: 30", "");
+    expect(namesOf(overrideFacts(text, PATH))).toEqual(["HP"]);
+  });
+});
+

@@ -4,20 +4,17 @@ import { forEachSessionLine } from "../../campaign/record/session-lines";
 import { withoutBullet } from "../../notes/parts/bullet";
 import { factsOf, linkedFactsOf, type CharacterFact } from "../../notes/reading/character-facts";
 import { pluginSectionLinesOf } from "../imported/reading/plugin-section-lines";
+import type { SourcedFact } from "../facts/sourced-fact";
+import { sameName } from "../facts/same-name";
 
 export const ABILITIES = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 
 const SHEET_NAMES = ["type", "subtitle", "speed", ...ABILITIES, "class", "AC", "HP", "alignment"];
 
-export interface SourcedFact extends CharacterFact {
-  source: Source;
-}
+export type { SourcedFact } from "../facts/sourced-fact";
+export { sameName } from "../facts/same-name";
 
 export type SheetValues = Map<string, string>;
-
-export function sameName(first: string, second: string): boolean {
-  return first.toLowerCase() === second.toLowerCase();
-}
 
 export function isSheetName(name: string): boolean {
   return SHEET_NAMES.some((candidate) => sameName(candidate, name));

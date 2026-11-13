@@ -7,6 +7,7 @@ export interface Review {
   readonly target: ImportTarget;
   readonly changes: ImportChanges | null;
   readonly refusal: string | null;
+  readonly failure: string | null;
 }
 
 export interface ReviewActions {

@@ -52,5 +52,5 @@
 .dd-import .dd-import-warning {
   margin: var(--space-3) 0;
   padding: var(--space-2) var(--space-3);
-  border-left: 3px solid var(--state-danger);
+  border-left: var(--rule-width) solid var(--state-danger);
 }

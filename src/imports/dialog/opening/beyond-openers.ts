@@ -1,6 +1,6 @@
 import type { App, TFile } from "obsidian";
 import type { NoteFiles } from "../../note/writing/note-files";
-import { NO_CAMPAIGN } from "../import-words";
+import { NO_CAMPAIGN, NOT_IN_A_CAMPAIGN } from "../import-words";
 import { AfterNewImport, AfterUpdate } from "./after-import";
 import { openImport, openUpdate, type ImportPlace } from "./open-import";
 
@@ -49,7 +49,7 @@ export class BeyondOpeners {
   updateFromBeyond(file: TFile, returnFocus: () => void): void {
     const folder = this.wiring.campaignFolderOf(file.path);
     if (folder === null) {
-      this.wiring.tell(NO_CAMPAIGN);
+      this.wiring.tell(NOT_IN_A_CAMPAIGN);
       return;
     }
     openUpdate(new CampaignPlace(this.wiring, folder), file, new AfterUpdate(returnFocus));

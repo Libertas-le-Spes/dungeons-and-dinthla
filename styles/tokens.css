@@ -78,6 +78,8 @@
   --state-override-soft: var(--violet-100);
   --state-carried: var(--teal-700);
   --state-carried-soft: var(--teal-100);
+  --state-imported: var(--lapis-700);
+  --state-imported-soft: var(--lapis-100);
   --state-history: var(--ink-600);
   --state-danger: var(--red-600);
   --state-danger-soft: var(--red-100);
@@ -199,6 +201,8 @@ body:not(.dd-follow-theme) .dd-tokens {
   --state-override-soft: rgba(185, 150, 222, 0.16);
   --state-carried: #6fc0c0;
   --state-carried-soft: rgba(111, 192, 192, 0.15);
+  --state-imported: #9fb4e6;
+  --state-imported-soft: rgba(159, 180, 230, 0.15);
   --state-history: var(--text-muted-ui);
   --state-danger: #ec8075;
   --state-danger-soft: rgba(236, 128, 117, 0.16);

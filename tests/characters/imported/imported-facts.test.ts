@@ -79,3 +79,10 @@ describe("the values an import wrote into a note", () => {
     expect(factNamed(importedFactsOf(text, PATH), "AC").working).toBe("Ring of *luck*");
   });
 });
+
+describe("the working of an imported value", () => {
+  it("is read only from under the Numbers heading, not from his own bullet just above it", () => {
+    const text = textOf("---", "imported-from: pdf", "AC: 16", "---", "- AC · 99 · a working of his · Typed", "## Numbers (from D&D Beyond)", "- AC · 16 · 10 + DEX 4 + WIS 2 · Printed", "");
+    expect(factNamed(importedFactsOf(text, PATH), "AC").working).toBe("10 + DEX 4 + WIS 2");
+  });
+});

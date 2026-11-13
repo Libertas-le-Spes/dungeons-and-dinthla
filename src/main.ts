@@ -83,7 +83,9 @@ import { NOTICE_STAYS_UNTIL_DISMISSED } from "./views/dialogs/notice-stays";
 import { ConfirmModal, type ConfirmText } from "./views/dialogs/confirm-modal";
 import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
-import { BeyondOpeners } from "./imports/dialog/opening/beyond-openers";
+import { BeyondOpeners, type BeyondWiring } from "./imports/dialog/opening/beyond-openers";
+import type { NoteFiles } from "./imports/note/writing/note-files";
+import type { CharacterNotes } from "./characters/reading/character-notes";
 import { characterReferenceKind } from "./kinds/character-reference-kind";
 
 const TYPING_PAUSE_MS = 250;
@@ -158,28 +160,19 @@ export default class DungeonsAndDinthla extends Plugin {
     const campaignFolders = () => this.campaignFolders();
     const characterNotes = characterNotesOf(gate, campaignFolders);
     const sheetNotes = sheetNotesOf(gate, campaignFolders);
+    const beyond = new BeyondOpeners(new PluginBeyondWiring(this.app, gate.files, this.store, characterNotes, campaignFolders));
     const sheetActions = {
       ...actions,
       editCharacter: (file: TFile) => editCharacter(this.app, gate, characterNotes, file),
       chooseValue: (file: TFile, value: SheetValue, onClosed: () => void) =>
         void chooseSheetValue(this.app, gate, this.store, sheetNotes, file, value, actions.openRow, onClosed),
-      updateFromBeyond: (file: TFile, returnFocus: () => void) => beyond.updateFromBeyond(file, returnFocus),
+      updateFromBeyond: beyond.updateFromBeyond.bind(beyond),
       tracking: new FundsTracking(this.app, gate, this.store),
     };
     const mentionNotes = mentionNotesOf(gate, campaignFolders);
     const galleryActions = { ...actions, openRow: (source: Source) => void openCharacterSheet(this.app, gate, source.path) };
     const newCharacter = (returnFocus: () => void) => openNewCharacter(this.app, gate, this.store.campaignFolder, returnFocus);
-    const beyond = new BeyondOpeners({
-      app: this.app,
-      files: gate.files,
-      shownCampaignFolder: () => this.store.campaignFolder,
-      campaignFolderOf: (path: string) => campaignFolderOf(path, this.campaignFolders()),
-      charactersFolderOf: (folder: string) => referenceFolderOf(characterReferenceKind, folder),
-      notesIn: (folder: string) => characterNotes.filesIn(folder),
-      showSheet: (path: string) => void openCampaignPage(this.app, "cast", path),
-      tell: (words: string) => new Notice(words),
-    });
-    const creators = { newCharacter, importCharacter: (returnFocus: () => void) => beyond.importCharacter(returnFocus) };
+    const creators = { newCharacter, importCharacter: beyond.importCharacter.bind(beyond) };
     this.registerBasesView(CHARACTERS_VIEW, {
       name: "Characters",
       icon: "users",
@@ -499,5 +492,39 @@ export default class DungeonsAndDinthla extends Plugin {
     const folder = campaignFolderOf(path, this.campaignFolders());
     if (folder === null || folder === this.store.campaignFolder) return;
     await this.chosen.choose(folder);
+  }
+}
+
+class PluginBeyondWiring implements BeyondWiring {
+  constructor(
+    readonly app: BeyondWiring["app"],
+    readonly files: NoteFiles,
+    private readonly store: CampaignStore,
+    private readonly characterNotes: CharacterNotes,
+    private readonly campaignFolders: () => string[],
+  ) {}
+
+  shownCampaignFolder(): string | null {
+    return this.store.campaignFolder;
+  }
+
+  campaignFolderOf(path: string): string | null {
+    return campaignFolderOf(path, this.campaignFolders());
+  }
+
+  charactersFolderOf(campaignFolder: string): string {
+    return referenceFolderOf(characterReferenceKind, campaignFolder);
+  }
+
+  notesIn(campaignFolder: string): readonly TFile[] {
+    return this.characterNotes.filesIn(campaignFolder);
+  }
+
+  showSheet(path: string): void {
+    void openCampaignPage(this.app, "cast", path);
+  }
+
+  tell(words: string): void {
+    new Notice(words);
   }
 }

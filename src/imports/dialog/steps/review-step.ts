@@ -14,6 +14,11 @@ function canWrite(review: Review): boolean {
   return review.target.hasWork(review.changes);
 }
 
+function drawFailure(parent: HTMLElement, review: Review): void {
+  if (review.failure === null) return;
+  parent.createEl("p", { cls: "dd-import-refusal dd-import-failure", text: review.failure, attr: { role: "alert" } });
+}
+
 function drawWhatChanges(parent: HTMLElement, review: Review): void {
   if (review.refusal !== null) {
     parent.createEl("p", { cls: "dd-import-refusal", text: review.refusal, attr: { role: "alert" } });
@@ -35,6 +40,7 @@ function drawButtons(parent: HTMLElement, review: Review, actions: ReviewActions
 
 export function drawReview(parent: HTMLElement, review: Review, actions: ReviewActions): void {
   drawSummary(parent, review);
+  drawFailure(parent, review);
   drawWhatChanges(parent, review);
   drawButtons(parent, review, actions);
 }
