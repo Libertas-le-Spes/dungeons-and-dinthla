@@ -6,7 +6,7 @@ import { sessionLabelOf } from "../../campaign/paths/session-file";
 import { sessionForDialog } from "../../campaign/paths/session-for-dialog";
 import { openSource } from "../../views/opening/open-view";
 import { ItemModal } from "./item-modal";
-import { holderOptionOf, holderOptions, latestSessionOfItem } from "./item-plan";
+import { holderOptionOf, holderOptions, latestSessionOfItem, type ItemEdit, type ItemStatus } from "./item-plan";
 import { openedItem } from "./item-writer";
 import type { Gate } from "../../fence/gate/gatekeeper";
 
@@ -25,6 +25,29 @@ export function openItemDialog(
   onClosed: (changed: boolean) => void,
   activePath: string | null,
 ): void {
+  openItemDialogAs(app, gate, store, { name, status: null }, openNote, onClosed, activePath);
+}
+
+export interface ItemAsked {
+  name: string;
+  status: ItemStatus | null;
+}
+
+function editAsked(opened: ItemEdit, asked: ItemAsked): ItemEdit {
+  if (asked.status === null) return opened;
+  return { ...opened, status: asked.status };
+}
+
+export function openItemDialogAs(
+  app: App,
+  gate: Gate,
+  store: CampaignStore,
+  asked: ItemAsked,
+  openNote: () => void,
+  onClosed: (changed: boolean) => void,
+  activePath: string | null,
+): void {
+  const name = asked.name;
   const item = itemNamed(store.current.items, name);
   const folder = store.campaignFolder;
   if (item === undefined || folder === null) {
@@ -40,5 +63,5 @@ export function openItemDialog(
   );
   const opened = openedItem(gate.files, store, item, sessionPath);
   const openNoteAt = (source: Source) => void openSource(app, gate, source);
-  new ItemModal(app, item, opened.edit, holders, sessionLabelOf(sessionPath), opened.save, openNoteAt, onClosed).open();
+  new ItemModal(app, item, editAsked(opened.edit, asked), holders, sessionLabelOf(sessionPath), opened.save, openNoteAt, onClosed).open();
 }

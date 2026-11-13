@@ -41,7 +41,7 @@ async function openPage(
   const actions = { openRow: vi.fn(), openLink: vi.fn() };
   const noteExists = (name: string) => notes.includes(name);
   const root = obsidianDocument().createElement("div");
-  const view = new FundsPage(root, store as unknown as CampaignStore, actions, noteExists, addCoin, openLedgerEntry, openItem, shownItem);
+  const view = new FundsPage(root, store as unknown as CampaignStore, actions, noteExists, addCoin, openLedgerEntry, openItem, shownItem, null);
   view.load();
   const change = (next: Campaign) => {
     store.current = next;

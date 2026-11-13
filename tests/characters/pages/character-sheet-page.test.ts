@@ -7,6 +7,7 @@ import type { CarriedFrom, SheetNotes } from "../../../src/characters/reading/sh
 import type { MentionNotes } from "../../../src/characters/reading/mention-notes";
 import { IN_THE_NOTES } from "../../../src/characters/pages/mentions-panel";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { RecordingTracking } from "../imported/builders/recording-tracking";
 
 function fileAt(path: string): TFile {
   return { path, basename: path.slice(path.lastIndexOf("/") + 1, -3) } as TFile;
@@ -95,6 +96,7 @@ function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf, link
     openLink: vi.fn(),
     editCharacter: vi.fn(),
     updateFromBeyond: vi.fn(),
+    tracking: new RecordingTracking(null),
     chooseValue: (_file, value, onClosed) => {
       chosen.push(value);
       closers.push(onClosed);

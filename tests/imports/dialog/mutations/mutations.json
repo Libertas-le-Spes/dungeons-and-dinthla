@@ -281,7 +281,7 @@
  },
  {
   "id": "draw: focus returns",
-  "file": "src/characters/imported/drawing/beyond-button.ts",
+  "file": "src/characters/imported/drawing/action-button.ts",
   "find": "    this.button.buttonEl.focus();\n",
   "replace": "",
   "group": "draw"

@@ -1,6 +1,7 @@
 import type { TFile } from "obsidian";
 import type { CharacterSheet, SheetValue } from "../../reading/character-sheet";
-import { addBeyondButton, type ButtonAction } from "./beyond-button";
+import type { ButtonAction } from "./action-button";
+import { addBeyondButton } from "./beyond-button";
 
 export const UPDATE_FROM_BEYOND = "Update from D&D Beyond";
 

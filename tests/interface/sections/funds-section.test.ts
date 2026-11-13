@@ -5,6 +5,7 @@ import { FundsPage } from "../../../src/funds/page/funds-page";
 import { CLOSE_ITEM, EDIT_NOTE } from "../../../src/funds/item-notes/item-panel";
 import { fundsSection } from "../../../src/interface/sections/funds-section";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { FakePurseNotes } from "../../characters/imported/builders/fake-purse-notes";
 
 const LANTERN = "Pale Moon/Items/Silvered lantern.md";
 
@@ -21,6 +22,7 @@ function made(path: string | null) {
     openLedgerEntry: vi.fn(),
     openItem: vi.fn(),
     campaignFolders: () => ["Pale Moon"],
+    ownPurseNotes: new FakePurseNotes(new Map(), []),
   };
   const root = obsidianDocument().createElement("div");
   const show = vi.fn();
