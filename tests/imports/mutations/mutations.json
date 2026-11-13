@@ -491,86 +491,86 @@
  },
  {
   "id": "properties: score row strength",
-  "file": "src/imports/note/rows/score-rows.ts",
-  "find": "\"strength\")",
-  "replace": "\"dexterity\")",
+  "file": "src/imports/note/rows/score-row.ts",
+  "find": "return scores.strength;",
+  "replace": "return scores.dexterity;",
   "group": "properties"
  },
  {
   "id": "properties: score row dexterity",
-  "file": "src/imports/note/rows/score-rows.ts",
-  "find": "\"dexterity\")",
-  "replace": "\"strength\")",
+  "file": "src/imports/note/rows/score-row.ts",
+  "find": "return scores.dexterity;",
+  "replace": "return scores.strength;",
   "group": "properties"
  },
  {
   "id": "properties: score row constitution",
-  "file": "src/imports/note/rows/score-rows.ts",
-  "find": "\"constitution\")",
-  "replace": "\"dexterity\")",
+  "file": "src/imports/note/rows/score-row.ts",
+  "find": "return scores.constitution;",
+  "replace": "return scores.dexterity;",
   "group": "properties"
  },
  {
   "id": "properties: score row intelligence",
-  "file": "src/imports/note/rows/score-rows.ts",
-  "find": "\"intelligence\")",
-  "replace": "\"wisdom\")",
+  "file": "src/imports/note/rows/score-row.ts",
+  "find": "return scores.intelligence;",
+  "replace": "return scores.dexterity;",
   "group": "properties"
  },
  {
   "id": "properties: score row wisdom",
-  "file": "src/imports/note/rows/score-rows.ts",
-  "find": "\"wisdom\")",
-  "replace": "\"intelligence\")",
+  "file": "src/imports/note/rows/score-row.ts",
+  "find": "return scores.wisdom;",
+  "replace": "return scores.dexterity;",
   "group": "properties"
  },
  {
   "id": "properties: score row charisma",
-  "file": "src/imports/note/rows/score-rows.ts",
-  "find": "\"charisma\")",
-  "replace": "\"constitution\")",
+  "file": "src/imports/note/rows/score-row.ts",
+  "find": "return scores.charisma;",
+  "replace": "return scores.dexterity;",
   "group": "properties"
  },
  {
   "id": "properties: score row name STRENGTH",
-  "file": "src/imports/note/rows/score-rows.ts",
-  "find": "new ScoreRow(STRENGTH_PROPERTY,",
-  "replace": "new ScoreRow(WISDOM_PROPERTY,",
+  "file": "src/imports/note/rows/score-row.ts",
+  "find": "readonly name = STRENGTH_PROPERTY;",
+  "replace": "readonly name = WISDOM_PROPERTY;",
   "group": "properties"
  },
  {
   "id": "properties: score row name DEXTERITY",
-  "file": "src/imports/note/rows/score-rows.ts",
-  "find": "new ScoreRow(DEXTERITY_PROPERTY,",
-  "replace": "new ScoreRow(STRENGTH_PROPERTY,",
+  "file": "src/imports/note/rows/score-row.ts",
+  "find": "readonly name = DEXTERITY_PROPERTY;",
+  "replace": "readonly name = WISDOM_PROPERTY;",
   "group": "properties"
  },
  {
   "id": "properties: score row name CONSTITUTION",
-  "file": "src/imports/note/rows/score-rows.ts",
-  "find": "new ScoreRow(CONSTITUTION_PROPERTY,",
-  "replace": "new ScoreRow(STRENGTH_PROPERTY,",
+  "file": "src/imports/note/rows/score-row.ts",
+  "find": "readonly name = CONSTITUTION_PROPERTY;",
+  "replace": "readonly name = WISDOM_PROPERTY;",
   "group": "properties"
  },
  {
   "id": "properties: score row name INTELLIGENCE",
-  "file": "src/imports/note/rows/score-rows.ts",
-  "find": "new ScoreRow(INTELLIGENCE_PROPERTY,",
-  "replace": "new ScoreRow(STRENGTH_PROPERTY,",
+  "file": "src/imports/note/rows/score-row.ts",
+  "find": "readonly name = INTELLIGENCE_PROPERTY;",
+  "replace": "readonly name = WISDOM_PROPERTY;",
   "group": "properties"
  },
  {
   "id": "properties: score row name WISDOM",
-  "file": "src/imports/note/rows/score-rows.ts",
-  "find": "new ScoreRow(WISDOM_PROPERTY,",
-  "replace": "new ScoreRow(STRENGTH_PROPERTY,",
+  "file": "src/imports/note/rows/score-row.ts",
+  "find": "readonly name = WISDOM_PROPERTY;",
+  "replace": "readonly name = STRENGTH_PROPERTY;",
   "group": "properties"
  },
  {
   "id": "properties: score row name CHARISMA",
-  "file": "src/imports/note/rows/score-rows.ts",
-  "find": "new ScoreRow(CHARISMA_PROPERTY,",
-  "replace": "new ScoreRow(STRENGTH_PROPERTY,",
+  "file": "src/imports/note/rows/score-row.ts",
+  "find": "readonly name = CHARISMA_PROPERTY;",
+  "replace": "readonly name = WISDOM_PROPERTY;",
   "group": "properties"
  },
  {
@@ -1339,7 +1339,7 @@
  {
   "id": "folders:   { folder: \"imports\", reaches: [\"import",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "  { folder: \"imports\", reaches: [\"imports\", \"imports/layout\", \"beyond\", \"names\", \"fence/gate\", \"campaign\", \"views\"] },\n",
+  "find": "  { folder: \"imports\", reaches: [\"imports\", \"imports/layout\", \"beyond\", \"names\", \"fence/gate\", \"campaign\", \"views/dialogs\"] },\n",
   "replace": "",
   "group": "folders"
  },
