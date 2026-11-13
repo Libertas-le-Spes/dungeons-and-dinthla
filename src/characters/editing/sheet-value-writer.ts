@@ -90,13 +90,52 @@ function carriedWrite(value: SheetValue, written: string): SheetWrite {
   return { override: overrideChange(value, ""), sessionFact: null };
 }
 
-export function sheetWriteOf(value: SheetValue, choice: ValueChoice): SheetWrite {
-  const written = choice.value.trim();
-  if (choice.state === "learned") return learnedWrite(value, written);
-  if (choice.state === "unknown") return unknownWrite(value);
-  if (choice.state === "carried") return carriedWrite(value, written);
+function overrideWrite(value: SheetValue, written: string): SheetWrite {
   refuseUnlessWritable(value, written);
   return { override: overrideChange(value, written), sessionFact: null };
+}
+
+interface StateWrite {
+  writeOf(value: SheetValue, written: string): SheetWrite;
+}
+
+class LearnedWrite implements StateWrite {
+  writeOf(value: SheetValue, written: string): SheetWrite {
+    return learnedWrite(value, written);
+  }
+}
+
+class UnknownWrite implements StateWrite {
+  writeOf(value: SheetValue): SheetWrite {
+    return unknownWrite(value);
+  }
+}
+
+class CarriedWrite implements StateWrite {
+  writeOf(value: SheetValue, written: string): SheetWrite {
+    return carriedWrite(value, written);
+  }
+}
+
+class OverrideWrite implements StateWrite {
+  writeOf(value: SheetValue, written: string): SheetWrite {
+    return overrideWrite(value, written);
+  }
+}
+
+const STATE_WRITES: ReadonlyMap<ValueState, StateWrite> = new Map<ValueState, StateWrite>([
+  ["learned", new LearnedWrite()],
+  ["unknown", new UnknownWrite()],
+  ["carried", new CarriedWrite()],
+  ["override", new OverrideWrite()],
+]);
+
+export const NOT_A_CHOICE = "That isn't a choice the sheet can write, so nothing was written.";
+
+export function sheetWriteOf(value: SheetValue, choice: ValueChoice): SheetWrite {
+  const stateWrite = STATE_WRITES.get(choice.state);
+  if (stateWrite === undefined) throw new Error(NOT_A_CHOICE);
+  return stateWrite.writeOf(value, choice.value.trim());
 }
 
 function sessionLineOf(target: SheetTarget, sessionPath: string, fact: string): string {
