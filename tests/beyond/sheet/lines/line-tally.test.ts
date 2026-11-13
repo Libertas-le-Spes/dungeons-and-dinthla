@@ -32,10 +32,22 @@ describe("a tally of lines from the sheet", () => {
     expect([tally.lines().length, tally.loss()]).toEqual([0, { tooLong: 1, notClean: 0 }]);
   });
 
-  it("counts a line that markup makes short enough as kept", () => {
+  it("keeps a line of over 100 characters that markup makes short enough", () => {
     const tally = new LineTally();
-    tally.take(`<b>${"x".repeat(90)}</b>`);
-    expect(tally.loss()).toEqual({ tooLong: 0, notClean: 0 });
+    tally.take(`${"<b>".repeat(20)}${"x".repeat(50)}`);
+    expect([tally.lines().length, tally.loss()]).toEqual([1, { tooLong: 0, notClean: 0 }]);
+  });
+
+  it("keeps a line of exactly 300 characters that is mostly markup", () => {
+    const tally = new LineTally();
+    tally.take(`${"<b>".repeat(99)}xyz`);
+    expect([tally.lines().length, tally.loss()]).toEqual([1, { tooLong: 0, notClean: 0 }]);
+  });
+
+  it("counts a line of 301 characters that is mostly markup as too long, not as not clean", () => {
+    const tally = new LineTally();
+    tally.take(`${"<b>".repeat(100)}x`);
+    expect(tally.loss()).toEqual({ tooLong: 1, notClean: 0 });
   });
 
   it("counts a line that is only markup as not clean", () => {
