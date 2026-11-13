@@ -16,7 +16,7 @@ import {
   type Node,
   type SourceFile,
 } from "typescript/unstable/ast";
-import { API } from "typescript/unstable/sync";
+import { API, type Snapshot } from "typescript/unstable/sync";
 import { ROOT, VIRTUAL_FOLDER } from "../fence/scan/reading/scan-paths";
 import { virtualFileSystem } from "../fence/scan/running/virtual-files";
 
@@ -86,11 +86,39 @@ export class ImportedPaths {
     this.reads += 1;
     this.files.set(file, text);
     this.files.set(config, JSON.stringify({ compilerOptions: { noLib: true, noResolve: true, types: [] }, files: ["text.ts"], include: [] }));
-    const project = this.api.updateSnapshot({ openProjects: [config] }).getProject(config);
+    try {
+      return this.specifiersOf(config, file);
+    } finally {
+      this.files.delete(file);
+      this.files.delete(config);
+    }
+  }
+
+  private specifiersOf(config: string, file: string): string[] {
+    const snapshot = this.api.updateSnapshot({ openProjects: [config] });
+    try {
+      return specifiersIn(this.sourceFileOf(snapshot, config, file));
+    } finally {
+      snapshot.dispose();
+      this.api.updateSnapshot({ closeProjects: [config] }).dispose();
+    }
+  }
+
+  heldProjects(): number {
+    const snapshot = this.api.updateSnapshot({});
+    try {
+      return snapshot.getProjects().length;
+    } finally {
+      snapshot.dispose();
+    }
+  }
+
+  private sourceFileOf(snapshot: Snapshot, config: string, file: string): SourceFile {
+    const project = snapshot.getProject(config);
     if (project === undefined) throw new Error(`${config} could not be opened`);
     const sourceFile = project.program.getSourceFile(file);
     if (sourceFile === undefined) throw new Error(`${file} is not in ${config}`);
-    return specifiersIn(sourceFile);
+    return sourceFile;
   }
 
   close(): void {
