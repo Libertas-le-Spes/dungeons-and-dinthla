@@ -11,7 +11,7 @@ import type { SheetPanel } from "./sheet-panel";
 
 export const TRACK_ON_FUNDS = "Track on the funds page";
 export const OTHER_CAMPAIGN = "Show this character's campaign to track its items on the funds page.";
-const PANEL_ACTION_CLASSES = ["dd-panel-action"];
+const PANEL_ACTION_CLASSES = ["dd-create", "dd-panel-action"];
 
 function writtenOf(entries: readonly InventoryEntry[]): string[] {
   const written: string[] = [];

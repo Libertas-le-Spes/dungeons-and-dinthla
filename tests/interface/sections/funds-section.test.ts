@@ -37,6 +37,7 @@ describe("fundsSection", () => {
     const { page, root } = made(null);
     expect(page).toBeInstanceOf(FundsPage);
     expect(root.querySelector(".dd-shown-item")).toBeNull();
+    expect(root.querySelectorAll(".dd-own-purse-panel")).toHaveLength(1);
   });
 
   it("opens the item of the item note the tab shows, on Party funds", async () => {

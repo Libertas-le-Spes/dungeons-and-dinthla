@@ -613,3 +613,23 @@ describe("CharacterSheetPage carrying values from an imported note in another ca
     expect(textIn(armour, ".dd-value-source")).toBe("Carried from Ashen Road");
   });
 });
+
+describe("CharacterSheetPage with an imported inventory", () => {
+  it("draws the imported panels after the values and before the stat block", async () => {
+    const text = IMPORTED.replace("## Numbers", "## Inventory (from D&D Beyond)\n- Rope × 2\n## Numbers");
+    const { load, root } = openSheet({ texts: { [MIRA.path]: text } });
+    await load();
+    const sections: string[] = [];
+    for (const element of root.children) sections.push(element.className);
+    const panels = sections.indexOf("dd-sheet-imported");
+    expect(panels).toBeGreaterThan(sections.indexOf("dd-sheet-hint"));
+    expect(panels).toBeLessThan(sections.indexOf("dd-sheet-stat-block"));
+    expect(textIn(root, ".dd-sheet-imported .dd-panel-line .dd-text")).toBe("Rope");
+  });
+
+  it("draws no imported panels for a note nothing was imported into", async () => {
+    const { load, root } = openSheet({ texts: { [MIRA.path]: "AC: 16\n" } });
+    await load();
+    expect(root.querySelector(".dd-sheet-imported")).toBeNull();
+  });
+});

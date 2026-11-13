@@ -7,7 +7,7 @@ import { addPanelLine } from "./panel-parts";
 
 export const HELD_NOT_IMPORTED = "On the funds page, but not on this import";
 export const PICK_WHAT_HAPPENED = "Pick what happened to each. Nothing is written until you save it in the item dialog.";
-const CHOICE_CLASSES = ["dd-panel-action"];
+const CHOICE_CLASSES = ["dd-create", "dd-panel-action"];
 
 function addChoices(line: HTMLElement, file: TFile, name: string, tracking: ItemTracking): void {
   const choices = line.createDiv({ cls: "dd-panel-choices" });
