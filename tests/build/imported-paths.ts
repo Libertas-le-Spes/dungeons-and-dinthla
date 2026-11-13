@@ -77,9 +77,18 @@ function specifiersIn(sourceFile: SourceFile): string[] {
 export class ImportedPaths {
   private readonly files = new Map<string, string>();
   private readonly api = new API({ cwd: ROOT, fs: virtualFileSystem(VIRTUAL_FOLDER, this.files) });
+  private readonly known = new Map<string, string[]>();
   private reads = 0;
 
   in(text: string): string[] {
+    const earlier = this.known.get(text);
+    if (earlier !== undefined) return earlier;
+    const found = this.read(text);
+    this.known.set(text, found);
+    return found;
+  }
+
+  private read(text: string): string[] {
     const folder = `${VIRTUAL_FOLDER}/imported-paths/text-${this.reads}`;
     const file = `${folder}/text.ts`;
     const config = `${folder}/tsconfig.json`;

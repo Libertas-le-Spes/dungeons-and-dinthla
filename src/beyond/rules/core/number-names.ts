@@ -15,3 +15,14 @@ export const PACT_SLOT_LEVEL_NAME = "Pact slot level";
 export function slotLevelNameOf(spellLevel: number): string {
   return `${SPELL_SLOTS_NAME} level ${spellLevel}`;
 }
+
+export const GENERIC_SPELL_SAVE_DC_NAME = "Spell save DC";
+export const GENERIC_SPELL_ATTACK_NAME = "Spell attack bonus";
+
+export function spellSaveDcNameOf(label: string): string {
+  return `${label} spell save DC`;
+}
+
+export function spellAttackNameOf(label: string): string {
+  return `${label} spell attack bonus`;
+}
