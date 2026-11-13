@@ -22,6 +22,17 @@ export interface SheetValueDialog {
 
 const STATES: ValueState[] = ["learned", "override", "carried", "unknown"];
 
+const IMPORTED_CHOICES: ValueState[] = ["imported", "override"];
+
+const CHOICES_BY_STATE: ReadonlyMap<ValueState, ValueState[]> = new Map([["imported", IMPORTED_CHOICES]]);
+
+const STATE_ON_ENTER: ReadonlyMap<ValueState, ValueState> = new Map<ValueState, ValueState>([
+  ["unknown", "learned"],
+  ["imported", "override"],
+]);
+
+export const ONLY_AN_OVERRIDE = "Only an override shows over a value from D&D Beyond, so Override is the one choice here.";
+
 const CLEARING_STATES: ValueState[] = ["learned", "carried", "unknown"];
 
 export function removesNoteLines(value: SheetValue, state: ValueState): boolean {
@@ -39,9 +50,15 @@ export function secondPressText(character: string, label: string): string {
 export const CHANGE_ON_BEYOND = "Change this on D&D Beyond too, or the next update will replace it.";
 
 function stateOnEnter(state: ValueState): ValueState {
-  if (state === "unknown") return "learned";
-  if (state === "imported") return "override";
-  return state;
+  const entered = STATE_ON_ENTER.get(state);
+  if (entered === undefined) return state;
+  return entered;
+}
+
+function choicesFor(state: ValueState): ValueState[] {
+  const choices = CHOICES_BY_STATE.get(state);
+  if (choices === undefined) return STATES;
+  return choices;
 }
 
 export function earlierSourceOf(source: Source, notePath: string): string {
@@ -89,7 +106,8 @@ export class SheetValueModal extends ChangeDialog {
     });
     this.addEarlier();
     const choices = contentEl.createDiv({ cls: "dd-state-choices" });
-    for (const state of STATES) this.addChoice(choices, state);
+    for (const state of choicesFor(value.state)) this.addChoice(choices, state);
+    if (value.state === "imported") contentEl.createEl("p", { cls: "dd-where dd-only-override", text: ONLY_AN_OVERRIDE });
     if (value.imported !== null) contentEl.createEl("p", { cls: "dd-where dd-beyond-hint", text: CHANGE_ON_BEYOND });
     contentEl.createEl("p", { cls: "dd-where", text: whereText(this.dialog.character, this.dialog.sessionLabel) });
     if (value.carried !== null && value.learned === null) contentEl.createEl("p", { cls: "dd-where", text: notKnownOverCarriedText(value.label) });
@@ -130,6 +148,10 @@ export class SheetValueModal extends ChangeDialog {
     button.buttonEl.addClass("dd-state-choice");
     button.buttonEl.setAttr("aria-pressed", String(state === this.dialog.value.state));
     button.buttonEl.setAttr("data-state", state);
+    if (state === "imported") {
+      button.setButtonText(STATE_WORDS[state]).setDisabled(true);
+      return;
+    }
     if (removesNoteLines(this.dialog.value, state)) {
       this.stopOnClose(deleteOnSecondPress(button, STATE_WORDS[state], () => this.choose(state)));
       return;
