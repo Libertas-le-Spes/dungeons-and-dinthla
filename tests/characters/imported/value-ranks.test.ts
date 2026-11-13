@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { characterSheetOf, carriedValuesOf, type SheetValue } from "../../../src/characters/reading/character-sheet";
-import type { ImportedFact } from "../../../src/characters/imported/imported-fact";
+import type { ImportedFact } from "../../../src/characters/imported/reading/imported-fact";
 import type { SourcedFact } from "../../../src/characters/reading/sheet-values";
 
 const NOTE = "D&D/Primary Campaign/Characters/Primary Monk.md";

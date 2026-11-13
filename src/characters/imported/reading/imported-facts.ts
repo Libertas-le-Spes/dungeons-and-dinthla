@@ -1,6 +1,6 @@
-import { firstLineAfterProperties } from "../../campaign/paths/session-file";
-import { IMPORTED_FROM_PROPERTY, SHEET_VALUE_PROPERTIES } from "../../imports/layout/import-properties";
-import { ROUTE_WORDS, UNNAMED_ROUTE_WORDS } from "../../imports/layout/import-routes";
+import { firstLineAfterProperties } from "../../../campaign/paths/session-file";
+import { IMPORTED_FROM_PROPERTY, SHEET_VALUE_PROPERTIES } from "../../../imports/layout/import-properties";
+import { ROUTE_WORDS, UNNAMED_ROUTE_WORDS } from "../../../imports/layout/import-routes";
 import type { ImportedFact } from "./imported-fact";
 import { noteLinesOf } from "./note-lines";
 import { NumberWorkings } from "./number-workings";

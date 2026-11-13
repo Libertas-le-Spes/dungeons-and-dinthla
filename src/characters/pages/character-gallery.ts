@@ -9,7 +9,7 @@ import { ownCharacterFirst } from "../cards/own-character-first";
 import { learnedFactsOf, type LearnedFacts } from "../reading/learned-facts";
 import { readCharacterCard } from "../cards/read-character-card";
 import type { CharacterCreators } from "./character-creators";
-import { addImportButton } from "../imported/import-button";
+import { addImportButton } from "../imported/drawing/import-button";
 
 const NO_CHARACTERS = "No characters yet. Add one with New character.";
 

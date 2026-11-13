@@ -1,0 +1,56 @@
+.dd-import .dd-pdf-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  font: var(--type-label);
+}
+
+.dd-import .dd-import-refusal {
+  margin: 0 0 var(--space-3);
+  color: var(--state-danger);
+}
+
+.dd-import .dd-import-reading,
+.dd-import .dd-import-nothing {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted-ui);
+}
+
+.dd-import .dd-import-summary h3 {
+  margin: 0 0 var(--space-2);
+}
+
+.dd-import .dd-import-summary p {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-sm);
+}
+
+.dd-import .dd-import-targets {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.dd-import .dd-import-heading {
+  margin: var(--space-3) 0 var(--space-1);
+  font: var(--type-label);
+}
+
+.dd-import .dd-import-lines,
+.dd-import .dd-import-properties {
+  margin: 0;
+  padding-left: var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.dd-import .dd-import-removed {
+  color: var(--state-danger);
+}
+
+.dd-import .dd-import-warning {
+  margin: var(--space-3) 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--state-danger);
+}
