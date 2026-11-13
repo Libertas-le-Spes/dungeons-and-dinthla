@@ -12,14 +12,23 @@ export class NewImportFlow {
 
   constructor(
     private readonly writer: ImportWriter,
+    private readonly charactersFolder: string,
     private readonly notes: () => readonly TFile[],
   ) {}
 
   targetsFor(sheet: PrintedSheet): ImportTarget[] {
     const name = sheet.character.name.text;
     const targets: ImportTarget[] = [];
-    for (const file of notesLikeName(name, this.notes())) targets.push(new ExistingNoteTarget(this.writer, file));
+    for (const file of notesLikeName(name, this.notesDirectlyInFolder())) targets.push(new ExistingNoteTarget(this.writer, file));
     targets.push(new NewNoteTarget(this.writer, name));
     return targets;
+  }
+
+  private notesDirectlyInFolder(): TFile[] {
+    const direct: TFile[] = [];
+    for (const file of this.notes()) {
+      if (file.path === `${this.charactersFolder}/${file.basename}.md`) direct.push(file);
+    }
+    return direct;
   }
 }

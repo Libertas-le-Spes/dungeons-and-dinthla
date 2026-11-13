@@ -1050,20 +1050,6 @@
   "group": "writing"
  },
  {
-  "id": "writing: if (before.length !== after.length) retu",
-  "file": "src/imports/note/writing/guarding/read-back.ts",
-  "find": "if (before.length !== after.length) return false;",
-  "replace": "",
-  "group": "writing"
- },
- {
-  "id": "writing: if (after[position] !== line) return fal",
-  "file": "src/imports/note/writing/guarding/read-back.ts",
-  "find": "if (after[position] !== line) return false;",
-  "replace": "",
-  "group": "writing"
- },
- {
   "id": "writing: if (!sameLines(outsideTheImport(before),",
   "file": "src/imports/note/writing/guarding/read-back.ts",
   "find": "if (!sameLines(outsideTheImport(before), outsideTheImport(after))) throw wouldChangeMore();",
@@ -1100,14 +1086,14 @@
  },
  {
   "id": "writing:   if (refusal !== null) throw refusal;",
-  "file": "src/imports/note/writing/process-or-refuse.ts",
+  "file": "src/imports/note/writing/checked-note-text.ts",
   "find": "  if (refusal !== null) throw refusal;",
   "replace": "",
   "group": "writing"
  },
  {
   "id": "writing:   refuseUnlessOnlyTheImportChanged(befor",
-  "file": "src/imports/note/writing/process-or-refuse.ts",
+  "file": "src/imports/note/writing/checked-note-text.ts",
   "find": "  refuseUnlessOnlyTheImportChanged(before, after);\n",
   "replace": "",
   "group": "writing"
@@ -2016,50 +2002,50 @@
   "group": "guarding"
  },
  {
-  "id": "writing: process-or-refuse.ts:   refuseUnlessOnlyTheImportChanged(before, after);",
-  "file": "src/imports/note/writing/process-or-refuse.ts",
+  "id": "writing: checked-note-text.ts:   refuseUnlessOnlyTheImportChanged(before, after);",
+  "file": "src/imports/note/writing/checked-note-text.ts",
   "find": "  refuseUnlessOnlyTheImportChanged(before, after);\n",
   "replace": "",
   "group": "writing"
  },
  {
-  "id": "writing: process-or-refuse.ts:   if (!sameTypedText(shown, changes.typed)) throw ",
-  "file": "src/imports/note/writing/process-or-refuse.ts",
+  "id": "writing: checked-note-text.ts:   if (!sameTypedText(shown, changes.typed)) throw ",
+  "file": "src/imports/note/writing/checked-note-text.ts",
   "find": "  if (!sameTypedText(shown, changes.typed)) throw typedTextNotShown();\n",
   "replace": "",
   "group": "writing"
  },
  {
-  "id": "writing: process-or-refuse.ts:   if (changesNothing(changes)) return before;\n",
-  "file": "src/imports/note/writing/process-or-refuse.ts",
+  "id": "writing: checked-note-text.ts:   if (changesNothing(changes)) return before;\n",
+  "file": "src/imports/note/writing/checked-note-text.ts",
   "find": "  if (changesNothing(changes)) return before;\n",
   "replace": "",
   "group": "writing"
  },
  {
-  "id": "writing: process-or-refuse.ts:     if (current === before) return after;\n",
-  "file": "src/imports/note/writing/process-or-refuse.ts",
+  "id": "writing: checked-note-text.ts:     if (current === before) return after;\n",
+  "file": "src/imports/note/writing/checked-note-text.ts",
   "find": "    if (current === before) return after;\n",
   "replace": "    return after;\n",
   "group": "writing"
  },
  {
-  "id": "writing: process-or-refuse.ts:   if (refusal !== null) throw refusal;",
-  "file": "src/imports/note/writing/process-or-refuse.ts",
+  "id": "writing: checked-note-text.ts:   if (refusal !== null) throw refusal;",
+  "file": "src/imports/note/writing/checked-note-text.ts",
   "find": "  if (refusal !== null) throw refusal;",
   "replace": "",
   "group": "writing"
  },
  {
-  "id": "writing: process-or-refuse.ts:     refusal = changedSinceRead();\n",
-  "file": "src/imports/note/writing/process-or-refuse.ts",
+  "id": "writing: checked-note-text.ts:     refusal = changedSinceRead();\n",
+  "file": "src/imports/note/writing/checked-note-text.ts",
   "find": "    refusal = changedSinceRead();\n",
   "replace": "",
   "group": "writing"
  },
  {
-  "id": "writing: process-or-refuse.ts:     refusal = changedSinceRead();\n    return curre",
-  "file": "src/imports/note/writing/process-or-refuse.ts",
+  "id": "writing: checked-note-text.ts:     refusal = changedSinceRead();\n    return curre",
+  "file": "src/imports/note/writing/checked-note-text.ts",
   "find": "    refusal = changedSinceRead();\n    return current;",
   "replace": "    refusal = changedSinceRead();\n    return after;",
   "group": "writing"
@@ -2119,41 +2105,6 @@
   "find": "The note changed since it was read, so nothing was written.",
   "replace": "The note changed.",
   "group": "writing"
- },
- {
-  "id": "changes: same-typed-text.ts:   if (first.length !== second.length) return false",
-  "file": "src/imports/note/changes/same-typed-text.ts",
-  "find": "  if (first.length !== second.length) return false;\n",
-  "replace": "",
-  "group": "changes"
- },
- {
-  "id": "changes: same-typed-text.ts: if (second[position] !== line) return false;",
-  "file": "src/imports/note/changes/same-typed-text.ts",
-  "find": "if (second[position] !== line) return false;",
-  "replace": "",
-  "group": "changes"
- },
- {
-  "id": "changes: same-typed-text.ts:   if (shown.length !== current.length) return fals",
-  "file": "src/imports/note/changes/same-typed-text.ts",
-  "find": "  if (shown.length !== current.length) return false;\n",
-  "replace": "",
-  "group": "changes"
- },
- {
-  "id": "changes: same-typed-text.ts: if (other === undefined || other.heading !== entry",
-  "file": "src/imports/note/changes/same-typed-text.ts",
-  "find": "if (other === undefined || other.heading !== entry.heading) return false;",
-  "replace": "if (other === undefined) return false;",
-  "group": "changes"
- },
- {
-  "id": "changes: same-typed-text.ts: if (!sameLines(entry.lines, other.lines)) return f",
-  "file": "src/imports/note/changes/same-typed-text.ts",
-  "find": "if (!sameLines(entry.lines, other.lines)) return false;",
-  "replace": "",
-  "group": "changes"
  },
  {
   "id": "kinds: class-property.ts:     if (character.classes.length === 0) return nul",
@@ -2224,5 +2175,33 @@
   "find": "A line of the note is longer than",
   "replace": "A line is longer than",
   "group": "keys"
+ },
+ {
+  "id": "writing: read-back compares the lines outside the import",
+  "file": "src/imports/note/writing/guarding/read-back.ts",
+  "find": "return JSON.stringify(before) === JSON.stringify(after);",
+  "replace": "return true;",
+  "group": "writing"
+ },
+ {
+  "id": "changes: typed text compared at all",
+  "file": "src/imports/note/changes/same-typed-text.ts",
+  "find": "return writtenOut(shown) === writtenOut(current);",
+  "replace": "return true;",
+  "group": "changes"
+ },
+ {
+  "id": "changes: typed text compared by heading",
+  "file": "src/imports/note/changes/same-typed-text.ts",
+  "find": "entries.push([entry.heading, entry.lines]);",
+  "replace": "entries.push([entry.lines]);",
+  "group": "changes"
+ },
+ {
+  "id": "changes: typed text compared by lines",
+  "file": "src/imports/note/changes/same-typed-text.ts",
+  "find": "entries.push([entry.heading, entry.lines]);",
+  "replace": "entries.push([entry.heading]);",
+  "group": "changes"
  }
 ]

@@ -36,8 +36,11 @@ export function secondPressText(character: string, label: string): string {
   return `Learned at the table, Carried over and Not known yet remove ${label} from ${character}'s note, so they need a second press.`;
 }
 
+export const CHANGE_ON_BEYOND = "Change this on D&D Beyond too, or the next update will replace it.";
+
 function stateOnEnter(state: ValueState): ValueState {
   if (state === "unknown") return "learned";
+  if (state === "imported") return "override";
   return state;
 }
 
@@ -87,6 +90,7 @@ export class SheetValueModal extends ChangeDialog {
     this.addEarlier();
     const choices = contentEl.createDiv({ cls: "dd-state-choices" });
     for (const state of STATES) this.addChoice(choices, state);
+    if (value.imported !== null) contentEl.createEl("p", { cls: "dd-where dd-beyond-hint", text: CHANGE_ON_BEYOND });
     contentEl.createEl("p", { cls: "dd-where", text: whereText(this.dialog.character, this.dialog.sessionLabel) });
     if (value.carried !== null && value.learned === null) contentEl.createEl("p", { cls: "dd-where", text: notKnownOverCarriedText(value.label) });
     if (removesNoteLines(value, "learned")) contentEl.createEl("p", { cls: "dd-where", text: secondPressText(this.dialog.character, value.label) });
