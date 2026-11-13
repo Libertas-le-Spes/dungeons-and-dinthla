@@ -110,17 +110,23 @@ describe("CampaignsFolderSetting", () => {
   it("waits for the look again before it is done", async () => {
     const { setting, changed } = settingFrom("D&D");
     let finishLooking: () => void = () => {};
+    let lookStarted: () => void = () => {};
+    const looking = new Promise<void>((started) => {
+      lookStarted = started;
+    });
     changed.mockImplementationOnce(
       () =>
         new Promise<void>((resolve) => {
           finishLooking = resolve;
+          lookStarted();
         }),
     );
     let done = false;
     const choosing = setting.choose("Games/D&D").then(() => {
       done = true;
     });
-    await vi.waitFor(() => expect(changed).toHaveBeenCalledOnce());
+    await looking;
+    expect(changed).toHaveBeenCalledOnce();
     await oneTick();
     expect(done).toBe(false);
     finishLooking();

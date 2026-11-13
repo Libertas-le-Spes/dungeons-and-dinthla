@@ -11,6 +11,7 @@ import { clearTextOf, deleteTextOf } from "./removal-texts";
 import type { SessionClearer } from "./session-clearer";
 import type { AskedNote, SessionTrash } from "./session-trash";
 import { writtenLinesOf } from "../lines/written-lines";
+import { PendingWork } from "../../views/drawing/pending-work";
 
 export const NOTE_GONE_NOW = "The session's note is gone, so there is nothing to clear or delete.";
 export const SAVE_RUNNING = "A save is running for this session. Try again once it is done.";
@@ -51,6 +52,7 @@ function notReadMessage(error: unknown): string {
 export class SessionRemoval {
   private running = false;
   private asking = false;
+  private readonly work = new PendingWork();
 
   constructor(
     private readonly path: string,
@@ -62,14 +64,26 @@ export class SessionRemoval {
     return this.running;
   }
 
-  async clearNotes(): Promise<void> {
+  clearNotes(): void {
+    this.work.add(this.askToClear());
+  }
+
+  deleteSession(): void {
+    this.work.add(this.askToDelete());
+  }
+
+  settled(): Promise<void> {
+    return this.work.settled();
+  }
+
+  private async askToClear(): Promise<void> {
     const text = await this.readToAsk(() => this.needs.texts.read(this.path));
     if (text === null) return;
     const confirmText = clearTextOf(this.moves.heading(), countOf(this.path, text));
-    this.ask(confirmText, () => void this.clear(text));
+    this.ask(confirmText, () => this.work.add(this.clear(text)));
   }
 
-  async deleteSession(): Promise<void> {
+  private async askToDelete(): Promise<void> {
     const asked = await this.readToAsk(() => this.needs.trash.ask(this.path));
     if (asked === null) return;
     const plan = this.needs.renumbering.planFor(this.path);
@@ -80,7 +94,7 @@ export class SessionRemoval {
     }
     const permanently = this.needs.trash.deletesPermanently();
     const confirmText = deleteTextOf(this.moves.heading(), countOf(this.path, asked.text), movesWords(plan.renames), permanently);
-    this.ask(confirmText, () => void this.remove(asked, plan));
+    this.ask(confirmText, () => this.work.add(this.remove(asked, plan)));
   }
 
   private async readToAsk<T>(read: Read<T>): Promise<T | null> {

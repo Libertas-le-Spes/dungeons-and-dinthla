@@ -3,6 +3,7 @@ import { addLinkedText, addRowButton, type LinkActions } from "../../views/lists
 import { messageOf } from "../../views/dialogs/message-of";
 import type { MentionNotes } from "../reading/mention-notes";
 import { readMentions, type Mention } from "../reading/mentions";
+import { PendingWork } from "../../views/drawing/pending-work";
 
 export const IN_THE_NOTES = "In the notes";
 
@@ -36,13 +37,14 @@ function listedPaths(shown: Shown): string[] {
 export class MentionsPanel {
   private renders = 0;
   private shown: Shown | null = null;
+  private readonly reading = new PendingWork();
   private readonly readSoon: Debouncer<[Shown], void>;
 
   constructor(
     private readonly notes: MentionNotes,
     private readonly actions: LinkActions,
   ) {
-    this.readSoon = debounce((shown: Shown) => void this.read(shown), SETTLE_MS, true);
+    this.readSoon = debounce((shown: Shown) => this.startReading(shown), SETTLE_MS, true);
   }
 
   watch(): () => void {
@@ -66,13 +68,21 @@ export class MentionsPanel {
     if (shown === null || shown.file.path !== file.path) {
       const next = { file, parent, mentions: null, reading: false };
       this.shown = next;
-      void this.read(next);
+      this.startReading(next);
       return;
     }
     shown.file = file;
     shown.parent = parent;
     if (shown.mentions !== null) this.drawMentions(shown, shown.mentions);
-    else if (!shown.reading) void this.read(shown);
+    else if (!shown.reading) this.startReading(shown);
+  }
+
+  readSettled(): Promise<void> {
+    return this.reading.settled();
+  }
+
+  private startReading(shown: Shown): void {
+    this.reading.add(this.read(shown));
   }
 
   private readIfShown(path: string, orNowLinking: boolean): void {

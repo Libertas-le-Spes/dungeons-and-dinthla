@@ -8,6 +8,7 @@ import type { CharacterNotes } from "../reading/character-notes";
 import { ownCharacterFirst } from "../cards/own-character-first";
 import { learnedFactsOf, type LearnedFacts } from "../reading/learned-facts";
 import { readCharacterCard } from "../cards/read-character-card";
+import { PendingWork } from "../../views/drawing/pending-work";
 
 const NO_CHARACTERS = "No characters yet. Add one with New character.";
 
@@ -15,6 +16,7 @@ export class CharacterGallery {
   private renders = 0;
   private campaignNotes = new Set<string | null>();
   private createButton: HTMLButtonElement | null = null;
+  private readonly drawing = new PendingWork();
 
   constructor(
     private readonly root: HTMLElement,
@@ -28,7 +30,15 @@ export class CharacterGallery {
     return this.campaignNotes.has(path);
   }
 
-  async show(files: TFile[]): Promise<void> {
+  show(files: TFile[]): void {
+    this.drawing.add(this.drawFiles(files));
+  }
+
+  shown(): Promise<void> {
+    return this.drawing.settled();
+  }
+
+  private async drawFiles(files: TFile[]): Promise<void> {
     const render = ++this.renders;
     const folders = this.notes.campaignFolders();
     const learnedByFolder = new Map<string | null, Promise<LearnedFacts>>();

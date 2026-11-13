@@ -12,7 +12,7 @@ import {
   openEditCharacter,
   openNewCharacter,
 } from "../../../src/characters/editing/open-character";
-import { Notice, openedModals } from "../../stubs/obsidian";
+import { nextModal, Notice, openedModals } from "../../stubs/obsidian";
 import type { Gate } from "../../../src/fence/gate/gatekeeper";
 
 const CAMPAIGNS = ["Ashen Road", "Pale Moon"];
@@ -115,8 +115,10 @@ describe("editCharacter", () => {
   it("opens the dialog for a character's note", async () => {
     const { app, gate, notes, fileAt, read } = setUp();
     const before = openedModals.length;
+    const opened = nextModal();
     editCharacter(app, gate, notes, fileAt(MIRA));
-    await vi.waitFor(() => expect(openedModals.length).toBe(before + 1));
+    await opened;
+    expect(openedModals.length).toBe(before + 1);
     expect(read).toHaveBeenCalledOnce();
   });
 
@@ -154,10 +156,12 @@ describe("editActiveCharacter", () => {
   it("is offered on the sheet the campaign tab shows, and opens the dialog for that character", async () => {
     const { app, gate, notes, read } = setUp({ active: null, ownNote: "speed: 40 ft.\n" });
     const before = openedModals.length;
+    const opened = nextModal();
     expect(editActiveCharacter(app, gate, notes, () => MIRA, true)).toBe(true);
     expect(read).not.toHaveBeenCalled();
     expect(editActiveCharacter(app, gate, notes, () => MIRA, false)).toBe(true);
-    await vi.waitFor(() => expect(openedModals.length).toBe(before + 1));
+    await opened;
+    expect(openedModals.length).toBe(before + 1);
     expect(read).toHaveBeenCalledOnce();
     expect(openedModals[before]!.title).toBe("Edit character");
   });
@@ -203,8 +207,10 @@ describe("addEditCharacterItem", () => {
     expect(items.map(({ title, icon }) => [title, icon])).toEqual([["Edit character", "pencil"]]);
     expect(read).not.toHaveBeenCalled();
     const before = openedModals.length;
+    const opened = nextModal();
     items[0]!.click();
-    await vi.waitFor(() => expect(openedModals.length).toBe(before + 1));
+    await opened;
+    expect(openedModals.length).toBe(before + 1);
   });
 
   it("adds nothing to the menu of another note", () => {

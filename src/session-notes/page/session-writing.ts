@@ -40,8 +40,8 @@ export class SessionWriting {
     this.lines = new LinesList(root, needs.actions);
     this.buttons = new NotesButtons(this.lines.head, {
       editAll: () => this.openEditAll(),
-      clearNotes: () => void this.removal.clearNotes(),
-      deleteSession: () => void this.removal.deleteSession(),
+      clearNotes: () => this.removal.clearNotes(),
+      deleteSession: () => this.removal.deleteSession(),
     });
     this.editAll = new EditAllPanel(root, path, needs.wholeText, () => this.editAllLeft());
     this.removal = new SessionRemoval(path, { ...needs.removal, texts: needs.wholeText.texts, keptDrafts: needs.keptDrafts }, {
@@ -61,6 +61,24 @@ export class SessionWriting {
 
   focus(): void {
     this.writing.focus();
+  }
+
+  async settled(): Promise<void> {
+    await this.linesSaveSettled();
+    await this.editAllSettled();
+    await this.removalSettled();
+  }
+
+  linesSaveSettled(): Promise<void> {
+    return this.writing.saveSettled();
+  }
+
+  removalSettled(): Promise<void> {
+    return this.removal.settled();
+  }
+
+  editAllSettled(): Promise<void> {
+    return this.editAll.settled();
   }
 
   close(): void {

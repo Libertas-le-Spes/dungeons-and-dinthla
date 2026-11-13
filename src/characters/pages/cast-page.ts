@@ -32,6 +32,10 @@ export class CastPage extends Component {
     this.render();
   }
 
+  rendered(): Promise<void> {
+    return this.gallery.shown();
+  }
+
   private renderIfShown(path: string): void {
     if (this.shows(path)) this.render();
   }
@@ -45,9 +49,9 @@ export class CastPage extends Component {
   private render(): void {
     const folder = this.store.campaignFolder;
     if (folder === null) {
-      void this.gallery.show([]);
+      this.gallery.show([]);
       return;
     }
-    void this.gallery.show(this.notes.filesIn(folder));
+    this.gallery.show(this.notes.filesIn(folder));
   }
 }

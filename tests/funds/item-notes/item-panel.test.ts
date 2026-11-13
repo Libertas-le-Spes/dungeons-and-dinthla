@@ -40,8 +40,8 @@ async function openPanel(campaign: Campaign, story: string | null = STORY, path 
   document.body.append(root);
   const panel = new ItemPanel(root, path, needs);
   panel.load();
-  await vi.waitFor(() => expect(read).toHaveBeenCalledExactlyOnceWith(path));
-  await Promise.resolve();
+  await panel.storyRead();
+  expect(read).toHaveBeenCalledExactlyOnceWith(path);
   const change = (next: Campaign) => {
     store.current = next;
     campaignChanged();

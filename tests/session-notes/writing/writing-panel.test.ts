@@ -104,7 +104,8 @@ describe("WritingPanel", () => {
     const { panel, saveButton, type, writer, box, drafts, root } = panelWith({ save: async () => "?? letter" });
     type("? Who\n?? letter");
     saveButton.click();
-    await vi.waitFor(() => expect(box.value).toBe("?? letter"));
+    await panel.saveSettled();
+    expect(box.value).toBe("?? letter");
     expect(writer.save).toHaveBeenCalledExactlyOnceWith(PATH, "? Who\n?? letter");
     expect(drafts.textOf(PATH)).toBe("?? letter");
     expect(root.ownerDocument.activeElement).toBe(box);
@@ -114,17 +115,19 @@ describe("WritingPanel", () => {
   });
 
   it("saves with Ctrl + Enter and with Cmd + Enter, and not with Enter alone", async () => {
-    const { press, type, writer } = panelWith();
+    const { panel, press, type, writer } = panelWith();
     type("? Who");
     const plain = press("Enter");
     expect(plain.defaultPrevented).toBe(false);
     expect(writer.save).not.toHaveBeenCalled();
     const ctrl = press("Enter", { ctrlKey: true });
     expect(ctrl.defaultPrevented).toBe(true);
-    await vi.waitFor(() => expect(writer.save).toHaveBeenCalledOnce());
+    await panel.saveSettled();
+    expect(writer.save).toHaveBeenCalledOnce();
     type("! Ride to Thessaly");
     press("Enter", { metaKey: true });
-    await vi.waitFor(() => expect(writer.save).toHaveBeenCalledTimes(2));
+    await panel.saveSettled();
+    expect(writer.save).toHaveBeenCalledTimes(2);
     expect(writer.save).toHaveBeenLastCalledWith(PATH, "! Ride to Thessaly");
   });
 
@@ -132,11 +135,12 @@ describe("WritingPanel", () => {
     const save = async () => {
       throw new Error(`${PATH} was moved or deleted`);
     };
-    const { saveButton, type, box, drafts, root } = panelWith({ save });
+    const { panel, saveButton, type, box, drafts, root } = panelWith({ save });
     type("? Who\n! Ride to Thessaly");
     saveButton.click();
     const message = root.querySelector(".dd-save-message")!;
-    await vi.waitFor(() => expect(message.textContent).toBe(`Couldn't save: ${PATH} was moved or deleted. Your lines are still in the box.`));
+    await panel.saveSettled();
+    expect(message.textContent).toBe(`Couldn't save: ${PATH} was moved or deleted. Your lines are still in the box.`);
     expect(box.value).toBe("? Who\n! Ride to Thessaly");
     expect(drafts.textOf(PATH)).toBe("? Who\n! Ride to Thessaly");
     expect(box.readOnly).toBe(false);
@@ -145,7 +149,7 @@ describe("WritingPanel", () => {
 
   it("holds the box still while saving, and saves once however often Save is pressed", async () => {
     const { save, finish } = waitingSave();
-    const { saveButton, type, box, writer, press } = panelWith({ save });
+    const { panel, saveButton, type, box, writer, press } = panelWith({ save });
     type("? Who");
     saveButton.click();
     expect(box.readOnly).toBe(true);
@@ -153,7 +157,8 @@ describe("WritingPanel", () => {
     press("Enter", { ctrlKey: true });
     expect(writer.save).toHaveBeenCalledOnce();
     finish("");
-    await vi.waitFor(() => expect(box.readOnly).toBe(false));
+    await panel.saveSettled();
+    expect(box.readOnly).toBe(false);
   });
 
   it("suggests open questions holding every word typed on a ?? line, newest first, with the words marked", () => {
@@ -292,7 +297,7 @@ describe("WritingPanel", () => {
 
   it("closes the suggestions when saving, and opens none while the save runs", async () => {
     const { save, finish } = waitingSave();
-    const { type, press, lookups, box } = panelWith({ save });
+    const { panel, type, press, lookups, box } = panelWith({ save });
     type("? Why\n?? who");
     expect(isShown(lookups)).toBe(true);
     press("Enter", { ctrlKey: true });
@@ -300,20 +305,23 @@ describe("WritingPanel", () => {
     box.dispatchEvent(new box.ownerDocument.defaultView!.MouseEvent("click"));
     expect(isShown(lookups)).toBe(false);
     finish("?? who");
-    await vi.waitFor(() => expect(box.readOnly).toBe(false));
+    await panel.saveSettled();
+    expect(box.readOnly).toBe(false);
   });
 
   it("clears the message about a failed save once a save goes through", async () => {
     const { save, finish, fail } = waitingSave();
-    const { saveButton, type, root, box } = panelWith({ save });
+    const { panel, saveButton, type, root, box } = panelWith({ save });
     const message = root.querySelector(".dd-save-message")!;
     type("? Who");
     saveButton.click();
     fail(new Error(`${PATH} was moved or deleted`));
-    await vi.waitFor(() => expect(message.textContent).not.toBe(""));
+    await panel.saveSettled();
+    expect(message.textContent).not.toBe("");
     saveButton.click();
     finish("");
-    await vi.waitFor(() => expect(box.value).toBe(""));
+    await panel.saveSettled();
+    expect(box.value).toBe("");
     expect(message.textContent).toBe("");
   });
 
@@ -329,7 +337,8 @@ describe("WritingPanel", () => {
     await second.panel.save();
     expect(second.writer.save).not.toHaveBeenCalled();
     finish("?? letter");
-    await vi.waitFor(() => expect(second.box.value).toBe("?? letter"));
+    await first.panel.saveSettled();
+    expect(second.box.value).toBe("?? letter");
     expect(second.box.readOnly).toBe(false);
     expect(first.box.value).toBe("?? letter");
     expect(drafts.textOf(PATH)).toBe("?? letter");
@@ -347,7 +356,8 @@ describe("WritingPanel", () => {
     const second = panelWith({ drafts, save, path: renamed });
     expect(second.box.readOnly).toBe(true);
     finish("?? letter");
-    await vi.waitFor(() => expect(second.box.value).toBe("?? letter"));
+    await first.panel.saveSettled();
+    expect(second.box.value).toBe("?? letter");
     expect(drafts.textOf(renamed)).toBe("?? letter");
     expect(drafts.textOf(PATH)).toBe("");
     expect(first.writer.save).toHaveBeenCalledExactlyOnceWith(PATH, "? Who\n?? letter");
@@ -362,7 +372,8 @@ describe("WritingPanel", () => {
     open.saveButton.click();
     expect(closed.box.readOnly).toBe(false);
     finish("");
-    await vi.waitFor(() => expect(open.box.value).toBe(""));
+    await open.panel.saveSettled();
+    expect(open.box.value).toBe("");
     expect(closed.box.value).toBe("? Who");
   });
 

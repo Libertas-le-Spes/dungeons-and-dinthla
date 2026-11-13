@@ -55,6 +55,7 @@ export class ItemPanel extends Component {
   private facts!: HTMLElement;
   private story!: HTMLElement;
   private changeButton: HTMLButtonElement | null = null;
+  private reading: Promise<void> = Promise.resolve();
 
   constructor(
     private readonly panelEl: HTMLElement,
@@ -78,7 +79,11 @@ export class ItemPanel extends Component {
     this.register(this.needs.store.subscribe(() => this.showFacts()));
     this.register(this.needs.texts.onChanged((path, text) => this.noteChanged(path, text)));
     this.showFacts();
-    void this.readStory();
+    this.reading = this.readStory();
+  }
+
+  storyRead(): Promise<void> {
+    return this.reading;
   }
 
   private showFacts(): void {

@@ -135,6 +135,9 @@ async function openView({
       await view.setState(state, result);
     }),
   };
+  const navigated = async () => {
+    for (const result of leaf.setViewState.mock.results) await result.value;
+  };
   const vault = new FakeVault();
   const backdrops: FakeBackdrop[] = [];
   const view = new CampaignView(
@@ -156,7 +159,7 @@ async function openView({
     store.campaignFolder = nextFolder;
     listener();
   };
-  return { view, root, made, change, unsubscribe, requestSaveLayout, leaf, results, vault, followCampaign, backdrops };
+  return { view, root, made, change, unsubscribe, requestSaveLayout, leaf, navigated, results, vault, followCampaign, backdrops };
 }
 
 function linkLabelled(root: HTMLElement, label: string): HTMLElement {
@@ -218,16 +221,18 @@ describe("CampaignView", () => {
   });
 
   it("marks the current page on the link the bottom bar shows too", async () => {
-    const { root } = await openView();
+    const { navigated, root } = await openView();
     linkLabelled(root, "Label funds").click();
-    await vi.waitFor(() => expect(root.querySelector('.dd-nav-in-bar[aria-current="page"] .dd-nav-short')!.textContent).toBe("Short funds"));
+    await navigated();
+    expect(root.querySelector('.dd-nav-in-bar[aria-current="page"] .dd-nav-short')!.textContent).toBe("Short funds");
     expect(root.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
   });
 
   it("shows a page when its link is pressed, through Obsidian so it is kept in the history", async () => {
-    const { root, made, requestSaveLayout, leaf, results } = await openView();
+    const { navigated, root, made, requestSaveLayout, leaf, results } = await openView();
     linkLabelled(root, "Label funds").click();
-    await vi.waitFor(() => expect(made.map((page) => page.id)).toEqual(["home", "funds"]));
+    await navigated();
+    expect(made.map((page) => page.id)).toEqual(["home", "funds"]);
     expect(leaf.setViewState).toHaveBeenCalledExactlyOnceWith({ type: CAMPAIGN_VIEW, state: { page: "funds", path: null } });
     expect(results).toEqual([{ history: true }]);
     expect(made[0]!.loaded).toBe(false);
@@ -238,9 +243,10 @@ describe("CampaignView", () => {
   });
 
   it("leaves the page as it is, and the history alone, when its own link is pressed again", async () => {
-    const { root, made, results } = await openView();
+    const { navigated, root, made, results } = await openView();
     linkLabelled(root, "Label home").click();
-    await vi.waitFor(() => expect(results).toHaveLength(1));
+    await navigated();
+    expect(results).toHaveLength(1);
     expect(results).toEqual([{ history: false }]);
     expect(made).toHaveLength(1);
     expect(made[0]!.loaded).toBe(true);
@@ -444,18 +450,20 @@ describe("CampaignView", () => {
   });
 
   it("lets a page show another page or note in the same tab, through Obsidian", async () => {
-    const { root, made, leaf } = await openView();
+    const { navigated, root, made, leaf } = await openView();
     made[0]!.show({ page: "cast", path: MIRA });
-    await vi.waitFor(() => expect(made.map((page) => page.id)).toEqual(["home", "cast"]));
+    await navigated();
+    expect(made.map((page) => page.id)).toEqual(["home", "cast"]);
     expect(leaf.setViewState).toHaveBeenCalledExactlyOnceWith({ type: CAMPAIGN_VIEW, state: { page: "cast", path: MIRA } });
     expect(made[0]!.loaded).toBe(false);
     expect(pageText(root)).toBe(`page cast ${MIRA}`);
   });
 
   it("ignores a page asking for a page the tab doesn't have", async () => {
-    const { root, made, leaf } = await openView();
+    const { navigated, root, made, leaf } = await openView();
     made[0]!.show({ page: "quests", path: null });
-    await vi.waitFor(() => expect(leaf.setViewState).toHaveBeenCalledOnce());
+    await navigated();
+    expect(leaf.setViewState).toHaveBeenCalledOnce();
     expect(made).toHaveLength(1);
     expect(pageText(root)).toBe("page home null");
   });

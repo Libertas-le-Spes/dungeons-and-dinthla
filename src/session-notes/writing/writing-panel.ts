@@ -11,6 +11,7 @@ import { hasLinesToSave } from "../drafts/draft-lines";
 import type { Drafts } from "../drafts/drafts";
 import { EditAllReminder } from "./edit-all-reminder";
 import { LookupList } from "./lookup-list";
+import { PendingWork } from "../../views/drawing/pending-work";
 
 export interface WritingNeeds {
   drafts: Drafts;
@@ -29,6 +30,7 @@ export class WritingPanel {
   private readonly lookup: BoxLookup;
   private readonly reminder: EditAllReminder;
   private readonly stopListening: () => void;
+  private readonly saving = new PendingWork();
 
   constructor(
     parent: HTMLElement,
@@ -37,7 +39,7 @@ export class WritingPanel {
   ) {
     this.panel = parent.createEl("section", { cls: "dd-notes-panel dd-writing-panel" });
     this.reminder = new EditAllReminder(this.panel);
-    this.box = new DraftBox(this.panel, needs.drafts.textOf(sessionPath), () => void this.save());
+    this.box = new DraftBox(this.panel, needs.drafts.textOf(sessionPath), () => this.saving.add(this.save()));
     const list = new LookupList(this.box.lookups, (match) => this.pick(match));
     this.lookup = new BoxLookup(this.box.textarea, list, needs.campaign);
     this.box.textarea.addEventListener("keydown", (event) => this.lookup.keyDown(event));
@@ -55,6 +57,10 @@ export class WritingPanel {
 
   focus(): void {
     this.box.focus();
+  }
+
+  saveSettled(): Promise<void> {
+    return this.saving.settled();
   }
 
   close(): void {
