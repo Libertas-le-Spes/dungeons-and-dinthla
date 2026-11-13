@@ -65,8 +65,19 @@ function placesIn(bytes: Buffer): number[] {
   return places;
 }
 
-function cutsBefore(shape: string, bytes: Buffer): { shape: string; bytes: Buffer; length: number }[] {
-  const cuts: { shape: string; bytes: Buffer; length: number }[] = [];
+interface Cut {
+  shape: string;
+  bytes: Buffer;
+  length: number;
+}
+
+interface RandomFile {
+  round: number;
+  bytes: Buffer;
+}
+
+function cutsBefore(shape: string, bytes: Buffer): Cut[] {
+  const cuts: Cut[] = [];
   for (let length = 0; length < endOfStartxref(bytes); length += 1) cuts.push({ shape, bytes, length });
   return cuts;
 }
@@ -77,16 +88,16 @@ function randomBytes(source: SeededBytes, length: number): Buffer {
   return bytes;
 }
 
-function notPdfFiles(): { round: number; bytes: Buffer }[] {
+function notPdfFiles(): RandomFile[] {
   const source = new SeededBytes(7);
-  const files: { round: number; bytes: Buffer }[] = [];
+  const files: RandomFile[] = [];
   for (let round = 0; round < RANDOM_ROUNDS; round += 1) files.push({ round, bytes: randomBytes(source, source.next() * 8) });
   return files;
 }
 
-function pdfLookingFiles(): { round: number; bytes: Buffer }[] {
+function pdfLookingFiles(): RandomFile[] {
   const source = new SeededBytes(11);
-  const files: { round: number; bytes: Buffer }[] = [];
+  const files: RandomFile[] = [];
   for (let round = 0; round < RANDOM_ROUNDS; round += 1) {
     const body = randomBytes(source, source.next() * 4);
     const whole = Buffer.concat([Buffer.from("%PDF-1.7\n", "latin1"), body, Buffer.from("\nstartxref\n9\n%%EOF", "latin1")]);
