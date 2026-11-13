@@ -56,7 +56,7 @@ describe("which value the sheet shows", () => {
   });
 
   it("says not known for an imported ?, and keeps it imported in its own place", () => {
-    expect(armourClass([learned("12")], [imported("?")], [], null)).toMatchObject({ state: "unknown", shown: { value: "?" } });
+    expect(armourClass([learned("12")], [imported("?")], [], null)).toMatchObject({ state: "unknown", shown: { value: "?" }, imported: { value: "?" } });
   });
 
   it("keeps an override of ? as the override", () => {

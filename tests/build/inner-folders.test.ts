@@ -34,7 +34,8 @@ const INNER_FOLDERS: InnerFolder[] = [
   { folder: "imports/layout", reaches: ["imports/layout"] },
   { folder: "characters/facts", reaches: ["characters/facts", "campaign", "notes"] },
   { folder: "characters/imported", reaches: ["characters/imported", "characters/facts", "imports/layout", "campaign", "kinds", "views", "notes"] },
-  { folder: "imports", reaches: ["imports", "imports/layout", "beyond", "names", "fence/gate", "campaign", "views"] },
+  { folder: "views/dialogs", reaches: ["views/dialogs", "campaign", "kind-notes"] },
+  { folder: "imports", reaches: ["imports", "imports/layout", "beyond", "names", "fence/gate", "campaign", "views/dialogs"] },
 ];
 
 const BEYOND_IMPORTERS: string[] = ["imports"];
@@ -416,6 +417,16 @@ describe("the inner folders of src/characters, over made-up files", () => {
 
   it("refuses an import from the facts folder back into the sheet's reading", () => {
     expect(breachesOfMadeUpFile("characters/facts", 'import { a } from "../reading/sheet-values";')).toEqual(["characters/facts/made-up.ts imports from characters"]);
+  });
+});
+
+describe("what src/imports may take from src/views, over made-up files", () => {
+  it("lets the import dialog build on the shared dialogs", () => {
+    expect(breachesOfMadeUpFileInside("imports", "dialog", 'import { a } from "../../views/dialogs/change-dialog";')).toEqual([]);
+  });
+
+  it("refuses any other part of src/views", () => {
+    expect(breachesOfMadeUpFileInside("imports", "dialog", 'import { a } from "../../views/lists/row-keys";')).toEqual(["imports/dialog/made-up.ts imports from views"]);
   });
 });
 

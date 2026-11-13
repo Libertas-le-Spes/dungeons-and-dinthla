@@ -517,54 +517,97 @@ describe("CharacterSheetPage", () => {
   });
 });
 
-describe("CharacterSheetPage for an imported character", () => {
-  const IMPORTED = [
-    "---",
-    "imported-from: online",
-    "AC: 16",
-    "HP: 14",
-    "---",
-    "## Numbers (from D&D Beyond)",
-    "- AC · 16 · 10 + DEX 4 + WIS 2 · Worked out here",
-    "- HP · 14 · Worked out here",
-    "",
-  ].join("\n");
+function textIn(parent: Element, selector: string): string | null {
+  const found = parent.querySelector(selector);
+  if (found === null) throw new Error(`Nothing matches ${selector}.`);
+  return found.textContent;
+}
 
+function buttonsSaying(root: HTMLElement, words: string): HTMLButtonElement[] {
+  const found: HTMLButtonElement[] = [];
+  for (const button of root.querySelectorAll<HTMLButtonElement>("button")) {
+    if (button.textContent === words) found.push(button);
+  }
+  return found;
+}
+
+function buttonWords(root: HTMLElement): (string | null)[] {
+  const words: (string | null)[] = [];
+  for (const button of root.querySelectorAll("button")) words.push(button.textContent);
+  return words;
+}
+
+const IMPORTED = [
+  "---",
+  "imported-from: online",
+  "AC: 16",
+  "HP: 14",
+  "---",
+  "## Numbers (from D&D Beyond)",
+  "- AC · 16 · 10 + DEX 4 + WIS 2 · Worked out here",
+  "- HP · 14 · Worked out here",
+  "",
+].join("\n");
+
+describe("CharacterSheetPage for an imported character", () => {
   it("shows the route under an imported value, and its working when it has one", async () => {
     const { load, rowOf } = openSheet({ texts: { [MIRA.path]: IMPORTED } });
     await load();
     const armour = rowOf("Armor Class");
-    expect(armour.querySelector(".dd-value")!.textContent).toBe("16");
-    expect(armour.querySelector(".dd-value-source")!.textContent).toBe("From D&D Beyond");
-    expect(armour.querySelector(".dd-value-working")!.textContent).toBe("10 + DEX 4 + WIS 2");
-    expect(armour.querySelector(".dd-value-route")!.textContent).toBe("Worked out here, from D&D Beyond (online)");
+    expect(textIn(armour, ".dd-value")).toBe("16");
+    expect(textIn(armour, ".dd-value-source")).toBe("From D&D Beyond");
+    expect(textIn(armour, ".dd-value-working")).toBe("10 + DEX 4 + WIS 2");
+    expect(textIn(armour, ".dd-value-route")).toBe("Worked out here, from D&D Beyond (online)");
     expect(rowOf("Hit Points").querySelector(".dd-value-working")).toBeNull();
+  });
+
+  it("gives an imported value the imported look", async () => {
+    const { load, rowOf } = openSheet({ texts: { [MIRA.path]: IMPORTED } });
+    await load();
+    expect(rowOf("Armor Class").querySelector(".dd-value.dd-state-imported")).not.toBeNull();
   });
 
   it("shows no route under a value his own note overrides", async () => {
     const { load, rowOf } = openSheet({ texts: { [MIRA.path]: IMPORTED.replace("## Numbers", "AC: 18\n## Numbers") } });
     await load();
-    expect(rowOf("Armor Class").querySelector(".dd-value")!.textContent).toBe("18");
+    expect(textIn(rowOf("Armor Class"), ".dd-value")).toBe("18");
     expect(rowOf("Armor Class").querySelector(".dd-value-route")).toBeNull();
   });
 
   it("offers Update from D&D Beyond, which asks once for this character's update", async () => {
     const { load, root, actions } = openSheet({ texts: { [MIRA.path]: IMPORTED } });
     await load();
-    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>("button")).filter((button) => button.textContent === "Update from D&D Beyond");
+    const buttons = buttonsSaying(root, "Update from D&D Beyond");
     expect(buttons).toHaveLength(1);
-    buttons[0]!.click();
+    for (const button of buttons) button.click();
     expect(actions.updateFromBeyond).toHaveBeenCalledOnce();
     const [[asked, returnFocus]] = vi.mocked(actions.updateFromBeyond).mock.calls as [[TFile, () => void]];
     expect(asked).toBe(MIRA);
     returnFocus();
-    expect(root.ownerDocument.activeElement).toBe(buttons[0]);
+    expect(buttons).toContain(root.ownerDocument.activeElement);
   });
 
   it("offers no update on a sheet nothing was imported into", async () => {
     const { load, root } = openSheet({ texts: { [MIRA.path]: "AC: 16\n" } });
     await load();
-    const labels = Array.from(root.querySelectorAll("button")).map((button) => button.textContent);
-    expect(labels).not.toContain("Update from D&D Beyond");
+    expect(buttonWords(root)).not.toContain("Update from D&D Beyond");
+  });
+
+  it("puts its buttons together in one row of actions beside the name", async () => {
+    const { load, root } = openSheet({ texts: { [MIRA.path]: IMPORTED } });
+    await load();
+    const actions = root.querySelector(".dd-head .dd-head-actions");
+    if (actions === null) throw new Error("The head has no actions row.");
+    expect(buttonWords(actions as HTMLElement)).toEqual(["Edit character", "Update from D&D Beyond"]);
+  });
+});
+
+describe("CharacterSheetPage carrying values from an imported note in another campaign", () => {
+  it("shows the imported value of the earlier campaign as carried over", async () => {
+    const { load, rowOf } = openSheet({ texts: { [MIRA.path]: "", [OLD_MIRA]: IMPORTED }, carriedFrom: { path: OLD_MIRA, groups: ["values"] } });
+    await load();
+    const armour = rowOf("Armor Class");
+    expect(textIn(armour, ".dd-value")).toBe("16");
+    expect(textIn(armour, ".dd-value-source")).toBe("Carried from Ashen Road");
   });
 });

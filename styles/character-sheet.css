@@ -116,6 +116,11 @@
   color: var(--state-override);
 }
 
+.dd-sheet .dd-value.dd-state-imported {
+  background: var(--state-imported-soft);
+  color: var(--state-imported);
+}
+
 .dd-sheet .dd-value.dd-state-carried {
   background: var(--state-carried-soft);
   color: var(--state-carried);
@@ -207,6 +212,10 @@
 
 .dd-sheet-dialog .dd-state-choice[data-state="override"]::before {
   background: var(--state-override);
+}
+
+.dd-sheet-dialog .dd-state-choice[data-state="imported"]::before {
+  background: var(--state-imported);
 }
 
 .dd-sheet-dialog .dd-state-choice[data-state="carried"]::before {
