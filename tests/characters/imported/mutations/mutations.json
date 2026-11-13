@@ -28,13 +28,6 @@
   "group": "lists"
  },
  {
-  "id": "counts: two parts needed",
-  "file": "src/characters/imported/lists/left-out-counts.ts",
-  "find": "  if (between === -1) return null;\n",
-  "replace": "",
-  "group": "lists"
- },
- {
   "id": "words: too long said",
   "file": "src/characters/imported/lists/left-out-words.ts",
   "find": "  if (counts.tooLong > 0) parts.push",
@@ -429,49 +422,7 @@
  {
   "id": "refusal: already on the page",
   "file": "src/funds/tracking/tracking-refusal.ts",
-  "find": "  if (itemOf(before, tracked) !== null) return ALREADY_ON_FUNDS_PAGE;\n",
-  "replace": "",
-  "group": "tracking"
- },
- {
-  "id": "refusal: read as the item",
-  "file": "src/funds/tracking/tracking-refusal.ts",
-  "find": "  if (added === null || isHeldBy(added, tracked) === false) return NOT_READ_AS_THE_ITEM;\n",
-  "replace": "",
-  "group": "tracking"
- },
- {
-  "id": "refusal: purse unchanged",
-  "file": "src/funds/tracking/tracking-refusal.ts",
-  "find": "if (after.purseCopper !== before.purseCopper || after.coins.length !== before.coins.length) return false;",
-  "replace": "if (after.coins.length !== before.coins.length) return false;",
-  "group": "tracking"
- },
- {
-  "id": "refusal: coins unchanged",
-  "file": "src/funds/tracking/tracking-refusal.ts",
-  "find": "if (after.purseCopper !== before.purseCopper || after.coins.length !== before.coins.length) return false;",
-  "replace": "if (after.purseCopper !== before.purseCopper) return false;",
-  "group": "tracking"
- },
- {
-  "id": "refusal: others unchanged",
-  "file": "src/funds/tracking/tracking-refusal.ts",
-  "find": "  if (sameOtherwise(before, after, tracked) === false) return NOT_READ_AS_THE_ITEM;\n",
-  "replace": "",
-  "group": "tracking"
- },
- {
-  "id": "refusal: held by him",
-  "file": "src/funds/tracking/tracking-refusal.ts",
-  "find": "return holderNameOf(item.holder).toLowerCase() === tracked.holderName.toLowerCase();",
-  "replace": "return true;",
-  "group": "tracking"
- },
- {
-  "id": "refusal: lines as read",
-  "file": "src/funds/tracking/tracking-refusal.ts",
-  "find": "  if (changed.linesAsRead === false) return NOT_READ_AS_THE_ITEM;\n",
+  "find": "  if (isOnThePage(before, tracked)) return ALREADY_ON_FUNDS_PAGE;\n",
   "replace": "",
   "group": "tracking"
  },
@@ -487,6 +438,55 @@
   "file": "src/funds/tracking/track-item-modal.ts",
   "find": "this.runChange(this.saving.save.bind(this.saving), COULD_NOT_TRACK);",
   "replace": "this.close();",
+  "group": "tracking"
+ },
+ {
+  "id": "refusal: the whole campaign compared",
+  "file": "src/funds/tracking/tracking-refusal.ts",
+  "find": "  if (JSON.stringify(wanted) !== JSON.stringify(signaturesOf(after).sort())) return NOT_READ_AS_THE_ITEM;\n",
+  "replace": "",
+  "group": "tracking"
+ },
+ {
+  "id": "refusal: held, not gone",
+  "file": "src/funds/tracking/tracking-refusal.ts",
+  "find": "const HELD = \"held\";",
+  "replace": "const HELD = \"lost\";",
+  "group": "tracking"
+ },
+ {
+  "id": "refusal: linked holder",
+  "file": "src/funds/tracking/tracking-refusal.ts",
+  "find": "tracked.holderName.toLowerCase(), true, HELD]",
+  "replace": "tracked.holderName.toLowerCase(), false, HELD]",
+  "group": "tracking"
+ },
+ {
+  "id": "refusal: his name",
+  "file": "src/funds/tracking/tracking-refusal.ts",
+  "find": "tracked.holderName.toLowerCase(), true, HELD]",
+  "replace": "holderNameOf(\"\"), true, HELD]",
+  "group": "tracking"
+ },
+ {
+  "id": "refusal: the name as written",
+  "file": "src/funds/tracking/tracking-refusal.ts",
+  "find": "JSON.stringify([tracked.key, tracked.written,",
+  "replace": "JSON.stringify([tracked.key, \"Rope\",",
+  "group": "tracking"
+ },
+ {
+  "id": "refusal: other items compared",
+  "file": "src/funds/tracking/tracking-refusal.ts",
+  "find": "const wanted = [...signaturesOf(before), expectedSignatureOf(tracked)].sort();",
+  "replace": "const wanted = [...signaturesOf(after)].sort();",
+  "group": "tracking"
+ },
+ {
+  "id": "refusal: on the page by key",
+  "file": "src/funds/tracking/tracking-refusal.ts",
+  "find": "if (itemKeyOf(item.name) === tracked.key) return true;",
+  "replace": "if (item.name === tracked.written) return true;",
   "group": "tracking"
  }
 ]

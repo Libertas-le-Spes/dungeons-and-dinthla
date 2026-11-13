@@ -8,6 +8,7 @@ export function madeUpFile(path: string): TFile {
 
 export class FakePurseNotes implements OwnPurseNotes {
   readonly reads: string[] = [];
+  readonly foldersAsked: string[] = [];
   private readonly listeners: ((path: string) => void)[] = [];
   private failure: Error | null = null;
 
@@ -17,6 +18,7 @@ export class FakePurseNotes implements OwnPurseNotes {
   ) {}
 
   filesIn(campaignFolder: string): TFile[] {
+    this.foldersAsked.push(campaignFolder);
     const files: TFile[] = [];
     for (const path of this.texts.keys()) {
       if (path.startsWith(`${campaignFolder}/`)) files.push(madeUpFile(path));

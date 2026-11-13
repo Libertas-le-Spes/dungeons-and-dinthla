@@ -198,3 +198,12 @@ describe("the purse panel", () => {
     expect(textsIn(panelTitled(drawn(empty, new RecordingTracking(null)), "Purse"), ".dd-coins .dd-empty")).toEqual([NO_COIN]);
   });
 });
+
+describe("the inventory panel and the note's escapes", () => {
+  it("asks the funds page by the text as the note holds it, escapes and all", () => {
+    const tracking = new RecordingTracking(lookWith([], []));
+    drawn(textOf("---", "imported-from: pdf", "---", "## Inventory (from D&D Beyond)", "- Rope\\_coil × 2", ""), tracking);
+    expect(tracking.looks).toEqual([{ path: PRIMARY.path, written: ["Rope\\_coil"] }]);
+  });
+});
+

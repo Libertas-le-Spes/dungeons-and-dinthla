@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { couldNotReadPurses, OwnPursePanel, purseTitleOf } from "../../../../src/characters/imported/purse/own-purse-panel";
 import { NOT_IN_THE_PARTY_PURSE } from "../../../../src/characters/imported/purse/coin-chips";
-import { obsidianDocument } from "../../../stubs/obsidian-dom";
+import { isShown, obsidianDocument } from "../../../stubs/obsidian-dom";
 import { textOf } from "../../../imports/builders/line-helpers";
 import { FakePurseNotes } from "../builders/fake-purse-notes";
 
@@ -50,6 +50,10 @@ function lookedFor(panelEl: HTMLElement, selector: string): () => void {
   };
 }
 
+function soon(resolve: (value: unknown) => void): void {
+  setTimeout(resolve, 0);
+}
+
 afterEach(() => {
   obsidianDocument().body.replaceChildren();
 });
@@ -65,13 +69,22 @@ describe("his purse beside the party purse", () => {
     expect(textsIn(panelEl, ".dd-note")).toEqual([NOT_IN_THE_PARTY_PURSE]);
   });
 
-  it("shows nothing for his own character when nothing was imported into it", async () => {
+  it("shows nothing, and hides its panel, for his own character when nothing was imported into it", async () => {
     const notes = new FakePurseNotes(new Map([[PRIMARY, "Notes of mine.\n"]]), [PRIMARY]);
     const panelEl = shownPanel(notes);
     await vi.waitFor(function read(): void {
       expect(notes.reads).toEqual([PRIMARY]);
     });
+    await new Promise(soon);
     expect(panelEl.children).toHaveLength(0);
+    expect(isShown(panelEl)).toBe(false);
+  });
+
+  it("shows its panel when there is a purse to show", async () => {
+    const notes = new FakePurseNotes(new Map([[PRIMARY, importedWithGold("25")]]), [PRIMARY]);
+    const panelEl = shownPanel(notes);
+    await vi.waitFor(lookedFor(panelEl, ".dd-own-purse"));
+    expect(isShown(panelEl)).toBe(true);
   });
 
   it("reads no one's note but his own characters'", async () => {
@@ -100,8 +113,9 @@ describe("his purse beside the party purse", () => {
     store.campaignFolder = null;
     const notes = new FakePurseNotes(new Map([[PRIMARY, importedWithGold("25")]]), [PRIMARY]);
     const panelEl = shownPanel(notes, store);
-    await Promise.resolve();
+    await new Promise(soon);
     expect(panelEl.children).toHaveLength(0);
+    expect(notes.foldersAsked).toEqual([]);
     expect(notes.reads).toEqual([]);
   });
 
