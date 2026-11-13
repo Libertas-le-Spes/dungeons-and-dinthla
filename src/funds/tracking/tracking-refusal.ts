@@ -6,6 +6,7 @@ import { storedItemKeyOf } from "../../characters/imported/lists/item-key";
 import { holderNameOf } from "../items/item-groups";
 import { statusOf } from "../items/item-plan";
 import type { TrackedItem } from "./tracked-item";
+import { leftAsTheyWere, withoutOne } from "./left-as-they-were";
 
 export const ALREADY_ON_FUNDS_PAGE = "That item is already held on the funds page, so nothing was written.";
 export const NOT_READ_AS_THE_ITEM = "That line wouldn't be read as this one item, held by this character, so nothing was written.";
@@ -43,24 +44,6 @@ function isHeldOnThePage(campaign: Campaign, key: string): boolean {
 
 function sameSignatures(first: string[], second: string[]): boolean {
   return JSON.stringify([...first].sort()) === JSON.stringify([...second].sort());
-}
-
-function withoutOne(signatures: readonly string[], unwanted: string): string[] | null {
-  const position = signatures.indexOf(unwanted);
-  if (position === -1) return null;
-  const left = [...signatures];
-  left.splice(position, 1);
-  return left;
-}
-
-function leftAsTheyWere(left: readonly string[], before: readonly string[]): boolean {
-  let unmatched: string[] | null = [...before];
-  for (const signature of left) {
-    if (unmatched === null) return false;
-    unmatched = withoutOne(unmatched, signature);
-  }
-  if (unmatched === null) return false;
-  return unmatched.length <= 1;
 }
 
 function addsOnlyTheItem(before: KeySplit, after: KeySplit, tracked: TrackedItem): boolean {

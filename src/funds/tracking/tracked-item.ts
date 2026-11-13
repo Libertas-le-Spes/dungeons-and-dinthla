@@ -1,4 +1,4 @@
-import { itemKeyOf } from "../../characters/imported/lists/item-key";
+import { storedItemKeyOf } from "../../characters/imported/lists/item-key";
 
 export interface TrackedItem {
   readonly line: string;
@@ -12,5 +12,5 @@ export function trackedLineOf(holderText: string, written: string): string {
 }
 
 export function trackedItemOf(holderText: string, written: string, holderName: string): TrackedItem {
-  return { line: trackedLineOf(holderText, written), written, key: itemKeyOf(written), holderName };
+  return { line: trackedLineOf(holderText, written), written, key: storedItemKeyOf(written), holderName };
 }

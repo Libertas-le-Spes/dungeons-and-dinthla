@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { App, TFile } from "obsidian";
-import { FundsTracking, ITEM_GONE, NO_SESSION, NOT_AS_IMPORTED, NOT_IN_A_CAMPAIGN, NOT_THE_SHOWN_CAMPAIGN } from "../../../src/funds/tracking/funds-tracking";
-import { heldByWords } from "../../../src/funds/tracking/items-look";
+import { FundsTracking, ITEM_GONE, NO_SESSION, NOT_AS_IMPORTED, NOT_IN_A_CAMPAIGN, NOT_INERT_ON_PAGE, NOT_THE_SHOWN_CAMPAIGN } from "../../../src/funds/tracking/funds-tracking";
+import { heldByNamesakeWords, heldByWords } from "../../../src/funds/tracking/items-look";
 import { SESSIONS_SHARE_A_NUMBER } from "../../../src/campaign/paths/session-to-write";
 import { sessionGoneWords } from "../../../src/campaign/paths/session-gone";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
@@ -22,7 +22,7 @@ const PEOPLE_PRIMARY = "People/Primary Monk.md";
 const app = {} as App;
 
 interface TrackShownDialog {
-  shown: { name: string; holder: string; writesTo: string };
+  shown: { name: string; holder: string; writesTo: string; line: string };
   saving: { save(): Promise<boolean> };
 }
 
@@ -73,7 +73,7 @@ describe("Track on the funds page", () => {
     trackingIn(campaign).track(PRIMARY, "Rope", noFocus);
     const dialog = lastDialog<TrackShownDialog>();
     expect(dialog).toBeInstanceOf(TrackItemModal);
-    expect(dialog.shown).toEqual({ name: "Rope", holder: "Primary Monk", writesTo: "Session 2" });
+    expect(dialog.shown).toEqual({ name: "Rope", holder: "Primary Monk", writesTo: "Session 2", line: "$ [[Primary Monk]] Rope" });
   });
 
   it("adds one $ line for the item, held by him, and nothing else", async () => {
@@ -154,8 +154,43 @@ describe("Track on the funds page", () => {
     expect(itemsHeldBy(campaign, "Primary Monk")).toEqual(["Rope"]);
   });
 
-  it("doesn't add an item typed at the table again under the name the import escaped", async () => {
-    const campaign = new DialogCampaign({ [ONE]: "$ [[Primary Monk]] Rope (50 ft) *silk*\n" });
+  it("refuses to track again a sold item the table wrote with active text, writing nothing and opening no dialog", () => {
+    const campaign = new DialogCampaign({ [ONE]: "$ [[Secondary]] Rope (50 ft) *silk*\n$$ Rope (50 ft) *silk* :sold\n" });
+    trackingIn(campaign).track(PRIMARY, "Rope (50 ft) \\*silk\\*", noFocus);
+    expect(Notice.shown).toEqual([NOT_INERT_ON_PAGE]);
+    expect(openedModals).toHaveLength(0);
+    expect(campaign.writes).toBe(0);
+  });
+
+  it("refuses to track again a sold item the table tagged, though the import's line is inert", () => {
+    const campaign = new DialogCampaign({ [ONE]: "$ [[Secondary]] Rope #loot\n$$ Rope #loot :sold\n" });
+    trackingIn(campaign).track(PRIMARY, "Rope \\#loot", noFocus);
+    expect(Notice.shown).toEqual([NOT_INERT_ON_PAGE]);
+    expect(openedModals).toHaveLength(0);
+  });
+
+  it("tracks again a sold item the table wrote as the import would, showing the line it writes", async () => {
+    const campaign = new DialogCampaign({ [ONE]: "$ [[Secondary]] Rope (50 ft) \\*silk\\*\n$$ Rope (50 ft) \\*silk\\* :sold\n" });
+    trackingIn(campaign).track(PRIMARY, "Rope (50 ft) \\*silk\\*", noFocus);
+    expect(lastDialog<TrackShownDialog>().shown.line).toBe("$ [[Primary Monk]] Rope (50 ft) \\*silk\\*");
+    expect(await lastDialog<TrackShownDialog>().saving.save()).toBe(true);
+    campaign.readAgain();
+    expect(campaign.current.items).toHaveLength(1);
+  });
+
+  it("tracks again a sold item the table linked under its link, so the funds page keeps one item", async () => {
+    const campaign = new DialogCampaign({ [ONE]: "$ [[Secondary]] [[Rope]]\n$$ Rope :sold\n" });
+    trackingIn(campaign).track(PRIMARY, "Rope", noFocus);
+    expect(lastDialog<TrackShownDialog>().shown.line).toBe("$ [[Primary Monk]] [[Rope]]");
+    expect(await lastDialog<TrackShownDialog>().saving.save()).toBe(true);
+    expect(campaign.texts.get(ONE)).toBe("$ [[Secondary]] [[Rope]]\n$$ Rope :sold\n$ [[Primary Monk]] [[Rope]]\n");
+    campaign.readAgain();
+    expect(campaign.current.items).toHaveLength(1);
+    expect(itemsHeldBy(campaign, "Primary Monk")).toEqual(["Rope"]);
+  });
+
+  it("doesn't add an item held at the table again under the name the import escaped", async () => {
+    const campaign = new DialogCampaign({ [ONE]: "$ [[Primary Monk]] Rope (50 ft) \\*silk\\*\n" });
     trackingIn(campaign).track(PRIMARY, "Rope (50 ft) \\*silk\\*", noFocus);
     await expect(lastDialog<TrackShownDialog>().saving.save()).rejects.toThrow(ALREADY_ON_FUNDS_PAGE);
     expect(campaign.writes).toBe(0);
@@ -219,6 +254,21 @@ describe("what the funds page says about an imported list", () => {
     expect(look.standingOf("Rope")).toBe(heldByWords("Secondary"));
     expect(heldByWords("Secondary")).toBe("Held by Secondary, on the funds page");
     expect(look.canTrack("Rope")).toBe(false);
+  });
+
+  it("says an item is held by another note of the character's name, not by him, and offers no tracking for it", () => {
+    const campaign = new DialogCampaign({ [ONE]: "$ [[People/primary monk]] Cloak\n$ Lantern\n$$ Lantern :changed to Primary Monk\n" });
+    campaign.addCharacterNote(PEOPLE_PRIMARY);
+    const look = lookOf(campaign, ["Cloak", "Lantern"]);
+    expect(look.standingOf("Cloak")).toBe(heldByNamesakeWords("primary monk"));
+    expect(heldByNamesakeWords("Primary Monk")).toBe("Held by another note named Primary Monk, on the funds page");
+    expect(look.canTrack("Cloak")).toBe(false);
+    expect(look.standingOf("Lantern")).toBe(heldByWords("Primary Monk"));
+  });
+
+  it("says plainly who holds an item when the holder's link of the character's name leads to no note", () => {
+    const look = lookOf(new DialogCampaign({ [ONE]: "$ [[People/Primary Monk]] Cloak\n" }), ["Cloak"]);
+    expect(look.standingOf("Cloak")).toBe(heldByWords("Primary Monk"));
   });
 
   it("offers tracking again for an item gone from the funds page, saying how it went", () => {
@@ -291,7 +341,7 @@ describe("the track dialog", () => {
     expect(titleOf(dialog)).toBe(TRACK_TITLE);
     const texts: (string | null)[] = [];
     for (const line of dialog.contentEl.querySelectorAll("p")) texts.push(line.textContent);
-    expect(texts).toEqual(["Rope", "Held by Primary Monk", "Adds a line to Session 1."]);
+    expect(texts).toEqual(["Rope", "Held by Primary Monk", "Adds this line to Session 1:", "$ [[Primary Monk]] Rope"]);
   });
 });
 

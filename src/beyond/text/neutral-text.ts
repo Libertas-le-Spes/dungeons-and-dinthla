@@ -1,11 +1,9 @@
 import type { CleanLine } from "./clean-line";
 import { cleanTextOf, NEW_LINE } from "./clean-text";
-import { withEscapedCharacters } from "../../imports/layout/character-escapes";
-import { withoutFactStart, withoutListNumberStart, withoutMarkerStart } from "./line-start-guard";
+import { guardedLineOf } from "../../imports/layout/guarded-line";
 
 function neutralLineOf(line: string): string {
-  const escaped = withEscapedCharacters(line.trim());
-  return withoutMarkerStart(withoutListNumberStart(withoutFactStart(escaped)));
+  return guardedLineOf(line.trim());
 }
 
 function neutralLinesOf(text: string): string {
