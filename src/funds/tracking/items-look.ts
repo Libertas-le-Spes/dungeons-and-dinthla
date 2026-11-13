@@ -79,7 +79,10 @@ export class ItemsLook implements FundsLook {
 
   private isNamesake(item: ItemRecord, holderName: string): boolean {
     if (item.holderLinked === false) return false;
-    return holderName.toLowerCase() === this.file.basename.toLowerCase();
+    if (holderName.toLowerCase() !== this.file.basename.toLowerCase()) return false;
+    const path = this.holders.pathOf(item.holder, lastSourcePathOf(item));
+    if (path === null) return false;
+    return path !== this.file.path;
   }
 
   private heldItemWith(key: string): ItemRecord | null {
