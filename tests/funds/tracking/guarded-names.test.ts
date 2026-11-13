@@ -68,11 +68,10 @@ function trackButtonsIn(root: Element): HTMLButtonElement[] {
   return found;
 }
 
-function onlyTrackButtonIn(root: Element): HTMLButtonElement {
-  const [button, ...others] = trackButtonsIn(root);
-  if (button === undefined) throw new Error("There is no Track button.");
-  if (others.length > 0) throw new Error("There is more than one Track button.");
-  return button;
+function pressTrackIn(root: Element): void {
+  const buttons = trackButtonsIn(root);
+  expect(buttons).toHaveLength(1);
+  for (const button of buttons) button.click();
 }
 
 function shownNamesOf(campaign: DialogCampaign): string[] {
@@ -95,7 +94,7 @@ describe("an inventory name the import guarded at the start of its line", () => 
     const sheet = new TrackedSheet(name);
     const before = sheet.drawn();
     expect(textsIn(before, ".dd-panel-line > .dd-text")).toEqual([name]);
-    onlyTrackButtonIn(before).click();
+    pressTrackIn(before);
     expect(await lastDialog<TrackSaving>().saving.save()).toBe(true);
     expect(sheet.campaign.texts.get(ONE)).toBe(`We camped.\n$ [[Primary Monk]] ${neutralPartOf(name)}\n`);
     sheet.campaign.readAgain();
