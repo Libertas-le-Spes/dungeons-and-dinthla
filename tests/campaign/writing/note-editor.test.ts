@@ -123,6 +123,18 @@ describe("NoteEditor.appendShown", () => {
     expect(notes.texts.get(ONE)).toBe("%% a comment\n");
   });
 
+  it("adds a line after an odd number of item lines, which hide nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "$$ Rope :lost\n" });
+    await new NoteEditor(notes.vault).appendShown(ONE, ["[[Mira]] AC: 15"]);
+    expect(notes.texts.get(ONE)).toBe("$$ Rope :lost\n[[Mira]] AC: 15\n");
+  });
+
+  it("writes nothing when the new line would land in a math block that never closes", async () => {
+    const notes = new FakeNotes({ [ONE]: "$$\nx: 2\n" });
+    await expect(new NoteEditor(notes.vault).appendShown(ONE, ["[[Mira]] AC: 15"])).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.texts.get(ONE)).toBe("$$\nx: 2\n");
+  });
+
   it("adds a line after a code block that closes", async () => {
     const notes = new FakeNotes({ [ONE]: "```\ncode\n```" });
     await new NoteEditor(notes.vault).appendShown(ONE, ["[[Mira]] AC: 15"]);

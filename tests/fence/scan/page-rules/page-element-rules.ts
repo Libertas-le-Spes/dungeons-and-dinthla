@@ -1,6 +1,7 @@
 import { isObjectLiteralExpression, isPropertyAccessExpression, isPropertyAssignment, isShorthandPropertyAssignment, isStringLiteral, type Expression, type ObjectLiteralElementLike } from "typescript/unstable/ast";
 import type { FileScan } from "../reading/file-scan";
-import { ATTRIBUTE_SETTERS, CSS_PROPERTY_SETTERS, ELEMENT_MAKERS, LINK_OPTION, OPTION_ATTRIBUTES, OPTION_TAKERS, PAGE_LINK, PICTURE_CSS, PICTURE_CSS_SOURCE, PICTURE_VALUE, NODE_MARK, STYLE_OWNERS, UNTYPED } from "../reading/names";
+import { isPictureCssSource } from "../reading/library-paths";
+import { ATTRIBUTE_SETTERS, CSS_PROPERTY_SETTERS, ELEMENT_MAKERS, LINK_OPTION, OPTION_ATTRIBUTES, OPTION_TAKERS, PAGE_LINK, PICTURE_CSS, PICTURE_VALUE, NODE_MARK, STYLE_OWNERS, UNTYPED } from "../reading/names";
 import type { NameUse } from "../reading/page-found";
 import { nameTextOf } from "../reading/syntax";
 import { flattened, isNamedOneOf } from "../reading/type-shapes";
@@ -87,7 +88,7 @@ function isPictureValue(scan: FileScan, value: Expression): boolean {
   if (owner === undefined) return false;
   return flattened(owner).every((member) => {
     const symbol = member.getSymbol();
-    return isNamedOneOf(member, [PICTURE_CSS]) && symbol !== undefined && symbol.declarations.every((declaration) => declaration.path.endsWith(PICTURE_CSS_SOURCE));
+    return isNamedOneOf(member, [PICTURE_CSS]) && symbol !== undefined && symbol.declarations.every((declaration) => isPictureCssSource(declaration.path));
   });
 }
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
-import { CHANGED_IN_NOTE, LINES_LEFT, type EditorFiles } from "../../../src/campaign/writing/note-editor";
+import { CHANGED_IN_NOTE, LINES_LEFT, WOULD_BE_HIDDEN, type EditorFiles } from "../../../src/campaign/writing/note-editor";
 import { linesAddedTo } from "../../../src/campaign/changes/session-change";
 import { SessionChangeWriter } from "../../../src/campaign/changes/session-change-writer";
 import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
@@ -200,6 +200,13 @@ describe("refusing changes that swap same-titled quests in one note", () => {
     const notes = new FakeNotes({ [ONE]: "! X\n!= X: done\n! X\n!= X: done\n" });
     await notes.save(1, { status: "failed", happened: "done" }, ONE);
     expect(notes.campaign().quests.map((record) => record.outcome?.status)).toEqual(["completed", "failed"]);
+  });
+
+  it("refuses a follow-up plan whose line would land below a math block that never closes", () => {
+    const notes = new FakeNotes({ [ONE]: "! Find it\n$$\nx: 2\n" });
+    const campaign = notes.campaign();
+    const plan = planQuestSave(campaign.quests[0]!, edit({ followUp: "Other" }), campaign.coins, ONE);
+    expect(refusalForQuestPlan(notes.sessions(), campaign.quests[0]!, plan)).toBe(WOULD_BE_HIDDEN);
   });
 
   it("refuses a plan that would move the purse by more than the reward", () => {
