@@ -1,6 +1,7 @@
 import { parentFolderOf } from "../../campaign/paths/note-name";
 import { normalizePath, type TFile } from "obsidian";
 import { referenceFolderOf } from "../../campaign/paths/campaign-folders";
+import { fallenRecordOf, leftPlayWords } from "../../campaign/paths/fallen-records";
 import { characterReferenceKind } from "../../kinds/character-reference-kind";
 import { refusalForFileName } from "../../names/file-name";
 import { nameKeyOf } from "../../names/name-key";
@@ -32,6 +33,11 @@ function refusalForName(files: CharacterFiles, folder: string, name: string, own
   return nameClash(files, folder, name, ownPath);
 }
 
+function refusalForFallen(files: CharacterFiles, campaignFolder: string, name: string): string | null {
+  if (fallenRecordOf(files.getFiles(), campaignFolder, name) === null) return null;
+  return leftPlayWords(name);
+}
+
 function refuseIfAny(refusal: string | null): void {
   if (refusal !== null) throw new Error(refusal);
 }
@@ -40,6 +46,7 @@ export async function createCharacter(files: CharacterFiles, campaignFolder: str
   if (entry.name === "") return null;
   const folder = referenceFolderOf(characterReferenceKind, campaignFolder);
   refuseIfAny(refusalForName(files, folder, entry.name, null));
+  refuseIfAny(refusalForFallen(files, campaignFolder, entry.name));
   refuseIfAny(refusalForValues(entry));
   if (files.getFolderByPath(folder) === null) await files.createFolder(folder);
   return files.create(notePathOf(folder, entry.name), newCharacterText(entry));

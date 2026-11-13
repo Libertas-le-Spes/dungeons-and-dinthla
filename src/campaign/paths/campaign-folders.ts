@@ -39,6 +39,16 @@ export function isInItemsFolder(campaignFolder: string, path: string): boolean {
   return path.startsWith(`${itemsFolderOf(campaignFolder)}/`);
 }
 
+export const FALLEN_FOLDER = "Fallen";
+
+export function fallenFolderOf(campaignFolder: string): string {
+  return `${campaignFolder}/${FALLEN_FOLDER}`;
+}
+
+export function fallenRecordPathOf(campaignFolder: string, name: string): string {
+  return `${fallenFolderOf(campaignFolder)}/${name}.md`;
+}
+
 export function charactersBasePathOf(campaignFolder: string): string {
   return `${campaignFolder}/Characters.base`;
 }
