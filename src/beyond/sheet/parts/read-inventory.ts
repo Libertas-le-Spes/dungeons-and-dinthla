@@ -1,6 +1,4 @@
 import type { ImportedItem } from "../../shape/imported-item";
-import { INVENTORY_COUNT } from "../../shape/import-limits";
-import { limitedList } from "../../shape/limited-list";
 import { lineOrNothing } from "../lines/line-or-nothing";
 import type { SheetFields } from "../sheet-fields";
 import { ITEM_ROWS } from "../table/item-rows";
@@ -20,5 +18,5 @@ export function inventoryOf(fields: SheetFields): readonly ImportedItem[] {
     const item = itemOrNothing(fields, row);
     if (item !== null) found.push(item);
   }
-  return limitedList(found, INVENTORY_COUNT);
+  return found;
 }

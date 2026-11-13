@@ -1,5 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { lineOrNothing } from "../../../../src/beyond/sheet/lines/line-or-nothing";
+import { CleanLine } from "../../../../src/beyond/text/clean-line";
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe("a line from the sheet that may be unusable", () => {
   it("is the clean line when the text is usable", () => {
@@ -17,4 +22,13 @@ describe("a line from the sheet that may be unusable", () => {
   it("is a line at exactly the longest a name may be", () => {
     expect(lineOrNothing("x".repeat(100))?.text).toBe("x".repeat(100));
   });
+
+  it("passes on an error that is not a refusal, so a fault is never taken for a bad line", () => {
+    vi.spyOn(CleanLine, "of").mockImplementation(failWithTypeError);
+    expect(() => lineOrNothing("Primary Staff")).toThrow("Primary failure");
+  });
 });
+
+function failWithTypeError(): CleanLine {
+  throw new TypeError("Primary failure");
+}
