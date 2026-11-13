@@ -2203,5 +2203,26 @@
   "find": "entries.push([entry.heading, entry.lines]);",
   "replace": "entries.push([entry.heading]);",
   "group": "changes"
+ },
+ {
+  "id": "blocks: escaped opener skipped",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "  while (at !== -1 && isEscapedAt(line, at)) at = line.indexOf(opener, at + 1);\n",
+  "replace": "",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: odd backslashes escape",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "backslashesBefore(line, at) % 2 === 1",
+  "replace": "backslashesBefore(line, at) > 0",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: search on after an escaped opener",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "at = line.indexOf(opener, at + 1);",
+  "replace": "at = -1;",
+  "group": "blocks"
  }
 ]
