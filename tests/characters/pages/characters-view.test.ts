@@ -154,6 +154,16 @@ describe("CharactersView", () => {
     expect(textsOf(card, ".dd-unknown")).toEqual(["?", "?", "?", "?", "?"]);
   });
 
+  it("shows imported values over learned ones, and his own note's over both", async () => {
+    const imported = ["---", "imported-from: pdf", 'class: "Monk 4"', "AC: 16", "HP: 27", "DEX: 18", "---", "HP: 30", ""].join("\n");
+    const sessions = [sessionOf(1, ["[[Mira]] class: rogue, AC: 15, DEX: 17"])];
+    const gallery = openGallery({ sessions, ownNotes: { Mira: imported } });
+    await gallery.show(["Mira"]);
+    const card = gallery.container.querySelector<HTMLElement>(".dd-card")!;
+    expect(textsOf(card, ".dd-stat-block-line")).toEqual(["Class Monk 4", "Armor Class 16", "Hit Points 30", "Speed ?"]);
+    expect(textsOf(card, ".dd-stat-block-abilities > div")).toContain("DEX18 (+4)");
+  });
+
   it("leaves out the type line and subtitle when neither is known", async () => {
     const gallery = openGallery();
     await gallery.show(["Mira"]);

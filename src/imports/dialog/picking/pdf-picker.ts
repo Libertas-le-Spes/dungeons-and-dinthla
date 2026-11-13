@@ -17,11 +17,19 @@ export class PdfPicker {
   }
 
   handleEvent(): void {
-    void this.readChosen();
+    void this.readSafely();
   }
 
   focus(): void {
     this.input.focus();
+  }
+
+  private async readSafely(): Promise<void> {
+    try {
+      await this.readChosen();
+    } catch {
+      this.picked.pdfRefused(FILE_NOT_READ);
+    }
   }
 
   private async readChosen(): Promise<void> {
@@ -37,13 +45,7 @@ export class PdfPicker {
   }
 
   private async readBytes(file: Blob): Promise<void> {
-    let buffer: ArrayBuffer;
-    try {
-      buffer = await file.arrayBuffer();
-    } catch {
-      this.picked.pdfRefused(FILE_NOT_READ);
-      return;
-    }
+    const buffer = await file.arrayBuffer();
     this.picked.pdfPicked(new Uint8Array(buffer));
   }
 }

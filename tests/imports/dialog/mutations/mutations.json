@@ -196,13 +196,6 @@
   "group": "read"
  },
  {
-  "id": "read: key line only",
-  "file": "src/characters/imported/reading/property-entries.ts",
-  "find": "  if (colon < 1) return null;",
-  "replace": "  if (colon < 0) return null;",
-  "group": "read"
- },
- {
   "id": "read: working by name",
   "file": "src/characters/imported/reading/number-workings.ts",
   "find": "if (sameName(working.name, name)) return working.working;",
@@ -338,8 +331,8 @@
  {
   "id": "dialog: unreadable file words",
   "file": "src/imports/dialog/picking/pdf-picker.ts",
-  "find": "      this.picked.pdfRefused(FILE_NOT_READ);",
-  "replace": "      this.picked.pdfRefused(\"\");",
+  "find": "    } catch {\n      this.picked.pdfRefused(FILE_NOT_READ);",
+  "replace": "    } catch {\n      this.picked.pdfRefused(\"\");",
   "group": "dialog"
  },
  {

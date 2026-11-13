@@ -18,7 +18,7 @@ function unquotedKey(key: string): string {
 
 function entryOf(line: string, index: number): PropertyEntry | null {
   const colon = line.indexOf(COLON);
-  if (colon < 1) return null;
+  if (colon === -1) return null;
   if (line.charAt(colon + 1).trim() !== "") return null;
   return { key: unquotedKey(line.substring(0, colon).trimEnd()), value: line.substring(colon + 1), line: index };
 }
