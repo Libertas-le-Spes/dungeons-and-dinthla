@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Refusal } from "../../../src/beyond/shape/refusal";
 import { INVENTORY_SECTION } from "../../../src/imports/layout/plugin-sections";
-import { keyDiffersByCapitals, propertyLineTooLong, tooManyLines, twoSections, unclosedBlock } from "../../../src/imports/note/reading/note-refusals";
+import { bodyLineTooLong, keyDiffersByCapitals, propertyLineTooLong, tooManyLines, twoSections, unclosedBlock } from "../../../src/imports/note/reading/note-refusals";
 import { changedSinceRead, nameTaken, notACharacterNote, typedTextNotShown, wouldChangeMore } from "../../../src/imports/note/writing/guarding/refusals";
 
 describe("the words of the note refusals", () => {
@@ -15,6 +15,10 @@ describe("the words of the note refusals", () => {
 
   it("state the most characters of a property line", () => {
     expect(propertyLineTooLong().message).toBe("A property of the note is longer than 20000 characters, so nothing was written.");
+  });
+
+  it("state the most characters of a line in the body", () => {
+    expect(bodyLineTooLong().message).toBe("A line of the note is longer than 50000 characters, so nothing was written.");
   });
 
   it("say where a hidden section would be, and to close the block first", () => {
