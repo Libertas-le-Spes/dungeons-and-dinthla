@@ -6,6 +6,7 @@ import type { Review, ReviewActions } from "../steps/review";
 import { drawReview } from "../steps/review-step";
 import type { ImportTarget } from "../targets/import-target";
 import type { DialogShown } from "./dialog-shown";
+import type { PendingWork } from "../../../views/pending/pending-work";
 
 export interface StagesHost {
   runWrite(change: () => Promise<boolean>, failureWords: string): void;
@@ -32,6 +33,7 @@ export class ReviewStage implements TargetChooser, ReviewActions {
     private readonly shown: DialogShown,
     private readonly today: string,
     private readonly host: StagesHost,
+    private readonly work: PendingWork,
   ) {}
 
   written(): string | null {
@@ -42,7 +44,7 @@ export class ReviewStage implements TargetChooser, ReviewActions {
     this.sheet = sheet;
     const only = onlyTargetOf(targets);
     if (only !== null) {
-      void this.reviewWith(sheet, only, null);
+      this.work.add(this.reviewWith(sheet, only, null));
       return;
     }
     this.contentEl.empty();
@@ -51,7 +53,7 @@ export class ReviewStage implements TargetChooser, ReviewActions {
 
   targetChosen(target: ImportTarget): void {
     if (this.sheet === null) return;
-    void this.reviewWith(this.sheet, target, null);
+    this.work.add(this.reviewWith(this.sheet, target, null));
   }
 
   writeChosen(): void {
@@ -71,7 +73,7 @@ export class ReviewStage implements TargetChooser, ReviewActions {
   writeFailed(error: unknown): void {
     const review = this.review;
     if (review === null) return;
-    void this.reviewWith(review.sheet, review.target, wordsOf(error, WRITING_WENT_WRONG));
+    this.work.add(this.reviewWith(review.sheet, review.target, wordsOf(error, WRITING_WENT_WRONG)));
   }
 
   private async reviewWith(sheet: PrintedSheet, target: ImportTarget, failure: string | null): Promise<void> {

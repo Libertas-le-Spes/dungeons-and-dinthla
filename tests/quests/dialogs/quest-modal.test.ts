@@ -32,11 +32,12 @@ afterEach(() => {
 
 describe("QuestModal", () => {
   it("deletes only on a second press, then closes", async () => {
-    const { button, choices, onClosed } = openDialog();
+    const { modal, button, choices, onClosed } = openDialog();
     button("Delete quest")!.click();
     expect(choices.delete).not.toHaveBeenCalled();
     button("Press again to delete")!.click();
-    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledWith(true));
+    await modal.changeSettled();
+    expect(onClosed).toHaveBeenCalledWith(true);
     expect(choices.delete).toHaveBeenCalledOnce();
   });
 
@@ -60,7 +61,7 @@ describe("QuestModal", () => {
 
   it("deletes once when pressed twice more during the delete, and stays open until it is done", async () => {
     let finish: (deleted: boolean) => void = () => {};
-    const { button, choices, onClosed } = openDialog(() => new Promise<boolean>((resolve) => (finish = resolve)));
+    const { modal, button, choices, onClosed } = openDialog(() => new Promise<boolean>((resolve) => (finish = resolve)));
     const deleting = button("Delete quest")!;
     deleting.click();
     deleting.click();
@@ -69,18 +70,20 @@ describe("QuestModal", () => {
     button("Cancel")!.click();
     expect(onClosed).not.toHaveBeenCalled();
     finish(true);
-    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledWith(true));
+    await modal.changeSettled();
+    expect(onClosed).toHaveBeenCalledWith(true);
     expect(choices.delete).toHaveBeenCalledOnce();
   });
 
   it("needs two presses again after a failed delete", async () => {
-    const { button, choices, onClosed } = openDialog(async () => {
+    const { modal, button, choices, onClosed } = openDialog(async () => {
       throw new Error("the disk is full");
     });
     const deleting = button("Delete quest")!;
     deleting.click();
     deleting.click();
-    await vi.waitFor(() => expect(Notice.shown).toEqual(["Couldn't change the quest: the disk is full"]));
+    await modal.changeSettled();
+    expect(Notice.shown).toEqual(["Couldn't change the quest: the disk is full"]);
     deleting.click();
     expect(choices.delete).toHaveBeenCalledOnce();
     deleting.click();
@@ -92,7 +95,8 @@ describe("QuestModal", () => {
     const { modal, button, choices, onClosed } = openDialog();
     choices.save.mockRejectedValueOnce(new PartlyWritten("Only the answer line was written."));
     button("Save")!.click();
-    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledWith(true));
+    await modal.changeSettled();
+    expect(onClosed).toHaveBeenCalledWith(true);
     expect(Notice.shown).toEqual(["Couldn't change the quest: Only the answer line was written."]);
     expect(onClosed).toHaveBeenCalledOnce();
     expect(modal.contentEl.childNodes).toHaveLength(0);

@@ -7,6 +7,9 @@ import type { CarriedFrom, SheetNotes } from "../../../src/characters/reading/sh
 import type { MentionNotes } from "../../../src/characters/reading/mention-notes";
 import { IN_THE_NOTES } from "../../../src/characters/pages/mentions-panel";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { HeldCalls } from "../../stubs/held-calls";
+import { queuedWorkRan } from "../../stubs/queued-work";
+import { SettleWatch } from "../../stubs/settle-watch";
 import { RecordingTracking } from "../imported/builders/recording-tracking";
 
 function fileAt(path: string): TFile {
@@ -17,15 +20,30 @@ const MIRA = fileAt("Pale Moon/Characters/Mira.md");
 const OLD_MIRA = "Ashen Road/Characters/Mira.md";
 const ONE = "Pale Moon/Sessions/Session 1.md";
 
+class HeldMiraReads {
+  constructor(private readonly reads: HeldCalls<string>) {}
+
+  textOf(file: TFile): Promise<string> {
+    if (file.path !== MIRA.path) return Promise.resolve("");
+    return this.reads.hold();
+  }
+}
+
+function miraReadFrom(reads: HeldCalls<string>): SheetNotes["textOf"] {
+  const held = new HeldMiraReads(reads);
+  return held.textOf.bind(held);
+}
+
 interface Setup {
   sessions?: string[];
   texts?: Record<string, string>;
   carriedFrom?: CarriedFrom | null;
   textOf?: SheetNotes["textOf"];
   linking?: Record<string, number[]>;
+  mentionTextOf?: MentionNotes["textOf"];
 }
 
-function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf, linking = {} }: Setup = {}) {
+function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf, linking = {}, mentionTextOf }: Setup = {}) {
   let listener = () => {};
   let noteChanged: (path: string) => void = () => {};
   let noteMoved: (path: string) => void = () => {};
@@ -68,13 +86,17 @@ function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf, link
   };
   let linksResolved: (path: string) => void = () => {};
   const mentionReads = { count: 0 };
+  let readMention: MentionNotes["textOf"] = async (file) => {
+    const text = texts[file.path];
+    if (text === undefined) return "";
+    return text;
+  };
+  if (mentionTextOf !== undefined) readMention = mentionTextOf;
   const mentionNotes: MentionNotes = {
     fileAt: (path) => fileAt(path),
-    textOf: async (file) => {
+    textOf: (file) => {
       mentionReads.count += 1;
-      const text = texts[file.path];
-      if (text === undefined) return "";
-      return text;
+      return readMention(file);
     },
     campaignFolders: () => ["Ashen Road", "Pale Moon"],
     onNoteMoved: () => () => {},
@@ -104,14 +126,19 @@ function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf, link
   };
   const root = obsidianDocument().createElement("div");
   root.ownerDocument.body.append(root);
+  const pages: CharacterSheetPage[] = [];
   const start = (file = MIRA) => {
     const page = new CharacterSheetPage(root, file, store, notes, actions, mentionNotes);
+    pages.push(page);
     page.load();
     return page;
   };
+  async function rendered(): Promise<void> {
+    for (const page of pages) await page.rendered();
+  }
   const load = async (file = MIRA) => {
     const page = start(file);
-    await settle();
+    await page.rendered();
     return page;
   };
   const button = (name: string) => root.querySelector<HTMLButtonElement>(`.dd-value[data-name="${name}"]`)!;
@@ -127,6 +154,7 @@ function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf, link
     chosen,
     closers,
     load,
+    rendered,
     button,
     rowOf,
     listener: () => listener(),
@@ -242,7 +270,8 @@ describe("CharacterSheetPage", () => {
     sheet.closers[0]!();
     sheet.button("HP").focus();
     sheet.listener();
-    await vi.waitFor(() => expect(sheet.root.ownerDocument.activeElement).toBe(sheet.button("AC")));
+    await sheet.rendered();
+    expect(sheet.root.ownerDocument.activeElement).toBe(sheet.button("AC"));
   });
 
   it("stops putting focus back once a moment has passed", async () => {
@@ -255,8 +284,9 @@ describe("CharacterSheetPage", () => {
     vi.setSystemTime(Date.now() + 5000);
     const reads = sheet.reads.count;
     sheet.listener();
-    await vi.waitFor(() => expect(sheet.reads.count).toBe(reads + 1));
-    await vi.waitFor(() => expect(sheet.button("HP")).not.toBeNull());
+    await sheet.rendered();
+    expect(sheet.reads.count).toBe(reads + 1);
+    expect(sheet.button("HP")).not.toBeNull();
     expect(sheet.root.ownerDocument.activeElement).not.toBe(sheet.button("AC"));
   });
 
@@ -289,7 +319,8 @@ describe("CharacterSheetPage", () => {
     await sheet.load();
     sheet.store.sessionNotes = [{ path: ONE, number: 1, firstLine: 0, text: "[[Mira]] AC: 15" }];
     sheet.listener();
-    await vi.waitFor(() => expect(sheet.button("AC").textContent).toBe("15"));
+    await sheet.rendered();
+    expect(sheet.button("AC").textContent).toBe("15");
   });
 
   it("draws again when the character's note or a note in its campaign or the carried campaign changes, and not otherwise", async () => {
@@ -303,7 +334,8 @@ describe("CharacterSheetPage", () => {
     sheet.noteChanged(MIRA.path);
     sheet.noteChanged("Pale Moon/Sessions/Session 2.md");
     sheet.noteChanged("Ashen Road/Sessions/Session 4.md");
-    await vi.waitFor(() => expect(sheet.reads.count).toBe(before + 6));
+    await sheet.rendered();
+    expect(sheet.reads.count).toBe(before + 6);
   });
 
   it("draws again when a carried note outside any campaign changes", async () => {
@@ -313,7 +345,8 @@ describe("CharacterSheetPage", () => {
     sheet.noteChanged("Library/Other.md");
     expect(sheet.reads.count).toBe(before);
     sheet.noteChanged("Library/Mira.md");
-    await vi.waitFor(() => expect(sheet.reads.count).toBe(before + 2));
+    await sheet.rendered();
+    expect(sheet.reads.count).toBe(before + 2);
   });
 
   it("draws again when a session note is deleted or renamed, and not for notes elsewhere", async () => {
@@ -323,7 +356,8 @@ describe("CharacterSheetPage", () => {
     sheet.noteMoved("Elsewhere/Note.md");
     expect(sheet.reads.count).toBe(before);
     sheet.noteMoved("Pale Moon/Sessions/Session 2.md");
-    await vi.waitFor(() => expect(sheet.reads.count).toBe(before + 1));
+    await sheet.rendered();
+    expect(sheet.reads.count).toBe(before + 1);
   });
 
   it("says so when the sheet can't be read", async () => {
@@ -352,7 +386,8 @@ describe("CharacterSheetPage", () => {
     sheet.noteChanged("Elsewhere/Note.md");
     expect(sheet.root.querySelector(".dd-value")).toBeNull();
     sheet.noteChanged(MIRA.path);
-    await vi.waitFor(() => expect(sheet.button("AC").textContent).toBe("16"));
+    await sheet.rendered();
+    expect(sheet.button("AC").textContent).toBe("16");
   });
 
   it("recovers from a failed first reading when a session changes", async () => {
@@ -360,7 +395,8 @@ describe("CharacterSheetPage", () => {
     await sheet.load();
     reading.fails = false;
     sheet.noteChanged("Pale Moon/Sessions/Session 2.md");
-    await vi.waitFor(() => expect(sheet.button("AC").textContent).toBe("16"));
+    await sheet.rendered();
+    expect(sheet.button("AC").textContent).toBe("16");
   });
 
   it("recovers from a failed first reading when a session is moved", async () => {
@@ -368,7 +404,8 @@ describe("CharacterSheetPage", () => {
     await sheet.load();
     reading.fails = false;
     sheet.noteMoved("Pale Moon/Sessions/Session 2.md");
-    await vi.waitFor(() => expect(sheet.button("AC").textContent).toBe("16"));
+    await sheet.rendered();
+    expect(sheet.button("AC").textContent).toBe("16");
   });
 
   it("keeps watching the carried note when a later reading fails", async () => {
@@ -383,10 +420,12 @@ describe("CharacterSheetPage", () => {
     await sheet.load();
     reading.fails = true;
     sheet.noteChanged(MIRA.path);
-    await vi.waitFor(() => expect(sheet.root.querySelector(".dd-empty")).not.toBeNull());
+    await sheet.rendered();
+    expect(sheet.root.querySelector(".dd-empty")).not.toBeNull();
     reading.fails = false;
     sheet.noteChanged("Library/Mira.md");
-    await vi.waitFor(() => expect(sheet.button("AC").textContent).toBe("16"));
+    await sheet.rendered();
+    expect(sheet.button("AC").textContent).toBe("16");
   });
 
   it("watches nothing outside a campaign but the note itself after a failed reading", async () => {
@@ -400,56 +439,46 @@ describe("CharacterSheetPage", () => {
     sheet.noteChanged("Loose/Other.md");
     expect(sheet.root.querySelector(".dd-value")).toBeNull();
     sheet.noteChanged("Loose/Mira.md");
-    await vi.waitFor(() => expect(sheet.button("AC").textContent).toBe("16"));
+    await sheet.rendered();
+    expect(sheet.button("AC").textContent).toBe("16");
   });
 
   it("keeps the latest sheet when an earlier reading fails late", async () => {
-    const pending: ((text: string) => void)[] = [];
-    const failures: ((error: Error) => void)[] = [];
-    const sheet = openSheet({ textOf: (file) => new Promise((resolve, reject) => {
-      if (file.path !== MIRA.path) resolve("");
-      else if (failures.length === 0) failures.push(reject);
-      else pending.push(resolve);
-    }) });
+    const reads = new HeldCalls<string>();
+    const sheet = openSheet({ textOf: miraReadFrom(reads) });
     sheet.start();
-    await vi.waitFor(() => expect(failures).toHaveLength(1));
+    await reads.made(1);
     sheet.listener();
-    await vi.waitFor(() => expect(pending).toHaveLength(1));
-    pending[0]!("AC: 16");
+    await reads.made(2);
+    reads.resolve(1, "AC: 16");
     await settle();
-    failures[0]!(new Error("the disk is gone"));
-    await settle();
+    reads.reject(0, new Error("the disk is gone"));
+    await sheet.rendered();
     expect(sheet.button("AC").textContent).toBe("16");
     expect(sheet.root.querySelector(":scope > .dd-empty")).toBeNull();
   });
 
   it("draws only the latest reading when readings finish out of order", async () => {
-    const pending: ((text: string) => void)[] = [];
-    const sheet = openSheet({ textOf: (file) => new Promise((resolve) => {
-      if (file.path === MIRA.path) pending.push(resolve);
-      else resolve("");
-    }) });
+    const reads = new HeldCalls<string>();
+    const sheet = openSheet({ textOf: miraReadFrom(reads) });
     sheet.start();
     sheet.listener();
-    await vi.waitFor(() => expect(pending).toHaveLength(2));
-    pending[1]!("AC: 16");
+    await reads.made(2);
+    reads.resolve(1, "AC: 16");
     await settle();
-    pending[0]!("AC: 9");
-    await settle();
+    reads.resolve(0, "AC: 9");
+    await sheet.rendered();
     expect(sheet.button("AC").textContent).toBe("16");
   });
 
   it("empties the sheet when it is closed, dropping a reading still on its way", async () => {
-    const pending: ((text: string) => void)[] = [];
-    const sheet = openSheet({ textOf: (file) => new Promise((resolve) => {
-      if (file.path === MIRA.path) pending.push(resolve);
-      else resolve("");
-    }) });
+    const reads = new HeldCalls<string>();
+    const sheet = openSheet({ textOf: miraReadFrom(reads) });
     const page = sheet.start();
-    await vi.waitFor(() => expect(pending).toHaveLength(1));
+    await reads.made(1);
     page.unload();
-    pending[0]!("AC: 16");
-    await settle();
+    reads.resolve(0, "AC: 16");
+    await sheet.rendered();
     expect(sheet.root.childElementCount).toBe(0);
   });
 
@@ -463,27 +492,44 @@ describe("CharacterSheetPage", () => {
   it("lists the session lines that link to the character after the stat block", async () => {
     const sheet = openSheet({ linking: { [ONE]: [0] }, texts: { [ONE]: "- Met [[Mira]] at the ford" } });
     await sheet.load();
-    await vi.waitFor(() => expect(textsOf(sheet.root, ".dd-sheet-mentions .dd-text")).toEqual(["Met [[Mira]] at the ford"]));
+    await sheet.rendered();
+    expect(textsOf(sheet.root, ".dd-sheet-mentions .dd-text")).toEqual(["Met [[Mira]] at the ford"]);
     expect(textsOf(sheet.root, ".dd-sheet-mentions .dd-title")).toEqual([`${IN_THE_NOTES}1 line`]);
     expect(sheet.root.lastElementChild!.classList.contains("dd-sheet-mentions")).toBe(true);
     expect(sheet.root.lastElementChild!.previousElementSibling!.classList.contains("dd-sheet-stat-block")).toBe(true);
   });
 
+  it("isn't rendered while the lines that link to the character are still being read", async () => {
+    const mentionTexts = new HeldCalls<string>();
+    const sheet = openSheet({ linking: { [ONE]: [0] }, mentionTextOf: mentionTexts.hold.bind(mentionTexts) });
+    const loading = new SettleWatch(sheet.load());
+    await mentionTexts.made(1);
+    await queuedWorkRan();
+    expect(loading.settled).toBe(false);
+    mentionTexts.resolve(0, "- Met [[Mira]] at the ford");
+    await loading.done;
+    expect(textsOf(sheet.root, ".dd-sheet-mentions .dd-title")).toEqual([`${IN_THE_NOTES}1 line`]);
+  });
+
   it("lists the lines again when a note that links to the character is resolved", async () => {
     const sheet = openSheet({ linking: { [ONE]: [0] }, texts: { [ONE]: "[[Mira]]" } });
     await sheet.load();
-    await vi.waitFor(() => expect(sheet.mentionReads.count).toBe(1));
+    await sheet.rendered();
+    expect(sheet.mentionReads.count).toBe(1);
     sheet.linksResolved(ONE);
-    await vi.waitFor(() => expect(sheet.mentionReads.count).toBe(2));
+    await sheet.rendered();
+    expect(sheet.mentionReads.count).toBe(2);
   });
 
   it("keeps the lines it has when the rest of the sheet is drawn again", async () => {
     const sheet = openSheet({ linking: { [ONE]: [0] }, texts: { [ONE]: "[[Mira]]" } });
     await sheet.load();
-    await vi.waitFor(() => expect(sheet.mentionReads.count).toBe(1));
+    await sheet.rendered();
+    expect(sheet.mentionReads.count).toBe(1);
     const before = sheet.reads.count;
     sheet.listener();
-    await vi.waitFor(() => expect(sheet.reads.count).toBeGreaterThan(before));
+    await sheet.rendered();
+    expect(sheet.reads.count).toBeGreaterThan(before);
     expect(textsOf(sheet.root, ".dd-sheet-mentions .dd-text")).toEqual(["[[Mira]]"]);
     expect(sheet.mentionReads.count).toBe(1);
   });
@@ -491,7 +537,8 @@ describe("CharacterSheetPage", () => {
   it("stops listing the lines once it is closed", async () => {
     const sheet = openSheet({ linking: { [ONE]: [0] }, texts: { [ONE]: "[[Mira]]" } });
     const page = await sheet.load();
-    await vi.waitFor(() => expect(sheet.mentionReads.count).toBe(1));
+    await sheet.rendered();
+    expect(sheet.mentionReads.count).toBe(1);
     page.unload();
     sheet.linksResolved(ONE);
     expect(sheet.mentionReads.count).toBe(1);
@@ -501,10 +548,12 @@ describe("CharacterSheetPage", () => {
     const { sheet, reading } = failingFirst({ linking: { [ONE]: [0] } });
     reading.fails = false;
     await sheet.load();
-    await vi.waitFor(() => expect(sheet.mentionReads.count).toBe(1));
+    await sheet.rendered();
+    expect(sheet.mentionReads.count).toBe(1);
     reading.fails = true;
     sheet.listener();
-    await vi.waitFor(() => expect(sheet.root.querySelector(".dd-value")).toBeNull());
+    await sheet.rendered();
+    expect(sheet.root.querySelector(".dd-value")).toBeNull();
     sheet.linksResolved(ONE);
     expect(sheet.mentionReads.count).toBe(1);
   });
@@ -515,7 +564,8 @@ describe("CharacterSheetPage", () => {
     await sheet.load(mira);
     Object.assign(mira, fileAt("Pale Moon/Characters/Mirabel.md"));
     sheet.noteMoved(MIRA.path);
-    await vi.waitFor(() => expect(textsOf(sheet.root, ".dd-sheet-name")).toEqual(["Mirabel"]));
+    await sheet.rendered();
+    expect(textsOf(sheet.root, ".dd-sheet-name")).toEqual(["Mirabel"]);
   });
 });
 

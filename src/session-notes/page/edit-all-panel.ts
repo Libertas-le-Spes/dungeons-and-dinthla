@@ -43,6 +43,10 @@ export class EditAllPanel {
     this.editing.focus();
   }
 
+  async settled(): Promise<void> {
+    if (this.editing !== null) await this.editing.settled();
+  }
+
   close(): void {
     if (this.editing === null) return;
     this.editing.close();

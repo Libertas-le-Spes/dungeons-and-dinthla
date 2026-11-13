@@ -3,7 +3,7 @@ import { isInReferenceFolder, mainNotePathOf } from "../../campaign/paths/campai
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { addCoinChips, NOT_IN_THE_PARTY_PURSE } from "../../characters/imported/purse/coin-chips";
 import { characterReferenceKind } from "../../kinds/character-reference-kind";
-import { PendingWork } from "../../views/drawing/pending-work";
+import { PendingWork } from "../../views/pending/pending-work";
 import { ownPursesIn, type OwnPurse, type OwnPurseNotes } from "./own-purses";
 
 export type PurseStore = Pick<CampaignStore, "campaignFolder" | "subscribe">;

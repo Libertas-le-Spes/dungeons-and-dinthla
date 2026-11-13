@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import type { Component } from "obsidian";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { notesSection } from "../../../src/interface/sections/notes-section";
@@ -22,6 +23,11 @@ const BOTH = [
   { path: ELEVEN, number: 11, firstLine: 0, text: "" },
   { path: TWELVE, number: 12, firstLine: 0, text: "" },
 ];
+
+function notesPageOf(page: Component): SessionNotesPage {
+  if (!(page instanceof SessionNotesPage)) throw new Error("The Notes section made another page.");
+  return page;
+}
 
 function made(path: string | null, sessions = BOTH, latestAfterDelete: string | null = ELEVEN) {
   const store = { campaignFolder: "Pale Moon", sessionNotes: sessions, current: buildCampaign(sessions), subscribe: () => () => {} };
@@ -81,16 +87,18 @@ describe("notesSection", () => {
   });
 
   it("shows the latest session left after deleting one, on the Notes page of the same tab", async () => {
-    const { root, show, trash } = made(TWELVE);
+    const { root, page, show, trash } = made(TWELVE);
     root.querySelector<HTMLButtonElement>(".dd-delete-session")!.click();
-    await vi.waitFor(() => expect(show).toHaveBeenCalledExactlyOnceWith({ page: "notes", path: ELEVEN }));
+    await notesPageOf(page).settled();
+    expect(show).toHaveBeenCalledExactlyOnceWith({ page: "notes", path: ELEVEN });
     expect(trash.trash).toHaveBeenCalledExactlyOnceWith(TWELVE, { file: { path: TWELVE }, text: "" });
   });
 
   it("shows the Notes page with no session after deleting the last one", async () => {
-    const { root, show } = made(TWELVE, [BOTH[1]!], null);
+    const { root, page, show } = made(TWELVE, [BOTH[1]!], null);
     root.querySelector<HTMLButtonElement>(".dd-delete-session")!.click();
-    await vi.waitFor(() => expect(show).toHaveBeenCalledExactlyOnceWith({ page: "notes", path: null }));
+    await notesPageOf(page).settled();
+    expect(show).toHaveBeenCalledExactlyOnceWith({ page: "notes", path: null });
   });
 
   it("tells the tab which session the page settled on when none was asked for", () => {

@@ -4,6 +4,7 @@ import { DialogShown } from "./stages/dialog-shown";
 import { PdfSheetReader } from "./stages/pdf-sheet-reader";
 import { PdfStage, type SheetArrival } from "./stages/pdf-stage";
 import { ReviewStage, type StagesHost } from "./stages/review-stage";
+import { PendingWork } from "../../views/pending/pending-work";
 
 export interface StepsHost {
   runWrite(change: () => Promise<boolean>, failureWords: string): void;
@@ -12,6 +13,7 @@ export interface StepsHost {
 
 export class ImportSteps implements SheetArrival, StagesHost {
   private readonly shown = new DialogShown();
+  private readonly work = new PendingWork();
   private readonly pdf: PdfStage;
   private readonly review: ReviewStage;
 
@@ -21,12 +23,16 @@ export class ImportSteps implements SheetArrival, StagesHost {
     today: string,
     private readonly host: StepsHost,
   ) {
-    this.pdf = new PdfStage(contentEl, this.shown, this, new PdfSheetReader());
-    this.review = new ReviewStage(contentEl, this.shown, today, this);
+    this.pdf = new PdfStage(contentEl, this.shown, this, new PdfSheetReader(), this.work);
+    this.review = new ReviewStage(contentEl, this.shown, today, this, this.work);
   }
 
   written(): string | null {
     return this.review.written();
+  }
+
+  settled(): Promise<void> {
+    return this.work.settled();
   }
 
   start(): void {

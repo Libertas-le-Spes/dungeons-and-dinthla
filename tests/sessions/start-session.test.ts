@@ -3,6 +3,7 @@ import type { App, TFile } from "obsidian";
 import { Notice, openedModals } from "../stubs/obsidian";
 import { NO_CAMPAIGN } from "../../src/campaign/paths/campaign-folders";
 import { startSession } from "../../src/sessions/start-session";
+import { NewSessionModal } from "../../src/sessions/new-session-modal";
 import type { Gate } from "../../src/fence/gate/gatekeeper";
 
 function appWith(paths: string[], { createFails = false } = {}) {
@@ -23,9 +24,19 @@ function appWith(paths: string[], { createFails = false } = {}) {
   return { app, gate, create, getLeaf };
 }
 
-function pressStart(): void {
-  const modal = openedModals.at(-1)!;
+function startDialog(): NewSessionModal {
+  let opened: NewSessionModal | null = null;
+  for (const modal of openedModals) {
+    if (modal instanceof NewSessionModal) opened = modal;
+  }
+  if (opened === null) throw new Error("No Start session dialog is open.");
+  return opened;
+}
+
+async function pressStart(): Promise<void> {
+  const modal = startDialog();
   Array.from(modal.contentEl.querySelectorAll<HTMLButtonElement>("button")).find((button) => button.textContent === "Start session")!.click();
+  await modal.startSettled();
 }
 
 afterEach(() => {
@@ -38,8 +49,8 @@ describe("startSession", () => {
     const { app, gate, create, getLeaf } = appWith(["Pale Moon/Sessions/Session 11.md"]);
     const openNotes = vi.fn(async () => {});
     startSession(app, gate, "Pale Moon", openNotes);
-    pressStart();
-    await vi.waitFor(() => expect(openNotes).toHaveBeenCalledExactlyOnceWith("Pale Moon/Sessions/Session 12.md"));
+    await pressStart();
+    expect(openNotes).toHaveBeenCalledExactlyOnceWith("Pale Moon/Sessions/Session 12.md");
     expect(create).toHaveBeenCalledExactlyOnceWith("Pale Moon/Sessions/Session 12.md", "");
     expect(getLeaf).not.toHaveBeenCalled();
   });
@@ -50,16 +61,16 @@ describe("startSession", () => {
       throw new Error("No tab");
     });
     startSession(app, gate, "Pale Moon", openNotes);
-    pressStart();
-    await vi.waitFor(() => expect(Notice.shown).toEqual(["Session 1 was made but couldn't be opened: No tab"]));
+    await pressStart();
+    expect(Notice.shown).toEqual(["Session 1 was made but couldn't be opened: No tab"]);
   });
 
   it("shows nothing when the session couldn't be made", async () => {
     const { app, gate } = appWith([], { createFails: true });
     const openNotes = vi.fn(async () => {});
     startSession(app, gate, "Pale Moon", openNotes);
-    pressStart();
-    await vi.waitFor(() => expect(Notice.shown).toEqual(["Couldn't start the session: Disk is full"]));
+    await pressStart();
+    expect(Notice.shown).toEqual(["Couldn't start the session: Disk is full"]);
     expect(openNotes).not.toHaveBeenCalled();
   });
 

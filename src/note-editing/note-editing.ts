@@ -3,6 +3,7 @@ import { messageOf } from "../views/dialogs/message-of";
 import { NoteBox } from "./note-box";
 import type { NoteDraft, NoteDrafts } from "./note-drafts";
 import { NoteChangedSince, type NoteSaver } from "./note-saver";
+import { PendingWork } from "../views/pending/pending-work";
 
 export const NOTE_GONE_HERE = "This note was deleted, so nothing can be saved to it. What you typed is still in the box.";
 export const CHANGED_ELSEWHERE =
@@ -29,6 +30,7 @@ function notReadMessage(error: unknown): string {
 export class NoteEditing {
   private readonly box: NoteBox;
   private readonly stops: (() => void)[];
+  private readonly work = new PendingWork();
   private base: string | null = null;
   private open = true;
 
@@ -39,12 +41,16 @@ export class NoteEditing {
     private readonly watcher: EditingWatcher,
   ) {
     this.box = new NoteBox(parent, {
-      save: () => void this.save(),
+      save: () => this.work.add(this.save()),
       typed: () => this.typed(),
-      reload: () => void this.reload(),
+      reload: () => this.work.add(this.reload()),
     });
     this.stops = this.watch();
-    void this.loadNote();
+    this.work.add(this.loadNote());
+  }
+
+  settled(): Promise<void> {
+    return this.work.settled();
   }
 
   get unsaved(): boolean {

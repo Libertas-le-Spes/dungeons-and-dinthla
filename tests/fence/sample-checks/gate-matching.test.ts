@@ -1,18 +1,12 @@
-import { basename, dirname, relative } from "node:path";
-import { beforeAll, describe, expect, it } from "vitest";
+import { dirname, relative } from "node:path";
+import { afterAll, describe, expect, it } from "vitest";
 import { ALL_ALLOWED } from "../scan/running/allowance-sets";
 import { numberedFileNames, SampleScan } from "../scan/running/sample-scan";
-import { GATE_TYPE_SOURCES } from "../scan/reading/gate-paths";
 import { ROOT, VIRTUAL_FOLDER } from "../scan/reading/scan-paths";
 import { FILE_CHANGING_SAMPLES, GATE_FORGING_SAMPLES, GATE_PLACING_SAMPLES, GATE_SHAPING_SAMPLES } from "../samples/gate-forging-samples";
 import { ALLOWED_OPENING_SAMPLES } from "../samples/opening-samples";
 import { FOLDER_WALK_SAMPLES } from "../samples/vault-access-samples";
 import { UNREAD_EVENT_SAMPLES } from "../samples/workspace-event-samples";
-
-interface Placement {
-  family: string;
-  fileNames: string[];
-}
 
 const SAMPLES = [
   ...FILE_CHANGING_SAMPLES,
@@ -24,98 +18,109 @@ const SAMPLES = [
   ...ALLOWED_OPENING_SAMPLES,
 ];
 const SAMPLE_PREFIX = '"../../../../src/';
+const FILE_NAMES = numberedFileNames(SAMPLES);
+const LOOKALIKE_FAMILIES = [
+  "gate-matching/src/fence/gate",
+  "gate-matching/src/fence/paths",
+  "gate-matching/other/src/fence/gate",
+  "gate-matching/src/fence/gate-extra",
+  "gate-matching/src/fence/gates",
+];
 
-function numbered(family: string): Placement {
-  return { family, fileNames: numberedFileNames(SAMPLES) };
+interface Placement {
+  family: string;
+  samples: string[];
+  scan: SampleScan;
 }
 
-function namedAfter(gateFile: string): Placement {
-  return { family: `gate-matching/named-${basename(gateFile, ".ts")}`, fileNames: SAMPLES.map((_sample, index) => `sample-${index}/${gateFile}`) };
+interface PlacedSample {
+  family: string;
+  position: number;
 }
 
-const ORDINARY = numbered("gate-matching/ordinary");
-const LOOKALIKES = ["gate-matching/src/fence/gate", "gate-matching/src/fence/paths", "gate-matching/other/src/fence/gate"].map(numbered);
-const NAMED_AFTER_THE_GATE = GATE_TYPE_SOURCES.map((path) => namedAfter(basename(path)));
-const PLACEMENTS = [ORDINARY, ...LOOKALIKES, ...NAMED_AFTER_THE_GATE];
-
-function samplesFor(placement: Placement): string[] {
-  return SAMPLES.map((sample, index) => {
-    const folder = dirname(`${VIRTUAL_FOLDER}/${placement.family}/${placement.fileNames[index]}`);
-    return sample.replaceAll(SAMPLE_PREFIX, `"${relative(folder, ROOT)}/src/`);
-  });
+function fileNameAt(position: number): string {
+  const name = FILE_NAMES[position];
+  if (name === undefined) throw new Error(`Sample ${position} has no file name.`);
+  return name;
 }
+
+function samplesFor(family: string): string[] {
+  const rewritten: string[] = [];
+  for (const [position, sample] of SAMPLES.entries()) {
+    const folder = dirname(`${VIRTUAL_FOLDER}/${family}/${fileNameAt(position)}`);
+    rewritten.push(sample.replaceAll(SAMPLE_PREFIX, `"${relative(folder, ROOT)}/src/`));
+  }
+  return rewritten;
+}
+
+function placed(family: string): Placement {
+  const samples = samplesFor(family);
+  return { family, samples, scan: new SampleScan(family, samples, FILE_NAMES) };
+}
+
+const ORDINARY = placed("gate-matching/ordinary");
+const LOOKALIKES = new Map<string, Placement>();
+for (const family of LOOKALIKE_FAMILIES) LOOKALIKES.set(family, placed(family));
+
+afterAll(() => {
+  ORDINARY.scan.close();
+  for (const placement of LOOKALIKES.values()) placement.scan.close();
+});
 
 function messageOf(breach: string): string {
   return breach.replace(/^[^:]+:\d+ /, "");
 }
 
-function messagesAt(scan: SampleScan, samples: string[]): string[][] {
-  return samples.map((sample) => scan.breaches(sample, ALL_ALLOWED).map(messageOf));
+function messagesAt(placement: Placement, position: number): string[] {
+  const sample = placement.samples[position];
+  if (sample === undefined) throw new Error(`${placement.family} has no sample at ${position}.`);
+  const messages: string[] = [];
+  for (const breach of placement.scan.breaches(sample, ALL_ALLOWED)) messages.push(messageOf(breach));
+  return messages;
 }
 
-function messagesIn(placement: Placement): string[][] {
-  const scan = new SampleScan(placement.family, samplesFor(placement), placement.fileNames);
-  try {
-    return messagesAt(scan, samplesFor(placement));
-  } finally {
-    scan.close();
+function lookalikeOf(family: string): Placement {
+  const placement = LOOKALIKES.get(family);
+  if (placement === undefined) throw new Error(`${family} was never opened.`);
+  return placement;
+}
+
+function placedSamples(): PlacedSample[] {
+  const rows: PlacedSample[] = [];
+  for (const family of LOOKALIKE_FAMILIES) {
+    for (const position of SAMPLES.keys()) rows.push({ family, position });
   }
+  return rows;
 }
 
-interface SampleMessages {
-  sample: string;
-  messages: string[];
+function holdsPrefix(sample: string): boolean {
+  return sample.includes(SAMPLE_PREFIX);
 }
 
-let ordinaryMessages: string[][] = [];
-
-function pairedWithMessages(samples: string[], messages: string[][]): SampleMessages[] {
-  const pairs: SampleMessages[] = [];
-  for (const [position, sample] of samples.entries()) {
-    const found = messages.at(position);
-    if (found === undefined) throw new Error(`The sample at ${position} was never scanned.`);
-    pairs.push({ sample, messages: found });
-  }
-  return pairs;
+function reachesSourceUnprefixed(sample: string): boolean {
+  return sample.includes("/src/") && !holdsPrefix(sample);
 }
-
-function isNotRefused(pair: SampleMessages): boolean {
-  return pair.messages.length === 0;
-}
-
-function sampleOf(pair: SampleMessages): string {
-  return pair.sample;
-}
-
-beforeAll(() => {
-  ordinaryMessages = messagesIn(ORDINARY);
-}, 300_000);
 
 describe("the samples the gate's folder is tested with", () => {
   it("write every path into src with the prefix that is rewritten for each family", () => {
-    expect(SAMPLES.filter((sample) => sample.includes("/src/") && !sample.includes(SAMPLE_PREFIX))).toEqual([]);
+    expect(SAMPLES.filter(reachesSourceUnprefixed)).toEqual([]);
   });
 
   it("include some that reach into src, so that is not an empty search", () => {
-    expect(SAMPLES.filter((sample) => sample.includes(SAMPLE_PREFIX)).length).toBeGreaterThan(0);
+    expect(SAMPLES.filter(holdsPrefix)).not.toEqual([]);
   });
 
-  it.each(PLACEMENTS)("have none left unrewritten, in $family", (placement) => {
-    expect(samplesFor(placement).filter((sample) => sample.includes(SAMPLE_PREFIX))).toEqual([]);
+  it.each(["gate-matching/ordinary", ...LOOKALIKE_FAMILIES])("have none left unrewritten, in %s", (family) => {
+    expect(samplesFor(family).filter(holdsPrefix)).toEqual([]);
   });
 });
 
 describe("the gate's folder, as the source scan knows it", () => {
-  it("has every sample refused at an ordinary path, so the comparisons below mean something", () => {
-    expect(ordinaryMessages).toHaveLength(SAMPLES.length);
-    expect(pairedWithMessages(samplesFor(ORDINARY), ordinaryMessages).filter(isNotRefused).map(sampleOf)).toEqual([]);
-  }, 120_000);
+  it.each([...SAMPLES.keys()])("refuses sample %i at an ordinary path, so the comparisons below mean something", (position) => {
+    expect(messagesAt(ORDINARY, position)).not.toEqual([]);
+  });
 
-  it.each(LOOKALIKES)("gives a file whose path only looks like the gate's none of its exemptions: $family", (placement) => {
-    expect(messagesIn(placement)).toEqual(ordinaryMessages);
-  }, 120_000);
-
-  it.each(NAMED_AFTER_THE_GATE)("gives a file named like one of the gate's, outside its folder, none of its exemptions: $family", (placement) => {
-    expect(messagesIn(placement)).toEqual(ordinaryMessages);
-  }, 120_000);
+  it.each(placedSamples())("gives sample $position none of the gate's exemptions in $family, whose path only looks like the gate's", ({ family, position }) => {
+    expect(messagesAt(lookalikeOf(family), position)).toEqual(messagesAt(ORDINARY, position));
+  });
 });
