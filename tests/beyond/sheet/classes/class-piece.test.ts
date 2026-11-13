@@ -20,6 +20,20 @@ describe("one class and level printed on the sheet", () => {
     expect([found?.name.text, found?.level.isKnown, found?.level.explanation]).toEqual(["Monk", false, "The sheet gives no level after this class."]);
   });
 
+  it("takes the level only from the end of the piece", () => {
+    const found = classOfPiece("Monk 4 (Open Hand)");
+    expect([found?.name.text, found?.level.isKnown]).toEqual(["Monk 4 (Open Hand)", false]);
+  });
+
+  it("takes the last number as the level and leaves an earlier one in the name", () => {
+    const found = classOfPiece("Monk 3 4");
+    expect([found?.name.text, found?.level.valueOr(0)]).toEqual(["Monk 3", 4]);
+  });
+
+  it("is on the PDF route when the level is not known and when it is", () => {
+    expect([classOfPiece("Monk")?.level.route.name, classOfPiece("Monk 3")?.level.route.name]).toEqual(["pdf", "pdf"]);
+  });
+
   it.each(["Monk 0", "Monk 21"])("has no level known for %j, which is outside 1 to 20", (piece) => {
     expect(classOfPiece(piece)?.level.isKnown).toBe(false);
   });

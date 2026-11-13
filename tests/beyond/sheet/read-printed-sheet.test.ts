@@ -134,6 +134,20 @@ describe("reading a sheet with hostile text and numbers", () => {
     expect(unknownNames(readOf(MadeUpSheet.monk().with(field, "99999")))).toEqual([name]);
   });
 
+  it.each(SHEET_NUMBERS)("has $name known at its lowest and its highest, as $field prints them", ({ field, name, lowest, highest, print }) => {
+    const atLowest = readOf(MadeUpSheet.monk().with(field, print(lowest))).numbers.find(isNamed(name));
+    const atHighest = readOf(MadeUpSheet.monk().with(field, print(highest))).numbers.find(isNamed(name));
+    expect([atLowest?.value.valueOr(Number.NaN), atHighest?.value.valueOr(Number.NaN)]).toEqual([lowest, highest]);
+  });
+
+  it.each(SHEET_NUMBERS)("has only $name not known one above its highest in $field", ({ field, name, highest, print }) => {
+    expect(unknownNames(readOf(MadeUpSheet.monk().with(field, print(highest + 1))))).toEqual([name]);
+  });
+
+  it.each(SHEET_NUMBERS)("has only $name not known one below its lowest in $field", ({ field, name, lowest, print }) => {
+    expect(unknownNames(readOf(MadeUpSheet.monk().with(field, print(lowest - 1))))).toEqual([name]);
+  });
+
   it.each(SHEET_NUMBERS)("has only $name not known when $field holds 1e999", ({ field, name }) => {
     expect(unknownNames(readOf(MadeUpSheet.monk().with(field, "1e999")))).toEqual([name]);
   });
@@ -151,6 +165,10 @@ describe("reading a sheet with hostile text and numbers", () => {
     expect(unknownNames(readOf(MadeUpSheet.monk().with("AC", "+18").with("PP", "+1")))).toEqual(["AC"]);
   });
 
+  it.each(SHEET_NUMBERS.filter(isPlainNumber))("has only $name not known when $field holds a plus sign before the number", ({ field, name, value }) => {
+    expect(unknownNames(readOf(MadeUpSheet.monk().with(field, `+${value}`)))).toEqual([name]);
+  });
+
   it("has a very long digit string not known, not infinity", () => {
     expect(unknownNames(readOf(MadeUpSheet.monk().with("AC", "9".repeat(8000))))).toEqual(["AC"]);
   });
@@ -159,6 +177,10 @@ describe("reading a sheet with hostile text and numbers", () => {
     expect(unknownNames(readOf(MadeUpSheet.monk().with("AC", "x".repeat(8000))))).toEqual(["AC"]);
   });
 });
+
+function isPlainNumber(row: { print: (value: number) => string }): boolean {
+  return row.print(1) === "1";
+}
 
 function nameOfItem(item: { name: { text: string } }): { text: string } {
   return item.name;

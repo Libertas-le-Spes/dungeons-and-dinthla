@@ -45,6 +45,14 @@ describe("the inventory of a sheet", () => {
     expect(summaryOf(MadeUpSheet.empty().with("Eq Name0", "Rope").with("Eq Qty0", "10000"))).toEqual(["Rope:false:0"]);
   });
 
+  it("has a quantity of 9999 known and 10000 not known, in every row", () => {
+    for (let row = 0; row < ITEM_ROW_COUNT; row += 1) {
+      const atMost = MadeUpSheet.empty().with(`Eq Name${row}`, "Rope").with(`Eq Qty${row}`, "9999");
+      const over = MadeUpSheet.empty().with(`Eq Name${row}`, "Rope").with(`Eq Qty${row}`, "10000");
+      expect([summaryOf(atMost), summaryOf(over)]).toEqual([["Rope:true:9999"], ["Rope:false:0"]]);
+    }
+  });
+
   it("has a quantity of zero known", () => {
     expect(summaryOf(MadeUpSheet.empty().with("Eq Name0", "Rope").with("Eq Qty0", "0"))).toEqual(["Rope:true:0"]);
   });

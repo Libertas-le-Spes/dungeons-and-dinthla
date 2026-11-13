@@ -22,6 +22,11 @@ describe("the ability scores of a sheet", () => {
     expect(known).toEqual(Object.keys(SHEET_SCORES).filter((other) => other !== ability));
   });
 
+  it.each(SCORES)("keep the %s at 1 and at 30, and refuse 0 and 31", (ability, printed) => {
+    const known = (text: string): boolean => Reflect.get(scoresOf(new SheetFields(MadeUpSheet.monk().with(printed.field, text).fields())), ability).isKnown;
+    expect([known("0"), known("1"), known("30"), known("31")]).toEqual([false, true, true, false]);
+  });
+
   it("are on the PDF route", () => {
     expect(scoresOf(new SheetFields(MadeUpSheet.monk().fields())).wisdom.route.name).toBe("pdf");
   });

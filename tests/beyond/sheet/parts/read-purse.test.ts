@@ -18,14 +18,9 @@ describe("the purse of a sheet", () => {
     expect(unknown).toEqual([coin]);
   });
 
-  it("has a coin count out of range not known", () => {
-    const purse = purseOf(new SheetFields(MadeUpSheet.monk().with("GP", "1000001").fields()));
-    expect(purse.gold.isKnown).toBe(false);
-  });
-
-  it("has a coin count at the most known", () => {
-    const purse = purseOf(new SheetFields(MadeUpSheet.monk().with("GP", "1000000").fields()));
-    expect(purse.gold.valueOr(0)).toBe(1_000_000);
+  it.each(COINS)("keeps the %s at 0 and at a million, and refuses one above", (coin, printed) => {
+    const known = (text: string): boolean => Reflect.get(purseOf(new SheetFields(MadeUpSheet.monk().with(printed.field, text).fields())), coin).isKnown;
+    expect([known("0"), known("1000000"), known("1000001")]).toEqual([true, true, false]);
   });
 });
 

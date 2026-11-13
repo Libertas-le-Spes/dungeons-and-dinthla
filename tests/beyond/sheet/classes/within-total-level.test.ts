@@ -19,6 +19,10 @@ describe("the levels of the classes on a sheet", () => {
     expect(found.map((one) => one.level.explanation)).toEqual(Array(3).fill("The total level has to be at most 40."));
   });
 
+  it("are on the PDF route when they are not known", () => {
+    expect(withinTotalLevel([classAt(40), classAt(1)]).map((one) => one.level.route.name)).toEqual(["pdf", "pdf"]);
+  });
+
   it("keep the names when the levels are not known", () => {
     expect(withinTotalLevel([classAt(40), classAt(1)]).map((one) => one.name.text)).toEqual(["Monk", "Monk"]);
   });

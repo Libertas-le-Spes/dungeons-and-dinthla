@@ -27,6 +27,10 @@ describe("a number printed on the sheet", () => {
     expect([value.isKnown, value.explanation]).toEqual([false, `The sheet's field "${FIELD}" is missing or is not text.`]);
   });
 
+  it("is on the PDF route when it is not known", () => {
+    expect(readWith("twelve").route.name).toBe("pdf");
+  });
+
   it.each([true, false, ["12"]])("is not known when the field holds %j instead of text", (held) => {
     expect(readWith(held).explanation).toBe(`The sheet's field "${FIELD}" is missing or is not text.`);
   });
