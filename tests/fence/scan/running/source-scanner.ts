@@ -1,5 +1,5 @@
 import type { FileSystem } from "typescript/unstable/fs";
-import { API, type Project } from "typescript/unstable/sync";
+import { API, type Project, type Snapshot } from "typescript/unstable/sync";
 import type { Node } from "typescript/unstable/ast";
 import type { Allowances } from "../reading/allowances";
 import { editorViewBreaches } from "../vault-rules/editor-view-rules";
@@ -62,6 +62,15 @@ export class SourceScanner {
 
   private openProject(configPath: string): Project {
     const snapshot = this.api.updateSnapshot({ openProjects: [configPath] });
+    try {
+      return this.checkedProject(snapshot, configPath);
+    } catch (error) {
+      snapshot.dispose();
+      throw error;
+    }
+  }
+
+  private checkedProject(snapshot: Snapshot, configPath: string): Project {
     const project = snapshot.getProject(configPath);
     if (project === undefined) throw new Error(`${configPath} could not be opened`);
     const problems = project.program.getConfigFileParsingDiagnostics();
