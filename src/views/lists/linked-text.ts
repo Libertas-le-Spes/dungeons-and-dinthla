@@ -65,7 +65,11 @@ export function addLinkedText(
 }
 
 export function addRowButton(list: HTMLElement, source: Source, actions: LinkActions): HTMLElement {
-  const row = list.createEl("li").createDiv({
+  return addRowButtonIn(list.createEl("li"), source, actions);
+}
+
+export function addRowButtonIn(item: HTMLElement, source: Source, actions: LinkActions): HTMLElement {
+  const row = item.createDiv({
     cls: "dd-row",
     attr: { role: "button", tabindex: "0", "data-path": source.path, "data-line": String(source.line) },
   });

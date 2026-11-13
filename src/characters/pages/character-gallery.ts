@@ -3,9 +3,10 @@ import type { SessionNote } from "../../campaign/record/campaign";
 import { campaignFolderOf, campaignNotePathOf } from "../../campaign/paths/campaign-folders";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { LinkActions } from "../../views/lists/linked-text";
-import { addCharacterCard, type CharacterCard } from "../cards/character-card";
+import { addCharacterCard, addCharacterCardIn, type CharacterCard } from "../cards/character-card";
+import { backupCards, playedCards } from "../cards/card-groups";
+import { addMakeMainButton } from "../cards/make-main-button";
 import type { CharacterNotes } from "../reading/character-notes";
-import { ownCharacterFirst } from "../cards/own-character-first";
 import { learnedFactsOf, type LearnedFacts } from "../reading/learned-facts";
 import { readCharacterCard } from "../cards/read-character-card";
 import { PendingWork } from "../../views/pending/pending-work";
@@ -13,6 +14,7 @@ import type { CharacterCreators } from "./character-creators";
 import { addImportButton } from "../imported/drawing/import-button";
 
 const NO_CHARACTERS = "No characters yet. Add one with New character.";
+export const BACKUPS = "Backups";
 
 export class CharacterGallery {
   private renders = 0;
@@ -71,7 +73,20 @@ export class CharacterGallery {
     }
     title.createSpan({ cls: "dd-count", text: String(cards.length) });
     const gallery = this.root.createEl("ul", { cls: "dd-gallery" });
-    for (const card of ownCharacterFirst(cards)) addCharacterCard(gallery, card, this.actions);
+    for (const card of playedCards(cards)) addCharacterCard(gallery, card, this.actions);
+    this.drawBackups(backupCards(cards));
+  }
+
+  private drawBackups(backups: readonly CharacterCard[]): void {
+    if (backups.length === 0) return;
+    const section = this.root.createEl("section", { cls: "dd-backups" });
+    section.createEl("h3", { cls: "dd-title", text: BACKUPS });
+    const list = section.createEl("ul", { cls: "dd-gallery" });
+    for (const card of backups) {
+      const item = list.createEl("li", { cls: "dd-backup" });
+      addCharacterCardIn(item, card, this.actions);
+      addMakeMainButton(item, card.path, this.creators);
+    }
   }
 
   private addCreateButton(head: HTMLElement): void {

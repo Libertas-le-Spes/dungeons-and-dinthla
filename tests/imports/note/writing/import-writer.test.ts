@@ -4,6 +4,7 @@ import { CleanLine } from "../../../../src/beyond/text/clean-line";
 import { OUTSIDE_FENCE } from "../../../../src/fence/paths/fence";
 import type { TypedText } from "../../../../src/imports/note/changes/import-changes";
 import { ImportWriter } from "../../../../src/imports/note/writing/import-writer";
+import { leftPlayWords } from "../../../../src/campaign/paths/fallen-records";
 import * as importedNote from "../../../../src/imports/note/writing/rewriting/imported-note";
 import { CHARACTERS_FOLDER, FakeNoteVault } from "../../builders/fake-note-vault";
 import { headingsOf, textOf } from "../../builders/line-helpers";
@@ -223,6 +224,21 @@ describe("ImportWriter.create", () => {
     vault.note(`${CHARACTERS_FOLDER}/primary monk.md`, "x\n");
     await expect(writer.create(monkSheet(), TODAY)).rejects.toThrow("There is already a note called primary monk");
     expect(vault.created).toEqual([]);
+  });
+
+  it("refuses a second note for a name that left play in this campaign and has a record in Fallen, and makes nothing", async () => {
+    vault.note("D&D/Primary Campaign/Fallen/primary monk.md", "the record\n");
+    await expect(writer.create(monkSheet(), TODAY)).rejects.toThrow(leftPlayWords("Primary Monk"));
+    expect(leftPlayWords("Primary Monk")).toBe(
+      "Primary Monk left play in this campaign and has a record in Fallen, so no second note was made for them. Restore their own note to bring them back.",
+    );
+    expect(vault.created).toEqual([]);
+  });
+
+  it("makes the note when the record in Fallen is another campaign's", async () => {
+    vault.note("D&D/Secondary Campaign/Fallen/Primary Monk.md", "the record\n");
+    await writer.create(monkSheet(), TODAY);
+    expect(vault.created).toEqual([NOTE]);
   });
 
   it("makes nothing when the text it would write is not only the import", async () => {

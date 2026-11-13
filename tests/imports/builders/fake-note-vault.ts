@@ -33,10 +33,13 @@ export class FakeNoteVault {
   readonly processed: string[] = [];
   readonly created: string[] = [];
   readonly createdFolders: string[] = [];
+  readonly writes: string[] = [];
   readonly gate: FencedFiles;
   private readFailure: Error | null = null;
   private heldReads: HeldCalls<string> | null = null;
   private createFailure: Error | null = null;
+  private readonly processFailures = new Map<string, Error>();
+  private readonly readsAs = new Map<string, string>();
 
   constructor() {
     const fence = new Fence(campaignsFolder, ".obsidian");
@@ -67,6 +70,14 @@ export class FakeNoteVault {
 
   failCreatesWith(error: Error): void {
     this.createFailure = error;
+  }
+
+  readBackAs(path: string, text: string): void {
+    this.readsAs.set(path, text);
+  }
+
+  failProcessesOf(path: string, error: Error): void {
+    this.processFailures.set(path, error);
   }
 
   allNotes(): TFile[] {
@@ -113,6 +124,8 @@ export class FakeNoteVault {
   private async read(file: TFile): Promise<string> {
     if (this.heldReads !== null) return this.heldReads.hold();
     if (this.readFailure !== null) throw this.readFailure;
+    const readAs = this.readsAs.get(file.path);
+    if (readAs !== undefined) return readAs;
     return this.textAt(file.path);
   }
 
@@ -129,7 +142,10 @@ export class FakeNoteVault {
   }
 
   private async process(file: TFile, change: (text: string) => string): Promise<string> {
+    const failure = this.processFailures.get(file.path);
+    if (failure !== undefined) throw failure;
     this.processed.push(file.path);
+    this.writes.push(`process ${file.path}`);
     const written = change(this.textAt(file.path));
     this.texts.set(file.path, written);
     return written;
@@ -138,6 +154,7 @@ export class FakeNoteVault {
   private async create(path: string, text: string): Promise<TFile> {
     if (this.createFailure !== null) throw this.createFailure;
     this.created.push(path);
+    this.writes.push(`create ${path}`);
     return this.note(path, text);
   }
 

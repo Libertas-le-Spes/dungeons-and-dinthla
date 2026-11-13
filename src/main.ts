@@ -84,7 +84,6 @@ import { ConfirmModal, type ConfirmText } from "./views/dialogs/confirm-modal";
 import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
 import { BeyondOpeners, type BeyondWiring } from "./imports/dialog/opening/beyond-openers";
-import type { NoteFiles } from "./imports/note/writing/note-files";
 import type { CharacterNotes } from "./characters/reading/character-notes";
 import { characterReferenceKind } from "./kinds/character-reference-kind";
 
@@ -160,7 +159,7 @@ export default class DungeonsAndDinthla extends Plugin {
     const campaignFolders = () => this.campaignFolders();
     const characterNotes = characterNotesOf(gate, campaignFolders);
     const sheetNotes = sheetNotesOf(gate, campaignFolders);
-    const beyond = new BeyondOpeners(new PluginBeyondWiring(this.app, gate.files, this.store, characterNotes, campaignFolders));
+    const beyond = new BeyondOpeners(new PluginBeyondWiring(this.app, gate.files, gate.metadata, this.store, characterNotes, campaignFolders));
     const sheetActions = {
       ...actions,
       editCharacter: (file: TFile) => editCharacter(this.app, gate, characterNotes, file),
@@ -172,7 +171,7 @@ export default class DungeonsAndDinthla extends Plugin {
     const mentionNotes = mentionNotesOf(gate, campaignFolders);
     const galleryActions = { ...actions, openRow: (source: Source) => void openCharacterSheet(this.app, gate, source.path) };
     const newCharacter = (returnFocus: () => void) => openNewCharacter(this.app, gate, this.store.campaignFolder, returnFocus);
-    const creators = { newCharacter, importCharacter: beyond.importCharacter.bind(beyond) };
+    const creators = { newCharacter, importCharacter: beyond.importCharacter.bind(beyond), makeMain: beyond.makeMain.bind(beyond) };
     this.registerBasesView(CHARACTERS_VIEW, {
       name: "Characters",
       icon: "users",
@@ -498,7 +497,8 @@ export default class DungeonsAndDinthla extends Plugin {
 class PluginBeyondWiring implements BeyondWiring {
   constructor(
     readonly app: BeyondWiring["app"],
-    readonly files: NoteFiles,
+    readonly files: BeyondWiring["files"],
+    readonly metadata: BeyondWiring["metadata"],
     private readonly store: CampaignStore,
     private readonly characterNotes: CharacterNotes,
     private readonly campaignFolders: () => string[],
