@@ -94,6 +94,7 @@ function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf, link
     openRow: vi.fn(),
     openLink: vi.fn(),
     editCharacter: vi.fn(),
+    updateFromBeyond: vi.fn(),
     chooseValue: (_file, value, onClosed) => {
       chosen.push(value);
       closers.push(onClosed);

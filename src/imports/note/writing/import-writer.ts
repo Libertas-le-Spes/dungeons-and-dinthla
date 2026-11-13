@@ -6,7 +6,7 @@ import { importChangesOf, type ImportChanges, type TypedText } from "../changes/
 import { refuseUnlessCharacterNote } from "./guarding/in-characters-folder";
 import { importedNoteText } from "./rewriting/imported-note";
 import type { NoteFiles } from "./note-files";
-import { checkedNewNoteText, checkedTextOf, writeWhenUnchangedSinceRead } from "./process-or-refuse";
+import { checkedNewNoteText, checkedTextOf, writeWhenUnchangedSinceRead } from "./checked-note-text";
 import { nameTaken } from "./guarding/refusals";
 import { Refusal } from "../../../beyond/shape/refusal";
 

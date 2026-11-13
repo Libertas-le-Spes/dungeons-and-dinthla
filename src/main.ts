@@ -4,6 +4,7 @@ import type { SheetValue } from "./characters/reading/character-sheet";
 import { messageOf } from "./views/dialogs/message-of";
 import {
   campaignFolderOf,
+  referenceFolderOf,
   chosenCampaignFolder,
   findCampaignFolders,
   isSessionNote,
@@ -77,6 +78,8 @@ import { DraftKeeping } from "./session-notes/kept/draft-keeping";
 import { ConfirmModal, type ConfirmText } from "./views/dialogs/confirm-modal";
 import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
+import { BeyondOpeners } from "./imports/dialog/opening/beyond-openers";
+import { characterReferenceKind } from "./kinds/character-reference-kind";
 
 const TYPING_PAUSE_MS = 250;
 const NOTICE_STAYS_UNTIL_DISMISSED = 0;
@@ -156,14 +159,26 @@ export default class DungeonsAndDinthla extends Plugin {
       editCharacter: (file: TFile) => editCharacter(this.app, gate, characterNotes, file),
       chooseValue: (file: TFile, value: SheetValue, onClosed: () => void) =>
         void chooseSheetValue(this.app, gate, this.store, sheetNotes, file, value, actions.openRow, onClosed),
+      updateFromBeyond: (file: TFile, returnFocus: () => void) => beyond.updateFromBeyond(file, returnFocus),
     };
     const mentionNotes = mentionNotesOf(gate, campaignFolders);
     const galleryActions = { ...actions, openRow: (source: Source) => void openCharacterSheet(this.app, gate, source.path) };
     const newCharacter = (returnFocus: () => void) => openNewCharacter(this.app, gate, this.store.campaignFolder, returnFocus);
+    const beyond = new BeyondOpeners({
+      app: this.app,
+      files: gate.files,
+      shownCampaignFolder: () => this.store.campaignFolder,
+      campaignFolderOf: (path: string) => campaignFolderOf(path, this.campaignFolders()),
+      charactersFolderOf: (folder: string) => referenceFolderOf(characterReferenceKind, folder),
+      notesIn: (folder: string) => characterNotes.filesIn(folder),
+      showSheet: (path: string) => void openCampaignPage(this.app, "cast", path),
+      tell: (words: string) => new Notice(words),
+    });
+    const creators = { newCharacter, importCharacter: (returnFocus: () => void) => beyond.importCharacter(returnFocus) };
     this.registerBasesView(CHARACTERS_VIEW, {
       name: "Characters",
       icon: "users",
-      factory: (controller, containerEl) => new CharactersView(controller, containerEl, this.store, characterNotes, galleryActions, newCharacter),
+      factory: (controller, containerEl) => new CharactersView(controller, containerEl, this.store, characterNotes, galleryActions, creators),
     });
     const shownPath = () => shownCampaignPathOf(this.app.workspace);
     this.addCommand({ id: "edit-character", name: "Edit character", checkCallback: (checking) => editActiveCharacter(this.app, gate, characterNotes, shownPath, checking) });
@@ -184,7 +199,7 @@ export default class DungeonsAndDinthla extends Plugin {
       sessionHeadingOf: (path: string) => sessionHeadingOf(path, gate.metadata),
     });
     const watchFiles = (changed: (path: string) => void) => this.watchFiles(changed);
-    const castNeeds = { store: this.store, characterNotes, sheetNotes, mentionNotes, actions, sheetActions, newCharacter, watchFiles };
+    const castNeeds = { store: this.store, characterNotes, sheetNotes, mentionNotes, actions, sheetActions, creators, watchFiles };
     const openers: LookupOpeners = { question: openQuestionAt, quest: openQuestAt, item: openItem };
     const { drafts, keeping } = this.keepDrafts();
     const sessionNotes = sessionNotesWiring({

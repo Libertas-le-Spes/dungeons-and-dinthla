@@ -22,9 +22,11 @@ function wordsOf(name: string): string[] {
 }
 
 function leadingWordsShared(first: readonly string[], second: readonly string[]): number {
+  const others = second.values();
   let shared = 0;
-  for (const [position, word] of first.entries()) {
-    if (second[position] !== word) break;
+  for (const word of first) {
+    const other = others.next();
+    if (other.done === true || other.value !== word) break;
     shared += 1;
   }
   return shared;
