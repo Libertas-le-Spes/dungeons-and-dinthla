@@ -709,22 +709,22 @@
  {
   "id": "namesake: unlinked holder taken for a note",
   "file": "src/funds/tracking/items-look.ts",
-  "find": "    if (item.holderLinked === false) return false;\n    return holderName",
-  "replace": "    return holderName",
+  "find": "    if (item.holderLinked === false) return false;\n    if (holderName",
+  "replace": "    if (holderName",
   "group": "tracking"
  },
  {
   "id": "namesake: any holder taken for one",
   "file": "src/funds/tracking/items-look.ts",
-  "find": "    return holderName.toLowerCase() === this.file.basename.toLowerCase();",
-  "replace": "    return true;",
+  "find": "    if (holderName.toLowerCase() !== this.file.basename.toLowerCase()) return false;\n",
+  "replace": "",
   "group": "tracking"
  },
  {
   "id": "namesake: capitals matter",
   "file": "src/funds/tracking/items-look.ts",
-  "find": "    return holderName.toLowerCase() === this.file.basename.toLowerCase();",
-  "replace": "    return holderName === this.file.basename;",
+  "find": "    if (holderName.toLowerCase() !== this.file.basename.toLowerCase()) return false;",
+  "replace": "    if (holderName !== this.file.basename) return false;",
   "group": "tracking"
  },
  {

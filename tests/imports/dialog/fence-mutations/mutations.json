@@ -16,8 +16,8 @@
  {
   "id": "fence: imports may reach the shared dialogs",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "\"fence/gate\", \"campaign\", \"views/dialogs\"] },",
-  "replace": "\"fence/gate\", \"campaign\"] },",
+  "find": "\"campaign\", \"views/dialogs\", \"views/pending\"] },",
+  "replace": "\"campaign\", \"views/pending\"] },",
   "group": "folders"
  },
  {
@@ -100,8 +100,8 @@
  {
   "id": "fence: imports reach no other part of views",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "\"fence/gate\", \"campaign\", \"views/dialogs\"] },",
-  "replace": "\"fence/gate\", \"campaign\", \"views/dialogs\", \"views\"] },",
+  "find": "\"campaign\", \"views/dialogs\", \"views/pending\"] },",
+  "replace": "\"campaign\", \"views/dialogs\", \"views/pending\", \"views\"] },",
   "group": "folders"
  },
  {
