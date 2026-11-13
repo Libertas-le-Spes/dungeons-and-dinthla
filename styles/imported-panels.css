@@ -49,21 +49,6 @@
   color: var(--text-muted-ui);
 }
 
-.dd-sheet .dd-coins {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.dd-sheet .dd-coin {
-  padding: var(--space-0) 10px;
-  border-radius: var(--radius-pill);
-  background: var(--marker-ledger-soft);
-  font: var(--type-note);
-  font-size: var(--text-sm);
-  color: var(--text-strong);
-}
-
 .dd-funds .dd-own-purse + .dd-own-purse {
   margin-top: var(--space-4);
 }
