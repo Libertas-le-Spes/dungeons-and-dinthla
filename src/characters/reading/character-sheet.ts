@@ -1,15 +1,22 @@
 import type { Source } from "../../campaign/record/campaign";
 import { ABILITIES, sameName, sheetNameOf, type SheetValues, type SourcedFact } from "./sheet-values";
+import type { ImportedFact } from "../imported/imported-fact";
+import { firstRanked, type Rank } from "./value-ranks";
 
 export const NOT_KNOWN = "?";
 
-export type ValueState = "learned" | "unknown" | "override" | "carried";
+export type ValueState = "learned" | "unknown" | "override" | "imported" | "carried";
 
 export type CarriedGroup = "abilities" | "values";
 
 export interface StatedValue {
   value: string;
   source: Source;
+}
+
+export interface ImportedValue extends StatedValue {
+  route: string;
+  working: string;
 }
 
 export interface CarriedValues {
@@ -23,6 +30,7 @@ export interface SheetValue {
   state: ValueState;
   shown: StatedValue | null;
   override: StatedValue | null;
+  imported: ImportedValue | null;
   learned: StatedValue | null;
   carried: StatedValue | null;
   carriedCampaign: string | null;
@@ -44,6 +52,7 @@ const LABELS = new Map<string, string>([
   ["HP", "Hit Points"],
   ["speed", "Speed"],
   ["alignment", "Alignment"],
+  ["species", "Species"],
 ]);
 
 export function labelOf(name: string): string {
@@ -79,18 +88,38 @@ function carriedFor(carried: CarriedValues, name: string): StatedValue | null {
   return null;
 }
 
-function stateOf(shown: StatedValue, given: ValueState): ValueState {
-  if (shown.value === NOT_KNOWN) return "unknown";
-  return given;
+function importedFor(imported: readonly ImportedFact[], name: string): ImportedValue | null {
+  let found: ImportedValue | null = null;
+  for (const fact of imported) {
+    if (sameName(fact.name, name)) found = { value: fact.value, source: fact.source, route: fact.route, working: fact.working };
+  }
+  return found;
 }
 
-function sheetValueOf(name: string, learned: SourcedFact[], overrides: SourcedFact[], carried: CarriedValues | null): SheetValue {
+function ranksOf(value: SheetValue): Rank[] {
+  return [
+    { state: "override", stated: value.override, questionMarkMeansUnknown: false },
+    { state: "imported", stated: value.imported, questionMarkMeansUnknown: true },
+    { state: "learned", stated: value.learned, questionMarkMeansUnknown: true },
+    { state: "carried", stated: value.carried, questionMarkMeansUnknown: true },
+  ];
+}
+
+function showRanked(value: SheetValue): void {
+  const ranked = firstRanked(ranksOf(value), NOT_KNOWN);
+  if (ranked === null) return;
+  value.shown = ranked.shown;
+  value.state = ranked.state;
+}
+
+function sheetValueOf(name: string, learned: SourcedFact[], imported: readonly ImportedFact[], overrides: SourcedFact[], carried: CarriedValues | null): SheetValue {
   const value: SheetValue = {
     name,
     label: labelOf(name),
     state: "unknown",
     shown: null,
     override: lastStated(overrides, name),
+    imported: importedFor(imported, name),
     learned: lastStated(learned, name),
     carried: null,
     carriedCampaign: null,
@@ -103,16 +132,7 @@ function sheetValueOf(name: string, learned: SourcedFact[], overrides: SourcedFa
       value.carriedCampaign = carried.campaign;
     }
   }
-  if (value.override !== null) {
-    value.shown = value.override;
-    value.state = "override";
-  } else if (value.learned !== null) {
-    value.shown = value.learned;
-    value.state = stateOf(value.learned, "learned");
-  } else if (value.carried !== null) {
-    value.shown = value.carried;
-    value.state = stateOf(value.carried, "carried");
-  }
+  showRanked(value);
   const lines = [...learned, ...overrides].filter((fact) => sameName(fact.name, name)).map(stated);
   const shown = value.shown;
   if (shown === null) value.earlier = lines;
@@ -132,17 +152,17 @@ function otherNamesOf(facts: SourcedFact[], carried: CarriedValues | null): stri
   return names;
 }
 
-export function characterSheetOf(learned: SourcedFact[], overrides: SourcedFact[], carried: CarriedValues | null): CharacterSheet {
-  const valueOf = (name: string) => sheetValueOf(name, learned, overrides, carried);
+export function characterSheetOf(learned: SourcedFact[], imported: readonly ImportedFact[], overrides: SourcedFact[], carried: CarriedValues | null): CharacterSheet {
+  const valueOf = (name: string) => sheetValueOf(name, learned, imported, overrides, carried);
   return {
     abilities: ABILITIES.map(valueOf),
-    values: [...ROW_NAMES, ...otherNamesOf([...learned, ...overrides], carried)].map(valueOf),
+    values: [...ROW_NAMES, ...otherNamesOf([...learned, ...imported, ...overrides], carried)].map(valueOf),
   };
 }
 
-export function carriedValuesOf(campaign: string, learned: SourcedFact[], overrides: SourcedFact[], groups: CarriedGroup[]): CarriedValues {
+export function carriedValuesOf(campaign: string, learned: SourcedFact[], imported: readonly ImportedFact[], overrides: SourcedFact[], groups: CarriedGroup[]): CarriedValues {
   const values = new Map<string, StatedValue>();
-  for (const fact of [...learned, ...overrides]) {
+  for (const fact of [...learned, ...imported, ...overrides]) {
     const name = sheetNameOf(fact.name);
     if (!groups.includes(groupOf(name))) continue;
     const already = [...values.keys()].find((seen) => sameName(seen, name));

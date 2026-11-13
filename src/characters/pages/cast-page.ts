@@ -4,6 +4,7 @@ import { characterReferenceKind } from "../../kinds/character-reference-kind";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { LinkActions } from "../../views/lists/linked-text";
 import { CharacterGallery } from "./character-gallery";
+import type { CharacterCreators } from "./character-creators";
 import type { CharacterNotes } from "../reading/character-notes";
 
 export type WatchFiles = (changed: (path: string) => void) => () => void;
@@ -16,7 +17,7 @@ export class CastPage extends Component {
     private readonly store: CampaignStore,
     private readonly notes: CharacterNotes,
     private readonly actions: LinkActions,
-    private readonly newCharacter: (returnFocus: () => void) => void,
+    private readonly creators: CharacterCreators,
     private readonly watchFiles: WatchFiles,
   ) {
     super();
@@ -25,7 +26,7 @@ export class CastPage extends Component {
   override onload(): void {
     this.contentEl.empty();
     this.contentEl.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-characters");
-    this.gallery = new CharacterGallery(this.contentEl, this.store, this.notes, this.actions, this.newCharacter);
+    this.gallery = new CharacterGallery(this.contentEl, this.store, this.notes, this.actions, this.creators);
     this.register(this.store.subscribe(() => this.render()));
     this.register(this.notes.onNoteChanged((path) => this.renderIfShown(path)));
     this.register(this.watchFiles((path) => this.renderIfShown(path)));

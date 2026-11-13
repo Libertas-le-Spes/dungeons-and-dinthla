@@ -33,9 +33,9 @@ function overrideLine(value: string): SourcedFact {
 function acOf(learned: SourcedFact[], overrides: SourcedFact[], carriedClass: string | null = null): SheetValue {
   let carried = null;
   if (carriedClass !== null) {
-    carried = carriedValuesOf("Ashen Road", [], [{ name: "AC", value: carriedClass, source: { path: "Ashen Road/Characters/Mira.md", line: 0 } }], ["values"]);
+    carried = carriedValuesOf("Ashen Road", [], [], [{ name: "AC", value: carriedClass, source: { path: "Ashen Road/Characters/Mira.md", line: 0 } }], ["values"]);
   }
-  return characterSheetOf(learned, overrides, carried).values.find((value) => value.name === "AC")!;
+  return characterSheetOf(learned, [], overrides, carried).values.find((value) => value.name === "AC")!;
 }
 
 describe("sheetWriteOf", () => {

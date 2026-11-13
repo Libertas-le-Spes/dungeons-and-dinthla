@@ -3,6 +3,7 @@ import type { CharacterCard } from "./character-card";
 import type { CharacterNotes } from "../reading/character-notes";
 import type { LearnedFacts } from "../reading/learned-facts";
 import { overrideFacts, sheetValuesOf } from "../reading/sheet-values";
+import { importedFactsOf } from "../imported/imported-facts";
 
 export async function readCharacterCard(file: TFile, learnedFacts: LearnedFacts, notes: CharacterNotes): Promise<CharacterCard> {
   const ownNote = await notes.textOf(file);
@@ -11,7 +12,7 @@ export async function readCharacterCard(file: TFile, learnedFacts: LearnedFacts,
   return {
     path: file.path,
     name: file.basename,
-    values: sheetValuesOf(learned, overrideFacts(ownNote, file.path)),
+    values: sheetValuesOf(learned, importedFactsOf(ownNote, file.path), overrideFacts(ownNote, file.path)),
     isOwn: notes.isOwnCharacter(file),
   };
 }

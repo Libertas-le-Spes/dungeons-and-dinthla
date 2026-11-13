@@ -81,7 +81,7 @@ function setUp(texts: Record<string, string>, { readFails = false, folders = ["P
 }
 
 function acOf(learned: SourcedFact[], overrides: SourcedFact[] = []): SheetValue {
-  return characterSheetOf(learned, overrides, null).values.find((value) => value.name === "AC")!;
+  return characterSheetOf(learned, [], overrides, null).values.find((value) => value.name === "AC")!;
 }
 
 const LEARNED_15: SourcedFact = { name: "AC", value: "15", source: { path: ONE, line: 0 } };
@@ -116,8 +116,8 @@ describe("sameSheetValue", () => {
 
   it("tells apart a value carried from another campaign that changed there", () => {
     const carriedAc = (value: string) => {
-      const carried = carriedValuesOf("Ashen Road", [], [{ name: "AC", value, source: { path: "Ashen Road/Characters/Mira.md", line: 0 } }], ["values"]);
-      return characterSheetOf([], [], carried).values.find((sheetValue) => sheetValue.name === "AC")!;
+      const carried = carriedValuesOf("Ashen Road", [], [], [{ name: "AC", value, source: { path: "Ashen Road/Characters/Mira.md", line: 0 } }], ["values"]);
+      return characterSheetOf([], [], [], carried).values.find((sheetValue) => sheetValue.name === "AC")!;
     };
     expect(sameSheetValue(carriedAc("13"), carriedAc("13"))).toBe(true);
     expect(sameSheetValue(carriedAc("13"), carriedAc("14"))).toBe(false);

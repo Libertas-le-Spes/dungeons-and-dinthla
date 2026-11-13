@@ -5,8 +5,8 @@ export interface NoteName {
   readonly basename: string;
 }
 
-interface Ranked {
-  readonly note: NoteName;
+interface Ranked<T extends NoteName> {
+  readonly note: T;
   readonly shared: number;
   readonly difference: number;
 }
@@ -30,29 +30,27 @@ function leadingWordsShared(first: readonly string[], second: readonly string[])
   return shared;
 }
 
-function rankOf(wanted: readonly string[], note: NoteName): Ranked | null {
+function rankOf<T extends NoteName>(wanted: readonly string[], note: T): Ranked<T> | null {
   const noteWords = wordsOf(note.basename);
   const shared = leadingWordsShared(wanted, noteWords);
   if (shared === 0 || shared < Math.min(wanted.length, noteWords.length)) return null;
   return { note, shared, difference: Math.abs(wanted.length - noteWords.length) };
 }
 
-function bestFirst(first: Ranked, second: Ranked): number {
+function bestFirst<T extends NoteName>(first: Ranked<T>, second: Ranked<T>): number {
   if (first.shared !== second.shared) return second.shared - first.shared;
   if (first.difference !== second.difference) return first.difference - second.difference;
   return first.note.path.localeCompare(second.note.path);
 }
 
-export function notesLikeName(name: string, notes: readonly NoteName[]): NoteName[] {
+export function notesLikeName<T extends NoteName>(name: string, notes: readonly T[]): T[] {
   const wanted = wordsOf(name);
-  const ranked: Ranked[] = [];
+  const ranked: Ranked<T>[] = [];
   for (const note of notes) {
     const rank = rankOf(wanted, note);
     if (rank !== null) ranked.push(rank);
   }
-  return ranked.sort(bestFirst).map(noteOf);
-}
-
-function noteOf(ranked: Ranked): NoteName {
-  return ranked.note;
+  const found: T[] = [];
+  for (const best of ranked.sort(bestFirst)) found.push(best.note);
+  return found;
 }
