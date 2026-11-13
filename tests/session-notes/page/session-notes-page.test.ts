@@ -317,7 +317,7 @@ describe("SessionNotesPage", () => {
     const { root, page, drafts } = pageWith(SESSIONS, twelve, { notes });
     root.querySelector<HTMLButtonElement>(".dd-edit-all")!.click();
     await page.settled();
-    expect(root.querySelector<HTMLTextAreaElement>(".dd-edit-all-panel textarea")!.value).toBe("Tracks lead to the [[Old Mill]].\n! Find the carvan");
+    expect(root.querySelector(".dd-edit-all-panel textarea")).toHaveProperty("value", "Tracks lead to the [[Old Mill]].\n! Find the carvan");
     const box = root.querySelector<HTMLTextAreaElement>(".dd-edit-all-panel textarea")!;
     box.value = "Tracks lead to the [[Old Mill]].\n! Find the caravan";
     box.dispatchEvent(new box.ownerDocument.defaultView!.Event("input"));

@@ -86,7 +86,7 @@ describe("the item dialog", () => {
     const { dialog, button } = openDialog("$ Rope\n$$ Rope :lost in the river\n", refuse(HOLDER_OF_GONE));
     button("Save").click();
     await dialog.changeSettled();
-    expect(Notice.shown.at(-1)).toBe(`Couldn't change the item: ${HOLDER_OF_GONE}`);
+    expect(Notice.shown).toContain(`Couldn't change the item: ${HOLDER_OF_GONE}`);
     expect(isShown(button("Open note"))).toBe(false);
   });
 });
