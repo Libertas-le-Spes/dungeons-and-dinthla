@@ -621,5 +621,40 @@
   "find": "this.wiring.tell(NOT_IN_A_CAMPAIGN);",
   "replace": "this.wiring.tell(NO_CAMPAIGN);",
   "group": "dialog"
+ },
+ {
+  "id": "entry: override goes before the import's sections",
+  "file": "src/characters/editing/character-entry.ts",
+  "find": "  return withInserted(draft, written, afterHisOwnText(lines, bodyStart, heading));",
+  "replace": "  return withAppended(draft, written);",
+  "group": "entry"
+ },
+ {
+  "id": "entry: after his own text, not after blank lines",
+  "file": "src/characters/editing/character-entry.ts",
+  "find": " && line.trim() !== \"\") at = index + 1;",
+  "replace": ") at = index + 1;",
+  "group": "entry"
+ },
+ {
+  "id": "entry: before the first of the import's sections",
+  "file": "src/characters/editing/character-entry.ts",
+  "find": "if (first === null || index < first) first = index;",
+  "replace": "first = index;",
+  "group": "entry"
+ },
+ {
+  "id": "entry: words when nothing reads back",
+  "file": "src/characters/editing/character-entry.ts",
+  "find": "  if (value === \"\") return `After that change the note wouldn't give",
+  "replace": "  if (value === \"-\") return `After that change the note wouldn't give",
+  "group": "entry"
+ },
+ {
+  "id": "lines: an inserted line keeps the note's line breaks",
+  "file": "src/notes/writing/note-lines.ts",
+  "find": "lines.push(`${line}${carriage}`);",
+  "replace": "lines.push(line);",
+  "group": "entry"
  }
 ]
