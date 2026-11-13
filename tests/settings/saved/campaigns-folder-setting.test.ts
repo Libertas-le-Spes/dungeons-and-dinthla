@@ -4,6 +4,8 @@ import { CampaignsFolderSetting } from "../../../src/settings/saved/campaigns-fo
 import type { PluginSettings } from "../../../src/settings/saved/plugin-settings";
 import { SettingsSaver } from "../../../src/settings/saved/settings-saver";
 import { Notice } from "../../stubs/obsidian";
+import { HeldCalls } from "../../stubs/held-calls";
+import { SettleWatch } from "../../stubs/settle-watch";
 
 function oneTick(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));
@@ -109,23 +111,16 @@ describe("CampaignsFolderSetting", () => {
 
   it("waits for the look again before it is done", async () => {
     const { setting, changed } = settingFrom("D&D");
-    let finishLooking: () => void = () => {};
-    changed.mockImplementationOnce(
-      () =>
-        new Promise<void>((resolve) => {
-          finishLooking = resolve;
-        }),
-    );
-    let done = false;
-    const choosing = setting.choose("Games/D&D").then(() => {
-      done = true;
-    });
-    await vi.waitFor(() => expect(changed).toHaveBeenCalledOnce());
+    const looks = new HeldCalls<void>();
+    changed.mockImplementationOnce(looks.hold.bind(looks));
+    const choosing = new SettleWatch(setting.choose("Games/D&D"));
+    await looks.made(1);
+    expect(changed).toHaveBeenCalledOnce();
     await oneTick();
-    expect(done).toBe(false);
-    finishLooking();
-    await choosing;
-    expect(done).toBe(true);
+    expect(choosing.settled).toBe(false);
+    looks.resolve(0, undefined);
+    await choosing.done;
+    expect(choosing.settled).toBe(true);
   });
 
   it("keeps the folder it saved, and says so plainly, when opening a campaign in it fails", async () => {

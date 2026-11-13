@@ -122,41 +122,46 @@ describe("SheetValueModal", () => {
   });
 
   it("saves the state tapped with the value typed, then closes", async () => {
-    const { type, choice, saved, onClosed } = openDialog();
+    const { modal, type, choice, saved, onClosed } = openDialog();
     type("40");
     choice("override").click();
-    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledOnce());
+    await modal.changeSettled();
+    expect(onClosed).toHaveBeenCalledOnce();
     expect(saved).toEqual([{ state: "override", value: "40" }]);
   });
 
   it("closes when there was nothing to write", async () => {
-    const { choice, onClosed } = openDialog({ save: async () => false });
+    const { modal, choice, onClosed } = openDialog({ save: async () => false });
     choice("learned").click();
-    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledOnce());
+    await modal.changeSettled();
+    expect(onClosed).toHaveBeenCalledOnce();
   });
 
   it("keeps the value's state on Enter", async () => {
-    const { type, enter, saved } = openDialog({ value: hpOf([], [{ name: "HP", value: "40", source: { path: MIRA, line: 0 } }]) });
+    const { modal, type, enter, saved } = openDialog({ value: hpOf([], [{ name: "HP", value: "40", source: { path: MIRA, line: 0 } }]) });
     type("41");
     enter();
-    await vi.waitFor(() => expect(saved).toEqual([{ state: "override", value: "41" }]));
+    await modal.changeSettled();
+    expect(saved).toEqual([{ state: "override", value: "41" }]);
   });
 
   it("saves a value not known as learned on Enter", async () => {
-    const { type, enter, saved } = openDialog({ value: hpOf([]) });
+    const { modal, type, enter, saved } = openDialog({ value: hpOf([]) });
     type("41");
     enter();
-    await vi.waitFor(() => expect(saved).toEqual([{ state: "learned", value: "41" }]));
+    await modal.changeSettled();
+    expect(saved).toEqual([{ state: "learned", value: "41" }]);
   });
 
   it("saves once however often a state is tapped while saving", async () => {
     let finish: (written: boolean) => void = () => {};
-    const { choice, saved, onClosed } = openDialog({ save: () => new Promise((resolve) => { finish = resolve; }) });
+    const { modal, choice, saved, onClosed } = openDialog({ save: () => new Promise((resolve) => { finish = resolve; }) });
     choice("override").click();
     choice("unknown").click();
     expect(saved).toHaveLength(1);
     finish(true);
-    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledOnce());
+    await modal.changeSettled();
+    expect(onClosed).toHaveBeenCalledOnce();
   });
 
   it("stays open while saving, however it is asked to close", () => {
@@ -167,29 +172,32 @@ describe("SheetValueModal", () => {
   });
 
   it("says why nothing was written, and stays open with focus on the value", async () => {
-    const { choice, onClosed, input, root } = openDialog({ save: async () => {
+    const { modal, choice, onClosed, input, root } = openDialog({ save: async () => {
       throw new Error("Type a value first.");
     } });
     choice("override").click();
-    await vi.waitFor(() => expect(Notice.shown).toEqual(["Couldn't change the hit points: Type a value first."]));
+    await modal.changeSettled();
+    expect(Notice.shown).toEqual(["Couldn't change the hit points: Type a value first."]);
     expect(onClosed).not.toHaveBeenCalled();
     expect(root.ownerDocument.activeElement).toBe(input);
   });
 
   it("closes when the note changed since the sheet was read", async () => {
-    const { choice, onClosed } = openDialog({ save: async () => {
+    const { modal, choice, onClosed } = openDialog({ save: async () => {
       throw new Error(CHANGED_IN_NOTE);
     } });
     choice("override").click();
-    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledOnce());
+    await modal.changeSettled();
+    expect(onClosed).toHaveBeenCalledOnce();
   });
 
   it("closes when only part was written", async () => {
-    const { choice, onClosed } = openDialog({ save: async () => {
+    const { modal, choice, onClosed } = openDialog({ save: async () => {
       throw new PartlyWritten("The line was added to the session, but Mira's note was left.");
     } });
     choice("learned").click();
-    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledOnce());
+    await modal.changeSettled();
+    expect(onClosed).toHaveBeenCalledOnce();
   });
 });
 
@@ -201,28 +209,31 @@ describe("SheetValueModal on a value only the character's note states, under a n
   }
 
   it("asks for a second press before a choice that removes its line from the note", async () => {
-    const { choice, saved } = openDialog({ value: personality() });
+    const { modal, choice, saved } = openDialog({ value: personality() });
     choice("carried").click();
     expect(choice("carried").textContent).toBe(PRESS_AGAIN);
     choice("unknown").click();
     expect(saved).toEqual([]);
     expect(choice("unknown").textContent).toBe(PRESS_AGAIN);
     choice("unknown").click();
-    await vi.waitFor(() => expect(saved).toEqual([{ state: "unknown", value: "grumpy, but kind" }]));
+    await modal.changeSettled();
+    expect(saved).toEqual([{ state: "unknown", value: "grumpy, but kind" }]);
   });
 
   it("saves the override on Enter, which removes nothing", async () => {
-    const { enter, saved } = openDialog({ value: personality() });
+    const { modal, enter, saved } = openDialog({ value: personality() });
     enter();
-    await vi.waitFor(() => expect(saved).toEqual([{ state: "override", value: "grumpy, but kind" }]));
+    await modal.changeSettled();
+    expect(saved).toEqual([{ state: "override", value: "grumpy, but kind" }]);
   });
 
   it("asks for a second press before Learned at the table, which clears the override", async () => {
-    const { choice, saved } = openDialog({ value: personality() });
+    const { modal, choice, saved } = openDialog({ value: personality() });
     choice("learned").click();
     expect(saved).toEqual([]);
     choice("learned").click();
-    await vi.waitFor(() => expect(saved).toEqual([{ state: "learned", value: "grumpy, but kind" }]));
+    await modal.changeSettled();
+    expect(saved).toEqual([{ state: "learned", value: "grumpy, but kind" }]);
   });
 
   it("stops waiting for the second press when the dialog closes", () => {
@@ -244,24 +255,27 @@ describe("SheetValueModal on a value only the character's note states, under a n
   });
 
   it("saves an override on the first press", async () => {
-    const { choice, saved } = openDialog({ value: personality() });
+    const { modal, choice, saved } = openDialog({ value: personality() });
     choice("override").click();
-    await vi.waitFor(() => expect(saved).toHaveLength(1));
+    await modal.changeSettled();
+    expect(saved).toHaveLength(1);
   });
 
   it("saves on the first press for a name the sheet knows", async () => {
-    const { choice, saved, root } = openDialog({ value: hpOf([], [{ name: "HP", value: "40", source: { path: MIRA, line: 0 } }]) });
+    const { modal, choice, saved, root } = openDialog({ value: hpOf([], [{ name: "HP", value: "40", source: { path: MIRA, line: 0 } }]) });
     expect(Array.from(root.querySelectorAll(".dd-where")).map((where) => where.textContent)).toHaveLength(1);
     choice("unknown").click();
-    await vi.waitFor(() => expect(saved).toEqual([{ state: "unknown", value: "40" }]));
+    await modal.changeSettled();
+    expect(saved).toEqual([{ state: "unknown", value: "40" }]);
   });
 
   it("saves on the first press when nothing is on the note to remove", async () => {
     const learned = { ...PERSONALITY, source: { path: "Pale Moon/Sessions/Session 1.md", line: 0 } };
     const value = characterSheetOf([learned], [], [], null).values.find((sheetValue) => sheetValue.name === "Personality")!;
-    const { choice, saved } = openDialog({ value });
+    const { modal, choice, saved } = openDialog({ value });
     choice("unknown").click();
-    await vi.waitFor(() => expect(saved).toHaveLength(1));
+    await modal.changeSettled();
+    expect(saved).toHaveLength(1);
   });
 });
 
@@ -329,10 +343,10 @@ describe("SheetValueModal on an imported value", () => {
   });
 
   it("saves an override when Override is pressed", async () => {
-    const { type, choice, saved } = openDialog({ value: importedHp() });
+    const { modal, type, choice, saved } = openDialog({ value: importedHp() });
     type("22");
     choice("override").click();
-    await Promise.resolve();
+    await modal.changeSettled();
     expect(saved).toEqual([{ state: "override", value: "22" }]);
   });
 

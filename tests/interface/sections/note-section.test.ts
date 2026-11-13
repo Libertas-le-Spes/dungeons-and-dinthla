@@ -21,7 +21,7 @@ describe("noteSection", () => {
     const { page, root, texts } = made("Pale Moon/Places/Old Mill.md");
     expect(page).toBeInstanceOf(NotePage);
     expect(root.querySelector("h2")!.textContent).toBe("Old Mill");
-    await vi.waitFor(() => expect(texts.read).toHaveBeenCalledExactlyOnceWith("Pale Moon/Places/Old Mill.md"));
+    expect(texts.read).toHaveBeenCalledExactlyOnceWith("Pale Moon/Places/Old Mill.md");
   });
 
   it("says to open a note when the tab shows none", () => {

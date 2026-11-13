@@ -53,7 +53,7 @@ function openDialog(canDelete: boolean, deleteNote: () => Promise<boolean> = asy
   const modal = new CoinModal({} as App, "Session 1", vi.fn(async () => true), shown, null, onClosed);
   modal.open();
   const button = (text: string) => Array.from(modal.contentEl.querySelectorAll("button")).find((candidate) => candidate.textContent === text);
-  return { button, entry, onClosed };
+  return { modal, button, entry, onClosed };
 }
 
 afterEach(() => {
@@ -62,11 +62,12 @@ afterEach(() => {
 
 describe("deleting a ledger entry", () => {
   it("deletes only on a second press, then closes", async () => {
-    const { button, entry, onClosed } = openDialog(true);
+    const { modal, button, entry, onClosed } = openDialog(true);
     button("Delete entry")!.click();
     expect(entry.delete).not.toHaveBeenCalled();
     button("Press again to delete")!.click();
-    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledWith("deleted"));
+    await modal.changeSettled();
+    expect(onClosed).toHaveBeenCalledWith("deleted");
     expect(entry.delete).toHaveBeenCalledOnce();
   });
 
@@ -90,13 +91,14 @@ describe("deleting a ledger entry", () => {
 
   it("needs two presses again after a failed delete", async () => {
     Notice.shown = [];
-    const { button, entry, onClosed } = openDialog(true, async () => {
+    const { modal, button, entry, onClosed } = openDialog(true, async () => {
       throw new Error("the disk is full");
     });
     const deleting = button("Delete entry")!;
     deleting.click();
     deleting.click();
-    await vi.waitFor(() => expect(Notice.shown).toEqual(["Couldn't change the entry: the disk is full"]));
+    await modal.changeSettled();
+    expect(Notice.shown).toEqual(["Couldn't change the entry: the disk is full"]);
     deleting.click();
     expect(entry.delete).toHaveBeenCalledOnce();
     deleting.click();
@@ -105,10 +107,11 @@ describe("deleting a ledger entry", () => {
   });
 
   it("closes unchanged when the delete wrote nothing", async () => {
-    const { button, entry, onClosed } = openDialog(true, async () => false);
+    const { modal, button, entry, onClosed } = openDialog(true, async () => false);
     button("Delete entry")!.click();
     button("Press again to delete")!.click();
-    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledWith("unchanged"));
+    await modal.changeSettled();
+    expect(onClosed).toHaveBeenCalledWith("unchanged");
     expect(entry.delete).toHaveBeenCalledOnce();
   });
 
@@ -137,37 +140,40 @@ function openHeldEntry() {
     if (resolve === undefined) throw new Error("Nothing is held yet.");
     resolve(wrote);
   };
-  return { button, save, entry, onClosed, finishFirst };
+  return { modal, button, save, entry, onClosed, finishFirst };
 }
 
 describe("a ledger entry asked to save and delete at once", () => {
   it("closes as written when Delete is pressed while a save runs", async () => {
-    const { button, entry, onClosed, finishFirst } = openHeldEntry();
+    const { modal, button, entry, onClosed, finishFirst } = openHeldEntry();
     button("Save").click();
     button("Delete entry").click();
     button("Press again to delete").click();
     finishFirst(true);
-    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledWith("written"));
+    await modal.changeSettled();
+    expect(onClosed).toHaveBeenCalledWith("written");
     expect(entry.delete).not.toHaveBeenCalled();
   });
 
   it("closes as deleted when Save is pressed while a delete runs", async () => {
-    const { button, save, onClosed, finishFirst } = openHeldEntry();
+    const { modal, button, save, onClosed, finishFirst } = openHeldEntry();
     button("Delete entry").click();
     button("Press again to delete").click();
     button("Save").click();
     finishFirst(true);
-    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledWith("deleted"));
+    await modal.changeSettled();
+    expect(onClosed).toHaveBeenCalledWith("deleted");
     expect(save).not.toHaveBeenCalled();
   });
 
   it("closes unchanged when a save that wrote nothing ran while Delete was pressed", async () => {
-    const { button, entry, onClosed, finishFirst } = openHeldEntry();
+    const { modal, button, entry, onClosed, finishFirst } = openHeldEntry();
     button("Save").click();
     button("Delete entry").click();
     button("Press again to delete").click();
     finishFirst(false);
-    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledWith("unchanged"));
+    await modal.changeSettled();
+    expect(onClosed).toHaveBeenCalledWith("unchanged");
     expect(entry.delete).not.toHaveBeenCalled();
   });
 });
