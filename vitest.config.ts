@@ -11,9 +11,7 @@ export default defineConfig({
   test: {
     include: ["tests/**/*.test.ts"],
     passWithNoTests: true,
-    pool: "forks",
-    isolate: true,
     setupFiles: ["tests/setup/heap-guard.ts"],
-    execArgv: [`--max-old-space-size=${WORKER_HEAP_LIMIT_MB}`],
+    execArgv: [`--max-old-space-size=${WORKER_HEAP_LIMIT_MB}`, "--expose-gc"],
   },
 });

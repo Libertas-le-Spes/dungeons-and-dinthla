@@ -1,0 +1,163 @@
+[
+ {
+  "id": "box memory",
+  "file": "tests/mutation-support/memory-box.ts",
+  "find": "\"-p\", `MemoryMax=${limits.memoryMax}`, ",
+  "replace": "",
+  "group": "support"
+ },
+ {
+  "id": "box swap",
+  "file": "tests/mutation-support/memory-box.ts",
+  "find": "\"-p\", \"MemorySwapMax=0\"];",
+  "replace": "];",
+  "group": "support"
+ },
+ {
+  "id": "box runtime",
+  "file": "tests/mutation-support/memory-box.ts",
+  "find": "\"-p\", `RuntimeMaxSec=${runtime}`, ",
+  "replace": "",
+  "group": "support"
+ },
+ {
+  "id": "box runtime value",
+  "file": "tests/mutation-support/memory-box.ts",
+  "find": "const runtime = limits.seconds + KILL_AFTER_SECONDS;",
+  "replace": "const runtime = limits.seconds;",
+  "group": "support"
+ },
+ {
+  "id": "box kill after",
+  "file": "tests/mutation-support/memory-box.ts",
+  "find": "[\"timeout\", \"-k\", String(KILL_AFTER_SECONDS), String(limits.seconds)]",
+  "replace": "[\"timeout\", String(limits.seconds)]",
+  "group": "support"
+ },
+ {
+  "id": "probe memory",
+  "file": "tests/mutation-support/memory-box.ts",
+  "find": "\"-p\", \"MemoryMax=64M\", ",
+  "replace": "",
+  "group": "support"
+ },
+ {
+  "id": "probe status",
+  "file": "tests/mutation-support/memory-box.ts",
+  "find": "result.status === 0",
+  "replace": "result.status !== 1",
+  "group": "support"
+ },
+ {
+  "id": "assert throws",
+  "file": "tests/mutation-support/boxed-test-run.ts",
+  "find": "  if (!memoryBoxIsAvailable()) throw",
+  "replace": "  if (memoryBoxIsAvailable()) throw",
+  "group": "support"
+ },
+ {
+  "id": "report cleared",
+  "file": "tests/mutation-support/boxed-test-run.ts",
+  "find": "  clearReport(run.report);\n",
+  "replace": "",
+  "group": "support"
+ },
+ {
+  "id": "signal gives null",
+  "file": "tests/mutation-support/boxed-test-run.ts",
+  "find": "  if (result.signal !== null) return null;\n",
+  "replace": "",
+  "group": "support"
+ },
+ {
+  "id": "error gives null",
+  "file": "tests/mutation-support/boxed-test-run.ts",
+  "find": "  if (result.error !== undefined) return null;\n",
+  "replace": "",
+  "group": "support"
+ },
+ {
+  "id": "one worker",
+  "file": "tests/mutation-support/boxed-test-run.ts",
+  "find": "\"--maxWorkers=1\", ",
+  "replace": "",
+  "group": "support"
+ },
+ {
+  "id": "missing report",
+  "file": "tests/mutation-support/suite-results.ts",
+  "find": "if (!existsSync(path)) return null;",
+  "replace": "",
+  "group": "support"
+ },
+ {
+  "id": "bad json",
+  "file": "tests/mutation-support/suite-results.ts",
+  "find": "  } catch {\n    return null;",
+  "replace": "  } catch {\n    return [];",
+  "group": "support"
+ },
+ {
+  "id": "backup root kept",
+  "file": "tests/mutation-support/backups.ts",
+  "find": "const backup: Backup = { root: this.root, file, text };",
+  "replace": "const backup: Backup = { root: \"\", file, text };",
+  "group": "support"
+ },
+ {
+  "id": "backup folder made",
+  "file": "tests/mutation-support/backups.ts",
+  "find": "    mkdirSync(this.folder, { recursive: true });\n",
+  "replace": "",
+  "group": "support"
+ },
+ {
+  "id": "drop forced",
+  "file": "tests/mutation-support/backups.ts",
+  "find": "rmSync(this.pathOf(file), { force: true });",
+  "replace": "rmSync(this.pathOf(file));",
+  "group": "support"
+ },
+ {
+  "id": "other root skipped",
+  "file": "tests/mutation-support/backups.ts",
+  "find": "    if (backup.root !== this.root) continue;\n",
+  "replace": "",
+  "group": "support"
+ },
+ {
+  "id": "restored removed",
+  "file": "tests/mutation-support/backups.ts",
+  "find": "      rmSync(join(this.folder, name), { force: true });\n",
+  "replace": "",
+  "group": "support"
+ },
+ {
+  "id": "no folder",
+  "file": "tests/mutation-support/backups.ts",
+  "find": "if (!existsSync(this.folder)) return restored;",
+  "replace": "",
+  "group": "support"
+ },
+ {
+  "id": "signal restores",
+  "file": "tests/mutation-support/signal-restore.ts",
+  "find": "    const restored = this.backups.restoreAll();",
+  "replace": "    const restored: string[] = [];",
+  "group": "support"
+ },
+ {
+  "id": "signal exits",
+  "file": "tests/mutation-support/signal-restore.ts",
+  "find": "    this.running.exit(STOPPED_BY_SIGNAL);\n",
+  "replace": "",
+  "group": "support"
+ },
+ {
+  "id": "signal list",
+  "file": "tests/mutation-support/signal-restore.ts",
+  "find": "[\"SIGINT\", \"SIGTERM\"]",
+  "replace": "[\"SIGINT\"]",
+  "group": "support"
+ }
+]
