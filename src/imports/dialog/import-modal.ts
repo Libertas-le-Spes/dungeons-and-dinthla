@@ -20,6 +20,12 @@ export class ImportModal extends ChangeDialog {
     this.steps = new ImportSteps(this.contentEl, flow, today, { runWrite: this.runChange.bind(this), closeDialog: this.close.bind(this) });
   }
 
+  async allSettled(): Promise<void> {
+    await this.steps.settled();
+    await this.changeSettled();
+    await this.steps.settled();
+  }
+
   override onOpen(): void {
     this.setTitle(this.flow.title);
     this.contentEl.addClass("dd-tokens", "dd-dialog", "dd-import");

@@ -121,7 +121,7 @@ describe("the bundle check", () => {
 
   it("scans exactly the files esbuild bundles, outside node_modules, and beyond them only files that hold nothing but types", async () => {
     expect(await unscannedBundleInputs(scanner, ROOT, BUNDLED_PROJECT)).toEqual([]);
-  }, 30_000);
+  });
 
   it.each(PLANTED_ON_DISK)("finds a file esbuild bundles but the scan doesn't read, with a $name", async (planted) => {
     const root = plantOnDisk(planted);
@@ -131,7 +131,7 @@ describe("the bundle check", () => {
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
-  }, 30_000);
+  });
 
   it("reads a library the bundle takes from where a linked node_modules points as a library", async () => {
     const root = plantOnDisk({ name: "linked", files: { "src/main.ts": 'export { value } from "pkg";\n' }, found: [] });
@@ -146,7 +146,7 @@ describe("the bundle check", () => {
       rmSync(root, { recursive: true, force: true });
       rmSync(store, { recursive: true, force: true });
     }
-  }, 30_000);
+  });
 
   it("scans a .mts file the entry point loads, and refuses it under src", () => {
     const breaches = plantedBreaches("mts");

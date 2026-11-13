@@ -193,6 +193,28 @@ export const editorInfoField = StateField.define<MarkdownFileInfo>({
 
 export const openedModals: Modal[] = [];
 
+type ModalWaiter = (modal: Modal) => void;
+
+let modalWaiters: ModalWaiter[] = [];
+
+function waitForModal(opened: ModalWaiter): void {
+  modalWaiters.push(opened);
+}
+
+export function nextModal(): Promise<Modal> {
+  return new Promise(waitForModal);
+}
+
+export function forgetModalWaiters(): void {
+  modalWaiters = [];
+}
+
+function tellModalWaiters(modal: Modal): void {
+  const waiters = modalWaiters;
+  modalWaiters = [];
+  for (const opened of waiters) opened(modal);
+}
+
 const FOCUSABLE = "button, input, select, textarea, [tabindex]";
 
 function focusFirstIn(element: HTMLElement): void {
@@ -218,6 +240,7 @@ export class Modal {
     openedModals.push(this);
     this.onOpen();
     focusFirstIn(this.contentEl);
+    tellModalWaiters(this);
   }
 
   close(): void {

@@ -4,6 +4,7 @@ import { READING, STILL_READING } from "../import-words";
 import type { PickedPdf } from "../picking/picked-pdf";
 import { drawChoosePdf } from "../steps/choose-pdf-step";
 import type { DialogShown } from "./dialog-shown";
+import type { PendingWork } from "../../../views/pending/pending-work";
 
 export interface SheetArrival {
   sheetRead(sheet: PrintedSheet): void;
@@ -21,11 +22,12 @@ export class PdfStage implements PickedPdf {
     private readonly shown: DialogShown,
     private readonly arrival: SheetArrival,
     private readonly reader: SheetReader,
+    private readonly work: PendingWork,
   ) {}
 
   show(refusal: string | null): void {
     this.contentEl.empty();
-    drawChoosePdf(this.contentEl, refusal, this);
+    drawChoosePdf(this.contentEl, refusal, this, this.work);
   }
 
   pdfPicked(bytes: Uint8Array): void {
@@ -36,7 +38,7 @@ export class PdfStage implements PickedPdf {
     this.reading = true;
     this.contentEl.empty();
     this.contentEl.createEl("p", { cls: "dd-import-reading", text: READING, attr: { "aria-live": "polite" } });
-    void this.readSheet(bytes);
+    this.work.add(this.readSheet(bytes));
   }
 
   pdfRefused(reason: string): void {

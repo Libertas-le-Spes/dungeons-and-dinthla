@@ -51,7 +51,7 @@ export class DialogDriver {
   }
 
   async settled(selector: string): Promise<HTMLElement> {
-    await vi.waitFor(this.found(selector));
+    await this.modal.allSettled();
     const element = this.root.querySelector<HTMLElement>(selector);
     if (element === null) throw new Error(`Nothing matches ${selector}.`);
     return element;
@@ -71,13 +71,6 @@ export class DialogDriver {
       }
     }
     throw new Error(`No button says ${words}.`);
-  }
-
-  private found(selector: string): () => void {
-    const root = this.root;
-    return function lookFor(): void {
-      if (root.querySelector(selector) === null) throw new Error(`Still waiting for ${selector}.`);
-    };
   }
 }
 

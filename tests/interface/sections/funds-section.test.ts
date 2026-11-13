@@ -44,7 +44,7 @@ describe("fundsSection", () => {
     const { root, texts } = made(LANTERN);
     expect(root.querySelector(".dd-shown-item .dd-item-name")!.textContent).toBe("Silvered lantern");
     expect(root.querySelector<HTMLElement>(".dd-row-shown")!.dataset.item).toBe("Silvered lantern");
-    await vi.waitFor(() => expect(texts.read).toHaveBeenCalledExactlyOnceWith(LANTERN));
+    expect(texts.read).toHaveBeenCalledExactlyOnceWith(LANTERN);
   });
 
   it("opens no item for a note outside the campaign's Items folder", () => {
