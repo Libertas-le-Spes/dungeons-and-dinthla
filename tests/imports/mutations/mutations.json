@@ -1339,7 +1339,7 @@
  {
   "id": "folders:   { folder: \"imports\", reaches: [\"import",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "  { folder: \"imports\", reaches: [\"imports\", \"imports/layout\", \"beyond\", \"names\", \"fence/gate\", \"campaign\"] },\n",
+  "find": "  { folder: \"imports\", reaches: [\"imports\", \"imports/layout\", \"beyond\", \"names\", \"fence/gate\", \"campaign\", \"views\"] },\n",
   "replace": "",
   "group": "folders"
  },
@@ -1353,8 +1353,8 @@
  {
   "id": "folders: LAYOUT_IMPORTERS: string[] = [\"imports\"]",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "LAYOUT_IMPORTERS: string[] = [\"imports\"]",
-  "replace": "LAYOUT_IMPORTERS: string[] = []",
+  "find": "LAYOUT_IMPORTERS: string[] = [\"imports\", \"characters\"]",
+  "replace": "LAYOUT_IMPORTERS: string[] = [\"characters\"]",
   "group": "folders"
  },
  {
