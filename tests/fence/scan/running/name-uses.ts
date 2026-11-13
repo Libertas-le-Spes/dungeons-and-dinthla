@@ -7,8 +7,6 @@ export interface NameRefusal {
   breach: RegExp;
 }
 
-const NAME_GROUP = 1;
-
 function escaped(name: string): string {
   return name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -18,13 +16,19 @@ function mentions(path: string, name: string): boolean {
   return word.test(readFileSync(path, "utf8"));
 }
 
+function nameIn(breach: string, pattern: RegExp): string | null {
+  const match = pattern.exec(breach);
+  if (match === null || match.groups === undefined) return null;
+  const name = match.groups["name"];
+  if (name === undefined) return null;
+  return name;
+}
+
 function namesRefusedIn(scanner: SourceScanner, project: string, path: string, refusal: NameRefusal): string[] {
   const names: string[] = [];
   for (const breach of scanner.breaches(project, [path], refusal.allowances)) {
-    const match = refusal.breach.exec(breach);
-    if (match === null) continue;
-    const name = match[NAME_GROUP];
-    if (name !== undefined) names.push(name);
+    const name = nameIn(breach, refusal.breach);
+    if (name !== null) names.push(name);
   }
   return names;
 }

@@ -1,4 +1,5 @@
 import { readdirSync } from "node:fs";
+import { relative } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { scannedFiles, unreadableCode } from "../../fence/scan/running/bundle-check";
 import { BUNDLED_PROJECT, bundledProjectFiles, entryProject } from "../../fence/scan/running/bundled-project";
@@ -13,7 +14,7 @@ import { isPdfGlobalAllowed, isPdfPlainGlobal, isPlainGlobal, PDF_FILE_GLOBALS, 
 const PDF_PROJECT = `${VIRTUAL_FOLDER}/pdf/tsconfig.json`;
 const PDF_ENTRY = "src/pdf/read-pdf-fields.ts";
 const PDF_ALLOWANCES: Allowances = { ...NOTHING_ALLOWED, globals: isPdfGlobalAllowed };
-const GLOBAL_BREACH = /^src\/pdf\/[^:]+:\d+ uses the global (\w+)$/;
+const GLOBAL_BREACH = /^src\/pdf\/[^:]+:\d+ uses the global (?<name>\w+)$/;
 
 const scanner = new SourceScanner(ROOT, virtualFileSystem(VIRTUAL_FOLDER, new Map([[PDF_PROJECT, entryProject("../../../..", `../../../../${PDF_ENTRY}`)]])));
 const LOADED = scanner.loadedFiles(PDF_PROJECT);
@@ -41,7 +42,7 @@ function pdfListing(): string[] {
 }
 
 function shownPath(path: string): string {
-  return path.slice(SOURCE_FOLDER.length);
+  return relative(SOURCE_FOLDER, path);
 }
 
 interface FileGlobal {
