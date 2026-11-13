@@ -44,6 +44,14 @@ describe("the check before an item is tracked", () => {
     );
   });
 
+  it("refuses a change that adds the item and also takes another one away", () => {
+    expect(refusalForTracking(sessionsWith("$ Lantern\n"), rope("$ [[Primary Monk]] Rope\n$$ Lantern :lost"), ONE)).toBe(NOT_READ_AS_THE_ITEM);
+  });
+
+  it("lets an item used, sold or lost be tracked again, held by him", () => {
+    expect(refusalForTracking(sessionsWith("$ Rope\n$$ Rope :lost\n"), rope("$ [[Primary Monk]] Rope"), ONE)).toBeNull();
+  });
+
   it("refuses a line that would name the item otherwise than as the note holds it", () => {
     expect(refusalForTracking(sessionsWith("We camped.\n"), { line: "$ [[Primary Monk]] Rope", written: "Rope\\_coil", key: "rope", holderName: "Primary Monk" }, ONE)).toBe(NOT_READ_AS_THE_ITEM);
   });
