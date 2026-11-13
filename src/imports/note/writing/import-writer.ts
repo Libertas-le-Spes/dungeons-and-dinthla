@@ -6,7 +6,7 @@ import { importChangesOf, type ImportChanges, type TypedText } from "../changes/
 import { refuseUnlessCharacterNote } from "./guarding/in-characters-folder";
 import { importedNoteText } from "./rewriting/imported-note";
 import type { NoteFiles } from "./note-files";
-import { checkedNewNoteText, checkedTextOf, writeWhenUnchangedSinceRead } from "./process-or-refuse";
+import { checkedNewNoteText, checkedTextOf, writeWhenUnchangedSinceRead } from "./checked-note-text";
 import { nameTaken } from "./guarding/refusals";
 import { Refusal } from "../../../beyond/shape/refusal";
 
@@ -30,19 +30,28 @@ export class ImportWriter {
     await writeWhenUnchangedSinceRead(this.files, file, before, after);
   }
 
+  refuseUnlessCreatable(sheet: PrintedSheet, today: string): void {
+    this.refuseUnlessNew(sheet.character.name.text);
+    checkedNewNoteText(sheet, today);
+  }
+
   async create(sheet: PrintedSheet, today: string): Promise<TFile> {
     const name = sheet.character.name.text;
-    const path = `${this.charactersFolder}/${name}.md`;
-    this.refuseUnlessNew(name, path);
+    const path = this.newNotePathOf(name);
+    this.refuseUnlessNew(name);
     const text = checkedNewNoteText(sheet, today);
     if (this.files.getFolderByPath(this.charactersFolder) === null) await this.files.createFolder(this.charactersFolder);
     return this.files.create(path, text);
   }
 
-  private refuseUnlessNew(name: string, path: string): void {
+  private newNotePathOf(name: string): string {
+    return `${this.charactersFolder}/${name}.md`;
+  }
+
+  private refuseUnlessNew(name: string): void {
     const refusal = refusalForFileName(name);
     if (refusal !== null) throw new Refusal(refusal);
-    const wanted = nameKeyOf(path);
+    const wanted = nameKeyOf(this.newNotePathOf(name));
     for (const file of this.files.getFiles()) {
       if (nameKeyOf(file.path) === wanted) throw nameTaken(file.basename);
     }

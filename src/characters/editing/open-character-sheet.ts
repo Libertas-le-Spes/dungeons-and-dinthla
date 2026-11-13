@@ -27,7 +27,7 @@ function sameStated(first: StatedValue | null, second: StatedValue | null): bool
 }
 
 export function sameSheetValue(first: SheetValue, second: SheetValue): boolean {
-  return sameStated(first.override, second.override) && sameStated(first.learned, second.learned) && sameStated(first.carried, second.carried);
+  return sameStated(first.override, second.override) && sameStated(first.imported, second.imported) && sameStated(first.learned, second.learned) && sameStated(first.carried, second.carried);
 }
 
 function valueIn(read: ReadSheet, name: string): SheetValue | undefined {

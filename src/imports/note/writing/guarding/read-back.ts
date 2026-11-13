@@ -2,11 +2,7 @@ import { outsideTheImport } from "./outside-the-import";
 import { wouldChangeMore } from "./refusals";
 
 function sameLines(before: readonly string[], after: readonly string[]): boolean {
-  if (before.length !== after.length) return false;
-  for (const [position, line] of before.entries()) {
-    if (after[position] !== line) return false;
-  }
-  return true;
+  return JSON.stringify(before) === JSON.stringify(after);
 }
 
 export function refuseUnlessOnlyTheImportChanged(before: string, after: string): void {

@@ -64,7 +64,7 @@ describe("sheetValuesOf", () => {
         { name: "hp", value: "30" },
         { name: "ac", value: "15" },
         { name: "eyes", value: "grey" },
-      ],
+      ], [],
       [{ name: "AC", value: "16" }],
     );
     expect([...values]).toEqual([
