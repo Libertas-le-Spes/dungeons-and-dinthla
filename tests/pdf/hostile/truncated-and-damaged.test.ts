@@ -6,8 +6,8 @@ import { present } from "../support/present";
 import { literal } from "../writer/pdf-text";
 import { testParts } from "../writer/zlib-chunks";
 
-const READ_AT_EVERY_PLACE_MS = 30_000;
-const DAMAGE_VALUES =[0x00, 0x09, 0x0a, 0x0d, 0x20, 0x25, 0x28, 0x29, 0x2f, 0x30, 0x39, 0x3c, 0x3e, 0x5b, 0x5d, 0x7f, 0x80, 0xff];
+const DAMAGE_VALUES = [0x00, 0x09, 0x0a, 0x0d, 0x20, 0x25, 0x28, 0x29, 0x2f, 0x30, 0x39, 0x3c, 0x3e, 0x5b, 0x5d, 0x7f, 0x80, 0xff];
+const RANDOM_ROUNDS = 300;
 
 function sheet(): FormDocument {
   return new FormDocument({ acroForm: true }).text("Primary Name", literal("Aria")).check("Primary Flag", "/Yes").choice("Primary Pick", literal("Red"));
@@ -51,68 +51,89 @@ class SeededBytes {
   }
 }
 
-async function countUnexplained(bytes: Buffer, values: number[]): Promise<number> {
-  let unexplained = 0;
-  for (let place = 0; place < bytes.length; place += 1) {
-    for (const value of values) {
-      if (!(await isReadOrRealRefusal(damagedAt(bytes, place, value)))) unexplained += 1;
-    }
+async function unexplainedValuesAt(bytes: Buffer, place: number, values: number[]): Promise<number[]> {
+  const unexplained: number[] = [];
+  for (const value of values) {
+    if (!(await isReadOrRealRefusal(damagedAt(bytes, place, value)))) unexplained.push(value);
   }
   return unexplained;
 }
 
-describe("a file cut short", { timeout: READ_AT_EVERY_PLACE_MS }, () => {
-  it.each([
-    ["classic", sheet().classic()],
-    ["streamed", sheet().streamed()],
-  ])("is refused with real words at every length before the end of its startxref number (%s)", async (_shape, bytes) => {
-    let notRefused = 0;
-    for (let length = 0; length < endOfStartxref(bytes); length += 1) {
-      if (!(await isRealRefusal(firstBytes(bytes, length)))) notRefused += 1;
-    }
-    expect(notRefused).toBe(0);
-  });
+function placesIn(bytes: Buffer): number[] {
+  const places: number[] = [];
+  for (let place = 0; place < bytes.length; place += 1) places.push(place);
+  return places;
+}
+
+function cutsBefore(shape: string, bytes: Buffer): { shape: string; bytes: Buffer; length: number }[] {
+  const cuts: { shape: string; bytes: Buffer; length: number }[] = [];
+  for (let length = 0; length < endOfStartxref(bytes); length += 1) cuts.push({ shape, bytes, length });
+  return cuts;
+}
+
+function randomBytes(source: SeededBytes, length: number): Buffer {
+  const bytes = Buffer.alloc(length);
+  for (let place = 0; place < bytes.length; place += 1) bytes.writeUInt8(source.next(), place);
+  return bytes;
+}
+
+function notPdfFiles(): { round: number; bytes: Buffer }[] {
+  const source = new SeededBytes(7);
+  const files: { round: number; bytes: Buffer }[] = [];
+  for (let round = 0; round < RANDOM_ROUNDS; round += 1) files.push({ round, bytes: randomBytes(source, source.next() * 8) });
+  return files;
+}
+
+function pdfLookingFiles(): { round: number; bytes: Buffer }[] {
+  const source = new SeededBytes(11);
+  const files: { round: number; bytes: Buffer }[] = [];
+  for (let round = 0; round < RANDOM_ROUNDS; round += 1) {
+    const body = randomBytes(source, source.next() * 4);
+    const whole = Buffer.concat([Buffer.from("%PDF-1.7\n", "latin1"), body, Buffer.from("\nstartxref\n9\n%%EOF", "latin1")]);
+    files.push({ round, bytes: whole });
+  }
+  return files;
+}
+
+function streamedDamageValues(): number[] {
+  const source = new SeededBytes(5);
+  return [0x00, 0xff, 0x30, source.next(), source.next(), source.next()];
+}
+
+const CLASSIC = sheet().classic();
+const STREAMED = sheet().streamed();
+const STREAMED_DAMAGE_VALUES = streamedDamageValues();
+
+describe("a file cut short", () => {
+  it.each([...cutsBefore("classic", CLASSIC), ...cutsBefore("streamed", STREAMED)])(
+    "is refused with real words when cut to $length bytes, before the end of its startxref number ($shape)",
+    async ({ bytes, length }) => {
+      expect(await isRealRefusal(firstBytes(bytes, length))).toBe(true);
+    },
+  );
 
   it("is read when only the last line after the number is missing, since nothing after the number is read", async () => {
-    const bytes = sheet().classic();
-    const result = await readPdfFieldsWith(firstBytes(bytes, endOfStartxref(bytes)), testParts());
+    const result = await readPdfFieldsWith(firstBytes(CLASSIC, endOfStartxref(CLASSIC)), testParts());
     expect(result.ok).toBe(true);
   });
 });
 
-describe("a file with one byte damaged", { timeout: READ_AT_EVERY_PLACE_MS }, () => {
-  it("is read, or refused with real words, whichever of eighteen kinds of byte is put at any place (classic)", async () => {
-    expect(await countUnexplained(sheet().classic(), DAMAGE_VALUES)).toBe(0);
+describe("a file with one byte damaged", () => {
+  it.each(placesIn(CLASSIC))("is read, or refused with real words, whichever of eighteen kinds of byte is put at place %i (classic)", async (place) => {
+    expect(await unexplainedValuesAt(CLASSIC, place, DAMAGE_VALUES)).toEqual([]);
   });
 
-  it("is read, or refused with real words, whichever kind of byte is put at any place (streamed)", async () => {
-    const source = new SeededBytes(5);
-    const values = [0x00, 0xff, 0x30, source.next(), source.next(), source.next()];
-    expect(await countUnexplained(sheet().streamed(), values)).toBe(0);
+  it.each(placesIn(STREAMED))("is read, or refused with real words, whichever kind of byte is put at place %i (streamed)", async (place) => {
+    expect(await unexplainedValuesAt(STREAMED, place, STREAMED_DAMAGE_VALUES)).toEqual([]);
   });
 });
 
 describe("bytes that are not a PDF at all", () => {
-  it("are refused with real words, whatever they are", async () => {
-    const source = new SeededBytes(7);
-    let notRefused = 0;
-    for (let round = 0; round < 300; round += 1) {
-      const bytes = Buffer.alloc(source.next() * 8);
-      for (let place = 0; place < bytes.length; place += 1) bytes.writeUInt8(source.next(), place);
-      if (!(await isRealRefusal(bytes))) notRefused += 1;
-    }
-    expect(notRefused).toBe(0);
+  it.each(notPdfFiles())("are refused with real words, whatever they are (round $round)", async ({ bytes }) => {
+    expect(await isRealRefusal(bytes)).toBe(true);
   });
 
-  it("are refused with real words when they begin like a PDF", async () => {
-    const source = new SeededBytes(11);
-    let notRefused = 0;
-    for (let round = 0; round < 300; round += 1) {
-      const body = Buffer.alloc(source.next() * 4);
-      for (let place = 0; place < body.length; place += 1) body.writeUInt8(source.next(), place);
-      const whole = Buffer.concat([Buffer.from("%PDF-1.7\n", "latin1"), body, Buffer.from("\nstartxref\n9\n%%EOF", "latin1")]);
-      if (!(await isRealRefusal(whole))) notRefused += 1;
-    }
-    expect(notRefused).toBe(0);
+  it.each(pdfLookingFiles())("are refused with real words when they begin like a PDF (round $round)", async ({ bytes }) => {
+    expect(await isRealRefusal(bytes)).toBe(true);
   });
 });
