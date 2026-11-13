@@ -8,14 +8,12 @@ import type { ImportTarget } from "./import-target";
 
 export class ExistingNoteTarget implements ImportTarget {
   readonly buttonWords = UPDATE_BUTTON;
-  readonly noteName: string;
   readonly choiceWords: string;
 
   constructor(
     private readonly writer: ImportWriter,
     private readonly file: TFile,
   ) {
-    this.noteName = file.basename;
     this.choiceWords = existingNoteWords(file.basename);
   }
 

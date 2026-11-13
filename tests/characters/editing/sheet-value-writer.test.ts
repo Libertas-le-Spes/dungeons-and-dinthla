@@ -11,6 +11,7 @@ import {
   NO_VALUE,
   nothingCarried,
   QUESTION_MARK,
+  NOT_A_CHOICE,
   sheetWriteOf,
   writeSheetValue,
   type SheetTarget,
@@ -242,3 +243,15 @@ describe("writeSheetValue", () => {
     expect(texts.get(MIRA)).toBe("speed: 30 ft.\nAC: 16\n");
   });
 });
+
+describe("sheetWriteOf for a state the sheet can't write", () => {
+  it("refuses the imported state, which only D&D Beyond writes, in plain words", () => {
+    expect(writeOfImported).toThrow(NOT_A_CHOICE);
+    expect(NOT_A_CHOICE).toBe("That isn't a choice the sheet can write, so nothing was written.");
+  });
+});
+
+function writeOfImported(): void {
+  sheetWriteOf(acOf([learnedLine("15")], []), { state: "imported", value: "16" });
+}
+

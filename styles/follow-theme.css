@@ -53,6 +53,8 @@ body.dd-follow-theme .dd-tokens {
   --state-override-soft: color-mix(in srgb, var(--color-purple) var(--dd-soft-mix), transparent);
   --state-carried: color-mix(in oklch, var(--color-cyan) var(--dd-hue-mix), var(--dd-hue-toward));
   --state-carried-soft: color-mix(in srgb, var(--color-cyan) var(--dd-soft-mix), transparent);
+  --state-imported: color-mix(in oklch, var(--color-blue) var(--dd-hue-mix), var(--dd-hue-toward));
+  --state-imported-soft: color-mix(in srgb, var(--color-blue) var(--dd-soft-mix), transparent);
   --state-history: var(--text-muted);
   --state-danger: color-mix(in oklch, var(--text-error) var(--dd-danger-mix), var(--dd-hue-toward));
   --state-danger-soft: color-mix(in srgb, var(--text-error) var(--dd-soft-mix), transparent);

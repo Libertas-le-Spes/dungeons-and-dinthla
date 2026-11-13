@@ -1,6 +1,6 @@
 import { NUMBERS_SECTION } from "../../../imports/layout/plugin-sections";
 import { LINE_START, PART_SEPARATOR } from "../../../imports/layout/section-line-format";
-import { sameName } from "../../reading/sheet-values";
+import { sameName } from "../../facts/same-name";
 import { sectionLinesOf } from "./section-lines";
 import { withoutEscapes } from "./shown-text";
 

@@ -1,56 +1,88 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { Command } from "./memory-box.ts";
+import type { RunEnd, RunPlace } from "./running-units.ts";
 
-vi.mock("node:child_process", () => ({ spawnSync: vi.fn() }));
-vi.mock("node:fs", () => ({ rmSync: vi.fn(), existsSync: vi.fn(), readFileSync: vi.fn() }));
+vi.mock("node:fs", fakeFs);
 
-const { spawnSync } = await import("node:child_process");
+function fakeFs(): object {
+  return { rmSync: vi.fn(), existsSync: vi.fn(), readFileSync: vi.fn() };
+}
+
 const { existsSync, readFileSync, rmSync } = await import("node:fs");
 const { boxedTestRun } = await import("./boxed-test-run.ts");
 const { readReport } = await import("./suite-results.ts");
 
 const RUN = { root: "/made/up/root", suites: ["tests/one"], report: "/made/up/report.json", limits: { memoryMax: "2G", seconds: 120 } };
 
+interface UnitCall {
+  unit: string;
+  command: Command;
+  place: RunPlace;
+}
+
+class MadeUpUnits {
+  readonly calls: UnitCall[] = [];
+  firstRunAt = 0;
+
+  constructor(private readonly end: RunEnd) {}
+
+  nextUnit(): string {
+    return "made-up-unit-1";
+  }
+
+  async run(unit: string, command: Command, place: RunPlace): Promise<RunEnd> {
+    this.calls.push({ unit, command, place });
+    this.firstRunAt = vi.mocked(rmSync).mock.calls.length;
+    return this.end;
+  }
+}
+
 afterEach(() => {
-  vi.mocked(spawnSync).mockReset();
   vi.mocked(rmSync).mockReset();
   vi.mocked(existsSync).mockReset();
   vi.mocked(readFileSync).mockReset();
 });
 
 describe("a boxed test run", () => {
-  it("clears the old report before it runs anything", () => {
-    vi.mocked(spawnSync).mockReturnValue({ status: 0, signal: null, error: undefined } as never);
+  it("clears the old report before it runs anything", async () => {
     vi.mocked(existsSync).mockReturnValue(false);
-    boxedTestRun(RUN);
-    expect(rmSync).toHaveBeenCalledWith("/made/up/report.json", { force: true });
-    expect(vi.mocked(rmSync).mock.invocationCallOrder).toHaveLength(1);
-    expect(vi.mocked(spawnSync).mock.invocationCallOrder).toHaveLength(1);
-    expect(Math.min(...vi.mocked(rmSync).mock.invocationCallOrder)).toBeLessThan(Math.min(...vi.mocked(spawnSync).mock.invocationCallOrder));
+    const units = new MadeUpUnits({ started: true, signal: null });
+    await boxedTestRun(RUN, units);
+    expect(rmSync).toHaveBeenCalledExactlyOnceWith("/made/up/report.json", { force: true });
+    expect(units.firstRunAt).toBe(1);
   });
 
-  it("runs vitest once, boxed, with one worker and the json report", () => {
-    vi.mocked(spawnSync).mockReturnValue({ status: 0, signal: null, error: undefined } as never);
+  it("runs vitest once, boxed in its own named unit, with one worker and the json report, from the root", async () => {
     vi.mocked(existsSync).mockReturnValue(false);
-    boxedTestRun(RUN);
-    expect(spawnSync).toHaveBeenCalledOnce();
-    const call = vi.mocked(spawnSync).mock.calls.at(0);
-    if (call === undefined) throw new Error("spawnSync was never called.");
-    expect(call.at(0)).toBe("systemd-run");
-    expect(call.at(1)).toEqual(expect.arrayContaining(["MemoryMax=2G", "npx", "vitest", "run", "tests/one", "--maxWorkers=1", "--reporter=json", "--outputFile=/made/up/report.json"]));
+    const units = new MadeUpUnits({ started: true, signal: null });
+    await boxedTestRun(RUN, units);
+    expect(units.calls).toHaveLength(1);
+    const call = units.calls.at(0);
+    if (call === undefined) throw new Error("No run was started.");
+    expect(call.unit).toBe("made-up-unit-1");
+    expect(call.command.program).toBe("systemd-run");
+    expect(call.command.args).toEqual(expect.arrayContaining(["--unit=made-up-unit-1", "MemoryMax=2G", "npx", "vitest", "run", "tests/one", "--maxWorkers=1", "--reporter=json", "--outputFile=/made/up/report.json"]));
+    expect(call.place.cwd).toBe("/made/up/root");
+    expect(call.place.timeoutMs).toBe(150_000);
+    expect(call.place.env.CI).toBe("1");
   });
 
-  it("gives no results when the run was ended by a signal, without reading the report", () => {
-    vi.mocked(spawnSync).mockReturnValue({ status: null, signal: "SIGKILL", error: undefined } as never);
-    expect(boxedTestRun(RUN)).toBeNull();
+  it("gives no results when the run was ended by a signal, without reading the report", async () => {
+    expect(await boxedTestRun(RUN, new MadeUpUnits({ started: true, signal: "SIGKILL" }))).toBeNull();
     expect(existsSync).not.toHaveBeenCalled();
   });
 
-  it("gives no results when the run could not start, even with a report on disk", () => {
-    vi.mocked(spawnSync).mockReturnValue({ status: null, signal: null, error: new Error("not found") } as never);
+  it("gives no results when the run could not start, even with a report on disk", async () => {
     vi.mocked(existsSync).mockReturnValue(true);
     vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ testResults: [] }));
-    expect(boxedTestRun(RUN)).toBeNull();
+    expect(await boxedTestRun(RUN, new MadeUpUnits({ started: false, signal: null }))).toBeNull();
     expect(readFileSync).not.toHaveBeenCalled();
+  });
+
+  it("gives the report's results when the run ends by itself", async () => {
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ testResults: [{ name: "one", status: "passed", assertionResults: [] }] }));
+    expect(await boxedTestRun(RUN, new MadeUpUnits({ started: true, signal: null }))).toEqual([{ name: "one", status: "passed", assertionResults: [] }]);
   });
 });
 

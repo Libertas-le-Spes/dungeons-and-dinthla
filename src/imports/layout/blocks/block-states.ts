@@ -20,10 +20,32 @@ function fenceMarkerIn(line: string): string | null {
   return marker;
 }
 
+const BACKSLASH = "\\";
+
+function backslashesBefore(line: string, at: number): number {
+  let count = 0;
+  let position = at - 1;
+  while (position >= 0 && line.charAt(position) === BACKSLASH) {
+    count += 1;
+    position -= 1;
+  }
+  return count;
+}
+
+function isEscapedAt(line: string, at: number): boolean {
+  return backslashesBefore(line, at) % 2 === 1;
+}
+
+function unescapedOpenerAt(line: string, opener: string, from: number): number {
+  let at = line.indexOf(opener, from);
+  while (at !== -1 && isEscapedAt(line, at)) at = line.indexOf(opener, at + 1);
+  return at;
+}
+
 function earliestComment(line: string, from: number): { kind: CommentKind; at: number } | null {
   let found: { kind: CommentKind; at: number } | null = null;
   for (const kind of COMMENT_KINDS) {
-    const at = line.indexOf(kind.opener, from);
+    const at = unescapedOpenerAt(line, kind.opener, from);
     if (at === -1) continue;
     if (found === null || at < found.at) found = { kind, at };
   }

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App } from "obsidian";
 import { CHANGED_IN_NOTE, PartlyWritten } from "../../../src/campaign/writing/note-editor";
 import { carriedValuesOf, characterSheetOf, type SheetValue } from "../../../src/characters/reading/character-sheet";
-import { CHANGE_ON_BEYOND, notKnownOverCarriedText, secondPressText, SheetValueModal, whereText, type SheetValueDialog } from "../../../src/characters/editing/sheet-value-modal";
+import { CHANGE_ON_BEYOND, ONLY_AN_OVERRIDE, notKnownOverCarriedText, secondPressText, SheetValueModal, whereText, type SheetValueDialog } from "../../../src/characters/editing/sheet-value-modal";
 import type { ValueChoice } from "../../../src/characters/editing/sheet-value-writer";
 import type { SourcedFact } from "../../../src/characters/reading/sheet-values";
 import { PRESS_AGAIN } from "../../../src/views/dialogs/second-press";
@@ -265,21 +265,46 @@ describe("SheetValueModal on a value only the character's note states, under a n
   });
 });
 
-describe("SheetValueModal on an imported value", () => {
-  function importedHp(): SheetValue {
-    const imported = { name: "HP", value: "14", source: { path: MIRA, line: 2 }, route: "Printed on D&D Beyond's PDF", working: "" };
-    return characterSheetOf([inSession(1, "31")], [imported], [], null).values.find((value) => value.name === "HP")!;
+function valueNamed(values: readonly SheetValue[], name: string): SheetValue {
+  for (const value of values) {
+    if (value.name === name) return value;
   }
+  throw new Error(`No value is called ${name}.`);
+}
 
+function importedHp(): SheetValue {
+  const imported = { name: "HP", value: "14", source: { path: MIRA, line: 2 }, route: "Printed on D&D Beyond's PDF", working: "" };
+  return valueNamed(characterSheetOf([inSession(1, "31")], [imported], [], null).values, "HP");
+}
+
+function overriddenImportedHp(): SheetValue {
+  const imported = { name: "HP", value: "14", source: { path: MIRA, line: 2 }, route: "Printed on D&D Beyond's PDF", working: "" };
+  const override = { name: "HP", value: "20", source: { path: MIRA, line: 9 } };
+  return valueNamed(characterSheetOf([inSession(1, "31")], [imported], [override], null).values, "HP");
+}
+
+function textsOf(elements: Iterable<Element>): (string | null)[] {
+  const texts: (string | null)[] = [];
+  for (const element of elements) texts.push(element.textContent);
+  return texts;
+}
+
+function pressedOf(elements: Iterable<Element>): (string | null)[] {
+  const pressed: (string | null)[] = [];
+  for (const element of elements) pressed.push(element.getAttribute("aria-pressed"));
+  return pressed;
+}
+
+describe("SheetValueModal on an imported value", () => {
   it("says to change it on D&D Beyond too", () => {
     const { root } = openDialog({ value: importedHp() });
-    expect(Array.from(root.querySelectorAll(".dd-where")).map((line) => line.textContent)).toContain(CHANGE_ON_BEYOND);
+    expect(textsOf(root.querySelectorAll(".dd-where"))).toContain(CHANGE_ON_BEYOND);
     expect(CHANGE_ON_BEYOND).toBe("Change this on D&D Beyond too, or the next update will replace it.");
   });
 
   it("does not say so for a value nothing imported", () => {
     const { root } = openDialog();
-    expect(Array.from(root.querySelectorAll(".dd-where")).map((line) => line.textContent)).not.toContain(CHANGE_ON_BEYOND);
+    expect(textsOf(root.querySelectorAll(".dd-where"))).not.toContain(CHANGE_ON_BEYOND);
   });
 
   it("saves what is typed over an imported value as an override on Enter", () => {
@@ -287,5 +312,33 @@ describe("SheetValueModal on an imported value", () => {
     type("20");
     enter();
     expect(saved).toEqual([{ state: "override", value: "20" }]);
+  });
+
+  it("shows the import as the current state, which can't be pressed, and offers only Override", () => {
+    const { root } = openDialog({ value: importedHp() });
+    const choices = root.querySelectorAll<HTMLButtonElement>(".dd-state-choice");
+    expect(textsOf(choices)).toEqual(["From D&D Beyond", "Override"]);
+    expect(pressedOf(choices)).toEqual(["true", "false"]);
+    expect(root.querySelector<HTMLButtonElement>('.dd-state-choice[data-state="imported"]')?.disabled).toBe(true);
+  });
+
+  it("says in one line why Override is the only choice", () => {
+    const { root } = openDialog({ value: importedHp() });
+    expect(textsOf(root.querySelectorAll(".dd-only-override"))).toEqual([ONLY_AN_OVERRIDE]);
+    expect(ONLY_AN_OVERRIDE).toBe("Only an override shows over a value from D&D Beyond, so Override is the one choice here.");
+  });
+
+  it("saves an override when Override is pressed", async () => {
+    const { type, choice, saved } = openDialog({ value: importedHp() });
+    type("22");
+    choice("override").click();
+    await Promise.resolve();
+    expect(saved).toEqual([{ state: "override", value: "22" }]);
+  });
+
+  it("offers every state again once an override shows over the import", () => {
+    const { root } = openDialog({ value: overriddenImportedHp() });
+    expect(textsOf(root.querySelectorAll(".dd-state-choice"))).toEqual(["Learned at the table", "Override", "Carried over", "Not known yet"]);
+    expect(root.querySelectorAll(".dd-only-override")).toHaveLength(0);
   });
 });

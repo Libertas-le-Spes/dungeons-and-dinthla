@@ -52,8 +52,9 @@ export class CharacterGallery {
     this.root.empty();
     const head = this.root.createDiv({ cls: "dd-head" });
     const title = head.createEl("h2", { cls: "dd-title", text: "Characters" });
-    this.addCreateButton(head);
-    addImportButton(head, this.creators);
+    const actions = head.createDiv({ cls: "dd-head-actions" });
+    this.addCreateButton(actions);
+    addImportButton(actions, this.creators);
     if (cards.length === 0) {
       this.root.createEl("p", { cls: "dd-empty", text: NO_CHARACTERS });
       return;

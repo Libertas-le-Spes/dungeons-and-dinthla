@@ -135,7 +135,7 @@ describe("opening the dialog", () => {
     expect(openedModals.length).toBe(before + 1);
     const outside = wiringWith(null, null);
     new BeyondOpeners(outside).updateFromBeyond(note, vi.fn());
-    expect(outside.tell).toHaveBeenCalledOnce();
+    expect(outside.tell).toHaveBeenCalledExactlyOnceWith("This note isn't in a campaign, so it can't be updated from D&D Beyond.");
     expect(openedModals.length).toBe(before + 1);
   });
 });

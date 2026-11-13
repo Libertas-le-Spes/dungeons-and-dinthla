@@ -13,12 +13,14 @@ export interface Choice {
   allowDirty: boolean;
   wanted: string[];
   unknown: string[];
+  unknownFlags: string[];
 }
 
 const FIRST_GIVEN_ARGUMENT = 2;
 const FLAG_START = "--";
 const ANCHORS = "--anchors";
 const ALLOW_DIRTY = "--allow-dirty";
+const KNOWN_FLAGS = [ANCHORS, ALLOW_DIRTY];
 
 export function mutationsAt(url: URL): Mutation[] {
   return JSON.parse(readFileSync(url, "utf8"));
@@ -40,9 +42,13 @@ export function givenArguments(argv: readonly string[]): string[] {
 }
 
 export function choiceOf(given: readonly string[], mutations: readonly Mutation[]): Choice {
-  const choice: Choice = { anchorsOnly: given.includes(ANCHORS), allowDirty: given.includes(ALLOW_DIRTY), wanted: [], unknown: [] };
+  const choice: Choice = { anchorsOnly: given.includes(ANCHORS), allowDirty: given.includes(ALLOW_DIRTY), wanted: [], unknown: [], unknownFlags: [] };
   for (const argument of given) {
-    if (argument.startsWith(FLAG_START)) continue;
+    if (KNOWN_FLAGS.includes(argument)) continue;
+    if (argument.startsWith(FLAG_START)) {
+      choice.unknownFlags.push(argument);
+      continue;
+    }
     if (isIdIn(mutations, argument)) choice.wanted.push(argument);
     else choice.unknown.push(argument);
   }
