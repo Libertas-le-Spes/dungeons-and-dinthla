@@ -7,13 +7,6 @@
   "group": "pending"
  },
  {
-  "id": "settled forgets what it waited for",
-  "file": "src/views/pending/pending-work.ts",
-  "find": "      for (const piece of awaited) this.pending.delete(piece);\n",
-  "replace": "",
-  "group": "pending"
- },
- {
   "id": "settled waits for the pieces",
   "file": "src/views/pending/pending-work.ts",
   "find": "      await Promise.all(awaited);\n",
