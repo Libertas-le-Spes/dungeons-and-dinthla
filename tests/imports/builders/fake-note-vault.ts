@@ -4,6 +4,7 @@ import { Fence } from "../../../src/fence/paths/fence";
 import { FencedFiles, type RawVault } from "../../../src/fence/gate/fenced-files";
 import { HeldFiles } from "../../../src/fence/gate/held-files";
 import { NoteReporter } from "../../../src/fence/gate/written-notes";
+import { HeldCalls } from "../../stubs/held-calls";
 
 export const CAMPAIGNS_FOLDER = "D&D";
 export const CHARACTERS_FOLDER = "D&D/Primary Campaign/Characters";
@@ -34,6 +35,7 @@ export class FakeNoteVault {
   readonly createdFolders: string[] = [];
   readonly gate: FencedFiles;
   private readFailure: Error | null = null;
+  private heldReads: HeldCalls<string> | null = null;
   private createFailure: Error | null = null;
 
   constructor() {
@@ -51,6 +53,12 @@ export class FakeNoteVault {
 
   folder(path: string): void {
     this.folders.set(path, folderAt(path));
+  }
+
+  holdReads(): HeldCalls<string> {
+    const held = new HeldCalls<string>();
+    this.heldReads = held;
+    return held;
   }
 
   failReadsWith(error: Error): void {
@@ -103,6 +111,7 @@ export class FakeNoteVault {
   }
 
   private async read(file: TFile): Promise<string> {
+    if (this.heldReads !== null) return this.heldReads.hold();
     if (this.readFailure !== null) throw this.readFailure;
     return this.textAt(file.path);
   }

@@ -66,6 +66,13 @@ export class SessionNotesPage extends Component {
     this.draw();
   }
 
+  async settled(): Promise<void> {
+    const drawn = this.drawn;
+    if (drawn === null) return;
+    if (drawn.session === null) return;
+    await drawn.session.settled();
+  }
+
   private sessionToShow(): string | null {
     const store = this.needs.store;
     const path = sessionShown(this.chosen, store.campaignFolder, store.sessionNotes);

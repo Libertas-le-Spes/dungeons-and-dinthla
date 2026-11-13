@@ -8,6 +8,7 @@ import { MadeUpSheet } from "../../beyond/builders/made-up-sheet";
 import { printedOf } from "../../beyond/builders/sheet-reading";
 import { Notice } from "../../stubs/obsidian";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { HeldCalls } from "../../stubs/held-calls";
 import { CHARACTERS_FOLDER, FakeNoteVault } from "../builders/fake-note-vault";
 import { DialogDriver, pickedFileOf } from "../builders/dialog-driver";
 import { madeUpPdf, notAPdf } from "../builders/made-up-pdf";
@@ -16,6 +17,8 @@ import { READING_WENT_WRONG, WRITING_WENT_WRONG } from "../../../src/imports/dia
 import { typedTextNotShown } from "../../../src/imports/note/writing/guarding/refusals";
 import { IMPORT_TITLE, STILL_READING, UPDATE_TITLE } from "../../../src/imports/dialog/import-words";
 import type { Modal as StubModal } from "../../stubs/obsidian";
+import { queuedWorkRan } from "../../stubs/queued-work";
+import { SettleWatch } from "../../stubs/settle-watch";
 
 const TYPED_TEXT_NOT_SHOWN = typedTextNotShown().message;
 
@@ -52,6 +55,34 @@ function monkNoteText(before: string): string {
   return importedNoteText(before, printedOf(MadeUpSheet.monk()), TODAY);
 }
 
+describe("the import dialog's own work, which its tests await", () => {
+  it("counts a file still being read as work not yet done", async () => {
+    const bytes = new HeldCalls<ArrayBuffer>();
+    const dialog = importDialog();
+    dialog.pick({ size: 10, arrayBuffer: bytes.hold.bind(bytes) });
+    const watch = new SettleWatch(dialog.modal.allSettled());
+    await queuedWorkRan();
+    expect(watch.settled).toBe(false);
+    bytes.resolve(0, new Uint8Array(monkPdf()).buffer);
+    await watch.done;
+    expect(dialog.texts(".dd-import-summary h3")).toEqual(["Primary Monk"]);
+  });
+
+  it("counts a note still being read for the review as work not yet done", async () => {
+    vault.note(NEW_NOTE, "Notes of mine.\n");
+    const reads = vault.holdReads();
+    const dialog = updateDialog(NEW_NOTE);
+    dialog.pick(pickedFileOf(monkPdf()));
+    await reads.made(1);
+    const watch = new SettleWatch(dialog.modal.allSettled());
+    await queuedWorkRan();
+    expect(watch.settled).toBe(false);
+    reads.resolve(0, "Notes of mine.\n");
+    await watch.done;
+    expect(dialog.texts(".dd-import-write")).toHaveLength(1);
+  });
+});
+
 describe("importing a character from a made-up PDF", () => {
   it("asks for the PDF first, saying where D&D Beyond makes it", () => {
     const dialog = importDialog();
@@ -69,7 +100,8 @@ describe("importing a character from a made-up PDF", () => {
     expect(dialog.texts(".dd-where")).toEqual(["Make a new note, Primary Monk"]);
     expect(vault.created).toEqual([]);
     dialog.press("Import");
-    await expect.poll(closedWith(dialog)).toEqual([[NEW_NOTE]]);
+    await dialog.modal.allSettled();
+    expect(closedWith(dialog)).toEqual([[NEW_NOTE]]);
     expect(vault.created).toEqual([NEW_NOTE]);
     expect(vault.textAt(NEW_NOTE)).toBe(monkNoteText(""));
   });
@@ -113,7 +145,8 @@ describe("importing a character from a made-up PDF", () => {
     expect(dialog.texts(".dd-import-heading")).toContain("## Spells (from D&D Beyond)");
     expect(dialog.root.querySelector(".dd-import-warning")).toBeNull();
     dialog.press("Update");
-    await expect.poll(closedWith(dialog)).toEqual([[SHORT_NOTE]]);
+    await dialog.modal.allSettled();
+    expect(closedWith(dialog)).toEqual([[SHORT_NOTE]]);
     expect(vault.textAt(SHORT_NOTE)).toBe(monkNoteText("Notes of mine.\n"));
     expect(vault.created).toEqual([]);
   });
@@ -128,7 +161,8 @@ describe("importing a character from a made-up PDF", () => {
     expect(dialog.texts(".dd-import-warning li")).toEqual(["Range: 60 feet"]);
     expect(vault.textAt(SHORT_NOTE)).toBe(typed);
     dialog.press("Update");
-    await expect.poll(closedWith(dialog)).toEqual([[SHORT_NOTE]]);
+    await dialog.modal.allSettled();
+    expect(closedWith(dialog)).toEqual([[SHORT_NOTE]]);
     expect(vault.textAt(SHORT_NOTE)).not.toContain("Range: 60 feet");
   });
 
@@ -156,7 +190,8 @@ describe("importing a character from a made-up PDF", () => {
     dialog.press("Update");
     await dialog.settled(".dd-import-failure");
     dialog.press("Update");
-    await expect.poll(closedWith(dialog)).toEqual([[SHORT_NOTE]]);
+    await dialog.modal.allSettled();
+    expect(closedWith(dialog)).toEqual([[SHORT_NOTE]]);
     expect(vault.textAt(SHORT_NOTE)).not.toContain("Typed later");
   });
 
@@ -227,7 +262,7 @@ describe("importing a character from a made-up PDF", () => {
   it("stays on the file picker when it closes with no file chosen", async () => {
     const dialog = importDialog();
     dialog.pickNothing();
-    await new Promise(soon);
+    await queuedWorkRan();
     expect(dialog.root.querySelectorAll('input[type="file"]')).toHaveLength(1);
     expect(dialog.root.querySelector(".dd-import-reading")).toBeNull();
     expect(dialog.root.querySelector(".dd-import-refusal")).toBeNull();
@@ -243,18 +278,12 @@ describe("importing a character from a made-up PDF", () => {
   });
 });
 
-function soon(resolve: (value: unknown) => void): void {
-  setTimeout(resolve, 0);
-}
-
 async function failingRead(): Promise<ArrayBuffer> {
   throw new Error("The disk went away.");
 }
 
-function closedWith(dialog: DialogDriver): () => unknown[][] {
-  return function calls(): unknown[][] {
-    return dialog.closed.mock.calls;
-  };
+function closedWith(dialog: DialogDriver): unknown[][] {
+  return dialog.closed.mock.calls;
 }
 
 describe("the import dialog's words when something other than a refusal goes wrong", () => {

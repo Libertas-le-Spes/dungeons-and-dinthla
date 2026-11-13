@@ -6,11 +6,12 @@ const CARRY_OVER = "Open questions, active quests, the purse and every character
 
 export class NewSessionModal extends Modal {
   private readonly session: NewSession = { title: "", played: playedDateOf(new Date()) };
+  private started: Promise<void> = Promise.resolve();
 
   constructor(
     app: App,
     private readonly number: number,
-    private readonly start: (session: NewSession) => void,
+    private readonly start: (session: NewSession) => Promise<void>,
   ) {
     super(app);
   }
@@ -46,8 +47,12 @@ export class NewSessionModal extends Modal {
     this.contentEl.empty();
   }
 
+  startSettled(): Promise<void> {
+    return this.started;
+  }
+
   private submit(): void {
     this.close();
-    this.start(withPlayedDate(this.session, new Date()));
+    this.started = this.start(withPlayedDate(this.session, new Date()));
   }
 }

@@ -1,6 +1,7 @@
 import { MOST_PDF_BYTES } from "../../../beyond/sheet/from-pdf/sheet-from-pdf";
 import { CHOOSE_A_FILE, FILE_NOT_READ, fileTooBig } from "../import-words";
 import type { PickedPdf } from "./picked-pdf";
+import type { PendingWork } from "../../../views/pending/pending-work";
 
 const FIRST_FILE = 0;
 
@@ -10,6 +11,7 @@ export class PdfPicker {
   constructor(
     parent: HTMLElement,
     private readonly picked: PickedPdf,
+    private readonly work: PendingWork,
   ) {
     const label = parent.createEl("label", { cls: "dd-pdf-picker", text: CHOOSE_A_FILE });
     this.input = label.createEl("input", { type: "file", attr: { "aria-label": CHOOSE_A_FILE } });
@@ -17,7 +19,7 @@ export class PdfPicker {
   }
 
   handleEvent(): void {
-    void this.readSafely();
+    this.work.add(this.readSafely());
   }
 
   focus(): void {
