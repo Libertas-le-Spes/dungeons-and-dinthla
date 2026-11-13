@@ -359,8 +359,8 @@
  {
   "id": "dialog: write failure shown",
   "file": "src/imports/dialog/stages/review-stage.ts",
-  "find": "void this.reviewWith(review.sheet, review.target, wordsOf(error, WRITING_WENT_WRONG));",
-  "replace": "void this.reviewWith(review.sheet, review.target, null);",
+  "find": "this.work.add(this.reviewWith(review.sheet, review.target, wordsOf(error, WRITING_WENT_WRONG)));",
+  "replace": "this.work.add(this.reviewWith(review.sheet, review.target, null));",
   "group": "dialog"
  },
  {
