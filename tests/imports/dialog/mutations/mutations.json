@@ -275,8 +275,8 @@
  {
   "id": "modal: Enter overrides an import",
   "file": "src/characters/editing/sheet-value-modal.ts",
-  "find": "  if (state === \"imported\") return \"override\";\n",
-  "replace": "",
+  "find": "  [\"imported\", \"override\"],\n]);",
+  "replace": "]);",
   "group": "modal"
  },
  {
@@ -474,5 +474,75 @@
   "find": "index > span.heading &&",
   "replace": "index >= span.heading - 1 &&",
   "group": "read"
+ },
+ {
+  "id": "modal: Enter learns a value not known",
+  "file": "src/characters/editing/sheet-value-modal.ts",
+  "find": "  [\"unknown\", \"learned\"],\n",
+  "replace": "",
+  "group": "modal"
+ },
+ {
+  "id": "modal: only Override on an imported value",
+  "file": "src/characters/editing/sheet-value-modal.ts",
+  "find": "new Map([[\"imported\", IMPORTED_CHOICES]])",
+  "replace": "new Map()",
+  "group": "modal"
+ },
+ {
+  "id": "modal: imported shown as the current choice",
+  "file": "src/characters/editing/sheet-value-modal.ts",
+  "find": "const IMPORTED_CHOICES: ValueState[] = [\"imported\", \"override\"];",
+  "replace": "const IMPORTED_CHOICES: ValueState[] = [\"override\"];",
+  "group": "modal"
+ },
+ {
+  "id": "modal: imported choice can't be pressed",
+  "file": "src/characters/editing/sheet-value-modal.ts",
+  "find": "setButtonText(STATE_WORDS[state]).setDisabled(true);",
+  "replace": "setButtonText(STATE_WORDS[state]);",
+  "group": "modal"
+ },
+ {
+  "id": "modal: the only-override line",
+  "file": "src/characters/editing/sheet-value-modal.ts",
+  "find": "if (value.state === \"imported\") contentEl.createEl(\"p\", { cls: \"dd-where dd-only-override\"",
+  "replace": "if (value.state === \"learned\") contentEl.createEl(\"p\", { cls: \"dd-where dd-only-override\"",
+  "group": "modal"
+ },
+ {
+  "id": "writer: learned writes learned",
+  "file": "src/characters/editing/sheet-value-writer.ts",
+  "find": "  [\"learned\", new LearnedWrite()],\n",
+  "replace": "  [\"learned\", new OverrideWrite()],\n",
+  "group": "modal"
+ },
+ {
+  "id": "writer: unknown writes a question mark",
+  "file": "src/characters/editing/sheet-value-writer.ts",
+  "find": "  [\"unknown\", new UnknownWrite()],\n",
+  "replace": "  [\"unknown\", new OverrideWrite()],\n",
+  "group": "modal"
+ },
+ {
+  "id": "writer: carried checks the carried value",
+  "file": "src/characters/editing/sheet-value-writer.ts",
+  "find": "  [\"carried\", new CarriedWrite()],\n",
+  "replace": "  [\"carried\", new OverrideWrite()],\n",
+  "group": "modal"
+ },
+ {
+  "id": "writer: override writes the note",
+  "file": "src/characters/editing/sheet-value-writer.ts",
+  "find": "  [\"override\", new OverrideWrite()],\n",
+  "replace": "  [\"override\", new LearnedWrite()],\n",
+  "group": "modal"
+ },
+ {
+  "id": "writer: an unknown choice is refused",
+  "file": "src/characters/editing/sheet-value-writer.ts",
+  "find": "if (stateWrite === undefined) throw new Error(NOT_A_CHOICE);",
+  "replace": "if (stateWrite === undefined) return { override: null, sessionFact: null };",
+  "group": "modal"
  }
 ]

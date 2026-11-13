@@ -13,6 +13,18 @@ export function appendLines(text: string, lines: string[]): string {
   return `${text}${lineBreak}${added}`;
 }
 
+const NEW_LINE = "\n";
+
+export function insertLineAt(text: string, at: number, line: string): string {
+  const carriage = lineBreakOf(text).replace(NEW_LINE, "");
+  const lines: string[] = [];
+  for (const [index, written] of text.split(NEW_LINE).entries()) {
+    if (index === at) lines.push(`${line}${carriage}`);
+    lines.push(written);
+  }
+  return lines.join(NEW_LINE);
+}
+
 export interface LineToRemove {
   line: number;
   matches: (written: string) => boolean;

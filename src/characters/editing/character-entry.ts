@@ -3,7 +3,9 @@ import { keepsProperties } from "../../campaign/paths/session-file";
 import { withoutBullet } from "../../notes/parts/bullet";
 import { factsOf, type CharacterFact } from "../../notes/reading/character-facts";
 import { hiddenLines } from "../../notes/reading/hidden-lines";
-import { appendLines, removeLines, rewriteLine } from "../../notes/writing/note-lines";
+import { appendLines, insertLineAt, removeLines, rewriteLine } from "../../notes/writing/note-lines";
+import { firstLineAfterProperties } from "../../campaign/paths/session-file";
+import { pluginSectionLinesOf } from "../imported/reading/plugin-section-lines";
 import { overrideFacts, sameName, sheetValuesOf } from "../reading/sheet-values";
 
 export interface CharacterEntry {
@@ -75,6 +77,7 @@ export function readsBackDifferently(label: string): string {
 }
 
 export function stillReads(label: string, value: string): string {
+  if (value === "") return `After that change the note wouldn't give the ${label.toLowerCase()} at all, so nothing was written. Change it in the note.`;
   return `After that change the note would still give the ${label.toLowerCase()} as ${value}, from a line the dialog can't change, so nothing was written. Change it in the note.`;
 }
 
@@ -163,6 +166,43 @@ function withRewritten(draft: Draft, line: number, written: string): Draft {
   return { text: rewriteLine(draft.text, { line, matches: () => true }, written)!, origins };
 }
 
+function firstImportHeading(lines: readonly string[], bodyStart: number): number | null {
+  let first: number | null = null;
+  for (const index of pluginSectionLinesOf(lines, bodyStart)) {
+    if (first === null || index < first) first = index;
+  }
+  return first;
+}
+
+function afterHisOwnText(lines: readonly string[], bodyStart: number, heading: number): number {
+  let at = bodyStart;
+  for (const [index, line] of lines.entries()) {
+    if (index >= bodyStart && index < heading && line.trim() !== "") at = index + 1;
+  }
+  return at;
+}
+
+function originsWithNewLine(origins: Origins, at: number): Origins {
+  const moved: Origins = [];
+  for (const [index, origin] of origins.entries()) {
+    if (index === at) moved.push(null);
+    moved.push(origin);
+  }
+  return moved;
+}
+
+function withInserted(draft: Draft, written: string, at: number): Draft {
+  return { text: insertLineAt(draft.text, at, written), origins: originsWithNewLine(draft.origins, at) };
+}
+
+function withAdded(draft: Draft, written: string): Draft {
+  const lines = draft.text.split("\n");
+  const bodyStart = firstLineAfterProperties(draft.text);
+  const heading = firstImportHeading(lines, bodyStart);
+  if (heading === null) return withAppended(draft, written);
+  return withInserted(draft, written, afterHisOwnText(lines, bodyStart, heading));
+}
+
 function withAppended(draft: Draft, written: string): Draft {
   const text = appendLines(draft.text, [written]);
   let kept = draft.origins.length;
@@ -179,7 +219,7 @@ function withValue(draft: Draft, path: string, name: string, label: string, valu
     return withDropped(draft, alone.map(({ line }) => changeable(draft.text, line, label)));
   }
   const last = stating[stating.length - 1];
-  if (last === undefined || !last.alone || last.hidden) return withAppended(draft, factLine(name, value));
+  if (last === undefined || !last.alone || last.hidden) return withAdded(draft, factLine(name, value));
   return withRewritten(draft, changeable(draft.text, last.line, label), factLine(name, value));
 }
 
