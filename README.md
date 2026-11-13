@@ -63,6 +63,14 @@ The plugin follows the [Dungeons & Dinthla design system](https://claude.ai/arti
 
 On D&D Beyond, open your character, choose *Manage* next to the name, then *Export to PDF* at the bottom of the menu. In the plugin, press *Import from D&D Beyond* on the Characters page and choose that PDF. The plugin reads the file on your device and sends nothing anywhere; it shows what will be written before it writes. [docs/note-format.md](docs/note-format.md#importing-from-a-pdf) has the details.
 
+A short walkthrough:
+
+1. On D&D Beyond, export your character as a PDF. Then, on the Characters page, press *Import from D&D Beyond* and choose the file; check what comes in and press *Import*.
+2. Your character's sheet opens. Under the values you'll find your inventory, purse, spells and features, as D&D Beyond has them.
+3. Press *Track on the funds page* beside an item to give it to your character on the Party funds page, where the party can see it.
+4. Your own purse shows on the Party funds page beside the party's, and is never added to it.
+5. After a level-up, export a new PDF and press *Update from D&D Beyond* on your sheet. Anything you hold on the funds page that the new sheet doesn't list is marked; pick *Used up*, *Sold*, *Lost* or *Changed* to settle it.
+
 ## Planning
 
 Work is planned as epics, stories and tasks on the [Dungeons & Dinthla Backlog](https://github.com/orgs/Libertas-le-Spes/projects/1) board. [docs/project-board.md](docs/project-board.md) says how the board works and why.
