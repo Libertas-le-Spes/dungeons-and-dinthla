@@ -14,9 +14,9 @@
   "group": "folders"
  },
  {
-  "id": "fence: imports may reach views",
+  "id": "fence: imports may reach the shared dialogs",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "\"fence/gate\", \"campaign\", \"views\"] },",
+  "find": "\"fence/gate\", \"campaign\", \"views/dialogs\"] },",
   "replace": "\"fence/gate\", \"campaign\"] },",
   "group": "folders"
  },
@@ -98,10 +98,31 @@
   "group": "allow"
  },
  {
-  "id": "fence: score row keys",
-  "file": "tests/fence/allowed/computed-keys.ts",
-  "find": "  \"imports/note/rows/score-row.ts\",\n",
-  "replace": "",
-  "group": "allow"
+  "id": "fence: imports reach no other part of views",
+  "file": "tests/build/inner-folders.test.ts",
+  "find": "\"fence/gate\", \"campaign\", \"views/dialogs\"] },",
+  "replace": "\"fence/gate\", \"campaign\", \"views/dialogs\", \"views\"] },",
+  "group": "folders"
+ },
+ {
+  "id": "fence: the imported folder keeps out of the sheet's reading",
+  "file": "tests/build/inner-folders.test.ts",
+  "find": "{ folder: \"characters/imported\", reaches: [\"characters/imported\", \"characters/facts\",",
+  "replace": "{ folder: \"characters/imported\", reaches: [\"characters/imported\", \"characters\", \"characters/facts\",",
+  "group": "folders"
+ },
+ {
+  "id": "fence: the imported folder may reach the shared facts",
+  "file": "tests/build/inner-folders.test.ts",
+  "find": "reaches: [\"characters/imported\", \"characters/facts\", \"imports/layout\"",
+  "replace": "reaches: [\"characters/imported\", \"imports/layout\"",
+  "group": "folders"
+ },
+ {
+  "id": "fence: the facts folder keeps out of the sheet's reading",
+  "file": "tests/build/inner-folders.test.ts",
+  "find": "{ folder: \"characters/facts\", reaches: [\"characters/facts\", \"campaign\", \"notes\"] },",
+  "replace": "{ folder: \"characters/facts\", reaches: [\"characters/facts\", \"characters\", \"campaign\", \"notes\"] },",
+  "group": "folders"
  }
 ]

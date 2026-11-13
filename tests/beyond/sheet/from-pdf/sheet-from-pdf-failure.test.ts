@@ -1,10 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("../../../../src/beyond/sheet/read-printed-sheet", () => ({
-  readPrintedSheet: vi.fn(function broken(): never {
-    throw new TypeError("A made-up failure.");
-  }),
-}));
+vi.mock("../../../../src/beyond/sheet/read-printed-sheet", brokenReader);
+
+function broken(): never {
+  throw new TypeError("A made-up failure.");
+}
+
+function brokenReader(): { readPrintedSheet: () => never } {
+  return { readPrintedSheet: vi.fn(broken) };
+}
 
 const { SHEET_NOT_READ, sheetFromPdf } = await import("../../../../src/beyond/sheet/from-pdf/sheet-from-pdf");
 const { MadeUpSheet } = await import("../../builders/made-up-sheet");

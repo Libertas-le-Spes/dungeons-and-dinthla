@@ -244,7 +244,8 @@ describe("CharactersView", () => {
     const gallery = openGallery();
     gallery.container.ownerDocument.body.append(gallery.container);
     await gallery.show([]);
-    const importButton = gallery.container.querySelector<HTMLElement>(".dd-head .dd-beyond")!;
+    const importButton = gallery.container.querySelector<HTMLElement>(".dd-head .dd-head-actions .dd-beyond");
+    if (importButton === null) throw new Error("No import button in the head's actions.");
     expect(importButton.textContent).toBe("Import from D&D Beyond");
     importButton.click();
     expect(gallery.importCharacter).toHaveBeenCalledOnce();
@@ -252,6 +253,16 @@ describe("CharactersView", () => {
     const [[returnFocus]] = gallery.importCharacter.mock.calls as [[() => void]];
     returnFocus();
     expect(gallery.container.ownerDocument.activeElement).toBe(importButton);
+  });
+
+  it("puts New character and the import together in the head's one row of actions", async () => {
+    const gallery = openGallery();
+    await gallery.show([]);
+    const actions = gallery.container.querySelector(".dd-head .dd-head-actions");
+    if (actions === null) throw new Error("The head has no actions row.");
+    const words: (string | null)[] = [];
+    for (const button of actions.querySelectorAll("button")) words.push(button.textContent);
+    expect(words).toEqual(["New character", "Import from D&D Beyond"]);
   });
 
   it("returns focus to the new character button drawn since the dialog opened", async () => {
