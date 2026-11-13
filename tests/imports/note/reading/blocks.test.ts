@@ -78,4 +78,20 @@ describe("BlockTracker on a line of many comments", () => {
   it("closes, on a later line, a comment opened after ten thousand closed ones", () => {
     expect(allowedAmong([`${"%%a%%".repeat(10_000)}%%`, "x %%", "y"])).toEqual([true, false, true]);
   });
+
+  it("reads an escaped HTML comment opener as text, as the import writes one", () => {
+    expect(closedAfter(["Feature \\<!-- notes"])).toBe(true);
+  });
+
+  it("reads an opener after two backslashes as a comment, since the backslashes escape each other", () => {
+    expect(closedAfter(["Feature \\\\<!-- notes"])).toBe(false);
+  });
+
+  it("finds a real opener after an escaped one on the same line", () => {
+    expect(closedAfter(["\\<!-- text <!-- open"])).toBe(false);
+  });
+
+  it("reads an escaped percent opener as text", () => {
+    expect(closedAfter(["a \\%% b"])).toBe(true);
+  });
 });
