@@ -1,4 +1,5 @@
 import { readdirSync } from "node:fs";
+import { relative } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import type { Allowances } from "../scan/reading/allowances";
 import { isNeverAllowed, isNoNameAllowed, isPageAttribute, isPageOption, isPageTag, NOTHING_ALLOWED } from "../scan/running/allowance-sets";
@@ -103,7 +104,7 @@ function sourceListing(): string[] {
 }
 
 function shownPath(path: string): string {
-  return path.slice(SOURCE_FOLDER.length);
+  return relative(SOURCE_FOLDER, path);
 }
 
 function breachesOf(file: string, allowances: Allowances): string[] {
@@ -144,11 +145,11 @@ const NAME_LISTS: NameList[] = [
   { list: "page members", allowed: PAGE_MEMBERS },
 ];
 
-const IMPORTS_REFUSED: NameRefusal = { allowances: { ...SOURCE_ALLOWANCES, obsidianImports: isNoNameAllowed }, breach: /^src\/[^:]+:\d+ imports (\w+) from obsidian/ };
+const IMPORTS_REFUSED: NameRefusal = { allowances: { ...SOURCE_ALLOWANCES, obsidianImports: isNoNameAllowed }, breach: /^src\/[^:]+:\d+ imports (?<name>\w+) from obsidian/ };
 
-const PAGE_GLOBALS_REFUSED: NameRefusal = { allowances: { ...SOURCE_ALLOWANCES, globals: isPlainGlobalOnly }, breach: /^src\/[^:]+:\d+ uses the global (\w+)$/ };
+const PAGE_GLOBALS_REFUSED: NameRefusal = { allowances: { ...SOURCE_ALLOWANCES, globals: isPlainGlobalOnly }, breach: /^src\/[^:]+:\d+ uses the global (?<name>\w+)$/ };
 
-const PAGE_MEMBERS_REFUSED: NameRefusal = { allowances: { ...SOURCE_ALLOWANCES, pageMembers: isNoNameAllowed }, breach: /^src\/[^:]+:\d+ uses the page's (\S+), which/ };
+const PAGE_MEMBERS_REFUSED: NameRefusal = { allowances: { ...SOURCE_ALLOWANCES, pageMembers: isNoNameAllowed }, breach: /^src\/[^:]+:\d+ uses the page's (?<name>\S+), which/ };
 
 function isPlainGlobalOnly(_path: string, name: string): boolean {
   return PLAIN_GLOBALS.includes(name);
