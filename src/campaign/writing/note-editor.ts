@@ -47,6 +47,14 @@ export function removalAsRead(sessions: SessionNote[], source: Source): Removal 
   return { path: source.path, line: source.line, matches: (line) => line === read };
 }
 
+export type LiveRefusal = (liveText: string) => string | null;
+
+function checkedAppend(text: string, added: string[], refusalFor: LiveRefusal): string | Refusal {
+  const refusal = refusalFor(text);
+  if (refusal !== null) return { refusal };
+  return appendedShown(text, added);
+}
+
 export class NoteEditor {
   constructor(private readonly files: EditorFiles) {}
 
@@ -59,6 +67,12 @@ export class NoteEditor {
   async appendShown(targetPath: string, added: string[]): Promise<boolean> {
     if (added.length === 0) return false;
     await this.changeOrRefuse(this.fileAt(targetPath), WOULD_BE_HIDDEN, (text) => appendedShown(text, added));
+    return true;
+  }
+
+  async appendShownChecked(targetPath: string, added: string[], refusalFor: LiveRefusal): Promise<boolean> {
+    if (added.length === 0) return false;
+    await this.changeOrRefuse(this.fileAt(targetPath), WOULD_BE_HIDDEN, (text) => checkedAppend(text, added, refusalFor));
     return true;
   }
 
