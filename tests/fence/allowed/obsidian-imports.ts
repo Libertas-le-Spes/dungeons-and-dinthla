@@ -4,7 +4,7 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "dashboard/": ["Component"],
   "editor/": ["editorInfoField"],
   "fence/": ["App", "CachedMetadata", "Component", "EventRef", "Events", "FileManager", "MetadataCache", "TAbstractFile", "TFile", "TFolder", "Vault", "normalizePath"],
-  "funds/": ["App", "CachedMetadata", "Component", "Notice", "Setting", "TFile", "getFrontMatterInfo"],
+  "funds/": ["App", "ButtonComponent", "CachedMetadata", "Component", "Notice", "Setting", "TFile", "getFrontMatterInfo"],
   "imports/": ["App", "ButtonComponent", "TFile"],
   "interface/": ["App", "Component", "EventRef", "ItemView", "PluginManifest", "TAbstractFile", "TFile", "ViewState", "ViewStateResult", "Workspace", "WorkspaceLeaf"],
   "kind-notes/": ["TFile"],
