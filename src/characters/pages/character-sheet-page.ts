@@ -14,18 +14,22 @@ import type { SheetNotes } from "../reading/sheet-notes";
 import { modifierOf } from "../reading/sheet-values";
 import { fillStatBlock } from "../cards/stat-block";
 import { PendingWork } from "../../views/drawing/pending-work";
+import { addImportedLines } from "../imported/drawing/imported-lines";
+import { addUpdateButton } from "../imported/drawing/update-button";
 
 export const TAP_A_VALUE = "Tap a value to change it or its state.";
 
 export const STATE_WORDS: Record<ValueState, string> = {
   learned: "Learned at the table",
   override: "Override",
+  imported: "From D&D Beyond",
   carried: "Carried over",
   unknown: "Not known yet",
 };
 
 export interface SheetActions extends LinkActions {
   editCharacter(file: TFile): void;
+  updateFromBeyond(file: TFile, returnFocus: () => void): void;
   chooseValue(file: TFile, value: SheetValue, onClosed: () => void): void;
 }
 
@@ -146,8 +150,10 @@ export class CharacterSheetPage extends Component {
     root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-sheet");
     const head = root.createDiv({ cls: "dd-head" });
     head.createEl("h1", { cls: "dd-sheet-name", text: file.basename });
-    const edit = head.createEl("button", { cls: "dd-create", text: "Edit character" });
+    const actions = head.createDiv({ cls: "dd-head-actions" });
+    const edit = actions.createEl("button", { cls: "dd-create", text: "Edit character" });
     edit.addEventListener("click", () => this.actions.editCharacter(file));
+    addUpdateButton(actions, file, sheet, this.actions);
     const subtitle = sheet.values.find((value) => value.name === "subtitle");
     if (subtitle !== undefined && subtitle.state !== "unknown") root.createEl("p", { cls: "dd-sheet-subtitle", text: shownTextOf(subtitle) });
     const abilities = root.createDiv({ cls: "dd-sheet-abilities" });
@@ -203,6 +209,7 @@ export class CharacterSheetPage extends Component {
       return;
     }
     this.addSourceLink(where, sourceTextOf(value), shown.source);
+    addImportedLines(parent, value);
   }
 
   private addSourceLink(parent: HTMLElement, text: string, source: Source): void {

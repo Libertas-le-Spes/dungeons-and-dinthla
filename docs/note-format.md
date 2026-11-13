@@ -460,21 +460,26 @@ It shows the character's name, their subtitle when known, the six ability scores
 |---|---|
 | Learned | The session it was learned in, which opens the line |
 | Override | *Override*, which opens the line on the character's note |
+| Imported | *From D&D Beyond*, which opens the property on the character's note, then the working when the import gave one, then the route: *Printed on D&D Beyond's PDF*, or *Worked out here, from D&D Beyond (online)* |
 | Carried over | *Carried from* and the campaign, which opens the line on the note it was carried from |
 | Not known yet | *Not known yet*, which opens the `?` line when there is one |
 
-A value with earlier lines shows how many (↺ 2). *Edit character*, at the top, opens the character dialog.
+Which value shows: his own override on the character's note first, then the imported value, then the newest value learned at the table, then a value carried over from another campaign. A value counts as imported only on a note with an `imported-from` property, and only from the import's own properties (see [Imported characters](#imported-characters)); an imported `species` gets a row of its own. Carried-over values include the other campaign's imported ones, under his overrides there.
+
+A value with earlier lines shows how many (↺ 2). *Edit character*, at the top, opens the character dialog. On a sheet with an imported value, *Update from D&D Beyond* beside it opens the [import dialog](#importing-from-a-pdf) for this note.
+
+The override reader skips the import's five sections, from each `## … (from D&D Beyond)` heading to the next heading of level one or two, so a line typed there such as `Range: 60 feet` is never read as an override. It finds the sections with the note writer's own reader, so a heading inside a code block or comment is no heading to either: it neither ends a section nor starts one.
 
 Under the values is the character's stat block, built from the values the sheet shows: their name, the type line and subtitle when known, then class, Armor Class, Hit Points and speed, and the six ability scores with their modifiers. It is the stat block the Characters page's cards show, in the same colours, and it shows carried-over values too. A value not known shows as a greyed `?`, never blank, whether no line states it or the newest line says `?`. The stat block only shows the values; they are changed by tapping them above it.
 
 Tapping a value opens a dialog with the value, its earlier values newest first, each with its session (tapping one opens its line), and a button for each state. The button you tap saves the value typed in that state:
 
 - **Learned at the table** adds `[[Mira]] AC: 16` at the end of the campaign's latest session, and clears the character's override, which would otherwise cover it. If the newest learned value is already the one typed, only the override is cleared.
-- **Override** writes `AC: 16` on the character's own note, as the character dialog does: it rewrites the last line that states it on its own, or adds a line at the end.
+- **Override** writes `AC: 16` on the character's own note, as the character dialog does: it rewrites the last line that states it on its own, or adds a line at the end. On a note the import wrote, a new line goes after your own text and before the import's first section, where the sheet reads it; the character dialog does the same.
 - **Carried over** clears the override, so the value carried from another campaign shows again.
 - **Not known yet** adds `[[Mira]] AC: ?` at the end of the campaign's latest session when a learned or carried value would otherwise show, and clears the override, as *Learned at the table* does. Like any learned line, it is newest only until a later session states the value again.
 
-Enter saves the value in its own state, or as learned when it wasn't known. Lines on the character's note are written and removed by the rules in [Making, renaming and deleting a character](#making-renaming-and-deleting-a-character), with the same last check.
+Enter saves the value in its own state, as learned when it wasn't known, and as an override when it was imported. On a value that shows from D&D Beyond, the dialog shows *From D&D Beyond* as the current state, which can't be pressed, and offers only *Override*, saying that an override is the only thing that shows over an imported value. Any dialog on a value with an import says *Change this on D&D Beyond too, or the next update will replace it.* Lines on the character's note are written and removed by the rules in [Making, renaming and deleting a character](#making-renaming-and-deleting-a-character), with the same last check.
 
 Clearing an override removes every line on the character's note that states the value on its own. For the sheet's own names (`type`, `subtitle`, `speed`, the six scores, `class`, `AC`, `HP` and `alignment`) that happens on the first press. For any other name the line may be prose, so *Learned at the table*, *Carried over* and *Not known yet* need a second press within four seconds, as deleting does, and the dialog says why. *Override* rewrites the line with the value typed and needs only one press.
 
@@ -509,7 +514,7 @@ The lines are read when the sheet opens, and read again when Obsidian has resolv
 
 ### Imported characters
 
-Planned, and built in steps: nothing in the plugin writes an import yet, and no screen shows one. The note-writing part (`src/imports/note/`, with the names it shares in `src/imports/layout/`) comes first, so it can be proved on its own.
+Built in steps. The note writer (`src/imports/note/`, with the names it shares in `src/imports/layout/`) and the import dialog for a PDF (`src/imports/dialog/`) are in; the inventory, purse, spells and features panels, tracking and the online route are not yet.
 
 An import goes into the character's own note. Nothing else is touched.
 
@@ -522,6 +527,18 @@ An import goes into the character's own note. Nothing else is touched.
 - **Refused, with nothing written:** a note with the same plugin heading twice; a note that ends inside a code block or comment that is never closed (a section written there would be hidden); a note of more than 100,000 lines; a property line of more than 20,000 characters; any other line of more than 50,000 characters; a name that only differs by capitals from the import's.
 - **Making the note.** A new character's note is named for them in the `Characters` folder, and refused when the name is not a safe file name or another note already has it, whatever its capitals. Writes go through the gatekeeper, only to a note directly inside the `Characters` folder.
 - **Matching.** A note named for the first words of the character's name, or for more of it (`Thessaly` for `Thessaly Brightwater`), is offered, the closest first.
+
+#### Importing from a PDF
+
+*Import from D&D Beyond* on the Characters page, and *Update from D&D Beyond* on an imported character's sheet, open one dialog. It asks for the PDF that D&D Beyond's *Export to PDF* makes (open your character, choose *Manage* next to the name, then *Export to PDF* at the bottom of the menu), from anywhere on the device; the file is read in memory and never copied into the vault.
+
+- A file over 10 MB is refused before it is read. The PDF reader's and the sheet's own refusals are shown in words, and the dialog asks for a file again. *Update* refuses a PDF for another character: *This PDF is for Primary Monk, not Secondary. Nothing was changed.*
+- Anything that goes wrong other than a refusal is shown as a plain sentence (*Something went wrong while reading the note, so nothing was written.*, or *…while writing the note. Look at the note before you try again.*), never as the error's own words.
+- The dialog then shows the character's name, species and class, how many items, spells and feature lines come in, how many lines were left out of each list (too long or not clean), and that the PDF doesn't give proficiency marks, attacks, alignment, spell slots, total level, hit dice or carrying capacity.
+- *Import* matches the name to the notes directly in the campaign's `Characters` folder. When a note is named for the first words of the character's name, or more of it, it asks which note this is, closest first, with *Make a new note* last; with none, it goes straight on to a new note.
+- For a note that exists, it lists every property and section line the update would replace, with text typed inside the import's sections listed first as a warning. *Update* writes exactly that; if the note changed since, it refuses in words, writes nothing, shows the refusal above the changes as they are now and offers *Update* again. When nothing would change it says so and offers only *Close*.
+- For a new note, a name that isn't a safe file name or that another note has is refused before *Import* is offered.
+- After a new note is written its sheet opens. *Choose another file* goes back to the start.
 
 ### Calling a character over
 
@@ -542,4 +559,4 @@ The campaign tab's *Characters* page shows a card for each Markdown note in the 
 
 The same cards are also a view the plugin adds to Obsidian's Bases, named *Characters*, for a `.base` file that lists character notes, such as a `Characters.base` at the campaign's top. Bases does that file's filtering and sorting, and the plugin draws the cards, with the player's own character moved first and the rest in Bases' order. The plugin no longer writes `Characters.base`, and the one at a campaign's top now opens the Characters page instead of Bases; the view still works for any other `.base` file. Registering the view is why `minAppVersion` is 1.10.3.
 
-Each card is a short stat block: the character's name, their `type` and `subtitle` when known, then `class`, `AC`, `HP` and `speed`, and the six ability scores with their modifiers. A value no line states, or marked not known with `?`, shows as a greyed `?`, and a type line or subtitle marked not known is left out. Carried-over values aren't on the cards yet; the sheet's stat block shows them. Each card reads the sessions of the campaign its note is in, even while another campaign is open, and a note outside any campaign shows only its own overrides. The player's own character, named by a link in the campaign note's `character` property, comes first and is marked *Your character*, and changing that property redraws the cards, on the dashboard too, so the new one moves to the top. Tapping a card opens the character's [sheet](#character-sheet). With no characters yet, the page says to add one with *New character*.
+Each card is a short stat block: the character's name, their `type` and `subtitle` when known, then `class`, `AC`, `HP` and `speed`, and the six ability scores with their modifiers. A value no line states, or marked not known with `?`, shows as a greyed `?`, and a type line or subtitle marked not known is left out. Carried-over values aren't on the cards yet; the sheet's stat block shows them. Each card reads the sessions of the campaign its note is in, even while another campaign is open, and a note outside any campaign shows only its own overrides. The player's own character, named by a link in the campaign note's `character` property, comes first and is marked *Your character*, and changing that property redraws the cards, on the dashboard too, so the new one moves to the top. Tapping a card opens the character's [sheet](#character-sheet). With no characters yet, the page says to add one with *New character*. *Import from D&D Beyond*, beside *New character*, opens the [import dialog](#importing-from-a-pdf).

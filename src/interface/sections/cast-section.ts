@@ -8,6 +8,7 @@ import { CharacterSheetPage, type SheetActions } from "../../characters/pages/ch
 import type { CharacterNotes } from "../../characters/reading/character-notes";
 import type { MentionNotes } from "../../characters/reading/mention-notes";
 import type { SheetNotes } from "../../characters/reading/sheet-notes";
+import type { CharacterCreators } from "../../characters/pages/character-creators";
 import type { LinkActions } from "../../views/lists/linked-text";
 import type { MakePage, ShowPage } from "../view/campaign-pages";
 
@@ -18,14 +19,14 @@ export interface CastNeeds {
   mentionNotes: MentionNotes;
   actions: LinkActions;
   sheetActions: SheetActions;
-  newCharacter(returnFocus: () => void): void;
+  creators: CharacterCreators;
   watchFiles: WatchFiles;
 }
 
 function galleryOf(contentEl: HTMLElement, needs: CastNeeds, show: ShowPage): CastPage {
   const showSheet = (source: Source) => show({ page: "cast", path: source.path });
   const actions = { ...needs.actions, openRow: showSheet };
-  return new CastPage(contentEl, needs.store, needs.characterNotes, actions, needs.newCharacter, needs.watchFiles);
+  return new CastPage(contentEl, needs.store, needs.characterNotes, actions, needs.creators, needs.watchFiles);
 }
 
 function characterPageOf(contentEl: HTMLElement, file: TFile, needs: CastNeeds, show: ShowPage): CharacterPage {

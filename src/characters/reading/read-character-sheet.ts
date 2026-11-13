@@ -6,6 +6,8 @@ import { carriedValuesOf, characterSheetOf, type CarriedValues, type CharacterSh
 import { learnedFactsOf } from "./learned-facts";
 import type { SheetNotes } from "./sheet-notes";
 import { overrideFacts, type SourcedFact } from "./sheet-values";
+import { importedFactsOf } from "../imported/reading/imported-facts";
+import type { ImportedFact } from "../imported/reading/imported-fact";
 
 export type SheetStore = Pick<CampaignStore, "campaignFolder" | "sessionNotes">;
 
@@ -27,6 +29,7 @@ interface Facts {
   campaignFolder: string | null;
   sessions: SessionNote[];
   learned: SourcedFact[];
+  imported: ImportedFact[];
   overrides: SourcedFact[];
 }
 
@@ -35,8 +38,8 @@ async function factsAbout(file: TFile, store: SheetStore, notes: SheetNotes): Pr
   const sessions = await sessionsIn(campaignFolder, store, notes);
   let learned = learnedFactsOf(sessions, notes).get(file.path);
   if (learned === undefined) learned = [];
-  const overrides = overrideFacts(await notes.textOf(file), file.path);
-  return { campaignFolder, sessions, learned, overrides };
+  const text = await notes.textOf(file);
+  return { campaignFolder, sessions, learned, imported: importedFactsOf(text, file.path), overrides: overrideFacts(text, file.path) };
 }
 
 interface Carried {
@@ -53,7 +56,7 @@ async function carriedTo(file: TFile, store: SheetStore, notes: SheetNotes): Pro
   const facts = await factsAbout(carriedFile, store, notes);
   let campaign = carriedFrom.path;
   if (facts.campaignFolder !== null) campaign = facts.campaignFolder;
-  const values = carriedValuesOf(campaign, facts.learned, facts.overrides, carriedFrom.groups);
+  const values = carriedValuesOf(campaign, facts.learned, facts.imported, facts.overrides, carriedFrom.groups);
   return { path: carriedFrom.path, campaignFolder: facts.campaignFolder, values };
 }
 
@@ -69,7 +72,7 @@ export async function readCharacterSheet(file: TFile, store: SheetStore, notes: 
     carriedCampaignFolder = carried.campaignFolder;
   }
   return {
-    sheet: characterSheetOf(facts.learned, facts.overrides, carriedValues),
+    sheet: characterSheetOf(facts.learned, facts.imported, facts.overrides, carriedValues),
     campaignFolder: facts.campaignFolder,
     sessions: facts.sessions,
     carriedPath,

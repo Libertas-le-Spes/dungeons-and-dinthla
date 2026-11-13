@@ -9,6 +9,8 @@ import { ownCharacterFirst } from "../cards/own-character-first";
 import { learnedFactsOf, type LearnedFacts } from "../reading/learned-facts";
 import { readCharacterCard } from "../cards/read-character-card";
 import { PendingWork } from "../../views/drawing/pending-work";
+import type { CharacterCreators } from "./character-creators";
+import { addImportButton } from "../imported/drawing/import-button";
 
 const NO_CHARACTERS = "No characters yet. Add one with New character.";
 
@@ -23,7 +25,7 @@ export class CharacterGallery {
     private readonly store: CampaignStore,
     private readonly notes: CharacterNotes,
     private readonly actions: LinkActions,
-    private readonly newCharacter: (returnFocus: () => void) => void,
+    private readonly creators: CharacterCreators,
   ) {}
 
   readsCampaignNote(path: string): boolean {
@@ -60,7 +62,9 @@ export class CharacterGallery {
     this.root.empty();
     const head = this.root.createDiv({ cls: "dd-head" });
     const title = head.createEl("h2", { cls: "dd-title", text: "Characters" });
-    this.addCreateButton(head);
+    const actions = head.createDiv({ cls: "dd-head-actions" });
+    this.addCreateButton(actions);
+    addImportButton(actions, this.creators);
     if (cards.length === 0) {
       this.root.createEl("p", { cls: "dd-empty", text: NO_CHARACTERS });
       return;
@@ -72,7 +76,7 @@ export class CharacterGallery {
 
   private addCreateButton(head: HTMLElement): void {
     const button = head.createEl("button", { cls: "dd-create", text: "New character" });
-    button.addEventListener("click", () => this.newCharacter(() => this.focusCreateButton()));
+    button.addEventListener("click", () => this.creators.newCharacter(() => this.focusCreateButton()));
     this.createButton = button;
   }
 

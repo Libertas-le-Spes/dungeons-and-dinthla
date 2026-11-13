@@ -33,7 +33,7 @@ describe("chooseSheetValue, when choosing the session fails for a reason that is
       fileAt: () => null,
       carriedFromOf: () => null,
     } as unknown as SheetNotes;
-    const value = characterSheetOf([], [], null).values.find((candidate) => candidate.name === "AC")!;
+    const value = characterSheetOf([], [], [], null).values.find((candidate) => candidate.name === "AC")!;
     const before = openedModals.length;
     await chooseSheetValue({} as App, {} as Gate, store, notes, MIRA, value, vi.fn(), vi.fn());
     expect(Notice.shown).toEqual(["Couldn't read Mira: The campaign couldn't be read."]);
