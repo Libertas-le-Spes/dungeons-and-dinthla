@@ -24,10 +24,17 @@ function unscannableIn(loaded: string[]): string[] {
   return loaded.filter((path) => !isPlainTypeScript(path)).map((path) => `${path} is loaded from the entry point but isn't a plain TypeScript file`);
 }
 
+export function scannedFiles(loaded: string[]): string[] {
+  return loaded.filter((path) => !isDeclaration(path));
+}
+
+export function unreadableCode(listing: string[], loaded: string[]): string[] {
+  return [...hiddenCodeIn(listing), ...unscannableIn(loaded)];
+}
+
 export function fenceBreaches(scanner: SourceScanner, project: string, listing: string[], allowances: Allowances): string[] {
   const loaded = scanner.loadedFiles(project);
-  const scanned = loaded.filter((path) => !isDeclaration(path));
-  return [...hiddenCodeIn(listing), ...unscannableIn(loaded), ...scanner.breaches(project, scanned, allowances)];
+  return [...unreadableCode(listing, loaded), ...scanner.breaches(project, scannedFiles(loaded), allowances)];
 }
 
 async function bundledInputs(root: string): Promise<string[]> {

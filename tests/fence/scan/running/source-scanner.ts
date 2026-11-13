@@ -26,9 +26,15 @@ export type { Allowances } from "../reading/allowances";
 
 const RULES: Rules[] = [vaultAccessBreaches, editorViewBreaches, openingBreaches, workspaceEventBreaches, writtenReportBreaches, gateForgingBreaches, importBreaches, globalBreaches, codeTextBreaches, pageElementBreaches, pageTextBreaches, computedKeyBreaches, pageMemberBreaches];
 
+interface OpenedProject {
+  project: Project;
+  types: TypeQueries;
+  gate: GateHolding;
+}
+
 export class SourceScanner {
   private readonly api: API;
-  private readonly openedProjects = new Map<string, Project>();
+  private readonly openedProjects = new Map<string, OpenedProject>();
 
   constructor(
     private readonly root: string,
@@ -43,22 +49,21 @@ export class SourceScanner {
   }
 
   loadedFiles(configPath: string): string[] {
-    return this.project(configPath).program.getSourceFileNames().filter((path) => !isLibraryFile(path));
+    return this.opened(configPath).project.program.getSourceFileNames().filter((path) => !isLibraryFile(path));
   }
 
   breaches(configPath: string, paths: string[], allowances: Allowances): string[] {
-    const project = this.project(configPath);
-    const types = new TypeQueries();
-    const gate = new GateHolding(types);
+    const { project, types, gate } = this.opened(configPath);
     return paths.flatMap((path) => this.breachesInFile(project, path, allowances, types, gate));
   }
 
-  private project(configPath: string): Project {
-    const opened = this.openedProjects.get(configPath);
-    if (opened !== undefined) return opened;
-    const project = this.openProject(configPath);
-    this.openedProjects.set(configPath, project);
-    return project;
+  private opened(configPath: string): OpenedProject {
+    const known = this.openedProjects.get(configPath);
+    if (known !== undefined) return known;
+    const types = new TypeQueries();
+    const opened = { project: this.openProject(configPath), types, gate: new GateHolding(types) };
+    this.openedProjects.set(configPath, opened);
+    return opened;
   }
 
   private openProject(configPath: string): Project {
