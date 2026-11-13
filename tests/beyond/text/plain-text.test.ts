@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { Refusal } from "../../../src/beyond/shape/refusal";
+import { CleanLine } from "../../../src/beyond/text/clean-line";
 import { NeutralText } from "../../../src/beyond/text/neutral-text";
 import { plainTextOf, TAG } from "../../../src/beyond/text/plain-text";
 
@@ -98,6 +99,6 @@ describe("the output of plainTextOf is not neutral and has to go through Neutral
   });
 
   it("is made inert by NeutralText.ofOneLine too", () => {
-    expect(NeutralText.ofOneLine(plainTextOf("<<b>script>x")).written).toBe("\\<script\\>x");
+    expect(NeutralText.ofOneLine(CleanLine.of("<<b>script>x")).written).toBe("\\<script\\>x");
   });
 });
