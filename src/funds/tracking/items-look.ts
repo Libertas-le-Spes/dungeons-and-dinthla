@@ -1,7 +1,7 @@
 import type { TFile } from "obsidian";
 import type { ItemRecord } from "../../campaign/record/campaign";
 import { itemKeyOf, storedItemKeyOf } from "../../characters/imported/lists/item-key";
-import { withoutEscapes } from "../../characters/imported/reading/shown-text";
+import { shownItemName } from "../../characters/imported/lists/shown-item-name";
 import type { FundsLook, HeldItem } from "../../characters/imported/tracking/item-tracking";
 import { holderNameOf } from "../items/item-groups";
 import { statusOf } from "../items/item-plan";
@@ -20,6 +20,10 @@ export interface HolderPaths {
 
 export function heldByWords(holderName: string): string {
   return `Held by ${holderName}, on the funds page`;
+}
+
+export function heldByNamesakeWords(holderName: string): string {
+  return `Held by another note named ${holderName}, on the funds page`;
 }
 
 function goneWordsOf(item: ItemRecord): string {
@@ -61,7 +65,7 @@ export class ItemsLook implements FundsLook {
   heldButNotImported(): readonly HeldItem[] {
     const held: HeldItem[] = [];
     for (const item of this.items) {
-      if (this.isHeldHere(item) && this.importedKeys.has(storedItemKeyOf(item.name)) === false) held.push({ name: item.name, shown: withoutEscapes(item.name) });
+      if (this.isHeldHere(item) && this.importedKeys.has(storedItemKeyOf(item.name)) === false) held.push({ name: item.name, shown: shownItemName(item.name) });
     }
     return held;
   }
@@ -69,7 +73,13 @@ export class ItemsLook implements FundsLook {
   private heldWordsOf(item: ItemRecord): string {
     const holderName = holderNameOf(item.holder);
     if (holderName === "" || this.isHeldHere(item)) return ON_THE_FUNDS_PAGE;
+    if (this.isNamesake(item, holderName)) return heldByNamesakeWords(holderName);
     return heldByWords(holderName);
+  }
+
+  private isNamesake(item: ItemRecord, holderName: string): boolean {
+    if (item.holderLinked === false) return false;
+    return holderName.toLowerCase() === this.file.basename.toLowerCase();
   }
 
   private heldItemWith(key: string): ItemRecord | null {

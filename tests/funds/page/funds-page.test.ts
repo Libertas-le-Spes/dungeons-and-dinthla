@@ -127,6 +127,11 @@ describe("FundsPage", () => {
     expect(textsOf(root, ".dd-items-panel > .dd-list .dd-text")).toEqual(["Rope (50 ft) *silk*"]);
   });
 
+  it("shows a name typed at the table as written, backslashes and all, when the import wouldn't have written it so", async () => {
+    const { root } = await openPage(campaignOf(["$ [[Primary Monk]] \\o/ banner"]));
+    expect(textsOf(root, ".dd-items-panel > .dd-list .dd-text")).toEqual(["\\o/ banner"]);
+  });
+
   it("lists held items under their holders, the party's own last, with gone items folded away", async () => {
     const { root } = await openPage(campaignOf(["$ [[Mira]] Flame Tongue", "$ Potion of healing", "$ Spyglass", "$ Rope"], ["$$ Spyglass :sold 20 gp", "$$ Rope :used"]));
     expect(textsOf(root, ".dd-items-panel .dd-holder")).toEqual(["Mira", "The party"]);
