@@ -95,6 +95,10 @@ describe("the campaign's main character", () => {
     expect(refusalOf(castWith({ frontmatter: { character: "x" }, frontmatterLinks: [linkTo("Nobody")] }))).toBe(MAIN_UNCLEAR);
   });
 
+  it("is refused for two links, even when their names run together into a note's name", () => {
+    expect(refusalOf(castWith({ frontmatter: { character: "x" }, frontmatterLinks: [linkTo("Primary"), linkTo(" Monk")] }))).toBe(MAIN_UNCLEAR);
+  });
+
   it("is refused when the campaign note can't be read", () => {
     expect(refusalOf(castWith(null))).toBe(CAMPAIGN_NOTE_UNREAD);
   });

@@ -189,13 +189,6 @@
   "group": "properties"
  },
  {
-  "id": "property: only inside the block",
-  "file": "src/imports/leaving/properties/property-span.ts",
-  "find": "if (position > 0 && position < closing)",
-  "replace": "if (position > 0 && position <= closing)",
-  "group": "properties"
- },
- {
   "id": "property: new block",
   "file": "src/imports/leaving/properties/one-property.ts",
   "find": "  if (!note.hasBlock()) return withNewBlock(note, added);\n",
