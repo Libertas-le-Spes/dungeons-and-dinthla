@@ -569,7 +569,7 @@
  {
   "id": "written: escapes not checked",
   "file": "src/characters/imported/lists/importer-written.ts",
-  "find": "  return withEscapedCharacters(shown) === written;",
+  "find": "  return guardedLineOf(withoutEscapes(written)) === written;",
   "replace": "  return true;",
   "group": "lists"
  },
@@ -611,7 +611,7 @@
  {
   "id": "look: marked names keep escapes",
   "file": "src/funds/tracking/items-look.ts",
-  "find": "shown: withoutEscapes(item.name) }",
+  "find": "shown: shownItemName(item.name) }",
   "replace": "shown: item.name }",
   "group": "tracking"
  },
@@ -646,8 +646,85 @@
  {
   "id": "funds page: names keep escapes",
   "file": "src/funds/page/funds-page.ts",
-  "find": "text: withoutEscapes(item.name) });",
+  "find": "text: shownItemName(item.name) });",
   "replace": "text: item.name });",
   "group": "panels"
+ },
+ {
+  "id": "written: line start not guarded",
+  "file": "src/characters/imported/lists/importer-written.ts",
+  "find": "  return guardedLineOf(withoutEscapes(written)) === written;",
+  "replace": "  return withEscapedCharacters(withoutEscapes(written)) === written;\n}\nimport { withEscapedCharacters } from \"../../../imports/layout/character-escapes\";\nexport function unused(): void {",
+  "group": "lists"
+ },
+ {
+  "id": "guarded: line start left",
+  "file": "src/imports/layout/guarded-line.ts",
+  "find": "  return withoutMarkerStart(withoutListNumberStart(withoutFactStart(withEscapedCharacters(text))));",
+  "replace": "  return withEscapedCharacters(text);\n}\nexport function unused(): void {\n  withoutMarkerStart(withoutListNumberStart(withoutFactStart(\"\")));",
+  "group": "lists"
+ },
+ {
+  "id": "guarded: guard before escaping",
+  "file": "src/imports/layout/guarded-line.ts",
+  "find": "  return withoutMarkerStart(withoutListNumberStart(withoutFactStart(withEscapedCharacters(text))));",
+  "replace": "  return withEscapedCharacters(withoutMarkerStart(withoutListNumberStart(withoutFactStart(text))));",
+  "group": "lists"
+ },
+ {
+  "id": "shown name: escapes always off",
+  "file": "src/characters/imported/lists/shown-item-name.ts",
+  "find": "  if (isGuardedAsImported(name)) return withoutEscapes(name);\n  return name;",
+  "replace": "  return withoutEscapes(name);",
+  "group": "tracking"
+ },
+ {
+  "id": "shown name: escapes never off",
+  "file": "src/characters/imported/lists/shown-item-name.ts",
+  "find": "  if (isGuardedAsImported(name)) return withoutEscapes(name);\n",
+  "replace": "",
+  "group": "tracking"
+ },
+ {
+  "id": "retrack: page's own text not used",
+  "file": "src/funds/tracking/text-to-track.ts",
+  "find": "return item.written;",
+  "replace": "return written;",
+  "group": "tracking"
+ },
+ {
+  "id": "retrack: key through links",
+  "file": "src/funds/tracking/tracked-item.ts",
+  "find": "key: storedItemKeyOf(written), holderName",
+  "replace": "key: storedItemKeyOf(written.replace(\"[[\", \"\")), holderName",
+  "group": "tracking"
+ },
+ {
+  "id": "namesake: not told apart",
+  "file": "src/funds/tracking/items-look.ts",
+  "find": "    if (this.isNamesake(item, holderName)) return heldByNamesakeWords(holderName);\n",
+  "replace": "",
+  "group": "tracking"
+ },
+ {
+  "id": "namesake: unlinked holder taken for a note",
+  "file": "src/funds/tracking/items-look.ts",
+  "find": "    if (item.holderLinked === false) return false;\n    return holderName",
+  "replace": "    return holderName",
+  "group": "tracking"
+ },
+ {
+  "id": "namesake: any holder taken for one",
+  "file": "src/funds/tracking/items-look.ts",
+  "find": "    return holderName.toLowerCase() === this.file.basename.toLowerCase();",
+  "replace": "    return true;",
+  "group": "tracking"
+ },
+ {
+  "id": "namesake: capitals matter",
+  "file": "src/funds/tracking/items-look.ts",
+  "find": "    return holderName.toLowerCase() === this.file.basename.toLowerCase();",
+  "replace": "    return holderName === this.file.basename;",
+  "group": "tracking"
  }
 ]
