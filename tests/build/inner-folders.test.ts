@@ -31,9 +31,13 @@ const INNER_FOLDERS: InnerFolder[] = [
   { folder: "fence/gate", reaches: ["fence/gate", "fence/paths", "names"] },
   { folder: "beyond", reaches: ["beyond", "names", "pdf"] },
   { folder: "pdf", reaches: ["pdf"] },
+  { folder: "imports/layout", reaches: ["imports/layout"] },
+  { folder: "imports", reaches: ["imports", "imports/layout", "beyond", "names", "fence/gate", "campaign"] },
 ];
 
-const BEYOND_IMPORTERS: string[] = [];
+const BEYOND_IMPORTERS: string[] = ["imports"];
+const IMPORTS_IMPORTERS: string[] = [];
+const LAYOUT_IMPORTERS: string[] = ["imports"];
 const PDF_IMPORTERS: string[] = ["beyond"];
 
 function filesUnder(path: string): string[] {
@@ -44,6 +48,10 @@ function filesUnder(path: string): string[] {
     if (entry.isFile()) found.push(inside);
   }
   return found;
+}
+
+function relativeToSource(file: string): string {
+  return relative(SOURCE_FOLDER, file);
 }
 
 function filesIn(folder: string): string[] {
@@ -96,6 +104,14 @@ function importersOfPdfIn(allowed: string[], file: string, text: string): string
   return importersOfIn("pdf", allowed, file, text);
 }
 
+function importersOfImportsIn(allowed: string[], file: string, text: string): string[] {
+  return importersOfIn("imports", allowed, file, text);
+}
+
+function importersOfLayoutIn(allowed: string[], file: string, text: string): string[] {
+  return importersOfIn("imports/layout", allowed, file, text);
+}
+
 function importersOf(target: string, allowed: string[]): string[] {
   return filesUnder(SOURCE_FOLDER).flatMap((file) => importersOfIn(target, allowed, file, readFileSync(file, "utf8")));
 }
@@ -143,6 +159,20 @@ describe("the inner folders", () => {
 
   it("let no folder outside src/pdf import from it, except the folders listed as importers", () => {
     expect(importersOf("pdf", PDF_IMPORTERS)).toEqual([]);
+  });
+
+  it("let no folder outside src/imports import from it", () => {
+    expect(importersOf("imports", IMPORTS_IMPORTERS)).toEqual([]);
+  });
+
+  it("let no folder outside src/imports, except the folders listed as importers, import from its layout", () => {
+    expect(importersOf("imports/layout", LAYOUT_IMPORTERS)).toEqual([]);
+  });
+
+  it("read the files inside the folders of src/imports, not only its top", () => {
+    const read = filesIn("imports").map(relativeToSource);
+    expect(read).toContain(join("imports", "layout", "plugin-section.ts"));
+    expect(read).toContain(join("imports", "note", "writing", "import-writer.ts"));
   });
 
   it("read the files inside the folders of src/beyond, not only its top", () => {
@@ -272,5 +302,69 @@ describe("the rule for src/pdf, over made-up files", () => {
     const read = filesIn("pdf").map((file) => relative(SOURCE_FOLDER, file));
     expect(read).toContain(join("pdf", "read-pdf-fields.ts"));
     expect(read).toContain(join("pdf", "streams", "inflate", "bounded-inflater.ts"));
+  });
+});
+
+describe("the rules for src/imports and its layout, over made-up files", () => {
+  it("allows imports to reach beyond, names, the gate, the campaign folder, its layout and itself", () => {
+    const text = [
+      'import { a } from "../beyond/shape/route";',
+      'import { b } from "../names/name-key";',
+      'import { c } from "../fence/gate/fenced-files";',
+      'import { d } from "../campaign/paths/session-file";',
+      'import { e } from "./layout/plugin-section";',
+      'import { f } from "./note/writing/imported-note";',
+    ].join("\n");
+    expect(breachesOfMadeUpFile("imports", text)).toEqual([]);
+  });
+
+  it.each(["../fence/paths/fence", "../pdf/read-pdf-fields", "../characters/reading/sheet-values", "../funds/items/item-writer", "../kinds/reference-kind"])(
+    "refuses imports importing from %s",
+    (path) => {
+      expect(breachesOfMadeUpFile("imports", `import { a } from "${path}";`).length).toBe(1);
+    },
+  );
+
+  it.each(IMPORT_FORMS)("refuses imports importing from the vault's other folders, written as $form", ({ written }) => {
+    expect(breachesOfMadeUpFile("imports", written("../characters/one"))).toEqual(["imports/made-up.ts imports from characters"]);
+  });
+
+  it("refuses the layout importing from any other part of imports", () => {
+    expect(breachesOfMadeUpFile("imports/layout", 'import { a } from "../note/reading/note-layout";')).toEqual(["imports/layout/made-up.ts imports from imports"]);
+  });
+
+  it("refuses the layout importing from beyond or names", () => {
+    expect(breachesOfMadeUpFile("imports/layout", 'import { a } from "../../beyond/shape/route";')).toEqual(["imports/layout/made-up.ts imports from beyond"]);
+    expect(breachesOfMadeUpFile("imports/layout", 'import { a } from "../../names/name-key";')).toEqual(["imports/layout/made-up.ts imports from names"]);
+  });
+
+  it("allows the layout to import from itself", () => {
+    expect(breachesOfMadeUpFile("imports/layout", 'import { a } from "./plugin-section";')).toEqual([]);
+  });
+
+  it.each(IMPORT_FORMS)("refuses a file outside imports that imports from it, written as $form", ({ written }) => {
+    const file = join(SOURCE_FOLDER, "campaign", "made-up.ts");
+    expect(importersOfImportsIn(IMPORTS_IMPORTERS, file, written("../imports/note/writing/imported-note"))).toEqual(["campaign/made-up.ts imports from imports"]);
+  });
+
+  it("allows a file inside imports, at any depth, to import from imports", () => {
+    const file = join(SOURCE_FOLDER, "imports", "note", "made-up.ts");
+    expect(importersOfImportsIn(IMPORTS_IMPORTERS, file, 'import { a } from "../../imports/note/other";')).toEqual([]);
+  });
+
+  it("refuses a file outside imports that imports from its layout, unless the folder is listed", () => {
+    const file = join(SOURCE_FOLDER, "characters", "made-up.ts");
+    const text = 'import { a } from "../imports/layout/plugin-section";';
+    expect(importersOfLayoutIn([], file, text)).toEqual(["characters/made-up.ts imports from imports/layout"]);
+    expect(importersOfLayoutIn(["characters"], file, text)).toEqual([]);
+  });
+
+  it("allows the notes of imports to import from the layout", () => {
+    const file = join(SOURCE_FOLDER, "imports", "note", "made-up.ts");
+    expect(importersOfLayoutIn(LAYOUT_IMPORTERS, file, 'import { a } from "../layout/plugin-section";')).toEqual([]);
+  });
+
+  it("refuses names importing from imports", () => {
+    expect(breachesOfMadeUpFile("names", 'import { a } from "../imports/layout/plugin-section";')).toEqual(["names/made-up.ts imports from imports/layout"]);
   });
 });
