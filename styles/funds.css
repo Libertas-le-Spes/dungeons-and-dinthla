@@ -17,24 +17,9 @@
   color: var(--text-strong);
 }
 
-.dd-funds .dd-coins {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
 .dd-funds .dd-coins-label {
   align-self: center;
   color: var(--text-faint-ui);
-}
-
-.dd-funds .dd-coin {
-  padding: var(--space-0) 10px;
-  border-radius: var(--radius-pill);
-  background: var(--marker-ledger-soft);
-  font: var(--type-note);
-  font-size: var(--text-sm);
-  color: var(--text-strong);
 }
 
 .dd-funds .dd-empty,

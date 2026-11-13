@@ -29,11 +29,11 @@ const INNER_FOLDERS: InnerFolder[] = [
   { folder: "names", reaches: ["names"] },
   { folder: "fence/paths", reaches: ["fence/paths", "names"] },
   { folder: "fence/gate", reaches: ["fence/gate", "fence/paths", "names"] },
-  { folder: "beyond", reaches: ["beyond", "names", "pdf"] },
+  { folder: "beyond", reaches: ["beyond", "names", "pdf", "imports/layout"] },
   { folder: "pdf", reaches: ["pdf"] },
   { folder: "imports/layout", reaches: ["imports/layout"] },
   { folder: "characters/facts", reaches: ["characters/facts", "campaign", "notes"] },
-  { folder: "characters/imported", reaches: ["characters/imported", "characters/facts", "imports/layout", "campaign", "kinds", "views", "notes"] },
+  { folder: "characters/imported", reaches: ["characters/imported", "characters/facts", "imports/layout", "campaign", "kinds", "notes"] },
   { folder: "views/pending", reaches: ["views/pending"] },
   { folder: "views/dialogs", reaches: ["views/dialogs", "campaign", "kind-notes"] },
   { folder: "imports", reaches: ["imports", "imports/layout", "beyond", "names", "fence/gate", "campaign", "views/dialogs", "views/pending"] },
@@ -41,7 +41,7 @@ const INNER_FOLDERS: InnerFolder[] = [
 
 const BEYOND_IMPORTERS: string[] = ["imports"];
 const IMPORTS_IMPORTERS: string[] = ["main.ts"];
-const LAYOUT_IMPORTERS: string[] = ["imports", "characters"];
+const LAYOUT_IMPORTERS: string[] = ["imports", "characters", "beyond"];
 const PDF_IMPORTERS: string[] = ["beyond"];
 
 function filesUnder(path: string): string[] {

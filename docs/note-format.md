@@ -514,7 +514,7 @@ The lines are read when the sheet opens, and read again when Obsidian has resolv
 
 ### Imported characters
 
-Built in steps. The note writer (`src/imports/note/`, with the names it shares in `src/imports/layout/`) and the import dialog for a PDF (`src/imports/dialog/`) are in; the inventory, purse, spells and features panels, tracking and the online route are not yet.
+Built in steps. The note writer (`src/imports/note/`, with the names it shares in `src/imports/layout/`), the import dialog for a PDF (`src/imports/dialog/`), and the sheet's inventory, purse, spells and features panels with tracking (`src/characters/imported/`, `src/funds/tracking/`) are in; the online route is not yet.
 
 An import goes into the character's own note. Nothing else is touched.
 
@@ -539,6 +539,19 @@ An import goes into the character's own note. Nothing else is touched.
 - For a note that exists, it lists every property and section line the update would replace, with text typed inside the import's sections listed first as a warning. *Update* writes exactly that; if the note changed since, it refuses in words, writes nothing, shows the refusal above the changes as they are now and offers *Update* again. When nothing would change it says so and offers only *Close*.
 - For a new note, a name that isn't a safe file name or that another note has is refused before *Import* is offered.
 - After a new note is written its sheet opens. *Choose another file* goes back to the start.
+
+#### On the sheet
+
+Under the values, a sheet with an import shows four panels, read from the import's sections and never written from: *Inventory*, *Purse*, *Spells* and *Features*. Each line shows as plain text, with the import's escapes taken off. A list with nothing in it says *Nothing came in for this list.* A list the PDF lost lines from says so in plain words, from its `- Left out:` line: *Left out of the PDF's list: 1 line too long to bring in and 2 lines that couldn't be read as plain text.* Below the panels, a PDF import says once that the PDF doesn't give proficiency marks, attacks, alignment, spell slots, total level, hit dice or carrying capacity.
+
+- **Inventory.** Each item shows its count when the import knows it (`× 2`). When the sheet's character is in the campaign the tab shows, each item not held on the Party funds page has *Track on the funds page*, and the others say where they stand: *On the funds page* when the character or the party holds it, *Held by Secondary, on the funds page* when someone else does, and *Sold, on the funds page* (or *Used up*, *Lost*) for an item gone from the page, which can be tracked again. Items are matched by name, ignoring capitals, runs of spaces and the import's escapes, so `Rope (50 ft) *silk*` typed at the table and the import's `Rope (50 ft) \*silk\*` are one item. *Track* is offered only for a line as the import writes it: a line typed into the section by hand, or a name longer than the 100 characters the import writes, gets no button. A character of another campaign gets no buttons, and the panel says to show that campaign first; a character in no campaign's `Characters` folder is told its items can't be tracked.
+- **Track on the funds page** opens a small dialog: the item, *Held by* the character, and the session it writes into (the campaign's latest). *Save* adds one line, `$ [[Primary Monk]] Rope`, with the item's name as the note holds it, so it stays inert. Before writing, the plugin reads the notes as they would be after the line: it writes nothing unless exactly one new item comes out, held by that character, with every other item unchanged. It checks again against the session note as it is at the moment of writing. So a name the ledger would read as coin (`Pouch 10 gp`) or an item already held on the page is refused, in words. A count isn't tracked: the funds page holds the item, not how many.
+- **On the funds page, but not on this import.** Items the funds page has as held by the character that this import doesn't list are marked under the inventory, each with *Used up*, *Sold*, *Lost* and *Changed*. An item counts as the character's when its holder link leads to the character's note, so `[[People/Primary Monk]]` is another note's. Each opens the existing item dialog with that status chosen (*Changed* as it is, to give it to someone else); nothing is written until you save there. From a PDF this can't tell a renamed line from a gone item, so a marked item may only have been reworded on D&D Beyond. A note with no inventory section marks nothing, and when the import left lines out, the panel says some marked items may be among them.
+- **Purse.** The coins the import gives, as on the Party funds page (`1,200 gp`, `? ep` for one not known, none at zero), and that it is not added to the party purse.
+
+#### Your character's purse on the Party funds page
+
+The Party funds page shows the purse of the player's own character (named by the campaign note's `character` property) right after the party purse, titled *Primary Monk's purse*, when that character's note has an import. It is shown beside the party purse and never added to it. It redraws when a note in the campaign's `Characters` folder or the campaign note changes, so naming a character in the campaign note shows its purse. If the note can't be read, it says *Couldn't read your character's note, so its purse isn't shown.* in its place.
 
 ### Calling a character over
 

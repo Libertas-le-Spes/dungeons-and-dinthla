@@ -1,0 +1,653 @@
+[
+ {
+  "id": "counts: too long read",
+  "file": "src/characters/imported/lists/left-out-counts.ts",
+  "find": "if (tooLong === null || notClean === null) return null;",
+  "replace": "if (notClean === null) return null;",
+  "group": "lists"
+ },
+ {
+  "id": "counts: not clean read",
+  "file": "src/characters/imported/lists/left-out-counts.ts",
+  "find": "if (tooLong === null || notClean === null) return null;",
+  "replace": "if (tooLong === null) return null;",
+  "group": "lists"
+ },
+ {
+  "id": "counts: only whole numbers",
+  "file": "src/characters/imported/lists/left-out-counts.ts",
+  "find": "if (WHOLE_NUMBER.test(digits) === false) return null;",
+  "replace": "if (digits === \"\") return null;",
+  "group": "lists"
+ },
+ {
+  "id": "counts: ending checked",
+  "file": "src/characters/imported/lists/left-out-counts.ts",
+  "find": "  if (part.endsWith(ending) === false) return null;\n",
+  "replace": "",
+  "group": "lists"
+ },
+ {
+  "id": "words: too long said",
+  "file": "src/characters/imported/lists/left-out-words.ts",
+  "find": "  if (counts.tooLong > 0) parts.push",
+  "replace": "  if (counts.tooLong > 1) parts.push",
+  "group": "lists"
+ },
+ {
+  "id": "words: not clean said",
+  "file": "src/characters/imported/lists/left-out-words.ts",
+  "find": "  if (counts.notClean > 0) parts.push",
+  "replace": "  if (counts.notClean > 1) parts.push",
+  "group": "lists"
+ },
+ {
+  "id": "words: none when nothing left out",
+  "file": "src/characters/imported/lists/left-out-words.ts",
+  "find": "  if (parts.length === 0) return null;\n",
+  "replace": "",
+  "group": "lists"
+ },
+ {
+  "id": "words: one line",
+  "file": "src/characters/imported/lists/left-out-words.ts",
+  "find": "  if (count === 1) return `1 line ${what}`;\n",
+  "replace": "",
+  "group": "lists"
+ },
+ {
+  "id": "entries: left-out line apart",
+  "file": "src/characters/imported/lists/section-entries.ts",
+  "find": "if (text.startsWith(LEFT_OUT_START)) leftOut",
+  "replace": "if (text.startsWith(\"- Left out:x\")) leftOut",
+  "group": "lists"
+ },
+ {
+  "id": "entries: only bullets",
+  "file": "src/characters/imported/lists/section-entries.ts",
+  "find": "else if (text.startsWith(LINE_START)) entries.push(text.substring(LINE_START.length));",
+  "replace": "else entries.push(text.substring(LINE_START.length));",
+  "group": "lists"
+ },
+ {
+  "id": "inventory: last ×",
+  "file": "src/characters/imported/lists/inventory-entry.ts",
+  "find": "text.lastIndexOf(COUNT_SEPARATOR)",
+  "replace": "text.indexOf(COUNT_SEPARATOR)",
+  "group": "lists"
+ },
+ {
+  "id": "inventory: name shown without escapes",
+  "file": "src/characters/imported/lists/inventory-entry.ts",
+  "find": "return { written, name: withoutEscapes(written),",
+  "replace": "return { written, name: written,",
+  "group": "lists"
+ },
+ {
+  "id": "inventory: count only when whole",
+  "file": "src/characters/imported/lists/inventory-entry.ts",
+  "find": "  if (WHOLE_NUMBER.test(text)) return text;\n  return null;",
+  "replace": "  return text;",
+  "group": "lists"
+ },
+ {
+  "id": "purse: separator needed",
+  "file": "src/characters/imported/lists/purse-coin.ts",
+  "find": "  if (separator === -1) return null;\n",
+  "replace": "",
+  "group": "lists"
+ },
+ {
+  "id": "purse: lines without a coin left out",
+  "file": "src/characters/imported/lists/purse-coin.ts",
+  "find": "    if (coin !== null) coins.push(coin);",
+  "replace": "    if (coin !== undefined && coin !== null) coins.push(coin);\n    if (coin === null) coins.push({ coin: \"\", count: null });",
+  "group": "lists"
+ },
+ {
+  "id": "key: spaces collapsed",
+  "file": "src/characters/imported/lists/item-key.ts",
+  "find": "name.replace(SPACES, \" \")",
+  "replace": "name",
+  "group": "lists"
+ },
+ {
+  "id": "key: capitals ignored",
+  "file": "src/characters/imported/lists/item-key.ts",
+  "find": ".trim().toLowerCase()",
+  "replace": ".trim()",
+  "group": "lists"
+ },
+ {
+  "id": "lists: none without imported-from",
+  "file": "src/characters/imported/lists/imported-lists.ts",
+  "find": "    if (routeName === null) return null;\n",
+  "replace": "",
+  "group": "lists"
+ },
+ {
+  "id": "lists: PDF route known",
+  "file": "src/characters/imported/lists/imported-lists.ts",
+  "find": "return this.routeName === PDF_ROUTE_NAME;",
+  "replace": "return true;",
+  "group": "lists"
+ },
+ {
+  "id": "panels: none without an import",
+  "file": "src/characters/imported/panels/imported-panels.ts",
+  "find": "  if (lists === null) return;\n",
+  "replace": "  if (lists === null) throw new Error(\"x\");\n",
+  "group": "panels"
+ },
+ {
+  "id": "panels: PDF gaps for a PDF only",
+  "file": "src/characters/imported/panels/imported-panels.ts",
+  "find": "  if (lists.isFromPdf) panels",
+  "replace": "  if (lists !== null) panels",
+  "group": "panels"
+ },
+ {
+  "id": "panels: count shown",
+  "file": "src/characters/imported/panels/panel-parts.ts",
+  "find": "  heading.createSpan({ cls: \"dd-count\", text: String(count) });\n",
+  "replace": "",
+  "group": "panels"
+ },
+ {
+  "id": "panels: nothing came in only when empty",
+  "file": "src/characters/imported/panels/panel-parts.ts",
+  "find": "  if (listed.entries.length > 0) return;\n",
+  "replace": "",
+  "group": "panels"
+ },
+ {
+  "id": "panels: left out shown",
+  "file": "src/characters/imported/panels/panel-parts.ts",
+  "find": "  panel.createEl(\"p\", { cls: \"dd-note dd-left-out\", text: words });\n",
+  "replace": "",
+  "group": "panels"
+ },
+ {
+  "id": "panels: line text unescaped",
+  "file": "src/characters/imported/panels/line-panel.ts",
+  "find": "addPanelLine(list, withoutEscapes(entry))",
+  "replace": "addPanelLine(list, entry)",
+  "group": "panels"
+ },
+ {
+  "id": "inventory: count shown",
+  "file": "src/characters/imported/panels/inventory-panel.ts",
+  "find": "    if (entry.count !== null) line.createSpan",
+  "replace": "    if (entry.count === \"x\") line.createSpan",
+  "group": "panels"
+ },
+ {
+  "id": "inventory: standing shown",
+  "file": "src/characters/imported/panels/inventory-panel.ts",
+  "find": "    if (standing !== null) line.createSpan({ cls: \"dd-meta dd-panel-standing\", text: standing });\n",
+  "replace": "",
+  "group": "panels"
+ },
+ {
+  "id": "inventory: track asks for this line",
+  "file": "src/characters/imported/panels/inventory-panel.ts",
+  "find": "new TrackRun(this.file, entry.written, this.tracking)",
+  "replace": "new TrackRun(this.file, entry.name + \" \", this.tracking)",
+  "group": "panels"
+ },
+ {
+  "id": "inventory: no buttons for another campaign",
+  "file": "src/characters/imported/panels/inventory-panel.ts",
+  "find": "    if (look === null) return;\n    const standing",
+  "replace": "    if (look === null) {\n      addActionButton(line, TRACK_ON_FUNDS, PANEL_ACTION_CLASSES, new TrackRun(this.file, entry.written, this.tracking));\n      return;\n    }\n    const standing",
+  "group": "panels"
+ },
+ {
+  "id": "inventory: no advice for an empty list",
+  "file": "src/characters/imported/panels/inventory-panel.ts",
+  "find": "    if (entries.length === 0) return;\n",
+  "replace": "",
+  "group": "panels"
+ },
+ {
+  "id": "inventory: looks at the written text",
+  "file": "src/characters/imported/panels/inventory-panel.ts",
+  "find": "for (const entry of entries) written.push(entry.written);",
+  "replace": "for (const entry of entries) written.push(entry.name);",
+  "group": "panels"
+ },
+ {
+  "id": "held: marks shown",
+  "file": "src/characters/imported/panels/inventory-panel.ts",
+  "find": "    addHeldButNotImported(panel, this.file, look.heldButNotImported(), listed.leftOut, this.tracking);\n",
+  "replace": "",
+  "group": "panels"
+ },
+ {
+  "id": "held: none drawn when all are imported",
+  "file": "src/characters/imported/panels/held-not-imported.ts",
+  "find": "  if (held.length === 0) return;\n",
+  "replace": "",
+  "group": "panels"
+ },
+ {
+  "id": "held: choice asks for its status",
+  "file": "src/characters/imported/tracking/tracking-runs.ts",
+  "find": "this.tracking.settle(this.file, this.name, this.choice.status, returnFocus);",
+  "replace": "this.tracking.settle(this.file, this.name, \"held\", returnFocus);",
+  "group": "panels"
+ },
+ {
+  "id": "held: Used up is used",
+  "file": "src/characters/imported/tracking/settle-choices.ts",
+  "find": "{ label: \"Used up\", status: \"used\" }",
+  "replace": "{ label: \"Used up\", status: \"lost\" }",
+  "group": "panels"
+ },
+ {
+  "id": "held: Changed opens as it is",
+  "file": "src/characters/imported/tracking/settle-choices.ts",
+  "find": "{ label: \"Changed\", status: \"held\" }",
+  "replace": "{ label: \"Changed\", status: \"sold\" }",
+  "group": "panels"
+ },
+ {
+  "id": "coins: not known as ?",
+  "file": "src/characters/imported/purse/coin-chips.ts",
+  "find": "  if (coin.count === null) return `${NOT_KNOWN_COUNT} ${coin.coin}`;\n",
+  "replace": "  if (coin.count === null) return coin.coin;\n",
+  "group": "purse"
+ },
+ {
+  "id": "coins: zero left out",
+  "file": "src/characters/imported/purse/coin-chips.ts",
+  "find": "return coin.count !== 0;",
+  "replace": "return true;",
+  "group": "purse"
+ },
+ {
+  "id": "coins: no coin said",
+  "file": "src/characters/imported/purse/coin-chips.ts",
+  "find": "  if (shown.length === 0) chips",
+  "replace": "  if (shown.length === 99) chips",
+  "group": "purse"
+ },
+ {
+  "id": "own purse: only his own characters",
+  "file": "src/funds/purses/own-purses.ts",
+  "find": "    if (notes.isOwnCharacter(file) === false) continue;\n",
+  "replace": "",
+  "group": "purse"
+ },
+ {
+  "id": "own purse: only imported notes",
+  "file": "src/funds/purses/own-purses.ts",
+  "find": "  if (coins === null) return null;\n",
+  "replace": "  if (coins === null) return { name: file.basename, coins: [] };\n",
+  "group": "purse"
+ },
+ {
+  "id": "own purse: redraw only for character notes",
+  "file": "src/funds/purses/own-purse-panel.ts",
+  "find": "if (readsPurseFrom(folder, path)) this.refresh();",
+  "replace": "this.refresh();",
+  "group": "purse"
+ },
+ {
+  "id": "own purse: hidden when none",
+  "file": "src/funds/purses/own-purse-panel.ts",
+  "find": "this.panelEl.toggle(purses.length > 0);",
+  "replace": "this.panelEl.toggle(true);",
+  "group": "purse"
+ },
+ {
+  "id": "own purse: none without a campaign",
+  "file": "src/funds/purses/own-purse-panel.ts",
+  "find": "    if (folder === null) {\n      this.draw([]);\n      return;\n    }\n    try",
+  "replace": "    try",
+  "group": "purse"
+ },
+ {
+  "id": "own purse: errors in words",
+  "file": "src/funds/purses/own-purse-panel.ts",
+  "find": "      if (render === this.renders) this.drawError();",
+  "replace": "      if (render === this.renders) this.draw([]);",
+  "group": "purse"
+ },
+ {
+  "id": "funds page: purse beside the party's",
+  "file": "src/funds/page/funds-page.ts",
+  "find": "    this.addPursesBeside(root);\n",
+  "replace": "",
+  "group": "purse"
+ },
+ {
+  "id": "funds section: his purse wired",
+  "file": "src/interface/sections/funds-section.ts",
+  "find": "      new OwnPurses(needs),\n",
+  "replace": "      null,\n",
+  "group": "purse"
+ },
+ {
+  "id": "look: standing by key",
+  "file": "src/funds/tracking/items-look.ts",
+  "find": "      if (item.gone === null && storedItemKeyOf(item.name) === key) return item;",
+  "replace": "      if (item.gone === null && item.name === key) return item;",
+  "group": "tracking"
+ },
+ {
+  "id": "look: gone words",
+  "file": "src/funds/tracking/items-look.ts",
+  "find": "  [\"sold\", \"Sold, on the funds page\"],\n",
+  "replace": "",
+  "group": "tracking"
+ },
+ {
+  "id": "look: held only",
+  "file": "src/funds/tracking/items-look.ts",
+  "find": "    if (item.gone !== null || item.holderLinked === false) return false;",
+  "replace": "    if (item.holderLinked === false) return false;",
+  "group": "tracking"
+ },
+ {
+  "id": "look: his only",
+  "file": "src/funds/tracking/items-look.ts",
+  "find": "return this.holders.pathOf(item.holder, lastSourcePathOf(item)) === this.file.path;",
+  "replace": "return true;",
+  "group": "tracking"
+ },
+ {
+  "id": "look: imported ones left out",
+  "file": "src/funds/tracking/items-look.ts",
+  "find": "if (this.isHeldHere(item) && this.importedKeys.has(storedItemKeyOf(item.name)) === false)",
+  "replace": "if (this.isHeldHere(item))",
+  "group": "tracking"
+ },
+ {
+  "id": "tracking: shown campaign only",
+  "file": "src/funds/tracking/funds-tracking.ts",
+  "find": "    if (isInReferenceFolder(characterReferenceKind, folder, file.path) === false) return null;\n",
+  "replace": "",
+  "group": "tracking"
+ },
+ {
+  "id": "tracking: other campaign refused in words",
+  "file": "src/funds/tracking/funds-tracking.ts",
+  "find": "    if (folder === null) {\n      new Notice(this.whyNotTracked(file));\n      return;",
+  "replace": "    if (folder === null) {\n      return;",
+  "group": "tracking"
+ },
+ {
+  "id": "tracking: holder linked",
+  "file": "src/funds/tracking/funds-tracking.ts",
+  "find": "const holder = `[[${this.gate.metadata.fileToLinktext(file, sessionPath, true)}]]`;",
+  "replace": "const holder = this.gate.metadata.fileToLinktext(file, sessionPath, true);",
+  "group": "tracking"
+ },
+ {
+  "id": "tracking: gone item said",
+  "file": "src/funds/tracking/funds-tracking.ts",
+  "find": "      new Notice(ITEM_GONE);\n",
+  "replace": "",
+  "group": "tracking"
+ },
+ {
+  "id": "tracking: status handed on",
+  "file": "src/funds/tracking/funds-tracking.ts",
+  "find": "{ name, status }",
+  "replace": "{ name, status: null }",
+  "group": "tracking"
+ },
+ {
+  "id": "tracking: focus handed back",
+  "file": "src/funds/tracking/funds-tracking.ts",
+  "find": "new TrackItemModal(this.app, shown, saving, returnFocus).open();",
+  "replace": "new TrackItemModal(this.app, shown, saving, () => {}).open();",
+  "group": "tracking"
+ },
+ {
+  "id": "dialog: status chosen",
+  "file": "src/funds/items/open-item.ts",
+  "find": "  if (asked.status === null) return opened;\n  return { ...opened, status: asked.status };",
+  "replace": "  return opened;",
+  "group": "tracking"
+ },
+ {
+  "id": "line: holder then name",
+  "file": "src/funds/tracking/tracked-item.ts",
+  "find": "return `$ ${holderText} ${written}`;",
+  "replace": "return `$ ${written} ${holderText}`;",
+  "group": "tracking"
+ },
+ {
+  "id": "refusal: already held on the page",
+  "file": "src/funds/tracking/tracking-refusal.ts",
+  "find": "  if (isHeldOnThePage(before, tracked.key)) return ALREADY_ON_FUNDS_PAGE;\n",
+  "replace": "",
+  "group": "tracking"
+ },
+ {
+  "id": "change: checked before writing",
+  "file": "src/funds/tracking/tracking-change.ts",
+  "find": "    checks: [line.readsAsTheItem.bind(line), notHidden(",
+  "replace": "    checks: [notHidden(",
+  "group": "tracking"
+ },
+ {
+  "id": "modal: Save saves",
+  "file": "src/funds/tracking/track-item-modal.ts",
+  "find": "this.runChange(this.saving.save.bind(this.saving), COULD_NOT_TRACK);",
+  "replace": "this.close();",
+  "group": "tracking"
+ },
+ {
+  "id": "refusal: the whole campaign compared",
+  "file": "src/funds/tracking/tracking-refusal.ts",
+  "find": "  if (!addsOnlyTheItem(splitByKey(before, tracked.key), splitByKey(after, tracked.key), tracked)) return NOT_READ_AS_THE_ITEM;\n",
+  "replace": "",
+  "group": "tracking"
+ },
+ {
+  "id": "refusal: held, not gone",
+  "file": "src/funds/tracking/tracking-refusal.ts",
+  "find": "const HELD = \"held\";",
+  "replace": "const HELD = \"lost\";",
+  "group": "tracking"
+ },
+ {
+  "id": "refusal: linked holder",
+  "file": "src/funds/tracking/tracking-refusal.ts",
+  "find": "tracked.holderName.toLowerCase(), true, HELD]",
+  "replace": "tracked.holderName.toLowerCase(), false, HELD]",
+  "group": "tracking"
+ },
+ {
+  "id": "refusal: his name",
+  "file": "src/funds/tracking/tracking-refusal.ts",
+  "find": "tracked.holderName.toLowerCase(), true, HELD]",
+  "replace": "holderNameOf(\"\"), true, HELD]",
+  "group": "tracking"
+ },
+ {
+  "id": "refusal: the name as written",
+  "file": "src/funds/tracking/tracking-refusal.ts",
+  "find": "JSON.stringify([tracked.key, tracked.written,",
+  "replace": "JSON.stringify([tracked.key, \"Rope\",",
+  "group": "tracking"
+ },
+ {
+  "id": "refusal: other items compared",
+  "file": "src/funds/tracking/tracking-refusal.ts",
+  "find": "  if (!sameSignatures(before.others, after.others)) return false;\n",
+  "replace": "",
+  "group": "tracking"
+ },
+ {
+  "id": "refusal: on the page by key",
+  "file": "src/funds/tracking/tracking-refusal.ts",
+  "find": "    if (item.gone === null && storedItemKeyOf(item.name) === key) return true;",
+  "replace": "    if (item.gone === null && item.name === key) return true;",
+  "group": "tracking"
+ },
+ {
+  "id": "own purse: stale reading drawn",
+  "file": "src/funds/purses/own-purse-panel.ts",
+  "find": "      if (render === this.renders) this.draw(purses);",
+  "replace": "      this.draw(purses);",
+  "group": "purse"
+ },
+ {
+  "id": "own purse: error panel stays hidden",
+  "file": "src/funds/purses/own-purse-panel.ts",
+  "find": "    this.panelEl.empty();\n    this.panelEl.toggle(true);\n",
+  "replace": "    this.panelEl.empty();\n",
+  "group": "purse"
+ },
+ {
+  "id": "own purse: unload drops nothing",
+  "file": "src/funds/purses/own-purse-panel.ts",
+  "find": "  override onunload(): void {\n    this.renders += 1;\n",
+  "replace": "  override onunload(): void {\n",
+  "group": "purse"
+ },
+ {
+  "id": "own purse: campaign note ignored",
+  "file": "src/funds/purses/own-purse-panel.ts",
+  "find": "  return path === mainNotePathOf(folder) || isInReferenceFolder",
+  "replace": "  return isInReferenceFolder",
+  "group": "purse"
+ },
+ {
+  "id": "settle: other campaign let through",
+  "file": "src/funds/tracking/funds-tracking.ts",
+  "find": "  settle(file: TFile, name: string, status: SettledStatus, returnFocus: () => void): void {\n    if (this.shownFolderOf(file) === null) {\n      new Notice(this.whyNotTracked(file));\n      return;\n    }\n",
+  "replace": "  settle(file: TFile, name: string, status: SettledStatus, returnFocus: () => void): void {\n",
+  "group": "tracking"
+ },
+ {
+  "id": "tracking: typed line tracked",
+  "file": "src/funds/tracking/funds-tracking.ts",
+  "find": "    if (!isImporterWritten(written)) {",
+  "replace": "    if (false) {",
+  "group": "tracking"
+ },
+ {
+  "id": "tracking: no-campaign advice lost",
+  "file": "src/funds/tracking/funds-tracking.ts",
+  "find": "    if (this.isInSomeCampaign(file)) return NOT_THE_SHOWN_CAMPAIGN;",
+  "replace": "    return NOT_THE_SHOWN_CAMPAIGN;",
+  "group": "tracking"
+ },
+ {
+  "id": "inventory: typed line offered Track",
+  "file": "src/characters/imported/panels/inventory-panel.ts",
+  "find": "    if (look.canTrack(entry.written) && isImporterWritten(entry.written)) {",
+  "replace": "    if (look.canTrack(entry.written)) {",
+  "group": "panels"
+ },
+ {
+  "id": "inventory: marks without a section",
+  "file": "src/characters/imported/panels/inventory-panel.ts",
+  "find": "    if (!listed.present) return;\n",
+  "replace": "",
+  "group": "panels"
+ },
+ {
+  "id": "held: left-out line always",
+  "file": "src/characters/imported/panels/held-not-imported.ts",
+  "find": "  if (leftOut === null || !hasLeftOut(leftOut)) return;",
+  "replace": "  if (leftOut === null) return;",
+  "group": "panels"
+ },
+ {
+  "id": "written: name cap off by one",
+  "file": "src/characters/imported/lists/importer-written.ts",
+  "find": "> MOST_TRACKED_NAME_CHARACTERS) return false;",
+  "replace": "> MOST_TRACKED_NAME_CHARACTERS + 1) return false;",
+  "group": "lists"
+ },
+ {
+  "id": "written: escapes not checked",
+  "file": "src/characters/imported/lists/importer-written.ts",
+  "find": "  return withEscapedCharacters(shown) === written;",
+  "replace": "  return true;",
+  "group": "lists"
+ },
+ {
+  "id": "key: escapes kept",
+  "file": "src/characters/imported/lists/item-key.ts",
+  "find": "  return keyOfShown(withoutEscapes(written));",
+  "replace": "  return keyOfShown(written);",
+  "group": "lists"
+ },
+ {
+  "id": "key: stored escapes kept",
+  "file": "src/characters/imported/lists/item-key.ts",
+  "find": "  return keyOfShown(withoutEscapes(unlink(name)));",
+  "replace": "  return keyOfShown(unlink(name));",
+  "group": "lists"
+ },
+ {
+  "id": "key: stored links kept",
+  "file": "src/characters/imported/lists/item-key.ts",
+  "find": "  return keyOfShown(withoutEscapes(unlink(name)));",
+  "replace": "  return keyOfShown(withoutEscapes(name));",
+  "group": "lists"
+ },
+ {
+  "id": "look: held elsewhere unnamed",
+  "file": "src/funds/tracking/items-look.ts",
+  "find": "    return heldByWords(holderName);",
+  "replace": "    return ON_THE_FUNDS_PAGE;",
+  "group": "tracking"
+ },
+ {
+  "id": "look: gone items not trackable",
+  "file": "src/funds/tracking/items-look.ts",
+  "find": "    return this.heldItemWith(itemKeyOf(written)) === null;",
+  "replace": "    return this.itemWith(itemKeyOf(written)) === null;",
+  "group": "tracking"
+ },
+ {
+  "id": "look: marked names keep escapes",
+  "file": "src/funds/tracking/items-look.ts",
+  "find": "shown: withoutEscapes(item.name) }",
+  "replace": "shown: item.name }",
+  "group": "tracking"
+ },
+ {
+  "id": "refusal: gone items block",
+  "file": "src/funds/tracking/tracking-refusal.ts",
+  "find": "    if (item.gone === null && storedItemKeyOf(item.name) === key) return true;",
+  "replace": "    if (storedItemKeyOf(item.name) === key) return true;",
+  "group": "tracking"
+ },
+ {
+  "id": "refusal: revived item refused",
+  "file": "src/funds/tracking/tracking-refusal.ts",
+  "find": "  return unmatched.length <= 1;",
+  "replace": "  return unmatched.length === 0;",
+  "group": "tracking"
+ },
+ {
+  "id": "save: live text not checked",
+  "file": "src/campaign/writing/note-editor.ts",
+  "find": "  if (refusal !== null) return { refusal };\n",
+  "replace": "",
+  "group": "tracking"
+ },
+ {
+  "id": "section: absent read as present",
+  "file": "src/characters/imported/lists/section-entries.ts",
+  "find": "  if (!hasHeading(lines, bodyStart, section)) return NOTHING_LISTED;\n",
+  "replace": "",
+  "group": "lists"
+ },
+ {
+  "id": "funds page: names keep escapes",
+  "file": "src/funds/page/funds-page.ts",
+  "find": "text: withoutEscapes(item.name) });",
+  "replace": "text: item.name });",
+  "group": "panels"
+ }
+]
