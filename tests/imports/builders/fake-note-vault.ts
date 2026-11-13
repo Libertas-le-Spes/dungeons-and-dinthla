@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import type { EventRef, TAbstractFile, TFile, TFolder } from "obsidian";
+import type { TFile, TFolder } from "obsidian";
 import { Fence } from "../../../src/fence/paths/fence";
 import { FencedFiles, type RawVault } from "../../../src/fence/gate/fenced-files";
 import { HeldFiles } from "../../../src/fence/gate/held-files";
@@ -7,8 +7,12 @@ import { HeldFiles } from "../../../src/fence/gate/held-files";
 export const CAMPAIGNS_FOLDER = "D&D";
 export const CHARACTERS_FOLDER = "D&D/Primary Campaign/Characters";
 
+function campaignsFolder(): string {
+  return CAMPAIGNS_FOLDER;
+}
+
 function nameOf(path: string): string {
-  return path.slice(path.lastIndexOf("/") + 1);
+  return path.replace(/^.*\//, "");
 }
 
 function noteAt(path: string): TFile {
@@ -30,7 +34,7 @@ export class FakeNoteVault {
   readonly gate: FencedFiles;
 
   constructor() {
-    const fence = new Fence(() => CAMPAIGNS_FOLDER, ".obsidian");
+    const fence = new Fence(campaignsFolder, ".obsidian");
     const raw = this.rawVault();
     this.gate = new FencedFiles(raw, new HeldFiles(raw, fence));
   }
@@ -54,23 +58,31 @@ export class FakeNoteVault {
 
   private rawVault(): RawVault {
     const vault = {
-      getFileByPath: vi.fn((path: string) => this.fileOrNull(path)),
-      getFolderByPath: vi.fn((path: string) => this.folderOrNull(path)),
-      getAbstractFileByPath: vi.fn((path: string) => this.fileOrNull(path)),
-      getFiles: vi.fn(() => [...this.files.values()]),
-      getMarkdownFiles: vi.fn(() => [...this.files.values()]),
-      read: vi.fn(async (file: TFile) => this.textAt(file.path)),
-      cachedRead: vi.fn(async (file: TFile) => this.textAt(file.path)),
-      process: vi.fn(async (file: TFile, change: (text: string) => string) => this.process(file, change)),
-      create: vi.fn(async (path: string, text: string) => this.create(path, text)),
-      createFolder: vi.fn(async (path: string) => this.makeFolder(path)),
-      rename: vi.fn(async () => {}),
-      delete: vi.fn(async () => {}),
-      getResourcePath: vi.fn((file: TFile) => `app://${file.path}`),
-      on: vi.fn((): EventRef => ({}) as unknown as EventRef),
+      getFileByPath: vi.fn(this.fileOrNull.bind(this)),
+      getFolderByPath: vi.fn(this.folderOrNull.bind(this)),
+      getAbstractFileByPath: vi.fn(this.fileOrNull.bind(this)),
+      getFiles: vi.fn(this.allFiles.bind(this)),
+      getMarkdownFiles: vi.fn(this.allFiles.bind(this)),
+      read: vi.fn(this.read.bind(this)),
+      cachedRead: vi.fn(this.read.bind(this)),
+      process: vi.fn(this.process.bind(this)),
+      create: vi.fn(this.create.bind(this)),
+      createFolder: vi.fn(this.makeFolder.bind(this)),
+      rename: vi.fn(),
+      delete: vi.fn(),
+      getResourcePath: vi.fn(),
+      on: vi.fn(),
       offref: vi.fn(),
     };
     return vault as unknown as RawVault;
+  }
+
+  private allFiles(): TFile[] {
+    return [...this.files.values()];
+  }
+
+  private async read(file: TFile): Promise<string> {
+    return this.textAt(file.path);
   }
 
   private fileOrNull(path: string): TFile | null {
@@ -85,23 +97,21 @@ export class FakeNoteVault {
     return folder;
   }
 
-  private process(file: TFile, change: (text: string) => string): string {
+  private async process(file: TFile, change: (text: string) => string): Promise<string> {
     this.processed.push(file.path);
     const written = change(this.textAt(file.path));
     this.texts.set(file.path, written);
     return written;
   }
 
-  private create(path: string, text: string): TFile {
+  private async create(path: string, text: string): Promise<TFile> {
     this.created.push(path);
     return this.note(path, text);
   }
 
-  private makeFolder(path: string): TFolder {
+  private async makeFolder(path: string): Promise<TFolder> {
     this.createdFolders.push(path);
     this.folder(path);
     return folderAt(path);
   }
 }
-
-export type AnyFile = TAbstractFile;

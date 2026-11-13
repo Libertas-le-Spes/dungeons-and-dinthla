@@ -301,76 +301,6 @@
   "group": "reading"
  },
  {
-  "id": "reading: /^ {0,3}(",
-  "file": "src/imports/note/reading/fence-tracker.ts",
-  "find": "/^ {0,3}(",
-  "replace": "/^ {0,}(",
-  "group": "reading"
- },
- {
-  "id": "reading: `{3,}|~{3,}",
-  "file": "src/imports/note/reading/fence-tracker.ts",
-  "find": "`{3,}|~{3,}",
-  "replace": "`{3,}",
-  "group": "reading"
- },
- {
-  "id": "reading: `{3,}|",
-  "file": "src/imports/note/reading/fence-tracker.ts",
-  "find": "`{3,}|",
-  "replace": "`{2,}|",
-  "group": "reading"
- },
- {
-  "id": "reading: ~{3,})",
-  "file": "src/imports/note/reading/fence-tracker.ts",
-  "find": "~{3,})",
-  "replace": "~{2,})",
-  "group": "reading"
- },
- {
-  "id": "reading: if (marker === null) return true;",
-  "file": "src/imports/note/reading/fence-tracker.ts",
-  "find": "if (marker === null) return true;",
-  "replace": "if (marker === null) return false;",
-  "group": "reading"
- },
- {
-  "id": "reading:     this.opening = marker;\n    return fa",
-  "file": "src/imports/note/reading/fence-tracker.ts",
-  "find": "    this.opening = marker;\n    return false;",
-  "replace": "    return false;",
-  "group": "reading"
- },
- {
-  "id": "reading:     this.opening = null;",
-  "file": "src/imports/note/reading/fence-tracker.ts",
-  "find": "    this.opening = null;",
-  "replace": "    ",
-  "group": "reading"
- },
- {
-  "id": "reading:     this.closesWith(this.opening, marker",
-  "file": "src/imports/note/reading/fence-tracker.ts",
-  "find": "    this.closesWith(this.opening, marker);\n    return false;",
-  "replace": "    this.closesWith(this.opening, marker);\n    return true;",
-  "group": "reading"
- },
- {
-  "id": "reading: if (marker.charAt(0) !== opening.charAt(",
-  "file": "src/imports/note/reading/fence-tracker.ts",
-  "find": "if (marker.charAt(0) !== opening.charAt(0)) return;",
-  "replace": "",
-  "group": "reading"
- },
- {
-  "id": "reading: if (marker.length < opening.length) retu",
-  "file": "src/imports/note/reading/fence-tracker.ts",
-  "find": "if (marker.length < opening.length) return;",
-  "replace": "",
-  "group": "reading"
- },
- {
   "id": "reading: #{1,2}",
   "file": "src/imports/note/reading/section-boundaries.ts",
   "find": "#{1,2}",
@@ -413,31 +343,10 @@
   "group": "reading"
  },
  {
-  "id": "reading: if (!fence.allowsHeading(line)) continue",
-  "file": "src/imports/note/reading/section-boundaries.ts",
-  "find": "if (!fence.allowsHeading(line)) continue;",
-  "replace": "",
-  "group": "reading"
- },
- {
   "id": "reading: if (!BIG_HEADING.test(line)) continue;",
   "file": "src/imports/note/reading/section-boundaries.ts",
   "find": "if (!BIG_HEADING.test(line)) continue;",
   "replace": "",
-  "group": "reading"
- },
- {
-  "id": "reading: plainLineOf(lines[index]!)",
-  "file": "src/imports/note/reading/section-boundaries.ts",
-  "find": "plainLineOf(lines[index]!)",
-  "replace": "lines[index]!",
-  "group": "reading"
- },
- {
-  "id": "reading: let index = from;",
-  "file": "src/imports/note/reading/section-boundaries.ts",
-  "find": "let index = from;",
-  "replace": "let index = 0;",
   "group": "reading"
  },
  {
@@ -451,20 +360,6 @@
   "id": "reading: if (spanFor(spans, boundary.section) !==",
   "file": "src/imports/note/reading/note-layout.ts",
   "find": "if (spanFor(spans, boundary.section) !== null) throw twoSections(boundary.section);",
-  "replace": "",
-  "group": "reading"
- },
- {
-  "id": "reading:   return next.index;",
-  "file": "src/imports/note/reading/note-layout.ts",
-  "find": "  return next.index;",
-  "replace": "  return lineCount;",
-  "group": "reading"
- },
- {
-  "id": "reading: if (next === undefined) return lineCount",
-  "file": "src/imports/note/reading/note-layout.ts",
-  "find": "if (next === undefined) return lineCount;",
   "replace": "",
   "group": "reading"
  },
@@ -505,177 +400,177 @@
  },
  {
   "id": "properties: /[\\\\\"]/g",
-  "file": "src/imports/note/properties/quoted-yaml.ts",
+  "file": "src/imports/note/properties/helpers/quoted-yaml.ts",
   "find": "/[\\\\\"]/g",
   "replace": "/[\"]/g",
   "group": "properties"
  },
  {
   "id": "properties: quotes not escaped",
-  "file": "src/imports/note/properties/quoted-yaml.ts",
+  "file": "src/imports/note/properties/helpers/quoted-yaml.ts",
   "find": "/[\\\\\"]/g",
   "replace": "/[\\\\]/g",
   "group": "properties"
  },
  {
   "id": "properties: `\"${text.replace",
-  "file": "src/imports/note/properties/quoted-yaml.ts",
+  "file": "src/imports/note/properties/helpers/quoted-yaml.ts",
   "find": "`\"${text.replace",
   "replace": "`${text.replace",
   "group": "properties"
  },
  {
   "id": "properties: if (!imported.level.isKnown)",
-  "file": "src/imports/note/properties/class-label.ts",
+  "file": "src/imports/note/properties/helpers/class-label.ts",
   "find": "if (!imported.level.isKnown)",
   "replace": "if (imported.level.isKnown)",
   "group": "properties"
  },
  {
   "id": "properties: `${imported.name.text} ${imported.level.",
-  "file": "src/imports/note/properties/class-label.ts",
+  "file": "src/imports/note/properties/helpers/class-label.ts",
   "find": "`${imported.name.text} ${imported.level.valueOr(0)}`",
   "replace": "imported.name.text",
   "group": "properties"
  },
  {
   "id": "properties: \" / \"",
-  "file": "src/imports/note/properties/class-property.ts",
+  "file": "src/imports/note/properties/kinds/class-property.ts",
   "find": "\" / \"",
   "replace": "\", \"",
   "group": "properties"
  },
  {
   "id": "properties: NeutralText.ofLines(joined).written",
-  "file": "src/imports/note/properties/class-property.ts",
+  "file": "src/imports/note/properties/kinds/class-property.ts",
   "find": "NeutralText.ofLines(joined).written",
   "replace": "joined",
   "group": "properties"
  },
  {
   "id": "properties: labelsOf(character).join",
-  "file": "src/imports/note/properties/class-property.ts",
+  "file": "src/imports/note/properties/kinds/class-property.ts",
   "find": "labelsOf(character).join",
   "replace": "[...labelsOf(character)].reverse().join",
   "group": "properties"
  },
  {
   "id": "properties: NeutralText.ofOneLine(character.species)",
-  "file": "src/imports/note/properties/species-property.ts",
+  "file": "src/imports/note/properties/kinds/species-property.ts",
   "find": "NeutralText.ofOneLine(character.species).written",
   "replace": "character.species.text",
   "group": "properties"
  },
  {
   "id": "properties: number.name === this.numberName",
-  "file": "src/imports/note/properties/number-property.ts",
+  "file": "src/imports/note/properties/kinds/number-property.ts",
   "find": "number.name === this.numberName",
   "replace": "true",
   "group": "properties"
  },
  {
   "id": "properties:     return null;\n  }",
-  "file": "src/imports/note/properties/number-property.ts",
+  "file": "src/imports/note/properties/kinds/number-property.ts",
   "find": "    return null;\n  }",
   "replace": "    return \"x: 0\";\n  }",
   "group": "properties"
  },
  {
   "id": "properties: if (!value.isKnown) return null;",
-  "file": "src/imports/note/properties/known-number-line.ts",
+  "file": "src/imports/note/properties/helpers/known-number-line.ts",
   "find": "if (!value.isKnown) return null;",
   "replace": "",
   "group": "properties"
  },
  {
   "id": "properties: `${name}: ${value.valueOr(0)}`",
-  "file": "src/imports/note/properties/known-number-line.ts",
+  "file": "src/imports/note/properties/helpers/known-number-line.ts",
   "find": "`${name}: ${value.valueOr(0)}`",
   "replace": "`${name}: ${value.valueOr(0) + 1}`",
   "group": "properties"
  },
  {
   "id": "properties: score row strength",
-  "file": "src/imports/note/properties/score-rows.ts",
+  "file": "src/imports/note/rows/score-rows.ts",
   "find": "\"strength\")",
   "replace": "\"dexterity\")",
   "group": "properties"
  },
  {
   "id": "properties: score row dexterity",
-  "file": "src/imports/note/properties/score-rows.ts",
+  "file": "src/imports/note/rows/score-rows.ts",
   "find": "\"dexterity\")",
   "replace": "\"strength\")",
   "group": "properties"
  },
  {
   "id": "properties: score row constitution",
-  "file": "src/imports/note/properties/score-rows.ts",
+  "file": "src/imports/note/rows/score-rows.ts",
   "find": "\"constitution\")",
   "replace": "\"dexterity\")",
   "group": "properties"
  },
  {
   "id": "properties: score row intelligence",
-  "file": "src/imports/note/properties/score-rows.ts",
+  "file": "src/imports/note/rows/score-rows.ts",
   "find": "\"intelligence\")",
   "replace": "\"wisdom\")",
   "group": "properties"
  },
  {
   "id": "properties: score row wisdom",
-  "file": "src/imports/note/properties/score-rows.ts",
+  "file": "src/imports/note/rows/score-rows.ts",
   "find": "\"wisdom\")",
   "replace": "\"intelligence\")",
   "group": "properties"
  },
  {
   "id": "properties: score row charisma",
-  "file": "src/imports/note/properties/score-rows.ts",
+  "file": "src/imports/note/rows/score-rows.ts",
   "find": "\"charisma\")",
   "replace": "\"constitution\")",
   "group": "properties"
  },
  {
   "id": "properties: score row name STRENGTH",
-  "file": "src/imports/note/properties/score-rows.ts",
+  "file": "src/imports/note/rows/score-rows.ts",
   "find": "new ScoreRow(STRENGTH_PROPERTY,",
-  "replace": "new ScoreRow(ARMOUR_CLASS_PROPERTY,",
+  "replace": "new ScoreRow(WISDOM_PROPERTY,",
   "group": "properties"
  },
  {
   "id": "properties: score row name DEXTERITY",
-  "file": "src/imports/note/properties/score-rows.ts",
+  "file": "src/imports/note/rows/score-rows.ts",
   "find": "new ScoreRow(DEXTERITY_PROPERTY,",
-  "replace": "new ScoreRow(ARMOUR_CLASS_PROPERTY,",
+  "replace": "new ScoreRow(STRENGTH_PROPERTY,",
   "group": "properties"
  },
  {
   "id": "properties: score row name CONSTITUTION",
-  "file": "src/imports/note/properties/score-rows.ts",
+  "file": "src/imports/note/rows/score-rows.ts",
   "find": "new ScoreRow(CONSTITUTION_PROPERTY,",
-  "replace": "new ScoreRow(ARMOUR_CLASS_PROPERTY,",
+  "replace": "new ScoreRow(STRENGTH_PROPERTY,",
   "group": "properties"
  },
  {
   "id": "properties: score row name INTELLIGENCE",
-  "file": "src/imports/note/properties/score-rows.ts",
+  "file": "src/imports/note/rows/score-rows.ts",
   "find": "new ScoreRow(INTELLIGENCE_PROPERTY,",
-  "replace": "new ScoreRow(ARMOUR_CLASS_PROPERTY,",
+  "replace": "new ScoreRow(STRENGTH_PROPERTY,",
   "group": "properties"
  },
  {
   "id": "properties: score row name WISDOM",
-  "file": "src/imports/note/properties/score-rows.ts",
+  "file": "src/imports/note/rows/score-rows.ts",
   "find": "new ScoreRow(WISDOM_PROPERTY,",
-  "replace": "new ScoreRow(ARMOUR_CLASS_PROPERTY,",
+  "replace": "new ScoreRow(STRENGTH_PROPERTY,",
   "group": "properties"
  },
  {
   "id": "properties: score row name CHARISMA",
-  "file": "src/imports/note/properties/score-rows.ts",
+  "file": "src/imports/note/rows/score-rows.ts",
   "find": "new ScoreRow(CHARISMA_PROPERTY,",
-  "replace": "new ScoreRow(ARMOUR_CLASS_PROPERTY,",
+  "replace": "new ScoreRow(STRENGTH_PROPERTY,",
   "group": "properties"
  },
  {
@@ -729,56 +624,56 @@
  },
  {
   "id": "properties: /^\\d{4}-\\d{2}-\\d{2}$/",
-  "file": "src/imports/note/properties/import-mark-lines.ts",
+  "file": "src/imports/note/properties/helpers/import-mark-lines.ts",
   "find": "/^\\d{4}-\\d{2}-\\d{2}$/",
   "replace": "/\\d{4}-\\d{2}-\\d{2}$/",
   "group": "properties"
  },
  {
   "id": "properties: date end anchor",
-  "file": "src/imports/note/properties/import-mark-lines.ts",
+  "file": "src/imports/note/properties/helpers/import-mark-lines.ts",
   "find": "/^\\d{4}-\\d{2}-\\d{2}$/",
   "replace": "/^\\d{4}-\\d{2}-\\d{2}/",
   "group": "properties"
  },
  {
   "id": "properties: \\d{4}-",
-  "file": "src/imports/note/properties/import-mark-lines.ts",
+  "file": "src/imports/note/properties/helpers/import-mark-lines.ts",
   "find": "\\d{4}-",
   "replace": "\\d{3}-",
   "group": "properties"
  },
  {
   "id": "properties: -\\d{2}-\\d{2}$",
-  "file": "src/imports/note/properties/import-mark-lines.ts",
+  "file": "src/imports/note/properties/helpers/import-mark-lines.ts",
   "find": "-\\d{2}-\\d{2}$",
   "replace": "-\\d{2}-\\d+$",
   "group": "properties"
  },
  {
   "id": "properties: if (!DATE.test(today)) throw new Refusal",
-  "file": "src/imports/note/properties/import-mark-lines.ts",
+  "file": "src/imports/note/properties/helpers/import-mark-lines.ts",
   "find": "if (!DATE.test(today)) throw new Refusal(\"The import's date is not a day written as year-month-day.\");",
   "replace": "",
   "group": "properties"
  },
  {
   "id": "properties: if (!ROUTE_NAME.test(route.name)) throw ",
-  "file": "src/imports/note/properties/import-mark-lines.ts",
+  "file": "src/imports/note/properties/helpers/import-mark-lines.ts",
   "find": "if (!ROUTE_NAME.test(route.name)) throw new Refusal(\"The import's route has no plain name.\");",
   "replace": "",
   "group": "properties"
  },
  {
   "id": "properties: /^[a-z]{1,16}$/",
-  "file": "src/imports/note/properties/import-mark-lines.ts",
+  "file": "src/imports/note/properties/helpers/import-mark-lines.ts",
   "find": "/^[a-z]{1,16}$/",
   "replace": "/[a-z]{1,16}/",
   "group": "properties"
  },
  {
   "id": "properties: {1,16}",
-  "file": "src/imports/note/properties/import-mark-lines.ts",
+  "file": "src/imports/note/properties/helpers/import-mark-lines.ts",
   "find": "{1,16}",
   "replace": "{2,16}",
   "group": "properties"
@@ -799,590 +694,408 @@
  },
  {
   "id": "sections: NeutralText.ofLines(text).written",
-  "file": "src/imports/note/sections/plugin-line.ts",
+  "file": "src/imports/note/sections/lines/plugin-line.ts",
   "find": "NeutralText.ofLines(text).written",
   "replace": "text",
   "group": "sections"
  },
  {
   "id": "sections: separator: string = PART_SEPARATOR",
-  "file": "src/imports/note/sections/plugin-line.ts",
+  "file": "src/imports/note/sections/lines/plugin-line.ts",
   "find": "separator: string = PART_SEPARATOR",
   "replace": "separator: string = \",\"",
   "group": "sections"
  },
  {
   "id": "sections: `${LINE_START}${parts.join(separator)}`",
-  "file": "src/imports/note/sections/plugin-line.ts",
+  "file": "src/imports/note/sections/lines/plugin-line.ts",
   "find": "`${LINE_START}${parts.join(separator)}`",
   "replace": "`${parts.join(separator)}`",
   "group": "sections"
  },
  {
   "id": "sections: if (!value.isKnown) return NOT_KNOWN_WOR",
-  "file": "src/imports/note/sections/worked-text.ts",
+  "file": "src/imports/note/sections/lines/worked-text.ts",
   "find": "if (!value.isKnown) return NOT_KNOWN_WORD;",
   "replace": "",
   "group": "sections"
  },
  {
   "id": "sections: if (!value.isKnown) return COUNT_NOT_KNO",
-  "file": "src/imports/note/sections/worked-text.ts",
+  "file": "src/imports/note/sections/lines/worked-text.ts",
   "find": "if (!value.isKnown) return COUNT_NOT_KNOWN;",
   "replace": "",
   "group": "sections"
  },
  {
   "id": "sections: COUNT_NOT_KNOWN = \"?\"",
-  "file": "src/imports/note/sections/worked-text.ts",
+  "file": "src/imports/note/sections/lines/worked-text.ts",
   "find": "COUNT_NOT_KNOWN = \"?\"",
   "replace": "COUNT_NOT_KNOWN = \"x\"",
   "group": "sections"
  },
  {
   "id": "sections: if (value.explanation !== \"\") parts.push",
-  "file": "src/imports/note/sections/number-line.ts",
+  "file": "src/imports/note/sections/lines/number-line.ts",
   "find": "if (value.explanation !== \"\") parts.push(neutralPartOf(value.explanation));",
   "replace": "parts.push(neutralPartOf(value.explanation));",
   "group": "sections"
  },
  {
   "id": "sections: working not neutral",
-  "file": "src/imports/note/sections/number-line.ts",
+  "file": "src/imports/note/sections/lines/number-line.ts",
   "find": "if (value.explanation !== \"\") parts.push(neutralPartOf(value.explanation));",
   "replace": "if (value.explanation !== \"\") parts.push(value.explanation);",
   "group": "sections"
  },
  {
   "id": "sections: parts.push(value.route.source);",
-  "file": "src/imports/note/sections/number-line.ts",
+  "file": "src/imports/note/sections/lines/number-line.ts",
   "find": "parts.push(value.route.source);",
   "replace": "",
   "group": "sections"
  },
  {
   "id": "sections: [neutralPartOf(name), valueTextOf(value)",
-  "file": "src/imports/note/sections/number-line.ts",
+  "file": "src/imports/note/sections/lines/number-line.ts",
   "find": "[neutralPartOf(name), valueTextOf(value)]",
   "replace": "[name, valueTextOf(value)]",
   "group": "sections"
  },
  {
   "id": "sections:     for (const row of SCORE_ROWS) lines.",
-  "file": "src/imports/note/sections/numbers-content.ts",
+  "file": "src/imports/note/sections/contents/numbers-content.ts",
   "find": "    for (const row of SCORE_ROWS) lines.push(numberLineOf(row.name, row.valueOf(sheet.character.scores)));\n",
   "replace": "",
   "group": "sections"
  },
  {
   "id": "sections:     for (const number of sheet.character",
-  "file": "src/imports/note/sections/numbers-content.ts",
+  "file": "src/imports/note/sections/contents/numbers-content.ts",
   "find": "    for (const number of sheet.character.numbers) lines.push(numberLineOf(number.name, number.value));\n",
   "replace": "",
   "group": "sections"
  },
  {
   "id": "sections: loss.tooLong + loss.notClean === 0",
-  "file": "src/imports/note/sections/left-out-line.ts",
+  "file": "src/imports/note/sections/lines/left-out-line.ts",
   "find": "loss.tooLong + loss.notClean === 0",
   "replace": "loss.tooLong === 0",
   "group": "sections"
  },
  {
   "id": "sections: left out ignores too long",
-  "file": "src/imports/note/sections/left-out-line.ts",
+  "file": "src/imports/note/sections/lines/left-out-line.ts",
   "find": "loss.tooLong + loss.notClean === 0",
   "replace": "loss.notClean === 0",
   "group": "sections"
  },
  {
   "id": "sections: ${loss.tooLong} too long, ${loss.notClea",
-  "file": "src/imports/note/sections/left-out-line.ts",
+  "file": "src/imports/note/sections/lines/left-out-line.ts",
   "find": "${loss.tooLong} too long, ${loss.notClean} not clean",
   "replace": "${loss.notClean} too long, ${loss.tooLong} not clean",
   "group": "sections"
  },
  {
   "id": "sections: `${LEFT_OUT_START}",
-  "file": "src/imports/note/sections/left-out-line.ts",
+  "file": "src/imports/note/sections/lines/left-out-line.ts",
   "find": "`${LEFT_OUT_START}",
   "replace": "`",
   "group": "sections"
  },
  {
   "id": "sections: [neutralPartOf(item.name.text), countTex",
-  "file": "src/imports/note/sections/inventory-content.ts",
+  "file": "src/imports/note/sections/contents/inventory-content.ts",
   "find": "[neutralPartOf(item.name.text), countTextOf(item.count)]",
   "replace": "[item.name.text, countTextOf(item.count)]",
   "group": "sections"
  },
  {
   "id": "sections: countTextOf(item.count)",
-  "file": "src/imports/note/sections/inventory-content.ts",
+  "file": "src/imports/note/sections/contents/inventory-content.ts",
   "find": "countTextOf(item.count)",
   "replace": "valueTextOf(item.count)",
   "group": "sections"
  },
  {
   "id": "sections: sheet.leftOut.items",
-  "file": "src/imports/note/sections/inventory-content.ts",
+  "file": "src/imports/note/sections/contents/inventory-content.ts",
   "find": "sheet.leftOut.items",
   "replace": "sheet.leftOut.spells",
   "group": "sections"
  },
  {
   "id": "sections: COUNT_SEPARATOR)",
-  "file": "src/imports/note/sections/inventory-content.ts",
+  "file": "src/imports/note/sections/contents/inventory-content.ts",
   "find": "COUNT_SEPARATOR)",
   "replace": "\" \")",
   "group": "sections"
  },
  {
   "id": "sections: return [...lines, ...leftOutLinesOf(shee",
-  "file": "src/imports/note/sections/inventory-content.ts",
+  "file": "src/imports/note/sections/contents/inventory-content.ts",
   "find": "return [...lines, ...leftOutLinesOf(sheet.leftOut.items)];",
   "replace": "return lines;",
   "group": "sections"
  },
  {
   "id": "sections: coinLineOf(\"pp\", purse.platinum)",
-  "file": "src/imports/note/sections/purse-content.ts",
+  "file": "src/imports/note/sections/contents/purse-content.ts",
   "find": "coinLineOf(\"pp\", purse.platinum)",
   "replace": "coinLineOf(\"pp\", purse.gold)",
   "group": "sections"
  },
  {
   "id": "sections: coinLineOf(\"gp\", purse.gold)",
-  "file": "src/imports/note/sections/purse-content.ts",
+  "file": "src/imports/note/sections/contents/purse-content.ts",
   "find": "coinLineOf(\"gp\", purse.gold)",
   "replace": "coinLineOf(\"gp\", purse.silver)",
   "group": "sections"
  },
  {
   "id": "sections: coinLineOf(\"ep\", purse.electrum)",
-  "file": "src/imports/note/sections/purse-content.ts",
+  "file": "src/imports/note/sections/contents/purse-content.ts",
   "find": "coinLineOf(\"ep\", purse.electrum)",
   "replace": "coinLineOf(\"ep\", purse.gold)",
   "group": "sections"
  },
  {
   "id": "sections: coinLineOf(\"sp\", purse.silver)",
-  "file": "src/imports/note/sections/purse-content.ts",
+  "file": "src/imports/note/sections/contents/purse-content.ts",
   "find": "coinLineOf(\"sp\", purse.silver)",
   "replace": "coinLineOf(\"sp\", purse.copper)",
   "group": "sections"
  },
  {
   "id": "sections: coinLineOf(\"cp\", purse.copper)",
-  "file": "src/imports/note/sections/purse-content.ts",
+  "file": "src/imports/note/sections/contents/purse-content.ts",
   "find": "coinLineOf(\"cp\", purse.copper)",
   "replace": "coinLineOf(\"cp\", purse.silver)",
   "group": "sections"
  },
  {
   "id": "sections:     coinLineOf(\"ep\", purse.electrum),\n",
-  "file": "src/imports/note/sections/purse-content.ts",
+  "file": "src/imports/note/sections/contents/purse-content.ts",
   "find": "    coinLineOf(\"ep\", purse.electrum),\n",
   "replace": "",
   "group": "sections"
  },
  {
   "id": "sections: valueTextOf(count)",
-  "file": "src/imports/note/sections/purse-content.ts",
+  "file": "src/imports/note/sections/contents/purse-content.ts",
   "find": "valueTextOf(count)",
   "replace": "String(count.valueOr(0))",
   "group": "sections"
  },
  {
   "id": "sections: neutralPartOf(line.text)",
-  "file": "src/imports/note/sections/listed-lines.ts",
+  "file": "src/imports/note/sections/lines/listed-lines.ts",
   "find": "neutralPartOf(line.text)",
   "replace": "line.text",
   "group": "sections"
  },
  {
   "id": "sections: sheet.leftOut.spells",
-  "file": "src/imports/note/sections/spells-content.ts",
+  "file": "src/imports/note/sections/contents/spells-content.ts",
   "find": "sheet.leftOut.spells",
   "replace": "sheet.leftOut.features",
   "group": "sections"
  },
  {
   "id": "sections: ...leftOutLinesOf(sheet.leftOut.spells)",
-  "file": "src/imports/note/sections/spells-content.ts",
+  "file": "src/imports/note/sections/contents/spells-content.ts",
   "find": "...leftOutLinesOf(sheet.leftOut.spells)",
   "replace": "",
   "group": "sections"
  },
  {
   "id": "sections: sheet.character.spells",
-  "file": "src/imports/note/sections/spells-content.ts",
+  "file": "src/imports/note/sections/contents/spells-content.ts",
   "find": "sheet.character.spells",
   "replace": "sheet.character.features",
   "group": "sections"
  },
  {
   "id": "sections: sheet.leftOut.features",
-  "file": "src/imports/note/sections/features-content.ts",
+  "file": "src/imports/note/sections/contents/features-content.ts",
   "find": "sheet.leftOut.features",
   "replace": "sheet.leftOut.spells",
   "group": "sections"
  },
  {
   "id": "sections: ...leftOutLinesOf(sheet.leftOut.features",
-  "file": "src/imports/note/sections/features-content.ts",
+  "file": "src/imports/note/sections/contents/features-content.ts",
   "find": "...leftOutLinesOf(sheet.leftOut.features)",
   "replace": "",
   "group": "sections"
  },
  {
   "id": "sections: sheet.character.features",
-  "file": "src/imports/note/sections/features-content.ts",
+  "file": "src/imports/note/sections/contents/features-content.ts",
   "find": "sheet.character.features",
   "replace": "sheet.character.spells",
   "group": "sections"
  },
  {
   "id": "sections:   new PurseContent(),\n",
-  "file": "src/imports/note/sections/section-contents.ts",
+  "file": "src/imports/note/sections/contents/section-contents.ts",
   "find": "  new PurseContent(),\n",
   "replace": "",
   "group": "sections"
  },
  {
   "id": "sections:   new NumbersContent(),\n  new InventoryC",
-  "file": "src/imports/note/sections/section-contents.ts",
+  "file": "src/imports/note/sections/contents/section-contents.ts",
   "find": "  new NumbersContent(),\n  new InventoryContent(),",
   "replace": "  new InventoryContent(),\n  new NumbersContent(),",
   "group": "sections"
  },
  {
   "id": "sections:   new FeaturesContent(),\n",
-  "file": "src/imports/note/sections/section-contents.ts",
+  "file": "src/imports/note/sections/contents/section-contents.ts",
   "find": "  new FeaturesContent(),\n",
   "replace": "",
   "group": "sections"
  },
  {
   "id": "sections:   new SpellsContent(),\n",
-  "file": "src/imports/note/sections/section-contents.ts",
+  "file": "src/imports/note/sections/contents/section-contents.ts",
   "find": "  new SpellsContent(),\n",
   "replace": "",
   "group": "sections"
  },
  {
-  "id": "writing: /^([^\\s#:'\"-][^:]*?)\\s*:(?:\\s|$)/",
-  "file": "src/imports/note/writing/property-key.ts",
-  "find": "/^([^\\s#:'\"-][^:]*?)\\s*:(?:\\s|$)/",
-  "replace": "/^([^\\s#:'\"-][^:]*?)\\s*:/",
-  "group": "writing"
- },
- {
-  "id": "writing: /^([^\\s#:'\"-][^:]*?)",
-  "file": "src/imports/note/writing/property-key.ts",
-  "find": "/^([^\\s#:'\"-][^:]*?)",
-  "replace": "/^([^\\s:'\"-][^:]*?)",
-  "group": "writing"
- },
- {
-  "id": "writing: /^([^\\s#:'\"-]",
-  "file": "src/imports/note/writing/property-key.ts",
-  "find": "/^([^\\s#:'\"-]",
-  "replace": "/^([^:'\"-]",
-  "group": "writing"
- },
- {
-  "id": "writing: /^(?:[ \\t]|-(?:\\s|$))/",
-  "file": "src/imports/note/writing/property-key.ts",
-  "find": "/^(?:[ \\t]|-(?:\\s|$))/",
-  "replace": "/^(?:[ \\t])/",
-  "group": "writing"
- },
- {
-  "id": "writing: continuation ignores indent",
-  "file": "src/imports/note/writing/property-key.ts",
-  "find": "/^(?:[ \\t]|-(?:\\s|$))/",
-  "replace": "/^(?:-(?:\\s|$))/",
-  "group": "writing"
- },
- {
-  "id": "writing: /^(?:[ \\t]|-(?:\\s|$))/ #2",
-  "file": "src/imports/note/writing/property-key.ts",
-  "find": "/^(?:[ \\t]|-(?:\\s|$))/",
-  "replace": "/^(?:[ \\t]|-)/",
-  "group": "writing"
- },
- {
-  "id": "writing: const lowered = key.toLowerCase();",
-  "file": "src/imports/note/writing/foreign-property-lines.ts",
-  "find": "const lowered = key.toLowerCase();",
-  "replace": "const lowered = key;",
-  "group": "writing"
- },
- {
-  "id": "writing: name.toLowerCase() === lowered",
-  "file": "src/imports/note/writing/foreign-property-lines.ts",
-  "find": "name.toLowerCase() === lowered",
-  "replace": "name === lowered",
-  "group": "writing"
- },
- {
   "id": "writing: if (inImportKey && continuesAKey(line)) ",
-  "file": "src/imports/note/writing/foreign-property-lines.ts",
+  "file": "src/imports/note/writing/rewriting/foreign-property-lines.ts",
   "find": "if (inImportKey && continuesAKey(line)) continue;",
   "replace": "",
   "group": "writing"
  },
  {
   "id": "writing: if (!inImportKey) kept.push(line);",
-  "file": "src/imports/note/writing/foreign-property-lines.ts",
+  "file": "src/imports/note/writing/rewriting/foreign-property-lines.ts",
   "find": "if (!inImportKey) kept.push(line);",
   "replace": "kept.push(line);",
   "group": "writing"
  },
  {
-  "id": "writing: inImportKey = isImportKey(propertyKeyOf(",
-  "file": "src/imports/note/writing/foreign-property-lines.ts",
-  "find": "inImportKey = isImportKey(propertyKeyOf(line));",
-  "replace": "inImportKey = false;",
-  "group": "writing"
- },
- {
-  "id": "writing: if (key === null) return false;",
-  "file": "src/imports/note/writing/foreign-property-lines.ts",
-  "find": "if (key === null) return false;",
-  "replace": "",
-  "group": "writing"
- },
- {
-  "id": "writing: layout.bodyStart === 0",
-  "file": "src/imports/note/writing/with-properties.ts",
-  "find": "layout.bodyStart === 0",
-  "replace": "layout.bodyStart === 1",
-  "group": "writing"
- },
- {
-  "id": "writing: return [first, ...foreignPropertyLinesOf",
-  "file": "src/imports/note/writing/with-properties.ts",
-  "find": "return [first, ...foreignPropertyLinesOf(insideOf(existing)), ...written, last];",
-  "replace": "return [first, ...insideOf(existing), ...written, last];",
-  "group": "writing"
- },
- {
-  "id": "writing: his properties dropped",
-  "file": "src/imports/note/writing/with-properties.ts",
-  "find": "return [first, ...foreignPropertyLinesOf(insideOf(existing)), ...written, last];",
-  "replace": "return [first, ...written, last];",
-  "group": "writing"
- },
- {
-  "id": "writing: propertyLines.slice(1, propertyLines.len",
-  "file": "src/imports/note/writing/with-properties.ts",
-  "find": "propertyLines.slice(1, propertyLines.length - 1)",
-  "replace": "propertyLines.slice(1)",
-  "group": "writing"
- },
- {
   "id": "writing: [layout.ending.ends(FENCE), ...written, ",
-  "file": "src/imports/note/writing/with-properties.ts",
+  "file": "src/imports/note/writing/rewriting/with-properties.ts",
   "find": "[layout.ending.ends(FENCE), ...written, layout.ending.ends(FENCE)]",
   "replace": "[FENCE, ...written, FENCE]",
   "group": "writing"
  },
  {
-  "id": "writing: ...written, last]",
-  "file": "src/imports/note/writing/with-properties.ts",
-  "find": "...written, last]",
-  "replace": "last, ...written]",
-  "group": "writing"
- },
- {
   "id": "writing: if (lines.length === 0) return [];",
-  "file": "src/imports/note/writing/block-of.ts",
+  "file": "src/imports/note/writing/rewriting/block-of.ts",
   "find": "if (lines.length === 0) return [];",
   "replace": "",
   "group": "writing"
  },
  {
   "id": "writing: [ending.ends(section.heading)]",
-  "file": "src/imports/note/writing/block-of.ts",
+  "file": "src/imports/note/writing/rewriting/block-of.ts",
   "find": "[ending.ends(section.heading)]",
   "replace": "[section.heading]",
   "group": "writing"
  },
  {
   "id": "writing: block.push(ending.ends(line))",
-  "file": "src/imports/note/writing/block-of.ts",
+  "file": "src/imports/note/writing/rewriting/block-of.ts",
   "find": "block.push(ending.ends(line))",
   "replace": "block.push(line)",
   "group": "writing"
  },
  {
-  "id": "writing: if (this.endsInBlock) this.lines.push(TE",
-  "file": "src/imports/note/writing/with-sections.ts",
-  "find": "if (this.endsInBlock) this.lines.push(TERMINAL);",
-  "replace": "",
-  "group": "writing"
- },
- {
   "id": "writing: if (layout.spanOf(content.section) !== n",
-  "file": "src/imports/note/writing/with-sections.ts",
+  "file": "src/imports/note/writing/rewriting/with-sections.ts",
   "find": "if (layout.spanOf(content.section) !== null) continue;",
   "replace": "",
   "group": "writing"
  },
  {
   "id": "writing: cursor = span.end;",
-  "file": "src/imports/note/writing/with-sections.ts",
+  "file": "src/imports/note/writing/rewriting/with-sections.ts",
   "find": "cursor = span.end;",
   "replace": "cursor = span.start;",
   "group": "writing"
  },
  {
   "id": "writing: layout.lines.slice(cursor, span.start)",
-  "file": "src/imports/note/writing/with-sections.ts",
+  "file": "src/imports/note/writing/rewriting/with-sections.ts",
   "find": "layout.lines.slice(cursor, span.start)",
   "replace": "layout.lines.slice(span.start)",
   "group": "writing"
  },
  {
-  "id": "writing:     this.lines.push(...lines);\n    this.",
-  "file": "src/imports/note/writing/with-sections.ts",
-  "find": "    this.lines.push(...lines);\n    this.endsInBlock = false;",
-  "replace": "    this.lines.push(...lines);",
-  "group": "writing"
- },
- {
-  "id": "writing: output.keep(layout.lines.slice(cursor));",
-  "file": "src/imports/note/writing/with-sections.ts",
-  "find": "output.keep(layout.lines.slice(cursor));",
-  "replace": "",
-  "group": "writing"
- },
- {
   "id": "writing: let cursor = layout.bodyStart;",
-  "file": "src/imports/note/writing/with-sections.ts",
+  "file": "src/imports/note/writing/rewriting/with-sections.ts",
   "find": "let cursor = layout.bodyStart;",
   "replace": "let cursor = 0;",
   "group": "writing"
  },
  {
-  "id": "writing:     this.lines.push(...lines);\n    this. #2",
-  "file": "src/imports/note/writing/with-sections.ts",
-  "find": "    this.lines.push(...lines);\n    this.endsInBlock = true;",
-  "replace": "    this.lines.push(...lines);",
-  "group": "writing"
- },
- {
   "id": "writing: join(LINE_BREAK)",
-  "file": "src/imports/note/writing/imported-note.ts",
+  "file": "src/imports/note/writing/rewriting/imported-note.ts",
   "find": "join(LINE_BREAK)",
   "replace": "join(\"\")",
   "group": "writing"
  },
  {
-  "id": "writing: [...properties, ...bodyLinesWith(layout,",
-  "file": "src/imports/note/writing/imported-note.ts",
-  "find": "[...properties, ...bodyLinesWith(layout, sheet)]",
-  "replace": "[...bodyLinesWith(layout, sheet), ...properties]",
-  "group": "writing"
- },
- {
-  "id": "writing: propertyLines.slice(1, propertyLines.len #2",
-  "file": "src/imports/note/writing/outside-the-import.ts",
-  "find": "propertyLines.slice(1, propertyLines.length - 1)",
-  "replace": "propertyLines",
-  "group": "writing"
- },
- {
   "id": "writing: cursor = span.end; #2",
-  "file": "src/imports/note/writing/outside-the-import.ts",
+  "file": "src/imports/note/writing/guarding/outside-the-import.ts",
   "find": "cursor = span.end;",
   "replace": "cursor = span.start;",
   "group": "writing"
  },
  {
-  "id": "writing: outside.push(...layout.lines.slice(curso",
-  "file": "src/imports/note/writing/outside-the-import.ts",
-  "find": "outside.push(...layout.lines.slice(cursor));\n  return outside;",
-  "replace": "return outside;",
-  "group": "writing"
- },
- {
-  "id": "writing: foreignPropertyLinesOf(insideOf(layout.p",
-  "file": "src/imports/note/writing/outside-the-import.ts",
-  "find": "foreignPropertyLinesOf(insideOf(layout.propertyLines()))",
-  "replace": "[]",
-  "group": "writing"
- },
- {
-  "id": "writing: [...foreign, ...bodyOutsideSections(layo",
-  "file": "src/imports/note/writing/outside-the-import.ts",
-  "find": "[...foreign, ...bodyOutsideSections(layout)]",
-  "replace": "bodyOutsideSections(layout)",
-  "group": "writing"
- },
- {
   "id": "writing: if (before.length !== after.length) retu",
-  "file": "src/imports/note/writing/read-back.ts",
+  "file": "src/imports/note/writing/guarding/read-back.ts",
   "find": "if (before.length !== after.length) return false;",
   "replace": "",
   "group": "writing"
  },
  {
   "id": "writing: if (after[position] !== line) return fal",
-  "file": "src/imports/note/writing/read-back.ts",
+  "file": "src/imports/note/writing/guarding/read-back.ts",
   "find": "if (after[position] !== line) return false;",
   "replace": "",
   "group": "writing"
  },
  {
   "id": "writing: if (!sameLines(outsideTheImport(before),",
-  "file": "src/imports/note/writing/read-back.ts",
+  "file": "src/imports/note/writing/guarding/read-back.ts",
   "find": "if (!sameLines(outsideTheImport(before), outsideTheImport(after))) throw wouldChangeMore();",
   "replace": "",
   "group": "writing"
  },
  {
   "id": "writing: if (!path.startsWith(inside)) throw notA",
-  "file": "src/imports/note/writing/in-characters-folder.ts",
+  "file": "src/imports/note/writing/guarding/in-characters-folder.ts",
   "find": "if (!path.startsWith(inside)) throw notACharacterNote(path);",
   "replace": "",
   "group": "writing"
  },
  {
   "id": "writing: rest.includes(SLASH) || ",
-  "file": "src/imports/note/writing/in-characters-folder.ts",
+  "file": "src/imports/note/writing/guarding/in-characters-folder.ts",
   "find": "rest.includes(SLASH) || ",
   "replace": "",
   "group": "writing"
  },
  {
   "id": "writing: || !rest.endsWith(NOTE_EXTENSION)",
-  "file": "src/imports/note/writing/in-characters-folder.ts",
+  "file": "src/imports/note/writing/guarding/in-characters-folder.ts",
   "find": "|| !rest.endsWith(NOTE_EXTENSION)",
   "replace": "",
   "group": "writing"
  },
  {
   "id": "writing: `${charactersFolder}${SLASH}`",
-  "file": "src/imports/note/writing/in-characters-folder.ts",
+  "file": "src/imports/note/writing/guarding/in-characters-folder.ts",
   "find": "`${charactersFolder}${SLASH}`",
   "replace": "charactersFolder",
-  "group": "writing"
- },
- {
-  "id": "writing:       refusal = error;\n",
-  "file": "src/imports/note/writing/process-or-refuse.ts",
-  "find": "      refusal = error;\n",
-  "replace": "",
-  "group": "writing"
- },
- {
-  "id": "writing:       return before;\n    }",
-  "file": "src/imports/note/writing/process-or-refuse.ts",
-  "find": "      return before;\n    }",
-  "replace": "      return \"\";\n    }",
   "group": "writing"
  },
  {
@@ -1393,44 +1106,9 @@
   "group": "writing"
  },
  {
-  "id": "writing:   if (changesNothing(importChangesOf(bef",
-  "file": "src/imports/note/writing/process-or-refuse.ts",
-  "find": "  if (changesNothing(importChangesOf(before, after))) return before;\n",
-  "replace": "",
-  "group": "writing"
- },
- {
   "id": "writing:   refuseUnlessOnlyTheImportChanged(befor",
   "file": "src/imports/note/writing/process-or-refuse.ts",
   "find": "  refuseUnlessOnlyTheImportChanged(before, after);\n",
-  "replace": "",
-  "group": "writing"
- },
- {
-  "id": "writing: return checkedTextOf(\"\", sheet, today);",
-  "file": "src/imports/note/writing/process-or-refuse.ts",
-  "find": "return checkedTextOf(\"\", sheet, today);",
-  "replace": "return importedNoteText(\"\", sheet, today);",
-  "group": "writing"
- },
- {
-  "id": "writing:     refuseUnlessCharacterNote(file.path,",
-  "file": "src/imports/note/writing/import-writer.ts",
-  "find": "    refuseUnlessCharacterNote(file.path, this.charactersFolder);\n    const before",
-  "replace": "    const before",
-  "group": "writing"
- },
- {
-  "id": "writing:     refuseUnlessCharacterNote(file.path, #2",
-  "file": "src/imports/note/writing/import-writer.ts",
-  "find": "    refuseUnlessCharacterNote(file.path, this.charactersFolder);\n    await writeCheckedImport",
-  "replace": "    await writeCheckedImport",
-  "group": "writing"
- },
- {
-  "id": "writing: if (refusal !== null) throw badName(refu",
-  "file": "src/imports/note/writing/import-writer.ts",
-  "find": "if (refusal !== null) throw badName(refusal);",
   "replace": "",
   "group": "writing"
  },
@@ -1477,20 +1155,6 @@
   "group": "writing"
  },
  {
-  "id": "writing:     output.block(block);\n",
-  "file": "src/imports/note/writing/with-sections.ts",
-  "find": "    output.block(block);\n",
-  "replace": "    output.keep(block);\n",
-  "group": "writing"
- },
- {
-  "id": "reading: if (marker === null) return;",
-  "file": "src/imports/note/reading/fence-tracker.ts",
-  "find": "if (marker === null) return;",
-  "replace": "",
-  "group": "reading"
- },
- {
   "id": "changes: if (at === NOT_FOUND) left.push(line);",
   "file": "src/imports/note/changes/line-difference.ts",
   "find": "if (at === NOT_FOUND) left.push(line);",
@@ -1530,13 +1194,6 @@
   "file": "src/imports/note/changes/property-values.ts",
   "find": ".trim());",
   "replace": ");",
-  "group": "changes"
- },
- {
-  "id": "changes: name.toLowerCase() === key.toLowerCase()",
-  "file": "src/imports/note/changes/property-values.ts",
-  "find": "name.toLowerCase() === key.toLowerCase()",
-  "replace": "name === key",
   "group": "changes"
  },
  {
@@ -1713,5 +1370,817 @@
   "find": "LAYOUT_IMPORTERS: string[] = [\"imports\"]",
   "replace": "LAYOUT_IMPORTERS: string[] = []",
   "group": "folders"
+ },
+ {
+  "id": "blocks: block-states.ts: {0,3}(?<marker>",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "{0,3}(?<marker>",
+  "replace": "{0,}(?<marker>",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: `{3,}|~{3,}",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "`{3,}|~{3,}",
+  "replace": "`{2,}|~{3,}",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: |~{3,})",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "|~{3,})",
+  "replace": "|~{2,})",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: { opener: \"<!--\", closer: \"-->\" }",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "{ opener: \"<!--\", closer: \"-->\" }",
+  "replace": "{ opener: \"<!-x\", closer: \"-->\" }",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: closer: \"-->\"",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "closer: \"-->\"",
+  "replace": "closer: \"--x\"",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: { opener: \"%%\", closer: \"%%\" }",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "{ opener: \"%%\", closer: \"%%\" }",
+  "replace": "{ opener: \"%x\", closer: \"%%\" }",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: opener: \"%%\", closer: \"%%\"",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "opener: \"%%\", closer: \"%%\"",
+  "replace": "opener: \"%%\", closer: \"%x\"",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: if (found === null || at < found.at) found",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "if (found === null || at < found.at) found",
+  "replace": "if (found === null || at > found.at) found",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: if (found === null || at < found.at) found #",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "if (found === null || at < found.at) found",
+  "replace": "if (at < 0) found",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: if (at === -1) continue;",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "if (at === -1) continue;",
+  "replace": "",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts:     if (at === -1) return this;\n",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "    if (at === -1) return this;\n",
+  "replace": "",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: return afterText(line.slice(at + this.kind.closer.",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "return afterText(line.slice(at + this.kind.closer.length));",
+  "replace": "return afterText(\"\");",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: if (marker.charAt(0) !== this.opening.charAt(0)) r",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "if (marker.charAt(0) !== this.opening.charAt(0)) return this;",
+  "replace": "",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: if (marker.length < this.opening.length) return th",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "if (marker.length < this.opening.length) return this;",
+  "replace": "",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts:     if (marker.length < this.opening.length) retur",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "    if (marker.length < this.opening.length) return this;\n    return OPEN_TEXT;",
+  "replace": "    return this;",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: if (marker !== null) return new InFence(marker);",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "if (marker !== null) return new InFence(marker);",
+  "replace": "",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: if (comment === null) return OPEN_TEXT;",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "if (comment === null) return OPEN_TEXT;",
+  "replace": "",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: .after(text.slice(comment.at + comment.kind.opener",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": ".after(text.slice(comment.at + comment.kind.opener.length));",
+  "replace": ".after(text);",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: readonly allowsHeading = true;",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "readonly allowsHeading = true;",
+  "replace": "readonly allowsHeading = false;",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: readonly allowsHeading = false;\n  readonly isClose",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "readonly allowsHeading = false;\n  readonly isClosed = false;\n\n  constructor(private readonly kind",
+  "replace": "readonly allowsHeading = true;\n  readonly isClosed = false;\n\n  constructor(private readonly kind",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: readonly allowsHeading = false;\n  readonly isClose #",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "readonly allowsHeading = false;\n  readonly isClosed = false;\n\n  constructor(private readonly opening",
+  "replace": "readonly allowsHeading = true;\n  readonly isClosed = false;\n\n  constructor(private readonly opening",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: readonly isClosed = true;",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "readonly isClosed = true;",
+  "replace": "readonly isClosed = false;",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: readonly isClosed = false;\n\n  constructor(private ",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "readonly isClosed = false;\n\n  constructor(private readonly kind",
+  "replace": "readonly isClosed = true;\n\n  constructor(private readonly kind",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-states.ts: readonly isClosed = false;\n\n  constructor(private  #",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "readonly isClosed = false;\n\n  constructor(private readonly opening",
+  "replace": "readonly isClosed = true;\n\n  constructor(private readonly opening",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-tracker.ts:     return allowed;",
+  "file": "src/imports/note/reading/blocks/block-tracker.ts",
+  "find": "    return allowed;",
+  "replace": "    return this.state.allowsHeading;",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-tracker.ts:     this.state = this.state.after(line);\n",
+  "file": "src/imports/note/reading/blocks/block-tracker.ts",
+  "find": "    this.state = this.state.after(line);\n",
+  "replace": "",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: block-tracker.ts: return this.state.isClosed;",
+  "file": "src/imports/note/reading/blocks/block-tracker.ts",
+  "find": "return this.state.isClosed;",
+  "replace": "return true;",
+  "group": "blocks"
+ },
+ {
+  "id": "reading: section-boundaries.ts: if (!blocks.allowsHeading(line)) continue;",
+  "file": "src/imports/note/reading/section-boundaries.ts",
+  "find": "if (!blocks.allowsHeading(line)) continue;",
+  "replace": "blocks.allowsHeading(line);",
+  "group": "reading"
+ },
+ {
+  "id": "reading: section-boundaries.ts: const line = plainLineOf(written);",
+  "file": "src/imports/note/reading/section-boundaries.ts",
+  "find": "const line = plainLineOf(written);",
+  "replace": "const line = written;",
+  "group": "reading"
+ },
+ {
+  "id": "reading: section-boundaries.ts: if (index < from) continue;",
+  "file": "src/imports/note/reading/section-boundaries.ts",
+  "find": "if (index < from) continue;",
+  "replace": "",
+  "group": "reading"
+ },
+ {
+  "id": "reading: section-boundaries.ts: if (!blocks.isClosed()) throw unclosedBlock();",
+  "file": "src/imports/note/reading/section-boundaries.ts",
+  "find": "if (!blocks.isClosed()) throw unclosedBlock();",
+  "replace": "",
+  "group": "reading"
+ },
+ {
+  "id": "reading: section-boundaries.ts: if (!BIG_HEADING.test(line)) continue;",
+  "file": "src/imports/note/reading/section-boundaries.ts",
+  "find": "if (!BIG_HEADING.test(line)) continue;",
+  "replace": "",
+  "group": "reading"
+ },
+ {
+  "id": "reading: note-layout.ts: position < end && plainLineOf",
+  "file": "src/imports/note/reading/note-layout.ts",
+  "find": "position < end && plainLineOf",
+  "replace": "position <= end && plainLineOf",
+  "group": "reading"
+ },
+ {
+  "id": "reading: note-layout.ts: position < end && plainLineOf(line).trim() !== \"\"",
+  "file": "src/imports/note/reading/note-layout.ts",
+  "find": "position < end && plainLineOf(line).trim() !== \"\"",
+  "replace": "position < end && true",
+  "group": "reading"
+ },
+ {
+  "id": "reading: note-layout.ts: return last + 1;",
+  "file": "src/imports/note/reading/note-layout.ts",
+  "find": "return last + 1;",
+  "replace": "return end;",
+  "group": "reading"
+ },
+ {
+  "id": "reading: note-layout.ts:     if (open !== null) spans.push(closedSpan(lines",
+  "file": "src/imports/note/reading/note-layout.ts",
+  "find": "    if (open !== null) spans.push(closedSpan(lines, open.section, open.start, boundary.index));\n",
+  "replace": "",
+  "group": "reading"
+ },
+ {
+  "id": "reading: note-layout.ts:     open = null;\n",
+  "file": "src/imports/note/reading/note-layout.ts",
+  "find": "    open = null;\n",
+  "replace": "",
+  "group": "reading"
+ },
+ {
+  "id": "reading: note-layout.ts:   if (open !== null) spans.push(closedSpan(lines, ",
+  "file": "src/imports/note/reading/note-layout.ts",
+  "find": "  if (open !== null) spans.push(closedSpan(lines, open.section, open.start, lines.length));\n",
+  "replace": "",
+  "group": "reading"
+ },
+ {
+  "id": "reading: note-layout.ts: lines.length > MOST_NOTE_LINES",
+  "file": "src/imports/note/reading/note-layout.ts",
+  "find": "lines.length > MOST_NOTE_LINES",
+  "replace": "lines.length >= MOST_NOTE_LINES",
+  "group": "reading"
+ },
+ {
+  "id": "reading: note-layout.ts:     if (lines.length > MOST_NOTE_LINES) throw tooM",
+  "file": "src/imports/note/reading/note-layout.ts",
+  "find": "    if (lines.length > MOST_NOTE_LINES) throw tooManyLines();\n",
+  "replace": "",
+  "group": "reading"
+ },
+ {
+  "id": "reading: note-limits.ts: MOST_NOTE_LINES = 100_000",
+  "file": "src/imports/note/reading/note-limits.ts",
+  "find": "MOST_NOTE_LINES = 100_000",
+  "replace": "MOST_NOTE_LINES = 99_999",
+  "group": "reading"
+ },
+ {
+  "id": "reading: note-limits.ts: MOST_PROPERTY_LINE = 20_000",
+  "file": "src/imports/note/reading/note-limits.ts",
+  "find": "MOST_PROPERTY_LINE = 20_000",
+  "replace": "MOST_PROPERTY_LINE = 20_001",
+  "group": "reading"
+ },
+ {
+  "id": "reading: property-block.ts: if (lines.length === 0) return null;",
+  "file": "src/imports/note/reading/property-block.ts",
+  "find": "if (lines.length === 0) return null;",
+  "replace": "if (lines.length === 1) return null;",
+  "group": "reading"
+ },
+ {
+  "id": "reading: property-block.ts: if (position === 0) opening = line;",
+  "file": "src/imports/note/reading/property-block.ts",
+  "find": "if (position === 0) opening = line;",
+  "replace": "if (position === 1) opening = line;",
+  "group": "reading"
+ },
+ {
+  "id": "reading: property-block.ts: else if (position === lines.length - 1) closing = ",
+  "file": "src/imports/note/reading/property-block.ts",
+  "find": "else if (position === lines.length - 1) closing = line;",
+  "replace": "else if (position === lines.length - 2) closing = line;",
+  "group": "reading"
+ },
+ {
+  "id": "keys: property-key.ts: if (line.length > MOST_PROPERTY_LINE) throw proper",
+  "file": "src/imports/note/reading/property-key.ts",
+  "find": "if (line.length > MOST_PROPERTY_LINE) throw propertyLineTooLong();",
+  "replace": "if (line.length >= MOST_PROPERTY_LINE) throw propertyLineTooLong();",
+  "group": "keys"
+ },
+ {
+  "id": "keys: property-key.ts: if (line.length > MOST_PROPERTY_LINE) throw proper #",
+  "file": "src/imports/note/reading/property-key.ts",
+  "find": "if (line.length > MOST_PROPERTY_LINE) throw propertyLineTooLong();",
+  "replace": "",
+  "group": "keys"
+ },
+ {
+  "id": "keys: property-key.ts: const NOT_A_KEY_START = [\" \", \"\\t\", \"#\", \"-\"];",
+  "file": "src/imports/note/reading/property-key.ts",
+  "find": "const NOT_A_KEY_START = [\" \", \"\\t\", \"#\", \"-\"];",
+  "replace": "const NOT_A_KEY_START = [\"\\t\", \"#\", \"-\"];",
+  "group": "keys"
+ },
+ {
+  "id": "keys: property-key.ts: const NOT_A_KEY_START = [\" \", \"\\t\", \"#\", \"-\"]; #",
+  "file": "src/imports/note/reading/property-key.ts",
+  "find": "const NOT_A_KEY_START = [\" \", \"\\t\", \"#\", \"-\"];",
+  "replace": "const NOT_A_KEY_START = [\" \", \"#\", \"-\"];",
+  "group": "keys"
+ },
+ {
+  "id": "keys: property-key.ts: const NOT_A_KEY_START = [\" \", \"\\t\", \"#\", \"-\"]; # #",
+  "file": "src/imports/note/reading/property-key.ts",
+  "find": "const NOT_A_KEY_START = [\" \", \"\\t\", \"#\", \"-\"];",
+  "replace": "const NOT_A_KEY_START = [\" \", \"\\t\", \"-\"];",
+  "group": "keys"
+ },
+ {
+  "id": "keys: property-key.ts: const NOT_A_KEY_START = [\" \", \"\\t\", \"#\", \"-\"]; # # #",
+  "file": "src/imports/note/reading/property-key.ts",
+  "find": "const NOT_A_KEY_START = [\" \", \"\\t\", \"#\", \"-\"];",
+  "replace": "const NOT_A_KEY_START = [\" \", \"\\t\", \"#\"];",
+  "group": "keys"
+ },
+ {
+  "id": "keys: property-key.ts: if (colon === -1) return null;",
+  "file": "src/imports/note/reading/property-key.ts",
+  "find": "if (colon === -1) return null;",
+  "replace": "if (colon === -2) return null;",
+  "group": "keys"
+ },
+ {
+  "id": "keys: property-key.ts: if (!isBlankOrEmpty(line.charAt(colon + 1))) retur",
+  "file": "src/imports/note/reading/property-key.ts",
+  "find": "if (!isBlankOrEmpty(line.charAt(colon + 1))) return null;",
+  "replace": "",
+  "group": "keys"
+ },
+ {
+  "id": "keys: property-key.ts: line.slice(0, colon).trimEnd()",
+  "file": "src/imports/note/reading/property-key.ts",
+  "find": "line.slice(0, colon).trimEnd()",
+  "replace": "line.slice(0, colon)",
+  "group": "keys"
+ },
+ {
+  "id": "keys: property-key.ts: if (key === \"\") return null;",
+  "file": "src/imports/note/reading/property-key.ts",
+  "find": "if (key === \"\") return null;",
+  "replace": "",
+  "group": "keys"
+ },
+ {
+  "id": "keys: property-key.ts: if (key.length < 2) return key;",
+  "file": "src/imports/note/reading/property-key.ts",
+  "find": "if (key.length < 2) return key;",
+  "replace": "if (key.length < 1) return key;",
+  "group": "keys"
+ },
+ {
+  "id": "keys: property-key.ts: if (!QUOTES.includes(quote)) return key;",
+  "file": "src/imports/note/reading/property-key.ts",
+  "find": "if (!QUOTES.includes(quote)) return key;",
+  "replace": "",
+  "group": "keys"
+ },
+ {
+  "id": "keys: property-key.ts: if (key.charAt(key.length - 1) !== quote) return k",
+  "file": "src/imports/note/reading/property-key.ts",
+  "find": "if (key.charAt(key.length - 1) !== quote) return key;",
+  "replace": "",
+  "group": "keys"
+ },
+ {
+  "id": "keys: property-key.ts: return key.slice(1, key.length - 1);",
+  "file": "src/imports/note/reading/property-key.ts",
+  "find": "return key.slice(1, key.length - 1);",
+  "replace": "return key.slice(1);",
+  "group": "keys"
+ },
+ {
+  "id": "keys: property-key.ts: const QUOTES = ['\"', \"'\"];",
+  "file": "src/imports/note/reading/property-key.ts",
+  "find": "const QUOTES = ['\"', \"'\"];",
+  "replace": "const QUOTES = ['\"'];",
+  "group": "keys"
+ },
+ {
+  "id": "keys: property-key.ts: const QUOTES = ['\"', \"'\"]; #",
+  "file": "src/imports/note/reading/property-key.ts",
+  "find": "const QUOTES = ['\"', \"'\"];",
+  "replace": "const QUOTES = [\"'\"];",
+  "group": "keys"
+ },
+ {
+  "id": "keys: property-key.ts: if (first === \" \" || first === \"\\t\") return true;",
+  "file": "src/imports/note/reading/property-key.ts",
+  "find": "if (first === \" \" || first === \"\\t\") return true;",
+  "replace": "if (first === \" \") return true;",
+  "group": "keys"
+ },
+ {
+  "id": "keys: property-key.ts: if (first === \" \" || first === \"\\t\") return true; #",
+  "file": "src/imports/note/reading/property-key.ts",
+  "find": "if (first === \" \" || first === \"\\t\") return true;",
+  "replace": "if (first === \"\\t\") return true;",
+  "group": "keys"
+ },
+ {
+  "id": "keys: property-key.ts: if (first !== \"-\") return false;",
+  "file": "src/imports/note/reading/property-key.ts",
+  "find": "if (first !== \"-\") return false;",
+  "replace": "",
+  "group": "keys"
+ },
+ {
+  "id": "keys: property-key.ts: return isBlankOrEmpty(line.charAt(1));",
+  "file": "src/imports/note/reading/property-key.ts",
+  "find": "return isBlankOrEmpty(line.charAt(1));",
+  "replace": "return true;",
+  "group": "keys"
+ },
+ {
+  "id": "keys: import-key.ts: if (name === key) return name;",
+  "file": "src/imports/note/reading/import-key.ts",
+  "find": "if (name === key) return name;",
+  "replace": "",
+  "group": "keys"
+ },
+ {
+  "id": "keys: import-key.ts: if (name.toLowerCase() === key.toLowerCase()) thro",
+  "file": "src/imports/note/reading/import-key.ts",
+  "find": "if (name.toLowerCase() === key.toLowerCase()) throw keyDiffersByCapitals(key, name);",
+  "replace": "",
+  "group": "keys"
+ },
+ {
+  "id": "keys: import-key.ts: if (key === null) return null;",
+  "file": "src/imports/note/reading/import-key.ts",
+  "find": "if (key === null) return null;",
+  "replace": "",
+  "group": "keys"
+ },
+ {
+  "id": "keys: note-refusals.ts: more than ${MOST_NOTE_LINES} lines",
+  "file": "src/imports/note/reading/note-refusals.ts",
+  "find": "more than ${MOST_NOTE_LINES} lines",
+  "replace": "more than lines",
+  "group": "keys"
+ },
+ {
+  "id": "keys: foreign-property-lines.ts: if (inImportKey && continuesAKey(line)) continue;",
+  "file": "src/imports/note/writing/rewriting/foreign-property-lines.ts",
+  "find": "if (inImportKey && continuesAKey(line)) continue;",
+  "replace": "",
+  "group": "keys"
+ },
+ {
+  "id": "keys: foreign-property-lines.ts: inImportKey = importNameOf(propertyKeyOf(line)) !=",
+  "file": "src/imports/note/writing/rewriting/foreign-property-lines.ts",
+  "find": "inImportKey = importNameOf(propertyKeyOf(line)) !== null;",
+  "replace": "inImportKey = false;",
+  "group": "keys"
+ },
+ {
+  "id": "keys: foreign-property-lines.ts: if (!inImportKey) kept.push(line);",
+  "file": "src/imports/note/writing/rewriting/foreign-property-lines.ts",
+  "find": "if (!inImportKey) kept.push(line);",
+  "replace": "kept.push(line);",
+  "group": "keys"
+ },
+ {
+  "id": "rewriting: with-properties.ts: if (block === null) return [layout.ending.ends(FEN",
+  "file": "src/imports/note/writing/rewriting/with-properties.ts",
+  "find": "if (block === null) return [layout.ending.ends(FENCE), ...written, layout.ending.ends(FENCE)];",
+  "replace": "if (block === null) return [FENCE, ...written, FENCE];",
+  "group": "rewriting"
+ },
+ {
+  "id": "rewriting: with-properties.ts: if (block === null) return [layout.ending.ends(FEN #",
+  "file": "src/imports/note/writing/rewriting/with-properties.ts",
+  "find": "if (block === null) return [layout.ending.ends(FENCE), ...written, layout.ending.ends(FENCE)];",
+  "replace": "if (block === null) return [...written];",
+  "group": "rewriting"
+ },
+ {
+  "id": "rewriting: with-properties.ts: [block.opening, ...foreignPropertyLinesOf(block.in",
+  "file": "src/imports/note/writing/rewriting/with-properties.ts",
+  "find": "[block.opening, ...foreignPropertyLinesOf(block.inside), ...written, block.closing]",
+  "replace": "[block.opening, ...block.inside, ...written, block.closing]",
+  "group": "rewriting"
+ },
+ {
+  "id": "rewriting: with-properties.ts: [block.opening, ...foreignPropertyLinesOf(block.in #",
+  "file": "src/imports/note/writing/rewriting/with-properties.ts",
+  "find": "[block.opening, ...foreignPropertyLinesOf(block.inside), ...written, block.closing]",
+  "replace": "[block.opening, ...written, block.closing]",
+  "group": "rewriting"
+ },
+ {
+  "id": "rewriting: with-properties.ts: [block.opening, ...foreignPropertyLinesOf(block.in # #",
+  "file": "src/imports/note/writing/rewriting/with-properties.ts",
+  "find": "[block.opening, ...foreignPropertyLinesOf(block.inside), ...written, block.closing]",
+  "replace": "[block.opening, ...written, ...foreignPropertyLinesOf(block.inside), block.closing]",
+  "group": "rewriting"
+ },
+ {
+  "id": "rewriting: with-properties.ts: ended.push(layout.ending.ends(line));",
+  "file": "src/imports/note/writing/rewriting/with-properties.ts",
+  "find": "ended.push(layout.ending.ends(line));",
+  "replace": "ended.push(line);",
+  "group": "rewriting"
+ },
+ {
+  "id": "rewriting: with-sections.ts:     cursor = span.end;",
+  "file": "src/imports/note/writing/rewriting/with-sections.ts",
+  "find": "    cursor = span.end;",
+  "replace": "    cursor = span.start;",
+  "group": "rewriting"
+ },
+ {
+  "id": "rewriting: with-sections.ts: lines.concat(layout.lines.slice(cursor, span.start",
+  "file": "src/imports/note/writing/rewriting/with-sections.ts",
+  "find": "lines.concat(layout.lines.slice(cursor, span.start), block)",
+  "replace": "lines.concat(layout.lines.slice(span.start), block)",
+  "group": "rewriting"
+ },
+ {
+  "id": "rewriting: with-sections.ts: lines.concat(layout.lines.slice(cursor, span.start #",
+  "file": "src/imports/note/writing/rewriting/with-sections.ts",
+  "find": "lines.concat(layout.lines.slice(cursor, span.start), block)",
+  "replace": "lines.concat(block)",
+  "group": "rewriting"
+ },
+ {
+  "id": "rewriting: with-sections.ts: let cursor = layout.bodyStart;",
+  "file": "src/imports/note/writing/rewriting/with-sections.ts",
+  "find": "let cursor = layout.bodyStart;",
+  "replace": "let cursor = 0;",
+  "group": "rewriting"
+ },
+ {
+  "id": "rewriting: with-sections.ts:     if (layout.spanOf(content.section) !== null) c",
+  "file": "src/imports/note/writing/rewriting/with-sections.ts",
+  "find": "    if (layout.spanOf(content.section) !== null) continue;\n",
+  "replace": "",
+  "group": "rewriting"
+ },
+ {
+  "id": "rewriting: with-sections.ts: const endsInBreak = lines.length > 0 && lines.last",
+  "file": "src/imports/note/writing/rewriting/with-sections.ts",
+  "find": "const endsInBreak = lines.length > 0 && lines.lastIndexOf(\"\") === lines.length - 1;",
+  "replace": "const endsInBreak = lines.lastIndexOf(\"\") === lines.length - 1;",
+  "group": "rewriting"
+ },
+ {
+  "id": "rewriting: with-sections.ts: if (!endsInBreak) return lines.concat(blocks);",
+  "file": "src/imports/note/writing/rewriting/with-sections.ts",
+  "find": "if (!endsInBreak) return lines.concat(blocks);",
+  "replace": "",
+  "group": "rewriting"
+ },
+ {
+  "id": "rewriting: with-sections.ts: return lines.slice(0, lines.length - 1).concat(blo",
+  "file": "src/imports/note/writing/rewriting/with-sections.ts",
+  "find": "return lines.slice(0, lines.length - 1).concat(blocks, [\"\"]);",
+  "replace": "return lines.concat(blocks, [\"\"]);",
+  "group": "rewriting"
+ },
+ {
+  "id": "rewriting: with-sections.ts: layout.lines.slice(replaced.cursor)",
+  "file": "src/imports/note/writing/rewriting/with-sections.ts",
+  "find": "layout.lines.slice(replaced.cursor)",
+  "replace": "[]",
+  "group": "rewriting"
+ },
+ {
+  "id": "rewriting: imported-note.ts: properties.concat(bodyLinesWith(layout, sheet))",
+  "file": "src/imports/note/writing/rewriting/imported-note.ts",
+  "find": "properties.concat(bodyLinesWith(layout, sheet))",
+  "replace": "bodyLinesWith(layout, sheet).concat(properties)",
+  "group": "rewriting"
+ },
+ {
+  "id": "rewriting: imported-note.ts: .join(LINE_BREAK)",
+  "file": "src/imports/note/writing/rewriting/imported-note.ts",
+  "find": ".join(LINE_BREAK)",
+  "replace": ".join(\"\")",
+  "group": "rewriting"
+ },
+ {
+  "id": "guarding: outside-the-import.ts: return foreignPropertyLinesOf(block.inside);",
+  "file": "src/imports/note/writing/guarding/outside-the-import.ts",
+  "find": "return foreignPropertyLinesOf(block.inside);",
+  "replace": "return [];",
+  "group": "guarding"
+ },
+ {
+  "id": "guarding: outside-the-import.ts:     cursor = span.end;",
+  "file": "src/imports/note/writing/guarding/outside-the-import.ts",
+  "find": "    cursor = span.end;",
+  "replace": "    cursor = span.start;",
+  "group": "guarding"
+ },
+ {
+  "id": "guarding: outside-the-import.ts: return outside.concat(layout.lines.slice(cursor));",
+  "file": "src/imports/note/writing/guarding/outside-the-import.ts",
+  "find": "return outside.concat(layout.lines.slice(cursor));",
+  "replace": "return outside;",
+  "group": "guarding"
+ },
+ {
+  "id": "guarding: outside-the-import.ts: outside.concat(layout.lines.slice(cursor, span.sta",
+  "file": "src/imports/note/writing/guarding/outside-the-import.ts",
+  "find": "outside.concat(layout.lines.slice(cursor, span.start))",
+  "replace": "outside.concat(layout.lines.slice(span.start))",
+  "group": "guarding"
+ },
+ {
+  "id": "guarding: outside-the-import.ts: return propertiesOutside(layout).concat(bodyOutsid",
+  "file": "src/imports/note/writing/guarding/outside-the-import.ts",
+  "find": "return propertiesOutside(layout).concat(bodyOutsideSections(layout));",
+  "replace": "return bodyOutsideSections(layout);",
+  "group": "guarding"
+ },
+ {
+  "id": "guarding: outside-the-import.ts: return propertiesOutside(layout).concat(bodyOutsid #",
+  "file": "src/imports/note/writing/guarding/outside-the-import.ts",
+  "find": "return propertiesOutside(layout).concat(bodyOutsideSections(layout));",
+  "replace": "return propertiesOutside(layout);",
+  "group": "guarding"
+ },
+ {
+  "id": "writing: process-or-refuse.ts:   refuseUnlessOnlyTheImportChanged(before, after);",
+  "file": "src/imports/note/writing/process-or-refuse.ts",
+  "find": "  refuseUnlessOnlyTheImportChanged(before, after);\n",
+  "replace": "",
+  "group": "writing"
+ },
+ {
+  "id": "writing: process-or-refuse.ts:   if (!sameTypedText(shown, changes.typed)) throw ",
+  "file": "src/imports/note/writing/process-or-refuse.ts",
+  "find": "  if (!sameTypedText(shown, changes.typed)) throw typedTextNotShown();\n",
+  "replace": "",
+  "group": "writing"
+ },
+ {
+  "id": "writing: process-or-refuse.ts:   if (changesNothing(changes)) return before;\n",
+  "file": "src/imports/note/writing/process-or-refuse.ts",
+  "find": "  if (changesNothing(changes)) return before;\n",
+  "replace": "",
+  "group": "writing"
+ },
+ {
+  "id": "writing: process-or-refuse.ts:     if (current === before) return after;\n",
+  "file": "src/imports/note/writing/process-or-refuse.ts",
+  "find": "    if (current === before) return after;\n",
+  "replace": "    return after;\n",
+  "group": "writing"
+ },
+ {
+  "id": "writing: process-or-refuse.ts:   if (refusal !== null) throw refusal;",
+  "file": "src/imports/note/writing/process-or-refuse.ts",
+  "find": "  if (refusal !== null) throw refusal;",
+  "replace": "",
+  "group": "writing"
+ },
+ {
+  "id": "writing: process-or-refuse.ts:     refusal = changedSinceRead();\n",
+  "file": "src/imports/note/writing/process-or-refuse.ts",
+  "find": "    refusal = changedSinceRead();\n",
+  "replace": "",
+  "group": "writing"
+ },
+ {
+  "id": "writing: process-or-refuse.ts:     refusal = changedSinceRead();\n    return curre",
+  "file": "src/imports/note/writing/process-or-refuse.ts",
+  "find": "    refusal = changedSinceRead();\n    return current;",
+  "replace": "    refusal = changedSinceRead();\n    return after;",
+  "group": "writing"
+ },
+ {
+  "id": "writing: import-writer.ts:     refuseUnlessCharacterNote(file.path, this.char",
+  "file": "src/imports/note/writing/import-writer.ts",
+  "find": "    refuseUnlessCharacterNote(file.path, this.charactersFolder);\n    const before = await this.files.read(file);\n    const after",
+  "replace": "    const before = await this.files.read(file);\n    const after",
+  "group": "writing"
+ },
+ {
+  "id": "writing: import-writer.ts:     refuseUnlessCharacterNote(file.path, this.char #",
+  "file": "src/imports/note/writing/import-writer.ts",
+  "find": "    refuseUnlessCharacterNote(file.path, this.charactersFolder);\n    const before = await this.files.read(file);\n    return",
+  "replace": "    const before = await this.files.read(file);\n    return",
+  "group": "writing"
+ },
+ {
+  "id": "writing: import-writer.ts:     if (after === before) return;\n",
+  "file": "src/imports/note/writing/import-writer.ts",
+  "find": "    if (after === before) return;\n",
+  "replace": "",
+  "group": "writing"
+ },
+ {
+  "id": "writing: import-writer.ts: checkedTextOf(before, sheet, today, shown)",
+  "file": "src/imports/note/writing/import-writer.ts",
+  "find": "checkedTextOf(before, sheet, today, shown)",
+  "replace": "checkedTextOf(before, sheet, today, [])",
+  "group": "writing"
+ },
+ {
+  "id": "writing: import-writer.ts:     await writeWhenUnchangedSinceRead(this.files, ",
+  "file": "src/imports/note/writing/import-writer.ts",
+  "find": "    await writeWhenUnchangedSinceRead(this.files, file, before, after);\n",
+  "replace": "",
+  "group": "writing"
+ },
+ {
+  "id": "writing: import-writer.ts: if (refusal !== null) throw new Refusal(refusal);",
+  "file": "src/imports/note/writing/import-writer.ts",
+  "find": "if (refusal !== null) throw new Refusal(refusal);",
+  "replace": "",
+  "group": "writing"
+ },
+ {
+  "id": "writing: refusals.ts: nothing was written. Look at the changes again.",
+  "file": "src/imports/note/writing/guarding/refusals.ts",
+  "find": "nothing was written. Look at the changes again.",
+  "replace": "",
+  "group": "writing"
+ },
+ {
+  "id": "writing: refusals.ts: The note changed since it was read, so nothing was",
+  "file": "src/imports/note/writing/guarding/refusals.ts",
+  "find": "The note changed since it was read, so nothing was written.",
+  "replace": "The note changed.",
+  "group": "writing"
+ },
+ {
+  "id": "changes: same-typed-text.ts:   if (first.length !== second.length) return false",
+  "file": "src/imports/note/changes/same-typed-text.ts",
+  "find": "  if (first.length !== second.length) return false;\n",
+  "replace": "",
+  "group": "changes"
+ },
+ {
+  "id": "changes: same-typed-text.ts: if (second[position] !== line) return false;",
+  "file": "src/imports/note/changes/same-typed-text.ts",
+  "find": "if (second[position] !== line) return false;",
+  "replace": "",
+  "group": "changes"
+ },
+ {
+  "id": "changes: same-typed-text.ts:   if (shown.length !== current.length) return fals",
+  "file": "src/imports/note/changes/same-typed-text.ts",
+  "find": "  if (shown.length !== current.length) return false;\n",
+  "replace": "",
+  "group": "changes"
+ },
+ {
+  "id": "changes: same-typed-text.ts: if (other === undefined || other.heading !== entry",
+  "file": "src/imports/note/changes/same-typed-text.ts",
+  "find": "if (other === undefined || other.heading !== entry.heading) return false;",
+  "replace": "if (other === undefined) return false;",
+  "group": "changes"
+ },
+ {
+  "id": "changes: same-typed-text.ts: if (!sameLines(entry.lines, other.lines)) return f",
+  "file": "src/imports/note/changes/same-typed-text.ts",
+  "find": "if (!sameLines(entry.lines, other.lines)) return false;",
+  "replace": "",
+  "group": "changes"
+ },
+ {
+  "id": "kinds: class-property.ts:     if (character.classes.length === 0) return nul",
+  "file": "src/imports/note/properties/kinds/class-property.ts",
+  "find": "    if (character.classes.length === 0) return null;\n",
+  "replace": "",
+  "group": "kinds"
  }
 ]

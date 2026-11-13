@@ -1,16 +1,20 @@
 import { firstLineAfterProperties } from "../../../campaign/paths/session-file";
 import type { PluginSection } from "../../layout/plugin-section";
-import { boundariesIn, type Boundary } from "./section-boundaries";
+import { boundariesIn } from "./section-boundaries";
 import type { SectionSpan } from "./section-span";
-import { LineEnding } from "./line-ending";
-import { twoSections } from "./two-sections";
+import { LineEnding, plainLineOf } from "./line-ending";
+import { MOST_NOTE_LINES } from "./note-limits";
+import { tooManyLines, twoSections } from "./note-refusals";
+import { PropertyBlock } from "./property-block";
 
 const LINE_BREAK = "\n";
 
-function endOf(boundaries: readonly Boundary[], position: number, lineCount: number): number {
-  const next = boundaries[position + 1];
-  if (next === undefined) return lineCount;
-  return next.index;
+function afterLastContent(lines: readonly string[], start: number, end: number): number {
+  let last = start;
+  for (const [position, line] of lines.entries()) {
+    if (position < end && plainLineOf(line).trim() !== "") last = position;
+  }
+  return last + 1;
 }
 
 function spanFor(spans: readonly SectionSpan[], section: PluginSection): SectionSpan | null {
@@ -20,14 +24,21 @@ function spanFor(spans: readonly SectionSpan[], section: PluginSection): Section
   return null;
 }
 
+function closedSpan(lines: readonly string[], section: PluginSection, start: number, end: number): SectionSpan {
+  return { section, start, end: afterLastContent(lines, start, end) };
+}
+
 function spansOf(lines: readonly string[], bodyStart: number): SectionSpan[] {
-  const boundaries = boundariesIn(lines, bodyStart);
   const spans: SectionSpan[] = [];
-  for (const [position, boundary] of boundaries.entries()) {
+  let open: { section: PluginSection; start: number } | null = null;
+  for (const boundary of boundariesIn(lines, bodyStart)) {
+    if (open !== null) spans.push(closedSpan(lines, open.section, open.start, boundary.index));
+    open = null;
     if (boundary.section === null) continue;
     if (spanFor(spans, boundary.section) !== null) throw twoSections(boundary.section);
-    spans.push({ section: boundary.section, start: boundary.index, end: endOf(boundaries, position, lines.length) });
+    open = { section: boundary.section, start: boundary.index };
   }
+  if (open !== null) spans.push(closedSpan(lines, open.section, open.start, lines.length));
   return spans;
 }
 
@@ -41,12 +52,17 @@ export class NoteLayout {
 
   static of(text: string): NoteLayout {
     const lines = text.split(LINE_BREAK);
+    if (lines.length > MOST_NOTE_LINES) throw tooManyLines();
     const bodyStart = firstLineAfterProperties(text);
     return new NoteLayout(lines, bodyStart, spansOf(lines, bodyStart), LineEnding.of(text));
   }
 
   propertyLines(): readonly string[] {
     return this.lines.slice(0, this.bodyStart);
+  }
+
+  properties(): PropertyBlock | null {
+    return PropertyBlock.of(this.propertyLines());
   }
 
   bodyLines(): readonly string[] {

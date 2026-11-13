@@ -5,18 +5,27 @@ import {
   IMPORTED_ON_PROPERTY,
   SHEET_VALUE_PROPERTIES,
 } from "../../../src/imports/layout/import-properties";
+import type { PluginSection } from "../../../src/imports/layout/plugin-section";
 import { PLUGIN_SECTIONS } from "../../../src/imports/layout/plugin-sections";
+import { importMarkLinesOf } from "../../../src/imports/note/properties/helpers/import-mark-lines";
 import { IMPORTED_PROPERTIES } from "../../../src/imports/note/properties/imported-properties";
-import { importMarkLinesOf } from "../../../src/imports/note/properties/import-mark-lines";
 import { monkSheet, TODAY } from "../builders/made-up-import";
 
 function nameOf(entry: { name: string }): string {
   return entry.name;
 }
 
+function headingOf(section: PluginSection): string {
+  return section.heading;
+}
+
+function keyOf(line: string): string {
+  return line.replace(/:.*$/, "");
+}
+
 describe("the layout the sheet and the note writer share", () => {
   it("heads the five sections as the owner's design words them", () => {
-    expect(PLUGIN_SECTIONS.map((section) => section.heading)).toEqual([
+    expect(PLUGIN_SECTIONS.map(headingOf)).toEqual([
       "## Numbers (from D&D Beyond)",
       "## Inventory (from D&D Beyond)",
       "## Purse (from D&D Beyond)",
@@ -34,11 +43,7 @@ describe("the layout the sheet and the note writer share", () => {
   });
 
   it("lists every property the writer can write, and no other, as an import property", () => {
-    const written = [...importMarkLinesOf(monkSheet().character.route, TODAY).map(keyOf), ...IMPORTED_PROPERTIES.map(nameOf)];
-    expect(written).toEqual(IMPORT_PROPERTIES);
+    const marks = importMarkLinesOf(monkSheet().character.route, TODAY).map(keyOf);
+    expect([...marks, ...IMPORTED_PROPERTIES.map(nameOf)]).toEqual(IMPORT_PROPERTIES);
   });
 });
-
-function keyOf(line: string): string {
-  return line.slice(0, line.indexOf(":"));
-}

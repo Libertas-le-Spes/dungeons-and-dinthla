@@ -5,13 +5,17 @@ function note(basename: string, folder = "D&D/Primary Campaign/Characters"): Not
   return { path: `${folder}/${basename}.md`, basename };
 }
 
+function basenameOf(entry: NoteName): string {
+  return entry.basename;
+}
+
 function basenamesOf(notes: readonly NoteName[]): string[] {
-  return notes.map((entry) => entry.basename);
+  return notes.map(basenameOf);
 }
 
 describe("notesLikeName", () => {
   it("finds a note named by the first words of the character's name", () => {
-    expect(basenamesOf(notesLikeName("Primary Monk Brightwater", [note("Primary Monk"), note("Secondary")]))).toEqual(["Primary Monk"]);
+    expect(basenamesOf(notesLikeName("Primary Monk Longname", [note("Primary Monk"), note("Secondary")]))).toEqual(["Primary Monk"]);
   });
 
   it("finds a note named by one word of a longer name", () => {
@@ -23,8 +27,8 @@ describe("notesLikeName", () => {
   });
 
   it("puts the note with the same name first, then the nearer ones", () => {
-    const notes = [note("Primary Monk Brightwater Junior"), note("Primary"), note("Primary Monk"), note("Primary Monk Brightwater")];
-    expect(basenamesOf(notesLikeName("Primary Monk Brightwater", notes))).toEqual(["Primary Monk Brightwater", "Primary Monk Brightwater Junior", "Primary Monk", "Primary"]);
+    const notes = [note("Primary Monk Longname Junior"), note("Primary"), note("Primary Monk"), note("Primary Monk Longname")];
+    expect(basenamesOf(notesLikeName("Primary Monk Longname", notes))).toEqual(["Primary Monk Longname", "Primary Monk Longname Junior", "Primary Monk", "Primary"]);
   });
 
   it("reads capitals, spaces and invisible characters as a name key does", () => {
@@ -48,8 +52,8 @@ describe("notesLikeName", () => {
   });
 
   it("puts a note that shares more words before one that is nearer in length", () => {
-    const notes = [note("Primary"), note("Primary Monk Brightwater Junior")];
-    expect(basenamesOf(notesLikeName("Primary Monk", notes))).toEqual(["Primary Monk Brightwater Junior", "Primary"]);
+    const notes = [note("Primary"), note("Primary Monk Longname Junior")];
+    expect(basenamesOf(notesLikeName("Primary Monk", notes))).toEqual(["Primary Monk Longname Junior", "Primary"]);
   });
 
   it("finds nothing among no notes", () => {

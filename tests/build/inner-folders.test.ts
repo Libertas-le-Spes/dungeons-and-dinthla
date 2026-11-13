@@ -47,6 +47,10 @@ function filesUnder(path: string): string[] {
   return found;
 }
 
+function relativeToSource(file: string): string {
+  return relative(SOURCE_FOLDER, file);
+}
+
 function filesIn(folder: string): string[] {
   return filesUnder(join(SOURCE_FOLDER, folder));
 }
@@ -169,7 +173,7 @@ describe("the inner folders", () => {
   });
 
   it("read the files inside the folders of src/imports, not only its top", () => {
-    const read = filesIn("imports").map((file) => relative(SOURCE_FOLDER, file));
+    const read = filesIn("imports").map(relativeToSource);
     expect(read).toContain(join("imports", "layout", "plugin-section.ts"));
     expect(read).toContain(join("imports", "note", "writing", "import-writer.ts"));
   });
@@ -364,8 +368,6 @@ describe("the rules for src/imports and its layout, over made-up files", () => {
   });
 
   it("refuses names importing from imports", () => {
-    const file = join(SOURCE_FOLDER, "names", "made-up.ts");
-    expect(importersOfImportsIn(IMPORTS_IMPORTERS, file, 'import { a } from "../imports/layout/plugin-section";')).toEqual([]);
     expect(breachesOfMadeUpFile("names", 'import { a } from "../imports/layout/plugin-section";')).toEqual(["names/made-up.ts imports from imports/layout"]);
   });
 });

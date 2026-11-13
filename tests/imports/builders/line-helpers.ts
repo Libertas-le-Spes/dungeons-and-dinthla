@@ -30,13 +30,53 @@ export function headingsOf(text: string): string[] {
   return linesStartingWith(text, "## ");
 }
 
-export function lineAfter(text: string, line: string): string | undefined {
+export function positionOf(lines: readonly string[], line: string): number {
+  const position = lines.indexOf(line);
+  if (position === -1) throw new Error(`The text has no line ${JSON.stringify(line)}.`);
+  return position;
+}
+
+export function lineAt(lines: readonly string[], wanted: number): string {
+  for (const [position, line] of lines.entries()) {
+    if (position === wanted) return line;
+  }
+  throw new Error(`There is no line at position ${wanted}.`);
+}
+
+export function lineAfter(text: string, line: string): string {
   const lines = linesOf(text);
-  return lines[lines.indexOf(line) + 1];
+  return lineAt(lines, positionOf(lines, line) + 1);
+}
+
+export function lineBefore(text: string, line: string): string {
+  const lines = linesOf(text);
+  return lineAt(lines, positionOf(lines, line) - 1);
 }
 
 export function linesFrom(text: string, line: string, count: number): string[] {
   const lines = linesOf(text);
-  const start = lines.indexOf(line);
-  return lines.slice(start, start + count);
+  const start = positionOf(lines, line);
+  const taken: string[] = [];
+  for (const [position, entry] of lines.entries()) {
+    if (position >= start && position < start + count) taken.push(entry);
+  }
+  return taken;
+}
+
+export function firstLines(lines: readonly string[], count: number): string[] {
+  const taken: string[] = [];
+  for (const [position, entry] of lines.entries()) {
+    if (position < count) taken.push(entry);
+  }
+  return taken;
+}
+
+export function lastLineOf(lines: readonly string[]): string {
+  return lineAt(lines, lines.length - 1);
+}
+
+export function manyLines(count: number): string {
+  const lines: string[] = [];
+  for (let position = 0; position < count; position += 1) lines.push(`Line ${position}`);
+  return lines.join("\n");
 }

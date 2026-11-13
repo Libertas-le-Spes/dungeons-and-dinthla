@@ -1,18 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { KnownValue } from "../../../../src/beyond/shape/known-value";
-import { CleanLine } from "../../../../src/beyond/text/clean-line";
 import { Refusal } from "../../../../src/beyond/shape/refusal";
-import { importMarkLinesOf } from "../../../../src/imports/note/properties/import-mark-lines";
-import { classLabelOf } from "../../../../src/imports/note/properties/class-label";
-import { ClassProperty } from "../../../../src/imports/note/properties/class-property";
-import { NumberProperty } from "../../../../src/imports/note/properties/number-property";
-import { propertyLinesOf } from "../../../../src/imports/note/properties/property-lines-of";
-import { quotedYamlOf } from "../../../../src/imports/note/properties/quoted-yaml";
-import { ScoreProperty } from "../../../../src/imports/note/properties/score-property";
-import { SCORE_ROWS } from "../../../../src/imports/note/properties/score-rows";
-import { SpeciesProperty } from "../../../../src/imports/note/properties/species-property";
+import { CleanLine } from "../../../../src/beyond/text/clean-line";
 import { PRINTED } from "../../../../src/beyond/sheet/printed-route";
+import { classLabelOf } from "../../../../src/imports/note/properties/helpers/class-label";
+import { importMarkLinesOf } from "../../../../src/imports/note/properties/helpers/import-mark-lines";
+import { quotedYamlOf } from "../../../../src/imports/note/properties/helpers/quoted-yaml";
+import { ClassProperty } from "../../../../src/imports/note/properties/kinds/class-property";
+import { NumberProperty } from "../../../../src/imports/note/properties/kinds/number-property";
+import { ScoreProperty } from "../../../../src/imports/note/properties/kinds/score-property";
+import { SpeciesProperty } from "../../../../src/imports/note/properties/kinds/species-property";
+import { propertyLinesOf } from "../../../../src/imports/note/properties/property-lines-of";
+import { SCORE_ROWS } from "../../../../src/imports/note/rows/score-rows";
 import { MadeUpSheet } from "../../../beyond/builders/made-up-sheet";
+import { firstLines, linesStartingWith, textOf } from "../../builders/line-helpers";
 import { monkSheet, notKnownNumber, sheetOf, sheetWithCharacter, TODAY } from "../../builders/made-up-import";
 
 function known(value: number): KnownValue {
@@ -21,6 +22,17 @@ function known(value: number): KnownValue {
 
 function classOf(name: string, level: KnownValue | ReturnType<typeof notKnownNumber>) {
   return { name: CleanLine.of(name), level };
+}
+
+function lineOfScore(row: (typeof SCORE_ROWS)[number]): string | null {
+  return new ScoreProperty(row).lineOf(monkSheet().character);
+}
+
+function scoreRowAt(position: number): (typeof SCORE_ROWS)[number] {
+  for (const [at, row] of SCORE_ROWS.entries()) {
+    if (at === position) return row;
+  }
+  throw new Error("No such score row.");
 }
 
 describe("quotedYamlOf", () => {
@@ -54,8 +66,12 @@ describe("ClassProperty", () => {
   });
 
   it("makes a link in a class name inert and keeps the quoted text on one line", () => {
-    const character = sheetWithCharacter(monkSheet(), { classes: [classOf("[[Secret]] \"x\"", known(1))] }).character;
+    const character = sheetWithCharacter(monkSheet(), { classes: [classOf('[[Secret]] "x"', known(1))] }).character;
     expect(new ClassProperty().lineOf(character)).toBe('class: "\\\\[\\\\[Secret\\\\]\\\\] \\"x\\" 1"');
+  });
+
+  it("writes nothing when the character has no class", () => {
+    expect(new ClassProperty().lineOf(sheetWithCharacter(monkSheet(), { classes: [] }).character)).toBeNull();
   });
 });
 
@@ -67,6 +83,10 @@ describe("SpeciesProperty", () => {
   it("makes markup in the species inert", () => {
     const character = sheetWithCharacter(monkSheet(), { species: CleanLine.of("`= this`") }).character;
     expect(new SpeciesProperty().lineOf(character)).toBe('species: "\\\\`= this\\\\`"');
+  });
+
+  it("is never given a blank species, since a line of text cannot be blank", () => {
+    expect(() => CleanLine.of("   ")).toThrow(Refusal);
   });
 });
 
@@ -92,33 +112,20 @@ describe("NumberProperty", () => {
 });
 
 describe("ScoreProperty", () => {
-  it("writes each of the six scores under its short name", () => {
-    const lines = SCORE_ROWS.map((row) => new ScoreProperty(row).lineOf(monkSheet().character));
-    expect(lines).toEqual(["STR: 11", "DEX: 12", "CON: 13", "INT: 14", "WIS: 15", "CHA: 16"]);
+  it.each([
+    [0, "STR: 11"],
+    [1, "DEX: 12"],
+    [2, "CON: 13"],
+    [3, "INT: 14"],
+    [4, "WIS: 15"],
+    [5, "CHA: 16"],
+  ])("writes score row %i as %s", (position, line) => {
+    expect(lineOfScore(scoreRowAt(position))).toBe(line);
   });
 
   it("writes nothing for a score that is not known", () => {
     const unknown = sheetOf(MadeUpSheet.monk().with("WIS", "")).character;
-    expect(new ScoreProperty(SCORE_ROWS[4]!).lineOf(unknown)).toBeNull();
-  });
-});
-
-describe("propertyLinesOf", () => {
-  it("puts the two marks first and then each known value, in the order the layout lists them", () => {
-    expect(propertyLinesOf(monkSheet().character, TODAY).slice(0, 6)).toEqual([
-      "imported: 2026-11-13",
-      "imported-from: pdf",
-      'class: "Monk 4"',
-      'species: "Human"',
-      "AC: 18",
-      "HP: 51",
-    ]);
-  });
-
-  it("leaves out a value that is not known, and keeps the rest", () => {
-    const lines = propertyLinesOf(sheetOf(MadeUpSheet.monk().with("AC", "").with("Speed", "")).character, TODAY);
-    expect(lines.filter((line) => line.startsWith("AC") || line.startsWith("speed"))).toEqual([]);
-    expect(lines).toContain("HP: 51");
+    expect(new ScoreProperty(scoreRowAt(4)).lineOf(unknown)).toBeNull();
   });
 });
 
@@ -135,5 +142,40 @@ describe("importMarkLinesOf", () => {
 
   it.each(["p", "pdf", "abcdefghijklmnop"])("writes the route name %j", (name) => {
     expect(importMarkLinesOf({ name, source: "" }, TODAY)).toEqual(["imported: 2026-11-13", `imported-from: ${name}`]);
+  });
+});
+
+describe("propertyLinesOf", () => {
+  it("puts the two marks first and then each known value, in the order the layout lists them", () => {
+    expect(firstLines(propertyLinesOf(monkSheet().character, TODAY), 6)).toEqual([
+      "imported: 2026-11-13",
+      "imported-from: pdf",
+      'class: "Monk 4"',
+      'species: "Human"',
+      "AC: 18",
+      "HP: 51",
+    ]);
+  });
+
+  it("writes exactly the marks and the known values when two are not known", () => {
+    const lines = propertyLinesOf(sheetOf(MadeUpSheet.monk().with("AC", "").with("Speed", "")).character, TODAY);
+    expect(lines).toEqual([
+      "imported: 2026-11-13",
+      "imported-from: pdf",
+      'class: "Monk 4"',
+      'species: "Human"',
+      "HP: 51",
+      "STR: 11",
+      "DEX: 12",
+      "CON: 13",
+      "INT: 14",
+      "WIS: 15",
+      "CHA: 16",
+    ]);
+  });
+
+  it("leaves out a value that is not known, and keeps the rest", () => {
+    const text = textOf(...propertyLinesOf(sheetOf(MadeUpSheet.monk().with("AC", "").with("Speed", "")).character, TODAY));
+    expect([linesStartingWith(text, "AC"), linesStartingWith(text, "speed"), linesStartingWith(text, "HP")]).toEqual([[], [], ["HP: 51"]]);
   });
 });
