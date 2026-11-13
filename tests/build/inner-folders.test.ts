@@ -9,9 +9,12 @@ const SOURCE_FOLDER = fileURLToPath(new URL("../../src", import.meta.url));
 
 let reader: ImportedPaths;
 
+const READ_EVERY_FILE_TIME = 120_000;
+
 beforeAll(() => {
   reader = new ImportedPaths();
-});
+  for (const file of filesUnder(SOURCE_FOLDER)) importedPathsIn(readFileSync(file, "utf8"));
+}, READ_EVERY_FILE_TIME);
 
 afterAll(() => {
   reader.close();
