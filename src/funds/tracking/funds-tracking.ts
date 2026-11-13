@@ -61,7 +61,7 @@ export class FundsTracking implements ItemTracking {
     const sessionPath = sessionForDialog(this.gate.files, folder, { activePath: null, earliestSession: 0, noSession: NO_SESSION });
     if (sessionPath === null) return;
     const holder = `[[${this.gate.metadata.fileToLinktext(file, sessionPath, true)}]]`;
-    const tracked = { line: trackedLineOf(holder, written), key: itemKeyOf(written), holderName: file.basename };
+    const tracked = { line: trackedLineOf(holder, written), written, key: itemKeyOf(written), holderName: file.basename };
     const saving = new TrackingSave(this.gate.files, this.store, tracked, sessionPath);
     const shown = { name: withoutEscapes(written), holder: file.basename, writesTo: sessionLabelOf(sessionPath) };
     const focus = new FocusReturn(returnFocus);

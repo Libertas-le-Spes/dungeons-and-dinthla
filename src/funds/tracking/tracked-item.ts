@@ -1,5 +1,6 @@
 export interface TrackedItem {
   readonly line: string;
+  readonly written: string;
   readonly key: string;
   readonly holderName: string;
 }

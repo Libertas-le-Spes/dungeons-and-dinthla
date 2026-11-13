@@ -17,7 +17,6 @@ function countBefore(part: string, ending: string): number | null {
 
 export function leftOutCountsOf(written: string): LeftOutCounts | null {
   const between = written.indexOf(BETWEEN_COUNTS);
-  if (between === -1) return null;
   const tooLong = countBefore(written.substring(0, between), TOO_LONG_END);
   const notClean = countBefore(written.substring(between + BETWEEN_COUNTS.length), NOT_CLEAN_END);
   if (tooLong === null || notClean === null) return null;
