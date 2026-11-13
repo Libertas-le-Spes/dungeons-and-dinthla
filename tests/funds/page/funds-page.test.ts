@@ -324,3 +324,44 @@ describe("FundsPage", () => {
     expect(root.querySelector(".dd-shown-item")).toBeNull();
   });
 });
+
+class MadeUpPurses {
+  readonly panels: HTMLElement[] = [];
+
+  panel(panelEl: HTMLElement): Component {
+    this.panels.push(panelEl);
+    panelEl.setText("His purse");
+    return new Component();
+  }
+}
+
+describe("FundsPage with his purse beside the party's", () => {
+  it("puts his purse right after the party purse, in its own panel", () => {
+    const purses = new MadeUpPurses();
+    const root = obsidianDocument().createElement("div");
+    const store = { current: campaignOf(["$ +50 gp advance"]), subscribe: subscribeNever };
+    new FundsPage(root, store as unknown as CampaignStore, { openRow: vi.fn(), openLink: vi.fn() }, noNote, null, null, null, null, purses).load();
+    const classes: string[] = [];
+    for (const section of root.children) classes.push(section.className);
+    expect(classes.indexOf("dd-panel dd-own-purse-panel")).toBe(classes.indexOf("dd-panel dd-purse-panel") + 1);
+    expect(purses.panels).toHaveLength(1);
+  });
+
+  it("never adds his purse to the party's", () => {
+    const root = obsidianDocument().createElement("div");
+    const store = { current: campaignOf(["$ +50 gp advance"]), subscribe: subscribeNever };
+    new FundsPage(root, store as unknown as CampaignStore, { openRow: vi.fn(), openLink: vi.fn() }, noNote, null, null, null, null, new MadeUpPurses()).load();
+    expect(root.querySelector(".dd-purse-panel .dd-purse")?.textContent).toBe("50 gp");
+  });
+});
+
+function subscribeNever(): () => void {
+  return stopNothing;
+}
+
+function stopNothing(): void {}
+
+function noNote(): boolean {
+  return false;
+}
+
