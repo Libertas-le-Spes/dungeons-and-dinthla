@@ -64,6 +64,10 @@ function messagesIn(placement: Placement): string[][] {
 
 let ordinaryMessages: string[][] = [];
 
+function isAccepted(index: number): boolean {
+  return ordinaryMessages[index]?.length === 0;
+}
+
 beforeAll(() => {
   ordinaryMessages = messagesIn(ORDINARY);
 }, 300_000);
@@ -84,7 +88,8 @@ describe("the samples the gate's folder is tested with", () => {
 
 describe("the gate's folder, as the source scan knows it", () => {
   it("has every sample refused at an ordinary path, so the comparisons below mean something", () => {
-    expect(samplesFor(ORDINARY).filter((_sample, index) => ordinaryMessages[index]?.length === 0)).toEqual([]);
+    expect(ordinaryMessages).toHaveLength(SAMPLES.length);
+    expect(samplesFor(ORDINARY).filter((_sample, index) => isAccepted(index))).toEqual([]);
   }, 120_000);
 
   it.each(LOOKALIKES)("gives a file whose path only looks like the gate's none of its exemptions: $family", (placement) => {
