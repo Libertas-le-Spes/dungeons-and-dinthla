@@ -94,7 +94,7 @@ async function openDashboard(sessions: SessionNote[], { folder = CAMPAIGN, chara
     listener();
   };
   const close = () => view.unload();
-  return { root, newsLines, newsLine, actions, closers, reads, owner, change, close, unsubscribe, stopWatching, noteChanged: (path: string) => noteChanged(path) };
+  return { view, root, newsLines, newsLine, actions, closers, reads, owner, change, close, unsubscribe, stopWatching, noteChanged: (path: string) => noteChanged(path) };
 }
 
 function panel(root: HTMLElement, index: number): HTMLElement {
@@ -166,11 +166,12 @@ describe("DashboardPage", () => {
   });
 
   it("says when there is nothing to show yet", async () => {
-    const { root } = await openDashboard([]);
+    const { view, root } = await openDashboard([]);
     expect(textsOf(panel(root, QUESTIONS), ".dd-big")).toEqual(["Nothing open"]);
     expect(textsOf(panel(root, QUESTS), ".dd-big")).toEqual(["No active quests"]);
     expect(textsOf(panel(root, PURSE), ".dd-ledger .dd-empty")).toEqual([NO_COIN_ENTRIES]);
-    await vi.waitFor(() => expect(textsOf(panel(root, CHARACTERS), ".dd-empty")).toEqual([NO_CHARACTERS]));
+    await view.charactersDrawn();
+    expect(textsOf(panel(root, CHARACTERS), ".dd-empty")).toEqual([NO_CHARACTERS]);
     expect(textsOf(panel(root, SESSION), ".dd-title")).toEqual(["Latest session"]);
     expect(textsOf(panel(root, SESSION), ".dd-empty")).toEqual(["No sessions yet. Start one to write in it."]);
   });
@@ -322,9 +323,10 @@ describe("DashboardPage", () => {
 
   it("shows each character's class, AC and HP, marks the player's own, and opens their sheet", async () => {
     const sessions = [sessionOf(1, ["[[Mira]] class: rogue, AC: 15", "[[Thessaly]] HP: 22"])];
-    const { root, actions } = await openDashboard(sessions, { characters: ["Mira", "Thessaly"], own: "Mira" });
+    const { view, root, actions } = await openDashboard(sessions, { characters: ["Mira", "Thessaly"], own: "Mira" });
     const characters = panel(root, CHARACTERS);
-    await vi.waitFor(() => expect(textsOf(characters, ".dd-stat-block-name")).toEqual(["Mira", "Thessaly"]));
+    await view.charactersDrawn();
+    expect(textsOf(characters, ".dd-stat-block-name")).toEqual(["Mira", "Thessaly"]);
     expect(textsOf(characters, ".dd-stat-block-line")).toEqual(["Class rogue · AC 15 · HP ?", "Class ? · AC ? · HP 22"]);
     expect(textsOf(characters, ".dd-card-own-label")).toEqual(["Your character"]);
     expect(characters.querySelectorAll(".dd-card.dd-stat-block")).toHaveLength(2);
@@ -336,26 +338,31 @@ describe("DashboardPage", () => {
 
   it("puts the player's own character first, and the others in the order the Characters folder lists them", async () => {
     const characters = ["Brother Aldric", "Lady Vess", "Mira", "Thessaly"];
-    const { root } = await openDashboard([], { characters, own: "Mira" });
-    await vi.waitFor(() => expect(textsOf(panel(root, CHARACTERS), ".dd-stat-block-name")).toEqual(["Mira", "Brother Aldric", "Lady Vess", "Thessaly"]));
+    const { view, root } = await openDashboard([], { characters, own: "Mira" });
+    await view.charactersDrawn();
+    expect(textsOf(panel(root, CHARACTERS), ".dd-stat-block-name")).toEqual(["Mira", "Brother Aldric", "Lady Vess", "Thessaly"]);
   });
 
   it("moves the new own character first when the campaign note changes", async () => {
-    const { root, owner, noteChanged } = await openDashboard([], { characters: ["Mira", "Thessaly"], own: "Mira" });
-    await vi.waitFor(() => expect(textsOf(panel(root, CHARACTERS), ".dd-stat-block-name")).toEqual(["Mira", "Thessaly"]));
+    const { view, root, owner, noteChanged } = await openDashboard([], { characters: ["Mira", "Thessaly"], own: "Mira" });
+    await view.charactersDrawn();
+    expect(textsOf(panel(root, CHARACTERS), ".dd-stat-block-name")).toEqual(["Mira", "Thessaly"]);
     owner.name = "Thessaly";
     noteChanged(`${CAMPAIGN}/${CAMPAIGN}.md`);
-    await vi.waitFor(() => expect(textsOf(panel(root, CHARACTERS), ".dd-stat-block-name")).toEqual(["Thessaly", "Mira"]));
+    await view.charactersDrawn();
+    expect(textsOf(panel(root, CHARACTERS), ".dd-stat-block-name")).toEqual(["Thessaly", "Mira"]);
   });
 
   it("shows no characters without a campaign", async () => {
-    const { root } = await openDashboard([], { folder: null, characters: ["Mira"] });
-    await vi.waitFor(() => expect(textsOf(panel(root, CHARACTERS), ".dd-empty")).toEqual([NO_CHARACTERS]));
+    const { view, root } = await openDashboard([], { folder: null, characters: ["Mira"] });
+    await view.charactersDrawn();
+    expect(textsOf(panel(root, CHARACTERS), ".dd-empty")).toEqual([NO_CHARACTERS]);
   });
 
   it("redraws the characters when a character note or the campaign note changes, and not for other notes", async () => {
-    const { root, reads, noteChanged } = await openDashboard([], { characters: ["Mira"] });
-    await vi.waitFor(() => expect(textsOf(root, ".dd-stat-block-name")).toEqual(["Mira"]));
+    const { view, root, reads, noteChanged } = await openDashboard([], { characters: ["Mira"] });
+    await view.charactersDrawn();
+    expect(textsOf(root, ".dd-stat-block-name")).toEqual(["Mira"]);
     const before = reads.count;
     noteChanged(`${CAMPAIGN}/Sessions/Session 1.md`);
     noteChanged(`Ashen Road/Characters/Mira.md`);
@@ -380,11 +387,12 @@ describe("DashboardPage", () => {
       if (calls === 1) return new Promise<string>((resolve) => (finishFirst = resolve));
       return Promise.resolve("AC: 18");
     };
-    const { root, change } = await openDashboard([], { characters: ["Mira"], textOf });
+    const { view, root, change } = await openDashboard([], { characters: ["Mira"], textOf });
     change([]);
-    await vi.waitFor(() => expect(textsOf(root, ".dd-stat-block-line")).toEqual(["Class ? · AC 18 · HP ?"]));
-    finishFirst("AC: 12");
     await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(textsOf(root, ".dd-stat-block-line")).toEqual(["Class ? · AC 18 · HP ?"]);
+    finishFirst("AC: 12");
+    await view.charactersDrawn();
     expect(textsOf(root, ".dd-stat-block-line")).toEqual(["Class ? · AC 18 · HP ?"]);
   });
 

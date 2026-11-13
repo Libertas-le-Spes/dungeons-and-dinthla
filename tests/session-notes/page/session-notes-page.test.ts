@@ -128,12 +128,13 @@ describe("SessionNotesPage", () => {
   it("puts the box in front, holding this session's draft, and saves into this session", async () => {
     const drafts = new Drafts({}, () => {});
     drafts.keep(`${FOLDER}/Sessions/Session 11.md`, "? Why does the wheel turn");
-    const { root, writer } = pageWith(SESSIONS, `${FOLDER}/Sessions/Session 11.md`, { drafts });
+    const { page, root, writer } = pageWith(SESSIONS, `${FOLDER}/Sessions/Session 11.md`, { drafts });
     const box = root.querySelector("textarea")!;
     expect(box.value).toBe("? Why does the wheel turn");
     expect(root.ownerDocument.activeElement).toBe(box);
     root.querySelector<HTMLButtonElement>(".dd-save")!.click();
-    await vi.waitFor(() => expect(writer.save).toHaveBeenCalledExactlyOnceWith(`${FOLDER}/Sessions/Session 11.md`, "? Why does the wheel turn"));
+    await page.settled();
+    expect(writer.save).toHaveBeenCalledExactlyOnceWith(`${FOLDER}/Sessions/Session 11.md`, "? Why does the wheel turn");
   });
 
   it("redraws the lines when the session note changes, keeping the box as typed", () => {
@@ -315,7 +316,8 @@ describe("SessionNotesPage", () => {
     const notes = new FakeNotes(twelve, "Tracks lead to the [[Old Mill]].\n! Find the carvan");
     const { root, page, drafts } = pageWith(SESSIONS, twelve, { notes });
     root.querySelector<HTMLButtonElement>(".dd-edit-all")!.click();
-    await vi.waitFor(() => expect(root.querySelector<HTMLTextAreaElement>(".dd-edit-all-panel textarea")!.value).toBe("Tracks lead to the [[Old Mill]].\n! Find the carvan"));
+    await page.settled();
+    expect(root.querySelector(".dd-edit-all-panel textarea")).toHaveProperty("value", "Tracks lead to the [[Old Mill]].\n! Find the carvan");
     const box = root.querySelector<HTMLTextAreaElement>(".dd-edit-all-panel textarea")!;
     box.value = "Tracks lead to the [[Old Mill]].\n! Find the caravan";
     box.dispatchEvent(new box.ownerDocument.defaultView!.Event("input"));
@@ -327,9 +329,10 @@ describe("SessionNotesPage", () => {
   it("asks before deleting the session shown, naming it, then shows the latest session left", async () => {
     const twelve = `${FOLDER}/Sessions/Session 12.md`;
     const notes = new FakeNotes(twelve, "Tracks lead to the [[Old Mill]].\n! Find the caravan");
-    const { root, moves, confirm, trashFile } = pageWith(SESSIONS, twelve, { notes, latestAfterDelete: `${FOLDER}/Sessions/Session 11.md` });
+    const { page, root, moves, confirm, trashFile } = pageWith(SESSIONS, twelve, { notes, latestAfterDelete: `${FOLDER}/Sessions/Session 11.md` });
     root.querySelector<HTMLButtonElement>(".dd-delete-session")!.click();
-    await vi.waitFor(() => expect(moves.showSession).toHaveBeenCalledExactlyOnceWith(`${FOLDER}/Sessions/Session 11.md`));
+    await page.settled();
+    expect(moves.showSession).toHaveBeenCalledExactlyOnceWith(`${FOLDER}/Sessions/Session 11.md`);
     expect(confirm.mock.calls[0]![0].title).toBe("Delete Session 12 · The Old Mill?");
     expect(trashFile).toHaveBeenCalledExactlyOnceWith({ path: twelve });
     expect(moves.showNoSession).not.toHaveBeenCalled();
@@ -338,9 +341,10 @@ describe("SessionNotesPage", () => {
   it("says there are no sessions left after deleting the only one", async () => {
     const twelve = `${FOLDER}/Sessions/Session 12.md`;
     const notes = new FakeNotes(twelve, "Tracks");
-    const { root, moves } = pageWith([SESSIONS[1]!], twelve, { notes });
+    const { page, root, moves } = pageWith([SESSIONS[1]!], twelve, { notes });
     root.querySelector<HTMLButtonElement>(".dd-delete-session")!.click();
-    await vi.waitFor(() => expect(moves.showNoSession).toHaveBeenCalledOnce());
+    await page.settled();
+    expect(moves.showNoSession).toHaveBeenCalledOnce();
     expect(moves.showSession).not.toHaveBeenCalled();
   });
 

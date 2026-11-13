@@ -14,18 +14,15 @@ const TYPED = "The wheel turns at night. [[Lady Vess]] owns it.";
 const WINDOWS_NOTE = "The wheel turns.\r\nRain.\r\n";
 const WINDOWS_NOTE_IN_BOX = "The wheel turns.\nRain.\n";
 
-function flushed(): Promise<void> {
-  return new Promise((done) => setTimeout(done, 0));
-}
-
 interface Setup {
   text?: string | null;
   drafts?: Drafts;
   notes?: FakeNotes;
   inCampaign?: boolean;
+  readHeld?: boolean;
 }
 
-async function openNote({ text = LOADED, drafts = new Drafts({}, () => {}), notes = new FakeNotes(OLD_MILL, text), inCampaign = true }: Setup = {}) {
+async function openNote({ text = LOADED, drafts = new Drafts({}, () => {}), notes = new FakeNotes(OLD_MILL, text), inCampaign = true, readHeld = false }: Setup = {}) {
   const document = obsidianDocument();
   const root = document.createElement("div");
   document.body.append(root);
@@ -36,7 +33,7 @@ async function openNote({ text = LOADED, drafts = new Drafts({}, () => {}), note
   const needs = { texts: notes.texts, drafts: noteDrafts, saver: new NoteSaver(notes.vault), actions, isCampaignNote, openInEditor };
   const page = new NotePage(root, OLD_MILL, needs);
   page.load();
-  await flushed();
+  if (!readHeld) await page.editingSettled();
   const box = root.querySelector("textarea")!;
   const window = document.defaultView!;
   const type = (typed: string) => {
@@ -51,7 +48,7 @@ async function openNote({ text = LOADED, drafts = new Drafts({}, () => {}), note
   const saveButton = root.querySelector<HTMLButtonElement>(".dd-save")!;
   const reloadButton = root.querySelector<HTMLButtonElement>(".dd-reload")!;
   const message = () => root.querySelector(".dd-save-message")!.textContent;
-  const settle = () => vi.waitFor(() => expect(noteDrafts.isSaving(OLD_MILL)).toBe(false));
+  const settle = page.editingSettled.bind(page);
   return { root, page, box, notes, noteDrafts, drafts, actions, type, press, saveButton, reloadButton, message, settle, isCampaignNote, openInEditor };
 }
 
@@ -164,14 +161,15 @@ describe("NotePage", () => {
   });
 
   it("loads the note again, dropping what was typed, only on a second press", async () => {
-    const { notes, box, reloadButton, type, noteDrafts, message } = await openNote();
+    const { page, notes, box, reloadButton, type, noteDrafts, message } = await openNote();
     type(TYPED);
     notes.changeElsewhere("The wheel is still.");
     reloadButton.click();
     expect(reloadButton.textContent).toBe("Press again to drop what you typed");
     expect(box.value).toBe(TYPED);
     reloadButton.click();
-    await vi.waitFor(() => expect(box.value).toBe("The wheel is still."));
+    await page.editingSettled();
+    expect(box.value).toBe("The wheel is still.");
     expect(noteDrafts.draftOf(OLD_MILL)).toBeNull();
     expect(message()).toBe("");
     expect(isShown(reloadButton)).toBe(false);
@@ -305,10 +303,10 @@ describe("NotePage", () => {
   it("leaves the box empty and read-only when the note is read only after the page was closed", async () => {
     const notes = new FakeNotes(OLD_MILL, LOADED);
     const release = notes.holdRead();
-    const { page, box, saveButton } = await openNote({ notes });
+    const { page, box, saveButton } = await openNote({ notes, readHeld: true });
     page.unload();
     release();
-    await flushed();
+    await page.editingSettled();
     expect(notes.read).toHaveBeenCalledOnce();
     expect(box.value).toBe("");
     expect(box.readOnly).toBe(true);
@@ -334,7 +332,7 @@ describe("NotePage", () => {
   it("can't be left for the editor before the note is loaded", async () => {
     const notes = new FakeNotes(OLD_MILL, LOADED);
     notes.holdRead();
-    const { root } = await openNote({ notes, inCampaign: false });
+    const { root } = await openNote({ notes, inCampaign: false, readHeld: true });
     expect(root.querySelector<HTMLButtonElement>(".dd-open-in-editor")!.disabled).toBe(true);
   });
 

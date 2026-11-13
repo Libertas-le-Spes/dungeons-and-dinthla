@@ -28,5 +28,5 @@ export function startSession(app: App, gate: Gate, campaignFolder: string | null
     return;
   }
   const number = nextSessionNumber(gate.files.getFiles().map((file) => file.path), campaignFolder);
-  new NewSessionModal(app, number, (session) => void makeAndOpen(app, gate, campaignFolder, session, openNotes)).open();
+  new NewSessionModal(app, number, (session) => makeAndOpen(app, gate, campaignFolder, session, openNotes)).open();
 }

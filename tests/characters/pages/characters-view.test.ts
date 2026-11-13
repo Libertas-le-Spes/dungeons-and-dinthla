@@ -101,13 +101,14 @@ function openGallery({
   };
   const show = async (shown: (string | TFile)[]) => {
     update(shown);
-    await vi.waitFor(() => expect(container.querySelector(".dd-title")).not.toBeNull());
+    await view.rendered();
   };
   view.onload();
   const unload = () => {
     for (const callback of registered) callback();
   };
   return {
+    view,
     container,
     store,
     actions,
@@ -272,7 +273,8 @@ describe("CharactersView", () => {
     gallery.container.querySelector<HTMLElement>(".dd-create")!.click();
     const [[returnFocus]] = gallery.newCharacter.mock.calls as [[() => void]];
     gallery.update(["Mira"]);
-    await vi.waitFor(() => expect(gallery.container.querySelector(".dd-card")).not.toBeNull());
+    await gallery.view.rendered();
+    expect(gallery.container.querySelector(".dd-card")).not.toBeNull();
     returnFocus();
     expect(gallery.container.ownerDocument.activeElement).toBe(gallery.container.querySelector(".dd-create"));
   });
@@ -282,7 +284,8 @@ describe("CharactersView", () => {
     await gallery.show(["Mira"]);
     gallery.store.sessionNotes = [sessionOf(1, ["[[Mira]] HP: 12"])];
     gallery.listener();
-    await vi.waitFor(() => expect(textsOf(gallery.container, ".dd-stat-block-line")[2]).toBe("Hit Points 12"));
+    await gallery.view.rendered();
+    expect(textsOf(gallery.container, ".dd-stat-block-line")[2]).toBe("Hit Points 12");
     expect(gallery.container.querySelectorAll(".dd-card")).toHaveLength(1);
   });
 
@@ -331,7 +334,8 @@ describe("CharactersView", () => {
     await gallery.show(["Mira", "Thessaly"]);
     gallery.owner.name = "Thessaly";
     gallery.noteChanged("Pale Moon/Pale Moon.md");
-    await vi.waitFor(() => expect(textsOf(gallery.container, ".dd-card-own .dd-stat-block-name")).toEqual(["Thessaly"]));
+    await gallery.view.rendered();
+    expect(textsOf(gallery.container, ".dd-card-own .dd-stat-block-name")).toEqual(["Thessaly"]);
     expect(textsOf(gallery.container, ".dd-stat-block-name")).toEqual(["Thessaly", "Mira"]);
   });
 
@@ -355,9 +359,11 @@ describe("CharactersView", () => {
     };
     const gallery = openGallery({ textOf });
     gallery.update(["Mira"]);
-    await gallery.show(["Lady Vess"]);
-    finishFirst("");
+    gallery.update(["Lady Vess"]);
     await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(textsOf(gallery.container, ".dd-stat-block-name")).toEqual(["Lady Vess"]);
+    finishFirst("");
+    await gallery.view.rendered();
     expect(textsOf(gallery.container, ".dd-stat-block-name")).toEqual(["Lady Vess"]);
   });
 });
