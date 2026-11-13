@@ -1,0 +1,107 @@
+[
+ {
+  "id": "fence: main.ts may import imports",
+  "file": "tests/build/inner-folders.test.ts",
+  "find": "const IMPORTS_IMPORTERS: string[] = [\"main.ts\"];",
+  "replace": "const IMPORTS_IMPORTERS: string[] = [];",
+  "group": "folders"
+ },
+ {
+  "id": "fence: characters may import the layout",
+  "file": "tests/build/inner-folders.test.ts",
+  "find": "const LAYOUT_IMPORTERS: string[] = [\"imports\", \"characters\"];",
+  "replace": "const LAYOUT_IMPORTERS: string[] = [\"imports\"];",
+  "group": "folders"
+ },
+ {
+  "id": "fence: imports may reach views",
+  "file": "tests/build/inner-folders.test.ts",
+  "find": "\"fence/gate\", \"campaign\", \"views\"] },",
+  "replace": "\"fence/gate\", \"campaign\"] },",
+  "group": "folders"
+ },
+ {
+  "id": "fence: picker's page members",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"imports/dialog/picking/pdf-picker.ts\": [\"addEventListener\", \"arrayBuffer\", \"files\", \"focus\", \"item\", \"size\"],\n",
+  "replace": "",
+  "group": "allow"
+ },
+ {
+  "id": "fence: picker lists only what it uses",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "[\"addEventListener\", \"arrayBuffer\", \"files\", \"focus\", \"item\", \"size\"]",
+  "replace": "[\"addEventListener\", \"arrayBuffer\", \"files\", \"focus\", \"item\", \"size\", \"value\"]",
+  "group": "allow"
+ },
+ {
+  "id": "fence: button focus",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"characters/imported/drawing/beyond-button.ts\": [\"focus\"],\n",
+  "replace": "",
+  "group": "allow"
+ },
+ {
+  "id": "fence: inflating members",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"pdf/streams/inflate/platform-inflating.ts\": [\"getReader\", \"pipeThrough\", \"stream\"],\n",
+  "replace": "",
+  "group": "allow"
+ },
+ {
+  "id": "fence: clock member",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"pdf/work/clock.ts\": [\"now\"],\n",
+  "replace": "",
+  "group": "allow"
+ },
+ {
+  "id": "fence: picker's Uint8Array",
+  "file": "tests/fence/allowed/globals.ts",
+  "find": "  \"imports/dialog/picking/pdf-picker.ts\": [\"Uint8Array\"],\n",
+  "replace": "",
+  "group": "allow"
+ },
+ {
+  "id": "fence: inflating globals",
+  "file": "tests/fence/allowed/globals.ts",
+  "find": "  \"pdf/streams/inflate/platform-inflating.ts\": [\"Blob\", \"DecompressionStream\", \"Uint8Array\"],\n",
+  "replace": "",
+  "group": "allow"
+ },
+ {
+  "id": "fence: clock global",
+  "file": "tests/fence/allowed/globals.ts",
+  "find": "  \"pdf/work/clock.ts\": [\"performance\"],\n",
+  "replace": "",
+  "group": "allow"
+ },
+ {
+  "id": "fence: data view global",
+  "file": "tests/fence/allowed/globals.ts",
+  "find": "  \"pdf/bytes/data-view-of.ts\": [\"DataView\"],\n",
+  "replace": "  \"pdf/bytes/data-view-of.ts\": [\"DataView\"],\n  \"pdf/bytes/read-integer.ts\": [\"Uint8Array\"],\n",
+  "group": "allow"
+ },
+ {
+  "id": "fence: imports' Obsidian names",
+  "file": "tests/fence/allowed/obsidian-imports.ts",
+  "find": "  \"imports/\": [\"App\", \"ButtonComponent\", \"TFile\"],\n",
+  "replace": "",
+  "group": "allow"
+ },
+ {
+  "id": "fence: imports' Obsidian names exact",
+  "file": "tests/fence/allowed/obsidian-imports.ts",
+  "find": "[\"App\", \"ButtonComponent\", \"TFile\"]",
+  "replace": "[\"App\", \"ButtonComponent\", \"Modal\", \"TFile\"]",
+  "group": "allow"
+ },
+ {
+  "id": "fence: score row keys",
+  "file": "tests/fence/allowed/computed-keys.ts",
+  "find": "  \"imports/note/rows/score-row.ts\",\n",
+  "replace": "",
+  "group": "allow"
+ }
+]
