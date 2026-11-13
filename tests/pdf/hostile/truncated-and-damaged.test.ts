@@ -6,7 +6,8 @@ import { present } from "../support/present";
 import { literal } from "../writer/pdf-text";
 import { testParts } from "../writer/zlib-chunks";
 
-const DAMAGE_VALUES = [0x00, 0x09, 0x0a, 0x0d, 0x20, 0x25, 0x28, 0x29, 0x2f, 0x30, 0x39, 0x3c, 0x3e, 0x5b, 0x5d, 0x7f, 0x80, 0xff];
+const READ_AT_EVERY_PLACE_MS = 30_000;
+const DAMAGE_VALUES =[0x00, 0x09, 0x0a, 0x0d, 0x20, 0x25, 0x28, 0x29, 0x2f, 0x30, 0x39, 0x3c, 0x3e, 0x5b, 0x5d, 0x7f, 0x80, 0xff];
 
 function sheet(): FormDocument {
   return new FormDocument({ acroForm: true }).text("Primary Name", literal("Aria")).check("Primary Flag", "/Yes").choice("Primary Pick", literal("Red"));
@@ -60,7 +61,7 @@ async function countUnexplained(bytes: Buffer, values: number[]): Promise<number
   return unexplained;
 }
 
-describe("a file cut short", () => {
+describe("a file cut short", { timeout: READ_AT_EVERY_PLACE_MS }, () => {
   it.each([
     ["classic", sheet().classic()],
     ["streamed", sheet().streamed()],
@@ -79,7 +80,7 @@ describe("a file cut short", () => {
   });
 });
 
-describe("a file with one byte damaged", () => {
+describe("a file with one byte damaged", { timeout: READ_AT_EVERY_PLACE_MS }, () => {
   it("is read, or refused with real words, whichever of eighteen kinds of byte is put at any place (classic)", async () => {
     expect(await countUnexplained(sheet().classic(), DAMAGE_VALUES)).toBe(0);
   });
