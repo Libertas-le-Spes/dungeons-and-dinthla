@@ -76,6 +76,25 @@ describe("importing a character from a made-up PDF", () => {
     expect(dialog.root.querySelector(".dd-import-write")).toBeNull();
   });
 
+  it("offers no note in a folder inside the Characters folder", async () => {
+    vault.note(`${CHARACTERS_FOLDER}/Old/Primary.md`, "Notes of mine.\n");
+    const dialog = importDialog();
+    dialog.pick(pickedFileOf(monkPdf()));
+    await dialog.settled(".dd-import-write");
+    expect(dialog.texts(".dd-where")).toEqual(["Make a new note, Primary Monk"]);
+    expect(dialog.root.querySelector(".dd-import-target")).toBeNull();
+  });
+
+  it("shows the note's refusal in words, and offers no Update, when the note can't take an import", async () => {
+    vault.note(SHORT_NOTE, "## Spells (from D&D Beyond)\n- One\n## Spells (from D&D Beyond)\n- Two\n");
+    const dialog = updateDialog(SHORT_NOTE);
+    dialog.pick(pickedFileOf(monkPdf()));
+    const refusal = await dialog.settled(".dd-import-refusal");
+    expect(refusal.textContent).toBe('The note has two "## Spells (from D&D Beyond)" sections, so nothing was written. Remove one.');
+    expect(dialog.root.querySelector(".dd-import-write")).toBeNull();
+    expect(vault.processed).toEqual([]);
+  });
+
   it("lists every value an update of that note would replace, and writes exactly the import on Update", async () => {
     vault.note(SHORT_NOTE, "Notes of mine.\n");
     const dialog = importDialog();
