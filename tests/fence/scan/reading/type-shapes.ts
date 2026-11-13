@@ -1,6 +1,7 @@
 import { isObjectType, ObjectFlags, TypeFlags, type Symbol as TypeSymbol, type Type, type TypeReference, type UnionOrIntersectionType } from "typescript/unstable/sync";
 import { isGateTypeSource } from "./gate-paths";
-import { GLOBAL_OWNERS, LIBRARY_FOLDER, OBSIDIAN_FOLDER } from "./names";
+import { isInLibraryFolder, isInObsidianFolder } from "./library-paths";
+import { GLOBAL_OWNERS } from "./names";
 
 export function membersOf(type: Type): readonly Type[] {
   if ((type.flags & (TypeFlags.Union | TypeFlags.Intersection)) === 0) return [type];
@@ -35,7 +36,7 @@ export function isOwnedByOneOf(symbol: OwnedSymbol | undefined, owners: string[]
 export function isObsidianOwnedByOneOf(symbol: TypeSymbol | undefined, owners: string[]): boolean {
   if (symbol === undefined || symbol.getParent() !== undefined) return isOwnedByOneOf(symbol, owners);
   if (symbol.declarations.length === 0) return true;
-  return symbol.declarations.some((declaration) => declaration.path.includes(OBSIDIAN_FOLDER));
+  return symbol.declarations.some((declaration) => isInObsidianFolder(declaration.path));
 }
 
 export function anyMemberCould(type: Type | undefined, could: (member: Type) => boolean): boolean {
@@ -50,7 +51,7 @@ export function isLibraryType(type: Type): boolean {
 }
 
 export function isLibraryFile(path: string): boolean {
-  return path.includes(LIBRARY_FOLDER);
+  return isInLibraryFolder(path);
 }
 
 export function isLibraryReference(type: Type): type is TypeReference {

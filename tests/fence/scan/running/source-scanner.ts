@@ -20,10 +20,11 @@ import { TypeQueries } from "../reading/type-queries";
 import { isLibraryFile } from "../reading/type-shapes";
 import { vaultAccessBreaches } from "../vault-rules/vault-access-rules";
 import { workspaceEventBreaches } from "../vault-rules/workspace-event-rules";
+import { writtenReportBreaches } from "../vault-rules/written-report-rules";
 
 export type { Allowances } from "../reading/allowances";
 
-const RULES: Rules[] = [vaultAccessBreaches, editorViewBreaches, openingBreaches, workspaceEventBreaches, gateForgingBreaches, importBreaches, globalBreaches, codeTextBreaches, pageElementBreaches, pageTextBreaches, computedKeyBreaches, pageMemberBreaches];
+const RULES: Rules[] = [vaultAccessBreaches, editorViewBreaches, openingBreaches, workspaceEventBreaches, writtenReportBreaches, gateForgingBreaches, importBreaches, globalBreaches, codeTextBreaches, pageElementBreaches, pageTextBreaches, computedKeyBreaches, pageMemberBreaches];
 
 export class SourceScanner {
   private readonly api: API;

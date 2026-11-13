@@ -154,4 +154,56 @@ describe("SavedCampaign", () => {
     expect(fileEvents.stopped).toHaveLength(2);
     expect(metadataEvents.stopped).toHaveLength(1);
   });
+
+  it("lists the session notes it has read", async () => {
+    const { saved, shown } = savedCampaignOf(SAVED);
+    saved.start();
+    await shown.open(CAMPAIGN);
+    await settle();
+    expect(saved.sessionNotes.map((session) => session.path)).toEqual([SESSION]);
+  });
+
+  it("tells a listener which note was read and its text, after the campaign has taken it in", async () => {
+    const { saved, shown, saveSession } = savedCampaignOf(SAVED);
+    saved.start();
+    await shown.open(CAMPAIGN);
+    await settle();
+    const heard: { path: string; text: string; holders: string[] }[] = [];
+    saved.onNoteRead((path, text) => heard.push({ path, text, holders: holdersOf(saved) }));
+    saveSession("$$ Silvered lantern :changed to [[Baka]]");
+    expect(heard).toEqual([{ path: SESSION, text: "$$ Silvered lantern :changed to [[Baka]]", holders: ["Silvered lantern: [[Baka]]"] }]);
+  });
+
+  it("stops telling a listener that stopped listening", async () => {
+    const { saved, shown, saveSession } = savedCampaignOf(SAVED);
+    saved.start();
+    await shown.open(CAMPAIGN);
+    await settle();
+    const heard: string[] = [];
+    const stop = saved.onNoteRead((path) => heard.push(path));
+    stop();
+    saveSession("$$ Silvered lantern :changed to [[Baka]]");
+    expect(heard).toEqual([]);
+  });
+
+  it("tells a listener when the campaign it follows has been read", async () => {
+    const { saved, shown } = savedCampaignOf(SAVED);
+    const opened: string[] = [];
+    saved.onOpened((folder) => opened.push(folder));
+    saved.start();
+    await shown.open(CAMPAIGN);
+    await settle();
+    expect(opened).toEqual([CAMPAIGN]);
+  });
+
+  it("doesn't say a campaign was read when another was chosen before it finished", async () => {
+    const { saved, shown } = savedCampaignOf(SAVED);
+    const opened: string[] = [];
+    saved.onOpened((folder) => opened.push(folder));
+    saved.start();
+    await shown.open(CAMPAIGN);
+    shown.close();
+    await settle();
+    expect(opened).toEqual([]);
+  });
 });

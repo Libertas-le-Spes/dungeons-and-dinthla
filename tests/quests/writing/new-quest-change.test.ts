@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { Campaign, SessionNote } from "../../../src/campaign/record/campaign";
-import type { EditorFiles } from "../../../src/campaign/writing/note-editor";
+import { WOULD_BE_HIDDEN, type EditorFiles } from "../../../src/campaign/writing/note-editor";
 import { SessionChangeWriter } from "../../../src/campaign/changes/session-change-writer";
 import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
 import { writeRecordChange } from "../../../src/campaign/changes/write-record-change";
@@ -88,5 +88,24 @@ describe("adding a quest", () => {
     const notes = new FakeNotes({ [ONE]: "", [TWO]: "" });
     await expect(add(notes, "Has, from: x", "", "")).rejects.toThrow(WOULD_READ_DIFFERENTLY);
     expect(notes.writes).toBe(0);
+  });
+
+  it("refuses a quest that would land below a comment that never closes, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "", [TWO]: "%% a note to self\n" });
+    await expect(add(notes, "Escort Mira", "", "")).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.writes).toBe(0);
+  });
+
+  it("refuses a quest when the note, changed since it was read, now has a comment that never closes, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "", [TWO]: "" });
+    notes.texts.set(TWO, "%% added by a sync\n");
+    await expect(add(notes, "Escort Mira", "", "")).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.texts.get(TWO)).toBe("%% added by a sync\n");
+  });
+
+  it("writes a quest below a comment that has closed", async () => {
+    const notes = new FakeNotes({ [ONE]: "", [TWO]: "%% a note to self %%\n" });
+    expect(await add(notes, "Escort Mira", "", "")).toBe(true);
+    expect(notes.texts.get(TWO)).toBe("%% a note to self %%\n! Escort Mira\n");
   });
 });

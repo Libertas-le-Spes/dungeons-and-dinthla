@@ -1,5 +1,6 @@
 import type { CoinRecord, ItemRecord, SessionNote } from "../../campaign/record/campaign";
 import { CHANGED_IN_NOTE, type EditorFiles } from "../../campaign/writing/note-editor";
+import { notHidden } from "../../campaign/changes/hidden-refusal";
 import type { RecordChange } from "../../campaign/changes/record-change";
 import { refusedWhen, verdictOf, writeNothingWhen } from "../../campaign/changes/verdict";
 import { planItemSave, refusalForItemPlan, type ItemEdit, type ItemPlan } from "./item-plan";
@@ -25,6 +26,7 @@ export function itemSave(asOpened: ItemAsOpened, item: ItemRecord, edit: ItemEdi
       (plan) => writeNothingWhen(writesNothing(plan)),
       async () => refusedWhen(!(await readsAsOpened(asOpened.files, asOpened.store, asOpened.sessions, item)), CHANGED_IN_NOTE),
       (plan) => verdictOf(refusalForItemPlan(asOpened.sessions, item, plan)),
+      notHidden(() => asOpened.sessions, itemSessionChange),
     ],
     sessionChangeOf: itemSessionChange,
   };

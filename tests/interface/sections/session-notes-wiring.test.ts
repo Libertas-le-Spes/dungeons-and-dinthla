@@ -6,6 +6,7 @@ import { FencedFileActions, type RawFileManager } from "../../../src/fence/gate/
 import { FencedFiles } from "../../../src/fence/gate/fenced-files";
 import { FencedMetadata, type RawMetadata } from "../../../src/fence/gate/fenced-metadata";
 import { HeldFiles } from "../../../src/fence/gate/held-files";
+import { NoteReporter } from "../../../src/fence/gate/written-notes";
 import { sessionNotesWiring } from "../../../src/interface/sections/session-notes-wiring";
 import { NoteDrafts } from "../../../src/note-editing/note-drafts";
 import { Drafts } from "../../../src/session-notes/drafts/drafts";
@@ -29,9 +30,10 @@ function wiredWith(trashOption: string) {
     offref: vi.fn(),
   };
   const fileManager = { processFrontMatter: vi.fn(), renameFile: vi.fn(), trashFile: vi.fn() };
+  const reporter = new NoteReporter();
   const gate = {
-    files: new FencedFiles(vault, held),
-    fileActions: new FencedFileActions(fileManager as unknown as RawFileManager, held),
+    files: new FencedFiles(vault, held, reporter),
+    fileActions: new FencedFileActions(fileManager as unknown as RawFileManager, held, reporter),
     metadata: new FencedMetadata(rawMetadata as unknown as RawMetadata, held),
     vaultSettings: { trashOption: () => trashOption },
   };

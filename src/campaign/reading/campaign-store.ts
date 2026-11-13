@@ -29,6 +29,10 @@ export class CampaignStore {
     return this.folder;
   }
 
+  get opening(): boolean {
+    return this.isOpening();
+  }
+
   subscribe(listener: CampaignListener): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);

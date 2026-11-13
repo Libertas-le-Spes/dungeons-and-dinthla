@@ -102,6 +102,18 @@ describe("saving a quest", () => {
     expect(notes.writes).toBe(0);
   });
 
+  it("writes a follow-up quest below an odd number of item lines, which hide nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "! Find it\n$$ Silvered lantern :sold 30gp\n" });
+    expect(await save(notes, "Find it", { followUp: "Other" }, ONE)).toBe(true);
+    expect(notes.texts.get(ONE)).toBe("! Find it\n$$ Silvered lantern :sold 30gp\n! Other, after: Find it\n");
+  });
+
+  it("refuses a follow-up quest below a math block that never closes, writing nothing", async () => {
+    const notes = new FakeNotes({ [ONE]: "! Find it\n$$\nx: 2\n" });
+    await expect(save(notes, "Find it", { followUp: "Other" }, ONE)).rejects.toThrow(WOULD_BE_HIDDEN);
+    expect(notes.writes).toBe(0);
+  });
+
   it("writes a follow-up quest below a comment that has closed", async () => {
     const notes = new FakeNotes({ [ONE]: "! Find it\n%% a note to self %%\n" });
     expect(await save(notes, "Find it", { followUp: "Other" }, ONE)).toBe(true);

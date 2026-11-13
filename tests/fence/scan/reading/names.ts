@@ -43,8 +43,6 @@ export const EDITOR_HOOKS = [
   "editorLivePreviewField",
 ];
 
-export const CODE_MIRROR_FOLDER = "/node_modules/@codemirror/";
-
 export const CODE_MIRROR_MODULE = "@codemirror/";
 
 export const DOCUMENT = "doc";
@@ -102,10 +100,6 @@ export const WHOLE_COPIERS = [
 ];
 
 export const REACHING_HOLDERS = ["app", "workspace"];
-
-export const LIBRARY_FOLDER = "/node_modules/";
-
-export const OBSIDIAN_FOLDER = "/node_modules/obsidian/";
 
 export const FILE_OPENER = "openFile";
 
@@ -173,8 +167,6 @@ export const OPTION_TAKERS = [
 export const CSS_PROPERTY_SETTERS = ["setCssProps"];
 
 export const PICTURE_CSS = "PictureCss";
-
-export const PICTURE_CSS_SOURCE = "/src/campaign/background/picture-css.ts";
 
 export const PICTURE_VALUE = "value";
 
