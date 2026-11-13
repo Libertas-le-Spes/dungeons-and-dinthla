@@ -13,6 +13,17 @@ describe("a line as the import writes it", () => {
     expect(isImporterWritten(line)).toBe(false);
   });
 
+  it.each(["Potion\\: Healing", "Spell Scroll\\: Fireball", "\\(Ammo) Arrows", '\\"Lucky" Charm', "\\+1 Dagger", "1\\. Arrows", "\\~Cloak"])(
+    "is %s, which the import guarded at the start of the line",
+    function guarded(line: string): void {
+      expect(isImporterWritten(line)).toBe(true);
+    },
+  );
+
+  it.each(["Potion: Healing", "(Ammo) Arrows", '"Lucky" Charm', "+1 Dagger", "1. Arrows", "~Cloak"])("isn't %s, whose start the import would have guarded", function typed(line: string): void {
+    expect(isImporterWritten(line)).toBe(false);
+  });
+
   it("holds no more characters than the import writes in a name", () => {
     expect(isImporterWritten("é".repeat(MOST_TRACKED_NAME_CHARACTERS))).toBe(true);
     expect(isImporterWritten("é".repeat(MOST_TRACKED_NAME_CHARACTERS + 1))).toBe(false);

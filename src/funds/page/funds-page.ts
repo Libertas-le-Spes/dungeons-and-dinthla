@@ -12,7 +12,7 @@ import type { CoinOutcome } from "../coins/coin-modal";
 import { addLedgerRow, NO_COIN_ENTRIES } from "./ledger-row";
 import type { OpenLedgerEntry } from "../coins/open-ledger-entry";
 import { focusRowAt, NO_ROW, RowFocus } from "../../views/lists/row-focus";
-import { withoutEscapes } from "../../characters/imported/reading/shown-text";
+import { shownItemName } from "../../characters/imported/lists/shown-item-name";
 
 const HOW_LINES_ARE_READ =
   "A $ line with an amount is coin; without one, it is an item. An amount is money out when it has a minus sign, or when “paid”, “spent”, “bought”, “gave” or “lost” comes before it with no comma between. A plus sign keeps it in.";
@@ -203,7 +203,7 @@ export class FundsPage extends Component {
     if (goneWord === null) row.createSpan({ cls: "dd-mark dd-mark-ledger", text: "$" });
     else row.createSpan({ cls: "dd-mark dd-mark-gone", text: "✕", attr: { "aria-label": goneWord } });
     const body = row.createSpan({ cls: "dd-body" });
-    const name = body.createSpan({ cls: "dd-text", text: withoutEscapes(item.name) });
+    const name = body.createSpan({ cls: "dd-text", text: shownItemName(item.name) });
     const meta = body.createSpan({ cls: "dd-meta" });
     if (goneWord !== null) {
       name.addClass("dd-gone");

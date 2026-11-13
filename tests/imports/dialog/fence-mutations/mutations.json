@@ -9,15 +9,15 @@
  {
   "id": "fence: characters may import the layout",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "const LAYOUT_IMPORTERS: string[] = [\"imports\", \"characters\"];",
-  "replace": "const LAYOUT_IMPORTERS: string[] = [\"imports\"];",
+  "find": "const LAYOUT_IMPORTERS: string[] = [\"imports\", \"characters\", \"beyond\"];",
+  "replace": "const LAYOUT_IMPORTERS: string[] = [\"imports\", \"beyond\"];",
   "group": "folders"
  },
  {
   "id": "fence: imports may reach the shared dialogs",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "\"fence/gate\", \"campaign\", \"views/dialogs\"] },",
-  "replace": "\"fence/gate\", \"campaign\"] },",
+  "find": "\"campaign\", \"views/dialogs\", \"views/pending\"] },",
+  "replace": "\"campaign\", \"views/pending\"] },",
   "group": "folders"
  },
  {
@@ -100,8 +100,8 @@
  {
   "id": "fence: imports reach no other part of views",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "\"fence/gate\", \"campaign\", \"views/dialogs\"] },",
-  "replace": "\"fence/gate\", \"campaign\", \"views/dialogs\", \"views\"] },",
+  "find": "\"campaign\", \"views/dialogs\", \"views/pending\"] },",
+  "replace": "\"campaign\", \"views/dialogs\", \"views/pending\", \"views\"] },",
   "group": "folders"
  },
  {
