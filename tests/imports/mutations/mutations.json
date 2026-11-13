@@ -1339,7 +1339,7 @@
  {
   "id": "folders:   { folder: \"imports\", reaches: [\"import",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "  { folder: \"imports\", reaches: [\"imports\", \"imports/layout\", \"beyond\", \"names\", \"fence/gate\", \"campaign\", \"views/dialogs\"] },\n",
+  "find": "  { folder: \"imports\", reaches: [\"imports\", \"imports/layout\", \"beyond\", \"names\", \"fence/gate\", \"campaign\", \"views/dialogs\", \"views/pending\"] },\n",
   "replace": "",
   "group": "folders"
  },
