@@ -555,7 +555,10 @@ describe("CharacterSheetPage for an imported character", () => {
     expect(buttons).toHaveLength(1);
     buttons[0]!.click();
     expect(actions.updateFromBeyond).toHaveBeenCalledOnce();
-    expect(vi.mocked(actions.updateFromBeyond).mock.calls[0]![0]).toBe(MIRA);
+    const [[asked, returnFocus]] = vi.mocked(actions.updateFromBeyond).mock.calls as [[TFile, () => void]];
+    expect(asked).toBe(MIRA);
+    returnFocus();
+    expect(root.ownerDocument.activeElement).toBe(buttons[0]);
   });
 
   it("offers no update on a sheet nothing was imported into", async () => {
