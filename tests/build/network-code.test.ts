@@ -315,12 +315,12 @@ describe("the built plugin", () => {
     const bundle = await built(PLUGIN_BUNDLE);
     expect(bundle).toContain('require("obsidian")');
     expect(networkCodeIn(bundle)).toEqual([]);
-  }, 30_000);
+  });
 
   it("holds each code allowed in its place exactly as often as it is allowed", async () => {
     const bundle = await built(PLUGIN_BUNDLE);
     for (const allowed of ALLOWED_IN_PLACE) expect(timesIn(bundle, allowed.code), allowed.code).toBe(allowed.count);
-  }, 30_000);
+  });
 });
 
 describe("the built styles", () => {
@@ -328,5 +328,5 @@ describe("the built styles", () => {
     const styles = await built(STYLES_BUNDLE);
     expect(styles).toContain("url(data:font/woff2;base64,");
     expect(styleNetworkCodeIn(styles)).toEqual([]);
-  }, 30_000);
+  });
 });
