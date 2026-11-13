@@ -451,6 +451,20 @@ A renamed character keeps their lines when Obsidian's *Automatically update inte
 
 The lines are read when the sheet opens, and read again when Obsidian has resolved the links of a session that's on the list or now links to the character, and when a session on the list is deleted or renamed, once changes have settled for a moment. When the rest of the sheet redraws, the list is drawn again from the lines already read. A changed note is checked by its own links only, so writing elsewhere in a big vault costs a look at that note's links and no more.
 
+### Imported characters
+
+Planned, and built in steps: nothing in the plugin writes an import yet, and no screen shows one. The note-writing part (`src/imports/note/`, with the names it shares in `src/imports/layout/`) comes first, so it can be proved on its own.
+
+An import goes into the character's own note. Nothing else is touched.
+
+- **Properties.** The import writes `imported: 2026-11-13` and `imported-from: pdf`, then each value it knows: `class`, `species`, `AC`, `HP`, `speed`, `STR`, `DEX`, `CON`, `INT`, `WIS`, `CHA`. A value the source does not give is left out, never guessed, and an older import's value for it is removed. Text values are written in quotes, with anything that could act as markup made inert.
+- **Sections.** Five sections, each headed `## <Name> (from D&D Beyond)`: *Numbers*, *Inventory*, *Purse*, *Spells* and *Features*. Every line is a bullet (`- Rope × 2`, `- gp · 12`, `- AC · 18 · Printed on D&D Beyond's PDF`), and imported text in it is made inert, so it can't read as a link, a marker, a fact line or a heading. A section runs from its heading to the next heading of level one or two, and a heading inside a code block is not one. A section the import has nothing for is not written, and one it wrote earlier is removed.
+- **Left out.** A PDF can hold lines too long or not clean enough to bring in. Each section that lost lines ends with `- Left out: 2 too long, 1 not clean`, so the count stays with the note. The text of an item can't make this line, since a colon after a leading word is escaped.
+- **Update** rewrites only those properties and sections, in place, and adds a missing section at the end. Everything else is kept line for line, in the note's own line breaks. Before writing, the new text is compared with the old one outside the import's properties and sections, and any difference refuses the write. A note with the same plugin heading twice is refused. An update that changes no value writes nothing, not even the date.
+- **What an update would replace** is listed value by value. Typed text inside a section, meaning any line that is not one of the plugin's bullets, is reported separately as a warning, since it goes.
+- **Making the note.** A new character's note is named for them in the `Characters` folder, and refused when the name is not a safe file name or another note already has it, whatever its capitals. Writes go through the gatekeeper, only to a note directly inside the `Characters` folder.
+- **Matching.** A note named for the first words of the character's name, or for more of it (`Thessaly` for `Thessaly Brightwater`), is offered, the closest first.
+
 ### Calling a character over
 
 Calling a character into another campaign is a choice, made in a dialog: everything, only the groups you pick (ability scores, other values, history), or only a link. The new campaign's note for them records it in two properties:
