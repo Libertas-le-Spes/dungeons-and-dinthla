@@ -16,6 +16,8 @@ import { fillStatBlock } from "../cards/stat-block";
 import { PendingWork } from "../../views/pending/pending-work";
 import { addImportedLines } from "../imported/drawing/imported-lines";
 import { addUpdateButton } from "../imported/drawing/update-button";
+import { addImportedPanels } from "../imported/panels/imported-panels";
+import type { ItemTracking } from "../imported/tracking/item-tracking";
 
 export const TAP_A_VALUE = "Tap a value to change it or its state.";
 
@@ -31,6 +33,7 @@ export interface SheetActions extends LinkActions {
   editCharacter(file: TFile): void;
   updateFromBeyond(file: TFile, returnFocus: () => void): void;
   chooseValue(file: TFile, value: SheetValue, onClosed: () => void): void;
+  readonly tracking: ItemTracking;
 }
 
 type WatchedStore = SheetStore & { subscribe(listener: () => void): () => void };
@@ -121,7 +124,7 @@ export class CharacterSheetPage extends Component {
     if (read.carriedPath !== null) watched.push(read.carriedPath);
     if (read.carriedCampaignFolder !== null) watched.push(read.carriedCampaignFolder);
     this.watched = watched;
-    this.draw(file, read.sheet);
+    this.draw(file, read);
   }
 
   private characterPaths(file: TFile): string[] {
@@ -144,7 +147,8 @@ export class CharacterSheetPage extends Component {
     root.createEl("p", { cls: "dd-empty", text: couldNotRead(file, error) });
   }
 
-  private draw(file: TFile, sheet: CharacterSheet): void {
+  private draw(file: TFile, read: ReadSheet): void {
+    const sheet = read.sheet;
     const root = this.contentEl;
     root.empty();
     root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-sheet");
@@ -169,6 +173,7 @@ export class CharacterSheetPage extends Component {
       this.addValue(row.createDiv({ cls: "dd-sheet-value" }), file, value, false);
     }
     root.createEl("p", { cls: "dd-sheet-hint", text: TAP_A_VALUE });
+    addImportedPanels(root, file, read.lists, this.actions.tracking);
     this.drawStatBlock(root, file, sheet);
     this.mentions.draw(root.createEl("section", { cls: "dd-sheet-mentions" }), file);
     this.focusPending();

@@ -17,6 +17,7 @@ export class DialogCampaign {
   readonly texts: Map<string, string>;
   writes = 0;
   private files = new Map<string, TFile>();
+  private readonly characterPaths: string[] = [];
   read: Map<string, string>;
   private campaign: Campaign | null = null;
 
@@ -42,7 +43,11 @@ export class DialogCampaign {
       },
       read: async (file: TFile) => this.textOf(file.path),
     };
-    return { files, metadata: { fileToLinktext: (file: TFile) => file.basename } } as unknown as Gate;
+    const metadata = {
+      fileToLinktext: (file: TFile) => file.basename,
+      getFirstLinkpathDest: (linkpath: string) => this.linkDestination(linkpath),
+    };
+    return { files, metadata } as unknown as Gate;
   }
 
   get store(): CampaignStore {
@@ -87,9 +92,23 @@ export class DialogCampaign {
     this.texts.set(to, text);
   }
 
+  addCharacterNote(path: string): TFile {
+    this.characterPaths.push(path);
+    return this.fileAt(path);
+  }
+
   readAgain(): void {
     this.read = new Map(this.texts);
     this.campaign = null;
+  }
+
+  private linkDestination(linkpath: string): TFile | null {
+    const wanted = `${linkpath.toLowerCase()}.md`;
+    for (const path of this.characterPaths) {
+      const lower = path.toLowerCase();
+      if (lower === wanted || lower.endsWith(`/${wanted}`)) return this.fileAt(path);
+    }
+    return null;
   }
 
   private fileAt(path: string): TFile {
