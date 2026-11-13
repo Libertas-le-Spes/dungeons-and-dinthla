@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { PluginSettings } from "../../../src/settings/saved/plugin-settings";
 import { SettingsSaver } from "../../../src/settings/saved/settings-saver";
 
-const SETTINGS: PluginSettings = { campaignsFolder: "D&D", campaignFolder: "D&D/Pale Moon", welcomeSeen: true, lastVersionSeen: "0.2.0" };
+const SETTINGS: PluginSettings = { campaignsFolder: "D&D", campaignFolder: "D&D/Pale Moon", welcomeSeen: true, lastVersionSeen: "0.2.0", notesMadeFor: [] };
 
 interface Write {
   settings: PluginSettings;

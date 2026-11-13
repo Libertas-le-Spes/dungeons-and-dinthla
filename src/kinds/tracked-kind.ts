@@ -9,5 +9,6 @@ export interface TrackedKind {
   marker: TrackedMarker;
   followUps: Partial<Record<FollowUpName, string>>;
   folder: string;
+  kindNoteFolder: string;
   page: TrackedPageId;
 }

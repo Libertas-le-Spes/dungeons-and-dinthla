@@ -12,6 +12,7 @@ export const itemTrackedKind = {
   marker: ledgerMarker,
   followUps: {},
   folder: "Items",
+  kindNoteFolder: "Funds",
   page: "funds",
   lookup: {
     symbol: "$$",
