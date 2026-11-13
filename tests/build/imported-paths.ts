@@ -100,6 +100,16 @@ export class ImportedPaths {
       return specifiersIn(this.sourceFileOf(snapshot, config, file));
     } finally {
       snapshot.dispose();
+      this.api.updateSnapshot({ closeProjects: [config] }).dispose();
+    }
+  }
+
+  heldProjects(): number {
+    const snapshot = this.api.updateSnapshot({});
+    try {
+      return snapshot.getProjects().length;
+    } finally {
+      snapshot.dispose();
     }
   }
 

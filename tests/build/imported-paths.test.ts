@@ -37,3 +37,15 @@ describe("the paths read from the imports in a file's text", () => {
     expect(() => reader.in(text)).toThrow("can't be read");
   });
 });
+
+describe("the projects the reader keeps open", () => {
+  it("holds none after reading several different texts", () => {
+    const fresh = new ImportedPaths();
+    try {
+      for (const name of ["one", "two", "three", "four", "five"]) fresh.in(`import { a } from "../${name}";`);
+      expect(fresh.heldProjects()).toBe(0);
+    } finally {
+      fresh.close();
+    }
+  });
+});

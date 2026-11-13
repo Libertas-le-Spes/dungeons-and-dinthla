@@ -62,10 +62,29 @@ function messagesIn(placement: Placement): string[][] {
   }
 }
 
+interface SampleMessages {
+  sample: string;
+  messages: string[];
+}
+
 let ordinaryMessages: string[][] = [];
 
-function isAccepted(index: number): boolean {
-  return ordinaryMessages[index]?.length === 0;
+function pairedWithMessages(samples: string[], messages: string[][]): SampleMessages[] {
+  const pairs: SampleMessages[] = [];
+  for (const [position, sample] of samples.entries()) {
+    const found = messages.at(position);
+    if (found === undefined) throw new Error(`The sample at ${position} was never scanned.`);
+    pairs.push({ sample, messages: found });
+  }
+  return pairs;
+}
+
+function isNotRefused(pair: SampleMessages): boolean {
+  return pair.messages.length === 0;
+}
+
+function sampleOf(pair: SampleMessages): string {
+  return pair.sample;
 }
 
 beforeAll(() => {
@@ -89,7 +108,7 @@ describe("the samples the gate's folder is tested with", () => {
 describe("the gate's folder, as the source scan knows it", () => {
   it("has every sample refused at an ordinary path, so the comparisons below mean something", () => {
     expect(ordinaryMessages).toHaveLength(SAMPLES.length);
-    expect(samplesFor(ORDINARY).filter((_sample, index) => isAccepted(index))).toEqual([]);
+    expect(pairedWithMessages(samplesFor(ORDINARY), ordinaryMessages).filter(isNotRefused).map(sampleOf)).toEqual([]);
   }, 120_000);
 
   it.each(LOOKALIKES)("gives a file whose path only looks like the gate's none of its exemptions: $family", (placement) => {
