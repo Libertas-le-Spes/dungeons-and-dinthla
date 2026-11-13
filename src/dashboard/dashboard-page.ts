@@ -26,6 +26,7 @@ import type { ThreadOpeners } from "../views/threads/thread-openers";
 import { addThreadRow } from "../views/threads/thread-row";
 import { linesWrittenIn, type WrittenLineRows } from "./latest-session";
 import { addShortCharacterCard } from "./short-character-card";
+import { PendingWork } from "../views/drawing/pending-work";
 
 const SHOWN_ROWS = 3;
 const SHOWN_SESSION_LINES = 4;
@@ -76,6 +77,7 @@ export class DashboardPage extends Component {
   private sessionList!: HTMLElement;
   private latestPath: string | null = null;
   private characterRenders = 0;
+  private readonly characterDrawing = new PendingWork();
   private readonly rowFocus = new RowFocus();
   private readonly sessionRows: WrittenLineRows = {
     addThread: (shown, thread) => addThreadRow(shown, this.sessionList, thread, [], this.rowActions(this.session, this.openerOf(shown))),
@@ -105,7 +107,7 @@ export class DashboardPage extends Component {
     this.register(this.store.subscribe(() => this.render()));
     this.register(
       this.notes.onNoteChanged((path) => {
-        if (this.showsCharacterNote(path)) void this.renderCharacters();
+        if (this.showsCharacterNote(path)) this.redrawCharacters();
       }),
     );
     this.render();
@@ -155,7 +157,7 @@ export class DashboardPage extends Component {
     for (const threadPanel of this.threadPanels) this.renderThreads(threadPanel, campaign);
     this.renderPurse(campaign, funds);
     this.renderSession(campaign, funds);
-    void this.renderCharacters();
+    this.redrawCharacters();
     this.rowFocus.afterRender();
   }
 
@@ -253,6 +255,14 @@ export class DashboardPage extends Component {
     const folder = this.store.campaignFolder;
     if (folder === null) return false;
     return path === mainNotePathOf(folder) || isInReferenceFolder(characterReferenceKind, folder, path);
+  }
+
+  charactersDrawn(): Promise<void> {
+    return this.characterDrawing.settled();
+  }
+
+  private redrawCharacters(): void {
+    this.characterDrawing.add(this.renderCharacters());
   }
 
   private async renderCharacters(): Promise<void> {

@@ -32,8 +32,12 @@ export class CharactersView extends BasesView {
     );
   }
 
+  rendered(): Promise<void> {
+    return this.gallery.shown();
+  }
+
   onDataUpdated(): void {
     const files = this.data.data.map((entry) => entry.file);
-    void this.gallery.show(files.filter((file) => this.notes.holds(file)));
+    this.gallery.show(files.filter((file) => this.notes.holds(file)));
   }
 }

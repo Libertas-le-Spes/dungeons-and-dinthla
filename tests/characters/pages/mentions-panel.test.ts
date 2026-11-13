@@ -106,10 +106,6 @@ async function finished(): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-async function drawn(parent: Element): Promise<void> {
-  await vi.waitFor(() => expect(parent.querySelector(".dd-title")).not.toBeNull());
-}
-
 describe("MentionsPanel", () => {
   it("lists each session line that links to the character, newest first, with its session and how many there are", async () => {
     const shown = openPanel({
@@ -117,7 +113,7 @@ describe("MentionsPanel", () => {
       texts: { [ONE]: "Met [[Mira]] at the ford", [TWO]: "Rain.\n- [[Mira]] AC: 15" },
     });
     shown.panel.draw(shown.parent, MIRA);
-    await drawn(shown.parent);
+    await shown.panel.readSettled();
     expect(textsOf(shown.parent, ".dd-title")).toEqual([`${IN_THE_NOTES}2 lines`]);
     expect(textsOf(shown.parent, ".dd-count")).toEqual(["2 lines"]);
     expect(textsOf(shown.parent, ".dd-row .dd-text")).toEqual(["[[Mira]] AC: 15", "Met [[Mira]] at the ford"]);
@@ -127,14 +123,14 @@ describe("MentionsPanel", () => {
   it("says one line for a single line", async () => {
     const shown = openPanel({ links: { [MIRA.path]: { [ONE]: [0] } }, texts: { [ONE]: "[[Mira]]" } });
     shown.panel.draw(shown.parent, MIRA);
-    await drawn(shown.parent);
+    await shown.panel.readSettled();
     expect(textsOf(shown.parent, ".dd-count")).toEqual(["1 line"]);
   });
 
   it("opens a line's session at that line, and a link in it at its note", async () => {
     const shown = openPanel({ links: { [MIRA.path]: { [TWO]: [1] } }, texts: { [TWO]: "Rain.\n[[Mira]] meets [[Vess]]" } });
     shown.panel.draw(shown.parent, MIRA);
-    await drawn(shown.parent);
+    await shown.panel.readSettled();
     shown.parent.querySelector<HTMLElement>(".dd-row")!.click();
     expect(shown.actions.openRow).toHaveBeenCalledWith({ path: TWO, line: 1 });
     shown.parent.querySelectorAll<HTMLElement>(".dd-row a")[1]!.click();
@@ -145,7 +141,7 @@ describe("MentionsPanel", () => {
   it("says so when no session mentions the character, without a count", async () => {
     const shown = openPanel();
     shown.panel.draw(shown.parent, MIRA);
-    await drawn(shown.parent);
+    await shown.panel.readSettled();
     expect(textsOf(shown.parent, ".dd-empty")).toEqual([noMentions(MIRA)]);
     expect(textsOf(shown.parent, ".dd-empty")).toEqual(["No session mentions [[Mira]] yet."]);
     expect(shown.parent.querySelector(".dd-count")).toBeNull();
@@ -157,7 +153,7 @@ describe("MentionsPanel", () => {
       throw new Error("the disk is gone");
     } });
     shown.panel.draw(shown.parent, MIRA);
-    await drawn(shown.parent);
+    await shown.panel.readSettled();
     expect(textsOf(shown.parent, ".dd-title")).toEqual([IN_THE_NOTES]);
     expect(textsOf(shown.parent, ".dd-empty")).toEqual([couldNotReadMentions(MIRA, new Error("the disk is gone"))]);
     expect(textsOf(shown.parent, ".dd-empty")).toEqual(["Couldn't read the sessions that mention Mira: the disk is gone"]);
@@ -166,7 +162,7 @@ describe("MentionsPanel", () => {
   it("draws the lines it has into a new place without reading them again", async () => {
     const shown = openPanel({ links: { [MIRA.path]: { [ONE]: [0] } }, texts: { [ONE]: "[[Mira]]" } });
     shown.panel.draw(shown.parent, MIRA);
-    await drawn(shown.parent);
+    await shown.panel.readSettled();
     const next = obsidianDocument().createElement("section");
     shown.panel.draw(next, MIRA);
     expect(textsOf(next, ".dd-text")).toEqual(["[[Mira]]"]);
@@ -179,9 +175,9 @@ describe("MentionsPanel", () => {
     shown.panel.draw(shown.parent, MIRA);
     const next = obsidianDocument().createElement("section");
     shown.panel.draw(next, MIRA);
-    await vi.waitFor(() => expect(pending).toHaveLength(1));
+    expect(pending).toHaveLength(1);
     pending[0]!("[[Mira]]");
-    await drawn(next);
+    await shown.panel.readSettled();
     expect(textsOf(next, ".dd-text")).toEqual(["[[Mira]]"]);
     expect(shown.reads.count).toBe(1);
   });
@@ -193,11 +189,12 @@ describe("MentionsPanel", () => {
       return "[[Mira]]";
     } });
     shown.panel.draw(shown.parent, MIRA);
-    await drawn(shown.parent);
+    await shown.panel.readSettled();
     reading.fails = false;
     const next = obsidianDocument().createElement("section");
     shown.panel.draw(next, MIRA);
-    await vi.waitFor(() => expect(textsOf(next, ".dd-text")).toEqual(["[[Mira]]"]));
+    await shown.panel.readSettled();
+    expect(textsOf(next, ".dd-text")).toEqual(["[[Mira]]"]);
   });
 
   it("reads again when drawn into a new place after a later reading failed, instead of drawing the old lines", async () => {
@@ -207,14 +204,16 @@ describe("MentionsPanel", () => {
       return "[[Mira]]";
     } });
     shown.panel.draw(shown.parent, MIRA);
-    await drawn(shown.parent);
+    await shown.panel.readSettled();
     reading.fails = true;
     shown.linksResolved(ONE);
     settle();
-    await vi.waitFor(() => expect(textsOf(shown.parent, ".dd-empty")).toHaveLength(1));
+    await shown.panel.readSettled();
+    expect(textsOf(shown.parent, ".dd-empty")).toHaveLength(1);
     const next = obsidianDocument().createElement("section");
     shown.panel.draw(next, MIRA);
-    await vi.waitFor(() => expect(textsOf(next, ".dd-empty")).toHaveLength(1));
+    await shown.panel.readSettled();
+    expect(textsOf(next, ".dd-empty")).toHaveLength(1);
     expect(next.querySelector(".dd-text")).toBeNull();
     expect(shown.reads.count).toBe(3);
   });
@@ -233,9 +232,10 @@ describe("MentionsPanel", () => {
       texts: { [ONE]: "[[Mirabel]]", [TWO]: "[[Mirabel]] AC: 15" },
     });
     shown.panel.draw(shown.parent, MIRA);
-    await drawn(shown.parent);
+    await shown.panel.readSettled();
     shown.panel.draw(shown.parent, MIRABEL);
-    await vi.waitFor(() => expect(textsOf(shown.parent, ".dd-text")).toEqual(["[[Mirabel]] AC: 15", "[[Mirabel]]"]));
+    await shown.panel.readSettled();
+    expect(textsOf(shown.parent, ".dd-text")).toEqual(["[[Mirabel]] AC: 15", "[[Mirabel]]"]);
   });
 
   it("draws only the latest reading when readings finish out of order", async () => {
@@ -246,11 +246,12 @@ describe("MentionsPanel", () => {
     });
     shown.panel.draw(shown.parent, MIRA);
     shown.panel.draw(shown.parent, MIRABEL);
-    await vi.waitFor(() => expect(pending).toHaveLength(2));
+    expect(pending).toHaveLength(2);
     pending[1]!("[[Mirabel]]");
-    await drawn(shown.parent);
-    pending[0]!("[[Mira]]");
     await finished();
+    expect(textsOf(shown.parent, ".dd-text")).toEqual(["[[Mirabel]]"]);
+    pending[0]!("[[Mira]]");
+    await shown.panel.readSettled();
     expect(textsOf(shown.parent, ".dd-text")).toEqual(["[[Mirabel]]"]);
   });
 
@@ -266,11 +267,12 @@ describe("MentionsPanel", () => {
     });
     shown.panel.draw(shown.parent, MIRA);
     shown.panel.draw(shown.parent, MIRABEL);
-    await vi.waitFor(() => expect(pending).toHaveLength(1));
+    expect(pending).toHaveLength(1);
     pending[0]!("[[Mirabel]]");
-    await drawn(shown.parent);
-    failures[0]!(new Error("the disk is gone"));
     await finished();
+    expect(textsOf(shown.parent, ".dd-text")).toEqual(["[[Mirabel]]"]);
+    failures[0]!(new Error("the disk is gone"));
+    await shown.panel.readSettled();
     expect(textsOf(shown.parent, ".dd-text")).toEqual(["[[Mirabel]]"]);
     expect(shown.parent.querySelector(".dd-empty")).toBeNull();
   });
@@ -278,7 +280,7 @@ describe("MentionsPanel", () => {
   it("reads again once settled when a listed session or one that now links to the character is resolved, and not otherwise", async () => {
     const shown = openPanel({ links: { [MIRA.path]: { [ONE]: [0] } }, texts: { [ONE]: "[[Mira]]", [TWO]: "[[Mira]] again" } });
     shown.panel.draw(shown.parent, MIRA);
-    await drawn(shown.parent);
+    await shown.panel.readSettled();
     shown.linksResolved(TWO);
     shown.linksResolved(THREE);
     settle();
@@ -287,18 +289,20 @@ describe("MentionsPanel", () => {
     shown.linksResolved(TWO);
     expect(shown.reads.count).toBe(1);
     settle();
-    await vi.waitFor(() => expect(textsOf(shown.parent, ".dd-text")).toEqual(["[[Mira]] again", "[[Mira]]"]));
+    await shown.panel.readSettled();
+    expect(textsOf(shown.parent, ".dd-text")).toEqual(["[[Mira]] again", "[[Mira]]"]);
     delete shown.links[MIRA.path]![ONE];
     shown.linksResolved(ONE);
     settle();
-    await vi.waitFor(() => expect(textsOf(shown.parent, ".dd-text")).toEqual(["[[Mira]] again"]));
+    await shown.panel.readSettled();
+    expect(textsOf(shown.parent, ".dd-text")).toEqual(["[[Mira]] again"]);
     expect(shown.reads.count).toBe(3);
   });
 
   it("reads again when a listed session is deleted or renamed, and not for other notes", async () => {
     const shown = openPanel({ links: { [MIRA.path]: { [ONE]: [0] } }, texts: { [ONE]: "[[Mira]]" } });
     shown.panel.draw(shown.parent, MIRA);
-    await drawn(shown.parent);
+    await shown.panel.readSettled();
     shown.links[MIRA.path]![TWO] = [0];
     shown.noteMoved(TWO);
     settle();
@@ -307,7 +311,8 @@ describe("MentionsPanel", () => {
     delete shown.links[MIRA.path]![TWO];
     shown.noteMoved(ONE);
     settle();
-    await vi.waitFor(() => expect(textsOf(shown.parent, ".dd-empty")).toEqual([noMentions(MIRA)]));
+    await shown.panel.readSettled();
+    expect(textsOf(shown.parent, ".dd-empty")).toEqual([noMentions(MIRA)]);
   });
 
   it("draws nothing more once cleared, dropping a reading still on its way", async () => {
@@ -317,17 +322,17 @@ describe("MentionsPanel", () => {
       textOf: () => new Promise((resolve) => pending.push(resolve)),
     });
     shown.panel.draw(shown.parent, MIRA);
-    await vi.waitFor(() => expect(pending).toHaveLength(1));
+    expect(pending).toHaveLength(1);
     shown.panel.clear();
     pending[0]!("[[Mira]]");
-    await finished();
+    await shown.panel.readSettled();
     expect(shown.parent.childElementCount).toBe(0);
   });
 
   it("reads nothing for later changes once cleared, nor for one waiting to settle", async () => {
     const shown = openPanel({ links: { [MIRA.path]: { [ONE]: [0] } }, texts: { [ONE]: "[[Mira]]" } });
     shown.panel.draw(shown.parent, MIRA);
-    await drawn(shown.parent);
+    await shown.panel.readSettled();
     shown.linksResolved(ONE);
     shown.panel.clear();
     shown.linksResolved(ONE);
@@ -339,7 +344,7 @@ describe("MentionsPanel", () => {
   it("stops listening when the watch is stopped, dropping a change waiting to settle", async () => {
     const shown = openPanel({ links: { [MIRA.path]: { [ONE]: [0] } }, texts: { [ONE]: "[[Mira]]" } });
     shown.panel.draw(shown.parent, MIRA);
-    await drawn(shown.parent);
+    await shown.panel.readSettled();
     shown.linksResolved(ONE);
     shown.stop();
     settle();

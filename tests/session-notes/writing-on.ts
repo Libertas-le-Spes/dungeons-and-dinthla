@@ -1,4 +1,4 @@
-import { expect, vi } from "vitest";
+import { vi } from "vitest";
 import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/reading/build-campaign";
 import { sessionNoteOf } from "../../src/campaign/paths/session-file";
@@ -86,14 +86,14 @@ export function writingOn(text: string | null, drafts = new Drafts({}, () => {})
   };
   const editAll = async () => {
     button(".dd-edit-all").click();
-    await flushed();
+    await session.editAllSettled();
   };
   const panels = () => [find(".dd-writing-panel"), find(".dd-lines-panel"), find(".dd-edit-all-panel")].map(isShown);
   const leaving = () => find(".dd-edit-all-leaving");
   const message = () => find(".dd-notes-message").textContent;
   const wholeMessage = () => find(".dd-edit-all-panel .dd-save-message").textContent;
   const reminder = () => find(".dd-writing-panel .dd-edit-all-reminder");
-  const settle = () => vi.waitFor(() => expect(noteDrafts.isSaving(PATH)).toBe(false));
+  const settle = () => session.editAllSettled();
   return {
     root,
     session,

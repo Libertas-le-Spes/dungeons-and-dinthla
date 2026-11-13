@@ -21,7 +21,7 @@ function openDialog(text: string, save: (edit: ItemEdit) => Promise<boolean>) {
   const price = root.querySelector('input[aria-label="Sold for"]') as HTMLInputElement;
   const status = root.querySelectorAll("select")[1] as HTMLSelectElement;
   const priceRow = price.closest(".setting-item") as HTMLElement;
-  return { root, openNoteAt, onClosed, button, price, status, priceRow };
+  return { dialog, root, openNoteAt, onClosed, button, price, status, priceRow };
 }
 
 const refuse = (message: string) => () => Promise.reject(new Error(message));
@@ -43,10 +43,11 @@ describe("the item dialog", () => {
   });
 
   it("offers to open the line that took the item when it refuses because that line says more than it writes", async () => {
-    const { openNoteAt, onClosed, button } = openDialog("$ Rope\n$$ Rope :lost in the river\n", refuse(GONE_LINE_SAYS_MORE));
+    const { dialog, openNoteAt, onClosed, button } = openDialog("$ Rope\n$$ Rope :lost in the river\n", refuse(GONE_LINE_SAYS_MORE));
     expect(isShown(button("Open note"))).toBe(false);
     button("Save").click();
-    await vi.waitFor(() => expect(isShown(button("Open note"))).toBe(true));
+    await dialog.changeSettled();
+    expect(isShown(button("Open note"))).toBe(true);
     expect(Notice.shown.at(-1)).toBe(`Couldn't change the item: ${GONE_LINE_SAYS_MORE}`);
     expect(onClosed).not.toHaveBeenCalled();
     button("Open note").click();
@@ -55,33 +56,37 @@ describe("the item dialog", () => {
   });
 
   it("hides Open note again once the status or price changes", async () => {
-    const { button, status, price } = openDialog("$ Rope\n$$ Rope :sold 3 gp to Bram\n", refuse(GONE_LINE_SAYS_MORE));
+    const { dialog, button, status, price } = openDialog("$ Rope\n$$ Rope :sold 3 gp to Bram\n", refuse(GONE_LINE_SAYS_MORE));
     const window = status.ownerDocument.defaultView!;
     button("Save").click();
-    await vi.waitFor(() => expect(isShown(button("Open note"))).toBe(true));
+    await dialog.changeSettled();
+    expect(isShown(button("Open note"))).toBe(true);
     status.value = "lost";
     status.dispatchEvent(new window.Event("change"));
     expect(isShown(button("Open note"))).toBe(false);
     button("Save").click();
-    await vi.waitFor(() => expect(isShown(button("Open note"))).toBe(true));
+    await dialog.changeSettled();
+    expect(isShown(button("Open note"))).toBe(true);
     price.value = "4 gp";
     price.dispatchEvent(new window.Event("input"));
     expect(isShown(button("Open note"))).toBe(false);
   });
 
   it("says why and closes as changed when only part of a save was written", async () => {
-    const { root, onClosed, button } = openDialog("$ Rope\n", () => Promise.reject(new PartlyWritten("Only the new line was written.")));
+    const { dialog, root, onClosed, button } = openDialog("$ Rope\n", () => Promise.reject(new PartlyWritten("Only the new line was written.")));
     button("Save").click();
-    await vi.waitFor(() => expect(onClosed).toHaveBeenCalledWith(true));
+    await dialog.changeSettled();
+    expect(onClosed).toHaveBeenCalledWith(true);
     expect(Notice.shown.at(-1)).toBe("Couldn't change the item: Only the new line was written.");
     expect(onClosed).toHaveBeenCalledOnce();
     expect(root.childNodes).toHaveLength(0);
   });
 
   it("doesn't offer the note for a refusal the dialog itself can fix", async () => {
-    const { button } = openDialog("$ Rope\n$$ Rope :lost in the river\n", refuse(HOLDER_OF_GONE));
+    const { dialog, button } = openDialog("$ Rope\n$$ Rope :lost in the river\n", refuse(HOLDER_OF_GONE));
     button("Save").click();
-    await vi.waitFor(() => expect(Notice.shown.at(-1)).toBe(`Couldn't change the item: ${HOLDER_OF_GONE}`));
+    await dialog.changeSettled();
+    expect(Notice.shown.at(-1)).toBe(`Couldn't change the item: ${HOLDER_OF_GONE}`);
     expect(isShown(button("Open note"))).toBe(false);
   });
 });
