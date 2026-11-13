@@ -201,7 +201,7 @@ describe("Clear notes and Delete session", () => {
     const { session, showNote, button, asked, trashFile } = writingOn(NOTE);
     showNote();
     const trashing = new HeldCalls<void>();
-    trashFile.mockImplementationOnce(() => trashing.hold());
+    trashFile.mockImplementationOnce(trashing.hold.bind(trashing));
     button(".dd-delete-session").click();
     await session.removalSettled();
     asked[0]!.confirmed();
@@ -282,7 +282,7 @@ describe("Clear notes and Delete session", () => {
     const { session, showNote, button, asked, notes, typeLines, writer, root } = writingOn(NOTE);
     showNote();
     const processing = new HeldCalls<string>();
-    notes.process.mockImplementationOnce(() => processing.hold());
+    notes.process.mockImplementationOnce(processing.hold.bind(processing));
     typeLines("! Ride to Thessaly");
     button(".dd-clear-notes").click();
     await session.removalSettled();

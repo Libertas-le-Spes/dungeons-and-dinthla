@@ -22,10 +22,6 @@ export const FIXED = "---\nplayed: 2026-11-09\n---\nTracks lead to the [[Old Mil
 export const HEADING = "Session 12 · The Old Mill";
 export const KEPT_AT = new Date(2026, 10, 9, 21, 5).getTime();
 
-export function flushed(): Promise<void> {
-  return new Promise((done) => setTimeout(done, 0));
-}
-
 interface Asked {
   text: ConfirmText;
   confirmed: () => void;
@@ -93,7 +89,7 @@ export function writingOn(text: string | null, drafts = new Drafts({}, () => {})
   const message = () => find(".dd-notes-message").textContent;
   const wholeMessage = () => find(".dd-edit-all-panel .dd-save-message").textContent;
   const reminder = () => find(".dd-writing-panel .dd-edit-all-reminder");
-  const settle = () => session.editAllSettled();
+  const settle = session.editAllSettled.bind(session);
   return {
     root,
     session,

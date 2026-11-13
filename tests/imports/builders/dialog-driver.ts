@@ -72,7 +72,6 @@ export class DialogDriver {
     }
     throw new Error(`No button says ${words}.`);
   }
-
 }
 
 function itemOf(file: PickedFile): (position: number) => PickedFile | null {

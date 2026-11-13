@@ -25,9 +25,12 @@ function appWith(paths: string[], { createFails = false } = {}) {
 }
 
 function startDialog(): NewSessionModal {
-  const modal = openedModals.at(-1);
-  if (!(modal instanceof NewSessionModal)) throw new Error("No Start session dialog is open.");
-  return modal;
+  let opened: NewSessionModal | null = null;
+  for (const modal of openedModals) {
+    if (modal instanceof NewSessionModal) opened = modal;
+  }
+  if (opened === null) throw new Error("No Start session dialog is open.");
+  return opened;
 }
 
 async function pressStart(): Promise<void> {

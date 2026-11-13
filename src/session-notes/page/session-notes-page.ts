@@ -68,7 +68,8 @@ export class SessionNotesPage extends Component {
 
   async settled(): Promise<void> {
     const drawn = this.drawn;
-    if (drawn === null || drawn.session === null) return;
+    if (drawn === null) return;
+    if (drawn.session === null) return;
     await drawn.session.settled();
   }
 

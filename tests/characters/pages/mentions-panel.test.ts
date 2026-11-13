@@ -4,6 +4,7 @@ import type { MentionNotes } from "../../../src/characters/reading/mention-notes
 import { couldNotReadMentions, IN_THE_NOTES, MentionsPanel, noMentions } from "../../../src/characters/pages/mentions-panel";
 import type { LinkActions } from "../../../src/views/lists/linked-text";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { HeldCalls } from "../../stubs/held-calls";
 
 const waiting = vi.hoisted(() => ({ calls: [] as (() => void)[] }));
 
@@ -239,39 +240,29 @@ describe("MentionsPanel", () => {
   });
 
   it("draws only the latest reading when readings finish out of order", async () => {
-    const pending: ((text: string) => void)[] = [];
-    const shown = openPanel({
-      links: { [MIRA.path]: { [ONE]: [0] }, [MIRABEL.path]: { [ONE]: [0] } },
-      textOf: () => new Promise((resolve) => pending.push(resolve)),
-    });
+    const reads = new HeldCalls<string>();
+    const shown = openPanel({ links: { [MIRA.path]: { [ONE]: [0] }, [MIRABEL.path]: { [ONE]: [0] } }, textOf: reads.hold.bind(reads) });
     shown.panel.draw(shown.parent, MIRA);
     shown.panel.draw(shown.parent, MIRABEL);
-    expect(pending).toHaveLength(2);
-    pending[1]!("[[Mirabel]]");
+    await reads.made(2);
+    reads.resolve(1, "[[Mirabel]]");
     await finished();
     expect(textsOf(shown.parent, ".dd-text")).toEqual(["[[Mirabel]]"]);
-    pending[0]!("[[Mira]]");
+    reads.resolve(0, "[[Mira]]");
     await shown.panel.readSettled();
     expect(textsOf(shown.parent, ".dd-text")).toEqual(["[[Mirabel]]"]);
   });
 
   it("keeps the latest list when an earlier reading fails late", async () => {
-    const pending: ((text: string) => void)[] = [];
-    const failures: ((error: Error) => void)[] = [];
-    const shown = openPanel({
-      links: { [MIRA.path]: { [ONE]: [0] }, [MIRABEL.path]: { [ONE]: [0] } },
-      textOf: () => new Promise((resolve, reject) => {
-        if (failures.length === 0) failures.push(reject);
-        else pending.push(resolve);
-      }),
-    });
+    const reads = new HeldCalls<string>();
+    const shown = openPanel({ links: { [MIRA.path]: { [ONE]: [0] }, [MIRABEL.path]: { [ONE]: [0] } }, textOf: reads.hold.bind(reads) });
     shown.panel.draw(shown.parent, MIRA);
     shown.panel.draw(shown.parent, MIRABEL);
-    expect(pending).toHaveLength(1);
-    pending[0]!("[[Mirabel]]");
+    await reads.made(2);
+    reads.resolve(1, "[[Mirabel]]");
     await finished();
     expect(textsOf(shown.parent, ".dd-text")).toEqual(["[[Mirabel]]"]);
-    failures[0]!(new Error("the disk is gone"));
+    reads.reject(0, new Error("the disk is gone"));
     await shown.panel.readSettled();
     expect(textsOf(shown.parent, ".dd-text")).toEqual(["[[Mirabel]]"]);
     expect(shown.parent.querySelector(".dd-empty")).toBeNull();

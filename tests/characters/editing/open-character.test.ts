@@ -12,7 +12,7 @@ import {
   openEditCharacter,
   openNewCharacter,
 } from "../../../src/characters/editing/open-character";
-import { nextModal, Notice, openedModals } from "../../stubs/obsidian";
+import { forgetModalWaiters, nextModal, Notice, openedModals } from "../../stubs/obsidian";
 import type { Gate } from "../../../src/fence/gate/gatekeeper";
 
 const CAMPAIGNS = ["Ashen Road", "Pale Moon"];
@@ -20,6 +20,7 @@ const MIRA = "Pale Moon/Characters/Mira.md";
 
 beforeEach(() => {
   Notice.shown = [];
+  forgetModalWaiters();
 });
 
 interface Setup {

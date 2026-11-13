@@ -13,22 +13,15 @@ export class HeldCalls<T> {
   private waiters: Waiter[] = [];
 
   hold(): Promise<T> {
-    const promise = new Promise<T>((resolve, reject) => {
-      this.held.push({ resolve, reject });
-    });
+    const promise = new Promise<T>(this.keep.bind(this));
     this.wakeWaiters();
     return promise;
   }
 
-  get count(): number {
-    return this.held.length;
-  }
-
   made(count: number): Promise<void> {
-    return new Promise<void>((wake) => {
-      this.waiters.push({ count, wake });
-      this.wakeWaiters();
-    });
+    const waiting = new Promise<void>(this.waitFor.bind(this, count));
+    this.wakeWaiters();
+    return waiting;
   }
 
   resolve(position: number, value: T): void {
@@ -37,6 +30,14 @@ export class HeldCalls<T> {
 
   reject(position: number, error: Error): void {
     this.at(position).reject(error);
+  }
+
+  private keep(resolve: (value: T) => void, reject: (error: Error) => void): void {
+    this.held.push({ resolve, reject });
+  }
+
+  private waitFor(count: number, wake: () => void): void {
+    this.waiters.push({ count, wake });
   }
 
   private at(position: number): Held<T> {

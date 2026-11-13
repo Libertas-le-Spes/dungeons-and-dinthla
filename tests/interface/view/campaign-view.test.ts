@@ -135,9 +135,9 @@ async function openView({
       await view.setState(state, result);
     }),
   };
-  const navigated = async () => {
+  async function navigated(): Promise<void> {
     for (const result of leaf.setViewState.mock.results) await result.value;
-  };
+  }
   const vault = new FakeVault();
   const backdrops: FakeBackdrop[] = [];
   const view = new CampaignView(
@@ -224,7 +224,7 @@ describe("CampaignView", () => {
     const { navigated, root } = await openView();
     linkLabelled(root, "Label funds").click();
     await navigated();
-    expect(root.querySelector('.dd-nav-in-bar[aria-current="page"] .dd-nav-short')!.textContent).toBe("Short funds");
+    expect(root.querySelector('.dd-nav-in-bar[aria-current="page"] .dd-nav-short')).toHaveProperty("textContent", "Short funds");
     expect(root.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
   });
 

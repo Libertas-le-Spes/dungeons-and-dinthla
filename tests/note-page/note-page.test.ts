@@ -48,7 +48,7 @@ async function openNote({ text = LOADED, drafts = new Drafts({}, () => {}), note
   const saveButton = root.querySelector<HTMLButtonElement>(".dd-save")!;
   const reloadButton = root.querySelector<HTMLButtonElement>(".dd-reload")!;
   const message = () => root.querySelector(".dd-save-message")!.textContent;
-  const settle = () => page.editingSettled();
+  const settle = page.editingSettled.bind(page);
   return { root, page, box, notes, noteDrafts, drafts, actions, type, press, saveButton, reloadButton, message, settle, isCampaignNote, openInEditor };
 }
 

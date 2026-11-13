@@ -193,12 +193,20 @@ export const editorInfoField = StateField.define<MarkdownFileInfo>({
 
 export const openedModals: Modal[] = [];
 
-let modalWaiters: ((modal: Modal) => void)[] = [];
+type ModalWaiter = (modal: Modal) => void;
+
+let modalWaiters: ModalWaiter[] = [];
+
+function waitForModal(opened: ModalWaiter): void {
+  modalWaiters.push(opened);
+}
 
 export function nextModal(): Promise<Modal> {
-  return new Promise((opened) => {
-    modalWaiters.push(opened);
-  });
+  return new Promise(waitForModal);
+}
+
+export function forgetModalWaiters(): void {
+  modalWaiters = [];
 }
 
 function tellModalWaiters(modal: Modal): void {
