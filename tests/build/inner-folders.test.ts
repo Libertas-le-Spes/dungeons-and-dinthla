@@ -75,14 +75,8 @@ function pointsAtAFile(imported: string): boolean {
   return imported === "." || imported === ".." || imported.startsWith("./") || imported.startsWith("../") || isAbsolute(imported);
 }
 
-const PATHS_BY_TEXT = new Map<string, string[]>();
-
 function importedPathsIn(text: string): string[] {
-  const known = PATHS_BY_TEXT.get(text);
-  if (known !== undefined) return known;
-  const found = reader.in(text).filter(pointsAtAFile);
-  PATHS_BY_TEXT.set(text, found);
-  return found;
+  return reader.in(text).filter(pointsAtAFile);
 }
 
 function breachesIn(inner: InnerFolder, file: string, text: string): string[] {
