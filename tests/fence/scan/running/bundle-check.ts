@@ -24,8 +24,12 @@ function unscannableIn(loaded: string[]): string[] {
   return loaded.filter((path) => !isPlainTypeScript(path)).map((path) => `${path} is loaded from the entry point but isn't a plain TypeScript file`);
 }
 
+function isScanned(path: string): boolean {
+  return !isDeclaration(path);
+}
+
 export function scannedFiles(loaded: string[]): string[] {
-  return loaded.filter((path) => !isDeclaration(path));
+  return loaded.filter(isScanned);
 }
 
 export function unreadableCode(listing: string[], loaded: string[]): string[] {

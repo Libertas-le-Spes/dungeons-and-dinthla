@@ -4,7 +4,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import type { Allowances } from "../scan/reading/allowances";
 import { isNeverAllowed, isNoNameAllowed, isPageAttribute, isPageOption, isPageTag, NOTHING_ALLOWED } from "../scan/running/allowance-sets";
 import { scannedFiles, unreadableCode } from "../scan/running/bundle-check";
-import { fileUsing, type NameRefusal } from "../scan/running/name-uses";
+import { NameUses, type NameRefusal } from "../scan/running/name-uses";
 import { BUNDLED_PROJECT, bundledProjectFiles } from "../scan/running/bundled-project";
 import { ROOT, SOURCE_FOLDER, sourcePath, VIRTUAL_FOLDER } from "../scan/reading/scan-paths";
 import { virtualFileSystem } from "../scan/running/virtual-files";
@@ -107,6 +107,10 @@ function shownPath(path: string): string {
   return relative(SOURCE_FOLDER, path);
 }
 
+function isOutsideSource(path: string): boolean {
+  return !path.startsWith(SOURCE_FOLDER);
+}
+
 function breachesOf(file: string, allowances: Allowances): string[] {
   return scanner.breaches(BUNDLED_PROJECT, [sourcePath(file)], allowances);
 }
@@ -118,7 +122,11 @@ function placeOf(path: string, allowed: Record<string, string[]>): string | null
 }
 
 function filesOfPlace(place: string, allowed: Record<string, string[]>): string[] {
-  return SCANNED.filter((path) => placeOf(path, allowed) === place);
+  const files: string[] = [];
+  for (const path of SCANNED) {
+    if (placeOf(path, allowed) === place) files.push(path);
+  }
+  return files;
 }
 
 interface ListedName {
@@ -155,8 +163,30 @@ function isPlainGlobalOnly(_path: string, name: string): boolean {
   return PLAIN_GLOBALS.includes(name);
 }
 
+const IMPORT_USES = new NameUses(scanner, BUNDLED_PROJECT, IMPORTS_REFUSED);
+const PAGE_GLOBAL_USES = new NameUses(scanner, BUNDLED_PROJECT, PAGE_GLOBALS_REFUSED);
+const PAGE_MEMBER_USES = new NameUses(scanner, BUNDLED_PROJECT, PAGE_MEMBERS_REFUSED);
+
 function repeatsIn(names: string[]): string[] {
-  return names.filter((name, position) => names.indexOf(name) !== position);
+  const seen = new Set<string>();
+  const repeats: string[] = [];
+  for (const name of names) {
+    if (seen.has(name)) repeats.push(name);
+    seen.add(name);
+  }
+  return repeats;
+}
+
+function isPlainWord(name: string): boolean {
+  return /^\w+$/.test(name);
+}
+
+function unplainIn(names: string[]): string[] {
+  const unplain: string[] = [];
+  for (const name of names) {
+    if (!isPlainWord(name)) unplain.push(name);
+  }
+  return unplain;
 }
 
 interface StillNeeded {
@@ -171,11 +201,15 @@ function allowedEverythingBut(allowance: keyof Allowances): Allowances {
 }
 
 function neededBy(allowance: keyof Allowances, files: string[], breach: string | RegExp): StillNeeded[] {
-  return files.map((file) => ({ allowance, file, allowances: allowedEverythingBut(allowance), breach }));
+  const needed: StillNeeded[] = [];
+  for (const file of files) needed.push({ allowance, file, allowances: allowedEverythingBut(allowance), breach });
+  return needed;
 }
 
 function onlyNeededBy(allowance: string, files: string[], breach: string): StillNeeded[] {
-  return files.map((file) => ({ allowance, file, allowances: NOTHING_ALLOWED, breach }));
+  const needed: StillNeeded[] = [];
+  for (const file of files) needed.push({ allowance, file, allowances: NOTHING_ALLOWED, breach });
+  return needed;
 }
 
 const STILL_NEEDED: StillNeeded[] = [
@@ -205,7 +239,7 @@ describe("the plugin's own source", () => {
   });
 
   it("is loaded from inside src only, so every file the bundle loads is scanned below", () => {
-    expect(SCANNED.filter((path) => !path.startsWith(SOURCE_FOLDER))).toEqual([]);
+    expect(SCANNED.filter(isOutsideSource)).toEqual([]);
     expect(SCANNED.length).toBeGreaterThan(0);
   });
 
@@ -236,16 +270,20 @@ describe("the lists of names each place may use", () => {
     }
   });
 
+  it.each(NAME_LISTS)("name only plain words in the $list, so each is found in a file's text as a whole word", ({ allowed }) => {
+    for (const [place, names] of Object.entries(allowed)) expect(unplainIn(names), place).toEqual([]);
+  });
+
   it.each(listedNames(OBSIDIAN_IMPORTS))("let $place import $name from Obsidian only while a file there still does", ({ place, name }) => {
-    expect(fileUsing(scanner, BUNDLED_PROJECT, filesOfPlace(place, OBSIDIAN_IMPORTS), name, IMPORTS_REFUSED)).not.toBeNull();
+    expect(IMPORT_USES.fileUsing(filesOfPlace(place, OBSIDIAN_IMPORTS), name)).not.toBeNull();
   });
 
   it.each(listedNames(PAGE_GLOBALS))("let $place use the page or timer global $name only while it still does", ({ place, name }) => {
-    expect(fileUsing(scanner, BUNDLED_PROJECT, filesOfPlace(place, PAGE_GLOBALS), name, PAGE_GLOBALS_REFUSED)).not.toBeNull();
+    expect(PAGE_GLOBAL_USES.fileUsing(filesOfPlace(place, PAGE_GLOBALS), name)).not.toBeNull();
   });
 
   it.each(listedNames(PAGE_MEMBERS))("let $place use the page's $name only while it still does", ({ place, name }) => {
-    expect(fileUsing(scanner, BUNDLED_PROJECT, filesOfPlace(place, PAGE_MEMBERS), name, PAGE_MEMBERS_REFUSED)).not.toBeNull();
+    expect(PAGE_MEMBER_USES.fileUsing(filesOfPlace(place, PAGE_MEMBERS), name)).not.toBeNull();
   });
 
   it("let only the marker colouring reach past the plugin's own elements, and main.ts reach the page's body for the theme class", () => {
