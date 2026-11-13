@@ -30,6 +30,11 @@ describe("one class and level printed on the sheet", () => {
     expect([found?.name.text, found?.level.valueOr(0)]).toEqual(["Monk 3", 4]);
   });
 
+  it("is a class with no level known when a number is joined to the name without a space", () => {
+    const found = classOfPiece("Monk4");
+    expect([found?.name.text, found?.level.isKnown]).toEqual(["Monk4", false]);
+  });
+
   it("is on the PDF route when the level is not known and when it is", () => {
     expect([classOfPiece("Monk")?.level.route.name, classOfPiece("Monk 3")?.level.route.name]).toEqual(["pdf", "pdf"]);
   });
