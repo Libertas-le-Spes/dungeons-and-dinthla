@@ -1339,7 +1339,7 @@
  {
   "id": "folders:   { folder: \"imports\", reaches: [\"import",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "  { folder: \"imports\", reaches: [\"imports\", \"imports/layout\", \"beyond\", \"names\", \"fence/gate\", \"campaign\", \"views/dialogs\"] },\n",
+  "find": "  { folder: \"imports\", reaches: [\"imports\", \"imports/layout\", \"beyond\", \"names\", \"fence/gate\", \"campaign\", \"views/dialogs\", \"views/pending\"] },\n",
   "replace": "",
   "group": "folders"
  },
@@ -1353,8 +1353,8 @@
  {
   "id": "folders: LAYOUT_IMPORTERS: string[] = [\"imports\"]",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "LAYOUT_IMPORTERS: string[] = [\"imports\", \"characters\"]",
-  "replace": "LAYOUT_IMPORTERS: string[] = [\"characters\"]",
+  "find": "LAYOUT_IMPORTERS: string[] = [\"imports\", \"characters\", \"beyond\"]",
+  "replace": "LAYOUT_IMPORTERS: string[] = [\"characters\", \"beyond\"]",
   "group": "folders"
  },
  {
@@ -2231,5 +2231,33 @@
   "find": "    this.refuseUnlessNew(sheet.character.name.text);\n",
   "replace": "",
   "group": "writing"
+ },
+ {
+  "id": "guard: a backslash start is left",
+  "file": "src/imports/layout/line-start-guard.ts",
+  "find": "  if (line.startsWith(BACKSLASH)) return line;\n",
+  "replace": "",
+  "group": "layout"
+ },
+ {
+  "id": "guard: fact start escaped",
+  "file": "src/imports/layout/line-start-guard.ts",
+  "find": "  return line.replace(FACT_START, \"$1\\\\:\");",
+  "replace": "  return line;",
+  "group": "layout"
+ },
+ {
+  "id": "guard: list number escaped",
+  "file": "src/imports/layout/line-start-guard.ts",
+  "find": "  return line.replace(LIST_NUMBER, \"$1\\\\$2\");",
+  "replace": "  return line;",
+  "group": "layout"
+ },
+ {
+  "id": "guard: every ASCII punctuation start",
+  "file": "src/imports/layout/line-start-guard.ts",
+  "find": "const ASCII_PUNCTUATION = /^[!-/:-@[-`{-~]/;",
+  "replace": "const ASCII_PUNCTUATION = /^[!-/:-@]/;",
+  "group": "layout"
  }
 ]
