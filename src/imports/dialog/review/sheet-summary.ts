@@ -1,7 +1,7 @@
 import type { LineLoss } from "../../../beyond/sheet/lines/line-loss";
 import type { PrintedSheet } from "../../../beyond/sheet/printed-sheet";
 import type { ImportedClass } from "../../../beyond/shape/imported-class";
-import { NOT_IN_THE_PDF } from "../import-words";
+import { NOT_IN_THE_PDF } from "../../layout/pdf-gaps";
 
 const BETWEEN_PARTS = " · ";
 const BETWEEN_CLASSES = " / ";

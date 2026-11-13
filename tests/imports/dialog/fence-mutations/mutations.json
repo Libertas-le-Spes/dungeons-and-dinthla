@@ -37,7 +37,7 @@
  {
   "id": "fence: button focus",
   "file": "tests/fence/allowed/page-members.ts",
-  "find": "  \"characters/imported/drawing/beyond-button.ts\": [\"focus\"],\n",
+  "find": "  \"characters/imported/drawing/action-button.ts\": [\"focus\"],\n",
   "replace": "",
   "group": "allow"
  },

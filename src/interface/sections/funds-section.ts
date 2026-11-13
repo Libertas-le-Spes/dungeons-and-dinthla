@@ -2,7 +2,9 @@ import { campaignOfItem } from "../../campaign/paths/campaign-folders";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { noteNameOf } from "../../campaign/paths/note-name";
 import type { NoteTexts } from "../../campaign/reading/note-texts";
-import { FundsPage, type ShownItem } from "../../funds/page/funds-page";
+import { FundsPage, type PursesBeside, type ShownItem } from "../../funds/page/funds-page";
+import { OwnPursePanel } from "../../characters/imported/purse/own-purse-panel";
+import type { OwnPurseNotes } from "../../characters/imported/purse/own-purses";
 import { ItemPanel, type OpenItem } from "../../funds/item-notes/item-panel";
 import type { OpenLedgerEntry } from "../../funds/coins/open-ledger-entry";
 import type { LinkActions } from "../../views/lists/linked-text";
@@ -17,6 +19,15 @@ export interface FundsNeeds {
   openLedgerEntry: OpenLedgerEntry;
   openItem: OpenItem;
   campaignFolders(): string[];
+  ownPurseNotes: OwnPurseNotes;
+}
+
+class OwnPurses implements PursesBeside {
+  constructor(private readonly needs: FundsNeeds) {}
+
+  panel(panelEl: HTMLElement): OwnPursePanel {
+    return new OwnPursePanel(panelEl, this.needs.store, this.needs.ownPurseNotes);
+  }
 }
 
 function itemPanelOf(panelEl: HTMLElement, path: string, needs: FundsNeeds, show: ShowPage): ItemPanel {
@@ -46,5 +57,6 @@ export function fundsSection(needs: FundsNeeds): MakePage {
       needs.openLedgerEntry,
       needs.openItem,
       shownItemOf(path, needs, show),
+      new OwnPurses(needs),
     );
 }

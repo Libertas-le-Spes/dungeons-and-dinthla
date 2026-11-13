@@ -30,6 +30,7 @@ import { questsKind } from "./quests/list/quests-kind";
 import { openAddCoin } from "./funds/coins/open-add-coin";
 import { openItemDialog } from "./funds/items/open-item";
 import { ItemNotes } from "./funds/item-notes/item-notes";
+import { FundsTracking } from "./funds/tracking/funds-tracking";
 import { askInNotice } from "./views/dialogs/differing-notice";
 import { startKindNotes } from "./kind-notes/watching/kind-notes-wiring";
 import { NotesMade } from "./settings/saved/notes-made";
@@ -163,6 +164,7 @@ export default class DungeonsAndDinthla extends Plugin {
       chooseValue: (file: TFile, value: SheetValue, onClosed: () => void) =>
         void chooseSheetValue(this.app, gate, this.store, sheetNotes, file, value, actions.openRow, onClosed),
       updateFromBeyond: (file: TFile, returnFocus: () => void) => beyond.updateFromBeyond(file, returnFocus),
+      tracking: new FundsTracking(this.app, gate, this.store),
     };
     const mentionNotes = mentionNotesOf(gate, campaignFolders);
     const galleryActions = { ...actions, openRow: (source: Source) => void openCharacterSheet(this.app, gate, source.path) };
@@ -232,6 +234,7 @@ export default class DungeonsAndDinthla extends Plugin {
         openLedgerEntry,
         openItem,
         campaignFolders: () => this.campaignFolders(),
+        ownPurseNotes: characterNotes,
       }),
       note: noteSection({
         ...sessionNotes.wholeText,

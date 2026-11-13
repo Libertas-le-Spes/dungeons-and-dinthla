@@ -1,27 +1,7 @@
-import { ButtonComponent } from "obsidian";
+import { addActionButton, type ButtonAction } from "./action-button";
 
-export interface ButtonAction {
-  run(returnFocus: () => void): void;
-}
-
-class ButtonPress {
-  constructor(
-    private readonly button: ButtonComponent,
-    private readonly action: ButtonAction,
-  ) {}
-
-  press(): void {
-    this.action.run(this.focusButton.bind(this));
-  }
-
-  private focusButton(): void {
-    this.button.buttonEl.focus();
-  }
-}
+const BEYOND_BUTTON_CLASSES = ["dd-create", "dd-beyond"];
 
 export function addBeyondButton(parent: HTMLElement, label: string, action: ButtonAction): void {
-  const button = new ButtonComponent(parent).setButtonText(label);
-  button.buttonEl.addClass("dd-create", "dd-beyond");
-  const press = new ButtonPress(button, action);
-  button.onClick(press.press.bind(press));
+  addActionButton(parent, label, BEYOND_BUTTON_CLASSES, action);
 }

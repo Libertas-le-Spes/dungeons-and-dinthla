@@ -63,6 +63,10 @@ export interface ShownItem {
   panel(panelEl: HTMLElement): Component;
 }
 
+export interface PursesBeside {
+  panel(panelEl: HTMLElement): Component;
+}
+
 export class FundsPage extends Component {
   private purse!: HTMLElement;
   private items!: HTMLElement;
@@ -80,6 +84,7 @@ export class FundsPage extends Component {
     private readonly openLedgerEntry: OpenLedgerEntry | null,
     private readonly openItem: ((name: string, source: Source, onClosed: (changed: boolean) => void) => void) | null,
     private readonly shownItem: ShownItem | null,
+    private readonly pursesBeside: PursesBeside | null,
   ) {
     super();
   }
@@ -90,6 +95,7 @@ export class FundsPage extends Component {
     root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-funds");
     this.addShownItem(root);
     this.purse = root.createEl("section", { cls: "dd-panel dd-purse-panel" });
+    this.addPursesBeside(root);
     this.items = root.createEl("section", { cls: "dd-panel dd-items-panel" });
     this.buildLedger(root.createEl("section", { cls: "dd-panel dd-ledger-panel" }));
     this.register(this.store.subscribe(() => this.render()));
@@ -99,6 +105,11 @@ export class FundsPage extends Component {
   private addShownItem(root: HTMLElement): void {
     if (this.shownItem === null) return;
     this.addChild(this.shownItem.panel(root.createEl("section", { cls: "dd-panel dd-shown-item" })));
+  }
+
+  private addPursesBeside(root: HTMLElement): void {
+    if (this.pursesBeside === null) return;
+    this.addChild(this.pursesBeside.panel(root.createEl("section", { cls: "dd-panel dd-own-purse-panel" })));
   }
 
   private isShown(item: ItemRecord): boolean {
