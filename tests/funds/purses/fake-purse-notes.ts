@@ -1,16 +1,14 @@
 import type { TFile } from "obsidian";
-import type { OwnPurseNotes } from "../../../../src/characters/imported/purse/own-purses";
-
-export function madeUpFile(path: string): TFile {
-  const name = path.substring(path.lastIndexOf("/") + 1);
-  return { path, basename: name.substring(0, name.length - ".md".length) } as TFile;
-}
+import type { OwnPurseNotes } from "../../../src/funds/purses/own-purses";
+import { madeUpFile } from "../../characters/imported/builders/made-up-file";
+import { HeldCalls } from "../../stubs/held-calls";
 
 export class FakePurseNotes implements OwnPurseNotes {
   readonly reads: string[] = [];
   readonly foldersAsked: string[] = [];
   private readonly listeners: ((path: string) => void)[] = [];
   private failure: Error | null = null;
+  private held: HeldCalls<string> | null = null;
 
   constructor(
     private readonly texts: ReadonlyMap<string, string>,
@@ -32,6 +30,7 @@ export class FakePurseNotes implements OwnPurseNotes {
 
   async textOf(file: TFile): Promise<string> {
     this.reads.push(file.path);
+    if (this.held !== null) return this.held.hold();
     if (this.failure !== null) throw this.failure;
     const text = this.texts.get(file.path);
     if (text === undefined) throw new Error(`No made-up note at ${file.path}`);
@@ -41,6 +40,12 @@ export class FakePurseNotes implements OwnPurseNotes {
   onNoteChanged(changed: (path: string) => void): () => void {
     this.listeners.push(changed);
     return this.stopListening.bind(this);
+  }
+
+  holdReads(): HeldCalls<string> {
+    const held = new HeldCalls<string>();
+    this.held = held;
+    return held;
   }
 
   failWith(error: Error): void {

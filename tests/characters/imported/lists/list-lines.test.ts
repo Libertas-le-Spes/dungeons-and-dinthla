@@ -5,17 +5,16 @@ import { leftOutCountsOf } from "../../../../src/characters/imported/lists/left-
 import { leftOutWordsOf } from "../../../../src/characters/imported/lists/left-out-words";
 import { purseCoinOf, purseCoinsOf } from "../../../../src/characters/imported/lists/purse-coin";
 
+const NOT_LEFT_OUT_COUNTS = ["2 too long", "two too long, 3 not clean", "2 too long, 3 not clear", "2 too long; 3 not clean", "-2 too long, 3 not clean", "2 too long, 3 not clean extra", "2 too long 3 not clean"];
+
 describe("the left-out line's counts", () => {
   it("are read from the words the import writes", () => {
     expect(leftOutCountsOf("2 too long, 3 not clean")).toEqual({ tooLong: 2, notClean: 3 });
   });
 
-  it.each(["2 too long", "two too long, 3 not clean", "2 too long, 3 not clear", "2 too long; 3 not clean", "-2 too long, 3 not clean", "2 too long, 3 not clean extra"])(
-    "are not read from %s",
-    (written) => {
-      expect(leftOutCountsOf(written)).toBeNull();
-    },
-  );
+  it.each(NOT_LEFT_OUT_COUNTS)("are not read from %s", function notRead(written: string): void {
+    expect(leftOutCountsOf(written)).toBeNull();
+  });
 });
 
 describe("the left-out words on the sheet", () => {

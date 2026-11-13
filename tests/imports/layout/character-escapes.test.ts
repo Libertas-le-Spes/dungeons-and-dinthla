@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { withEscapedCharacters } from "../../../src/beyond/text/character-escapes";
+import { withEscapedCharacters } from "../../../src/imports/layout/character-escapes";
 
 const ESCAPES = [
   { name: "a backslash", written: "a\\b", escaped: "a\\\\b" },

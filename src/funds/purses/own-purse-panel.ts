@@ -1,23 +1,26 @@
 import { Component } from "obsidian";
-import { isInReferenceFolder } from "../../../campaign/paths/campaign-folders";
-import type { CampaignStore } from "../../../campaign/reading/campaign-store";
-import { characterReferenceKind } from "../../../kinds/character-reference-kind";
-import { messageOf } from "../../../views/dialogs/message-of";
-import { addCoinChips, NOT_IN_THE_PARTY_PURSE } from "./coin-chips";
+import { isInReferenceFolder, mainNotePathOf } from "../../campaign/paths/campaign-folders";
+import type { CampaignStore } from "../../campaign/reading/campaign-store";
+import { addCoinChips, NOT_IN_THE_PARTY_PURSE } from "../../characters/imported/purse/coin-chips";
+import { characterReferenceKind } from "../../kinds/character-reference-kind";
+import { PendingWork } from "../../views/drawing/pending-work";
 import { ownPursesIn, type OwnPurse, type OwnPurseNotes } from "./own-purses";
 
 export type PurseStore = Pick<CampaignStore, "campaignFolder" | "subscribe">;
+
+export const COULD_NOT_READ_PURSE = "Couldn't read your character's note, so its purse isn't shown.";
 
 export function purseTitleOf(name: string): string {
   return `${name}'s purse`;
 }
 
-export function couldNotReadPurses(error: unknown): string {
-  return `Couldn't read your character's purse: ${messageOf(error)}`;
+function readsPurseFrom(folder: string, path: string): boolean {
+  return path === mainNotePathOf(folder) || isInReferenceFolder(characterReferenceKind, folder, path);
 }
 
 export class OwnPursePanel extends Component {
   private renders = 0;
+  private readonly drawing = new PendingWork();
 
   constructor(
     private readonly panelEl: HTMLElement,
@@ -38,18 +41,23 @@ export class OwnPursePanel extends Component {
     this.panelEl.empty();
   }
 
+  rendered(): Promise<void> {
+    return this.drawing.settled();
+  }
+
   private refreshFor(path: string): void {
     const folder = this.store.campaignFolder;
     if (folder === null) return;
-    if (isInReferenceFolder(characterReferenceKind, folder, path)) this.refresh();
+    if (readsPurseFrom(folder, path)) this.refresh();
   }
 
   private refresh(): void {
-    void this.render();
+    this.drawing.add(this.render());
   }
 
   private async render(): Promise<void> {
-    const render = ++this.renders;
+    this.renders += 1;
+    const render = this.renders;
     const folder = this.store.campaignFolder;
     if (folder === null) {
       this.draw([]);
@@ -58,15 +66,15 @@ export class OwnPursePanel extends Component {
     try {
       const purses = await ownPursesIn(this.notes, folder);
       if (render === this.renders) this.draw(purses);
-    } catch (error) {
-      if (render === this.renders) this.drawError(error);
+    } catch {
+      if (render === this.renders) this.drawError();
     }
   }
 
-  private drawError(error: unknown): void {
+  private drawError(): void {
     this.panelEl.empty();
     this.panelEl.toggle(true);
-    this.panelEl.createEl("p", { cls: "dd-empty", text: couldNotReadPurses(error) });
+    this.panelEl.createEl("p", { cls: "dd-empty", text: COULD_NOT_READ_PURSE });
   }
 
   private draw(purses: readonly OwnPurse[]): void {

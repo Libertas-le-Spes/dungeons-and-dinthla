@@ -274,42 +274,42 @@
  },
  {
   "id": "own purse: only his own characters",
-  "file": "src/characters/imported/purse/own-purses.ts",
+  "file": "src/funds/purses/own-purses.ts",
   "find": "    if (notes.isOwnCharacter(file) === false) continue;\n",
   "replace": "",
   "group": "purse"
  },
  {
   "id": "own purse: only imported notes",
-  "file": "src/characters/imported/purse/own-purses.ts",
+  "file": "src/funds/purses/own-purses.ts",
   "find": "  if (lists === null) return null;\n",
   "replace": "  if (lists === null) return { name: file.basename, coins: [] };\n",
   "group": "purse"
  },
  {
   "id": "own purse: redraw only for character notes",
-  "file": "src/characters/imported/purse/own-purse-panel.ts",
+  "file": "src/funds/purses/own-purse-panel.ts",
   "find": "if (isInReferenceFolder(characterReferenceKind, folder, path)) this.refresh();",
   "replace": "this.refresh();",
   "group": "purse"
  },
  {
   "id": "own purse: hidden when none",
-  "file": "src/characters/imported/purse/own-purse-panel.ts",
+  "file": "src/funds/purses/own-purse-panel.ts",
   "find": "this.panelEl.toggle(purses.length > 0);",
   "replace": "this.panelEl.toggle(true);",
   "group": "purse"
  },
  {
   "id": "own purse: none without a campaign",
-  "file": "src/characters/imported/purse/own-purse-panel.ts",
+  "file": "src/funds/purses/own-purse-panel.ts",
   "find": "    if (folder === null) {\n      this.draw([]);\n      return;\n    }\n    try",
   "replace": "    try",
   "group": "purse"
  },
  {
   "id": "own purse: errors in words",
-  "file": "src/characters/imported/purse/own-purse-panel.ts",
+  "file": "src/funds/purses/own-purse-panel.ts",
   "find": "      if (render === this.renders) this.drawError(error);",
   "replace": "      if (render === this.renders) this.draw([]);",
   "group": "purse"

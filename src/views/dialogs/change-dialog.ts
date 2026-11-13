@@ -4,6 +4,7 @@ import type { SecondPress } from "./second-press";
 
 export abstract class ChangeDialog extends Modal {
   private busy = false;
+  private change: Promise<void> = Promise.resolve();
   private readonly secondPresses: SecondPress[] = [];
 
   override close(): void {
@@ -24,7 +25,7 @@ export abstract class ChangeDialog extends Modal {
   protected runChange(change: () => Promise<boolean>, failureWords: string): void {
     if (this.busy) return;
     this.busy = true;
-    this.settled(change)
+    this.change = this.settled(change)
       .then((wrote) => {
         this.busy = false;
         this.finished(wrote);
@@ -34,6 +35,10 @@ export abstract class ChangeDialog extends Modal {
         new Notice(`${failureWords}: ${messageOf(error)}`);
         this.failed(error);
       });
+  }
+
+  changeSettled(): Promise<void> {
+    return this.change;
   }
 
   private async settled(change: () => Promise<boolean>): Promise<boolean> {

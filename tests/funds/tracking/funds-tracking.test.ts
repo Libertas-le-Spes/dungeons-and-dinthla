@@ -1,17 +1,23 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { App, TFile } from "obsidian";
-import { FundsTracking, ITEM_GONE, NOT_THE_SHOWN_CAMPAIGN } from "../../../src/funds/tracking/funds-tracking";
+import { FundsTracking, ITEM_GONE, NO_SESSION, NOT_AS_IMPORTED, NOT_IN_A_CAMPAIGN, NOT_THE_SHOWN_CAMPAIGN } from "../../../src/funds/tracking/funds-tracking";
+import { heldByWords } from "../../../src/funds/tracking/items-look";
+import { SESSIONS_SHARE_A_NUMBER } from "../../../src/campaign/paths/session-to-write";
+import { sessionGoneWords } from "../../../src/campaign/paths/session-gone";
+import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { ALREADY_ON_FUNDS_PAGE, NOT_READ_AS_THE_ITEM } from "../../../src/funds/tracking/tracking-refusal";
 import { TrackItemModal, TRACK_TITLE } from "../../../src/funds/tracking/track-item-modal";
 import { ItemModal } from "../../../src/funds/items/item-modal";
 import type { ItemEdit } from "../../../src/funds/items/item-plan";
 import { DialogCampaign, lastDialog } from "../../campaign/dialog-campaign";
-import { Notice, openedModals } from "../../stubs/obsidian";
+import { Modal, Notice, openedModals } from "../../stubs/obsidian";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
 const PRIMARY = { path: "Pale Moon/Characters/Primary Monk.md", basename: "Primary Monk" } as TFile;
 const ELSEWHERE = { path: "Ashen Road/Characters/Primary Monk.md", basename: "Primary Monk" } as TFile;
+const LOOSE = { path: "Loose notes/Primary Monk.md", basename: "Primary Monk" } as TFile;
+const PEOPLE_PRIMARY = "People/Primary Monk.md";
 
 const app = {} as App;
 
@@ -24,8 +30,26 @@ interface ItemDialog {
   edit: ItemEdit;
 }
 
-function trackingIn(campaign: DialogCampaign): FundsTracking {
-  return new FundsTracking(app, campaign.gate, campaign.store);
+function campaignFolders(): string[] {
+  return ["Pale Moon", "Ashen Road"];
+}
+
+function trackingIn(campaign: DialogCampaign, store: CampaignStore = campaign.store): FundsTracking {
+  campaign.addCharacterNote(PRIMARY.path);
+  campaign.addCharacterNote("Pale Moon/Characters/Secondary.md");
+  return new FundsTracking(app, campaign.gate, store, campaignFolders);
+}
+
+function lookOf(campaign: DialogCampaign, written: string[]) {
+  const look = trackingIn(campaign).lookAt(PRIMARY, written);
+  if (look === null) throw new Error("No look for the campaign shown.");
+  return look;
+}
+
+function heldNames(campaign: DialogCampaign, written: string[]): string[] {
+  const names: string[] = [];
+  for (const item of lookOf(campaign, written).heldButNotImported()) names.push(item.shown);
+  return names;
 }
 
 function noFocus(): void {}
@@ -85,6 +109,75 @@ describe("Track on the funds page", () => {
     expect(campaign.writes).toBe(0);
   });
 
+  it.each(["Rope #loot", "Bag:: x", "Rope ==mark==", "r".repeat(101)])("refuses %s, which isn't as the import writes a line, with no dialog", function notImported(written: string): void {
+    const campaign = new DialogCampaign({ [ONE]: "We camped.\n" });
+    trackingIn(campaign).track(PRIMARY, written, noFocus);
+    expect(Notice.shown).toEqual([NOT_AS_IMPORTED]);
+    expect(openedModals).toHaveLength(0);
+  });
+
+  it("says to start a session first, with no dialog, when the campaign has none", () => {
+    const campaign = new DialogCampaign({});
+    trackingIn(campaign).track(PRIMARY, "Rope", noFocus);
+    expect(Notice.shown).toEqual([NO_SESSION]);
+    expect(openedModals).toHaveLength(0);
+  });
+
+  it("says so, with no dialog, when two sessions share the latest number", () => {
+    const campaign = new DialogCampaign({ [ONE]: "We met.\n", [TWO]: "We camped.\n", "Pale Moon/Sessions/Session 02.md": "We rode.\n" });
+    trackingIn(campaign).track(PRIMARY, "Rope", noFocus);
+    expect(Notice.shown).toEqual([SESSIONS_SHARE_A_NUMBER]);
+    expect(openedModals).toHaveLength(0);
+  });
+
+  it("writes nothing when the session was moved between opening the dialog and Save", async () => {
+    const campaign = new DialogCampaign({ [ONE]: "We met.\n", [TWO]: "We camped.\n" });
+    trackingIn(campaign).track(PRIMARY, "Rope", noFocus);
+    campaign.moveNote(TWO, "Pale Moon/Sessions/Session 3.md");
+    await expect(lastDialog<TrackShownDialog>().saving.save()).rejects.toThrow(sessionGoneWords(TWO));
+    expect(campaign.writes).toBe(0);
+  });
+
+  it("checks the note as it is when it writes, so an item added since it was read isn't added twice", async () => {
+    const campaign = new DialogCampaign({ [ONE]: "We camped.\n" });
+    trackingIn(campaign).track(PRIMARY, "Rope", noFocus);
+    campaign.texts.set(ONE, "We camped.\n$ [[Secondary]] Rope\n");
+    await expect(lastDialog<TrackShownDialog>().saving.save()).rejects.toThrow(ALREADY_ON_FUNDS_PAGE);
+    expect(campaign.texts.get(ONE)).toBe("We camped.\n$ [[Secondary]] Rope\n");
+  });
+
+  it("tracks again an item that was used, sold or lost, held by him from then on", async () => {
+    const campaign = new DialogCampaign({ [ONE]: "$ [[Primary Monk]] Rope\n$$ Rope :sold\n" });
+    trackingIn(campaign).track(PRIMARY, "Rope", noFocus);
+    expect(await lastDialog<TrackShownDialog>().saving.save()).toBe(true);
+    campaign.readAgain();
+    expect(itemsHeldBy(campaign, "Primary Monk")).toEqual(["Rope"]);
+  });
+
+  it("doesn't add an item typed at the table again under the name the import escaped", async () => {
+    const campaign = new DialogCampaign({ [ONE]: "$ [[Primary Monk]] Rope (50 ft) *silk*\n" });
+    trackingIn(campaign).track(PRIMARY, "Rope (50 ft) \\*silk\\*", noFocus);
+    await expect(lastDialog<TrackShownDialog>().saving.save()).rejects.toThrow(ALREADY_ON_FUNDS_PAGE);
+    expect(campaign.writes).toBe(0);
+  });
+
+  it("says to show the campaign first, with no dialog, when no campaign is shown", () => {
+    const campaign = new DialogCampaign({ [ONE]: "We camped.\n" });
+    const store = { ...campaign.store, campaignFolder: null } as CampaignStore;
+    trackingIn(campaign, store).track(PRIMARY, "Rope", noFocus);
+    expect(Notice.shown).toEqual([NOT_THE_SHOWN_CAMPAIGN]);
+    expect(openedModals).toHaveLength(0);
+  });
+
+  it("says a character in no campaign can't be tracked, rather than to show its campaign", () => {
+    const campaign = new DialogCampaign({ [ONE]: "We camped.\n" });
+    const tracking = trackingIn(campaign);
+    tracking.track(LOOSE, "Rope", noFocus);
+    expect(Notice.shown).toEqual([NOT_IN_A_CAMPAIGN]);
+    expect(tracking.whyNotTracked(LOOSE)).toBe(NOT_IN_A_CAMPAIGN);
+    expect(tracking.whyNotTracked(ELSEWHERE)).toBe(NOT_THE_SHOWN_CAMPAIGN);
+  });
+
   it("refuses, in words and with no dialog, a character outside the campaign shown", () => {
     const campaign = new DialogCampaign({ [ONE]: "We camped.\n" });
     trackingIn(campaign).track(ELSEWHERE, "Rope", noFocus);
@@ -121,11 +214,41 @@ describe("what the funds page says about an imported list", () => {
     expect(look.standingOf("Shield")).toBeNull();
   });
 
+  it("says who holds an item of the same name held by someone else, and offers no tracking for it", () => {
+    const look = lookOf(new DialogCampaign({ [ONE]: "$ [[Secondary]] Rope\n" }), ["Rope"]);
+    expect(look.standingOf("Rope")).toBe(heldByWords("Secondary"));
+    expect(heldByWords("Secondary")).toBe("Held by Secondary, on the funds page");
+    expect(look.canTrack("Rope")).toBe(false);
+  });
+
+  it("offers tracking again for an item gone from the funds page, saying how it went", () => {
+    const look = lookOf(new DialogCampaign({ [ONE]: "$ [[Primary Monk]] Rope\n$$ Rope :sold\n" }), ["Rope"]);
+    expect(look.standingOf("Rope")).toBe("Sold, on the funds page");
+    expect(look.canTrack("Rope")).toBe(true);
+  });
+
+  it("takes a name typed at the table and the import's escaped name for one item: no Track, no mark", () => {
+    const campaign = new DialogCampaign({ [ONE]: "$ [[Primary Monk]] Rope (50 ft) *silk*\n" });
+    const imported = "Rope (50 ft) \\*silk\\*";
+    const look = lookOf(campaign, [imported]);
+    expect(look.standingOf(imported)).toBe("On the funds page");
+    expect(look.canTrack(imported)).toBe(false);
+    expect(look.heldButNotImported()).toEqual([]);
+  });
+
+  it("shows a marked item's name without the note's escapes", () => {
+    expect(heldNames(new DialogCampaign({ [ONE]: "$ [[Primary Monk]] Rope\\_coil\n" }), [])).toEqual(["Rope_coil"]);
+  });
+
+  it("marks an item by the note its holder link leads to, not by the holder's name", () => {
+    const campaign = new DialogCampaign({ [ONE]: "$ [[People/Primary Monk]] Cloak\n$ [[Pale Moon/Characters/Primary Monk]] Dagger\n" });
+    campaign.addCharacterNote(PEOPLE_PRIMARY);
+    expect(heldNames(campaign, [])).toEqual(["Dagger"]);
+  });
+
   it("lists only the items he holds that the import doesn't have", () => {
     const campaign = new DialogCampaign({ [ONE]: "$ [[Primary Monk]] Rope\n$ [[Primary Monk]] Dagger\n$ [[primary monk]] Cloak\n$ [[Secondary]] Shield\n$ [[Primary Monk]] Map\n$$ Map :lost\n" });
-    const look = trackingIn(campaign).lookAt(PRIMARY, ["rope"]);
-    if (look === null) throw new Error("No look for the campaign shown.");
-    expect(look.heldButNotImported()).toEqual(["Dagger", "Cloak"]);
+    expect(heldNames(campaign, ["rope"])).toEqual(["Dagger", "Cloak"]);
   });
 });
 
@@ -145,6 +268,13 @@ describe("a choice for an item held but not imported", () => {
     expect(lastDialog<ItemDialog>().edit).toMatchObject({ status: "held", holder: "[[Primary Monk]]" });
   });
 
+  it("refuses, with no dialog, for a character outside the campaign shown", () => {
+    const campaign = new DialogCampaign({ [ONE]: "$ [[Primary Monk]] Dagger\n" });
+    trackingIn(campaign).settle(ELSEWHERE, "Dagger", "sold", noFocus);
+    expect(Notice.shown).toEqual([NOT_THE_SHOWN_CAMPAIGN]);
+    expect(openedModals).toHaveLength(0);
+  });
+
   it("says so, with no dialog, when the item has gone from the funds page", () => {
     const campaign = new DialogCampaign({ [ONE]: "We camped.\n" });
     trackingIn(campaign).settle(PRIMARY, "Dagger", "lost", noFocus);
@@ -158,12 +288,17 @@ describe("the track dialog", () => {
     const campaign = new DialogCampaign({ [ONE]: "We camped.\n" });
     trackingIn(campaign).track(PRIMARY, "Rope", noFocus);
     const dialog = lastDialog<TrackItemModal>();
-    expect((dialog as unknown as { title: string }).title).toBe(TRACK_TITLE);
+    expect(titleOf(dialog)).toBe(TRACK_TITLE);
     const texts: (string | null)[] = [];
     for (const line of dialog.contentEl.querySelectorAll("p")) texts.push(line.textContent);
     expect(texts).toEqual(["Rope", "Held by Primary Monk", "Adds a line to Session 1."]);
   });
 });
+
+function titleOf(dialog: TrackItemModal): string {
+  if (!(dialog instanceof Modal)) throw new Error("The dialog isn't a modal.");
+  return dialog.title;
+}
 
 function buttonSaying(root: HTMLElement, words: string): HTMLButtonElement {
   for (const button of root.querySelectorAll<HTMLButtonElement>("button")) {
@@ -179,10 +314,10 @@ describe("the track dialog's buttons", () => {
     trackingIn(campaign).track(PRIMARY, "Rope", function focusBack(): void {
       closed.push("closed");
     });
-    buttonSaying(lastDialog<TrackItemModal>().contentEl, "Save").click();
-    await expect.poll(function closings(): string[] {
-      return closed;
-    }).toEqual(["closed"]);
+    const dialog = lastDialog<TrackItemModal>();
+    buttonSaying(dialog.contentEl, "Save").click();
+    await dialog.changeSettled();
+    expect(closed).toEqual(["closed"]);
     expect(campaign.texts.get(ONE)).toBe("We camped.\n$ [[Primary Monk]] Rope\n");
   });
 
@@ -203,10 +338,10 @@ describe("the track dialog's buttons", () => {
     trackingIn(campaign).track(PRIMARY, "Rope", function focusBack(): void {
       closed.push("closed");
     });
-    buttonSaying(lastDialog<TrackItemModal>().contentEl, "Save").click();
-    await expect.poll(function notices(): string[] {
-      return Notice.shown;
-    }).toEqual([`Couldn't track the item: ${ALREADY_ON_FUNDS_PAGE}`]);
+    const dialog = lastDialog<TrackItemModal>();
+    buttonSaying(dialog.contentEl, "Save").click();
+    await dialog.changeSettled();
+    expect(Notice.shown).toEqual([`Couldn't track the item: ${ALREADY_ON_FUNDS_PAGE}`]);
     expect(closed).toEqual([]);
   });
 });

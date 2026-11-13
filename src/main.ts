@@ -167,7 +167,7 @@ export default class DungeonsAndDinthla extends Plugin {
       chooseValue: (file: TFile, value: SheetValue, onClosed: () => void) =>
         void chooseSheetValue(this.app, gate, this.store, sheetNotes, file, value, actions.openRow, onClosed),
       updateFromBeyond: beyond.updateFromBeyond.bind(beyond),
-      tracking: new FundsTracking(this.app, gate, this.store),
+      tracking: new FundsTracking(this.app, gate, this.store, () => this.campaignFolders()),
     };
     const mentionNotes = mentionNotesOf(gate, campaignFolders);
     const galleryActions = { ...actions, openRow: (source: Source) => void openCharacterSheet(this.app, gate, source.path) };

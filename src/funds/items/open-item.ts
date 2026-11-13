@@ -1,20 +1,17 @@
 import type { App } from "obsidian";
-import type { ItemRecord, Source } from "../../campaign/record/campaign";
+import type { Source } from "../../campaign/record/campaign";
 import { charactersIn } from "../../characters/reading/characters";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { sessionLabelOf } from "../../campaign/paths/session-file";
 import { sessionForDialog } from "../../campaign/paths/session-for-dialog";
 import { openSource } from "../../views/opening/open-view";
 import { ItemModal } from "./item-modal";
+import { itemNamed } from "./item-named";
 import { holderOptionOf, holderOptions, latestSessionOfItem, type ItemEdit, type ItemStatus } from "./item-plan";
 import { openedItem } from "./item-writer";
 import type { Gate } from "../../fence/gate/gatekeeper";
 
 const NO_SESSION = "Start a session first: item changes are written into a session note.";
-
-function itemNamed(items: ItemRecord[], name: string): ItemRecord | undefined {
-  return items.find((item) => item.name === name);
-}
 
 export function openItemDialog(
   app: App,
@@ -50,7 +47,7 @@ export function openItemDialogAs(
   const name = asked.name;
   const item = itemNamed(store.current.items, name);
   const folder = store.campaignFolder;
-  if (item === undefined || folder === null) {
+  if (item === null || folder === null) {
     openNote();
     return;
   }
