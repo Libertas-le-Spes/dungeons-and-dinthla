@@ -61,3 +61,21 @@ describe("BlockTracker", () => {
     expect(closedAfter([])).toBe(true);
   });
 });
+
+describe("BlockTracker on a line of many comments", () => {
+  it("walks ten thousand closed comments on one line and is closed after it", () => {
+    expect(closedAfter(["<!--x-->".repeat(10_000)])).toBe(true);
+  });
+
+  it("walks ten thousand closed percent comments on one line and is closed after it", () => {
+    expect(closedAfter(["%%a%%".repeat(10_000)])).toBe(true);
+  });
+
+  it("is still inside a comment when the last of ten thousand on a line is left open", () => {
+    expect(closedAfter([`${"<!--x-->".repeat(10_000)}<!--`])).toBe(false);
+  });
+
+  it("closes, on a later line, a comment opened after ten thousand closed ones", () => {
+    expect(allowedAmong([`${"%%a%%".repeat(10_000)}%%`, "x %%", "y"])).toEqual([true, false, true]);
+  });
+});

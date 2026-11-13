@@ -12,6 +12,7 @@ interface Mutation {
 }
 
 interface Backup {
+  root: string;
   file: string;
   text: string;
 }
@@ -47,10 +48,35 @@ const ROOT = new URL("../../..", import.meta.url).pathname;
 const MUTATIONS: Mutation[] = JSON.parse(readFileSync(new URL("./mutations.json", import.meta.url), "utf8"));
 const ONLY_ANCHORS = process.argv.includes("--anchors");
 const ALLOW_DIRTY = process.argv.includes("--allow-dirty");
-const WANTED = process.argv.filter(isMutationId);
+const FIRST_GIVEN_ARGUMENT = 2;
+const FLAG_START = "--";
+const GIVEN = givenArguments();
+const WANTED = GIVEN.filter(isMutationId);
 const REPORT_FOLDER = mkdtempSync(join(tmpdir(), "imports-mutations-"));
-const BACKUP_FOLDER = join(tmpdir(), "imports-mutations-backups");
+const BACKUP_FOLDER = join(ROOT, ".mutation-backups", "imports");
 const LOAD_FAILURE = "SUITE FAILED TO LOAD";
+
+function givenArguments(): string[] {
+  const given: string[] = [];
+  for (const [position, argument] of process.argv.entries()) {
+    if (position >= FIRST_GIVEN_ARGUMENT) given.push(argument);
+  }
+  return given;
+}
+
+function isFlag(argument: string): boolean {
+  return argument.startsWith(FLAG_START);
+}
+
+function unknownArguments(): string[] {
+  const unknown: string[] = [];
+  for (const argument of GIVEN) {
+    if (isFlag(argument)) continue;
+    if (isMutationId(argument)) continue;
+    unknown.push(argument);
+  }
+  return unknown;
+}
 
 function isMutationId(argument: string): boolean {
   return MUTATIONS.some(function named(mutation: Mutation): boolean {
@@ -67,8 +93,12 @@ function restoreLeftoverBackups(): void {
   for (const name of readdirSync(BACKUP_FOLDER)) {
     const path = join(BACKUP_FOLDER, name);
     const backup: Backup = JSON.parse(readFileSync(path, "utf8"));
+    if (backup.root !== ROOT) {
+      console.log(JSON.stringify({ skipped: backup.file, root: backup.root }));
+      continue;
+    }
     writeFileSync(join(ROOT, backup.file), backup.text);
-    rmSync(path);
+    rmSync(path, { force: true });
     console.log(JSON.stringify({ restored: backup.file }));
   }
 }
@@ -112,7 +142,8 @@ function runTests(): SuiteResult[] | null {
   const report = join(REPORT_FOLDER, "report.json");
   const command = ["timeout", "-k", "5", "120", "npx", "vitest", "run", ...SUITES, "--maxWorkers=1", "--reporter=json", `--outputFile=${report}`];
   const result = spawnSync("systemd-run", [...BOX, ...command], { cwd: ROOT, encoding: "utf8" });
-  if (result.error !== undefined || !existsSync(report)) return null;
+  if (result.error !== undefined) return null;
+  if (!existsSync(report)) return null;
   return JSON.parse(readFileSync(report, "utf8")).testResults;
 }
 
@@ -130,14 +161,14 @@ function failuresIn(suites: SuiteResult[]): Failures {
 function runMutated(path: string, original: string, file: string, mutation: Mutation): SuiteResult[] | null {
   mkdirSync(BACKUP_FOLDER, { recursive: true });
   const backup = backupPathOf(file);
-  const kept: Backup = { file, text: original };
+  const kept: Backup = { root: ROOT, file, text: original };
   writeFileSync(backup, JSON.stringify(kept));
   writeFileSync(path, original.split(mutation.find).join(mutation.replace));
   try {
     return runTests();
   } finally {
     writeFileSync(path, original);
-    rmSync(backup);
+    rmSync(backup, { force: true });
   }
 }
 
@@ -146,7 +177,8 @@ function outcomeOf(mutation: Mutation): Outcome {
   const text = readFileSync(path, "utf8");
   const found = occurrences(text, mutation.find);
   const outcome: Outcome = { id: mutation.id, group: mutation.group, status: `ANCHOR ${found}`, failed: 0, loadFailures: 0, examples: [] };
-  if (found !== 1 || ONLY_ANCHORS) return outcome;
+  if (found !== 1) return outcome;
+  if (ONLY_ANCHORS) return outcome;
   const suites = runMutated(path, text, mutation.file, mutation);
   if (suites === null) return { ...outcome, status: "NO REPORT" };
   const failures = failuresIn(suites);
@@ -162,11 +194,23 @@ function countOf(outcomes: Outcome[], status: string): number {
   return count;
 }
 
+const EXACTLY_ONCE = "ANCHOR 1";
+
+function anchorSummaryOf(outcomes: Outcome[]): string {
+  const once = countOf(outcomes, EXACTLY_ONCE);
+  return JSON.stringify({ total: outcomes.length, anchoredOnce: once, notAnchoredOnce: outcomes.length - once });
+}
+
 function summaryOf(outcomes: Outcome[]): string {
   const killed = countOf(outcomes, "killed");
   return JSON.stringify({ total: outcomes.length, killed, notKilled: outcomes.length - killed, loadOnly: countOf(outcomes, "LOAD-ONLY"), survived: countOf(outcomes, "SURVIVED") });
 }
 
+const unknown = unknownArguments();
+if (unknown.length > 0) {
+  console.log(JSON.stringify({ refused: "No mutation has these ids, so nothing was run. Copy an id from mutations.json.", unknown }));
+  process.exit(2);
+}
 restoreLeftoverBackups();
 const differing = filesDifferingFromHead();
 if (differing.length > 0 && !ALLOW_DIRTY && !ONLY_ANCHORS) {
@@ -181,6 +225,12 @@ for (const mutation of MUTATIONS) {
   outcomes.push(outcome);
   console.log(JSON.stringify(outcome));
 }
-console.log(summaryOf(outcomes));
-console.log("finished");
-if (!ONLY_ANCHORS && countOf(outcomes, "killed") !== outcomes.length) process.exit(1);
+if (ONLY_ANCHORS) {
+  console.log(anchorSummaryOf(outcomes));
+  console.log("finished");
+  if (countOf(outcomes, EXACTLY_ONCE) !== outcomes.length) process.exit(1);
+} else {
+  console.log(summaryOf(outcomes));
+  console.log("finished");
+  if (countOf(outcomes, "killed") !== outcomes.length) process.exit(1);
+}

@@ -192,7 +192,8 @@ describe("NoteLayout's properties", () => {
 
   it("splits the block into its fences and what is inside", () => {
     const block = NoteLayout.of(textOf("---", "a: 1", "b: 2", "---", "body")).properties();
-    expect([block?.opening, block?.inside, block?.closing]).toEqual(["---", ["a: 1", "b: 2"], "---"]);
+    if (block === null) throw new Error("The note has a properties block, so one should have been read.");
+    expect([block.opening, block.inside, block.closing]).toEqual(["---", ["a: 1", "b: 2"], "---"]);
   });
 
   it("has no block when the note has no properties", () => {

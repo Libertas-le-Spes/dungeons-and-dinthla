@@ -20,14 +20,32 @@ function fenceMarkerIn(line: string): string | null {
   return marker;
 }
 
-function earliestComment(line: string): { kind: CommentKind; at: number } | null {
+function earliestComment(line: string, from: number): { kind: CommentKind; at: number } | null {
   let found: { kind: CommentKind; at: number } | null = null;
   for (const kind of COMMENT_KINDS) {
-    const at = line.indexOf(kind.opener);
+    const at = line.indexOf(kind.opener, from);
     if (at === -1) continue;
     if (found === null || at < found.at) found = { kind, at };
   }
   return found;
+}
+
+function stateAfter(line: string, inside: CommentKind | null): BlockState {
+  let open = inside;
+  let offset = 0;
+  while (true) {
+    if (open === null) {
+      const comment = earliestComment(line, offset);
+      if (comment === null) return OPEN_TEXT;
+      open = comment.kind;
+      offset = comment.at + comment.kind.opener.length;
+    } else {
+      const at = line.indexOf(open.closer, offset);
+      if (at === -1) return new InComment(open);
+      offset = at + open.closer.length;
+      open = null;
+    }
+  }
 }
 
 class InComment implements BlockState {
@@ -37,9 +55,7 @@ class InComment implements BlockState {
   constructor(private readonly kind: CommentKind) {}
 
   after(line: string): BlockState {
-    const at = line.indexOf(this.kind.closer);
-    if (at === -1) return this;
-    return afterText(line.slice(at + this.kind.closer.length));
+    return stateAfter(line, this.kind);
   }
 }
 
@@ -65,17 +81,11 @@ class OpenText implements BlockState {
   after(line: string): BlockState {
     const marker = fenceMarkerIn(line);
     if (marker !== null) return new InFence(marker);
-    return afterText(line);
+    return stateAfter(line, null);
   }
 }
 
 const OPEN_TEXT = new OpenText();
-
-function afterText(text: string): BlockState {
-  const comment = earliestComment(text);
-  if (comment === null) return OPEN_TEXT;
-  return new InComment(comment.kind).after(text.slice(comment.at + comment.kind.opener.length));
-}
 
 export function openText(): BlockState {
   return OPEN_TEXT;
