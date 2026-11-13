@@ -1,5 +1,5 @@
 import { basename, dirname, relative } from "node:path";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { ALL_ALLOWED } from "../scan/running/allowance-sets";
 import { numberedFileNames, SampleScan } from "../scan/running/sample-scan";
 import { GATE_TYPE_SOURCES } from "../scan/reading/gate-paths";
@@ -53,21 +53,43 @@ function messagesAt(scan: SampleScan, samples: string[]): string[][] {
   return samples.map((sample) => scan.breaches(sample, ALL_ALLOWED).map(messageOf));
 }
 
-const scans = new Map<string, SampleScan>();
+function messagesIn(placement: Placement): string[][] {
+  const scan = new SampleScan(placement.family, samplesFor(placement), placement.fileNames);
+  try {
+    return messagesAt(scan, samplesFor(placement));
+  } finally {
+    scan.close();
+  }
+}
+
+interface SampleMessages {
+  sample: string;
+  messages: string[];
+}
+
+let ordinaryMessages: string[][] = [];
+
+function pairedWithMessages(samples: string[], messages: string[][]): SampleMessages[] {
+  const pairs: SampleMessages[] = [];
+  for (const [position, sample] of samples.entries()) {
+    const found = messages.at(position);
+    if (found === undefined) throw new Error(`The sample at ${position} was never scanned.`);
+    pairs.push({ sample, messages: found });
+  }
+  return pairs;
+}
+
+function isNotRefused(pair: SampleMessages): boolean {
+  return pair.messages.length === 0;
+}
+
+function sampleOf(pair: SampleMessages): string {
+  return pair.sample;
+}
 
 beforeAll(() => {
-  for (const placement of PLACEMENTS) scans.set(placement.family, new SampleScan(placement.family, samplesFor(placement), placement.fileNames));
+  ordinaryMessages = messagesIn(ORDINARY);
 }, 300_000);
-
-afterAll(() => {
-  for (const scan of scans.values()) scan.close();
-});
-
-function scanOf(placement: Placement): SampleScan {
-  const scan = scans.get(placement.family);
-  if (scan === undefined) throw new Error(`No scan was made for ${placement.family}.`);
-  return scan;
-}
 
 describe("the samples the gate's folder is tested with", () => {
   it("write every path into src with the prefix that is rewritten for each family", () => {
@@ -85,17 +107,15 @@ describe("the samples the gate's folder is tested with", () => {
 
 describe("the gate's folder, as the source scan knows it", () => {
   it("has every sample refused at an ordinary path, so the comparisons below mean something", () => {
-    const scan = scanOf(ORDINARY);
-    expect(samplesFor(ORDINARY).filter((sample) => scan.breaches(sample, ALL_ALLOWED).length === 0)).toEqual([]);
+    expect(ordinaryMessages).toHaveLength(SAMPLES.length);
+    expect(pairedWithMessages(samplesFor(ORDINARY), ordinaryMessages).filter(isNotRefused).map(sampleOf)).toEqual([]);
   }, 120_000);
 
   it.each(LOOKALIKES)("gives a file whose path only looks like the gate's none of its exemptions: $family", (placement) => {
-    const ordinary = messagesAt(scanOf(ORDINARY), samplesFor(ORDINARY));
-    expect(messagesAt(scanOf(placement), samplesFor(placement))).toEqual(ordinary);
+    expect(messagesIn(placement)).toEqual(ordinaryMessages);
   }, 120_000);
 
   it.each(NAMED_AFTER_THE_GATE)("gives a file named like one of the gate's, outside its folder, none of its exemptions: $family", (placement) => {
-    const ordinary = messagesAt(scanOf(ORDINARY), samplesFor(ORDINARY));
-    expect(messagesAt(scanOf(placement), samplesFor(placement))).toEqual(ordinary);
+    expect(messagesIn(placement)).toEqual(ordinaryMessages);
   }, 120_000);
 });
