@@ -33,6 +33,8 @@ export class FakeNoteVault {
   readonly created: string[] = [];
   readonly createdFolders: string[] = [];
   readonly gate: FencedFiles;
+  private readFailure: Error | null = null;
+  private createFailure: Error | null = null;
 
   constructor() {
     const fence = new Fence(campaignsFolder, ".obsidian");
@@ -49,6 +51,24 @@ export class FakeNoteVault {
 
   folder(path: string): void {
     this.folders.set(path, folderAt(path));
+  }
+
+  failReadsWith(error: Error): void {
+    this.readFailure = error;
+  }
+
+  failCreatesWith(error: Error): void {
+    this.createFailure = error;
+  }
+
+  allNotes(): TFile[] {
+    return this.allFiles();
+  }
+
+  fileAt(path: string): TFile {
+    const file = this.files.get(path);
+    if (file === undefined) throw new Error(`No note at ${path}.`);
+    return file;
   }
 
   textAt(path: string): string {
@@ -83,6 +103,7 @@ export class FakeNoteVault {
   }
 
   private async read(file: TFile): Promise<string> {
+    if (this.readFailure !== null) throw this.readFailure;
     return this.textAt(file.path);
   }
 
@@ -106,6 +127,7 @@ export class FakeNoteVault {
   }
 
   private async create(path: string, text: string): Promise<TFile> {
+    if (this.createFailure !== null) throw this.createFailure;
     this.created.push(path);
     return this.note(path, text);
   }

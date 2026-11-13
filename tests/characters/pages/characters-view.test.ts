@@ -88,8 +88,9 @@ function openGallery({
   };
   const actions = { openRow: vi.fn(), openLink: vi.fn() };
   const newCharacter = vi.fn();
+  const importCharacter = vi.fn();
   const container = obsidianDocument().createElement("div");
-  const view = new CharactersView({} as QueryController, container, store as unknown as CampaignStore, notes, actions, newCharacter);
+  const view = new CharactersView({} as QueryController, container, store as unknown as CampaignStore, notes, actions, { newCharacter, importCharacter });
   const registered: (() => void)[] = [];
   view.register = (callback) => {
     registered.push(callback);
@@ -111,6 +112,7 @@ function openGallery({
     store,
     actions,
     newCharacter,
+    importCharacter,
     owner,
     reads,
     sessionsAskedFor,
@@ -150,6 +152,16 @@ describe("CharactersView", () => {
     expect(textsOf(card, ".dd-stat-block-line")).toEqual(["Class rogue", "Armor Class 15", "Hit Points 44", "Speed ?"]);
     expect(textsOf(card, ".dd-stat-block-abilities > div")).toEqual(["STR?", "DEX17 (+3)", "CON9 (−1)", "INT?", "WIS?", "CHA?"]);
     expect(textsOf(card, ".dd-unknown")).toEqual(["?", "?", "?", "?", "?"]);
+  });
+
+  it("shows imported values over learned ones, and his own note's over both", async () => {
+    const imported = ["---", "imported-from: pdf", 'class: "Monk 4"', "AC: 16", "HP: 27", "DEX: 18", "---", "HP: 30", ""].join("\n");
+    const sessions = [sessionOf(1, ["[[Mira]] class: rogue, AC: 15, DEX: 17"])];
+    const gallery = openGallery({ sessions, ownNotes: { Mira: imported } });
+    await gallery.show(["Mira"]);
+    const card = gallery.container.querySelector<HTMLElement>(".dd-card")!;
+    expect(textsOf(card, ".dd-stat-block-line")).toEqual(["Class Monk 4", "Armor Class 16", "Hit Points 30", "Speed ?"]);
+    expect(textsOf(card, ".dd-stat-block-abilities > div")).toContain("DEX18 (+4)");
   });
 
   it("leaves out the type line and subtitle when neither is known", async () => {
@@ -226,6 +238,31 @@ describe("CharactersView", () => {
     await gallery.show([]);
     gallery.container.querySelector<HTMLElement>(".dd-head .dd-create")!.click();
     expect(gallery.newCharacter).toHaveBeenCalledOnce();
+  });
+
+  it("opens the import from D&D Beyond once from its button, beside New character", async () => {
+    const gallery = openGallery();
+    gallery.container.ownerDocument.body.append(gallery.container);
+    await gallery.show([]);
+    const importButton = gallery.container.querySelector<HTMLElement>(".dd-head .dd-head-actions .dd-beyond");
+    if (importButton === null) throw new Error("No import button in the head's actions.");
+    expect(importButton.textContent).toBe("Import from D&D Beyond");
+    importButton.click();
+    expect(gallery.importCharacter).toHaveBeenCalledOnce();
+    expect(gallery.newCharacter).not.toHaveBeenCalled();
+    const [[returnFocus]] = gallery.importCharacter.mock.calls as [[() => void]];
+    returnFocus();
+    expect(gallery.container.ownerDocument.activeElement).toBe(importButton);
+  });
+
+  it("puts New character and the import together in the head's one row of actions", async () => {
+    const gallery = openGallery();
+    await gallery.show([]);
+    const actions = gallery.container.querySelector(".dd-head .dd-head-actions");
+    if (actions === null) throw new Error("The head has no actions row.");
+    const words: (string | null)[] = [];
+    for (const button of actions.querySelectorAll("button")) words.push(button.textContent);
+    expect(words).toEqual(["New character", "Import from D&D Beyond"]);
   });
 
   it("returns focus to the new character button drawn since the dialog opened", async () => {

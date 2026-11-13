@@ -116,6 +116,11 @@
   color: var(--state-override);
 }
 
+.dd-sheet .dd-value.dd-state-imported {
+  background: var(--state-imported-soft);
+  color: var(--state-imported);
+}
+
 .dd-sheet .dd-value.dd-state-carried {
   background: var(--state-carried-soft);
   color: var(--state-carried);
@@ -209,6 +214,10 @@
   background: var(--state-override);
 }
 
+.dd-sheet-dialog .dd-state-choice[data-state="imported"]::before {
+  background: var(--state-imported);
+}
+
 .dd-sheet-dialog .dd-state-choice[data-state="carried"]::before {
   background: var(--state-carried);
 }
@@ -252,4 +261,15 @@
   border-radius: var(--radius-xs);
   box-shadow: var(--focus-ring);
   outline: none;
+}
+
+.dd-sheet .dd-value-source.dd-state-imported,
+.dd-sheet .dd-value-route {
+  font: var(--type-label);
+  color: var(--text-muted-ui);
+}
+
+.dd-sheet .dd-value-working {
+  font-size: var(--text-sm);
+  color: var(--text-muted-ui);
 }

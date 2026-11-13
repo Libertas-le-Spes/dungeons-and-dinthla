@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BlockTracker } from "../../../../src/imports/note/reading/blocks/block-tracker";
+import { BlockTracker } from "../../../src/imports/layout/blocks/block-tracker";
 
 function allowedAmong(lines: readonly string[]): boolean[] {
   const tracker = new BlockTracker();

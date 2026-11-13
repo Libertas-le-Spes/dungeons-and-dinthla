@@ -1604,23 +1604,23 @@
  },
  {
   "id": "allow-list entry for the platform file",
-  "file": "tests/pdf/source/pdf-globals.ts",
-  "find": "\"pdf/streams/inflate/platform-inflating.ts\": [\"Blob\", \"DecompressionStream\"],",
+  "file": "tests/fence/allowed/globals.ts",
+  "find": "  \"pdf/streams/inflate/platform-inflating.ts\": [\"Blob\", \"DecompressionStream\", \"Uint8Array\"],\n",
   "replace": "",
   "group": "allow"
  },
  {
   "id": "allow-list names only what is used",
-  "file": "tests/pdf/source/pdf-globals.ts",
-  "find": "[\"Blob\", \"DecompressionStream\"]",
-  "replace": "[\"Blob\", \"DecompressionStream\", \"TextDecoder\"]",
+  "file": "tests/fence/allowed/globals.ts",
+  "find": "[\"Blob\", \"DecompressionStream\", \"Uint8Array\"]",
+  "replace": "[\"Blob\", \"DecompressionStream\", \"TextDecoder\", \"Uint8Array\"]",
   "group": "allow"
  },
  {
   "id": "typed arrays listed",
-  "file": "tests/pdf/source/pdf-globals.ts",
-  "find": "export const PDF_PLAIN_GLOBALS = [\"DataView\", \"Uint8Array\"];",
-  "replace": "export const PDF_PLAIN_GLOBALS = [\"DataView\", \"Uint8Array\", \"Float32Array\"];",
+  "file": "tests/fence/allowed/globals.ts",
+  "find": "  \"pdf/bytes/data-view-of.ts\": [\"DataView\"],",
+  "replace": "  \"pdf/bytes/data-view-of.ts\": [\"DataView\", \"Float32Array\"],",
   "group": "allow"
  },
  {
@@ -2182,5 +2182,12 @@
   "find": "export const MAX_PAGE_TREE_DEPTH = 16;",
   "replace": "export const MAX_PAGE_TREE_DEPTH = 16 + 1;",
   "group": "limits"
+ },
+ {
+  "id": "the bundle reaches the PDF reader",
+  "file": "src/beyond/sheet/from-pdf/sheet-from-pdf.ts",
+  "find": "import { readPdfFields } from \"../../../pdf/read-pdf-fields\";\n",
+  "replace": "async function readPdfFields(bytes: Uint8Array): Promise<{ ok: false; reason: string }> {\n  return { ok: false, reason: String(bytes.length) };\n}\n",
+  "group": "allow"
  }
 ]
