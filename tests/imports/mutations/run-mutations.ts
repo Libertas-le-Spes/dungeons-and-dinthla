@@ -2,6 +2,8 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { assertMemoryBox, boxedTestRun } from "../../mutation-support/boxed-test-run.ts";
+import type { SuiteResult } from "../../mutation-support/suite-results.ts";
 
 interface Mutation {
   id: string;
@@ -14,17 +16,6 @@ interface Mutation {
 interface Backup {
   file: string;
   text: string;
-}
-
-interface TestResult {
-  status: string;
-  fullName: string;
-}
-
-interface SuiteResult {
-  name: string;
-  status: string;
-  assertionResults: TestResult[];
 }
 
 interface Failures {
@@ -41,7 +32,7 @@ interface Outcome {
   examples: string[];
 }
 
-const BOX = ["--user", "--scope", "-q", "-p", "CPUWeight=10", "-p", "IOWeight=10", "-p", "MemoryMax=2G", "-p", "MemorySwapMax=0", "nice", "-n", "19"];
+const LIMITS = { memoryMax: "2G", seconds: 120 };
 const SUITES = ["tests/imports", "tests/build/inner-folders.test.ts", "tests/build/note-folders.test.ts"];
 const ROOT = new URL("../../..", import.meta.url).pathname;
 const MUTATIONS: Mutation[] = JSON.parse(readFileSync(new URL("./mutations.json", import.meta.url), "utf8"));
@@ -109,11 +100,7 @@ function occurrences(text: string, find: string): number {
 }
 
 function runTests(): SuiteResult[] | null {
-  const report = join(REPORT_FOLDER, "report.json");
-  const command = ["timeout", "-k", "5", "120", "npx", "vitest", "run", ...SUITES, "--maxWorkers=1", "--reporter=json", `--outputFile=${report}`];
-  const result = spawnSync("systemd-run", [...BOX, ...command], { cwd: ROOT, encoding: "utf8" });
-  if (result.error !== undefined || !existsSync(report)) return null;
-  return JSON.parse(readFileSync(report, "utf8")).testResults;
+  return boxedTestRun({ root: ROOT, suites: SUITES, report: join(REPORT_FOLDER, "report.json"), limits: LIMITS });
 }
 
 function failuresIn(suites: SuiteResult[]): Failures {
@@ -168,6 +155,7 @@ function summaryOf(outcomes: Outcome[]): string {
 }
 
 restoreLeftoverBackups();
+if (!ONLY_ANCHORS) assertMemoryBox();
 const differing = filesDifferingFromHead();
 if (differing.length > 0 && !ALLOW_DIRTY && !ONLY_ANCHORS) {
   console.log(JSON.stringify({ refused: "These files differ from HEAD, so a mutation could not be told from your edit. Commit them, or pass --allow-dirty.", files: differing }));

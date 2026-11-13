@@ -1,7 +1,8 @@
-import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { assertMemoryBox, boxedTestRun } from "../../mutation-support/boxed-test-run.ts";
+import type { SuiteResult } from "../../mutation-support/suite-results.ts";
 
 interface Mutation {
   id: string;
@@ -9,17 +10,6 @@ interface Mutation {
   find: string;
   replace: string;
   group: string;
-}
-
-interface TestResult {
-  status: string;
-  fullName: string;
-}
-
-interface SuiteResult {
-  name: string;
-  status: string;
-  assertionResults: TestResult[];
 }
 
 interface Outcome {
@@ -30,7 +20,8 @@ interface Outcome {
   examples: string[];
 }
 
-const BOX = ["--user", "--scope", "-q", "-p", "CPUWeight=10", "-p", "IOWeight=10", "-p", "MemoryMax=4G", "-p", "MemorySwapMax=0", "nice", "-n", "19"];
+const LIMITS = { memoryMax: "4G", seconds: 120 };
+const SUITES = ["tests/pdf", "tests/build/inner-folders.test.ts"];
 const ROOT = new URL("../../..", import.meta.url).pathname;
 const MUTATIONS: Mutation[] = JSON.parse(readFileSync(new URL("./mutations.json", import.meta.url), "utf8"));
 const ONLY_ANCHORS = process.argv.includes("--anchors");
@@ -59,10 +50,7 @@ function occurrences(text: string, find: string): number {
 }
 
 function runTests(): SuiteResult[] | null {
-  const report = join(REPORT_FOLDER, "report.json");
-  const result = spawnSync("systemd-run", [...BOX, "timeout", "-k", "5", "120", "npx", "vitest", "run", "tests/pdf", "tests/build/inner-folders.test.ts", "--maxWorkers=2", "--reporter=json", `--outputFile=${report}`], { cwd: ROOT, encoding: "utf8" });
-  if (result.error !== undefined || !existsSync(report)) return null;
-  return JSON.parse(readFileSync(report, "utf8")).testResults;
+  return boxedTestRun({ root: ROOT, suites: SUITES, report: join(REPORT_FOLDER, "report.json"), limits: LIMITS });
 }
 
 function failedNames(suites: SuiteResult[]): string[] {
@@ -96,6 +84,8 @@ function outcomeOf(mutation: Mutation): Outcome {
   const failed = failedNames(suites);
   return { ...outcome, status: statusOf(failed), failed: failed.length, examples: firstThree(failed) };
 }
+
+if (!ONLY_ANCHORS) assertMemoryBox();
 
 for (const mutation of MUTATIONS) {
   if (WANTED.length > 0 && !WANTED.includes(mutation.id)) continue;
