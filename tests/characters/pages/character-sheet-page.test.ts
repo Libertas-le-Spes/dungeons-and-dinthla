@@ -8,6 +8,8 @@ import type { MentionNotes } from "../../../src/characters/reading/mention-notes
 import { IN_THE_NOTES } from "../../../src/characters/pages/mentions-panel";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { HeldCalls } from "../../stubs/held-calls";
+import { queuedWorkRan } from "../../stubs/queued-work";
+import { SettleWatch } from "../../stubs/settle-watch";
 
 function fileAt(path: string): TFile {
   return { path, basename: path.slice(path.lastIndexOf("/") + 1, -3) } as TFile;
@@ -17,15 +19,30 @@ const MIRA = fileAt("Pale Moon/Characters/Mira.md");
 const OLD_MIRA = "Ashen Road/Characters/Mira.md";
 const ONE = "Pale Moon/Sessions/Session 1.md";
 
+class HeldMiraReads {
+  constructor(private readonly reads: HeldCalls<string>) {}
+
+  textOf(file: TFile): Promise<string> {
+    if (file.path !== MIRA.path) return Promise.resolve("");
+    return this.reads.hold();
+  }
+}
+
+function miraReadFrom(reads: HeldCalls<string>): SheetNotes["textOf"] {
+  const held = new HeldMiraReads(reads);
+  return held.textOf.bind(held);
+}
+
 interface Setup {
   sessions?: string[];
   texts?: Record<string, string>;
   carriedFrom?: CarriedFrom | null;
   textOf?: SheetNotes["textOf"];
   linking?: Record<string, number[]>;
+  mentionTextOf?: MentionNotes["textOf"];
 }
 
-function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf, linking = {} }: Setup = {}) {
+function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf, linking = {}, mentionTextOf }: Setup = {}) {
   let listener = () => {};
   let noteChanged: (path: string) => void = () => {};
   let noteMoved: (path: string) => void = () => {};
@@ -68,13 +85,17 @@ function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf, link
   };
   let linksResolved: (path: string) => void = () => {};
   const mentionReads = { count: 0 };
+  let readMention: MentionNotes["textOf"] = async (file) => {
+    const text = texts[file.path];
+    if (text === undefined) return "";
+    return text;
+  };
+  if (mentionTextOf !== undefined) readMention = mentionTextOf;
   const mentionNotes: MentionNotes = {
     fileAt: (path) => fileAt(path),
-    textOf: async (file) => {
+    textOf: (file) => {
       mentionReads.count += 1;
-      const text = texts[file.path];
-      if (text === undefined) return "";
-      return text;
+      return readMention(file);
     },
     campaignFolders: () => ["Ashen Road", "Pale Moon"],
     onNoteMoved: () => () => {},
@@ -110,9 +131,9 @@ function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf, link
     page.load();
     return page;
   };
-  const rendered = async () => {
+  async function rendered(): Promise<void> {
     for (const page of pages) await page.rendered();
-  };
+  }
   const load = async (file = MIRA) => {
     const page = start(file);
     await page.rendered();
@@ -422,10 +443,7 @@ describe("CharacterSheetPage", () => {
 
   it("keeps the latest sheet when an earlier reading fails late", async () => {
     const reads = new HeldCalls<string>();
-    const sheet = openSheet({ textOf: (file) => {
-      if (file.path !== MIRA.path) return Promise.resolve("");
-      return reads.hold();
-    } });
+    const sheet = openSheet({ textOf: miraReadFrom(reads) });
     sheet.start();
     await reads.made(1);
     sheet.listener();
@@ -440,10 +458,7 @@ describe("CharacterSheetPage", () => {
 
   it("draws only the latest reading when readings finish out of order", async () => {
     const reads = new HeldCalls<string>();
-    const sheet = openSheet({ textOf: (file) => {
-      if (file.path !== MIRA.path) return Promise.resolve("");
-      return reads.hold();
-    } });
+    const sheet = openSheet({ textOf: miraReadFrom(reads) });
     sheet.start();
     sheet.listener();
     await reads.made(2);
@@ -456,10 +471,7 @@ describe("CharacterSheetPage", () => {
 
   it("empties the sheet when it is closed, dropping a reading still on its way", async () => {
     const reads = new HeldCalls<string>();
-    const sheet = openSheet({ textOf: (file) => {
-      if (file.path !== MIRA.path) return Promise.resolve("");
-      return reads.hold();
-    } });
+    const sheet = openSheet({ textOf: miraReadFrom(reads) });
     const page = sheet.start();
     await reads.made(1);
     page.unload();
@@ -483,6 +495,18 @@ describe("CharacterSheetPage", () => {
     expect(textsOf(sheet.root, ".dd-sheet-mentions .dd-title")).toEqual([`${IN_THE_NOTES}1 line`]);
     expect(sheet.root.lastElementChild!.classList.contains("dd-sheet-mentions")).toBe(true);
     expect(sheet.root.lastElementChild!.previousElementSibling!.classList.contains("dd-sheet-stat-block")).toBe(true);
+  });
+
+  it("isn't rendered while the lines that link to the character are still being read", async () => {
+    const mentionTexts = new HeldCalls<string>();
+    const sheet = openSheet({ linking: { [ONE]: [0] }, mentionTextOf: mentionTexts.hold.bind(mentionTexts) });
+    const loading = new SettleWatch(sheet.load());
+    await mentionTexts.made(1);
+    await queuedWorkRan();
+    expect(loading.settled).toBe(false);
+    mentionTexts.resolve(0, "- Met [[Mira]] at the ford");
+    await loading.done;
+    expect(textsOf(sheet.root, ".dd-sheet-mentions .dd-title")).toEqual([`${IN_THE_NOTES}1 line`]);
   });
 
   it("lists the lines again when a note that links to the character is resolved", async () => {
