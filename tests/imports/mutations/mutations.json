@@ -1442,20 +1442,6 @@
   "group": "blocks"
  },
  {
-  "id": "blocks: block-states.ts:     if (at === -1) return this;\n",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
-  "find": "    if (at === -1) return this;\n",
-  "replace": "",
-  "group": "blocks"
- },
- {
-  "id": "blocks: block-states.ts: return afterText(line.slice(at + this.kind.closer.",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
-  "find": "return afterText(line.slice(at + this.kind.closer.length));",
-  "replace": "return afterText(\"\");",
-  "group": "blocks"
- },
- {
   "id": "blocks: block-states.ts: if (marker.charAt(0) !== this.opening.charAt(0)) r",
   "file": "src/imports/note/reading/blocks/block-states.ts",
   "find": "if (marker.charAt(0) !== this.opening.charAt(0)) return this;",
@@ -1488,13 +1474,6 @@
   "file": "src/imports/note/reading/blocks/block-states.ts",
   "find": "if (comment === null) return OPEN_TEXT;",
   "replace": "",
-  "group": "blocks"
- },
- {
-  "id": "blocks: block-states.ts: .after(text.slice(comment.at + comment.kind.opener",
-  "file": "src/imports/note/reading/blocks/block-states.ts",
-  "find": ".after(text.slice(comment.at + comment.kind.opener.length));",
-  "replace": ".after(text);",
   "group": "blocks"
  },
  {
@@ -2182,5 +2161,68 @@
   "find": "    if (character.classes.length === 0) return null;\n",
   "replace": "",
   "group": "kinds"
+ },
+ {
+  "id": "blocks: loop: a comment left open at the end of a line stays open",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "if (at === -1) return new InComment(open);",
+  "replace": "if (at === -1) return OPEN_TEXT;",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: loop: an opener starts a comment",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "      open = comment.kind;\n",
+  "replace": "      open = null;\n",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: loop: a closer ends the comment",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "      offset = at + open.closer.length;\n      open = null;\n",
+  "replace": "      offset = at + open.closer.length;\n",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: loop: the walk starts at the line's start",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "let offset = 0;",
+  "replace": "let offset = 1;",
+  "group": "blocks"
+ },
+ {
+  "id": "blocks: loop: no comment left means open text",
+  "file": "src/imports/note/reading/blocks/block-states.ts",
+  "find": "if (comment === null) return OPEN_TEXT;",
+  "replace": "if (comment === null) return new InComment(COMMENT_KINDS[0]);",
+  "group": "blocks"
+ },
+ {
+  "id": "reading: body line cap checked",
+  "file": "src/imports/note/reading/section-boundaries.ts",
+  "find": "    if (line.length > MOST_BODY_LINE) throw bodyLineTooLong();\n",
+  "replace": "",
+  "group": "reading"
+ },
+ {
+  "id": "reading: body line cap is over, not at",
+  "file": "src/imports/note/reading/section-boundaries.ts",
+  "find": "line.length > MOST_BODY_LINE",
+  "replace": "line.length >= MOST_BODY_LINE",
+  "group": "reading"
+ },
+ {
+  "id": "reading: body line cap value",
+  "file": "src/imports/note/reading/note-limits.ts",
+  "find": "MOST_BODY_LINE = 50_000",
+  "replace": "MOST_BODY_LINE = 60_000",
+  "group": "reading"
+ },
+ {
+  "id": "keys: body line refusal words",
+  "file": "src/imports/note/reading/note-refusals.ts",
+  "find": "A line of the note is longer than",
+  "replace": "A line is longer than",
+  "group": "keys"
  }
 ]
