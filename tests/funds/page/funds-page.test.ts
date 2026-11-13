@@ -5,6 +5,8 @@ import type { CampaignStore } from "../../../src/campaign/reading/campaign-store
 import type { CoinOutcome } from "../../../src/funds/coins/coin-modal";
 import { Component } from "obsidian";
 import { FundsPage, type ShownItem } from "../../../src/funds/page/funds-page";
+import { OwnPursePanel, type PurseStore } from "../../../src/funds/purses/own-purse-panel";
+import { FakePurseNotes } from "../purses/fake-purse-notes";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 function campaignOf(lines: string[], ...laterSessions: string[][]): Campaign {
@@ -41,7 +43,7 @@ async function openPage(
   const actions = { openRow: vi.fn(), openLink: vi.fn() };
   const noteExists = (name: string) => notes.includes(name);
   const root = obsidianDocument().createElement("div");
-  const view = new FundsPage(root, store as unknown as CampaignStore, actions, noteExists, addCoin, openLedgerEntry, openItem, shownItem);
+  const view = new FundsPage(root, store as unknown as CampaignStore, actions, noteExists, addCoin, openLedgerEntry, openItem, shownItem, null);
   view.load();
   const change = (next: Campaign) => {
     store.current = next;
@@ -118,6 +120,11 @@ describe("FundsPage", () => {
   it("writes an entry that comes to nothing without a sign", async () => {
     const { root } = await openPage(campaignOf(["$ found 5 gp, paid 5 gp toll"]));
     expect(textsOf(root, ".dd-ledger .dd-amount")).toEqual(["0 gp"]);
+  });
+
+  it("shows an item's name without the note's escapes, as the note reads", async () => {
+    const { root } = await openPage(campaignOf(["$ [[Primary Monk]] Rope (50 ft) \\*silk\\*"]));
+    expect(textsOf(root, ".dd-items-panel > .dd-list .dd-text")).toEqual(["Rope (50 ft) *silk*"]);
   });
 
   it("lists held items under their holders, the party's own last, with gone items folded away", async () => {
@@ -324,3 +331,69 @@ describe("FundsPage", () => {
     expect(root.querySelector(".dd-shown-item")).toBeNull();
   });
 });
+
+const PRIMARY_MONK = "Pale Moon/Characters/Primary Monk.md";
+const IMPORTED_1200_GP = "---\nimported-from: pdf\n---\n## Purse (from D&D Beyond)\n- gp · 1200\n";
+
+class HisPurses {
+  private readonly made: OwnPursePanel[] = [];
+
+  constructor(
+    private readonly notes: FakePurseNotes,
+    private readonly store: PurseStore,
+  ) {}
+
+  panel(panelEl: HTMLElement): Component {
+    const panel = new OwnPursePanel(panelEl, this.store, this.notes);
+    this.made.push(panel);
+    return panel;
+  }
+
+  async rendered(): Promise<void> {
+    for (const panel of this.made) await panel.rendered();
+  }
+}
+
+class MadeUpPurses {
+  readonly panels: HTMLElement[] = [];
+
+  panel(panelEl: HTMLElement): Component {
+    this.panels.push(panelEl);
+    panelEl.setText("His purse");
+    return new Component();
+  }
+}
+
+describe("FundsPage with his purse beside the party's", () => {
+  it("puts his purse right after the party purse, in its own panel", () => {
+    const purses = new MadeUpPurses();
+    const root = obsidianDocument().createElement("div");
+    const store = { current: campaignOf(["$ +50 gp advance"]), subscribe: subscribeNever };
+    new FundsPage(root, store, { openRow: vi.fn(), openLink: vi.fn() }, noNote, null, null, null, null, purses).load();
+    const classes: string[] = [];
+    for (const section of root.children) classes.push(section.className);
+    expect(classes.indexOf("dd-panel dd-own-purse-panel")).toBe(classes.indexOf("dd-panel dd-purse-panel") + 1);
+    expect(purses.panels).toHaveLength(1);
+  });
+
+  it("shows his 1,200 gp in his own purse and leaves the party purse at its 50 gp", async () => {
+    const root = obsidianDocument().createElement("div");
+    const store = { campaignFolder: "Pale Moon", current: campaignOf(["$ +50 gp advance"]), subscribe: subscribeNever };
+    const purses = new HisPurses(new FakePurseNotes(new Map([[PRIMARY_MONK, IMPORTED_1200_GP]]), [PRIMARY_MONK]), store);
+    new FundsPage(root, store, { openRow: vi.fn(), openLink: vi.fn() }, noNote, null, null, null, null, purses).load();
+    await purses.rendered();
+    expect(textsOf(root, ".dd-purse-panel .dd-purse")).toEqual(["50 gp"]);
+    expect(textsOf(root, ".dd-own-purse-panel .dd-coin")).toEqual(["1,200 gp"]);
+  });
+});
+
+function subscribeNever(): () => void {
+  return stopNothing;
+}
+
+function stopNothing(): void {}
+
+function noNote(): boolean {
+  return false;
+}
+

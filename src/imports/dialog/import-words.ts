@@ -4,7 +4,6 @@ export const WHERE_THE_PDF_IS = "On D&D Beyond: open your character, choose Mana
 export const CHOOSE_A_FILE = "Character PDF";
 export const READING = "Reading the file…";
 export const STILL_READING = "Still reading the first file.";
-export const NOT_IN_THE_PDF = "The PDF doesn't give proficiency marks, attacks, alignment, spell slots, total level, hit dice or carrying capacity, so none of them come in.";
 export const TYPED_TEXT_WARNING = "Text you typed inside these sections will be replaced:";
 export const NOTHING_CHANGES = "Nothing in the note would change.";
 export const CHOOSE_THE_NOTE = "Which note is this character?";

@@ -8,6 +8,7 @@ import type { SheetNotes } from "./sheet-notes";
 import { overrideFacts, type SourcedFact } from "./sheet-values";
 import { importedFactsOf } from "../imported/reading/imported-facts";
 import type { ImportedFact } from "../imported/reading/imported-fact";
+import { ImportedLists } from "../imported/lists/imported-lists";
 
 export type SheetStore = Pick<CampaignStore, "campaignFolder" | "sessionNotes">;
 
@@ -17,6 +18,7 @@ export interface ReadSheet {
   sessions: SessionNote[];
   carriedPath: string | null;
   carriedCampaignFolder: string | null;
+  lists: ImportedLists | null;
 }
 
 async function sessionsIn(folder: string | null, store: SheetStore, notes: SheetNotes): Promise<SessionNote[]> {
@@ -31,6 +33,7 @@ interface Facts {
   learned: SourcedFact[];
   imported: ImportedFact[];
   overrides: SourcedFact[];
+  lists: ImportedLists | null;
 }
 
 async function factsAbout(file: TFile, store: SheetStore, notes: SheetNotes): Promise<Facts> {
@@ -39,7 +42,7 @@ async function factsAbout(file: TFile, store: SheetStore, notes: SheetNotes): Pr
   let learned = learnedFactsOf(sessions, notes).get(file.path);
   if (learned === undefined) learned = [];
   const text = await notes.textOf(file);
-  return { campaignFolder, sessions, learned, imported: importedFactsOf(text, file.path), overrides: overrideFacts(text, file.path) };
+  return { campaignFolder, sessions, learned, imported: importedFactsOf(text, file.path), overrides: overrideFacts(text, file.path), lists: ImportedLists.of(text) };
 }
 
 interface Carried {
@@ -77,5 +80,6 @@ export async function readCharacterSheet(file: TFile, store: SheetStore, notes: 
     sessions: facts.sessions,
     carriedPath,
     carriedCampaignFolder,
+    lists: facts.lists,
   };
 }

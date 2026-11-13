@@ -1,4 +1,5 @@
-import { addBeyondButton, type ButtonAction } from "./beyond-button";
+import type { ButtonAction } from "./action-button";
+import { addBeyondButton } from "./beyond-button";
 
 export const IMPORT_FROM_BEYOND = "Import from D&D Beyond";
 

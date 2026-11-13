@@ -7,6 +7,7 @@ import type { CarriedFrom, SheetNotes } from "../../../src/characters/reading/sh
 import type { MentionNotes } from "../../../src/characters/reading/mention-notes";
 import { IN_THE_NOTES } from "../../../src/characters/pages/mentions-panel";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { RecordingTracking } from "../imported/builders/recording-tracking";
 
 function fileAt(path: string): TFile {
   return { path, basename: path.slice(path.lastIndexOf("/") + 1, -3) } as TFile;
@@ -95,6 +96,7 @@ function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf, link
     openLink: vi.fn(),
     editCharacter: vi.fn(),
     updateFromBeyond: vi.fn(),
+    tracking: new RecordingTracking(null),
     chooseValue: (_file, value, onClosed) => {
       chosen.push(value);
       closers.push(onClosed);
@@ -609,5 +611,25 @@ describe("CharacterSheetPage carrying values from an imported note in another ca
     const armour = rowOf("Armor Class");
     expect(textIn(armour, ".dd-value")).toBe("16");
     expect(textIn(armour, ".dd-value-source")).toBe("Carried from Ashen Road");
+  });
+});
+
+describe("CharacterSheetPage with an imported inventory", () => {
+  it("draws the imported panels after the values and before the stat block", async () => {
+    const text = IMPORTED.replace("## Numbers", "## Inventory (from D&D Beyond)\n- Rope × 2\n## Numbers");
+    const { load, root } = openSheet({ texts: { [MIRA.path]: text } });
+    await load();
+    const sections: string[] = [];
+    for (const element of root.children) sections.push(element.className);
+    const panels = sections.indexOf("dd-sheet-imported");
+    expect(panels).toBeGreaterThan(sections.indexOf("dd-sheet-hint"));
+    expect(panels).toBeLessThan(sections.indexOf("dd-sheet-stat-block"));
+    expect(textIn(root, ".dd-sheet-imported .dd-panel-line .dd-text")).toBe("Rope");
+  });
+
+  it("draws no imported panels for a note nothing was imported into", async () => {
+    const { load, root } = openSheet({ texts: { [MIRA.path]: "AC: 16\n" } });
+    await load();
+    expect(root.querySelector(".dd-sheet-imported")).toBeNull();
   });
 });

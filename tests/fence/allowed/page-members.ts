@@ -2,7 +2,7 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "campaign/background/picture-css.ts": ["encode"],
   "characters/editing/character-modal.ts": ["addEventListener", "defaultPrevented", "focus", "preventDefault"],
   "characters/editing/sheet-value-modal.ts": ["addEventListener", "defaultPrevented", "focus", "preventDefault"],
-  "characters/imported/drawing/beyond-button.ts": ["focus"],
+  "characters/imported/drawing/action-button.ts": ["focus"],
   "characters/pages/character-gallery.ts": ["addEventListener", "focus"],
   "characters/pages/character-sheet-page.ts": ["addEventListener", "focus", "preventDefault", "querySelectorAll"],
   "dashboard/dashboard-page.ts": ["focus"],
