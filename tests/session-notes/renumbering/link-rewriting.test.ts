@@ -28,6 +28,11 @@ describe("withLinksRewritten", () => {
     expect(withLinksRewritten(text, FOUR_TO_THREE)).toBe(note(["```", "[[Session 4]]", "```", "%% [[Session 4]] %%", "$$", "[[Session 4]]", "$$", "[[Session 3]]"]));
   });
 
+  it("rewrites a link after an odd number of item lines, which hide nothing", () => {
+    const text = note(["$$ Rope :lost", "See [[Session 4]]."]);
+    expect(withLinksRewritten(text, FOUR_TO_THREE)).toBe(note(["$$ Rope :lost", "See [[Session 3]]."]));
+  });
+
   it("keeps the note's line endings", () => {
     expect(withLinksRewritten("See [[Session 4]]\r\nthen [[Session 4]]\r\n", FOUR_TO_THREE)).toBe("See [[Session 3]]\r\nthen [[Session 3]]\r\n");
   });

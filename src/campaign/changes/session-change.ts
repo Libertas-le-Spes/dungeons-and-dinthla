@@ -35,3 +35,11 @@ export function linesAddedTo(path: string, lines: string[]): SessionChange {
 export function lineTakenOut(removal: Removal): SessionChange {
   return { removal, added: null };
 }
+
+export function linesAddedBy(change: SessionChange): AddedLines[] {
+  if ("rewrite" in change) return [];
+  if (change.added === null) return [];
+  const added = [change.added];
+  if (change.added.later !== null) added.push({ path: change.added.later.path, lines: change.added.later.lines, later: null });
+  return added;
+}

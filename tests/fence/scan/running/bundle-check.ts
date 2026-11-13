@@ -3,11 +3,10 @@ import { resolve } from "node:path";
 import { build, transform } from "esbuild";
 import { PLUGIN_BUNDLE } from "../../../../scripts/bundle-options.ts";
 import type { Allowances } from "../reading/allowances";
+import { isUnderOneOf, libraryRootsOf } from "../reading/library-paths";
 import type { SourceScanner } from "./source-scanner";
 
 export const HIDDEN_CODE = [".js", ".mjs", ".cjs", ".mts", ".cts", ".tsx", ".jsx"];
-
-const LIBRARY_FOLDER = "/node_modules/";
 
 export function hiddenCodeIn(listing: string[]): string[] {
   return listing.filter((path) => HIDDEN_CODE.some((ending) => path.endsWith(ending))).map((path) => `${path} is code under src that the scan can't read as TypeScript`);
@@ -33,9 +32,11 @@ export function fenceBreaches(scanner: SourceScanner, project: string, listing: 
 
 async function bundledInputs(root: string): Promise<string[]> {
   const result = await build({ ...PLUGIN_BUNDLE, absWorkingDir: root, write: false, metafile: true, logLevel: "silent" });
+  const libraryRoots = libraryRootsOf(root);
+  const ownedByLibrary = (path: string) => isUnderOneOf(libraryRoots, path);
   return Object.keys(result.metafile.inputs)
     .map((input) => resolve(root, input))
-    .filter((path) => !path.includes(LIBRARY_FOLDER));
+    .filter((path) => !ownedByLibrary(path));
 }
 
 async function holdsCode(path: string): Promise<boolean> {
