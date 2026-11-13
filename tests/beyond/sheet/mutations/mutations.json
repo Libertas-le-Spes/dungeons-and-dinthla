@@ -1647,8 +1647,8 @@
  {
   "id": "beyond may not reach pdf",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "reaches: [\"beyond\", \"names\", \"pdf\"]",
-  "replace": "reaches: [\"beyond\", \"names\"]",
+  "find": "reaches: [\"beyond\", \"names\", \"pdf\", \"imports/layout\"]",
+  "replace": "reaches: [\"beyond\", \"names\", \"imports/layout\"]",
   "group": "inner folders"
  },
  {
