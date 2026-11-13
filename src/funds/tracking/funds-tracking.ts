@@ -23,6 +23,8 @@ export const NOT_THE_SHOWN_CAMPAIGN = "Show this character's campaign first, the
 export const NOT_IN_A_CAMPAIGN = "This character's note isn't in a campaign's Characters folder, so its items can't be tracked on a funds page.";
 export const NOT_AS_IMPORTED = "That line isn't as the import wrote it, so it can't be tracked. Import the character again to track it.";
 export const ITEM_GONE = "That item isn't on the funds page any more.";
+export const NOT_INERT_ON_PAGE =
+  "The funds page writes that item in a way that could turn into a link, a tag or other active text, so it wasn't tracked. Write its line in the session by hand instead.";
 
 class ItemNote {
   constructor(
@@ -77,9 +79,14 @@ export class FundsTracking implements ItemTracking {
     const sessionPath = sessionForDialog(this.gate.files, folder, { activePath: null, earliestSession: 0, noSession: NO_SESSION });
     if (sessionPath === null) return;
     const holder = `[[${this.gate.metadata.fileToLinktext(file, sessionPath, true)}]]`;
-    const tracked = trackedItemOf(holder, textToTrack(this.store.current.items, written), file.basename);
+    const text = textToTrack(this.store.current.items, written);
+    if (text === null) {
+      new Notice(NOT_INERT_ON_PAGE);
+      return;
+    }
+    const tracked = trackedItemOf(holder, text, file.basename);
     const saving = new TrackingSave(this.gate.files, this.store, tracked, sessionPath);
-    const shown = { name: withoutEscapes(written), holder: file.basename, writesTo: sessionLabelOf(sessionPath) };
+    const shown = { name: withoutEscapes(text), holder: file.basename, writesTo: sessionLabelOf(sessionPath), line: tracked.line };
     new TrackItemModal(this.app, shown, saving, returnFocus).open();
   }
 

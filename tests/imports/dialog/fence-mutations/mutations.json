@@ -9,8 +9,8 @@
  {
   "id": "fence: characters may import the layout",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "const LAYOUT_IMPORTERS: string[] = [\"imports\", \"characters\"];",
-  "replace": "const LAYOUT_IMPORTERS: string[] = [\"imports\"];",
+  "find": "const LAYOUT_IMPORTERS: string[] = [\"imports\", \"characters\", \"beyond\"];",
+  "replace": "const LAYOUT_IMPORTERS: string[] = [\"imports\", \"beyond\"];",
   "group": "folders"
  },
  {

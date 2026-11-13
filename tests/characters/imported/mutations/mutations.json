@@ -624,7 +624,7 @@
  },
  {
   "id": "refusal: revived item refused",
-  "file": "src/funds/tracking/tracking-refusal.ts",
+  "file": "src/funds/tracking/left-as-they-were.ts",
   "find": "  return unmatched.length <= 1;",
   "replace": "  return unmatched.length === 0;",
   "group": "tracking"
@@ -725,6 +725,69 @@
   "file": "src/funds/tracking/items-look.ts",
   "find": "    return holderName.toLowerCase() === this.file.basename.toLowerCase();",
   "replace": "    return holderName === this.file.basename;",
+  "group": "tracking"
+ },
+ {
+  "id": "refusal: a second same-name record must stay",
+  "file": "src/funds/tracking/left-as-they-were.ts",
+  "find": "  return unmatched.length <= 1;",
+  "replace": "  return true;",
+  "group": "tracking"
+ },
+ {
+  "id": "retrack: active page text refused",
+  "file": "src/funds/tracking/text-to-track.ts",
+  "find": "    if (isInertWritten(item.written)) return item.written;\n    return null;\n",
+  "replace": "    return item.written;\n",
+  "group": "tracking"
+ },
+ {
+  "id": "retrack: refusal stops the dialog",
+  "file": "src/funds/tracking/funds-tracking.ts",
+  "find": "    if (text === null) {",
+  "replace": "    if (text === \"\") {",
+  "group": "tracking"
+ },
+ {
+  "id": "retrack: dialog shows the line written",
+  "file": "src/funds/tracking/funds-tracking.ts",
+  "find": "line: tracked.line };",
+  "replace": "line: trackedItemOf(holder, written, file.basename).line };",
+  "group": "tracking"
+ },
+ {
+  "id": "inert: the import's own form accepted",
+  "file": "src/characters/imported/lists/inert-written.ts",
+  "find": "  if (isImporterWritten(written)) return true;\n",
+  "replace": "",
+  "group": "tracking"
+ },
+ {
+  "id": "inert: only a bare link",
+  "file": "src/characters/imported/lists/inert-written.ts",
+  "find": "  if (BARE_LINK.test(written) === false) return false;\n",
+  "replace": "",
+  "group": "tracking"
+ },
+ {
+  "id": "inert: link target needs no escape",
+  "file": "src/characters/imported/lists/inert-written.ts",
+  "find": "  return withEscapedCharacters(target) === target;",
+  "replace": "  return true;",
+  "group": "tracking"
+ },
+ {
+  "id": "inert: no embed before the link",
+  "file": "src/characters/imported/lists/inert-written.ts",
+  "find": "const BARE_LINK = /^\\[\\[",
+  "replace": "const BARE_LINK = /^!?\\[\\[",
+  "group": "tracking"
+ },
+ {
+  "id": "namesake: only a note that exists",
+  "file": "src/funds/tracking/items-look.ts",
+  "find": "    if (path === null) return false;\n    return path !== this.file.path;",
+  "replace": "    return path !== this.file.path;",
   "group": "tracking"
  }
 ]

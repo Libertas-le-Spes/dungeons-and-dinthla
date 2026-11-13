@@ -8,6 +8,7 @@ export interface TrackShown {
   readonly name: string;
   readonly holder: string;
   readonly writesTo: string;
+  readonly line: string;
 }
 
 export interface TrackSaving {
@@ -30,7 +31,8 @@ export class TrackItemModal extends RecordChangeDialog {
     contentEl.addClass("dd-tokens", "dd-dialog");
     contentEl.createEl("p", { cls: "dd-subject", text: this.shown.name });
     contentEl.createEl("p", { cls: "dd-reading", text: `Held by ${this.shown.holder}` });
-    contentEl.createEl("p", { cls: "dd-where", text: `Adds a line to ${this.shown.writesTo}.` });
+    contentEl.createEl("p", { cls: "dd-where", text: `Adds this line to ${this.shown.writesTo}:` });
+    contentEl.createEl("p", { cls: "dd-subject", text: this.shown.line });
     const buttons = new Setting(contentEl);
     new ButtonComponent(buttons.controlEl).setButtonText("Save").setCta().onClick(this.saveTracking.bind(this));
     new ButtonComponent(buttons.controlEl).setButtonText("Cancel").onClick(this.close.bind(this));
