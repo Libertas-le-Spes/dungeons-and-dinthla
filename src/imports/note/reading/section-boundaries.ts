@@ -1,7 +1,8 @@
 import { PLUGIN_SECTIONS } from "../../layout/plugin-sections";
 import type { PluginSection } from "../../layout/plugin-section";
-import { FenceTracker } from "./fence-tracker";
+import { BlockTracker } from "./blocks/block-tracker";
 import { plainLineOf } from "./line-ending";
+import { unclosedBlock } from "./note-refusals";
 
 const BIG_HEADING = /^ {0,3}#{1,2}(?:[ \t]|$)/;
 
@@ -19,13 +20,15 @@ function sectionWithHeading(line: string): PluginSection | null {
 }
 
 export function boundariesIn(lines: readonly string[], from: number): Boundary[] {
-  const fence = new FenceTracker();
+  const blocks = new BlockTracker();
   const found: Boundary[] = [];
-  for (let index = from; index < lines.length; index += 1) {
-    const line = plainLineOf(lines[index]!);
-    if (!fence.allowsHeading(line)) continue;
+  for (const [index, written] of lines.entries()) {
+    if (index < from) continue;
+    const line = plainLineOf(written);
+    if (!blocks.allowsHeading(line)) continue;
     if (!BIG_HEADING.test(line)) continue;
     found.push({ index, section: sectionWithHeading(line) });
   }
+  if (!blocks.isClosed()) throw unclosedBlock();
   return found;
 }

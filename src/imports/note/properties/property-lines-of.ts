@@ -1,5 +1,5 @@
 import type { ImportedCharacter } from "../../../beyond/shape/imported-character";
-import { importMarkLinesOf } from "./import-mark-lines";
+import { importMarkLinesOf } from "./helpers/import-mark-lines";
 import { IMPORTED_PROPERTIES } from "./imported-properties";
 
 export function propertyLinesOf(character: ImportedCharacter, today: string): string[] {

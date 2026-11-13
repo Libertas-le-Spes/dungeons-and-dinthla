@@ -3,20 +3,25 @@ import { KnownValue } from "../../../../src/beyond/shape/known-value";
 import { NotKnownValue } from "../../../../src/beyond/shape/not-known-value";
 import { Online, type Route } from "../../../../src/beyond/shape/route";
 import { CleanLine } from "../../../../src/beyond/text/clean-line";
-import { FeaturesContent } from "../../../../src/imports/note/sections/features-content";
-import { InventoryContent } from "../../../../src/imports/note/sections/inventory-content";
-import { leftOutLinesOf } from "../../../../src/imports/note/sections/left-out-line";
-import { NumbersContent } from "../../../../src/imports/note/sections/numbers-content";
-import { numberLineOf } from "../../../../src/imports/note/sections/number-line";
-import { PurseContent } from "../../../../src/imports/note/sections/purse-content";
-import { SPELLS_SECTION } from "../../../../src/imports/layout/plugin-sections";
-import { SpellsContent } from "../../../../src/imports/note/sections/spells-content";
-import { SECTION_CONTENTS } from "../../../../src/imports/note/sections/section-contents";
+import { FeaturesContent } from "../../../../src/imports/note/sections/contents/features-content";
+import { InventoryContent } from "../../../../src/imports/note/sections/contents/inventory-content";
+import { leftOutLinesOf } from "../../../../src/imports/note/sections/lines/left-out-line";
+import { NumbersContent } from "../../../../src/imports/note/sections/contents/numbers-content";
+import { numberLineOf } from "../../../../src/imports/note/sections/lines/number-line";
+import { PurseContent } from "../../../../src/imports/note/sections/contents/purse-content";
+import type { SectionContent } from "../../../../src/imports/note/sections/contents/section-content";
+import { SpellsContent } from "../../../../src/imports/note/sections/contents/spells-content";
+import { SECTION_CONTENTS } from "../../../../src/imports/note/sections/contents/section-contents";
+import { firstLines, lastLineOf, lineAt } from "../../builders/line-helpers";
 import { MadeUpSheet } from "../../../beyond/builders/made-up-sheet";
 import { monkSheet, noLoss, notKnownNumber, sheetOf, sheetWithCharacter } from "../../builders/made-up-import";
 import { PRINTED } from "../../../../src/beyond/sheet/printed-route";
 
 const ONLINE = new Online();
+
+function titleOf(content: SectionContent): string {
+  return content.section.title;
+}
 
 function known(value: number, working: string, route: Route = ONLINE): KnownValue {
   return KnownValue.wholeNumber(value, working, route);
@@ -44,7 +49,7 @@ describe("NumbersContent", () => {
   const lines = new NumbersContent().linesOf(monkSheet());
 
   it("writes the six scores first, in the order of the sheet", () => {
-    expect(lines.slice(0, 6)).toEqual([
+    expect(firstLines(lines, 6)).toEqual([
       "- STR · 11 · Printed on D&D Beyond's PDF",
       "- DEX · 12 · Printed on D&D Beyond's PDF",
       "- CON · 13 · Printed on D&D Beyond's PDF",
@@ -61,13 +66,13 @@ describe("NumbersContent", () => {
 
   it("writes not known for a score that is blank", () => {
     const blank = new NumbersContent().linesOf(sheetOf(MadeUpSheet.monk().with("DEX", "")));
-    expect(blank[1]).toMatch(/^- DEX · not known · /);
+    expect(lineAt(blank, 1)).toMatch(/^- DEX · not known · /);
   });
 });
 
 describe("InventoryContent", () => {
   it("writes each item with its count after a times sign", () => {
-    expect(new InventoryContent().linesOf(monkSheet()).slice(0, 3)).toEqual(["- Item 0 × 1", "- Item 1 × 2", "- Item 2 × 3"]);
+    expect(firstLines(new InventoryContent().linesOf(monkSheet()), 3)).toEqual(["- Item 0 × 1", "- Item 1 × 2", "- Item 2 × 3"]);
   });
 
   it("writes a question mark for a count that is not known", () => {
@@ -88,7 +93,7 @@ describe("InventoryContent", () => {
   it("ends with the left-out line when the sheet left items out", () => {
     const sheet = { ...monkSheet(), leftOut: { ...monkSheet().leftOut, items: { tooLong: 2, notClean: 1 } } };
     const lines = new InventoryContent().linesOf(sheet);
-    expect(lines[lines.length - 1]).toBe("- Left out: 2 too long, 1 not clean");
+    expect(lastLineOf(lines)).toBe("- Left out: 2 too long, 1 not clean");
   });
 });
 
@@ -112,14 +117,14 @@ describe("PurseContent", () => {
   });
 
   it("writes not known for a coin that is blank", () => {
-    expect(new PurseContent().linesOf(sheetOf(MadeUpSheet.monk().with("GP", ""))).slice(1, 2)).toEqual(["- gp · not known"]);
+    expect(lineAt(new PurseContent().linesOf(sheetOf(MadeUpSheet.monk().with("GP", ""))), 1)).toBe("- gp · not known");
   });
 });
 
 describe("SpellsContent and FeaturesContent", () => {
   it("write each spell as a line, and each feature line as a line", () => {
-    expect(new SpellsContent().linesOf(monkSheet()).slice(0, 2)).toEqual(["- Spell of spellName0", "- Spell of spellName1"]);
-    expect(new FeaturesContent().linesOf(monkSheet()).slice(0, 2)).toEqual(["- Feature 0a", "- Feature 0b"]);
+    expect(firstLines(new SpellsContent().linesOf(monkSheet()), 2)).toEqual(["- Spell of spellName0", "- Spell of spellName1"]);
+    expect(firstLines(new FeaturesContent().linesOf(monkSheet()), 2)).toEqual(["- Feature 0a", "- Feature 0b"]);
   });
 
   it("make a spell's markup inert", () => {
@@ -134,14 +139,13 @@ describe("SpellsContent and FeaturesContent", () => {
 
   it("end with the sheet's own left-out count for their list", () => {
     const sheet = { ...monkSheet(), leftOut: { items: noLoss(), spells: { tooLong: 1, notClean: 0 }, features: { tooLong: 0, notClean: 2 } } };
-    expect(new SpellsContent().linesOf(sheet).pop()).toBe("- Left out: 1 too long, 0 not clean");
-    expect(new FeaturesContent().linesOf(sheet).pop()).toBe("- Left out: 0 too long, 2 not clean");
+    expect(lastLineOf(new SpellsContent().linesOf(sheet))).toBe("- Left out: 1 too long, 0 not clean");
+    expect(lastLineOf(new FeaturesContent().linesOf(sheet))).toBe("- Left out: 0 too long, 2 not clean");
   });
 });
 
 describe("SECTION_CONTENTS", () => {
   it("writes the sections in the order the layout lists them", () => {
-    expect(SECTION_CONTENTS.map((content) => content.section.title)).toEqual(["Numbers", "Inventory", "Purse", "Spells", "Features"]);
-    expect(SECTION_CONTENTS[3]!.section).toBe(SPELLS_SECTION);
+    expect(SECTION_CONTENTS.map(titleOf)).toEqual(["Numbers", "Inventory", "Purse", "Spells", "Features"]);
   });
 });
