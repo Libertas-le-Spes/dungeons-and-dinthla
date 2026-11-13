@@ -1,8 +1,9 @@
 import { readdirSync } from "node:fs";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
 import type { Allowances } from "../scan/reading/allowances";
-import { isNeverAllowed, isPageAttribute, isPageOption, isPageTag, NOTHING_ALLOWED } from "../scan/running/allowance-sets";
-import { fenceBreaches } from "../scan/running/bundle-check";
+import { isNeverAllowed, isNoNameAllowed, isPageAttribute, isPageOption, isPageTag, NOTHING_ALLOWED } from "../scan/running/allowance-sets";
+import { scannedFiles, unreadableCode } from "../scan/running/bundle-check";
+import { fileUsing, type NameRefusal } from "../scan/running/name-uses";
 import { BUNDLED_PROJECT, bundledProjectFiles } from "../scan/running/bundled-project";
 import { ROOT, SOURCE_FOLDER, sourcePath, VIRTUAL_FOLDER } from "../scan/reading/scan-paths";
 import { virtualFileSystem } from "../scan/running/virtual-files";
@@ -12,7 +13,6 @@ import { OBSIDIAN_IMPORTS } from "../allowed/obsidian-imports";
 import { COMPUTED_KEY_READERS } from "../allowed/computed-keys";
 import { PAGE_ESCAPE_READERS, PAGE_ESCAPES, PAGE_MEMBERS } from "../allowed/page-members";
 
-const SCAN_TIME = 60_000;
 const GATEKEEPER_FOLDER = "fence/gate/";
 const PARSED_DATA = ["settings/drafts/draft-record.ts"];
 const ALLOWED = ["fence/gate/gatekeeper.ts", "fence/gate/fenced-files.ts", "fence/gate/fenced-file-actions.ts", "fence/gate/folder-choices.ts", "fence/gate/vault-settings.ts"];
@@ -89,11 +89,9 @@ const SOURCE_ALLOWANCES: Allowances = {
   elementOptions: isPageOption,
 };
 
-let scanner: SourceScanner;
-
-beforeAll(() => {
-  scanner = new SourceScanner(ROOT, virtualFileSystem(VIRTUAL_FOLDER, bundledProjectFiles()));
-});
+const scanner = new SourceScanner(ROOT, virtualFileSystem(VIRTUAL_FOLDER, bundledProjectFiles()));
+const LOADED = scanner.loadedFiles(BUNDLED_PROJECT);
+const SCANNED = scannedFiles(LOADED);
 
 afterAll(() => {
   scanner.close();
@@ -102,6 +100,10 @@ afterAll(() => {
 function sourceListing(): string[] {
   const all = readdirSync(SOURCE_FOLDER, { recursive: true, encoding: "utf8", withFileTypes: true });
   return all.filter((entry) => entry.isFile()).map((entry) => `${entry.parentPath}/${entry.name}`.split("\\").join("/").replace(/\/+/g, "/"));
+}
+
+function shownPath(path: string): string {
+  return path.slice(SOURCE_FOLDER.length);
 }
 
 function breachesOf(file: string, allowances: Allowances): string[] {
@@ -114,123 +116,142 @@ function placeOf(path: string, allowed: Record<string, string[]>): string | null
   return place;
 }
 
-function namesRefused(pattern: RegExp, allowed: Record<string, string[]>, allowances: Allowances): Record<string, string[]> {
-  const listed = new Map<string, Set<string>>();
-  for (const breach of scanner.breaches(BUNDLED_PROJECT, scanner.loadedFiles(BUNDLED_PROJECT), allowances)) {
-    const match = pattern.exec(breach);
-    if (match === null) continue;
-    const [, file, name] = match;
-    if (file === undefined || name === undefined) continue;
-    const place = placeOf(sourcePath(file), allowed);
-    if (place === null) continue;
-    const names = listed.get(place);
-    if (names === undefined) listed.set(place, new Set([name]));
-    else names.add(name);
-  }
-  return Object.fromEntries([...listed].map(([place, names]) => [place, [...names].sort()]));
+function filesOfPlace(place: string, allowed: Record<string, string[]>): string[] {
+  return SCANNED.filter((path) => placeOf(path, allowed) === place);
 }
 
-function sortedLists(allowed: Record<string, string[]>): Record<string, string[]> {
-  return Object.fromEntries(Object.entries(allowed).map(([place, names]) => [place, [...names].sort()]));
+interface ListedName {
+  place: string;
+  name: string;
 }
+
+function listedNames(allowed: Record<string, string[]>): ListedName[] {
+  const listed: ListedName[] = [];
+  for (const [place, names] of Object.entries(allowed)) {
+    for (const name of names) listed.push({ place, name });
+  }
+  return listed;
+}
+
+interface NameList {
+  list: string;
+  allowed: Record<string, string[]>;
+}
+
+const NAME_LISTS: NameList[] = [
+  { list: "Obsidian imports", allowed: OBSIDIAN_IMPORTS },
+  { list: "page globals", allowed: PAGE_GLOBALS },
+  { list: "page members", allowed: PAGE_MEMBERS },
+];
+
+const IMPORTS_REFUSED: NameRefusal = { allowances: { ...SOURCE_ALLOWANCES, obsidianImports: isNoNameAllowed }, breach: /^src\/[^:]+:\d+ imports (\w+) from obsidian/ };
+
+const PAGE_GLOBALS_REFUSED: NameRefusal = { allowances: { ...SOURCE_ALLOWANCES, globals: isPlainGlobalOnly }, breach: /^src\/[^:]+:\d+ uses the global (\w+)$/ };
+
+const PAGE_MEMBERS_REFUSED: NameRefusal = { allowances: { ...SOURCE_ALLOWANCES, pageMembers: isNoNameAllowed }, breach: /^src\/[^:]+:\d+ uses the page's (\S+), which/ };
+
+function isPlainGlobalOnly(_path: string, name: string): boolean {
+  return PLAIN_GLOBALS.includes(name);
+}
+
+function repeatsIn(names: string[]): string[] {
+  return names.filter((name, position) => names.indexOf(name) !== position);
+}
+
+interface StillNeeded {
+  allowance: string;
+  file: string;
+  allowances: Allowances;
+  breach: string | RegExp;
+}
+
+function allowedEverythingBut(allowance: keyof Allowances): Allowances {
+  return { ...SOURCE_ALLOWANCES, [allowance]: isNeverAllowed };
+}
+
+function neededBy(allowance: keyof Allowances, files: string[], breach: string | RegExp): StillNeeded[] {
+  return files.map((file) => ({ allowance, file, allowances: allowedEverythingBut(allowance), breach }));
+}
+
+function onlyNeededBy(allowance: string, files: string[], breach: string): StillNeeded[] {
+  return files.map((file) => ({ allowance, file, allowances: NOTHING_ALLOWED, breach }));
+}
+
+const STILL_NEEDED: StillNeeded[] = [
+  ...onlyNeededBy("keyReading", PARSED_DATA, "reads every key of a value"),
+  ...onlyNeededBy("noteReading", BASES_READERS, "reads a note's text through Obsidian"),
+  ...neededBy("editorReading", EDITOR_TEXT_READERS, "reads the text of an editor or view"),
+  ...neededBy("looseCasts", LOOSE_CASTERS, "casts through unknown or any"),
+  ...neededBy("codeMirror", CODE_MIRROR_READERS, /loads CodeMirror|reaches the editor/),
+  ...neededBy("fileOpening", FILE_OPENERS, "opens, shows or picks a note with openFile"),
+  ...neededBy("viewState", VIEW_STATE_SETTERS, "opens, shows or picks a note with setViewState"),
+  ...neededBy("activeFile", ACTIVE_FILE_READERS, "opens, shows or picks a note with getActiveFile"),
+  ...neededBy("activeView", ACTIVE_VIEW_READERS, "opens, shows or picks a note with getActiveViewOfType"),
+  ...neededBy("eventTrigger", EVENT_TRIGGERS, "takes trigger without calling it with what it can read"),
+  ...neededBy("leafView", LEAF_VIEW_READERS, "reads the view of a leaf"),
+  ...neededBy("viewFile", VIEW_FILE_READERS, "reads the file of a view"),
+  ...neededBy("noteEvents", NOTE_EVENT_LISTENERS, "workspace event, which hands over any note"),
+  ...neededBy("gateBuilding", GATE_BUILDERS, "builds the gate's Gatekeeper"),
+  ...neededBy("postProcessing", POST_PROCESSING, "registers a post-processor"),
+  ...neededBy("computedKeys", COMPUTED_KEY_READERS, "reads a key that isn't written in place"),
+  ...neededBy("pageText", PAGE_TEXT_READERS, "reads the page's text"),
+  ...neededBy("elementQueries", ELEMENT_QUERIERS, "looks elements up"),
+];
 
 describe("the plugin's own source", () => {
-  it("lets only the gatekeeper's allowed files reach the vault, walk its folders or Obsidian's file metadata, only the allowed files read an editor's text, and none write through an editor or view", () => {
-    expect(fenceBreaches(scanner, BUNDLED_PROJECT, sourceListing(), SOURCE_ALLOWANCES)).toEqual([]);
-  }, SCAN_TIME);
+  it("holds no code the scan can't read, and loads only plain TypeScript from the entry point", () => {
+    expect(unreadableCode(sourceListing(), LOADED)).toEqual([]);
+  });
 
-  it("allows only files in the gatekeeper's own folder, each of which still needs it", () => {
-    const loaded = scanner.loadedFiles(BUNDLED_PROJECT);
-    for (const allowed of ALLOWED) {
-      expect(allowed.startsWith(GATEKEEPER_FOLDER)).toBe(true);
-      expect(loaded).toContain(sourcePath(allowed));
-      expect(breachesOf(allowed, NOTHING_ALLOWED)).not.toEqual([]);
+  it("is loaded from inside src only, so every file the bundle loads is scanned below", () => {
+    expect(SCANNED.filter((path) => !path.startsWith(SOURCE_FOLDER))).toEqual([]);
+    expect(SCANNED.length).toBeGreaterThan(0);
+  });
+
+  it.each(SCANNED.map(shownPath))("passes every rule of the fence in %s, with only the allowances it is given", (file) => {
+    expect(breachesOf(file, SOURCE_ALLOWANCES)).toEqual([]);
+  });
+});
+
+describe("the files allowed past the fence", () => {
+  it.each(ALLOWED)("allow %s to reach the vault only because it is in the gatekeeper's own folder and still needs it", (file) => {
+    expect(file.startsWith(GATEKEEPER_FOLDER)).toBe(true);
+    expect(LOADED).toContain(sourcePath(file));
+    expect(breachesOf(file, NOTHING_ALLOWED)).not.toEqual([]);
+  });
+
+  it.each(STILL_NEEDED)("allow $allowance to $file, which still needs it and does nothing else the fence refuses", ({ file, allowances, breach }) => {
+    const breaches = breachesOf(file, allowances);
+    expect(breaches).not.toEqual([]);
+    for (const found of breaches) expect(found).toMatch(breach);
+  });
+});
+
+describe("the lists of names each place may use", () => {
+  it.each(NAME_LISTS)("name each of the $list once in a place, and no place with none", ({ allowed }) => {
+    for (const [place, names] of Object.entries(allowed)) {
+      expect(names, place).not.toEqual([]);
+      expect(repeatsIn(names), place).toEqual([]);
     }
   });
 
-  it("lets only the file that parses the plugin's saved data read every key of a value it can't type, which it still needs", () => {
-    for (const parsed of PARSED_DATA) {
-      const breaches = breachesOf(parsed, NOTHING_ALLOWED);
-      expect(breaches).not.toEqual([]);
-      for (const breach of breaches) expect(breach).toContain("reads every key of a value");
-    }
+  it.each(listedNames(OBSIDIAN_IMPORTS))("let $place import $name from Obsidian only while a file there still does", ({ place, name }) => {
+    expect(fileUsing(scanner, BUNDLED_PROJECT, filesOfPlace(place, OBSIDIAN_IMPORTS), name, IMPORTS_REFUSED)).not.toBeNull();
   });
 
-  it("lets only the allowed files read an editor's text, each of which still needs it and does nothing else the fence refuses", () => {
-    for (const reader of EDITOR_TEXT_READERS) {
-      const breaches = breachesOf(reader, { ...SOURCE_ALLOWANCES, editorReading: isNeverAllowed });
-      expect(breaches).not.toEqual([]);
-      for (const breach of breaches) expect(breach).toContain("reads the text of an editor or view");
-    }
+  it.each(listedNames(PAGE_GLOBALS))("let $place use the page or timer global $name only while it still does", ({ place, name }) => {
+    expect(fileUsing(scanner, BUNDLED_PROJECT, filesOfPlace(place, PAGE_GLOBALS), name, PAGE_GLOBALS_REFUSED)).not.toBeNull();
   });
 
-  it("lets only the allowed files cast through unknown or any, each of which still needs it and does nothing else the fence refuses", () => {
-    for (const caster of LOOSE_CASTERS) {
-      const breaches = breachesOf(caster, { ...SOURCE_ALLOWANCES, looseCasts: isNeverAllowed });
-      expect(breaches).not.toEqual([]);
-      for (const breach of breaches) expect(breach).toContain("casts through unknown or any");
-    }
+  it.each(listedNames(PAGE_MEMBERS))("let $place use the page's $name only while it still does", ({ place, name }) => {
+    expect(fileUsing(scanner, BUNDLED_PROJECT, filesOfPlace(place, PAGE_MEMBERS), name, PAGE_MEMBERS_REFUSED)).not.toBeNull();
   });
 
-  it("lets only the characters Bases view read what Bases lists, which it still needs and does nothing else the fence refuses", () => {
-    for (const reader of BASES_READERS) {
-      const breaches = breachesOf(reader, NOTHING_ALLOWED);
-      expect(breaches).not.toEqual([]);
-      for (const breach of breaches) expect(breach).toContain("reads a note's text through Obsidian");
-    }
-  });
-
-  it("lets only the marker colouring reach CodeMirror, which it still needs and does nothing else the fence refuses", () => {
-    for (const reader of CODE_MIRROR_READERS) {
-      const breaches = breachesOf(reader, { ...SOURCE_ALLOWANCES, codeMirror: isNeverAllowed });
-      expect(breaches).not.toEqual([]);
-      for (const breach of breaches) expect(breach).toMatch(/loads CodeMirror|reaches the editor/);
-    }
-  });
-
-  it("lists exactly the Obsidian names each place imports today, so a name no longer used leaves the list", () => {
-    const refused = namesRefused(/^src\/([^:]+):\d+ imports (\w+) from obsidian/, OBSIDIAN_IMPORTS, { ...SOURCE_ALLOWANCES, obsidianImports: () => false });
-    expect(refused).toEqual(sortedLists(OBSIDIAN_IMPORTS));
-  }, SCAN_TIME);
-
-  it("lists exactly the page and timer globals each file uses today, so a global no longer used leaves the list", () => {
-    const refused = namesRefused(/^src\/([^:]+):\d+ uses the global (\w+)$/, PAGE_GLOBALS, { ...SOURCE_ALLOWANCES, globals: (_path, name) => PLAIN_GLOBALS.includes(name) });
-    expect(refused).toEqual(sortedLists(PAGE_GLOBALS));
-  }, SCAN_TIME);
-
-  it("lists exactly the page members each file uses today, so a member no longer used leaves the list", () => {
-    const refused = namesRefused(/^src\/([^:]+):\d+ uses the page's (\S+), which/, PAGE_MEMBERS, { ...SOURCE_ALLOWANCES, pageMembers: () => false });
-    expect(refused).toEqual(sortedLists(PAGE_MEMBERS));
-  }, SCAN_TIME);
-
-  it("lets only the marker colouring reach past the plugin's own elements, and main.ts reach the page's body for the theme class", () => {
+  it("let only the marker colouring reach past the plugin's own elements, and main.ts reach the page's body for the theme class", () => {
     const reaching = Object.entries(PAGE_MEMBERS).flatMap(([file, names]) => {
       const allowed = PAGE_ESCAPE_READERS[file];
       return names.filter((name) => PAGE_ESCAPES.includes(name) && (allowed === undefined || !allowed.includes(name))).map((name) => `${file} ${name}`);
     });
     expect(reaching).toEqual([]);
-  });
-
-  it.each([
-    { allowance: "fileOpening", files: FILE_OPENERS, breach: "opens, shows or picks a note with openFile" },
-    { allowance: "viewState", files: VIEW_STATE_SETTERS, breach: "opens, shows or picks a note with setViewState" },
-    { allowance: "activeFile", files: ACTIVE_FILE_READERS, breach: "opens, shows or picks a note with getActiveFile" },
-    { allowance: "activeView", files: ACTIVE_VIEW_READERS, breach: "opens, shows or picks a note with getActiveViewOfType" },
-    { allowance: "eventTrigger", files: EVENT_TRIGGERS, breach: "takes trigger without calling it with what it can read" },
-    { allowance: "leafView", files: LEAF_VIEW_READERS, breach: "reads the view of a leaf" },
-    { allowance: "viewFile", files: VIEW_FILE_READERS, breach: "reads the file of a view" },
-    { allowance: "noteEvents", files: NOTE_EVENT_LISTENERS, breach: "workspace event, which hands over any note" },
-    { allowance: "gateBuilding", files: GATE_BUILDERS, breach: "builds the gate's Gatekeeper" },
-    { allowance: "postProcessing", files: POST_PROCESSING, breach: "registers a post-processor" },
-    { allowance: "computedKeys", files: COMPUTED_KEY_READERS, breach: "reads a key that isn't written in place" },
-    { allowance: "pageText", files: PAGE_TEXT_READERS, breach: "reads the page's text" },
-    { allowance: "elementQueries", files: ELEMENT_QUERIERS, breach: "looks elements up" },
-  ] as const)("lets only the files allowed $allowance do it, each of which still needs it", ({ allowance, files, breach }) => {
-    const allowedEverythingElse: Allowances = { ...SOURCE_ALLOWANCES, [allowance]: isNeverAllowed };
-    for (const file of files) {
-      const breaches = breachesOf(file, allowedEverythingElse);
-      expect(breaches, file).not.toEqual([]);
-      for (const found of breaches) expect(found).toContain(breach);
-    }
   });
 });
