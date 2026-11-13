@@ -26,7 +26,10 @@ const INNER_FOLDERS: InnerFolder[] = [
   { folder: "names", reaches: ["names"] },
   { folder: "fence/paths", reaches: ["fence/paths", "names"] },
   { folder: "fence/gate", reaches: ["fence/gate", "fence/paths", "names"] },
+  { folder: "beyond", reaches: ["beyond", "names"] },
 ];
+
+const BEYOND_IMPORTERS: string[] = [];
 
 function filesUnder(path: string): string[] {
   const found: string[] = [];
@@ -72,6 +75,18 @@ function breachesIn(inner: InnerFolder, file: string, text: string): string[] {
   return found;
 }
 
+function importersOfBeyondIn(allowed: string[], file: string, text: string): string[] {
+  const where = relative(SOURCE_FOLDER, file);
+  if (isInside(where, "beyond")) return [];
+  if (allowed.some((folder) => isInside(where, folder))) return [];
+  const imports = importedPathsIn(text).filter((imported) => folderOf(file, imported) === "beyond");
+  return imports.map(() => `${where} imports from beyond`);
+}
+
+function importersOfBeyond(allowed: string[]): string[] {
+  return filesUnder(SOURCE_FOLDER).flatMap((file) => importersOfBeyondIn(allowed, file, readFileSync(file, "utf8")));
+}
+
 function reachesOutward(inner: InnerFolder): string[] {
   return filesIn(inner.folder).flatMap((file) => breachesIn(inner, file, readFileSync(file, "utf8")));
 }
@@ -104,6 +119,16 @@ describe("the inner folders", () => {
     expect(read).toContain(join("fence", "paths", "safe-path.ts"));
     expect(read.every((file) => file.endsWith(".ts"))).toBe(true);
   });
+
+  it("let no folder outside src/beyond import from it, except the folders listed as importers", () => {
+    expect(importersOfBeyond(BEYOND_IMPORTERS)).toEqual([]);
+  });
+
+  it("read the files inside the folders of src/beyond, not only its top", () => {
+    const read = filesIn("beyond").map((file) => relative(SOURCE_FOLDER, file));
+    expect(read).toContain(join("beyond", "shape", "route.ts"));
+    expect(read).toContain(join("beyond", "text", "neutral-text.ts"));
+  });
 });
 
 describe("the rule the inner folders are checked by, over made-up files", () => {
@@ -134,6 +159,43 @@ describe("the rule the inner folders are checked by, over made-up files", () => 
   it("allows gate to import from paths, names and itself", () => {
     const text = ['import { a } from "../paths/fence";', 'import { b } from "./gatekeeper";', 'import { c } from "../../names/file-name";'].join("\n");
     expect(breachesOfMadeUpFile("fence/gate", text)).toEqual([]);
+  });
+
+  it.each(IMPORT_FORMS)("refuses a file outside beyond that imports from it, written as $form", ({ written }) => {
+    const file = join(SOURCE_FOLDER, "campaign", "made-up.ts");
+    expect(importersOfBeyondIn([], file, written("../beyond/shape/route"))).toEqual(["campaign/made-up.ts imports from beyond"]);
+  });
+
+  it("allows a folder listed as an importer to import from beyond", () => {
+    const file = join(SOURCE_FOLDER, "imports", "made-up.ts");
+    expect(importersOfBeyondIn(["imports"], file, 'import { a } from "../beyond/shape/route";')).toEqual([]);
+  });
+
+  it("allows a file outside beyond that imports from elsewhere", () => {
+    const file = join(SOURCE_FOLDER, "campaign", "made-up.ts");
+    expect(importersOfBeyondIn([], file, 'import { a } from "../names/name-key";')).toEqual([]);
+  });
+
+  it("allows files inside beyond to import from beyond", () => {
+    const file = join(SOURCE_FOLDER, "beyond", "text", "made-up.ts");
+    expect(importersOfBeyondIn([], file, 'import { a } from "../shape/route";')).toEqual([]);
+  });
+
+  it("refuses beyond importing from the campaign folder", () => {
+    expect(breachesOfMadeUpFile("beyond", 'import { a } from "../campaign/one";')).toEqual(["beyond/made-up.ts imports from campaign"]);
+  });
+
+  it("refuses beyond importing from the gate", () => {
+    expect(breachesOfMadeUpFile("beyond", 'import { a } from "../fence/gate/gatekeeper";')).toEqual(["beyond/made-up.ts imports from fence/gate"]);
+  });
+
+  it("allows beyond to import from itself and from names", () => {
+    const text = ['import { a } from "./shape/route";', 'import { b } from "../names/name-key";'].join("\n");
+    expect(breachesOfMadeUpFile("beyond", text)).toEqual([]);
+  });
+
+  it("refuses names importing from beyond", () => {
+    expect(breachesOfMadeUpFile("names", 'import { a } from "../beyond/shape/route";')).toEqual(["names/made-up.ts imports from beyond"]);
   });
 
   it("refuses names importing from fence", () => {
