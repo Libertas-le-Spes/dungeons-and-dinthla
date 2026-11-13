@@ -86,15 +86,15 @@
  {
   "id": "fence: imports' Obsidian names",
   "file": "tests/fence/allowed/obsidian-imports.ts",
-  "find": "  \"imports/\": [\"App\", \"ButtonComponent\", \"TFile\"],\n",
+  "find": "  \"imports/\": [\"App\", \"ButtonComponent\", \"Setting\", \"TFile\"],\n",
   "replace": "",
   "group": "allow"
  },
  {
   "id": "fence: imports' Obsidian names exact",
   "file": "tests/fence/allowed/obsidian-imports.ts",
-  "find": "[\"App\", \"ButtonComponent\", \"TFile\"]",
-  "replace": "[\"App\", \"ButtonComponent\", \"Modal\", \"TFile\"]",
+  "find": "[\"App\", \"ButtonComponent\", \"Setting\", \"TFile\"]",
+  "replace": "[\"App\", \"ButtonComponent\", \"Modal\", \"Setting\", \"TFile\"]",
   "group": "allow"
  },
  {
