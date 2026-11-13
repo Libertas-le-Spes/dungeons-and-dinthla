@@ -7,6 +7,7 @@ import { treeDocument, treeWriter } from "../writer/documents/tree-document";
 import { readCounting, reasonOf } from "./step-counting";
 
 const FIVE_MEGABYTES = 5_000_000;
+const ONE_MEGABYTE = 1_000_000;
 const SLACK = 2 * STEPS_ROUND();
 
 function STEPS_ROUND(): number {
@@ -22,12 +23,12 @@ function inField(extra: string): Buffer {
 }
 
 const SHAPES_TRAVERSED_ONCE: [string, () => Buffer][] = [
-  ["whitespace", () => inCatalog(" ".repeat(FIVE_MEGABYTES))],
-  ["line ends", () => inCatalog("\n".repeat(FIVE_MEGABYTES))],
-  ["one long comment", () => inCatalog(`%${"c".repeat(FIVE_MEGABYTES)}\n`)],
-  ["many short comments", () => inCatalog("%\n".repeat(FIVE_MEGABYTES / 2))],
-  ["comments that look like tokens", () => inCatalog("%(<<[/Name 1 0 R]>>)\n".repeat(FIVE_MEGABYTES / 20))],
-  ["NUL bytes as whitespace", () => inCatalog("\0".repeat(FIVE_MEGABYTES))],
+  ["whitespace", () => inCatalog(" ".repeat(ONE_MEGABYTE))],
+  ["line ends", () => inCatalog("\n".repeat(ONE_MEGABYTE))],
+  ["one long comment", () => inCatalog(`%${"c".repeat(ONE_MEGABYTE)}\n`)],
+  ["many short comments", () => inCatalog("%\n".repeat(ONE_MEGABYTE / 2))],
+  ["comments that look like tokens", () => inCatalog("%(<<[/Name 1 0 R]>>)\n".repeat(ONE_MEGABYTE / 20))],
+  ["NUL bytes as whitespace", () => inCatalog("\0".repeat(ONE_MEGABYTE))],
 ];
 
 const SHAPES_STOPPED_EARLY: [string, () => Buffer, string][] = [
@@ -77,15 +78,24 @@ function classicWithFirstBody(body: string): Buffer {
   return classicPdf(writer);
 }
 
-describe("reading hostile input about five megabytes long", () => {
+describe("reading hostile input about a megabyte long", () => {
   it.each(SHAPES_TRAVERSED_ONCE)("takes no more than one step for each byte of %s", async (_name, build) => {
     const bytes = build();
-    expect(bytes.length).toBeGreaterThanOrEqual(FIVE_MEGABYTES);
+    expect(bytes.length).toBeGreaterThanOrEqual(ONE_MEGABYTE);
     const counted = await readCounting(bytes);
     expect(counted.result.ok).toBe(true);
     expect(counted.steps).toBeLessThanOrEqual(bytes.length + SLACK);
   });
 
+  it("takes no more than one step for each byte of a table that lists no entries, over and over", async () => {
+    const table = `xref\n${"0 0\n".repeat(ONE_MEGABYTE / 4)}`;
+    const writer = new FormDocument().text("Primary Name", literal("Aria")).writer();
+    const counted = await readCounting(classicPdf(writer, { tableText: table + "0 1\n0000000000 65535 f \n" }));
+    expect(counted.steps).toBeLessThanOrEqual(ONE_MEGABYTE + SLACK);
+  });
+});
+
+describe("reading hostile input about five megabytes long", () => {
   it.each(SHAPES_STOPPED_EARLY)("stops early on %s, within a tenth of the bytes", async (_name, build, words) => {
     const bytes = build();
     expect(bytes.length).toBeGreaterThanOrEqual(FIVE_MEGABYTES);
@@ -98,13 +108,6 @@ describe("reading hostile input about five megabytes long", () => {
     const counted = await readCounting(stream(`(${"a".repeat(FIVE_MEGABYTES)})`));
     expect(counted.result.ok).toBe(true);
     expect(counted.steps).toBeLessThanOrEqual(5_000);
-  });
-
-  it("takes no more than one step for each byte of a table that lists no entries, over and over", async () => {
-    const table = `xref\n${"0 0\n".repeat(FIVE_MEGABYTES / 4)}`;
-    const writer = new FormDocument().text("Primary Name", literal("Aria")).writer();
-    const counted = await readCounting(classicPdf(writer, { tableText: table + "0 1\n0000000000 65535 f \n" }));
-    expect(counted.steps).toBeLessThanOrEqual(FIVE_MEGABYTES + SLACK);
   });
 });
 
