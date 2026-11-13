@@ -32,6 +32,8 @@ const INNER_FOLDERS: InnerFolder[] = [
   { folder: "beyond", reaches: ["beyond", "names", "pdf"] },
   { folder: "pdf", reaches: ["pdf"] },
   { folder: "imports/layout", reaches: ["imports/layout"] },
+  { folder: "characters/facts", reaches: ["characters/facts", "campaign", "notes"] },
+  { folder: "characters/imported", reaches: ["characters/imported", "characters/facts", "imports/layout", "campaign", "kinds", "views", "notes"] },
   { folder: "imports", reaches: ["imports", "imports/layout", "beyond", "names", "fence/gate", "campaign", "views"] },
 ];
 
@@ -394,3 +396,26 @@ describe("the rules for src/imports and its layout, over made-up files", () => {
     expect(breachesOfMadeUpFile("names", 'import { a } from "../imports/layout/plugin-section";')).toEqual(["names/made-up.ts imports from imports/layout"]);
   });
 });
+
+describe("the inner folders of src/characters, over made-up files", () => {
+  it("refuses an import from the sheet's own reading into the imported folder", () => {
+    expect(breachesOfMadeUpFileInside("characters/imported", "reading", 'import { a } from "../../reading/sheet-values";')).toEqual([
+      "characters/imported/reading/made-up.ts imports from characters",
+    ]);
+  });
+
+  it("refuses an import from the pages into the imported folder", () => {
+    expect(breachesOfMadeUpFileInside("characters/imported", "drawing", 'import type { A } from "../../pages/character-creators";')).toEqual([
+      "characters/imported/drawing/made-up.ts imports from characters",
+    ]);
+  });
+
+  it("lets the imported folder import the facts both sides share", () => {
+    expect(breachesOfMadeUpFileInside("characters/imported", "reading", 'import { a } from "../../facts/same-name";')).toEqual([]);
+  });
+
+  it("refuses an import from the facts folder back into the sheet's reading", () => {
+    expect(breachesOfMadeUpFile("characters/facts", 'import { a } from "../reading/sheet-values";')).toEqual(["characters/facts/made-up.ts imports from characters"]);
+  });
+});
+

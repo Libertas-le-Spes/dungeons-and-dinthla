@@ -1,4 +1,4 @@
-import type { SourcedFact } from "../../reading/sheet-values";
+import type { SourcedFact } from "../../facts/sourced-fact";
 
 export interface ImportedFact extends SourcedFact {
   readonly route: string;

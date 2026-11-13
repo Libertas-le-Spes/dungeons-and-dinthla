@@ -1,11 +1,19 @@
 import type { TFile } from "obsidian";
-import type { CharacterSheet, SheetValue } from "../../reading/character-sheet";
 import { addBeyondButton, type ButtonAction } from "./beyond-button";
 
 export const UPDATE_FROM_BEYOND = "Update from D&D Beyond";
 
 export interface UpdateAction {
   updateFromBeyond(file: TFile, returnFocus: () => void): void;
+}
+
+export interface MaybeImported {
+  readonly imported: object | null;
+}
+
+export interface ImportedOrNot {
+  readonly abilities: readonly MaybeImported[];
+  readonly values: readonly MaybeImported[];
 }
 
 class UpdateRun implements ButtonAction {
@@ -19,18 +27,18 @@ class UpdateRun implements ButtonAction {
   }
 }
 
-function holdsAnImport(values: readonly SheetValue[]): boolean {
+function holdsAnImport(values: readonly MaybeImported[]): boolean {
   for (const value of values) {
     if (value.imported !== null) return true;
   }
   return false;
 }
 
-export function isImportedSheet(sheet: CharacterSheet): boolean {
+export function isImportedSheet(sheet: ImportedOrNot): boolean {
   return holdsAnImport(sheet.abilities) || holdsAnImport(sheet.values);
 }
 
-export function addUpdateButton(head: HTMLElement, file: TFile, sheet: CharacterSheet, action: UpdateAction): void {
+export function addUpdateButton(head: HTMLElement, file: TFile, sheet: ImportedOrNot, action: UpdateAction): void {
   if (!isImportedSheet(sheet)) return;
   addBeyondButton(head, UPDATE_FROM_BEYOND, new UpdateRun(file, action));
 }
