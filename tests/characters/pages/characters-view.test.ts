@@ -90,7 +90,7 @@ function openGallery({
   const newCharacter = vi.fn();
   const importCharacter = vi.fn();
   const container = obsidianDocument().createElement("div");
-  const view = new CharactersView({} as QueryController, container, store as unknown as CampaignStore, notes, actions, { newCharacter, importCharacter });
+  const view = new CharactersView({} as QueryController, container, store as unknown as CampaignStore, notes, actions, { newCharacter, importCharacter, makeMain: vi.fn() });
   const registered: (() => void)[] = [];
   view.register = (callback) => {
     registered.push(callback);

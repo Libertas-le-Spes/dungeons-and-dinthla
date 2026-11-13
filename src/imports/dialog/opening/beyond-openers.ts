@@ -1,12 +1,17 @@
 import type { App, TFile } from "obsidian";
-import type { NoteFiles } from "../../note/writing/note-files";
+import { MainOffers, type OfferWiring } from "../../leaving/dialog/main-offers";
+import type { CampaignCast } from "../../leaving/switching/campaign-cast";
+import { GateCast, type CastMetadata } from "../../leaving/switching/gate-cast";
+import type { LeavingFiles } from "../../leaving/switching/switch-plan";
+import { dayOf } from "../today";
 import { NO_CAMPAIGN, NOT_IN_A_CAMPAIGN } from "../import-words";
 import { AfterNewImport, AfterUpdate } from "./after-import";
 import { openImport, openUpdate, type ImportPlace } from "./open-import";
 
 export interface BeyondWiring {
   readonly app: App;
-  readonly files: NoteFiles;
+  readonly files: LeavingFiles;
+  readonly metadata: CastMetadata;
   shownCampaignFolder(): string | null;
   campaignFolderOf(path: string): string | null;
   charactersFolderOf(campaignFolder: string): string;
@@ -17,7 +22,7 @@ export interface BeyondWiring {
 
 class CampaignPlace implements ImportPlace {
   readonly app: App;
-  readonly files: NoteFiles;
+  readonly files: LeavingFiles;
   readonly charactersFolder: string;
 
   constructor(
@@ -34,8 +39,44 @@ class CampaignPlace implements ImportPlace {
   }
 }
 
+class WiredOffers implements OfferWiring {
+  readonly app: App;
+  readonly files: LeavingFiles;
+  readonly cast: CampaignCast;
+
+  constructor(private readonly wiring: BeyondWiring) {
+    this.app = wiring.app;
+    this.files = wiring.files;
+    this.cast = new GateCast(wiring.metadata, wiring.files);
+  }
+
+  campaignFolderOf(path: string): string | null {
+    return this.wiring.campaignFolderOf(path);
+  }
+
+  charactersFolderOf(campaignFolder: string): string {
+    return this.wiring.charactersFolderOf(campaignFolder);
+  }
+
+  tell(words: string): void {
+    this.wiring.tell(words);
+  }
+
+  today(): string {
+    return dayOf(new Date());
+  }
+}
+
 export class BeyondOpeners {
-  constructor(private readonly wiring: BeyondWiring) {}
+  private readonly offers: MainOffers;
+
+  constructor(private readonly wiring: BeyondWiring) {
+    this.offers = new MainOffers(new WiredOffers(wiring));
+  }
+
+  makeMain(path: string, returnFocus: () => void): void {
+    void this.offers.makeMain(path, returnFocus);
+  }
 
   importCharacter(returnFocus: () => void): void {
     const folder = this.wiring.shownCampaignFolder();
@@ -43,7 +84,7 @@ export class BeyondOpeners {
       this.wiring.tell(NO_CAMPAIGN);
       return;
     }
-    openImport(new CampaignPlace(this.wiring, folder), new AfterNewImport(returnFocus, this.wiring.showSheet.bind(this.wiring)));
+    openImport(new CampaignPlace(this.wiring, folder), new AfterNewImport(returnFocus, this.wiring.showSheet.bind(this.wiring), this.offers));
   }
 
   updateFromBeyond(file: TFile, returnFocus: () => void): void {
@@ -52,6 +93,6 @@ export class BeyondOpeners {
       this.wiring.tell(NOT_IN_A_CAMPAIGN);
       return;
     }
-    openUpdate(new CampaignPlace(this.wiring, folder), file, new AfterUpdate(returnFocus));
+    openUpdate(new CampaignPlace(this.wiring, folder), file, new AfterUpdate(returnFocus, this.offers));
   }
 }

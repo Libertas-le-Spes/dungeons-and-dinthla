@@ -3,6 +3,7 @@ import type { TFile, TFolder } from "obsidian";
 import { CHANGED_IN_NOTE, PartlyWritten } from "../../../src/campaign/writing/note-editor";
 import { readsBackDifferently, type CharacterEntry } from "../../../src/characters/editing/character-entry";
 import { BAD_NAME, LONG_NAME, RESERVED_NAME } from "../../../src/names/file-name";
+import { leftPlayWords } from "../../../src/campaign/paths/fallen-records";
 import {
   NOTE_MOVED,
   createCharacter,
@@ -91,6 +92,18 @@ describe("createCharacter", () => {
     const { vault, created } = vaultWith();
     await createCharacter(vault, "Pale Moon", entry({ name: "Mira \u{1f9d9}\u200d\u2640\ufe0f" }));
     expect(created).toEqual([{ path: `${FOLDER}/Mira \u{1f9d9}\u200d\u2640\ufe0f.md`, text: "" }]);
+  });
+
+  it("refuses a second note for a name with a record in this campaign's Fallen folder, and makes nothing", async () => {
+    const { vault, created } = vaultWith({ notes: { "Pale Moon/Fallen/mira.md": "the record\n" } });
+    await expect(createCharacter(vault, "Pale Moon", entry())).rejects.toThrow(leftPlayWords("Mira"));
+    expect(created).toEqual([]);
+  });
+
+  it("makes the note when the record of that name is another campaign's", async () => {
+    const { vault, created } = vaultWith({ notes: { "Ashen Road/Fallen/Mira.md": "the record\n" } });
+    await createCharacter(vault, "Pale Moon", entry());
+    expect(created).toEqual([{ path: `${FOLDER}/Mira.md`, text: "" }]);
   });
 
   it("refuses a character name holding a zero-width space", async () => {
