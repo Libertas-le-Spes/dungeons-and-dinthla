@@ -4,6 +4,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Backups } from "./backups.ts";
 import { assertMemoryBox, boxedTestRun } from "./boxed-test-run.ts";
+import { ProcessTable, RunLock } from "./run-lock.ts";
+import { RunningUnits } from "./running-units.ts";
 import type { Limits } from "./memory-box.ts";
 import { choiceOf, givenArguments, isChosen, mutationsAt, occurrences, targetFiles, type Choice, type Mutation } from "./mutation-list.ts";
 import { anchorSummaryOf, countOf, EXACTLY_ONCE, examplesOf, failuresIn, KILLED, runSummaryOf, statusOf, type Outcome } from "./outcomes.ts";
@@ -34,10 +36,12 @@ class MutationRun {
   private reportFolder: string | null = null;
   private readonly area: RunnerArea;
   private readonly backups: Backups;
+  private readonly units: RunningUnits;
 
-  constructor(area: RunnerArea, backups: Backups) {
+  constructor(area: RunnerArea, backups: Backups, units: RunningUnits) {
     this.area = area;
     this.backups = backups;
+    this.units = units;
   }
 
   anchorOutcome(mutation: Mutation): Outcome {
@@ -45,7 +49,7 @@ class MutationRun {
     return { id: mutation.id, group: mutation.group, status: `ANCHOR ${occurrences(text, mutation.find)}`, failed: 0, loadFailures: 0, examples: [] };
   }
 
-  outcomeOf(mutation: Mutation): Outcome {
+  async outcomeOf(mutation: Mutation): Promise<Outcome> {
     const outcome = this.anchorOutcome(mutation);
     if (outcome.status !== EXACTLY_ONCE) return outcome;
     const path = join(this.area.root, mutation.file);
@@ -54,7 +58,7 @@ class MutationRun {
     writeFileSync(path, original.split(mutation.find).join(mutation.replace));
     let suites: SuiteResult[] | null;
     try {
-      suites = boxedTestRun({ root: this.area.root, suites: this.area.suites, report: join(this.folder(), "report.json"), limits: this.area.limits });
+      suites = await boxedTestRun({ root: this.area.root, suites: this.area.suites, report: join(this.folder(), "report.json"), limits: this.area.limits }, this.units);
     } finally {
       writeFileSync(path, original);
       this.backups.drop(mutation.file);
@@ -80,6 +84,7 @@ function refuse(reason: object): never {
 }
 
 function checkBeforeRunning(area: RunnerArea, mutations: readonly Mutation[], choice: Choice): void {
+  if (choice.unknownFlags.length > 0) refuse({ refused: "These flags aren't known, so nothing was run. Use --anchors or --allow-dirty.", flags: choice.unknownFlags });
   if (choice.unknown.length > 0) refuse({ refused: "No mutation has these ids, so nothing was run. Copy an id from mutations.json.", unknown: choice.unknown });
   if (choice.anchorsOnly) return;
   assertMemoryBox();
@@ -95,15 +100,15 @@ function anchorsOnly(run: MutationRun, mutations: readonly Mutation[], choice: C
   for (const outcome of outcomes) console.log(JSON.stringify(outcome));
   console.log(anchorSummaryOf(outcomes));
   console.log("finished");
-  if (countOf(outcomes, EXACTLY_ONCE) !== outcomes.length) process.exit(NOT_ALL_KILLED);
+  if (countOf(outcomes, EXACTLY_ONCE) !== outcomes.length) process.exitCode = NOT_ALL_KILLED;
 }
 
-function mutated(run: MutationRun, mutations: readonly Mutation[], choice: Choice): void {
+async function mutated(run: MutationRun, mutations: readonly Mutation[], choice: Choice): Promise<void> {
   const outcomes: Outcome[] = [];
   try {
     for (const mutation of mutations) {
       if (!isChosen(choice, mutation)) continue;
-      const outcome = run.outcomeOf(mutation);
+      const outcome = await run.outcomeOf(mutation);
       outcomes.push(outcome);
       console.log(JSON.stringify(outcome));
     }
@@ -112,20 +117,32 @@ function mutated(run: MutationRun, mutations: readonly Mutation[], choice: Choic
   }
   console.log(runSummaryOf(outcomes));
   console.log("finished");
-  if (countOf(outcomes, KILLED) !== outcomes.length) process.exit(NOT_ALL_KILLED);
+  if (countOf(outcomes, KILLED) !== outcomes.length) process.exitCode = NOT_ALL_KILLED;
 }
 
-export function runMutations(area: RunnerArea): void {
+export async function runMutations(area: RunnerArea): Promise<void> {
   const mutations = mutationsAt(area.mutations);
   const choice = choiceOf(givenArguments(process.argv), mutations);
+  const lock = new RunLock(area.root, area.name, new ProcessTable());
+  const locked = lock.take(process.pid);
+  if (locked !== null) refuse({ refused: locked });
+  try {
+    await runHeld(area, mutations, choice, lock);
+  } finally {
+    lock.leave();
+  }
+}
+
+async function runHeld(area: RunnerArea, mutations: readonly Mutation[], choice: Choice, lock: RunLock): Promise<void> {
   const backups = new Backups(area.root, area.name);
   for (const file of backups.restoreAll()) console.log(JSON.stringify({ restored: file }));
   checkBeforeRunning(area, mutations, choice);
-  const run = new MutationRun(area, backups);
+  const units = new RunningUnits(`dd-mutation-${area.name}`);
+  const run = new MutationRun(area, backups, units);
   if (choice.anchorsOnly) {
     anchorsOnly(run, mutations, choice);
     return;
   }
-  restoreOnSignal(backups, process);
-  mutated(run, mutations, choice);
+  restoreOnSignal(units, backups, lock, process);
+  await mutated(run, mutations, choice);
 }

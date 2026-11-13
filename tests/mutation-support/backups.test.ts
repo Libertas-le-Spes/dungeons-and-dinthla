@@ -65,21 +65,40 @@ describe("the backups of mutated files", () => {
   });
 });
 
+class QuietUnits {
+  stops = 0;
+
+  stopCurrent(): void {
+    this.stops += 1;
+  }
+}
+
+class LeavingLock {
+  leaves = 0;
+
+  leave(): void {
+    this.leaves += 1;
+  }
+}
+
 describe("stopping a run with a signal", () => {
-  it("listens for each stopping signal, and on one restores the backups and then exits", () => {
+  it("listens for each stopping signal, and on one stops the run, restores the backups, leaves the lock and then exits 130", () => {
     const backups = backupsWith(["plain__one.ts.json"], [backupText(ROOT, "plain/one.ts", "original")]);
     const on = vi.fn();
     const exit = vi.fn();
-    restoreOnSignal(backups, { on, exit: exit as never });
+    const units = new QuietUnits();
+    const lock = new LeavingLock();
+    restoreOnSignal(units, backups, lock, { on, exit: exit as never });
     expect(on.mock.calls.map(firstArgument)).toEqual(["SIGINT", "SIGTERM"]);
     const call = on.mock.calls.at(0);
     if (call === undefined) throw new Error("No signal was listened for.");
     const listener = call.at(1);
     if (typeof listener !== "function") throw new Error("No listener was registered.");
     listener();
+    expect(units.stops).toBe(1);
+    expect(lock.leaves).toBe(1);
     expect(fs.writeFileSync).toHaveBeenCalledWith(`${ROOT}/plain/one.ts`, "original");
-    expect(exit).toHaveBeenCalledOnce();
-    expect(exit).toHaveBeenCalledWith(130);
+    expect(exit).toHaveBeenCalledExactlyOnceWith(130);
     expect(Math.min(...vi.mocked(fs.writeFileSync).mock.invocationCallOrder)).toBeLessThan(Math.min(...exit.mock.invocationCallOrder));
   });
 });

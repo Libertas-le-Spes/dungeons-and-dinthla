@@ -15,11 +15,11 @@ afterEach(() => {
 
 describe("a boxed command", () => {
   it("runs in a user scope with the memory limit, no swap, a runtime limit and a time limit that kills", () => {
-    const command = boxed(LIMITS, COMMAND);
+    const command = boxed(LIMITS, COMMAND, "made-up-unit-1");
     expect(command.program).toBe("systemd-run");
     expect(command.args).toEqual([
       "--user", "--scope", "-q", "-p", "CPUWeight=10", "-p", "IOWeight=10", "-p", "MemorySwapMax=0",
-      "-p", "MemoryMax=2G", "-p", "RuntimeMaxSec=125", "nice", "-n", "19",
+      "--unit=made-up-unit-1", "-p", "MemoryMax=2G", "-p", "RuntimeMaxSec=125", "nice", "-n", "19",
       "timeout", "-k", "5", "120", "npx", "vitest", "run",
     ]);
   });
@@ -39,9 +39,14 @@ describe("the probe for a memory box", () => {
     expect(assertMemoryBox).toThrow("A memory box could not be made");
   });
 
-  it("refuses to go on when the probe ends with any status but 0", () => {
-    vi.mocked(spawnSync).mockReturnValue({ status: 2, error: undefined } as never);
+  it.each([1, 2, 137])("refuses to go on when the probe ends with status %i", (status) => {
+    vi.mocked(spawnSync).mockReturnValue({ status, error: undefined } as never);
     expect(memoryBoxIsAvailable()).toBe(false);
+  });
+
+  it("uses the one probe the test command uses", async () => {
+    const shared = await import("../../scripts/memory-box.ts");
+    expect(PROBE).toBe(shared.PROBE);
   });
 
   it("refuses to go on when systemd-run can't be started", () => {
