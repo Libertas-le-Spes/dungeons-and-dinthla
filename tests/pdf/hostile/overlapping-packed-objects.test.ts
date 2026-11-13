@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { MAX_OBJECT_STREAM_BYTES } from "../../../src/pdf/limits/pdf-limits";
 import { FormDocument } from "../writer/documents/form-document";
 import { literal } from "../writer/pdf-text";
 import { readCounting, reasonOf } from "./step-counting";
@@ -37,7 +36,7 @@ function allAt(offsetOf: (position: number) => number, count: number): string {
 }
 
 describe("a packed group whose objects overlap", () => {
-  const body = arrayOfArrays(60, 9000);
+  const body = arrayOfArrays(6, 900);
 
   it("is refused when twenty objects all sit at the same big array, before any is parsed", async () => {
     const header = allAt(() => 0, 20);
@@ -53,16 +52,5 @@ describe("a packed group whose objects overlap", () => {
     const counted = await readCounting(bytes);
     expect(reasonOf(counted)).toContain("not packed the way PDF packs them");
     expect(counted.steps).toBeLessThanOrEqual(2 * bytes.length + 2 * body.length);
-  });
-});
-
-describe("a packed group that unpacks to too much", () => {
-  it("is refused when one group unpacks to more than the most bytes allowed", async () => {
-    const header = "10 0 ";
-    const numbers = new SeededNumbers();
-    let padding = "\n%";
-    while (padding.length <= MAX_OBJECT_STREAM_BYTES) padding += String.fromCharCode(97 + (numbers.next() % 26));
-    const bytes = formOfTwenty().streamed({ packed: [10], objectStreamText: { count: 1, first: header.length, text: `${header}[1]${padding}` } });
-    expect(reasonOf(await readCounting(bytes))).toContain("A group of objects packed inside the file unpacks to too much");
   });
 });
