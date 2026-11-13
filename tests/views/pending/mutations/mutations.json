@@ -1,0 +1,51 @@
+[
+ {
+  "id": "never forget a finished piece",
+  "file": "src/views/pending/pending-work.ts",
+  "find": "    await piece;\n    this.pending.delete(piece);\n",
+  "replace": "    await piece;\n",
+  "group": "pending"
+ },
+ {
+  "id": "settled forgets what it waited for",
+  "file": "src/views/pending/pending-work.ts",
+  "find": "      for (const piece of awaited) this.pending.delete(piece);\n",
+  "replace": "",
+  "group": "pending"
+ },
+ {
+  "id": "settled waits for the pieces",
+  "file": "src/views/pending/pending-work.ts",
+  "find": "      await Promise.all(awaited);\n",
+  "replace": "",
+  "group": "pending"
+ },
+ {
+  "id": "settled waits for work added while it waits",
+  "file": "src/views/pending/pending-work.ts",
+  "find": "    while (this.pending.size > 0) {",
+  "replace": "    if (this.pending.size > 0) {",
+  "group": "pending"
+ },
+ {
+  "id": "the unfinished count",
+  "file": "src/views/pending/pending-work.ts",
+  "find": "    return this.pending.size;",
+  "replace": "    return 0;",
+  "group": "pending"
+ },
+ {
+  "id": "a failed piece still finishes",
+  "file": "src/views/pending/pending-work.ts",
+  "find": "  } catch {\n    return;\n  }",
+  "replace": "  } finally {\n    void 0;\n  }",
+  "group": "pending"
+ },
+ {
+  "id": "a failed piece is still reported",
+  "file": "src/views/pending/pending-work.ts",
+  "find": "    void stillReported(work);\n",
+  "replace": "",
+  "group": "pending"
+ }
+]
