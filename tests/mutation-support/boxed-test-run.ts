@@ -1,6 +1,6 @@
-import { spawnSync } from "node:child_process";
 import { WORKER_HEAP_LIMIT_MB } from "../setup/memory-limits.ts";
 import { boxed, memoryBoxIsAvailable, type Command, type Limits } from "./memory-box.ts";
+import type { RunEnd, RunPlace } from "./running-units.ts";
 import { clearReport, readReport, type SuiteResult } from "./suite-results.ts";
 
 const OUTER_GRACE_SECONDS = 30;
@@ -11,6 +11,11 @@ export interface TestRun {
   suites: string[];
   report: string;
   limits: Limits;
+}
+
+export interface UnitRunner {
+  nextUnit(): string;
+  run(unit: string, command: Command, place: RunPlace): Promise<RunEnd>;
 }
 
 function vitestCommand(run: TestRun): Command {
@@ -29,11 +34,11 @@ export function assertMemoryBox(): void {
   if (!memoryBoxIsAvailable()) throw new Error("A memory box could not be made (systemd-run --user --scope with a memory limit failed), so no mutation was run. Nothing was changed.");
 }
 
-export function boxedTestRun(run: TestRun): SuiteResult[] | null {
+export async function boxedTestRun(run: TestRun, units: UnitRunner): Promise<SuiteResult[] | null> {
   clearReport(run.report);
-  const command = boxed(run.limits, vitestCommand(run));
-  const result = spawnSync(command.program, command.args, { cwd: run.root, encoding: "utf8", env: runEnvironment(), timeout: outerTimeout(run.limits), killSignal: "SIGKILL" });
-  if (result.error !== undefined) return null;
-  if (result.signal !== null) return null;
+  const unit = units.nextUnit();
+  const end = await units.run(unit, boxed(run.limits, vitestCommand(run), unit), { cwd: run.root, env: runEnvironment(), timeoutMs: outerTimeout(run.limits) });
+  if (end.started === false) return null;
+  if (end.signal !== null) return null;
   return readReport(run.report);
 }

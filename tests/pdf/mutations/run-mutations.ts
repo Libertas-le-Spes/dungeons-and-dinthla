@@ -1,8 +1,9 @@
+import { fileURLToPath } from "node:url";
 import { runMutations } from "../../mutation-support/mutation-runner.ts";
 
-runMutations({
+await runMutations({
   name: "pdf",
-  root: new URL("../../..", import.meta.url).pathname,
+  root: fileURLToPath(new URL("../../..", import.meta.url)),
   suites: ["tests/pdf", "tests/build/inner-folders.test.ts"],
   limits: { memoryMax: "4G", seconds: 120 },
   mutations: new URL("./mutations.json", import.meta.url),
