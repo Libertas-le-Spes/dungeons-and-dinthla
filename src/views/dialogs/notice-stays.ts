@@ -1,0 +1,1 @@
+export const NOTICE_STAYS_UNTIL_DISMISSED = 0;

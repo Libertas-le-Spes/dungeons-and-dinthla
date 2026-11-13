@@ -3,6 +3,7 @@ import type { App } from "obsidian";
 import { OUTSIDE_FENCE } from "../../../src/fence/paths/fence";
 import { Gatekeeper } from "../../../src/fence/gate/gatekeeper";
 import { fileAt, rawVaultWith } from "./fake-raw-vault";
+import { reportListenerSpy } from "./report-listener";
 
 const MAIN_NOTE = fileAt("D&D/Pale Moon/Pale Moon.md");
 const PRIVATE = fileAt("Private/Primary.md");
@@ -53,5 +54,16 @@ describe("Gatekeeper", () => {
     const gate = new Gatekeeper(app, () => "Vault Settings/D&D");
     expect(gate.fence.holds("Vault Settings/D&D/Pale Moon.md")).toBe(false);
     expect(gate.files.getFiles()).toEqual([]);
+  });
+
+  it("gives one report of what its files and its file actions wrote", async () => {
+    const { app } = appWith();
+    const gate = new Gatekeeper(app, () => "D&D");
+    const heard = reportListenerSpy();
+    gate.written.listen(heard);
+    await gate.files.process(MAIN_NOTE, (text) => text);
+    await gate.fileActions.trashFile(MAIN_NOTE);
+    expect(heard.textSaved).toHaveBeenCalledOnce();
+    expect(heard.trashed).toHaveBeenCalledOnce();
   });
 });

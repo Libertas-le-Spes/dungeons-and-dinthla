@@ -3,7 +3,7 @@ import { settingsOf } from "../../../src/settings/saved/plugin-settings";
 
 const CONFIG_DIR = ".obsidian";
 
-const NOTHING_SAVED = { campaignsFolder: null, campaignFolder: null, welcomeSeen: false, lastVersionSeen: null };
+const NOTHING_SAVED = { campaignsFolder: null, campaignFolder: null, welcomeSeen: false, lastVersionSeen: null, notesMadeFor: [] };
 
 describe("settingsOf", () => {
   it("keeps the campaign chosen last time", () => {
@@ -34,6 +34,7 @@ describe("settingsOf", () => {
       campaignFolder: null,
       welcomeSeen: true,
       lastVersionSeen: "1.4.0",
+      notesMadeFor: [],
     });
   });
 
@@ -72,5 +73,23 @@ describe("settingsOf", () => {
       ...NOTHING_SAVED,
       campaignsFolder: "D&D",
     });
+  });
+});
+
+describe("settingsOf notes made for", () => {
+  it("keeps the campaigns whose old sessions got their notes", () => {
+    const saved = { campaignsFolder: "D&D", notesMadeFor: ["D&D/Pale Moon", "D&D/Silver Road"] };
+    expect(settingsOf(saved, CONFIG_DIR).notesMadeFor).toEqual(["D&D/Pale Moon", "D&D/Silver Road"]);
+  });
+
+  it("drops a saved campaign outside the Campaigns folder, or one that isn't a text", () => {
+    const saved = { campaignsFolder: "D&D", notesMadeFor: ["Self/Pale Moon", "D&D/../Self/Pale Moon", 4, "D&D/Pale Moon"] };
+    expect(settingsOf(saved, CONFIG_DIR).notesMadeFor).toEqual(["D&D/Pale Moon"]);
+  });
+
+  it("starts with none when what was saved isn't a list", () => {
+    for (const notesMadeFor of ["D&D/Pale Moon", 4, null, { "D&D/Pale Moon": true }]) {
+      expect(settingsOf({ campaignsFolder: "D&D", notesMadeFor }, CONFIG_DIR).notesMadeFor).toEqual([]);
+    }
   });
 });

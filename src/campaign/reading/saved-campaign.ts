@@ -1,4 +1,4 @@
-import type { Campaign } from "../record/campaign";
+import type { Campaign, SessionNote } from "../record/campaign";
 import { CampaignStore, type CampaignListener } from "./campaign-store";
 import type { CampaignFiles } from "./read-campaign";
 import type { FencedFiles } from "../../fence/gate/fenced-files";
@@ -13,8 +13,14 @@ export interface SavedCampaignNeeds {
   failed(error: unknown): void;
 }
 
+export type NoteRead = (path: string, text: string) => void;
+
+export type CampaignOpened = (folder: string) => void;
+
 export class SavedCampaign {
   private readonly saved: CampaignStore;
+  private readonly readListeners = new Set<NoteRead>();
+  private readonly openedListeners = new Set<CampaignOpened>();
 
   constructor(private readonly needs: SavedCampaignNeeds) {
     this.saved = new CampaignStore(needs.files);
@@ -28,13 +34,31 @@ export class SavedCampaign {
     return this.saved.campaignFolder;
   }
 
+  get opening(): boolean {
+    return this.saved.opening;
+  }
+
+  get sessionNotes(): SessionNote[] {
+    return this.saved.sessionNotes;
+  }
+
+  onNoteRead(listener: NoteRead): () => void {
+    this.readListeners.add(listener);
+    return () => this.readListeners.delete(listener);
+  }
+
+  onOpened(listener: CampaignOpened): () => void {
+    this.openedListeners.add(listener);
+    return () => this.openedListeners.delete(listener);
+  }
+
   subscribe(listener: CampaignListener): () => void {
     return this.saved.subscribe(listener);
   }
 
   start(): () => void {
     const { files, metadata, shown } = this.needs;
-    const changed = metadata.on("changed", (file, text) => this.saved.noteChanged(file.path, text));
+    const changed = metadata.on("changed", (file, text) => this.noteRead(file.path, text));
     const deleted = files.on("delete", (file) => this.saved.noteDeleted(file.path));
     const renamed = files.on("rename", (file, oldPath) => {
       this.saved.noteRenamed(file.path, oldPath).catch((error: unknown) => this.needs.failed(error));
@@ -57,6 +81,19 @@ export class SavedCampaign {
       this.saved.close();
       return;
     }
-    this.saved.open(folder).catch((error: unknown) => this.needs.failed(error));
+    this.saved
+      .open(folder)
+      .then(() => this.opened(folder))
+      .catch((error: unknown) => this.needs.failed(error));
+  }
+
+  private noteRead(path: string, text: string): void {
+    this.saved.noteChanged(path, text);
+    for (const listener of this.readListeners) listener(path, text);
+  }
+
+  private opened(folder: string): void {
+    if (folder !== this.saved.campaignFolder) return;
+    for (const listener of this.openedListeners) listener(folder);
   }
 }
