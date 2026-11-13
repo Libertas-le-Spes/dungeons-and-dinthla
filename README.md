@@ -68,7 +68,7 @@ A short walkthrough:
 1. On D&D Beyond, export your character as a PDF. Then, on the Characters page, press *Import from D&D Beyond* and choose the file; check what comes in and press *Import*.
 2. Your character's sheet opens. Under the values you'll find your inventory, purse, spells and features, as D&D Beyond has them.
 3. Press *Track on the funds page* beside an item to give it to your character on the Party funds page, where the party can see it.
-4. Your own purse shows on the Party funds page beside the party's, and is never added to it.
+4. Your own purse shows on the Party funds page beside the party's once the campaign note names your character, and is never added to it.
 5. After a level-up, export a new PDF and press *Update from D&D Beyond* on your sheet. Anything you hold on the funds page that the new sheet doesn't list is marked; pick *Used up*, *Sold*, *Lost* or *Changed* to settle it.
 
 ## Planning
