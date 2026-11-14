@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { blankLinks, findLinks, removeFirstLink, splitLinks, unlink } from "../../../src/notes/parts/link";
+import { blankLinks, findLinks, findPlaceLinks, removeFirstLink, splitLinks, unlink } from "../../../src/notes/parts/link";
 
 describe("findLinks", () => {
   it("finds every linked name in order", () => {
@@ -18,6 +18,16 @@ describe("findLinks", () => {
 
   it("finds nothing in a line without links", () => {
     expect(findLinks("No names here")).toEqual([]);
+  });
+});
+
+describe("findPlaceLinks", () => {
+  it("finds only the links that start with an at sign, in order", () => {
+    expect(findPlaceLinks("[[Mira]] met [[Baka]] at @[[Old Mill]] then @[[Grey Pass|the pass]]")).toEqual(["Old Mill", "Grey Pass"]);
+  });
+
+  it("finds nothing when the at sign is apart from the link", () => {
+    expect(findPlaceLinks("mail @ [[Old Mill]]")).toEqual([]);
   });
 });
 

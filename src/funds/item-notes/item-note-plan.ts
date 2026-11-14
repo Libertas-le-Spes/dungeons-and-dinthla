@@ -1,13 +1,12 @@
 import type { TFile } from "obsidian";
 import type { Campaign, ItemRecord, SessionNote } from "../../campaign/record/campaign";
+import { LINES_FOR_A_NOTE } from "../../kinds/lines-for-a-note";
 import { noteNameOf } from "../../campaign/paths/note-name";
 import { nameKeyOf } from "../../names/name-key";
 import { holderPropertyOf } from "./holder-property";
 import { itemFileNameOf, refusalForItemNote } from "./item-file-name";
 import { itemNoteLines } from "./item-note-lines";
 import { hasNoteNamed } from "./item-of-note";
-
-export const LINES_FOR_A_NOTE = 3;
 
 export interface PlannedItemNote {
   name: string;
