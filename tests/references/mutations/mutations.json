@@ -1,0 +1,149 @@
+[
+ {
+  "id": "place link needs the at sign",
+  "file": "src/notes/parts/link.ts",
+  "find": "const PLACE_LINK = /@\\[\\[",
+  "replace": "const PLACE_LINK = /\\[\\[",
+  "group": "link"
+ },
+ {
+  "id": "place link read",
+  "file": "src/references/line-names.ts",
+  "find": "if (findPlaceLinks(text).includes(name)) return \"place\";",
+  "replace": "",
+  "group": "line kind"
+ },
+ {
+  "id": "character roles read",
+  "file": "src/references/line-names.ts",
+  "find": "if (characterLinksIn(text).includes(name)) return \"character\";",
+  "replace": "",
+  "group": "line kind"
+ },
+ {
+  "id": "place before character",
+  "file": "src/references/line-names.ts",
+  "find": "  if (findPlaceLinks(text).includes(name)) return \"place\";\n  if (characterLinksIn(text).includes(name)) return \"character\";",
+  "replace": "  if (characterLinksIn(text).includes(name)) return \"character\";\n  if (findPlaceLinks(text).includes(name)) return \"place\";",
+  "group": "line kind"
+ },
+ {
+  "id": "a name once per line",
+  "file": "src/references/line-names.ts",
+  "find": "new Set(findLinks(text))",
+  "replace": "findLinks(text)",
+  "group": "line kind"
+ },
+ {
+  "id": "giver only on quests",
+  "file": "src/references/character-roles/quest-giver-role.ts",
+  "find": "if (marked.marker !== \"quest\") return [];",
+  "replace": "",
+  "group": "roles"
+ },
+ {
+  "id": "first giver link only",
+  "file": "src/references/character-roles/quest-giver-role.ts",
+  "find": ".slice(0, 1)",
+  "replace": "",
+  "group": "roles"
+ },
+ {
+  "id": "holder only on ledger lines",
+  "file": "src/references/character-roles/ledger-holder-role.ts",
+  "find": "if (marked.marker !== \"ledger\") return [];",
+  "replace": "",
+  "group": "roles"
+ },
+ {
+  "id": "no holder without a link",
+  "file": "src/references/character-roles/ledger-holder-role.ts",
+  "find": "if (entry.holder === \"\") return [];",
+  "replace": "",
+  "group": "roles"
+ },
+ {
+  "id": "quest giver role listed",
+  "file": "src/references/character-roles/character-roles.ts",
+  "find": "[questGiverRole, ledgerHolderRole]",
+  "replace": "[ledgerHolderRole]",
+  "group": "roles"
+ },
+ {
+  "id": "ledger holder role listed",
+  "file": "src/references/character-roles/character-roles.ts",
+  "find": "[questGiverRole, ledgerHolderRole]",
+  "replace": "[questGiverRole]",
+  "group": "roles"
+ },
+ {
+  "id": "every kind's lines counted",
+  "file": "src/kind-notes/wanting/sources/tracked-sources.ts",
+  "find": "KIND_NOTE_SOURCES.flatMap(",
+  "replace": "KIND_NOTE_SOURCES.slice(0, 1).flatMap(",
+  "group": "counting"
+ },
+ {
+  "id": "a line counts for each name",
+  "file": "src/references/named-on-lines.ts",
+  "find": "tally.lineCount += 1;",
+  "replace": "tally.lineCount = 1;",
+  "group": "counting"
+ },
+ {
+  "id": "a line's kind is kept",
+  "file": "src/references/named-on-lines.ts",
+  "find": "if (kind !== null) tally.kinds.add(kind);",
+  "replace": "if (kind !== null) tally.kinds.add(\"character\");",
+  "group": "counting"
+ },
+ {
+  "id": "a place wins",
+  "file": "src/references/named-on-lines.ts",
+  "find": "if (kinds.has(\"place\")) return \"place\";",
+  "replace": "",
+  "group": "counting"
+ },
+ {
+  "id": "a character is kept",
+  "file": "src/references/named-on-lines.ts",
+  "find": "if (kinds.has(\"character\")) return \"character\";",
+  "replace": "",
+  "group": "counting"
+ },
+ {
+  "id": "every given session",
+  "file": "src/references/named-on-lines.ts",
+  "find": "for (const session of sessions) {",
+  "replace": "for (const session of sessions.slice(1)) {",
+  "group": "counting"
+ },
+ {
+  "id": "three lines, not two",
+  "file": "src/references/often-named.ts",
+  "find": "LINES_FOR_A_NOTE = 3",
+  "replace": "LINES_FOR_A_NOTE = 2",
+  "group": "often"
+ },
+ {
+  "id": "three lines are enough",
+  "file": "src/references/often-named.ts",
+  "find": "lineCount >= LINES_FOR_A_NOTE",
+  "replace": "lineCount > LINES_FOR_A_NOTE",
+  "group": "often"
+ },
+ {
+  "id": "known needs a kind",
+  "file": "src/references/often-named.ts",
+  "find": "known: often.filter(({ kind }) => kind !== null)",
+  "replace": "known: often",
+  "group": "often"
+ },
+ {
+  "id": "undecided needs no kind",
+  "file": "src/references/often-named.ts",
+  "find": "undecided: often.filter(({ kind }) => kind === null)",
+  "replace": "undecided: often",
+  "group": "often"
+ }
+]
