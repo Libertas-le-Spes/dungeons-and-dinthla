@@ -301,20 +301,6 @@
   "group": "call"
  },
  {
-  "id": "call: the lower case content type is not read",
-  "file": "src/online/beyond-call.ts",
-  "find": "  if (lower !== undefined) return lower;\n",
-  "replace": "",
-  "group": "call"
- },
- {
-  "id": "call: the capitalised content type is not read",
-  "file": "src/online/beyond-call.ts",
-  "find": "  if (capitalised !== undefined) return capitalised;\n",
-  "replace": "",
-  "group": "call"
- },
- {
   "id": "call: the address is not the builder's",
   "file": "src/online/beyond-call.ts",
   "find": "url: beyondAddressOf(id)",
@@ -438,13 +424,6 @@
   "file": "src/online/header-value.ts",
   "find": "name.toLowerCase() === wanted.toLowerCase()",
   "replace": "name === wanted",
-  "group": "call"
- },
- {
-  "id": "call: the header is only looked up in lower case",
-  "file": "src/online/header-value.ts",
-  "find": "name.toLowerCase() === wanted.toLowerCase()",
-  "replace": "name.toLowerCase() === wanted",
   "group": "call"
  }
 ]
