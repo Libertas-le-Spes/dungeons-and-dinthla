@@ -1,5 +1,7 @@
 import type { Refusal } from "../beyond/shape/refusal";
 
+export const TIME_LIMIT_MS = 15_000;
+
 export interface TimeLimit {
   readonly ms: number;
   readonly runOut: Refusal;

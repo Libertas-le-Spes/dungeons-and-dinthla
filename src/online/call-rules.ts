@@ -4,10 +4,9 @@ import type { BeyondReply } from "./beyond-reply";
 import type { CharacterId } from "./character-id";
 import { COULD_NOT_REACH, STILL_WAITING, TIMED_OUT, TOO_SOON } from "./online-words";
 import { checkedReply } from "./reply-checks";
-import { withinTimeLimit } from "./time-limit";
+import { TIME_LIMIT_MS, withinTimeLimit } from "./time-limit";
 
 export const COOLDOWN_MS = 10_000;
-export const TIME_LIMIT_MS = 15_000;
 
 export type CallBeyond = (id: CharacterId) => Promise<BeyondReply>;
 

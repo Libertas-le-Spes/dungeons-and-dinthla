@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { BeyondReply } from "../../src/online/beyond-reply";
-import { BeyondCalls, COOLDOWN_MS, TIME_LIMIT_MS } from "../../src/online/call-rules";
+import { BeyondCalls, COOLDOWN_MS } from "../../src/online/call-rules";
+import { TIME_LIMIT_MS } from "../../src/online/time-limit";
 import type { CharacterId } from "../../src/online/character-id";
 import { COULD_NOT_REACH, STILL_WAITING, TIMED_OUT, TOO_SOON } from "../../src/online/online-words";
 import { HeldCalls } from "../stubs/held-calls";
@@ -143,7 +144,9 @@ describe("the cooldown", () => {
     calls.held.resolve(0, goodReply());
     await first;
     clock.time = COOLDOWN_MS;
-    await pressAndAnswer();
+    const second = rules.characterFor(madeUpId());
+    calls.held.resolve(1, goodReply());
+    await expect(second).resolves.toMatchObject({ id: 4242 });
     expect(calls.ids).toHaveLength(2);
   });
 });

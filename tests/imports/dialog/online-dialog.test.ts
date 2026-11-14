@@ -99,7 +99,7 @@ describe("pressing the online button", () => {
     expect(vault.textAt(NEW_NOTE)).toBe(importedNoteText("", onlineSheet(), TODAY));
   });
 
-  it("writes nothing when the review is closed instead of pressing Import", async () => {
+  it("writes nothing when the review is left with Choose another file, and offers the online way again", async () => {
     const dialog = importDialog();
     dialog.typeLink(LINK);
     dialog.press(BRING_IN_BUTTON);

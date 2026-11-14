@@ -36,7 +36,7 @@ describe("PdfStage while the first file is still being read", () => {
   it("says it is still reading the first file, and does not read the second", () => {
     const root = obsidianDocument().createElement("div");
     const reader = new WaitingReader();
-    const stage = new PdfStage(root, new DialogShown(), new NoArrival(), reader, new PendingWork(), NO_ONLINE_BLOCK);
+    const stage = new PdfStage(root, { shown: new DialogShown(), arrival: new NoArrival(), reader, work: new PendingWork(), online: NO_ONLINE_BLOCK });
     stage.pdfPicked(new Uint8Array([1]));
     stage.pdfPicked(new Uint8Array([2]));
     expect(textsIn(root, ".dd-still-reading")).toEqual([STILL_READING]);

@@ -30,7 +30,7 @@ export class DialogDriver {
   readonly modal: ImportModal;
 
   constructor(flow: ImportFlow, setup: DialogSetup) {
-    this.modal = new ImportModal({} as App, flow, setup.today, setup.online, { importClosed: this.closed });
+    this.modal = new ImportModal({} as App, { flow, today: setup.today, online: setup.online, onClosed: { importClosed: this.closed } });
     obsidianDocument().body.append(this.modal.contentEl);
     this.modal.open();
   }

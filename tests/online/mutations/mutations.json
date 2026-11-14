@@ -183,7 +183,7 @@
  },
  {
   "id": "time limit: fifteen seconds is another number",
-  "file": "src/online/call-rules.ts",
+  "file": "src/online/time-limit.ts",
   "find": "TIME_LIMIT_MS = 15_000",
   "replace": "TIME_LIMIT_MS = 16_000",
   "group": "time limit"
