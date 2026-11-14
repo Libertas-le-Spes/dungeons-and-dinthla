@@ -8,7 +8,6 @@ export const ledgerHolderRole: CharacterRole = {
     if (marked.marker !== "ledger") return [];
     const entry = readLedgerEntry(marked.body);
     if (entry === null || entry.type !== "item") return [];
-    if (entry.holder === "") return [];
     return [entry.holder];
   },
 };
