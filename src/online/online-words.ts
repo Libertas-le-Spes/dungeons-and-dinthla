@@ -1,1 +1,9 @@
 export const NOT_A_CHARACTER_LINK = "That isn't a link to a D&D Beyond character, or a character's number. Paste the link from your character's page, or just the number in it.";
+export const STILL_WAITING = "Still waiting on D&D Beyond. Wait for its answer before trying again.";
+export const TOO_SOON = "That was only just tried. Wait a few seconds, then try again.";
+export const TIMED_OUT = "D&D Beyond didn't answer within 15 seconds, so the wait was stopped. Nothing was brought in. Try again, or use the PDF.";
+export const COULD_NOT_REACH = "Couldn't reach D&D Beyond. Check your internet connection, or use the PDF.";
+export const NOT_PUBLIC = "D&D Beyond didn't send this character. Check it is set to Public.";
+export const NO_SUCH_CHARACTER = "No character has that link.";
+export const NOT_A_CHARACTER = "That reply wasn't a character's data.";
+export const A_DIFFERENT_CHARACTER = "D&D Beyond sent a different character than the one asked for, so nothing was brought in.";
