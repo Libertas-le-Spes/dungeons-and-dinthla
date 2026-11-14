@@ -1,3 +1,4 @@
+import type { MakeResult } from "../../note-keeping/make-result";
 import type { ReferenceKindName } from "../../kinds/reference-kind";
 import type { UndecidedName } from "../making/reference-note-plan";
 import type { NewNames } from "./new-names";
@@ -8,7 +9,7 @@ export interface NameChosen {
 }
 
 export interface NewNamesChoice {
-  chosen(choice: NameChosen): void;
+  chosen(choice: NameChosen): Promise<MakeResult>;
   closed(): void;
 }
 

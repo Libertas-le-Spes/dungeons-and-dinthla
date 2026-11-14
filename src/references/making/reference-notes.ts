@@ -3,6 +3,7 @@ import type { FencedFileActions } from "../../fence/gate/fenced-file-actions";
 import type { FencedFiles } from "../../fence/gate/fenced-files";
 import type { FencedMetadata } from "../../fence/gate/fenced-metadata";
 import type { MakerFiles } from "../../note-keeping/new-note-maker";
+import type { MakeResult } from "../../note-keeping/make-result";
 import { SaidOnce } from "../../note-keeping/said-once";
 import { messageOf } from "../../views/dialogs/message-of";
 import { ReferenceNoteMaker } from "./reference-note-maker";
@@ -60,15 +61,14 @@ export class ReferenceNotes implements ReferenceNotesPart {
   }
 
   private async makeAll(savedPath: string): Promise<void> {
-    const { store, files, metadata } = this.needs;
+    const { store, metadata } = this.needs;
     const campaignFolder = store.campaignFolder;
     if (campaignFolder === null || store.opening) return;
-    const existingNames = files.markdownFilesUnder(campaignFolder).map((file) => file.basename);
     const plan = planReferenceNotes({
       campaign: store.current,
       sessions: store.sessionNotes,
       campaignFolder,
-      existingNames,
+      existingNames: this.existingNamesIn(campaignFolder),
       unresolvedLinksOf: (path) => metadata.unresolvedLinksOf(path),
     });
     for (const message of plan.refusals) this.said.say(message, message);
@@ -78,22 +78,29 @@ export class ReferenceNotes implements ReferenceNotesPart {
 
   private askAbout({ names, campaignFolder }: { names: NewNames | null; campaignFolder: string }): void {
     if (names === null || this.asking) return;
-    const { store, files } = this.needs;
+    const { store } = this.needs;
     const answers = new NewNameAnswers({
       maker: this.maker,
       askedIn: campaignFolder,
       campaignFolder: () => store.campaignFolder,
-      existingNames: () => files.markdownFilesUnder(campaignFolder).map((file) => file.basename),
+      existingNames: () => this.existingNamesIn(campaignFolder),
     });
     this.asking = true;
     this.needs.askNewNames(names, {
-      chosen: (choice) => {
-        answers.make(choice).catch((error: unknown) => this.said.say(`answer:${messageOf(error)}`, `Couldn't make the note for ${choice.undecided.name}: ${messageOf(error)}`));
-      },
+      chosen: (choice) => answers.make(choice).catch((error: unknown) => this.answerFailed(choice.undecided.name, error)),
       closed: () => {
         this.asking = false;
       },
     });
+  }
+
+  private existingNamesIn(campaignFolder: string): string[] {
+    return this.needs.files.markdownFilesUnder(campaignFolder).map((file) => file.basename);
+  }
+
+  private answerFailed(name: string, error: unknown): MakeResult {
+    this.said.say(`answer:${messageOf(error)}`, `Couldn't make the note for ${name}: ${messageOf(error)}`);
+    return "failed";
   }
 
   private failed(note: PlannedReferenceNote, error: unknown): void {
