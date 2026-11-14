@@ -29,7 +29,7 @@ export class PdfStage implements PickedPdf {
 
   show(refusal: string | null): void {
     this.contentEl.empty();
-    drawChooseSource(this.contentEl, refusal, this.online, this, this.work);
+    drawChooseSource(this.contentEl, { refusal, online: this.online, picked: this, work: this.work });
   }
 
   pdfPicked(bytes: Uint8Array): void {

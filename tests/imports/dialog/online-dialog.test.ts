@@ -13,6 +13,7 @@ import { MadeUpReply } from "../../beyond/builders/made-up-reply";
 import { MadeUpSheet } from "../../beyond/builders/made-up-sheet";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { queuedWorkRan } from "../../stubs/queued-work";
+import { SettleWatch } from "../../stubs/settle-watch";
 import { CAMPAIGN_FOLDER, CHARACTERS_FOLDER, FakeNoteVault } from "../builders/fake-note-vault";
 import { DialogDriver, pickedFileOf } from "../builders/dialog-driver";
 import { HeldOnline } from "../builders/made-up-online";
@@ -41,12 +42,12 @@ function onlineSheet(): PrintedSheet {
 
 function importDialog(): DialogDriver {
   const writer = new ImportWriter(vault.gate, CHARACTERS_FOLDER, CAMPAIGN_FOLDER);
-  return new DialogDriver(new NewImportFlow(writer, CHARACTERS_FOLDER, vault.allNotes.bind(vault)), TODAY, online);
+  return new DialogDriver(new NewImportFlow(writer, CHARACTERS_FOLDER, vault.allNotes.bind(vault)), { today: TODAY, online });
 }
 
 function updateDialog(path: string): DialogDriver {
   const writer = new ImportWriter(vault.gate, CHARACTERS_FOLDER, CAMPAIGN_FOLDER);
-  return new DialogDriver(new UpdateFlow(writer, vault.fileAt(path)), TODAY, online);
+  return new DialogDriver(new UpdateFlow(writer, vault.fileAt(path)), { today: TODAY, online });
 }
 
 describe("the import dialog's first view", () => {
@@ -119,6 +120,7 @@ describe("pressing the online button", () => {
     const refusal = await dialog.settled(".dd-import-refusal");
     expect(refusal.textContent).toBe("D&D Beyond didn't send this character. Check it is set to Public.");
     expect(dialog.linkBox()).toBe(LINK);
+    expect(dialog.root.ownerDocument.activeElement).toBe(dialog.root.querySelector(".setting-item-control input"));
     expect(dialog.texts("button")).toEqual([BRING_IN_BUTTON]);
     expect(dialog.root.querySelectorAll('input[type="file"]')).toHaveLength(1);
     expect(vault.created).toEqual([]);
@@ -156,6 +158,29 @@ describe("pressing the online button", () => {
     expect(vault.created).toEqual([]);
     expect(dialog.root.querySelector(".dd-import-write")).toBeNull();
     expect(dialog.root.querySelector(".dd-import-summary")).toBeNull();
+  });
+
+  it("shows nothing of a reply for another character that comes after the dialog was closed, in an update", async () => {
+    vault.note(`${CHARACTERS_FOLDER}/Someone Else.md`, "Notes of mine.\n");
+    const dialog = updateDialog(`${CHARACTERS_FOLDER}/Someone Else.md`);
+    dialog.typeLink(LINK);
+    dialog.press(BRING_IN_BUTTON);
+    dialog.modal.close();
+    online.held.resolve(0, onlineSheet());
+    await dialog.modal.allSettled();
+    expect(dialog.root.querySelector(".dd-import-refusal")).toBeNull();
+  });
+
+  it("counts the wait for D&D Beyond as work not yet done", async () => {
+    const dialog = importDialog();
+    dialog.typeLink(LINK);
+    dialog.press(BRING_IN_BUTTON);
+    const watch = new SettleWatch(dialog.modal.allSettled());
+    await queuedWorkRan();
+    expect(watch.settled).toBe(false);
+    online.held.resolve(0, onlineSheet());
+    await watch.done;
+    expect(dialog.texts(".dd-import-summary h3")).toEqual(["Primary Monk"]);
   });
 
   it("drops a refusal that comes after the dialog was closed", async () => {

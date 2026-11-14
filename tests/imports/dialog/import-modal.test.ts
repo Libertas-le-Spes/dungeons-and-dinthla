@@ -44,12 +44,12 @@ function monkPdf(): Uint8Array {
 
 function importDialog(): DialogDriver {
   const writer = new ImportWriter(vault.gate, CHARACTERS_FOLDER, CAMPAIGN_FOLDER);
-  return new DialogDriver(new NewImportFlow(writer, CHARACTERS_FOLDER, vault.allNotes.bind(vault)), TODAY, NO_ONLINE);
+  return new DialogDriver(new NewImportFlow(writer, CHARACTERS_FOLDER, vault.allNotes.bind(vault)), { today: TODAY, online: NO_ONLINE });
 }
 
 function updateDialog(path: string): DialogDriver {
   const writer = new ImportWriter(vault.gate, CHARACTERS_FOLDER, CAMPAIGN_FOLDER);
-  return new DialogDriver(new UpdateFlow(writer, vault.fileAt(path)), TODAY, NO_ONLINE);
+  return new DialogDriver(new UpdateFlow(writer, vault.fileAt(path)), { today: TODAY, online: NO_ONLINE });
 }
 
 function monkNoteText(before: string): string {
@@ -249,7 +249,7 @@ describe("importing a character from a made-up PDF", () => {
 
   it("is refused by the gate for a Characters folder outside the Campaigns folder, and writes nothing", async () => {
     const writer = new ImportWriter(vault.gate, "Private/Characters", "Private");
-    const dialog = new DialogDriver(new NewImportFlow(writer, "Private/Characters", vault.allNotes.bind(vault)), TODAY, NO_ONLINE);
+    const dialog = new DialogDriver(new NewImportFlow(writer, "Private/Characters", vault.allNotes.bind(vault)), { today: TODAY, online: NO_ONLINE });
     dialog.pick(pickedFileOf(monkPdf()));
     await dialog.settled(".dd-import-write");
     dialog.press("Import");
@@ -327,7 +327,7 @@ describe("Update from D&D Beyond with another character's PDF", () => {
 describe("a new note whose name is taken", () => {
   it("is refused in the review, before any Import button", async () => {
     vault.note(`${CHARACTERS_FOLDER}/primary monk.md`, "Notes of mine.\n");
-    const dialog = new DialogDriver(new NewImportFlow(new ImportWriter(vault.gate, CHARACTERS_FOLDER, CAMPAIGN_FOLDER), CHARACTERS_FOLDER, noNotes), TODAY, NO_ONLINE);
+    const dialog = new DialogDriver(new NewImportFlow(new ImportWriter(vault.gate, CHARACTERS_FOLDER, CAMPAIGN_FOLDER), CHARACTERS_FOLDER, noNotes), { today: TODAY, online: NO_ONLINE });
     dialog.pick(pickedFileOf(monkPdf()));
     const refusal = await dialog.settled(".dd-import-refusal");
     expect(refusal.textContent).toBe("There is already a note called primary monk in the Characters folder.");

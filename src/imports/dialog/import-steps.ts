@@ -26,7 +26,7 @@ export class ImportSteps implements SheetArrival, OnlineArrival, StagesHost {
     online: OnlineSource,
     private readonly host: StepsHost,
   ) {
-    this.pdf = new PdfStage(contentEl, this.shown, this, new PdfSheetReader(), this.work, new OnlineStage(contentEl, this.shown, this, online, this.work));
+    this.pdf = new PdfStage(contentEl, this.shown, this, new PdfSheetReader(), this.work, new OnlineStage(contentEl, { shown: this.shown, arrival: this, source: online, work: this.work }));
     this.review = new ReviewStage(contentEl, this.shown, today, this, this.work);
   }
 

@@ -25,7 +25,7 @@ afterEach(() => {
 describe("withinTimeLimit", () => {
   it("gives the value of work done in time and leaves no timer running", async () => {
     const held = resolver();
-    const limited = withinTimeLimit(held.work, LIMIT, new Refusal("late"));
+    const limited = withinTimeLimit(held.work, { ms: LIMIT, runOut: new Refusal("late") });
     held.settle("done");
     expect(await limited).toBe("done");
     expect(vi.getTimerCount()).toBe(0);
@@ -33,7 +33,7 @@ describe("withinTimeLimit", () => {
 
   it("passes on the failure of work that fails in time and leaves no timer running", async () => {
     const held = resolver();
-    const limited = withinTimeLimit(held.work, LIMIT, new Refusal("late"));
+    const limited = withinTimeLimit(held.work, { ms: LIMIT, runOut: new Refusal("late") });
     const caught = limited.catch((error: unknown) => error);
     held.fail(new Error("broke"));
     expect(await caught).toEqual(new Error("broke"));
@@ -43,7 +43,7 @@ describe("withinTimeLimit", () => {
   it("gives the refusal it was handed once the limit is up, and not a moment before", async () => {
     const held = resolver();
     const refusal = new Refusal("late");
-    const caught = withinTimeLimit(held.work, LIMIT, refusal).catch((error: unknown) => error);
+    const caught = withinTimeLimit(held.work, { ms: LIMIT, runOut: refusal }).catch((error: unknown) => error);
     let finished = false;
     void caught.then(() => {
       finished = true;
@@ -56,12 +56,12 @@ describe("withinTimeLimit", () => {
 
   it("ignores work that finishes after the limit, whether it succeeds or fails", async () => {
     const late = resolver();
-    const caught = withinTimeLimit(late.work, LIMIT, new Refusal("late")).catch((error: unknown) => error);
+    const caught = withinTimeLimit(late.work, { ms: LIMIT, runOut: new Refusal("late") }).catch((error: unknown) => error);
     await vi.advanceTimersByTimeAsync(LIMIT);
     late.settle("too late");
     expect(await caught).toEqual(new Refusal("late"));
     const failing = resolver();
-    const caughtFailure = withinTimeLimit(failing.work, LIMIT, new Refusal("late")).catch((error: unknown) => error);
+    const caughtFailure = withinTimeLimit(failing.work, { ms: LIMIT, runOut: new Refusal("late") }).catch((error: unknown) => error);
     await vi.advanceTimersByTimeAsync(LIMIT);
     failing.fail(new Error("later"));
     expect(await caughtFailure).toEqual(new Refusal("late"));

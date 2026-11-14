@@ -24,7 +24,7 @@ export class BeyondCalls {
     this.refuseUnlessReady();
     this.lastPressAt = this.now();
     this.waiting = true;
-    const reply = await withinTimeLimit(this.sent(id), TIME_LIMIT_MS, new Refusal(TIMED_OUT));
+    const reply = await withinTimeLimit(this.sent(id), { ms: TIME_LIMIT_MS, runOut: new Refusal(TIMED_OUT) });
     return checkedReply(reply, id);
   }
 
