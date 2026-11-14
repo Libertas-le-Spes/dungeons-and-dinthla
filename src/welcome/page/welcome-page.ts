@@ -1,13 +1,13 @@
 import { Component } from "obsidian";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { ReadCampaignsFolder } from "../../fence/paths/fence";
-import type { AgreementAnswered, AgreementShower, WelcomeActions, WelcomeAgreement, WelcomeEnding, WelcomeState } from "../endings/welcome-ending";
+import type { AgreementShower, WelcomeActions, WelcomeAgreement, WelcomeEnding, WelcomeState } from "../endings/welcome-ending";
 import { endingFor } from "../endings/welcome-endings";
 import { WELCOME_STEPS, WELCOME_TITLE } from "./welcome-steps";
 
 export type WelcomeStore = Pick<CampaignStore, "campaignFolder" | "sessionNotes" | "subscribe">;
 
-export class WelcomePage extends Component implements AgreementShower, AgreementAnswered {
+export class WelcomePage extends Component implements AgreementShower {
   private endingEl!: HTMLElement;
   private shownEnding: WelcomeEnding | null = null;
   private endingPart: Component | null = null;
@@ -35,10 +35,10 @@ export class WelcomePage extends Component implements AgreementShower, Agreement
   }
 
   showAgreement(parentEl: HTMLElement): void {
-    this.agreement.showIn(parentEl, this);
+    this.agreement.showIn(parentEl, () => this.agreementAnswered());
   }
 
-  agreementAnswered(): void {
+  private agreementAnswered(): void {
     this.showEnding();
   }
 

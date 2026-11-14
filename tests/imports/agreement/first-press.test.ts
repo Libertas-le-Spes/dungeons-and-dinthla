@@ -10,8 +10,6 @@ import { pressOn } from "./shown-parts";
 
 function nothingToDo(): void {}
 
-const NO_PAGE = { agreementAnswered: nothingToDo };
-
 describe("the first press of the button that would go online", () => {
   it("asks, keeps Continue on this device and answers agreed", async () => {
     const device = new MadeUpDevice();
@@ -59,7 +57,7 @@ describe("the first press of the button that would go online", () => {
     const device = new MadeUpDevice();
     const agreement = new DeviceAgreement(device.storage);
     const stepEl = obsidianDocument().createElement("div");
-    new CampaignAgreement(agreement).showIn(stepEl, NO_PAGE);
+    new CampaignAgreement(agreement).showIn(stepEl, nothingToDo);
     pressOn(stepEl, "Not yet");
     const asking = new MadeUpAsking(AGREED);
     const answer = await new FirstPress(agreement, asking).answer();
