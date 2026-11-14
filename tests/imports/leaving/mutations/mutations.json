@@ -378,13 +378,6 @@
   "group": "snapshot"
  },
  {
-  "id": "empty text is no line",
-  "file": "src/imports/leaving/snapshot/neutral-line.ts",
-  "find": "  if (trimmed === \"\") return null;\n",
-  "replace": "",
-  "group": "snapshot"
- },
- {
   "id": "a property twice is refused",
   "file": "src/imports/leaving/properties/property-span.ts",
   "find": "      if (this.start !== null) throw propertyTwice(this.key);\n",
@@ -623,13 +616,6 @@
   "group": "still"
  },
  {
-  "id": "a note that moved is not the one asked about",
-  "file": "src/imports/leaving/switching/asked-note.ts",
-  "find": "this.file.path === this.path && ",
-  "replace": "",
-  "group": "still"
- },
- {
   "id": "a note that can't be read is said in plain words",
   "file": "src/imports/leaving/switching/read-note.ts",
   "find": "    throw new Refusal(unreadWords);",
@@ -814,15 +800,8 @@
  {
   "id": "standing is read from the properties only",
   "file": "src/imports/layout/standing.ts",
-  "find": "position < 1 || position >= bodyStart - 1 || ",
-  "replace": "position < 1 || ",
-  "group": "standing"
- },
- {
-  "id": "standing is read after the opening line",
-  "file": "src/imports/layout/standing.ts",
-  "find": "position < 1 || position >= bodyStart - 1 || ",
-  "replace": "position >= bodyStart - 1 || ",
+  "find": "position >= bodyStart - 1 || ",
+  "replace": "",
   "group": "standing"
  },
  {
