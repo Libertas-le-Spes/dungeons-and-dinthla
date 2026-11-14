@@ -2245,5 +2245,12 @@
   "find": "  return isInFallen(file, campaignFolder);",
   "replace": "  return false;",
   "group": "writing"
+ },
+ {
+  "id": "writing: an update adds a second snapshot to a note in Fallen",
+  "file": "src/imports/note/writing/rewriting/imported-note.ts",
+  "find": "return properties.concat(bodyLinesWith(layout, sheet)).join(LINE_BREAK);",
+  "replace": "return properties.concat(bodyLinesWith(layout, sheet)).join(LINE_BREAK) + \"\\n## Left play on 2026-10-01\\nDied on 2026-10-01.\\n\";",
+  "group": "writing"
  }
 ]
