@@ -130,6 +130,19 @@ describe("networkCodeIn", () => {
     ]);
   });
 
+  it("finds a cookie, a login header or credentials sent with a call", () => {
+    expectEachFound([
+      ['headers: { Cookie: "CobaltSession=1" }', "Cookie"],
+      ['headers: { cookie: session }', "Cookie"],
+      ["const jar = document.cookie;", "Cookie"],
+      ['headers: { "Set-Cookie": value }', "Cookie"],
+      ['headers: { Authorization: "Bearer 1" }', "Authorization"],
+      ['headers: { authorization: token }', "Authorization"],
+      ["xhr.withCredentials = true", "withCredentials"],
+      ['{ credentials: "include", withCredentials: true }', "withCredentials"],
+    ]);
+  });
+
   it("finds each way to parse HTML, write a document, load a sound, font or stylesheet, or send a form", () => {
     expectEachFound([
       ["(0, import_obsidian.sanitizeHTMLToDom)(text)", "sanitizeHTMLToDom"],
