@@ -16,7 +16,7 @@ describe("oftenNamed", () => {
   });
 
   it("keeps a name on three lines, known when a line says what it is", () => {
-    expect(oftenNamed([named("Mira", 3, "character"), named("Old Mill", 4, "place")]).known).toEqual([named("Mira", 3, "character"), named("Old Mill", 4, "place")]);
+    expect(oftenNamed([named("Mira", 3, "character"), named("Old Mill", 4, "place")])).toEqual({ known: [named("Mira", 3, "character"), named("Old Mill", 4, "place")], undecided: [] });
   });
 
   it("puts a name on three lines that no line places or gives a role among the undecided", () => {
