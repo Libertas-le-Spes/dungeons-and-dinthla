@@ -66,6 +66,8 @@ D&D/
     Characters/
       Mira.md
       Brother Aldric.md
+    Fallen/
+      Thessaly.md
     Items/
       Silvered lantern.md
     Questions/
@@ -92,7 +94,7 @@ wash: balanced
 | Property | What it holds |
 |---|---|
 | `role` | `player`, `dm` or `researcher` |
-| `character` | Your own character, for a player. The dashboard and the Characters page show them first, before everyone else, and set them subtly apart |
+| `character` | Your own character, for a player. The dashboard and the Characters page show them first, before everyone else, and set them subtly apart. The plugin writes it only when you choose who is your character (see [Leaving play](#leaving-play)) |
 | `party` | The party members, used by `$ split` |
 | `system` | The note that describes the game system |
 | `background` | A picture in the Campaigns folder, shown behind the campaign tab |
@@ -555,6 +557,45 @@ Under the values, a sheet with an import shows four panels, read from the import
 
 The Party funds page shows the purse of the player's own character (named by the campaign note's `character` property) right after the party purse, titled *Primary Monk's purse*, when that character's note has an import. It is shown beside the party purse and never added to it. It redraws when a note in the campaign's `Characters` folder or the campaign note changes, so naming a character in the campaign note shows its purse. If the note can't be read, it says *Couldn't read your character's note, so its purse isn't shown.* in its place.
 
+### Leaving play
+
+Your character can leave play as *Died*, *Retired* or *Backup*. The question comes when another character is to become yours: after *Import from D&D Beyond* writes a character who isn't yours yet, when you press *Make main* on a backup or on a fallen character, and after *Update from D&D Beyond* on a character whose note says they died or retired. The dialog, *Make Secondary your character*, asks *Primary Monk is your character now. What happened to them?*, with an optional box, *What were they last doing?*, and *Died*, *Retired*, *Backup* and *Not now*. When the campaign has no character yet, it says so and offers only *Make main* and *Not now*. Nothing is written until you press one, and *Not now* writes nothing. A note that is already your character is never asked about, unless a switch to it was left part done (see below).
+
+The character's own note moves. *Died* and *Retired* move `Characters/<Name>.md` to `Fallen/<Name>.md` in the campaign, making the `Fallen` folder if it isn't there, through Obsidian's own rename, so links to them follow. There is no separate record: the note is the character. *Backup* leaves the note where it is.
+
+Before the first write, the plugin works out every change and checks each one. Then it writes in this order:
+
+1. The old character's note gets `standing: died`, `standing: retired` or `standing: backup` among its properties and, for *Died* and *Retired*, a snapshot added at the bottom (below).
+2. For *Died* and *Retired*, the old note moves to `Fallen`.
+3. A new character who is in `Fallen` moves back to `Characters`.
+4. The campaign note's `character` property names the new character, `character: "[[Secondary]]"`, as Obsidian would link it from the campaign note once the note is where it will stay.
+5. The new character's `standing` is taken off, so a backup or a fallen character who comes back is played again. Their snapshots stay in their note.
+
+The snapshot is added to the end of the note, dated:
+
+```markdown
+## Left play on 2026-11-12
+Died on 2026-11-12, after [[Session 7]].
+Last doing: holding the bridge at the Old Mill.
+### Open questions
+- What is under the mill?
+### Active quests
+- Clear the cellar
+### Latest coin
+- 40 gp reward
+### Items held
+- Silver dagger
+```
+
+It holds the three newest open questions and active quests, the three latest coin entries and the items they held, newest first, from the campaign as it is when you press. A list with nothing in it is left out. The session is the campaign's latest, when one number is the highest. *Last doing* is there only when something was typed. Everything taken from the notes or typed is made inert first, as an import is, so it can't read as a link, a tag, a heading or a fact line. What they were last doing has to be one line of at most 300 characters, and *Backup* ignores it. When a character who came back leaves play again, another snapshot, dated that day, is added under the first.
+
+If a step fails, the message names every write that was done and the one that wasn't, and says to press *Make main* again. Pressing *Make main* finishes what is left, without a second snapshot: the dialog then says the old character has already left play, or that the new one is already named in the campaign note, and offers only *Make main*.
+
+- **Refused, with nothing written:** a note that already has the name in `Fallen` (or, coming back, in `Characters`), whatever its capitals (rename or move it first); a campaign note that changed, or a character's note that was moved or deleted, since the question was asked; a campaign note whose `character` isn't one link to a note directly in the campaign's `Characters` or `Fallen` folder; a note that has `standing` or `character` twice, or under other capitals; a property with a blank or comment line right next to it; and a change that would make the note's properties read differently than only that property, which Obsidian's own reading of them is compared for, before and after.
+- **Only those properties change.** Each property is written through the gatekeeper, and before writing, the note's new text is compared with the old: everything but that one property must be the same, line for line, and the properties as Obsidian reads them must be the same too, or nothing is written. The write itself refuses when the note changed since it was read.
+- **Other campaigns.** A character can be imported into another campaign, even one who died elsewhere. Each campaign keeps its own notes, its own `standing` and its own `Fallen` folder; leaving play in one changes nothing in another.
+- **No second note.** *Import from D&D Beyond*, *New character* and renaming a character in the sheet's edit dialog refuse a name that a note in this campaign's `Fallen` has, whatever its capitals: *Primary Monk is in this campaign's Fallen folder, so no second note was made for them. Make them main from the Fallen list to bring them back.*
+
 ### Calling a character over
 
 Calling a character into another campaign is a choice, made in a dialog: everything, only the groups you pick (ability scores, other values, history), or only a link. The new campaign's note for them records it in two properties:
@@ -575,3 +616,5 @@ The campaign tab's *Characters* page shows a card for each Markdown note in the 
 The same cards are also a view the plugin adds to Obsidian's Bases, named *Characters*, for a `.base` file that lists character notes, such as a `Characters.base` at the campaign's top. Bases does that file's filtering and sorting, and the plugin draws the cards, with the player's own character moved first and the rest in Bases' order. The plugin no longer writes `Characters.base`, and the one at a campaign's top now opens the Characters page instead of Bases; the view still works for any other `.base` file. Registering the view is why `minAppVersion` is 1.10.3.
 
 Each card is a short stat block: the character's name, their `type` and `subtitle` when known, then `class`, `AC`, `HP` and `speed`, and the six ability scores with their modifiers. A value no line states, or marked not known with `?`, shows as a greyed `?`, and a type line or subtitle marked not known is left out. Carried-over values aren't on the cards yet; the sheet's stat block shows them. Each card reads the sessions of the campaign its note is in, even while another campaign is open, and a note outside any campaign shows only its own overrides. The player's own character, named by a link in the campaign note's `character` property, comes first and is marked *Your character*, and changing that property redraws the cards, on the dashboard too, so the new one moves to the top. Tapping a card opens the character's [sheet](#character-sheet). With no characters yet, the page says to add one with *New character*. *Import from D&D Beyond*, beside *New character*, opens the [import dialog](#importing-from-a-pdf).
+
+A character who [left play](#leaving-play) is not among the others: their note is in the campaign's `Fallen` folder and they are listed under *Fallen*, below the backups, each marked *Died* or *Retired* with *Make main*. The dashboard doesn't show them. A note in `Characters` that says it died or retired, which only a switch that stopped part way leaves, stays with the others, marked, with *Make main* to finish it. Backups are listed under *Backups*, each with *Make main*. A backup is a note with `standing: backup`, or a note with an import (`imported-from`) that has no `standing` and isn't your character: an imported character you haven't made yours yet is kept ready the same way. Your own character is never listed as a backup, whatever their note says.

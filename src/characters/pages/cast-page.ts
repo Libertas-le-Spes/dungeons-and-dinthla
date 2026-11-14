@@ -1,11 +1,11 @@
 import { Component } from "obsidian";
-import { isInReferenceFolder, mainNotePathOf } from "../../campaign/paths/campaign-folders";
+import { isInFallenFolder, isInReferenceFolder, mainNotePathOf } from "../../campaign/paths/campaign-folders";
 import { characterReferenceKind } from "../../kinds/character-reference-kind";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { LinkActions } from "../../views/lists/linked-text";
 import { CharacterGallery } from "./character-gallery";
 import type { CharacterCreators } from "./character-creators";
-import type { CharacterNotes } from "../reading/character-notes";
+import type { CastNotes } from "../reading/character-notes";
 
 export type WatchFiles = (changed: (path: string) => void) => () => void;
 
@@ -15,7 +15,7 @@ export class CastPage extends Component {
   constructor(
     private readonly contentEl: HTMLElement,
     private readonly store: CampaignStore,
-    private readonly notes: CharacterNotes,
+    private readonly notes: CastNotes,
     private readonly actions: LinkActions,
     private readonly creators: CharacterCreators,
     private readonly watchFiles: WatchFiles,
@@ -44,15 +44,17 @@ export class CastPage extends Component {
   private shows(path: string): boolean {
     const folder = this.store.campaignFolder;
     if (folder === null) return false;
-    return path === mainNotePathOf(folder) || isInReferenceFolder(characterReferenceKind, folder, path);
+    if (path === mainNotePathOf(folder)) return true;
+    if (isInFallenFolder(folder, path)) return true;
+    return isInReferenceFolder(characterReferenceKind, folder, path);
   }
 
   private render(): void {
     const folder = this.store.campaignFolder;
     if (folder === null) {
-      this.gallery.show([]);
+      this.gallery.show([], []);
       return;
     }
-    this.gallery.show(this.notes.filesIn(folder));
+    this.gallery.show(this.notes.filesIn(folder), this.notes.fallenFilesIn(folder));
   }
 }

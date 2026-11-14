@@ -4,8 +4,9 @@ import { CleanLine } from "../../../../src/beyond/text/clean-line";
 import { OUTSIDE_FENCE } from "../../../../src/fence/paths/fence";
 import type { TypedText } from "../../../../src/imports/note/changes/import-changes";
 import { ImportWriter } from "../../../../src/imports/note/writing/import-writer";
+import { leftPlayWords } from "../../../../src/campaign/paths/fallen-notes";
 import * as importedNote from "../../../../src/imports/note/writing/rewriting/imported-note";
-import { CHARACTERS_FOLDER, FakeNoteVault } from "../../builders/fake-note-vault";
+import { CAMPAIGN_FOLDER, CHARACTERS_FOLDER, FakeNoteVault } from "../../builders/fake-note-vault";
 import { headingsOf, textOf } from "../../builders/line-helpers";
 import { monkSheet, sheetWithCharacter, TODAY } from "../../builders/made-up-import";
 
@@ -19,7 +20,7 @@ let writer: ImportWriter;
 beforeEach(() => {
   vault = new FakeNoteVault();
   vault.folder(CHARACTERS_FOLDER);
-  writer = new ImportWriter(vault.gate, CHARACTERS_FOLDER);
+  writer = new ImportWriter(vault.gate, CHARACTERS_FOLDER, CAMPAIGN_FOLDER);
 });
 
 afterEach(() => {
@@ -96,7 +97,7 @@ describe("ImportWriter.update", () => {
   });
 
   it("is refused by the gate for a note outside the Campaigns folder, and writes nothing", async () => {
-    const outside = new ImportWriter(vault.gate, "Private/Characters");
+    const outside = new ImportWriter(vault.gate, "Private/Characters", "Private");
     const file = vault.note("Private/Characters/Primary Monk.md", "x\n");
     await expect(outside.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow(OUTSIDE_FENCE);
     expect(vault.processed).toEqual([]);
@@ -204,7 +205,7 @@ describe("ImportWriter.create", () => {
 
   it("makes the Characters folder first when it is not there", async () => {
     const bare = new FakeNoteVault();
-    await new ImportWriter(bare.gate, CHARACTERS_FOLDER).create(monkSheet(), TODAY);
+    await new ImportWriter(bare.gate, CHARACTERS_FOLDER, CAMPAIGN_FOLDER).create(monkSheet(), TODAY);
     expect(bare.createdFolders).toEqual([CHARACTERS_FOLDER]);
   });
 
@@ -225,6 +226,21 @@ describe("ImportWriter.create", () => {
     expect(vault.created).toEqual([]);
   });
 
+  it("refuses a second note for a name that left play in this campaign and has a note in Fallen, and makes nothing", async () => {
+    vault.note("D&D/Primary Campaign/Fallen/primary monk.md", "the fallen note\n");
+    await expect(writer.create(monkSheet(), TODAY)).rejects.toThrow(leftPlayWords("Primary Monk"));
+    expect(leftPlayWords("Primary Monk")).toBe(
+      "Primary Monk is in this campaign's Fallen folder, so no second note was made for them. Make them main from the Fallen list to bring them back.",
+    );
+    expect(vault.created).toEqual([]);
+  });
+
+  it("makes the note when the note in Fallen is another campaign's", async () => {
+    vault.note("D&D/Secondary Campaign/Fallen/Primary Monk.md", "the fallen note\n");
+    await writer.create(monkSheet(), TODAY);
+    expect(vault.created).toEqual([NOTE]);
+  });
+
   it("makes nothing when the text it would write is not only the import", async () => {
     vi.spyOn(importedNote, "importedNoteText").mockReturnValue("Other words.\n");
     await expect(writer.create(monkSheet(), TODAY)).rejects.toThrow("outside its own properties");
@@ -232,7 +248,7 @@ describe("ImportWriter.create", () => {
   });
 
   it("makes nothing when the gate refuses the folder", async () => {
-    const outside = new ImportWriter(vault.gate, "Private/Characters");
+    const outside = new ImportWriter(vault.gate, "Private/Characters", "Private");
     await expect(outside.create(monkSheet(), TODAY)).rejects.toThrow(OUTSIDE_FENCE);
     expect(vault.created).toEqual([]);
   });

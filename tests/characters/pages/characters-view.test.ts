@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { BasesQueryResult, QueryController, TFile } from "obsidian";
 import type { SessionNote } from "../../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
-import type { CharacterNotes } from "../../../src/characters/reading/character-notes";
+import type { CastNotes, CharacterNotes } from "../../../src/characters/reading/character-notes";
 import { CharactersView } from "../../../src/characters/pages/characters-view";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
@@ -29,6 +29,7 @@ interface Setup {
   ownNotes?: Record<string, string>;
   own?: string | null;
   textOf?: CharacterNotes["textOf"];
+  fallenNames?: string[];
 }
 
 function ownNoteReader(ownNotes: Record<string, string>): CharacterNotes["textOf"] {
@@ -47,6 +48,7 @@ function openGallery({
   ownNotes = {},
   own = null,
   textOf = ownNoteReader(ownNotes),
+  fallenNames = [],
 }: Setup = {}) {
   let listener = () => {};
   let noteChanged: (path: string) => void = () => {};
@@ -63,7 +65,8 @@ function openGallery({
   const sessionsAskedFor: string[] = [];
   const reads = { count: 0 };
   const owner = { name: own };
-  const notes: CharacterNotes = {
+  const fallen = fallenNames;
+  const notes: CastNotes = {
     holds: (file) => !file.path.startsWith("Private/"),
     textOf: (file) => {
       reads.count += 1;
@@ -77,6 +80,7 @@ function openGallery({
     isOwnCharacter: (file) => file.basename === owner.name,
     campaignFolders: () => ["Ashen Road", "Pale Moon"],
     filesIn: () => [],
+    fallenFilesIn: () => fallen.map((name) => fileOf(name, "Pale Moon/Fallen")),
     sessionsOf: async (folder) => {
       sessionsAskedFor.push(folder);
       return otherSessions;
@@ -90,7 +94,7 @@ function openGallery({
   const newCharacter = vi.fn();
   const importCharacter = vi.fn();
   const container = obsidianDocument().createElement("div");
-  const view = new CharactersView({} as QueryController, container, store as unknown as CampaignStore, notes, actions, { newCharacter, importCharacter });
+  const view = new CharactersView({} as QueryController, container, store as unknown as CampaignStore, notes, actions, { newCharacter, importCharacter, makeMain: vi.fn() });
   const registered: (() => void)[] = [];
   view.register = (callback) => {
     registered.push(callback);
@@ -132,6 +136,13 @@ function textsOf(root: HTMLElement, selector: string): string[] {
 }
 
 describe("CharactersView", () => {
+  it("lists the campaign's fallen under their own heading, after the cards Bases shows", async () => {
+    const gallery = openGallery({ fallenNames: ["Brann"] });
+    await gallery.show(["Mira"]);
+    expect(textsOf(gallery.container, ".dd-fallen .dd-stat-block-name")).toEqual(["Brann"]);
+    expect(textsOf(gallery.container, ":scope .dd-title .dd-count")).toContain("1");
+  });
+
   it("draws a card for each character Bases shows, in its order, with the count", async () => {
     const gallery = openGallery();
     await gallery.show(["Mira", "Brother Aldric"]);

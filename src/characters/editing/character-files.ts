@@ -1,6 +1,7 @@
 import { parentFolderOf } from "../../campaign/paths/note-name";
 import { normalizePath, type TFile } from "obsidian";
 import { referenceFolderOf } from "../../campaign/paths/campaign-folders";
+import { fallenNoteOf, leftPlayWords } from "../../campaign/paths/fallen-notes";
 import { characterReferenceKind } from "../../kinds/character-reference-kind";
 import { refusalForFileName } from "../../names/file-name";
 import { nameKeyOf } from "../../names/name-key";
@@ -32,6 +33,11 @@ function refusalForName(files: CharacterFiles, folder: string, name: string, own
   return nameClash(files, folder, name, ownPath);
 }
 
+function refusalForFallen(files: CharacterFiles, campaignFolder: string, name: string): string | null {
+  if (fallenNoteOf(files.getFiles(), campaignFolder, name) === null) return null;
+  return leftPlayWords(name);
+}
+
 function refuseIfAny(refusal: string | null): void {
   if (refusal !== null) throw new Error(refusal);
 }
@@ -40,6 +46,7 @@ export async function createCharacter(files: CharacterFiles, campaignFolder: str
   if (entry.name === "") return null;
   const folder = referenceFolderOf(characterReferenceKind, campaignFolder);
   refuseIfAny(refusalForName(files, folder, entry.name, null));
+  refuseIfAny(refusalForFallen(files, campaignFolder, entry.name));
   refuseIfAny(refusalForValues(entry));
   if (files.getFolderByPath(folder) === null) await files.createFolder(folder);
   return files.create(notePathOf(folder, entry.name), newCharacterText(entry));
@@ -61,6 +68,7 @@ export async function writeOverrides(files: Pick<FencedFiles, "process">, file: 
 export async function saveCharacter(
   files: CharacterFiles,
   actions: CharacterFileActions,
+  campaignFolder: string,
   file: TFile,
   openedPath: string,
   before: CharacterEntry,
@@ -71,6 +79,7 @@ export async function saveCharacter(
   const renamed = after.name !== before.name;
   if (renamed && file.path !== openedPath) throw new Error(NOTE_MOVED);
   if (renamed) refuseIfAny(refusalForName(files, folder, after.name, file.path));
+  if (renamed) refuseIfAny(refusalForFallen(files, campaignFolder, after.name));
   refuseIfAny(refusalForValues(after));
   const writes = valuesChanged(before, after);
   if (writes) await writeOverrides(files, file, (text) => withEntryValues(text, file.path, before, after));
