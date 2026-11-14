@@ -1,6 +1,8 @@
 import type { PrintedSheet } from "../../beyond/sheet/printed-sheet";
 import type { ImportFlow } from "./flows/import-flow";
 import { DialogShown } from "./stages/dialog-shown";
+import { OnlineStage, type OnlineArrival } from "./online/online-stage";
+import type { OnlineSource } from "./online/online-source";
 import { PdfSheetReader } from "./stages/pdf-sheet-reader";
 import { PdfStage, type SheetArrival } from "./stages/pdf-stage";
 import { ReviewStage, type StagesHost } from "./stages/review-stage";
@@ -11,7 +13,14 @@ export interface StepsHost {
   closeDialog(): void;
 }
 
-export class ImportSteps implements SheetArrival, StagesHost {
+export interface StepsParts {
+  readonly flow: ImportFlow;
+  readonly today: string;
+  readonly online: OnlineSource;
+  readonly host: StepsHost;
+}
+
+export class ImportSteps implements SheetArrival, OnlineArrival, StagesHost {
   private readonly shown = new DialogShown();
   private readonly work = new PendingWork();
   private readonly pdf: PdfStage;
@@ -19,12 +28,11 @@ export class ImportSteps implements SheetArrival, StagesHost {
 
   constructor(
     contentEl: HTMLElement,
-    private readonly flow: ImportFlow,
-    today: string,
-    private readonly host: StepsHost,
+    private readonly parts: StepsParts,
   ) {
-    this.pdf = new PdfStage(contentEl, this.shown, this, new PdfSheetReader(), this.work);
-    this.review = new ReviewStage(contentEl, this.shown, today, this, this.work);
+    const online = new OnlineStage(contentEl, { shown: this.shown, arrival: this, source: parts.online, work: this.work });
+    this.pdf = new PdfStage(contentEl, { shown: this.shown, arrival: this, reader: new PdfSheetReader(), work: this.work, online });
+    this.review = new ReviewStage(contentEl, this.shown, parts.today, this, this.work);
   }
 
   written(): string | null {
@@ -44,12 +52,16 @@ export class ImportSteps implements SheetArrival, StagesHost {
   }
 
   sheetRead(sheet: PrintedSheet): void {
-    const refusal = this.flow.refusalFor(sheet);
+    const refusal = this.parts.flow.refusalFor(sheet);
     if (refusal !== null) {
       this.pdf.show(refusal);
       return;
     }
-    this.review.showTargets(sheet, this.flow.targetsFor(sheet));
+    this.review.showTargets(sheet, this.parts.flow.targetsFor(sheet));
+  }
+
+  onlineRefused(words: string): void {
+    this.pdf.show(words);
   }
 
   writeFailed(error: unknown): void {
@@ -57,11 +69,11 @@ export class ImportSteps implements SheetArrival, StagesHost {
   }
 
   runWrite(change: () => Promise<boolean>, failureWords: string): void {
-    this.host.runWrite(change, failureWords);
+    this.parts.host.runWrite(change, failureWords);
   }
 
   closeDialog(): void {
-    this.host.closeDialog();
+    this.parts.host.closeDialog();
   }
 
   chooseAnother(): void {

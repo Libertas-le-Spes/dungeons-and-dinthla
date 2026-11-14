@@ -86,6 +86,7 @@ import { FollowThemeClass } from "./theme/follow-theme-class";
 import { BeyondOpeners, type BeyondWiring } from "./imports/dialog/opening/beyond-openers";
 import { CampaignAgreement } from "./imports/agreement/campaign-agreement";
 import { DeviceAgreement } from "./imports/agreement/device-agreement";
+import { onlineImportFor } from "./imports/dialog/online/online-wiring";
 import type { CharacterNotes } from "./characters/reading/character-notes";
 
 const TYPING_PAUSE_MS = 250;
@@ -109,6 +110,7 @@ export default class DungeonsAndDinthla extends Plugin {
   };
   private oldDrafts = new OldDrafts(null, this.localStorage);
   private readonly deviceAgreement = new DeviceAgreement(this.localStorage);
+  private readonly onlineImport = onlineImportFor(this.app, this.deviceAgreement);
   private chosen = this.chosenCampaignFrom(this.settingsSaver);
 
   override async onload(): Promise<void> {
@@ -162,7 +164,7 @@ export default class DungeonsAndDinthla extends Plugin {
     const campaignFolders = () => this.campaignFolders();
     const characterNotes = characterNotesOf(gate, campaignFolders);
     const sheetNotes = sheetNotesOf(gate, campaignFolders);
-    const beyond = new BeyondOpeners(new PluginBeyondWiring(this.app, gate.files, gate.fileActions, gate.metadata, this.store, characterNotes, campaignFolders));
+    const beyond = new BeyondOpeners(new PluginBeyondWiring({ app: this.app, files: gate.files, actions: gate.fileActions, metadata: gate.metadata, online: this.onlineImport, store: this.store, characterNotes, campaignFolders }));
     const sheetActions = {
       ...actions,
       editCharacter: (file: TFile) => editCharacter(this.app, gate, characterNotes, file),
@@ -497,23 +499,38 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 }
 
+interface BeyondWiringParts {
+  readonly app: BeyondWiring["app"];
+  readonly files: BeyondWiring["files"];
+  readonly actions: BeyondWiring["actions"];
+  readonly metadata: BeyondWiring["metadata"];
+  readonly online: BeyondWiring["online"];
+  readonly store: CampaignStore;
+  readonly characterNotes: CharacterNotes;
+  readonly campaignFolders: () => string[];
+}
+
 class PluginBeyondWiring implements BeyondWiring {
-  constructor(
-    readonly app: BeyondWiring["app"],
-    readonly files: BeyondWiring["files"],
-    readonly actions: BeyondWiring["actions"],
-    readonly metadata: BeyondWiring["metadata"],
-    private readonly store: CampaignStore,
-    private readonly characterNotes: CharacterNotes,
-    private readonly campaignFolders: () => string[],
-  ) {}
+  readonly app: BeyondWiring["app"];
+  readonly files: BeyondWiring["files"];
+  readonly actions: BeyondWiring["actions"];
+  readonly metadata: BeyondWiring["metadata"];
+  readonly online: BeyondWiring["online"];
+
+  constructor(private readonly parts: BeyondWiringParts) {
+    this.app = parts.app;
+    this.files = parts.files;
+    this.actions = parts.actions;
+    this.metadata = parts.metadata;
+    this.online = parts.online;
+  }
 
   shownCampaignFolder(): string | null {
-    return this.store.campaignFolder;
+    return this.parts.store.campaignFolder;
   }
 
   campaignFolderOf(path: string): string | null {
-    return campaignFolderOf(path, this.campaignFolders());
+    return campaignFolderOf(path, this.parts.campaignFolders());
   }
 
   charactersFolderOf(campaignFolder: string): string {
@@ -521,7 +538,7 @@ class PluginBeyondWiring implements BeyondWiring {
   }
 
   notesIn(campaignFolder: string): readonly TFile[] {
-    return this.characterNotes.filesIn(campaignFolder);
+    return this.parts.characterNotes.filesIn(campaignFolder);
   }
 
   showSheet(path: string): void {

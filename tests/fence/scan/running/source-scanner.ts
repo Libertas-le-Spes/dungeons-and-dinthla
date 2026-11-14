@@ -15,6 +15,9 @@ import { GateHolding } from "../reading/gate-holding";
 import { gateForgingBreaches } from "../vault-rules/gate-forging-rules";
 import { globalBreaches } from "../page-rules/global-rules";
 import { importBreaches } from "../code-rules/import-rules";
+import { beyondCallingBreaches } from "../network-rules/beyond-calling-rules";
+import { characterIdForgingBreaches } from "../network-rules/character-id-forging-rules";
+import { networkBreaches } from "../network-rules/network-breaches";
 import { openingBreaches } from "../vault-rules/opening-rules";
 import { TypeQueries } from "../reading/type-queries";
 import { isLibraryFile } from "../reading/type-shapes";
@@ -24,7 +27,7 @@ import { writtenReportBreaches } from "../vault-rules/written-report-rules";
 
 export type { Allowances } from "../reading/allowances";
 
-const RULES: Rules[] = [vaultAccessBreaches, editorViewBreaches, openingBreaches, workspaceEventBreaches, writtenReportBreaches, gateForgingBreaches, importBreaches, globalBreaches, codeTextBreaches, pageElementBreaches, pageTextBreaches, computedKeyBreaches, pageMemberBreaches];
+const RULES: Rules[] = [vaultAccessBreaches, editorViewBreaches, openingBreaches, workspaceEventBreaches, writtenReportBreaches, gateForgingBreaches, importBreaches, networkBreaches, beyondCallingBreaches, characterIdForgingBreaches, globalBreaches, codeTextBreaches, pageElementBreaches, pageTextBreaches, computedKeyBreaches, pageMemberBreaches];
 
 interface OpenedProject {
   project: Project;

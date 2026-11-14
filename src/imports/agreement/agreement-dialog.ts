@@ -52,3 +52,7 @@ export class AgreementDialog implements AskAgreement {
     return asking.answered;
   }
 }
+
+export function agreementDialogIn(app: App): AskAgreement {
+  return { ask: () => new AgreementDialog(app).ask() };
+}

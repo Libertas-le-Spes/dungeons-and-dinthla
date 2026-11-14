@@ -4,6 +4,8 @@ import { exitCodeOfCheck, NO_FILES } from "../../scripts/release-network-check.t
 const CLEAN_PLUGIN = 'var import_obsidian = require("obsidian");';
 const CLEAN_STYLES = ".dd-frame { color: red; }";
 const FETCHING_PLUGIN = 'fetch("https://example.invalid/a.json");';
+const BEYOND_ADDRESS_LINE = 'var BEYOND_ADDRESS = "https://character-service.dndbeyond.com/character/v5/character/";';
+const BEYOND_CALL = 'const reply = await (0, import_obsidian9.requestUrl)({ url: beyondAddressOf(id), method: "GET", throw: false });';
 const LOADING_STYLES = ".dd-frame { background-image: url(https://example.invalid/a.png); }";
 
 function checkWith(files: Record<string, string>) {
@@ -61,5 +63,28 @@ describe("exitCodeOfCheck", () => {
     expect(exitCodeOfCheck(["notes.txt"], needs)).toBe(1);
     expect(needs.failed).toHaveBeenCalledExactlyOnceWith("notes.txt isn't a .js or .css file, so it can't be checked.");
     expect(needs.read).not.toHaveBeenCalled();
+  });
+
+  it("passes a built plugin holding the one D&D Beyond call and its address once each", () => {
+    const needs = checkWith({ "main.js": `${CLEAN_PLUGIN}\n${BEYOND_ADDRESS_LINE}\n${BEYOND_CALL}`, "styles.css": CLEAN_STYLES });
+    expect(exitCodeOfCheck(["main.js", "styles.css"], needs)).toBe(0);
+  });
+
+  it("fails a built plugin holding a second call, though the first is the allowed one", () => {
+    const needs = checkWith({ "main.js": `${CLEAN_PLUGIN}\n${BEYOND_ADDRESS_LINE}\n${BEYOND_CALL}\n${BEYOND_CALL}`, "styles.css": CLEAN_STYLES });
+    expect(exitCodeOfCheck(["main.js", "styles.css"], needs)).toBe(1);
+    expect(needs.failed).toHaveBeenCalledWith("main.js holds network code: requestUrl");
+  });
+
+  it("fails a built plugin whose one call sends a header", () => {
+    const sending = BEYOND_CALL.replace("throw: false", "throw: false, headers: { Cookie: jar }");
+    const needs = checkWith({ "main.js": `${CLEAN_PLUGIN}\n${BEYOND_ADDRESS_LINE}\n${sending}`, "styles.css": CLEAN_STYLES });
+    expect(exitCodeOfCheck(["main.js", "styles.css"], needs)).toBe(1);
+  });
+
+  it("fails a stylesheet that holds the allowed address or call, since only the plugin may", () => {
+    const needs = checkWith({ "main.js": CLEAN_PLUGIN, "styles.css": `.dd-frame { content: ${BEYOND_ADDRESS_LINE} }` });
+    expect(exitCodeOfCheck(["main.js", "styles.css"], needs)).toBe(1);
+    expect(needs.failed).toHaveBeenCalledWith("styles.css holds network code: a web address");
   });
 });

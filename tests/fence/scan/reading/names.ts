@@ -199,3 +199,21 @@ export const PAGE_NAMES = [...TIMERS, ...ATTRIBUTE_SETTERS, ...ELEMENT_MAKERS, .
 export const PAGE_LIBRARY = "/lib.dom.d.ts";
 
 export const UNSAFE_KEYS = ["constructor", "__proto__", "prototype"];
+
+export const NETWORK_CALL = "requestUrl";
+
+export const NETWORK_NAMES = [NETWORK_CALL, "request"];
+
+export const BEYOND_CALLING_NAMES = ["callBeyond", "BeyondCalls"];
+
+export const NETWORK_ADDRESS_BUILDER = "beyondAddressOf";
+
+export const NETWORK_ADDRESS_FILE = "online/beyond-address.ts";
+
+export const NETWORK_CHARACTER_ID = "CharacterId";
+
+export const CHARACTER_ID_FILE = "online/character-id.ts";
+
+export const NETWORK_OPTION_NAMES = ["url", "method", "throw"];
+
+export const NETWORK_METHOD = "GET";

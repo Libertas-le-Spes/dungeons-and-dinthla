@@ -21,7 +21,7 @@ export class DrawnModal extends Modal {
   override onOpen(): void {
     this.setTitle(this.content.title);
     this.contentEl.addClass("dd-tokens");
-    this.content.draw(this.contentEl, this);
+    this.content.draw(this.contentEl, { close: this.close.bind(this) });
   }
 
   override onClose(): void {
