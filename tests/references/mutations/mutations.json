@@ -408,8 +408,8 @@
  {
   "id": "a name asked about passes the same checks",
   "file": "src/references/making/reference-note-plan.ts",
-  "find": "for (const { name, first } of this.firstSessionsOf(undecided)) {\n      if (!this.isMakeable(name)) continue;",
-  "replace": "for (const { name, first } of this.firstSessionsOf(undecided)) {",
+  "find": "for (const { named, first } of this.firstSessionsOf(undecided)) {\n      if (!this.isMakeable(named.name)) continue;",
+  "replace": "for (const { named, first } of this.firstSessionsOf(undecided)) {",
   "group": "new names"
  },
  {
