@@ -1,0 +1,422 @@
+[
+ {
+  "id": "reply: any status below 400 is taken",
+  "file": "src/online/reply-checks.ts",
+  "find": "if (status === OK) return;",
+  "replace": "if (status < 400) return;",
+  "group": "reply"
+ },
+ {
+  "id": "reply: status is not checked",
+  "file": "src/online/reply-checks.ts",
+  "find": "  refuseStatus(reply.status);\n",
+  "replace": "",
+  "group": "reply"
+ },
+ {
+  "id": "reply: 403 is not told apart",
+  "file": "src/online/reply-checks.ts",
+  "find": "  [403, NOT_PUBLIC],\n",
+  "replace": "",
+  "group": "reply"
+ },
+ {
+  "id": "reply: 404 is not told apart",
+  "file": "src/online/reply-checks.ts",
+  "find": "  [404, NO_SUCH_CHARACTER],\n",
+  "replace": "",
+  "group": "reply"
+ },
+ {
+  "id": "reply: content type is not checked",
+  "file": "src/online/reply-checks.ts",
+  "find": "  refuseType(reply.contentType);\n",
+  "replace": "",
+  "group": "reply"
+ },
+ {
+  "id": "reply: content type may be anywhere in the text",
+  "file": "src/online/reply-checks.ts",
+  "find": "startsWith(JSON_TYPE)",
+  "replace": "includes(JSON_TYPE)",
+  "group": "reply"
+ },
+ {
+  "id": "reply: content type is case sensitive",
+  "file": "src/online/reply-checks.ts",
+  "find": "contentType.toLowerCase().startsWith",
+  "replace": "contentType.startsWith",
+  "group": "reply"
+ },
+ {
+  "id": "reply: id is not matched",
+  "file": "src/online/reply-checks.ts",
+  "find": "  if (!asked.isNumber(replied.id)) throw new Refusal(A_DIFFERENT_CHARACTER);\n",
+  "replace": "",
+  "group": "reply"
+ },
+ {
+  "id": "reply: size cap is raised",
+  "file": "src/beyond/shape/import-limits.ts",
+  "find": "most: 5_000_000, unit: \"bytes\" }",
+  "replace": "most: 5_000_001, unit: \"bytes\" }",
+  "group": "reply"
+ },
+ {
+  "id": "calls: no press is refused while waiting",
+  "file": "src/online/call-rules.ts",
+  "find": "    if (this.waiting) throw new Refusal(STILL_WAITING);\n",
+  "replace": "",
+  "group": "one at a time"
+ },
+ {
+  "id": "calls: waiting is never set",
+  "file": "src/online/call-rules.ts",
+  "find": "    this.waiting = true;\n",
+  "replace": "",
+  "group": "one at a time"
+ },
+ {
+  "id": "calls: waiting is never cleared",
+  "file": "src/online/call-rules.ts",
+  "find": "    } finally {\n      this.waiting = false;\n    }",
+  "replace": "    } finally {\n    }",
+  "group": "one at a time"
+ },
+ {
+  "id": "calls: waiting ends at the time limit",
+  "file": "src/online/call-rules.ts",
+  "find": "withinTimeLimit(this.sent(id), TIME_LIMIT_MS, new Refusal(TIMED_OUT));",
+  "replace": "withinTimeLimit(this.sent(id), TIME_LIMIT_MS, new Refusal(TIMED_OUT)).finally(() => {\n      this.waiting = false;\n    });",
+  "group": "one at a time"
+ },
+ {
+  "id": "calls: readiness is not checked",
+  "file": "src/online/call-rules.ts",
+  "find": "    this.refuseUnlessReady();\n",
+  "replace": "",
+  "group": "one at a time"
+ },
+ {
+  "id": "cooldown: ten seconds is refused only above",
+  "file": "src/online/call-rules.ts",
+  "find": "< COOLDOWN_MS",
+  "replace": "<= COOLDOWN_MS",
+  "group": "cooldown"
+ },
+ {
+  "id": "cooldown: the press is not noted",
+  "file": "src/online/call-rules.ts",
+  "find": "    this.lastPressAt = this.now();\n    this.waiting = true;",
+  "replace": "    this.waiting = true;",
+  "group": "cooldown"
+ },
+ {
+  "id": "cooldown: the first press is counted too",
+  "file": "src/online/call-rules.ts",
+  "find": "    if (this.lastPressAt === null) return;\n",
+  "replace": "",
+  "group": "cooldown"
+ },
+ {
+  "id": "cooldown: counted from the reply",
+  "file": "src/online/call-rules.ts",
+  "find": "    this.lastPressAt = this.now();\n    this.waiting = true;\n    const reply = await withinTimeLimit(this.sent(id), TIME_LIMIT_MS, new Refusal(TIMED_OUT));\n",
+  "replace": "    this.waiting = true;\n    const reply = await withinTimeLimit(this.sent(id), TIME_LIMIT_MS, new Refusal(TIMED_OUT));\n    this.lastPressAt = this.now();\n",
+  "group": "cooldown"
+ },
+ {
+  "id": "cooldown: a refused press starts it again",
+  "file": "src/online/call-rules.ts",
+  "find": "    if (this.now() - this.lastPressAt < COOLDOWN_MS) throw new Refusal(TOO_SOON);",
+  "replace": "    if (this.now() - this.lastPressAt < COOLDOWN_MS) {\n      this.lastPressAt = this.now();\n      throw new Refusal(TOO_SOON);\n    }",
+  "group": "cooldown"
+ },
+ {
+  "id": "cooldown: ten seconds is another number",
+  "file": "src/online/call-rules.ts",
+  "find": "COOLDOWN_MS = 10_000",
+  "replace": "COOLDOWN_MS = 9_000",
+  "group": "cooldown"
+ },
+ {
+  "id": "calls: a failed call is not put in plain words",
+  "file": "src/online/call-rules.ts",
+  "find": "    } catch {\n      throw new Refusal(COULD_NOT_REACH);",
+  "replace": "    } catch (error) {\n      throw error;",
+  "group": "calls"
+ },
+ {
+  "id": "time limit: stops a moment late",
+  "file": "src/online/time-limit.ts",
+  "find": "reject(runOut), limitMs)",
+  "replace": "reject(runOut), limitMs + 1)",
+  "group": "time limit"
+ },
+ {
+  "id": "time limit: stops a moment early",
+  "file": "src/online/time-limit.ts",
+  "find": "reject(runOut), limitMs)",
+  "replace": "reject(runOut), limitMs - 1)",
+  "group": "time limit"
+ },
+ {
+  "id": "time limit: never stops waiting",
+  "file": "src/online/time-limit.ts",
+  "find": "setTimeout(() => reject(runOut), limitMs)",
+  "replace": "setTimeout(() => {}, limitMs)",
+  "group": "time limit"
+ },
+ {
+  "id": "time limit: the timer outlives good work",
+  "file": "src/online/time-limit.ts",
+  "find": "        clearTimeout(timer);\n        resolve(value);",
+  "replace": "        resolve(value);",
+  "group": "time limit"
+ },
+ {
+  "id": "time limit: the timer outlives failed work",
+  "file": "src/online/time-limit.ts",
+  "find": "        clearTimeout(timer);\n        reject(error);",
+  "replace": "        reject(error);",
+  "group": "time limit"
+ },
+ {
+  "id": "time limit: fifteen seconds is another number",
+  "file": "src/online/call-rules.ts",
+  "find": "TIME_LIMIT_MS = 15_000",
+  "replace": "TIME_LIMIT_MS = 16_000",
+  "group": "time limit"
+ },
+ {
+  "id": "id: a bare number is not whole text",
+  "file": "src/online/character-id.ts",
+  "find": "{0,11})$/;",
+  "replace": "{0,11})/;",
+  "group": "id"
+ },
+ {
+  "id": "id: a bare number may have thirteen digits",
+  "file": "src/online/character-id.ts",
+  "find": "BARE_NUMBER = /^([1-9]\\d{0,11})$/",
+  "replace": "BARE_NUMBER = /^([1-9]\\d{0,12})$/",
+  "group": "id"
+ },
+ {
+  "id": "id: a bare number may start with zero",
+  "file": "src/online/character-id.ts",
+  "find": "BARE_NUMBER = /^([1-9]",
+  "replace": "BARE_NUMBER = /^([0-9]",
+  "group": "id"
+ },
+ {
+  "id": "id: digits may run on past twelve in a link",
+  "file": "src/online/character-id.ts",
+  "find": "([1-9]\\d{0,11})(?!\\d)/i",
+  "replace": "([1-9]\\d{0,11})/i",
+  "group": "id"
+ },
+ {
+  "id": "id: a link may start anywhere",
+  "file": "src/online/character-id.ts",
+  "find": "CHARACTER_LINK = /^(?:https?",
+  "replace": "CHARACTER_LINK = /(?:https?",
+  "group": "id"
+ },
+ {
+  "id": "id: the dot in the host is any letter",
+  "file": "src/online/character-id.ts",
+  "find": "dndbeyond[.]com",
+  "replace": "dndbeyond.com",
+  "group": "id"
+ },
+ {
+  "id": "id: the www is not optional",
+  "file": "src/online/character-id.ts",
+  "find": "(?:www[.])?",
+  "replace": "(?:www[.])",
+  "group": "id"
+ },
+ {
+  "id": "id: capitals are refused",
+  "file": "src/online/character-id.ts",
+  "find": "[1-9]\\d{0,11})(?!\\d)/i",
+  "replace": "[1-9]\\d{0,11})(?!\\d)/",
+  "group": "id"
+ },
+ {
+  "id": "id: spaces round it are kept",
+  "file": "src/online/character-id.ts",
+  "find": "firstDigitsIn(link.trim())",
+  "replace": "firstDigitsIn(link)",
+  "group": "id"
+ },
+ {
+  "id": "id: the number is not compared",
+  "file": "src/online/character-id.ts",
+  "find": "return Number(this.digits) === number;",
+  "replace": "return true;",
+  "group": "id"
+ },
+ {
+  "id": "address: another version path",
+  "file": "src/online/beyond-address.ts",
+  "find": "/character/v5/character/",
+  "replace": "/character/v6/character/",
+  "group": "id"
+ },
+ {
+  "id": "address: more than the digits is added",
+  "file": "src/online/beyond-address.ts",
+  "find": "return id.appendedTo(BEYOND_ADDRESS);",
+  "replace": "return id.appendedTo(`${BEYOND_ADDRESS}?`);",
+  "group": "id"
+ },
+ {
+  "id": "call: method is POST",
+  "file": "src/online/beyond-call.ts",
+  "find": "method: \"GET\"",
+  "replace": "method: \"POST\"",
+  "group": "call"
+ },
+ {
+  "id": "call: errors are thrown",
+  "file": "src/online/beyond-call.ts",
+  "find": "throw: false",
+  "replace": "throw: true",
+  "group": "call"
+ },
+ {
+  "id": "call: a header is sent",
+  "file": "src/online/beyond-call.ts",
+  "find": "throw: false })",
+  "replace": "throw: false, headers: {} })",
+  "group": "call"
+ },
+ {
+  "id": "call: a body is sent",
+  "file": "src/online/beyond-call.ts",
+  "find": "throw: false })",
+  "replace": "throw: false, body: \"\" })",
+  "group": "call"
+ },
+ {
+  "id": "call: the lower case content type is not read",
+  "file": "src/online/beyond-call.ts",
+  "find": "  if (lower !== undefined) return lower;\n",
+  "replace": "",
+  "group": "call"
+ },
+ {
+  "id": "call: the capitalised content type is not read",
+  "file": "src/online/beyond-call.ts",
+  "find": "  if (capitalised !== undefined) return capitalised;\n",
+  "replace": "",
+  "group": "call"
+ },
+ {
+  "id": "call: the address is not the builder's",
+  "file": "src/online/beyond-call.ts",
+  "find": "url: beyondAddressOf(id)",
+  "replace": "url: String(id)",
+  "group": "call"
+ },
+ {
+  "id": "online: not agreeing still sends",
+  "file": "src/imports/dialog/online/online-import.ts",
+  "find": "    if (!answer.agreed) throw new Refusal(NOTHING_SENT);\n",
+  "replace": "",
+  "group": "button"
+ },
+ {
+  "id": "online: the agreement is not asked",
+  "file": "src/imports/dialog/online/online-import.ts",
+  "find": "    const answer = await this.firstPress.answer();\n    if (!answer.agreed) throw new Refusal(NOTHING_SENT);\n",
+  "replace": "",
+  "group": "button"
+ },
+ {
+  "id": "online: the agreement is asked before the link is checked",
+  "file": "src/imports/dialog/online/online-import.ts",
+  "find": "    const id = CharacterId.of(link);\n    const answer = await this.firstPress.answer();",
+  "replace": "    const answer = await this.firstPress.answer();\n    const id = CharacterId.of(link);",
+  "group": "button"
+ },
+ {
+  "id": "online: a reply after the dialog closed is shown",
+  "file": "src/imports/dialog/online/online-stage.ts",
+  "find": "    if (this.shown.isShown) this.arrival.sheetRead(sheet);",
+  "replace": "    this.arrival.sheetRead(sheet);",
+  "group": "button"
+ },
+ {
+  "id": "online: a refusal after the dialog closed is shown",
+  "file": "src/imports/dialog/online/online-stage.ts",
+  "find": "      if (this.shown.isShown) this.arrival.onlineRefused(",
+  "replace": "      this.arrival.onlineRefused(",
+  "group": "button"
+ },
+ {
+  "id": "online: the typed link is not kept",
+  "file": "src/imports/dialog/online/online-stage.ts",
+  "find": "    this.typed = value;\n",
+  "replace": "",
+  "group": "button"
+ },
+ {
+  "id": "online: the typed link is not put back",
+  "file": "src/imports/dialog/online/online-stage.ts",
+  "find": ".setValue(this.typed)",
+  "replace": "",
+  "group": "button"
+ },
+ {
+  "id": "online: the work is not waited on",
+  "file": "src/imports/dialog/online/online-stage.ts",
+  "find": "    this.work.add(this.bringIn());",
+  "replace": "    void this.bringIn();",
+  "group": "button"
+ },
+ {
+  "id": "online: a plain failure has no words",
+  "file": "src/imports/dialog/online/online-stage.ts",
+  "find": "wordsOf(error, ONLINE_WENT_WRONG)",
+  "replace": "wordsOf(error, \"\")",
+  "group": "button"
+ },
+ {
+  "id": "online: asking is not shown",
+  "file": "src/imports/dialog/online/online-stage.ts",
+  "find": "    this.contentEl.empty();\n    this.contentEl.createEl(\"p\", { cls: \"dd-import-reading\", text: ASKING, attr: { \"aria-live\": \"polite\" } });\n",
+  "replace": "",
+  "group": "button"
+ },
+ {
+  "id": "online: the link box is not focused",
+  "file": "src/imports/dialog/online/online-stage.ts",
+  "find": "        text.inputEl.focus();\n",
+  "replace": "",
+  "group": "button"
+ },
+ {
+  "id": "summary: the PDF's gaps are said of every route",
+  "file": "src/imports/dialog/review/sheet-summary.ts",
+  "find": "  if (sheet.character.route.name === PDF_ROUTE_NAME) return [NOT_IN_THE_PDF];\n",
+  "replace": "  return [NOT_IN_THE_PDF];\n",
+  "group": "button"
+ },
+ {
+  "id": "summary: the PDF's gaps are said of no route",
+  "file": "src/imports/dialog/review/sheet-summary.ts",
+  "find": "  if (sheet.character.route.name === PDF_ROUTE_NAME) return [NOT_IN_THE_PDF];\n",
+  "replace": "",
+  "group": "button"
+ },
+ {
+  "id": "summary: the online sheet's lists are counted as lost",
+  "file": "src/imports/dialog/online/online-sheet.ts",
+  "find": "const NOTHING_LEFT_OUT: LineLoss = { tooLong: 0, notClean: 0 };",
+  "replace": "const NOTHING_LEFT_OUT: LineLoss = { tooLong: 1, notClean: 0 };",
+  "group": "button"
+ }
+]
