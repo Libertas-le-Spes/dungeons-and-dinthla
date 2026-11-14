@@ -169,29 +169,29 @@
  },
  {
   "id": "three lines, not fewer",
-  "file": "src/references/making/reference-note-plan.ts",
-  "find": "const { known } = oftenNamed(namedOnLines(input.campaign, input.sessions));",
-  "replace": "const known = namedOnLines(input.campaign, input.sessions);",
+  "file": "src/references/often-named.ts",
+  "find": "lineCount >= LINES_FOR_A_NOTE",
+  "replace": "lineCount >= 1",
   "group": "making plan"
  },
  {
   "id": "unresolved in every session that names it",
   "file": "src/references/making/reference-note-plan.ts",
-  "find": "naming.every(",
-  "replace": "naming.some(",
+  "find": "this.sessionsNaming(name).every(",
+  "replace": "this.sessionsNaming(name).some(",
   "group": "making plan"
  },
  {
   "id": "unresolved only",
   "file": "src/references/making/reference-note-plan.ts",
-  "find": "    if (!naming.every(({ session }) => this.isUnresolvedIn(session, name))) return;\n",
+  "find": "    if (!this.sessionsNaming(name).every((session) => this.isUnresolvedIn(session, name))) return false;\n",
   "replace": "",
   "group": "making plan"
  },
  {
   "id": "an existing note in the campaign is linked",
   "file": "src/references/making/reference-note-plan.ts",
-  "find": "    if (this.existing.has(key)) return;\n",
+  "find": "    if (this.existing.has(key)) return false;\n",
   "replace": "",
   "group": "making plan"
  },
