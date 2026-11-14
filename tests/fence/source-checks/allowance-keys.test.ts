@@ -83,6 +83,13 @@ describe("the keys of the allowances matched by the start of a path", () => {
   });
 });
 
+describe("the one allowance that lets a file call out", () => {
+  it("names requestUrl for one file only, never an area", () => {
+    const keys = Object.entries(OBSIDIAN_IMPORTS).filter(([, names]) => names.includes("requestUrl")).map(([key]) => key);
+    expect(keys).toEqual(["online/beyond-call.ts"]);
+  });
+});
+
 describe("the check on those keys, over made-up places", () => {
   const places = new MadeUpSourcePlaces(["main.ts", "views/dialogs/keys.ts", "views/data.json"], ["views", "views/dialogs", "views-other", "named.ts"]);
 

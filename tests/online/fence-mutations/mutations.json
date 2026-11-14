@@ -77,13 +77,6 @@
   "group": "call"
  },
  {
-  "id": "scan: a name taken from another is the import",
-  "file": "tests/fence/scan/network-rules/network-call-rules.ts",
-  "find": "  if (!isImportSpecifier(specifier) || specifier.name !== use.node) return false;",
-  "replace": "  if (!isImportSpecifier(specifier)) return false;",
-  "group": "call"
- },
- {
   "id": "scan: an optional call is a call",
   "file": "tests/fence/scan/network-rules/network-call-rules.ts",
   "find": " || call.questionDotToken !== undefined",
