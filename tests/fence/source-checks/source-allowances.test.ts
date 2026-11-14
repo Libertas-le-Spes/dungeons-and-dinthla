@@ -30,6 +30,7 @@ const LEAF_VIEW_READERS = ["main.ts", "interface/tabs/one-campaign-tab.ts", "int
 const VIEW_FILE_READERS = ["main.ts", "campaign/reading/editor-text.ts", "editor/marker-decorations.ts", "interface/takeover/campaign-takeover.ts"];
 const NOTE_EVENT_LISTENERS = ["main.ts"];
 const GATE_BUILDERS = ["main.ts"];
+const NETWORK_CALLERS: string[] = [];
 const POST_PROCESSING = ["main.ts"];
 const PAGE_TEXT_READERS = ["reading/colour-markers.ts"];
 const ELEMENT_QUERIERS = ["reading/colour-markers.ts", "characters/pages/character-sheet-page.ts", "funds/page/funds-page.ts", "views/lists/row-focus.ts"];
@@ -78,6 +79,7 @@ const SOURCE_ALLOWANCES: Allowances = {
   viewFile: isOneOf(VIEW_FILE_READERS),
   noteEvents: isOneOf(NOTE_EVENT_LISTENERS),
   gateBuilding: isOneOf(GATE_BUILDERS),
+  network: isOneOf(NETWORK_CALLERS),
   obsidianImports: isImportAllowed,
   globals: isGlobalAllowed,
   postProcessing: isOneOf(POST_PROCESSING),

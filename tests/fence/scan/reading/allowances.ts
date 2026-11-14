@@ -19,6 +19,7 @@ export interface Allowances {
   viewFile: Allowed;
   noteEvents: Allowed;
   gateBuilding: Allowed;
+  network: Allowed;
   obsidianImports: AllowedName;
   postProcessing: Allowed;
   pageMembers: AllowedName;
