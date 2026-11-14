@@ -79,6 +79,16 @@ When a character leaves play:
 4. Fallen characters are listed on the Characters page under *Fallen*, each with *Make main*. Their note moves back to `Characters` and keeps its snapshots; if they leave play again, another dated snapshot is added.
 5. If a switch stops part way, the message says what was written. Press *Make main* again to finish it.
 
+### Agreeing to the online import
+
+The plugin will also be able to fetch your character from D&D Beyond with one button. That button isn't built yet, and the plugin sends nothing anywhere, but it asks first, once on each device:
+
+1. After you make a campaign on the welcome page, you'll see *Bringing your character in*. Read what the online import would send.
+2. Press *Agree* if that's fine with you, or *Not yet* to decide later. Either way, the page moves on.
+3. Your answer stays on this device only, never in your vault, so another device you sync to asks you itself. If you pressed *Not yet*, the online button asks again the first time you press it.
+
+[docs/note-format.md](docs/note-format.md#the-dd-beyond-agreement) has the words and where the answer is kept.
+
 ## Planning
 
 Work is planned as epics, stories and tasks on the [Dungeons & Dinthla Backlog](https://github.com/orgs/Libertas-le-Spes/projects/1) board. [docs/project-board.md](docs/project-board.md) says how the board works and why.
