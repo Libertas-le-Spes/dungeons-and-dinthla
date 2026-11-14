@@ -3,7 +3,7 @@ import type { PrintedSheet } from "../../../beyond/sheet/printed-sheet";
 import { refusalForFileName } from "../../../names/file-name";
 import { nameKeyOf } from "../../../names/name-key";
 import { importChangesOf, type ImportChanges, type TypedText } from "../changes/import-changes";
-import { refuseUnlessCharacterNote } from "./guarding/in-characters-folder";
+import { refuseUnlessCharacterNote } from "./guarding/in-characters-or-fallen";
 import { importedNoteText } from "./rewriting/imported-note";
 import type { NoteFiles } from "./note-files";
 import { checkedNewNoteText, checkedTextOf, writeWhenUnchangedSinceRead } from "./checked-note-text";
@@ -19,13 +19,13 @@ export class ImportWriter {
   ) {}
 
   async changesFor(file: TFile, sheet: PrintedSheet, today: string): Promise<ImportChanges> {
-    refuseUnlessCharacterNote(file.path, this.charactersFolder);
+    refuseUnlessCharacterNote(file, this.campaignFolder);
     const before = await this.files.read(file);
     return importChangesOf(before, importedNoteText(before, sheet, today));
   }
 
   async update(file: TFile, sheet: PrintedSheet, today: string, shown: readonly TypedText[]): Promise<void> {
-    refuseUnlessCharacterNote(file.path, this.charactersFolder);
+    refuseUnlessCharacterNote(file, this.campaignFolder);
     const before = await this.files.read(file);
     const after = checkedTextOf(before, sheet, today, shown);
     if (after === before) return;
