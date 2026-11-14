@@ -12,15 +12,19 @@ export interface OnlineArrival {
   onlineRefused(words: string): void;
 }
 
+export interface OnlineParts {
+  readonly shown: DialogShown;
+  readonly arrival: OnlineArrival;
+  readonly source: OnlineSource;
+  readonly work: PendingWork;
+}
+
 export class OnlineStage implements OnlineBlock {
   private typed = "";
 
   constructor(
     private readonly contentEl: HTMLElement,
-    private readonly shown: DialogShown,
-    private readonly arrival: OnlineArrival,
-    private readonly source: OnlineSource,
-    private readonly work: PendingWork,
+    private readonly parts: OnlineParts,
   ) {}
 
   draw(parent: HTMLElement): void {
@@ -41,17 +45,17 @@ export class OnlineStage implements OnlineBlock {
   pressed(): void {
     this.contentEl.empty();
     this.contentEl.createEl("p", { cls: "dd-import-reading", text: ASKING, attr: { "aria-live": "polite" } });
-    this.work.add(this.bringIn());
+    this.parts.work.add(this.bringIn());
   }
 
   private async bringIn(): Promise<void> {
     let sheet: PrintedSheet;
     try {
-      sheet = await this.source.sheetFor(this.typed);
+      sheet = await this.parts.source.sheetFor(this.typed);
     } catch (error) {
-      if (this.shown.isShown) this.arrival.onlineRefused(wordsOf(error, ONLINE_WENT_WRONG));
+      if (this.parts.shown.isShown) this.parts.arrival.onlineRefused(wordsOf(error, ONLINE_WENT_WRONG));
       return;
     }
-    if (this.shown.isShown) this.arrival.sheetRead(sheet);
+    if (this.parts.shown.isShown) this.parts.arrival.sheetRead(sheet);
   }
 }

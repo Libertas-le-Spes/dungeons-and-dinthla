@@ -5,11 +5,16 @@ import { CHARACTER_ID_FILE, NETWORK_ADDRESS_BUILDER, NETWORK_ADDRESS_FILE, NETWO
 import { sourcePath } from "../reading/scan-paths";
 import type { NetworkUse } from "./network-uses";
 
-function isDeclaredIn(type: Type | undefined, name: string, file: string): boolean {
+interface DeclaredThing {
+  readonly name: string;
+  readonly file: string;
+}
+
+function isDeclaredIn(type: Type | undefined, thing: DeclaredThing): boolean {
   if (type === undefined) return false;
   const symbol = type.getSymbol();
-  if (symbol === undefined || symbol.name !== name) return false;
-  return symbol.declarations.length > 0 && symbol.declarations.every((declaration) => declaration.path === sourcePath(file));
+  if (symbol === undefined || symbol.name !== thing.name) return false;
+  return symbol.declarations.length > 0 && symbol.declarations.every((declaration) => declaration.path === sourcePath(thing.file));
 }
 
 export function isTheImport(use: NetworkUse): boolean {
@@ -30,10 +35,10 @@ function addressBreaches(scan: FileScan, url: Expression): string[] {
   const { project, where } = scan;
   if (!isCallExpression(url) || url.questionDotToken !== undefined) return [`${where(url)} gives requestUrl a url that isn't a call of ${NETWORK_ADDRESS_BUILDER}`];
   const builder = project.checker.getTypeAtLocation(url.expression);
-  if (!isDeclaredIn(builder, NETWORK_ADDRESS_BUILDER, NETWORK_ADDRESS_FILE)) return [`${where(url)} gives requestUrl a url that isn't built by ${NETWORK_ADDRESS_BUILDER} from ${NETWORK_ADDRESS_FILE}`];
+  if (!isDeclaredIn(builder, { name: NETWORK_ADDRESS_BUILDER, file: NETWORK_ADDRESS_FILE })) return [`${where(url)} gives requestUrl a url that isn't built by ${NETWORK_ADDRESS_BUILDER} from ${NETWORK_ADDRESS_FILE}`];
   if (url.arguments.length !== 1) return [`${where(url)} gives ${NETWORK_ADDRESS_BUILDER} more or less than one value`];
   const [given] = url.arguments;
-  if (given === undefined || !isDeclaredIn(project.checker.getTypeAtLocation(given), NETWORK_CHARACTER_ID, CHARACTER_ID_FILE)) return [`${where(url)} gives ${NETWORK_ADDRESS_BUILDER} something that isn't a ${NETWORK_CHARACTER_ID}`];
+  if (given === undefined || !isDeclaredIn(project.checker.getTypeAtLocation(given), { name: NETWORK_CHARACTER_ID, file: CHARACTER_ID_FILE })) return [`${where(url)} gives ${NETWORK_ADDRESS_BUILDER} something that isn't a ${NETWORK_CHARACTER_ID}`];
   return [];
 }
 

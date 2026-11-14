@@ -20,12 +20,17 @@ function bufferOf(bytes: Uint8Array): () => Promise<ArrayBuffer> {
   };
 }
 
+export interface DialogSetup {
+  readonly today: string;
+  readonly online: OnlineSource;
+}
+
 export class DialogDriver {
   readonly closed = vi.fn();
   readonly modal: ImportModal;
 
-  constructor(flow: ImportFlow, today: string, online: OnlineSource) {
-    this.modal = new ImportModal({} as App, flow, today, online, { importClosed: this.closed });
+  constructor(flow: ImportFlow, setup: DialogSetup) {
+    this.modal = new ImportModal({} as App, flow, setup.today, setup.online, { importClosed: this.closed });
     obsidianDocument().body.append(this.modal.contentEl);
     this.modal.open();
   }

@@ -86,8 +86,8 @@
  {
   "id": "calls: waiting ends at the time limit",
   "file": "src/online/call-rules.ts",
-  "find": "withinTimeLimit(this.sent(id), TIME_LIMIT_MS, new Refusal(TIMED_OUT));",
-  "replace": "withinTimeLimit(this.sent(id), TIME_LIMIT_MS, new Refusal(TIMED_OUT)).finally(() => {\n      this.waiting = false;\n    });",
+  "find": "withinTimeLimit(this.sent(id), { ms: TIME_LIMIT_MS, runOut: new Refusal(TIMED_OUT) });",
+  "replace": "withinTimeLimit(this.sent(id), { ms: TIME_LIMIT_MS, runOut: new Refusal(TIMED_OUT) }).finally(() => {\n      this.waiting = false;\n    });",
   "group": "one at a time"
  },
  {
@@ -121,8 +121,8 @@
  {
   "id": "cooldown: counted from the reply",
   "file": "src/online/call-rules.ts",
-  "find": "    this.lastPressAt = this.now();\n    this.waiting = true;\n    const reply = await withinTimeLimit(this.sent(id), TIME_LIMIT_MS, new Refusal(TIMED_OUT));\n",
-  "replace": "    this.waiting = true;\n    const reply = await withinTimeLimit(this.sent(id), TIME_LIMIT_MS, new Refusal(TIMED_OUT));\n    this.lastPressAt = this.now();\n",
+  "find": "    this.lastPressAt = this.now();\n    this.waiting = true;\n    const reply = await withinTimeLimit(this.sent(id), { ms: TIME_LIMIT_MS, runOut: new Refusal(TIMED_OUT) });\n",
+  "replace": "    this.waiting = true;\n    const reply = await withinTimeLimit(this.sent(id), { ms: TIME_LIMIT_MS, runOut: new Refusal(TIMED_OUT) });\n    this.lastPressAt = this.now();\n",
   "group": "cooldown"
  },
  {
@@ -149,22 +149,22 @@
  {
   "id": "time limit: stops a moment late",
   "file": "src/online/time-limit.ts",
-  "find": "reject(runOut), limitMs)",
-  "replace": "reject(runOut), limitMs + 1)",
+  "find": "reject(limit.runOut), limit.ms)",
+  "replace": "reject(limit.runOut), limit.ms + 1)",
   "group": "time limit"
  },
  {
   "id": "time limit: stops a moment early",
   "file": "src/online/time-limit.ts",
-  "find": "reject(runOut), limitMs)",
-  "replace": "reject(runOut), limitMs - 1)",
+  "find": "reject(limit.runOut), limit.ms)",
+  "replace": "reject(limit.runOut), limit.ms - 1)",
   "group": "time limit"
  },
  {
   "id": "time limit: never stops waiting",
   "file": "src/online/time-limit.ts",
-  "find": "setTimeout(() => reject(runOut), limitMs)",
-  "replace": "setTimeout(() => {}, limitMs)",
+  "find": "setTimeout(() => reject(limit.runOut), limit.ms)",
+  "replace": "setTimeout(() => {}, limit.ms)",
   "group": "time limit"
  },
  {

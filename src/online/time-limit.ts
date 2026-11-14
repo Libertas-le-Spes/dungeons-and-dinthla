@@ -1,8 +1,13 @@
 import type { Refusal } from "../beyond/shape/refusal";
 
-export function withinTimeLimit<T>(work: Promise<T>, limitMs: number, runOut: Refusal): Promise<T> {
+export interface TimeLimit {
+  readonly ms: number;
+  readonly runOut: Refusal;
+}
+
+export function withinTimeLimit<T>(work: Promise<T>, limit: TimeLimit): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => reject(runOut), limitMs);
+    const timer = setTimeout(() => reject(limit.runOut), limit.ms);
     work.then(
       (value) => {
         clearTimeout(timer);
