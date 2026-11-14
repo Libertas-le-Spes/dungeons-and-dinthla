@@ -56,6 +56,13 @@ async function pressAndAnswer(): Promise<void> {
   await pressed;
 }
 
+describe("the numbers the owner chose", () => {
+  it("wait ten seconds between presses and fifteen seconds for an answer", () => {
+    expect(COOLDOWN_MS).toBe(10_000);
+    expect(TIME_LIMIT_MS).toBe(15_000);
+  });
+});
+
 describe("the first press", () => {
   it("sends one call with the id and gives back the character of a good reply", async () => {
     const pressed = rules.characterFor(madeUpId());
