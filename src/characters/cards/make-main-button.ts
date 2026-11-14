@@ -1,6 +1,5 @@
+import { MAKE_MAIN_WORDS } from "../../imports/layout/standing";
 import { addActionButton, type ButtonAction } from "../imported/drawing/action-button";
-
-export const MAKE_MAIN = "Make main";
 
 const MAKE_MAIN_CLASSES = ["dd-create", "dd-make-main"];
 
@@ -20,5 +19,5 @@ class MakeMainRun implements ButtonAction {
 }
 
 export function addMakeMainButton(parent: HTMLElement, path: string, action: MakeMainAction): void {
-  addActionButton(parent, MAKE_MAIN, MAKE_MAIN_CLASSES, new MakeMainRun(path, action));
+  addActionButton(parent, MAKE_MAIN_WORDS, MAKE_MAIN_CLASSES, new MakeMainRun(path, action));
 }

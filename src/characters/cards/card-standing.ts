@@ -1,6 +1,6 @@
 import { firstLineAfterProperties } from "../../campaign/paths/session-file";
 import { IMPORTED_FROM_PROPERTY } from "../../imports/layout/import-properties";
-import { BACKUP_STANDING, LEFT_PLAY_MARKS, STANDING_PROPERTY } from "../../imports/layout/standing";
+import { BACKUP_STANDING, LEFT_PLAY_MARKS, standingIn } from "../../imports/layout/standing";
 import { noteLinesOf } from "../imported/reading/note-lines";
 import { propertyEntriesOf, type PropertyEntry } from "../imported/reading/property-entries";
 
@@ -17,8 +17,10 @@ function valueOf(entries: readonly PropertyEntry[], key: string): string | null 
 }
 
 export function cardStandingOf(text: string): CardStanding {
-  const entries = propertyEntriesOf(noteLinesOf(text), firstLineAfterProperties(text));
-  return { standing: valueOf(entries, STANDING_PROPERTY), imported: valueOf(entries, IMPORTED_FROM_PROPERTY) !== null };
+  const lines = noteLinesOf(text);
+  const bodyStart = firstLineAfterProperties(text);
+  const entries = propertyEntriesOf(lines, bodyStart);
+  return { standing: standingIn(lines, bodyStart), imported: valueOf(entries, IMPORTED_FROM_PROPERTY) !== null };
 }
 
 export function leftPlayMarkOf(standing: CardStanding): string | null {

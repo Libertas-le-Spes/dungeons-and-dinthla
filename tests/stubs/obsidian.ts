@@ -153,6 +153,8 @@ export class BasesView {
   register(): void {}
 }
 
+export { parseYaml } from "./parse-yaml";
+
 export function stringifyYaml(value: unknown): string {
   return `${JSON.stringify(value, null, 2)}\n`;
 }

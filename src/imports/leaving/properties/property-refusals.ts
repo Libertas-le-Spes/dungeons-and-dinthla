@@ -11,3 +11,15 @@ export function propertyByCapitals(found: string, key: string): Refusal {
 export function propertyChangedMore(key: string): Refusal {
   return new Refusal(`Changing ${key} would change more of the note than that property, so nothing was written.`);
 }
+
+export function propertyNextToLoose(key: string): Refusal {
+  return new Refusal(`${key} has a blank or comment line next to it in the note's properties, so nothing was written. Tidy those lines first.`);
+}
+
+export function propertiesUnreadable(key: string): Refusal {
+  return new Refusal(`The note's properties couldn't be read as properties, so ${key} wasn't written. Fix them first.`);
+}
+
+export function propertyReadsDifferently(key: string): Refusal {
+  return new Refusal(`The note's properties would read differently than only ${key}, so nothing was written.`);
+}

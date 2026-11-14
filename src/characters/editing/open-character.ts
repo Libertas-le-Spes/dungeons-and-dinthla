@@ -76,7 +76,7 @@ export async function openEditCharacter(app: App, gate: Gate, notes: CharacterNo
     entry: before,
     learned,
     where: EDIT_WHERE,
-    save: (after: CharacterEntry) => saveCharacter(gate.files, gate.fileActions, file, openedPath, before, after),
+    save: (after: CharacterEntry) => saveCharacter(gate.files, gate.fileActions, character.campaignFolder, file, openedPath, before, after),
     delete: () => deleteCharacter(gate.fileActions, file),
   };
   new CharacterModal(app, dialog, () => {}).open();

@@ -4,7 +4,7 @@ import type { SheetValue } from "./characters/reading/character-sheet";
 import { messageOf } from "./views/dialogs/message-of";
 import {
   campaignFolderOf,
-  referenceFolderOf,
+  charactersFolderOf,
   chosenCampaignFolder,
   findCampaignFolders,
   isSessionNote,
@@ -85,7 +85,6 @@ import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
 import { BeyondOpeners, type BeyondWiring } from "./imports/dialog/opening/beyond-openers";
 import type { CharacterNotes } from "./characters/reading/character-notes";
-import { characterReferenceKind } from "./kinds/character-reference-kind";
 
 const TYPING_PAUSE_MS = 250;
 
@@ -159,7 +158,7 @@ export default class DungeonsAndDinthla extends Plugin {
     const campaignFolders = () => this.campaignFolders();
     const characterNotes = characterNotesOf(gate, campaignFolders);
     const sheetNotes = sheetNotesOf(gate, campaignFolders);
-    const beyond = new BeyondOpeners(new PluginBeyondWiring(this.app, gate.files, gate.metadata, this.store, characterNotes, campaignFolders));
+    const beyond = new BeyondOpeners(new PluginBeyondWiring(this.app, gate.files, gate.fileActions, gate.metadata, this.store, characterNotes, campaignFolders));
     const sheetActions = {
       ...actions,
       editCharacter: (file: TFile) => editCharacter(this.app, gate, characterNotes, file),
@@ -498,6 +497,7 @@ class PluginBeyondWiring implements BeyondWiring {
   constructor(
     readonly app: BeyondWiring["app"],
     readonly files: BeyondWiring["files"],
+    readonly actions: BeyondWiring["actions"],
     readonly metadata: BeyondWiring["metadata"],
     private readonly store: CampaignStore,
     private readonly characterNotes: CharacterNotes,
@@ -513,7 +513,7 @@ class PluginBeyondWiring implements BeyondWiring {
   }
 
   charactersFolderOf(campaignFolder: string): string {
-    return referenceFolderOf(characterReferenceKind, campaignFolder);
+    return charactersFolderOf(campaignFolder);
   }
 
   notesIn(campaignFolder: string): readonly TFile[] {

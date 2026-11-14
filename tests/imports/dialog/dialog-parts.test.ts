@@ -48,6 +48,7 @@ function wiringWith(shownFolder: string | null, folderOfNote: string | null): Be
   return {
     app: {} as App,
     files: vault.gate,
+    actions: vault.actions,
     metadata: new NoMetadata(),
     shownCampaignFolder: vi.fn().mockReturnValue(shownFolder),
     campaignFolderOf: vi.fn().mockReturnValue(folderOfNote),

@@ -1,34 +1,69 @@
 import type { TFile } from "obsidian";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
+import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
+import type { Campaign } from "../../../src/campaign/record/campaign";
 import type { LeavingReason } from "../../../src/imports/leaving/reasons/leaving-reason";
-import type { Identity } from "../../../src/imports/leaving/record/record-facts";
-import type { CampaignCast } from "../../../src/imports/leaving/switching/campaign-cast";
+import { AskedNote } from "../../../src/imports/leaving/switching/asked-note";
+import type { CampaignCast } from "../../../src/imports/leaving/cast/campaign-cast";
+import { LeaveAsChoice } from "../../../src/imports/leaving/choices/leave-as-choice";
 import { MainSwitch } from "../../../src/imports/leaving/switching/main-switch";
-import { LeaveAsChoice, MakeMainChoice } from "../../../src/imports/leaving/switching/switch-choices";
+import { MakeMainChoice } from "../../../src/imports/leaving/choices/make-main-choice";
 import { FakeNoteVault } from "../builders/fake-note-vault";
 
 export const CAMPAIGN = "D&D/Primary Campaign";
 export const CAMPAIGN_NOTE = `${CAMPAIGN}/Primary Campaign.md`;
 export const MONK = `${CAMPAIGN}/Characters/Primary Monk.md`;
 export const SECOND = `${CAMPAIGN}/Characters/Secondary.md`;
-export const MONK_RECORD = `${CAMPAIGN}/Fallen/Primary Monk.md`;
+export const MONK_FALLEN = `${CAMPAIGN}/Fallen/Primary Monk.md`;
+export const SECOND_FALLEN = `${CAMPAIGN}/Fallen/Secondary.md`;
 export const TODAY = "2026-11-12";
 
 export const CAMPAIGN_TEXT = '---\nrole: player\ncharacter: "[[Primary Monk]]"\n---\nOur table.\n';
 export const MONK_TEXT = '---\nimported-from: pdf\nclass: "Monk 4"\n---\nHis own notes.\n';
 export const SECOND_TEXT = "---\nimported-from: pdf\nstanding: backup\n---\nKept ready.\n";
+export const SECOND_AS_MAIN = '---\nrole: player\ncharacter: "[[Secondary]]"\n---\nOur table.\n';
+
+const SESSION_LINES = [
+  "? Who dug the well?",
+  "? Who sealed the vault?",
+  "? Where did the ferry go?",
+  "? Who is the pale woman?",
+  "? What is under the mill?",
+  "?= Who sealed the vault?: Lady Vess",
+  "! Mend the bridge",
+  "! Find the missing caravan",
+  "! Escort Mira to the ferry",
+  "! Clear the cellar",
+  "! Burn the letter",
+  "!= Burn the letter: done",
+  "$ +10 gp reward",
+  "$ +20 gp reward",
+  "$ +30 gp reward",
+  "$ +40 gp reward",
+  "$ [[Primary Monk]] Silver dagger",
+  "$ [[primary monk]] Old lantern",
+  "$$ Old lantern :lost",
+  "$ [[D&D/Primary Campaign/Characters/primary monk]] Brass key",
+  "$ [[Secondary]] Rope",
+];
+
+export function madeUpCampaign(): Campaign {
+  return buildCampaign([sessionNoteOf(`${CAMPAIGN}/Sessions/Session 7.md`, 7, SESSION_LINES.join("\n"))]);
+}
 
 export class TableCast implements CampaignCast {
   main: TFile | null = null;
+  campaign: Campaign = buildCampaign([]);
 
-  mainOf(): TFile | null {
+  mainFrom(): TFile | null {
     return this.main;
   }
 
-  identityOf(file: TFile): Identity {
-    return { name: file.basename, species: "Human", classes: "Monk 4" };
+  async campaignOf(): Promise<Campaign> {
+    return this.campaign;
   }
 
-  newestSessionLink(): string | null {
+  latestSessionLink(): string | null {
     return "Session 7";
   }
 
@@ -39,25 +74,42 @@ export class TableCast implements CampaignCast {
 
 export class LeavingTable {
   readonly vault = new FakeNoteVault();
-  readonly cast = new TableCast();
 
-  constructor(campaignText: string = CAMPAIGN_TEXT) {
+  constructor(
+    campaignText: string = CAMPAIGN_TEXT,
+    readonly cast: TableCast = new TableCast(),
+  ) {
     this.vault.note(CAMPAIGN_NOTE, campaignText);
     this.cast.main = this.vault.note(MONK, MONK_TEXT);
     this.vault.note(SECOND, SECOND_TEXT);
   }
 
-  switchTo(path: string): MainSwitch {
-    const plan = { campaignFolder: CAMPAIGN, campaignNote: this.vault.fileAt(CAMPAIGN_NOTE), asked: this.vault.textAt(CAMPAIGN_NOTE), chosen: this.vault.fileAt(path), today: TODAY };
-    return new MainSwitch(this.vault.gate, this.cast, plan);
+  switchTo(path: string, chosenIsNamed = false): MainSwitch {
+    const campaignNote = this.vault.fileAt(CAMPAIGN_NOTE);
+    const plan = {
+      campaignFolder: CAMPAIGN,
+      campaignNote: AskedNote.of(campaignNote),
+      asked: this.vault.textAt(CAMPAIGN_NOTE),
+      chosen: AskedNote.of(this.vault.fileAt(path)),
+      chosenIsNamed,
+      today: TODAY,
+    };
+    return new MainSwitch(this.vault.gate, this.vault.actions, this.cast, plan);
   }
 
   leaveAs(reason: LeavingReason, chosen: string = SECOND): LeaveAsChoice {
-    return new LeaveAsChoice(this.vault.gate, this.cast, this.switchTo(chosen), this.vault.fileAt(MONK), reason);
+    const old = AskedNote.of(this.vault.fileAt(MONK));
+    return new LeaveAsChoice(this.vault.gate, this.vault.actions, this.cast, this.switchTo(chosen), old, reason);
   }
 
-  makeMain(path: string): MakeMainChoice {
-    return new MakeMainChoice(this.switchTo(path));
+  makeMain(path: string, old: string | null = null, chosenIsNamed = false): MakeMainChoice {
+    const oldNote = this.askedAt(old);
+    return new MakeMainChoice(this.vault.gate, this.vault.actions, this.cast, this.switchTo(path, chosenIsNamed), oldNote);
+  }
+
+  private askedAt(path: string | null): AskedNote | null {
+    if (path === null) return null;
+    return AskedNote.of(this.vault.fileAt(path));
   }
 }
 
@@ -70,4 +122,3 @@ export async function refusalWhen(work: Promise<unknown>): Promise<string> {
   }
   throw new Error("Nothing was refused.");
 }
-

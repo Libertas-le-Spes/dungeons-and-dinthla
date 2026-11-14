@@ -1,6 +1,6 @@
 import { ButtonComponent, Setting, type App } from "obsidian";
 import { RecordChangeDialog } from "../../../views/dialogs/record-change-dialog";
-import type { SwitchChoice } from "../switching/switch-choices";
+import type { SwitchChoice } from "../choices/switch-choice";
 import { LAST_DOING_HINT, LAST_DOING_LABEL, NOT_NOW, SWITCH_FAILED, type MainQuestion } from "./main-question";
 
 interface TypedField {

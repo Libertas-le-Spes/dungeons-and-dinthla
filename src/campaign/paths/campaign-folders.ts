@@ -1,3 +1,4 @@
+import { characterReferenceKind } from "../../kinds/character-reference-kind";
 import { itemTrackedKind } from "../../kinds/item-tracked-kind";
 import type { ReferenceKind } from "../../kinds/reference-kind";
 import { sessionNumberOf } from "./session-file";
@@ -27,6 +28,10 @@ export function referenceFolderOf(kind: ReferenceKind, campaignFolder: string): 
   return `${campaignFolder}/${kind.folder}`;
 }
 
+export function charactersFolderOf(campaignFolder: string): string {
+  return referenceFolderOf(characterReferenceKind, campaignFolder);
+}
+
 export function isInReferenceFolder(kind: ReferenceKind, campaignFolder: string, path: string): boolean {
   return path.startsWith(`${referenceFolderOf(kind, campaignFolder)}/`);
 }
@@ -45,8 +50,12 @@ export function fallenFolderOf(campaignFolder: string): string {
   return `${campaignFolder}/${FALLEN_FOLDER}`;
 }
 
-export function fallenRecordPathOf(campaignFolder: string, name: string): string {
+export function fallenNotePathOf(campaignFolder: string, name: string): string {
   return `${fallenFolderOf(campaignFolder)}/${name}.md`;
+}
+
+export function isInFallenFolder(campaignFolder: string, path: string): boolean {
+  return path.startsWith(`${fallenFolderOf(campaignFolder)}/`);
 }
 
 export function charactersBasePathOf(campaignFolder: string): string {
