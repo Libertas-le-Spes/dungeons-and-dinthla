@@ -4,6 +4,7 @@ import { welcomeWiring } from "../../../src/interface/sections/welcome-wiring";
 import { settingsOf } from "../../../src/settings/saved/plugin-settings";
 import { SettingsSaver } from "../../../src/settings/saved/settings-saver";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { AnsweredAgreement } from "../../welcome/page/answered-agreement";
 
 function folderAt(path: string, foldersThere: string[]): TFolder | null {
   if (!foldersThere.includes(path)) return null;
@@ -31,6 +32,7 @@ function wiredWith(foldersThere: string[]) {
     chooseCampaign: vi.fn(async () => {}),
     openWelcome: vi.fn(async () => {}),
     pickFolder: vi.fn(),
+    agreement: new AnsweredAgreement(),
     startSession: vi.fn(),
   };
   return { wiring: welcomeWiring(needs), needs, files };
