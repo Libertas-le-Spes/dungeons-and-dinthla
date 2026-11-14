@@ -168,13 +168,6 @@
   "group": "fence"
  },
  {
-  "id": "no kind, no note",
-  "file": "src/references/making/reference-note-plan.ts",
-  "find": "    if (kind === null) return;\n",
-  "replace": "",
-  "group": "making plan"
- },
- {
   "id": "three lines, not fewer",
   "file": "src/references/making/reference-note-plan.ts",
   "find": "const { known } = oftenNamed(namedOnLines(input.campaign, input.sessions));",

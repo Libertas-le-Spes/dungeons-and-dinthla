@@ -4,7 +4,7 @@ import { REFERENCE_KINDS } from "../../kinds/reference-kinds";
 import type { ReferenceKindName } from "../../kinds/reference-kind";
 import { refusalForFileName } from "../../names/file-name";
 import { nameKeyOf } from "../../names/name-key";
-import { namedOnLines, type NamedOnLines } from "../named-on-lines";
+import { namedOnLines, type NamedWithKind } from "../named-on-lines";
 import { oftenNamed } from "../often-named";
 
 export interface PlannedReferenceNote {
@@ -53,9 +53,8 @@ class ReferenceNotePlanner {
     this.sessionNames = ordered.map((session) => ({ session, names: this.namesIn(session) }));
   }
 
-  consider(named: NamedOnLines): void {
+  consider(named: NamedWithKind): void {
     const { kind, name } = named;
-    if (kind === null) return;
     const naming = this.sessionNames.filter((sessionNames) => sessionNames.names.has(name));
     if (!naming.every(({ session }) => this.isUnresolvedIn(session, name))) return;
     const key = nameKeyOf(name);
