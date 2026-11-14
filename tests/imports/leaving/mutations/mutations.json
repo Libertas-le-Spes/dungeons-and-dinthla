@@ -70,13 +70,6 @@
   "group": "writes"
  },
  {
-  "id": "a stopped switch says to press again",
-  "file": "src/imports/leaving/writes/write-words.ts",
-  "find": "export const PRESS_AGAIN = \"Press the same choice again to finish.\";",
-  "replace": "export const PRESS_AGAIN = \"\";",
-  "group": "writes"
- },
- {
   "id": "a text write refuses when the note changed",
   "file": "src/imports/leaving/writes/text-write.ts",
   "find": "await writeWhenUnchangedSinceRead(this.files, this.file, this.before, this.after);",
@@ -646,8 +639,8 @@
  {
   "id": "a refused question returns focus",
   "file": "src/imports/leaving/dialog/main-offers.ts",
-  "find": "      this.wiring.tell(plainWordsOf(error));\n      returnFocus();\n",
-  "replace": "      this.wiring.tell(plainWordsOf(error));\n",
+  "find": "      this.wiring.tell(plainWordsOf(error, COULD_NOT_ASK));\n      returnFocus();\n",
+  "replace": "      this.wiring.tell(plainWordsOf(error, COULD_NOT_ASK));\n",
   "group": "offers"
  },
  {
