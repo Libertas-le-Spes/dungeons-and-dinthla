@@ -3,6 +3,7 @@ import { lineTextsOf } from "../campaign/record/line-texts";
 import type { ReferenceKindName } from "../kinds/reference-kind";
 import { trackedSourcesOf } from "../kind-notes/wanting/sources/tracked-sources";
 import { namesOnLine } from "./line-names";
+import { strongestKind } from "./readers/reference-readers";
 
 export interface NamedOnLines {
   name: string;
@@ -13,12 +14,6 @@ export interface NamedOnLines {
 interface Tally {
   lineCount: number;
   kinds: Set<ReferenceKindName>;
-}
-
-function kindOf(kinds: Set<ReferenceKindName>): ReferenceKindName | null {
-  if (kinds.has("place")) return "place";
-  if (kinds.has("character")) return "character";
-  return null;
 }
 
 function tallyFor(tallies: Map<string, Tally>, name: string): Tally {
@@ -41,5 +36,5 @@ export function namedOnLines(campaign: Campaign, sessions: SessionNote[]): Named
       }
     }
   }
-  return [...tallies].map(([name, tally]) => ({ name, lineCount: tally.lineCount, kind: kindOf(tally.kinds) }));
+  return [...tallies].map(([name, tally]) => ({ name, lineCount: tally.lineCount, kind: strongestKind([...tally.kinds]) }));
 }

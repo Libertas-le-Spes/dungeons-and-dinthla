@@ -7,27 +7,6 @@
   "group": "link"
  },
  {
-  "id": "place link read",
-  "file": "src/references/line-names.ts",
-  "find": "if (findPlaceLinks(text).includes(name)) return \"place\";",
-  "replace": "",
-  "group": "line kind"
- },
- {
-  "id": "character roles read",
-  "file": "src/references/line-names.ts",
-  "find": "if (characterLinksIn(text).includes(name)) return \"character\";",
-  "replace": "",
-  "group": "line kind"
- },
- {
-  "id": "place before character",
-  "file": "src/references/line-names.ts",
-  "find": "  if (findPlaceLinks(text).includes(name)) return \"place\";\n  if (characterLinksIn(text).includes(name)) return \"character\";",
-  "replace": "  if (characterLinksIn(text).includes(name)) return \"character\";\n  if (findPlaceLinks(text).includes(name)) return \"place\";",
-  "group": "line kind"
- },
- {
   "id": "a name once per line",
   "file": "src/references/line-names.ts",
   "find": "new Set(findLinks(text))",
@@ -98,20 +77,6 @@
   "group": "counting"
  },
  {
-  "id": "a place wins",
-  "file": "src/references/named-on-lines.ts",
-  "find": "if (kinds.has(\"place\")) return \"place\";",
-  "replace": "",
-  "group": "counting"
- },
- {
-  "id": "a character is kept",
-  "file": "src/references/named-on-lines.ts",
-  "find": "if (kinds.has(\"character\")) return \"character\";",
-  "replace": "",
-  "group": "counting"
- },
- {
   "id": "every given session",
   "file": "src/references/named-on-lines.ts",
   "find": "for (const session of sessions) {",
@@ -120,7 +85,7 @@
  },
  {
   "id": "three lines, not two",
-  "file": "src/references/often-named.ts",
+  "file": "src/kinds/lines-for-a-note.ts",
   "find": "LINES_FOR_A_NOTE = 3",
   "replace": "LINES_FOR_A_NOTE = 2",
   "group": "often"
@@ -145,5 +110,61 @@
   "find": "undecided: often.filter(({ kind }) => kind === null)",
   "replace": "undecided: often",
   "group": "often"
+ },
+ {
+  "id": "place read",
+  "file": "src/references/readers/place-reader.ts",
+  "find": "linksIn: findPlaceLinks,",
+  "replace": "linksIn: () => [],",
+  "group": "readers"
+ },
+ {
+  "id": "character read",
+  "file": "src/references/readers/character-reader.ts",
+  "find": "linksIn: characterLinksIn,",
+  "replace": "linksIn: () => [],",
+  "group": "readers"
+ },
+ {
+  "id": "place listed",
+  "file": "src/references/readers/reference-readers.ts",
+  "find": "[placeReader, characterReader]",
+  "replace": "[characterReader]",
+  "group": "readers"
+ },
+ {
+  "id": "character listed",
+  "file": "src/references/readers/reference-readers.ts",
+  "find": "[placeReader, characterReader]",
+  "replace": "[placeReader]",
+  "group": "readers"
+ },
+ {
+  "id": "place before character",
+  "file": "src/references/readers/reference-readers.ts",
+  "find": "[placeReader, characterReader]",
+  "replace": "[characterReader, placeReader]",
+  "group": "readers"
+ },
+ {
+  "id": "strongest kind found",
+  "file": "src/references/readers/reference-readers.ts",
+  "find": "if (kinds.includes(reader.kind)) return reader.kind;",
+  "replace": "",
+  "group": "readers"
+ },
+ {
+  "id": "a line's kinds read",
+  "file": "src/references/line-names.ts",
+  "find": "reader.linksIn(text).includes(name)",
+  "replace": "true",
+  "group": "line kind"
+ },
+ {
+  "id": "empty names dropped",
+  "file": "src/references/line-names.ts",
+  "find": ".filter((name) => name !== \"\")",
+  "replace": "",
+  "group": "line kind"
  }
 ]

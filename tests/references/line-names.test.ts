@@ -48,8 +48,8 @@ describe("namesOnLine", () => {
     expect(namesOnLine("? Is [[Mira]] or [[Mira|the elf]] at the mill")).toEqual([{ name: "Mira", kind: null }]);
   });
 
-  it("gives no kind to an empty link on an item line", () => {
-    expect(namesOnLine("$ Rope [[ ]]")).toEqual([{ name: "", kind: null }]);
+  it("drops an empty name, whatever writes it", () => {
+    expect(namesOnLine("$ Rope [[ ]] [[#Clues]] [[|x]] and [[Old Mill]]")).toEqual([{ name: "Old Mill", kind: null }]);
   });
 
   it("lists nothing for a line with no link", () => {
