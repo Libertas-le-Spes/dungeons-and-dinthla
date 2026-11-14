@@ -1057,34 +1057,6 @@
   "group": "writing"
  },
  {
-  "id": "writing: if (!path.startsWith(inside)) throw notA",
-  "file": "src/imports/note/writing/guarding/in-characters-folder.ts",
-  "find": "if (!path.startsWith(inside)) throw notACharacterNote(path);",
-  "replace": "",
-  "group": "writing"
- },
- {
-  "id": "writing: rest.includes(SLASH) || ",
-  "file": "src/imports/note/writing/guarding/in-characters-folder.ts",
-  "find": "rest.includes(SLASH) || ",
-  "replace": "",
-  "group": "writing"
- },
- {
-  "id": "writing: || !rest.endsWith(NOTE_EXTENSION)",
-  "file": "src/imports/note/writing/guarding/in-characters-folder.ts",
-  "find": "|| !rest.endsWith(NOTE_EXTENSION)",
-  "replace": "",
-  "group": "writing"
- },
- {
-  "id": "writing: `${charactersFolder}${SLASH}`",
-  "file": "src/imports/note/writing/guarding/in-characters-folder.ts",
-  "find": "`${charactersFolder}${SLASH}`",
-  "replace": "charactersFolder",
-  "group": "writing"
- },
- {
   "id": "writing:   if (refusal !== null) throw refusal;",
   "file": "src/imports/note/writing/checked-note-text.ts",
   "find": "  if (refusal !== null) throw refusal;",
@@ -2051,16 +2023,16 @@
   "group": "writing"
  },
  {
-  "id": "writing: import-writer.ts:     refuseUnlessCharacterNote(file.path, this.char",
+  "id": "writing: import-writer.ts:     refuseUnlessCharacterNote(file, this.camp",
   "file": "src/imports/note/writing/import-writer.ts",
-  "find": "    refuseUnlessCharacterNote(file.path, this.charactersFolder);\n    const before = await this.files.read(file);\n    const after",
+  "find": "    refuseUnlessCharacterNote(file, this.campaignFolder);\n    const before = await this.files.read(file);\n    const after",
   "replace": "    const before = await this.files.read(file);\n    const after",
   "group": "writing"
  },
  {
-  "id": "writing: import-writer.ts:     refuseUnlessCharacterNote(file.path, this.char #",
+  "id": "writing: import-writer.ts:     refuseUnlessCharacterNote(file, this.camp #",
   "file": "src/imports/note/writing/import-writer.ts",
-  "find": "    refuseUnlessCharacterNote(file.path, this.charactersFolder);\n    const before = await this.files.read(file);\n    return",
+  "find": "    refuseUnlessCharacterNote(file, this.campaignFolder);\n    const before = await this.files.read(file);\n    return",
   "replace": "    const before = await this.files.read(file);\n    return",
   "group": "writing"
  },
@@ -2259,5 +2231,19 @@
   "find": "const ASCII_PUNCTUATION = /^[!-/:-@[-`{-~]/;",
   "replace": "const ASCII_PUNCTUATION = /^[!-/:-@]/;",
   "group": "layout"
+ },
+ {
+  "id": "writing: a note outside Characters and Fallen is refused",
+  "file": "src/imports/note/writing/guarding/in-characters-or-fallen.ts",
+  "find": "  if (!isInCharactersOrFallen(file, campaignFolder)) throw notACharacterNote(file.path);\n",
+  "replace": "",
+  "group": "writing"
+ },
+ {
+  "id": "writing: a note in Fallen may be updated",
+  "file": "src/imports/leaving/switching/membership.ts",
+  "find": "  return isInFallen(file, campaignFolder);",
+  "replace": "  return false;",
+  "group": "writing"
  }
 ]

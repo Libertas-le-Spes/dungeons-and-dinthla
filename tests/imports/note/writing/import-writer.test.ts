@@ -11,6 +11,8 @@ import { headingsOf, textOf } from "../../builders/line-helpers";
 import { monkSheet, sheetWithCharacter, TODAY } from "../../builders/made-up-import";
 
 const NOTE = `${CHARACTERS_FOLDER}/Primary Monk.md`;
+const FALLEN_NOTE = `${CAMPAIGN_FOLDER}/Fallen/Primary Monk.md`;
+const FROZEN_SNAPSHOT = textOf("---", "standing: died", "---", "His words.", "", "## Left play on 2026-10-01", "Died on 2026-10-01.", "### Items held", "- Rope");
 const INVENTORY = "## Inventory (from D&D Beyond)";
 const NONE: TypedText[] = [];
 
@@ -61,23 +63,47 @@ describe("ImportWriter.update", () => {
 
   it("refuses a note outside the Characters folder, without reading or writing it", async () => {
     const file = vault.note("D&D/Primary Campaign/Sessions/Session 1.md", "x\n");
-    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("is not a note in the campaign's Characters folder");
+    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("is not a note in the campaign's Characters or Fallen folder");
+    expect(vault.processed).toEqual([]);
+  });
+
+  it("writes the import into a note in the Fallen folder, leaves it there, and keeps its frozen snapshot", async () => {
+    const file = vault.note(FALLEN_NOTE, FROZEN_SNAPSHOT);
+    await writer.update(file, monkSheet(), TODAY, NONE);
+    expect(vault.processed).toEqual([FALLEN_NOTE]);
+    expect(vault.moved).toEqual([]);
+    expect(vault.files.has(FALLEN_NOTE)).toBe(true);
+    expect(vault.files.has(NOTE)).toBe(false);
+    expect(vault.textAt(FALLEN_NOTE)).toContain("imported: 2026-11-13");
+    expect(vault.textAt(FALLEN_NOTE)).toContain("standing: died\n");
+    expect(vault.textAt(FALLEN_NOTE)).toContain(textOf("His words.", "", "## Left play on 2026-10-01", "Died on 2026-10-01.", "### Items held", "- Rope"));
+  });
+
+  it("refuses a note in another campaign's Fallen folder, without reading or writing it", async () => {
+    const file = vault.note("D&D/Secondary Campaign/Fallen/Primary Monk.md", "x\n");
+    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("is not a note in the campaign's Characters or Fallen folder");
+    expect(vault.processed).toEqual([]);
+  });
+
+  it("refuses a note in a folder inside the Fallen folder", async () => {
+    const file = vault.note(`${CAMPAIGN_FOLDER}/Fallen/Old/Primary Monk.md`, "x\n");
+    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("is not a note in the campaign's Characters or Fallen folder");
     expect(vault.processed).toEqual([]);
   });
 
   it("refuses a note in a folder inside the Characters folder", async () => {
     const file = vault.note(`${CHARACTERS_FOLDER}/Old/Primary Monk.md`, "x\n");
-    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("is not a note in the campaign's Characters folder");
+    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("is not a note in the campaign's Characters or Fallen folder");
   });
 
   it("refuses a file that is not a Markdown note", async () => {
     const file = vault.note(`${CHARACTERS_FOLDER}/Primary Monk.txt`, "x\n");
-    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("is not a note in the campaign's Characters folder");
+    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("is not a note in the campaign's Characters or Fallen folder");
   });
 
   it("refuses a folder that only starts with the Characters folder's name", async () => {
     const file = vault.note(`${CHARACTERS_FOLDER} Old/Primary Monk.md`, "x\n");
-    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("is not a note in the campaign's Characters folder");
+    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("is not a note in the campaign's Characters or Fallen folder");
   });
 
   it("refuses, calls no process and leaves the note as it was, when the note holds a plugin section twice", async () => {
@@ -189,9 +215,17 @@ describe("ImportWriter.changesFor", () => {
     expect(vault.textAt(NOTE)).toBe("x\n");
   });
 
+  it("shows the changes for a note in the Fallen folder, without writing it", async () => {
+    const file = vault.note(FALLEN_NOTE, FROZEN_SNAPSHOT);
+    const changes = await writer.changesFor(file, monkSheet(), TODAY);
+    expect(changes.sections.length).toBe(5);
+    expect(vault.processed).toEqual([]);
+    expect(vault.textAt(FALLEN_NOTE)).toBe(FROZEN_SNAPSHOT);
+  });
+
   it("refuses a note outside the Characters folder", async () => {
     const file = vault.note("D&D/Primary Campaign/Sessions/Session 1.md", "x\n");
-    await expect(writer.changesFor(file, monkSheet(), TODAY)).rejects.toThrow("is not a note in the campaign's Characters folder");
+    await expect(writer.changesFor(file, monkSheet(), TODAY)).rejects.toThrow("is not a note in the campaign's Characters or Fallen folder");
   });
 });
 
