@@ -345,15 +345,15 @@
  {
   "id": "online: a reply after the dialog closed is shown",
   "file": "src/imports/dialog/online/online-stage.ts",
-  "find": "    if (this.shown.isShown) this.arrival.sheetRead(sheet);",
-  "replace": "    this.arrival.sheetRead(sheet);",
+  "find": "    if (this.parts.shown.isShown) this.parts.arrival.sheetRead(sheet);",
+  "replace": "    this.parts.arrival.sheetRead(sheet);",
   "group": "button"
  },
  {
   "id": "online: a refusal after the dialog closed is shown",
   "file": "src/imports/dialog/online/online-stage.ts",
-  "find": "      if (this.shown.isShown) this.arrival.onlineRefused(",
-  "replace": "      this.arrival.onlineRefused(",
+  "find": "      if (this.parts.shown.isShown) this.parts.arrival.onlineRefused(",
+  "replace": "      this.parts.arrival.onlineRefused(",
   "group": "button"
  },
  {
@@ -373,7 +373,7 @@
  {
   "id": "online: the work is not waited on",
   "file": "src/imports/dialog/online/online-stage.ts",
-  "find": "    this.work.add(this.bringIn());",
+  "find": "    this.parts.work.add(this.bringIn());",
   "replace": "    void this.bringIn();",
   "group": "button"
  },
