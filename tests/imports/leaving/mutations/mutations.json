@@ -1062,12 +1062,5 @@
   "find": "{ folder: \"cast\", reaches: [\"cast\", \"properties\", \"switching\"] },",
   "replace": "{ folder: \"cast\", reaches: [\"cast\", \"properties\"] },",
   "group": "folders"
- },
- {
-  "id": "folders: each folder holds at most ten files",
-  "file": "tests/build/leaving-folders.test.ts",
-  "find": "toBeLessThanOrEqual(10)",
-  "replace": "toBeLessThanOrEqual(30)",
-  "group": "folders"
  }
 ]

@@ -1,5 +1,6 @@
 const KEY_LINE = /^([^\s#:-][^:]*):(?:\s+(.*)|)$/;
 const NUMBER = /^-?\d+(\.\d+)?$/;
+const CONTINUATION = /^(\s+|-\s)/;
 
 function scalarOf(written: string): unknown {
   const text = written.trim();
@@ -22,37 +23,43 @@ function unescaped(text: string): string {
   return text.replace(/\\(["\\])/g, "$1");
 }
 
+function quotedValue(first: string, queue: string[], key: string): string {
+  let value = first;
+  let end = closedQuote(value);
+  while (end === -1 && queue.length > 0) {
+    value = `${value} ${String(queue.shift()).trim()}`;
+    end = closedQuote(value);
+  }
+  if (end === -1) throw new Error(`Unterminated quote for ${key}`);
+  return unescaped(value.slice(1, end));
+}
+
+function continuationOf(queue: string[]): { items: string[]; isList: boolean } {
+  const items: string[] = [];
+  let isList = false;
+  while (queue.length > 0 && CONTINUATION.test(String(queue[0]))) {
+    const line = String(queue.shift());
+    if (line.startsWith("-")) isList = true;
+    items.push(line.replace(/^\s*-?\s*/, "").trim());
+  }
+  return { items, isList };
+}
+
 export function parseYaml(yaml: string): unknown {
-  const lines = yaml.split(/\r?\n/).map((line) => line.replace(/\r$/, ""));
+  const queue = yaml.split(/\r?\n/).map((line) => line.replace(/\r$/, ""));
   const found: Record<string, unknown> = {};
-  let position = 0;
-  while (position < lines.length) {
-    const line = lines[position]!;
-    position += 1;
+  for (let line = queue.shift(); line !== undefined; line = queue.shift()) {
     if (line.trim() === "" || line.startsWith("#")) continue;
     const match = KEY_LINE.exec(line);
     if (match === null) throw new Error(`Not a property: ${line}`);
-    const key = match[1]!.trim();
+    const key = String(match[1]).trim();
     let value = "";
     if (match[2] !== undefined) value = match[2].trim();
     if (value.startsWith('"')) {
-      let end = closedQuote(value);
-      while (end === -1 && position < lines.length) {
-        value = `${value} ${lines[position]!.trim()}`;
-        position += 1;
-        end = closedQuote(value);
-      }
-      if (end === -1) throw new Error(`Unterminated quote for ${key}`);
-      found[key] = unescaped(value.slice(1, end));
+      found[key] = quotedValue(value, queue, key);
       continue;
     }
-    const items: string[] = [];
-    let isList = false;
-    while (position < lines.length && /^(\s+|-\s)/.test(lines[position]!)) {
-      if (lines[position]!.startsWith("-")) isList = true;
-      items.push(lines[position]!.replace(/^\s*-?\s*/, "").trim());
-      position += 1;
-    }
+    const { items, isList } = continuationOf(queue);
     if (isList) found[key] = items;
     else if (items.length > 0) found[key] = [value, ...items].join(" ");
     else found[key] = scalarOf(value);

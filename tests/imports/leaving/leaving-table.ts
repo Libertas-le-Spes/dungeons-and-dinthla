@@ -25,10 +25,10 @@ export const SECOND_AS_MAIN = '---\nrole: player\ncharacter: "[[Secondary]]"\n--
 
 const SESSION_LINES = [
   "? Who dug the well?",
-  "? Who sealed the vault?",
   "? Where did the ferry go?",
   "? Who is the pale woman?",
   "? What is under the mill?",
+  "? Who sealed the vault?",
   "?= Who sealed the vault?: Lady Vess",
   "! Mend the bridge",
   "! Find the missing caravan",

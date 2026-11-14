@@ -33,7 +33,7 @@ beforeEach(() => {
 
 describe("the properties read before and after", () => {
   it("are refused when another property reads differently", () => {
-    read.results = [{ class: "Monk", standing: "died" }, { class: "Rogue", standing: "backup" }];
+    read.results = [{ class: "Monk", standing: "died" }, { class: "Rogue", standing: "backup" }, { standing: "backup" }];
     expect(refusalOf(check)).toBe(WORDS);
   });
 

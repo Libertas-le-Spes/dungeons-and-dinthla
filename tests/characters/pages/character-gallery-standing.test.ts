@@ -105,7 +105,7 @@ describe("the Characters page's standings", () => {
     const { root, creators } = await galleryOf("Primary", NOTES);
     expect(textsOf(root, ".dd-card-standing")).toEqual(["Died", "Retired"]);
     expect(textsOf(root, ".dd-left .dd-make-main")).toEqual(["Make main", "Make main"]);
-    root.querySelectorAll<HTMLButtonElement>(".dd-left .dd-make-main")[0]!.click();
+    for (const button of [...root.querySelectorAll<HTMLButtonElement>(".dd-left .dd-make-main")].slice(0, 1)) button.click();
     expect(creators.makeMain).toHaveBeenCalledWith(`${FOLDER}/Mira.md`, expect.any(Function));
   });
 
@@ -117,7 +117,7 @@ describe("the Characters page's standings", () => {
     expect(textsOf(root, ":scope > .dd-gallery .dd-stat-block-name")).toEqual(["Primary"]);
     const buttons = root.querySelectorAll<HTMLButtonElement>(".dd-fallen .dd-make-main");
     expect(buttons).toHaveLength(2);
-    buttons[1]!.click();
+    for (const button of [...buttons].slice(1)) button.click();
     expect(creators.makeMain).toHaveBeenCalledWith(`${FALLEN_FOLDER}/Isolde.md`, expect.any(Function));
   });
 
@@ -153,5 +153,8 @@ describe("a card's standing", () => {
   it("is read from the note's own properties", () => {
     expect(cardStandingOf("---\nstanding: died\nimported-from: pdf\n---\n")).toEqual({ standing: "died", imported: true });
     expect(cardStandingOf("standing: died\n")).toEqual({ standing: null, imported: false });
+    expect(cardStandingOf("---\nclass: Monk\n---\nstanding: died\n")).toEqual({ standing: null, imported: false });
+    expect(cardStandingOf("---\nstanding:  \r\n---\n")).toEqual({ standing: null, imported: false });
+    expect(cardStandingOf("---\r\nstanding: retired\r\n---\r\n")).toEqual({ standing: "retired", imported: false });
   });
 });

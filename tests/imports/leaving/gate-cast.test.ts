@@ -89,7 +89,7 @@ describe("the campaign's main character, read from the text that was asked about
   });
 
   it("is refused when the property holds text, two links, more than a link, a list, or a link to no note", () => {
-    for (const written of ["character: Primary Monk", 'character: "[[Primary Monk]] [[Primary Monk]]"', 'character: "[[Primary]][[ Monk]]"', 'character: "see [[Primary Monk]]"', 'character: "[[Nobody]]"', "character:\n  - \"[[Primary Monk]]\""]) {
+    for (const written of ["character: Primary Monk", 'character: "[[Primary Monk]] [[Primary Monk]]"', 'character: "[[Primary]][[ Monk]]"', 'character: "see [[Primary Monk]]"', 'character: "[[Nobody]]"', "character:\n  - \"[[Primary Monk]]\"", 'character: "[[Primary Monk]]"\n  ']) {
       expect(refusalOf(propertiesWith(written))).toBe(MAIN_UNCLEAR);
     }
   });

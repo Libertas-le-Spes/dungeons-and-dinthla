@@ -19,7 +19,7 @@ const STANDING_START = `${STANDING_PROPERTY}:`;
 
 export function standingIn(lines: readonly string[], bodyStart: number): string | null {
   for (const [position, line] of lines.entries()) {
-    if (position < 1 || position >= bodyStart - 1 || !line.startsWith(STANDING_START)) continue;
+    if (position >= bodyStart - 1 || !line.startsWith(STANDING_START)) continue;
     const value = line.substring(STANDING_START.length).trim();
     if (value !== "") return value;
   }

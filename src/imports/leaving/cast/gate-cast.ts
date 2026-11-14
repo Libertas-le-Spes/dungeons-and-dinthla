@@ -26,7 +26,9 @@ function unquoted(value: string): string {
 function linkpathOf(written: string): string {
   const match = WHOLE_LINK.exec(written);
   if (match === null) throw new Refusal(MAIN_UNCLEAR);
-  return match[1]!.trim();
+  const [, linkpath] = match;
+  if (linkpath === undefined) throw new Refusal(MAIN_UNCLEAR);
+  return linkpath.trim();
 }
 
 export class GateCast implements CampaignCast {

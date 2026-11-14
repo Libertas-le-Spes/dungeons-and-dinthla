@@ -253,6 +253,30 @@ describe("a switch that was left part done", () => {
     expect(buttonWords(modal)).toEqual(["Make main", "Not now"]);
   });
 
+  it("offers only Make main when the old main is in Fallen, whatever their note says", async () => {
+    const table = new LeavingTable();
+    table.cast.main = table.vault.note(MONK_FALLEN, "---\nimported-from: pdf\n---\n");
+    table.vault.files.delete(MONK);
+    await new MainOffers(new OfferTable(table)).makeMain(SECOND, vi.fn());
+    expect(buttonWords(shownModal())).toEqual(["Make main", "Not now"]);
+  });
+
+  it("offers only Make main when the campaign note names a character in Fallen who has no mark", async () => {
+    const table = new LeavingTable();
+    table.vault.files.delete(SECOND);
+    table.cast.main = table.vault.note(SECOND_FALLEN, "---\nimported-from: pdf\n---\n");
+    await new MainOffers(new OfferTable(table)).makeMain(SECOND_FALLEN, vi.fn());
+    expect(subjectOf(shownModal())).toBe("Secondary is named in the campaign note, but making them your character wasn't finished.");
+  });
+
+  it("says the campaign note is missing, in plain words", async () => {
+    const table = new LeavingTable();
+    table.vault.files.delete(CAMPAIGN_NOTE);
+    const wiring = new OfferTable(table);
+    await new MainOffers(wiring).makeMain(SECOND, vi.fn());
+    expect(wiring.told).toEqual(["The campaign note couldn't be read, so nothing was switched."]);
+  });
+
   it("offers only Make main when the old main is marked as left but still in Characters", async () => {
     const table = new LeavingTable();
     table.vault.texts.set(MONK, "---\nstanding: retired\n---\n");
