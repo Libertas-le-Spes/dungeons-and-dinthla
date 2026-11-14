@@ -84,6 +84,8 @@ import { ConfirmModal, type ConfirmText } from "./views/dialogs/confirm-modal";
 import { usesCommunityTheme } from "./theme/community-theme";
 import { FollowThemeClass } from "./theme/follow-theme-class";
 import { BeyondOpeners, type BeyondWiring } from "./imports/dialog/opening/beyond-openers";
+import { CampaignAgreement } from "./imports/agreement/campaign-agreement";
+import { DeviceAgreement } from "./imports/agreement/device-agreement";
 import type { CharacterNotes } from "./characters/reading/character-notes";
 
 const TYPING_PAUSE_MS = 250;
@@ -106,6 +108,7 @@ export default class DungeonsAndDinthla extends Plugin {
     save: (key, value) => this.app.saveLocalStorage(key, value),
   };
   private oldDrafts = new OldDrafts(null, this.localStorage);
+  private readonly deviceAgreement = new DeviceAgreement(this.localStorage);
   private chosen = this.chosenCampaignFrom(this.settingsSaver);
 
   override async onload(): Promise<void> {
@@ -124,6 +127,7 @@ export default class DungeonsAndDinthla extends Plugin {
       chooseCampaign: (folder: string) => this.chosen.choose(folder),
       openWelcome: welcomeOpenerOf(this.app),
       pickFolder: (folders: string[], chosen: (folder: string) => void) => new FolderSuggestModal(this.app, folders, chosen).open(),
+      agreement: new CampaignAgreement(this.deviceAgreement),
       startSession: newSession,
     });
     const campaignChoice = {
