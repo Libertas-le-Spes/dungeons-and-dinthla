@@ -128,8 +128,8 @@
  {
   "id": "cooldown: a refused press starts it again",
   "file": "src/online/call-rules.ts",
-  "find": "    if (this.now() - this.lastPressAt < COOLDOWN_MS) throw new Refusal(TOO_SOON);",
-  "replace": "    if (this.now() - this.lastPressAt < COOLDOWN_MS) {\n      this.lastPressAt = this.now();\n      throw new Refusal(TOO_SOON);\n    }",
+  "find": "    if (since >= 0 && since < COOLDOWN_MS) throw new Refusal(TOO_SOON);",
+  "replace": "    if (since >= 0 && since < COOLDOWN_MS) {\n      this.lastPressAt = this.now();\n      throw new Refusal(TOO_SOON);\n    }",
   "group": "cooldown"
  },
  {
@@ -254,7 +254,7 @@
  {
   "id": "id: the number is not compared",
   "file": "src/online/character-id.ts",
-  "find": "return Number(this.digits) === number;",
+  "find": "return Number(this.#digits) === number;",
   "replace": "return true;",
   "group": "id"
  },
