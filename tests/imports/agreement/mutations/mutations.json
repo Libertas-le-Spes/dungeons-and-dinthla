@@ -1,0 +1,149 @@
+[
+ {
+  "id": "stored answer: only true counts",
+  "file": "src/imports/agreement/device-agreement.ts",
+  "find": "return this.storage.load(AGREEMENT_KEY) === true;",
+  "replace": "return this.storage.load(AGREEMENT_KEY) == true;",
+  "group": "stored answer"
+ },
+ {
+  "id": "stored answer: true is kept",
+  "file": "src/imports/agreement/device-agreement.ts",
+  "find": "this.storage.save(AGREEMENT_KEY, true);",
+  "replace": "this.storage.save(AGREEMENT_KEY, \"yes\");",
+  "group": "stored answer"
+ },
+ {
+  "id": "stored answer: Agree keeps it",
+  "file": "src/imports/agreement/agreement-answers.ts",
+  "find": "device.give();",
+  "replace": "",
+  "group": "stored answer"
+ },
+ {
+  "id": "stored answer: Not yet keeps nothing",
+  "file": "src/imports/agreement/agreement-answers.ts",
+  "find": "keepOn(): void {}",
+  "replace": "keepOn(device: DeviceAgreement): void {\n    device.give();\n  }",
+  "group": "stored answer"
+ },
+ {
+  "id": "stored answer: the first press keeps the answer",
+  "file": "src/imports/agreement/first-press.ts",
+  "find": "answer.keepOn(this.device);",
+  "replace": "",
+  "group": "stored answer"
+ },
+ {
+  "id": "stored answer: the step keeps the answer",
+  "file": "src/imports/agreement/campaign-agreement.ts",
+  "find": "answer.keepOn(this.device);",
+  "replace": "",
+  "group": "stored answer"
+ },
+ {
+  "id": "ask once: the first press asks only without an agreement",
+  "file": "src/imports/agreement/first-press.ts",
+  "find": "if (this.device.given()) return AGREED;",
+  "replace": "",
+  "group": "ask once"
+ },
+ {
+  "id": "ask once: the step isn't wanted once agreed",
+  "file": "src/imports/agreement/campaign-agreement.ts",
+  "find": "return this.device.given() === false;",
+  "replace": "return true;",
+  "group": "ask once"
+ },
+ {
+  "id": "ask once: the step isn't wanted once answered here",
+  "file": "src/imports/agreement/campaign-agreement.ts",
+  "find": "if (this.answeredHere) return false;",
+  "replace": "",
+  "group": "ask once"
+ },
+ {
+  "id": "ask once: the step marks itself answered",
+  "file": "src/imports/agreement/campaign-agreement.ts",
+  "find": "this.answeredHere = true;",
+  "replace": "",
+  "group": "ask once"
+ },
+ {
+  "id": "buttons: Agree agrees",
+  "file": "src/imports/agreement/answer-buttons.ts",
+  "find": "{ words: AGREE_WORDS, answer: AGREED }",
+  "replace": "{ words: AGREE_WORDS, answer: NOT_YET }",
+  "group": "buttons"
+ },
+ {
+  "id": "buttons: Not yet doesn't agree",
+  "file": "src/imports/agreement/answer-buttons.ts",
+  "find": "{ words: NOT_YET_WORDS, answer: NOT_YET }",
+  "replace": "{ words: NOT_YET_WORDS, answer: AGREED }",
+  "group": "buttons"
+ },
+ {
+  "id": "buttons: Continue agrees",
+  "file": "src/imports/agreement/answer-buttons.ts",
+  "find": "{ words: CONTINUE_WORDS, answer: AGREED }",
+  "replace": "{ words: CONTINUE_WORDS, answer: NOT_YET }",
+  "group": "buttons"
+ },
+ {
+  "id": "buttons: Use a PDF instead doesn't agree",
+  "file": "src/imports/agreement/answer-buttons.ts",
+  "find": "{ words: USE_A_PDF_WORDS, answer: NOT_YET }",
+  "replace": "{ words: USE_A_PDF_WORDS, answer: AGREED }",
+  "group": "buttons"
+ },
+ {
+  "id": "dialog: closing without a choice doesn't agree",
+  "file": "src/imports/agreement/agreement-dialog.ts",
+  "find": "private answer: AgreementAnswer = NOT_YET;",
+  "replace": "private answer: AgreementAnswer = AGREED;",
+  "group": "dialog"
+ },
+ {
+  "id": "dialog: the choice is the answer",
+  "file": "src/imports/agreement/agreement-dialog.ts",
+  "find": "this.answer = answer;",
+  "replace": "",
+  "group": "dialog"
+ },
+ {
+  "id": "welcome: the step only while wanted",
+  "file": "src/welcome/endings/agreement-ending.ts",
+  "find": "state.campaignFolder !== null && state.agreementWanted",
+  "replace": "state.campaignFolder !== null",
+  "group": "welcome"
+ },
+ {
+  "id": "welcome: the step comes before the first session",
+  "file": "src/welcome/endings/welcome-endings.ts",
+  "find": "NewCampaignEnding, AgreementEnding, FirstSessionEnding, CampaignEnding]",
+  "replace": "NewCampaignEnding, FirstSessionEnding, CampaignEnding, AgreementEnding]",
+  "group": "welcome"
+ },
+ {
+  "id": "welcome: the page asks the agreement whether it is wanted",
+  "file": "src/welcome/page/welcome-page.ts",
+  "find": "agreementWanted: this.agreement.wanted(),",
+  "replace": "agreementWanted: false,",
+  "group": "welcome"
+ },
+ {
+  "id": "welcome: the page moves on after an answer",
+  "file": "src/welcome/page/welcome-page.ts",
+  "find": "  agreementAnswered(): void {\n    this.showEnding();\n  }",
+  "replace": "  agreementAnswered(): void {}",
+  "group": "welcome"
+ },
+ {
+  "id": "device-local: kept in the plugin's settings instead",
+  "file": "src/main.ts",
+  "find": "new DeviceAgreement(this.localStorage)",
+  "replace": "new DeviceAgreement({ load: (key: string) => Object.getOwnPropertyDescriptor(this.settingsSaver.settings, key)?.value, save: (key: string, value: unknown) => void this.settingsSaver.save({ [key]: value }) })",
+  "group": "device-local"
+ }
+]
