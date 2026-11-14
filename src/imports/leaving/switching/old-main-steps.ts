@@ -14,7 +14,7 @@ import { MoveWrite } from "../writes/move-write";
 import type { PlannedWrite } from "../writes/planned-write";
 import { TextWrite } from "../writes/text-write";
 import type { CampaignCast } from "../cast/campaign-cast";
-import { isInCharacters } from "./membership";
+import { isInCharacters } from "../../../campaign/paths/character-membership";
 import { textOfNote } from "./read-note";
 import type { LeavingActions, LeavingFiles, SwitchPlan } from "./switch-plan";
 import { marked, markedWithSnapshot, markFailed, movedToFallen, moveToFallenFailed, NOTE_UNREAD } from "./switch-words";
