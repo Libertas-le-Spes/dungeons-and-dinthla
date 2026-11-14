@@ -383,5 +383,124 @@
   "find": " || considered.has(named.name)",
   "replace": "",
   "group": "making plan"
+ },
+ {
+  "id": "the list holds only names the saved session names",
+  "file": "src/references/new-names/new-names.ts",
+  "find": "undecided.filter(({ namedIn }) => namedIn.includes(savedPath))",
+  "replace": "undecided",
+  "group": "new names"
+ },
+ {
+  "id": "no list when nothing is asked about",
+  "file": "src/references/new-names/new-names.ts",
+  "find": "if (names.length === 0) return null;",
+  "replace": "",
+  "group": "new names"
+ },
+ {
+  "id": "a name asked about is on every session that names it",
+  "file": "src/references/making/reference-note-plan.ts",
+  "find": "this.sessionsNaming(name).map(({ path }) => path)",
+  "replace": "[first.path]",
+  "group": "new names"
+ },
+ {
+  "id": "a name asked about passes the same checks",
+  "file": "src/references/making/reference-note-plan.ts",
+  "find": "for (const { name, first } of this.firstSessionsOf(undecided)) {\n      if (!this.isMakeable(name)) continue;",
+  "replace": "for (const { name, first } of this.firstSessionsOf(undecided)) {",
+  "group": "new names"
+ },
+ {
+  "id": "one list at a time",
+  "file": "src/references/making/reference-notes.ts",
+  "find": "if (names === null || this.asking) return;",
+  "replace": "if (names === null) return;",
+  "group": "new names"
+ },
+ {
+  "id": "a closed list is asked again later",
+  "file": "src/references/making/reference-notes.ts",
+  "find": "        this.asking = false;\n",
+  "replace": "",
+  "group": "new names"
+ },
+ {
+  "id": "a list is not asked about when none is due",
+  "file": "src/references/making/reference-notes.ts",
+  "find": "if (names === null || this.asking) return;",
+  "replace": "if (this.asking) return;",
+  "group": "new names"
+ },
+ {
+  "id": "an answer's failure is said once",
+  "file": "src/references/making/reference-notes.ts",
+  "find": "this.said.say(`answer:${messageOf(error)}`, ",
+  "replace": "this.needs.say(",
+  "group": "new names"
+ },
+ {
+  "id": "an answer makes nothing in another campaign",
+  "file": "src/references/new-names/new-name-answers.ts",
+  "find": "if (this.needs.campaignFolder() !== askedIn) return \"left\";",
+  "replace": "",
+  "group": "new names"
+ },
+ {
+  "id": "an answer makes nothing for a name a note has since taken",
+  "file": "src/references/new-names/new-name-answers.ts",
+  "find": "if (this.needs.existingNames().some((existing) => nameKeyOf(existing) === key)) return \"left\";",
+  "replace": "",
+  "group": "new names"
+ },
+ {
+  "id": "an answer compares names as keys",
+  "file": "src/references/new-names/new-name-answers.ts",
+  "find": "nameKeyOf(existing) === key",
+  "replace": "existing === undecided.name",
+  "group": "new names"
+ },
+ {
+  "id": "an answered row is turned off",
+  "file": "src/references/new-names/new-names-dialog.ts",
+  "find": "for (const button of this.buttons) button.setDisabled(true);",
+  "replace": "",
+  "group": "new names"
+ },
+ {
+  "id": "an answered row says what was chosen",
+  "file": "src/references/new-names/new-names-dialog.ts",
+  "find": "this.row.setDesc(chosenWords(kind.label));",
+  "replace": "",
+  "group": "new names"
+ },
+ {
+  "id": "the list closes when every name is answered",
+  "file": "src/references/new-names/new-names-dialog.ts",
+  "find": "if (this.unanswered === 0) dialog.close();",
+  "replace": "",
+  "group": "new names"
+ },
+ {
+  "id": "the list counts answers",
+  "file": "src/references/new-names/new-names-dialog.ts",
+  "find": "this.unanswered -= 1;",
+  "replace": "",
+  "group": "new names"
+ },
+ {
+  "id": "closing the list tells the asker",
+  "file": "src/references/new-names/new-names-dialog.ts",
+  "find": "    this.to.closed();\n",
+  "replace": "",
+  "group": "new names"
+ },
+ {
+  "id": "each name offers every kind",
+  "file": "src/references/new-names/new-names-dialog.ts",
+  "find": "for (const kind of REFERENCE_KIND_LIST) row.addButton",
+  "replace": "for (const kind of REFERENCE_KIND_LIST.slice(0, 1)) row.addButton",
+  "group": "new names"
  }
 ]
