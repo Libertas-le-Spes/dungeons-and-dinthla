@@ -1,5 +1,6 @@
 import type { WrittenNotes } from "../../fence/gate/written-notes";
 import type { DifferingNotes } from "./differing-notes";
+import type { ReferenceNotesPart } from "../../references/making/reference-notes-part";
 import type { ItemNotesPart } from "./item-notes-part";
 import type { KindNoteMover } from "../keeping/kind-note-mover";
 import type { KindNoteKeeper } from "../keeping/kind-note-keeper";
@@ -18,6 +19,7 @@ export interface KindNoteWatcherNeeds {
   differing: Pick<DifferingNotes, "check" | "checkAll" | "forget">;
   saves: SavesHere;
   items: Pick<ItemNotesPart, "sessionSaved">;
+  references: ReferenceNotesPart;
   mover: Pick<KindNoteMover, "sessionRenamed">;
 }
 
@@ -28,7 +30,7 @@ export class KindNoteWatcher {
     const stopWritten = this.needs.written.listen({
       textSaved: (path, text) => this.textSaved(path, text),
       trashed: (path) => this.sessionGone(path),
-      renamed: (from, to) => this.needs.mover.sessionRenamed(from, to),
+      renamed: (from, to) => this.sessionRenamed(from, to),
     });
     const stopRead = this.needs.store.onNoteRead((path, text) => this.read(path, text));
     return () => {
@@ -57,10 +59,17 @@ export class KindNoteWatcher {
     this.needs.differing.forget(path);
     this.needs.keeper.keep(this.needs.wants.notesFor(path));
     this.needs.items.sessionSaved();
+    this.needs.references.sessionSaved(path);
+  }
+
+  private sessionRenamed(from: string, to: string): void {
+    this.needs.references.sessionGone(from);
+    this.needs.mover.sessionRenamed(from, to);
   }
 
   private sessionGone(path: string): void {
     if (!this.needs.wants.isSession(path)) return;
+    this.needs.references.sessionGone(path);
     this.needs.saves.forget(path);
     this.needs.differing.forget(path);
     this.needs.keeper.keep(this.needs.wants.notesOfGoneSession(path));

@@ -19,6 +19,7 @@ function startWith(notes: FakeNotes, campaign: FakeCampaign, alreadyMade: string
   const marked: string[] = [];
   const made = { hasMadeFor: (folder: string) => alreadyMade.includes(folder), markMadeFor: vi.fn(async (folder: string) => void marked.push(folder)) };
   const items = { sessionSaved: vi.fn(), makeMissing: vi.fn(async () => ({ made: 0, failed: 0 })) };
+  const references = { sessionSaved: vi.fn(), sessionGone: vi.fn() };
   const gate = { files: notes.files, metadata: notes.metadata, fileActions: notes.actions } as unknown as Gate;
   const stop = startKindNotes({
     gate,
@@ -26,10 +27,11 @@ function startWith(notes: FakeNotes, campaign: FakeCampaign, alreadyMade: string
     saved: campaign as unknown as SavedCampaign,
     made: made as unknown as NotesMade,
     items,
+    references,
     say: (message) => notes.said.push(message),
     ask: (message, fix, keep) => void asked.push({ message, fix, keep }),
   });
-  return { written, asked, marked, stop, made, items };
+  return { written, asked, marked, stop, made, items, references };
 }
 
 function saveHere(written: NoteReporter, campaign: FakeCampaign, path: string, text: string): void {
@@ -186,6 +188,17 @@ describe("kind notes, for sessions written before", () => {
     expect(items.makeMissing).toHaveBeenCalledOnce();
     saveHere(written, campaign, SESSION, "? Who sent Baka");
     expect(items.sessionSaved).toHaveBeenCalledOnce();
+  });
+
+  it("lets the people and places know which session was saved, and does nothing for the earlier sessions when the campaign opens", async () => {
+    const { notes, campaign } = world();
+    campaign.hold(SESSION, "? Who sent Mira");
+    const { references, written } = startWith(notes, campaign);
+    campaign.open(CAMPAIGN);
+    await settled();
+    expect(references.sessionSaved).not.toHaveBeenCalled();
+    saveHere(written, campaign, SESSION, "? Who sent Baka");
+    expect(references.sessionSaved).toHaveBeenCalledWith(SESSION);
   });
 
   it("makes nothing when the campaign was opened after the update before", async () => {
