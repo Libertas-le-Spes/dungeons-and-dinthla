@@ -1024,8 +1024,8 @@
  {
   "id": "folders: the dialog reaches the choices",
   "file": "tests/build/leaving-folders.test.ts",
-  "find": "{ folder: \"dialog\", reaches: [\"dialog\", \"choices\", \"switching\", \"reasons\", \"properties\", \"cast\"] },",
-  "replace": "{ folder: \"dialog\", reaches: [\"dialog\", \"switching\", \"reasons\", \"properties\", \"cast\"] },",
+  "find": "{ folder: \"dialog\", reaches: [\"dialog\", \"choices\", \"switching\", \"reasons\", \"properties\", \"cast\", \"writes\"] },",
+  "replace": "{ folder: \"dialog\", reaches: [\"dialog\", \"switching\", \"reasons\", \"properties\", \"cast\", \"writes\"] },",
   "group": "folders"
  },
  {
@@ -1069,5 +1069,12 @@
   "find": "Press Make main again to finish.",
   "replace": "Press the same choice again to finish.",
   "group": "writes"
+ },
+ {
+  "id": "folders: the dialog reaches the writes",
+  "file": "tests/build/leaving-folders.test.ts",
+  "find": "\"properties\", \"cast\", \"writes\"] },\n];",
+  "replace": "\"properties\", \"cast\"] },\n];",
+  "group": "folders"
  }
 ]
