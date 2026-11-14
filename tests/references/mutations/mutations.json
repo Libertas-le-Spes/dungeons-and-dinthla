@@ -163,8 +163,8 @@
  {
   "id": "fence gives nothing for a note outside",
   "file": "src/fence/gate/fenced-metadata.ts",
-  "find": "    if (!this.held.holdsPath(path)) return [];\n    const links = this.metadata.unresolvedLinks",
-  "replace": "    const links = this.metadata.unresolvedLinks",
+  "find": "    if (!this.held.holdsPath(path)) return [];\n    const found = Object.entries(this.metadata.unresolvedLinks)",
+  "replace": "    const found = Object.entries(this.metadata.unresolvedLinks)",
   "group": "fence"
  },
  {
@@ -324,7 +324,7 @@
  {
   "id": "the property is first named",
   "file": "src/references/making/first-named-property.ts",
-  "find": "properties[FIRST_NAMED] = sessionLink;",
+  "find": "properties[\"first named\"] = sessionLink;",
   "replace": "properties.session = sessionLink;",
   "group": "making maker"
  },
