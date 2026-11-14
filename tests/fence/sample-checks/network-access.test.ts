@@ -1,14 +1,17 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ALL_ALLOWED, NOTHING_ALLOWED } from "../scan/running/allowance-sets";
 import { numberedFileNames, SampleScan } from "../scan/running/sample-scan";
-import { NETWORK_NAMING_SAMPLES } from "../samples/network-samples";
+import { ALLOWED_NETWORK_SAMPLES, CHARACTER_ID_FORGING_SAMPLES, CHARACTER_ID_KEEPING_SAMPLES, NETWORK_DEFECT_SAMPLES, NETWORK_NAMING_SAMPLES } from "../samples/network-samples";
 
 const NAMED_OUTSIDE = /^\S+:\d+ names (requestUrl|request), which only the file allowed the network may$/;
+
+const DEFECTED = NETWORK_DEFECT_SAMPLES.map((defect) => defect.sample);
+const SAMPLES = [...NETWORK_NAMING_SAMPLES, ...ALLOWED_NETWORK_SAMPLES, ...DEFECTED, ...CHARACTER_ID_FORGING_SAMPLES, ...CHARACTER_ID_KEEPING_SAMPLES];
 
 let scan: SampleScan;
 
 beforeAll(() => {
-  scan = new SampleScan("network-access", NETWORK_NAMING_SAMPLES, numberedFileNames(NETWORK_NAMING_SAMPLES));
+  scan = new SampleScan("network-access", SAMPLES, numberedFileNames(SAMPLES));
 });
 
 afterAll(() => {
@@ -25,5 +28,26 @@ describe("the source scan's network rules, in a file not allowed the network", (
   it.each(NETWORK_NAMING_SAMPLES)("would catch naming requestUrl or request with %s, even in a file allowed everything else but the network", (sample) => {
     const breaches = scan.breaches(sample, { ...ALL_ALLOWED, network: () => false });
     expect(breaches.filter((breach) => NAMED_OUTSIDE.test(breach))).not.toEqual([]);
+  });
+});
+
+describe("the source scan's network rules, in the one file allowed the network", () => {
+  it.each(ALLOWED_NETWORK_SAMPLES)("lets %s pass, since it is the one call exactly as allowed", (sample) => {
+    expect(scan.breaches(sample, ALL_ALLOWED)).toEqual([]);
+  });
+
+  it.each(NETWORK_DEFECT_SAMPLES)("would catch a defect of the call, even in a file allowed the network", ({ sample, breach }) => {
+    const breaches = scan.breaches(sample, ALL_ALLOWED);
+    expect(breaches.filter((found) => breach.test(found)), `${sample} gave ${breaches.join(" | ")}`).not.toEqual([]);
+  });
+});
+
+describe("the source scan's rules on forging a CharacterId", () => {
+  it.each(CHARACTER_ID_FORGING_SAMPLES)("would catch forging one outside src/online with %s, even in a file allowed everything else", (sample) => {
+    expect(scan.breaches(sample, ALL_ALLOWED)).not.toEqual([]);
+  });
+
+  it.each(CHARACTER_ID_KEEPING_SAMPLES)("lets %s pass in a file allowed everything else, since the id comes from CharacterId.of", (sample) => {
+    expect(scan.breaches(sample, ALL_ALLOWED)).toEqual([]);
   });
 });
