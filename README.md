@@ -74,9 +74,10 @@ A short walkthrough:
 When a character leaves play:
 
 1. Import your next character. The plugin asks what happened to the one you played: *Died*, *Retired* or *Backup*.
-2. For *Died* or *Retired*, you can say what they were last doing. The plugin writes a short record in the campaign's `Fallen` folder first, and only then makes the new character yours.
-3. A *Backup* writes no record. You'll find your backups at the bottom of the Characters page, each with *Make main* for when you want to play them.
-4. A fallen character can come back: update them from D&D Beyond and the plugin offers to make them yours again. Their record stays.
+2. For *Died* or *Retired*, you can say what they were last doing. Their note moves to the campaign's `Fallen` folder with a dated snapshot added at the bottom, and the new character becomes yours.
+3. A *Backup* stays in `Characters`. You'll find your backups at the bottom of the Characters page, each with *Make main* for when you want to play them.
+4. Fallen characters are listed on the Characters page under *Fallen*, each with *Make main*. Their note moves back to `Characters` and keeps its snapshots; if they leave play again, another dated snapshot is added.
+5. If a switch stops part way, the message says what was written. Press *Make main* again to finish it.
 
 ## Planning
 
