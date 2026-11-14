@@ -11,6 +11,7 @@ import {
   madeUpCampaign,
   MONK,
   MONK_FALLEN,
+  MONK_TEXT,
   refusalWhen,
   SECOND,
   SECOND_AS_MAIN,
@@ -257,6 +258,15 @@ describe("a switch that stops part way", () => {
     await table.makeMain(SECOND, null, true).run();
     expect(table.vault.writes).toEqual([`process ${SECOND}`]);
     expect(table.vault.textAt(SECOND)).toBe(SECOND_FREE);
+  });
+});
+
+describe("finishing for an old main", () => {
+  it("leaves an old main that hasn't left play where it is", async () => {
+    const table = new LeavingTable("---\nrole: player\n---\n");
+    await table.makeMain(SECOND, MONK).run();
+    expect(table.vault.moved).toEqual([]);
+    expect(table.vault.textAt(MONK)).toBe(MONK_TEXT);
   });
 });
 

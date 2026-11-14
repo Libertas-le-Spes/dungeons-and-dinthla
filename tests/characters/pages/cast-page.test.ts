@@ -9,7 +9,11 @@ function fileOf(name: string): TFile {
   return { path: `Pale Moon/Characters/${name}.md`, basename: name } as TFile;
 }
 
-function openCast({ folder = "Pale Moon" as string | null, characters = ["Mira", "Thessaly"], own = "" } = {}) {
+function fallenFileOf(name: string): TFile {
+  return { path: `Pale Moon/Fallen/${name}.md`, basename: name } as TFile;
+}
+
+function openCast({ folder = "Pale Moon" as string | null, characters = ["Mira", "Thessaly"], own = "", fallen = [] as string[] } = {}) {
   let campaignChanged = () => {};
   let noteChanged: (path: string) => void = () => {};
   let fileChanged: (path: string) => void = () => {};
@@ -24,7 +28,7 @@ function openCast({ folder = "Pale Moon" as string | null, characters = ["Mira",
       return unsubscribe;
     },
   };
-  const shown = { names: characters };
+  const shown = { names: characters, fallen };
   const filesIn = vi.fn(() => shown.names.map(fileOf));
   const notes: CastNotes = {
     holds: () => true,
@@ -33,7 +37,7 @@ function openCast({ folder = "Pale Moon" as string | null, characters = ["Mira",
     isOwnCharacter: (file) => file.basename === own,
     campaignFolders: () => ["Pale Moon"],
     filesIn,
-    fallenFilesIn: () => [],
+    fallenFilesIn: () => shown.fallen.map(fallenFileOf),
     sessionsOf: async () => [],
     onNoteChanged: (changed) => {
       noteChanged = changed;
@@ -96,6 +100,16 @@ describe("CastPage", () => {
     shown.names = ["Brother Aldric", "Mira", "Thessaly"];
     fileChanged("Pale Moon/Characters/Brother Aldric.md");
     await shownNames(page, root, ["Brother Aldric", "Mira", "Thessaly"]);
+  });
+
+  it("shows the fallen in their own list, and draws it again when a note in Fallen changes", async () => {
+    const { page, root, shown, fileChanged } = openCast({ fallen: ["Brann"] });
+    await page.rendered();
+    expect([...root.querySelectorAll(".dd-fallen .dd-stat-block-name")].map((name) => name.textContent)).toEqual(["Brann"]);
+    shown.fallen = ["Brann", "Isolde"];
+    fileChanged("Pale Moon/Fallen/Isolde.md");
+    await page.rendered();
+    expect([...root.querySelectorAll(".dd-fallen .dd-stat-block-name")].map((name) => name.textContent)).toEqual(["Brann", "Isolde"]);
   });
 
   it("reads the cards again when the campaign note changes", async () => {

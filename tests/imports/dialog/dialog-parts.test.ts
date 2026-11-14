@@ -177,4 +177,12 @@ describe("opening the dialog", () => {
     expect(outside.tell).toHaveBeenCalledExactlyOnceWith("This note isn't in a campaign, so it can't be updated from D&D Beyond.");
     expect(openedModals.length).toBe(before + 1);
   });
+
+  it("asks about Make main for a note that is gone, telling the user and returning focus", () => {
+    const wiring = wiringWith("D&D/Primary Campaign", "D&D/Primary Campaign");
+    const returnFocus = vi.fn();
+    new BeyondOpeners(wiring).makeMain(`${CHARACTERS_FOLDER}/Gone.md`, returnFocus);
+    expect(wiring.tell).toHaveBeenCalledExactlyOnceWith("A character's note was moved or deleted since you were asked, so nothing was switched.");
+    expect(returnFocus).toHaveBeenCalledOnce();
+  });
 });

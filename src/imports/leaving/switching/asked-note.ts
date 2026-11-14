@@ -12,6 +12,6 @@ export class AskedNote {
   }
 
   isStillThere(files: LeavingFiles): boolean {
-    return this.file.path === this.path && files.getFileByPath(this.path) === this.file;
+    return files.getFileByPath(this.path) === this.file;
   }
 }
