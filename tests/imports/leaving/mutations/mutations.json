@@ -1,485 +1,1073 @@
 [
  {
-  "id": "record before switch",
+  "id": "old note's snapshot before its move",
   "file": "src/imports/leaving/switching/old-main-steps.ts",
-  "find": "    try {\n      await this.records.put(this.plan.campaignFolder, this.old.basename, this.recordText(standing, how));\n    } catch (error) {\n      throw refusalAfter(recordFailed(this.old.basename), error);\n    }\n    try {\n      await this.markAs(standing);\n",
-  "replace": "    try {\n      await this.markAs(standing);\n      await this.records.put(this.plan.campaignFolder, this.old.basename, this.recordText(standing, how));\n    } catch (error) {\n      throw refusalAfter(recordFailed(this.old.basename), error);\n    }\n    try {\n",
+  "find": "      new TextWrite(this.files, this.old, before, after, markedWithSnapshot(this.old.basename, standing), markFailed(this.old.basename)),\n      this.moveTo(destination),\n",
+  "replace": "      this.moveTo(destination),\n      new TextWrite(this.files, this.old, before, after, markedWithSnapshot(this.old.basename, standing), markFailed(this.old.basename)),\n",
   "group": "order"
  },
  {
-  "id": "a failed record stops the switch",
-  "file": "src/imports/leaving/switching/old-main-steps.ts",
-  "find": "      throw refusalAfter(recordFailed(this.old.basename), error);",
-  "replace": "      void error;",
+  "id": "campaign note before the new one's mark comes off",
+  "file": "src/imports/leaving/switching/chosen-steps.ts",
+  "find": "    if (!this.plan.chosenIsNamed) writes.push(new CampaignWrite(this.files, this.cast, this.plan));\n    if (after !== before) writes.push(new TextWrite(this.files, chosen, before, after, markTakenOff(chosen.basename), markTakeOffFailed(chosen.basename)));\n",
+  "replace": "    if (after !== before) writes.push(new TextWrite(this.files, chosen, before, after, markTakenOff(chosen.basename), markTakeOffFailed(chosen.basename)));\n    if (!this.plan.chosenIsNamed) writes.push(new CampaignWrite(this.files, this.cast, this.plan));\n",
   "group": "order"
  },
  {
-  "id": "a failed mark after the record is partly written",
-  "file": "src/imports/leaving/switching/old-main-steps.ts",
-  "find": "      throw partlyAfter(markFailedAfterRecord(this.old.basename), error);",
-  "replace": "      throw refusalAfter(markFailedAfterRecord(this.old.basename), error);",
+  "id": "the new one moves back before the campaign note names them",
+  "file": "src/imports/leaving/switching/chosen-steps.ts",
+  "find": "    if (isInFallen(chosen, this.plan.campaignFolder)) writes.push(this.moveBack());\n    if (!this.plan.chosenIsNamed) writes.push(new CampaignWrite(this.files, this.cast, this.plan));\n",
+  "replace": "    if (!this.plan.chosenIsNamed) writes.push(new CampaignWrite(this.files, this.cast, this.plan));\n    if (isInFallen(chosen, this.plan.campaignFolder)) writes.push(this.moveBack());\n",
   "group": "order"
  },
  {
-  "id": "the record names the newest session",
-  "file": "src/imports/leaving/switching/old-main-steps.ts",
-  "find": "const sessionLink = this.cast.newestSessionLink(this.plan.campaignFolder, recordPath);",
-  "replace": "const sessionLink = null;",
-  "group": "record"
+  "id": "the campaign link is the cast's, taken after any move",
+  "file": "src/imports/leaving/switching/campaign-write.ts",
+  "find": "const link = this.cast.linkTo(this.plan.chosen.file, this.plan.campaignNote.path);",
+  "replace": "const link = this.plan.chosen.file.basename;",
+  "group": "order"
  },
  {
-  "id": "Died writes the record",
+  "id": "the campaign note is checked before the first write",
+  "file": "src/imports/leaving/switching/campaign-write.ts",
+  "find": "    textWithProperty(plan.asked, MAIN_CHARACTER_PROPERTY, mainLineOf(name));\n",
+  "replace": "",
+  "group": "checks"
+ },
+ {
+  "id": "the new one's note is checked before the first write",
+  "file": "src/imports/leaving/choices/leave-as-choice.ts",
+  "find": "    const chosenWrites = await this.mainSwitch.chosenWrites();\n    await new WriteSequence([...oldWrites, ...chosenWrites]).run();\n",
+  "replace": "    await new WriteSequence(oldWrites).run();\n    const chosenWrites = await this.mainSwitch.chosenWrites();\n    await new WriteSequence(chosenWrites).run();\n",
+  "group": "checks"
+ },
+ {
+  "id": "Fallen holding that name stops the move",
+  "file": "src/imports/leaving/switching/old-main-steps.ts",
+  "find": "    if (taken !== null) throw fallenNoteExists(taken.basename);\n",
+  "replace": "",
+  "group": "checks"
+ },
+ {
+  "id": "Characters holding that name stops the move back",
+  "file": "src/imports/leaving/switching/chosen-steps.ts",
+  "find": "    if (taken !== null) throw charactersNoteExists(taken.basename);\n",
+  "replace": "",
+  "group": "checks"
+ },
+ {
+  "id": "a failure with nothing written says nothing was switched",
+  "file": "src/imports/leaving/writes/write-sequence.ts",
+  "find": "        if (done.length === 0) throw nothingSwitched(write.failed, error);\n",
+  "replace": "",
+  "group": "writes"
+ },
+ {
+  "id": "each write is named when done",
+  "file": "src/imports/leaving/writes/write-sequence.ts",
+  "find": "      done.push(write.done);\n",
+  "replace": "",
+  "group": "writes"
+ },
+ {
+  "id": "a stopped switch says to press again",
+  "file": "src/imports/leaving/writes/write-words.ts",
+  "find": "export const PRESS_AGAIN = \"Press the same choice again to finish.\";",
+  "replace": "export const PRESS_AGAIN = \"\";",
+  "group": "writes"
+ },
+ {
+  "id": "a text write refuses when the note changed",
+  "file": "src/imports/leaving/writes/text-write.ts",
+  "find": "await writeWhenUnchangedSinceRead(this.files, this.file, this.before, this.after);",
+  "replace": "await this.files.process(this.file, () => this.after);",
+  "group": "writes"
+ },
+ {
+  "id": "the Fallen folder is made only when it is missing",
+  "file": "src/imports/leaving/writes/move-write.ts",
+  "find": "if (this.files.getFolderByPath(folder) === null) await this.files.createFolder(folder);",
+  "replace": "await this.files.createFolder(folder);",
+  "group": "writes"
+ },
+ {
+  "id": "the move goes through the file manager",
+  "file": "src/imports/leaving/writes/move-write.ts",
+  "find": "await this.actions.renameFile(this.file, this.newPath);",
+  "replace": "",
+  "group": "writes"
+ },
+ {
+  "id": "Died moves the note",
   "file": "src/imports/leaving/reasons/died.ts",
-  "find": "await steps.recordThenStanding(DIED_STANDING, this.words);",
-  "replace": "await steps.standingOnly(DIED_STANDING);",
+  "find": "return steps.intoFallen(DIED_STANDING, this.words);",
+  "replace": "return steps.markedOnly(DIED_STANDING);",
   "group": "reasons"
  },
  {
   "id": "Died marks died",
   "file": "src/imports/leaving/reasons/died.ts",
-  "find": "recordThenStanding(DIED_STANDING,",
-  "replace": "recordThenStanding(RETIRED_STANDING,",
+  "find": "steps.intoFallen(DIED_STANDING,",
+  "replace": "steps.intoFallen(RETIRED_STANDING,",
   "group": "reasons"
  },
  {
-  "id": "Retired writes the record",
+  "id": "Retired moves the note",
   "file": "src/imports/leaving/reasons/retired.ts",
-  "find": "await steps.recordThenStanding(RETIRED_STANDING, this.words);",
-  "replace": "await steps.standingOnly(RETIRED_STANDING);",
+  "find": "return steps.intoFallen(RETIRED_STANDING, this.words);",
+  "replace": "return steps.markedOnly(RETIRED_STANDING);",
   "group": "reasons"
  },
  {
   "id": "Retired marks retired",
   "file": "src/imports/leaving/reasons/retired.ts",
-  "find": "recordThenStanding(RETIRED_STANDING,",
-  "replace": "recordThenStanding(DIED_STANDING,",
+  "find": "steps.intoFallen(RETIRED_STANDING,",
+  "replace": "steps.intoFallen(DIED_STANDING,",
   "group": "reasons"
  },
  {
-  "id": "Backup writes no record",
+  "id": "Backup moves nothing",
   "file": "src/imports/leaving/reasons/backup.ts",
-  "find": "await steps.standingOnly(BACKUP_STANDING);",
-  "replace": "await steps.recordThenStanding(BACKUP_STANDING, this.words);",
+  "find": "return steps.markedOnly(BACKUP_STANDING);",
+  "replace": "return steps.intoFallen(BACKUP_STANDING, this.words);",
   "group": "reasons"
  },
  {
   "id": "Backup marks backup",
   "file": "src/imports/leaving/reasons/backup.ts",
-  "find": "standingOnly(BACKUP_STANDING)",
-  "replace": "standingOnly(\"died\")",
+  "find": "steps.markedOnly(BACKUP_STANDING)",
+  "replace": "steps.markedOnly(DIED_STANDING)",
   "group": "reasons"
  },
  {
-  "id": "all three reasons offered",
+  "id": "all three reasons are offered",
   "file": "src/imports/leaving/reasons/leaving-reasons.ts",
   "find": "[new Died(), new Retired(), new Backup()]",
   "replace": "[new Died(), new Retired()]",
   "group": "reasons"
  },
  {
-  "id": "record: identity ends with a full stop",
-  "file": "src/imports/leaving/record/fallen-record.ts",
-  "find": "return `${parts.join(PART_BREAK)}.`;",
-  "replace": "return parts.join(PART_BREAK);",
-  "group": "record"
+  "id": "Backup ignores what was typed",
+  "file": "src/imports/leaving/switching/old-main-steps.ts",
+  "find": "  async markedOnly(standing: string): Promise<PlannedWrite[]> {\n",
+  "replace": "  async markedOnly(standing: string): Promise<PlannedWrite[]> {\n    lastDoingOf(this.typedLastDoing);\n",
+  "group": "reasons"
  },
  {
-  "id": "record: no session, no link",
-  "file": "src/imports/leaving/record/fallen-record.ts",
+  "id": "a note already marked is not written again",
+  "file": "src/imports/leaving/switching/old-main-steps.ts",
+  "find": "    if (after === before) return [];\n",
+  "replace": "",
+  "group": "reasons"
+ },
+ {
+  "id": "the old note is marked as asked",
+  "file": "src/imports/leaving/switching/old-main-steps.ts",
+  "find": "const markedText = textWithProperty(before, STANDING_PROPERTY, propertyLine(STANDING_PROPERTY, standing));",
+  "replace": "const markedText = before;",
+  "group": "reasons"
+ },
+ {
+  "id": "the new one's mark is taken off",
+  "file": "src/imports/leaving/switching/chosen-steps.ts",
+  "find": "const after = textWithProperty(before, STANDING_PROPERTY, null);",
+  "replace": "const after = before;",
+  "group": "reasons"
+ },
+ {
+  "id": "a character left in Characters with a left mark moves to Fallen when finished",
+  "file": "src/imports/leaving/switching/old-main-steps.ts",
+  "find": "    if (!hasLeftPlay(standingOf(await textOfNote(this.files, this.old, NOTE_UNREAD)))) return [];\n",
+  "replace": "",
+  "group": "reasons"
+ },
+ {
+  "id": "finishing moves only a note in Characters",
+  "file": "src/imports/leaving/switching/old-main-steps.ts",
+  "find": "    if (!isInCharacters(this.old, this.plan.campaignFolder)) return [];\n",
+  "replace": "",
+  "group": "reasons"
+ },
+ {
+  "id": "the new one's note moves back only from Fallen",
+  "file": "src/imports/leaving/switching/chosen-steps.ts",
+  "find": "if (isInFallen(chosen, this.plan.campaignFolder)) writes.push(this.moveBack());",
+  "replace": "writes.push(this.moveBack());",
+  "group": "reasons"
+ },
+ {
+  "id": "the campaign note is written unless it already names the new one",
+  "file": "src/imports/leaving/switching/chosen-steps.ts",
+  "find": "if (!this.plan.chosenIsNamed) writes.push(",
+  "replace": "writes.push(",
+  "group": "reasons"
+ },
+ {
+  "id": "the snapshot names the latest session",
+  "file": "src/imports/leaving/switching/old-main-steps.ts",
+  "find": "const sessionLink = this.cast.latestSessionLink(this.plan.campaignFolder, destination);",
+  "replace": "const sessionLink = null;",
+  "group": "snapshot"
+ },
+ {
+  "id": "the snapshot is added to the note",
+  "file": "src/imports/leaving/switching/old-main-steps.ts",
+  "find": "const after = withSnapshot(markedText, leaving, heldOf(campaign, this.old.basename), LineEnding.of(before));",
+  "replace": "const after = markedText;",
+  "group": "snapshot"
+ },
+ {
+  "id": "the snapshot is of the old note's character",
+  "file": "src/imports/leaving/switching/old-main-steps.ts",
+  "find": "heldOf(campaign, this.old.basename)",
+  "replace": "heldOf(campaign, this.plan.chosen.file.basename)",
+  "group": "snapshot"
+ },
+ {
+  "id": "the snapshot is dated today",
+  "file": "src/imports/leaving/switching/old-main-steps.ts",
+  "find": "const leaving = { how, day: this.plan.today, sessionLink, lastDoing };",
+  "replace": "const leaving = { how, day: \"2000-01-01\", sessionLink, lastDoing };",
+  "group": "snapshot"
+ },
+ {
+  "id": "the snapshot keeps the note's line breaks",
+  "file": "src/imports/leaving/snapshot/snapshot-text.ts",
+  "find": "const written = snapshotLinesOf(leaving, held).map((line) => ending.ends(line));",
+  "replace": "const written = snapshotLinesOf(leaving, held);",
+  "group": "snapshot"
+ },
+ {
+  "id": "a note without a final line break gets one",
+  "file": "src/imports/leaving/snapshot/snapshot-text.ts",
+  "find": "  if (text.endsWith(LINE_BREAK)) return text;\n",
+  "replace": "  return text;\n",
+  "group": "snapshot"
+ },
+ {
+  "id": "the snapshot says when they left",
+  "file": "src/imports/leaving/snapshot/snapshot-text.ts",
+  "find": "`## ${SNAPSHOT_HEADING} ${leaving.day}`,",
+  "replace": "`## ${SNAPSHOT_HEADING}`,",
+  "group": "snapshot"
+ },
+ {
+  "id": "the snapshot names the session only when there is one",
+  "file": "src/imports/leaving/snapshot/snapshot-text.ts",
   "find": "  if (leaving.sessionLink === null) return `${leaving.how} on ${leaving.day}.`;\n",
   "replace": "",
-  "group": "record"
+  "group": "snapshot"
  },
  {
-  "id": "record: nothing typed, no line",
-  "file": "src/imports/leaving/record/fallen-record.ts",
+  "id": "the snapshot says what they were last doing",
+  "file": "src/imports/leaving/snapshot/snapshot-text.ts",
   "find": "  if (leaving.lastDoing === null) return [];\n",
   "replace": "",
-  "group": "record"
+  "group": "snapshot"
  },
  {
-  "id": "record: identity made inert",
-  "file": "src/imports/leaving/record/fallen-record.ts",
-  "find": "    const line = neutralLineOf(part);",
-  "replace": "    const line: string | null = part;",
-  "group": "record"
- },
- {
-  "id": "record: standing property",
-  "file": "src/imports/leaving/record/fallen-record.ts",
-  "find": "`standing: ${leaving.standing}`, ",
+  "id": "a list with nothing in it is left out",
+  "file": "src/imports/leaving/snapshot/snapshot-text.ts",
+  "find": "  if (entries.length === 0) return [];\n",
   "replace": "",
-  "group": "record"
+  "group": "snapshot"
  },
  {
-  "id": "last doing made inert",
-  "file": "src/imports/leaving/record/last-doing.ts",
-  "find": "  const line = neutralLineOf(trimmed);",
-  "replace": "  const line: string | null = trimmed;",
-  "group": "record"
+  "id": "the snapshot keeps three",
+  "file": "src/imports/leaving/snapshot/snapshot-limits.ts",
+  "find": "NEWEST_KEPT = 3",
+  "replace": "NEWEST_KEPT = 4",
+  "group": "snapshot"
  },
  {
-  "id": "last doing: 301 refused",
-  "file": "src/imports/leaving/record/last-doing.ts",
-  "find": "if (characterCountOf(trimmed) > MOST_LAST_DOING)",
-  "replace": "if (characterCountOf(trimmed) > MOST_LAST_DOING + 1)",
-  "group": "record"
+  "id": "the newest come first",
+  "file": "src/imports/leaving/snapshot/held-by-character.ts",
+  "find": "return neutralLinesOf(texts).slice(-NEWEST_KEPT).reverse();",
+  "replace": "return neutralLinesOf(texts).slice(-NEWEST_KEPT);",
+  "group": "snapshot"
  },
  {
-  "id": "last doing: 300 taken",
-  "file": "src/imports/leaving/record/last-doing.ts",
-  "find": "if (characterCountOf(trimmed) > MOST_LAST_DOING)",
-  "replace": "if (characterCountOf(trimmed) >= MOST_LAST_DOING)",
-  "group": "record"
+  "id": "only open questions are kept",
+  "file": "src/imports/leaving/snapshot/held-by-character.ts",
+  "find": "campaign.questions.filter((question) => question.answer === null)",
+  "replace": "campaign.questions.filter(() => true)",
+  "group": "snapshot"
  },
  {
-  "id": "last doing: one line",
-  "file": "src/imports/leaving/record/last-doing.ts",
+  "id": "only active quests are kept",
+  "file": "src/imports/leaving/snapshot/held-by-character.ts",
+  "find": "campaign.quests.filter((quest) => quest.outcome === null)",
+  "replace": "campaign.quests.filter(() => true)",
+  "group": "snapshot"
+ },
+ {
+  "id": "the coin entries are the latest",
+  "file": "src/imports/leaving/snapshot/held-by-character.ts",
+  "find": "coins: newestLines(campaign.coins.map((coin) => coin.text)),",
+  "replace": "coins: [],",
+  "group": "snapshot"
+ },
+ {
+  "id": "items that are gone are left out",
+  "file": "src/imports/leaving/snapshot/held-by-character.ts",
+  "find": "item.gone === null && heldBy(item.holder, name)",
+  "replace": "heldBy(item.holder, name)",
+  "group": "snapshot"
+ },
+ {
+  "id": "only the character's own items are kept",
+  "file": "src/imports/leaving/snapshot/held-by-character.ts",
+  "find": "item.gone === null && heldBy(item.holder, name)",
+  "replace": "item.gone === null",
+  "group": "snapshot"
+ },
+ {
+  "id": "a holder written as a path is read by its name",
+  "file": "src/imports/leaving/snapshot/held-by-character.ts",
+  "find": "return holder.slice(holder.lastIndexOf(\"/\") + 1);",
+  "replace": "return holder;",
+  "group": "snapshot"
+ },
+ {
+  "id": "a holder is matched whatever its capitals",
+  "file": "src/imports/leaving/snapshot/held-by-character.ts",
+  "find": "nameKeyOf(holderNameOf(holder)) === nameKeyOf(name)",
+  "replace": "holderNameOf(holder) === name",
+  "group": "snapshot"
+ },
+ {
+  "id": "what is taken from the notes is made inert",
+  "file": "src/imports/leaving/snapshot/held-by-character.ts",
+  "find": "    const line = neutralLineOf(text);\n    if (line !== null) lines.push(line);",
+  "replace": "    lines.push(text);",
+  "group": "snapshot"
+ },
+ {
+  "id": "last doing may be 300 characters",
+  "file": "src/imports/leaving/snapshot/last-doing.ts",
+  "find": "characterCountOf(trimmed) > MOST_LAST_DOING",
+  "replace": "characterCountOf(trimmed) >= MOST_LAST_DOING",
+  "group": "snapshot"
+ },
+ {
+  "id": "last doing over 300 characters is refused",
+  "file": "src/imports/leaving/snapshot/last-doing.ts",
+  "find": "  if (characterCountOf(trimmed) > MOST_LAST_DOING) throw lastDoingTooLong();\n",
+  "replace": "",
+  "group": "snapshot"
+ },
+ {
+  "id": "last doing is one line",
+  "file": "src/imports/leaving/snapshot/last-doing.ts",
   "find": "  if (line === null) throw lastDoingNotOneLine();\n",
-  "replace": "  if (line === null) return null;\n",
-  "group": "record"
+  "replace": "",
+  "group": "snapshot"
  },
  {
-  "id": "last doing: nothing typed",
-  "file": "src/imports/leaving/record/last-doing.ts",
+  "id": "last doing is checked before any write",
+  "file": "src/imports/leaving/switching/old-main-steps.ts",
+  "find": "    const lastDoing = lastDoingOf(this.typedLastDoing);\n    const before = await textOfNote(this.files, this.old, NOTE_UNREAD);",
+  "replace": "    const before = await textOfNote(this.files, this.old, NOTE_UNREAD);\n    const lastDoing = null;",
+  "group": "snapshot"
+ },
+ {
+  "id": "a typed line break is refused",
+  "file": "src/imports/leaving/snapshot/neutral-line.ts",
+  "find": "  if (written.includes(LINE_BREAK)) return null;\n",
+  "replace": "",
+  "group": "snapshot"
+ },
+ {
+  "id": "empty text is no line",
+  "file": "src/imports/leaving/snapshot/neutral-line.ts",
   "find": "  if (trimmed === \"\") return null;\n",
   "replace": "",
-  "group": "record"
+  "group": "snapshot"
  },
  {
-  "id": "record: an existing record refuses",
-  "file": "src/imports/leaving/record/record-writer.ts",
-  "find": "    if (existing !== null) throw recordExists(existing.basename);\n",
-  "replace": "",
-  "group": "record"
- },
- {
-  "id": "record: read back",
-  "file": "src/imports/leaving/record/record-writer.ts",
-  "find": "    if (written !== text) throw recordNotAsWritten(name);\n",
-  "replace": "",
-  "group": "record"
- },
- {
-  "id": "record: folder made only when missing",
-  "file": "src/imports/leaving/record/record-writer.ts",
-  "find": "if (this.files.getFolderByPath(folder) === null) await",
-  "replace": "if (this.files.getFolderByPath(folder) !== null) await",
-  "group": "record"
- },
- {
-  "id": "property: twice refused",
+  "id": "a property twice is refused",
   "file": "src/imports/leaving/properties/property-span.ts",
   "find": "      if (this.start !== null) throw propertyTwice(this.key);\n",
   "replace": "",
   "group": "properties"
  },
  {
-  "id": "property: capitals refused",
+  "id": "a property under other capitals is refused",
   "file": "src/imports/leaving/properties/property-span.ts",
   "find": "    if (found.toLowerCase() === this.key.toLowerCase()) throw propertyByCapitals(found, this.key);\n",
   "replace": "",
   "group": "properties"
  },
  {
-  "id": "property: continuation lines go with it",
+  "id": "a property keeps its continuation lines",
   "file": "src/imports/leaving/properties/property-span.ts",
-  "find": "    if (this.owned) this.end = position + 1;",
-  "replace": "    if (this.owned && found !== null) this.end = position + 1;",
+  "find": "    else if (!continuesAKey(plain)) this.owned = false;\n",
+  "replace": "    else this.owned = false;\n",
   "group": "properties"
  },
  {
-  "id": "property: new block",
+  "id": "a blank or comment line above is refused",
+  "file": "src/imports/leaving/properties/property-lines.ts",
+  "find": "return isLoose(this.lines.at(span.start - 1)) || isLoose(this.lines.at(span.end));",
+  "replace": "return isLoose(this.lines.at(span.end));",
+  "group": "properties"
+ },
+ {
+  "id": "a blank or comment line below is refused",
+  "file": "src/imports/leaving/properties/property-lines.ts",
+  "find": "return isLoose(this.lines.at(span.start - 1)) || isLoose(this.lines.at(span.end));",
+  "replace": "return isLoose(this.lines.at(span.start - 1));",
+  "group": "properties"
+ },
+ {
+  "id": "a comment line counts as loose",
+  "file": "src/imports/leaving/properties/property-lines.ts",
+  "find": "return plain === \"\" || plain.startsWith(COMMENT);",
+  "replace": "return plain === \"\";",
+  "group": "properties"
+ },
+ {
+  "id": "a blank line counts as loose",
+  "file": "src/imports/leaving/properties/property-lines.ts",
+  "find": "return plain === \"\" || plain.startsWith(COMMENT);",
+  "replace": "return plain.startsWith(COMMENT);",
+  "group": "properties"
+ },
+ {
+  "id": "a property already as wanted is left alone",
   "file": "src/imports/leaving/properties/one-property.ts",
-  "find": "  if (!note.hasBlock()) return withNewBlock(note, added);\n",
+  "find": "  if (note.spanIs(span, wanted)) return text;\n",
   "replace": "",
   "group": "properties"
  },
  {
-  "id": "property: added before the closing fence",
+  "id": "loose lines stop a change",
   "file": "src/imports/leaving/properties/one-property.ts",
-  "find": "  if (span === null) return spliced(note, note.closing(), note.closing(), added);",
-  "replace": "  if (span === null) return spliced(note, note.bodyStart, note.bodyStart, added);",
+  "find": "  if (note.hasLooseLineNextTo(span)) throw propertyNextToLoose(key);\n",
+  "replace": "",
   "group": "properties"
  },
  {
-  "id": "read back: outside the property",
+  "id": "a property is added before the closing line",
+  "file": "src/imports/leaving/properties/one-property.ts",
+  "find": "if (span === null) return spliced(note, note.closing(), note.closing(), added);",
+  "replace": "if (span === null) return spliced(note, note.bodyStart, note.bodyStart, added);",
+  "group": "properties"
+ },
+ {
+  "id": "a property starts a block when there is none",
+  "file": "src/imports/leaving/properties/one-property.ts",
+  "find": "  if (!note.hasBlock()) return withNewBlock(note, added);\n",
+  "replace": "  if (!note.hasBlock()) return text;\n",
+  "group": "properties"
+ },
+ {
+  "id": "a property is taken out",
+  "file": "src/imports/leaving/properties/one-property.ts",
+  "find": "  if (wanted === null) return [];\n",
+  "replace": "  if (wanted === null) return [\"\"];\n",
+  "group": "properties"
+ },
+ {
+  "id": "the note's own line breaks are kept",
+  "file": "src/imports/leaving/properties/one-property.ts",
+  "find": "  return [note.ending.ends(wanted)];",
+  "replace": "  return [wanted];",
+  "group": "properties"
+ },
+ {
+  "id": "nothing but the property may change",
   "file": "src/imports/leaving/properties/property-read-back.ts",
   "find": "  if (outsideTheProperty(before, key) !== outsideTheProperty(after, key)) throw propertyChangedMore(key);\n",
   "replace": "",
   "group": "properties"
  },
  {
-  "id": "read back: the value wanted",
+  "id": "the property must read as wanted",
   "file": "src/imports/leaving/properties/property-read-back.ts",
   "find": "  if (propertyLinesOf(after, key) !== wantedLinesOf(wanted)) throw propertyChangedMore(key);\n",
   "replace": "",
   "group": "properties"
  },
  {
-  "id": "read back: checked before writing",
-  "file": "src/imports/leaving/properties/property-setter.ts",
-  "find": "    refuseUnlessOnlyThePropertyChanged(before, after, key, wanted);\n",
+  "id": "the other properties must read the same",
+  "file": "src/imports/leaving/properties/property-read-back.ts",
+  "find": "  if (propertiesWithout(readBefore, key) !== propertiesWithout(readAfter, key)) throw propertyReadsDifferently(key);\n",
   "replace": "",
   "group": "properties"
  },
  {
-  "id": "value: a list is no value",
+  "id": "the property must read as wanted by Obsidian",
+  "file": "src/imports/leaving/properties/property-read-back.ts",
+  "find": "  if (valueIn(readAfter, key) !== wantedValueOf(wanted, key)) throw propertyReadsDifferently(key);\n",
+  "replace": "",
+  "group": "properties"
+ },
+ {
+  "id": "properties that can't be read are refused",
+  "file": "src/imports/leaving/properties/property-yaml.ts",
+  "find": "  try {\n    parsed = parseYaml(yaml);\n  } catch {\n    throw propertiesUnreadable(key);\n  }",
+  "replace": "  parsed = parseYaml(yaml);",
+  "group": "properties"
+ },
+ {
+  "id": "properties that read as a list or text are refused",
+  "file": "src/imports/leaving/properties/property-yaml.ts",
+  "find": "  if (!isProperties(parsed)) throw propertiesUnreadable(key);\n",
+  "replace": "",
+  "group": "properties"
+ },
+ {
+  "id": "properties that hold nothing read as none",
+  "file": "src/imports/leaving/properties/property-yaml.ts",
+  "find": "  if (parsed === null || parsed === undefined) return {};\n",
+  "replace": "",
+  "group": "properties"
+ },
+ {
+  "id": "a value on several lines is read whole",
   "file": "src/imports/leaving/properties/property-value.ts",
-  "find": "  if (lines.length !== 1) return null;\n",
-  "replace": "",
+  "find": "return note.linesIn(span.start, span.end).map((line) => valueAfterColon(plainLineOf(line)));",
+  "replace": "return [valueAfterColon(plainLineOf(note.linesIn(span.start, span.end).join(\"\")))];",
   "group": "properties"
  },
  {
-  "id": "check: the campaign note unchanged",
+  "id": "the main is read as a whole link",
+  "file": "src/imports/leaving/cast/gate-cast.ts",
+  "find": "const WHOLE_LINK = /^\\[\\[([^[\\]|#]+)(?:[|#][^[\\]]*)?\\]\\]$/;",
+  "replace": "const WHOLE_LINK = /\\[\\[([^[\\]|#]+)(?:[|#][^[\\]]*)?\\]\\]/;",
+  "group": "cast"
+ },
+ {
+  "id": "a property on several lines is refused",
+  "file": "src/imports/leaving/cast/gate-cast.ts",
+  "find": "    if (values.length !== 1) throw new Refusal(MAIN_UNCLEAR);\n",
+  "replace": "",
+  "group": "cast"
+ },
+ {
+  "id": "a quoted link is read without its quotes",
+  "file": "src/imports/leaving/cast/gate-cast.ts",
+  "find": "  if (value.length < 2 || !QUOTES.includes(quote) || value.charAt(value.length - 1) !== quote) return value;\n",
+  "replace": "  return value;\n",
+  "group": "cast"
+ },
+ {
+  "id": "an empty or null character is nobody",
+  "file": "src/imports/leaving/cast/gate-cast.ts",
+  "find": "const NO_VALUES: readonly string[] = [\"\", \"null\"];",
+  "replace": "const NO_VALUES: readonly string[] = [];",
+  "group": "cast"
+ },
+ {
+  "id": "a missing character property is nobody",
+  "file": "src/imports/leaving/cast/gate-cast.ts",
+  "find": "    if (values === null) return null;\n",
+  "replace": "    if (values === null) throw new Refusal(MAIN_UNCLEAR);\n",
+  "group": "cast"
+ },
+ {
+  "id": "a link to no note is refused",
+  "file": "src/imports/leaving/cast/gate-cast.ts",
+  "find": "    if (file === null) throw new Refusal(MAIN_UNCLEAR);\n    return file;",
+  "replace": "    return file!;",
+  "group": "cast"
+ },
+ {
+  "id": "the link is resolved from the campaign note",
+  "file": "src/imports/leaving/cast/gate-cast.ts",
+  "find": "this.metadata.getFirstLinkpathDest(linkpathOf(written), campaignNote.path)",
+  "replace": "this.metadata.getFirstLinkpathDest(linkpathOf(written), \"\")",
+  "group": "cast"
+ },
+ {
+  "id": "the newest session is the latest",
+  "file": "src/imports/leaving/cast/gate-cast.ts",
+  "find": "const path = latestSession(campaignFolder, this.files.getFiles().map((file) => file.path));",
+  "replace": "const path = this.files.getFiles().map((file) => file.path).at(0)!;",
+  "group": "cast"
+ },
+ {
+  "id": "the campaign note is checked since the question",
   "file": "src/imports/leaving/switching/main-switch.ts",
   "find": "    if (now !== this.plan.asked) throw new Refusal(CAMPAIGN_NOTE_CHANGED);\n",
   "replace": "",
-  "group": "switching"
+  "group": "still"
  },
  {
-  "id": "check: the notes still there",
+  "id": "the campaign note and the new one are checked",
   "file": "src/imports/leaving/switching/main-switch.ts",
-  "find": "      if (this.files.getFileByPath(note.path) !== note) throw new Refusal(NOTE_MOVED);\n",
-  "replace": "",
-  "group": "switching"
+  "find": "for (const note of [this.plan.campaignNote, this.plan.chosen]) this.refuseUnlessThere(note);",
+  "replace": "for (const note of [this.plan.campaignNote]) this.refuseUnlessThere(note);",
+  "group": "still"
  },
  {
-  "id": "finish: the new main's mark taken off",
+  "id": "the campaign note is checked to be there",
   "file": "src/imports/leaving/switching/main-switch.ts",
-  "find": "    await this.properties.set(this.plan.chosen, STANDING_PROPERTY, null);\n",
-  "replace": "",
-  "group": "switching"
+  "find": "for (const note of [this.plan.campaignNote, this.plan.chosen]) this.refuseUnlessThere(note);",
+  "replace": "for (const note of [this.plan.chosen]) this.refuseUnlessThere(note);",
+  "group": "still"
  },
  {
-  "id": "finish: the campaign note names the new main",
+  "id": "the old note is checked to be there",
   "file": "src/imports/leaving/switching/main-switch.ts",
-  "find": "    await this.properties.setFrom(this.plan.campaignNote, this.plan.asked, MAIN_CHARACTER_PROPERTY, this.mainLine());\n",
+  "find": "    if (old !== null) this.refuseUnlessThere(old);\n",
   "replace": "",
-  "group": "switching"
+  "group": "still"
  },
  {
-  "id": "check: the old note included",
-  "file": "src/imports/leaving/switching/switch-choices.ts",
-  "find": "await this.mainSwitch.checkStill([this.old]);",
-  "replace": "await this.mainSwitch.checkStill([]);",
-  "group": "switching"
+  "id": "a note is looked up by the path it had",
+  "file": "src/imports/leaving/switching/asked-note.ts",
+  "find": "files.getFileByPath(this.path) === this.file",
+  "replace": "files.getFileByPath(this.file.path) === this.file",
+  "group": "still"
  },
  {
-  "id": "last doing checked before writing",
-  "file": "src/imports/leaving/switching/switch-choices.ts",
-  "find": "    const lastDoing = lastDoingOf(typedLastDoing);\n    await this.mainSwitch.checkStill([this.old]);\n    await this.reason.leave(new OldMainSteps(this.files, this.cast, this.mainSwitch.plan, this.old, lastDoing));",
-  "replace": "    await this.mainSwitch.checkStill([this.old]);\n    await this.reason.leave(new OldMainSteps(this.files, this.cast, this.mainSwitch.plan, this.old, null));\n    lastDoingOf(typedLastDoing);",
-  "group": "switching"
- },
- {
-  "id": "a failed finish after leaving is partly written",
-  "file": "src/imports/leaving/switching/switch-choices.ts",
-  "find": "      throw partlyAfter(finishFailedAfter(this.old.basename, this.mainSwitch.plan.chosen.basename), error);",
-  "replace": "      throw error;",
-  "group": "switching"
- },
- {
-  "id": "a failed finish with no old main says so",
-  "file": "src/imports/leaving/switching/switch-choices.ts",
-  "find": "      throw refusalAfter(finishFailed(this.mainSwitch.plan.chosen.basename), error);",
-  "replace": "      throw error;",
-  "group": "switching"
- },
- {
-  "id": "cast: an empty property is nobody",
-  "file": "src/imports/leaving/switching/gate-cast.ts",
-  "find": "[undefined, null, \"\"]",
-  "replace": "[undefined, null]",
-  "group": "cast"
- },
- {
-  "id": "cast: exactly one link",
-  "file": "src/imports/leaving/switching/gate-cast.ts",
-  "find": "  if (links.length !== 1) throw new Refusal(MAIN_UNCLEAR);",
-  "replace": "  if (links.length === 0) throw new Refusal(MAIN_UNCLEAR);",
-  "group": "cast"
- },
- {
-  "id": "cast: only the character property's link",
-  "file": "src/imports/leaving/switching/gate-cast.ts",
-  "find": "    if (link.key === MAIN_CHARACTER_PROPERTY) links.push(link.link);",
-  "replace": "    links.push(link.link);",
-  "group": "cast"
- },
- {
-  "id": "cast: a link to no note refused",
-  "file": "src/imports/leaving/switching/gate-cast.ts",
-  "find": "    if (file === null) throw new Refusal(MAIN_UNCLEAR);\n",
+  "id": "a note that moved is not the one asked about",
+  "file": "src/imports/leaving/switching/asked-note.ts",
+  "find": "this.file.path === this.path && ",
   "replace": "",
-  "group": "cast"
+  "group": "still"
  },
  {
-  "id": "cast: the newest session",
-  "file": "src/imports/leaving/switching/gate-cast.ts",
-  "find": "if (number === null || number < newestNumber) continue;",
-  "replace": "if (number === null || number > newestNumber) continue;",
-  "group": "cast"
+  "id": "a note that can't be read is said in plain words",
+  "file": "src/imports/leaving/switching/read-note.ts",
+  "find": "    throw new Refusal(unreadWords);",
+  "replace": "    throw new Error(unreadWords);",
+  "group": "still"
  },
  {
-  "id": "cast: only text values",
-  "file": "src/imports/leaving/switching/gate-cast.ts",
-  "find": "  if (typeof value !== \"string\") return null;\n",
-  "replace": "",
-  "group": "cast"
- },
- {
-  "id": "offer: nothing when already main",
+  "id": "an update asks only about a character who left play",
   "file": "src/imports/leaving/dialog/main-offers.ts",
-  "find": "    if (old !== null && old.path === file.path) return null;\n",
-  "replace": "",
+  "find": "await this.ask(file, stayPut, new AskWhenLeftPlay());",
+  "replace": "await this.ask(file, stayPut, new AskAlways());",
   "group": "offers"
  },
  {
-  "id": "offer: a main outside Characters refused",
-  "file": "src/imports/leaving/dialog/main-offers.ts",
-  "find": "    if (old !== null && !this.isCharacterIn(old, folder)) throw new Refusal(MAIN_UNCLEAR);\n",
-  "replace": "",
+  "id": "a note that left play is told by its standing",
+  "file": "src/imports/leaving/dialog/ask-when.ts",
+  "find": "return hasLeftPlay(standingOf(await textOfNote(files, file, NOTE_UNREAD)));",
+  "replace": "return true;",
   "group": "offers"
  },
  {
-  "id": "offer: only a Characters note made main",
+  "id": "an unexpected error is said in plain words",
   "file": "src/imports/leaving/dialog/main-offers.ts",
-  "find": "    if (!this.isCharacterIn(file, folder)) throw new Refusal(NOT_A_CAMPAIGN_CHARACTER);\n",
-  "replace": "",
+  "find": "  return COULD_NOT_ASK;",
+  "replace": "  return String(error);",
   "group": "offers"
  },
  {
-  "id": "offer: after an update only for one who left play",
+  "id": "a refused question returns focus",
   "file": "src/imports/leaving/dialog/main-offers.ts",
-  "find": "    return LEFT_PLAY_MARKS.has(standing);",
-  "replace": "    return true;",
+  "find": "      this.wiring.tell(plainWordsOf(error));\n      returnFocus();\n",
+  "replace": "      this.wiring.tell(plainWordsOf(error));\n",
   "group": "offers"
  },
  {
-  "id": "offer: a gone note told",
+  "id": "no question returns focus",
+  "file": "src/imports/leaving/dialog/main-offers.ts",
+  "find": "    if (question === null) {\n      returnFocus();\n      return;\n    }",
+  "replace": "    if (question === null) return;",
+  "group": "offers"
+ },
+ {
+  "id": "a note that is gone is said",
   "file": "src/imports/leaving/dialog/main-offers.ts",
   "find": "      this.wiring.tell(NOTE_MOVED);\n",
   "replace": "",
   "group": "offers"
  },
  {
-  "id": "dialog: what was typed goes to the choice",
+  "id": "the question returns focus when closed",
+  "file": "src/imports/leaving/dialog/main-offers.ts",
+  "find": "    this.returnFocus();",
+  "replace": "    return;",
+  "group": "offers"
+ },
+ {
+  "id": "a note outside Characters and Fallen can't be made main",
+  "file": "src/imports/leaving/dialog/question-for.ts",
+  "find": "  if (!isInCharactersOrFallen(file, folder)) throw new Refusal(NOT_A_CAMPAIGN_CHARACTER);\n",
+  "replace": "",
+  "group": "offers"
+ },
+ {
+  "id": "a main outside Characters and Fallen is refused",
+  "file": "src/imports/leaving/dialog/question-for.ts",
+  "find": "  if (old !== null && !isInCharactersOrFallen(old, folder)) throw new Refusal(MAIN_UNCLEAR);\n",
+  "replace": "",
+  "group": "offers"
+ },
+ {
+  "id": "a campaign note that can't be found is said",
+  "file": "src/imports/leaving/dialog/question-for.ts",
+  "find": "  if (campaignNote === null) throw new Refusal(CAMPAIGN_NOTE_UNREAD);\n",
+  "replace": "  if (campaignNote === null) return null;\n",
+  "group": "offers"
+ },
+ {
+  "id": "no main yet asks only Make main",
+  "file": "src/imports/leaving/dialog/question-for.ts",
+  "find": "  if (old === null) return new NoMainQuestion(parts);\n",
+  "replace": "",
+  "group": "offers"
+ },
+ {
+  "id": "a main already in Fallen is only finished",
+  "file": "src/imports/leaving/dialog/question-for.ts",
+  "find": "  if (isInFallen(old, folder)) return true;\n",
+  "replace": "",
+  "group": "offers"
+ },
+ {
+  "id": "a main marked as left is only finished",
+  "file": "src/imports/leaving/dialog/question-for.ts",
+  "find": "  return hasLeftPlay(standingOf(await textOfNote(files, old, NOTE_UNREAD)));",
+  "replace": "  return false;",
+  "group": "offers"
+ },
+ {
+  "id": "a new one already named with nothing to finish asks nothing",
+  "file": "src/imports/leaving/dialog/question-for.ts",
+  "find": "    if (!(await needsFinishing(wiring.files, chosen, folder))) return null;\n",
+  "replace": "",
+  "group": "offers"
+ },
+ {
+  "id": "a new one in Fallen needs finishing",
+  "file": "src/imports/leaving/dialog/question-for.ts",
+  "find": "  if (isInFallen(chosen, folder)) return true;\n  return standingOf",
+  "replace": "  return standingOf",
+  "group": "offers"
+ },
+ {
+  "id": "a new one with a mark needs finishing",
+  "file": "src/imports/leaving/dialog/question-for.ts",
+  "find": "  return standingOf(await textOfNote(files, chosen, NOTE_UNREAD)) !== null;",
+  "replace": "  return false;",
+  "group": "offers"
+ },
+ {
+  "id": "the new one is named already when the main is theirs",
+  "file": "src/imports/leaving/dialog/question-for.ts",
+  "find": "const chosenIsNamed = old !== null && old.path === chosen.path;",
+  "replace": "const chosenIsNamed = false;",
+  "group": "offers"
+ },
+ {
+  "id": "the question asks about the old main",
+  "file": "src/imports/leaving/dialog/leaving-question.ts",
+  "find": "this.question = questionAbout(old.file.basename);",
+  "replace": "this.question = questionAbout(parts.mainSwitch.plan.chosen.file.basename);",
+  "group": "offers"
+ },
+ {
+  "id": "the question asks for what they were last doing",
+  "file": "src/imports/leaving/dialog/leaving-question.ts",
+  "find": "readonly asksLastDoing = true;",
+  "replace": "readonly asksLastDoing = false;",
+  "group": "offers"
+ },
+ {
+  "id": "a modal passes what was typed",
   "file": "src/imports/leaving/dialog/main-modal.ts",
   "find": "this.runChange(choice.run.bind(choice, this.lastDoing), SWITCH_FAILED);",
   "replace": "this.runChange(choice.run.bind(choice, \"\"), SWITCH_FAILED);",
   "group": "offers"
  },
  {
-  "id": "dialog: asks what they were doing only about an old main",
+  "id": "Not now writes nothing",
   "file": "src/imports/leaving/dialog/main-modal.ts",
-  "find": "if (this.question.asksLastDoing) new Setting",
-  "replace": "if (this.question.choices.length > 0) new Setting",
+  "find": ".setButtonText(NOT_NOW).onClick(this.close.bind(this));",
+  "replace": ".setButtonText(NOT_NOW).onClick(this.keepLastDoing.bind(this, \"\"));",
   "group": "offers"
  },
  {
-  "id": "questions: three reasons about the old main",
-  "file": "src/imports/leaving/dialog/questions.ts",
-  "find": "  for (const reason of LEAVING_REASONS) choices.push(new LeaveAsChoice(files, cast, mainSwitch, old, reason));\n",
-  "replace": "",
-  "group": "offers"
- },
- {
-  "id": "after import: main offered",
+  "id": "an import offers the question",
   "file": "src/imports/dialog/opening/after-import.ts",
   "find": "    void this.offers.afterImport(writtenPath);\n",
   "replace": "",
-  "group": "offers"
+  "group": "wiring"
  },
  {
-  "id": "after update: offered only after a write",
+  "id": "an update offers the question",
+  "file": "src/imports/dialog/opening/after-import.ts",
+  "find": "    void this.offers.afterUpdate(writtenPath);\n",
+  "replace": "",
+  "group": "wiring"
+ },
+ {
+  "id": "an update that wrote nothing offers nothing",
   "file": "src/imports/dialog/opening/after-import.ts",
   "find": "    if (writtenPath === null) return;\n",
   "replace": "",
-  "group": "offers"
+  "group": "wiring"
  },
  {
-  "id": "cards: marked backups at the bottom",
-  "file": "src/characters/cards/card-standing.ts",
-  "find": "  return standing.standing === BACKUP_STANDING;",
-  "replace": "  return false;",
-  "group": "cards"
- },
- {
-  "id": "cards: imported, unmarked characters kept ready",
-  "file": "src/characters/cards/card-standing.ts",
-  "find": "  return standing.imported && standing.standing === null;",
-  "replace": "  return false;",
-  "group": "cards"
- },
- {
-  "id": "cards: a left-play mark only for its words",
-  "file": "src/characters/cards/card-standing.ts",
-  "find": "  if (mark === undefined) return null;\n  return mark;",
-  "replace": "  return standing.standing;",
-  "group": "cards"
- },
- {
-  "id": "cards: the main never a backup",
-  "file": "src/characters/cards/card-groups.ts",
-  "find": "  if (card.isOwn) return false;\n",
+  "id": "Make main is wired",
+  "file": "src/imports/dialog/opening/beyond-openers.ts",
+  "find": "    void this.offers.makeMain(path, returnFocus);",
   "replace": "",
-  "group": "cards"
+  "group": "wiring"
  },
  {
-  "id": "cards: the mark drawn",
-  "file": "src/characters/cards/character-card.ts",
-  "find": "  if (mark !== null) element.createDiv({ cls: \"dd-card-standing\", text: mark });\n",
-  "replace": "",
-  "group": "cards"
+  "id": "standing is read from the properties only",
+  "file": "src/imports/layout/standing.ts",
+  "find": "position < 1 || position >= bodyStart - 1 || ",
+  "replace": "position < 1 || ",
+  "group": "standing"
  },
  {
-  "id": "gallery: Make main on each backup",
-  "file": "src/characters/pages/character-gallery.ts",
-  "find": "      addMakeMainButton(item, card.path, this.creators);\n",
-  "replace": "",
-  "group": "cards"
+  "id": "standing is read after the opening line",
+  "file": "src/imports/layout/standing.ts",
+  "find": "position < 1 || position >= bodyStart - 1 || ",
+  "replace": "position >= bodyStart - 1 || ",
+  "group": "standing"
  },
  {
-  "id": "fallen: the import makes no second note",
+  "id": "an empty standing is none",
+  "file": "src/imports/layout/standing.ts",
+  "find": "    if (value !== \"\") return value;\n",
+  "replace": "    return value;\n",
+  "group": "standing"
+ },
+ {
+  "id": "only died and retired have left play",
+  "file": "src/imports/layout/standing.ts",
+  "find": "  return LEFT_PLAY_MARKS.has(standing);",
+  "replace": "  return true;",
+  "group": "standing"
+ },
+ {
+  "id": "the Characters page's standing is the shared reader's",
+  "file": "src/characters/cards/card-standing.ts",
+  "find": "standing: standingIn(lines, bodyStart)",
+  "replace": "standing: null",
+  "group": "standing"
+ },
+ {
+  "id": "a Fallen note of that name is found whatever its capitals",
+  "file": "src/campaign/paths/note-at-path.ts",
+  "find": "const wanted = nameKeyOf(path);",
+  "replace": "const wanted = path;",
+  "group": "paths"
+ },
+ {
+  "id": "a Fallen note is looked for in this campaign",
+  "file": "src/campaign/paths/fallen-notes.ts",
+  "find": "return noteAtPathOf(notes, fallenNotePathOf(campaignFolder, name));",
+  "replace": "return noteAtPathOf(notes, `Fallen/${name}.md`);",
+  "group": "paths"
+ },
+ {
+  "id": "an import refuses a name in Fallen",
   "file": "src/imports/note/writing/import-writer.ts",
-  "find": "    if (fallenRecordOf(files, parentFolderOf(this.charactersFolder), name) !== null) throw new Refusal(leftPlayWords(name));\n",
+  "find": "    if (fallenNoteOf(files, this.campaignFolder, name) !== null) throw new Refusal(leftPlayWords(name));\n",
   "replace": "",
-  "group": "fallen"
+  "group": "paths"
  },
  {
-  "id": "fallen: New character makes no second note",
+  "id": "an import looks in its own campaign's Fallen",
+  "file": "src/imports/note/writing/import-writer.ts",
+  "find": "fallenNoteOf(files, this.campaignFolder, name)",
+  "replace": "fallenNoteOf(files, \"\", name)",
+  "group": "paths"
+ },
+ {
+  "id": "a new character refuses a name in Fallen",
   "file": "src/characters/editing/character-files.ts",
   "find": "  refuseIfAny(refusalForFallen(files, campaignFolder, entry.name));\n",
   "replace": "",
-  "group": "fallen"
+  "group": "paths"
  },
  {
-  "id": "fallen: this campaign's record only",
-  "file": "src/campaign/paths/fallen-records.ts",
-  "find": "    if (nameKeyOf(note.path) === wanted) return note;",
-  "replace": "    if (note.basename.toLowerCase() === name.toLowerCase()) return note;",
-  "group": "fallen"
+  "id": "a rename refuses a name in Fallen",
+  "file": "src/characters/editing/character-files.ts",
+  "find": "  if (renamed) refuseIfAny(refusalForFallen(files, campaignFolder, after.name));\n",
+  "replace": "",
+  "group": "paths"
  },
  {
-  "id": "folders: reasons reach only reasons",
+  "id": "a rename looks in its own campaign's Fallen",
+  "file": "src/characters/editing/character-files.ts",
+  "find": "refusalForFallen(files, campaignFolder, after.name)",
+  "replace": "refusalForFallen(files, \"\", after.name)",
+  "group": "paths"
+ },
+ {
+  "id": "a note in Fallen is in the Fallen folder",
+  "file": "src/campaign/paths/campaign-folders.ts",
+  "find": "  return path.startsWith(`${fallenFolderOf(campaignFolder)}/`);",
+  "replace": "  return false;",
+  "group": "paths"
+ },
+ {
+  "id": "a note in Characters is where the campaign keeps characters",
+  "file": "src/imports/leaving/switching/membership.ts",
+  "find": "return file.path === charactersNotePathOf(campaignFolder, file.basename);",
+  "replace": "return true;",
+  "group": "paths"
+ },
+ {
+  "id": "a note in Fallen is where the campaign keeps the fallen",
+  "file": "src/imports/leaving/switching/membership.ts",
+  "find": "return file.path === fallenNotePathOf(campaignFolder, file.basename);",
+  "replace": "return true;",
+  "group": "paths"
+ },
+ {
+  "id": "the Characters list leaves out Fallen",
+  "file": "src/characters/reading/character-notes.ts",
+  "find": "isInReferenceFolder(characterReferenceKind, campaignFolder, file.path)",
+  "replace": "true",
+  "group": "gallery"
+ },
+ {
+  "id": "the Fallen list is the campaign's Fallen folder",
+  "file": "src/characters/reading/character-notes.ts",
+  "find": "isInFallenFolder(campaignFolder, file.path)",
+  "replace": "true",
+  "group": "gallery"
+ },
+ {
+  "id": "the Fallen list is by name",
+  "file": "src/characters/reading/character-notes.ts",
+  "find": "function fallenFilesIn(gate: Gate, campaignFolder: string): TFile[] {\n  const files = gate.files.getMarkdownFiles().filter((file) => isInFallenFolder(campaignFolder, file.path));\n  return files.sort((first, second) => first.basename.localeCompare(second.basename));",
+  "replace": "function fallenFilesIn(gate: Gate, campaignFolder: string): TFile[] {\n  return gate.files.getMarkdownFiles().filter((file) => isInFallenFolder(campaignFolder, file.path));",
+  "group": "gallery"
+ },
+ {
+  "id": "the gallery draws the Fallen list",
+  "file": "src/characters/pages/character-gallery.ts",
+  "find": "    this.drawFallen(fallenCards);\n",
+  "replace": "",
+  "group": "gallery"
+ },
+ {
+  "id": "the Fallen list is empty when nobody fell",
+  "file": "src/characters/pages/character-gallery.ts",
+  "find": "    if (cards.length === 0) return;\n    const section = this.root.createEl(\"section\", { cls: \"dd-fallen\" });",
+  "replace": "    const section = this.root.createEl(\"section\", { cls: \"dd-fallen\" });",
+  "group": "gallery"
+ },
+ {
+  "id": "a Fallen card has Make main",
+  "file": "src/characters/pages/character-gallery.ts",
+  "find": "    addMakeMainButton(item, card.path, this.creators);\n",
+  "replace": "",
+  "group": "gallery"
+ },
+ {
+  "id": "a note left with a mark gets Make main",
+  "file": "src/characters/pages/character-gallery.ts",
+  "find": "    if (leftPlayMarkOf(card.standing) === null) {",
+  "replace": "    if (true) {",
+  "group": "gallery"
+ },
+ {
+  "id": "the Characters list is drawn when there are characters",
+  "file": "src/characters/pages/character-gallery.ts",
+  "find": "    if (cards.length > 0) this.drawPlayed(title, cards);\n",
+  "replace": "",
+  "group": "gallery"
+ },
+ {
+  "id": "the empty Characters page says so",
+  "file": "src/characters/pages/character-gallery.ts",
+  "find": "    if (cards.length === 0) this.root.createEl(\"p\", { cls: \"dd-empty\", text: NO_CHARACTERS });\n",
+  "replace": "",
+  "group": "gallery"
+ },
+ {
+  "id": "the cast page shows the Fallen list",
+  "file": "src/characters/pages/cast-page.ts",
+  "find": "this.gallery.show(this.notes.filesIn(folder), this.notes.fallenFilesIn(folder));",
+  "replace": "this.gallery.show(this.notes.filesIn(folder), []);",
+  "group": "gallery"
+ },
+ {
+  "id": "the cast page redraws for a Fallen note",
+  "file": "src/characters/pages/cast-page.ts",
+  "find": "    if (isInFallenFolder(folder, path)) return true;\n",
+  "replace": "",
+  "group": "gallery"
+ },
+ {
+  "id": "the Characters view shows the Fallen list",
+  "file": "src/characters/pages/characters-view.ts",
+  "find": "      this.fallenFiles(),\n",
+  "replace": "      [],\n",
+  "group": "gallery"
+ },
+ {
+  "id": "the player's character is one property",
+  "file": "src/characters/reading/character-notes.ts",
+  "find": "link.key === MAIN_CHARACTER_PROPERTY",
+  "replace": "link.key === \"character \"",
+  "group": "gallery"
+ },
+ {
+  "id": "fence: imports may read Obsidian's yaml",
+  "file": "tests/fence/allowed/obsidian-imports.ts",
+  "find": "\"imports/\": [\"App\", \"ButtonComponent\", \"Setting\", \"TFile\", \"parseYaml\"],",
+  "replace": "\"imports/\": [\"App\", \"ButtonComponent\", \"Setting\", \"TFile\"],",
+  "group": "allow"
+ },
+ {
+  "id": "folders: the writes reach only themselves",
   "file": "tests/build/leaving-folders.test.ts",
-  "find": "{ folder: \"reasons\", reaches: [\"reasons\"] }",
-  "replace": "{ folder: \"reasons\", reaches: [\"reasons\", \"switching\"] }",
+  "find": "{ folder: \"writes\", reaches: [\"writes\"] },",
+  "replace": "{ folder: \"writes\", reaches: [\"writes\", \"switching\"] },",
   "group": "folders"
  },
  {
-  "id": "folders: switching doesn't reach the dialog",
+  "id": "folders: the snapshot reaches only itself",
   "file": "tests/build/leaving-folders.test.ts",
-  "find": "reaches: [\"switching\", \"reasons\", \"record\", \"properties\"] }",
-  "replace": "reaches: [\"switching\", \"reasons\", \"record\", \"properties\", \"dialog\"] }",
+  "find": "{ folder: \"snapshot\", reaches: [\"snapshot\"] },",
+  "replace": "{ folder: \"snapshot\", reaches: [\"snapshot\", \"properties\"] },",
   "group": "folders"
  },
  {
-  "id": "folders: leaving doesn't reach the import dialog",
+  "id": "folders: the properties reach only themselves",
   "file": "tests/build/leaving-folders.test.ts",
-  "find": "const OUTSIDE_LEAVING_REACHED = [\"note\", \"layout\"];",
-  "replace": "const OUTSIDE_LEAVING_REACHED = [\"note\", \"layout\", \"dialog\"];",
+  "find": "{ folder: \"properties\", reaches: [\"properties\"] },",
+  "replace": "{ folder: \"properties\", reaches: [\"properties\", \"snapshot\"] },",
+  "group": "folders"
+ },
+ {
+  "id": "folders: the reasons reach the writes",
+  "file": "tests/build/leaving-folders.test.ts",
+  "find": "{ folder: \"reasons\", reaches: [\"reasons\", \"writes\"] },",
+  "replace": "{ folder: \"reasons\", reaches: [\"reasons\"] },",
+  "group": "folders"
+ },
+ {
+  "id": "folders: the dialog reaches the choices",
+  "file": "tests/build/leaving-folders.test.ts",
+  "find": "{ folder: \"dialog\", reaches: [\"dialog\", \"choices\", \"switching\", \"reasons\", \"properties\", \"cast\"] },",
+  "replace": "{ folder: \"dialog\", reaches: [\"dialog\", \"switching\", \"reasons\", \"properties\", \"cast\"] },",
+  "group": "folders"
+ },
+ {
+  "id": "folders: the choices reach the writes",
+  "file": "tests/build/leaving-folders.test.ts",
+  "find": "\"reasons\", \"cast\", \"writes\"] },",
+  "replace": "\"reasons\", \"cast\"] },",
+  "group": "folders"
+ },
+ {
+  "id": "folders: the cast reaches the switching words",
+  "file": "tests/build/leaving-folders.test.ts",
+  "find": "{ folder: \"cast\", reaches: [\"cast\", \"properties\", \"switching\"] },",
+  "replace": "{ folder: \"cast\", reaches: [\"cast\", \"properties\"] },",
+  "group": "folders"
+ },
+ {
+  "id": "folders: each folder holds at most ten files",
+  "file": "tests/build/leaving-folders.test.ts",
+  "find": "toBeLessThanOrEqual(10)",
+  "replace": "toBeLessThanOrEqual(30)",
   "group": "folders"
  }
 ]
