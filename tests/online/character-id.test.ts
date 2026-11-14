@@ -12,19 +12,19 @@ function addressFor(link: string): string {
 
 describe("CharacterId.of", () => {
   it.each([
-    ["a bare number", "144542063", "144542063"],
-    ["a bare number with spaces round it", "  144542063\n", "144542063"],
-    ["a link with https and www", "https://www.dndbeyond.com/characters/144542063", "144542063"],
-    ["a link with https only", "https://dndbeyond.com/characters/144542063", "144542063"],
-    ["a link with http", "http://www.dndbeyond.com/characters/144542063", "144542063"],
-    ["a link with neither", "dndbeyond.com/characters/144542063", "144542063"],
-    ["a link with www and no https", "www.dndbeyond.com/characters/144542063", "144542063"],
-    ["a link in capitals", "HTTPS://WWW.DNDBEYOND.COM/Characters/144542063", "144542063"],
-    ["a link with a page after the number", "https://www.dndbeyond.com/characters/144542063/builder", "144542063"],
-    ["a link with a question after the number", "https://www.dndbeyond.com/characters/144542063?tab=notes", "144542063"],
-    ["a twelve digit number", "123456789012", "123456789012"],
-    ["a one digit number", "7", "7"],
-  ])("takes the number from %s, and nothing else", (_kind, link, digits) => {
+    { kind: "a bare number", link: "424242424", digits: "424242424" },
+    { kind: "a bare number with spaces round it", link: "  424242424\n", digits: "424242424" },
+    { kind: "a link with https and www", link: "https://www.dndbeyond.com/characters/424242424", digits: "424242424" },
+    { kind: "a link with https only", link: "https://dndbeyond.com/characters/424242424", digits: "424242424" },
+    { kind: "a link with http", link: "http://www.dndbeyond.com/characters/424242424", digits: "424242424" },
+    { kind: "a link with neither", link: "dndbeyond.com/characters/424242424", digits: "424242424" },
+    { kind: "a link with www and no https", link: "www.dndbeyond.com/characters/424242424", digits: "424242424" },
+    { kind: "a link in capitals", link: "HTTPS://WWW.DNDBEYOND.COM/Characters/424242424", digits: "424242424" },
+    { kind: "a link with a page after the number", link: "https://www.dndbeyond.com/characters/424242424/builder", digits: "424242424" },
+    { kind: "a link with a question after the number", link: "https://www.dndbeyond.com/characters/424242424?tab=notes", digits: "424242424" },
+    { kind: "a twelve digit number", link: "123456789012", digits: "123456789012" },
+    { kind: "a one digit number", link: "7", digits: "7" },
+  ])("takes the number from $kind, and nothing else", ({ link, digits }) => {
     expect(addressFor(link)).toBe(`${BEYOND_ADDRESS}${digits}`);
   });
 
@@ -33,36 +33,36 @@ describe("CharacterId.of", () => {
     ["spaces", "   "],
     ["words", "my character"],
     ["a zero", "0"],
-    ["a number with a leading zero", "0144542063"],
-    ["a number with a sign", "-144542063"],
+    ["a number with a leading zero", "0424242424"],
+    ["a number with a sign", "-424242424"],
     ["a number with a point", "1445.5"],
     ["thirteen digits", "1234567890123"],
     ["a link with thirteen digits", "https://www.dndbeyond.com/characters/1234567890123"],
-    ["a number with a query", "144542063?x=1"],
-    ["a number with a path", "144542063/../1"],
-    ["a number with text after", "144542063 and more"],
-    ["a link to another site", "https://example.com/characters/144542063"],
-    ["a link to another site that names the right one", "https://example.com/dndbeyond.com/characters/144542063"],
-    ["a link to a lookalike host", "https://dndbeyond.com.example.com/characters/144542063"],
-    ["a link to a host with another letter for the dot", "https://www.dndbeyondXcom/characters/144542063"],
-    ["a link with the number glued to a path", "https://www.dndbeyond.com/characters144542063"],
-    ["a link to a subdomain", "https://evil.dndbeyond.com/characters/144542063"],
-    ["a link with a login in it", "https://user@www.dndbeyond.com/characters/144542063"],
-    ["a link to another page", "https://www.dndbeyond.com/monsters/144542063"],
+    ["a number with a query", "424242424?x=1"],
+    ["a number with a path", "424242424/../1"],
+    ["a number with text after", "424242424 and more"],
+    ["a link to another site", "https://example.com/characters/424242424"],
+    ["a link to another site that names the right one", "https://example.com/dndbeyond.com/characters/424242424"],
+    ["a link to a lookalike host", "https://dndbeyond.com.example.com/characters/424242424"],
+    ["a link to a host with another letter for the dot", "https://www.dndbeyondXcom/characters/424242424"],
+    ["a link with the number glued to a path", "https://www.dndbeyond.com/characters424242424"],
+    ["a link to a subdomain", "https://evil.dndbeyond.com/characters/424242424"],
+    ["a link with a login in it", "https://user@www.dndbeyond.com/characters/424242424"],
+    ["a link to another page", "https://www.dndbeyond.com/monsters/424242424"],
     ["a link with no number", "https://www.dndbeyond.com/characters/"],
-    ["a link with a letter first", "https://www.dndbeyond.com/characters/x144542063"],
+    ["a link with a letter first", "https://www.dndbeyond.com/characters/x424242424"],
     ["a number written in other digits", "１４４５４２０６３"],
   ])("refuses %s in plain words", (_kind, link) => {
     expect(() => CharacterId.of(link)).toThrow(new Refusal(NOT_A_CHARACTER_LINK));
   });
 
   it("keeps the number only through methods, so no other text is ever held", () => {
-    const id = CharacterId.of("https://www.dndbeyond.com/characters/144542063/builder?x=1");
-    expect(id.isNumber(144542063)).toBe(true);
-    expect(id.isNumber(144542064)).toBe(false);
+    const id = CharacterId.of("https://www.dndbeyond.com/characters/424242424/builder?x=1");
+    expect(id.isNumber(424242424)).toBe(true);
+    expect(id.isNumber(424242425)).toBe(false);
     expect(Object.keys(id)).toEqual([]);
     expect(JSON.stringify(id)).toBe("{}");
-    expect(id.appendedTo("")).toBe("144542063");
+    expect(id.appendedTo("")).toBe("424242424");
   });
 });
 
@@ -78,7 +78,7 @@ describe("a CharacterId made any other way", () => {
 
 describe("beyondAddressOf", () => {
   it("is the one address with the digits after it, for any link form", () => {
-    for (const link of ["1", "144542063", "https://www.dndbeyond.com/characters/987654321012/sheet"]) expect(addressFor(link)).toMatch(ADDRESS_FOR_A_NUMBER);
+    for (const link of ["1", "424242424", "https://www.dndbeyond.com/characters/987654321012/sheet"]) expect(addressFor(link)).toMatch(ADDRESS_FOR_A_NUMBER);
   });
 
   it("keeps the address to the character service's character path", () => {

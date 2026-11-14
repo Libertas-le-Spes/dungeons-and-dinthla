@@ -18,10 +18,10 @@ export interface ImportPlace {
 
 export function openImport(place: ImportPlace, closed: ImportClosed): void {
   const writer = new ImportWriter(place.files, place.charactersFolder, place.campaignFolder);
-  new ImportModal(place.app, new NewImportFlow(writer, place.charactersFolder, place.notes.bind(place)), dayOf(new Date()), place.online, closed).open();
+  new ImportModal(place.app, { flow: new NewImportFlow(writer, place.charactersFolder, place.notes.bind(place)), today: dayOf(new Date()), online: place.online, onClosed: closed }).open();
 }
 
 export function openUpdate(place: ImportPlace, file: TFile, closed: ImportClosed): void {
   const writer = new ImportWriter(place.files, place.charactersFolder, place.campaignFolder);
-  new ImportModal(place.app, new UpdateFlow(writer, file), dayOf(new Date()), place.online, closed).open();
+  new ImportModal(place.app, { flow: new UpdateFlow(writer, file), today: dayOf(new Date()), online: place.online, onClosed: closed }).open();
 }

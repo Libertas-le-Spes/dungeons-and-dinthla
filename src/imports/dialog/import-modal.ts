@@ -8,18 +8,22 @@ export interface ImportClosed {
   importClosed(writtenPath: string | null): void;
 }
 
+export interface ModalParts {
+  readonly flow: ImportFlow;
+  readonly today: string;
+  readonly online: OnlineSource;
+  readonly onClosed: ImportClosed;
+}
+
 export class ImportModal extends ChangeDialog {
   private readonly steps: ImportSteps;
 
   constructor(
     app: App,
-    private readonly flow: ImportFlow,
-    today: string,
-    online: OnlineSource,
-    private readonly onClosed: ImportClosed,
+    private readonly parts: ModalParts,
   ) {
     super(app);
-    this.steps = new ImportSteps(this.contentEl, flow, today, online, { runWrite: this.runChange.bind(this), closeDialog: this.close.bind(this) });
+    this.steps = new ImportSteps(this.contentEl, { flow: parts.flow, today: parts.today, online: parts.online, host: { runWrite: this.runChange.bind(this), closeDialog: this.close.bind(this) } });
   }
 
   async allSettled(): Promise<void> {
@@ -29,7 +33,7 @@ export class ImportModal extends ChangeDialog {
   }
 
   override onOpen(): void {
-    this.setTitle(this.flow.title);
+    this.setTitle(this.parts.flow.title);
     this.contentEl.addClass("dd-tokens", "dd-dialog", "dd-import");
     this.steps.start();
   }
@@ -44,6 +48,6 @@ export class ImportModal extends ChangeDialog {
 
   protected override closed(): void {
     this.steps.stop();
-    this.onClosed.importClosed(this.steps.written());
+    this.parts.onClosed.importClosed(this.steps.written());
   }
 }

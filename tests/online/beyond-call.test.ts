@@ -16,9 +16,11 @@ afterEach(() => {
 describe("callBeyond", () => {
   it("asks for the constant address and the character's digits with a GET, and nothing else", async () => {
     answerUrlsWith(async () => answered({ "content-type": "application/json" }));
-    await callBeyond(CharacterId.of("https://www.dndbeyond.com/characters/144542063/builder?x=1"));
-    expect(urlsAsked).toEqual([{ url: `${BEYOND_ADDRESS}144542063`, method: "GET", throw: false }]);
-    expect(Object.keys(urlsAsked[0] ?? {})).toEqual(["url", "method", "throw"]);
+    await callBeyond(CharacterId.of("https://www.dndbeyond.com/characters/424242424/builder?x=1"));
+    expect(urlsAsked).toEqual([{ url: `${BEYOND_ADDRESS}424242424`, method: "GET", throw: false }]);
+    const [asked] = urlsAsked;
+    if (asked === undefined) throw new Error("Nothing was asked.");
+    expect(Object.keys(asked)).toEqual(["url", "method", "throw"]);
   });
 
   it("asks exactly once for each call", async () => {
