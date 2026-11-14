@@ -2,7 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { SessionNote } from "../../../src/campaign/record/campaign";
 import type { CampaignListener } from "../../../src/campaign/reading/campaign-store";
-import type { WelcomeActions } from "../../../src/welcome/endings/welcome-ending";
+import type { WelcomeActions, WelcomeAgreement } from "../../../src/welcome/endings/welcome-ending";
+import { CampaignAgreement } from "../../../src/imports/agreement/campaign-agreement";
+import { AGREEMENT_KEY, DeviceAgreement } from "../../../src/imports/agreement/device-agreement";
+import { MadeUpDevice } from "../../imports/agreement/made-up-device";
+import { textsIn } from "../../imports/agreement/shown-parts";
+import { AnsweredAgreement } from "./answered-agreement";
 import { HOW_TO_CHOOSE_THE_CAMPAIGNS_FOLDER } from "../../../src/welcome/endings/campaigns-folder-ending";
 import { WelcomePage, type WelcomeStore } from "../../../src/welcome/page/welcome-page";
 import { Notice } from "../../stubs/obsidian";
@@ -14,7 +19,7 @@ function sessionNote(): SessionNote {
   return { path: `${CAMPAIGN}/Sessions/Session 1.md`, number: 1, firstLine: 0, text: "" };
 }
 
-function welcomeFor(campaignFolder: string | null, sessionNotes: SessionNote[], campaignsFolder: string | null = "D&D") {
+function welcomeWith(campaignFolder: string | null, sessionNotes: SessionNote[], campaignsFolder: string | null, agreement: WelcomeAgreement) {
   let listener: CampaignListener = () => {};
   const unsubscribe = vi.fn();
   const store: WelcomeStore = {
@@ -48,7 +53,7 @@ function welcomeFor(campaignFolder: string | null, sessionNotes: SessionNote[], 
     ),
   } satisfies WelcomeActions;
   const root = obsidianDocument().body.createDiv();
-  const page = new WelcomePage(root, store, () => folder.path, actions);
+  const page = new WelcomePage(root, store, () => folder.path, actions, agreement);
   page.load();
   const change = (campaign: string | null, notes: SessionNote[]) => {
     Object.assign(store, { campaignFolder: campaign, sessionNotes: notes });
@@ -59,6 +64,10 @@ function welcomeFor(campaignFolder: string | null, sessionNotes: SessionNote[], 
     listener(buildCampaign(store.sessionNotes));
   };
   return { root, page, actions, change, setCampaignsFolder, unsubscribe, finishMaking: () => finishMaking(), failMaking: (error: Error) => failMaking(error) };
+}
+
+function welcomeFor(campaignFolder: string | null, sessionNotes: SessionNote[], campaignsFolder: string | null = "D&D") {
+  return welcomeWith(campaignFolder, sessionNotes, campaignsFolder, new AnsweredAgreement());
 }
 
 function buttonTexts(root: HTMLElement): string[] {
@@ -208,5 +217,28 @@ describe("WelcomePage", () => {
     const { page, unsubscribe } = welcomeFor(CAMPAIGN, []);
     page.unload();
     expect(unsubscribe).toHaveBeenCalledOnce();
+  });
+
+  it("asks for the agreement once the campaign is made, on a device that hasn't answered it", () => {
+    const { root, change } = welcomeWith(null, [], "D&D", new CampaignAgreement(new DeviceAgreement(new MadeUpDevice().storage)));
+    change(CAMPAIGN, []);
+    expect(textsIn(root, ".dd-welcome-step")).toEqual(["Bringing your character in"]);
+    expect(buttonTexts(root)).toEqual(["Agree", "Not yet"]);
+  });
+
+  it("keeps Agree on this device and moves on to the first session", () => {
+    const device = new MadeUpDevice();
+    const { root } = welcomeWith(CAMPAIGN, [], "D&D", new CampaignAgreement(new DeviceAgreement(device.storage)));
+    buttonNamed(root, "Agree").click();
+    expect(device.saveLocalStorage).toHaveBeenCalledExactlyOnceWith(AGREEMENT_KEY, true);
+    expect(buttonTexts(root)).toEqual(["Start my first session"]);
+  });
+
+  it("keeps nothing for Not yet and moves on to the first session", () => {
+    const device = new MadeUpDevice();
+    const { root } = welcomeWith(CAMPAIGN, [], "D&D", new CampaignAgreement(new DeviceAgreement(device.storage)));
+    buttonNamed(root, "Not yet").click();
+    expect(device.saveLocalStorage).not.toHaveBeenCalled();
+    expect(buttonTexts(root)).toEqual(["Start my first session"]);
   });
 });

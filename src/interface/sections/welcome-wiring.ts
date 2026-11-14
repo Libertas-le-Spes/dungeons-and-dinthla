@@ -5,6 +5,7 @@ import type { FolderChoices } from "../../fence/gate/folder-choices";
 import type { CampaignsFolderSetting } from "../../settings/saved/campaigns-folder-setting";
 import { CampaignsFolderSetup, type PickFolder } from "../../settings/choosing/campaigns-folder-setup";
 import type { SettingsSaver } from "../../settings/saved/settings-saver";
+import type { WelcomeAgreement } from "../../welcome/endings/welcome-ending";
 import type { ShowWelcome } from "../../welcome/opening/first-run";
 import { Help } from "../../welcome/opening/help";
 import type { WelcomeStore } from "../../welcome/page/welcome-page";
@@ -27,6 +28,7 @@ export interface WelcomeWiringNeeds {
   chooseCampaign: ChooseCampaign;
   openWelcome: ShowWelcome;
   pickFolder: PickFolder;
+  agreement: WelcomeAgreement;
   startSession(): void;
 }
 
@@ -49,6 +51,7 @@ export function welcomeWiring(needs: WelcomeWiringNeeds): WelcomeWiring {
     campaignsFolderSetup,
     maker: new CampaignMaker(files, () => needs.setting.path, needs.chooseCampaign),
     files,
+    agreement: needs.agreement,
     startSession: () => needs.startSession(),
   });
   return { help, campaignsFolderSetup, welcome };
