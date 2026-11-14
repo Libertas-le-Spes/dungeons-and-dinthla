@@ -5,6 +5,10 @@ import { summaryLinesOf } from "../../../src/imports/dialog/review/sheet-summary
 import { drawChanges } from "../../../src/imports/dialog/review/change-list";
 import { AfterNewImport, AfterUpdate } from "../../../src/imports/dialog/opening/after-import";
 import type { ImportClosed } from "../../../src/imports/dialog/import-modal";
+import { readReply } from "../../../src/beyond/reply/read-reply";
+import { onlineSheetOf } from "../../../src/imports/dialog/online/online-sheet";
+import { MadeUpReply } from "../../beyond/builders/made-up-reply";
+import { NO_ONLINE } from "../builders/made-up-online";
 import { BeyondOpeners, type BeyondWiring } from "../../../src/imports/dialog/opening/beyond-openers";
 import { MadeUpSheet } from "../../beyond/builders/made-up-sheet";
 import { printedOf } from "../../beyond/builders/sheet-reading";
@@ -50,6 +54,7 @@ function wiringWith(shownFolder: string | null, folderOfNote: string | null): Be
     files: vault.gate,
     actions: vault.actions,
     metadata: new NoMetadata(),
+    online: NO_ONLINE,
     shownCampaignFolder: vi.fn().mockReturnValue(shownFolder),
     campaignFolderOf: vi.fn().mockReturnValue(folderOfNote),
     charactersFolderOf: vi.fn().mockReturnValue(CHARACTERS_FOLDER),
@@ -73,6 +78,12 @@ describe("the summary of what a PDF brings in", () => {
       expect.stringMatching(/^\d+ items · \d+ spells · \d+ feature lines$/),
       "The PDF doesn't give proficiency marks, attacks, alignment, spell slots, total level, hit dice or carrying capacity, so none of them come in.",
     ]);
+  });
+
+  it("says nothing about the PDF for a character that came online, and nothing is left out of it", () => {
+    const lines = summaryLinesOf(onlineSheetOf(readReply(MadeUpReply.levelOneMonk().wholeText())));
+    expect(lines).toEqual(["Human · Monk 1", "3 items · 2 spells · 1 feature line"]);
+    expect(lines.join("\n")).not.toContain("PDF");
   });
 
   it("counts the lines left out of a list, too long and not clean", () => {

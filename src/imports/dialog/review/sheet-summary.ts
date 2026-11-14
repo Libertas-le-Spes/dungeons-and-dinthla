@@ -1,7 +1,7 @@
 import type { LineLoss } from "../../../beyond/sheet/lines/line-loss";
 import type { PrintedSheet } from "../../../beyond/sheet/printed-sheet";
 import type { ImportedClass } from "../../../beyond/shape/imported-class";
-import { NOT_IN_THE_PDF } from "../../layout/pdf-gaps";
+import { NOT_IN_THE_PDF, PDF_ROUTE_NAME } from "../../layout/pdf-gaps";
 
 const BETWEEN_PARTS = " · ";
 const BETWEEN_CLASSES = " / ";
@@ -42,6 +42,11 @@ function leftOutLines(sheet: PrintedSheet): string[] {
   return lines;
 }
 
+function pdfGapLines(sheet: PrintedSheet): string[] {
+  if (sheet.character.route.name === PDF_ROUTE_NAME) return [NOT_IN_THE_PDF];
+  return [];
+}
+
 export function summaryLinesOf(sheet: PrintedSheet): string[] {
-  return [identityLine(sheet), listsLine(sheet), ...leftOutLines(sheet), NOT_IN_THE_PDF];
+  return [identityLine(sheet), listsLine(sheet), ...leftOutLines(sheet), ...pdfGapLines(sheet)];
 }

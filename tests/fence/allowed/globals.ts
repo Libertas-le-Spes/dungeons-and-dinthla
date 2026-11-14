@@ -3,6 +3,7 @@ export const PLAIN_GLOBALS = ["undefined", "Array", "Date", "Error", "JSON", "Ma
 export const PAGE_GLOBALS: Record<string, string[]> = {
   "imports/dialog/picking/pdf-picker.ts": ["Uint8Array"],
   "main.ts": ["document", "window"],
+  "online/time-limit.ts": ["clearTimeout", "setTimeout"],
   "pdf/bytes/byte-sink.ts": ["Uint8Array"],
   "pdf/bytes/byte-view.ts": ["Uint8Array"],
   "pdf/bytes/data-view-of.ts": ["DataView"],

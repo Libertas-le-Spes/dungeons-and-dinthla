@@ -2,7 +2,8 @@ import type { SheetFromPdf } from "../../../beyond/sheet/from-pdf/sheet-from-pdf
 import type { PrintedSheet } from "../../../beyond/sheet/printed-sheet";
 import { READING, STILL_READING } from "../import-words";
 import type { PickedPdf } from "../picking/picked-pdf";
-import { drawChoosePdf } from "../steps/choose-pdf-step";
+import type { OnlineBlock } from "../online/online-block";
+import { drawChooseSource } from "../steps/choose-source-step";
 import type { DialogShown } from "./dialog-shown";
 import type { PendingWork } from "../../../views/pending/pending-work";
 
@@ -23,11 +24,12 @@ export class PdfStage implements PickedPdf {
     private readonly arrival: SheetArrival,
     private readonly reader: SheetReader,
     private readonly work: PendingWork,
+    private readonly online: OnlineBlock,
   ) {}
 
   show(refusal: string | null): void {
     this.contentEl.empty();
-    drawChoosePdf(this.contentEl, refusal, this, this.work);
+    drawChooseSource(this.contentEl, refusal, this.online, this, this.work);
   }
 
   pdfPicked(bytes: Uint8Array): void {

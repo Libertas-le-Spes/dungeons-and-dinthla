@@ -18,6 +18,12 @@ function expectEachFound(samples: [string, string][]): void {
   for (const [sample, name] of samples) expect(networkCodeIn(sample), sample).toContain(name);
 }
 
+const BEYOND_ADDRESS_LINE = 'var BEYOND_ADDRESS = "https://character-service.dndbeyond.com/character/v5/character/";';
+
+function beyondCall(importName: string): string {
+  return `const reply = await (0, ${importName}.requestUrl)({ url: beyondAddressOf(id), method: "GET", throw: false });`;
+}
+
 const ELEMENT = "an element that loads from or sends to an address";
 
 const PAST_AN_ALLOWANCE: [string, string][] = [
@@ -128,6 +134,47 @@ describe("networkCodeIn", () => {
       ['video.createEl("track", { attr: { src: address } })', "an element that loads from or sends to an address"],
       ['document.createElement(kind === "a" && "object")', "an element that loads from or sends to an address"],
     ]);
+  });
+
+  it("finds nothing in the one D&D Beyond call and its one address, however Obsidian's import is numbered", () => {
+    expect(networkCodeIn(`${BEYOND_ADDRESS_LINE}\n${beyondCall("import_obsidian3")}`)).toEqual([]);
+    expect(networkCodeIn(`${BEYOND_ADDRESS_LINE}\n${beyondCall("import_obsidian116")}`)).toEqual([]);
+  });
+
+  it("finds a second call, even one exactly like the allowed call", () => {
+    const twice = `${BEYOND_ADDRESS_LINE}\n${beyondCall("import_obsidian3")}\n${beyondCall("import_obsidian4")}`;
+    expect(networkCodeIn(twice)).toContain("requestUrl");
+  });
+
+  it.each([
+    ["a header", '{ url: beyondAddressOf(id), method: "GET", throw: false, headers: { a: "b" } }'],
+    ["a body", '{ url: beyondAddressOf(id), method: "GET", throw: false, body: text }'],
+    ["POST", '{ url: beyondAddressOf(id), method: "POST", throw: false }'],
+    ["throw on", '{ url: beyondAddressOf(id), method: "GET", throw: true }'],
+    ["another address", '{ url: "https://example.invalid/a", method: "GET", throw: false }'],
+    ["an address built from text", '{ url: `${BEYOND_ADDRESS}${link}`, method: "GET", throw: false }'],
+    ["a second option order", '{ method: "GET", url: beyondAddressOf(id), throw: false }'],
+  ])("finds the call with %s", (_what, options) => {
+    const found = networkCodeIn(`${BEYOND_ADDRESS_LINE}\n(0, import_obsidian3.requestUrl)(${options})`);
+    expect(found).toContain("requestUrl");
+  });
+
+  it("finds the call written any other way", () => {
+    for (const other of ["const get = import_obsidian3.requestUrl;", 'import_obsidian3["requestUrl"]({ url })', "const { requestUrl } = import_obsidian3;"]) {
+      expect(networkCodeIn(`${BEYOND_ADDRESS_LINE}\n${beyondCall("import_obsidian3")}\n${other}`)).toContain("requestUrl");
+    }
+  });
+
+  it("finds a second address, or the address more than once", () => {
+    const another = `${BEYOND_ADDRESS_LINE}\n${beyondCall("import_obsidian3")}\nvar OTHER = "https://character-service.dndbeyond.com/character/v6/character/";`;
+    expect(networkCodeIn(another)).toContain("a web address");
+    const twice = `${BEYOND_ADDRESS_LINE}\n${BEYOND_ADDRESS_LINE}\n${beyondCall("import_obsidian3")}`;
+    expect(networkCodeIn(twice)).toContain("a web address");
+  });
+
+  it("holds each allowed piece to its own count, so the address alone and the call alone each pass here", () => {
+    expect(networkCodeIn(BEYOND_ADDRESS_LINE)).toEqual([]);
+    expect(networkCodeIn(beyondCall("import_obsidian3"))).toEqual([]);
   });
 
   it("finds a cookie, a login header or credentials sent with a call", () => {

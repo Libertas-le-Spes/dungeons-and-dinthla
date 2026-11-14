@@ -22,10 +22,6 @@ export class PdfPicker {
     this.work.add(this.readSafely());
   }
 
-  focus(): void {
-    this.input.focus();
-  }
-
   private async readSafely(): Promise<void> {
     try {
       await this.readChosen();
