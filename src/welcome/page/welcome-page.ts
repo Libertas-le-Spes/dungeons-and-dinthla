@@ -1,13 +1,13 @@
 import { Component } from "obsidian";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { ReadCampaignsFolder } from "../../fence/paths/fence";
-import type { WelcomeActions, WelcomeEnding, WelcomeState } from "../endings/welcome-ending";
+import type { AgreementAnswered, AgreementShower, WelcomeActions, WelcomeAgreement, WelcomeEnding, WelcomeState } from "../endings/welcome-ending";
 import { endingFor } from "../endings/welcome-endings";
 import { WELCOME_STEPS, WELCOME_TITLE } from "./welcome-steps";
 
 export type WelcomeStore = Pick<CampaignStore, "campaignFolder" | "sessionNotes" | "subscribe">;
 
-export class WelcomePage extends Component {
+export class WelcomePage extends Component implements AgreementShower, AgreementAnswered {
   private endingEl!: HTMLElement;
   private shownEnding: WelcomeEnding | null = null;
   private endingPart: Component | null = null;
@@ -17,6 +17,7 @@ export class WelcomePage extends Component {
     private readonly store: WelcomeStore,
     private readonly readCampaignsFolder: ReadCampaignsFolder,
     private readonly actions: WelcomeActions,
+    private readonly agreement: WelcomeAgreement,
   ) {
     super();
   }
@@ -33,13 +34,21 @@ export class WelcomePage extends Component {
     this.showEnding();
   }
 
+  showAgreement(parentEl: HTMLElement): void {
+    this.agreement.showIn(parentEl, this);
+  }
+
+  agreementAnswered(): void {
+    this.showEnding();
+  }
+
   private showEnding(): void {
     const ending = endingFor(this.state());
     if (ending === this.shownEnding) return;
     this.shownEnding = ending;
     this.closeEnding();
     this.endingEl.empty();
-    this.endingPart = this.addChild(new ending(this.endingEl, this.actions));
+    this.endingPart = this.addChild(new ending(this.endingEl, this.actions, this));
   }
 
   private closeEnding(): void {
@@ -53,6 +62,7 @@ export class WelcomePage extends Component {
       campaignsFolder: this.readCampaignsFolder(),
       campaignFolder: this.store.campaignFolder,
       sessionCount: this.store.sessionNotes.length,
+      agreementWanted: this.agreement.wanted(),
     };
   }
 }

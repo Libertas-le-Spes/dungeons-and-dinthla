@@ -3,6 +3,7 @@ import type { TFolder } from "obsidian";
 import { welcomeSection } from "../../../src/interface/sections/welcome-section";
 import type { SessionNote } from "../../../src/campaign/record/campaign";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { AnsweredAgreement } from "../../welcome/page/answered-agreement";
 
 function made(campaignFolder: string | null, sessionNotes: SessionNote[], campaignsFolder: string | null = "D&D", foldersThere: string[] = ["D&D"]) {
   const store = { campaignFolder, sessionNotes, subscribe: () => () => {} };
@@ -12,7 +13,7 @@ function made(campaignFolder: string | null, sessionNotes: SessionNote[], campai
   const root = obsidianDocument().body.createDiv();
   const show = vi.fn();
   const files = { getFolderByPath: vi.fn((path: string) => folderAt(path, foldersThere)) };
-  const page = welcomeSection({ store, campaignsFolderSetup, maker, files, startSession })(root, show, null, vi.fn());
+  const page = welcomeSection({ store, campaignsFolderSetup, maker, files, agreement: new AnsweredAgreement(), startSession })(root, show, null, vi.fn());
   page.load();
   const button = (text: string) => Array.from(root.querySelectorAll("button")).find((candidate) => candidate.textContent === text)!;
   return { root, show, maker, campaignsFolderSetup, startSession, button };
