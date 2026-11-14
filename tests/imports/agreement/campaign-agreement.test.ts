@@ -6,13 +6,13 @@ import { MadeUpDevice } from "./made-up-device";
 import { pressOn, textsIn } from "./shown-parts";
 
 class MadeUpPage {
-  readonly agreementAnswered = vi.fn();
+  readonly answered = vi.fn();
 }
 
 function shownStep(device: MadeUpDevice, page: MadeUpPage): { agreement: CampaignAgreement; stepEl: HTMLElement } {
   const agreement = new CampaignAgreement(new DeviceAgreement(device.storage));
   const stepEl = obsidianDocument().createElement("div");
-  agreement.showIn(stepEl, page);
+  agreement.showIn(stepEl, page.answered);
   return { agreement, stepEl };
 }
 
@@ -44,7 +44,7 @@ describe("the agreement step at campaign creation", () => {
     const { agreement, stepEl } = shownStep(device, page);
     pressOn(stepEl, "Agree");
     expect(device.saveLocalStorage).toHaveBeenCalledExactlyOnceWith(AGREEMENT_KEY, true);
-    expect(page.agreementAnswered).toHaveBeenCalledOnce();
+    expect(page.answered).toHaveBeenCalledOnce();
     expect(agreement.wanted()).toBe(false);
   });
 
@@ -54,7 +54,7 @@ describe("the agreement step at campaign creation", () => {
     const { agreement, stepEl } = shownStep(device, page);
     pressOn(stepEl, "Not yet");
     expect(device.saveLocalStorage).not.toHaveBeenCalled();
-    expect(page.agreementAnswered).toHaveBeenCalledOnce();
+    expect(page.answered).toHaveBeenCalledOnce();
     expect(agreement.wanted()).toBe(false);
   });
 });

@@ -5,6 +5,23 @@ import DungeonsAndDinthla from "../src/main";
 import type { CampaignsFolderSetting } from "../src/settings/saved/campaigns-folder-setting";
 import { AGREEMENT_KEY } from "../src/imports/agreement/device-agreement";
 import { MadeUpDevice } from "./imports/agreement/made-up-device";
+import { pressOn } from "./imports/agreement/shown-parts";
+import { obsidianDocument } from "./stubs/obsidian-dom";
+import type { WelcomeAgreement } from "../src/welcome/endings/welcome-ending";
+import type { WelcomeWiringNeeds } from "../src/interface/sections/welcome-wiring";
+
+const wired = vi.hoisted(() => ({ agreement: null as unknown }));
+
+vi.mock("../src/interface/sections/welcome-wiring", async (importOriginal) => {
+  const original = await importOriginal<typeof import("../src/interface/sections/welcome-wiring")>();
+  return {
+    ...original,
+    welcomeWiring: (needs: WelcomeWiringNeeds) => {
+      wired.agreement = needs.agreement;
+      return original.welcomeWiring(needs);
+    },
+  };
+});
 
 const CONFIG_DIR = "Vault Settings";
 
@@ -20,6 +37,8 @@ function inertWith(values: Record<PropertyKey, unknown> = {}): unknown {
   });
   return inert;
 }
+
+function nothingToDo(): void {}
 
 async function nothingSaved(): Promise<void> {}
 
@@ -61,7 +80,9 @@ describe("DungeonsAndDinthla", () => {
     const device = new MadeUpDevice();
     const { plugin, saveData } = pluginSaved({}, device);
     await plugin.onload();
-    plugin["deviceAgreement"].give();
+    const stepEl = obsidianDocument().createElement("div");
+    (wired.agreement as WelcomeAgreement).showIn(stepEl, nothingToDo);
+    pressOn(stepEl, "Agree");
     expect(device.saveLocalStorage).toHaveBeenCalledExactlyOnceWith(AGREEMENT_KEY, true);
     expect(JSON.stringify(saveData.mock.calls)).not.toContain(AGREEMENT_KEY);
   });

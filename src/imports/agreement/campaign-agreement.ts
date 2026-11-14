@@ -4,19 +4,15 @@ import { AGREEMENT_TITLE } from "./agreement-words";
 import { STEP_BUTTONS } from "./answer-buttons";
 import type { DeviceAgreement } from "./device-agreement";
 
-export interface StepAnswered {
-  agreementAnswered(): void;
-}
-
 class StepChoice implements AnswerChosen {
   constructor(
     private readonly agreement: CampaignAgreement,
-    private readonly answered: StepAnswered,
+    private readonly answered: () => void,
   ) {}
 
   chosen(answer: AgreementAnswer): void {
     this.agreement.take(answer);
-    this.answered.agreementAnswered();
+    this.answered();
   }
 }
 
@@ -30,7 +26,7 @@ export class CampaignAgreement {
     return this.device.given() === false;
   }
 
-  showIn(parentEl: HTMLElement, answered: StepAnswered): void {
+  showIn(parentEl: HTMLElement, answered: () => void): void {
     parentEl.createEl("p", { cls: "dd-agreement-title" }).createEl("strong", { text: AGREEMENT_TITLE });
     drawAgreement(parentEl, STEP_BUTTONS, new StepChoice(this, answered));
   }

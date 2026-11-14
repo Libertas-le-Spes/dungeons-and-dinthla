@@ -15,13 +15,9 @@ export interface WelcomeActions {
   makeCampaignsFolder(name: string): Promise<void>;
 }
 
-export interface AgreementAnswered {
-  agreementAnswered(): void;
-}
-
 export interface WelcomeAgreement {
   wanted(): boolean;
-  showIn(parentEl: HTMLElement, answered: AgreementAnswered): void;
+  showIn(parentEl: HTMLElement, answered: () => void): void;
 }
 
 export interface AgreementShower {
