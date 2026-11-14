@@ -2,16 +2,13 @@ import { describe, expect, it } from "vitest";
 import { ChosenCampaign } from "../../../src/settings/saved/chosen-campaign";
 import type { PluginSettings } from "../../../src/settings/saved/plugin-settings";
 import { SettingsSaver } from "../../../src/settings/saved/settings-saver";
-
-function oneTick(): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, 0));
-}
+import { queuedWorkRan } from "../../stubs/queued-work";
 
 function chosenFrom(campaignFolder: string | null, saveFails = false, savesThatFail: string[] = []) {
   const saved: (string | null)[] = [];
   const opened: string[] = [];
   const saver = new SettingsSaver({ campaignsFolder: null, campaignFolder, welcomeSeen: true, lastVersionSeen: null, notesMadeFor: [] }, async (settings: PluginSettings) => {
-    await oneTick();
+    await queuedWorkRan();
     if (saveFails) throw new Error("data.json is read-only.");
     if (settings.campaignFolder !== null && savesThatFail.includes(settings.campaignFolder)) throw new Error("The disk is full.");
     saved.push(settings.campaignFolder);
@@ -19,7 +16,7 @@ function chosenFrom(campaignFolder: string | null, saveFails = false, savesThatF
   const campaign = {
     campaignFolder,
     async open(folder: string) {
-      await oneTick();
+      await queuedWorkRan();
       opened.push(folder);
       campaign.campaignFolder = folder;
     },
