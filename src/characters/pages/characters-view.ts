@@ -1,9 +1,9 @@
-import { BasesView, type QueryController } from "obsidian";
+import { BasesView, type QueryController, type TFile } from "obsidian";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { LinkActions } from "../../views/lists/linked-text";
 import { CharacterGallery } from "./character-gallery";
 import type { CharacterCreators } from "./character-creators";
-import type { CharacterNotes } from "../reading/character-notes";
+import type { CastNotes } from "../reading/character-notes";
 
 export const CHARACTERS_VIEW = "dungeons-and-dinthla-characters";
 
@@ -15,7 +15,7 @@ export class CharactersView extends BasesView {
     controller: QueryController,
     containerEl: HTMLElement,
     private readonly store: CampaignStore,
-    private readonly notes: CharacterNotes,
+    private readonly notes: CastNotes,
     actions: LinkActions,
     creators: CharacterCreators,
   ) {
@@ -39,6 +39,15 @@ export class CharactersView extends BasesView {
 
   onDataUpdated(): void {
     const files = this.data.data.map((entry) => entry.file);
-    this.gallery.show(files.filter((file) => this.notes.holds(file)));
+    this.gallery.show(
+      files.filter((file) => this.notes.holds(file)),
+      this.fallenFiles(),
+    );
+  }
+
+  private fallenFiles(): TFile[] {
+    const folder = this.store.campaignFolder;
+    if (folder === null) return [];
+    return this.notes.fallenFilesIn(folder).filter((file) => this.notes.holds(file));
   }
 }

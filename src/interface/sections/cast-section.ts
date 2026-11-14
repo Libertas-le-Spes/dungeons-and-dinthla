@@ -5,7 +5,7 @@ import { CastPage, type WatchFiles } from "../../characters/pages/cast-page";
 import { castPageFor, type CastPages } from "../../characters/pages/cast-page-for";
 import { CharacterPage } from "../../characters/pages/character-page";
 import { CharacterSheetPage, type SheetActions } from "../../characters/pages/character-sheet-page";
-import type { CharacterNotes } from "../../characters/reading/character-notes";
+import type { CastNotes } from "../../characters/reading/character-notes";
 import type { MentionNotes } from "../../characters/reading/mention-notes";
 import type { SheetNotes } from "../../characters/reading/sheet-notes";
 import type { CharacterCreators } from "../../characters/pages/character-creators";
@@ -14,7 +14,7 @@ import type { MakePage, ShowPage } from "../view/campaign-pages";
 
 export interface CastNeeds {
   store: CampaignStore;
-  characterNotes: CharacterNotes;
+  characterNotes: CastNotes;
   sheetNotes: SheetNotes;
   mentionNotes: MentionNotes;
   actions: LinkActions;

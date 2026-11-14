@@ -114,6 +114,19 @@ describe("characterNotesOf", () => {
     expect(found.map((file) => file.path)).toEqual(["Pale Moon/Characters/Brother Aldric.md", "Pale Moon/Characters/Thessaly.md"]);
   });
 
+  it("leaves the notes in Fallen out of the Characters list, and finds them in their own, by name", () => {
+    const files = [
+      "Pale Moon/Characters/Thessaly.md",
+      "Pale Moon/Fallen/Mira.md",
+      "Pale Moon/Fallen/Brann.md",
+      "Ashen Road/Fallen/Kest.md",
+      "Pale Moon Fallen/Vess.md",
+    ];
+    const notes = notesOf(gateWith({ files }).gate);
+    expect(notes.filesIn("Pale Moon").map((file) => file.path)).toEqual(["Pale Moon/Characters/Thessaly.md"]);
+    expect(notes.fallenFilesIn("Pale Moon").map((file) => file.path)).toEqual(["Pale Moon/Fallen/Brann.md", "Pale Moon/Fallen/Mira.md"]);
+  });
+
   it("tells which note changed until it stops watching", () => {
     const { gate, watchers, stopped } = gateWith();
     const changed: string[] = [];

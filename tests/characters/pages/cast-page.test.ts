@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { TFile } from "obsidian";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { CastPage } from "../../../src/characters/pages/cast-page";
-import type { CharacterNotes } from "../../../src/characters/reading/character-notes";
+import type { CastNotes } from "../../../src/characters/reading/character-notes";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 function fileOf(name: string): TFile {
@@ -26,13 +26,14 @@ function openCast({ folder = "Pale Moon" as string | null, characters = ["Mira",
   };
   const shown = { names: characters };
   const filesIn = vi.fn(() => shown.names.map(fileOf));
-  const notes: CharacterNotes = {
+  const notes: CastNotes = {
     holds: () => true,
     textOf: async () => "",
     pathOfLink: () => null,
     isOwnCharacter: (file) => file.basename === own,
     campaignFolders: () => ["Pale Moon"],
     filesIn,
+    fallenFilesIn: () => [],
     sessionsOf: async () => [],
     onNoteChanged: (changed) => {
       noteChanged = changed;

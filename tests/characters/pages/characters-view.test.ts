@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { BasesQueryResult, QueryController, TFile } from "obsidian";
 import type { SessionNote } from "../../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
-import type { CharacterNotes } from "../../../src/characters/reading/character-notes";
+import type { CastNotes, CharacterNotes } from "../../../src/characters/reading/character-notes";
 import { CharactersView } from "../../../src/characters/pages/characters-view";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
@@ -63,7 +63,7 @@ function openGallery({
   const sessionsAskedFor: string[] = [];
   const reads = { count: 0 };
   const owner = { name: own };
-  const notes: CharacterNotes = {
+  const notes: CastNotes = {
     holds: (file) => !file.path.startsWith("Private/"),
     textOf: (file) => {
       reads.count += 1;
@@ -77,6 +77,7 @@ function openGallery({
     isOwnCharacter: (file) => file.basename === owner.name,
     campaignFolders: () => ["Ashen Road", "Pale Moon"],
     filesIn: () => [],
+    fallenFilesIn: () => [],
     sessionsOf: async (folder) => {
       sessionsAskedFor.push(folder);
       return otherSessions;
