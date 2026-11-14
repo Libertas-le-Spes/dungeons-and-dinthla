@@ -135,8 +135,8 @@
  {
   "id": "welcome: the page moves on after an answer",
   "file": "src/welcome/page/welcome-page.ts",
-  "find": "  agreementAnswered(): void {\n    this.showEnding();\n  }",
-  "replace": "  agreementAnswered(): void {}",
+  "find": "  private agreementAnswered(): void {\n    this.showEnding();\n  }",
+  "replace": "  private agreementAnswered(): void {}",
   "group": "welcome"
  },
  {
@@ -144,6 +144,13 @@
   "file": "src/main.ts",
   "find": "new DeviceAgreement(this.localStorage)",
   "replace": "new DeviceAgreement({ load: (key: string) => Object.getOwnPropertyDescriptor(this.settingsSaver.settings, key)?.value, save: (key: string, value: unknown) => void this.settingsSaver.save({ [key]: value }) })",
+  "group": "device-local"
+ },
+ {
+  "id": "device-local: the welcome step keeps its answer in the plugin's settings instead",
+  "file": "src/main.ts",
+  "find": "agreement: new CampaignAgreement(this.deviceAgreement),",
+  "replace": "agreement: new CampaignAgreement(new DeviceAgreement({ load: (key: string) => Object.getOwnPropertyDescriptor(this.settingsSaver.settings, key)?.value, save: (key: string, value: unknown) => void this.settingsSaver.save({ [key]: value }) })),",
   "group": "device-local"
  }
 ]
