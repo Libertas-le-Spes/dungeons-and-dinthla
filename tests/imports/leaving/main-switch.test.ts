@@ -215,7 +215,7 @@ describe("a switch that stops part way", () => {
     const table = new LeavingTable();
     table.vault.failMovesWith(new Error("The disk is full."));
     expect(await refusalWhen(table.leaveAs(new Died()).run(""))).toBe(
-      "PartlyWritten: Written so far: Primary Monk's note was marked died and given its snapshot. Primary Monk's note couldn't be moved to Fallen, so the switch is only part done. Something went wrong while writing. Press the same choice again to finish.",
+      "PartlyWritten: Written so far: Primary Monk's note was marked died and given its snapshot. Primary Monk's note couldn't be moved to Fallen, so the switch is only part done. Something went wrong while writing. Press Make main again to finish.",
     );
     expect(table.vault.textAt(CAMPAIGN_NOTE)).toBe(CAMPAIGN_TEXT);
   });
@@ -224,7 +224,7 @@ describe("a switch that stops part way", () => {
     const table = new LeavingTable();
     table.vault.failProcessesOf(CAMPAIGN_NOTE, new Error("The disk is full."));
     expect(await refusalWhen(table.leaveAs(new Retired()).run(""))).toBe(
-      "PartlyWritten: Written so far: Primary Monk's note was marked retired and given its snapshot; Primary Monk's note was moved to Fallen. Secondary couldn't be made your character in the campaign note, so the switch is only part done. Something went wrong while writing. Press the same choice again to finish.",
+      "PartlyWritten: Written so far: Primary Monk's note was marked retired and given its snapshot; Primary Monk's note was moved to Fallen. Secondary couldn't be made your character in the campaign note, so the switch is only part done. Something went wrong while writing. Press Make main again to finish.",
     );
     expect(table.vault.textAt(SECOND)).toBe(SECOND_TEXT);
   });
@@ -303,7 +303,7 @@ describe("before anything is switched", () => {
     expect(table.vault.writes).toEqual([`move ${MONK} -> ${CAMPAIGN}/Characters/Old/Primary Monk.md`]);
   });
 
-  it("refuses when the campaign note is moved since the question was asked", async () => {
+  it("refuses when the campaign note is gone since the question was asked", async () => {
     const table = new LeavingTable();
     const choice = table.leaveAs(new Died());
     table.vault.files.delete(CAMPAIGN_NOTE);

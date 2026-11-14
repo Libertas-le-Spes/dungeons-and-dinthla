@@ -1,7 +1,7 @@
 import type { TFile } from "obsidian";
-import { Refusal } from "../../../beyond/shape/refusal";
 import { AskAlways, AskWhenLeftPlay, type AskWhen } from "./ask-when";
 import { MainModal } from "./main-modal";
+import { plainWordsOf } from "../writes/write-words";
 import type { OfferWiring } from "./offer-wiring";
 import { questionFor } from "./question-for";
 import type { MainQuestion } from "./main-question";
@@ -17,11 +17,6 @@ class FocusBack {
 
 function stayPut(): void {
   return;
-}
-
-function plainWordsOf(error: unknown): string {
-  if (error instanceof Refusal) return error.message;
-  return COULD_NOT_ASK;
 }
 
 export class MainOffers {
@@ -54,7 +49,7 @@ export class MainOffers {
     try {
       if (await when.wants(this.wiring.files, file)) question = await questionFor(this.wiring, file);
     } catch (error) {
-      this.wiring.tell(plainWordsOf(error));
+      this.wiring.tell(plainWordsOf(error, COULD_NOT_ASK));
       returnFocus();
       return;
     }

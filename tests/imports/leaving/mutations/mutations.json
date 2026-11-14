@@ -30,7 +30,7 @@
  {
   "id": "the campaign note is checked before the first write",
   "file": "src/imports/leaving/switching/campaign-write.ts",
-  "find": "    textWithProperty(plan.asked, MAIN_CHARACTER_PROPERTY, mainLineOf(name));\n",
+  "find": "    this.checkedText(name);\n",
   "replace": "",
   "group": "checks"
  },
@@ -638,9 +638,9 @@
  },
  {
   "id": "an unexpected error is said in plain words",
-  "file": "src/imports/leaving/dialog/main-offers.ts",
-  "find": "  return COULD_NOT_ASK;",
-  "replace": "  return String(error);",
+  "file": "src/imports/leaving/writes/write-words.ts",
+  "find": "  return otherwise;\n",
+  "replace": "  return String(error);\n",
   "group": "offers"
  },
  {
@@ -1041,5 +1041,33 @@
   "find": "{ folder: \"cast\", reaches: [\"cast\", \"properties\", \"switching\"] },",
   "replace": "{ folder: \"cast\", reaches: [\"cast\", \"properties\"] },",
   "group": "folders"
+ },
+ {
+  "id": "folders: each folder holds at most ten files",
+  "file": "tests/build/leaving-folders.test.ts",
+  "find": "toBeLessThanOrEqual(10)",
+  "replace": "toBeLessThanOrEqual(9)",
+  "group": "folders"
+ },
+ {
+  "id": "fence: imports may use Setting",
+  "file": "tests/fence/allowed/obsidian-imports.ts",
+  "find": "\"ButtonComponent\", \"Setting\", \"TFile\", \"parseYaml\"]",
+  "replace": "\"ButtonComponent\", \"TFile\", \"parseYaml\"]",
+  "group": "allow"
+ },
+ {
+  "id": "the cast refusal words are the shared plain words",
+  "file": "src/imports/leaving/dialog/main-offers.ts",
+  "find": "plainWordsOf(error, COULD_NOT_ASK)",
+  "replace": "COULD_NOT_ASK",
+  "group": "offers"
+ },
+ {
+  "id": "a stopped switch tells to press Make main",
+  "file": "src/imports/leaving/writes/write-words.ts",
+  "find": "Press Make main again to finish.",
+  "replace": "Press the same choice again to finish.",
+  "group": "writes"
  }
 ]
