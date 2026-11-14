@@ -36,3 +36,28 @@
   font: var(--type-label);
   color: var(--statblock-subtitle);
 }
+
+.dd-characters .dd-card-standing {
+  font: var(--type-label);
+  color: var(--state-history);
+}
+
+.dd-characters .dd-backups,
+.dd-characters .dd-fallen {
+  margin-top: var(--space-8);
+}
+
+.dd-characters .dd-backup,
+.dd-characters .dd-fallen-card,
+.dd-characters .dd-left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.dd-characters .dd-backup .dd-make-main,
+.dd-characters .dd-fallen-card .dd-make-main,
+.dd-characters .dd-left .dd-make-main {
+  align-self: flex-start;
+  min-height: var(--touch-min);
+}

@@ -12,11 +12,44 @@ import { openedModals } from "../../stubs/obsidian";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { CHARACTERS_FOLDER, FakeNoteVault } from "../builders/fake-note-vault";
 
+class NoMetadata {
+  getCache(): null {
+    return null;
+  }
+
+  getFileCache(): null {
+    return null;
+  }
+
+  getFirstLinkpathDest(): null {
+    return null;
+  }
+
+  fileToLinktext(file: TFile): string {
+    return file.basename;
+  }
+}
+
+class NoOffers {
+  readonly imported: string[] = [];
+  readonly updated: string[] = [];
+
+  async afterImport(path: string): Promise<void> {
+    this.imported.push(path);
+  }
+
+  async afterUpdate(path: string): Promise<void> {
+    this.updated.push(path);
+  }
+}
+
 function wiringWith(shownFolder: string | null, folderOfNote: string | null): BeyondWiring {
   const vault = new FakeNoteVault();
   return {
     app: {} as App,
     files: vault.gate,
+    actions: vault.actions,
+    metadata: new NoMetadata(),
     shownCampaignFolder: vi.fn().mockReturnValue(shownFolder),
     campaignFolderOf: vi.fn().mockReturnValue(folderOfNote),
     charactersFolderOf: vi.fn().mockReturnValue(CHARACTERS_FOLDER),
@@ -87,24 +120,30 @@ function textsIn(parent: HTMLElement, selector: string): string[] {
 }
 
 describe("after the dialog closes", () => {
-  it("shows the sheet of the note an import wrote, and returns focus when nothing was written", () => {
+  it("shows the sheet of the note an import wrote and offers to make it your character, and returns focus when nothing was written", () => {
     const returnFocus = vi.fn();
     const showSheet = vi.fn();
-    const after = new AfterNewImport(returnFocus, showSheet);
+    const offers = new NoOffers();
+    const after = new AfterNewImport(returnFocus, showSheet, offers);
     after.importClosed("D&D/Primary Campaign/Characters/Primary Monk.md");
     expect(showSheet).toHaveBeenCalledWith("D&D/Primary Campaign/Characters/Primary Monk.md");
+    expect(offers.imported).toEqual(["D&D/Primary Campaign/Characters/Primary Monk.md"]);
     expect(returnFocus).not.toHaveBeenCalled();
     after.importClosed(null);
     expect(returnFocus).toHaveBeenCalledOnce();
     expect(showSheet).toHaveBeenCalledOnce();
+    expect(offers.imported).toHaveLength(1);
   });
 
-  it("returns focus after an update, whether or not it wrote", () => {
+  it("returns focus after an update, whether or not it wrote, and offers main only after a written update", () => {
     const returnFocus = vi.fn();
-    const after: ImportClosed = new AfterUpdate(returnFocus);
+    const offers = new NoOffers();
+    const after: ImportClosed = new AfterUpdate(returnFocus, offers);
     after.importClosed("D&D/Primary Campaign/Characters/Primary.md");
     after.importClosed(null);
     expect(returnFocus).toHaveBeenCalledTimes(2);
+    expect(offers.updated).toEqual(["D&D/Primary Campaign/Characters/Primary.md"]);
+    expect(offers.imported).toEqual([]);
   });
 });
 
@@ -137,5 +176,13 @@ describe("opening the dialog", () => {
     new BeyondOpeners(outside).updateFromBeyond(note, vi.fn());
     expect(outside.tell).toHaveBeenCalledExactlyOnceWith("This note isn't in a campaign, so it can't be updated from D&D Beyond.");
     expect(openedModals.length).toBe(before + 1);
+  });
+
+  it("asks about Make main for a note that is gone, telling the user and returning focus", () => {
+    const wiring = wiringWith("D&D/Primary Campaign", "D&D/Primary Campaign");
+    const returnFocus = vi.fn();
+    new BeyondOpeners(wiring).makeMain(`${CHARACTERS_FOLDER}/Gone.md`, returnFocus);
+    expect(wiring.tell).toHaveBeenCalledExactlyOnceWith("A character's note was moved or deleted since you were asked, so nothing was switched.");
+    expect(returnFocus).toHaveBeenCalledOnce();
   });
 });

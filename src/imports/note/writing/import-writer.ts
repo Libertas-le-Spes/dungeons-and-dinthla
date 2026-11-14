@@ -9,11 +9,13 @@ import type { NoteFiles } from "./note-files";
 import { checkedNewNoteText, checkedTextOf, writeWhenUnchangedSinceRead } from "./checked-note-text";
 import { nameTaken } from "./guarding/refusals";
 import { Refusal } from "../../../beyond/shape/refusal";
+import { fallenNoteOf, leftPlayWords } from "../../../campaign/paths/fallen-notes";
 
 export class ImportWriter {
   constructor(
     private readonly files: NoteFiles,
     private readonly charactersFolder: string,
+    private readonly campaignFolder: string,
   ) {}
 
   async changesFor(file: TFile, sheet: PrintedSheet, today: string): Promise<ImportChanges> {
@@ -52,8 +54,10 @@ export class ImportWriter {
     const refusal = refusalForFileName(name);
     if (refusal !== null) throw new Refusal(refusal);
     const wanted = nameKeyOf(this.newNotePathOf(name));
-    for (const file of this.files.getFiles()) {
+    const files = this.files.getFiles();
+    for (const file of files) {
       if (nameKeyOf(file.path) === wanted) throw nameTaken(file.basename);
     }
+    if (fallenNoteOf(files, this.campaignFolder, name) !== null) throw new Refusal(leftPlayWords(name));
   }
 }

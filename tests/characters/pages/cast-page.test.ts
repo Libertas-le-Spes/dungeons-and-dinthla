@@ -2,14 +2,18 @@ import { describe, expect, it, vi } from "vitest";
 import type { TFile } from "obsidian";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { CastPage } from "../../../src/characters/pages/cast-page";
-import type { CharacterNotes } from "../../../src/characters/reading/character-notes";
+import type { CastNotes } from "../../../src/characters/reading/character-notes";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 function fileOf(name: string): TFile {
   return { path: `Pale Moon/Characters/${name}.md`, basename: name } as TFile;
 }
 
-function openCast({ folder = "Pale Moon" as string | null, characters = ["Mira", "Thessaly"], own = "" } = {}) {
+function fallenFileOf(name: string): TFile {
+  return { path: `Pale Moon/Fallen/${name}.md`, basename: name } as TFile;
+}
+
+function openCast({ folder = "Pale Moon" as string | null, characters = ["Mira", "Thessaly"], own = "", fallen = [] as string[] } = {}) {
   let campaignChanged = () => {};
   let noteChanged: (path: string) => void = () => {};
   let fileChanged: (path: string) => void = () => {};
@@ -24,15 +28,16 @@ function openCast({ folder = "Pale Moon" as string | null, characters = ["Mira",
       return unsubscribe;
     },
   };
-  const shown = { names: characters };
+  const shown = { names: characters, fallen };
   const filesIn = vi.fn(() => shown.names.map(fileOf));
-  const notes: CharacterNotes = {
+  const notes: CastNotes = {
     holds: () => true,
     textOf: async () => "",
     pathOfLink: () => null,
     isOwnCharacter: (file) => file.basename === own,
     campaignFolders: () => ["Pale Moon"],
     filesIn,
+    fallenFilesIn: () => shown.fallen.map(fallenFileOf),
     sessionsOf: async () => [],
     onNoteChanged: (changed) => {
       noteChanged = changed;
@@ -44,7 +49,7 @@ function openCast({ folder = "Pale Moon" as string | null, characters = ["Mira",
     return stopWatchingFiles;
   };
   const root = obsidianDocument().createElement("div");
-  const page = new CastPage(root, store as unknown as CampaignStore, notes, { openRow: vi.fn(), openLink: vi.fn() }, { newCharacter: vi.fn(), importCharacter: vi.fn() }, watchFiles);
+  const page = new CastPage(root, store as unknown as CampaignStore, notes, { openRow: vi.fn(), openLink: vi.fn() }, { newCharacter: vi.fn(), importCharacter: vi.fn(), makeMain: vi.fn() }, watchFiles);
   page.load();
   return {
     root,
@@ -95,6 +100,16 @@ describe("CastPage", () => {
     shown.names = ["Brother Aldric", "Mira", "Thessaly"];
     fileChanged("Pale Moon/Characters/Brother Aldric.md");
     await shownNames(page, root, ["Brother Aldric", "Mira", "Thessaly"]);
+  });
+
+  it("shows the fallen in their own list, and draws it again when a note in Fallen changes", async () => {
+    const { page, root, shown, fileChanged } = openCast({ fallen: ["Brann"] });
+    await page.rendered();
+    expect([...root.querySelectorAll(".dd-fallen .dd-stat-block-name")].map((name) => name.textContent)).toEqual(["Brann"]);
+    shown.fallen = ["Brann", "Isolde"];
+    fileChanged("Pale Moon/Fallen/Isolde.md");
+    await page.rendered();
+    expect([...root.querySelectorAll(".dd-fallen .dd-stat-block-name")].map((name) => name.textContent)).toEqual(["Brann", "Isolde"]);
   });
 
   it("reads the cards again when the campaign note changes", async () => {

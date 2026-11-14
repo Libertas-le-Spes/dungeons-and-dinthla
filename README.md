@@ -66,10 +66,18 @@ On D&D Beyond, open your character, choose *Manage* next to the name, then *Expo
 A short walkthrough:
 
 1. On D&D Beyond, export your character as a PDF. Then, on the Characters page, press *Import from D&D Beyond* and choose the file; check what comes in and press *Import*.
-2. Your character's sheet opens. Under the values you'll find your inventory, purse, spells and features, as D&D Beyond has them.
+2. Your character's sheet opens, and the plugin offers to make them your character in this campaign. Under the values you'll find your inventory, purse, spells and features, as D&D Beyond has them.
 3. Press *Track on the funds page* beside an item to give it to your character on the Party funds page, where the party can see it.
 4. Your own purse shows on the Party funds page beside the party's once the campaign note names your character, and is never added to it.
 5. After a level-up, export a new PDF and press *Update from D&D Beyond* on your sheet. Anything you hold on the funds page that the new sheet doesn't list is marked; pick *Used up*, *Sold*, *Lost* or *Changed* to settle it.
+
+When a character leaves play:
+
+1. Import your next character. The plugin asks what happened to the one you played: *Died*, *Retired* or *Backup*.
+2. For *Died* or *Retired*, you can say what they were last doing. Their note moves to the campaign's `Fallen` folder with a dated snapshot added at the bottom, and the new character becomes yours.
+3. A *Backup* stays in `Characters`. You'll find your backups at the bottom of the Characters page, each with *Make main* for when you want to play them, and the *Fallen* list sits below them.
+4. Fallen characters are listed on the Characters page under *Fallen*, each with *Make main*. Their note moves back to `Characters` and keeps its snapshots; if they leave play again, another dated snapshot is added.
+5. If a switch stops part way, the message says what was written. Press *Make main* again to finish it.
 
 ## Planning
 
