@@ -72,6 +72,16 @@ describe("ReferenceNotes", () => {
     expect(world.notes.created).toEqual([]);
   });
 
+  it("makes nothing when the session saved here was deleted or renamed before it resolved, and a later sync arrival resolves it", async () => {
+    const world = worldWith(["Lady Vess"]);
+    const { referenceNotes, resolve } = startWith(world);
+    referenceNotes.sessionSaved(SESSION);
+    referenceNotes.sessionGone(SESSION);
+    resolve(SESSION);
+    await settled();
+    expect(world.notes.created).toEqual([]);
+  });
+
   it("makes nothing for a session that was not saved here", async () => {
     const world = worldWith(["Lady Vess"]);
     const { resolve } = startWith(world);

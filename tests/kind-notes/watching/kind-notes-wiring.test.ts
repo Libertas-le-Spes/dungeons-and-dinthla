@@ -19,7 +19,7 @@ function startWith(notes: FakeNotes, campaign: FakeCampaign, alreadyMade: string
   const marked: string[] = [];
   const made = { hasMadeFor: (folder: string) => alreadyMade.includes(folder), markMadeFor: vi.fn(async (folder: string) => void marked.push(folder)) };
   const items = { sessionSaved: vi.fn(), makeMissing: vi.fn(async () => ({ made: 0, failed: 0 })) };
-  const references = { sessionSaved: vi.fn() };
+  const references = { sessionSaved: vi.fn(), sessionGone: vi.fn() };
   const gate = { files: notes.files, metadata: notes.metadata, fileActions: notes.actions } as unknown as Gate;
   const stop = startKindNotes({
     gate,

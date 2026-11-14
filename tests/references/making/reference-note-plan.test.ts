@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { SessionNote } from "../../../src/campaign/record/campaign";
 import { BAD_NAME } from "../../../src/names/file-name";
-import { noNoteMessage, planReferenceNotes, sharedNameMessage } from "../../../src/references/making/reference-note-plan";
+import { ENDS_LIKE_A_NOTE, noReferenceNoteMessage, planReferenceNotes, sharedReferenceNameMessage } from "../../../src/references/making/reference-note-plan";
 import { firstOf } from "../../stubs/lists";
 
 const CAMPAIGN = "Pale Moon";
@@ -117,13 +117,20 @@ describe("planReferenceNotes", () => {
     const sessions = [session(1, ["! Go on, from: [[Lady: Vess]]", "! Go on, from: [[Lady: Vess]]", "! Go on, from: [[Lady: Vess]]"])];
     const plan = planUnresolved(sessions, ["Lady: Vess"]);
     expect(plan.notes).toEqual([]);
-    expect(plan.refusals).toEqual([noNoteMessage("Lady: Vess", BAD_NAME)]);
+    expect(plan.refusals).toEqual([noReferenceNoteMessage("Lady: Vess", BAD_NAME)]);
+  });
+
+  it.each([["Mira.md"], ["Mira.MD"]])("makes no note for %s, since its file would be Mira.md.md, and says so", (name) => {
+    const line = `! Go on, from: [[${name}]]`;
+    const plan = planUnresolved([session(1, [line, line, line])], [name]);
+    expect(plan.notes).toEqual([]);
+    expect(plan.refusals).toEqual([noReferenceNoteMessage(name, ENDS_LIKE_A_NOTE)]);
   });
 
   it("makes only the first of two names that would share a file name, and says why", () => {
     const lines = ["! Go on, from: [[Lady Vess]]", "! Go on, from: [[Lady Vess]]", "! Go on, from: [[Lady Vess]]", "! Go on, from: [[lady vess]]", "! Go on, from: [[lady vess]]", "! Go on, from: [[lady vess]]"];
     const plan = planUnresolved([session(1, lines)], ["Lady Vess", "lady vess"]);
     expect(plan.notes.map(({ name }) => name)).toEqual(["Lady Vess"]);
-    expect(plan.refusals).toEqual([sharedNameMessage("lady vess", "Lady Vess")]);
+    expect(plan.refusals).toEqual([sharedReferenceNameMessage("lady vess", "Lady Vess")]);
   });
 });

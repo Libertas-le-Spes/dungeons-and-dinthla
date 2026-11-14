@@ -334,5 +334,61 @@
   "find": "return named.kind !== null;",
   "replace": "return true;",
   "group": "making plan"
+ },
+ {
+  "id": "a deleted or renamed session is forgotten",
+  "file": "src/references/making/reference-notes.ts",
+  "find": "  sessionGone(path: string): void {\n    this.pending.delete(path);\n",
+  "replace": "  sessionGone(path: string): void {\n",
+  "group": "making notes"
+ },
+ {
+  "id": "a renamed session is forgotten",
+  "file": "src/kind-notes/watching/kind-note-watcher.ts",
+  "find": "    this.needs.references.sessionGone(from);\n",
+  "replace": "",
+  "group": "making wiring"
+ },
+ {
+  "id": "a deleted session is forgotten",
+  "file": "src/kind-notes/watching/kind-note-watcher.ts",
+  "find": "    this.needs.references.sessionGone(path);\n",
+  "replace": "",
+  "group": "making wiring"
+ },
+ {
+  "id": "one note per name key across runs",
+  "file": "src/references/making/reference-note-maker.ts",
+  "find": " || this.reserved.has(key)",
+  "replace": "",
+  "group": "making maker"
+ },
+ {
+  "id": "a failed name is tried again",
+  "file": "src/references/making/reference-note-maker.ts",
+  "find": "      this.reserved.delete(key);\n",
+  "replace": "",
+  "group": "making maker"
+ },
+ {
+  "id": "a name ending in .md is refused",
+  "file": "src/references/making/reference-note-plan.ts",
+  "find": "    if (name.toLowerCase().endsWith(NOTE_ENDING)) return ENDS_LIKE_A_NOTE;\n",
+  "replace": "",
+  "group": "making plan"
+ },
+ {
+  "id": "the ending is read whatever its capitals",
+  "file": "src/references/making/reference-note-plan.ts",
+  "find": "name.toLowerCase().endsWith(NOTE_ENDING)",
+  "replace": "name.endsWith(NOTE_ENDING)",
+  "group": "making plan"
+ },
+ {
+  "id": "a name is planned once",
+  "file": "src/references/making/reference-note-plan.ts",
+  "find": " || considered.has(named.name)",
+  "replace": "",
+  "group": "making plan"
  }
 ]
