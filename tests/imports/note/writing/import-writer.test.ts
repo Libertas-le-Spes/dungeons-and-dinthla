@@ -75,6 +75,7 @@ describe("ImportWriter.update", () => {
     expect(vault.files.has(FALLEN_NOTE)).toBe(true);
     expect(vault.files.has(NOTE)).toBe(false);
     expect(vault.textAt(FALLEN_NOTE)).toContain("imported: 2026-11-13");
+    expect(headingsOf(vault.textAt(FALLEN_NOTE)).filter((heading) => heading.startsWith("## Left play on"))).toEqual(["## Left play on 2026-10-01"]);
     expect(vault.textAt(FALLEN_NOTE)).toContain("standing: died\n");
     expect(vault.textAt(FALLEN_NOTE)).toContain(textOf("His words.", "", "## Left play on 2026-10-01", "Died on 2026-10-01.", "### Items held", "- Rope"));
   });
