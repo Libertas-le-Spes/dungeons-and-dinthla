@@ -6,7 +6,7 @@ import type { PlannedWrite } from "../writes/planned-write";
 import { TextWrite } from "../writes/text-write";
 import { CampaignWrite } from "./campaign-write";
 import type { CampaignCast } from "../cast/campaign-cast";
-import { charactersNotePathOf, isInFallen } from "./membership";
+import { charactersNotePathOf, isInFallen } from "../../../campaign/paths/character-membership";
 import { textOfNote } from "./read-note";
 import type { LeavingActions, LeavingFiles, SwitchPlan } from "./switch-plan";
 import { charactersNoteExists, markTakenOff, NOTE_UNREAD, markTakeOffFailed, movedToCharacters, moveToCharactersFailed } from "./switch-words";
