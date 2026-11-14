@@ -1,6 +1,7 @@
 import { plainLineOf } from "../../note/reading/line-ending";
 import { PropertyLines } from "./property-lines";
-import { propertyChangedMore } from "./property-refusals";
+import { propertyChangedMore, propertyReadsDifferently } from "./property-refusals";
+import { propertiesOf, propertiesWithout, valueIn, wantedValueOf } from "./property-yaml";
 
 function outsideTheProperty(text: string, key: string): string {
   const note = PropertyLines.of(text);
@@ -27,4 +28,8 @@ function wantedLinesOf(wanted: string | null): string {
 export function refuseUnlessOnlyThePropertyChanged(before: string, after: string, key: string, wanted: string | null): void {
   if (outsideTheProperty(before, key) !== outsideTheProperty(after, key)) throw propertyChangedMore(key);
   if (propertyLinesOf(after, key) !== wantedLinesOf(wanted)) throw propertyChangedMore(key);
+  const readBefore = propertiesOf(before, key);
+  const readAfter = propertiesOf(after, key);
+  if (propertiesWithout(readBefore, key) !== propertiesWithout(readAfter, key)) throw propertyReadsDifferently(key);
+  if (valueIn(readAfter, key) !== wantedValueOf(wanted, key)) throw propertyReadsDifferently(key);
 }

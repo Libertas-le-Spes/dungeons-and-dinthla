@@ -1,47 +1,59 @@
 import { Refusal } from "../../../beyond/shape/refusal";
-import { PartlyWritten } from "../../../campaign/writing/note-editor";
 
-export const SOMETHING_WENT_WRONG = "Something went wrong while writing.";
 export const CAMPAIGN_NOTE_CHANGED = "The campaign note changed since you were asked, so nothing was switched. Try again.";
 export const NOTE_MOVED = "A character's note was moved or deleted since you were asked, so nothing was switched.";
 export const CAMPAIGN_NOTE_UNREAD = "The campaign note couldn't be read, so nothing was switched.";
+export const NOTE_UNREAD = "A character's note couldn't be read, so nothing was switched.";
 export const MAIN_UNCLEAR =
-  "The campaign note's character property isn't one link to a note in this campaign's Characters folder, so nothing was switched. Fix it in the campaign note first.";
-export const NOT_A_CAMPAIGN_CHARACTER = "This note isn't in a campaign's Characters folder, so it can't be made your character.";
+  "The campaign note's character property isn't one link to a note in this campaign's Characters or Fallen folder, so nothing was switched. Fix it in the campaign note first.";
+export const NOT_A_CAMPAIGN_CHARACTER = "This note isn't in a campaign's Characters or Fallen folder, so it can't be made your character.";
 
-export function recordFailed(name: string): string {
-  return `Couldn't write ${name}'s record in Fallen, so nothing was switched.`;
+export function charactersNoteExists(name: string): Refusal {
+  return new Refusal(`There is already a note called ${name} in Characters, so nothing was changed. Rename or move that note first.`);
 }
 
-export function markFailedAfterRecord(name: string): string {
-  return `${name}'s record was written in Fallen, but their note couldn't be marked, so the campaign note still names ${name} as your character.`;
+export function markedWithSnapshot(name: string, standing: string): string {
+  return `${name}'s note was marked ${standing} and given its snapshot`;
 }
 
 export function markFailed(name: string): string {
-  return `${name}'s note couldn't be marked, so nothing was switched.`;
+  return `${name}'s note couldn't be marked`;
 }
 
-export function finishFailedAfter(oldName: string, newName: string): string {
-  return `${oldName}'s note was marked, but ${newName} couldn't be made your character, so the campaign note still names ${oldName}.`;
+export function marked(name: string, standing: string): string {
+  return `${name}'s note was marked ${standing}`;
 }
 
-export function finishFailed(newName: string): string {
-  return `${newName} couldn't be made your character, so the campaign note is as it was.`;
+export function movedToFallen(name: string): string {
+  return `${name}'s note was moved to Fallen`;
 }
 
-function plainWordsOf(error: unknown): string {
-  if (error instanceof Refusal) return error.message;
-  return SOMETHING_WENT_WRONG;
+export function moveToFallenFailed(name: string): string {
+  return `${name}'s note couldn't be moved to Fallen`;
 }
 
-function joined(prefix: string, error: unknown): string {
-  return `${prefix} ${plainWordsOf(error)}`;
+export function movedToCharacters(name: string): string {
+  return `${name}'s note was moved to Characters`;
 }
 
-export function refusalAfter(prefix: string, error: unknown): Refusal {
-  return new Refusal(joined(prefix, error));
+export function moveToCharactersFailed(name: string): string {
+  return `${name}'s note couldn't be moved to Characters`;
 }
 
-export function partlyAfter(prefix: string, error: unknown): PartlyWritten {
-  return new PartlyWritten(joined(prefix, error));
+export function campaignNoteNames(name: string): string {
+  return `the campaign note now names ${name} as your character`;
 }
+
+export function campaignNoteFailed(name: string): string {
+  return `${name} couldn't be made your character in the campaign note`;
+}
+
+export function markTakenOff(name: string): string {
+  return `${name}'s mark was taken off`;
+}
+
+export function markTakeOffFailed(name: string): string {
+  return `${name}'s mark couldn't be taken off`;
+}
+
+export const COULD_NOT_ASK = "Couldn't ask who is your character, so nothing was switched.";

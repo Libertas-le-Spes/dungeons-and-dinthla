@@ -1,4 +1,5 @@
 import { joinedLines, PropertyLines } from "./property-lines";
+import { propertyNextToLoose } from "./property-refusals";
 
 const FENCE = "---";
 
@@ -27,5 +28,7 @@ export function withPropertyLine(text: string, key: string, wanted: string | nul
   if (!note.hasBlock()) return withNewBlock(note, added);
   const span = note.spanOf(key);
   if (span === null) return spliced(note, note.closing(), note.closing(), added);
+  if (note.spanIs(span, wanted)) return text;
+  if (note.hasLooseLineNextTo(span)) throw propertyNextToLoose(key);
   return spliced(note, span.start, span.end, added);
 }

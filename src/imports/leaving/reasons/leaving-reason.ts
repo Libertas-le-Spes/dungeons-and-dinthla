@@ -1,9 +1,11 @@
+import type { PlannedWrite } from "../writes/planned-write";
+
 export interface LeavingSteps {
-  recordThenStanding(standing: string, how: string): Promise<void>;
-  standingOnly(standing: string): Promise<void>;
+  intoFallen(standing: string, how: string): Promise<PlannedWrite[]>;
+  markedOnly(standing: string): Promise<PlannedWrite[]>;
 }
 
 export interface LeavingReason {
   readonly words: string;
-  leave(steps: LeavingSteps): Promise<void>;
+  writesFor(steps: LeavingSteps): Promise<PlannedWrite[]>;
 }

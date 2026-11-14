@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { Refusal } from "../../../src/beyond/shape/refusal";
 import { withPropertyLine } from "../../../src/imports/leaving/properties/one-property";
 import { refuseUnlessOnlyThePropertyChanged } from "../../../src/imports/leaving/properties/property-read-back";
-import { propertyValueOf } from "../../../src/imports/leaving/properties/property-value";
+import { valuesOf } from "../../../src/imports/leaving/properties/property-value";
+import { textWithProperty } from "../../../src/imports/leaving/properties/property-setter";
 
 const NOTE = "---\nclass: Monk 4\nstanding: backup\nHP: 27\n---\nShe keeps the bridge.\n";
 
@@ -82,11 +83,57 @@ describe("the check after one property is changed", () => {
   });
 });
 
-describe("the value of one property", () => {
-  it("is the text after its colon, or nothing when the note has none or a list", () => {
-    expect(propertyValueOf(NOTE, "standing")).toBe("backup");
-    expect(propertyValueOf("---\r\nstanding: died\r\n---\r\n", "standing")).toBe("died");
-    expect(propertyValueOf("Text\n", "standing")).toBeNull();
-    expect(propertyValueOf("---\nstanding:\n  - died\n---\n", "standing")).toBeNull();
+describe("a blank or comment line next to the property", () => {
+  const words = "standing has a blank or comment line next to it in the note's properties, so nothing was written. Tidy those lines first.";
+
+  it("is refused above the property", () => {
+    expect(refusalOf(() => withPropertyLine("---\nclass: Monk\n# keep\nstanding: backup\n---\n", "standing", "standing: died"))).toBe(words);
+  });
+
+  it("is refused below the property", () => {
+    expect(refusalOf(() => withPropertyLine("---\nstanding: backup\n\nclass: Monk\n---\n", "standing", "standing: died"))).toBe(words);
+  });
+
+  it("is refused when the property is taken out", () => {
+    expect(refusalOf(() => withPropertyLine("---\nstanding: backup\n# keep\n---\n", "standing", null))).toBe(words);
+  });
+
+  it("doesn't stop a property that is already as wanted", () => {
+    const note = "---\nstanding: died\n# keep\n---\n";
+    expect(withPropertyLine(note, "standing", "standing: died")).toBe(note);
+  });
+
+  it("doesn't stop a property being added next to a comment", () => {
+    expect(withPropertyLine("---\nclass: Monk\n# keep\n---\n", "standing", "standing: died")).toBe("---\nclass: Monk\n# keep\nstanding: died\n---\n");
+  });
+});
+
+describe("the properties as they are read", () => {
+  const unreadable = "The note's properties couldn't be read as properties, so standing wasn't written. Fix them first.";
+
+  it("are refused when a quote swallows the next line and the change would leave it open", () => {
+    const note = '---\nnote: "starts here\nstanding: died"\n---\n';
+    expect(refusalOf(() => textWithProperty(note, "standing", "standing: backup"))).toBe(unreadable);
+  });
+
+  it("are refused when the note's properties can't be read before the change either", () => {
+    expect(refusalOf(() => textWithProperty("---\nnot a property\n---\n", "standing", "standing: died"))).toBe(unreadable);
+  });
+
+  it("let a change of only that property through", () => {
+    expect(textWithProperty(NOTE, "standing", "standing: died")).toBe("---\nclass: Monk 4\nstanding: died\nHP: 27\n---\nShe keeps the bridge.\n");
+  });
+});
+
+describe("the lines of one property's value", () => {
+  it("are the text after its colon, or nothing when the note has none", () => {
+    expect(valuesOf(NOTE, "standing")).toEqual(["backup"]);
+    expect(valuesOf("---\r\nstanding: died\r\n---\r\n", "standing")).toEqual(["died"]);
+    expect(valuesOf("Text\n", "standing")).toBeNull();
+    expect(valuesOf("---\nclass: Monk\n---\n", "standing")).toBeNull();
+  });
+
+  it("are every line of a list", () => {
+    expect(valuesOf("---\nstanding:\n  - died\n---\n", "standing")).toEqual(["", "- died"]);
   });
 });

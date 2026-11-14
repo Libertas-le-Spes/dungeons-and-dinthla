@@ -1,13 +1,15 @@
 import { vi } from "vitest";
 import type { TFile, TFolder } from "obsidian";
 import { Fence } from "../../../src/fence/paths/fence";
+import { FencedFileActions, type RawFileManager } from "../../../src/fence/gate/fenced-file-actions";
 import { FencedFiles, type RawVault } from "../../../src/fence/gate/fenced-files";
 import { HeldFiles } from "../../../src/fence/gate/held-files";
 import { NoteReporter } from "../../../src/fence/gate/written-notes";
 import { HeldCalls } from "../../stubs/held-calls";
 
 export const CAMPAIGNS_FOLDER = "D&D";
-export const CHARACTERS_FOLDER = "D&D/Primary Campaign/Characters";
+export const CAMPAIGN_FOLDER = "D&D/Primary Campaign";
+export const CHARACTERS_FOLDER = `${CAMPAIGN_FOLDER}/Characters`;
 
 function campaignsFolder(): string {
   return CAMPAIGNS_FOLDER;
@@ -35,16 +37,22 @@ export class FakeNoteVault {
   readonly createdFolders: string[] = [];
   readonly writes: string[] = [];
   readonly gate: FencedFiles;
+  readonly actions: FencedFileActions;
+  readonly moved: string[] = [];
   private readFailure: Error | null = null;
   private heldReads: HeldCalls<string> | null = null;
   private createFailure: Error | null = null;
+  private moveFailure: Error | null = null;
   private readonly processFailures = new Map<string, Error>();
   private readonly readsAs = new Map<string, string>();
 
   constructor() {
     const fence = new Fence(campaignsFolder, ".obsidian");
     const raw = this.rawVault();
-    this.gate = new FencedFiles(raw, new HeldFiles(raw, fence), new NoteReporter());
+    const held = new HeldFiles(raw, fence);
+    const reporter = new NoteReporter();
+    this.gate = new FencedFiles(raw, held, reporter);
+    this.actions = new FencedFileActions(this.fileManager(), held, reporter);
   }
 
   note(path: string, text: string): TFile {
@@ -76,8 +84,13 @@ export class FakeNoteVault {
     this.readsAs.set(path, text);
   }
 
-  failProcessesOf(path: string, error: Error): void {
-    this.processFailures.set(path, error);
+  failMovesWith(error: Error | null): void {
+    this.moveFailure = error;
+  }
+
+  failProcessesOf(path: string, error: Error | null): void {
+    if (error === null) this.processFailures.delete(path);
+    else this.processFailures.set(path, error);
   }
 
   allNotes(): TFile[] {
@@ -115,6 +128,24 @@ export class FakeNoteVault {
       offref: vi.fn(),
     };
     return vault as unknown as RawVault;
+  }
+
+  private fileManager(): RawFileManager {
+    const manager = { renameFile: vi.fn(this.move.bind(this)), processFrontMatter: vi.fn(), trashFile: vi.fn() };
+    return manager as unknown as RawFileManager;
+  }
+
+  private async move(file: TFile, newPath: string): Promise<void> {
+    if (this.moveFailure !== null) throw this.moveFailure;
+    const text = this.textAt(file.path);
+    this.files.delete(file.path);
+    this.texts.delete(file.path);
+    this.moved.push(`${file.path} -> ${newPath}`);
+    this.writes.push(`move ${file.path} -> ${newPath}`);
+    const name = nameOf(newPath);
+    Object.assign(file, { path: newPath, name, basename: name.replace(/\.md$/, "") });
+    this.files.set(newPath, file);
+    this.texts.set(newPath, text);
   }
 
   private allFiles(): TFile[] {

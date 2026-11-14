@@ -15,10 +15,13 @@ interface LeavingFolder {
 
 const LEAVING_FOLDERS: LeavingFolder[] = [
   { folder: "properties", reaches: ["properties"] },
-  { folder: "record", reaches: ["record"] },
-  { folder: "reasons", reaches: ["reasons"] },
-  { folder: "switching", reaches: ["switching", "reasons", "record", "properties"] },
-  { folder: "dialog", reaches: ["dialog", "switching", "reasons", "properties"] },
+  { folder: "snapshot", reaches: ["snapshot"] },
+  { folder: "writes", reaches: ["writes"] },
+  { folder: "reasons", reaches: ["reasons", "writes"] },
+  { folder: "cast", reaches: ["cast", "properties", "switching"] },
+  { folder: "switching", reaches: ["switching", "reasons", "snapshot", "properties", "writes", "cast"] },
+  { folder: "choices", reaches: ["choices", "switching", "reasons", "cast", "writes"] },
+  { folder: "dialog", reaches: ["dialog", "choices", "switching", "reasons", "properties", "cast"] },
 ];
 
 const OUTSIDE_LEAVING_REACHED = ["note", "layout"];
@@ -154,9 +157,10 @@ describe("the rule for the folders inside src/imports/leaving, over made-up file
     expect(breachesOfMadeUpFile("reasons", written("../switching/main-switch"))).toEqual(["leaving/reasons/made-up.ts imports from switching"]);
   });
 
-  it("refuses the record and the properties importing from any other leaving folder", () => {
-    expect(breachesOfMadeUpFile("record", 'import { a } from "../properties/property-setter";')).toEqual(["leaving/record/made-up.ts imports from properties"]);
-    expect(breachesOfMadeUpFile("properties", 'import { a } from "../record/record-writer";')).toEqual(["leaving/properties/made-up.ts imports from record"]);
+  it("refuses the snapshot, the writes and the properties importing from any other leaving folder", () => {
+    expect(breachesOfMadeUpFile("snapshot", 'import { a } from "../properties/property-setter";')).toEqual(["leaving/snapshot/made-up.ts imports from properties"]);
+    expect(breachesOfMadeUpFile("properties", 'import { a } from "../snapshot/snapshot-text";')).toEqual(["leaving/properties/made-up.ts imports from snapshot"]);
+    expect(breachesOfMadeUpFile("writes", 'import { a } from "../switching/switch-plan";')).toEqual(["leaving/writes/made-up.ts imports from switching"]);
   });
 
   it("refuses switching importing from the dialog, and any leaving folder importing from the import dialog", () => {
@@ -171,6 +175,6 @@ describe("the rule for the folders inside src/imports/leaving, over made-up file
 
   it("refuses the note importing from leaving", () => {
     const file = join(IMPORTS_FOLDER, "note", "writing", "made-up.ts");
-    expect(importersOfLeavingIn(file, 'import { a } from "../../leaving/record/fallen-record";')).toEqual(["note/writing/made-up.ts imports from leaving"]);
+    expect(importersOfLeavingIn(file, 'import { a } from "../../leaving/snapshot/snapshot-text";')).toEqual(["note/writing/made-up.ts imports from leaving"]);
   });
 });
