@@ -1,9 +1,10 @@
 import type { TFile } from "obsidian";
 import type { SessionNote } from "../../campaign/record/campaign";
-import { campaignNotePathOf, isInReferenceFolder } from "../../campaign/paths/campaign-folders";
+import { campaignNotePathOf, isInFallenFolder, isInReferenceFolder } from "../../campaign/paths/campaign-folders";
 import { characterReferenceKind } from "../../kinds/character-reference-kind";
 import { readSessions } from "../../campaign/reading/read-campaign";
 import type { Gate } from "../../fence/gate/gatekeeper";
+import { MAIN_CHARACTER_PROPERTY } from "../../imports/layout/standing";
 
 export interface CharacterNotes {
   holds(file: TFile): boolean;
@@ -16,6 +17,12 @@ export interface CharacterNotes {
   onNoteChanged(changed: (path: string) => void): () => void;
 }
 
+export interface FallenNotes {
+  fallenFilesIn(campaignFolder: string): TFile[];
+}
+
+export type CastNotes = CharacterNotes & FallenNotes;
+
 function pathOfLink(gate: Gate, linktext: string, sourcePath: string): string | null {
   const note = gate.metadata.getFirstLinkpathDest(linktext, sourcePath);
   if (note === null) return null;
@@ -25,7 +32,7 @@ function pathOfLink(gate: Gate, linktext: string, sourcePath: string): string | 
 function ownCharacterLinks(gate: Gate, campaignNotePath: string): string[] {
   const links = gate.metadata.getCache(campaignNotePath)?.frontmatterLinks;
   if (links === undefined) return [];
-  return links.filter((link) => link.key === "character").map((link) => link.link);
+  return links.filter((link) => link.key === MAIN_CHARACTER_PROPERTY).map((link) => link.link);
 }
 
 export type CampaignFolders = () => string[];
@@ -42,12 +49,17 @@ function filesIn(gate: Gate, campaignFolder: string): TFile[] {
   return files.sort((first, second) => first.basename.localeCompare(second.basename));
 }
 
+function fallenFilesIn(gate: Gate, campaignFolder: string): TFile[] {
+  const files = gate.files.getMarkdownFiles().filter((file) => isInFallenFolder(campaignFolder, file.path));
+  return files.sort((first, second) => first.basename.localeCompare(second.basename));
+}
+
 function onNoteChanged(gate: Gate, changed: (path: string) => void): () => void {
   const event = gate.metadata.on("changed", (file) => changed(file.path));
   return () => gate.metadata.offref(event);
 }
 
-export function characterNotesOf(gate: Gate, campaignFolders: CampaignFolders): CharacterNotes {
+export function characterNotesOf(gate: Gate, campaignFolders: CampaignFolders): CastNotes {
   return {
     holds: (file) => gate.files.getFileByPath(file.path) === file,
     textOf: (file) => gate.files.cachedRead(file),
@@ -55,6 +67,7 @@ export function characterNotesOf(gate: Gate, campaignFolders: CampaignFolders): 
     isOwnCharacter: (file) => isOwnCharacter(gate, campaignFolders, file),
     campaignFolders,
     filesIn: (campaignFolder) => filesIn(gate, campaignFolder),
+    fallenFilesIn: (campaignFolder) => fallenFilesIn(gate, campaignFolder),
     sessionsOf: (campaignFolder) => readSessions(gate.files, campaignFolder),
     onNoteChanged: (changed) => onNoteChanged(gate, changed),
   };

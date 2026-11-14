@@ -5,6 +5,7 @@ import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { LinkActions } from "../../views/lists/linked-text";
 import { addCharacterCard, addCharacterCardIn, type CharacterCard } from "../cards/character-card";
 import { backupCards, playedCards } from "../cards/card-groups";
+import { leftPlayMarkOf } from "../cards/card-standing";
 import { addMakeMainButton } from "../cards/make-main-button";
 import type { CharacterNotes } from "../reading/character-notes";
 import { learnedFactsOf, type LearnedFacts } from "../reading/learned-facts";
@@ -15,6 +16,7 @@ import { addImportButton } from "../imported/drawing/import-button";
 
 const NO_CHARACTERS = "No characters yet. Add one with New character.";
 export const BACKUPS = "Backups";
+export const FALLEN = "Fallen";
 
 export class CharacterGallery {
   private renders = 0;
@@ -34,15 +36,15 @@ export class CharacterGallery {
     return this.campaignNotes.has(path);
   }
 
-  show(files: TFile[]): void {
-    this.drawing.add(this.drawFiles(files));
+  show(files: TFile[], fallen: TFile[]): void {
+    this.drawing.add(this.drawFiles(files, fallen));
   }
 
   shown(): Promise<void> {
     return this.drawing.settled();
   }
 
-  private async drawFiles(files: TFile[]): Promise<void> {
+  private async drawFiles(files: TFile[], fallen: TFile[]): Promise<void> {
     const render = ++this.renders;
     const folders = this.notes.campaignFolders();
     const learnedByFolder = new Map<string | null, Promise<LearnedFacts>>();
@@ -54,27 +56,53 @@ export class CharacterGallery {
       }
       return learned;
     };
-    const cards = await Promise.all(files.map((file) => this.cardOf(file, learnedIn(campaignFolderOf(file.path, folders)))));
+    const cardsOf = (shown: TFile[]) => Promise.all(shown.map((file) => this.cardOf(file, learnedIn(campaignFolderOf(file.path, folders)))));
+    const [cards, fallenCards] = await Promise.all([cardsOf(files), cardsOf(fallen)]);
     if (render !== this.renders) return;
-    this.campaignNotes = new Set(files.map((file) => campaignNotePathOf(file.path, folders)));
-    this.draw(cards);
+    this.campaignNotes = new Set([...files, ...fallen].map((file) => campaignNotePathOf(file.path, folders)));
+    this.draw(cards, fallenCards);
   }
 
-  private draw(cards: CharacterCard[]): void {
+  private draw(cards: CharacterCard[], fallenCards: CharacterCard[]): void {
     this.root.empty();
     const head = this.root.createDiv({ cls: "dd-head" });
     const title = head.createEl("h2", { cls: "dd-title", text: "Characters" });
     const actions = head.createDiv({ cls: "dd-head-actions" });
     this.addCreateButton(actions);
     addImportButton(actions, this.creators);
-    if (cards.length === 0) {
-      this.root.createEl("p", { cls: "dd-empty", text: NO_CHARACTERS });
-      return;
-    }
+    if (cards.length === 0) this.root.createEl("p", { cls: "dd-empty", text: NO_CHARACTERS });
+    if (cards.length > 0) this.drawPlayed(title, cards);
+    this.drawFallen(fallenCards);
+  }
+
+  private drawPlayed(title: HTMLElement, cards: CharacterCard[]): void {
     title.createSpan({ cls: "dd-count", text: String(cards.length) });
     const gallery = this.root.createEl("ul", { cls: "dd-gallery" });
-    for (const card of playedCards(cards)) addCharacterCard(gallery, card, this.actions);
+    for (const card of playedCards(cards)) this.drawPlayedCard(gallery, card);
     this.drawBackups(backupCards(cards));
+  }
+
+  private drawPlayedCard(gallery: HTMLElement, card: CharacterCard): void {
+    if (leftPlayMarkOf(card.standing) === null) {
+      addCharacterCard(gallery, card, this.actions);
+      return;
+    }
+    this.drawWithMakeMain(gallery, card, "dd-left");
+  }
+
+  private drawFallen(cards: readonly CharacterCard[]): void {
+    if (cards.length === 0) return;
+    const section = this.root.createEl("section", { cls: "dd-fallen" });
+    const title = section.createEl("h3", { cls: "dd-title", text: FALLEN });
+    title.createSpan({ cls: "dd-count", text: String(cards.length) });
+    const list = section.createEl("ul", { cls: "dd-gallery" });
+    for (const card of cards) this.drawWithMakeMain(list, card, "dd-fallen-card");
+  }
+
+  private drawWithMakeMain(list: HTMLElement, card: CharacterCard, cls: string): void {
+    const item = list.createEl("li", { cls });
+    addCharacterCardIn(item, card, this.actions);
+    addMakeMainButton(item, card.path, this.creators);
   }
 
   private drawBackups(backups: readonly CharacterCard[]): void {
@@ -82,11 +110,7 @@ export class CharacterGallery {
     const section = this.root.createEl("section", { cls: "dd-backups" });
     section.createEl("h3", { cls: "dd-title", text: BACKUPS });
     const list = section.createEl("ul", { cls: "dd-gallery" });
-    for (const card of backups) {
-      const item = list.createEl("li", { cls: "dd-backup" });
-      addCharacterCardIn(item, card, this.actions);
-      addMakeMainButton(item, card.path, this.creators);
-    }
+    for (const card of backups) this.drawWithMakeMain(list, card, "dd-backup");
   }
 
   private addCreateButton(head: HTMLElement): void {
