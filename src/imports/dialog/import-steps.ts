@@ -1,6 +1,8 @@
 import type { PrintedSheet } from "../../beyond/sheet/printed-sheet";
 import type { ImportFlow } from "./flows/import-flow";
 import { DialogShown } from "./stages/dialog-shown";
+import { OnlineStage, type OnlineArrival } from "./online/online-stage";
+import type { OnlineSource } from "./online/online-source";
 import { PdfSheetReader } from "./stages/pdf-sheet-reader";
 import { PdfStage, type SheetArrival } from "./stages/pdf-stage";
 import { ReviewStage, type StagesHost } from "./stages/review-stage";
@@ -11,7 +13,7 @@ export interface StepsHost {
   closeDialog(): void;
 }
 
-export class ImportSteps implements SheetArrival, StagesHost {
+export class ImportSteps implements SheetArrival, OnlineArrival, StagesHost {
   private readonly shown = new DialogShown();
   private readonly work = new PendingWork();
   private readonly pdf: PdfStage;
@@ -21,9 +23,10 @@ export class ImportSteps implements SheetArrival, StagesHost {
     contentEl: HTMLElement,
     private readonly flow: ImportFlow,
     today: string,
+    online: OnlineSource,
     private readonly host: StepsHost,
   ) {
-    this.pdf = new PdfStage(contentEl, this.shown, this, new PdfSheetReader(), this.work);
+    this.pdf = new PdfStage(contentEl, this.shown, this, new PdfSheetReader(), this.work, new OnlineStage(contentEl, this.shown, this, online, this.work));
     this.review = new ReviewStage(contentEl, this.shown, today, this, this.work);
   }
 
@@ -50,6 +53,10 @@ export class ImportSteps implements SheetArrival, StagesHost {
       return;
     }
     this.review.showTargets(sheet, this.flow.targetsFor(sheet));
+  }
+
+  onlineRefused(words: string): void {
+    this.pdf.show(words);
   }
 
   writeFailed(error: unknown): void {

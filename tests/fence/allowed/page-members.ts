@@ -1,4 +1,5 @@
 export const PAGE_MEMBERS: Record<string, string[]> = {
+  "beyond/shape/byte-count.ts": ["encode"],
   "campaign/background/picture-css.ts": ["encode"],
   "characters/editing/character-modal.ts": ["addEventListener", "defaultPrevented", "focus", "preventDefault"],
   "characters/editing/sheet-value-modal.ts": ["addEventListener", "defaultPrevented", "focus", "preventDefault"],
@@ -10,7 +11,8 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "funds/item-notes/item-panel.ts": ["addEventListener", "focus"],
   "funds/items/item-modal.ts": ["addEventListener", "defaultPrevented", "focus", "preventDefault"],
   "funds/page/funds-page.ts": ["closest", "focus", "open", "querySelectorAll", "setAttribute"],
-  "imports/dialog/picking/pdf-picker.ts": ["addEventListener", "arrayBuffer", "files", "focus", "item", "size"],
+  "imports/dialog/online/online-stage.ts": ["focus"],
+  "imports/dialog/picking/pdf-picker.ts": ["addEventListener", "arrayBuffer", "files", "item", "size"],
   "interface/view/campaign-view.ts": ["removeAttribute", "setAttribute"],
   "interface/view/tab-picture.ts": ["removeProperty", "style"],
   "main.ts": ["body", "clearTimeout", "setTimeout", "visibilityState"],

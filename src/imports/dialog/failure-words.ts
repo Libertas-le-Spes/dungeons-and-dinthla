@@ -3,6 +3,8 @@ import { Refusal } from "../../beyond/shape/refusal";
 export const WRITING_WENT_WRONG = "Something went wrong while writing the note. Look at the note before you try again.";
 export const READING_WENT_WRONG = "Something went wrong while reading the note, so nothing was written.";
 
+export const ONLINE_WENT_WRONG = "Something went wrong while bringing the character in from D&D Beyond, so nothing was imported.";
+
 export function wordsOf(error: unknown, otherwise: string): string {
   if (error instanceof Refusal) return error.message;
   return otherwise;

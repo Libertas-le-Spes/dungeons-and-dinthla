@@ -23,15 +23,15 @@
  {
   "id": "fence: picker's page members",
   "file": "tests/fence/allowed/page-members.ts",
-  "find": "  \"imports/dialog/picking/pdf-picker.ts\": [\"addEventListener\", \"arrayBuffer\", \"files\", \"focus\", \"item\", \"size\"],\n",
+  "find": "  \"imports/dialog/picking/pdf-picker.ts\": [\"addEventListener\", \"arrayBuffer\", \"files\", \"item\", \"size\"],\n",
   "replace": "",
   "group": "allow"
  },
  {
   "id": "fence: picker lists only what it uses",
   "file": "tests/fence/allowed/page-members.ts",
-  "find": "[\"addEventListener\", \"arrayBuffer\", \"files\", \"focus\", \"item\", \"size\"]",
-  "replace": "[\"addEventListener\", \"arrayBuffer\", \"files\", \"focus\", \"item\", \"size\", \"value\"]",
+  "find": "[\"addEventListener\", \"arrayBuffer\", \"files\", \"item\", \"size\"]",
+  "replace": "[\"addEventListener\", \"arrayBuffer\", \"files\", \"item\", \"size\", \"value\"]",
   "group": "allow"
  },
  {
