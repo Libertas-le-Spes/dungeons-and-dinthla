@@ -12,13 +12,17 @@ function nameOf(node: Node): string | null {
   return null;
 }
 
-export function networkUsesIn(sourceFile: SourceFile): NetworkUse[] {
+export function usesOf(sourceFile: SourceFile, names: string[]): NetworkUse[] {
   const uses: NetworkUse[] = [];
   const visit = (node: Node): void => {
     const name = nameOf(node);
-    if (name !== null && NETWORK_NAMES.includes(name)) uses.push({ node, name });
+    if (name !== null && names.includes(name)) uses.push({ node, name });
     node.forEachChild(visit);
   };
   sourceFile.forEachChild(visit);
   return uses;
+}
+
+export function networkUsesIn(sourceFile: SourceFile): NetworkUse[] {
+  return usesOf(sourceFile, NETWORK_NAMES);
 }

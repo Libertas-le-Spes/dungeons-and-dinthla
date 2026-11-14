@@ -148,6 +148,16 @@ describe("the cooldown", () => {
   });
 });
 
+describe("a clock that went backwards", () => {
+  it("counts as ready, so a press is never held back by a clock set earlier", async () => {
+    clock.time = 100_000;
+    await pressAndAnswer();
+    clock.time = 50_000;
+    await pressAndAnswer();
+    expect(calls.ids).toHaveLength(2);
+  });
+});
+
 describe("the time limit", () => {
   it("keeps waiting until the limit and stops waiting at it, saying so", async () => {
     const pressed = refusedWith(rules.characterFor(madeUpId()));

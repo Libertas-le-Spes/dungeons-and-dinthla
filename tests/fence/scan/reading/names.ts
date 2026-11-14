@@ -204,6 +204,8 @@ export const NETWORK_CALL = "requestUrl";
 
 export const NETWORK_NAMES = [NETWORK_CALL, "request"];
 
+export const BEYOND_CALLING_NAMES = ["callBeyond", "BeyondCalls"];
+
 export const NETWORK_ADDRESS_BUILDER = "beyondAddressOf";
 
 export const NETWORK_ADDRESS_FILE = "online/beyond-address.ts";

@@ -547,9 +547,9 @@ An import goes into the character's own note. Nothing else is touched.
 
 #### Importing online
 
-The same dialog's first part is the online way. It says *Bring your character in from D&D Beyond. Only your character's number is sent, to one address, with no login and no cookies. Nothing is saved until you press Import.*, with a box for *Your character's link or number* and *Bring in from D&D Beyond*. Nothing is sent before that button is pressed.
+The same dialog's first part is the online way. It says *Bring your character in from D&D Beyond. Only your character's number is sent, to one address, and this plugin adds no login, cookies or other headers of its own. Nothing is saved until you press Import.*, with a box for *Your character's link or number* and *Bring in from D&D Beyond*. Nothing is sent before that button is pressed.
 
-- **What is sent.** One GET to `https://character-service.dndbeyond.com/character/v5/character/` followed by the digits of the number, 1 to 12 of them, taken from a bare number or a `dndbeyond.com/characters/<digits>` link (with or without `https://` and `www.`, and anything after the digits). Nothing else typed reaches the address: not the rest of a link, not a query. No header, no body, no login, no cookie.
+- **What is sent.** One GET to `https://character-service.dndbeyond.com/character/v5/character/` followed by the digits of the number, 1 to 12 of them, taken from a bare number or a `dndbeyond.com/characters/<digits>` link (with or without `https://` and `www.`, and anything after the digits). Nothing else typed reaches the address: not the rest of a link, not a query. This plugin adds no login, cookies or other headers of its own, and no body; Obsidian sends the call and may add its own details, and follows redirects.
 - **The first press** asks [the agreement](#the-dd-beyond-agreement) if this device hasn't given it. *Use a PDF instead* (or closing it) sends nothing and says so; the link stays typed.
 - **One at a time.** While a call is waiting, including one that has timed out but not yet ended, another press sends nothing and says *Still waiting on D&D Beyond.* A press less than ten seconds after the last one that sent (counted from that press, not from its answer) sends nothing and says to wait. The first press ever is never held back.
 - **Fifteen seconds.** After 15 seconds the plugin stops waiting and says so; an answer that comes later is dropped and never shown or written. There are no retries, no polling and no caching.
@@ -572,7 +572,7 @@ Before the online route sends anything, you agree to it once on each device. The
 
 > **Fetch your character from D&D Beyond?**
 >
-> To bring your character in, this plugin sends one message to one address, character-service.dndbeyond.com. The message holds your character's number and nothing else. It sends no login and no cookies, and it never touches your D&D Beyond account.
+> To bring your character in, this plugin sends one message to one address, character-service.dndbeyond.com. The message holds your character's number and nothing else. This plugin adds no login, cookies or other headers of its own, and it never touches your D&D Beyond account. Obsidian sends the message and may add its own details and follow redirects.
 >
 > Your character has to be set to Public on D&D Beyond. A public character's backstory and notes can be read by anyone who has the link, not only by this plugin. The plugin throws them away before it reads anything and never saves them in your vault.
 >

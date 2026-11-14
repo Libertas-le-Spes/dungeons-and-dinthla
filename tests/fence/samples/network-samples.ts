@@ -77,6 +77,16 @@ export const NETWORK_DEFECT_SAMPLES: NetworkDefect[] = [
   defect(`declare const page: { requestUrl: (options: object) => void };\nexport const ask = (id: CharacterId) => [${EXACT_CALL}, page.requestUrl({})];`, NOT_CALLED_IN_PLACE),
 ];
 
+export const BEYOND_CALLING_SAMPLES = [
+  'import { callBeyond } from "../../../../src/online/beyond-call";\nexport const ask = callBeyond;',
+  'import { BeyondCalls } from "../../../../src/online/call-rules";\nexport const calls = new BeyondCalls(async () => ({ status: 200, contentType: "", text: "" }), () => 0);',
+  'import type { BeyondCalls } from "../../../../src/online/call-rules";\nexport const held = (calls: BeyondCalls) => calls;',
+  'declare const page: { callBeyond: () => void };\nexport const ask = () => page["callBeyond"]();',
+  'export const callBeyond = () => 1;',
+];
+
+export const BEYOND_CALLING_KEEPING_SAMPLES = ['export const ask = (calls: { characterFor: () => void }) => calls.characterFor();'];
+
 export const CHARACTER_ID_FORGING_SAMPLES = [
   'import type { CharacterId } from "../../../../src/online/character-id";\nexport const id = (fake: object) => fake as CharacterId;',
   'import type { CharacterId } from "../../../../src/online/character-id";\nexport const id = (fake: object) => <CharacterId>fake;',

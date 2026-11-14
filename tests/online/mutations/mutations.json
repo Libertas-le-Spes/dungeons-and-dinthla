@@ -418,5 +418,33 @@
   "find": "const NOTHING_LEFT_OUT: LineLoss = { tooLong: 0, notClean: 0 };",
   "replace": "const NOTHING_LEFT_OUT: LineLoss = { tooLong: 1, notClean: 0 };",
   "group": "button"
+ },
+ {
+  "id": "id: the digits are an ordinary field",
+  "file": "src/online/character-id.ts",
+  "find": "  readonly #digits: string;\n\n  private constructor(digits: string) {\n    this.#digits = digits;\n  }",
+  "replace": "  readonly digits: string;\n\n  private constructor(digits: string) {\n    this.digits = digits;\n  }\n\n  get #digits(): string {\n    return this.digits;\n  }",
+  "group": "id"
+ },
+ {
+  "id": "cooldown: a clock gone back holds the press",
+  "file": "src/online/call-rules.ts",
+  "find": "since >= 0 && since < COOLDOWN_MS",
+  "replace": "since < COOLDOWN_MS",
+  "group": "cooldown"
+ },
+ {
+  "id": "call: header names are compared as written",
+  "file": "src/online/header-value.ts",
+  "find": "name.toLowerCase() === wanted.toLowerCase()",
+  "replace": "name === wanted",
+  "group": "call"
+ },
+ {
+  "id": "call: the header is only looked up in lower case",
+  "file": "src/online/header-value.ts",
+  "find": "name.toLowerCase() === wanted.toLowerCase()",
+  "replace": "name.toLowerCase() === wanted",
+  "group": "call"
  }
 ]

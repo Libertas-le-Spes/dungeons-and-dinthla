@@ -1,7 +1,7 @@
 export const IMPORT_TITLE = "Import from D&D Beyond";
 export const UPDATE_TITLE = "Update from D&D Beyond";
 export const WHERE_THE_PDF_IS = "On D&D Beyond: open your character, choose Manage next to the name, then Export to PDF at the bottom of the menu. Then choose that file here.";
-export const ONLINE_INTRO = "Bring your character in from D&D Beyond. Only your character's number is sent, to one address, with no login and no cookies. Nothing is saved until you press Import.";
+export const ONLINE_INTRO = "Bring your character in from D&D Beyond. Only your character's number is sent, to one address, and this plugin adds no login, cookies or other headers of its own. Nothing is saved until you press Import.";
 export const LINK_LABEL = "Your character's link or number";
 export const LINK_PLACEHOLDER = "The link from your character's page";
 export const BRING_IN_BUTTON = "Bring in from D&D Beyond";

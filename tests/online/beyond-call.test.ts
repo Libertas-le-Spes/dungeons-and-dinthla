@@ -42,6 +42,13 @@ describe("callBeyond", () => {
     expect((await callBeyond(CharacterId.of("7"))).contentType).toBe("");
   });
 
+  it("finds the content type whatever capitals its name has", async () => {
+    answerUrlsWith(async () => answered({ "Content-type": "application/json", other: "x" }));
+    expect((await callBeyond(CharacterId.of("7"))).contentType).toBe("application/json");
+    answerUrlsWith(async () => answered({ "CONTENT-TYPE": "text/html" }));
+    expect((await callBeyond(CharacterId.of("7"))).contentType).toBe("text/html");
+  });
+
   it("gives back a status that is not 200 as it is, since the call is told not to throw", async () => {
     answerUrlsWith(async () => ({ ...answered({}), status: 403 }));
     expect((await callBeyond(CharacterId.of("7"))).status).toBe(403);

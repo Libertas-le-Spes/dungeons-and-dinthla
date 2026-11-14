@@ -93,7 +93,7 @@ The plugin can fetch your character from D&D Beyond with one button, and it asks
 
 The plugin sends nothing anywhere, with one exception: bringing your character in from D&D Beyond online.
 
-- **What is sent.** One GET to `https://character-service.dndbeyond.com/character/v5/character/` followed by your character's number, and nothing else: no login, no cookies, no other header, no body. Nothing from the rest of a link you paste reaches the address.
+- **What is sent.** One GET to `https://character-service.dndbeyond.com/character/v5/character/` followed by your character's number, and nothing else: this plugin adds no login, cookies or other headers of its own, and no body. Obsidian sends the call and may add its own details, and follows redirects. Nothing from the rest of a link you paste reaches the address.
 - **When.** Only when you press *Bring in from D&D Beyond*, after you have agreed once on this device. Never in the background, never on a timer, never again by itself, with no retries and nothing cached. One call at a time, ten seconds apart at least, and the plugin stops waiting after fifteen seconds.
 - **What comes back and what is kept.** The character's data. The plugin checks it (status 200, JSON, at most 5 MB, the number you asked for), reads from it only what the import shows, and throws the rest away, including your character's backstory and notes. Nothing is written to your vault until you press *Import* or *Update* on the review.
 - **Public characters only.** The character must be set to Public on D&D Beyond, which makes its data, notes and backstory included, readable by anyone with the link.
