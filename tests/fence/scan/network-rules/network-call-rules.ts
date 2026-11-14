@@ -14,7 +14,7 @@ function isDeclaredIn(type: Type | undefined, name: string, file: string): boole
 
 export function isTheImport(use: NetworkUse): boolean {
   const specifier = use.node.parent;
-  if (!isImportSpecifier(specifier) || specifier.propertyName !== undefined || specifier.name !== use.node) return false;
+  if (!isImportSpecifier(specifier) || specifier.name !== use.node) return false;
   const declaration = specifier.parent.parent.parent;
   if (!isImportDeclaration(declaration) || !isStringLiteral(declaration.moduleSpecifier)) return false;
   return declaration.moduleSpecifier.text === "obsidian";

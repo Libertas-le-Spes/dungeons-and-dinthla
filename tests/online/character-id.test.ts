@@ -44,6 +44,8 @@ describe("CharacterId.of", () => {
     ["a link to another site", "https://example.com/characters/144542063"],
     ["a link to another site that names the right one", "https://example.com/dndbeyond.com/characters/144542063"],
     ["a link to a lookalike host", "https://dndbeyond.com.example.com/characters/144542063"],
+    ["a link to a host with another letter for the dot", "https://www.dndbeyondXcom/characters/144542063"],
+    ["a link with the number glued to a path", "https://www.dndbeyond.com/characters144542063"],
     ["a link to a subdomain", "https://evil.dndbeyond.com/characters/144542063"],
     ["a link with a login in it", "https://user@www.dndbeyond.com/characters/144542063"],
     ["a link to another page", "https://www.dndbeyond.com/monsters/144542063"],
