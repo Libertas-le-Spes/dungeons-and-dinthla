@@ -61,8 +61,8 @@ describe("the import dialog's first view", () => {
     expect(online.links).toEqual([]);
   });
 
-  it("says the privacy line in the owner's words: only the character's number, one address, no login, nothing saved until Import", () => {
-    expect(ONLINE_INTRO).toBe("Bring your character in from D&D Beyond. Only your character's number is sent, to one address, with no login and no cookies. Nothing is saved until you press Import.");
+  it("says the privacy line in the owner's words: only the character's number, one address, no login, cookies or headers of the plugin's own, nothing saved until Import", () => {
+    expect(ONLINE_INTRO).toBe("Bring your character in from D&D Beyond. Only your character's number is sent, to one address, and this plugin adds no login, cookies or other headers of its own. Nothing is saved until you press Import.");
   });
 
   it("sends nothing before the button is pressed, however the link is typed", () => {

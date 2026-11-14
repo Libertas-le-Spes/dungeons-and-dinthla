@@ -22,7 +22,11 @@ function firstDigitsIn(text: string): string | null {
 }
 
 export class CharacterId {
-  private constructor(private readonly digits: string) {}
+  readonly #digits: string;
+
+  private constructor(digits: string) {
+    this.#digits = digits;
+  }
 
   static of(link: string): CharacterId {
     const digits = firstDigitsIn(link.trim());
@@ -31,10 +35,10 @@ export class CharacterId {
   }
 
   appendedTo(address: string): string {
-    return `${address}${this.digits}`;
+    return `${address}${this.#digits}`;
   }
 
   isNumber(number: number): boolean {
-    return Number(this.digits) === number;
+    return Number(this.#digits) === number;
   }
 }

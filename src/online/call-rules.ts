@@ -31,7 +31,8 @@ export class BeyondCalls {
   private refuseUnlessReady(): void {
     if (this.waiting) throw new Refusal(STILL_WAITING);
     if (this.lastPressAt === null) return;
-    if (this.now() - this.lastPressAt < COOLDOWN_MS) throw new Refusal(TOO_SOON);
+    const since = this.now() - this.lastPressAt;
+    if (since >= 0 && since < COOLDOWN_MS) throw new Refusal(TOO_SOON);
   }
 
   private async sent(id: CharacterId): Promise<BeyondReply> {

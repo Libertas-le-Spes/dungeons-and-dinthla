@@ -60,8 +60,19 @@ describe("CharacterId.of", () => {
     const id = CharacterId.of("https://www.dndbeyond.com/characters/144542063/builder?x=1");
     expect(id.isNumber(144542063)).toBe(true);
     expect(id.isNumber(144542064)).toBe(false);
-    expect(Object.keys(id)).toEqual(["digits"]);
+    expect(Object.keys(id)).toEqual([]);
+    expect(JSON.stringify(id)).toBe("{}");
     expect(id.appendedTo("")).toBe("144542063");
+  });
+});
+
+describe("a CharacterId made any other way", () => {
+  it("fails when used, so a fake with the right shape can't be sent", () => {
+    const appended = CharacterId.prototype.appendedTo;
+    const matches = CharacterId.prototype.isNumber;
+    expect(() => appended.call(Object.create(CharacterId.prototype), "x")).toThrow(TypeError);
+    expect(() => appended.call(JSON.parse('{"digits":"1"}'), "x")).toThrow(TypeError);
+    expect(() => matches.call(Object.create(CharacterId.prototype), 1)).toThrow(TypeError);
   });
 });
 

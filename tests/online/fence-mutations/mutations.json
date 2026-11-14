@@ -362,5 +362,47 @@
   "find": "  ...WEB_ADDRESSES,\n",
   "replace": "",
   "group": "bundle"
+ },
+ {
+  "id": "calling: every file is held to the rule",
+  "file": "tests/fence/scan/network-rules/beyond-calling-rules.ts",
+  "find": "  if (scan.allowances.beyondCalling(scan.path)) return [];\n",
+  "replace": "",
+  "group": "calling"
+ },
+ {
+  "id": "calling: no file is held to the rule",
+  "file": "tests/fence/scan/network-rules/beyond-calling-rules.ts",
+  "find": "  if (scan.allowances.beyondCalling(scan.path)) return [];",
+  "replace": "  return [];",
+  "group": "calling"
+ },
+ {
+  "id": "calling: BeyondCalls may be named anywhere",
+  "file": "tests/fence/scan/reading/names.ts",
+  "find": "BEYOND_CALLING_NAMES = [\"callBeyond\", \"BeyondCalls\"]",
+  "replace": "BEYOND_CALLING_NAMES = [\"callBeyond\"]",
+  "group": "calling"
+ },
+ {
+  "id": "calling: callBeyond may be named anywhere",
+  "file": "tests/fence/scan/reading/names.ts",
+  "find": "BEYOND_CALLING_NAMES = [\"callBeyond\", \"BeyondCalls\"]",
+  "replace": "BEYOND_CALLING_NAMES = [\"BeyondCalls\"]",
+  "group": "calling"
+ },
+ {
+  "id": "calling: another file may name them",
+  "file": "tests/fence/source-checks/source-allowances.test.ts",
+  "find": "\"imports/dialog/online/online-import.ts\"];",
+  "replace": "\"imports/dialog/online/online-import.ts\", \"imports/dialog/online/online-stage.ts\"];",
+  "group": "calling"
+ },
+ {
+  "id": "calling: the importing file is not allowed",
+  "file": "tests/fence/source-checks/source-allowances.test.ts",
+  "find": ", \"imports/dialog/online/online-import.ts\"];",
+  "replace": "];",
+  "group": "calling"
  }
 ]
