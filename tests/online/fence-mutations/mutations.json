@@ -1,0 +1,408 @@
+[
+ {
+  "id": "scan: request is not a network name",
+  "file": "tests/fence/scan/reading/names.ts",
+  "find": "export const NETWORK_NAMES = [NETWORK_CALL, \"request\"];",
+  "replace": "export const NETWORK_NAMES = [NETWORK_CALL];",
+  "group": "naming"
+ },
+ {
+  "id": "scan: requestUrl is not a network name",
+  "file": "tests/fence/scan/reading/names.ts",
+  "find": "export const NETWORK_NAMES = [NETWORK_CALL, \"request\"];",
+  "replace": "export const NETWORK_NAMES = [\"request\"];",
+  "group": "naming"
+ },
+ {
+  "id": "scan: the option names are one more",
+  "file": "tests/fence/scan/reading/names.ts",
+  "find": "NETWORK_OPTION_NAMES = [\"url\", \"method\", \"throw\"]",
+  "replace": "NETWORK_OPTION_NAMES = [\"url\", \"method\", \"throw\", \"headers\"]",
+  "group": "call"
+ },
+ {
+  "id": "scan: the method is POST",
+  "file": "tests/fence/scan/reading/names.ts",
+  "find": "NETWORK_METHOD = \"GET\"",
+  "replace": "NETWORK_METHOD = \"POST\"",
+  "group": "call"
+ },
+ {
+  "id": "scan: a file not allowed is held to the allowed file's rules",
+  "file": "tests/fence/scan/network-rules/network-breaches.ts",
+  "find": "  if (!scan.allowances.network(scan.path)) return uses.map((use) => `${scan.where(use.node)} names ${use.name}, which only the file allowed the network may`);\n",
+  "replace": "",
+  "group": "naming"
+ },
+ {
+  "id": "scan: a file not allowed may name them",
+  "file": "tests/fence/scan/network-rules/network-breaches.ts",
+  "find": "  if (!scan.allowances.network(scan.path)) return uses.map((use) => `${scan.where(use.node)} names ${use.name}, which only the file allowed the network may`);",
+  "replace": "  if (!scan.allowances.network(scan.path)) return [];",
+  "group": "naming"
+ },
+ {
+  "id": "scan: the call may be missing",
+  "file": "tests/fence/scan/network-rules/network-breaches.ts",
+  "find": "if (calls.length !== 1)",
+  "replace": "if (calls.length > 1)",
+  "group": "call"
+ },
+ {
+  "id": "scan: the call may be repeated",
+  "file": "tests/fence/scan/network-rules/network-breaches.ts",
+  "find": "if (calls.length !== 1)",
+  "replace": "if (calls.length === 0)",
+  "group": "call"
+ },
+ {
+  "id": "scan: request is allowed in the allowed file",
+  "file": "tests/fence/scan/network-rules/network-breaches.ts",
+  "find": "    if (use.name !== NETWORK_CALL) {",
+  "replace": "    if (false) {",
+  "group": "call"
+ },
+ {
+  "id": "scan: the call's options are not read",
+  "file": "tests/fence/scan/network-rules/network-breaches.ts",
+  "find": "  for (const call of calls) breaches.push(...callBreaches(scan, call));\n",
+  "replace": "",
+  "group": "call"
+ },
+ {
+  "id": "scan: the import may be from any module",
+  "file": "tests/fence/scan/network-rules/network-call-rules.ts",
+  "find": "  return declaration.moduleSpecifier.text === \"obsidian\";",
+  "replace": "  return true;",
+  "group": "call"
+ },
+ {
+  "id": "scan: an optional call is a call",
+  "file": "tests/fence/scan/network-rules/network-call-rules.ts",
+  "find": " || call.questionDotToken !== undefined",
+  "replace": "",
+  "group": "call"
+ },
+ {
+  "id": "scan: a value passed on is a call",
+  "file": "tests/fence/scan/network-rules/network-call-rules.ts",
+  "find": "call.expression !== use.node || ",
+  "replace": "",
+  "group": "call"
+ },
+ {
+  "id": "scan: the url may be any call",
+  "file": "tests/fence/scan/network-rules/network-call-rules.ts",
+  "find": "  if (!isDeclaredIn(builder, { name: NETWORK_ADDRESS_BUILDER, file: NETWORK_ADDRESS_FILE })) return",
+  "replace": "  if (false) return",
+  "group": "call"
+ },
+ {
+  "id": "scan: the url may be any value",
+  "file": "tests/fence/scan/network-rules/network-call-rules.ts",
+  "find": "  if (!isCallExpression(url) || url.questionDotToken !== undefined) return",
+  "replace": "  if (false) return",
+  "group": "call"
+ },
+ {
+  "id": "scan: the builder may take any number of values",
+  "file": "tests/fence/scan/network-rules/network-call-rules.ts",
+  "find": "  if (url.arguments.length !== 1) return",
+  "replace": "  if (false) return",
+  "group": "call"
+ },
+ {
+  "id": "scan: the builder may take anything",
+  "file": "tests/fence/scan/network-rules/network-call-rules.ts",
+  "find": "  if (given === undefined || !isDeclaredIn(project.checker.getTypeAtLocation(given), { name: NETWORK_CHARACTER_ID, file: CHARACTER_ID_FILE })) return",
+  "replace": "  if (false) return",
+  "group": "call"
+ },
+ {
+  "id": "scan: the method may be anything",
+  "file": "tests/fence/scan/network-rules/network-call-rules.ts",
+  "find": "    if (name === \"method\" && !(isStringLiteral(property.initializer) && property.initializer.text === NETWORK_METHOD)) breaches.push(",
+  "replace": "    if (false) breaches.push(",
+  "group": "call"
+ },
+ {
+  "id": "scan: throw may be anything",
+  "file": "tests/fence/scan/network-rules/network-call-rules.ts",
+  "find": "    if (name === \"throw\" && property.initializer.kind !== SyntaxKind.FalseKeyword) breaches.push(",
+  "replace": "    if (false) breaches.push(",
+  "group": "call"
+ },
+ {
+  "id": "scan: the url's value is not read",
+  "file": "tests/fence/scan/network-rules/network-call-rules.ts",
+  "find": "    if (name === \"url\") breaches.push(...addressBreaches(scan, property.initializer));\n",
+  "replace": "",
+  "group": "call"
+ },
+ {
+  "id": "scan: the options may be any names",
+  "file": "tests/fence/scan/network-rules/network-call-rules.ts",
+  "find": "  if (!exact) breaches.push(",
+  "replace": "  if (false) breaches.push(",
+  "group": "call"
+ },
+ {
+  "id": "scan: an option may be written another way",
+  "file": "tests/fence/scan/network-rules/network-call-rules.ts",
+  "find": "    if (!isPropertyAssignment(property) || property.name.kind !== SyntaxKind.Identifier) {",
+  "replace": "    if (false) {",
+  "group": "call"
+ },
+ {
+  "id": "scan: the argument may be anything",
+  "file": "tests/fence/scan/network-rules/network-call-rules.ts",
+  "find": "  if (call.arguments.length !== 1 || options === undefined || !isObjectLiteralExpression(options)) return",
+  "replace": "  if (false) return",
+  "group": "call"
+ },
+ {
+  "id": "forging: a cast to an id is allowed",
+  "file": "tests/fence/scan/network-rules/character-id-forging-rules.ts",
+  "find": "for (const node of types.typedBy(project, found.casts.map((cast) => cast.type), isCharacterId)) breaches.push(`${where(node)} casts to a ${NETWORK_CHARACTER_ID}`);\n",
+  "replace": "",
+  "group": "forging"
+ },
+ {
+  "id": "forging: satisfies an id is allowed",
+  "file": "tests/fence/scan/network-rules/character-id-forging-rules.ts",
+  "find": "for (const node of types.typedBy(project, found.satisfied, isCharacterId)) breaches.push(`${where(node)} checks that a value satisfies a ${NETWORK_CHARACTER_ID}`);\n",
+  "replace": "",
+  "group": "forging"
+ },
+ {
+  "id": "forging: extending an id is allowed",
+  "file": "tests/fence/scan/network-rules/character-id-forging-rules.ts",
+  "find": "for (const node of types.typedBy(project, found.heritages, isCharacterId)) breaches.push(`${where(node)} extends or implements a ${NETWORK_CHARACTER_ID}`);\n",
+  "replace": "",
+  "group": "forging"
+ },
+ {
+  "id": "forging: building an id is allowed",
+  "file": "tests/fence/scan/network-rules/character-id-forging-rules.ts",
+  "find": "for (const node of types.typedBy(project, found.built, isCharacterId)) breaches.push(`${where(node)} builds a ${NETWORK_CHARACTER_ID} with new`);\n",
+  "replace": "",
+  "group": "forging"
+ },
+ {
+  "id": "forging: the rule is not run outside src/online",
+  "file": "tests/fence/scan/network-rules/character-id-forging-rules.ts",
+  "find": "  if (scan.path.startsWith(sourcePath(\"online/\"))) return [];\n",
+  "replace": "  return [];\n",
+  "group": "forging"
+ },
+ {
+  "id": "forging: the id's parts are not recognised",
+  "file": "tests/fence/scan/network-rules/character-id-forging-rules.ts",
+  "find": "declaration.path === sourcePath(CHARACTER_ID_FILE)",
+  "replace": "declaration.path === sourcePath(\"online/other.ts\")",
+  "group": "forging"
+ },
+ {
+  "id": "allowance: another file may call",
+  "file": "tests/fence/source-checks/source-allowances.test.ts",
+  "find": "const NETWORK_CALLERS = [\"online/beyond-call.ts\"];",
+  "replace": "const NETWORK_CALLERS = [\"online/beyond-call.ts\", \"online/call-rules.ts\"];",
+  "group": "allowance"
+ },
+ {
+  "id": "allowance: the call's file is not allowed the network",
+  "file": "tests/fence/source-checks/source-allowances.test.ts",
+  "find": "const NETWORK_CALLERS = [\"online/beyond-call.ts\"];",
+  "replace": "const NETWORK_CALLERS: string[] = [];",
+  "group": "allowance"
+ },
+ {
+  "id": "allowance: the call's file may import more",
+  "file": "tests/fence/allowed/obsidian-imports.ts",
+  "find": "\"online/beyond-call.ts\": [\"requestUrl\"]",
+  "replace": "\"online/beyond-call.ts\": [\"requestUrl\", \"request\"]",
+  "group": "allowance"
+ },
+ {
+  "id": "allowance: the call's file may not import requestUrl",
+  "file": "tests/fence/allowed/obsidian-imports.ts",
+  "find": "  \"online/beyond-call.ts\": [\"requestUrl\"],\n",
+  "replace": "",
+  "group": "allowance"
+ },
+ {
+  "id": "allowance: the whole online folder may import requestUrl",
+  "file": "tests/fence/allowed/obsidian-imports.ts",
+  "find": "\"online/beyond-call.ts\": [\"requestUrl\"]",
+  "replace": "\"online/\": [\"requestUrl\"]",
+  "group": "allowance"
+ },
+ {
+  "id": "allowance: the time limit may not use timers",
+  "file": "tests/fence/allowed/globals.ts",
+  "find": "  \"online/time-limit.ts\": [\"clearTimeout\", \"setTimeout\"],\n",
+  "replace": "",
+  "group": "allowance"
+ },
+ {
+  "id": "allowance: the id file may take the folder's imports",
+  "file": "tests/build/inner-folders.test.ts",
+  "find": "{ folder: \"online\", reaches: [\"online\", \"beyond\"] }",
+  "replace": "{ folder: \"online\", reaches: [\"online\", \"beyond\", \"imports\"] }",
+  "group": "allowance"
+ },
+ {
+  "id": "allowance: another folder may import online",
+  "file": "tests/build/inner-folders.test.ts",
+  "find": "const ONLINE_IMPORTERS: string[] = [\"imports\"];",
+  "replace": "const ONLINE_IMPORTERS: string[] = [\"imports\", \"views\"];",
+  "group": "allowance"
+ },
+ {
+  "id": "bundle: the call is not counted",
+  "file": "scripts/network-code.ts",
+  "find": "  { code: '.requestUrl)({ url: beyondAddressOf(id), method: \"GET\", throw: false })', count: 1 },\n",
+  "replace": "",
+  "group": "bundle"
+ },
+ {
+  "id": "bundle: the call may be written twice",
+  "file": "scripts/network-code.ts",
+  "find": "method: \"GET\", throw: false })', count: 1 }",
+  "replace": "method: \"GET\", throw: false })', count: 2 }",
+  "group": "bundle"
+ },
+ {
+  "id": "bundle: the call may carry a header",
+  "file": "scripts/network-code.ts",
+  "find": "'.requestUrl)({ url: beyondAddressOf(id), method: \"GET\", throw: false })'",
+  "replace": "'.requestUrl)({ url: beyondAddressOf(id), method: \"GET\"'",
+  "group": "bundle"
+ },
+ {
+  "id": "bundle: the address is not counted",
+  "file": "scripts/network-code.ts",
+  "find": "  { code: '\"https://character-service.dndbeyond.com/character/v5/character/\"', count: 1 },\n",
+  "replace": "",
+  "group": "bundle"
+ },
+ {
+  "id": "bundle: the address may be written twice",
+  "file": "scripts/network-code.ts",
+  "find": "character/v5/character/\"', count: 1 }",
+  "replace": "character/v5/character/\"', count: 2 }",
+  "group": "bundle"
+ },
+ {
+  "id": "bundle: another address is the allowed one",
+  "file": "scripts/network-code.ts",
+  "find": "character/v5/character/\"'",
+  "replace": "character/v5/character/x\"'",
+  "group": "bundle"
+ },
+ {
+  "id": "bundle: requestUrl is not refused",
+  "file": "scripts/network-code.ts",
+  "find": "  { name: \"requestUrl\", pattern: /\\brequestUrl\\b/ },\n",
+  "replace": "",
+  "group": "bundle"
+ },
+ {
+  "id": "bundle: web addresses are not refused",
+  "file": "scripts/network-code.ts",
+  "find": "  { name: \"a web address\", pattern: /\\b(?:https?|wss?):/i },\n",
+  "replace": "",
+  "group": "bundle"
+ },
+ {
+  "id": "bundle: Cookie is not refused",
+  "file": "scripts/network-code.ts",
+  "find": "  { name: \"Cookie\", pattern: /\\bcookie\\b/i },\n",
+  "replace": "",
+  "group": "bundle"
+ },
+ {
+  "id": "bundle: cookie in small letters is not refused",
+  "file": "scripts/network-code.ts",
+  "find": "pattern: /\\bcookie\\b/i",
+  "replace": "pattern: /\\bCookie\\b/",
+  "group": "bundle"
+ },
+ {
+  "id": "bundle: Authorization is not refused",
+  "file": "scripts/network-code.ts",
+  "find": "  { name: \"Authorization\", pattern: /\\bauthorization\\b/i },\n",
+  "replace": "",
+  "group": "bundle"
+ },
+ {
+  "id": "bundle: authorization in small letters is not refused",
+  "file": "scripts/network-code.ts",
+  "find": "pattern: /\\bauthorization\\b/i",
+  "replace": "pattern: /\\bAuthorization\\b/",
+  "group": "bundle"
+ },
+ {
+  "id": "bundle: withCredentials is not refused",
+  "file": "scripts/network-code.ts",
+  "find": "  { name: \"withCredentials\", pattern: /\\bwithCredentials\\b/ },\n",
+  "replace": "",
+  "group": "bundle"
+ },
+ {
+  "id": "bundle: request is not refused",
+  "file": "scripts/network-code.ts",
+  "find": "  { name: \"request\", pattern: /\\brequest\\b/ },\n",
+  "replace": "",
+  "group": "bundle"
+ },
+ {
+  "id": "styles: web addresses are allowed in a stylesheet",
+  "file": "scripts/style-network-code.ts",
+  "find": "  ...WEB_ADDRESSES,\n",
+  "replace": "",
+  "group": "bundle"
+ },
+ {
+  "id": "calling: every file is held to the rule",
+  "file": "tests/fence/scan/network-rules/beyond-calling-rules.ts",
+  "find": "  if (scan.allowances.beyondCalling(scan.path)) return [];\n",
+  "replace": "",
+  "group": "calling"
+ },
+ {
+  "id": "calling: no file is held to the rule",
+  "file": "tests/fence/scan/network-rules/beyond-calling-rules.ts",
+  "find": "  if (scan.allowances.beyondCalling(scan.path)) return [];",
+  "replace": "  return [];",
+  "group": "calling"
+ },
+ {
+  "id": "calling: BeyondCalls may be named anywhere",
+  "file": "tests/fence/scan/reading/names.ts",
+  "find": "BEYOND_CALLING_NAMES = [\"callBeyond\", \"BeyondCalls\"]",
+  "replace": "BEYOND_CALLING_NAMES = [\"callBeyond\"]",
+  "group": "calling"
+ },
+ {
+  "id": "calling: callBeyond may be named anywhere",
+  "file": "tests/fence/scan/reading/names.ts",
+  "find": "BEYOND_CALLING_NAMES = [\"callBeyond\", \"BeyondCalls\"]",
+  "replace": "BEYOND_CALLING_NAMES = [\"BeyondCalls\"]",
+  "group": "calling"
+ },
+ {
+  "id": "calling: another file may name them",
+  "file": "tests/fence/source-checks/source-allowances.test.ts",
+  "find": "\"imports/dialog/online/online-import.ts\"];",
+  "replace": "\"imports/dialog/online/online-import.ts\", \"imports/dialog/online/online-stage.ts\"];",
+  "group": "calling"
+ },
+ {
+  "id": "calling: the importing file is not allowed",
+  "file": "tests/fence/source-checks/source-allowances.test.ts",
+  "find": ", \"imports/dialog/online/online-import.ts\"];",
+  "replace": "];",
+  "group": "calling"
+ }
+]

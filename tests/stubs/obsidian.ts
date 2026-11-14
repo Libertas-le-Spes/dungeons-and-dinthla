@@ -10,6 +10,8 @@ import type {
   Modal as RealModal,
   Plugin as RealPlugin,
   PluginSettingTab as RealPluginSettingTab,
+  RequestUrlParam,
+  RequestUrlResponse,
 } from "obsidian";
 import { obsidianDocument } from "./obsidian-dom";
 
@@ -481,4 +483,25 @@ export class Vault {
       else visit(child);
     }
   }
+}
+
+export const urlsAsked: RequestUrlParam[] = [];
+
+type UrlAnswer = (options: RequestUrlParam) => Promise<RequestUrlResponse>;
+
+let answeringUrls: UrlAnswer | null = null;
+
+export function answerUrlsWith(answer: UrlAnswer): void {
+  answeringUrls = answer;
+}
+
+export function forgetUrls(): void {
+  urlsAsked.length = 0;
+  answeringUrls = null;
+}
+
+export async function requestUrl(options: RequestUrlParam): Promise<RequestUrlResponse> {
+  urlsAsked.push(options);
+  if (answeringUrls === null) throw new Error("A test reached requestUrl without saying what it answers, so nothing was sent.");
+  return answeringUrls(options);
 }

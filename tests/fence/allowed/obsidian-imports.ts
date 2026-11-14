@@ -12,6 +12,7 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "note-keeping/": ["CachedMetadata", "TFile", "getFrontMatterInfo"],
   "names/": ["normalizePath"],
   "note-page/": ["Component"],
+  "online/beyond-call.ts": ["requestUrl"],
   "questions/": ["App", "Notice", "Setting"],
   "quests/": ["AbstractInputSuggest", "App", "Notice", "Setting", "TextAreaComponent"],
   "reading/": ["Debouncer", "debounce"],

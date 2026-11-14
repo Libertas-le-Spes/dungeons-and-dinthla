@@ -61,15 +61,15 @@ The plugin follows the [Dungeons & Dinthla design system](https://claude.ai/arti
 
 ## Importing a character from D&D Beyond
 
-On D&D Beyond, open your character, choose *Manage* next to the name, then *Export to PDF* at the bottom of the menu. In the plugin, press *Import from D&D Beyond* on the Characters page and choose that PDF. The plugin reads the file on your device and sends nothing anywhere; it shows what will be written before it writes. [docs/note-format.md](docs/note-format.md#importing-from-a-pdf) has the details.
+In the plugin, press *Import from D&D Beyond* on the Characters page, paste your character's link or number and press *Bring in from D&D Beyond*. The plugin asks once, on each device, before it sends anything (see *Network use* below). Or bring your character in from its PDF: on D&D Beyond, open your character, choose *Manage* next to the name, then *Export to PDF* at the bottom of the menu, and choose that file in the same dialog. A PDF is read on your device and sends nothing anywhere. Either way the plugin shows what will be written before it writes. [docs/note-format.md](docs/note-format.md#importing-online) has the details.
 
 A short walkthrough:
 
-1. On D&D Beyond, export your character as a PDF. Then, on the Characters page, press *Import from D&D Beyond* and choose the file; check what comes in and press *Import*.
+1. On the Characters page, press *Import from D&D Beyond*, type your character's link and press *Bring in from D&D Beyond* (or export a PDF on D&D Beyond and choose that file instead); check what comes in and press *Import*.
 2. Your character's sheet opens, and the plugin offers to make them your character in this campaign. Under the values you'll find your inventory, purse, spells and features, as D&D Beyond has them.
 3. Press *Track on the funds page* beside an item to give it to your character on the Party funds page, where the party can see it.
 4. Your own purse shows on the Party funds page beside the party's once the campaign note names your character, and is never added to it.
-5. After a level-up, export a new PDF and press *Update from D&D Beyond* on your sheet. Anything you hold on the funds page that the new sheet doesn't list is marked; pick *Used up*, *Sold*, *Lost* or *Changed* to settle it.
+5. After a level-up, press *Update from D&D Beyond* on your sheet and bring your character in again, online or by a new PDF. Anything you hold on the funds page that the new sheet doesn't list is marked; pick *Used up*, *Sold*, *Lost* or *Changed* to settle it.
 
 When a character leaves play:
 
@@ -81,13 +81,25 @@ When a character leaves play:
 
 ### Agreeing to the online import
 
-The plugin will also be able to fetch your character from D&D Beyond with one button. That button isn't built yet, and the plugin sends nothing anywhere, but it asks first, once on each device:
+The plugin can fetch your character from D&D Beyond with one button, and it asks first, once on each device:
 
 1. After you make a campaign on the welcome page, you'll see *Bringing your character in*. Read what the online import would send.
 2. Press *Agree* if that's fine with you, or *Not yet* to decide later. Either way, the page moves on.
-3. Your answer stays on this device only, never in your vault, so another device you sync to doesn't know it. The welcome page shows by itself once per vault, so a second device never shows this step; it will ask at the first press of the online button, which isn't built yet. If you pressed *Not yet*, the step comes back only when you open the welcome page again with *Show this again* in the plugin's settings, and the online button will ask at its first press.
+3. Your answer stays on this device only, never in your vault, so another device you sync to doesn't know it. The welcome page shows by itself once per vault, so a second device never shows this step; it will ask at the first press of the online button. If you pressed *Not yet*, the step comes back only when you open the welcome page again with *Show this again* in the plugin's settings, and the online button will ask at its first press.
 
 [docs/note-format.md](docs/note-format.md#the-dd-beyond-agreement) has the words and where the answer is kept.
+
+## Network use
+
+The plugin sends nothing anywhere, with one exception: bringing your character in from D&D Beyond online.
+
+- **What is sent.** One GET to `https://character-service.dndbeyond.com/character/v5/character/` followed by your character's number, and nothing else: this plugin adds no login, cookies or other headers of its own, and no body. Obsidian sends the call and may add its own details, and follows redirects. Nothing from the rest of a link you paste reaches the address.
+- **When.** Only when you press *Bring in from D&D Beyond*, after you have agreed once on this device. Never in the background, never on a timer, never again by itself, with no retries and nothing cached. One call at a time, ten seconds apart at least, and the plugin stops waiting after fifteen seconds.
+- **What comes back and what is kept.** The character's data. The plugin checks it (status 200, JSON, at most 5 MB, the number you asked for), reads from it only what the import shows, and throws the rest away, including your character's backstory and notes. Nothing is written to your vault until you press *Import* or *Update* on the review.
+- **Public characters only.** The character must be set to Public on D&D Beyond, which makes its data, notes and backstory included, readable by anyone with the link.
+- **D&D Beyond's terms don't authorise this.** There is no official way to read a character's data. The address is the one D&D Beyond's own pages use, it is undocumented, and it can change or close without notice; the PDF route still works then.
+- **What the plugin cannot rule out.** Obsidian's request follows redirects and can't be told not to, so the checks are on whatever finally answers. On the desktop app Obsidian's own request may carry any cookie Obsidian itself holds for that site, normally none, since nobody signs in to D&D Beyond inside Obsidian. D&D Beyond sees your device's address and your character's number.
+- **How it is kept to that.** The built `main.js` holds exactly this one call and this one address, and every pull request and release fails if it holds anything more; `styles.css` may hold no address at all. [docs/note-format.md](docs/note-format.md#the-campaigns-folder) lists what is checked.
 
 ## Planning
 

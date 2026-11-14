@@ -6,6 +6,7 @@ import { GateCast, type CastMetadata } from "../../leaving/cast/gate-cast";
 import type { LeavingActions, LeavingFiles } from "../../leaving/switching/switch-plan";
 import { dayOf } from "../today";
 import { NO_CAMPAIGN, NOT_IN_A_CAMPAIGN } from "../import-words";
+import type { OnlineSource } from "../online/online-source";
 import { AfterNewImport, AfterUpdate } from "./after-import";
 import { openImport, openUpdate, type ImportPlace } from "./open-import";
 
@@ -14,6 +15,7 @@ export interface BeyondWiring {
   readonly files: LeavingFiles;
   readonly actions: LeavingActions;
   readonly metadata: CastMetadata;
+  readonly online: OnlineSource;
   shownCampaignFolder(): string | null;
   campaignFolderOf(path: string): string | null;
   charactersFolderOf(campaignFolder: string): string;
@@ -26,6 +28,7 @@ class CampaignPlace implements ImportPlace {
   readonly app: App;
   readonly files: LeavingFiles;
   readonly charactersFolder: string;
+  readonly online: OnlineSource;
 
   constructor(
     private readonly wiring: BeyondWiring,
@@ -34,6 +37,7 @@ class CampaignPlace implements ImportPlace {
     this.app = wiring.app;
     this.files = wiring.files;
     this.charactersFolder = wiring.charactersFolderOf(campaignFolder);
+    this.online = wiring.online;
   }
 
   notes(): readonly TFile[] {

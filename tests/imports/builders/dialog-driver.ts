@@ -2,6 +2,7 @@ import { vi } from "vitest";
 import type { App, TFile } from "obsidian";
 import type { ImportFlow } from "../../../src/imports/dialog/flows/import-flow";
 import { ImportModal } from "../../../src/imports/dialog/import-modal";
+import type { OnlineSource } from "../../../src/imports/dialog/online/online-source";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 export interface PickedFile {
@@ -19,12 +20,17 @@ function bufferOf(bytes: Uint8Array): () => Promise<ArrayBuffer> {
   };
 }
 
+export interface DialogSetup {
+  readonly today: string;
+  readonly online: OnlineSource;
+}
+
 export class DialogDriver {
   readonly closed = vi.fn();
   readonly modal: ImportModal;
 
-  constructor(flow: ImportFlow, today: string) {
-    this.modal = new ImportModal({} as App, flow, today, { importClosed: this.closed });
+  constructor(flow: ImportFlow, setup: DialogSetup) {
+    this.modal = new ImportModal({} as App, { flow, today: setup.today, online: setup.online, onClosed: { importClosed: this.closed } });
     obsidianDocument().body.append(this.modal.contentEl);
     this.modal.open();
   }
@@ -48,6 +54,21 @@ export class DialogDriver {
     const view = input.ownerDocument.defaultView;
     if (view === null) throw new Error("The dialog is not in a window.");
     input.dispatchEvent(new view.Event("change"));
+  }
+
+  typeLink(text: string): void {
+    const input = this.root.querySelector<HTMLInputElement>(".setting-item-control input");
+    if (input === null) throw new Error("The dialog shows no box for the link.");
+    input.value = text;
+    const view = input.ownerDocument.defaultView;
+    if (view === null) throw new Error("The dialog is not in a window.");
+    input.dispatchEvent(new view.Event("input"));
+  }
+
+  linkBox(): string | null {
+    const input = this.root.querySelector<HTMLInputElement>(".setting-item-control input");
+    if (input === null) return null;
+    return input.value;
   }
 
   async settled(selector: string): Promise<HTMLElement> {

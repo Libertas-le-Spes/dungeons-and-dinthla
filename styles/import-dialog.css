@@ -6,6 +6,17 @@
   font: var(--type-label);
 }
 
+.dd-import .dd-online-intro {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-muted-ui);
+}
+
+.dd-import .dd-or-the-pdf {
+  margin: var(--space-4) 0 0;
+  font: var(--type-label);
+}
+
 .dd-import .dd-import-refusal {
   margin: 0 0 var(--space-3);
   color: var(--state-danger);
