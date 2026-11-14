@@ -85,7 +85,7 @@ The plugin will also be able to fetch your character from D&D Beyond with one bu
 
 1. After you make a campaign on the welcome page, you'll see *Bringing your character in*. Read what the online import would send.
 2. Press *Agree* if that's fine with you, or *Not yet* to decide later. Either way, the page moves on.
-3. Your answer stays on this device only, never in your vault, so another device you sync to asks you itself. If you pressed *Not yet*, the online button asks again the first time you press it.
+3. Your answer stays on this device only, never in your vault, so another device you sync to doesn't know it. The welcome page shows by itself once per vault, so a second device never shows this step; it will ask at the first press of the online button, which isn't built yet. If you pressed *Not yet*, the step comes back only when you open the welcome page again with *Show this again* in the plugin's settings, and the online button will ask at its first press.
 
 [docs/note-format.md](docs/note-format.md#the-dd-beyond-agreement) has the words and where the answer is kept.
 
