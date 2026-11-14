@@ -2241,7 +2241,7 @@
  },
  {
   "id": "writing: a note in Fallen may be updated",
-  "file": "src/imports/leaving/switching/membership.ts",
+  "file": "src/campaign/paths/character-membership.ts",
   "find": "  return isInFallen(file, campaignFolder);",
   "replace": "  return false;",
   "group": "writing"
