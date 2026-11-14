@@ -192,6 +192,13 @@ describe("the inner folders", () => {
   });
 });
 
+describe("the folder that holds the network code", () => {
+  it("reaches only itself and the shape and reply code, and only src/imports may import it", () => {
+    expect(innerFolderNamed("online").reaches).toEqual(["online", "beyond"]);
+    expect(ONLINE_IMPORTERS).toEqual(["imports"]);
+  });
+});
+
 describe("the rule the inner folders are checked by, over made-up files", () => {
   it.each(IMPORT_FORMS)("refuses an outward import written as $form", ({ written }) => {
     expect(breachesOfMadeUpFile("fence/gate", written("../../campaign/one"))).toEqual(["fence/gate/made-up.ts imports from campaign"]);
