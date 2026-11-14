@@ -6,23 +6,20 @@ import { SettingsSaver } from "../../../src/settings/saved/settings-saver";
 import { Notice } from "../../stubs/obsidian";
 import { HeldCalls } from "../../stubs/held-calls";
 import { SettleWatch } from "../../stubs/settle-watch";
-
-function oneTick(): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, 0));
-}
+import { queuedWorkRan } from "../../stubs/queued-work";
 
 function settingFrom(campaignsFolder: string | null, configDir = ".obsidian") {
   const settings: PluginSettings = { campaignsFolder, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null, notesMadeFor: [] };
   const order: string[] = [];
   const save = vi.fn(async (written: PluginSettings) => {
-    await oneTick();
+    await queuedWorkRan();
     order.push(`saved ${written.campaignsFolder}`);
   });
   const lookedIn: (string | null)[] = [];
   const saver = new SettingsSaver(settings, save);
   const changed = vi.fn(async () => {
     lookedIn.push(saver.settings.campaignsFolder);
-    await oneTick();
+    await queuedWorkRan();
     order.push("looked again");
   });
   return { setting: new CampaignsFolderSetting(saver, changed, configDir), settings, save, changed, order, lookedIn };
@@ -86,7 +83,7 @@ describe("CampaignsFolderSetting", () => {
   it("looks again in the folder an earlier choice saved when the last choice can't be saved", async () => {
     const { setting, save, order, lookedIn } = settingFrom("D&D");
     save.mockImplementation(async (written: PluginSettings) => {
-      await oneTick();
+      await queuedWorkRan();
       if (written.campaignsFolder === "Old Games") throw new Error("The disk is full.");
       order.push(`saved ${written.campaignsFolder}`);
     });
@@ -101,7 +98,7 @@ describe("CampaignsFolderSetting", () => {
   it("looks again only in the last folder chosen when a choice between can't be saved", async () => {
     const { setting, save, lookedIn } = settingFrom("D&D");
     save.mockImplementation(async (written: PluginSettings) => {
-      await oneTick();
+      await queuedWorkRan();
       if (written.campaignsFolder === "Old Games") throw new Error("The disk is full.");
     });
     const results = await Promise.allSettled([setting.choose("Games/D&D"), setting.choose("Old Games"), setting.choose("New Games")]);
@@ -116,7 +113,7 @@ describe("CampaignsFolderSetting", () => {
     const choosing = new SettleWatch(setting.choose("Games/D&D"));
     await looks.made(1);
     expect(changed).toHaveBeenCalledOnce();
-    await oneTick();
+    await queuedWorkRan();
     expect(choosing.settled).toBe(false);
     looks.resolve(0, undefined);
     await choosing.done;
