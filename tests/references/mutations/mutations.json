@@ -245,13 +245,6 @@
   "group": "making maker"
  },
  {
-  "id": "one note at a time per path",
-  "file": "src/references/making/reference-note-maker.ts",
-  "find": "    await this.queue.run(note.path, async () => {\n      result = await this.makeIfMissing(note);\n    });\n",
-  "replace": "    result = await this.makeIfMissing(note);\n",
-  "group": "making maker"
- },
- {
   "id": "a failed make is told",
   "file": "src/references/making/reference-note-maker.ts",
   "find": "this.needs.failed(note, error);\n",

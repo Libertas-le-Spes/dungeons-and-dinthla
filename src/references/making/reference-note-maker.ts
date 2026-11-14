@@ -1,4 +1,3 @@
-import { PathQueue } from "../../note-keeping/path-queue";
 import type { MakeResult } from "../../note-keeping/make-result";
 import { NewNoteMaker, type MakerActions, type MakerFiles } from "../../note-keeping/new-note-maker";
 import type { FencedFiles } from "../../fence/gate/fenced-files";
@@ -16,7 +15,6 @@ export interface ReferenceNoteMakerNeeds {
 
 export class ReferenceNoteMaker {
   private readonly maker: NewNoteMaker;
-  private readonly queue = new PathQueue();
   private readonly reserved = new Set<string>();
 
   constructor(private readonly needs: ReferenceNoteMakerNeeds) {
@@ -24,11 +22,7 @@ export class ReferenceNoteMaker {
   }
 
   async make(note: PlannedReferenceNote): Promise<MakeResult> {
-    let result: MakeResult = "left";
-    await this.queue.run(note.path, async () => {
-      result = await this.makeIfMissing(note);
-    });
-    return result;
+    return this.makeIfMissing(note);
   }
 
   private async makeIfMissing(note: PlannedReferenceNote): Promise<MakeResult> {
