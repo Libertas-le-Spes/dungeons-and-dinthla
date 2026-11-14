@@ -31,15 +31,17 @@ const INNER_FOLDERS: InnerFolder[] = [
   { folder: "fence/gate", reaches: ["fence/gate", "fence/paths", "names"] },
   { folder: "beyond", reaches: ["beyond", "names", "pdf", "imports/layout"] },
   { folder: "pdf", reaches: ["pdf"] },
+  { folder: "online", reaches: ["online", "beyond"] },
   { folder: "imports/layout", reaches: ["imports/layout"] },
   { folder: "characters/facts", reaches: ["characters/facts", "campaign", "notes"] },
   { folder: "characters/imported", reaches: ["characters/imported", "characters/facts", "imports/layout", "campaign", "kinds", "notes"] },
   { folder: "views/pending", reaches: ["views/pending"] },
   { folder: "views/dialogs", reaches: ["views/dialogs", "campaign", "kind-notes"] },
-  { folder: "imports", reaches: ["imports", "imports/layout", "beyond", "names", "fence/gate", "campaign", "views/dialogs", "views/pending"] },
+  { folder: "imports", reaches: ["imports", "imports/layout", "beyond", "online", "names", "fence/gate", "campaign", "views/dialogs", "views/pending"] },
 ];
 
-const BEYOND_IMPORTERS: string[] = ["imports"];
+const BEYOND_IMPORTERS: string[] = ["imports", "online"];
+const ONLINE_IMPORTERS: string[] = ["imports"];
 const IMPORTS_IMPORTERS: string[] = ["main.ts"];
 const LAYOUT_IMPORTERS: string[] = ["imports", "characters", "beyond"];
 const PDF_IMPORTERS: string[] = ["beyond"];
@@ -163,6 +165,10 @@ describe("the inner folders", () => {
 
   it("let no folder outside src/pdf import from it, except the folders listed as importers", () => {
     expect(importersOf("pdf", PDF_IMPORTERS)).toEqual([]);
+  });
+
+  it("let no folder outside src/online import from it, except the folders listed as importers", () => {
+    expect(importersOf("online", ONLINE_IMPORTERS)).toEqual([]);
   });
 
   it("let no folder outside src/imports import from it, and only main.ts besides", () => {
