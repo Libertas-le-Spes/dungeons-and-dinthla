@@ -3,7 +3,7 @@ import { ImportedLists } from "../../../../src/characters/imported/lists/importe
 import { FEATURES_SECTION, INVENTORY_SECTION, PURSE_SECTION, SPELLS_SECTION } from "../../../../src/imports/layout/plugin-sections";
 import { importedNoteText } from "../../../../src/imports/note/writing/rewriting/imported-note";
 import { CleanLine } from "../../../../src/beyond/text/clean-line";
-import { monkSheet, sheetWithCharacter, TODAY } from "../../../imports/builders/made-up-import";
+import { monkSheet, sheetWithCharacter, TODAY , stampedOn } from "../../../imports/builders/made-up-import";
 import { textOf } from "../../../imports/builders/line-helpers";
 
 function listsOf(text: string): ImportedLists {
@@ -14,7 +14,7 @@ function listsOf(text: string): ImportedLists {
 
 function smallSheetNote(): string {
   const sheet = sheetWithCharacter(monkSheet(), { spells: [CleanLine.of("Fire Bolt")], features: [CleanLine.of("Open Hand")] });
-  return importedNoteText(textOf("His own words.", "- Rope × 9", ""), { ...sheet, leftOut: { items: { tooLong: 1, notClean: 2 }, spells: { tooLong: 0, notClean: 0 }, features: { tooLong: 0, notClean: 0 } } }, TODAY);
+  return importedNoteText({ current: textOf("His own words.", "- Rope × 9", ""), sheet: { ...sheet, leftOut: { items: { tooLong: 1, notClean: 2 }, spells: { tooLong: 0, notClean: 0 }, features: { tooLong: 0, notClean: 0 } } }, stamp: stampedOn(TODAY) });
 }
 
 describe("the lists an import wrote into a note", () => {

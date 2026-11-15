@@ -3,7 +3,7 @@ import { Refusal } from "../../../../src/beyond/shape/refusal";
 import { MOST_BODY_LINE } from "../../../../src/imports/note/reading/note-limits";
 import { NoteLayout } from "../../../../src/imports/note/reading/note-layout";
 import { importedNoteText } from "../../../../src/imports/note/writing/rewriting/imported-note";
-import { monkSheet, TODAY } from "../../builders/made-up-import";
+import { monkSheet, TODAY , stampedOn } from "../../builders/made-up-import";
 
 const COMMENT = "<!--x-->";
 const PERCENT_COMMENT = "%%a%%";
@@ -41,7 +41,7 @@ describe("a note with a very long line", () => {
 
   it("imports into a note holding six thousand comments on one line, under the most characters", () => {
     const line = COMMENT.repeat(6_000);
-    const after = importedNoteText(noteWithLine(line), monkSheet(), TODAY);
+    const after = importedNoteText({ current: noteWithLine(line), sheet: monkSheet(), stamp: stampedOn(TODAY) });
     expect(after.split("\n")).toContain(line);
     expect(after).toContain("## Numbers (from D&D Beyond)");
   });

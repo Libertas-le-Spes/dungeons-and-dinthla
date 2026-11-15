@@ -14,7 +14,7 @@ import { propertyLinesOf } from "../../../../src/imports/note/properties/propert
 import { SCORE_ROWS } from "../../../../src/imports/note/rows/score-rows";
 import { MadeUpSheet } from "../../../beyond/builders/made-up-sheet";
 import { firstLines, linesStartingWith, textOf } from "../../builders/line-helpers";
-import { monkSheet, notKnownNumber, sheetOf, sheetWithCharacter, TODAY } from "../../builders/made-up-import";
+import { monkSheet, notKnownNumber, sheetOf, sheetWithCharacter, stampedOn, TODAY } from "../../builders/made-up-import";
 
 function known(value: number): KnownValue {
   return KnownValue.wholeNumber(value, "", PRINTED);
@@ -133,23 +133,24 @@ describe("importMarkLinesOf", () => {
   const route = monkSheet().character.route;
 
   it.each(["x2026-11-13", "2026-11-13x", "2026-11-133", "226-11-13", "2026-11-1"])("refuses the date %j", (date) => {
-    expect(() => importMarkLinesOf(route, date)).toThrow(Refusal);
+    expect(() => importMarkLinesOf({ route, stamp: stampedOn(date) })).toThrow(Refusal);
   });
 
   it.each(["PDF", "a b", "", "abcdefghijklmnopq", "pdf\n", "pdf1", "x:y"])("refuses the route name %j", (name) => {
-    expect(() => importMarkLinesOf({ name, source: "" }, TODAY)).toThrow(Refusal);
+    expect(() => importMarkLinesOf({ route: { name, source: "" }, stamp: stampedOn(TODAY) })).toThrow(Refusal);
   });
 
   it.each(["p", "pdf", "abcdefghijklmnop"])("writes the route name %j", (name) => {
-    expect(importMarkLinesOf({ name, source: "" }, TODAY)).toEqual(["imported: 2026-11-13", `imported-from: ${name}`]);
+    expect(importMarkLinesOf({ route: { name, source: "" }, stamp: { today: TODAY, session: 3 } })).toEqual(["imported: 2026-11-13", `imported-from: ${name}`, "imported-session: 3"]);
   });
 });
 
 describe("propertyLinesOf", () => {
-  it("puts the two marks first and then each known value, in the order the layout lists them", () => {
-    expect(firstLines(propertyLinesOf(monkSheet().character, TODAY), 6)).toEqual([
+  it("puts the three marks first and then each known value, in the order the layout lists them", () => {
+    expect(firstLines(propertyLinesOf({ character: monkSheet().character, stamp: stampedOn(TODAY) }), 7)).toEqual([
       "imported: 2026-11-13",
       "imported-from: pdf",
+      "imported-session: 0",
       'class: "Monk 4"',
       'species: "Human"',
       "AC: 18",
@@ -158,10 +159,11 @@ describe("propertyLinesOf", () => {
   });
 
   it("writes exactly the marks and the known values when two are not known", () => {
-    const lines = propertyLinesOf(sheetOf(MadeUpSheet.monk().with("AC", "").with("Speed", "")).character, TODAY);
+    const lines = propertyLinesOf({ character: sheetOf(MadeUpSheet.monk().with("AC", "").with("Speed", "")).character, stamp: stampedOn(TODAY) });
     expect(lines).toEqual([
       "imported: 2026-11-13",
       "imported-from: pdf",
+      "imported-session: 0",
       'class: "Monk 4"',
       'species: "Human"',
       "HP: 51",
@@ -175,7 +177,7 @@ describe("propertyLinesOf", () => {
   });
 
   it("leaves out a value that is not known, and keeps the rest", () => {
-    const text = textOf(...propertyLinesOf(sheetOf(MadeUpSheet.monk().with("AC", "").with("Speed", "")).character, TODAY));
+    const text = textOf(...propertyLinesOf({ character: sheetOf(MadeUpSheet.monk().with("AC", "").with("Speed", "")).character, stamp: stampedOn(TODAY) }));
     expect([linesStartingWith(text, "AC"), linesStartingWith(text, "speed"), linesStartingWith(text, "HP")]).toEqual([[], [], ["HP: 51"]]);
   });
 });

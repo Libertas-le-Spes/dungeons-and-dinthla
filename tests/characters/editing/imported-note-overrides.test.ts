@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { overrideValueOf, stillReads, withEntryValues, withOverrides } from "../../../src/characters/editing/character-entry";
 import { importedNoteText } from "../../../src/imports/note/writing/rewriting/imported-note";
-import { monkSheet, TODAY } from "../../imports/builders/made-up-import";
+import { monkSheet, TODAY , stampedOn } from "../../imports/builders/made-up-import";
 import { textOf } from "../../imports/builders/line-helpers";
 
 const PATH = "D&D/Primary Campaign/Characters/Primary Monk.md";
@@ -12,7 +12,7 @@ function lineIndexOf(text: string, line: string): number {
 }
 
 function noteWithHisWords(): string {
-  return importedNoteText(textOf("His own words.", ""), monkSheet(), TODAY);
+  return importedNoteText({ current: textOf("His own words.", ""), sheet: monkSheet(), stamp: stampedOn(TODAY) });
 }
 
 describe("an override on a note the import wrote", () => {
@@ -24,13 +24,13 @@ describe("an override on a note the import wrote", () => {
   });
 
   it("keeps a blank line between his words and the import's sections where one was", () => {
-    const current = importedNoteText(textOf("His own words.", "", ""), monkSheet(), TODAY);
+    const current = importedNoteText({ current: textOf("His own words.", "", ""), sheet: monkSheet(), stamp: stampedOn(TODAY) });
     const written = withOverrides(current, PATH, [{ name: "HP", label: "Hit Points", before: "", after: "60" }]);
     expect(lineIndexOf(written, "HP: 60")).toBe(lineIndexOf(written, "His own words.") + 1);
   });
 
   it("is written straight after the properties when he has no words of his own", () => {
-    const current = importedNoteText("", monkSheet(), TODAY);
+    const current = importedNoteText({ current: "", sheet: monkSheet(), stamp: stampedOn(TODAY) });
     const written = withOverrides(current, PATH, [{ name: "AC", label: "Armor Class", before: "", after: "19" }]);
     expect(written.split("\n")).toContain("AC: 19");
     expect(lineIndexOf(written, "AC: 19")).toBeLessThan(lineIndexOf(written, NUMBERS));
