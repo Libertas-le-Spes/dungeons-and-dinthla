@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ruleClassesOf } from "../../../../src/beyond/reply/rule-input/body/read-rule-classes";
-import { MadeUpReply } from "../../builders/made-up-reply";
+import { ruleClassesOf } from "../../../../../src/beyond/reply/rule-input/body/read-rule-classes";
+import { MadeUpReply } from "../../../builders/made-up-reply";
 
 function classesOf(reply: MadeUpReply): string[] {
   return ruleClassesOf(reply.reader()).map((ruleClass) => `${ruleClass.name.text}|${ruleClass.subclass}|${ruleClass.level}|${ruleClass.hitDie}`);

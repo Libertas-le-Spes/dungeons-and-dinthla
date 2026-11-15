@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { sizeOf } from "../../../../src/beyond/reply/rule-input/body/read-size";
-import { MadeUpReply } from "../../builders/made-up-reply";
+import { sizeOf } from "../../../../../src/beyond/reply/rule-input/body/read-size";
+import { MadeUpReply } from "../../../builders/made-up-reply";
 
 function sized(...sizes: unknown[]): MadeUpReply {
   const entries = sizes.map((subType) => ({ type: "size", subType }));

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { scoreInputsOf } from "../../../../src/beyond/reply/rule-input/scores/read-scores";
-import type { ByAbility } from "../../../../src/beyond/rules/input/by-ability";
-import { ABILITIES, STRENGTH, DEXTERITY } from "../../../../src/beyond/rules/input/ability";
-import { MadeUpReply } from "../../builders/made-up-reply";
+import { scoreInputsOf } from "../../../../../src/beyond/reply/rule-input/scores/read-scores";
+import type { ByAbility } from "../../../../../src/beyond/rules/input/by-ability";
+import { ABILITIES, STRENGTH, DEXTERITY } from "../../../../../src/beyond/rules/input/ability";
+import { MadeUpReply } from "../../../builders/made-up-reply";
 
 const UNEXPECTED = "D&D Beyond gave the scores, their bonuses or the scores set by hand in an unexpected form.";
 const SIX = [1, 2, 3, 4, 5, 6];

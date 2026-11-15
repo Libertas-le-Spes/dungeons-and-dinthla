@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { agreedEdition } from "../../../../src/beyond/reply/rule-input/body/agreed-edition";
-import { editionOf } from "../../../../src/beyond/reply/rule-input/body/read-edition";
-import { MadeUpReply } from "../../builders/made-up-reply";
+import { agreedEdition } from "../../../../../src/beyond/reply/rule-input/body/agreed-edition";
+import { editionOf } from "../../../../../src/beyond/reply/rule-input/body/read-edition";
+import { MadeUpReply } from "../../../builders/made-up-reply";
 
 function classWith(sourceIds: unknown[]): object {
   return { level: 1, definition: { name: "Monk", hitDice: 8, sources: sourceIds.map((sourceId) => ({ sourceId })) } };

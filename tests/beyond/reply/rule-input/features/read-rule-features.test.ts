@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ruleFeaturesOf } from "../../../../src/beyond/reply/rule-input/features/read-rule-features";
-import { MadeUpReply } from "../../builders/made-up-reply";
+import { ruleFeaturesOf } from "../../../../../src/beyond/reply/rule-input/features/read-rule-features";
+import { MadeUpReply } from "../../../builders/made-up-reply";
 
 function featureOf(id: number, name: string, requiredLevel: unknown): Record<string, unknown> {
   return { definition: { id, name, requiredLevel } };

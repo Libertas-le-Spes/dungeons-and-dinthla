@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { ruleItemsOf } from "../../../../src/beyond/reply/rule-input/items/read-rule-items";
-import { unreadableArmourOf } from "../../../../src/beyond/reply/rule-input/items/unreadable-armour";
-import { MadeUpReply } from "../../builders/made-up-reply";
+import { ruleItemsOf } from "../../../../../src/beyond/reply/rule-input/items/read-rule-items";
+import { unreadableArmourOf } from "../../../../../src/beyond/reply/rule-input/items/unreadable-armour";
+import { MadeUpReply } from "../../../builders/made-up-reply";
 
 function entryOf(changes: Record<string, unknown>, definition: Record<string, unknown>): Record<string, unknown> {
   return {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { handSetOf } from "../../../../src/beyond/reply/rule-input/hand-set/read-hand-set";
-import { MadeUpReply } from "../../builders/made-up-reply";
+import { handSetOf } from "../../../../../src/beyond/reply/rule-input/hand-set/read-hand-set";
+import { MadeUpReply } from "../../../builders/made-up-reply";
 
 function valued(typeId: unknown, value: unknown, extra: Record<string, unknown>): Record<string, unknown> {
   return { typeId, value, notes: null, valueId: null, valueTypeId: null, contextId: null, contextTypeId: null, ...extra };
