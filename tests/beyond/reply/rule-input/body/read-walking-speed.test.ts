@@ -23,7 +23,7 @@ describe("speedInputsOf", () => {
     const found = speedInputsOf(MadeUpReply.levelOneMonk().with(["race", "weightSpeeds", "override"], { walk: 50 }).reader());
     expect(found.walking).toBe(30);
     expect(found.doubts.map((doubt) => [doubt.name, doubt.value.isKnown, doubt.value.explanation])).toEqual([
-      ["Speed", false, "Speed set by hand."],
+      ["Speed", false, "Speed set by hand. Type it on your note."],
     ]);
   });
 

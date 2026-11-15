@@ -140,7 +140,7 @@ describe("SpellSlotsRule and an Artificer", () => {
   it("does not know any slots for Wizard 5 and Artificer 3, so no table is shown as known", () => {
     const character = madeUpRuleCharacter({ classes: [classOf("Wizard", 5, 6), classOf("Artificer", 3, 8)] });
     const names = namesStartingWith(character, "Spell slots");
-    expect([names, numberNamed(character, "Spell slots").explanation]).toEqual([["Spell slots"], "Artificer is not built here yet."]);
+    expect([names, numberNamed(character, "Spell slots").explanation]).toEqual([["Spell slots"], "Artificer is not supported yet."]);
   });
 
   it("does not know the slots of an Artificer alone", () => {

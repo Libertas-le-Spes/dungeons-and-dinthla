@@ -97,9 +97,9 @@ describe("importing a character from a made-up PDF", () => {
     expect(whole.root.querySelector(".dd-import-problems")).toBeNull();
   });
 
-  it("asks for the PDF first, with no instructions", () => {
+  it("asks for the PDF first, with a short export hint and what the PDF lacks", () => {
     const dialog = importDialog();
-    expect(dialog.texts(".dd-where")).toEqual([]);
+    expect(dialog.texts(".dd-where")).toEqual(["Manage, then Export to PDF.", "PDF lacks attacks and proficiency marks."]);
     expect(dialog.root.querySelectorAll('input[type="file"]')).toHaveLength(1);
   });
 
@@ -345,7 +345,7 @@ describe("a new note whose name is taken", () => {
     const dialog = new DialogDriver(new NewImportFlow(new ImportWriter(vault.gate, CHARACTERS_FOLDER, CAMPAIGN_FOLDER), CHARACTERS_FOLDER, noNotes), { today: TODAY, online: NO_ONLINE });
     dialog.pick(pickedFileOf(monkPdf()));
     const refusal = await dialog.settled(".dd-import-refusal");
-    expect(refusal.textContent).toBe("There is already a note called primary monk in the Characters folder.");
+    expect(refusal.textContent).toBe("A note called primary monk is already in Characters. Rename or move it.");
     expect(dialog.root.querySelector(".dd-import-write")).toBeNull();
     expect(vault.created).toEqual([]);
   });

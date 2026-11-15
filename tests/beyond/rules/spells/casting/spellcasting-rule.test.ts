@@ -104,7 +104,7 @@ describe("SpellcastingRule before a class casts", () => {
 describe("SpellcastingRule and an Artificer", () => {
   it("does not know the Artificer's own spell numbers and says it is not built", () => {
     const character = madeUpRuleCharacter({ classes: [classOf("Artificer", 3, 8)] });
-    expect([numberNamed(character, "Artificer spell save DC").explanation, numberNamed(character, "Artificer spell attack bonus").isKnown]).toEqual(["Artificer is not built here yet.", false]);
+    expect([numberNamed(character, "Artificer spell save DC").explanation, numberNamed(character, "Artificer spell attack bonus").isKnown]).toEqual(["Not supported yet.", false]);
   });
 
   it("leaves another class's spell numbers standing", () => {

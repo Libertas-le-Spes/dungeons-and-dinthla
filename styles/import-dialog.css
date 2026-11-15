@@ -88,3 +88,8 @@
   padding: var(--size-4-2) var(--size-4-3);
   border-left: var(--rule-width) solid var(--state-danger);
 }
+
+.dd-import .dd-import-typed-title {
+  margin: var(--size-4-2) 0 var(--size-4-1);
+  font: var(--type-label);
+}

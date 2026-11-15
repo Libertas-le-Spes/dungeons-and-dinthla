@@ -101,7 +101,7 @@ describe("refuseUnlessOnlyTheImportChanged", () => {
     expect(() => refuseUnlessOnlyTheImportChanged("a\nb", "a")).toThrow(Refusal);
   });
 
-  it("says nothing was written", () => {
-    expect(() => refuseUnlessOnlyTheImportChanged("a", "b")).toThrow("so nothing was written");
+  it("says what the import would change", () => {
+    expect(() => refuseUnlessOnlyTheImportChanged("a", "b")).toThrow("more than its own parts");
   });
 });

@@ -1,9 +1,8 @@
-import { isHitDie } from "../classes/hit-die";
+import { HIT_DIE_REASON, isHitDie } from "../classes/hit-die";
 import type { RuleCharacter } from "../input/rule-character";
 import type { RuleClass } from "../input/rule-class";
 
 const MINIMUM_REASON = "Minimum hit points per level unclear.";
-const DIE_REASON = "Hit die not a d4 to d12.";
 
 function largerDie(largest: number, ruleClass: RuleClass): number {
   return Math.max(largest, ruleClass.hitDie);
@@ -20,7 +19,7 @@ function lowestPossibleLevel(character: RuleCharacter, base: number, level: numb
 
 export function minimumProblemOf(character: RuleCharacter, base: number, constitution: number, level: number): string | null {
   if (constitution >= 0) return null;
-  if (!character.classes.every(isHitDie)) return DIE_REASON;
+  if (!character.classes.every(isHitDie)) return HIT_DIE_REASON;
   const worstLevel = lowestPossibleLevel(character, base, level) + constitution;
   if (worstLevel < 1) return MINIMUM_REASON;
   return null;

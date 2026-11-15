@@ -1,6 +1,6 @@
 import { IMPORTED_FROM_PROPERTY, IMPORTED_SESSION_PROPERTY } from "../../layout/import-properties";
 import { changesNothing, type ImportChanges, type PropertyChange, type SectionChange, type TypedText } from "../../note/changes/import-changes";
-import { NOTHING_CHANGES, typedTextWords } from "../import-words";
+import { IMPORT_MARKS_CHANGE, NOTHING_CHANGES, typedTextWords } from "../import-words";
 import { drawFold } from "./fold";
 
 const NO_VALUE = "nothing";
@@ -30,6 +30,7 @@ function propertiesWords(count: number): string {
 function changeWords(properties: readonly PropertyChange[], sections: readonly SectionChange[]): string {
   const parts = sections.map((change) => change.title);
   if (properties.length > 0) parts.push(propertiesWords(properties.length));
+  if (parts.length === 0) return IMPORT_MARKS_CHANGE;
   return `Changes: ${parts.join(", ")}.`;
 }
 
@@ -50,7 +51,8 @@ function drawTyped(parent: HTMLElement, typed: readonly TypedText[]): void {
   const warning = parent.createDiv({ cls: "dd-import-warning", attr: { role: "alert" } });
   warning.createEl("p", { text: typedTextWords(typed.map((text) => text.title)) });
   for (const text of typed) {
-    const list = drawFold(warning, `${text.title} (${text.lines.length})`).createEl("ul", { cls: "dd-import-lines" });
+    warning.createEl("h3", { cls: "dd-import-typed-title", text: `${text.title} (${text.lines.length})` });
+    const list = warning.createEl("ul", { cls: "dd-import-lines" });
     for (const line of text.lines) list.createEl("li", { text: line });
   }
 }
@@ -62,7 +64,7 @@ export function drawChanges(parent: HTMLElement, changes: ImportChanges): void {
   }
   const properties = changes.properties.filter(isShown);
   drawTyped(parent, changes.typed);
-  if (properties.length + changes.sections.length > 0) parent.createEl("p", { cls: "dd-import-changes-line", text: changeWords(properties, changes.sections) });
+  parent.createEl("p", { cls: "dd-import-changes-line", text: changeWords(properties, changes.sections) });
   drawProperties(parent, properties);
   for (const section of changes.sections) drawSection(parent, section);
 }

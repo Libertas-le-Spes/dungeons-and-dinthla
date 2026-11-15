@@ -9,8 +9,8 @@
  {
   "id": "layout: `## ${title}",
   "file": "src/imports/layout/plugin-section.ts",
-  "find": "`## ${title}",
-  "replace": "`# ${title}",
+  "find": "this.heading = `## ${title}`",
+  "replace": "this.heading = `# ${title}`",
   "group": "layout"
  },
  {
@@ -2076,13 +2076,6 @@
   "file": "src/imports/note/writing/import-writer.ts",
   "find": "if (refusal !== null) throw new Refusal(refusal);",
   "replace": "",
-  "group": "writing"
- },
- {
-  "id": "writing: refusals.ts: The note changed since it was read, so nothing was",
-  "file": "src/imports/note/writing/guarding/refusals.ts",
-  "find": "The note changed since it was read, so nothing was written.",
-  "replace": "The note changed.",
   "group": "writing"
  },
  {

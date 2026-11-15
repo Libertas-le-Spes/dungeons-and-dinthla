@@ -1,4 +1,5 @@
-import { Refusal } from "../../../beyond/shape/refusal";
+import type { Refusal } from "../../../beyond/shape/refusal";
+import { noteNameTaken } from "../../note/writing/guarding/refusals";
 
 export const CAMPAIGN_NOTE_CHANGED = "The campaign note changed since you were asked, so nothing was switched. Try again.";
 export const NOTE_MOVED = "A character's note was moved or deleted since you were asked, so nothing was switched.";
@@ -10,7 +11,7 @@ export const ALREADY_FALLEN = "Already in Fallen.";
 export const NOT_A_CAMPAIGN_CHARACTER = "This note isn't in a campaign's Characters or Fallen folder, so it can't be made your character.";
 
 export function charactersNoteExists(name: string): Refusal {
-  return new Refusal(`There is already a note called ${name} in Characters, so nothing was changed. Rename or move that note first.`);
+  return noteNameTaken({ name, folder: "Characters" });
 }
 
 export function markedWithSnapshot(name: string, standing: string): string {

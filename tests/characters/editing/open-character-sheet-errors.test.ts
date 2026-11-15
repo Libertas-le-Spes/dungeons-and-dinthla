@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { sheetValueNamed } from "../builders/sheet-value-named";
 import type { App, TFile } from "obsidian";
 import { characterSheetOf } from "../../../src/characters/reading/character-sheet";
 import { chooseSheetValue } from "../../../src/characters/editing/open-character-sheet";
@@ -33,7 +34,7 @@ describe("chooseSheetValue, when choosing the session fails for a reason that is
       fileAt: () => null,
       carriedFromOf: () => null,
     } as unknown as SheetNotes;
-    const value = characterSheetOf([], [], [], null).values.find((candidate) => candidate.name === "AC")!;
+    const value = sheetValueNamed(characterSheetOf({ learned: [], imported: [], overrides: [], carried: null }), "AC");
     const before = openedModals.length;
     await chooseSheetValue({} as App, {} as Gate, store, notes, MIRA, value, vi.fn(), vi.fn());
     expect(Notice.shown).toEqual(["Couldn't read Mira: The campaign couldn't be read."]);

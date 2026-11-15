@@ -10,6 +10,7 @@ import {
 import { linesWithout } from "../../../../src/imports/note/changes/line-difference";
 import { sameTypedText } from "../../../../src/imports/note/changes/same-typed-text";
 import { importedNoteText } from "../../../../src/imports/note/writing/rewriting/imported-note";
+import { INVENTORY_SECTION } from "../../../../src/imports/layout/plugin-sections";
 import { MadeUpSheet } from "../../../beyond/builders/made-up-sheet";
 import { lineAt, textOf } from "../../builders/line-helpers";
 import { monkSheet, sheetOf, sheetWithCharacter, TODAY , stampedOn } from "../../builders/made-up-import";
@@ -137,7 +138,7 @@ describe("importChangesOf for a changed value", () => {
 });
 
 describe("importChangesOf for typed text", () => {
-  const typed = textOf("His words.", INVENTORY, "- Old rope × 2", "I gave the gold to a friend", "", SPELLS, "- Light", "my own spell note", "### a heading");
+  const typed = textOf("---", "imported-from: pdf", "---", "His words.", INVENTORY, "- Old rope × 2", "I gave the gold to a friend", "", SPELLS, "- Light", "my own spell note", "### a heading");
   const changes = importChangesOf(typed, importedNoteText({ current: typed, sheet: monkSheet(), stamp: stampedOn(TODAY) }));
 
   it("lists a line in a section that is not one of the plugin's bullet lines, per section", () => {
@@ -152,7 +153,7 @@ describe("importChangesOf for typed text", () => {
   });
 
   it("does not take a blank line for typed text", () => {
-    const withBlank = textOf(INVENTORY, "- a", "", "typed words", "", "more words");
+    const withBlank = textOf("---", "imported-from: pdf", "---", INVENTORY, "- a", "", "typed words", "", "more words");
     const found = importChangesOf(withBlank, importedNoteText({ current: withBlank, sheet: monkSheet(), stamp: stampedOn(TODAY) }));
     expect(found.typed).toEqual([{ title: INVENTORY_TITLE, lines: ["typed words", "more words"] }]);
     expect(sectionNamed(found.sections, INVENTORY_TITLE).removed).toEqual(["- a", "typed words", "more words"]);
@@ -161,6 +162,29 @@ describe("importChangesOf for typed text", () => {
   it("finds typed text in a section even when the import has nothing for that section", () => {
     const bare = sheetWithCharacter(monkSheet(), { spells: [] });
     expect(importChangesOf(typed, importedNoteText({ current: typed, sheet: bare, stamp: stampedOn(TODAY) })).typed.length).toBe(2);
+  });
+});
+
+describe("importChangesOf for a note the import has not written to yet", () => {
+  const own = textOf("His words.", INVENTORY, "- My rope × 2", "", SPELLS, "- My light", "## Features", "My own prose");
+  const changes = importChangesOf(own, importedNoteText({ current: own, sheet: monkSheet(), stamp: stampedOn(TODAY) }));
+
+  it("takes every line under a plain heading of his, bullets too, for typed text", () => {
+    expect(changes.typed).toEqual([
+      { title: INVENTORY_TITLE, lines: ["- My rope × 2"] },
+      { title: SPELLS_TITLE, lines: ["- My light"] },
+      { title: "Features", lines: ["My own prose"] },
+    ]);
+  });
+
+  it("takes the bullets for the import's once the note has the imported-from property", () => {
+    const marked = textOf("---", "imported-from: pdf", "---", INVENTORY, "- My rope × 2");
+    expect(importChangesOf(marked, importedNoteText({ current: marked, sheet: monkSheet(), stamp: stampedOn(TODAY) })).typed).toEqual([]);
+  });
+
+  it("takes the bullets for the import's once the note has an older heading", () => {
+    const older = textOf(INVENTORY_SECTION.formerHeading, "- Rope × 2");
+    expect(importChangesOf(older, importedNoteText({ current: older, sheet: monkSheet(), stamp: stampedOn(TODAY) })).typed).toEqual([]);
   });
 });
 
@@ -176,7 +200,7 @@ describe("importChangesOf for notes written in other ways", () => {
   });
 
   it("gives the lines of a note with Windows line breaks without their returns", () => {
-    const before = ["x", INVENTORY, "- Old rope × 2", "typed", ""].join("\r\n");
+    const before = ["---", "imported-from: pdf", "---", "x", INVENTORY, "- Old rope × 2", "typed", ""].join("\r\n");
     const changes = importChangesOf(before, importedNoteText({ current: before, sheet: monkSheet(), stamp: stampedOn(TODAY) }));
     expect(sectionNamed(changes.sections, INVENTORY_TITLE).removed).toEqual(["- Old rope × 2", "typed"]);
     expect(changes.typed).toEqual([{ title: INVENTORY_TITLE, lines: ["typed"] }]);

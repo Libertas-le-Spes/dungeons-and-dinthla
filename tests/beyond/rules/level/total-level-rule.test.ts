@@ -27,7 +27,7 @@ describe("TotalLevelRule", () => {
 
   it("says a class level over 20 is the problem, not the total", () => {
     const character = madeUpRuleCharacter({ classes: [classOf("Fighter", 21, 10)] });
-    expect(numberNamed(character, "Total level").explanation).toBe("A class level has to be a whole number from 1 to 20.");
+    expect(numberNamed(character, "Total level").explanation).toBe("Must be a whole number 1 to 20.");
   });
 
   it("knows twenty levels in all across classes", () => {
@@ -37,7 +37,7 @@ describe("TotalLevelRule", () => {
 
   it("does not know twenty-one levels in all, because 5e stops at 20", () => {
     const character = madeUpRuleCharacter({ classes: [classOf("Fighter", 12, 10), classOf("Wizard", 9, 6)] });
-    expect(numberNamed(character, "Total level").explanation).toBe("The character level has to be a whole number from 1 to 20.");
+    expect(numberNamed(character, "Total level").explanation).toBe("Must be a whole number 1 to 20.");
   });
 
   it.each([

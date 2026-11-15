@@ -26,10 +26,8 @@ const PARTY_PURSE_TITLE = "Purse";
 const MINE = "Mine";
 const PARTY = "Party";
 const NO_OWN_CHARACTER = "No character of yours yet.";
-const NO_OWN_ITEMS = "No items yet.";
-const NO_OWN_COIN = "No coin yet.";
-const NO_COIN_YET = "No coin yet.";
-const NO_ITEMS = "No items yet.";
+const NO_COIN = "No coin yet. Try “$ 20 gp”.";
+const NO_ITEMS = "No items yet. Try “$ Rope”.";
 
 interface OwnEmpty {
   ownNames: readonly string[];
@@ -204,17 +202,17 @@ export class FundsPage extends Component {
     const items = whoseItems({ campaign, ownNames });
     const ledger = [...funds.mine.ledger, ...funds.party.ledger];
     this.renderMinePurse({ campaign, ownNames });
-    this.partyPurse.render({ summary: funds.party, empty: NO_COIN_YET });
-    this.renderItems({ panel: this.mineItems, summary: items.mine, ledger, empty: whenOwn({ ownNames, text: NO_OWN_ITEMS }), label: "Items that are yours" });
+    this.partyPurse.render({ summary: funds.party, empty: NO_COIN });
+    this.renderItems({ panel: this.mineItems, summary: items.mine, ledger, empty: whenOwn({ ownNames, text: NO_ITEMS }), label: "Items that are yours" });
     this.renderItems({ panel: this.partyItems, summary: items.party, ledger, empty: NO_ITEMS, label: "Items of the party" });
-    this.mineLedger.render({ lines: funds.mine.ledger, empty: whenOwn({ ownNames, text: NO_OWN_COIN }) });
+    this.mineLedger.render({ lines: funds.mine.ledger, empty: whenOwn({ ownNames, text: NO_COIN }) });
     this.partyLedger.render({ lines: funds.party.ledger, empty: NO_COIN_ENTRIES });
     this.rowFocus.afterRender();
   }
 
   private renderMinePurse({ campaign, ownNames }: Pick<WhoseFundsParts, "campaign" | "ownNames">): void {
     if (this.sheets === null) return;
-    this.minePurse.render({ summary: minePurseOf({ campaign, sheets: this.sheets }), empty: whenOwn({ ownNames, text: NO_OWN_COIN }) });
+    this.minePurse.render({ summary: minePurseOf({ campaign, sheets: this.sheets }), empty: whenOwn({ ownNames, text: NO_COIN }) });
   }
 
   private renderItems({ panel, summary, ledger, empty, label }: ItemsPanelParts): void {

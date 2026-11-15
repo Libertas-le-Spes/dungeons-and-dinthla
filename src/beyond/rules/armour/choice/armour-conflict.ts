@@ -14,7 +14,7 @@ function namesOf(items: readonly RuleItem[]): string {
 }
 
 export function conflictIn(worn: WornArmour, character: RuleCharacter): NotKnownValue<number> | null {
-  if (worn.body.length > 1) return notKnown(`More than one body armour worn (${namesOf(worn.body)}).`, character.route);
-  if (worn.shields.length > 1) return notKnown(`More than one shield held (${namesOf(worn.shields)}).`, character.route);
+  if (worn.body.length > 1) return notKnown(`More than one body armour worn (${namesOf(worn.body)}). Settle it on D&D Beyond.`, character.route);
+  if (worn.shields.length > 1) return notKnown(`More than one shield held (${namesOf(worn.shields)}). Settle it on D&D Beyond.`, character.route);
   return null;
 }

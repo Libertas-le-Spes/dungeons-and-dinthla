@@ -12,7 +12,7 @@ export class TemporaryHitPointsRule implements Rule {
   }
 
   private temporary(character: RuleCharacter): WorkedValue<number> {
-    if (character.temporaryHitPoints === null) return notKnown("The temporary hit points are missing.", character.route);
+    if (character.temporaryHitPoints === null) return notKnown("Temporary hit points missing.", character.route);
     return knownIn(character.temporaryHitPoints, TEMPORARY_HIT_POINTS, "", character.route);
   }
 }

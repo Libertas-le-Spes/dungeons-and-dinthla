@@ -14,5 +14,5 @@ function isTooHeavyFor(strength: number): (item: RuleItem) => boolean {
 export function armourTooHeavy(character: RuleCharacter, strength: number): NotKnownValue<number> | null {
   const heavy = wornArmourOf(character).body.find(isTooHeavyFor(strength));
   if (heavy === undefined) return null;
-  return notKnown(`${heavy.name.text} may slow speed.`, character.route);
+  return notKnown(`${heavy.name.text} may slow speed. Type it on your note.`, character.route);
 }

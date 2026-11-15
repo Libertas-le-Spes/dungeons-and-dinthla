@@ -5,6 +5,8 @@ export const BRING_IN_BUTTON = "Bring in from D&D Beyond";
 export const ASKING = "Asking D&D Beyond…";
 export const NOTHING_SENT = "Nothing was sent.";
 export const OR_THE_PDF = "Or choose a PDF.";
+export const PDF_EXPORT_HINT = "Manage, then Export to PDF.";
+export const PDF_GAPS_NOTE = "PDF lacks attacks and proficiency marks.";
 export const CHOOSE_A_FILE = "Character PDF";
 export const READING = "Reading the file…";
 export const STILL_READING = "Still reading the first file.";
@@ -12,6 +14,7 @@ export function typedTextWords(titles: readonly string[]): string {
   return `Your typed text is replaced in ${titles.join(", ")}.`;
 }
 
+export const IMPORT_MARKS_CHANGE = "Changes: import marks.";
 export const NOTHING_CHANGES = "Nothing changes.";
 export const CHOOSE_THE_NOTE = "Which note is this character?";
 export const WRITE_FAILED = "Couldn't write the import";

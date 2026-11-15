@@ -3,7 +3,7 @@ import { NoteEditing, type NoteEditingNeeds } from "../../note-editing/note-edit
 const TITLE = "Notes · Edit all";
 const DONE = "Done";
 export const NOT_SAVED_YET =
-  "Your changes here aren't saved yet.";
+  "Not saved yet. Adding lines first loses your change.";
 const KEEP_EDITING = "Keep editing";
 const LEAVE = "Back to adding lines";
 

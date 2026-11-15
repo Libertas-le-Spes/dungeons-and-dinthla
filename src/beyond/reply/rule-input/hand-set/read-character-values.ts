@@ -3,6 +3,7 @@ import type { ImportedNumber } from "../../../shape/imported-number";
 import { numberInRange } from "../../../shape/number-in-range";
 import { ARMOUR_CLASS, PASSIVE_SCORE } from "../../../shape/import-limits";
 import type { NumberRange } from "../../../shape/number-range";
+import { SET_BY_HAND } from "../../../rules/core/worked";
 import { ARMOUR_CLASS_NAME } from "../../../rules/core/number-names";
 import { PERCEPTION } from "../../../rules/proficiency/skills/skills";
 import { ONLINE } from "../../common/online-route";
@@ -27,7 +28,7 @@ export interface CharacterValues {
   readonly blankets: readonly Blanket[];
 }
 
-const NOT_READ = "Values set by hand.";
+const NOT_READ = "Values set by hand. Type them on your note.";
 
 function isPlain(entry: JsonReader): boolean {
   const others = ["valueId", "valueTypeId", "contextId", "contextTypeId"];
@@ -49,7 +50,7 @@ function foundIn(entry: JsonReader): Found | undefined {
 }
 
 function numberOf(found: Found): ImportedNumber {
-  const working = "Set by hand";
+  const working = SET_BY_HAND;
   return { name: found.known.name, value: numberInRange(found.value, found.known.range, working, ONLINE) };
 }
 

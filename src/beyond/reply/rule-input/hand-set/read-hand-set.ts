@@ -7,8 +7,8 @@ import { ConditionBlanket } from "./condition-blanket";
 import { characterValuesOf } from "./read-character-values";
 import { PROFICIENCY_NUMBER_NAMES } from "./proficiency-number-names";
 
-const CUSTOM_PROFICIENCIES = "Proficiencies set by hand.";
-const CONDITIONS = "A condition applies.";
+const CUSTOM_PROFICIENCIES = "Proficiencies set by hand. Type them on your note.";
+const CONDITIONS = "A condition applies. Type them on your note.";
 
 export interface HandSet {
   readonly setByHand: readonly ImportedNumber[];
