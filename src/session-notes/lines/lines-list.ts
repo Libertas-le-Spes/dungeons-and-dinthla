@@ -1,9 +1,9 @@
 import type { Campaign, Source } from "../../campaign/record/campaign";
 import { markerNamed } from "../../kinds/tracked-markers";
 import { addLinkedText, addRowButtonIn, type LinkActions } from "../../views/lists/linked-text";
-import { focusRowAt, RowFocus } from "../../views/lists/row-focus";
+import { focusRowAt, NO_ROW, RowFocus } from "../../views/lists/row-focus";
 import type { LineState } from "../../views/threads/line-state";
-import { lineOpenerOf, type LineOpeners, type OpenLine } from "./line-opener-of";
+import { lineOpenerOf, type LineClosed, type LineOpeners, type OpenLine } from "./line-opener-of";
 import { lineStateOf } from "./line-state-of";
 import type { WrittenLine } from "./written-lines";
 
@@ -68,7 +68,7 @@ export class LinesList {
 
   private addLine(line: WrittenLine, campaign: Campaign): void {
     const item = this.list.createEl("li", { cls: "dd-written-line", attr: { "data-line": String(line.source.line) } });
-    const opener = lineOpenerOf(campaign, line.source, this.needs.openers);
+    const opener = lineOpenerOf({ campaign, source: line.source, openers: this.needs.openers });
     const row = this.rowOf(item, { source: line.source, opener });
     row.createSpan({ cls: glyphClassOf(line), text: line.glyph, attr: { "aria-hidden": "true" } });
     const text = row.createSpan({ cls: "dd-line-text" });
@@ -79,11 +79,13 @@ export class LinesList {
   private rowOf(item: HTMLElement, { source, opener }: { source: Source; opener: OpenLine | null }): HTMLElement {
     if (opener === null) return item;
     item.addClass("dd-written-line-open");
-    const actions = { ...this.needs.actions, openRow: () => opener((changed) => this.closed({ source, changed })) };
+    const actions = { ...this.needs.actions, openRow: () => opener((closed) => this.closed({ source, closed })) };
     return addRowButtonIn(item, source, actions);
   }
 
-  private closed({ source, changed }: { source: Source; changed: boolean }): void {
-    this.rowFocus.afterClose(() => focusRowAt(this.list, source), changed, () => this.list.focus());
+  private closed({ source, closed }: { source: Source; closed: LineClosed }): void {
+    let focusRow = () => focusRowAt(this.list, source);
+    if (closed.gone) focusRow = NO_ROW;
+    this.rowFocus.afterClose(focusRow, closed.changed, () => this.list.focus());
   }
 }
