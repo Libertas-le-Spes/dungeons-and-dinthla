@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App } from "obsidian";
 import { MainModal } from "../../../src/imports/leaving/dialog/main-modal";
 import { MainOffers } from "../../../src/imports/leaving/dialog/main-offers";
-import type { OfferWiring } from "../../../src/imports/leaving/dialog/offer-wiring";
+import type { OfferWiring } from "../../../src/imports/leaving/questions/offer-wiring";
 import type { CampaignCast } from "../../../src/imports/leaving/cast/campaign-cast";
 import type { LeavingActions, LeavingFiles } from "../../../src/imports/leaving/switching/switch-plan";
 import { ALREADY_FALLEN, COULD_NOT_ASK, MAIN_UNCLEAR, NOT_A_CAMPAIGN_CHARACTER, NOTE_MOVED } from "../../../src/imports/leaving/switching/switch-words";

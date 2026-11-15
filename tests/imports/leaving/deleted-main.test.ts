@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import type { App, TFile } from "obsidian";
 import { Refusal } from "../../../src/beyond/shape/refusal";
 import { GateCast } from "../../../src/imports/leaving/cast/gate-cast";
-import { questionFor } from "../../../src/imports/leaving/dialog/question-for";
-import { NoMainQuestion } from "../../../src/imports/leaving/dialog/no-main-question";
-import type { OfferWiring } from "../../../src/imports/leaving/dialog/offer-wiring";
+import { questionFor } from "../../../src/imports/leaving/questions/question-for";
+import { NoMainQuestion } from "../../../src/imports/leaving/questions/no-main-question";
+import type { OfferWiring } from "../../../src/imports/leaving/questions/offer-wiring";
 import { MAIN_UNCLEAR } from "../../../src/imports/leaving/switching/switch-words";
 import { CAMPAIGN, CAMPAIGN_NOTE, LeavingTable, SECOND, SECOND_AS_MAIN, SECOND_TEXT, TODAY } from "./leaving-table";
 

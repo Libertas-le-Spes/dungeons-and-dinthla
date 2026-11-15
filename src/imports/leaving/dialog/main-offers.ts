@@ -2,10 +2,10 @@ import type { TFile } from "obsidian";
 import { AskAlways, AskWhenLeftPlay, type AskWhen } from "./ask-when";
 import { MainModal } from "./main-modal";
 import { plainWordsOf } from "../writes/write-words";
-import type { OfferWiring } from "./offer-wiring";
-import { questionFor } from "./question-for";
-import { diedQuestionFor } from "./died-question-for";
-import type { MainQuestion } from "./main-question";
+import type { OfferWiring } from "../questions/offer-wiring";
+import { questionFor } from "../questions/question-for";
+import { diedQuestionFor } from "../questions/died-question-for";
+import type { MainQuestion } from "../questions/main-question";
 import { COULD_NOT_ASK, NOTE_MOVED } from "../switching/switch-words";
 
 class FocusBack {
