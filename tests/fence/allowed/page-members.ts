@@ -44,6 +44,7 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "views/lists/linked-text.ts": ["addEventListener", "button", "key", "preventDefault", "stopPropagation", "target"],
   "views/lists/list-page.ts": ["focus", "value"],
   "views/lists/row-focus.ts": ["closest", "focus", "open", "querySelectorAll"],
+  "views/tabs/tabs.ts": ["focus", "key", "preventDefault"],
   "welcome/endings/name-form.ts": ["disabled", "preventDefault", "value"],
 };
 

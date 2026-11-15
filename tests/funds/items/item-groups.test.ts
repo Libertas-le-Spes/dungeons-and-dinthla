@@ -24,7 +24,7 @@ describe("summariseItems", () => {
     const summary = summaryOf(["$ [[Mira]] Flame Tongue", "$ Potion of healing", "$ [[Brother Aldric]] Holy symbol", "$ [[Mira]] Silvered lantern"]);
     expect(groupsOf(summary)).toEqual([
       ["Brother Aldric", ["Holy symbol"]],
-      ["Mira", ["Flame Tongue", "Silvered lantern"]],
+      ["Mira", ["Silvered lantern", "Flame Tongue"]],
       ["", ["Potion of healing"]],
     ]);
     expect(summary.heldCount).toBe(4);
@@ -32,7 +32,7 @@ describe("summariseItems", () => {
 
   it("puts one holder under one heading however the link is written", () => {
     const summary = summaryOf(["$ [[Mira]] Lantern", "$ [[mira]] Rope", "$ [[Characters/Mira]] Cloak", "$ [[Mira|her]] Map"]);
-    expect(groupsOf(summary)).toEqual([["Mira", ["Lantern", "Rope", "Cloak", "Map"]]]);
+    expect(groupsOf(summary)).toEqual([["Mira", ["Map", "Cloak", "Rope", "Lantern"]]]);
   });
 
   it("counts an item changed to the party as the party's own", () => {
@@ -41,6 +41,11 @@ describe("summariseItems", () => {
       ["Zed", ["Rope"]],
       ["", ["Coin purse"]],
     ]);
+  });
+
+  it("lists the items of a holder latest first, by session and then by line", () => {
+    const summary = summaryOf(["$ [[Mira]] Rope", "$ [[Mira]] Spyglass"], ["$ [[Mira]] Torch"], ["$ [[Mira]] Map", "$ [[Mira]] Flask"]);
+    expect(groupsOf(summary)).toEqual([["Mira", ["Flask", "Map", "Torch", "Spyglass", "Rope"]]]);
   });
 
   it("lists gone items by the session they went in, latest first, not by when they were named", () => {
@@ -62,7 +67,7 @@ describe("summariseItems", () => {
   });
 
   it("reads a holder linked with .md as the same holder", () => {
-    expect(groupsOf(summaryOf(["$ [[Mira]] Lantern", "$ [[Mira.md]] Rope"]))).toEqual([["Mira", ["Lantern", "Rope"]]]);
+    expect(groupsOf(summaryOf(["$ [[Mira]] Lantern", "$ [[Mira.md]] Rope"]))).toEqual([["Mira", ["Rope", "Lantern"]]]);
   });
 
   it("summarises a campaign with no items as empty", () => {
