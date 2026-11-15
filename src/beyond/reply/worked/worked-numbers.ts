@@ -6,5 +6,5 @@ import { withDoubts } from "./with-doubts";
 
 export function workedNumbersOf(data: JsonReader): readonly ImportedNumber[] {
   const inputs = ruleInputsOf(data);
-  return withDoubts(workedOut(inputs.character), inputs.doubts);
+  return withDoubts(workedOut(inputs.character), inputs);
 }

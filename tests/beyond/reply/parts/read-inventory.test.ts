@@ -19,6 +19,20 @@ describe("inventoryOf", () => {
     expect(found.map((entry) => entry.count.explanation)).toEqual(["Quantity: 1", "Quantity: 50", "Quantity: 3"]);
   });
 
+  it("lists the items added by hand after the others, by name and quantity", () => {
+    const reply = MadeUpReply.levelOneMonk().with(["customItems"], [{ name: "Strange Receipt", quantity: 2 }]);
+    const found = inventoryOf(reply.reader());
+    expect(found.map((entry) => [entry.name.text, entry.count.valueOr(0)])).toEqual([["Quarterstaff", 1], ["Rope", 50], ["Torch", 3], ["Strange Receipt", 2]]);
+  });
+
+  it("reads a reply that lists no items added by hand", () => {
+    expect(inventoryOf(MadeUpReply.levelOneMonk().without(["customItems"]).reader())).toHaveLength(3);
+  });
+
+  it("refuses an item added by hand with no name", () => {
+    expect(() => inventoryOf(MadeUpReply.levelOneMonk().with(["customItems"], [{ quantity: 1 }]).reader())).toThrow('"name" is missing or is not text');
+  });
+
   it("reads an empty inventory", () => {
     expect(inventoryOf(MadeUpReply.levelOneMonk().with(["inventory"], []).reader())).toEqual([]);
   });

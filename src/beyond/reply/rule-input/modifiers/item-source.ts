@@ -54,6 +54,10 @@ export class ItemSource implements ModifierSource {
     return new ItemSource(groups);
   }
 
+  keeps(): boolean {
+    return true;
+  }
+
   modifierOf(entry: JsonReader): RuleModifier {
     const id = entry.numberAt("componentId");
     const subType = CleanLine.of(entry.textAt("subType"));

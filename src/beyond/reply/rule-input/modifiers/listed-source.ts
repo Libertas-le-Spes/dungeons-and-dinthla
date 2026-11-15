@@ -11,6 +11,10 @@ export class ListedSource implements ModifierSource {
     private readonly names: ModifierNames,
   ) {}
 
+  keeps(): boolean {
+    return true;
+  }
+
   modifierOf(entry: JsonReader): RuleModifier {
     return modifierEntryOf(entry, this.sourceNameOf(entry), true);
   }

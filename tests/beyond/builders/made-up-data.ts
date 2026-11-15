@@ -33,11 +33,12 @@ export function madeUpData(): Node {
   return {
     id: 4242,
     name: "Primary Monk",
-    race: { fullName: "Human", racialTraits: [{ definition: { id: 600, name: "Quick Learner" } }], weightSpeeds: { normal: { walk: 30 }, override: null } },
+    race: { fullName: "Human", sizeId: 4, racialTraits: [{ definition: { id: 600, name: "Quick Learner" } }], weightSpeeds: { normal: { walk: 30 }, override: null } },
     background: { definition: { id: 800, name: "Hermit" } },
     classes: [
       {
         level: 1,
+        isStartingClass: true,
         subclassDefinition: null,
         definition: { name: "Monk", hitDice: 8 },
         classFeatures: [featureOf(900, "Unarmored Defense", 1), featureOf(901, "Unarmored Movement", 2)],
