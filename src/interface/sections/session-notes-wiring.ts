@@ -3,6 +3,7 @@ import { noteTextsOf } from "../../campaign/reading/note-texts";
 import type { Gate } from "../../fence/gate/gatekeeper";
 import type { VaultSettings } from "../../fence/gate/vault-settings";
 import type { LookupOpeners } from "../../kinds/lookup-openers";
+import type { LineOpeners } from "../../session-notes/lines/line-opener-of";
 import type { NoteEditingNeeds } from "../../note-editing/note-editing";
 import { NoteSaver } from "../../note-editing/note-saver";
 import { AppendWriter } from "../../session-notes/drafts/append-writer";
@@ -26,6 +27,7 @@ export interface SessionNotesWiringNeeds {
   keeping: Pick<DraftKeeping, "keptDrafts" | "noteDrafts">;
   openers: LookupOpeners;
   actions: LinkActions;
+  lineOpeners: LineOpeners;
   confirm: OpenConfirm;
   campaignFolders(): string[];
   report(message: string): void;
@@ -48,6 +50,7 @@ export function sessionNotesWiring(needs: SessionNotesWiringNeeds): SessionNotes
     propertiesOf: (path: string) => sessionPropertiesOf(path, gate.metadata),
     openers: needs.openers,
     actions: needs.actions,
+    lineOpeners: needs.lineOpeners,
     wholeText,
     removal: {
       clearer: new SessionClearer(gate.files),

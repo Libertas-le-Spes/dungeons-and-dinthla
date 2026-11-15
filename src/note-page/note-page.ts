@@ -1,6 +1,5 @@
 import { Component } from "obsidian";
 import { campaignOfReference } from "../campaign/paths/campaign-folders";
-import { noteNameOf } from "../campaign/paths/note-name";
 import { MentionsPanel } from "../characters/pages/mentions-panel";
 import type { MentionNotes } from "../characters/reading/mention-notes";
 import { placeReferenceKind } from "../kinds/place-reference-kind";
@@ -8,6 +7,7 @@ import type { LinkActions } from "../views/lists/linked-text";
 import { LeftCampaign } from "./left-campaign";
 import { NoteEditing, type NoteEditingNeeds } from "../note-editing/note-editing";
 import { NoteLinks } from "./note-links";
+import { noteTitleOf } from "./note-title";
 
 export interface NotePageNeeds extends NoteEditingNeeds {
   actions: LinkActions;
@@ -34,7 +34,7 @@ export class NotePage extends Component {
     const root = this.contentEl;
     root.empty();
     root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-session-notes", "dd-note-page");
-    root.createEl("h2", { cls: "dd-title dd-note-title", text: noteNameOf(this.path) });
+    root.createEl("h2", { cls: "dd-title dd-note-title", text: noteTitleOf(this.path, this.needs.mentionNotes.campaignFolders()) });
     this.sayIfLeftCampaign(root);
     const panel = root.createEl("section", { cls: "dd-notes-panel dd-note-panel" });
     this.links = new NoteLinks(root, this.path, this.needs.actions);

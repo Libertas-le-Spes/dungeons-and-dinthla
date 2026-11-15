@@ -1,9 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, type Mock } from "vitest";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { SessionNote } from "../../../src/campaign/record/campaign";
 import { LinesList } from "../../../src/session-notes/lines/lines-list";
 import { writtenLinesOf } from "../../../src/session-notes/lines/written-lines";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { stubLineOpeners } from "./stub-line-openers";
 
 const PATH = "Pale Moon/Sessions/Session 12.md";
 
@@ -14,16 +15,40 @@ function sessionOf(lines: string[]): SessionNote {
 function drawn(lines: string[]) {
   const root = obsidianDocument().createElement("div");
   const actions = { openRow: vi.fn(), openLink: vi.fn() };
-  const list = new LinesList(root, actions);
+  const openers = stubLineOpeners();
+  const list = new LinesList(root, { actions, openers });
   const session = sessionOf(lines);
   list.show(writtenLinesOf(session), buildCampaign([session]));
-  return { root, actions, list };
+  return { root, actions, openers, list };
+}
+
+function partsOf(item: Element): Element[] {
+  const row = item.querySelector(".dd-row");
+  if (row === null) return Array.from(item.children);
+  return Array.from(row.children);
 }
 
 function rows(root: HTMLElement): string[][] {
-  return Array.from(root.querySelectorAll(".dd-written-line")).map((row) =>
-    Array.from(row.children).map((part) => `${part.className}|${part.textContent}`),
-  );
+  return Array.from(root.querySelectorAll(".dd-written-line")).map((item) => partsOf(item).map((part) => `${part.className}|${part.textContent}`));
+}
+
+function rowAt(root: HTMLElement, line: number): HTMLElement {
+  const row = root.querySelector<HTMLElement>(`.dd-written-line[data-line="${line}"] .dd-row`);
+  if (row === null) throw new Error(`No pressable note at line ${line}.`);
+  return row;
+}
+
+function pressEnter(row: HTMLElement): void {
+  const view = row.ownerDocument.defaultView;
+  if (view === null) throw new Error("The page has no window.");
+  row.dispatchEvent(new view.KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }));
+}
+
+function closeDialog(opened: Mock, changed: boolean): void {
+  const call = opened.mock.calls[0];
+  if (call === undefined) throw new Error("No dialog was opened.");
+  const onClosed: (changed: boolean) => void = call[call.length - 1];
+  onClosed(changed);
 }
 
 describe("LinesList", () => {
@@ -97,5 +122,47 @@ describe("LinesList", () => {
     const session = sessionOf(["? Who", "! Ride to Thessaly"]);
     list.show(writtenLinesOf(session), buildCampaign([session]));
     expect(rows(root).map((row) => row[1])).toEqual(["dd-line-text|Ride to Thessaly", "dd-line-text|Who"]);
+  });
+
+  it("opens the dialog of a question, a quest, an item and a coin entry when its note is pressed, and no other", () => {
+    const { root, openers } = drawn(["? Who sent the letter", "! Ride to Thessaly", "$ Rope", "$ 20 gp from Lady Vess"]);
+    rowAt(root, 0).click();
+    rowAt(root, 1).click();
+    rowAt(root, 2).click();
+    rowAt(root, 3).click();
+    expect(openers.openQuestion).toHaveBeenCalledExactlyOnceWith({ path: PATH, line: 0 }, expect.any(Function));
+    expect(openers.openQuest).toHaveBeenCalledExactlyOnceWith({ path: PATH, line: 1 }, expect.any(Function));
+    expect(openers.openItem).toHaveBeenCalledExactlyOnceWith("Rope", { path: PATH, line: 2 }, expect.any(Function));
+    expect(openers.openLedgerEntry).toHaveBeenCalledExactlyOnceWith({ path: PATH, line: 3 }, expect.any(Function));
+  });
+
+  it("opens the dialog from the keyboard too", () => {
+    const { root, openers } = drawn(["? Who sent the letter"]);
+    pressEnter(rowAt(root, 0));
+    expect(openers.openQuestion).toHaveBeenCalledOnce();
+  });
+
+  it("leaves a plain text note and a follow-up that no dialog edits not pressable", () => {
+    const { root } = drawn(["Tracks lead north.", "? Who sent the letter", "?= Who sent the letter: Mira"]);
+    const pressable = Array.from(root.querySelectorAll(".dd-written-line")).map((item) => item.querySelector(".dd-row") !== null);
+    expect(pressable).toEqual([false, true, false]);
+  });
+
+  it("gives the pressed row focus again when its dialog closes without a change", () => {
+    const { root, openers } = drawn(["? Who sent the letter"]);
+    root.ownerDocument.body.append(root);
+    rowAt(root, 0).click();
+    closeDialog(openers.openQuestion, false);
+    expect(root.ownerDocument.activeElement).toBe(rowAt(root, 0));
+  });
+
+  it("gives focus to the list when the pressed note is gone after its dialog changed it", () => {
+    const { root, openers, list } = drawn(["? Who sent the letter"]);
+    root.ownerDocument.body.append(root);
+    rowAt(root, 0).click();
+    closeDialog(openers.openQuestion, true);
+    const session = sessionOf(["Tracks lead north."]);
+    list.show(writtenLinesOf(session), buildCampaign([session]));
+    expect(root.ownerDocument.activeElement).toBe(root.querySelector(".dd-written-lines"));
   });
 });
