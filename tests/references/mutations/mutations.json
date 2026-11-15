@@ -401,7 +401,7 @@
  {
   "id": "a name asked about is on every session that names it",
   "file": "src/references/making/reference-note-plan.ts",
-  "find": "this.sessionsNaming(name).map(({ path }) => path)",
+  "find": "this.sessionsNaming(named.name).map(({ path }) => path)",
   "replace": "[first.path]",
   "group": "new names"
  },
