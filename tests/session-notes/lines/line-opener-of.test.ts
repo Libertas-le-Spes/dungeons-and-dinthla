@@ -24,7 +24,7 @@ const campaign = buildCampaign([
 
 function openerAt(line: number) {
   const openers = stubLineOpeners();
-  return { openers, open: lineOpenerOf(campaign, { path: PATH, line }, openers) };
+  return { openers, open: lineOpenerOf({ campaign, source: { path: PATH, line }, openers }) };
 }
 
 describe("lineOpenerOf", () => {
@@ -32,7 +32,9 @@ describe("lineOpenerOf", () => {
     const { openers, open } = openerAt(0);
     const onClosed = vi.fn();
     open?.(onClosed);
-    expect(openers.openQuestion).toHaveBeenCalledExactlyOnceWith({ path: PATH, line: 0 }, onClosed);
+    expect(openers.openQuestion).toHaveBeenCalledExactlyOnceWith({ path: PATH, line: 0 }, expect.any(Function));
+    openers.openQuestion.mock.calls[0]?.[1](true);
+    expect(onClosed).toHaveBeenCalledExactlyOnceWith({ changed: true, gone: false });
   });
 
   it("opens a quest's dialog for the line that gives it", () => {
@@ -49,7 +51,7 @@ describe("lineOpenerOf", () => {
     }
   });
 
-  it("opens a coin entry's dialog and says the note changed unless the dialog left it unchanged", () => {
+  it("opens a coin entry's dialog and says the note changed unless the dialog left it unchanged, and gone when it was deleted", () => {
     const { openers, open } = openerAt(5);
     const onClosed = vi.fn();
     open?.(onClosed);
@@ -58,12 +60,16 @@ describe("lineOpenerOf", () => {
     closed("unchanged");
     closed("written");
     closed("deleted");
-    expect(onClosed.mock.calls).toEqual([[false], [true], [true]]);
+    expect(onClosed.mock.calls).toEqual([
+      [{ changed: false, gone: false }],
+      [{ changed: true, gone: false }],
+      [{ changed: true, gone: true }],
+    ]);
   });
 
   it("has none for a follow-up, a plain line or a line of another note", () => {
     expect(openerAt(1).open).toBeNull();
     expect(openerAt(6).open).toBeNull();
-    expect(lineOpenerOf(campaign, { path: "Pale Moon/Sessions/Session 2.md", line: 0 }, stubLineOpeners())).toBeNull();
+    expect(lineOpenerOf({ campaign, source: { path: "Pale Moon/Sessions/Session 2.md", line: 0 }, openers: stubLineOpeners() })).toBeNull();
   });
 });

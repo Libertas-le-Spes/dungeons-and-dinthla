@@ -38,17 +38,17 @@ function rowAt(root: HTMLElement, line: number): HTMLElement {
   return row;
 }
 
-function pressEnter(row: HTMLElement): void {
+function pressKey({ row, key }: { row: HTMLElement; key: string }): void {
   const view = row.ownerDocument.defaultView;
   if (view === null) throw new Error("The page has no window.");
-  row.dispatchEvent(new view.KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }));
+  row.dispatchEvent(new view.KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }));
 }
 
-function closeDialog(opened: Mock, changed: boolean): void {
+function closeDialog(opened: Mock, result: unknown): void {
   const call = opened.mock.calls[0];
   if (call === undefined) throw new Error("No dialog was opened.");
-  const onClosed: (changed: boolean) => void = call[call.length - 1];
-  onClosed(changed);
+  const onClosed: (result: unknown) => void = call[call.length - 1];
+  onClosed(result);
 }
 
 describe("LinesList", () => {
@@ -138,8 +138,26 @@ describe("LinesList", () => {
 
   it("opens the dialog from the keyboard too", () => {
     const { root, openers } = drawn(["? Who sent the letter"]);
-    pressEnter(rowAt(root, 0));
+    pressKey({ row: rowAt(root, 0), key: "Enter" });
     expect(openers.openQuestion).toHaveBeenCalledOnce();
+  });
+
+  it("opens the dialog on Space too", () => {
+    const { root, openers } = drawn(["? Who sent the letter"]);
+    pressKey({ row: rowAt(root, 0), key: " " });
+    expect(openers.openQuestion).toHaveBeenCalledOnce();
+  });
+
+  it("opens the link, not the dialog, when a link in a pressable note is pressed", () => {
+    const { root, openers, actions } = drawn(["! Find the caravan, from: [[Lady Vess]]"]);
+    root.querySelector<HTMLElement>(".dd-row .dd-link a")?.click();
+    expect(actions.openLink).toHaveBeenCalledOnce();
+    expect(openers.openQuest).not.toHaveBeenCalled();
+  });
+
+  it("can be given focus as a list", () => {
+    const { root } = drawn(["? Who"]);
+    expect(root.querySelector(".dd-written-lines")?.getAttribute("tabindex")).toBe("-1");
   });
 
   it("leaves a plain text note and a follow-up that no dialog edits not pressable", () => {
@@ -162,6 +180,16 @@ describe("LinesList", () => {
     rowAt(root, 0).click();
     closeDialog(openers.openQuestion, true);
     const session = sessionOf(["Tracks lead north."]);
+    list.show(writtenLinesOf(session), buildCampaign([session]));
+    expect(root.ownerDocument.activeElement).toBe(root.querySelector(".dd-written-lines"));
+  });
+
+  it("gives focus to the list, not to the note that took its line, when a coin entry is deleted", () => {
+    const { root, openers, list } = drawn(["$ 20 gp from Lady Vess", "$ 5 gp to Mira"]);
+    root.ownerDocument.body.append(root);
+    rowAt(root, 0).click();
+    closeDialog(openers.openLedgerEntry, "deleted");
+    const session = sessionOf(["$ 5 gp to Mira"]);
     list.show(writtenLinesOf(session), buildCampaign([session]));
     expect(root.ownerDocument.activeElement).toBe(root.querySelector(".dd-written-lines"));
   });

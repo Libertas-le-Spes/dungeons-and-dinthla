@@ -11,41 +11,56 @@ export interface LineOpeners extends ThreadRowOpeners {
   openLedgerEntry(source: Source, onClosed: (outcome: CoinOutcome) => void): void;
 }
 
-export type OpenLine = (onClosed: (changed: boolean) => void) => void;
+export interface LineClosed {
+  changed: boolean;
+  gone: boolean;
+}
 
-type FindOpener = (campaign: Campaign, source: Source, openers: LineOpeners) => OpenLine | null;
+export type OpenLine = (onClosed: (closed: LineClosed) => void) => void;
+
+export interface LineSearch {
+  campaign: Campaign;
+  source: Source;
+  openers: LineOpeners;
+}
+
+type FindOpener = (search: LineSearch) => OpenLine | null;
 
 function isAt(written: Source, source: Source): boolean {
   return written.path === source.path && written.line === source.line;
 }
 
+function stillThere(changed: boolean): LineClosed {
+  return { changed, gone: false };
+}
+
 function threadOpener<Thread extends ThreadRecord, Ending extends SourcedText, EndingName extends FollowUpName>(
   shown: ShownThreadKind<Thread, Ending, EndingName>,
 ): FindOpener {
-  return (campaign, source, openers) => {
+  return ({ campaign, source, openers }) => {
     const thread = shown.threadsOf(campaign).find((candidate) => isAt(candidate.source, source));
     if (thread === undefined) return null;
-    return (onClosed) => shown.open(openers, source, onClosed);
+    return (onClosed) => shown.open(openers, source, (changed) => onClosed(stillThere(changed)));
   };
 }
 
-function itemOpener(campaign: Campaign, source: Source, openers: LineOpeners): OpenLine | null {
+function itemOpener({ campaign, source, openers }: LineSearch): OpenLine | null {
   const item = campaign.items.find((candidate) => candidate.history.some((event) => isAt(event.source, source)));
   if (item === undefined) return null;
-  return (onClosed) => openers.openItem(item.name, source, onClosed);
+  return (onClosed) => openers.openItem(item.name, source, (changed) => onClosed(stillThere(changed)));
 }
 
-function coinOpener(campaign: Campaign, source: Source, openers: LineOpeners): OpenLine | null {
+function coinOpener({ campaign, source, openers }: LineSearch): OpenLine | null {
   const coin = campaign.coins.find((candidate) => isAt(candidate.source, source));
   if (coin === undefined) return null;
-  return (onClosed) => openers.openLedgerEntry(source, (outcome) => onClosed(outcome !== "unchanged"));
+  return (onClosed) => openers.openLedgerEntry(source, (outcome) => onClosed({ changed: outcome !== "unchanged", gone: outcome === "deleted" }));
 }
 
 const FIND_OPENERS: FindOpener[] = [...SHOWN_THREAD_KINDS.map(threadOpener), itemOpener, coinOpener];
 
-export function lineOpenerOf(campaign: Campaign, source: Source, openers: LineOpeners): OpenLine | null {
+export function lineOpenerOf(search: LineSearch): OpenLine | null {
   for (const find of FIND_OPENERS) {
-    const opener = find(campaign, source, openers);
+    const opener = find(search);
     if (opener !== null) return opener;
   }
   return null;
