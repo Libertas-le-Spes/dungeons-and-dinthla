@@ -30,6 +30,12 @@ describe("castPageFor", () => {
     expect(pages.gallery).not.toHaveBeenCalled();
   });
 
+  it("shows the gallery for a note in the Fallen folder, without looking it up", () => {
+    const { pages, fileAt } = pagesWith([]);
+    expect(castPageFor(contentEl, "Pale Moon/Fallen/Mira.md", pages)).toBe(GALLERY);
+    expect(fileAt).not.toHaveBeenCalled();
+  });
+
   it("shows the gallery with no note", () => {
     const { pages } = pagesWith([MIRA]);
     expect(castPageFor(contentEl, null, pages)).toBe(GALLERY);
