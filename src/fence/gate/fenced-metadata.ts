@@ -1,7 +1,7 @@
 import type { CachedMetadata, EventRef, Events, MetadataCache, TFile } from "obsidian";
 import type { HeldFiles } from "./held-files";
 
-export type RawMetadata = Pick<MetadataCache, "getCache" | "getFileCache" | "getFirstLinkpathDest" | "fileToLinktext" | "resolvedLinks"> &
+export type RawMetadata = Pick<MetadataCache, "getCache" | "getFileCache" | "getFirstLinkpathDest" | "fileToLinktext" | "resolvedLinks" | "unresolvedLinks"> &
   Pick<Events, "on" | "offref">;
 
 export type MetadataEvent = "changed" | "resolve";
@@ -19,6 +19,13 @@ export class FencedMetadata {
   get resolvedLinks(): LinkCounts {
     const held = Object.entries(this.metadata.resolvedLinks).filter(([source]) => this.held.holdsPath(source));
     return Object.fromEntries(held.map(([source, targets]) => [source, this.heldTargets(targets)]));
+  }
+
+  unresolvedLinksOf(path: string): string[] {
+    if (!this.held.holdsPath(path)) return [];
+    const links = this.metadata.unresolvedLinks[path];
+    if (links === undefined) return [];
+    return Object.keys(links);
   }
 
   getCache(path: string): CachedMetadata | null {
