@@ -5,14 +5,20 @@ import { abilityListedTwice } from "../../common/reply-refusals";
 import type { JsonReader } from "../../json/json-reader";
 import { ABILITY_IDS } from "./ability-ids";
 
+export interface ScoreList {
+  readonly data: JsonReader;
+  readonly key: string;
+  readonly cap: Cap;
+}
+
 export class ScoreEntries {
   private readonly numbers = new Map<number, number>();
   private readonly emptied = new Set<number>();
   private unexpectedForm = false;
 
-  static of(data: JsonReader, key: string, cap: Cap): ScoreEntries {
+  static of(read: ScoreList): ScoreEntries {
     const entries = new ScoreEntries();
-    for (const entry of data.listAt(key, cap)) entries.add(entry);
+    for (const entry of read.data.listAt(read.key, read.cap)) entries.add(entry);
     return entries;
   }
 

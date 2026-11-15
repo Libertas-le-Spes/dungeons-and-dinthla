@@ -2,8 +2,14 @@ import { describe, expect, it } from "vitest";
 import { ruleFeaturesOf } from "../../../../../src/beyond/reply/rule-input/features/read-rule-features";
 import { MadeUpReply } from "../../../builders/made-up-reply";
 
-function featureOf(id: number, name: string, requiredLevel: unknown): Record<string, unknown> {
-  return { definition: { id, name, requiredLevel } };
+interface FeatureFields {
+  readonly id: number;
+  readonly name: string;
+  readonly requiredLevel: unknown;
+}
+
+function featureOf(fields: FeatureFields): Record<string, unknown> {
+  return { definition: fields };
 }
 
 describe("ruleFeaturesOf", () => {
@@ -17,7 +23,7 @@ describe("ruleFeaturesOf", () => {
   });
 
   it("lists the features of a subclass the level has reached, which the class lists with the rest", () => {
-    const features = [featureOf(950, "Open Hand Technique", 3), featureOf(951, "Wholeness of Body", 6)];
+    const features = [featureOf({ id: 950, name: "Open Hand Technique", requiredLevel: 3 }), featureOf({ id: 951, name: "Wholeness of Body", requiredLevel: 6 })];
     const reply = MadeUpReply.levelOneMonk().with(["classes", 0, "level"], 3).with(["classes", 0, "classFeatures"], features);
     expect(ruleFeaturesOf(reply.reader())).toContain("Open Hand Technique");
     expect(ruleFeaturesOf(reply.reader())).not.toContain("Wholeness of Body");
@@ -30,7 +36,7 @@ describe("ruleFeaturesOf", () => {
   });
 
   it("leaves a class feature out when its level is not a number", () => {
-    const reply = MadeUpReply.levelOneMonk().with(["classes", 0, "classFeatures"], [featureOf(1, "Odd Feature", "1")]);
+    const reply = MadeUpReply.levelOneMonk().with(["classes", 0, "classFeatures"], [featureOf({ id: 1, name: "Odd Feature", requiredLevel: "1" })]);
     expect(ruleFeaturesOf(reply.reader())).not.toContain("Odd Feature");
   });
 

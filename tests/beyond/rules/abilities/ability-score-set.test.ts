@@ -54,3 +54,43 @@ describe("AbilityScoreRule with a set modifier for a longer sub-type", () => {
     expect(strengthWith(modifierOf("set", "strength-score-cap", 19, "Gauntlets")).isKnown).toBe(false);
   });
 });
+
+describe("AbilityScoreRule and the most a score reaches", () => {
+  function strengthOf(base: number, ...modifiers: ReturnType<typeof modifierOf>[]) {
+    return numberNamed(madeUpRuleCharacter({ baseScores: scoresOf(base, 10, 10, 10, 10, 10), modifiers }), "STR");
+  }
+
+  it("takes a score of exactly 20", () => {
+    expect(strengthOf(18, modifierOf("bonus", "strength-score", 2, "Tome")).valueOr(-1)).toBe(20);
+  });
+
+  it("does not know a score over 20, and says why, in plain words", () => {
+    const found = strengthOf(18, modifierOf("bonus", "strength-score", 3, "Tome"));
+    expect([found.isKnown, found.explanation]).toEqual([false, "base 18 + bonus 0 + Tome 3 = 21, which is more than 20, the most a score reaches unless a feature raises it, and I do not read those. Type the score on your note to set it."]);
+  });
+
+  it("does not know a base score over 20 with no bonus", () => {
+    expect(strengthOf(21).isKnown).toBe(false);
+  });
+
+  it("does not know a score over 20 when a set modifier is no higher than it", () => {
+    expect(strengthOf(18, modifierOf("bonus", "strength-score", 4, "Tome"), modifierOf("set", "strength-score", 21, "Belt")).isKnown).toBe(false);
+  });
+
+  it("takes a set score above the sum even when the sum is over 20", () => {
+    expect(strengthOf(18, modifierOf("bonus", "strength-score", 4, "Tome"), modifierOf("set", "strength-score", 25, "Belt")).valueOr(-1)).toBe(25);
+  });
+
+  it("takes a set score of 25 over a low sum", () => {
+    expect(strengthOf(10, modifierOf("set", "strength-score", 25, "Belt")).valueOr(-1)).toBe(25);
+  });
+
+  it("takes a score set by hand as it is, even over 20", () => {
+    const character = madeUpRuleCharacter({ scoreOverrides: scoresOf(25, 10, 10, 10, 10, 10) });
+    expect(numberNamed(character, "STR").valueOr(-1)).toBe(25);
+  });
+
+  it("does not know a score when a modifier names a maximum, a kind it does not read", () => {
+    expect(strengthOf(18, modifierOf("bonus", "strength-score-maximum", 4, "Primal Champion")).isKnown).toBe(false);
+  });
+});

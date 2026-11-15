@@ -19,11 +19,11 @@ export class ClassSource implements ModifierSource {
     this.listed = new ListedSource(this.key, names);
   }
 
-  keeps(entry: JsonReader): boolean {
-    return !this.isOfAnotherClass(entry);
+  modifiersOf(entries: readonly JsonReader[]): readonly RuleModifier[] {
+    return entries.filter((entry) => !this.isOfAnotherClass(entry)).map((entry) => this.modifierOf(entry));
   }
 
-  modifierOf(entry: JsonReader): RuleModifier {
+  private modifierOf(entry: JsonReader): RuleModifier {
     if (this.isOfUnplacedClass(entry)) return unreadableModifierOf(CleanLine.of(entry.textAt("subType")), CleanLine.of(this.key));
     return this.listed.modifierOf(entry);
   }

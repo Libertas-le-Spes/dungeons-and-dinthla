@@ -1,4 +1,4 @@
-export interface SetFloor {
+export interface FloorNote {
   readonly value: number;
   readonly source: string;
 }
@@ -8,7 +8,7 @@ export class ModifierTally {
   readonly applied: string[] = [];
   readonly conditional: string[] = [];
   readonly unknown: string[] = [];
-  readonly floors: SetFloor[] = [];
+  readonly floors: FloorNote[] = [];
   private readonly conditionalSources = new Set<string>();
 
   add(amount: number, source: string): void {

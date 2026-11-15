@@ -13,19 +13,25 @@ import type { RuleCharacter } from "../input/rule-character";
 import { CARRYING_SIZES } from "./carrying-size";
 import type { CarryingSize } from "./carrying-size";
 
-const POWERFUL_BUILD = "Powerful Build";
+const LARGER_BUILDS = ["Powerful Build", "Equine Build", "Hulking Build"];
 
 function countedSizeOf(character: RuleCharacter): CarryingSize | undefined {
   const index = CARRYING_SIZES.findIndex((size) => sameName(size.name, character.size));
   if (index < 0) return undefined;
-  if (!hasFeature(character, POWERFUL_BUILD)) return CARRYING_SIZES.find((_, at) => at === index);
+  if (!LARGER_BUILDS.some((build) => hasFeature(character, build))) return CARRYING_SIZES.find((_, at) => at === index);
   const larger = Math.min(index + 1, CARRYING_SIZES.length - 1);
   return CARRYING_SIZES.find((_, at) => at === larger);
 }
 
-function workingOf(strength: number, size: CarryingSize, total: number): string {
-  if (size.multiplier === 1) return `15 x STR ${strength} = ${total}`;
-  return `15 x STR ${strength} x ${size.multiplier} for a ${size.name} load = ${total}`;
+interface Load {
+  readonly strength: number;
+  readonly size: CarryingSize;
+  readonly total: number;
+}
+
+function workingOf(load: Load): string {
+  if (load.size.multiplier === 1) return `15 x STR ${load.strength} = ${load.total}`;
+  return `15 x STR ${load.strength} x ${load.size.multiplier} for a ${load.size.name} load = ${load.total}`;
 }
 
 export class CarryingCapacityRule implements Rule {
@@ -41,6 +47,6 @@ export class CarryingCapacityRule implements Rule {
     const strength = needed.numberOf(STRENGTH.short);
     const total = 15 * strength * size.multiplier;
     if (!Number.isInteger(total)) return notKnown(`15 x STR ${strength} x ${size.multiplier} is not a whole number.`, character.route);
-    return knownIn(total, CARRYING_CAPACITY, workingOf(strength, size, total), character.route);
+    return knownIn(total, CARRYING_CAPACITY, workingOf({ strength, size, total }), character.route);
   }
 }

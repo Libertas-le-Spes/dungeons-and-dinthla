@@ -34,5 +34,5 @@ export const INITIATIVE_TOUCHING = new ModelledTouching({
   modelled: ["Alert"],
   noEffectIn: NO_EFFECT_IN_2024,
 });
-export const SPEED_TOUCHING = new FeatureTouching(["Mobile", "Fast Movement", "Unarmored Movement", "Unarmored Movement Improvement", "Roving", "Aura of Alacrity", "Drunken Technique"]);
+export const SPEED_TOUCHING = new FeatureTouching(["Mobile", "Fast Movement", "Unarmored Movement", "Unarmored Movement Improvement", "Roving", "Aura of Alacrity", "Drunken Technique", "Speedy", "Squat Nimbleness"]);
 export const SPELLCASTING_TOUCHING = new FeatureTouching(["Artificer"], "is not built here yet");

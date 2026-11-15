@@ -1,9 +1,9 @@
 import { CONDITION_COUNT, CUSTOM_PROFICIENCY_COUNT } from "../../../shape/import-limits";
-import { SPEED_NAME } from "../../../rules/core/number-names";
 import type { ImportedNumber } from "../../../shape/imported-number";
 import type { JsonReader } from "../../json/json-reader";
 import { NamedBlanket } from "./blanket";
 import type { Blanket } from "./blanket";
+import { ConditionBlanket } from "./condition-blanket";
 import { characterValuesOf } from "./read-character-values";
 import { PROFICIENCY_NUMBER_NAMES } from "./proficiency-number-names";
 
@@ -18,7 +18,7 @@ export interface HandSet {
 function blanketsFor(data: JsonReader): readonly Blanket[] {
   const found: Blanket[] = [];
   if (data.listAtOrEmpty("customProficiencies", CUSTOM_PROFICIENCY_COUNT).length > 0) found.push(new NamedBlanket(CUSTOM_PROFICIENCIES, PROFICIENCY_NUMBER_NAMES));
-  if (data.listAtOrEmpty("conditions", CONDITION_COUNT).length > 0) found.push(new NamedBlanket(CONDITIONS, [SPEED_NAME, ...PROFICIENCY_NUMBER_NAMES]));
+  if (data.listAtOrEmpty("conditions", CONDITION_COUNT).length > 0) found.push(new ConditionBlanket(CONDITIONS));
   return found;
 }
 

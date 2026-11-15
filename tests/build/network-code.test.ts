@@ -300,6 +300,7 @@ describe("networkCodeIn", () => {
   it("lets a field name that only starts with require pass, and still finds a call and an alias", () => {
     const anyOther = "a module other than Obsidian or CodeMirror";
     expect(networkCodeIn("const level = definition.requiredLevel; const flag = entry.requiresAttunement;")).toEqual([]);
+    expect(networkCodeIn("const a = require_x; const b = require$y; const c = require9;")).toEqual([]);
     expectEachFound([
       ['require("https")', "a Node file, network or process module"],
       ["const r = require;", anyOther],

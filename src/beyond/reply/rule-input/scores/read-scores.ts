@@ -23,9 +23,9 @@ function doubtOf(id: AbilityId): ImportedNumber {
 }
 
 export function scoreInputsOf(data: JsonReader): ScoreInputs {
-  const base = ScoreEntries.of(data, "stats", BASE_SCORE_COUNT);
-  const bonus = ScoreEntries.of(data, "bonusStats", BONUS_SCORE_COUNT);
-  const overrides = ScoreEntries.of(data, "overrideStats", ABILITY_COUNT);
+  const base = ScoreEntries.of({ data, key: "stats", cap: BASE_SCORE_COUNT });
+  const bonus = ScoreEntries.of({ data, key: "bonusStats", cap: BONUS_SCORE_COUNT });
+  const overrides = ScoreEntries.of({ data, key: "overrideStats", cap: ABILITY_COUNT });
   if (base.isUnexpected || bonus.isUnexpected || overrides.isUnexpected) {
     return { base: new AbilityTable<number>(), bonus: new AbilityTable<number>(), overrides: new AbilityTable<number>(), doubts: ABILITY_IDS.map(doubtOf) };
   }

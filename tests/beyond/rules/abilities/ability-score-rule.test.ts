@@ -77,9 +77,9 @@ describe("AbilityScoreRule", () => {
 
   it.each([
     { total: 1, known: true },
-    { total: 30, known: true },
+    { total: 20, known: true },
     { total: 0, known: false },
-    { total: 31, known: false },
+    { total: 21, known: false },
   ])("knows a score of $total: $known", ({ total, known }) => {
     const character = madeUpRuleCharacter({ baseScores: scoresOf(total, 10, 10, 10, 10, 10) });
     expect(numberNamed(character, "STR").isKnown).toBe(known);

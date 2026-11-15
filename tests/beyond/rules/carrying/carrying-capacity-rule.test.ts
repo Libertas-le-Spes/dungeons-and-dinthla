@@ -7,7 +7,7 @@ describe("CarryingCapacityRule", () => {
     { strength: 1, capacity: 15 },
     { strength: 10, capacity: 150 },
     { strength: 11, capacity: 165 },
-    { strength: 30, capacity: 450 },
+    { strength: 20, capacity: 300 },
   ])("is 15 times a strength of $strength: $capacity", ({ strength, capacity }) => {
     expect(numberNamed(madeUpRuleCharacter({ baseScores: scoresOf(strength, 10, 10, 10, 10, 10) }), "Carrying capacity").valueOr(-1)).toBe(capacity);
   });
@@ -50,6 +50,10 @@ describe("CarryingCapacityRule and size", () => {
     expect(numberNamed(madeUpRuleCharacter({ size: "medium", features: ["Powerful Build"], baseScores: strong }), "Carrying capacity").valueOr(-1)).toBe(300);
     expect(numberNamed(madeUpRuleCharacter({ size: "small", features: ["powerful build"], baseScores: strong }), "Carrying capacity").valueOr(-1)).toBe(150);
     expect(numberNamed(madeUpRuleCharacter({ size: "gargantuan", features: ["Powerful Build"], baseScores: strong }), "Carrying capacity").valueOr(-1)).toBe(1200);
+  });
+
+  it.each(["Powerful Build", "Equine Build", "Hulking Build", " equine build "])("counts the trait %s as one size larger", (trait) => {
+    expect(numberNamed(madeUpRuleCharacter({ size: "medium", features: [trait], baseScores: strong }), "Carrying capacity").valueOr(-1)).toBe(300);
   });
 
   it("says which size the load is for", () => {

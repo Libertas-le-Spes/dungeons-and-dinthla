@@ -27,10 +27,10 @@ describe("OwnDefenceModifier", () => {
   });
 
   it.each([
-    ["a monk's modifier on constitution", "Monk", "CON"],
-    ["a barbarian's modifier on wisdom", "Barbarian", "WIS"],
-    ["a monk's modifier on no ability", "Monk", ""],
-  ])("does not let %s pass", (_, className, ability) => {
+    { label: "a monk's modifier on constitution", className: "Monk", ability: "CON" },
+    { label: "a barbarian's modifier on wisdom", className: "Barbarian", ability: "WIS" },
+    { label: "a monk's modifier on no ability", className: "Monk", ability: "" },
+  ])("does not let $label pass", ({ className, ability }) => {
     const character = madeUpRuleCharacter({ classes: [classOf(className, 1, 8)], baseScores: SCORES, modifiers: [defence(ability, "Unarmored Defense")] });
     expect(numberNamed(character, "AC").explanation).toContain('"unarmored-armor-class"');
   });
