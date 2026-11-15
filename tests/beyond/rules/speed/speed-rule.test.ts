@@ -62,3 +62,14 @@ describe("SpeedRule and a strength need that is not a number", () => {
     expect(numberNamed(madeUpRuleCharacter({ items: [odd] }), "Speed").isKnown).toBe(false);
   });
 });
+
+describe("SpeedRule and the kinds of movement a modifier names", () => {
+  it.each(["speed-walking", "speed-flying", "movement-bonus", "innate-speed-walking"])("does not know speed with a modifier on %s, and names it", (subType) => {
+    const value = numberNamed(madeUpRuleCharacter({ modifiers: [modifierOf("bonus", subType, 10, "Pale Boots")] }), "Speed");
+    expect([value.isKnown, value.explanation]).toEqual([false, `D&D Beyond names a rule I can't work out here: "${subType}". Type it on your note to set it.`]);
+  });
+
+  it.each(["innate-speed-flying", "innate-speed-swimming", "innate-speed-climbing", "innate-speed-burrowing"])("leaves the walking speed alone for a modifier that sets %s", (subType) => {
+    expect(speedOf({ modifiers: [modifierOf("set", subType, 60, "Wings")] })).toEqual({ value: 30, working: "walking 30 = 30", isKnown: true });
+  });
+});

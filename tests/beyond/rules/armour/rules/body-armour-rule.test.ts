@@ -38,8 +38,13 @@ describe("BodyArmourRule with body armour", () => {
     expect(armourClassOf({ baseScores: withDexterity(6), items: [itemOf("Chain Mail", new HeavyArmour(), 16)] }).value).toBe(16);
   });
 
-  it("counts a magic item that needs attunement only when it is attuned", () => {
+  it("counts the armour worn whether or not it needs attunement and is attuned, since only its magic waits for attunement", () => {
     const needs = { ...itemOf("Pale Mail", new HeavyArmour(), 18), needsAttunement: true };
-    expect([armourClassOf({ items: [needs] }).value, armourClassOf({ items: [{ ...needs, attuned: true }] }).value]).toEqual([10, 18]);
+    expect([armourClassOf({ items: [needs] }).value, armourClassOf({ items: [{ ...needs, attuned: true }] }).value]).toEqual([18, 18]);
+  });
+
+  it("does not count armour that is not worn, attuned or not", () => {
+    const needs = { ...itemOf("Pale Mail", new HeavyArmour(), 18), needsAttunement: true, equipped: false, attuned: true };
+    expect(armourClassOf({ items: [needs] }).value).toBe(10);
   });
 });

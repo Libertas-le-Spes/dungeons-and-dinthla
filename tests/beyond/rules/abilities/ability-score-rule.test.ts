@@ -59,8 +59,8 @@ describe("AbilityScoreRule", () => {
     expect(numberNamed(character, "DEX").valueOr(-1)).toBe(10);
   });
 
-  it("does not know a score a modifier sets outright, and names the modifier", () => {
-    const character = madeUpRuleCharacter({ modifiers: [modifierOf("set", "strength-score", 19, "Gauntlets")] });
+  it("does not know a score a modifier of a kind it does not know changes, and names the modifier", () => {
+    const character = madeUpRuleCharacter({ modifiers: [modifierOf("set-base", "strength-score", 19, "Gauntlets")] });
     const strength = numberNamed(character, "STR");
     expect([strength.isKnown, strength.explanation]).toEqual([false, 'D&D Beyond names a rule I can\'t work out here: "strength-score". Type it on your note to set it.']);
   });
@@ -77,9 +77,9 @@ describe("AbilityScoreRule", () => {
 
   it.each([
     { total: 1, known: true },
-    { total: 30, known: true },
+    { total: 20, known: true },
     { total: 0, known: false },
-    { total: 31, known: false },
+    { total: 21, known: false },
   ])("knows a score of $total: $known", ({ total, known }) => {
     const character = madeUpRuleCharacter({ baseScores: scoresOf(total, 10, 10, 10, 10, 10) });
     expect(numberNamed(character, "STR").isKnown).toBe(known);

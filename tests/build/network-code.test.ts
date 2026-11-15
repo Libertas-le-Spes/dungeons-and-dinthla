@@ -297,6 +297,20 @@ describe("networkCodeIn", () => {
     ]);
   });
 
+  it("lets a field name that only starts with require pass, and still finds a call and an alias", () => {
+    const anyOther = "a module other than Obsidian or CodeMirror";
+    expect(networkCodeIn("const level = definition.requiredLevel; const flag = entry.requiresAttunement;")).toEqual([]);
+    expect(networkCodeIn("const a = require_x; const b = require$y; const c = require9;")).toEqual([]);
+    expectEachFound([
+      ['require("https")', "a Node file, network or process module"],
+      ["const r = require;", anyOther],
+      ["const r = require\n;", anyOther],
+      ["const r = (require);", anyOther],
+      ["const r = __require;", anyOther],
+      ["const r = $require;", anyOther],
+    ]);
+  });
+
   it("finds every web address other than the app's own file addresses", () => {
     expectEachFound([
       ['const address = "https://example.invalid/a.png";', "a web address"],
@@ -367,7 +381,7 @@ describe("styleNetworkCodeIn", () => {
 });
 
 describe("the built plugin", () => {
-  it("holds no network code", async () => {
+  it("holds no network code beyond the one allowed D&D Beyond call", async () => {
     const bundle = await built(PLUGIN_BUNDLE);
     expect(bundle).toContain('require("obsidian")');
     expect(networkCodeIn(bundle)).toEqual([]);

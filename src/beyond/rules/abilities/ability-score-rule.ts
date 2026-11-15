@@ -6,9 +6,21 @@ import { knownIn, notKnown } from "../core/worked";
 import { sumWorking } from "../core/working-text";
 import type { Ability } from "../input/ability";
 import type { RuleCharacter } from "../input/rule-character";
+import { SetFloor } from "../modifiers/handlers/set-floor";
+import type { ModifierTally, FloorNote } from "../modifiers/modifier-tally";
 import { SubTypeFamily } from "../modifiers/sub-type-family";
 import { tallyFor } from "../modifiers/tally-for";
 import { unknownModifiers } from "../modifiers/unknown-modifiers";
+
+const USUAL_MOST = 20;
+
+function byValueDescending(first: FloorNote, second: FloorNote): number {
+  return second.value - first.value;
+}
+
+function highestFloorOf(tally: ModifierTally): FloorNote | undefined {
+  return [...tally.floors].sort(byValueDescending).find(() => true);
+}
 
 export class AbilityScoreRule implements Rule {
   constructor(private readonly ability: Ability) {}
@@ -37,10 +49,15 @@ export class AbilityScoreRule implements Rule {
 
   private withModifiers(character: RuleCharacter, base: number, bonus: number): WorkedValue<number> {
     const own = `${this.ability.subTypeName}-score`;
-    const tally = tallyFor(character, new SubTypeFamily([], [own]), [own], [], SCORE_MODIFIER_VALUE);
+    const tally = tallyFor(character, new SubTypeFamily([], [own]), [own], [new SetFloor(own, SCORE)], SCORE_MODIFIER_VALUE);
     const unknown = unknownModifiers(tally, character.route);
     if (unknown !== null) return unknown;
-    const total = base + bonus + tally.added;
-    return knownIn(total, SCORE, sumWorking([`base ${base}`, `bonus ${bonus}`, ...tally.applied], total), character.route);
+    const summed = base + bonus + tally.added;
+    const floor = highestFloorOf(tally);
+    const working = sumWorking([`base ${base}`, `bonus ${bonus}`, ...tally.applied], summed);
+    if (floor !== undefined && floor.value > summed) return knownIn(floor.value, SCORE, `${working}, set to ${floor.value} by ${floor.source}`, character.route);
+    if (summed > USUAL_MOST) return notKnown(`${working}, which is more than ${USUAL_MOST}, the most a score reaches unless a feature raises it, and I do not read those. Type the score on your note to set it.`, character.route);
+    if (floor === undefined) return knownIn(summed, SCORE, working, character.route);
+    return knownIn(summed, SCORE, `${working}, set to ${floor.value} by ${floor.source} has no effect`, character.route);
   }
 }

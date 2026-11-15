@@ -7,9 +7,7 @@ export interface WornArmour {
 }
 
 function isWorn(item: RuleItem): boolean {
-  if (!item.equipped) return false;
-  if (!item.needsAttunement) return true;
-  return item.attuned;
+  return item.equipped;
 }
 
 function isBodyArmour(item: RuleItem): boolean {

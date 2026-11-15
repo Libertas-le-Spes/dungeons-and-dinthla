@@ -9,6 +9,7 @@ export interface RuleCharacter {
   readonly route: Route;
   readonly edition: Edition;
   readonly species: string;
+  readonly size: string;
   readonly classes: readonly RuleClass[];
   readonly baseScores: ByAbility<number>;
   readonly bonusScores: ByAbility<number>;

@@ -10,13 +10,14 @@ import { knownIn, notKnown } from "../core/worked";
 import { sumWorking } from "../core/working-text";
 import { STRENGTH } from "../input/ability";
 import type { RuleCharacter } from "../input/rule-character";
+import { IgnoredSubTypes } from "../modifiers/handlers/ignored-sub-types";
 import { SubTypeFamily } from "../modifiers/sub-type-family";
 import { tallyFor } from "../modifiers/tally-for";
 import { unknownModifiers } from "../modifiers/unknown-modifiers";
 import { armourTooHeavy } from "./armour-too-heavy";
 
-const NAMES = ["speed", "unarmored-movement"];
-const FAMILY = new SubTypeFamily(NAMES, []);
+const FAMILY = new SubTypeFamily([], ["speed", "movement"]);
+const OTHER_MOVEMENT = new IgnoredSubTypes(["innate-speed-flying", "innate-speed-swimming", "innate-speed-climbing", "innate-speed-burrowing"]);
 
 export class SpeedRule implements Rule {
   workOut(character: RuleCharacter, earlier: EarlierNumbers): readonly ImportedNumber[] {
@@ -35,7 +36,7 @@ export class SpeedRule implements Rule {
   }
 
   private withModifiers(character: RuleCharacter, base: number): WorkedValue<number> {
-    const tally = tallyFor(character, FAMILY, ["speed"]);
+    const tally = tallyFor(character, FAMILY, ["speed"], [OTHER_MOVEMENT]);
     const unfamiliar = unknownModifiers(tally, character.route);
     if (unfamiliar !== null) return unfamiliar;
     const total = base + tally.added;

@@ -1,8 +1,14 @@
 import { FEATURE_COUNT } from "../../shape/import-limits";
-import type { CleanLine } from "../../text/clean-line";
+import { limitedList } from "../../shape/limited-list";
+import { CleanLine } from "../../text/clean-line";
 import type { JsonReader } from "../json/json-reader";
-import { definitionNameOf } from "./definition-name";
+import { ruleFeaturesOf } from "../rule-input/features/read-rule-features";
+import { uniqueLines } from "./unique-lines";
+
+function lineOf(name: string): CleanLine {
+  return CleanLine.of(name);
+}
 
 export function featuresOf(data: JsonReader): readonly CleanLine[] {
-  return data.listAt("feats", FEATURE_COUNT).map(definitionNameOf);
+  return uniqueLines(limitedList(ruleFeaturesOf(data).map(lineOf), FEATURE_COUNT));
 }

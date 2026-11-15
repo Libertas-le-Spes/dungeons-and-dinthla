@@ -8,6 +8,10 @@ export function needsText(key: string): Refusal {
   return new Refusal(`The reply's "${key}" is missing or is not text.`);
 }
 
+export function needsBoolean(key: string): Refusal {
+  return new Refusal(`The reply's "${key}" is missing or is not true or false.`);
+}
+
 export function needsObject(key: string): Refusal {
   return new Refusal(`The reply's "${key}" is missing or is not an object.`);
 }

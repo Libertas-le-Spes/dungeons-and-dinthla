@@ -4,6 +4,11 @@ import { madeUpRuleCharacter, scoresOf } from "../../builders/made-up-rule-chara
 import { numberNamed } from "../../builders/rule-numbers";
 
 describe("AbilityModifierRule", () => {
+  it("gives a modifier of 10 for a score of 30 set by hand", () => {
+    const character = madeUpRuleCharacter({ scoreOverrides: scoresOf(30, 10, 10, 10, 10, 10) });
+    expect(numberNamed(character, "STR modifier").valueOr(-99)).toBe(10);
+  });
+
   it.each([
     { score: 1, modifier: -5 },
     { score: 8, modifier: -1 },
@@ -12,7 +17,6 @@ describe("AbilityModifierRule", () => {
     { score: 11, modifier: 0 },
     { score: 12, modifier: 1 },
     { score: 20, modifier: 5 },
-    { score: 30, modifier: 10 },
   ])("gives a modifier of $modifier for a score of $score", ({ score, modifier }) => {
     const character = madeUpRuleCharacter({ baseScores: scoresOf(score, 10, 10, 10, 10, 10) });
     expect(numberNamed(character, "STR modifier").valueOr(-99)).toBe(modifier);

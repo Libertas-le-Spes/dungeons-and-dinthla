@@ -1,6 +1,6 @@
 import type { Cap } from "../../shape/cap";
 import { refuseAbove } from "../../shape/refuse-above";
-import { needsList, needsObject, needsText } from "../common/reply-refusals";
+import { needsBoolean, needsList, needsObject, needsText } from "../common/reply-refusals";
 
 function isPlainObject(value: unknown): value is object {
   if (typeof value !== "object") return false;
@@ -42,6 +42,12 @@ export class JsonReader {
     return found;
   }
 
+  booleanAt(key: string): boolean {
+    const found = this.valueAt(key);
+    if (typeof found !== "boolean") throw needsBoolean(key);
+    return found;
+  }
+
   numberAt(key: string): number | null {
     const found = this.valueAt(key);
     if (typeof found !== "number") return null;
@@ -60,6 +66,11 @@ export class JsonReader {
     if (!Array.isArray(found)) throw needsList(key);
     refuseAbove(cap, found.length);
     return found.map(readerOf);
+  }
+
+  listAtOrEmpty(key: string, cap: Cap): readonly JsonReader[] {
+    if (this.holdsNothingAt(key)) return [];
+    return this.listAt(key, cap);
   }
 
   private valueAt(key: string): unknown {

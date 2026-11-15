@@ -11,6 +11,13 @@ const PLACES: { where: string; path: (string | number)[] }[] = [
   { where: "a class", path: ["classes", 0] },
   { where: "a class definition", path: ["classes", 0, "definition"] },
   { where: "an ability override", path: ["overrideStats", 0] },
+  { where: "a base score", path: ["stats", 0] },
+  { where: "a class feature", path: ["classes", 0, "classFeatures", 0] },
+  { where: "a racial trait", path: ["race", "racialTraits", 0] },
+  { where: "the speeds", path: ["race", "weightSpeeds"] },
+  { where: "a modifier", path: ["modifiers", "class", 0] },
+  { where: "the options", path: ["options"] },
+  { where: "the background", path: ["background"] },
   { where: "an item", path: ["inventory", 0] },
   { where: "an item definition", path: ["inventory", 0, "definition"] },
   { where: "the purse", path: ["currencies"] },
@@ -49,8 +56,11 @@ describe("readReply", () => {
     expect(character.inventory.map((item) => item.name.text)).toEqual(["Quarterstaff", "Rope", "Torch"]);
     expect(character.purse.gold.valueOr(0)).toBe(15);
     expect(character.spells.map((spell) => spell.text)).toEqual(["Light", "Mage Hand"]);
-    expect(character.features.map((feature) => feature.text)).toEqual(["Alert"]);
-    expect(character.numbers.map((number) => number.name)).toEqual(["AC", "HP"]);
+    expect(character.features.map((feature) => feature.text)).toEqual(["Alert", "Quick Learner", "Unarmored Defense"]);
+    expect(character.scores.dexterity.valueOr(0)).toBe(16);
+    expect(character.numbers.find((number) => number.name === "AC")?.value.valueOr(0)).toBe(15);
+    expect(character.numbers.find((number) => number.name === "HP")?.value.valueOr(0)).toBe(13);
+    expect(character.numbers.map((number) => number.name)).not.toContain("DEX");
   });
 
   it("reads bare data the same as the whole reply", () => {
