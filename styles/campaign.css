@@ -184,12 +184,22 @@ body.is-phone.is-hidden-nav .dd-campaign-frame {
     border-radius: 0;
   }
 
-  .dd-campaign .dd-nav-heading,
+  .dd-campaign .dd-nav-campaign,
   .dd-campaign .dd-nav-group,
   .dd-campaign .dd-nav-link:not(.dd-nav-in-bar),
   .dd-campaign .dd-nav-label,
   .dd-campaign .dd-nav-count {
     display: none;
+  }
+
+  .dd-campaign .dd-nav-heading {
+    flex: 0 0 auto;
+    padding: 0;
+  }
+
+  .dd-campaign .dd-nav-switch {
+    min-width: var(--touch-min);
+    min-height: var(--bar-height);
   }
 
   .dd-campaign .dd-nav-in-bar {

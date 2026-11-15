@@ -47,6 +47,7 @@ export class CampaignSwitcher extends Component {
     }
     if (folders.length > 0) menu.addSeparator();
     menu.addItem((item) => item.setTitle(NEW_CAMPAIGN_ENTRY).setIcon(NEW_CAMPAIGN_ICON).onClick(() => campaigns.startNewCampaign()));
+    menu.onHide(() => button.focus());
     const box = button.getBoundingClientRect();
     menu.showAtPosition({ x: box.left, y: box.bottom });
   }
