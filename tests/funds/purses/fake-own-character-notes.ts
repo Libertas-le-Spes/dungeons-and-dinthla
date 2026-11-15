@@ -1,9 +1,9 @@
 import type { TFile } from "obsidian";
-import type { OwnPurseNotes } from "../../../src/funds/purses/own-purses";
+import type { OwnCharacterNotes } from "../../../src/funds/purses/own-characters";
 import { madeUpFile } from "../../characters/imported/builders/made-up-file";
 import { HeldCalls } from "../../stubs/held-calls";
 
-export class FakePurseNotes implements OwnPurseNotes {
+export class FakeOwnCharacterNotes implements OwnCharacterNotes {
   readonly reads: string[] = [];
   readonly foldersAsked: string[] = [];
   private readonly listeners: ((path: string) => void)[] = [];

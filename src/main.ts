@@ -244,7 +244,7 @@ export default class DungeonsAndDinthla extends Plugin {
         openLedgerEntry,
         openItem,
         campaignFolders: () => this.campaignFolders(),
-        ownPurseNotes: characterNotes,
+        ownCharacterNotes: characterNotes,
       }),
       note: noteSection({
         ...sessionNotes.wholeText,
