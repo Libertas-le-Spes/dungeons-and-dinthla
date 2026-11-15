@@ -196,3 +196,40 @@ describe("JsonReader.listAt", () => {
     expect(() => JsonReader.of(inheriting("items", [1])).listAt("items", TWO)).toThrow("missing or is not a list");
   });
 });
+
+describe("JsonReader.booleanAt", () => {
+  it.each([true, false])("gives the %j the object holds", (value) => {
+    expect(JsonReader.of({ flag: value }).booleanAt("flag")).toBe(value);
+  });
+
+  it.each([null, "true", 1, [], {}])("refuses %j, saying it is not true or false", (value) => {
+    expect(() => JsonReader.of({ flag: value }).booleanAt("flag")).toThrow('The reply\'s "flag" is missing or is not true or false.');
+  });
+
+  it("refuses a missing key, and a key only the prototype holds", () => {
+    expect(() => JsonReader.of({}).booleanAt("flag")).toThrow("not true or false");
+    expect(() => JsonReader.of(inheriting("flag", true)).booleanAt("flag")).toThrow("not true or false");
+  });
+});
+
+describe("JsonReader.listAtOrEmpty", () => {
+  it("gives the entries of a list", () => {
+    expect(namesOfEntries(JsonReader.of({ list: [{ name: "a" }, { name: "b" }] }).listAtOrEmpty("list", TWO))).toEqual(["a", "b"]);
+  });
+
+  it.each([null, undefined])("gives no entries for %j", (value) => {
+    expect(JsonReader.of({ list: value }).listAtOrEmpty("list", TWO)).toEqual([]);
+  });
+
+  it("gives no entries for a missing key", () => {
+    expect(JsonReader.of({}).listAtOrEmpty("list", TWO)).toEqual([]);
+  });
+
+  it.each(["text", 5, {}])("refuses %j as not a list", (value) => {
+    expect(() => JsonReader.of({ list: value }).listAtOrEmpty("list", TWO)).toThrow("not a list");
+  });
+
+  it("refuses a list over the cap", () => {
+    expect(() => JsonReader.of({ list: [{}, {}, {}] }).listAtOrEmpty("list", TWO)).toThrow("The list is over the limit of 2 things.");
+  });
+});

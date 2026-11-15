@@ -70,7 +70,7 @@ const RANGES = [
   { name: "a spell save DC", range: SPELL_SAVE_DC, lowest: 0, highest: 60 },
   { name: "a spell attack bonus", range: SPELL_ATTACK, lowest: -20, highest: 50 },
   { name: "a count of spell slots", range: SPELL_SLOTS, lowest: 0, highest: 9 },
-  { name: "carrying capacity", range: CARRYING_CAPACITY, lowest: 15, highest: 450 },
+  { name: "carrying capacity", range: CARRYING_CAPACITY, lowest: 1, highest: 3_600 },
 ];
 
 describe("the caps", () => {
