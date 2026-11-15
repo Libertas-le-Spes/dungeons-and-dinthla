@@ -23,8 +23,9 @@ export class FencedMetadata {
 
   unresolvedLinksOf(path: string): string[] {
     if (!this.held.holdsPath(path)) return [];
-    const links = this.metadata.unresolvedLinks[path];
-    if (links === undefined) return [];
+    const found = Object.entries(this.metadata.unresolvedLinks).find(([source]) => source === path);
+    if (found === undefined) return [];
+    const [, links] = found;
     return Object.keys(links);
   }
 
