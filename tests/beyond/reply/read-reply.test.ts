@@ -83,12 +83,12 @@ describe("readReply", () => {
   });
 
   it("refuses a reply that says it failed", () => {
-    expect(() => readReply(clean().wrappedText(false))).toThrow("D&D Beyond says it could not give this character.");
+    expect(() => readReply(clean().wrappedText(false))).toThrow("This character was not given.");
   });
 
   it("refuses the answer to an unknown character", () => {
     const missing = '{"id":0,"success":false,"message":"The resource requested was not found."}';
-    expect(() => readReply(missing)).toThrow("could not give this character");
+    expect(() => readReply(missing)).toThrow("This character was not given");
   });
 
   it("refuses a reply with no id in its data", () => {

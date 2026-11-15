@@ -16,7 +16,7 @@ export class DraconicResilience implements PerLevelSource {
   addition(character: RuleCharacter): WorkedValue<number> | null {
     const sorcerers = draconicSorcerers(character.classes);
     if (sorcerers.length === 0) return null;
-    if (!isTwentyFourteen(character.edition)) return notKnown("Draconic Resilience is worked differently in the 2014 and 2024 rules, and the edition is not 2014.", character.route);
+    if (!isTwentyFourteen(character.edition)) return notKnown("Edition is not 2014.", character.route);
     const levels = sorcerers.reduce(addedLevel, 0);
     return knownNumber(levels, `Draconic Resilience 1 x ${levels}`, character.route);
   }

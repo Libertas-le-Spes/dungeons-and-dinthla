@@ -31,7 +31,7 @@ describe("propertyKeyOf", () => {
 
   it("refuses a line one longer than the most it reads, whatever is in it", () => {
     expect(() => propertyKeyOf(`AC: ${"x".repeat(MOST_PROPERTY_LINE - 3)}`)).toThrow(Refusal);
-    expect(() => propertyKeyOf(" ".repeat(MOST_PROPERTY_LINE + 1))).toThrow(`longer than ${MOST_PROPERTY_LINE} characters`);
+    expect(() => propertyKeyOf(" ".repeat(MOST_PROPERTY_LINE + 1))).toThrow(`over ${MOST_PROPERTY_LINE} characters`);
   });
 
   it("reads a line of nothing but spaces at the most it reads as no key", () => {
@@ -75,6 +75,6 @@ describe("importNameOf", () => {
     ["IMPORTED", "imported"],
     ["Imported-From", "imported-from"],
   ])("refuses the key %s, which is only %s with other capitals, naming it", (key, name) => {
-    expect(() => importNameOf(key)).toThrow(`The note has a property called ${key}, which only differs by capitals from the import's ${name}.`);
+    expect(() => importNameOf(key)).toThrow(`The note has "${key}", which differs from "${name}" only by capitals.`);
   });
 });

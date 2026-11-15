@@ -11,7 +11,7 @@ import { headingsOf, textOf } from "../../builders/line-helpers";
 import { monkSheet, sheetWithCharacter, TODAY , stampedOn } from "../../builders/made-up-import";
 
 const NOTE = `${CHARACTERS_FOLDER}/Primary Monk.md`;
-const INVENTORY = "## Inventory (from D&D Beyond)";
+const INVENTORY = "## Inventory";
 const NONE: TypedText[] = [];
 
 let vault: FakeNoteVault;
@@ -118,9 +118,9 @@ describe("ImportWriter.update", () => {
     expect(vault.textAt(NOTE)).toBe("Newer words.\n");
   });
 
-  it("refuses a property that only differs by capitals from the import's, and calls no process", async () => {
+  it("refuses a property that differs only by capitals from the import's, and calls no process", async () => {
     const file = vault.note(NOTE, textOf("---", "ac: 3", "---", "x"));
-    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("only differs by capitals");
+    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("only by capitals");
     expect(vault.processed).toEqual([]);
   });
 });
@@ -143,7 +143,7 @@ describe("ImportWriter.update with text typed inside a plugin section", () => {
     const typed = await typedIn(current);
     expect(typed.length).toBeGreaterThan(0);
     const file = vault.note(NOTE, current);
-    await expect(writer.update(file, changed, TODAY, NONE)).rejects.toThrow("not the text that was shown");
+    await expect(writer.update(file, changed, TODAY, NONE)).rejects.toThrow("changed since it was shown");
     expect(vault.processed).toEqual([]);
     expect(vault.textAt(NOTE)).toBe(current);
   });
@@ -168,15 +168,15 @@ describe("ImportWriter.update with text typed inside a plugin section", () => {
   });
 
   it("refuses when text was shown that is no longer there", async () => {
-    const shown: TypedText[] = [{ heading: INVENTORY, lines: ["words that are gone"] }];
+    const shown: TypedText[] = [{ title: "Inventory", lines: ["words that are gone"] }];
     const file = vault.note(NOTE, earlier);
-    await expect(writer.update(file, changed, TODAY, shown)).rejects.toThrow("not the text that was shown");
+    await expect(writer.update(file, changed, TODAY, shown)).rejects.toThrow("changed since it was shown");
   });
 
   it("refuses a note that ends in a code block that is never closed, even when its text was shown", async () => {
     const current = `${earlier}\`\`\`\nx\n## Notes\n`;
     const file = vault.note(NOTE, current);
-    await expect(writer.update(file, changed, TODAY, NONE)).rejects.toThrow("never closed");
+    await expect(writer.update(file, changed, TODAY, NONE)).rejects.toThrow("never closes");
     expect(vault.processed).toEqual([]);
   });
 

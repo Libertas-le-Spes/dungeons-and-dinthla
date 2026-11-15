@@ -4,7 +4,7 @@ import { MAX_HIT_POINTS_NAME } from "../../../rules/core/number-names";
 import { ONLINE } from "../../common/online-route";
 import type { JsonReader } from "../../json/json-reader";
 
-const UNEXPECTED = "D&D Beyond gave the hit points set by hand in an unexpected form.";
+const UNEXPECTED = "Hit points unreadable.";
 
 export interface HitPointInputs {
   readonly base: number | null;

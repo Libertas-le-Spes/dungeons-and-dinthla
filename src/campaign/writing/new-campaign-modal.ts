@@ -3,8 +3,6 @@ import { messageOf } from "../../views/dialogs/message-of";
 
 export const NEW_CAMPAIGN_TITLE = "New campaign";
 export const NEW_CAMPAIGN_NAME = "Campaign name";
-export const NEW_CAMPAIGN_HOW =
-  "Name it and the campaign's folder is made inside your Campaigns folder, with its main note. It opens when it is made.";
 export const MAKE_THE_CAMPAIGN = "Make campaign";
 
 export interface NewCampaignAnswers {
@@ -35,7 +33,6 @@ export class NewCampaignModal extends Modal {
   override onOpen(): void {
     this.setTitle(NEW_CAMPAIGN_TITLE);
     this.contentEl.addClass("dd-tokens", "dd-new-campaign");
-    this.contentEl.createEl("p", { text: NEW_CAMPAIGN_HOW });
     new Setting(this.contentEl).setName(NEW_CAMPAIGN_NAME).addText((text) => {
       text.onChange((value) => {
         this.name = value;

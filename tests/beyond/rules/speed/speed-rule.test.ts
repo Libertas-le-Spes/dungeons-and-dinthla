@@ -21,7 +21,7 @@ describe("SpeedRule", () => {
 
   it("does not know speed with the monk's unarmored movement, and names it", () => {
     const value = numberNamed(madeUpRuleCharacter({ modifiers: [modifierOf("bonus", "unarmored-movement", 10, "Monk")] }), "Speed");
-    expect([value.isKnown, value.explanation]).toEqual([false, 'D&D Beyond names a rule I can\'t work out here: "unarmored-movement". Type it on your note to set it.']);
+    expect([value.isKnown, value.explanation]).toEqual([false, 'Unread rule "unarmored-movement".']);
   });
 
   it("does not know speed when the walking speed is missing", () => {
@@ -30,7 +30,7 @@ describe("SpeedRule", () => {
 
   it("does not know speed in armour that needs more strength than the character has", () => {
     const heavy = { ...itemOf("Plate", new HeavyArmour(), 18), strengthRequired: 15 };
-    expect(numberNamed(madeUpRuleCharacter({ items: [heavy] }), "Speed").explanation).toBe("Plate needs Strength 15, and it is more than 10, or the need is not a number. I don't work out what that does to speed.");
+    expect(numberNamed(madeUpRuleCharacter({ items: [heavy] }), "Speed").explanation).toBe("Plate may slow speed.");
   });
 
   it("knows speed in armour when the strength is exactly the requirement", () => {
@@ -66,7 +66,7 @@ describe("SpeedRule and a strength need that is not a number", () => {
 describe("SpeedRule and the kinds of movement a modifier names", () => {
   it.each(["speed-walking", "speed-flying", "movement-bonus", "innate-speed-walking"])("does not know speed with a modifier on %s, and names it", (subType) => {
     const value = numberNamed(madeUpRuleCharacter({ modifiers: [modifierOf("bonus", subType, 10, "Pale Boots")] }), "Speed");
-    expect([value.isKnown, value.explanation]).toEqual([false, `D&D Beyond names a rule I can't work out here: "${subType}". Type it on your note to set it.`]);
+    expect([value.isKnown, value.explanation]).toEqual([false, `Unread rule "${subType}".`]);
   });
 
   it.each(["innate-speed-flying", "innate-speed-swimming", "innate-speed-climbing", "innate-speed-burrowing"])("leaves the walking speed alone for a modifier that sets %s", (subType) => {

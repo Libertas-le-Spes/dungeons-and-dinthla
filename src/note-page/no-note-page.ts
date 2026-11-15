@@ -1,6 +1,6 @@
 import { Component } from "obsidian";
 
-export const NO_NOTE = "Open a note of the campaign to see it here.";
+export const NO_NOTE = "No note open.";
 
 export class NoNotePage extends Component {
   constructor(private readonly contentEl: HTMLElement) {

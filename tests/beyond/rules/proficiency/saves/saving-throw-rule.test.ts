@@ -39,7 +39,7 @@ describe("SavingThrowRule", () => {
 
   it("lists a restricted bonus and does not apply it", () => {
     const aura = modifierOf("bonus", "saving-throws", 2, "Aura", "within 10 feet of the paladin");
-    expect(saveValue("STR save", { modifiers: [aura] })).toEqual({ value: 0, working: "STR 0 = 0. Plus conditional bonuses I don't apply: Aura", isKnown: true });
+    expect(saveValue("STR save", { modifiers: [aura] })).toEqual({ value: 0, working: "STR 0 = 0. Not applied: Aura", isKnown: true });
   });
 
   it("does not know one save whose modifier it does not know and leaves the others standing", () => {

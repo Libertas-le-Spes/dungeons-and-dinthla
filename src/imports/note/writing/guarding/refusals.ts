@@ -13,7 +13,7 @@ export function nameTaken(existing: string): Refusal {
 }
 
 export function typedTextNotShown(): Refusal {
-  return new Refusal("Text typed inside a plugin section would be replaced, and it is not the text that was shown before, so nothing was written. Look at the changes again.");
+  return new Refusal("Typed text in a section changed since it was shown. Review again.");
 }
 
 export function changedSinceRead(): Refusal {

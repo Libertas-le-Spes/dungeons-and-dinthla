@@ -41,12 +41,12 @@ export class CarryingCapacityRule implements Rule {
 
   private capacity(character: RuleCharacter, earlier: EarlierNumbers): WorkedValue<number> {
     const size = countedSizeOf(character);
-    if (size === undefined) return notKnown("The size is not known, and the carrying capacity depends on it.", character.route);
+    if (size === undefined) return notKnown("Size unknown.", character.route);
     const needed = NeededNumbers.of([STRENGTH.short], earlier, character.route);
     if (needed.missing !== null) return needed.missing;
     const strength = needed.numberOf(STRENGTH.short);
     const total = 15 * strength * size.multiplier;
-    if (!Number.isInteger(total)) return notKnown(`15 x STR ${strength} x ${size.multiplier} is not a whole number.`, character.route);
+    if (!Number.isInteger(total)) return notKnown("Not a whole number.", character.route);
     return knownIn(total, CARRYING_CAPACITY, workingOf({ strength, size, total }), character.route);
   }
 }

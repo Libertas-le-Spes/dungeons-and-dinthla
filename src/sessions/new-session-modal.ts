@@ -2,8 +2,6 @@ import { Modal, Setting, type App } from "obsidian";
 import type { NewSession } from "./create-session";
 import { playedDateOf, withPlayedDate } from "./played-date";
 
-const CARRY_OVER = "Open questions, active quests, the purse and every character carry over. The new session starts with an empty page of notes.";
-
 export class NewSessionModal extends Modal {
   private readonly session: NewSession = { title: "", played: playedDateOf(new Date()) };
   private started: Promise<void> = Promise.resolve();
@@ -37,7 +35,6 @@ export class NewSessionModal extends Modal {
         this.session.played = value;
       });
     });
-    contentEl.createEl("p", { cls: "dd-carry", text: CARRY_OVER });
     new Setting(contentEl)
       .addButton((button) => button.setButtonText("Start session").setCta().onClick(() => this.submit()))
       .addButton((button) => button.setButtonText("Cancel").onClick(() => this.close()));

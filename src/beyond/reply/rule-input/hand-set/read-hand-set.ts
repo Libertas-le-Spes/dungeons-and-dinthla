@@ -7,8 +7,8 @@ import { ConditionBlanket } from "./condition-blanket";
 import { characterValuesOf } from "./read-character-values";
 import { PROFICIENCY_NUMBER_NAMES } from "./proficiency-number-names";
 
-const CUSTOM_PROFICIENCIES = "Proficiencies are added by hand on D&D Beyond, and I do not read them yet. Type the numbers on your note to set them.";
-const CONDITIONS = "A condition is on the character on D&D Beyond, and I do not work out what it does to a number. Type the numbers on your note to set them.";
+const CUSTOM_PROFICIENCIES = "Proficiencies set by hand.";
+const CONDITIONS = "A condition applies.";
 
 export interface HandSet {
   readonly setByHand: readonly ImportedNumber[];

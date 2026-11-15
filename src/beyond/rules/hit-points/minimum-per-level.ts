@@ -2,8 +2,8 @@ import { isHitDie } from "../classes/hit-die";
 import type { RuleCharacter } from "../input/rule-character";
 import type { RuleClass } from "../input/rule-class";
 
-const MINIMUM_REASON = "I could not tell whether the minimum of 1 hit point a level applies, because the constitution modifier is negative and the dice total is only a sum.";
-const DIE_REASON = "A hit die is not a d4, d6, d8, d10 or d12, so I could not tell whether the minimum of 1 hit point a level applies.";
+const MINIMUM_REASON = "Minimum hit points per level unclear.";
+const DIE_REASON = "Hit die not a d4 to d12.";
 
 function largerDie(largest: number, ruleClass: RuleClass): number {
   return Math.max(largest, ruleClass.hitDie);

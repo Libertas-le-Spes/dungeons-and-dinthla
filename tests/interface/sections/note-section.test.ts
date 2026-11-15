@@ -28,7 +28,7 @@ describe("noteSection", () => {
   it("says to open a note when the tab shows none", () => {
     const { page, root, texts } = made(null);
     expect(page).toBeInstanceOf(NoNotePage);
-    expect(root.querySelector(".dd-empty")!.textContent).toBe("Open a note of the campaign to see it here.");
+    expect(root.querySelector(".dd-empty")?.textContent).toBe("No note open.");
     expect(texts.read).not.toHaveBeenCalled();
   });
 });

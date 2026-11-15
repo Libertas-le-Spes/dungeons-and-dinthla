@@ -3,7 +3,7 @@ import { NoteEditing, type NoteEditingNeeds } from "../../note-editing/note-edit
 const TITLE = "Notes · Edit all";
 const DONE = "Done";
 export const NOT_SAVED_YET =
-  "What you changed here isn't saved yet. It stays on this device, and shows again the next time you press Edit all. If you add lines to the session before saving it, the note will have changed since, and you'll need to copy your change out and make it again.";
+  "Your changes here aren't saved yet.";
 const KEEP_EDITING = "Keep editing";
 const LEAVE = "Back to adding lines";
 

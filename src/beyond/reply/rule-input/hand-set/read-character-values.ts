@@ -27,7 +27,7 @@ export interface CharacterValues {
   readonly blankets: readonly Blanket[];
 }
 
-const NOT_READ = "A value is set by hand on D&D Beyond in a way I do not read yet, so I do not work numbers out. Type the numbers on your note to set them.";
+const NOT_READ = "Values set by hand.";
 
 function isPlain(entry: JsonReader): boolean {
   const others = ["valueId", "valueTypeId", "contextId", "contextTypeId"];
@@ -49,7 +49,7 @@ function foundIn(entry: JsonReader): Found | undefined {
 }
 
 function numberOf(found: Found): ImportedNumber {
-  const working = `${found.known.label} set on D&D Beyond: ${found.value}`;
+  const working = "Set by hand";
   return { name: found.known.name, value: numberInRange(found.value, found.known.range, working, ONLINE) };
 }
 

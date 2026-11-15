@@ -28,11 +28,11 @@ export interface ItemPanelNeeds {
 export const CHANGE_ITEM = "Change holder or status";
 export const EDIT_NOTE = "Edit its note";
 export const CLOSE_ITEM = "All items";
-export const EMPTY_STORY = "Its note has no story yet.";
-export const NOTE_MISSING = "Its note isn't there any more.";
+export const EMPTY_STORY = "No story yet.";
+export const NOTE_MISSING = "Note not found.";
 
 export function noLineText(name: string): string {
-  return `No session line names ${name} yet, so no one holds it. A line like “$$ [[${name}]] :changed to the party” in a session gives it to the party.`;
+  return `No line names ${name} yet.`;
 }
 
 function holderOf(item: ItemRecord): string {

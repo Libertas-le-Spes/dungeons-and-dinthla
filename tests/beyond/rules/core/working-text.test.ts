@@ -15,6 +15,6 @@ describe("working text", () => {
   });
 
   it("names every conditional bonus it does not apply", () => {
-    expect(withConditional("10 = 10", ["Dual Wielder", "Bladesong"])).toBe("10 = 10. Plus conditional bonuses I don't apply: Dual Wielder, Bladesong");
+    expect(withConditional("10 = 10", ["Dual Wielder", "Bladesong"])).toBe("10 = 10. Not applied: Dual Wielder, Bladesong");
   });
 });
