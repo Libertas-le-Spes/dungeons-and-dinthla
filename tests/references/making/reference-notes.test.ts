@@ -3,11 +3,20 @@ import type { TFile } from "obsidian";
 import { ReferenceNotes } from "../../../src/references/making/reference-notes";
 import { FakeCampaign } from "../../kind-notes/fake-campaign";
 import { FakeNotes, fileAt } from "../../kind-notes/fake-notes";
+import type { ReferenceKindName } from "../../../src/kinds/reference-kind";
+import type { NewNames } from "../../../src/references/new-names/new-names";
+import type { AskNewNames, NewNamesChoice } from "../../../src/references/new-names/new-names-choice";
+import { firstOf } from "../../stubs/lists";
 import { CAMPAIGN, SESSION, settled } from "../../kind-notes/keeper-setup";
 
 const SESSION_ONE = `${CAMPAIGN}/Sessions/Session 1.md`;
 const NOTE_PATH = `${CAMPAIGN}/Characters/Lady Vess.md`;
 const FROM = "! Find the caravan, from: [[Lady Vess]]";
+
+interface Asked {
+  names: NewNames;
+  to: NewNamesChoice;
+}
 
 interface World {
   notes: FakeNotes;
@@ -43,12 +52,16 @@ function startWith(world: World) {
     }),
   };
   const files = { ...world.notes.files, markdownFilesUnder: vi.fn(() => world.existing) };
-  const referenceNotes = new ReferenceNotes({ store: world.campaign, files, metadata, actions: world.notes.actions, say: (message) => world.notes.said.push(message) });
+  const asked: Asked[] = [];
+  const askNewNames: AskNewNames = (names, to) => {
+    asked.push({ names, to });
+  };
+  const referenceNotes = new ReferenceNotes({ store: world.campaign, files, metadata, actions: world.notes.actions, say: (message) => world.notes.said.push(message), askNewNames });
   const stop = referenceNotes.start();
   const resolve = (path: string) => {
     for (const listener of listeners) listener(fileAt(path));
   };
-  return { referenceNotes, stop, resolve, metadata, offref, listeners };
+  return { referenceNotes, stop, resolve, metadata, offref, listeners, asked, files };
 }
 
 describe("ReferenceNotes", () => {
@@ -184,5 +197,124 @@ describe("ReferenceNotes", () => {
     expect(listeners.size).toBe(1);
     stop();
     expect(offref).toHaveBeenCalledOnce();
+  });
+
+  describe("the new-names list", () => {
+    const MIRA_LINE = "? Where is [[Mira]]";
+    const MIRA_PATH = `${CAMPAIGN}/Characters/Mira.md`;
+
+    function worldNamingMira(): World {
+      const world = worldWith([]);
+      world.campaign.hold(SESSION_ONE, [MIRA_LINE, MIRA_LINE].join("\n"));
+      world.campaign.hold(SESSION, MIRA_LINE);
+      world.unresolved = { [SESSION_ONE]: ["Mira"], [SESSION]: ["Mira"] };
+      return world;
+    }
+
+    function choose({ names, to }: Asked, kind: ReferenceKindName) {
+      return to.chosen({ undecided: firstOf(names.names), kind });
+    }
+
+    async function savedAndAsked(world: World) {
+      const started = startWith(world);
+      started.referenceNotes.sessionSaved(SESSION);
+      started.resolve(SESSION);
+      await settled();
+      return started;
+    }
+
+    it("asks once after a save about a name three lines name that no line places, under the saved session's name", async () => {
+      const world = worldNamingMira();
+      const { asked } = await savedAndAsked(world);
+      expect(asked).toHaveLength(1);
+      expect(firstOf(asked).names.sessionName).toBe("Session 2");
+      expect(firstOf(asked).names.names.map(({ name }) => name)).toEqual(["Mira"]);
+      expect(world.notes.created).toEqual([]);
+    });
+
+    it("makes the note of the chosen kind, as first named in the earliest session, through the same maker", async () => {
+      const world = worldNamingMira();
+      const { asked } = await savedAndAsked(world);
+      choose(firstOf(asked), "character");
+      await settled();
+      expect(world.notes.created).toEqual([MIRA_PATH]);
+      expect(world.notes.noteAt(MIRA_PATH)?.properties).toEqual({ "first named": "[[Session 1]]" });
+    });
+
+    it("makes nothing for a closed list, and asks again after the next save that names the name", async () => {
+      const world = worldNamingMira();
+      const started = await savedAndAsked(world);
+      firstOf(started.asked).to.closed();
+      started.referenceNotes.sessionSaved(SESSION);
+      started.resolve(SESSION);
+      await settled();
+      expect(started.asked).toHaveLength(2);
+      expect(world.notes.created).toEqual([]);
+    });
+
+    it("does not open a second list while one is open", async () => {
+      const world = worldNamingMira();
+      const started = await savedAndAsked(world);
+      started.referenceNotes.sessionSaved(SESSION);
+      started.resolve(SESSION);
+      await settled();
+      expect(started.asked).toHaveLength(1);
+    });
+
+    it("does not ask after a save of a session that doesn't name it", async () => {
+      const world = worldNamingMira();
+      world.notes.addSession(`${CAMPAIGN}/Sessions/Session 3.md`);
+      world.campaign.hold(`${CAMPAIGN}/Sessions/Session 3.md`, "Nothing happened.");
+      const started = startWith(world);
+      started.referenceNotes.sessionSaved(`${CAMPAIGN}/Sessions/Session 3.md`);
+      started.resolve(`${CAMPAIGN}/Sessions/Session 3.md`);
+      await settled();
+      expect(started.asked).toEqual([]);
+    });
+
+    it("says once that a chosen note couldn't be written", async () => {
+      const world = worldNamingMira();
+      world.notes.failProperties = new Error("disk full");
+      const { asked } = await savedAndAsked(world);
+      choose(firstOf(asked), "place");
+      await settled();
+      expect(world.notes.said).toEqual(["Couldn't write the note for Mira: disk full"]);
+    });
+
+    it("says so, once, when making the answer's note can't be worked out", async () => {
+      const world = worldNamingMira();
+      const { asked, files } = await savedAndAsked(world);
+      files.markdownFilesUnder.mockImplementation(() => {
+        throw new Error("folder gone");
+      });
+      const results = await Promise.all([choose(firstOf(asked), "place"), choose(firstOf(asked), "place")]);
+      expect(results).toEqual(["failed", "failed"]);
+      expect(world.notes.said).toEqual(["Couldn't make the note for Mira: folder gone"]);
+    });
+
+    it("hands back made for a note it made, and left when a note of the name has appeared since", async () => {
+      const world = worldNamingMira();
+      const { asked } = await savedAndAsked(world);
+      world.existing = [fileAt(`${CAMPAIGN}/Fallen/Mira.md`)];
+      expect(await choose(firstOf(asked), "character")).toBe("left");
+      expect(world.notes.created).toEqual([]);
+      world.existing = [];
+      expect(await choose(firstOf(asked), "character")).toBe("made");
+    });
+
+    it("hands back left when another campaign is open by the time of the answer", async () => {
+      const world = worldNamingMira();
+      const { asked } = await savedAndAsked(world);
+      world.campaign.campaignFolder = "D&D/Other Moon";
+      expect(await choose(firstOf(asked), "place")).toBe("left");
+      expect(world.notes.created).toEqual([]);
+    });
+
+    it("hands back failed when the answer's note can't be made", async () => {
+      const world = worldNamingMira();
+      world.notes.failProperties = new Error("disk full");
+      const { asked } = await savedAndAsked(world);
+      expect(await choose(firstOf(asked), "place")).toBe("failed");
+    });
   });
 });

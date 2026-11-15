@@ -402,7 +402,7 @@ What a line says a name is:
 | `@[[Old Mill]]` | A place |
 | Any other link | Not known |
 
-A name that is a person on one line and a place on another is a place, and its note goes in `Places`, so `from: [[Old Mill]]` links to that place too. A name no line says anything about is not given a note yet: the list of new names that asks *Character* or *Place* is still to come, and until then such a name stays a plain link.
+A name that is a person on one line and a place on another is a place, and its note goes in `Places`, so `from: [[Old Mill]]` links to that place too. A name no line says anything about is asked about, in the list below, and until you answer it stays a plain link.
 
 The new note holds one property, the session where the name was first named (the lowest session number), made with Obsidian's own link text:
 
@@ -413,6 +413,7 @@ first named: "[[Session 2]]"
 ```
 
 - **Only a name with no note.** A note is made only when Obsidian can find no note for the name anywhere in the vault, in every session that names it, and no note in the campaign has that name in any folder, whatever its capitals or the way its letters are written. So `[[Lady Vess]]` is linked to a note that is already there, such as one in `Characters`, `Fallen` or a folder of your own, and never made again.
+- **New names.** After a save, a name on three or more lines that no line says is a person or a place is asked about once, in one small list: *New names in Session 2*, each name with a *Character* and a *Place* button. Pressing one makes the note at once, in `Characters` or `Places`, holding the same one property as above. Only names the saved session names are listed, and they are made the same way as any other: no name that already has a note, and none a file can't have. Closing the list, or pressing Escape, answers nothing and makes nothing, and the names are asked about again after the next save that names them. The plugin keeps no answer of "never ask": a name you leave stays a plain link. A list already on screen is not opened again over itself.
 - **Never overwritten, moved or deleted.** The plugin makes a note only where there is none, and never changes, moves or trashes a note of a person or a place afterwards. If a note can't be completed, the empty file it had just made is removed, and nothing else.
 - **Names a file can't have.** A name with a character a file name can't hold (`Lady: Vess`) or that would share a file name with another new name gets no note, and a message says so once.
 - **Names are matched as written.** `[[Old Mill]]` and `[[old mill]]` are two names, but they would share a file name, so only the first gets a note and the second gets the message. A link with a folder in it, such as `[[Places/Old Mill]]`, can't be a note name and gets the message. A name that ends in `.md` gets the message too.

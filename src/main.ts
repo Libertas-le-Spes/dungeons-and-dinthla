@@ -30,6 +30,7 @@ import { questsKind } from "./quests/list/quests-kind";
 import { openAddCoin } from "./funds/coins/open-add-coin";
 import { openItemDialog } from "./funds/items/open-item";
 import { ItemNotes } from "./funds/item-notes/item-notes";
+import { newNamesDialogIn } from "./references/new-names/new-names-dialog";
 import { ReferenceNotes } from "./references/making/reference-notes";
 import { FundsTracking } from "./funds/tracking/funds-tracking";
 import { askInNotice } from "./views/dialogs/differing-notice";
@@ -461,7 +462,7 @@ export default class DungeonsAndDinthla extends Plugin {
     const failed = (error: unknown) => new Notice(`Couldn't write an item's note: ${messageOf(error)}`);
     const items = new ItemNotes({ store: saved, files: gate.files, metadata: gate.metadata, actions: gate.fileActions, failed, say });
     const made = new NotesMade(this.settingsSaver);
-    const references = new ReferenceNotes({ store: saved, files: gate.files, metadata: gate.metadata, actions: gate.fileActions, say });
+    const references = new ReferenceNotes({ store: saved, files: gate.files, metadata: gate.metadata, actions: gate.fileActions, say, askNewNames: newNamesDialogIn(this.app) });
     this.register(items.start());
     this.register(references.start());
     this.register(startKindNotes({ gate, written: gate.written, saved, made, items, references, say, ask: askInNotice }));
