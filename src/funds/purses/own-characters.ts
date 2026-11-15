@@ -7,6 +7,7 @@ import type { CampaignStore } from "../../campaign/reading/campaign-store";
 
 export interface OwnCharacterNotes {
   filesIn(campaignFolder: string): TFile[];
+  fallenFilesIn(campaignFolder: string): TFile[];
   isOwnCharacter(file: TFile): boolean;
   textOf(file: TFile): Promise<string>;
   onNoteChanged(changed: (path: string) => void): () => void;
@@ -43,7 +44,8 @@ export class OwnCharacters {
     return this.parts.notes.onNoteChanged((path) => {
       const folder = this.parts.store.campaignFolder;
       if (folder === null) return;
-      if (path === mainNotePathOf(folder) || this.files().some((file) => file.path === path)) changed();
+      if (path === mainNotePathOf(folder)) changed();
+      else if (this.files().some((file) => file.path === path)) changed();
     });
   }
 
@@ -51,6 +53,6 @@ export class OwnCharacters {
     const folder = this.parts.store.campaignFolder;
     if (folder === null) return [];
     const { notes } = this.parts;
-    return notes.filesIn(folder).filter((file) => notes.isOwnCharacter(file));
+    return [...notes.filesIn(folder), ...notes.fallenFilesIn(folder)].filter((file) => notes.isOwnCharacter(file));
   }
 }

@@ -13,9 +13,12 @@ export function sessionLinkFor(sessionFile: TFile): string {
   return `[[${sessionFile.path.slice(0, -sessionFile.extension.length - 1)}]]`;
 }
 
+const MARKDOWN_ENDING = /\.md$/i;
+
 function namesSession(target: string, sessionPath: string): boolean {
-  const withoutEnding = sessionPath.replace(/\.md$/, "");
-  return withoutEnding === target || withoutEnding.endsWith(`/${target}`);
+  const named = target.replace(MARKDOWN_ENDING, "").toLowerCase();
+  const withoutEnding = sessionPath.replace(MARKDOWN_ENDING, "").toLowerCase();
+  return withoutEnding === named || withoutEnding.endsWith(`/${named}`);
 }
 
 export function linksToSession(metadata: LinkMetadata, property: unknown, notePath: string, session: LinkedSession): boolean {

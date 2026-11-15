@@ -708,9 +708,9 @@ describe("CharacterSheetPage for an imported character", () => {
   it("puts its buttons together in one row of actions beside the name", async () => {
     const { load, root } = openSheet({ texts: { [MIRA.path]: IMPORTED } });
     await load();
-    const actions = root.querySelector(".dd-head .dd-head-actions");
+    const actions = root.querySelector<HTMLElement>(".dd-head .dd-head-actions");
     if (actions === null) throw new Error("The head has no actions row.");
-    expect(buttonWords(actions as HTMLElement)).toEqual(["Edit character", "Update from D&D Beyond", "Died"]);
+    expect(buttonWords(actions)).toEqual(["Edit character", "Update from D&D Beyond", "Died"]);
   });
 });
 

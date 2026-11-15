@@ -62,6 +62,12 @@ describe("linksToSession for a session that is gone", () => {
     expect(linksToSession(metadataResolving(null), "[[Sessions/Session 2]]", NOTE, gone)).toBe(true);
   });
 
+  it("is true whatever the capitals, and with the ending written", () => {
+    expect(linksToSession(metadataResolving(null), "[[session 2]]", NOTE, gone)).toBe(true);
+    expect(linksToSession(metadataResolving(null), "[[D&D/Pale Moon/SESSIONS/Session 2.md]]", NOTE, gone)).toBe(true);
+    expect(linksToSession(metadataResolving(null), "[[Session 2.MD]]", NOTE, gone)).toBe(true);
+  });
+
   it("is false when the link names the tail of another name, such as Old Session 2", () => {
     const other = { path: "D&D/Pale Moon/Sessions/Old Session 2.md", file: null };
     expect(linksToSession(metadataResolving(null), "[[Session 2]]", NOTE, other)).toBe(false);
@@ -79,7 +85,7 @@ function folderOf(path: string): string {
 }
 
 function resolvedFrom(target: string, source: string): TFile | null {
-  const named = VAULT.filter((path) => path.replace(/\.md$/, "").endsWith(target));
+  const named = VAULT.filter((path) => path.replace(/\.md$/, "").toLowerCase().endsWith(target.toLowerCase()));
   const here = named.find((path) => folderOf(path) === folderOf(source));
   if (here !== undefined) return fileAt(here);
   const [first] = named;
@@ -105,6 +111,10 @@ describe("linksToSession in a vault with a session note and three kind notes of 
 
   it("is true for the whole path, in each kind note", () => {
     for (const path of KIND_NOTES) expect(linksToSession(obsidian, "[[D&D/Pale Moon/Sessions/Session 3]]", path, session)).toBe(true);
+  });
+
+  it("is true for the short link in other capitals, in each kind note", () => {
+    for (const path of KIND_NOTES) expect(linksToSession(obsidian, "[[SESSION 3]]", path, session)).toBe(true);
   });
 
   it("is true for a link the session's own folder name qualifies", () => {

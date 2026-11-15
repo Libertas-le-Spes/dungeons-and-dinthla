@@ -208,3 +208,11 @@ describe("importChangesOf for a note the import does not change", () => {
     expect(() => importChangesOf(textOf(INVENTORY, INVENTORY), "x")).toThrow(Refusal);
   });
 });
+
+describe("importChangesOf for a type property of his", () => {
+  it("shows the property he wrote, in any capitals, as replaced by the import's", () => {
+    const before = textOf("---", "Type: character", "---", "words");
+    const changes = importChangesOf(before, importedNoteText({ current: before, sheet: monkSheet(), stamp: stampedOn(TODAY) }));
+    expect(changes.properties.find((change) => change.name === "type")).toEqual({ name: "type", before: "character", after: '"Medium (human), neutral"' });
+  });
+});

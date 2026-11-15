@@ -4,7 +4,7 @@ import { FakeNotes } from "../fake-notes";
 import { CAMPAIGN, keeperWith, QUESTIONS, SESSION, settled, wanted } from "../keeper-setup";
 
 const LINES = ["? Who sent Mira"];
-const NOT_LINKED = `${QUESTIONS} isn't linked to its session, so it was left alone.`;
+const NOT_LINKED = `${QUESTIONS} isn't linked to its session.`;
 
 function nothingTouched(notes: FakeNotes): void {
   expect(notes.actions.processFrontMatter).not.toHaveBeenCalled();

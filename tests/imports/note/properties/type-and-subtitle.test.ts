@@ -32,7 +32,7 @@ function level(name: string, value: number) {
 }
 
 describe("typeLineOf", () => {
-  it("is the size, creature type, species and alignment, as the design words it", () => {
+  it("is the size, creature type, species and alignment", () => {
     expect(typeLineOf(characterWith({ size: "Medium", creatureType: "Humanoid", alignment: "Lawful good" }))).toBe("Medium humanoid (human), lawful good");
   });
 

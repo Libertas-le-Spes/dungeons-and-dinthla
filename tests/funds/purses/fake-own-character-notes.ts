@@ -17,9 +17,17 @@ export class FakeOwnCharacterNotes implements OwnCharacterNotes {
 
   filesIn(campaignFolder: string): TFile[] {
     this.foldersAsked.push(campaignFolder);
+    return this.under(`${campaignFolder}/`).filter((file) => !file.path.startsWith(`${campaignFolder}/Fallen/`));
+  }
+
+  fallenFilesIn(campaignFolder: string): TFile[] {
+    return this.under(`${campaignFolder}/Fallen/`);
+  }
+
+  private under(folder: string): TFile[] {
     const files: TFile[] = [];
     for (const path of this.texts.keys()) {
-      if (path.startsWith(`${campaignFolder}/`)) files.push(madeUpFile(path));
+      if (path.startsWith(folder)) files.push(madeUpFile(path));
     }
     return files;
   }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { alignmentOf } from "../../../../src/beyond/reply/parts/read-alignment";
-import { creatureTypeOf } from "../../../../src/beyond/reply/parts/read-creature-type";
-import { sizeOf } from "../../../../src/beyond/reply/parts/read-size";
+import { alignmentOf } from "../../../../src/beyond/reply/details/read-alignment";
+import { creatureTypeOf } from "../../../../src/beyond/reply/details/read-creature-type";
+import { sizeOf } from "../../../../src/beyond/reply/details/read-size";
 import { MadeUpReply } from "../../builders/made-up-reply";
 
 const MONK = () => MadeUpReply.levelOneMonk();
@@ -61,6 +61,10 @@ describe("sizeOf", () => {
     expect(sizeOf(MONK().with(["modifiers", "race"], [sizeModifier("small")]).reader())?.text).toBe("Small");
   });
 
+  it("reads a size written with spaces around it", () => {
+    expect(sizeOf(MONK().with(["race", "sizeId"], 10).with(["modifiers", "race"], [sizeModifier(" Small ")]).reader())?.text).toBe("Small");
+  });
+
   it("takes the same size named twice", () => {
     expect(sizeOf(MONK().with(["modifiers", "race"], [sizeModifier("small"), sizeModifier("Small")]).reader())?.text).toBe("Small");
   });
@@ -106,7 +110,7 @@ describe("creatureTypeOf", () => {
   });
 
   it("reads nothing from a trait that is not worded as a type, or has no name or text", () => {
-    const traits = [traitOf("Creature Type", "<p>Something else.</p>"), { definition: { id: 2 } }, { definition: { id: 3, name: "Creature Type" } }];
+    const traits = [traitOf("Creature Type", "<p>Something else.</p>"), { definition: { id: 2 } }, { definition: { id: 3, name: "Creature Type" } }, { definition: { id: 4, description: "You are a Construct." } }];
     expect(creatureTypeOf(MONK().with(["race", "racialTraits"], traits).reader())).toBeNull();
   });
 

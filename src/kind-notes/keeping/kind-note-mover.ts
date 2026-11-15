@@ -33,6 +33,17 @@ export function notMovedMessage(path: string): string {
   return `${path} wasn't moved with its session, since it isn't linked to that session in its properties, or Obsidian hasn't read it yet.`;
 }
 
+interface EitherSession {
+  metadata: LinkMetadata;
+  property: unknown;
+  oldPath: string;
+  sessions: readonly string[];
+}
+
+function linksToEither({ metadata, property, oldPath, sessions }: EitherSession): boolean {
+  return sessions.some((path) => linksToSession(metadata, property, oldPath, { path, file: null }));
+}
+
 export class KindNoteMover {
   private running: Promise<void> = Promise.resolve();
   private readonly said: SaidOnce;
@@ -76,7 +87,7 @@ export class KindNoteMover {
       return;
     }
     const cache = metadata.getFileCache(file);
-    if (cache === null || !linksToSession(metadata, sessionPropertyIn(cache), oldPath, { path: from, file: null })) {
+    if (cache === null || !linksToEither({ metadata, property: sessionPropertyIn(cache), oldPath, sessions: [from, to] })) {
       this.said.say(`link:${oldPath}`, notMovedMessage(oldPath));
       return;
     }
