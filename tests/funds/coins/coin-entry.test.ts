@@ -72,6 +72,11 @@ describe("a coin record", () => {
     expect(coins.map((coin) => coin.isSale)).toEqual([false, true, false]);
   });
 
+  it("keeps every link of a $ line, and of a sale's line", () => {
+    const coins = buildCampaign(sessionsOf("$ 30 gp from [[Zed]], share to [[Mira]]\n$$ Lantern :sold 30 gp to [[Mira]]")).coins;
+    expect(coins.map((coin) => coin.links)).toEqual([["Zed", "Mira"], ["Mira"]]);
+  });
+
   it("is edited in the dialog from a $ line, while a sale's entry and a missing one are not", () => {
     const coins = buildCampaign(sessionsOf("$ 5 gp found\n$ Lantern\n$$ Lantern :sold 30 gp\n$ Lantern :sold 30 gp")).coins;
     const at = (line: number) => entryToEdit(coins, { path: ONE, line });

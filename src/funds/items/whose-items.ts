@@ -1,7 +1,9 @@
-import { holderNameOf, type ItemSummary } from "./item-groups";
+import type { Campaign, ItemRecord } from "../../campaign/record/campaign";
+import { summariseItems, type ItemSummary } from "./item-groups";
+import { ownLinkOf } from "./own-link";
 
 export interface WhoseItemsParts {
-  summary: ItemSummary;
+  campaign: Campaign;
   ownNames: readonly string[];
 }
 
@@ -10,18 +12,21 @@ export interface WhoseItems {
   party: ItemSummary;
 }
 
-function summaryOf(summary: ItemSummary, isShown: (holder: string) => boolean): ItemSummary {
-  const groups = summary.groups.filter((group) => isShown(group.holder));
-  const gone = summary.gone.filter((item) => isShown(holderNameOf(item.holder)));
-  const heldCount = groups.reduce((count, group) => count + group.items.length, 0);
-  return { groups, gone, heldCount };
+function linksOf(item: ItemRecord): string[] {
+  if (item.gone === null) return item.links;
+  return item.gone.links;
 }
 
-export function whoseItems({ summary, ownNames }: WhoseItemsParts): WhoseItems {
-  const own = new Set(ownNames.map((name) => name.toLowerCase()));
-  const isMine = (holder: string): boolean => own.has(holder.toLowerCase());
+export function whoseItems({ campaign, ownNames }: WhoseItemsParts): WhoseItems {
+  const mine: ItemRecord[] = [];
+  const party: ItemRecord[] = [];
+  for (const item of campaign.items) {
+    const own = ownLinkOf({ links: linksOf(item), ownNames });
+    if (own === undefined) party.push(item);
+    else mine.push({ ...item, holder: own });
+  }
   return {
-    mine: summaryOf(summary, isMine),
-    party: summaryOf(summary, (holder) => !isMine(holder)),
+    mine: summariseItems({ ...campaign, items: mine }),
+    party: summariseItems({ ...campaign, items: party }),
   };
 }

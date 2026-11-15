@@ -40,6 +40,7 @@ export interface CoinRecord {
   text: string;
   source: Source;
   isSale: boolean;
+  links: string[];
 }
 
 export type ItemEventKind = "named" | ItemChangeKind;
@@ -47,6 +48,7 @@ export type ItemEventKind = "named" | ItemChangeKind;
 export interface ItemEvent {
   kind: ItemEventKind;
   holder: string;
+  links: string[];
   source: Source;
 }
 
@@ -55,6 +57,7 @@ export interface ItemRecord {
   written: string;
   holder: string;
   holderLinked: boolean;
+  links: string[];
   source: Source;
   history: ItemEvent[];
   gone: ItemEvent | null;
