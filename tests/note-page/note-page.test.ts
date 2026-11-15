@@ -7,6 +7,7 @@ import { NoteSaver } from "../../src/note-editing/note-saver";
 import { Drafts } from "../../src/session-notes/drafts/drafts";
 import { isShown, obsidianDocument } from "../stubs/obsidian-dom";
 import { BOM, FakeNotes } from "../note-editing/fake-notes";
+import { fakeMentionNotes, NO_MENTIONS } from "./fake-mention-notes";
 
 const OLD_MILL = "Pale Moon/Places/Old Mill.md";
 const LOADED = "The wheel turns at night.";
@@ -30,7 +31,7 @@ async function openNote({ text = LOADED, drafts = new Drafts({}, () => {}), note
   const noteDrafts = new NoteDrafts(drafts);
   const isCampaignNote = vi.fn(() => inCampaign);
   const openInEditor = vi.fn();
-  const needs = { texts: notes.texts, drafts: noteDrafts, saver: new NoteSaver(notes.vault), actions, isCampaignNote, openInEditor };
+  const needs = { texts: notes.texts, drafts: noteDrafts, saver: new NoteSaver(notes.vault), actions, mentionNotes: fakeMentionNotes(NO_MENTIONS).notes, isCampaignNote, openInEditor };
   const page = new NotePage(root, OLD_MILL, needs);
   page.load();
   if (!readHeld) await page.editingSettled();

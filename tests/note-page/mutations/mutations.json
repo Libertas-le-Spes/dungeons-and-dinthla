@@ -1,0 +1,58 @@
+[
+ {
+  "id": "only notes in Places",
+  "file": "src/note-page/note-page.ts",
+  "find": "campaignOfReference(placeReferenceKind, this.path",
+  "replace": "campaignOfReference({ ...placeReferenceKind, folder: \"Characters\" }, this.path",
+  "group": "note page"
+ },
+ {
+  "id": "no list on a note that is not a place",
+  "file": "src/note-page/note-page.ts",
+  "find": "    if (campaignOfReference(placeReferenceKind, this.path, notes.campaignFolders()) === null) return;\n",
+  "replace": "",
+  "group": "note page"
+ },
+ {
+  "id": "only notes inside a campaign",
+  "file": "src/note-page/note-page.ts",
+  "find": "this.path, notes.campaignFolders())",
+  "replace": "this.path, [\"Pale Moon\"])",
+  "group": "note page"
+ },
+ {
+  "id": "no list without a file",
+  "file": "src/note-page/note-page.ts",
+  "find": "    if (file === null) return;\n    const mentions",
+  "replace": "    const mentions",
+  "group": "note page"
+ },
+ {
+  "id": "stop watching when closed",
+  "file": "src/note-page/note-page.ts",
+  "find": "    this.register(mentions.watch());\n",
+  "replace": "",
+  "group": "note page"
+ },
+ {
+  "id": "stop drawing when closed",
+  "file": "src/note-page/note-page.ts",
+  "find": "    this.register(() => mentions.clear());\n",
+  "replace": "",
+  "group": "note page"
+ },
+ {
+  "id": "wait for the lines to be read",
+  "file": "src/note-page/note-page.ts",
+  "find": "    if (this.mentions !== null) await this.mentions.readSettled();",
+  "replace": "",
+  "group": "note page"
+ },
+ {
+  "id": "draw the list on the page",
+  "file": "src/note-page/note-page.ts",
+  "find": "    mentions.draw(root.createEl(\"section\", { cls: \"dd-note-mentions\" }), file);",
+  "replace": "",
+  "group": "note page"
+ }
+]
