@@ -238,6 +238,7 @@ export default class DungeonsAndDinthla extends Plugin {
       note: noteSection({
         ...sessionNotes.wholeText,
         actions,
+        mentionNotes,
         isCampaignNote: (path: string) => campaignFolderOf(path, this.campaignFolders()) !== null,
         openInEditor: (path: string) => void openInEditor(this.app, gate, path),
       }),
