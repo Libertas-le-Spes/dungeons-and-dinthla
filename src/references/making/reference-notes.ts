@@ -44,6 +44,10 @@ export class ReferenceNotes implements ReferenceNotesPart {
     this.pending.add(path);
   }
 
+  sessionGone(path: string): void {
+    this.pending.delete(path);
+  }
+
   private resolved(path: string): void {
     if (!this.pending.delete(path)) return;
     this.makeAll().catch((error: unknown) => this.said.say(`all:${messageOf(error)}`, `Couldn't make notes for new names: ${messageOf(error)}`));

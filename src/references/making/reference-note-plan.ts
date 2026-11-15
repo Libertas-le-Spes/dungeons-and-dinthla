@@ -1,4 +1,5 @@
 import type { Campaign, SessionNote } from "../../campaign/record/campaign";
+import { NOTE_ENDING } from "../../campaign/paths/note-name";
 import { referenceFolderOf } from "../../campaign/paths/campaign-folders";
 import { REFERENCE_KINDS } from "../../kinds/reference-kinds";
 import type { ReferenceKindName } from "../../kinds/reference-kind";
@@ -27,13 +28,15 @@ export interface ReferenceNotePlanInput {
   unresolvedLinksOf(path: string): string[];
 }
 
-export function noNoteMessage(name: string, reason: string): string {
+export function noReferenceNoteMessage(name: string, reason: string): string {
   return `No note was made for ${name}: ${reason}`;
 }
 
-export function sharedNameMessage(name: string, owner: string): string {
-  return noNoteMessage(name, `its note would have the same name as the note of ${owner}.`);
+export function sharedReferenceNameMessage(name: string, owner: string): string {
+  return noReferenceNoteMessage(name, `its note would have the same name as the note of ${owner}.`);
 }
+
+export const ENDS_LIKE_A_NOTE = `a name can't end in ${NOTE_ENDING}, since its note would then be named twice over.`;
 
 interface SessionNames {
   session: SessionNote;
@@ -53,27 +56,41 @@ class ReferenceNotePlanner {
     this.sessionNames = ordered.map((session) => ({ session, names: this.namesIn(session) }));
   }
 
-  consider(named: NamedWithKind): void {
+  considerAll(known: NamedWithKind[]): void {
+    const considered = new Set<string>();
+    for (const { session, names } of this.sessionNames) {
+      for (const named of known) {
+        if (!names.has(named.name) || considered.has(named.name)) continue;
+        considered.add(named.name);
+        this.consider({ named, first: session });
+      }
+    }
+  }
+
+  private consider({ named, first }: { named: NamedWithKind; first: SessionNote }): void {
     const { kind, name } = named;
     const naming = this.sessionNames.filter((sessionNames) => sessionNames.names.has(name));
     if (!naming.every(({ session }) => this.isUnresolvedIn(session, name))) return;
     const key = nameKeyOf(name);
     if (this.existing.has(key)) return;
-    const reason = refusalForFileName(name);
+    const reason = this.refusalFor(name);
     if (reason !== null) {
-      this.plan.refusals.push(noNoteMessage(name, reason));
+      this.plan.refusals.push(noReferenceNoteMessage(name, reason));
       return;
     }
     const owner = this.owners.get(key);
     if (owner !== undefined) {
-      this.plan.refusals.push(sharedNameMessage(name, owner));
+      this.plan.refusals.push(sharedReferenceNameMessage(name, owner));
       return;
     }
     this.owners.set(key, name);
-    const [first] = naming;
-    if (first === undefined) return;
     const folder = referenceFolderOf(REFERENCE_KINDS[kind], this.input.campaignFolder);
-    this.plan.notes.push({ name, kind, path: `${folder}/${name}.md`, firstSession: first.session });
+    this.plan.notes.push({ name, kind, path: `${folder}/${name}.md`, firstSession: first });
+  }
+
+  private refusalFor(name: string): string | null {
+    if (name.toLowerCase().endsWith(NOTE_ENDING)) return ENDS_LIKE_A_NOTE;
+    return refusalForFileName(name);
   }
 
   private namesIn(session: SessionNote): Set<string> {
@@ -92,6 +109,6 @@ class ReferenceNotePlanner {
 export function planReferenceNotes(input: ReferenceNotePlanInput): ReferenceNotePlan {
   const planner = new ReferenceNotePlanner(input);
   const { known } = oftenNamed(namedOnLines(input.campaign, input.sessions));
-  for (const named of known) planner.consider(named);
+  planner.considerAll(known);
   return planner.plan;
 }

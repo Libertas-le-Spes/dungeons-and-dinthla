@@ -30,7 +30,7 @@ export class KindNoteWatcher {
     const stopWritten = this.needs.written.listen({
       textSaved: (path, text) => this.textSaved(path, text),
       trashed: (path) => this.sessionGone(path),
-      renamed: (from, to) => this.needs.mover.sessionRenamed(from, to),
+      renamed: (from, to) => this.sessionRenamed(from, to),
     });
     const stopRead = this.needs.store.onNoteRead((path, text) => this.read(path, text));
     return () => {
@@ -62,8 +62,14 @@ export class KindNoteWatcher {
     this.needs.references.sessionSaved(path);
   }
 
+  private sessionRenamed(from: string, to: string): void {
+    this.needs.references.sessionGone(from);
+    this.needs.mover.sessionRenamed(from, to);
+  }
+
   private sessionGone(path: string): void {
     if (!this.needs.wants.isSession(path)) return;
+    this.needs.references.sessionGone(path);
     this.needs.saves.forget(path);
     this.needs.differing.forget(path);
     this.needs.keeper.keep(this.needs.wants.notesOfGoneSession(path));

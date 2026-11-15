@@ -10,6 +10,7 @@ import { fileAt } from "../fake-notes";
 import { CAMPAIGN, QUESTIONS, SESSION } from "../keeper-setup";
 
 const TEXT = "? Who sent Mira";
+const SESSION_RENAMED = SESSION.replace("Session 2", "Session 5");
 
 function watcherWith(campaign: FakeCampaign) {
   const written = new NoteReporter();
@@ -17,7 +18,7 @@ function watcherWith(campaign: FakeCampaign) {
   const differing = { check: vi.fn(), checkAll: vi.fn(), forget: vi.fn() };
   const items = { sessionSaved: vi.fn() };
   const mover = { sessionRenamed: vi.fn() };
-  const references = { sessionSaved: vi.fn() };
+  const references = { sessionSaved: vi.fn(), sessionGone: vi.fn() };
   const files = { getFileByPath: (path: string) => fileAt(path) };
   const watcher = new KindNoteWatcher({ store: campaign, wants: new SessionWants(campaign, files), written: written.notes, keeper, differing, saves: new SavesHere(), items, references, mover });
   const stop = watcher.start();
@@ -66,6 +67,16 @@ describe("KindNoteWatcher", () => {
     expect(references.sessionSaved).toHaveBeenCalledWith(SESSION);
     written.trashed(SESSION);
     expect(references.sessionSaved).toHaveBeenCalledOnce();
+  });
+
+  it("lets the people and places forget a session that was deleted, and one that was renamed", () => {
+    const campaign = new FakeCampaign();
+    const { written, references } = watcherWith(campaign);
+    written.trashed(SESSION);
+    expect(references.sessionGone).toHaveBeenCalledExactlyOnceWith(SESSION);
+    written.renamed(SESSION, SESSION_RENAMED);
+    expect(references.sessionGone).toHaveBeenCalledTimes(2);
+    expect(references.sessionGone).toHaveBeenLastCalledWith(SESSION);
   });
 
   it("lets the item notes know a session was deleted", () => {

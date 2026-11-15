@@ -77,6 +77,24 @@ describe("ReferenceNoteMaker", () => {
     expect(notes.created).toEqual([NOTE_PATH]);
   });
 
+  it("makes one note when two overlapping runs plan a person and a place whose names differ only in capitals", async () => {
+    const notes = notesWithSession();
+    const { maker } = makerWith(notes);
+    const place: PlannedReferenceNote = { ...PLANNED, name: "lady vess", kind: "place", path: `${CAMPAIGN}/Places/lady vess.md` };
+    const results = await Promise.all([maker.make(PLANNED), maker.make(place)]);
+    expect(results).toEqual(["made", "left"]);
+    expect(notes.created).toEqual([NOTE_PATH]);
+  });
+
+  it("lets a name be tried again after its first try failed", async () => {
+    const notes = notesWithSession();
+    notes.failProperties = new Error("disk full");
+    const { maker } = makerWith(notes);
+    expect(await maker.make(PLANNED)).toBe("failed");
+    notes.failProperties = null;
+    expect(await maker.make(PLANNED)).toBe("made");
+  });
+
   it("says it failed, and leaves no empty note behind, when the property can't be written", async () => {
     const notes = notesWithSession();
     notes.failProperties = new Error("disk full");
