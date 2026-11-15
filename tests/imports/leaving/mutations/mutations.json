@@ -553,10 +553,10 @@
   "group": "cast"
  },
  {
-  "id": "a link to no note is refused",
+  "id": "a link to a deleted note is nobody",
   "file": "src/imports/leaving/cast/gate-cast.ts",
-  "find": "    if (file === null) throw new Refusal(MAIN_UNCLEAR);\n    return file;",
-  "replace": "    return file!;",
+  "find": "    return this.metadata.getFirstLinkpathDest(linkpathOf(written), campaignNote.path);\n",
+  "replace": "    const file = this.metadata.getFirstLinkpathDest(linkpathOf(written), campaignNote.path);\n    if (file === null) throw new Refusal(MAIN_UNCLEAR);\n    return file;\n",
   "group": "cast"
  },
  {

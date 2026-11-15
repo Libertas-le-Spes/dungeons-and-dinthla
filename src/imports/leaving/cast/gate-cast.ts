@@ -43,9 +43,7 @@ export class GateCast implements CampaignCast {
     if (values.length !== 1) throw new Refusal(MAIN_UNCLEAR);
     const written = unquoted(values.join(""));
     if (NO_VALUES.includes(written)) return null;
-    const file = this.metadata.getFirstLinkpathDest(linkpathOf(written), campaignNote.path);
-    if (file === null) throw new Refusal(MAIN_UNCLEAR);
-    return file;
+    return this.metadata.getFirstLinkpathDest(linkpathOf(written), campaignNote.path);
   }
 
   async campaignOf(campaignFolder: string): Promise<Campaign> {
