@@ -56,23 +56,23 @@ function textsOf(root: Element, selector: string): string[] {
 describe("NotePage, In the notes", () => {
   it("lists every session line that links to a note in Places, newest session first, with its session and how many there are", async () => {
     const { root } = await opened({ path: OLD_MILL, mentions: MILL_IN_TWO_SESSIONS });
-    const section = root.querySelector(".dd-note-mentions")!;
-    expect(textsOf(section, ".dd-title")).toEqual([`${IN_THE_NOTES}2 lines`]);
-    expect(textsOf(section, ".dd-row .dd-text")).toEqual(["@[[Old Mill]] ? Who lit the lamp", "Tracks lead to the [[Old Mill]]."]);
-    expect(textsOf(section, ".dd-row .dd-meta")).toEqual(["Session 2", "Session 1"]);
+    expect(textsOf(root, ".dd-note-mentions .dd-title")).toEqual([`${IN_THE_NOTES}2 lines`]);
+    expect(textsOf(root, ".dd-note-mentions .dd-row .dd-text")).toEqual(["@[[Old Mill]] ? Who lit the lamp", "Tracks lead to the [[Old Mill]]."]);
+    expect(textsOf(root, ".dd-note-mentions .dd-row .dd-meta")).toEqual(["Session 2", "Session 1"]);
   });
 
   it("opens a line's session at that line", async () => {
     const { root, actions } = await opened({ path: OLD_MILL, mentions: MILL_IN_TWO_SESSIONS });
-    root.querySelectorAll<HTMLElement>(".dd-note-mentions .dd-row")[1]!.click();
+    const rows = Array.from(root.querySelectorAll<HTMLElement>(".dd-note-mentions .dd-row"));
+    expect(rows).toHaveLength(2);
+    rows.slice(1).forEach((row) => row.click());
     expect(actions.openRow).toHaveBeenCalledWith({ path: ONE, line: 0 });
   });
 
   it("says no session mentions the place yet, without a count", async () => {
     const { root } = await opened({ path: OLD_MILL, mentions: NO_MENTIONS });
-    const section = root.querySelector(".dd-note-mentions")!;
-    expect(textsOf(section, ".dd-empty")).toEqual(["No session mentions [[Old Mill]] yet."]);
-    expect(section.querySelector(".dd-count")).toBeNull();
+    expect(textsOf(root, ".dd-note-mentions .dd-empty")).toEqual(["No session mentions [[Old Mill]] yet."]);
+    expect(root.querySelector(".dd-note-mentions .dd-count")).toBeNull();
   });
 
   it("shows nothing on a note that is not in Places", async () => {
