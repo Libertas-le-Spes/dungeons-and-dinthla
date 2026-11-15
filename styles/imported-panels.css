@@ -1,18 +1,18 @@
 .dd-sheet .dd-sheet-imported {
-  margin-top: var(--space-5);
+  margin-top: var(--size-4-5);
 }
 
 .dd-sheet .dd-sheet-panel + .dd-sheet-panel {
-  margin-top: var(--space-5);
+  margin-top: var(--size-4-5);
 }
 
 .dd-sheet .dd-panel-line {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1) var(--space-3);
+  gap: var(--size-4-1) var(--size-4-3);
   align-items: center;
   min-height: var(--touch-min);
-  padding: var(--space-2);
+  padding: var(--size-4-2);
   font: var(--type-note);
   color: var(--text-body);
 }
@@ -31,24 +31,24 @@
 .dd-sheet .dd-panel-choices {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--size-4-2);
 }
 
 .dd-sheet .dd-sheet-panel .dd-note,
 .dd-funds .dd-own-purse .dd-note {
-  margin: var(--space-2) 0 0;
-  font-size: var(--text-sm);
+  margin: var(--size-4-2) 0 0;
+  font-size: var(--font-ui-small);
   color: var(--text-muted-ui);
 }
 
 .dd-sheet .dd-sheet-panel .dd-holder {
-  margin: var(--space-4) 0 var(--space-1);
+  margin: var(--size-4-4) 0 var(--size-4-1);
   font: var(--type-panel-title);
-  font-size: var(--text-sm);
+  font-size: var(--font-ui-small);
   letter-spacing: var(--tracking-caps);
   color: var(--text-muted-ui);
 }
 
 .dd-funds .dd-own-purse + .dd-own-purse {
-  margin-top: var(--space-4);
+  margin-top: var(--size-4-4);
 }

@@ -4,7 +4,7 @@
 }
 
 .dd-new-session .dd-carry {
-  margin: var(--space-3) 0 0;
-  font-size: var(--text-sm);
+  margin: var(--size-4-3) 0 0;
+  font-size: var(--font-ui-small);
   color: var(--text-muted-ui);
 }

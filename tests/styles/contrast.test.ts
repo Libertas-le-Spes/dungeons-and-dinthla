@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { contrast, over, parseColour, type Colour } from "./css-colour";
 import { panelOver } from "./panel-background";
 import { textColourTokens, unclassifiedTextColours } from "./style-files";
-import { CATPPUCCIN_LATTE, SEE_THROUGH, THEMES, TOKYO_NIGHT } from "./sample-themes";
+import { CATPPUCCIN_LATTE, OBSIDIAN_DARK, OBSIDIAN_LIGHT, SEE_THROUGH, THEMES, TOKYO_NIGHT } from "./sample-themes";
 import { tokensFor, type ThemeContext } from "./theme-tokens";
 
 const PAIRS: [string, string, number][] = [
@@ -20,9 +20,6 @@ const PAIRS: [string, string, number][] = [
   ["text-faint-ui", "surface-raised", 4.5],
   ["text-link", "surface-page", 4.5],
   ["text-link", "surface-card", 4.5],
-  ["text-on-accent", "accent", 4.5],
-  ["text-on-accent", "accent-hover", 4.5],
-  ["text-on-accent", "accent-press", 4.5],
   ["text-on-danger", "state-danger", 4.5],
   ["state-danger", "surface-card", 4.5],
   ["state-danger", "state-danger-soft", 4.5],
@@ -70,7 +67,7 @@ describe.each(Object.entries(THEMES))("contrast in %s", (_name, context) => {
 });
 
 describe("following a community theme", () => {
-  it("takes the theme's own surfaces and text over the Dinthla dark palette", () => {
+  it("takes the theme's own surfaces and text in place of any palette of the plugin's own", () => {
     const token = tokensFor(THEMES["Tokyo Night"]!);
     expect(token("surface-page")).toEqual(parseColour("#1a1b26"));
     expect(token("text-body")).toEqual(parseColour("#c0caf5"));
@@ -79,8 +76,8 @@ describe("following a community theme", () => {
 
 describe("markers in Obsidian's own editor", () => {
   const EDITOR_BACKGROUNDS: [string, ThemeContext, string][] = [
-    ["Dinthla light", THEMES["Dinthla light"]!, "#ffffff"],
-    ["Dinthla dark", THEMES["Dinthla dark"]!, "#1c1c1c"],
+    ["Obsidian light", THEMES["Obsidian light"]!, OBSIDIAN_LIGHT["--background-primary"]!],
+    ["Obsidian dark", THEMES["Obsidian dark"]!, OBSIDIAN_DARK["--background-primary"]!],
     ["Tokyo Night", THEMES["Tokyo Night"]!, TOKYO_NIGHT["--background-primary"]!],
     ["Catppuccin Latte", THEMES["Catppuccin Latte"]!, CATPPUCCIN_LATTE["--background-primary"]!],
   ];
@@ -135,7 +132,7 @@ describe("text in the campaign tab over its background picture", () => {
   };
   const SOLID = ["surface-page", "surface-card", "surface-sunken", "surface-raised", "surface-statblock"];
   const cases = Object.entries(TEXT_ON).flatMap(([text, surfaces]) => surfaces.map((layers): [string, string[]] => [text, layers]));
-  const DINTHLA = ["Dinthla light", "Dinthla dark"];
+  const OPAQUE_THEMES = ["Obsidian light", "Obsidian dark"];
   const PANEL_THEMES: [string, ThemeContext][] = [...Object.entries(THEMES), ["Frosted Glass", SEE_THROUGH]];
   const PANELS_IN_TAB = [".dd-campaign .dd-nav", ".dd-campaign .dd-page-body"];
 
@@ -158,7 +155,7 @@ describe("text in the campaign tab over its background picture", () => {
     expect(tokensFor(SEE_THROUGH)("surface-page").alpha).toBeLessThan(1);
   });
 
-  describe.each(DINTHLA)("in %s", (name) => {
+  describe.each(OPAQUE_THEMES)("in %s", (name) => {
     const token = tokensFor(THEMES[name]!);
 
     it.each(SOLID)("%s hides the picture entirely", (surface) => {

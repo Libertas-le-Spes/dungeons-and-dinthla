@@ -86,8 +86,6 @@ import type { KeptDrafts } from "./session-notes/kept/kept-drafts";
 import { DraftKeeping } from "./session-notes/kept/draft-keeping";
 import { NOTICE_STAYS_UNTIL_DISMISSED } from "./views/dialogs/notice-stays";
 import { ConfirmModal, type ConfirmText } from "./views/dialogs/confirm-modal";
-import { usesCommunityTheme } from "./theme/community-theme";
-import { FollowThemeClass } from "./theme/follow-theme-class";
 import { BeyondOpeners, type BeyondWiring } from "./imports/dialog/opening/beyond-openers";
 import { CampaignAgreement } from "./imports/agreement/campaign-agreement";
 import { DeviceAgreement } from "./imports/agreement/device-agreement";
@@ -263,7 +261,6 @@ export default class DungeonsAndDinthla extends Plugin {
     this.addPageOpeners(newSession);
     this.addCommand({ id: "new-campaign", name: "New campaign", callback: startNewCampaign });
     this.colourSessionNotes();
-    this.followTheme();
     this.app.workspace.onLayoutReady(() => {
       this.startCampaign(help).catch((error: unknown) => new Notice(`Couldn't start the campaign: ${messageOf(error)}`));
     });
@@ -425,18 +422,6 @@ export default class DungeonsAndDinthla extends Plugin {
   private eachNoteView(act: (view: MarkdownView) => void): void {
     this.app.workspace.iterateAllLeaves((leaf) => {
       if (leaf.view instanceof MarkdownView) act(leaf.view);
-    });
-  }
-
-  private followTheme(): void {
-    const followThemeClass = new FollowThemeClass(() => usesCommunityTheme(this.gate.vaultSettings));
-    followThemeClass.add(document.body);
-    this.registerEvent(this.app.workspace.on("css-change", () => followThemeClass.update()));
-    this.registerEvent(this.app.workspace.on("window-open", (popout) => followThemeClass.add(popout.doc.body)));
-    this.registerEvent(this.app.workspace.on("window-close", (popout) => followThemeClass.remove(popout.doc.body)));
-    this.register(() => followThemeClass.clear());
-    this.app.workspace.onLayoutReady(() => {
-      this.app.workspace.iterateAllLeaves((leaf) => followThemeClass.add(leaf.view.containerEl.doc.body));
     });
   }
 

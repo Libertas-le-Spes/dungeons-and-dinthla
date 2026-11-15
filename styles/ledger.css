@@ -1,13 +1,13 @@
 .dd-list-view .dd-in-out {
   display: flex;
-  gap: var(--space-5);
-  margin-top: var(--space-3);
-  font-size: var(--text-sm);
+  gap: var(--size-4-5);
+  margin-top: var(--size-4-3);
+  font-size: var(--font-ui-small);
   color: var(--text-muted-ui);
 }
 
 .dd-list-view .dd-in-out b {
-  font-weight: var(--weight-medium);
+  font-weight: var(--font-medium);
   color: var(--text-body);
 }
 
@@ -15,7 +15,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  font-size: var(--text-sm);
+  font-size: var(--font-ui-small);
 }
 
 .dd-list-view .dd-ledger li + li {
@@ -25,11 +25,11 @@
 .dd-list-view .dd-ledger-row {
   display: grid;
   grid-template-columns: 3em minmax(0, 1fr);
-  gap: var(--space-1) var(--space-3);
+  gap: var(--size-4-1) var(--size-4-3);
   align-items: baseline;
   min-height: var(--touch-min);
-  padding: var(--space-2);
-  border-radius: var(--radius-sm);
+  padding: var(--size-4-2);
+  border-radius: var(--radius-s);
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out);
 }
@@ -71,7 +71,7 @@
   grid-column: 2;
   grid-row: 3;
   font: var(--type-note);
-  font-size: var(--text-xs);
+  font-size: var(--font-ui-smaller);
   color: var(--text-muted-ui);
 }
 
