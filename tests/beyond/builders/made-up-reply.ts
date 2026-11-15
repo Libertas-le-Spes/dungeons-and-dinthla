@@ -1,5 +1,6 @@
 import { JsonReader } from "../../../src/beyond/reply/json/json-reader";
 import { madeUpData } from "./made-up-data";
+import { madeUpFighterData } from "./made-up-fighter-data";
 import type { Node } from "./made-up-data";
 
 export { BACKSTORY_MARKER, TRAIT_MARKER } from "./made-up-data";
@@ -28,6 +29,10 @@ export class MadeUpReply {
 
   static levelOneMonk(): MadeUpReply {
     return new MadeUpReply(madeUpData());
+  }
+
+  static levelThreeFighter(): MadeUpReply {
+    return new MadeUpReply(madeUpFighterData());
   }
 
   with(path: readonly Step[], value: unknown): this {
