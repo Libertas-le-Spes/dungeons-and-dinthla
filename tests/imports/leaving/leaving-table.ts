@@ -103,7 +103,7 @@ export class LeavingTable {
     return new LeaveAsChoice(this.vault.gate, this.vault.actions, this.cast, this.switchTo(chosen), old, reason);
   }
 
-  died(path: string, chosenIsNamed = false): DiedChoice {
+  died(path: string, chosenIsNamed: boolean): DiedChoice {
     const parts = { files: this.vault.gate, actions: this.vault.actions, cast: this.cast, mainSwitch: this.switchTo(path, chosenIsNamed) };
     return new DiedChoice(parts, AskedNote.of(this.vault.fileAt(path)));
   }

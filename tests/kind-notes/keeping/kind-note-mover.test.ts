@@ -80,6 +80,16 @@ describe("KindNoteMover", () => {
     expect(firstOf(notes.said)).toContain(`${Q3} stays where it is`);
   });
 
+  it("moves a note whose link already names the new session, as Obsidian may have rewritten it on the rename", async () => {
+    const notes = new FakeNotes();
+    renumbered(notes);
+    notes.addNote(Q3, { session: "[[Session 2]]", lines: ["? Who sent Mira"] }, "His words");
+    moverWith(notes).mover.sessionRenamed(THREE, TWO);
+    await settled();
+    expect(notes.noteAt(Q3)).toBeNull();
+    expect(notes.noteAt(Q2)?.properties?.session).toBe(`[[${CAMPAIGN}/Sessions/Session 2]]`);
+  });
+
   it("leaves a note that isn't linked to the session it follows, and says so once", async () => {
     const notes = new FakeNotes();
     renumbered(notes);

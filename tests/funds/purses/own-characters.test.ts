@@ -17,6 +17,14 @@ describe("OwnCharacters", () => {
     expect(notes.foldersAsked).toEqual(["Pale Moon"]);
   });
 
+  it("still names one who died and moved to Fallen while the campaign note names them, and reads their sheet", async () => {
+    const fallen = "Pale Moon/Fallen/Mira.md";
+    const notes = new FakeOwnCharacterNotes(new Map([[fallen, "---\nimported-from: pdf\nimported-session: 2\n---\n## Purse (from D&D Beyond)\n- gp · 5\n"]]), [fallen]);
+    const own = new OwnCharacters({ store: { campaignFolder: "Pale Moon" }, notes });
+    expect(own.names()).toEqual(["Mira"]);
+    expect(await own.sheets()).toEqual([{ name: "Mira", purse: [{ coin: "gp", count: 5 }], importedSession: 2 }]);
+  });
+
   it("names no one when no campaign is open, and asks no notes", () => {
     const notes = new FakeOwnCharacterNotes(TEXTS, [MIRA]);
     const own = new OwnCharacters({ store: { campaignFolder: null }, notes });
@@ -49,6 +57,15 @@ describe("OwnCharacters", () => {
     own.subscribe(changed);
     notes.change(ZED);
     notes.change("Pale Moon/Sessions/Session 1.md");
+    expect(changed).not.toHaveBeenCalled();
+  });
+
+  it("stays quiet when no campaign is open, whatever a note is called", () => {
+    const notes = new FakeOwnCharacterNotes(TEXTS, [MIRA]);
+    const own = new OwnCharacters({ store: { campaignFolder: null }, notes });
+    const changed = vi.fn();
+    own.subscribe(changed);
+    notes.change("null/null.md");
     expect(changed).not.toHaveBeenCalled();
   });
 

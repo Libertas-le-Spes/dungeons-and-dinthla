@@ -178,6 +178,16 @@ describe("importedNoteText with a property whose name only differs by capitals f
   });
 });
 
+describe("importedNoteText with a type or subtitle property of his", () => {
+  it.each([["type: character"], ["Type: character"], ["TYPE: character"], ["Subtitle: hero"]])("replaces %j with the import's own line, whatever the capitals", (line) => {
+    const written = linesOf(importedNoteText({ current: textOf("---", line, "mood: calm", "---", "words"), sheet: monkSheet(), stamp: stampedOn(TODAY) }));
+    expect(written).not.toContain(line);
+    expect(written).toContain("mood: calm");
+    expect(written).toContain('type: "Medium (human), neutral"');
+    expect(written).toContain('subtitle: "Human Monk 4"');
+  });
+});
+
 describe("importedNoteText with a heading written inside a code block or a comment", () => {
   const fenced = textOf("```", INVENTORY, "- his example", "```", "End.");
 

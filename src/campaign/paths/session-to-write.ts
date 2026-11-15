@@ -6,7 +6,7 @@ function numberIsShared(number: number, campaignFolder: string, paths: string[])
   return paths.filter((path) => sessionNumberOf(path, campaignFolder) === number).length > 1;
 }
 
-function highestNumber(campaignFolder: string, paths: string[]): number {
+export function highestNumber(campaignFolder: string, paths: string[]): number {
   let highest = -1;
   for (const path of paths) {
     const number = sessionNumberOf(path, campaignFolder);

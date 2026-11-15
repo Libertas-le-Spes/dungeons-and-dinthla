@@ -16,6 +16,11 @@ class FocusBack {
   }
 }
 
+interface Asking {
+  file: TFile;
+  returnFocus: () => void;
+}
+
 type AskedQuestion = (wiring: OfferWiring, note: TFile) => Promise<MainQuestion | null>;
 
 function stayPut(): void {
@@ -38,23 +43,24 @@ export class MainOffers {
   }
 
   async makeMain(path: string, returnFocus: () => void): Promise<void> {
-    const file = this.wiring.files.getFileByPath(path);
-    if (file === null) {
-      this.wiring.tell(NOTE_MOVED);
-      returnFocus();
-      return;
-    }
+    const file = this.fileOrTell(path, returnFocus);
+    if (file === null) return;
     await this.ask(file, returnFocus, new AskAlways());
   }
 
   async died(path: string, returnFocus: () => void): Promise<void> {
+    const file = this.fileOrTell(path, returnFocus);
+    if (file === null) return;
+    await this.askWith({ file, returnFocus }, diedQuestionFor);
+  }
+
+  private fileOrTell(path: string, returnFocus: () => void): TFile | null {
     const file = this.wiring.files.getFileByPath(path);
     if (file === null) {
       this.wiring.tell(NOTE_MOVED);
       returnFocus();
-      return;
     }
-    await this.askWith(file, returnFocus, diedQuestionFor);
+    return file;
   }
 
   private async ask(file: TFile, returnFocus: () => void, when: AskWhen): Promise<void> {
@@ -62,10 +68,10 @@ export class MainOffers {
       if (await when.wants(wiring.files, note)) return questionFor(wiring, note);
       return null;
     };
-    await this.askWith(file, returnFocus, questionAbout);
+    await this.askWith({ file, returnFocus }, questionAbout);
   }
 
-  private async askWith(file: TFile, returnFocus: () => void, questionAbout: AskedQuestion): Promise<void> {
+  private async askWith({ file, returnFocus }: Asking, questionAbout: AskedQuestion): Promise<void> {
     let question: MainQuestion | null = null;
     try {
       question = await questionAbout(this.wiring, file);

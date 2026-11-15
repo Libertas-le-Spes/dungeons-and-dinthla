@@ -37,7 +37,7 @@ describe("the layout the sheet and the note writer share", () => {
     ]);
   });
 
-  it("names the import's three marks plain, as the plan has them", () => {
+  it("names the import's three marks", () => {
     expect([IMPORTED_ON_PROPERTY, IMPORTED_FROM_PROPERTY, IMPORTED_SESSION_PROPERTY]).toEqual(["imported", "imported-from", "imported-session"]);
   });
 

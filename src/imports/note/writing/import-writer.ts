@@ -11,7 +11,7 @@ import { checkedNewNoteText, checkedTextOf, writeWhenUnchangedSinceRead } from "
 import { nameTaken } from "./guarding/refusals";
 import { Refusal } from "../../../beyond/shape/refusal";
 import { fallenNoteOf, leftPlayWords } from "../../../campaign/paths/fallen-notes";
-import { sessionNumberOf } from "../../../campaign/paths/session-file";
+import { highestNumber } from "../../../campaign/paths/session-to-write";
 
 export class ImportWriter {
   constructor(
@@ -49,12 +49,8 @@ export class ImportWriter {
   }
 
   private stampOf(today: string): ImportStamp {
-    let session = 0;
-    for (const file of this.files.getFiles()) {
-      const number = sessionNumberOf(file.path, this.campaignFolder);
-      if (number !== null && number > session) session = number;
-    }
-    return { today, session };
+    const paths = this.files.getFiles().map((file) => file.path);
+    return { today, session: Math.max(highestNumber(this.campaignFolder, paths), 0) };
   }
 
   private newNotePathOf(name: string): string {

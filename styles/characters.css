@@ -58,11 +58,7 @@
 
 .dd-characters .dd-backup .dd-make-main,
 .dd-characters .dd-fallen-card .dd-make-main,
-.dd-characters .dd-left .dd-make-main {
-  align-self: flex-start;
-  min-height: var(--touch-min);
-}
-
+.dd-characters .dd-left .dd-make-main,
 .dd-characters .dd-played .dd-died,
 .dd-characters .dd-backup .dd-died {
   align-self: flex-start;

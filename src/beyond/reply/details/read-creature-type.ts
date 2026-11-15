@@ -10,11 +10,10 @@ const STATED_TYPE = /^You(?:'re| are) an? ([A-Za-z]+)\.?$/;
 
 function statedTypeOf(trait: JsonReader): string | undefined {
   const definition = trait.readerAt("definition");
-  if (definition.holdsNothingAt("name") || definition.holdsNothingAt("description")) return undefined;
+  if (definition.holdsNothingAt("name")) return undefined;
+  if (definition.holdsNothingAt("description")) return undefined;
   if (definition.textAt("name") !== TYPE_TRAIT) return undefined;
-  const match = STATED_TYPE.exec(definition.textAt("description").replace(TAGS, "").trim());
-  if (match === null) return undefined;
-  return match.at(1);
+  return STATED_TYPE.exec(definition.textAt("description").replace(TAGS, "").trim())?.at(1);
 }
 
 function typeFromTraits(race: JsonReader): string | undefined {

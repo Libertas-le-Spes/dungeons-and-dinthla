@@ -18,7 +18,8 @@ function sizeNamed(subType: string): string | undefined {
 }
 
 function isSizeModifier(entry: JsonReader): boolean {
-  if (entry.holdsNothingAt("type") || entry.holdsNothingAt("subType")) return false;
+  if (entry.holdsNothingAt("type")) return false;
+  if (entry.holdsNothingAt("subType")) return false;
   return entry.textAt("type") === SIZE_MODIFIER;
 }
 

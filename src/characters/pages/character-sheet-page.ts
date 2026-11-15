@@ -4,6 +4,7 @@ import type { Source } from "../../campaign/record/campaign";
 import { campaignFolderOf, charactersFolderOf } from "../../campaign/paths/campaign-folders";
 import { sessionLabelOf } from "../../campaign/paths/session-file";
 import type { LinkActions } from "../../views/lists/linked-text";
+import { FocusAfter } from "../../views/lists/focus-after";
 import { PENDING_FOCUS_MS } from "../../views/lists/row-focus";
 import { NOT_KNOWN, shownValuesOf, type CharacterSheet, type SheetValue, type ValueState } from "../reading/character-sheet";
 import { messageOf } from "../../views/dialogs/message-of";
@@ -65,7 +66,7 @@ export class CharacterSheetPage extends Component {
   private renders = 0;
   private watched: string[] = [];
   private pendingFocus: { name: string; until: number } | null = null;
-  private focusEditUntil = 0;
+  private readonly focusEdit = new FocusAfter();
   private readonly drawing = new PendingWork();
   private readonly mentions: MentionsPanel;
 
@@ -161,10 +162,10 @@ export class CharacterSheetPage extends Component {
     const actions = head.createDiv({ cls: "dd-head-actions" });
     const edit = actions.createEl("button", { cls: "dd-create", text: "Edit character" });
     edit.addEventListener("click", () => this.actions.editCharacter(file));
-    if (Date.now() < this.focusEditUntil) edit.focus();
+    if (this.focusEdit.isArmed()) edit.focus();
     if (this.isUpdatable(file, read.campaignFolder)) {
       addUpdateButton(actions, file, this.actions);
-      addDiedButton(actions, file.path, { died: this.died.bind(this) });
+      addDiedButton({ parent: actions, path: file.path, action: this.actions, focus: this.focusEdit });
     }
     const subtitle = sheet.values.find((value) => value.name === "subtitle");
     if (subtitle !== undefined && subtitle.state !== "unknown") root.createEl("p", { cls: "dd-sheet-subtitle", text: shownTextOf(subtitle) });
@@ -185,15 +186,6 @@ export class CharacterSheetPage extends Component {
     this.drawStatBlock(root, file, sheet);
     this.mentions.draw(root.createEl("section", { cls: "dd-sheet-mentions" }), file);
     this.focusPending();
-  }
-
-  private died(path: string, returnFocus: () => void): void {
-    this.actions.died(path, () => this.focusAfterDied(returnFocus));
-  }
-
-  private focusAfterDied(returnFocus: () => void): void {
-    returnFocus();
-    this.focusEditUntil = Date.now() + PENDING_FOCUS_MS;
   }
 
   private isUpdatable(file: TFile, campaignFolder: string | null): boolean {
