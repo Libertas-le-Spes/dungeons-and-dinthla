@@ -4,7 +4,7 @@ import { mainNotePathOf } from "../../../campaign/paths/campaign-folders";
 import { hasLeftPlay } from "../../layout/standing";
 import { standingOf } from "../properties/property-value";
 import { AskedNote } from "../switching/asked-note";
-import { isInCharactersOrFallen, isInFallen } from "../switching/membership";
+import { isInCharactersOrFallen, isInFallen } from "../../../campaign/paths/character-membership";
 import { MainSwitch } from "../switching/main-switch";
 import { textOfNote } from "../switching/read-note";
 import type { LeavingFiles } from "../switching/switch-plan";

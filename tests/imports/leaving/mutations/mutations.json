@@ -876,14 +876,14 @@
  },
  {
   "id": "a note in Characters is where the campaign keeps characters",
-  "file": "src/imports/leaving/switching/membership.ts",
+  "file": "src/campaign/paths/character-membership.ts",
   "find": "return file.path === charactersNotePathOf(campaignFolder, file.basename);",
   "replace": "return true;",
   "group": "paths"
  },
  {
   "id": "a note in Fallen is where the campaign keeps the fallen",
-  "file": "src/imports/leaving/switching/membership.ts",
+  "file": "src/campaign/paths/character-membership.ts",
   "find": "return file.path === fallenNotePathOf(campaignFolder, file.basename);",
   "replace": "return true;",
   "group": "paths"

@@ -77,6 +77,7 @@ When a character leaves play:
 2. For *Died* or *Retired*, you can say what they were last doing. Their note moves to the campaign's `Fallen` folder with a dated snapshot added at the bottom, and the new character becomes yours.
 3. A *Backup* stays in `Characters`. You'll find your backups at the bottom of the Characters page, each with *Make main* for when you want to play them, and the *Fallen* list sits below them.
 4. Fallen characters are listed on the Characters page under *Fallen*, each with *Make main*. Their note moves back to `Characters` and keeps its snapshots; if they leave play again, another dated snapshot is added.
+   Tap a fallen character's card to open their sheet: *Update from D&D Beyond* works there too, and the note stays in `Fallen` with its snapshots. After an update, the question *What happened to them?* opens every time, with *Make main* and *Not now*; *Not now* writes nothing.
 5. If a switch stops part way, the message says what was written. Press *Make main* again to finish it.
 
 ### Agreeing to the online import

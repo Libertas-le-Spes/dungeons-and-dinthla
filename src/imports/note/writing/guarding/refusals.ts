@@ -5,7 +5,7 @@ export function wouldChangeMore(): Refusal {
 }
 
 export function notACharacterNote(path: string): Refusal {
-  return new Refusal(`${path} is not a note in the campaign's Characters folder, so nothing was written.`);
+  return new Refusal(`${path} is not a note in the campaign's Characters or Fallen folder, so nothing was written.`);
 }
 
 export function nameTaken(existing: string): Refusal {

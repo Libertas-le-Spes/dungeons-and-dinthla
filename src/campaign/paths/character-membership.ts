@@ -1,5 +1,5 @@
 import type { TFile } from "obsidian";
-import { charactersFolderOf, fallenNotePathOf } from "../../../campaign/paths/campaign-folders";
+import { charactersFolderOf, fallenNotePathOf } from "./campaign-folders";
 
 export function charactersNotePathOf(campaignFolder: string, name: string): string {
   return `${charactersFolderOf(campaignFolder)}/${name}.md`;

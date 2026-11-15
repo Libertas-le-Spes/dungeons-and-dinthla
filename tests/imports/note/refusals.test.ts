@@ -38,7 +38,7 @@ describe("the words of the note refusals", () => {
   });
 
   it("name the path that is not a character note", () => {
-    expect(notACharacterNote("a/b.md").message).toBe("a/b.md is not a note in the campaign's Characters folder, so nothing was written.");
+    expect(notACharacterNote("a/b.md").message).toBe("a/b.md is not a note in the campaign's Characters or Fallen folder, so nothing was written.");
   });
 
   it("name the note that already has the name", () => {
