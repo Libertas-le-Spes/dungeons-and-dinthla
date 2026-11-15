@@ -1,6 +1,5 @@
+import { LINES_FOR_A_NOTE } from "../kinds/lines-for-a-note";
 import type { NamedOnLines } from "./named-on-lines";
-
-export const LINES_FOR_A_NOTE = 3;
 
 export interface OftenNamed {
   known: NamedOnLines[];

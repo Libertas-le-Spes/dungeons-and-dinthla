@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { LINES_FOR_A_NOTE, oftenNamed } from "../../src/references/often-named";
+import { LINES_FOR_A_NOTE } from "../../src/kinds/lines-for-a-note";
+import { oftenNamed } from "../../src/references/often-named";
 
 describe("oftenNamed", () => {
   it("asks for three lines", () => {

@@ -1,6 +1,6 @@
 import type { ReferenceKindName } from "../kinds/reference-kind";
-import { findLinks, findPlaceLinks } from "../notes/parts/link";
-import { characterLinksIn } from "./character-roles/character-roles";
+import { findLinks } from "../notes/parts/link";
+import { READERS_STRONGEST_FIRST, strongestKind } from "./readers/reference-readers";
 
 export interface NameOnLine {
   name: string;
@@ -8,12 +8,11 @@ export interface NameOnLine {
 }
 
 function kindOfName(name: string, text: string): ReferenceKindName | null {
-  if (findPlaceLinks(text).includes(name)) return "place";
-  if (characterLinksIn(text).includes(name)) return "character";
-  return null;
+  const reading = READERS_STRONGEST_FIRST.filter((reader) => reader.linksIn(text).includes(name));
+  return strongestKind(reading.map((reader) => reader.kind));
 }
 
 export function namesOnLine(text: string): NameOnLine[] {
-  const names = new Set(findLinks(text));
+  const names = new Set(findLinks(text).filter((name) => name !== ""));
   return [...names].map((name) => ({ name, kind: kindOfName(name, text) }));
 }

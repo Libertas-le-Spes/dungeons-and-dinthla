@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { SessionNote } from "../../../src/campaign/record/campaign";
-import { LINES_FOR_A_NOTE, noNoteMessage, planItemNotes, sharedNameMessage } from "../../../src/funds/item-notes/item-note-plan";
+import { LINES_FOR_A_NOTE } from "../../../src/kinds/lines-for-a-note";
+import { noNoteMessage, planItemNotes, sharedNameMessage } from "../../../src/funds/item-notes/item-note-plan";
 import { BAD_NAME } from "../../../src/names/file-name";
 import { fileAt } from "./fake-item-notes";
 
