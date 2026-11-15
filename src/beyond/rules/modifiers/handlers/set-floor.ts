@@ -13,9 +13,10 @@ export class SetFloor implements ModifierHandler {
     if (modifier.type !== "set") return false;
     if (modifier.subType.text !== this.subType) return false;
     if (modifier.restriction.trim() !== "") return false;
-    if (typeof modifier.value !== "number") return false;
-    if (modifier.value < this.allowed.lowest) return false;
-    return modifier.value <= this.allowed.highest;
+    if (!Number.isInteger(modifier.value)) return false;
+    const value = Number(modifier.value);
+    if (value < this.allowed.lowest) return false;
+    return value <= this.allowed.highest;
   }
 
   applyTo(tally: ModifierTally, modifier: RuleModifier): void {
