@@ -202,7 +202,7 @@ describe("DashboardPage", () => {
   it("scrolls the session panel's lines, with the most recent quest, question and item or coin all in them", async () => {
     const lines = ["? Who is she", "$ 5 gp found", "$ [[Mira]] Silvered lantern", "! Escort Mira", "! Guard the mill", "! Burn the mill", "! Bury the mill"];
     const { root } = await openDashboard([sessionOf(1, lines)]);
-    const list = elementIn(panel(root, SESSION), ".dd-session-list");
+    const list = elementIn(panel(root, SESSION), ".dd-scroll-list");
     expect(list.getAttribute("tabindex")).toBe("0");
     expect(list.getAttribute("aria-label")).toBe("Lines written in this session");
     expect(textsOf(list, ".dd-text, .dd-what")).toEqual(["Bury the mill", "Burn the mill", "Guard the mill", "Escort Mira", "Silvered lantern", "5 gp found", "Who is she"]);

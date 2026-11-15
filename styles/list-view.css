@@ -213,3 +213,14 @@
   font-size: var(--font-ui-small);
   color: var(--text-faint-ui);
 }
+
+.dd-list-view .dd-scroll-list {
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.dd-list-view .dd-scroll-list:focus-visible {
+  border-radius: var(--radius-s);
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
