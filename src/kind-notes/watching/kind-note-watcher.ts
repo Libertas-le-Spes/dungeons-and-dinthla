@@ -1,5 +1,6 @@
 import type { WrittenNotes } from "../../fence/gate/written-notes";
 import type { DifferingNotes } from "./differing-notes";
+import type { ReferenceNotesPart } from "../../references/making/reference-notes-part";
 import type { ItemNotesPart } from "./item-notes-part";
 import type { KindNoteMover } from "../keeping/kind-note-mover";
 import type { KindNoteKeeper } from "../keeping/kind-note-keeper";
@@ -18,6 +19,7 @@ export interface KindNoteWatcherNeeds {
   differing: Pick<DifferingNotes, "check" | "checkAll" | "forget">;
   saves: SavesHere;
   items: Pick<ItemNotesPart, "sessionSaved">;
+  references: ReferenceNotesPart;
   mover: Pick<KindNoteMover, "sessionRenamed">;
 }
 
@@ -57,6 +59,7 @@ export class KindNoteWatcher {
     this.needs.differing.forget(path);
     this.needs.keeper.keep(this.needs.wants.notesFor(path));
     this.needs.items.sessionSaved();
+    this.needs.references.sessionSaved(path);
   }
 
   private sessionGone(path: string): void {
