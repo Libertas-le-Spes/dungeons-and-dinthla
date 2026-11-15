@@ -62,6 +62,19 @@ describe("NotePage", () => {
     expect(saveButton.disabled).toBe(true);
   });
 
+  it("heads a session's kind note with its type and the session's name", async () => {
+    const path = "Pale Moon/Questions/Session 1.md";
+    const document = obsidianDocument();
+    const root = document.createElement("div");
+    document.body.append(root);
+    const notes = new FakeNotes(path, LOADED);
+    const needs = { texts: notes.texts, drafts: new NoteDrafts(new Drafts({}, () => {})), saver: new NoteSaver(notes.vault), actions: { openRow: vi.fn(), openLink: vi.fn() }, mentionNotes: fakeMentionNotes(NO_MENTIONS).notes, isCampaignNote: () => true, openInEditor: vi.fn() };
+    const page = new NotePage(root, path, needs);
+    page.load();
+    await page.editingSettled();
+    expect(root.querySelector("h2")?.textContent).toBe("Questions - Session 1");
+  });
+
   it("can be saved once the text is changed, and not when it is typed back as it was", async () => {
     const { type, saveButton } = await openNote();
     type(TYPED);

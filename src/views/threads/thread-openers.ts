@@ -1,8 +1,11 @@
 import type { OpenRow } from "../lists/list-page";
 
-export interface ThreadOpeners {
+export interface ThreadRowOpeners {
   openQuestion: OpenRow;
   openQuest: OpenRow;
+}
+
+export interface ThreadOpeners extends ThreadRowOpeners {
   showQuestions(): void;
   showQuests(): void;
 }
