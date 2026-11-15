@@ -81,6 +81,19 @@ describe("ruleModifiersOf", () => {
     expect(readOf(reply)).toEqual(["bonus|speed|1|Alert|true"]);
   });
 
+  it.each([
+    [1, "STR"],
+    [3, "CON"],
+    [5, "WIS"],
+    [6, "CHA"],
+    [7, ""],
+    [null, ""],
+    ["5", ""],
+  ])("reads the stat number %j as the ability %j, none for one that names no ability", (statId, ability) => {
+    const reply = bare().with(["modifiers", "feat"], [modifier("set", "unarmored-armor-class", 700, { statId })]);
+    expect(ruleModifiersOf(reply.reader()).map((found) => found.ability)).toEqual([ability]);
+  });
+
   it("refuses a modifier with no type", () => {
     const reply = bare().with(["modifiers", "feat"], [{ subType: "speed" }]);
     expect(() => ruleModifiersOf(reply.reader())).toThrow('"type" is missing or is not text');
