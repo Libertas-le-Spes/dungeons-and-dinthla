@@ -4,6 +4,7 @@ import { latestNumberIsShared, SESSIONS_SHARE_A_NUMBER } from "../../campaign/pa
 import type { LookupOpeners } from "../../kinds/lookup-openers";
 import type { NoteEditingNeeds } from "../../note-editing/note-editing";
 import type { LinkActions } from "../../views/lists/linked-text";
+import type { LineOpeners } from "../lines/line-opener-of";
 import type { AppendWriter } from "../drafts/append-writer";
 import type { Drafts } from "../drafts/drafts";
 import type { KeptDrafts } from "../kept/kept-drafts";
@@ -26,6 +27,7 @@ export interface SessionNotesNeeds {
   propertiesOf: PropertiesOf;
   openers: LookupOpeners;
   actions: LinkActions;
+  lineOpeners: LineOpeners;
   wholeText: NoteEditingNeeds;
   removal: RemovalTools;
 }

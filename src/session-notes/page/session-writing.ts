@@ -7,10 +7,12 @@ import { LinesList } from "../lines/lines-list";
 import { NotesButtons } from "./notes-buttons";
 import { SessionRemoval, type RemovalTools } from "../removal/session-removal";
 import { WritingPanel, type WritingNeeds } from "../writing/writing-panel";
+import type { LineOpeners } from "../lines/line-opener-of";
 import type { WrittenLine } from "../lines/written-lines";
 
 export interface SessionWritingNeeds extends WritingNeeds {
   actions: LinkActions;
+  lineOpeners: LineOpeners;
   wholeText: NoteEditingNeeds;
   keptDrafts: KeptDrafts;
   removal: RemovalTools;
@@ -37,7 +39,7 @@ export class SessionWriting {
     moves: SessionMoves,
   ) {
     this.writing = new WritingPanel(root, path, needs);
-    this.lines = new LinesList(root, needs.actions);
+    this.lines = new LinesList(root, { actions: needs.actions, openers: needs.lineOpeners });
     this.buttons = new NotesButtons(this.lines.head, {
       editAll: () => this.openEditAll(),
       clearNotes: () => this.removal.clearNotes(),

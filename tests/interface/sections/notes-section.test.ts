@@ -13,6 +13,7 @@ import type { NoteSaver } from "../../../src/note-editing/note-saver";
 import type { SessionClearer } from "../../../src/session-notes/removal/session-clearer";
 import type { SessionTrash } from "../../../src/session-notes/removal/session-trash";
 import type { ConfirmText } from "../../../src/views/dialogs/confirm-modal";
+import { stubLineOpeners } from "../../session-notes/lines/stub-line-openers";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { stubRenumbering } from "../../session-notes/renumbering/stub-renumbering";
 
@@ -51,6 +52,7 @@ function made(path: string | null, sessions = BOTH, latestAfterDelete: string | 
     propertiesOf: () => ({ title: "", played: "" }),
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
     actions: { openRow: vi.fn(), openLink: vi.fn() },
+    lineOpeners: stubLineOpeners(),
     wholeText: { texts: texts as unknown as NoteTexts, drafts: new NoteDrafts(drafts), saver: {} as NoteSaver },
     removal: { clearer: {} as SessionClearer, trash: trash as unknown as SessionTrash, renumbering: stubRenumbering({ latest: latestAfterDelete }), confirm, report: vi.fn() },
     startSession,

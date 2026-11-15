@@ -10,6 +10,7 @@ import { NoteReporter } from "../../../src/fence/gate/written-notes";
 import { sessionNotesWiring } from "../../../src/interface/sections/session-notes-wiring";
 import { NoteDrafts } from "../../../src/note-editing/note-drafts";
 import { Drafts } from "../../../src/session-notes/drafts/drafts";
+import { stubLineOpeners } from "../../session-notes/lines/stub-line-openers";
 import { KeptDrafts } from "../../../src/session-notes/kept/kept-drafts";
 import { FakeEvents, fileAt, rawVaultWith } from "../../fence/gate/fake-raw-vault";
 
@@ -46,6 +47,7 @@ function wiredWith(trashOption: string) {
     keeping,
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
     actions: { openRow: vi.fn(), openLink: vi.fn() },
+    lineOpeners: stubLineOpeners(),
     confirm: vi.fn(),
     campaignFolders: vi.fn(() => ["D&D/Pale Moon"]),
     report: vi.fn(),
@@ -60,6 +62,11 @@ describe("sessionNotesWiring", () => {
     expect(wiring.notes.drafts).toBe(needs.drafts);
     expect(wiring.notes.keptDrafts).toBe(needs.keeping.keptDrafts);
     expect(wiring.notes.store).toBe(needs.store);
+  });
+
+  it("hands the session notes page the openers of its lines", () => {
+    const { wiring, needs } = wiredWith("local");
+    expect(wiring.notes.lineOpeners).toBe(needs.lineOpeners);
   });
 
   it("edits whole notes with the note drafts it is given, and shares that with the session notes page", () => {

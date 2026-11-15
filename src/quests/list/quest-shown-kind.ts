@@ -5,7 +5,7 @@ import type { LineState } from "../../views/threads/line-state";
 import type { ShownThreadKind } from "../../views/threads/shown-thread-kind";
 import type { ThreadFact } from "../../views/threads/thread-fact";
 import type { EndedLook } from "../../views/threads/thread-look";
-import type { ThreadOpeners } from "../../views/threads/thread-openers";
+import type { ThreadOpeners, ThreadRowOpeners } from "../../views/threads/thread-openers";
 
 const MARK_CLASS = "dd-mark-quest";
 const COMPLETED: LineState = { sign: "✓", label: "Completed", struck: false };
@@ -52,7 +52,7 @@ export const questShownKind: ShownThreadKind<QuestRecord, QuestOutcome, QuestSta
   show(openers: ThreadOpeners): void {
     openers.showQuests();
   },
-  open(openers: ThreadOpeners, source: Source, onClosed: (changed: boolean) => void): void {
+  open(openers: ThreadRowOpeners, source: Source, onClosed: (changed: boolean) => void): void {
     openers.openQuest(source, onClosed);
   },
 };

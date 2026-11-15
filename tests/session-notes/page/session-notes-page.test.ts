@@ -14,6 +14,7 @@ import { SessionTrash } from "../../../src/session-notes/removal/session-trash";
 import type { ConfirmText } from "../../../src/views/dialogs/confirm-modal";
 import type { SessionProperties } from "../../../src/sessions/session-properties";
 import { isShown, obsidianDocument } from "../../stubs/obsidian-dom";
+import { stubLineOpeners } from "../lines/stub-line-openers";
 import { stubRenumbering } from "../renumbering/stub-renumbering";
 
 const FOLDER = "Pale Moon";
@@ -74,14 +75,16 @@ function pageWith(
     propertiesOf,
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
     actions: { openRow: vi.fn(), openLink: vi.fn() },
+    lineOpeners: stubLineOpeners(),
     wholeText: { texts: notes.texts, drafts: new NoteDrafts(drafts), saver: new NoteSaver(notes.vault) },
     removal: { clearer: new SessionClearer(notes.vault), trash: new SessionTrash(notes.vault, { trashFile }, () => false), renumbering: stubRenumbering({ latest: latestAfterDelete }), confirm, report: vi.fn() },
   };
   const page = new SessionNotesPage(root, asked, needs, moves);
   page.load();
   const select = () => root.querySelector("select")!;
+  const lineOpeners = needs.lineOpeners;
   const lineTexts = () => Array.from(root.querySelectorAll(".dd-written-line .dd-line-text")).map((line) => line.textContent);
-  return { root, page, moves, writer, change, unsubscribe, select, lineTexts, drafts, keptDrafts, confirm, trashFile };
+  return { root, page, moves, writer, lineOpeners, change, unsubscribe, select, lineTexts, drafts, keptDrafts, confirm, trashFile };
 }
 
 const SESSIONS = [
@@ -108,6 +111,13 @@ describe("SessionNotesPage", () => {
     expect(root.querySelector(".dd-notes-title")?.textContent).toBe("Session 12 · The Old Mill");
     expect(select().value).toBe(`${FOLDER}/Sessions/Session 12.md`);
     expect(lineTexts()).toEqual(["Find the caravan", "Tracks lead to the [[Old Mill]]."]);
+  });
+
+  it("opens the dialog of a note of the session when it is pressed", () => {
+    const { root, lineOpeners } = pageWith(SESSIONS, null);
+    const row = root.querySelector<HTMLElement>(".dd-written-line[data-line='1'] .dd-row");
+    row?.click();
+    expect(lineOpeners.openQuest).toHaveBeenCalledExactlyOnceWith({ path: `${FOLDER}/Sessions/Session 12.md`, line: 1 }, expect.any(Function));
   });
 
   it("asks the tab to show another session when one is chosen", () => {
