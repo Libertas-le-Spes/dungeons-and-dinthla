@@ -6,8 +6,8 @@ import { MadeUpReply } from "../../builders/made-up-reply";
 
 const MONK = () => MadeUpReply.levelOneMonk();
 
-function sizeModifier(subType: string | null, type = "size") {
-  return { type, subType, value: null, componentId: 1, componentTypeId: 1 };
+function sizeModifier(subType: string | null) {
+  return { type: "size", subType, value: null, componentId: 1, componentTypeId: 1 };
 }
 
 function traitOf(name: string, description: string) {
@@ -70,7 +70,7 @@ describe("sizeOf", () => {
   });
 
   it("ignores a modifier that is not about size, has no type or sub type, or names no size", () => {
-    const others = [sizeModifier("small", "bonus"), sizeModifier(null), { type: null, subType: "small" }, sizeModifier("enormous")];
+    const others = [{ type: "bonus", subType: "small" }, sizeModifier(null), { type: null, subType: "small" }, sizeModifier("enormous")];
     expect(sizeOf(MONK().with(["modifiers", "race"], others).reader())?.text).toBe("Medium");
   });
 });
@@ -88,6 +88,11 @@ describe("creatureTypeOf", () => {
   it("reads the type a species states in its Creature Type trait when the id is not one it knows", () => {
     const traits = [traitOf("Speed", "<p>Your Speed is 30 feet.</p>"), traitOf("Creature Type", "<p>You are a Construct.</p>")];
     expect(creatureTypeOf(MONK().with(["race", "creatureTypeId"], 3).with(["race", "racialTraits"], traits).reader())?.text).toBe("Construct");
+  });
+
+  it("reads nothing from a trait of another name that happens to say You are a type", () => {
+    const traits = [traitOf("Fey Ancestry", "<p>You are a Fey.</p>")];
+    expect(creatureTypeOf(MONK().with(["race", "racialTraits"], traits).reader())).toBeNull();
   });
 
   it("reads the same trait written with You're and an", () => {
