@@ -42,7 +42,7 @@ describe("the layout the sheet and the note writer share", () => {
   });
 
   it("names the sheet's own values, so the sheet reads them as it reads any other", () => {
-    expect(SHEET_VALUE_PROPERTIES).toEqual(["class", "species", "AC", "HP", "speed", "STR", "DEX", "CON", "INT", "WIS", "CHA"]);
+    expect(SHEET_VALUE_PROPERTIES).toEqual(["class", "species", "type", "subtitle", "AC", "HP", "speed", "STR", "DEX", "CON", "INT", "WIS", "CHA"]);
   });
 
   it("lists every property the writer can write, and no other, as an import property", () => {

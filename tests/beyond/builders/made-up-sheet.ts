@@ -20,6 +20,8 @@ export class MadeUpSheet {
     const values = new Map<string, FieldValue>();
     values.set("CharacterName", "Primary Monk");
     values.set("RACE", "Human");
+    values.set("SIZE", "Medium");
+    values.set("ALIGNMENT", "Neutral");
     values.set("CLASS  LEVEL", "Monk 4");
     values.set("spellCastingClass0", "Monk");
     for (const score of SHEET_SCORES) values.set(score.field, score.printed);

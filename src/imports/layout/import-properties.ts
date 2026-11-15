@@ -4,6 +4,8 @@ export const IMPORTED_SESSION_PROPERTY = "imported-session";
 
 export const CLASS_PROPERTY = "class";
 export const SPECIES_PROPERTY = "species";
+export const TYPE_PROPERTY = "type";
+export const SUBTITLE_PROPERTY = "subtitle";
 export const ARMOUR_CLASS_PROPERTY = "AC";
 export const HIT_POINTS_PROPERTY = "HP";
 export const SPEED_PROPERTY = "speed";
@@ -18,6 +20,8 @@ export const CHARISMA_PROPERTY = "CHA";
 export const SHEET_VALUE_PROPERTIES: readonly string[] = [
   CLASS_PROPERTY,
   SPECIES_PROPERTY,
+  TYPE_PROPERTY,
+  SUBTITLE_PROPERTY,
   ARMOUR_CLASS_PROPERTY,
   HIT_POINTS_PROPERTY,
   SPEED_PROPERTY,

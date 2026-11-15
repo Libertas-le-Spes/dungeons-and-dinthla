@@ -6,6 +6,8 @@ import { NumberProperty } from "./kinds/number-property";
 import { ScoreProperty } from "./kinds/score-property";
 import { SCORE_ROWS } from "../rows/score-rows";
 import { SpeciesProperty } from "./kinds/species-property";
+import { SubtitleProperty } from "./kinds/subtitle-property";
+import { TypeProperty } from "./kinds/type-property";
 
 function scoreProperties(): ImportedProperty[] {
   const found: ImportedProperty[] = [];
@@ -16,6 +18,8 @@ function scoreProperties(): ImportedProperty[] {
 export const IMPORTED_PROPERTIES: readonly ImportedProperty[] = [
   new ClassProperty(),
   new SpeciesProperty(),
+  new TypeProperty(),
+  new SubtitleProperty(),
   new NumberProperty(ARMOUR_CLASS_PROPERTY, ARMOUR_CLASS_NAME),
   new NumberProperty(HIT_POINTS_PROPERTY, MAX_HIT_POINTS_NAME),
   new NumberProperty(SPEED_PROPERTY, SPEED_NAME),
