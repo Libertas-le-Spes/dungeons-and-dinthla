@@ -467,9 +467,10 @@ describe("FundsPage with his funds and the party's in two tabs", () => {
   it("opens a ledger entry of Mine to change it, and puts focus back on it after the redraw", async () => {
     const openLedgerEntry = vi.fn<OpenLedgerEntry>();
     const lines = ["$ 5 gp from [[Mira]]"];
-    const { root, change } = await openPage({ campaign: campaignOf(lines), noteNames: [], addCoin: null, openLedgerEntry, openItem: null, shownItem: null, ownNames: ["Mira"] });
+    const { root, change } = await openPage({ campaign: campaignOf(lines), noteNames: [], addCoin: vi.fn(), openLedgerEntry, openItem: null, shownItem: null, ownNames: ["Mira"] });
     const document = root.ownerDocument;
     document.body.append(root);
+    expect(root.querySelector(`${MINE_PANEL} .dd-create`)).toBeNull();
     elementIn(root, `${MINE_PANEL} .dd-ledger-row`).click();
     expect(openLedgerEntry).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 0 }, expect.any(Function));
     openLedgerEntry.mock.calls[0]![1]("written");
@@ -477,8 +478,19 @@ describe("FundsPage with his funds and the party's in two tabs", () => {
     expect(document.activeElement).toBe(elementIn(root, `${MINE_PANEL} .dd-ledger-row`));
   });
 
+  it("puts focus on the list of Mine's ledger when the entry it opened has left it", async () => {
+    const openLedgerEntry = vi.fn<OpenLedgerEntry>();
+    const { root, change } = await openPage({ campaign: campaignOf(["$ 5 gp from [[Mira]]"]), noteNames: [], addCoin: null, openLedgerEntry, openItem: null, shownItem: null, ownNames: ["Mira"] });
+    const document = root.ownerDocument;
+    document.body.append(root);
+    elementIn(root, `${MINE_PANEL} .dd-ledger-row`).click();
+    openLedgerEntry.mock.calls[0]![1]("written");
+    change(campaignOf(["$ 5 gp from Mira"]));
+    expect(document.activeElement).toBe(elementIn(root, `${MINE_PANEL} .dd-ledger`));
+  });
+
   it("gives the gone items to the side that held them", async () => {
-    const { root } = await openPage({ campaign: campaignOf(LINES, ["$$ Spyglass :sold 20 gp", "$$ Rope :used"]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: ["Mira"] });
+    const { root } = await openPage({ campaign: campaignOf(LINES, ["$$ Spyglass :sold 20 gp to [[Mira]]", "$$ Rope :used"]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: ["Mira"] });
     expect(textsOf(root, `${MINE_PANEL} .dd-folded .dd-text`)).toEqual(["Spyglass"]);
     expect(textsOf(root, `${PARTY_PANEL} .dd-folded .dd-text`)).toEqual(["Rope"]);
   });
@@ -503,7 +515,7 @@ describe("FundsPage with his funds and the party's in two tabs", () => {
   it("scrolls the ledger and each list of items, in boxes the keyboard can reach", async () => {
     const { root } = await openPage({ campaign: campaignOf(LINES), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
     const boxes = Array.from(root.querySelectorAll<HTMLElement>(".dd-scroll-list"));
-    expect(boxes.map((box) => box.getAttribute("aria-label"))).toEqual(["Items that are yours", "Ledger entries", "Items of the party", "Ledger entries"]);
+    expect(boxes.map((box) => box.getAttribute("aria-label"))).toEqual(["Items that are yours", "Your ledger entries", "Items of the party", "Party ledger entries"]);
     expect(boxes.every((box) => box.getAttribute("tabindex") === "0")).toBe(true);
     expect(root.querySelector(`${PARTY_PANEL} .dd-ledger.dd-scroll-list`)).not.toBeNull();
   });

@@ -14,6 +14,7 @@ export interface LedgerBoxParts {
   openLedgerEntry: OpenLedgerEntry | null;
   addCoin: ((returnFocus: () => void) => void) | null;
   rowFocus: RowFocus;
+  label: string;
 }
 
 function entriesText(count: number): string {
@@ -45,7 +46,7 @@ export class LedgerBox extends Component {
       this.addButton = button;
     }
     this.list = panel.createEl("ul", { cls: "dd-ledger" });
-    makeScrollList({ element: this.list, label: "Ledger entries" });
+    makeScrollList({ element: this.list, label: parts.label });
   }
 
   render({ lines, empty }: LedgerShown): void {
@@ -55,14 +56,15 @@ export class LedgerBox extends Component {
     for (const line of lines) this.addRow(line);
   }
 
-  private focusAddCoin(): void {
-    if (this.addButton !== null) this.addButton.focus();
+  private focusWhenRowIsGone(): void {
+    if (this.addButton === null) this.list.focus();
+    else this.addButton.focus();
   }
 
   private afterEntry(source: Source, outcome: CoinOutcome): void {
     let focusRow = () => focusRowAt(this.list, source);
     if (outcome === "deleted") focusRow = NO_ROW;
-    this.parts.rowFocus.afterClose(focusRow, outcome !== "unchanged", () => this.focusAddCoin());
+    this.parts.rowFocus.afterClose(focusRow, outcome !== "unchanged", () => this.focusWhenRowIsGone());
   }
 
   private addRow(line: LedgerLine): void {

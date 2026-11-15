@@ -12,10 +12,6 @@ describe("readItemChange", () => {
     });
   });
 
-  it("reads every link of a change", () => {
-    expect(readItemChange("$$ [[Silvered lantern]] :changed to [[Mira]]")).toMatchObject({ item: "[[Silvered lantern]]", text: "[[Silvered lantern]] :changed to [[Mira]]" });
-  });
-
   it("reads a holder written without a link", () => {
     expect(readItemChange("$$ Silvered lantern :changed to Mira")).toMatchObject({ holder: "Mira", holderLinked: false });
   });

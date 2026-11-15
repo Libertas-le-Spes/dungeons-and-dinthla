@@ -48,6 +48,7 @@ export type ItemEventKind = "named" | ItemChangeKind;
 export interface ItemEvent {
   kind: ItemEventKind;
   holder: string;
+  links: string[];
   source: Source;
 }
 

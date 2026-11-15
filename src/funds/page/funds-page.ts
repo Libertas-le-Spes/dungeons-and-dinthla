@@ -10,7 +10,7 @@ import { summariseFunds, type CoinCount, type FundsSummary, type LedgerLine } fr
 import { THE_PARTY_LABEL, type ItemSummary } from "../items/item-groups";
 import { NO_COIN_ENTRIES } from "./ledger-row";
 import { LedgerBox, type LedgerBoxParts } from "./ledger-box";
-import { whoseFunds } from "./own-funds";
+import { whoseFunds } from "./whose-funds";
 import type { OpenLedgerEntry } from "../coins/open-ledger-entry";
 import { makeScrollList } from "../../views/lists/scroll-list";
 import { Tabs } from "../../views/tabs/tabs";
@@ -138,8 +138,8 @@ export class FundsPage extends Component {
     this.mineItems = this.tabs.firstPanel.createEl("section", { cls: "dd-panel dd-items-panel" });
     this.purse = this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-purse-panel" });
     this.partyItems = this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-items-panel" });
-    this.mineLedger = this.ledgerBoxOf({ panel: this.tabs.firstPanel.createEl("section", { cls: "dd-panel dd-ledger-panel" }), addCoin: null });
-    this.partyLedger = this.ledgerBoxOf({ panel: this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-ledger-panel" }), addCoin: parts.addCoin });
+    this.mineLedger = this.ledgerBoxOf({ panel: this.tabs.firstPanel.createEl("section", { cls: "dd-panel dd-ledger-panel" }), addCoin: null, label: "Your ledger entries" });
+    this.partyLedger = this.ledgerBoxOf({ panel: this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-ledger-panel" }), addCoin: parts.addCoin, label: "Party ledger entries" });
     this.tabs.secondPanel.createEl("p", { cls: "dd-note", text: HOW_LINES_ARE_READ });
   }
 
@@ -154,9 +154,9 @@ export class FundsPage extends Component {
     this.render();
   }
 
-  private ledgerBoxOf({ panel, addCoin }: Pick<LedgerBoxParts, "panel" | "addCoin">): LedgerBox {
+  private ledgerBoxOf({ panel, addCoin, label }: Pick<LedgerBoxParts, "panel" | "addCoin" | "label">): LedgerBox {
     const { actions, openLedgerEntry } = this.parts;
-    return new LedgerBox({ panel, actions, openLedgerEntry, addCoin, rowFocus: this.rowFocus });
+    return new LedgerBox({ panel, actions, openLedgerEntry, addCoin, label, rowFocus: this.rowFocus });
   }
 
   private shownPanelOf(root: HTMLElement): Component | null {
