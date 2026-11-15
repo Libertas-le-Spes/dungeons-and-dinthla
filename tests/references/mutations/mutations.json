@@ -327,5 +327,12 @@
   "find": "properties[FIRST_NAMED] = sessionLink;",
   "replace": "properties.session = sessionLink;",
   "group": "making maker"
+ },
+ {
+  "id": "a name has a kind only if a line says so",
+  "file": "src/references/named-on-lines.ts",
+  "find": "return named.kind !== null;",
+  "replace": "return true;",
+  "group": "making plan"
  }
 ]
