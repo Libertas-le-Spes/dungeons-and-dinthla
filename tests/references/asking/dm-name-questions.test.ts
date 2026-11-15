@@ -24,6 +24,7 @@ interface World {
   campaign: FakeCampaign;
   existing: TFile[];
   aliases: Record<string, string[]>;
+  resolving: string[];
 }
 
 function worldNaming(lines: string[]): World {
@@ -33,7 +34,7 @@ function worldNaming(lines: string[]): World {
   const campaign = new FakeCampaign();
   campaign.hold(SESSION_ONE, lines.slice(0, 2).join("\n"));
   campaign.hold(SESSION, lines.slice(2).join("\n"));
-  return { notes, campaign, existing: [], aliases: {} };
+  return { notes, campaign, existing: [], aliases: {}, resolving: [] };
 }
 
 function worldNamingMill(): World {
@@ -49,6 +50,10 @@ function startWith(world: World) {
   const offref = vi.fn();
   const metadata = {
     ...world.notes.metadata,
+    getFirstLinkpathDest: vi.fn((target: string, source: string): TFile | null => {
+      if (world.resolving.includes(target)) return fileAt(`Elsewhere/${target}.md`);
+      return world.notes.metadata.getFirstLinkpathDest(target, source);
+    }),
     getFileCache: vi.fn((file: TFile): CachedMetadata => {
       const aliases = world.aliases[file.path];
       if (aliases === undefined) return {};
@@ -148,6 +153,13 @@ describe("DmNameQuestions", () => {
   it("does not ask about a character answered in another campaign", async () => {
     const world = worldNaming(["[[Mira]]", "[[Mira]]", "[[Mira]]"]);
     world.existing = [fileAt(`${OTHER_CAMPAIGN}/Characters/Mira.md`)];
+    const { asked } = await savedAndAsked(world);
+    expect(asked).toEqual([]);
+  });
+
+  it("does not ask about a name Obsidian already resolves to a note, even one outside the campaign", async () => {
+    const world = worldNamingMill();
+    world.resolving = ["Old Mill"];
     const { asked } = await savedAndAsked(world);
     expect(asked).toEqual([]);
   });
