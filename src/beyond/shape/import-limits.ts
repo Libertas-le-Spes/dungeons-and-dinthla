@@ -10,6 +10,9 @@ export const LINE_LENGTH: Cap = { what: "A line of text", most: 300, unit: "char
 
 export const CLASS_COUNT: Cap = { what: "The list of classes", most: 20, unit: "classes" };
 export const ABILITY_COUNT: Cap = { what: "The list of ability overrides", most: 6, unit: "overrides" };
+export const BASE_SCORE_COUNT: Cap = { what: "The list of base scores", most: 6, unit: "scores" };
+export const BONUS_SCORE_COUNT: Cap = { what: "The list of score bonuses", most: 6, unit: "bonuses" };
+export const CUSTOM_SPEED_COUNT: Cap = { what: "The list of speeds set by hand", most: 20, unit: "speeds" };
 export const MODIFIER_COUNT: Cap = { what: "The list of modifiers", most: 2_000, unit: "modifiers" };
 export const NUMBER_COUNT: Cap = { what: "The list of numbers", most: 100, unit: "numbers" };
 export const INVENTORY_COUNT: Cap = { what: "The inventory", most: 500, unit: "items" };

@@ -31,7 +31,7 @@ function foundIn(path: string, needs: CheckNeeds): string[] {
   }
   const found = checker.networkCodeIn(needs.read(path));
   for (const name of found) needs.failed(`${path} holds network code: ${name}`);
-  if (found.length === 0) needs.said(`${path} holds no network code beyond what is allowed.`);
+  if (found.length === 0) needs.said(`${path} holds no network code beyond what is allowed, which is the plugin's one D&D Beyond call.`);
   return found;
 }
 

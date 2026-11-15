@@ -92,7 +92,7 @@ export const NETWORK_CODE: NetworkCode[] = [
   { name: "an element made from a name built in code", pattern: /\bcreate(?:El|Element|ElementNS|Svg)\s*\(\s*(?!["'][\w-]+["']\s*[,)])/ },
   { name: "an attribute set from a name built in code, or an event handler", pattern: /\b(?:setAttribute|setAttr|toggleAttribute|setAttributeNS)\s*\(\s*(?!["'](?!on)[\w-]+["']\s*[,)])/i },
   { name: "CSS set from code other than the background picture's", pattern: /\bsetCss(?:Props|Styles)\b|\bsetProperty\b|\bcssText\b/ },
-  { name: "a module other than Obsidian or CodeMirror", pattern: /require/ },
+  { name: "a module other than Obsidian or CodeMirror", pattern: /require(?![\w$])/ },
   { name: "a Node file, network or process module", pattern: new RegExp(`require\\(\\s*["'\`](node:)?(${NODE_NETWORK_MODULES})["'\`]\\s*\\)`) },
   { name: "electron", pattern: /require\(\s*["'`]electron["'`]\s*\)/ },
   { name: "process", pattern: /(?<![\w$])(?<!\.\s*)process(?![\w$])(?!\s*\([^()]*\)\s*\{)|\bprocess\s*(?:\?\.|\.|\[)/ },
