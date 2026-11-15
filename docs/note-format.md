@@ -387,6 +387,8 @@ Your own words, never touched.
 - **When a session is deleted and the later ones are renumbered.** *Delete session* moves the deleted session's notes to the trash by the same rule as a deleted last line; one that holds your words stays, and a message says that the session that takes the number will adopt it, *Fix* rewriting only its lines. Each later session's kind notes then move with it, lowest number first, from `Questions/Session 4.md` to `Questions/Session 3.md` and so on, and their `session` link is written again with the new name, only for notes whose `session` link names the session they followed and only when nothing is at the new path; your words move with the note. If the link can't be written after the note moved, the note is moved back when its old place is still free, and a message says so; when it can't be, the message says the note moved without its link and how to change it. A note that can't move (the one at its new path has your words, or it isn't linked to the session, or Obsidian hasn't read it) stays where it is and a message says so once; its link then points to the session that took the number, so use *Fix* on the sessions that moved.
 - **If a write fails.** A message says so once, and that note isn't tried again until its lines change. A note whose properties couldn't be written is moved to the trash again if the plugin had just made it. Obsidian may not have read a note it just made yet: the plugin waits for it. The plugin writes `lines` and `session` (and, for an item's note, `holder`, `lines` and `aliases`) over properties of yours that have those names; that is by design, they are the plugin's. A value in `aliases` that isn't a text is kept.
 
+Everything stays inside the Campaigns folder, through the gatekeeper. A kind note's path is `<campaign folder>/<kind folder>/<session name>.md`, which is inside the campaign, and the gatekeeper checks it again.
+
 ### People and places
 
 A person or a place named on three or more `?`, `!` and `$` lines in the campaign gets a note of its own, in `Characters` or `Places`, when a session is saved on this device: never while you type, never from a kept draft, and never for a change that merely arrives by sync. The follow-up lines of a question or quest count, and so does a follow-up that matches no earlier line; lookups and plain text lines do not.
@@ -413,11 +415,9 @@ first named: "[[Session 2]]"
 - **Only a name with no note.** A note is made only when Obsidian can find no note for the name anywhere in the vault, in every session that names it, and no note in the campaign has that name in any folder, whatever its capitals or the way its letters are written. So `[[Lady Vess]]` is linked to a note that is already there, such as one in `Characters`, `Fallen` or a folder of your own, and never made again.
 - **Never overwritten, moved or deleted.** The plugin makes a note only where there is none, and never changes, moves or trashes a note of a person or a place afterwards. If a note can't be completed, the empty file it had just made is removed, and nothing else.
 - **Names a file can't have.** A name with a character a file name can't hold (`Lady: Vess`) or that would share a file name with another new name gets no note, and a message says so once.
-- **Names are matched as written.** `[[Old Mill]]` and `[[old mill]]` count apart, as do `[[Places/Old Mill]]` and `[[Old Mill]]`.
+- **Names are matched as written.** `[[Old Mill]]` and `[[old mill]]` are two names, but they would share a file name, so only the first gets a note and the second gets the message. A link with a folder in it, such as `[[Places/Old Mill]]`, can't be a note name and gets the message. A name that ends in `.md` gets the message too.
 - **When it happens.** Once Obsidian has resolved the links of the saved session. A session saved in Obsidian's own editor, or one that arrives by sync, makes no note until the next save made with the plugin, and the earlier sessions of a campaign are not looked at when it is opened.
 - **If a write fails.** A message says so once.
-
-Everything stays inside the Campaigns folder, through the gatekeeper. A kind note's path is `<campaign folder>/<kind folder>/<session name>.md`, which is inside the campaign, and the gatekeeper checks it again.
 
 ## Character
 

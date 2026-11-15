@@ -93,14 +93,14 @@
  {
   "id": "known needs a kind",
   "file": "src/references/often-named.ts",
-  "find": "known: often.filter(({ kind }) => kind !== null)",
+  "find": "known: often.filter(hasKind)",
   "replace": "known: often",
   "group": "often"
  },
  {
   "id": "undecided needs no kind",
   "file": "src/references/often-named.ts",
-  "find": "undecided: often.filter(({ kind }) => kind === null)",
+  "find": "undecided: often.filter((named) => !hasKind(named))",
   "replace": "undecided: often",
   "group": "often"
  },
