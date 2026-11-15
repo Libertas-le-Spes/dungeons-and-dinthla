@@ -386,7 +386,7 @@ describe("the built plugin", () => {
 describe("the built styles", () => {
   it("hold no network code", async () => {
     const styles = await built(STYLES_BUNDLE);
-    expect(styles).toContain("url(data:font/woff2;base64,");
+    expect(styles).toContain(".dd-tokens");
     expect(styleNetworkCodeIn(styles)).toEqual([]);
   });
 });

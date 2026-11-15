@@ -1,7 +1,7 @@
 .dd-note-page .dd-note-title {
   margin: 0;
   font: var(--type-panel-title);
-  font-size: var(--text-xl);
+  font-size: var(--h3-size);
   color: var(--text-strong);
   overflow-wrap: anywhere;
 }
@@ -11,7 +11,7 @@
 }
 
 .dd-note-page .dd-note-links-title {
-  margin: 0 0 var(--space-2);
+  margin: 0 0 var(--size-4-2);
   font: var(--type-label);
   color: var(--text-muted-ui);
 }
@@ -19,7 +19,7 @@
 .dd-note-page .dd-note-links-list {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2) var(--space-4);
+  gap: var(--size-4-2) var(--size-4-4);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -27,14 +27,14 @@
 }
 
 .dd-note-page .dd-note-mentions {
-  margin-top: var(--space-5);
+  margin-top: var(--size-4-5);
 }
 
 .dd-note-page .dd-left-campaign {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2) var(--space-4);
+  gap: var(--size-4-2) var(--size-4-4);
 }
 
 .dd-note-page .dd-left-campaign-message {

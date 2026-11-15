@@ -1,6 +1,5 @@
-@import "./fonts.css";
 @import "./tokens.css";
-@import "./follow-theme.css";
+@import "./colours.css";
 @import "./root.css";
 @import "./markers.css";
 @import "./linked-text.css";

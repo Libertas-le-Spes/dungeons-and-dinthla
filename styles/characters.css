@@ -1,7 +1,7 @@
 .dd-characters .dd-gallery {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
-  gap: var(--space-5);
+  gap: var(--size-4-5);
   list-style: none;
   margin: 0;
   padding: 0;
@@ -15,12 +15,12 @@
 
 .dd-characters .dd-card:hover {
   background: var(--surface-statblock);
-  box-shadow: var(--shadow-2);
+  box-shadow: var(--shadow-l);
 }
 
 .dd-characters .dd-card:active {
   transform: translateY(1px);
-  box-shadow: var(--shadow-1);
+  box-shadow: var(--shadow-s);
 }
 
 .dd-characters .dd-card:focus-visible {
@@ -44,7 +44,7 @@
 
 .dd-characters .dd-backups,
 .dd-characters .dd-fallen {
-  margin-top: var(--space-8);
+  margin-top: var(--size-4-8);
 }
 
 .dd-characters .dd-backup,
@@ -52,7 +52,7 @@
 .dd-characters .dd-left {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--size-4-2);
 }
 
 .dd-characters .dd-backup .dd-make-main,

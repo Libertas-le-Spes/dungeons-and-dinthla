@@ -1,13 +1,13 @@
 .dd-dialog .dd-subject {
-  margin: 0 0 var(--space-3);
+  margin: 0 0 var(--size-4-3);
   font: var(--type-note);
-  font-size: var(--text-md);
+  font-size: var(--font-ui-medium);
   font-variant-ligatures: none;
   color: var(--text-strong);
 }
 
 .dd-dialog .dd-detail {
-  margin: 0 0 var(--space-3);
+  margin: 0 0 var(--size-4-3);
   font: var(--type-label);
   color: var(--text-muted-ui);
 }
@@ -32,15 +32,15 @@
 }
 
 .dd-dialog .dd-where {
-  margin: var(--space-3) 0 0;
-  font-size: var(--text-sm);
+  margin: var(--size-4-3) 0 0;
+  font-size: var(--font-ui-small);
   color: var(--text-muted-ui);
 }
 
 .dd-dialog .dd-reading {
-  min-height: calc(var(--leading-body) * 1em);
-  margin: var(--space-2) 0 0;
-  font-size: var(--text-sm);
+  min-height: calc(var(--line-height-normal) * 1em);
+  margin: var(--size-4-2) 0 0;
+  font-size: var(--font-ui-small);
   color: var(--text-muted-ui);
 }
 
