@@ -16,6 +16,7 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "questions/": ["App", "Notice", "Setting"],
   "quests/": ["AbstractInputSuggest", "App", "Notice", "Setting", "TextAreaComponent"],
   "reading/": ["Debouncer", "debounce"],
+  "references/new-names/": ["App", "ButtonComponent", "Setting"],
   "session-notes/": ["Component", "EventRef", "TFile", "getFrontMatterInfo"],
   "sessions/": ["App", "Modal", "Notice", "Setting", "TFile"],
   "settings/": ["App", "ButtonComponent", "DropdownComponent", "FuzzySuggestModal", "Notice", "Plugin", "PluginSettingTab", "Setting", "TFile"],

@@ -76,24 +76,24 @@ class ReferenceNotePlanner {
   }
 
   considerAll({ known, undecided }: OftenNamed): void {
-    for (const { name, kind, first } of this.firstSessionsOf(known)) {
-      if (!this.isMakeable(name)) continue;
-      this.plan.notes.push(plannedReferenceNote({ name, kind, campaignFolder: this.input.campaignFolder, firstSession: first }));
+    for (const { named, first } of this.firstSessionsOf(known)) {
+      if (!this.isMakeable(named.name)) continue;
+      this.plan.notes.push(plannedReferenceNote({ name: named.name, kind: named.kind, campaignFolder: this.input.campaignFolder, firstSession: first }));
     }
-    for (const { name, first } of this.firstSessionsOf(undecided)) {
-      if (!this.isMakeable(name)) continue;
-      this.plan.undecided.push({ name, firstSession: first, namedIn: this.sessionsNaming(name).map(({ path }) => path) });
+    for (const { named, first } of this.firstSessionsOf(undecided)) {
+      if (!this.isMakeable(named.name)) continue;
+      this.plan.undecided.push({ name: named.name, firstSession: first, namedIn: this.sessionsNaming(named.name).map(({ path }) => path) });
     }
   }
 
-  private firstSessionsOf<Named extends { name: string }>(all: Named[]): (Named & { first: SessionNote })[] {
-    const found: (Named & { first: SessionNote })[] = [];
+  private firstSessionsOf<Named extends { name: string }>(all: Named[]): { named: Named; first: SessionNote }[] {
+    const found: { named: Named; first: SessionNote }[] = [];
     const considered = new Set<string>();
     for (const { session, names } of this.sessionNames) {
       for (const named of all) {
         if (!names.has(named.name) || considered.has(named.name)) continue;
         considered.add(named.name);
-        found.push({ ...named, first: session });
+        found.push({ named, first: session });
       }
     }
     return found;
