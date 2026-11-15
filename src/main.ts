@@ -32,6 +32,8 @@ import { openItemDialog } from "./funds/items/open-item";
 import { ItemNotes } from "./funds/item-notes/item-notes";
 import { newNamesDialogIn } from "./references/new-names/new-names-dialog";
 import { ReferenceNotes } from "./references/making/reference-notes";
+import { DmNameQuestions } from "./references/asking/dm-name-questions";
+import { RoleRoutedNotes } from "./references/asking/role-routed-notes";
 import { FundsTracking } from "./funds/tracking/funds-tracking";
 import { askInNotice } from "./views/dialogs/differing-notice";
 import { startKindNotes } from "./kind-notes/watching/kind-notes-wiring";
@@ -464,9 +466,20 @@ export default class DungeonsAndDinthla extends Plugin {
     const items = new ItemNotes({ store: saved, files: gate.files, metadata: gate.metadata, actions: gate.fileActions, failed, say });
     const made = new NotesMade(this.settingsSaver);
     const references = new ReferenceNotes({ store: saved, files: gate.files, metadata: gate.metadata, actions: gate.fileActions, say, askNewNames: newNamesDialogIn(this.app) });
+    const dmQuestions = new DmNameQuestions({
+      store: saved,
+      files: gate.files,
+      metadata: gate.metadata,
+      actions: gate.fileActions,
+      campaignFolders: () => this.campaignFolders(),
+      say,
+      askNewNames: newNamesDialogIn(this.app),
+    });
+    const routed = new RoleRoutedNotes({ store: saved, metadata: gate.metadata, forDm: dmQuestions, forOthers: references });
     this.register(items.start());
     this.register(references.start());
-    this.register(startKindNotes({ gate, written: gate.written, saved, made, items, references, say, ask: askInNotice }));
+    this.register(dmQuestions.start());
+    this.register(startKindNotes({ gate, written: gate.written, saved, made, items, references: routed, say, ask: askInNotice }));
     this.register(saved.start());
   }
 

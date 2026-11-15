@@ -45,6 +45,11 @@ export function sharedReferenceNameMessage(name: string, owner: string): string 
 
 export const ENDS_LIKE_A_NOTE = `a name can't end in ${NOTE_ENDING}, since its note would then be named twice over.`;
 
+export function refusalForReferenceName(name: string): string | null {
+  if (name.toLowerCase().endsWith(NOTE_ENDING)) return ENDS_LIKE_A_NOTE;
+  return refusalForFileName(name);
+}
+
 interface SessionNames {
   session: SessionNote;
   names: Set<string>;
@@ -107,7 +112,7 @@ class ReferenceNotePlanner {
     if (!this.sessionsNaming(name).every((session) => this.isUnresolvedIn(session, name))) return false;
     const key = nameKeyOf(name);
     if (this.existing.has(key)) return false;
-    const reason = this.refusalFor(name);
+    const reason = refusalForReferenceName(name);
     if (reason !== null) {
       this.plan.refusals.push(noReferenceNoteMessage(name, reason));
       return false;
@@ -119,11 +124,6 @@ class ReferenceNotePlanner {
     }
     this.owners.set(key, name);
     return true;
-  }
-
-  private refusalFor(name: string): string | null {
-    if (name.toLowerCase().endsWith(NOTE_ENDING)) return ENDS_LIKE_A_NOTE;
-    return refusalForFileName(name);
   }
 
   private namesIn(session: SessionNote): Set<string> {
