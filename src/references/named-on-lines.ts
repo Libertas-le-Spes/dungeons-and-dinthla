@@ -11,6 +11,14 @@ export interface NamedOnLines {
   kind: ReferenceKindName | null;
 }
 
+export interface NamedWithKind extends NamedOnLines {
+  kind: ReferenceKindName;
+}
+
+export function hasKind(named: NamedOnLines): named is NamedWithKind {
+  return named.kind !== null;
+}
+
 interface Tally {
   lineCount: number;
   kinds: Set<ReferenceKindName>;

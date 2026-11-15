@@ -20,6 +20,10 @@ function metadataWith(linkLeadsTo: TFile | null = MIRA) {
     getFileCache: vi.fn(() => CACHE),
     getFirstLinkpathDest: vi.fn(() => linkLeadsTo),
     fileToLinktext: vi.fn((file: TFile) => `link to ${file.path}`),
+    unresolvedLinks: {
+      [SESSION.path]: { "Lady Vess": 1, "Old Mill": 2 },
+      [PRIVATE.path]: { "Secret Name": 1 },
+    },
     resolvedLinks: {
       [SESSION.path]: { [MIRA.path]: 2, [PRIVATE.path]: 1 },
       [PRIVATE.path]: { [MIRA.path]: 1 },
@@ -72,6 +76,20 @@ describe("FencedMetadata lookups", () => {
 
   it("lists only links between notes inside", () => {
     expect(metadataWith().metadata.resolvedLinks).toEqual({ [SESSION.path]: { [MIRA.path]: 2 } });
+  });
+});
+
+describe("FencedMetadata unresolved links", () => {
+  it("gives the link texts Obsidian could not resolve in a note inside, and never a path or a count", () => {
+    expect(metadataWith().metadata.unresolvedLinksOf(SESSION.path)).toEqual(["Lady Vess", "Old Mill"]);
+  });
+
+  it("gives nothing for a note outside, though Obsidian lists links for it", () => {
+    expect(metadataWith().metadata.unresolvedLinksOf(PRIVATE.path)).toEqual([]);
+  });
+
+  it("gives nothing for a note inside that Obsidian has no unresolved links for", () => {
+    expect(metadataWith().metadata.unresolvedLinksOf(MIRA.path)).toEqual([]);
   });
 });
 

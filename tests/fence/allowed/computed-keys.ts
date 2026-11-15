@@ -20,6 +20,7 @@ export const COMPUTED_KEY_READERS = [
   "notes/reading/ledger.ts",
   "notes/reading/quest.ts",
   "notes/writing/note-lines.ts",
+  "references/making/reference-note-plan.ts",
   "session-notes/kept/kept-time.ts",
   "session-notes/writing/box-text.ts",
   "session-notes/writing/lookup-list.ts",
