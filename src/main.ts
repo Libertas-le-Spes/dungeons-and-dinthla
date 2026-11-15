@@ -257,9 +257,8 @@ export default class DungeonsAndDinthla extends Plugin {
     });
     const sections = campaignsFolderFirst(pages, welcome, () => this.campaignsFolderSetting.path);
     const backdropFor = (frameEl: HTMLElement) => new TabBackground(frameEl, this.store, gate.metadata, gate.files);
-    this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView(leaf, this.store, sections, (path) => void this.followCampaignOf(path), backdropFor, gate.files));
+    this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView({ leaf, store: this.store, sections, followCampaign: (path) => void this.followCampaignOf(path), backdropFor, files: gate.files, campaigns: campaignChoice }));
     this.addPageOpeners(newSession);
-    this.addCommand({ id: "new-campaign", name: "New campaign", callback: startNewCampaign });
     this.colourSessionNotes();
     this.app.workspace.onLayoutReady(() => {
       this.startCampaign(help).catch((error: unknown) => new Notice(`Couldn't start the campaign: ${messageOf(error)}`));
