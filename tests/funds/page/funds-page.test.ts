@@ -99,8 +99,8 @@ function textsOf(root: HTMLElement, selector: string): string[] {
 describe("FundsPage", () => {
   it("shows the purse, money in and out, and the ledger newest first with each balance", async () => {
     const { root } = await openPage({ campaign: campaignOf(["$ +50 gp advance", "$ Paid 2 gp for rooms", "$ 35 gp 4 sp from the bandits"]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
-    expect(textsOf(root, ".dd-purse")).toEqual(["83 gp 4 sp"]);
-    expect(textsOf(root, ".dd-in-out > span")).toEqual(["In 85 gp 4 sp", "Out 2 gp"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-purse`)).toEqual(["83 gp 4 sp"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-in-out > span`)).toEqual(["In 85 gp 4 sp", "Out 2 gp"]);
     expect(textsOf(root, `${PARTY_PANEL} .dd-ledger .dd-amount`)).toEqual(["+35 gp 4 sp", "−2 gp", "+50 gp"]);
     expect(textsOf(root, `${PARTY_PANEL} .dd-ledger .dd-direction`)).toEqual(["In", "Out", "In"]);
     expect(textsOf(root, `${PARTY_PANEL} .dd-ledger .dd-balance`)).toEqual(["83 gp 4 sp", "48 gp", "50 gp"]);
@@ -110,19 +110,19 @@ describe("FundsPage", () => {
 
   it("shows the coins the purse is made of when they read differently from it", async () => {
     const { root } = await openPage({ campaign: campaignOf(["$ 1 pp found", "$ 5 gp found"]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
-    expect(textsOf(root, ".dd-coin")).toEqual(["1 pp", "5 gp"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-coin`)).toEqual(["1 pp", "5 gp"]);
   });
 
   it("leaves the coins out when they read the same as the purse", async () => {
     const { root } = await openPage({ campaign: campaignOf(["$ 35 gp 4 sp found"]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
-    expect(root.querySelector(".dd-coin")).toBeNull();
+    expect(root.querySelector(`${PARTY_PANEL} .dd-coin`)).toBeNull();
   });
 
   it("says how to note coin when there is none", async () => {
     const { root } = await openPage({ campaign: campaignOf([]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
-    expect(textsOf(root, ".dd-coins .dd-empty")).toEqual(["No coin yet. Note it as “$ 20 gp from the bandits”. A link to your character on the line, like “$ 30 gp from the bandits, share to [[Mira]]”, puts it on your list."]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-coins .dd-empty`)).toEqual(["No coin yet. Note it as “$ 20 gp from the bandits”. A link to your character on the line, like “$ 30 gp from the bandits, share to [[Mira]]”, puts it on your list."]);
     expect(textsOf(root, `${PARTY_PANEL} .dd-ledger .dd-empty`)).toEqual(["No coin entries yet."]);
-    expect(textsOf(root, ".dd-purse")).toEqual(["0 gp"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-purse`)).toEqual(["0 gp"]);
     expect(textsOf(root, `${PARTY_PANEL} .dd-ledger-panel .dd-title .dd-count`)).toEqual([""]);
   });
 
@@ -133,19 +133,19 @@ describe("FundsPage", () => {
 
   it("writes large coin counts as the purse does, so they aren't shown twice", async () => {
     const { root } = await openPage({ campaign: campaignOf(["$ 1200 gp from the dragon"]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
-    expect(textsOf(root, ".dd-purse")).toEqual(["1,200 gp"]);
-    expect(root.querySelector(".dd-coin")).toBeNull();
+    expect(textsOf(root, `${PARTY_PANEL} .dd-purse`)).toEqual(["1,200 gp"]);
+    expect(root.querySelector(`${PARTY_PANEL} .dd-coin`)).toBeNull();
   });
 
   it("labels the coins the purse is made of", async () => {
     const { root } = await openPage({ campaign: campaignOf(["$ 1 pp found", "$ 5 gp found"]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
-    expect(textsOf(root, ".dd-coins-label")).toEqual(["In coins:"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-coins-label`)).toEqual(["In coins:"]);
   });
 
   it("redraws when notes change, and stops listening when closed", async () => {
     const { root, change, close, unsubscribe } = await openPage({ campaign: campaignOf([]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
     change(campaignOf(["$ 5 gp found"]));
-    expect(textsOf(root, ".dd-purse")).toEqual(["5 gp"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-purse`)).toEqual(["5 gp"]);
     close();
     expect(unsubscribe).toHaveBeenCalled();
   });
@@ -432,11 +432,11 @@ describe("FundsPage with his funds and the party's in two tabs", () => {
     expect(textsOf(root, `${PARTY_PANEL} .dd-items-panel .dd-title .dd-count`)).toEqual(["2 held"]);
   });
 
-  it("keeps the purse and the ledger in Party only", async () => {
+  it("keeps the party purse and its ledger in Party", async () => {
     const { root } = await openPage({ campaign: campaignOf(LINES), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: ["Mira"] });
     expect(textsOf(root, `${PARTY_PANEL} .dd-purse`)).toEqual(["50 gp"]);
     expect(textsOf(root, `${PARTY_PANEL} .dd-ledger .dd-what`)).toEqual(["+50 gp advance"]);
-    expect(root.querySelector(`${MINE_PANEL} .dd-purse`)).toBeNull();
+    expect(textsOf(root, `${MINE_PANEL} .dd-purse`)).toEqual(["0 gp"]);
   });
 
   it("lists the coin lines that link his character anywhere in the ledger of Mine, newest first, and keeps them out of Party", async () => {
@@ -560,6 +560,73 @@ class MadeUpPurses {
   }
 }
 
+describe("FundsPage with a purse of his own coin lines in Mine", () => {
+  const OWN_PURSE = `${MINE_PANEL} .dd-purse-panel`;
+
+  async function pageFor(lines: string[], ownNames: string[]) {
+    return openPage({ campaign: campaignOf(lines), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames });
+  }
+
+  it("totals the coin lines that link his character, with money in and out", async () => {
+    const { root } = await pageFor(["$ 30 gp from the bandits, share to [[Mira]]", "$ Paid 5 gp 2 sp for rope, [[Mira]]", "$ +50 gp advance"], ["Mira"]);
+    expect(textsOf(root, `${OWN_PURSE} .dd-title`)).toEqual(["Purse"]);
+    expect(textsOf(root, `${OWN_PURSE} .dd-purse`)).toEqual(["24 gp 8 sp"]);
+    expect(textsOf(root, `${OWN_PURSE} .dd-in-out > span`)).toEqual(["In 30 gp", "Out 5 gp 2 sp"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-purse`)).toEqual(["50 gp"]);
+  });
+
+  it("shows the coins it is made of when they read differently from it", async () => {
+    const { root } = await pageFor(["$ 1 pp found by [[Mira]]", "$ 5 gp found by [[Mira]]"], ["Mira"]);
+    expect(textsOf(root, `${OWN_PURSE} .dd-coins-label`)).toEqual(["In coins:"]);
+    expect(textsOf(root, `${OWN_PURSE} .dd-coin`)).toEqual(["1 pp", "5 gp"]);
+  });
+
+  it("leaves the coins out when they read the same as the purse", async () => {
+    const { root } = await pageFor(["$ 5 gp found by [[Mira]]"], ["Mira"]);
+    expect(root.querySelector(`${OWN_PURSE} .dd-coin`)).toBeNull();
+  });
+
+  it("matches his character's link whatever its capitals", async () => {
+    const { root } = await pageFor(["$ 7 gp from the bandits, share to [[mira]]"], ["Mira"]);
+    expect(textsOf(root, `${OWN_PURSE} .dd-purse`)).toEqual(["7 gp"]);
+  });
+
+  it("adds up the lines of every character of his", async () => {
+    const { root } = await pageFor(["$ 5 gp a [[Mira]]", "$ Paid 2 gp b [[Bo]]", "$ 9 gp c"], ["Mira", "Bo"]);
+    expect(textsOf(root, `${OWN_PURSE} .dd-purse`)).toEqual(["3 gp"]);
+    expect(textsOf(root, `${OWN_PURSE} .dd-in-out > span`)).toEqual(["In 5 gp", "Out 2 gp"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-purse`)).toEqual(["9 gp"]);
+  });
+
+  it("counts a sale line that links his character", async () => {
+    const { root } = await pageFor(["$ Rope", "$$ Rope :sold 20 gp to [[Mira]]"], ["Mira"]);
+    expect(textsOf(root, `${OWN_PURSE} .dd-purse`)).toEqual(["20 gp"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-purse`)).toEqual(["0 gp"]);
+  });
+
+  it("says no coin of his yet when none of the lines link his character", async () => {
+    const { root } = await pageFor(["$ +50 gp advance"], ["Mira"]);
+    expect(textsOf(root, `${OWN_PURSE} .dd-purse`)).toEqual(["0 gp"]);
+    expect(textsOf(root, `${OWN_PURSE} .dd-coins .dd-empty`)).toEqual([
+      "No coin of yours yet. Put your character's link anywhere on a $ line with an amount, like “$ 30 gp from the bandits, share to [[Mira]]”.",
+    ]);
+  });
+
+  it("says no character is named when the campaign note names none", async () => {
+    const { root } = await pageFor(["$ +50 gp advance", "$ 5 gp from [[Mira]]"], []);
+    expect(textsOf(root, `${OWN_PURSE} .dd-purse`)).toEqual(["0 gp"]);
+    expect(textsOf(root, `${OWN_PURSE} .dd-coins .dd-empty`)).toEqual(["You have not named your character in this campaign yet."]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-purse`)).toEqual(["55 gp"]);
+  });
+
+  it("sits above the ledger of Mine and redraws when the lines change", async () => {
+    const { root, change } = await pageFor([], ["Mira"]);
+    expect(root.querySelector(`${MINE_PANEL} .dd-purse-panel ~ .dd-ledger-panel`)).not.toBeNull();
+    change(campaignOf(["$ 9 gp found by [[Mira]]"]));
+    expect(textsOf(root, `${OWN_PURSE} .dd-purse`)).toEqual(["9 gp"]);
+  });
+});
+
 describe("FundsPage with his purse beside the party's", () => {
   it("puts his purse first in his own tab, in its own panel, and leaves it out of the party's tab", () => {
     const purses = new MadeUpPurses();
@@ -577,7 +644,7 @@ describe("FundsPage with his purse beside the party's", () => {
     const purses = new HisPurses(new FakePurseNotes(new Map([[PRIMARY_MONK, IMPORTED_1200_GP]]), [PRIMARY_MONK]), store);
     openWithPurses({ root, store, purses });
     await purses.rendered();
-    expect(textsOf(root, ".dd-purse-panel .dd-purse")).toEqual(["50 gp"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-purse`)).toEqual(["50 gp"]);
     expect(textsOf(root, ".dd-own-purse-panel .dd-coin")).toEqual(["1,200 gp"]);
   });
 });

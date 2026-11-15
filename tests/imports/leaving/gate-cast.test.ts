@@ -88,10 +88,14 @@ describe("the campaign's main character, read from the text that was asked about
     }
   });
 
-  it("is refused when the property holds text, two links, more than a link, a list, or a link to no note", () => {
-    for (const written of ["character: Primary Monk", 'character: "[[Primary Monk]] [[Primary Monk]]"', 'character: "[[Primary]][[ Monk]]"', 'character: "see [[Primary Monk]]"', 'character: "[[Nobody]]"', "character:\n  - \"[[Primary Monk]]\"", 'character: "[[Primary Monk]]"\n  ']) {
+  it("is refused when the property holds text, two links, more than a link, or a list", () => {
+    for (const written of ["character: Primary Monk", 'character: "[[Primary Monk]] [[Primary Monk]]"', 'character: "[[Primary]][[ Monk]]"', 'character: "see [[Primary Monk]]"', "character:\n  - \"[[Primary Monk]]\"", 'character: "[[Primary Monk]]"\n  ']) {
       expect(refusalOf(propertiesWith(written))).toBe(MAIN_UNCLEAR);
     }
+  });
+
+  it("is nobody when the link is to a note that is gone, since the main's note was deleted", () => {
+    expect(castWith().cast.mainFrom(CAMPAIGN_NOTE, propertiesWith('character: "[[Gone]]"'))).toBeNull();
   });
 
   it("is refused in words when the property is there twice", () => {
