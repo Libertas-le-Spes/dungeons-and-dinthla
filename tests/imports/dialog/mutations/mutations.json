@@ -98,13 +98,6 @@
   "group": "skip"
  },
  {
-  "id": "read: no route, no import",
-  "file": "src/characters/imported/reading/imported-facts.ts",
-  "find": "  if (route === null) return [];\n",
-  "replace": "",
-  "group": "read"
- },
- {
   "id": "read: only the import's names",
   "file": "src/characters/imported/reading/imported-facts.ts",
   "find": "    if (!SHEET_VALUE_PROPERTIES.includes(entry.key)) continue;\n",
@@ -116,20 +109,6 @@
   "file": "src/characters/imported/reading/imported-facts.ts",
   "find": "    if (value === \"\") continue;\n",
   "replace": "",
-  "group": "read"
- },
- {
-  "id": "read: unknown route words",
-  "file": "src/characters/imported/reading/imported-facts.ts",
-  "find": "    if (words === undefined) return UNNAMED_ROUTE_WORDS;\n",
-  "replace": "    if (words === undefined) return \"\";\n",
-  "group": "read"
- },
- {
-  "id": "read: route by the imported-from key",
-  "file": "src/characters/imported/reading/imported-facts.ts",
-  "find": "if (entry.key !== IMPORTED_FROM_PROPERTY) continue;",
-  "replace": "if (entry.key === \"\") continue;",
   "group": "read"
  },
  {
@@ -168,60 +147,11 @@
   "group": "read"
  },
  {
-  "id": "read: working by name",
-  "file": "src/characters/imported/reading/number-workings.ts",
-  "find": "if (sameName(working.name, name)) return working.working;",
-  "replace": "return working.working;",
-  "group": "read"
- },
- {
-  "id": "read: working after the value",
-  "file": "src/characters/imported/reading/number-workings.ts",
-  "find": "position >= FIRST_WORKING_PART && position < last",
-  "replace": "position >= 1 && position < last",
-  "group": "read"
- },
- {
-  "id": "read: working before the route",
-  "file": "src/characters/imported/reading/number-workings.ts",
-  "find": "position >= FIRST_WORKING_PART && position < last",
-  "replace": "position >= FIRST_WORKING_PART",
-  "group": "read"
- },
- {
-  "id": "read: working escapes taken off",
-  "file": "src/characters/imported/reading/number-workings.ts",
-  "find": "working: withoutEscapes(workingParts(parts).join(PART_SEPARATOR))",
-  "replace": "working: workingParts(parts).join(PART_SEPARATOR)",
-  "group": "read"
- },
- {
   "id": "read: working only in Numbers",
   "file": "src/characters/imported/reading/section-lines.ts",
   "find": "span.section === section && index > span.heading",
   "replace": "index > span.heading",
   "group": "read"
- },
- {
-  "id": "draw: route only when imported shows",
-  "file": "src/characters/imported/drawing/imported-lines.ts",
-  "find": "if (value.state !== \"imported\" || imported === null) return;",
-  "replace": "if (imported === null) return;",
-  "group": "draw"
- },
- {
-  "id": "draw: working only when given",
-  "file": "src/characters/imported/drawing/imported-lines.ts",
-  "find": "if (imported.working !== \"\") parent",
-  "replace": "if (imported.working === imported.working) parent",
-  "group": "draw"
- },
- {
-  "id": "draw: route line",
-  "file": "src/characters/imported/drawing/imported-lines.ts",
-  "find": "  parent.createDiv({ cls: \"dd-value-route\", text: imported.route });\n",
-  "replace": "",
-  "group": "draw"
  },
  {
   "id": "draw: update asks for this file",
@@ -242,13 +172,6 @@
   "file": "src/characters/imported/drawing/action-button.ts",
   "find": "    this.button.buttonEl.focus();\n",
   "replace": "",
-  "group": "draw"
- },
- {
-  "id": "draw: state words",
-  "file": "src/characters/pages/character-sheet-page.ts",
-  "find": "imported: \"From D&D Beyond\",",
-  "replace": "imported: \"Imported\",",
   "group": "draw"
  },
  {
@@ -380,8 +303,8 @@
  {
   "id": "dialog: typed warning first",
   "file": "src/imports/dialog/review/change-list.ts",
-  "find": "  drawTyped(parent, changes.typed);\n  drawProperties(parent, changes.properties);\n",
-  "replace": "  drawProperties(parent, changes.properties);\n  drawTyped(parent, changes.typed);\n",
+  "find": "  drawTyped(parent, changes.typed);\n  if (properties.length",
+  "replace": "  if (properties.length",
   "group": "dialog"
  },
  {
@@ -436,16 +359,9 @@
  {
   "id": "dialog: left-out lines",
   "file": "src/imports/dialog/review/sheet-summary.ts",
-  "find": "  if (loss.tooLong + loss.notClean === 0) return null;",
+  "find": "  if (count === 0) return null;",
   "replace": "  return null;",
   "group": "dialog"
- },
- {
-  "id": "layout: route words",
-  "file": "src/imports/layout/import-routes.ts",
-  "find": "[\"pdf\", \"Printed on D&D Beyond's PDF\"]",
-  "replace": "[\"pdf\", \"Printed on the PDF\"]",
-  "group": "layout"
  },
  {
   "id": "skip: the last section runs to the end",
@@ -487,13 +403,6 @@
   "file": "src/characters/editing/sheet-value-modal.ts",
   "find": "setButtonText(STATE_WORDS[state]).setDisabled(true);",
   "replace": "setButtonText(STATE_WORDS[state]);",
-  "group": "modal"
- },
- {
-  "id": "modal: the only-override line",
-  "file": "src/characters/editing/sheet-value-modal.ts",
-  "find": "if (value.state === \"imported\") contentEl.createEl(\"p\", { cls: \"dd-where dd-only-override\"",
-  "replace": "if (value.state === \"learned\") contentEl.createEl(\"p\", { cls: \"dd-where dd-only-override\"",
   "group": "modal"
  },
  {
@@ -562,7 +471,7 @@
  {
   "id": "dialog: failure shown above the changes",
   "file": "src/imports/dialog/steps/review-step.ts",
-  "find": "  drawFailure(parent, review);\n",
+  "find": "  drawFailure(body, review);\n",
   "replace": "",
   "group": "dialog"
  },
