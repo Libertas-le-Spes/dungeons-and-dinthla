@@ -12,14 +12,14 @@ import { sameTypedText } from "../../../../src/imports/note/changes/same-typed-t
 import { importedNoteText } from "../../../../src/imports/note/writing/rewriting/imported-note";
 import { MadeUpSheet } from "../../../beyond/builders/made-up-sheet";
 import { lineAt, textOf } from "../../builders/line-helpers";
-import { monkSheet, sheetOf, sheetWithCharacter, TODAY } from "../../builders/made-up-import";
+import { monkSheet, sheetOf, sheetWithCharacter, TODAY , stampedOn } from "../../builders/made-up-import";
 
 const NUMBERS = "## Numbers (from D&D Beyond)";
 const INVENTORY = "## Inventory (from D&D Beyond)";
 const SPELLS = "## Spells (from D&D Beyond)";
 
 function importedWith(made: MadeUpSheet, date = "2026-01-02"): string {
-  return importedNoteText("His words.\n", sheetOf(made), date);
+  return importedNoteText({ current: "His words.\n", sheet: sheetOf(made), stamp: stampedOn(date) });
 }
 
 function nameOf(change: PropertyChange): string {
@@ -100,7 +100,7 @@ describe("importChangesOf for a note that was never imported", () => {
   const changes = importChangesOf("His words.\n", importedWith(MadeUpSheet.monk()));
 
   it("lists each property the import writes as added, except the date", () => {
-    expect(changes.properties.map(nameOf)).toEqual(["imported-from", "class", "species", "AC", "HP", "speed", "STR", "DEX", "CON", "INT", "WIS", "CHA"]);
+    expect(changes.properties.map(nameOf)).toEqual(["imported-from", "imported-session", "class", "species", "AC", "HP", "speed", "STR", "DEX", "CON", "INT", "WIS", "CHA"]);
     expect(changes.properties.filter(isNotAdded)).toEqual([]);
   });
 
@@ -135,7 +135,7 @@ describe("importChangesOf for a changed value", () => {
 
 describe("importChangesOf for typed text", () => {
   const typed = textOf("His words.", INVENTORY, "- Old rope × 2", "I gave the gold to a friend", "", SPELLS, "- Light", "my own spell note", "### a heading");
-  const changes = importChangesOf(typed, importedNoteText(typed, monkSheet(), TODAY));
+  const changes = importChangesOf(typed, importedNoteText({ current: typed, sheet: monkSheet(), stamp: stampedOn(TODAY) }));
 
   it("lists a line in a section that is not one of the plugin's bullet lines, per section", () => {
     expect(changes.typed).toEqual([
@@ -150,14 +150,14 @@ describe("importChangesOf for typed text", () => {
 
   it("does not take a blank line for typed text", () => {
     const withBlank = textOf(INVENTORY, "- a", "", "typed words", "", "more words");
-    const found = importChangesOf(withBlank, importedNoteText(withBlank, monkSheet(), TODAY));
+    const found = importChangesOf(withBlank, importedNoteText({ current: withBlank, sheet: monkSheet(), stamp: stampedOn(TODAY) }));
     expect(found.typed).toEqual([{ heading: INVENTORY, lines: ["typed words", "more words"] }]);
     expect(sectionNamed(found.sections, INVENTORY).removed).toEqual(["- a", "typed words", "more words"]);
   });
 
   it("finds typed text in a section even when the import has nothing for that section", () => {
     const bare = sheetWithCharacter(monkSheet(), { spells: [] });
-    expect(importChangesOf(typed, importedNoteText(typed, bare, TODAY)).typed.length).toBe(2);
+    expect(importChangesOf(typed, importedNoteText({ current: typed, sheet: bare, stamp: stampedOn(TODAY) })).typed.length).toBe(2);
   });
 });
 
@@ -174,14 +174,14 @@ describe("importChangesOf for notes written in other ways", () => {
 
   it("gives the lines of a note with Windows line breaks without their returns", () => {
     const before = ["x", INVENTORY, "- Old rope × 2", "typed", ""].join("\r\n");
-    const changes = importChangesOf(before, importedNoteText(before, monkSheet(), TODAY));
+    const changes = importChangesOf(before, importedNoteText({ current: before, sheet: monkSheet(), stamp: stampedOn(TODAY) }));
     expect(sectionNamed(changes.sections, INVENTORY).removed).toEqual(["- Old rope × 2", "typed"]);
     expect(changes.typed).toEqual([{ heading: INVENTORY, lines: ["typed"] }]);
   });
 
   it("lists a section whose lines only go, when the import has nothing for it", () => {
-    const before = importedNoteText("", monkSheet(), "2026-01-02");
-    const changes = importChangesOf(before, importedNoteText(before, sheetWithCharacter(monkSheet(), { spells: [] }), TODAY));
+    const before = importedNoteText({ current: "", sheet: monkSheet(), stamp: stampedOn("2026-01-02") });
+    const changes = importChangesOf(before, importedNoteText({ current: before, sheet: sheetWithCharacter(monkSheet(), { spells: [] }), stamp: stampedOn(TODAY) }));
     expect(changes.sections.map(headingAndAdded)).toEqual([[SPELLS, 0]]);
     expect(lineAt(sectionNamed(changes.sections, SPELLS).removed, 0)).toBe("- Spell of spellName0");
   });

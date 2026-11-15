@@ -1,5 +1,6 @@
 export const IMPORTED_ON_PROPERTY = "imported";
 export const IMPORTED_FROM_PROPERTY = "imported-from";
+export const IMPORTED_SESSION_PROPERTY = "imported-session";
 
 export const CLASS_PROPERTY = "class";
 export const SPECIES_PROPERTY = "species";
@@ -28,4 +29,4 @@ export const SHEET_VALUE_PROPERTIES: readonly string[] = [
   CHARISMA_PROPERTY,
 ];
 
-export const IMPORT_PROPERTIES: readonly string[] = [IMPORTED_ON_PROPERTY, IMPORTED_FROM_PROPERTY, ...SHEET_VALUE_PROPERTIES];
+export const IMPORT_PROPERTIES: readonly string[] = [IMPORTED_ON_PROPERTY, IMPORTED_FROM_PROPERTY, IMPORTED_SESSION_PROPERTY, ...SHEET_VALUE_PROPERTIES];
