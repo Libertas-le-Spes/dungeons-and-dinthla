@@ -3,7 +3,7 @@ import { addNameForm } from "./name-form";
 import type { WelcomeActions, WelcomeState } from "./welcome-ending";
 
 export const HOW_TO_MAKE_A_CAMPAIGN =
-  "A campaign is a folder inside your Campaigns folder holding a note with the same name, such as My Campaign/My Campaign.md. Every note inside the folder belongs to the campaign. Name one here and both are made for you, or make them yourself in Obsidian's file list.";
+  "A campaign is a folder with a main note of the same name. Name one here to make both.";
 export const CAMPAIGN_NAME = "Campaign name";
 export const MAKE_A_CAMPAIGN = "Make a campaign";
 

@@ -12,9 +12,9 @@ describe("EarlierNumbers", () => {
     expect([added.valueOf("STR", ROUTE).valueOr(-1), empty.valueOf("STR", ROUTE).isKnown]).toEqual([12, false]);
   });
 
-  it("says a number that was never worked out has not been, with the route", () => {
+  it("says a number that was never worked out is unknown, with the route", () => {
     const value = EarlierNumbers.none().valueOf("STR", ROUTE);
-    expect([value.isKnown, value.explanation, value.route]).toEqual([false, "STR has not been worked out.", ROUTE]);
+    expect([value.isKnown, value.explanation, value.route]).toEqual([false, "STR unknown.", ROUTE]);
   });
 
   it("lets a later number replace an earlier one of the same name", () => {
@@ -37,11 +37,11 @@ describe("NeededNumbers", () => {
 
   it("names the first one that is not known and why", () => {
     const needed = NeededNumbers.of(["STR", "DEX", "CON"], earlier, ROUTE);
-    expect(needed.missing?.explanation).toBe("It needs DEX, which is not known.");
+    expect(needed.missing?.explanation).toBe("Needs DEX.");
   });
 
   it("counts a name that was never worked out as not known", () => {
-    expect(NeededNumbers.of(["CON"], earlier, ROUTE).missing?.explanation).toBe("It needs CON, which is not known.");
+    expect(NeededNumbers.of(["CON"], earlier, ROUTE).missing?.explanation).toBe("Needs CON.");
   });
 
   it("refuses to hand out a number that is not known, so it cannot be used by mistake", () => {

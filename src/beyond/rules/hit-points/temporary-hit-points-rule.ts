@@ -13,6 +13,6 @@ export class TemporaryHitPointsRule implements Rule {
 
   private temporary(character: RuleCharacter): WorkedValue<number> {
     if (character.temporaryHitPoints === null) return notKnown("The temporary hit points are missing.", character.route);
-    return knownIn(character.temporaryHitPoints, TEMPORARY_HIT_POINTS, `Temporary hit points on D&D Beyond: ${character.temporaryHitPoints}`, character.route);
+    return knownIn(character.temporaryHitPoints, TEMPORARY_HIT_POINTS, "", character.route);
   }
 }

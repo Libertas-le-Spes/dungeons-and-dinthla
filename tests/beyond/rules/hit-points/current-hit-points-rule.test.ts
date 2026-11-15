@@ -27,6 +27,6 @@ describe("CurrentHitPointsRule", () => {
 
   it("does not know the hit points when the maximum is not known, and says so", () => {
     const current = numberNamed(madeUpRuleCharacter({ baseHitPoints: null }), "Current HP");
-    expect(current.explanation).toBe("It needs HP, which is not known.");
+    expect(current.explanation).toBe("Needs HP.");
   });
 });

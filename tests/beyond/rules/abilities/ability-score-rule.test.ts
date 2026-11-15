@@ -28,7 +28,7 @@ describe("AbilityScoreRule", () => {
   it("takes a score set on D&D Beyond over the base and the bonus", () => {
     const character = madeUpRuleCharacter({ baseScores: scoresOf(8, 8, 8, 8, 8, 8), scoreOverrides: new AbilityTable<number>().with(CHARISMA, 20) });
     const charisma = numberNamed(character, "CHA");
-    expect([charisma.valueOr(-1), charisma.explanation]).toEqual([20, "Charisma set on D&D Beyond: 20"]);
+    expect([charisma.valueOr(-1), charisma.explanation]).toEqual([20, "Set by hand"]);
   });
 
   it.each(ABILITIES)("works out $label from its own base score only", (ability) => {
@@ -62,7 +62,7 @@ describe("AbilityScoreRule", () => {
   it("does not know a score a modifier of a kind it does not know changes, and names the modifier", () => {
     const character = madeUpRuleCharacter({ modifiers: [modifierOf("set-base", "strength-score", 19, "Gauntlets")] });
     const strength = numberNamed(character, "STR");
-    expect([strength.isKnown, strength.explanation]).toEqual([false, 'D&D Beyond names a rule I can\'t work out here: "strength-score". Type it on your note to set it.']);
+    expect([strength.isKnown, strength.explanation]).toEqual([false, 'Unread rule "strength-score".']);
   });
 
   it("does not know a score when the base score is missing, and leaves the others standing", () => {
@@ -98,7 +98,7 @@ describe("AbilityScoreRule", () => {
 describe("AbilityScoreRule and the size of a score modifier", () => {
   it("does not use a score bonus of 31, and names it", () => {
     const value = numberNamed(madeUpRuleCharacter({ modifiers: [modifierOf("bonus", "dexterity-score", 31, "Gloves")] }), "DEX");
-    expect(value.explanation).toBe('D&D Beyond names a rule I can\'t work out here: "dexterity-score". Type it on your note to set it.');
+    expect(value.explanation).toBe('Unread rule "dexterity-score".');
   });
 
   it("does not use a huge score bonus", () => {

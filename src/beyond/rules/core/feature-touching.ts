@@ -5,10 +5,12 @@ import { notKnown } from "./worked";
 import { shortList } from "./working-text";
 import type { NotKnownValue } from "../../shape/not-known-value";
 
+export const MAY_CHANGE_IT = "may change this";
+
 export class FeatureTouching {
   constructor(
     private readonly names: readonly string[],
-    private readonly reason = "may change this value and is not worked out here",
+    private readonly reason: string,
   ) {}
 
   named(character: RuleCharacter): readonly string[] {

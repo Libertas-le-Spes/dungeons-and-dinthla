@@ -81,7 +81,7 @@ describe("SkillRule modifiers", () => {
 
   it("lists a bonus with a restriction and does not apply it", () => {
     const hood = modifierOf("bonus", "stealth", 2, "Hood", "in dim light");
-    expect(skillValue("Stealth", { modifiers: [hood] })).toEqual({ value: 0, working: "DEX 0 = 0. Plus conditional bonuses I don't apply: Hood", isKnown: true });
+    expect(skillValue("Stealth", { modifiers: [hood] })).toEqual({ value: 0, working: "DEX 0 = 0. Not applied: Hood", isKnown: true });
   });
 
   it("does not change the number for advantage or disadvantage", () => {

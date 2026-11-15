@@ -25,7 +25,7 @@ export class MaxHitPointsRule implements Rule {
 
   private maximum(character: RuleCharacter, earlier: EarlierNumbers): WorkedValue<number> {
     if (character.overrideHitPoints !== null) {
-      return knownIn(character.overrideHitPoints, MAX_HIT_POINTS, `Hit points set on D&D Beyond: ${character.overrideHitPoints}`, character.route);
+      return knownIn(character.overrideHitPoints, MAX_HIT_POINTS, "Set by hand", character.route);
     }
     const needed = NeededNumbers.of([TOTAL_LEVEL_NAME, CONSTITUTION.modifierName], earlier, character.route);
     if (needed.missing !== null) return needed.missing;

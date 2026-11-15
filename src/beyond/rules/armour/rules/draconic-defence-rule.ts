@@ -9,7 +9,7 @@ import { formulaCandidate } from "../choice/formula-candidate";
 import type { WornArmour } from "../choice/worn-armour";
 import type { ArmourRule } from "./armour-rule";
 
-const EDITION_REASON = "The draconic sorcerer's armour class is worked differently in the 2014 and 2024 rules, and the edition is not 2014.";
+const EDITION_REASON = "Edition is not 2014.";
 
 export class DraconicDefenceRule implements ArmourRule {
   candidates(character: RuleCharacter, worn: WornArmour, earlier: EarlierNumbers): readonly ArmourCandidate[] {

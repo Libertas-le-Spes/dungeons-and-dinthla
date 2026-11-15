@@ -32,6 +32,6 @@ describe("ProficiencyBonusRule", () => {
 
   it("is not known when the total level is not known", () => {
     const character = madeUpRuleCharacter({ classes: [] });
-    expect(numberNamed(character, "Proficiency bonus").explanation).toBe("It needs Total level, which is not known.");
+    expect(numberNamed(character, "Proficiency bonus").explanation).toBe("Needs Total level.");
   });
 });

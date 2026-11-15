@@ -19,7 +19,7 @@ describe("OwnCharacters", () => {
 
   it("still names one who died and moved to Fallen while the campaign note names them, and reads their sheet", async () => {
     const fallen = "Pale Moon/Fallen/Mira.md";
-    const notes = new FakeOwnCharacterNotes(new Map([[fallen, "---\nimported-from: pdf\nimported-session: 2\n---\n## Purse (from D&D Beyond)\n- gp · 5\n"]]), [fallen]);
+    const notes = new FakeOwnCharacterNotes(new Map([[fallen, "---\nimported-from: pdf\nimported-session: 2\n---\n## Purse\n- gp · 5\n"]]), [fallen]);
     const own = new OwnCharacters({ store: { campaignFolder: "Pale Moon" }, notes });
     expect(own.names()).toEqual(["Mira"]);
     expect(await own.sheets()).toEqual([{ name: "Mira", purse: [{ coin: "gp", count: 5 }], importedSession: 2 }]);
@@ -80,8 +80,8 @@ describe("OwnCharacters", () => {
 
   it("reads the purse and the session of each of his characters' notes, and nobody else's", async () => {
     const texts = new Map([
-      [MIRA, "---\nimported-from: pdf\nimported-session: 3\n---\n## Purse (from D&D Beyond)\n- gp · 19\n"],
-      [ZED, "---\nimported-from: pdf\n---\n## Purse (from D&D Beyond)\n- gp · 90\n"],
+      [MIRA, "---\nimported-from: pdf\nimported-session: 3\n---\n## Purse\n- gp · 19\n"],
+      [ZED, "---\nimported-from: pdf\n---\n## Purse\n- gp · 90\n"],
     ]);
     const notes = new FakeOwnCharacterNotes(texts, [MIRA]);
     const own = new OwnCharacters({ store: { campaignFolder: "Pale Moon" }, notes });

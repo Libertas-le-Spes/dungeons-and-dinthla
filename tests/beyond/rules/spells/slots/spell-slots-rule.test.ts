@@ -118,7 +118,7 @@ describe("SpellSlotsRule and the edition", () => {
 
   it("does not know the combined slots when one class is a half caster in 2024", () => {
     const character = madeUpRuleCharacter({ edition: "2024", classes: [classOf("Paladin", 4, 10), classOf("Wizard", 4, 6)] });
-    expect(numberNamed(character, "Spell slots").explanation).toBe("The slot tables of half and third casters differ between the 2014 and 2024 rules, and the edition is not 2014.");
+    expect(numberNamed(character, "Spell slots").explanation).toBe("Edition is not 2014.");
   });
 
   it("still knows a wizard's slots in 2024", () => {

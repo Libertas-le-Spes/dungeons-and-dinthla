@@ -80,7 +80,7 @@ describe("LinesList", () => {
   it("says how to add a note when the session has none, with no count", () => {
     const { root } = drawn(["", "  "]);
     expect(root.querySelector(".dd-count")?.textContent).toBe("");
-    expect(Array.from(root.querySelectorAll("li")).map((row) => row.textContent)).toEqual(["No notes in this session yet. Type one above and save it."]);
+    expect(Array.from(root.querySelectorAll("li")).map((row) => row.textContent)).toEqual(["No notes yet."]);
   });
 
   it("shows links as links that open the note linked, from the session", () => {

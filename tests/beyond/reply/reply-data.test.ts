@@ -13,11 +13,11 @@ describe("replyDataOf", () => {
   });
 
   it.each([false, "true", 1, null, "yes"])("refuses a reply whose success is %j, in plain words", (success) => {
-    expect(() => replyDataOf(JsonReader.of({ success, data: { name: "Primary" } }))).toThrow("D&D Beyond says it could not give this character.");
+    expect(() => replyDataOf(JsonReader.of({ success, data: { name: "Primary" } }))).toThrow("This character was not given.");
   });
 
   it("refuses a reply that says it failed even when it carries data", () => {
-    expect(() => replyDataOf(JsonReader.of({ id: 0, success: false, message: "Not found", data: { name: "Primary" } }))).toThrow("could not give this character");
+    expect(() => replyDataOf(JsonReader.of({ id: 0, success: false, message: "Not found", data: { name: "Primary" } }))).toThrow("This character was not given");
   });
 
   it("refuses a reply that says it worked and holds no data", () => {

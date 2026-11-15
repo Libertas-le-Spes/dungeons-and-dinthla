@@ -66,7 +66,7 @@ describe("AbilityScoreRule and the most a score reaches", () => {
 
   it("does not know a score over 20, and says why, in plain words", () => {
     const found = strengthOf(18, modifierOf("bonus", "strength-score", 3, "Tome"));
-    expect([found.isKnown, found.explanation]).toEqual([false, "base 18 + bonus 0 + Tome 3 = 21, which is more than 20, the most a score reaches unless a feature raises it, and I do not read those. Type the score on your note to set it."]);
+    expect([found.isKnown, found.explanation]).toEqual([false, "Score above 20."]);
   });
 
   it("does not know a base score over 20 with no bonus", () => {

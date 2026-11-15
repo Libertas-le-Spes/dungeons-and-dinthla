@@ -31,7 +31,7 @@ export class AbilityScoreRule implements Rule {
 
   private score(character: RuleCharacter): WorkedValue<number> {
     const override = character.scoreOverrides.get(this.ability);
-    if (override !== undefined) return knownIn(override, SCORE, `${this.ability.label} set on D&D Beyond: ${override}`, character.route);
+    if (override !== undefined) return knownIn(override, SCORE, "Set by hand", character.route);
     return this.fromBase(character);
   }
 
@@ -56,7 +56,7 @@ export class AbilityScoreRule implements Rule {
     const floor = highestFloorOf(tally);
     const working = sumWorking([`base ${base}`, `bonus ${bonus}`, ...tally.applied], summed);
     if (floor !== undefined && floor.value > summed) return knownIn(floor.value, SCORE, `${working}, set to ${floor.value} by ${floor.source}`, character.route);
-    if (summed > USUAL_MOST) return notKnown(`${working}, which is more than ${USUAL_MOST}, the most a score reaches unless a feature raises it, and I do not read those. Type the score on your note to set it.`, character.route);
+    if (summed > USUAL_MOST) return notKnown(`Score above ${USUAL_MOST}.`, character.route);
     if (floor === undefined) return knownIn(summed, SCORE, working, character.route);
     return knownIn(summed, SCORE, `${working}, set to ${floor.value} by ${floor.source} has no effect`, character.route);
   }

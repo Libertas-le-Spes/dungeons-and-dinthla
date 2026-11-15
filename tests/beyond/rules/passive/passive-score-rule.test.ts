@@ -37,7 +37,7 @@ describe("PassiveScoreRule", () => {
 
   it("lists a restricted passive bonus and does not apply it", () => {
     const sentinel = modifierOf("bonus", "passive-perception", 5, "Sentinel", "while awake");
-    expect(passive("Passive Perception", { modifiers: [sentinel] }).working).toBe("10 + Perception 0 = 10. Plus conditional bonuses I don't apply: Sentinel");
+    expect(passive("Passive Perception", { modifiers: [sentinel] }).working).toBe("10 + Perception 0 = 10. Not applied: Sentinel");
   });
 
   it("does not know a passive when its modifier is one it does not know", () => {
@@ -46,6 +46,6 @@ describe("PassiveScoreRule", () => {
 
   it("does not know a passive when the skill is not known, and says which", () => {
     const value = numberNamed(madeUpRuleCharacter({ baseScores: new AbilityTable<number>() }), "Passive Perception");
-    expect(value.explanation).toBe("It needs Perception, which is not known.");
+    expect(value.explanation).toBe("Needs Perception.");
   });
 });

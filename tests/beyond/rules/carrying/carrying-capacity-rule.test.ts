@@ -38,12 +38,12 @@ describe("CarryingCapacityRule and size", () => {
   it("halves it for a tiny character, and does not know it when the half is not whole", () => {
     expect(numberNamed(madeUpRuleCharacter({ size: "tiny", baseScores: strong }), "Carrying capacity").valueOr(-1)).toBe(75);
     const odd = numberNamed(madeUpRuleCharacter({ size: "tiny", baseScores: scoresOf(11, 10, 10, 10, 10, 10) }), "Carrying capacity");
-    expect([odd.isKnown, odd.explanation]).toEqual([false, "15 x STR 11 x 0.5 is not a whole number."]);
+    expect([odd.isKnown, odd.explanation]).toEqual([false, "Not a whole number."]);
   });
 
   it("does not know it when the size is not known", () => {
     const found = numberNamed(madeUpRuleCharacter({ size: "" }), "Carrying capacity");
-    expect([found.isKnown, found.explanation]).toEqual([false, "The size is not known, and the carrying capacity depends on it."]);
+    expect([found.isKnown, found.explanation]).toEqual([false, "Size unknown."]);
   });
 
   it("counts a Powerful Build as one size larger, and a gargantuan one as the same", () => {
