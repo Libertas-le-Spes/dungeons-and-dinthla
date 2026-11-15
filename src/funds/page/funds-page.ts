@@ -109,58 +109,63 @@ interface ItemsPanelParts {
   label: string;
 }
 
+function rowNamed({ panel, name }: { panel: HTMLElement; name: string }): HTMLElement | undefined {
+  const rows = Array.from(panel.querySelectorAll<HTMLElement>(".dd-row"));
+  return rows.find((candidate) => ITEM_ROWS.keyOf(candidate) === name);
+}
+
+interface LedgerBox {
+  count: HTMLElement;
+  list: HTMLElement;
+  addButton: HTMLElement | null;
+}
+
 export class FundsPage extends Component {
-  private purse!: HTMLElement;
-  private mineItems!: HTMLElement;
-  private partyItems!: HTMLElement;
-  private ledgerCount!: HTMLElement;
-  private ledgerList!: HTMLElement;
-  private addCoinButton: HTMLElement | null = null;
+  private readonly tabs: Tabs;
+  private readonly shownPanel: Component | null;
+  private readonly pursePanel: Component | null;
+  private readonly purse: HTMLElement;
+  private readonly mineItems: HTMLElement;
+  private readonly partyItems: HTMLElement;
+  private readonly ledgerCount: HTMLElement;
+  private readonly ledgerList: HTMLElement;
+  private readonly addCoinButton: HTMLElement | null;
   private readonly rowFocus = new RowFocus();
 
   constructor(private readonly parts: FundsPageParts) {
     super();
+    const root = parts.contentEl;
+    root.empty();
+    root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-funds");
+    this.shownPanel = this.shownPanelOf(root);
+    this.tabs = new Tabs({ parent: root, label: "Funds", first: MINE, second: PARTY });
+    this.pursePanel = this.pursePanelOf(this.tabs.firstPanel);
+    this.mineItems = this.tabs.firstPanel.createEl("section", { cls: "dd-panel dd-items-panel" });
+    this.purse = this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-purse-panel" });
+    this.partyItems = this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-items-panel" });
+    const ledger = this.buildLedger(this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-ledger-panel" }));
+    this.ledgerCount = ledger.count;
+    this.ledgerList = ledger.list;
+    this.addCoinButton = ledger.addButton;
   }
 
   override onload(): void {
-    const root = this.parts.contentEl;
-    root.empty();
-    root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-funds");
-    this.addShownItem(root);
-    this.addChild(
-      new Tabs({
-        parent: root,
-        label: "Funds",
-        tabs: [
-          { name: MINE, fill: (panel) => this.buildMine(panel) },
-          { name: PARTY, fill: (panel) => this.buildParty(panel) },
-        ],
-      }),
-    );
+    if (this.shownPanel !== null) this.addChild(this.shownPanel);
+    this.addChild(this.tabs);
+    if (this.pursePanel !== null) this.addChild(this.pursePanel);
     this.register(this.parts.store.subscribe(() => this.render()));
     this.register(this.parts.ownCharacters.subscribe(() => this.render()));
     this.render();
   }
 
-  private buildMine(panel: HTMLElement): void {
-    this.addPursesBeside(panel);
-    this.mineItems = panel.createEl("section", { cls: "dd-panel dd-items-panel" });
+  private shownPanelOf(root: HTMLElement): Component | null {
+    if (this.parts.shownItem === null) return null;
+    return this.parts.shownItem.panel(root.createEl("section", { cls: "dd-panel dd-shown-item" }));
   }
 
-  private buildParty(panel: HTMLElement): void {
-    this.purse = panel.createEl("section", { cls: "dd-panel dd-purse-panel" });
-    this.partyItems = panel.createEl("section", { cls: "dd-panel dd-items-panel" });
-    this.buildLedger(panel.createEl("section", { cls: "dd-panel dd-ledger-panel" }));
-  }
-
-  private addShownItem(root: HTMLElement): void {
-    if (this.parts.shownItem === null) return;
-    this.addChild(this.parts.shownItem.panel(root.createEl("section", { cls: "dd-panel dd-shown-item" })));
-  }
-
-  private addPursesBeside(root: HTMLElement): void {
-    if (this.parts.pursesBeside === null) return;
-    this.addChild(this.parts.pursesBeside.panel(root.createEl("section", { cls: "dd-panel dd-own-purse-panel" })));
+  private pursePanelOf(panel: HTMLElement): Component | null {
+    if (this.parts.pursesBeside === null) return null;
+    return this.parts.pursesBeside.panel(panel.createEl("section", { cls: "dd-panel dd-own-purse-panel" }));
   }
 
   private isShown(item: ItemRecord): boolean {
@@ -227,13 +232,20 @@ export class FundsPage extends Component {
   }
 
   private focusItemRow(name: string): boolean {
-    const rows = Array.from(this.parts.contentEl.querySelectorAll<HTMLElement>(".dd-items-panel .dd-row"));
-    const row = rows.find((candidate) => ITEM_ROWS.keyOf(candidate) === name);
-    if (row === undefined) return false;
-    const folded = row.closest("details");
-    if (folded !== null) folded.open = true;
-    row.focus();
-    return true;
+    const tabs = [
+      { tab: MINE, panel: this.mineItems },
+      { tab: PARTY, panel: this.partyItems },
+    ];
+    for (const { tab, panel } of tabs) {
+      const row = rowNamed({ panel, name });
+      if (row === undefined) continue;
+      this.tabs.select(tab);
+      const folded = row.closest("details");
+      if (folded !== null) folded.open = true;
+      row.focus();
+      return true;
+    }
+    return false;
   }
 
   private afterItem(name: string, changed: boolean): void {
@@ -266,19 +278,21 @@ export class FundsPage extends Component {
     meta.appendText(sessionLabelOf(source.path));
   }
 
-  private buildLedger(panel: HTMLElement): void {
+  private buildLedger(panel: HTMLElement): LedgerBox {
     const head = panel.createDiv({ cls: "dd-head" });
     const title = head.createEl("h2", { cls: "dd-title", text: "Ledger" });
-    this.ledgerCount = title.createSpan({ cls: "dd-count" });
+    const count = title.createSpan({ cls: "dd-count" });
     const addCoin = this.parts.addCoin;
+    let addButton: HTMLElement | null = null;
     if (addCoin !== null) {
       const button = head.createEl("button", { cls: "dd-create", text: "Add coin" });
       this.registerDomEvent(button, "click", () => addCoin(() => button.focus()));
-      this.addCoinButton = button;
+      addButton = button;
     }
-    this.ledgerList = panel.createEl("ul", { cls: "dd-ledger" });
-    makeScrollList({ element: this.ledgerList, label: "Ledger entries" });
+    const list = panel.createEl("ul", { cls: "dd-ledger" });
+    makeScrollList({ element: list, label: "Ledger entries" });
     panel.createEl("p", { cls: "dd-note", text: HOW_LINES_ARE_READ });
+    return { count, list, addButton };
   }
 
   private renderLedger(lines: LedgerLine[]): void {
