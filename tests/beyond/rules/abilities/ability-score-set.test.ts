@@ -43,6 +43,12 @@ describe("AbilityScoreRule with a score set by an item", () => {
   });
 });
 
+describe("AbilityScoreRule with a set modifier that is not a whole number", () => {
+  it("names the modifier as a rule it cannot work out, not the range", () => {
+    expect(strengthWith(modifierOf("set", "strength-score", 19.5, "Gauntlets")).explanation).toContain('"strength-score"');
+  });
+});
+
 describe("AbilityScoreRule with a set modifier for a longer sub-type", () => {
   it("does not take a set modifier whose sub-type only contains the score's", () => {
     expect(strengthWith(modifierOf("set", "strength-score-cap", 19, "Gauntlets")).isKnown).toBe(false);
