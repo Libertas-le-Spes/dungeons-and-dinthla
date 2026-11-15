@@ -21,7 +21,7 @@ function heldOf(summary: ItemSummary): [string, string[]][] {
 
 const SESSIONS = [
   ["$ [[Mira]] Flame Tongue", "$ [[Zed]] Rope", "$ Potion of healing", "$ [[Mira]] Spyglass", "$ [[Zed]] Map"],
-  ["$$ Spyglass :sold 20 gp", "$$ Map :lost"],
+  ["$$ Spyglass :sold 20 gp to [[Mira]]", "$$ Map :lost"],
 ];
 
 describe("whoseItems", () => {
@@ -101,5 +101,21 @@ describe("whoseItems", () => {
   it("keeps the links of the earlier line when a later one names no link", () => {
     const { mine } = whoseItems({ campaign: campaignOf(["$ [[Mira]] Rope", "$ Rope"]), ownNames: ["Mira"] });
     expect(mine.heldCount).toBe(1);
+  });
+
+  it.each([
+    ["sold", "$$ Rope :sold 5 gp to [[Mira]]"],
+    ["used", "$$ Rope :used by [[Mira]]"],
+    ["lost", "$$ Rope :lost by [[Mira]]"],
+  ])("gives an item gone %s to him when the gone line links his character, whoever held it", (_kind, goneLine) => {
+    const { mine, party } = whoseItems({ campaign: campaignOf(["$ [[Zed]] Rope"], [goneLine]), ownNames: ["Mira"] });
+    expect(mine.gone.map((item) => item.name)).toEqual(["Rope"]);
+    expect(party.gone).toEqual([]);
+  });
+
+  it("gives an item gone to the party when the gone line links only others, though his character held it", () => {
+    const { mine, party } = whoseItems({ campaign: campaignOf(["$ [[Mira]] Rope"], ["$$ Rope :sold 5 gp to [[Zed]]"]), ownNames: ["Mira"] });
+    expect(mine.gone).toEqual([]);
+    expect(party.gone.map((item) => item.name)).toEqual(["Rope"]);
   });
 });

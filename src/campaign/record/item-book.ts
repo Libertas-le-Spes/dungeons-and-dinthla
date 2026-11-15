@@ -46,7 +46,7 @@ export class ItemBook {
       record.links = links;
     }
     record.gone = null;
-    record.history.push({ kind: "named", holder: record.holder, source });
+    record.history.push({ kind: "named", holder: record.holder, links, source });
   }
 
   change(change: ItemChange, source: Source): void {
@@ -57,7 +57,7 @@ export class ItemBook {
       record.holderLinked = change.holderLinked === true;
       record.links = findLinks(change.text);
     }
-    const event: ItemEvent = { kind: change.kind, holder: record.holder, source };
+    const event: ItemEvent = { kind: change.kind, holder: record.holder, links: findLinks(change.text), source };
     record.history.push(event);
     record.gone = null;
     if (change.kind !== "changed") record.gone = event;
