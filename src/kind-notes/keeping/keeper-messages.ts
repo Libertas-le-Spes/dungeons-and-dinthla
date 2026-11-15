@@ -3,7 +3,7 @@ import { kindNoteTitleOf } from "../wanting/kind-note-path";
 import type { WantedNote } from "../wanting/wanted-note";
 
 export function notLinkedMessage(wanted: WantedNote): string {
-  return `${wanted.path} already exists but isn't linked to its session in its properties, so it was left alone.`;
+  return `${wanted.path} isn't linked to its session, so it was left alone.`;
 }
 
 export function staysMessage(wanted: WantedNote): string {

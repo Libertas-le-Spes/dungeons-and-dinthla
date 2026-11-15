@@ -73,7 +73,7 @@ describe("ReferenceNotes", () => {
     resolve(SESSION);
     await settled();
     expect(world.notes.created).toEqual([NOTE_PATH]);
-    expect(world.notes.noteAt(NOTE_PATH)?.properties).toEqual({ "first named": "[[Session 1]]" });
+    expect(world.notes.noteAt(NOTE_PATH)?.properties).toEqual({ "first named": `[[${CAMPAIGN}/Sessions/Session 1]]` });
   });
 
   it("makes nothing while the saved session is not yet resolved, or when another session is resolved", async () => {
@@ -238,7 +238,7 @@ describe("ReferenceNotes", () => {
       choose(firstOf(asked), "character");
       await settled();
       expect(world.notes.created).toEqual([MIRA_PATH]);
-      expect(world.notes.noteAt(MIRA_PATH)?.properties).toEqual({ "first named": "[[Session 1]]" });
+      expect(world.notes.noteAt(MIRA_PATH)?.properties).toEqual({ "first named": `[[${CAMPAIGN}/Sessions/Session 1]]` });
     });
 
     it("makes nothing for a closed list, and asks again after the next save that names the name", async () => {

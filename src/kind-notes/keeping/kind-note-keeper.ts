@@ -78,7 +78,7 @@ export class KindNoteKeeper {
   }
 
   private async attemptMake(note: MakeableNote): Promise<MakeResult> {
-    const done = await this.attempts.attempt(note, () => this.writer.make(note.path, sessionLinkFor(this.needs.metadata, note.sessionFile, note.path), note.lines));
+    const done = await this.attempts.attempt(note, () => this.writer.make(note.path, sessionLinkFor(note.sessionFile), note.lines));
     if (done) return "made";
     return "failed";
   }

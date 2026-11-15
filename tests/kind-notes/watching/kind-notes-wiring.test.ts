@@ -52,7 +52,7 @@ describe("kind notes, from saving a session to the notes", () => {
     const { written } = startWith(notes, campaign);
     saveHere(written, campaign, SESSION, TWO_LINES);
     await settled();
-    for (const path of [QUESTIONS, QUESTS, FUNDS]) expect(notes.noteAt(path)?.properties?.session).toBe("[[Session 2]]");
+    for (const path of [QUESTIONS, QUESTS, FUNDS]) expect(notes.noteAt(path)?.properties?.session).toBe(`[[${CAMPAIGN}/Sessions/Session 2]]`);
     expect(notes.noteAt(QUESTIONS)?.properties?.lines).toEqual(["? Who sent [[Lady Vess]] to the Old Mill"]);
     expect(notes.noteAt(QUESTS)?.properties?.lines).toEqual(["! Find the caravan, from: [[Lady Vess]]"]);
   });
@@ -280,7 +280,7 @@ describe("kind notes, when a session is deleted and the ones after it are renumb
     await settled();
     expect(notes.trashed).toEqual([QUESTIONS]);
     expect(notes.noteAt(questionsThree)).toBeNull();
-    expect(notes.noteAt(QUESTIONS)?.properties).toEqual({ session: "[[Session 2]]", lines: ["? Was three"] });
+    expect(notes.noteAt(QUESTIONS)?.properties).toEqual({ session: `[[${CAMPAIGN}/Sessions/Session 2]]`, lines: ["? Was three"] });
     expect(notes.noteAt(QUESTIONS)?.words).toBe("His words");
     expect(notes.said).toEqual([]);
   });

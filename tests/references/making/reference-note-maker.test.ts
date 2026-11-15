@@ -16,7 +16,7 @@ const PLANNED: PlannedReferenceNote = {
 
 function makerWith(notes: FakeNotes) {
   const failed = vi.fn();
-  const maker = new ReferenceNoteMaker({ files: notes.files, metadata: notes.metadata, actions: notes.actions, failed });
+  const maker = new ReferenceNoteMaker({ files: notes.files, actions: notes.actions, failed });
   return { maker, failed };
 }
 
@@ -32,7 +32,7 @@ describe("ReferenceNoteMaker", () => {
     const { maker } = makerWith(notes);
     expect(await maker.make(PLANNED)).toBe("made");
     expect(notes.created).toEqual([NOTE_PATH]);
-    expect(notes.noteAt(NOTE_PATH)?.properties).toEqual({ "first named": "[[Session 1]]" });
+    expect(notes.noteAt(NOTE_PATH)?.properties).toEqual({ "first named": `[[${CAMPAIGN}/Sessions/Session 1]]` });
     expect(notes.noteAt(NOTE_PATH)?.words).toBe("");
   });
 
@@ -42,7 +42,7 @@ describe("ReferenceNoteMaker", () => {
     expect(notes.foldersMade).toEqual([`${CAMPAIGN}/Characters`]);
   });
 
-  it("links a session of the same name in another campaign by its path, as Obsidian words it", async () => {
+  it("links the session by its whole path, so a session of the same name elsewhere is no mistake", async () => {
     const notes = notesWithSession();
     notes.addSession("D&D/Other Moon/Sessions/Session 1.md");
     await makerWith(notes).maker.make(PLANNED);

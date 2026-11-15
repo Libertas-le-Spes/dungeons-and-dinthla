@@ -81,7 +81,7 @@ export class KindNoteMover {
       return;
     }
     await files.rename(file, newPath);
-    const link = sessionLinkFor(metadata, sessionFile, newPath);
+    const link = sessionLinkFor(sessionFile);
     try {
       await this.properties.set(file, (properties) => {
         properties.session = link;
