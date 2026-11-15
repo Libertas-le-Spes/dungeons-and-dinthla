@@ -3,6 +3,7 @@ export const TAGS = ["a", "b", "button", "dd", "details", "dl", "dt", "form", "h
 export const ATTRIBUTES = [
   "aria-controls",
   "aria-current",
+  "aria-haspopup",
   "aria-hidden",
   "aria-label",
   "aria-labelledby",

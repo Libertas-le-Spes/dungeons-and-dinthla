@@ -35,12 +35,27 @@ body.is-phone.is-hidden-nav .dd-campaign-frame {
   background-image: linear-gradient(var(--surface-page), var(--surface-page));
 }
 
-.dd-campaign .dd-nav-campaign {
+.dd-campaign .dd-nav-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-1);
   padding: var(--size-4-2) var(--size-4-3) var(--size-4-3);
+}
+
+.dd-campaign .dd-nav-campaign {
+  flex: 1 1 auto;
+  min-width: 0;
   font: var(--type-page-title);
   font-size: var(--h4-size);
   color: var(--text-strong);
   overflow-wrap: anywhere;
+}
+
+.dd-campaign .dd-nav-switch {
+  flex: 0 0 auto;
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
+  color: var(--text-muted-ui);
 }
 
 .dd-campaign .dd-nav-group {
@@ -175,6 +190,16 @@ body.is-phone.is-hidden-nav .dd-campaign-frame {
   .dd-campaign .dd-nav-label,
   .dd-campaign .dd-nav-count {
     display: none;
+  }
+
+  .dd-campaign .dd-nav-heading {
+    flex: 0 0 auto;
+    padding: 0;
+  }
+
+  .dd-campaign .dd-nav-switch {
+    min-width: var(--touch-min);
+    min-height: var(--bar-height);
   }
 
   .dd-campaign .dd-nav-in-bar {
