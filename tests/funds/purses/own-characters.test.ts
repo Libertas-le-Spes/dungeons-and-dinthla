@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { OwnCharacters } from "../../../src/funds/purses/own-characters";
-import { FakePurseNotes } from "./fake-purse-notes";
+import { FakeOwnCharacterNotes } from "./fake-own-character-notes";
 
 const MIRA = "Pale Moon/Characters/Mira.md";
 const ZED = "Pale Moon/Characters/Zed.md";
@@ -11,21 +11,21 @@ const TEXTS = new Map([
 
 describe("OwnCharacters", () => {
   it("names the characters of the campaign that are his", () => {
-    const notes = new FakePurseNotes(TEXTS, [MIRA]);
+    const notes = new FakeOwnCharacterNotes(TEXTS, [MIRA]);
     const own = new OwnCharacters({ store: { campaignFolder: "Pale Moon" }, notes });
     expect(own.names()).toEqual(["Mira"]);
     expect(notes.foldersAsked).toEqual(["Pale Moon"]);
   });
 
   it("names no one when no campaign is open, and asks no notes", () => {
-    const notes = new FakePurseNotes(TEXTS, [MIRA]);
+    const notes = new FakeOwnCharacterNotes(TEXTS, [MIRA]);
     const own = new OwnCharacters({ store: { campaignFolder: null }, notes });
     expect(own.names()).toEqual([]);
     expect(notes.foldersAsked).toEqual([]);
   });
 
   it("says when the campaign's main note changes, which is where his character is named", () => {
-    const notes = new FakePurseNotes(TEXTS, [MIRA]);
+    const notes = new FakeOwnCharacterNotes(TEXTS, [MIRA]);
     const own = new OwnCharacters({ store: { campaignFolder: "Pale Moon" }, notes });
     const changed = vi.fn();
     own.subscribe(changed);
@@ -33,18 +33,27 @@ describe("OwnCharacters", () => {
     expect(changed).toHaveBeenCalledTimes(1);
   });
 
-  it("stays quiet when any other note changes", () => {
-    const notes = new FakePurseNotes(TEXTS, [MIRA]);
+  it("says when the note of one of his characters changes, which is where the purse is", () => {
+    const notes = new FakeOwnCharacterNotes(TEXTS, [MIRA]);
     const own = new OwnCharacters({ store: { campaignFolder: "Pale Moon" }, notes });
     const changed = vi.fn();
     own.subscribe(changed);
     notes.change(MIRA);
+    expect(changed).toHaveBeenCalledTimes(1);
+  });
+
+  it("stays quiet when any other note changes", () => {
+    const notes = new FakeOwnCharacterNotes(TEXTS, [MIRA]);
+    const own = new OwnCharacters({ store: { campaignFolder: "Pale Moon" }, notes });
+    const changed = vi.fn();
+    own.subscribe(changed);
+    notes.change(ZED);
     notes.change("Pale Moon/Sessions/Session 1.md");
     expect(changed).not.toHaveBeenCalled();
   });
 
   it("stays quiet when no campaign is open", () => {
-    const notes = new FakePurseNotes(TEXTS, [MIRA]);
+    const notes = new FakeOwnCharacterNotes(TEXTS, [MIRA]);
     const own = new OwnCharacters({ store: { campaignFolder: null }, notes });
     const changed = vi.fn();
     own.subscribe(changed);
@@ -52,8 +61,25 @@ describe("OwnCharacters", () => {
     expect(changed).not.toHaveBeenCalled();
   });
 
+  it("reads the purse and the session of each of his characters' notes, and nobody else's", async () => {
+    const texts = new Map([
+      [MIRA, "---\nimported-from: pdf\nimported-session: 3\n---\n## Purse (from D&D Beyond)\n- gp · 19\n"],
+      [ZED, "---\nimported-from: pdf\n---\n## Purse (from D&D Beyond)\n- gp · 90\n"],
+    ]);
+    const notes = new FakeOwnCharacterNotes(texts, [MIRA]);
+    const own = new OwnCharacters({ store: { campaignFolder: "Pale Moon" }, notes });
+    expect(await own.sheets()).toEqual([{ name: "Mira", purse: [{ coin: "gp", count: 19 }], importedSession: 3 }]);
+    expect(notes.reads).toEqual([MIRA]);
+  });
+
+  it("reads no purse and no session from a note with no import", async () => {
+    const notes = new FakeOwnCharacterNotes(new Map([[MIRA, "Notes of mine.\n"]]), [MIRA]);
+    const own = new OwnCharacters({ store: { campaignFolder: "Pale Moon" }, notes });
+    expect(await own.sheets()).toEqual([{ name: "Mira", purse: null, importedSession: null }]);
+  });
+
   it("stops listening when told to", () => {
-    const notes = new FakePurseNotes(TEXTS, [MIRA]);
+    const notes = new FakeOwnCharacterNotes(TEXTS, [MIRA]);
     const own = new OwnCharacters({ store: { campaignFolder: "Pale Moon" }, notes });
     own.subscribe(vi.fn())();
     expect(notes.listenerCount()).toBe(0);
