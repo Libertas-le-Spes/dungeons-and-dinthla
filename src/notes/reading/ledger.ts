@@ -24,6 +24,7 @@ export interface ItemEntry {
   type: "item";
   item: string;
   holder: string;
+  links: string[];
 }
 
 export type LedgerEntry = CoinEntry | ItemEntry;
@@ -74,10 +75,11 @@ function readCoins(coins: CoinAmount[]): CoinEntry {
 
 function readItem(written: string): ItemEntry | null {
   const body = withoutBlockId(written);
-  const [holder = ""] = findLinks(body);
+  const links = findLinks(body);
+  const [holder = ""] = links;
   const item = removeFirstLink(body).replace(/\s+/g, " ").trim();
   if (item === "") return null;
-  return { type: "item", item, holder };
+  return { type: "item", item, holder, links };
 }
 
 export function readLedgerEntry(body: string): LedgerEntry | null {

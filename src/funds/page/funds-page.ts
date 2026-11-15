@@ -7,18 +7,19 @@ import { addNameLink, addRowButton, type LinkActions } from "../../views/lists/l
 import type { ItemEventKind, ItemRecord, Source } from "../../campaign/record/campaign";
 import { sessionLabelOf } from "../../campaign/paths/session-file";
 import { summariseFunds, type CoinCount, type FundsSummary, type LedgerLine } from "./funds-summary";
-import { summariseItems, THE_PARTY_LABEL, type ItemSummary } from "../items/item-groups";
-import type { CoinOutcome } from "../coins/coin-modal";
-import { addLedgerRow, NO_COIN_ENTRIES } from "./ledger-row";
+import { THE_PARTY_LABEL, type ItemSummary } from "../items/item-groups";
+import { NO_COIN_ENTRIES } from "./ledger-row";
+import { LedgerBox, type LedgerBoxParts } from "./ledger-box";
+import { whoseFunds } from "./whose-funds";
 import type { OpenLedgerEntry } from "../coins/open-ledger-entry";
 import { makeScrollList } from "../../views/lists/scroll-list";
 import { Tabs } from "../../views/tabs/tabs";
 import { whoseItems } from "../items/whose-items";
-import { focusRowAt, NO_ROW, RowFocus } from "../../views/lists/row-focus";
+import { RowFocus } from "../../views/lists/row-focus";
 import { shownItemName } from "../../characters/imported/lists/shown-item-name";
 
 const HOW_LINES_ARE_READ =
-  "A $ line with an amount is coin; without one, it is an item. An amount is money out when it has a minus sign, or when “paid”, “spent”, “bought”, “gave” or “lost” comes before it with no comma between. A plus sign keeps it in.";
+  "A $ line with an amount is coin. Without one, it is an item. Coin is money out when it has a minus sign, or when “paid”, “spent”, “bought”, “gave” or “lost” comes before the amount with no comma between. A plus sign keeps it in. A link to your character anywhere on the line puts it on your list, in the Mine tab.";
 
 function coinText({ kind, count }: CoinCount): string {
   const written = Math.abs(count).toLocaleString("en");
@@ -28,15 +29,22 @@ function coinText({ kind, count }: CoinCount): string {
 
 const MINE = "Mine";
 const PARTY = "Party";
-const NO_OWN_CHARACTER = "No character of yours is named in this campaign yet.";
-const NO_OWN_ITEMS = "None of your items yet. A $ line without an amount, with your character's link first, like “$ [[Mira]] Flame Tongue longsword”, adds one.";
+const NO_OWN_CHARACTER = "You have not named your character in this campaign yet.";
+const NO_OWN_ITEMS = "No items of yours yet. Put your character's link anywhere on a $ line with no amount, like “$ Flame Tongue longsword found by [[Mira]]”.";
+const NO_OWN_COIN = "No coin of yours yet. Put your character's link anywhere on a $ line with an amount, like “$ 30 gp from the bandits, share to [[Mira]]”.";
+const NO_COIN_YET = "No coin yet. Note it as “$ 20 gp from the bandits”. A link to your character on the line, like “$ 30 gp from the bandits, share to [[Mira]]”, puts it on your list.";
+const NO_ITEMS = "No items held. A $ line with no amount adds one, like “$ Rope found at the old mill”.";
 
-function noOwnItemsText(ownNames: readonly string[]): string {
-  if (ownNames.length === 0) return NO_OWN_CHARACTER;
-  return NO_OWN_ITEMS;
+interface OwnEmpty {
+  ownNames: readonly string[];
+  text: string;
 }
 
-const NO_ITEMS = "No items held. A $ line without an amount, like “$ [[Mira]] Flame Tongue longsword”, adds one.";
+function whenOwn({ ownNames, text }: OwnEmpty): string {
+  if (ownNames.length === 0) return NO_OWN_CHARACTER;
+  return text;
+}
+
 type GoneKind = "sold" | "used" | "lost";
 
 const GONE_WORDS: Record<GoneKind, string> = { sold: "Sold", used: "Used up", lost: "Lost" };
@@ -64,12 +72,6 @@ function isSaleLogged(item: ItemRecord, ledger: LedgerLine[]): boolean {
 function heldText(count: number): string {
   if (count === 0) return "";
   return `${count} held`;
-}
-
-function entriesText(count: number): string {
-  if (count === 0) return "";
-  if (count === 1) return "1 entry";
-  return `${count} entries`;
 }
 
 export interface ShownItem {
@@ -114,12 +116,6 @@ function rowNamed({ panel, name }: { panel: HTMLElement; name: string }): HTMLEl
   return rows.find((candidate) => ITEM_ROWS.keyOf(candidate) === name);
 }
 
-interface LedgerBox {
-  count: HTMLElement;
-  list: HTMLElement;
-  addButton: HTMLElement | null;
-}
-
 export class FundsPage extends Component {
   private readonly tabs: Tabs;
   private readonly shownPanel: Component | null;
@@ -127,9 +123,8 @@ export class FundsPage extends Component {
   private readonly purse: HTMLElement;
   private readonly mineItems: HTMLElement;
   private readonly partyItems: HTMLElement;
-  private readonly ledgerCount: HTMLElement;
-  private readonly ledgerList: HTMLElement;
-  private readonly addCoinButton: HTMLElement | null;
+  private readonly mineLedger: LedgerBox;
+  private readonly partyLedger: LedgerBox;
   private readonly rowFocus = new RowFocus();
 
   constructor(private readonly parts: FundsPageParts) {
@@ -143,19 +138,25 @@ export class FundsPage extends Component {
     this.mineItems = this.tabs.firstPanel.createEl("section", { cls: "dd-panel dd-items-panel" });
     this.purse = this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-purse-panel" });
     this.partyItems = this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-items-panel" });
-    const ledger = this.buildLedger(this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-ledger-panel" }));
-    this.ledgerCount = ledger.count;
-    this.ledgerList = ledger.list;
-    this.addCoinButton = ledger.addButton;
+    this.mineLedger = this.ledgerBoxOf({ panel: this.tabs.firstPanel.createEl("section", { cls: "dd-panel dd-ledger-panel" }), addCoin: null, label: "Your ledger entries" });
+    this.partyLedger = this.ledgerBoxOf({ panel: this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-ledger-panel" }), addCoin: parts.addCoin, label: "Party ledger entries" });
+    this.tabs.secondPanel.createEl("p", { cls: "dd-note", text: HOW_LINES_ARE_READ });
   }
 
   override onload(): void {
     if (this.shownPanel !== null) this.addChild(this.shownPanel);
     this.addChild(this.tabs);
+    this.addChild(this.mineLedger);
+    this.addChild(this.partyLedger);
     if (this.pursePanel !== null) this.addChild(this.pursePanel);
     this.register(this.parts.store.subscribe(() => this.render()));
     this.register(this.parts.ownCharacters.subscribe(() => this.render()));
     this.render();
+  }
+
+  private ledgerBoxOf({ panel, addCoin, label }: Pick<LedgerBoxParts, "panel" | "addCoin" | "label">): LedgerBox {
+    const { actions, openLedgerEntry } = this.parts;
+    return new LedgerBox({ panel, actions, openLedgerEntry, addCoin, label, rowFocus: this.rowFocus });
   }
 
   private shownPanelOf(root: HTMLElement): Component | null {
@@ -182,13 +183,16 @@ export class FundsPage extends Component {
   }
 
   private render(): void {
-    const summary = summariseFunds(this.parts.store.current);
-    this.renderPurse(summary);
+    const campaign = this.parts.store.current;
     const ownNames = this.parts.ownCharacters.names();
-    const items = whoseItems({ summary: summariseItems(this.parts.store.current), ownNames });
-    this.renderItems({ panel: this.mineItems, summary: items.mine, ledger: summary.ledger, empty: noOwnItemsText(ownNames), label: "Items that are yours" });
-    this.renderItems({ panel: this.partyItems, summary: items.party, ledger: summary.ledger, empty: NO_ITEMS, label: "Items of the party" });
-    this.renderLedger(summary.ledger);
+    const funds = whoseFunds({ campaign, ownNames });
+    const items = whoseItems({ campaign, ownNames });
+    const ledger = [...funds.mine.ledger, ...funds.party.ledger];
+    this.renderPurse(funds.party);
+    this.renderItems({ panel: this.mineItems, summary: items.mine, ledger, empty: whenOwn({ ownNames, text: NO_OWN_ITEMS }), label: "Items that are yours" });
+    this.renderItems({ panel: this.partyItems, summary: items.party, ledger, empty: NO_ITEMS, label: "Items of the party" });
+    this.mineLedger.render({ lines: funds.mine.ledger, empty: whenOwn({ ownNames, text: NO_OWN_COIN }) });
+    this.partyLedger.render({ lines: funds.party.ledger, empty: NO_COIN_ENTRIES });
     this.rowFocus.afterRender();
   }
 
@@ -199,7 +203,7 @@ export class FundsPage extends Component {
     const coins = this.purse.createDiv({ cls: "dd-coins" });
     const chips = summary.coinCounts.map(coinText);
     if (summary.ledger.length === 0) {
-      coins.createSpan({ cls: "dd-empty", text: "No coin yet. Note it as “$ 20 gp from …”." });
+      coins.createSpan({ cls: "dd-empty", text: NO_COIN_YET });
     } else if (chips.join(" ") !== formatMoney(summary.purse)) {
       coins.createSpan({ cls: "dd-coins-label", text: "In coins:" });
       for (const chip of chips) coins.createSpan({ cls: "dd-coin", text: chip });
@@ -278,46 +282,4 @@ export class FundsPage extends Component {
     meta.appendText(sessionLabelOf(source.path));
   }
 
-  private buildLedger(panel: HTMLElement): LedgerBox {
-    const head = panel.createDiv({ cls: "dd-head" });
-    const title = head.createEl("h2", { cls: "dd-title", text: "Ledger" });
-    const count = title.createSpan({ cls: "dd-count" });
-    const addCoin = this.parts.addCoin;
-    let addButton: HTMLElement | null = null;
-    if (addCoin !== null) {
-      const button = head.createEl("button", { cls: "dd-create", text: "Add coin" });
-      this.registerDomEvent(button, "click", () => addCoin(() => button.focus()));
-      addButton = button;
-    }
-    const list = panel.createEl("ul", { cls: "dd-ledger" });
-    makeScrollList({ element: list, label: "Ledger entries" });
-    panel.createEl("p", { cls: "dd-note", text: HOW_LINES_ARE_READ });
-    return { count, list, addButton };
-  }
-
-  private renderLedger(lines: LedgerLine[]): void {
-    this.ledgerCount.setText(entriesText(lines.length));
-    this.ledgerList.empty();
-    if (lines.length === 0) this.ledgerList.createEl("li", { cls: "dd-empty", text: NO_COIN_ENTRIES });
-    for (const line of lines) this.addLedgerRow(this.ledgerList, line);
-  }
-
-  private focusAddCoin(): void {
-    if (this.addCoinButton !== null) this.addCoinButton.focus();
-  }
-
-  private afterEntry(source: Source, outcome: CoinOutcome): void {
-    let focusRow = () => focusRowAt(this.ledgerList, source);
-    if (outcome === "deleted") focusRow = NO_ROW;
-    this.rowFocus.afterClose(focusRow, outcome !== "unchanged", () => this.focusAddCoin());
-  }
-
-  private addLedgerRow(list: HTMLElement, line: LedgerLine): void {
-    let actions = this.parts.actions;
-    const openLedgerEntry = this.parts.openLedgerEntry;
-    if (openLedgerEntry !== null) {
-      actions = { ...this.parts.actions, openRow: (source: Source) => openLedgerEntry(source, (outcome) => this.afterEntry(source, outcome)) };
-    }
-    addLedgerRow(list, line, actions, this.parts.actions);
-  }
 }
