@@ -292,7 +292,7 @@ describe("the lists of names each place may use", () => {
     expect(PAGE_MEMBER_USES.fileUsing(filesOfPlace(place, PAGE_MEMBERS), name)).not.toBeNull();
   });
 
-  it("let only the marker colouring reach past the plugin's own elements, and main.ts reach the page's body for the theme class", () => {
+  it("let only the marker colouring reach past the plugin's own elements", () => {
     const reaching = Object.entries(PAGE_MEMBERS).flatMap(([file, names]) => {
       const allowed = PAGE_ESCAPE_READERS[file];
       return names.filter((name) => PAGE_ESCAPES.includes(name) && (allowed === undefined || !allowed.includes(name))).map((name) => `${file} ${name}`);

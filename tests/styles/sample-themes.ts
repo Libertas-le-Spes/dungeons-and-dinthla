@@ -1,6 +1,59 @@
 import type { ThemeContext } from "./theme-tokens";
 
+export const OBSIDIAN_LIGHT: Record<string, string> = {
+  "--mono-0": "#ffffff",
+  "--background-primary": "#ffffff",
+  "--background-primary-alt": "#fafafa",
+  "--background-secondary": "#f6f6f6",
+  "--background-secondary-alt": "#fcfcfc",
+  "--background-modifier-hover": "rgba(0, 0, 0, 0.075)",
+  "--background-modifier-active-hover": "rgba(139, 108, 239, 0.15)",
+  "--background-modifier-cover": "rgba(220, 220, 220, 0.4)",
+  "--background-modifier-border": "#e0e0e0",
+  "--background-modifier-border-hover": "#d4d4d4",
+  "--background-modifier-border-focus": "#8b6cef",
+  "--text-normal": "#222222",
+  "--text-muted": "#5c5c5c",
+  "--text-faint": "#ababab",
+  "--text-accent": "#8b6cef",
+  "--interactive-accent": "#8b6cef",
+  "--text-on-accent": "#ffffff",
+  "--text-error": "#e93147",
+  "--color-blue": "#086ddd",
+  "--color-yellow": "#e0ac00",
+  "--color-green": "#08b94e",
+  "--color-purple": "#7852ee",
+  "--color-cyan": "#00bfbc",
+};
+
+export const OBSIDIAN_DARK: Record<string, string> = {
+  "--mono-0": "#000000",
+  "--background-primary": "#1e1e1e",
+  "--background-primary-alt": "#222222",
+  "--background-secondary": "#262626",
+  "--background-secondary-alt": "#303030",
+  "--background-modifier-hover": "rgba(255, 255, 255, 0.075)",
+  "--background-modifier-active-hover": "rgba(139, 108, 239, 0.15)",
+  "--background-modifier-cover": "rgba(10, 10, 10, 0.4)",
+  "--background-modifier-border": "#363636",
+  "--background-modifier-border-hover": "#3f3f3f",
+  "--background-modifier-border-focus": "#8b6cef",
+  "--text-normal": "#dadada",
+  "--text-muted": "#b3b3b3",
+  "--text-faint": "#666666",
+  "--text-accent": "#997ef1",
+  "--interactive-accent": "#8b6cef",
+  "--text-on-accent": "#ffffff",
+  "--text-error": "#fb464c",
+  "--color-blue": "#027aff",
+  "--color-yellow": "#e0de71",
+  "--color-green": "#44cf6e",
+  "--color-purple": "#a882ff",
+  "--color-cyan": "#53dfdd",
+};
+
 export const TOKYO_NIGHT: Record<string, string> = {
+  "--mono-0": "#000000",
   "--background-primary": "#1a1b26",
   "--background-primary-alt": "#1f2335",
   "--background-secondary": "#16161e",
@@ -26,6 +79,7 @@ export const TOKYO_NIGHT: Record<string, string> = {
 };
 
 export const CATPPUCCIN_LATTE: Record<string, string> = {
+  "--mono-0": "#ffffff",
   "--background-primary": "#eff1f5",
   "--background-primary-alt": "#f5f6f9",
   "--background-secondary": "#e6e9ef",
@@ -59,10 +113,10 @@ const FROSTED_GLASS: Record<string, string> = {
 };
 
 export const THEMES: Record<string, ThemeContext> = {
-  "Dinthla light": { dark: false, follow: false, obsidian: {} },
-  "Dinthla dark": { dark: true, follow: false, obsidian: {} },
-  "Tokyo Night": { dark: true, follow: true, obsidian: TOKYO_NIGHT },
-  "Catppuccin Latte": { dark: false, follow: true, obsidian: CATPPUCCIN_LATTE },
+  "Obsidian light": { obsidian: OBSIDIAN_LIGHT },
+  "Obsidian dark": { obsidian: OBSIDIAN_DARK },
+  "Tokyo Night": { obsidian: TOKYO_NIGHT },
+  "Catppuccin Latte": { obsidian: CATPPUCCIN_LATTE },
 };
 
-export const SEE_THROUGH: ThemeContext = { dark: true, follow: true, obsidian: FROSTED_GLASS };
+export const SEE_THROUGH: ThemeContext = { obsidian: FROSTED_GLASS };

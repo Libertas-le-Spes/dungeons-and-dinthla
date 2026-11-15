@@ -15,7 +15,7 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "imports/dialog/picking/pdf-picker.ts": ["addEventListener", "arrayBuffer", "files", "item", "size"],
   "interface/view/campaign-view.ts": ["removeAttribute", "setAttribute"],
   "interface/view/tab-picture.ts": ["removeProperty", "style"],
-  "main.ts": ["body", "clearTimeout", "setTimeout", "visibilityState"],
+  "main.ts": ["clearTimeout", "setTimeout", "visibilityState"],
   "names/file-name.ts": ["encode"],
   "note-editing/note-box.ts": ["addEventListener", "disabled", "focus", "preventDefault", "readOnly", "value"],
   "note-page/left-campaign.ts": ["addEventListener", "disabled"],
@@ -84,6 +84,5 @@ export const PAGE_ESCAPES = [
 ];
 
 export const PAGE_ESCAPE_READERS: Record<string, string[]> = {
-  "main.ts": ["body"],
   "reading/colour-markers.ts": PAGE_ESCAPES,
 };

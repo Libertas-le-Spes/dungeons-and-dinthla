@@ -150,6 +150,12 @@ export function parseColour(value: string): Colour {
     if (Object.values(colour).some(Number.isNaN)) throw new Error(`Can't read the colour ${text}`);
     return colour;
   }
+  const stronger = /^oklch\(from (.*) l calc\(c \* (\d+(?:\.\d+)?)\) h\)$/.exec(text);
+  if (stronger !== null) {
+    const [lightness, a, b] = toOklab(parseColour(stronger[1]!));
+    const boost = Number(stronger[2]);
+    return fromOklab([lightness, a * boost, b * boost], 1);
+  }
   const colourMix = /^color-mix\((.*)\)$/.exec(text);
   if (colourMix !== null) {
     const [spacePart, firstPart, secondPart] = splitTopLevel(colourMix[1]!);
@@ -167,6 +173,11 @@ export function parseColour(value: string): Colour {
 export function over(top: Colour, bottom: Colour): Colour {
   const a = top.alpha;
   return { r: top.r * a + bottom.r * (1 - a), g: top.g * a + bottom.g * (1 - a), b: top.b * a + bottom.b * (1 - a), alpha: 1 };
+}
+
+export function distance(first: Colour, second: Colour): number {
+  const [[l1, a1, b1], [l2, a2, b2]] = [toOklab(first), toOklab(second)];
+  return Math.hypot(l1 - l2, a1 - a2, b1 - b2);
 }
 
 function luminance({ r, g, b }: Colour): number {

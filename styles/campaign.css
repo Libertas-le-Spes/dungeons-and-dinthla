@@ -19,7 +19,7 @@ body.is-phone.is-hidden-nav .dd-campaign-frame {
 .dd-campaign {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
-  gap: var(--space-4);
+  gap: var(--size-4-4);
   align-items: start;
 }
 
@@ -29,22 +29,22 @@ body.is-phone.is-hidden-nav .dd-campaign-frame {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: var(--space-2);
-  border-radius: var(--radius-lg);
-  background-color: var(--surface-ground);
+  padding: var(--size-4-2);
+  border-radius: var(--radius-l);
+  background-color: var(--mono-0);
   background-image: linear-gradient(var(--surface-page), var(--surface-page));
 }
 
 .dd-campaign .dd-nav-campaign {
-  padding: var(--space-2) var(--space-3) var(--space-3);
+  padding: var(--size-4-2) var(--size-4-3) var(--size-4-3);
   font: var(--type-page-title);
-  font-size: var(--text-lg);
+  font-size: var(--h4-size);
   color: var(--text-strong);
   overflow-wrap: anywhere;
 }
 
 .dd-campaign .dd-nav-group {
-  padding: var(--space-4) var(--space-3) var(--space-1);
+  padding: var(--size-4-4) var(--size-4-3) var(--size-4-1);
   font: var(--type-label);
   color: var(--text-muted-ui);
 }
@@ -52,16 +52,16 @@ body.is-phone.is-hidden-nav .dd-campaign-frame {
 .dd-campaign .dd-nav-link {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--size-4-2);
   width: 100%;
   min-height: var(--touch-min);
-  padding: 0 var(--space-3);
+  padding: 0 var(--size-4-3);
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-m);
   background: transparent;
   box-shadow: none;
   font: var(--type-panel-title);
-  font-size: var(--text-md);
+  font-size: var(--font-ui-medium);
   letter-spacing: var(--tracking-caps);
   color: var(--text-muted-ui);
   text-align: left;
@@ -87,12 +87,12 @@ body.is-phone.is-hidden-nav .dd-campaign-frame {
 
 .dd-campaign .dd-nav-glyph {
   width: 1ch;
-  font: var(--weight-bold) var(--text-md) var(--font-mono);
+  font: var(--font-bold) var(--font-ui-medium) var(--font-monospace);
   letter-spacing: 0;
 }
 
 .dd-campaign .dd-nav-glyph-plain {
-  font-weight: var(--weight-regular);
+  font-weight: var(--font-normal);
   color: var(--text-muted-ui);
 }
 
@@ -132,9 +132,9 @@ body.is-phone.is-hidden-nav .dd-campaign-frame {
 }
 
 .dd-campaign .dd-page-body {
-  padding: var(--space-4);
-  border-radius: var(--radius-lg);
-  background-color: var(--surface-ground);
+  padding: var(--size-4-4);
+  border-radius: var(--radius-l);
+  background-color: var(--mono-0);
   background-image: linear-gradient(var(--surface-page), var(--surface-page));
 }
 
@@ -152,11 +152,11 @@ body.is-phone.is-hidden-nav .dd-campaign-frame {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding: var(--space-3) var(--space-3) var(--space-8);
+    padding: var(--size-4-3) var(--size-4-3) var(--size-4-8);
   }
 
   .dd-campaign .dd-page-body {
-    padding: var(--space-3);
+    padding: var(--size-4-3);
   }
 
   .dd-campaign .dd-nav {
@@ -181,17 +181,17 @@ body.is-phone.is-hidden-nav .dd-campaign-frame {
     flex: 1 1 0;
     flex-direction: column;
     justify-content: center;
-    gap: var(--space-0);
+    gap: var(--size-2-1);
     min-width: 0;
     min-height: var(--bar-height);
-    padding: var(--space-1);
+    padding: var(--size-4-1);
     border-radius: 0;
     text-align: center;
   }
 
   .dd-campaign .dd-nav-in-bar .dd-nav-glyph {
     width: auto;
-    font-size: var(--text-xl);
+    font-size: var(--h3-size);
     line-height: 1;
   }
 

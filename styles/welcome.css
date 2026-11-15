@@ -3,26 +3,26 @@
 }
 
 .dd-welcome .dd-welcome-title {
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--size-4-4);
   font: var(--type-section);
   color: var(--text-strong);
 }
 
 .dd-welcome .dd-welcome-steps {
   display: grid;
-  gap: var(--space-3);
-  margin: 0 0 var(--space-5);
-  padding-left: var(--space-5);
+  gap: var(--size-4-3);
+  margin: 0 0 var(--size-4-5);
+  padding-left: var(--size-4-5);
 }
 
 .dd-welcome .dd-welcome-how {
-  margin: 0 0 var(--space-3);
+  margin: 0 0 var(--size-4-3);
 }
 
 .dd-welcome .dd-welcome-make {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3);
+  gap: var(--size-4-3);
   align-items: center;
 }
 

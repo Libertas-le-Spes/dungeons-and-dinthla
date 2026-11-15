@@ -59,7 +59,7 @@
 .dd-tab-picture .dd-box-frame {
   position: relative;
   isolation: isolate;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-m);
   background: var(--surface-sunken);
 }
 

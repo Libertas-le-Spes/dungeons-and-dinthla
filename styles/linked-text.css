@@ -22,8 +22,8 @@
 }
 
 .dd-root .dd-link-bracket {
-  padding: 0 var(--space-0);
-  border-radius: var(--radius-xs);
+  padding: 0 var(--size-2-1);
+  border-radius: var(--radius-s);
   background: var(--marker-link-soft);
 }
 
@@ -31,5 +31,5 @@
 .dd-lookup mark {
   background: var(--marker-question-soft);
   color: inherit;
-  border-radius: 2px;
+  border-radius: var(--radius-s);
 }
