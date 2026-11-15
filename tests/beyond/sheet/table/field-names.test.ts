@@ -30,8 +30,8 @@ describe("the field names the reader asks the sheet for", () => {
     expect(new Set(names).size).toBe(names.length);
   });
 
-  it("are a hundred and fifty-nine", () => {
-    expect(namesAskedFor()).toHaveLength(159);
+  it("are a hundred and sixty-one", () => {
+    expect(namesAskedFor()).toHaveLength(161);
   });
 
   it.each(AWKWARD_NAMES)("include %j exactly as the form writes it, with its stray spaces", (name) => {

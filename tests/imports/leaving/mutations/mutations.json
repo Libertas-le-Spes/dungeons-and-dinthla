@@ -666,84 +666,84 @@
  },
  {
   "id": "a note outside Characters and Fallen can't be made main",
-  "file": "src/imports/leaving/dialog/question-for.ts",
+  "file": "src/imports/leaving/questions/asked-about.ts",
   "find": "  if (!isInCharactersOrFallen(file, folder)) throw new Refusal(NOT_A_CAMPAIGN_CHARACTER);\n",
   "replace": "",
   "group": "offers"
  },
  {
   "id": "a main outside Characters and Fallen is refused",
-  "file": "src/imports/leaving/dialog/question-for.ts",
+  "file": "src/imports/leaving/questions/asked-about.ts",
   "find": "  if (old !== null && !isInCharactersOrFallen(old, folder)) throw new Refusal(MAIN_UNCLEAR);\n",
   "replace": "",
   "group": "offers"
  },
  {
   "id": "a campaign note that can't be found is said",
-  "file": "src/imports/leaving/dialog/question-for.ts",
+  "file": "src/imports/leaving/questions/asked-about.ts",
   "find": "  if (campaignNote === null) throw new Refusal(CAMPAIGN_NOTE_UNREAD);\n",
   "replace": "  if (campaignNote === null) return null;\n",
   "group": "offers"
  },
  {
   "id": "no main yet asks only Make main",
-  "file": "src/imports/leaving/dialog/question-for.ts",
+  "file": "src/imports/leaving/questions/question-for.ts",
   "find": "  if (old === null) return new NoMainQuestion(parts);\n",
   "replace": "",
   "group": "offers"
  },
  {
   "id": "a main already in Fallen is only finished",
-  "file": "src/imports/leaving/dialog/question-for.ts",
-  "find": "  if (isInFallen(old, folder)) return true;\n",
+  "file": "src/imports/leaving/questions/question-for.ts",
+  "find": "  if (isInFallen(note, folder)) return true;\n",
   "replace": "",
   "group": "offers"
  },
  {
   "id": "a main marked as left is only finished",
-  "file": "src/imports/leaving/dialog/question-for.ts",
-  "find": "  return hasLeftPlay(standingOf(await textOfNote(files, old, NOTE_UNREAD)));",
+  "file": "src/imports/leaving/questions/question-for.ts",
+  "find": "  return hasLeftPlay(standingOf(await textOfNote(files, note, NOTE_UNREAD)));",
   "replace": "  return false;",
   "group": "offers"
  },
  {
   "id": "a new one already named with nothing to finish asks nothing",
-  "file": "src/imports/leaving/dialog/question-for.ts",
-  "find": "    if (!(await needsFinishing(wiring.files, chosen, folder))) return null;\n",
+  "file": "src/imports/leaving/questions/question-for.ts",
+  "find": "    if (!(await needsFinishing({ files: wiring.files, note: chosen, folder }))) return null;\n",
   "replace": "",
   "group": "offers"
  },
  {
   "id": "a new one in Fallen needs finishing",
-  "file": "src/imports/leaving/dialog/question-for.ts",
-  "find": "  if (isInFallen(chosen, folder)) return true;\n  return standingOf",
+  "file": "src/imports/leaving/questions/question-for.ts",
+  "find": "  if (isInFallen(note, folder)) return true;\n  return standingOf",
   "replace": "  return standingOf",
   "group": "offers"
  },
  {
   "id": "a new one with a mark needs finishing",
-  "file": "src/imports/leaving/dialog/question-for.ts",
-  "find": "  return standingOf(await textOfNote(files, chosen, NOTE_UNREAD)) !== null;",
+  "file": "src/imports/leaving/questions/question-for.ts",
+  "find": "  return standingOf(await textOfNote(files, note, NOTE_UNREAD)) !== null;",
   "replace": "  return false;",
   "group": "offers"
  },
  {
   "id": "the new one is named already when the main is theirs",
-  "file": "src/imports/leaving/dialog/question-for.ts",
+  "file": "src/imports/leaving/questions/asked-about.ts",
   "find": "const chosenIsNamed = old !== null && old.path === chosen.path;",
   "replace": "const chosenIsNamed = false;",
   "group": "offers"
  },
  {
   "id": "the question asks about the old main",
-  "file": "src/imports/leaving/dialog/leaving-question.ts",
+  "file": "src/imports/leaving/questions/leaving-question.ts",
   "find": "this.question = questionAbout(old.file.basename);",
   "replace": "this.question = questionAbout(parts.mainSwitch.plan.chosen.file.basename);",
   "group": "offers"
  },
  {
   "id": "the question asks for what they were last doing",
-  "file": "src/imports/leaving/dialog/leaving-question.ts",
+  "file": "src/imports/leaving/questions/leaving-question.ts",
   "find": "readonly asksLastDoing = true;",
   "replace": "readonly asksLastDoing = false;",
   "group": "offers"
@@ -1017,7 +1017,7 @@
  {
   "id": "folders: the dialog reaches the choices",
   "file": "tests/build/leaving-folders.test.ts",
-  "find": "{ folder: \"dialog\", reaches: [\"dialog\", \"choices\", \"switching\", \"reasons\", \"properties\", \"cast\", \"writes\"] },",
+  "find": "{ folder: \"dialog\", reaches: [\"dialog\", \"questions\", \"choices\", \"switching\", \"reasons\", \"properties\", \"cast\", \"writes\"] },",
   "replace": "{ folder: \"dialog\", reaches: [\"dialog\", \"switching\", \"reasons\", \"properties\", \"cast\", \"writes\"] },",
   "group": "folders"
  },

@@ -3,9 +3,11 @@ import type { SessionNote } from "../../campaign/record/campaign";
 import { campaignFolderOf, campaignNotePathOf } from "../../campaign/paths/campaign-folders";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { LinkActions } from "../../views/lists/linked-text";
-import { addCharacterCard, addCharacterCardIn, type CharacterCard } from "../cards/character-card";
+import { FocusAfter } from "../../views/lists/focus-after";
+import { addCharacterCardIn, type CharacterCard } from "../cards/character-card";
 import { backupCards, playedCards } from "../cards/card-groups";
 import { leftPlayMarkOf } from "../cards/card-standing";
+import { addDiedButton } from "../cards/died-button";
 import { addMakeMainButton } from "../cards/make-main-button";
 import type { CharacterNotes } from "../reading/character-notes";
 import { learnedFactsOf, type LearnedFacts } from "../reading/learned-facts";
@@ -15,6 +17,12 @@ import type { CharacterCreators } from "./character-creators";
 import { addImportButton } from "../imported/drawing/import-button";
 
 const NO_CHARACTERS = "No characters yet. Add one with New character.";
+interface DrawnCard {
+  list: HTMLElement;
+  card: CharacterCard;
+  cls: string;
+}
+
 export const BACKUPS = "Backups";
 export const FALLEN = "Fallen";
 
@@ -22,6 +30,7 @@ export class CharacterGallery {
   private renders = 0;
   private campaignNotes = new Set<string | null>();
   private createButton: HTMLButtonElement | null = null;
+  private readonly focusCreate = new FocusAfter();
   private readonly drawing = new PendingWork();
 
   constructor(
@@ -84,10 +93,12 @@ export class CharacterGallery {
 
   private drawPlayedCard(gallery: HTMLElement, card: CharacterCard): void {
     if (leftPlayMarkOf(card.standing) === null) {
-      addCharacterCard(gallery, card, this.actions);
+      const item = gallery.createEl("li", { cls: "dd-played" });
+      addCharacterCardIn(item, card, this.actions);
+      this.addDied(item, card);
       return;
     }
-    this.drawWithMakeMain(gallery, card, "dd-left");
+    this.drawWithMakeMain({ list: gallery, card, cls: "dd-left" });
   }
 
   private drawFallen(cards: readonly CharacterCard[]): void {
@@ -96,13 +107,18 @@ export class CharacterGallery {
     const title = section.createEl("h3", { cls: "dd-title", text: FALLEN });
     title.createSpan({ cls: "dd-count", text: String(cards.length) });
     const list = section.createEl("ul", { cls: "dd-gallery" });
-    for (const card of cards) this.drawWithMakeMain(list, card, "dd-fallen-card");
+    for (const card of cards) this.drawWithMakeMain({ list, card, cls: "dd-fallen-card" });
   }
 
-  private drawWithMakeMain(list: HTMLElement, card: CharacterCard, cls: string): void {
+  private drawWithMakeMain({ list, card, cls }: DrawnCard): HTMLElement {
     const item = list.createEl("li", { cls });
     addCharacterCardIn(item, card, this.actions);
     addMakeMainButton(item, card.path, this.creators);
+    return item;
+  }
+
+  private addDied(parent: HTMLElement, card: CharacterCard): void {
+    addDiedButton({ parent, path: card.path, action: this.creators, focus: this.focusCreate });
   }
 
   private drawBackups(backups: readonly CharacterCard[]): void {
@@ -110,13 +126,14 @@ export class CharacterGallery {
     const section = this.root.createEl("section", { cls: "dd-backups" });
     section.createEl("h3", { cls: "dd-title", text: BACKUPS });
     const list = section.createEl("ul", { cls: "dd-gallery" });
-    for (const card of backups) this.drawWithMakeMain(list, card, "dd-backup");
+    for (const card of backups) this.addDied(this.drawWithMakeMain({ list, card, cls: "dd-backup" }), card);
   }
 
   private addCreateButton(head: HTMLElement): void {
     const button = head.createEl("button", { cls: "dd-create", text: "New character" });
     button.addEventListener("click", () => this.creators.newCharacter(() => this.focusCreateButton()));
     this.createButton = button;
+    if (this.focusCreate.isArmed()) button.focus();
   }
 
   private focusCreateButton(): void {

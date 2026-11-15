@@ -29,7 +29,7 @@ function byHolderWithThePartyLast(first: HolderGroup, second: HolderGroup): numb
   return first.holder.localeCompare(second.holder);
 }
 
-function sessionNumberIn(source: Source): number {
+export function sessionNumberIn(source: Source): number {
   const match = SESSION_NUMBER.exec(source.path);
   if (match === null) return 0;
   return Number.parseInt(match[1]!, 10);

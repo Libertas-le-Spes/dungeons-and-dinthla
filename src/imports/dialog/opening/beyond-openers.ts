@@ -1,6 +1,6 @@
 import type { App, TFile } from "obsidian";
 import { MainOffers } from "../../leaving/dialog/main-offers";
-import type { OfferWiring } from "../../leaving/dialog/offer-wiring";
+import type { OfferWiring } from "../../leaving/questions/offer-wiring";
 import type { CampaignCast } from "../../leaving/cast/campaign-cast";
 import { GateCast, type CastMetadata } from "../../leaving/cast/gate-cast";
 import type { LeavingActions, LeavingFiles } from "../../leaving/switching/switch-plan";
@@ -80,6 +80,10 @@ export class BeyondOpeners {
 
   makeMain(path: string, returnFocus: () => void): void {
     void this.offers.makeMain(path, returnFocus);
+  }
+
+  died(path: string, returnFocus: () => void): void {
+    void this.offers.died(path, returnFocus);
   }
 
   importCharacter(returnFocus: () => void): void {

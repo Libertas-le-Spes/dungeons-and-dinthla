@@ -10,7 +10,7 @@ describe("KindNoteKeeper making a note", () => {
     const session = notes.addSession(SESSION);
     keeperWith(notes).keep([wanted(QUESTIONS, session, LINES)]);
     await settled();
-    expect(notes.noteAt(QUESTIONS)?.properties).toEqual({ session: "[[Session 2]]", lines: LINES });
+    expect(notes.noteAt(QUESTIONS)?.properties).toEqual({ session: `[[${CAMPAIGN}/Sessions/Session 2]]`, lines: LINES });
     expect(notes.created).toEqual([QUESTIONS]);
   });
 

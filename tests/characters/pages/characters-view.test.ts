@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { BasesQueryResult, QueryController, TFile } from "obsidian";
 import type { SessionNote } from "../../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
+import type { CharacterCreators } from "../../../src/characters/pages/character-creators";
 import type { CastNotes, CharacterNotes } from "../../../src/characters/reading/character-notes";
 import { CharactersView } from "../../../src/characters/pages/characters-view";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
@@ -94,7 +95,8 @@ function openGallery({
   const newCharacter = vi.fn();
   const importCharacter = vi.fn();
   const container = obsidianDocument().createElement("div");
-  const view = new CharactersView({} as QueryController, container, store as unknown as CampaignStore, notes, actions, { newCharacter, importCharacter, makeMain: vi.fn() });
+  const creators: CharacterCreators = { newCharacter, importCharacter, makeMain: vi.fn(), died: vi.fn() };
+  const view = new CharactersView({} as QueryController, container, store as unknown as CampaignStore, notes, actions, creators);
   const registered: (() => void)[] = [];
   view.register = (callback) => {
     registered.push(callback);

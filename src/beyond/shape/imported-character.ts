@@ -10,6 +10,9 @@ export interface ImportedCharacter {
   readonly route: Route;
   readonly name: CleanLine;
   readonly species: CleanLine;
+  readonly size: CleanLine | null;
+  readonly creatureType: CleanLine | null;
+  readonly alignment: CleanLine | null;
   readonly classes: readonly ImportedClass[];
   readonly scores: AbilityScores;
   readonly numbers: readonly ImportedNumber[];

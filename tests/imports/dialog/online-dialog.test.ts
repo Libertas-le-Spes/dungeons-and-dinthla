@@ -17,7 +17,7 @@ import { SettleWatch } from "../../stubs/settle-watch";
 import { CAMPAIGN_FOLDER, CHARACTERS_FOLDER, FakeNoteVault } from "../builders/fake-note-vault";
 import { DialogDriver, pickedFileOf } from "../builders/dialog-driver";
 import { HeldOnline } from "../builders/made-up-online";
-import { TODAY } from "../builders/made-up-import";
+import { TODAY , stampedOn } from "../builders/made-up-import";
 import { madeUpPdf } from "../builders/made-up-pdf";
 
 const NEW_NOTE = `${CHARACTERS_FOLDER}/Primary Monk.md`;
@@ -96,7 +96,7 @@ describe("pressing the online button", () => {
     dialog.press("Import");
     await dialog.modal.allSettled();
     expect(vault.created).toEqual([NEW_NOTE]);
-    expect(vault.textAt(NEW_NOTE)).toBe(importedNoteText("", onlineSheet(), TODAY));
+    expect(vault.textAt(NEW_NOTE)).toBe(importedNoteText({ current: "", sheet: onlineSheet(), stamp: stampedOn(TODAY) }));
   });
 
   it("writes nothing when the review is left with Choose another file, and offers the online way again", async () => {

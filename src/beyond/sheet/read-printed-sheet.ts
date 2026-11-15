@@ -9,7 +9,8 @@ import { spellsOf } from "./parts/read-spells";
 import type { PrintedSheet } from "./printed-sheet";
 import { PRINTED } from "./printed-route";
 import { SheetFields } from "./sheet-fields";
-import { NAME_LINE, SPECIES_LINE } from "./table/identity-fields";
+import { printedLineOf } from "./parts/read-printed-line";
+import { ALIGNMENT, NAME_LINE, SIZE, SPECIES_LINE } from "./table/identity-fields";
 
 export function readPrintedSheet(values: ReadonlyMap<string, FieldValue>): PrintedSheet {
   const fields = new SheetFields(values);
@@ -21,6 +22,9 @@ export function readPrintedSheet(values: ReadonlyMap<string, FieldValue>): Print
       route: PRINTED,
       name: NAME_LINE.read(fields),
       species: SPECIES_LINE.read(fields),
+      size: printedLineOf(fields, SIZE),
+      creatureType: null,
+      alignment: printedLineOf(fields, ALIGNMENT),
       classes: classesOf(fields),
       scores: scoresOf(fields),
       numbers: numbersOf(fields),

@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
+import { Component } from "obsidian";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { Campaign, Source } from "../../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import type { CoinOutcome } from "../../../src/funds/coins/coin-modal";
-import { Component } from "obsidian";
-import { FundsPage, type FundsStore, type PursesBeside, type ShownItem } from "../../../src/funds/page/funds-page";
-import { OwnPursePanel, type PurseStore } from "../../../src/funds/purses/own-purse-panel";
-import { FakePurseNotes } from "../purses/fake-purse-notes";
+import { FundsPage, type ShownItem } from "../../../src/funds/page/funds-page";
+import type { OwnSheet } from "../../../src/funds/purses/own-characters";
+import { HeldCalls } from "../../stubs/held-calls";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 function campaignOf(lines: string[], ...laterSessions: string[][]): Campaign {
@@ -31,6 +31,7 @@ interface PageParts {
   openItem: OpenItem | null;
   shownItem: ShownItem | null;
   ownNames: string[];
+  sheets?: OwnSheet[];
 }
 
 const PARTY_PANEL = '[role="tabpanel"][id$="-panel-1"]';
@@ -39,8 +40,16 @@ const MINE_PANEL = '[role="tabpanel"][id$="-panel-0"]';
 class MadeUpOwnCharacters {
   listener: () => void = () => {};
   listening = false;
+  known: OwnSheet[] | null = null;
+  reads = 0;
 
   constructor(public names: () => string[]) {}
+
+  async sheets(): Promise<OwnSheet[]> {
+    this.reads += 1;
+    if (this.known !== null) return this.known;
+    return this.names().map((name) => ({ name, purse: null, importedSession: null }));
+  }
 
   subscribe(changed: () => void): () => void {
     this.listener = changed;
@@ -51,7 +60,7 @@ class MadeUpOwnCharacters {
   }
 }
 
-async function openPage({ campaign, noteNames, addCoin, openLedgerEntry, openItem, shownItem, ownNames }: PageParts) {
+async function openPage({ campaign, noteNames, addCoin, openLedgerEntry, openItem, shownItem, ownNames, sheets }: PageParts) {
   let listener: (campaign: Campaign) => void = () => {};
   const unsubscribe = vi.fn();
   const store = {
@@ -65,6 +74,7 @@ async function openPage({ campaign, noteNames, addCoin, openLedgerEntry, openIte
   const noteExists = (name: string) => noteNames.includes(name);
   const root = obsidianDocument().createElement("div");
   const owners = new MadeUpOwnCharacters(() => ownNames);
+  if (sheets !== undefined) owners.known = sheets;
   const view = new FundsPage({
     contentEl: root,
     store: store as unknown as CampaignStore,
@@ -74,16 +84,16 @@ async function openPage({ campaign, noteNames, addCoin, openLedgerEntry, openIte
     openLedgerEntry,
     openItem,
     shownItem,
-    pursesBeside: null,
     ownCharacters: owners,
   });
   view.load();
+  await view.rendered();
   const change = (next: Campaign) => {
     store.current = next;
     listener(next);
   };
   const close = () => view.unload();
-  return { root, actions, change, close, unsubscribe, owners };
+  return { root, actions, change, close, unsubscribe, owners, view };
 }
 
 function elementIn(root: HTMLElement, selector: string): HTMLElement {
@@ -528,38 +538,6 @@ describe("FundsPage with his funds and the party's in two tabs", () => {
   });
 });
 
-const PRIMARY_MONK = "Pale Moon/Characters/Primary Monk.md";
-const IMPORTED_1200_GP = "---\nimported-from: pdf\n---\n## Purse (from D&D Beyond)\n- gp · 1200\n";
-
-class HisPurses {
-  private readonly made: OwnPursePanel[] = [];
-
-  constructor(
-    private readonly notes: FakePurseNotes,
-    private readonly store: PurseStore,
-  ) {}
-
-  panel(panelEl: HTMLElement): Component {
-    const panel = new OwnPursePanel(panelEl, this.store, this.notes);
-    this.made.push(panel);
-    return panel;
-  }
-
-  async rendered(): Promise<void> {
-    for (const panel of this.made) await panel.rendered();
-  }
-}
-
-class MadeUpPurses {
-  readonly panels: HTMLElement[] = [];
-
-  panel(panelEl: HTMLElement): Component {
-    this.panels.push(panelEl);
-    panelEl.setText("His purse");
-    return new Component();
-  }
-}
-
 describe("FundsPage with a purse of his own coin lines in Mine", () => {
   const OWN_PURSE = `${MINE_PANEL} .dd-purse-panel`;
 
@@ -627,57 +605,93 @@ describe("FundsPage with a purse of his own coin lines in Mine", () => {
   });
 });
 
-describe("FundsPage with his purse beside the party's", () => {
-  it("puts his purse first in his own tab, in its own panel, and leaves it out of the party's tab", () => {
-    const purses = new MadeUpPurses();
-    const root = obsidianDocument().createElement("div");
-    const store = { current: campaignOf(["$ +50 gp advance"]), subscribe: subscribeNever };
-    openWithPurses({ root, store, purses });
-    expect(root.querySelector(`${MINE_PANEL} > .dd-own-purse-panel:first-child`)).not.toBeNull();
-    expect(root.querySelector(`${PARTY_PANEL} .dd-own-purse-panel`)).toBeNull();
-    expect(purses.panels).toHaveLength(1);
+describe("FundsPage with one purse of his character in Mine", () => {
+  const MINE_PURSE = `${MINE_PANEL} .dd-purse-panel`;
+  const SHEET: OwnSheet = { name: "Mira", purse: [{ coin: "pp", count: 1 }, { coin: "gp", count: 19 }], importedSession: 1 };
+
+  async function pageFor(lines: string[], sheets: OwnSheet[]) {
+    return openPage({ campaign: campaignOf(["$ +50 gp advance"], lines), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: sheets.map((sheet) => sheet.name), sheets });
+  }
+
+  it("is the sheet's purse with the own lines of later sessions added, in the one purse of the tab", async () => {
+    const { root } = await pageFor(["$ 5 gp from the bandits, share to [[Mira]]", "$ Paid 2 gp for rope, [[Mira]]"], [SHEET]);
+    expect(root.querySelectorAll(`${MINE_PANEL} .dd-purse-panel`)).toHaveLength(1);
+    expect(textsOf(root, `${MINE_PURSE} .dd-purse`)).toEqual(["32 gp"]);
   });
 
-  it("shows his 1,200 gp in his own purse and leaves the party purse at its 50 gp", async () => {
+  it("shows the coins it is made of, and money in with the sheet's coin in it", async () => {
+    const { root } = await pageFor(["$ 5 gp from the bandits, share to [[Mira]]", "$ Paid 2 gp for rope, [[Mira]]"], [SHEET]);
+    expect(textsOf(root, `${MINE_PURSE} .dd-coin`)).toEqual(["1 pp", "22 gp"]);
+    expect(textsOf(root, `${MINE_PURSE} .dd-in-out > span`)).toEqual(["In 34 gp", "Out 2 gp"]);
+  });
+
+  it("shows nothing of it before the sheets are read", async () => {
     const root = obsidianDocument().createElement("div");
-    const store = { campaignFolder: "Pale Moon", current: campaignOf(["$ +50 gp advance"]), subscribe: subscribeNever };
-    const purses = new HisPurses(new FakePurseNotes(new Map([[PRIMARY_MONK, IMPORTED_1200_GP]]), [PRIMARY_MONK]), store);
-    openWithPurses({ root, store, purses });
-    await purses.rendered();
+    const owners = new MadeUpOwnCharacters(() => ["Mira"]);
+    const held = new HeldCalls<OwnSheet[]>();
+    owners.sheets = () => held.hold();
+    const view = new FundsPage({
+      contentEl: root,
+      store: { current: campaignOf(["$ 5 gp from [[Mira]]"]), subscribe: () => () => {} },
+      actions: { openRow: vi.fn(), openLink: vi.fn() },
+      noteExists: () => true,
+      addCoin: null,
+      openLedgerEntry: null,
+      openItem: null,
+      shownItem: null,
+      ownCharacters: owners,
+    });
+    view.load();
+    expect(root.querySelector(`${MINE_PURSE} .dd-purse`)).toBeNull();
+    expect(root.querySelector(`${PARTY_PANEL} .dd-purse`)).not.toBeNull();
+    held.resolve(0, [SHEET]);
+    await view.rendered();
+    expect(textsOf(root, `${MINE_PURSE} .dd-purse`)).toEqual(["29 gp"]);
+  });
+
+  it("redraws with the new session when his character's note changes", async () => {
+    const { root, owners, view } = await pageFor(["$ 5 gp from [[Mira]]"], [SHEET]);
+    expect(textsOf(root, `${MINE_PURSE} .dd-coin`)).toEqual(["1 pp", "24 gp"]);
+    owners.known = [{ ...SHEET, importedSession: 2 }];
+    owners.listener();
+    await view.rendered();
+    expect(textsOf(root, `${MINE_PURSE} .dd-coin`)).toEqual(["1 pp", "19 gp"]);
+  });
+
+  it("keeps the later read when an earlier one finishes last", async () => {
+    const { root, owners, view } = await pageFor([], [SHEET]);
+    const held = new HeldCalls<OwnSheet[]>();
+    owners.sheets = () => held.hold();
+    owners.listener();
+    owners.listener();
+    held.resolve(1, [{ ...SHEET, purse: [{ coin: "gp", count: 7 }] }]);
+    await Promise.resolve();
+    held.resolve(0, [{ ...SHEET, purse: [{ coin: "gp", count: 3 }] }]);
+    await view.rendered();
+    expect(textsOf(root, `${MINE_PURSE} .dd-purse`)).toEqual(["7 gp"]);
+  });
+
+  it("draws nothing more once closed", async () => {
+    const { root, owners, view } = await pageFor([], [SHEET]);
+    const held = new HeldCalls<OwnSheet[]>();
+    owners.sheets = () => held.hold();
+    owners.listener();
+    view.unload();
+    held.resolve(0, [{ ...SHEET, purse: [{ coin: "gp", count: 7 }] }]);
+    await view.rendered();
+    expect(textsOf(root, `${MINE_PURSE} .dd-purse`)).toEqual(["29 gp"]);
+  });
+
+  it("says no coin yet in the purse of a character with nothing", async () => {
+    const { root } = await pageFor([], [{ name: "Mira", purse: null, importedSession: null }]);
+    expect(textsOf(root, `${MINE_PURSE} .dd-purse`)).toEqual(["0 gp"]);
+    expect(textsOf(root, `${MINE_PURSE} .dd-coins .dd-empty`)).toHaveLength(1);
+  });
+
+  it("leaves the party purse and its ledger as they were", async () => {
+    const { root } = await pageFor(["$ 5 gp from [[Mira]]"], [SHEET]);
     expect(textsOf(root, `${PARTY_PANEL} .dd-purse`)).toEqual(["50 gp"]);
-    expect(textsOf(root, ".dd-own-purse-panel .dd-coin")).toEqual(["1,200 gp"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-ledger .dd-what`)).toEqual(["+50 gp advance"]);
+    expect(textsOf(root, `${MINE_PANEL} .dd-ledger .dd-what`)).toEqual(["5 gp from [[Mira]]"]);
   });
 });
-
-interface WithPurses {
-  root: HTMLElement;
-  store: FundsStore;
-  purses: PursesBeside;
-}
-
-function openWithPurses({ root, store, purses }: WithPurses): void {
-  const parts = {
-    contentEl: root,
-    store,
-    actions: { openRow: vi.fn(), openLink: vi.fn() },
-    noteExists: noNote,
-    addCoin: null,
-    openLedgerEntry: null,
-    openItem: null,
-    shownItem: null,
-    pursesBeside: purses,
-    ownCharacters: new MadeUpOwnCharacters(() => []),
-  };
-  new FundsPage(parts).load();
-}
-
-function subscribeNever(): () => void {
-  return stopNothing;
-}
-
-function stopNothing(): void {}
-
-function noNote(): boolean {
-  return false;
-}
-

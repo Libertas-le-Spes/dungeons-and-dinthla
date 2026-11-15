@@ -1,11 +1,14 @@
 import { characterNumberOf } from "./character-number";
 import { JsonReader } from "./json/json-reader";
 import { ONLINE } from "./common/online-route";
+import { alignmentOf } from "./details/read-alignment";
 import { classesOf } from "./parts/read-classes";
+import { creatureTypeOf } from "./details/read-creature-type";
 import { featuresOf } from "./parts/read-features";
 import { nameOf, speciesOf } from "./parts/read-identity";
 import { inventoryOf } from "./parts/read-inventory";
 import { purseOf } from "./parts/read-purse";
+import { sizeOf } from "./details/read-size";
 import { spellsOf } from "./parts/read-spells";
 import { safeJsonOf } from "./parsing/safe-json";
 import type { RepliedCharacter } from "./replied-character";
@@ -22,6 +25,9 @@ export function readReply(text: string): RepliedCharacter {
       route: ONLINE,
       name: nameOf(data),
       species: speciesOf(data),
+      size: sizeOf(data),
+      creatureType: creatureTypeOf(data),
+      alignment: alignmentOf(data),
       classes: classesOf(data),
       scores: scoresIn(worked),
       numbers: numbersWithoutScores(worked),

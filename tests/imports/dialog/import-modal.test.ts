@@ -13,7 +13,7 @@ import { CAMPAIGN_FOLDER, CHARACTERS_FOLDER, FakeNoteVault } from "../builders/f
 import { DialogDriver, pickedFileOf } from "../builders/dialog-driver";
 import { NO_ONLINE } from "../builders/made-up-online";
 import { madeUpPdf, notAPdf } from "../builders/made-up-pdf";
-import { TODAY } from "../builders/made-up-import";
+import { TODAY , stampedOn } from "../builders/made-up-import";
 import { READING_WENT_WRONG, WRITING_WENT_WRONG } from "../../../src/imports/dialog/failure-words";
 import { typedTextNotShown } from "../../../src/imports/note/writing/guarding/refusals";
 import { IMPORT_TITLE, STILL_READING, UPDATE_TITLE } from "../../../src/imports/dialog/import-words";
@@ -53,7 +53,7 @@ function updateDialog(path: string): DialogDriver {
 }
 
 function monkNoteText(before: string): string {
-  return importedNoteText(before, printedOf(MadeUpSheet.monk()), TODAY);
+  return importedNoteText({ current: before, sheet: printedOf(MadeUpSheet.monk()), stamp: stampedOn(TODAY) });
 }
 
 describe("the import dialog's own work, which its tests await", () => {
