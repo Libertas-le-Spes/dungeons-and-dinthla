@@ -51,6 +51,12 @@ describe("whoseItems", () => {
     expect(heldOf(mine)).toEqual([["mira", ["Rope"]]]);
   });
 
+  it.each(["[[Mira|the Fox]]", "[[Mira#Backstory]]", "[[Characters/Mira|the Fox]]", "[[Mira.md]]"])("keeps %s his character's, which the reader already reduces to the link's target", (holder) => {
+    const { mine, party } = whoseItems({ summary: summaryOf([`$ ${holder} Rope`]), ownNames: ["Mira"] });
+    expect(mine.heldCount).toBe(1);
+    expect(party.heldCount).toBe(0);
+  });
+
   it("gives items to several characters of his", () => {
     const { mine, party } = whoseItems({ summary: summaryOf(...SESSIONS), ownNames: ["Mira", "Zed"] });
     expect(heldOf(mine)).toEqual([

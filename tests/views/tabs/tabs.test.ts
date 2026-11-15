@@ -6,16 +6,7 @@ function openTabs() {
   const document = obsidianDocument();
   const parent = document.createElement("div");
   document.body.append(parent);
-  const filled: string[] = [];
-  const tabs = new Tabs({
-    parent,
-    label: "Funds",
-    tabs: [
-      { name: "Mine", fill: (panel) => filled.push(`Mine:${panel.getAttribute("role")}`) },
-      { name: "Party", fill: (panel) => filled.push(`Party:${panel.getAttribute("role")}`) },
-      { name: "Gone", fill: () => filled.push("Gone") },
-    ],
-  });
+  const tabs = new Tabs({ parent, label: "Funds", first: "Mine", second: "Party" });
   tabs.load();
   const buttons = Array.from(parent.querySelectorAll<HTMLElement>("[role=tab]"));
   const panels = Array.from(parent.querySelectorAll<HTMLElement>("[role=tabpanel]"));
@@ -31,7 +22,7 @@ function openTabs() {
     button.dispatchEvent(event);
     return event;
   };
-  return { document, parent, tabs, buttons, panels, filled, press, tab };
+  return { document, parent, tabs, buttons, panels, tab, press };
 }
 
 function selectedOf(buttons: HTMLElement[]): string[] {
@@ -43,72 +34,85 @@ function shownOf(panels: HTMLElement[]): boolean[] {
 }
 
 describe("Tabs", () => {
-  it("makes a labelled tab list, one tab for each name, and a panel for each, filled with what the caller gives", () => {
-    const { parent, buttons, panels, filled } = openTabs();
+  it("makes a labelled tab list, one tab for each name, and a panel for each", () => {
+    const { parent, buttons, panels, tabs } = openTabs();
     expect(parent.querySelector("[role=tablist]")?.getAttribute("aria-label")).toBe("Funds");
-    expect(buttons.map((button) => button.textContent)).toEqual(["Mine", "Party", "Gone"]);
+    expect(buttons.map((button) => button.textContent)).toEqual(["Mine", "Party"]);
     expect(buttons.every((button) => button.tagName === "BUTTON")).toBe(true);
-    expect(panels.map((panel) => panel.getAttribute("aria-label"))).toEqual(["Mine", "Party", "Gone"]);
-    expect(filled).toEqual(["Mine:tabpanel", "Party:tabpanel", "Gone"]);
+    expect(panels).toEqual([tabs.firstPanel, tabs.secondPanel]);
+  });
+
+  it("ties each tab to its panel, and each panel to its tab, by ids that are not shared with another set of tabs", () => {
+    const { buttons, panels } = openTabs();
+    const other = openTabs();
+    expect(buttons.map((button) => button.getAttribute("aria-controls"))).toEqual(panels.map((panel) => panel.id));
+    expect(panels.map((panel) => panel.getAttribute("aria-labelledby"))).toEqual(buttons.map((button) => button.id));
+    const ids = [...buttons, ...panels, ...other.buttons, ...other.panels].map((element) => element.id);
+    expect(new Set(ids).size).toBe(8);
+    expect(ids.every((id) => id !== "")).toBe(true);
   });
 
   it("starts on the first tab, with only its panel showing and only it in the tab order", () => {
     const { buttons, panels } = openTabs();
-    expect(selectedOf(buttons)).toEqual(["true", "false", "false"]);
-    expect(buttons.map((button) => button.getAttribute("tabindex"))).toEqual(["0", "-1", "-1"]);
-    expect(shownOf(panels)).toEqual([true, false, false]);
+    expect(selectedOf(buttons)).toEqual(["true", "false"]);
+    expect(buttons.map((button) => button.getAttribute("tabindex"))).toEqual(["0", "-1"]);
+    expect(shownOf(panels)).toEqual([true, false]);
   });
 
   it("shows the panel of the tab that is pressed", () => {
     const { buttons, panels, tab } = openTabs();
     tab("Party").click();
-    expect(selectedOf(buttons)).toEqual(["false", "true", "false"]);
-    expect(buttons.map((button) => button.getAttribute("tabindex"))).toEqual(["-1", "0", "-1"]);
-    expect(shownOf(panels)).toEqual([false, true, false]);
+    expect(selectedOf(buttons)).toEqual(["false", "true"]);
+    expect(buttons.map((button) => button.getAttribute("tabindex"))).toEqual(["-1", "0"]);
+    expect(shownOf(panels)).toEqual([false, true]);
   });
 
-  it("moves to the next tab on the right arrow, and from the last back to the first, taking focus with it", () => {
+  it("selects a tab by its name from outside, without taking focus", () => {
+    const { document, buttons, panels, tabs } = openTabs();
+    tabs.select("Party");
+    expect(selectedOf(buttons)).toEqual(["false", "true"]);
+    expect(shownOf(panels)).toEqual([false, true]);
+    expect(document.activeElement).toBe(document.body);
+    tabs.select("Mine");
+    expect(selectedOf(buttons)).toEqual(["true", "false"]);
+  });
+
+  it("moves to the other tab on an arrow, wrapping both ways, taking focus with it", () => {
     const { document, buttons, panels, press, tab } = openTabs();
     const event = press(tab("Mine"), "ArrowRight");
     expect(event.defaultPrevented).toBe(true);
-    expect(selectedOf(buttons)).toEqual(["false", "true", "false"]);
+    expect(selectedOf(buttons)).toEqual(["false", "true"]);
     expect(document.activeElement).toBe(tab("Party"));
     press(tab("Party"), "ArrowRight");
-    press(tab("Gone"), "ArrowRight");
-    expect(selectedOf(buttons)).toEqual(["true", "false", "false"]);
+    expect(selectedOf(buttons)).toEqual(["true", "false"]);
     expect(document.activeElement).toBe(tab("Mine"));
-    expect(shownOf(panels)).toEqual([true, false, false]);
-  });
-
-  it("moves to the tab before on the left arrow, and from the first round to the last", () => {
-    const { document, buttons, press, tab } = openTabs();
     press(tab("Mine"), "ArrowLeft");
-    expect(selectedOf(buttons)).toEqual(["false", "false", "true"]);
-    expect(document.activeElement).toBe(tab("Gone"));
-    press(tab("Gone"), "ArrowLeft");
-    expect(selectedOf(buttons)).toEqual(["false", "true", "false"]);
+    expect(selectedOf(buttons)).toEqual(["false", "true"]);
+    press(tab("Party"), "ArrowLeft");
+    expect(selectedOf(buttons)).toEqual(["true", "false"]);
+    expect(shownOf(panels)).toEqual([true, false]);
   });
 
   it("goes to the first tab on Home and to the last on End", () => {
     const { buttons, press, tab } = openTabs();
     press(tab("Mine"), "End");
-    expect(selectedOf(buttons)).toEqual(["false", "false", "true"]);
-    press(tab("Gone"), "Home");
-    expect(selectedOf(buttons)).toEqual(["true", "false", "false"]);
+    expect(selectedOf(buttons)).toEqual(["false", "true"]);
+    press(tab("Party"), "Home");
+    expect(selectedOf(buttons)).toEqual(["true", "false"]);
   });
 
   it("leaves other keys alone", () => {
     const { buttons, press, tab } = openTabs();
     const event = press(tab("Mine"), "a");
     expect(event.defaultPrevented).toBe(false);
-    expect(selectedOf(buttons)).toEqual(["true", "false", "false"]);
+    expect(selectedOf(buttons)).toEqual(["true", "false"]);
   });
 
   it("stops answering keys and presses once unloaded", () => {
     const { tabs, buttons, press, tab } = openTabs();
     tabs.unload();
     press(tab("Mine"), "ArrowRight");
-    tab("Gone").click();
-    expect(selectedOf(buttons)).toEqual(["true", "false", "false"]);
+    tab("Party").click();
+    expect(selectedOf(buttons)).toEqual(["true", "false"]);
   });
 });
