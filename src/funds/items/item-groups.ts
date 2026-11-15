@@ -3,6 +3,7 @@ import { unlink } from "../../notes/parts/link";
 
 export interface HolderGroup {
   holder: string;
+  sourcePath: string;
   items: ItemRecord[];
 }
 
@@ -41,6 +42,12 @@ function wentLater(first: ItemRecord, second: ItemRecord): number {
   return b.line - a.line;
 }
 
+function writtenLater(first: ItemRecord, second: ItemRecord): number {
+  const bySession = sessionNumberIn(second.source) - sessionNumberIn(first.source);
+  if (bySession !== 0) return bySession;
+  return second.source.line - first.source.line;
+}
+
 export function summariseItems(campaign: Campaign): ItemSummary {
   const held = campaign.items.filter((item) => item.gone === null);
   const groups = new Map<string, HolderGroup>();
@@ -48,10 +55,11 @@ export function summariseItems(campaign: Campaign): ItemSummary {
     const name = holderNameOf(item.holder);
     const key = name.toLowerCase();
     const group = groups.get(key);
-    if (group === undefined) groups.set(key, { holder: name, items: [item] });
+    if (group === undefined) groups.set(key, { holder: name, sourcePath: item.source.path, items: [item] });
     else group.items.push(item);
   }
   const holderGroups = [...groups.values()].sort(byHolderWithThePartyLast);
+  for (const group of holderGroups) group.items.sort(writtenLater);
   const gone = campaign.items.filter((item) => item.gone !== null).sort(wentLater);
   return { groups: holderGroups, gone, heldCount: held.length };
 }

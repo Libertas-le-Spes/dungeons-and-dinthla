@@ -12,6 +12,7 @@ import { learnedFactsOf } from "../characters/reading/learned-facts";
 import { readCharacterCard } from "../characters/cards/read-character-card";
 import type { CoinOutcome } from "../funds/coins/coin-modal";
 import { summariseFunds, type FundsSummary } from "../funds/page/funds-summary";
+import { makeScrollList } from "../views/lists/scroll-list";
 import { summariseItems } from "../funds/items/item-groups";
 import { addLedgerRow, NO_COIN_ENTRIES } from "../funds/page/ledger-row";
 import type { FollowUpName } from "../kinds/follow-up-name";
@@ -150,10 +151,8 @@ export class DashboardPage extends Component {
     const newSession = this.session.links.createEl("button", { cls: "dd-panel-link", text: "New session", prepend: true });
     this.registerDomEvent(newSession, "click", () => this.actions.startSession());
     this.sessionCount = this.session.section.createDiv({ cls: "dd-big" });
-    this.sessionList = this.session.section.createEl("ul", {
-      cls: ["dd-list", "dd-session-list"],
-      attr: { tabindex: "0", "aria-label": "Lines written in this session" },
-    });
+    this.sessionList = this.session.section.createEl("ul", { cls: "dd-list" });
+    makeScrollList({ element: this.sessionList, label: "Lines written in this session" });
   }
 
   private render(): void {

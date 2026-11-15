@@ -4,7 +4,7 @@ import type { Campaign, Source } from "../../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import type { CoinOutcome } from "../../../src/funds/coins/coin-modal";
 import { Component } from "obsidian";
-import { FundsPage, type ShownItem } from "../../../src/funds/page/funds-page";
+import { FundsPage, type FundsStore, type PursesBeside, type ShownItem } from "../../../src/funds/page/funds-page";
 import { OwnPursePanel, type PurseStore } from "../../../src/funds/purses/own-purse-panel";
 import { FakePurseNotes } from "../purses/fake-purse-notes";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
@@ -23,14 +23,40 @@ function campaignOf(lines: string[], ...laterSessions: string[][]): Campaign {
 type OpenLedgerEntry = (source: Source, onClosed: (outcome: CoinOutcome) => void) => void;
 type OpenItem = (name: string, source: Source, onClosed: (changed: boolean) => void) => void;
 
-async function openPage(
-  campaign: Campaign,
-  notes: string[] = ["Mira"],
-  addCoin: ((returnFocus: () => void) => void) | null = null,
-  openLedgerEntry: OpenLedgerEntry | null = null,
-  openItem: OpenItem | null = null,
-  shownItem: ShownItem | null = null,
-) {
+interface PageParts {
+  campaign: Campaign;
+  noteNames: string[];
+  addCoin: ((returnFocus: () => void) => void) | null;
+  openLedgerEntry: OpenLedgerEntry | null;
+  openItem: OpenItem | null;
+  shownItem: ShownItem | null;
+  ownNames: string[];
+}
+
+type PageOptions = Pick<PageParts, "campaign"> & Partial<Omit<PageParts, "campaign">>;
+
+const PARTY_PANEL = '[role="tabpanel"][aria-label="Party"]';
+const MINE_PANEL = '[role="tabpanel"][aria-label="Mine"]';
+
+const NOTHING_ELSE = { noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] };
+
+class MadeUpOwnCharacters {
+  listener: () => void = () => {};
+  listening = false;
+
+  constructor(public names: () => string[]) {}
+
+  subscribe(changed: () => void): () => void {
+    this.listener = changed;
+    this.listening = true;
+    return () => {
+      this.listening = false;
+    };
+  }
+}
+
+async function openPage(options: PageOptions) {
+  const { campaign, noteNames, addCoin, openLedgerEntry, openItem, shownItem, ownNames } = { ...NOTHING_ELSE, ...options };
   let listener: (campaign: Campaign) => void = () => {};
   const unsubscribe = vi.fn();
   const store = {
@@ -41,16 +67,28 @@ async function openPage(
     },
   };
   const actions = { openRow: vi.fn(), openLink: vi.fn() };
-  const noteExists = (name: string) => notes.includes(name);
+  const noteExists = (name: string) => noteNames.includes(name);
   const root = obsidianDocument().createElement("div");
-  const view = new FundsPage(root, store as unknown as CampaignStore, actions, noteExists, addCoin, openLedgerEntry, openItem, shownItem, null);
+  const owners = new MadeUpOwnCharacters(() => ownNames);
+  const view = new FundsPage({
+    contentEl: root,
+    store: store as unknown as CampaignStore,
+    actions,
+    noteExists,
+    addCoin,
+    openLedgerEntry,
+    openItem,
+    shownItem,
+    pursesBeside: null,
+    ownCharacters: owners,
+  });
   view.load();
   const change = (next: Campaign) => {
     store.current = next;
     listener(next);
   };
   const close = () => view.unload();
-  return { root, actions, change, close, unsubscribe };
+  return { root, actions, change, close, unsubscribe, owners };
 }
 
 function textsOf(root: HTMLElement, selector: string): string[] {
@@ -59,7 +97,7 @@ function textsOf(root: HTMLElement, selector: string): string[] {
 
 describe("FundsPage", () => {
   it("shows the purse, money in and out, and the ledger newest first with each balance", async () => {
-    const { root } = await openPage(campaignOf(["$ +50 gp advance", "$ Paid 2 gp for rooms", "$ 35 gp 4 sp from the bandits"]));
+    const { root } = await openPage({ campaign: campaignOf(["$ +50 gp advance", "$ Paid 2 gp for rooms", "$ 35 gp 4 sp from the bandits"]) });
     expect(textsOf(root, ".dd-purse")).toEqual(["83 gp 4 sp"]);
     expect(textsOf(root, ".dd-in-out > span")).toEqual(["In 85 gp 4 sp", "Out 2 gp"]);
     expect(textsOf(root, ".dd-ledger .dd-amount")).toEqual(["+35 gp 4 sp", "−2 gp", "+50 gp"]);
@@ -70,17 +108,17 @@ describe("FundsPage", () => {
   });
 
   it("shows the coins the purse is made of when they read differently from it", async () => {
-    const { root } = await openPage(campaignOf(["$ 1 pp found", "$ 5 gp found"]));
+    const { root } = await openPage({ campaign: campaignOf(["$ 1 pp found", "$ 5 gp found"]) });
     expect(textsOf(root, ".dd-coin")).toEqual(["1 pp", "5 gp"]);
   });
 
   it("leaves the coins out when they read the same as the purse", async () => {
-    const { root } = await openPage(campaignOf(["$ 35 gp 4 sp found"]));
+    const { root } = await openPage({ campaign: campaignOf(["$ 35 gp 4 sp found"]) });
     expect(root.querySelector(".dd-coin")).toBeNull();
   });
 
   it("says how to note coin when there is none", async () => {
-    const { root } = await openPage(campaignOf([]));
+    const { root } = await openPage({ campaign: campaignOf([]) });
     expect(textsOf(root, ".dd-coins .dd-empty")).toEqual(["No coin yet. Note it as “$ 20 gp from …”."]);
     expect(textsOf(root, ".dd-ledger .dd-empty")).toEqual(["No coin entries yet."]);
     expect(textsOf(root, ".dd-purse")).toEqual(["0 gp"]);
@@ -88,23 +126,23 @@ describe("FundsPage", () => {
   });
 
   it("counts one entry as an entry", async () => {
-    const { root } = await openPage(campaignOf(["$ 5 gp"]));
+    const { root } = await openPage({ campaign: campaignOf(["$ 5 gp"]) });
     expect(textsOf(root, ".dd-ledger-panel .dd-title .dd-count")).toEqual(["1 entry"]);
   });
 
   it("writes large coin counts as the purse does, so they aren't shown twice", async () => {
-    const { root } = await openPage(campaignOf(["$ 1200 gp from the dragon"]));
+    const { root } = await openPage({ campaign: campaignOf(["$ 1200 gp from the dragon"]) });
     expect(textsOf(root, ".dd-purse")).toEqual(["1,200 gp"]);
     expect(root.querySelector(".dd-coin")).toBeNull();
   });
 
   it("labels the coins the purse is made of", async () => {
-    const { root } = await openPage(campaignOf(["$ 1 pp found", "$ 5 gp found"]));
+    const { root } = await openPage({ campaign: campaignOf(["$ 1 pp found", "$ 5 gp found"]) });
     expect(textsOf(root, ".dd-coins-label")).toEqual(["In coins:"]);
   });
 
   it("redraws when notes change, and stops listening when closed", async () => {
-    const { root, change, close, unsubscribe } = await openPage(campaignOf([]));
+    const { root, change, close, unsubscribe } = await openPage({ campaign: campaignOf([]) });
     change(campaignOf(["$ 5 gp found"]));
     expect(textsOf(root, ".dd-purse")).toEqual(["5 gp"]);
     close();
@@ -112,39 +150,39 @@ describe("FundsPage", () => {
   });
 
   it("opens the session at a ledger line when it is tapped", async () => {
-    const { root, actions } = await openPage(campaignOf(["We rode on.", "$ 5 gp"]));
+    const { root, actions } = await openPage({ campaign: campaignOf(["We rode on.", "$ 5 gp"]) });
     (root.querySelector(".dd-ledger-row") as HTMLElement).click();
     expect(actions.openRow).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 1 });
   });
 
   it("writes an entry that comes to nothing without a sign", async () => {
-    const { root } = await openPage(campaignOf(["$ found 5 gp, paid 5 gp toll"]));
+    const { root } = await openPage({ campaign: campaignOf(["$ found 5 gp, paid 5 gp toll"]) });
     expect(textsOf(root, ".dd-ledger .dd-amount")).toEqual(["0 gp"]);
   });
 
   it("shows an item's name without the note's escapes, as the note reads", async () => {
-    const { root } = await openPage(campaignOf(["$ [[Primary Monk]] Rope (50 ft) \\*silk\\*"]));
-    expect(textsOf(root, ".dd-items-panel > .dd-list .dd-text")).toEqual(["Rope (50 ft) *silk*"]);
+    const { root } = await openPage({ campaign: campaignOf(["$ [[Primary Monk]] Rope (50 ft) \\*silk\\*"]) });
+    expect(textsOf(root, `${PARTY_PANEL} .dd-scroll-list > .dd-list .dd-text`)).toEqual(["Rope (50 ft) *silk*"]);
   });
 
   it("shows a name typed at the table as written, backslashes and all, when the import wouldn't have written it so", async () => {
-    const { root } = await openPage(campaignOf(["$ [[Primary Monk]] \\o/ banner"]));
-    expect(textsOf(root, ".dd-items-panel > .dd-list .dd-text")).toEqual(["\\o/ banner"]);
+    const { root } = await openPage({ campaign: campaignOf(["$ [[Primary Monk]] \\o/ banner"]) });
+    expect(textsOf(root, `${PARTY_PANEL} .dd-scroll-list > .dd-list .dd-text`)).toEqual(["\\o/ banner"]);
   });
 
   it("lists held items under their holders, the party's own last, with gone items folded away", async () => {
-    const { root } = await openPage(campaignOf(["$ [[Mira]] Flame Tongue", "$ Potion of healing", "$ Spyglass", "$ Rope"], ["$$ Spyglass :sold 20 gp", "$$ Rope :used"]));
-    expect(textsOf(root, ".dd-items-panel .dd-holder")).toEqual(["Mira", "The party"]);
-    expect(textsOf(root, ".dd-items-panel > .dd-list .dd-text")).toEqual(["Flame Tongue", "Potion of healing"]);
-    expect(textsOf(root, ".dd-items-panel > .dd-list .dd-mark-ledger")).toEqual(["$", "$"]);
-    expect(textsOf(root, ".dd-items-panel > .dd-title .dd-count")).toEqual(["2 held"]);
-    expect(textsOf(root, ".dd-items-panel .dd-folded summary")).toEqual(["Gone2"]);
+    const { root } = await openPage({ campaign: campaignOf(["$ [[Mira]] Flame Tongue", "$ Potion of healing", "$ Spyglass", "$ Rope"], ["$$ Spyglass :sold 20 gp", "$$ Rope :used"]) });
+    expect(textsOf(root, `${PARTY_PANEL} .dd-items-panel .dd-holder`)).toEqual(["Mira", "The party"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-scroll-list > .dd-list .dd-text`)).toEqual(["Flame Tongue", "Potion of healing"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-scroll-list > .dd-list .dd-mark-ledger`)).toEqual(["$", "$"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-items-panel .dd-title .dd-count`)).toEqual(["2 held"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-items-panel .dd-folded summary`)).toEqual(["Gone2"]);
     expect(root.querySelectorAll(".dd-folded .dd-text.dd-gone")).toHaveLength(2);
   });
 
   it("says how and in which session each item went, and when its sale is in the ledger", async () => {
-    const { root } = await openPage(campaignOf(["$ Spyglass", "$ Rope", "$ Map"], ["$$ Spyglass :sold 20 gp", "$$ Map :sold", "$$ Rope :used"]));
-    expect(textsOf(root, ".dd-folded .dd-meta")).toEqual([
+    const { root } = await openPage({ campaign: campaignOf(["$ Spyglass", "$ Rope", "$ Map"], ["$$ Spyglass :sold 20 gp", "$$ Map :sold", "$$ Rope :used"]) });
+    expect(textsOf(root, `${PARTY_PANEL} .dd-folded .dd-meta`)).toEqual([
       "Used up · Session 2",
       "Sold · Session 2",
       "Sold · sale in the ledger · Session 2",
@@ -157,38 +195,38 @@ describe("FundsPage", () => {
   });
 
   it("opens a held item where it was written, and a gone one where it went", async () => {
-    const { root, actions } = await openPage(campaignOf(["$ Potion of healing", "$ Rope"], ["We rode on.", "$$ Rope :used"]));
-    (root.querySelector(".dd-items-panel > .dd-list .dd-row") as HTMLElement).click();
+    const { root, actions } = await openPage({ campaign: campaignOf(["$ Potion of healing", "$ Rope"], ["We rode on.", "$$ Rope :used"]) });
+    (root.querySelector(`${PARTY_PANEL} .dd-scroll-list > .dd-list .dd-row`) as HTMLElement).click();
     expect(actions.openRow).toHaveBeenLastCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 0 });
-    (root.querySelector(".dd-folded .dd-row") as HTMLElement).click();
+    (root.querySelector(`${PARTY_PANEL} .dd-folded .dd-row`) as HTMLElement).click();
     expect(actions.openRow).toHaveBeenLastCalledWith({ path: "Pale Moon/Sessions/Session 2.md", line: 1 });
   });
 
   it("says how to note an item, and that nothing is gone, when there are none", async () => {
-    const { root } = await openPage(campaignOf(["$ 5 gp"]));
-    expect(textsOf(root, ".dd-items-panel > .dd-empty")).toEqual([
+    const { root } = await openPage({ campaign: campaignOf(["$ 5 gp"]) });
+    expect(textsOf(root, `${PARTY_PANEL} .dd-scroll-list > .dd-empty`)).toEqual([
       "No items held. A $ line without an amount, like “$ [[Mira]] Flame Tongue longsword”, adds one.",
     ]);
-    expect(textsOf(root, ".dd-folded .dd-empty")).toEqual(["Nothing sold, used or lost yet."]);
-    expect(textsOf(root, ".dd-items-panel > .dd-title .dd-count")).toEqual([""]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-folded .dd-empty`)).toEqual(["Nothing sold, used or lost yet."]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-items-panel .dd-title .dd-count`)).toEqual([""]);
   });
 
   it("opens a holder's note when their name is tapped", async () => {
-    const { root, actions } = await openPage(campaignOf(["$ [[Mira]] Flame Tongue"]));
-    (root.querySelector(".dd-holder a.dd-link-name") as HTMLElement).click();
+    const { root, actions } = await openPage({ campaign: campaignOf(["$ [[Mira]] Flame Tongue"]) });
+    (root.querySelector(`${PARTY_PANEL} .dd-holder a.dd-link-name`) as HTMLElement).click();
     expect(actions.openLink).toHaveBeenCalledWith("Mira", "Pale Moon/Sessions/Session 1.md", false);
   });
 
   it("names a holder without a note in plain text, with no link", async () => {
-    const { root } = await openPage(campaignOf(["$ Rope", "$$ Rope :changed to Bob the innkeeper"]), []);
-    expect(textsOf(root, ".dd-holder")).toEqual(["Bob the innkeeper"]);
-    expect(root.querySelector(".dd-holder a")).toBeNull();
+    const { root } = await openPage({ campaign: campaignOf(["$ Rope", "$$ Rope :changed to Bob the innkeeper"]), noteNames: [] });
+    expect(textsOf(root, `${PARTY_PANEL} .dd-holder`)).toEqual(["Bob the innkeeper"]);
+    expect(root.querySelector(`${PARTY_PANEL} .dd-holder a`)).toBeNull();
   });
 
   it("offers Add coin on the ledger when coin can be added, handing it a way back", async () => {
-    expect((await openPage(campaignOf([]))).root.querySelector(".dd-ledger-panel .dd-create")).toBeNull();
+    expect((await openPage({ campaign: campaignOf([]) })).root.querySelector(".dd-ledger-panel .dd-create")).toBeNull();
     const addCoin = vi.fn();
-    const { root, change } = await openPage(campaignOf([]), [], addCoin);
+    const { root, change } = await openPage({ campaign: campaignOf([]), noteNames: [], addCoin });
     root.ownerDocument.body.append(root);
     const button = root.querySelector(".dd-ledger-panel .dd-create") as HTMLElement;
     expect(button.textContent).toBe("Add coin");
@@ -203,7 +241,7 @@ describe("FundsPage", () => {
   it("opens a ledger entry to change it, and puts focus back on that entry after the redraw", async () => {
     const openLedgerEntry = vi.fn<OpenLedgerEntry>();
     const lines = ["$ 5 gp found", "$ 2 gp tip", "$ 7 gp later"];
-    const { root, change } = await openPage(campaignOf(lines), [], vi.fn(), openLedgerEntry);
+    const { root, change } = await openPage({ campaign: campaignOf(lines), noteNames: [], addCoin: vi.fn(), openLedgerEntry });
     const document = root.ownerDocument;
     document.body.append(root);
     const rowAt = (line: number) => root.querySelector(`.dd-ledger-row[data-line="${line}"]`) as HTMLElement;
@@ -217,7 +255,7 @@ describe("FundsPage", () => {
 
   it("leaves focus alone on a later redraw when an entry closed unchanged", async () => {
     const openLedgerEntry = vi.fn<OpenLedgerEntry>();
-    const { root, change } = await openPage(campaignOf(["$ 5 gp found"]), [], vi.fn(), openLedgerEntry);
+    const { root, change } = await openPage({ campaign: campaignOf(["$ 5 gp found"]), noteNames: [], addCoin: vi.fn(), openLedgerEntry });
     const document = root.ownerDocument;
     document.body.append(root);
     (root.querySelector(".dd-ledger-row") as HTMLElement).click();
@@ -231,7 +269,7 @@ describe("FundsPage", () => {
 
   it("puts focus on Add coin after an entry is deleted, and back on the row when nothing changed", async () => {
     const openLedgerEntry = vi.fn<OpenLedgerEntry>();
-    const { root, change } = await openPage(campaignOf(["$ 5 gp found", "$ 2 gp tip"]), [], vi.fn(), openLedgerEntry);
+    const { root, change } = await openPage({ campaign: campaignOf(["$ 5 gp found", "$ 2 gp tip"]), noteNames: [], addCoin: vi.fn(), openLedgerEntry });
     const document = root.ownerDocument;
     document.body.append(root);
     const rowAt = (line: number) => root.querySelector(`.dd-ledger-row[data-line="${line}"]`) as HTMLElement;
@@ -246,7 +284,7 @@ describe("FundsPage", () => {
 
   it("opens an item from its row, and puts focus back on it once it has moved to Gone", async () => {
     const openItem = vi.fn<OpenItem>();
-    const { root, change } = await openPage(campaignOf(["$ Rope", "$ Torch"]), [], null, null, openItem);
+    const { root, change } = await openPage({ campaign: campaignOf(["$ Rope", "$ Torch"]), noteNames: [], addCoin: null, openLedgerEntry: null, openItem });
     const document = root.ownerDocument;
     document.body.append(root);
     const rowOf = (name: string) => root.querySelector(`.dd-items-panel .dd-row[data-item="${name}"]`) as HTMLElement;
@@ -265,7 +303,7 @@ describe("FundsPage", () => {
     const openLedgerEntry = vi.fn<OpenLedgerEntry>();
     const openItem = vi.fn<OpenItem>();
     const lines = ["$ Rope", "$$ Rope :sold 3 gp"];
-    const { root, change } = await openPage(campaignOf(lines), [], vi.fn(), openLedgerEntry, openItem);
+    const { root, change } = await openPage({ campaign: campaignOf(lines), noteNames: [], addCoin: vi.fn(), openLedgerEntry, openItem });
     const document = root.ownerDocument;
     document.body.append(root);
     const rowAt = (line: number) => root.querySelector(`.dd-ledger-row[data-line="${line}"]`) as HTMLElement;
@@ -279,7 +317,7 @@ describe("FundsPage", () => {
 
   it("forgets an item's pending focus once it is stale", async () => {
     const openItem = vi.fn<OpenItem>();
-    const { root, change } = await openPage(campaignOf(["$ Rope", "$ Torch"]), [], null, null, openItem);
+    const { root, change } = await openPage({ campaign: campaignOf(["$ Rope", "$ Torch"]), noteNames: [], addCoin: null, openLedgerEntry: null, openItem });
     const document = root.ownerDocument;
     document.body.append(root);
     const now = vi.spyOn(Date, "now").mockReturnValue(1000);
@@ -293,7 +331,7 @@ describe("FundsPage", () => {
 
   it("forgets a pending focus once it is stale", async () => {
     const openLedgerEntry = vi.fn<OpenLedgerEntry>();
-    const { root, change } = await openPage(campaignOf(["$ 5 gp found", "$ 2 gp tip"]), [], vi.fn(), openLedgerEntry);
+    const { root, change } = await openPage({ campaign: campaignOf(["$ 5 gp found", "$ 2 gp tip"]), noteNames: [], addCoin: vi.fn(), openLedgerEntry });
     const document = root.ownerDocument;
     document.body.append(root);
     const now = vi.spyOn(Date, "now").mockReturnValue(1000);
@@ -312,7 +350,7 @@ describe("FundsPage", () => {
       return new Component();
     };
     const shown = { name: "silvered lantern", panel: makePanel };
-    const { root } = await openPage(campaignOf(["$ [[Mira]] [[Silvered lantern]]", "$ Potion of healing"]), ["Mira"], null, null, null, shown);
+    const { root } = await openPage({ campaign: campaignOf(["$ [[Mira]] [[Silvered lantern]]", "$ Potion of healing"]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: shown });
     expect(panels).toHaveLength(1);
     expect(root.firstElementChild).toBe(panels[0]);
     expect(panels[0]!.classList.contains("dd-shown-item")).toBe(true);
@@ -323,17 +361,93 @@ describe("FundsPage", () => {
 
   it("unfolds the gone items when the item it was opened on is gone", async () => {
     const shown = { name: "Potion of healing", panel: () => new Component() };
-    const { root } = await openPage(campaignOf(["$ Potion of healing"], ["$$ Potion of healing :used"]), [], null, null, null, shown);
-    const folded = root.querySelector<HTMLDetailsElement>(".dd-folded")!;
-    expect(folded.open).toBe(true);
-    expect(folded.querySelector(".dd-row-shown")).not.toBeNull();
+    const { root } = await openPage({ campaign: campaignOf(["$ Potion of healing"], ["$$ Potion of healing :used"]), noteNames: [], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: shown });
+    const folded = root.querySelector<HTMLDetailsElement>(`${PARTY_PANEL} .dd-folded`);
+    expect(folded?.open).toBe(true);
+    expect(folded?.querySelector(".dd-row-shown")).not.toBeNull();
   });
 
   it("marks no row and leaves gone items folded when opened on no item", async () => {
-    const { root } = await openPage(campaignOf(["$ Potion of healing"], ["$$ Potion of healing :used"]));
+    const { root } = await openPage({ campaign: campaignOf(["$ Potion of healing"], ["$$ Potion of healing :used"]) });
     expect(root.querySelector(".dd-row-shown")).toBeNull();
-    expect(root.querySelector<HTMLDetailsElement>(".dd-folded")!.open).toBe(false);
+    expect(root.querySelector<HTMLDetailsElement>(`${PARTY_PANEL} .dd-folded`)?.open).toBe(false);
     expect(root.querySelector(".dd-shown-item")).toBeNull();
+  });
+});
+
+describe("FundsPage with his funds and the party's in two tabs", () => {
+  const LINES = ["$ [[Mira]] Flame Tongue", "$ [[Zed]] Rope", "$ Potion of healing", "$ [[Mira]] Spyglass", "$ +50 gp advance"];
+
+  it("makes a Mine tab and a Party tab, his first and showing", async () => {
+    const { root } = await openPage({ campaign: campaignOf(LINES) });
+    const tabs = Array.from(root.querySelectorAll("[role=tab]"));
+    expect(tabs.map((tab) => tab.textContent)).toEqual(["Mine", "Party"]);
+    expect(tabs.map((tab) => tab.getAttribute("aria-selected"))).toEqual(["true", "false"]);
+    expect(root.querySelector(MINE_PANEL)?.getAttribute("style")).not.toBe("display: none;");
+    expect(root.querySelector(PARTY_PANEL)?.getAttribute("style")).toBe("display: none;");
+  });
+
+  it("shows the party's tab when it is pressed", async () => {
+    const { root } = await openPage({ campaign: campaignOf(LINES) });
+    Array.from(root.querySelectorAll<HTMLElement>("[role=tab]")).find((tab) => tab.textContent === "Party")?.click();
+    expect(root.querySelector(MINE_PANEL)?.getAttribute("style")).toBe("display: none;");
+    expect(root.querySelector(PARTY_PANEL)?.getAttribute("style")).not.toBe("display: none;");
+  });
+
+  it("puts the items his character holds in Mine, and every other holder's, with the party's own, in Party", async () => {
+    const { root } = await openPage({ campaign: campaignOf(LINES), ownNames: ["Mira"] });
+    expect(textsOf(root, `${MINE_PANEL} .dd-holder`)).toEqual(["Mira"]);
+    expect(textsOf(root, `${MINE_PANEL} .dd-scroll-list > .dd-list .dd-text`)).toEqual(["Spyglass", "Flame Tongue"]);
+    expect(textsOf(root, `${MINE_PANEL} .dd-items-panel .dd-title .dd-count`)).toEqual(["2 held"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-holder`)).toEqual(["Zed", "The party"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-scroll-list > .dd-list .dd-text`)).toEqual(["Rope", "Potion of healing"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-items-panel .dd-title .dd-count`)).toEqual(["2 held"]);
+  });
+
+  it("keeps the purse and the ledger in Party only", async () => {
+    const { root } = await openPage({ campaign: campaignOf(LINES), ownNames: ["Mira"] });
+    expect(textsOf(root, `${PARTY_PANEL} .dd-purse`)).toEqual(["50 gp"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-ledger .dd-what`)).toEqual(["+50 gp advance"]);
+    expect(root.querySelector(`${MINE_PANEL} .dd-purse`)).toBeNull();
+    expect(root.querySelector(`${MINE_PANEL} .dd-ledger`)).toBeNull();
+  });
+
+  it("gives the gone items to the side that held them", async () => {
+    const { root } = await openPage({ campaign: campaignOf(LINES, ["$$ Spyglass :sold 20 gp", "$$ Rope :used"]), ownNames: ["Mira"] });
+    expect(textsOf(root, `${MINE_PANEL} .dd-folded .dd-text`)).toEqual(["Spyglass"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-folded .dd-text`)).toEqual(["Rope"]);
+  });
+
+  it("says no character of his is named when none is, and says how to note an item when one is but holds none", async () => {
+    const none = await openPage({ campaign: campaignOf(LINES) });
+    expect(textsOf(none.root, `${MINE_PANEL} .dd-scroll-list > .dd-empty`)).toEqual(["No character of yours is named in this campaign yet."]);
+    const holdsNone = await openPage({ campaign: campaignOf(["$ [[Zed]] Rope"]), ownNames: ["Mira"] });
+    expect(textsOf(holdsNone.root, `${MINE_PANEL} .dd-scroll-list > .dd-empty`)).toEqual([
+      "None of your items yet. A $ line without an amount, with your character's link first, like “$ [[Mira]] Flame Tongue longsword”, adds one.",
+    ]);
+  });
+
+  it("moves the items when his character is named or changes, without the notes changing", async () => {
+    const { root, owners } = await openPage({ campaign: campaignOf(LINES), ownNames: ["Mira"] });
+    owners.names = () => ["Zed"];
+    owners.listener();
+    expect(textsOf(root, `${MINE_PANEL} .dd-holder`)).toEqual(["Zed"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-holder`)).toEqual(["Mira", "The party"]);
+  });
+
+  it("scrolls the ledger and each list of items, in boxes the keyboard can reach", async () => {
+    const { root } = await openPage({ campaign: campaignOf(LINES) });
+    const boxes = Array.from(root.querySelectorAll<HTMLElement>(".dd-scroll-list"));
+    expect(boxes.map((box) => box.getAttribute("aria-label"))).toEqual(["Items that are yours", "Items of the party", "Ledger entries"]);
+    expect(boxes.every((box) => box.getAttribute("tabindex") === "0")).toBe(true);
+    expect(root.querySelector(`${PARTY_PANEL} .dd-ledger.dd-scroll-list`)).not.toBeNull();
+  });
+
+  it("stops listening for his character when closed", async () => {
+    const { owners, close } = await openPage({ campaign: campaignOf(LINES) });
+    expect(owners.listening).toBe(true);
+    close();
+    expect(owners.listening).toBe(false);
   });
 });
 
@@ -370,14 +484,13 @@ class MadeUpPurses {
 }
 
 describe("FundsPage with his purse beside the party's", () => {
-  it("puts his purse right after the party purse, in its own panel", () => {
+  it("puts his purse first in his own tab, in its own panel, and leaves it out of the party's tab", () => {
     const purses = new MadeUpPurses();
     const root = obsidianDocument().createElement("div");
     const store = { current: campaignOf(["$ +50 gp advance"]), subscribe: subscribeNever };
-    new FundsPage(root, store, { openRow: vi.fn(), openLink: vi.fn() }, noNote, null, null, null, null, purses).load();
-    const classes: string[] = [];
-    for (const section of root.children) classes.push(section.className);
-    expect(classes.indexOf("dd-panel dd-own-purse-panel")).toBe(classes.indexOf("dd-panel dd-purse-panel") + 1);
+    openWithPurses({ root, store, purses });
+    expect(root.querySelector(`${MINE_PANEL} > .dd-own-purse-panel:first-child`)).not.toBeNull();
+    expect(root.querySelector(`${PARTY_PANEL} .dd-own-purse-panel`)).toBeNull();
     expect(purses.panels).toHaveLength(1);
   });
 
@@ -385,12 +498,34 @@ describe("FundsPage with his purse beside the party's", () => {
     const root = obsidianDocument().createElement("div");
     const store = { campaignFolder: "Pale Moon", current: campaignOf(["$ +50 gp advance"]), subscribe: subscribeNever };
     const purses = new HisPurses(new FakePurseNotes(new Map([[PRIMARY_MONK, IMPORTED_1200_GP]]), [PRIMARY_MONK]), store);
-    new FundsPage(root, store, { openRow: vi.fn(), openLink: vi.fn() }, noNote, null, null, null, null, purses).load();
+    openWithPurses({ root, store, purses });
     await purses.rendered();
     expect(textsOf(root, ".dd-purse-panel .dd-purse")).toEqual(["50 gp"]);
     expect(textsOf(root, ".dd-own-purse-panel .dd-coin")).toEqual(["1,200 gp"]);
   });
 });
+
+interface WithPurses {
+  root: HTMLElement;
+  store: FundsStore;
+  purses: PursesBeside;
+}
+
+function openWithPurses({ root, store, purses }: WithPurses): void {
+  const parts = {
+    contentEl: root,
+    store,
+    actions: { openRow: vi.fn(), openLink: vi.fn() },
+    noteExists: noNote,
+    addCoin: null,
+    openLedgerEntry: null,
+    openItem: null,
+    shownItem: null,
+    pursesBeside: purses,
+    ownCharacters: new MadeUpOwnCharacters(() => []),
+  };
+  new FundsPage(parts).load();
+}
 
 function subscribeNever(): () => void {
   return stopNothing;
