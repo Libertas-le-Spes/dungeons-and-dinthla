@@ -34,7 +34,7 @@ npm ci
 npm run build
 ```
 
-Once the plugin is on, choose the **Campaigns folder**, on the welcome page or in the plugin's settings: the one folder of the vault where your campaigns live, such as `D&D`. The plugin reads and writes only inside it and does nothing until it is chosen, so the rest of your vault stays out of its reach. Every pull request and release scans the plugin's source for code that could go round that fence, working from allow-lists of what the plugin uses today and known patterns, and checks its released `main.js` and `styles.css` for known kinds of network code. Neither is a proof: they catch what they know to look for. [docs/note-format.md](docs/note-format.md#the-campaigns-folder) says what they check.
+Once the plugin is on, choose the **Campaigns folder**, on the welcome page or in the plugin's settings: the one folder of the vault where your campaigns live, such as `D&D`. The plugin reads and writes only inside it and does nothing until it is chosen, so the rest of your vault stays out of its reach. Every pull request and release scans the plugin's source for code that could go round that fence, working from allow-lists of what the plugin uses today and known patterns, and checks its released `main.js` and `styles.css` for known kinds of network code beyond the one D&D Beyond call described under *Network use*. Neither is a proof: they catch what they know to look for. [docs/note-format.md](docs/note-format.md#the-campaigns-folder) says what they check.
 
 The plugin checks paths, so it can't see where a folder really is: a symbolic link (or, on Windows, a junction) inside the Campaigns folder that points elsewhere on your disk lets the plugin read and write there too. Keep such links out of the Campaigns folder.
 
@@ -77,7 +77,6 @@ When a character leaves play:
 2. For *Died* or *Retired*, you can say what they were last doing. Their note moves to the campaign's `Fallen` folder with a dated snapshot added at the bottom, and the new character becomes yours.
 3. A *Backup* stays in `Characters`. You'll find your backups at the bottom of the Characters page, each with *Make main* for when you want to play them, and the *Fallen* list sits below them.
 4. Fallen characters are listed on the Characters page under *Fallen*, each with *Make main*. Their note moves back to `Characters` and keeps its snapshots; if they leave play again, another dated snapshot is added.
-   Tap a fallen character's card to open their sheet: *Update from D&D Beyond* works there too, and the note stays in `Fallen` with its snapshots. After an update, the question *What happened to them?* opens every time, with *Make main* and *Not now*; *Not now* writes nothing.
 5. If a switch stops part way, the message says what was written. Press *Make main* again to finish it.
 
 ### Agreeing to the online import
@@ -92,12 +91,13 @@ The plugin can fetch your character from D&D Beyond with one button, and it asks
 
 ## Network use
 
-The plugin sends nothing anywhere, with one exception: bringing your character in from D&D Beyond online.
+The plugin reads and writes only inside your Campaigns folder, and it sends nothing anywhere, with one exception: bringing your character in from D&D Beyond online, which is a manual button press. Nothing runs in the background, the plugin adds no login or cookies, and your agreement is kept per device.
 
 - **What is sent.** One GET to `https://character-service.dndbeyond.com/character/v5/character/` followed by your character's number, and nothing else: this plugin adds no login, cookies or other headers of its own, and no body. Obsidian sends the call and may add its own details, and follows redirects. Nothing from the rest of a link you paste reaches the address.
 - **When.** Only when you press *Bring in from D&D Beyond*, after you have agreed once on this device. Never in the background, never on a timer, never again by itself, with no retries and nothing cached. One call at a time, ten seconds apart at least, and the plugin stops waiting after fifteen seconds.
 - **What comes back and what is kept.** The character's data. The plugin checks it (status 200, JSON, at most 5 MB, the number you asked for), reads from it only what the import shows, and throws the rest away, including your character's backstory and notes. Nothing is written to your vault until you press *Import* or *Update* on the review.
 - **Public characters only.** The character must be set to Public on D&D Beyond, which makes its data, notes and backstory included, readable by anyone with the link.
+- **Keep your link safe.** You are responsible for keeping the link or number of your public character safe: anyone who has it can read that character.
 - **D&D Beyond's terms don't authorise this.** There is no official way to read a character's data. The address is the one D&D Beyond's own pages use, it is undocumented, and it can change or close without notice; the PDF route still works then.
 - **What the plugin cannot rule out.** Obsidian's request follows redirects and can't be told not to, so the checks are on whatever finally answers. On the desktop app Obsidian's own request may carry any cookie Obsidian itself holds for that site, normally none, since nobody signs in to D&D Beyond inside Obsidian. D&D Beyond sees your device's address and your character's number.
 - **How it is kept to that.** The built `main.js` holds exactly this one call and this one address, and every pull request and release fails if it holds anything more; `styles.css` may hold no address at all. [docs/note-format.md](docs/note-format.md#the-campaigns-folder) lists what is checked.

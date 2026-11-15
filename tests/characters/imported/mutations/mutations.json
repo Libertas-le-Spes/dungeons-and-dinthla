@@ -70,7 +70,7 @@
   "group": "lists"
  },
  {
-  "id": "inventory: last \u00d7",
+  "id": "inventory: last ×",
   "file": "src/characters/imported/lists/inventory-entry.ts",
   "find": "text.lastIndexOf(COUNT_SEPARATOR)",
   "replace": "text.indexOf(COUNT_SEPARATOR)",
@@ -789,26 +789,5 @@
   "find": "    if (path === null) return false;\n    return path !== this.file.path;",
   "replace": "    return path !== this.file.path;",
   "group": "tracking"
- },
- {
-  "id": "cast: a fallen note opens its sheet",
-  "file": "src/characters/pages/cast-page-for.ts",
-  "find": " && campaignOfFallen(path, folders) === null",
-  "replace": "",
-  "group": "cast"
- },
- {
-  "id": "cast: a note in neither folder stays the gallery",
-  "file": "src/campaign/paths/campaign-folders.ts",
-  "find": "if (!isInFallenFolder(folder, path) || !isMarkdownNote(path)) return null;\n  return folder;\n}\n\nexport function campaignNotePathOf",
-  "replace": "if (!isMarkdownNote(path)) return null;\n  return folder;\n}\n\nexport function campaignNotePathOf",
-  "group": "cast"
- },
- {
-  "id": "cast: a fallen file that is not a note stays the gallery",
-  "file": "src/campaign/paths/campaign-folders.ts",
-  "find": "if (!isInFallenFolder(folder, path) || !isMarkdownNote(path)) return null;\n  return folder;\n}\n\nexport function campaignNotePathOf",
-  "replace": "if (!isInFallenFolder(folder, path)) return null;\n  return folder;\n}\n\nexport function campaignNotePathOf",
-  "group": "cast"
  }
 ]

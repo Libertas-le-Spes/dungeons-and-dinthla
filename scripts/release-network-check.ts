@@ -31,7 +31,7 @@ function foundIn(path: string, needs: CheckNeeds): string[] {
   }
   const found = checker.networkCodeIn(needs.read(path));
   for (const name of found) needs.failed(`${path} holds network code: ${name}`);
-  if (found.length === 0) needs.said(`${path} holds no network code.`);
+  if (found.length === 0) needs.said(`${path} holds no network code beyond what is allowed.`);
   return found;
 }
 
