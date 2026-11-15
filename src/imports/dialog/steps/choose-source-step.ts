@@ -1,4 +1,4 @@
-import { OR_THE_PDF, WHERE_THE_PDF_IS } from "../import-words";
+import { OR_THE_PDF } from "../import-words";
 import type { OnlineBlock } from "../online/online-block";
 import type { PickedPdf } from "../picking/picked-pdf";
 import { PdfPicker } from "../picking/pdf-picker";
@@ -15,6 +15,5 @@ export function drawChooseSource(parent: HTMLElement, parts: SourceParts): void 
   if (parts.refusal !== null) parent.createEl("p", { cls: "dd-import-refusal", text: parts.refusal, attr: { role: "alert" } });
   parts.online.draw(parent);
   parent.createEl("p", { cls: "dd-or-the-pdf", text: OR_THE_PDF });
-  parent.createEl("p", { cls: "dd-where", text: WHERE_THE_PDF_IS });
   new PdfPicker(parent.createDiv({ cls: "dd-import-pick" }), parts.picked, parts.work);
 }

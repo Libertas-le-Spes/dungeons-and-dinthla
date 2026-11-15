@@ -1,7 +1,7 @@
 import { Setting } from "obsidian";
 import type { PrintedSheet } from "../../../beyond/sheet/printed-sheet";
 import { ONLINE_WENT_WRONG, wordsOf } from "../failure-words";
-import { ASKING, BRING_IN_BUTTON, LINK_LABEL, LINK_PLACEHOLDER, ONLINE_INTRO } from "../import-words";
+import { ASKING, BRING_IN_BUTTON, LINK_LABEL } from "../import-words";
 import type { DialogShown } from "../stages/dialog-shown";
 import type { PendingWork } from "../../../views/pending/pending-work";
 import type { OnlineBlock } from "./online-block";
@@ -28,11 +28,10 @@ export class OnlineStage implements OnlineBlock {
   ) {}
 
   draw(parent: HTMLElement): void {
-    parent.createEl("p", { cls: "dd-online-intro", text: ONLINE_INTRO });
     new Setting(parent)
       .setName(LINK_LABEL)
       .addText((text) => {
-        text.setPlaceholder(LINK_PLACEHOLDER).setValue(this.typed).onChange(this.typedChanged.bind(this));
+        text.setValue(this.typed).onChange(this.typedChanged.bind(this));
         text.inputEl.focus();
       })
       .addButton((button) => button.setButtonText(BRING_IN_BUTTON).setCta().onClick(this.pressed.bind(this)));

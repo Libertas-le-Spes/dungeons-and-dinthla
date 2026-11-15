@@ -13,13 +13,13 @@ export interface PropertyChange {
 }
 
 export interface SectionChange {
-  readonly heading: string;
+  readonly title: string;
   readonly removed: readonly string[];
   readonly added: readonly string[];
 }
 
 export interface TypedText {
-  readonly heading: string;
+  readonly title: string;
   readonly lines: readonly string[];
 }
 
@@ -54,7 +54,7 @@ function sectionChangesOf(before: NoteLayout, after: NoteLayout): SectionChange[
     const now = writtenLinesOf(after.sectionLines(section));
     const removed = linesWithout(was, now);
     const added = linesWithout(now, was);
-    if (removed.length + added.length > 0) changes.push({ heading: section.heading, removed, added });
+    if (removed.length + added.length > 0) changes.push({ title: section.title, removed, added });
   }
   return changes;
 }
@@ -67,7 +67,7 @@ function typedTextIn(before: NoteLayout): TypedText[] {
   const found: TypedText[] = [];
   for (const section of PLUGIN_SECTIONS) {
     const lines = writtenLinesOf(before.sectionLines(section)).filter(isTyped);
-    if (lines.length > 0) found.push({ heading: section.heading, lines });
+    if (lines.length > 0) found.push({ title: section.title, lines });
   }
   return found;
 }

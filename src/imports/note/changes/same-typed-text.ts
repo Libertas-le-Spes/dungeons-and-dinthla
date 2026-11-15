@@ -2,7 +2,7 @@ import type { TypedText } from "./import-changes";
 
 function writtenOut(typed: readonly TypedText[]): string {
   const entries: (string | readonly string[])[][] = [];
-  for (const entry of typed) entries.push([entry.heading, entry.lines]);
+  for (const entry of typed) entries.push([entry.title, entry.lines]);
   return JSON.stringify(entries);
 }
 
