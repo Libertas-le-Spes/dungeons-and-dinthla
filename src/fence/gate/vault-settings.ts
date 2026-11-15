@@ -20,8 +20,4 @@ export class VaultSettings {
   trashOption(): unknown {
     return this.config.getConfig("trashOption");
   }
-
-  cssTheme(): unknown {
-    return this.config.getConfig("cssTheme");
-  }
 }

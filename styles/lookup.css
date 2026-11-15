@@ -1,7 +1,7 @@
 .dd-lookup {
   display: flex;
   align-items: baseline;
-  gap: var(--space-2);
+  gap: var(--size-4-2);
 }
 
 .dd-lookup .dd-marker {
@@ -16,5 +16,5 @@
 
 .dd-lookup-holder {
   color: var(--text-muted-ui);
-  font-size: var(--text-sm);
+  font-size: var(--font-ui-small);
 }

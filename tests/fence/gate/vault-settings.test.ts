@@ -9,15 +9,9 @@ function settingsWith(config: Record<string, unknown>) {
 
 describe("VaultSettings", () => {
   it("reads where deleted files go", () => {
-    const { settings, getConfig } = settingsWith({ trashOption: "local", cssTheme: "Primary" });
+    const { settings, getConfig } = settingsWith({ trashOption: "local" });
     expect(settings.trashOption()).toBe("local");
     expect(getConfig).toHaveBeenCalledExactlyOnceWith("trashOption");
-  });
-
-  it("reads the community theme chosen", () => {
-    const { settings, getConfig } = settingsWith({ trashOption: "local", cssTheme: "Primary" });
-    expect(settings.cssTheme()).toBe("Primary");
-    expect(getConfig).toHaveBeenCalledExactlyOnceWith("cssTheme");
   });
 });
 
@@ -28,12 +22,12 @@ function appWith(vault: object): Pick<App, "vault"> {
 describe("configReaderOf", () => {
   it("reads a setting through the vault's own getConfig, called on the vault", () => {
     const vault = {
-      config: { cssTheme: "Primary" } as Record<string, unknown>,
+      config: { trashOption: "local" } as Record<string, unknown>,
       getConfig(key: string): unknown {
         return this.config[key];
       },
     };
-    expect(configReaderOf(appWith(vault)).getConfig("cssTheme")).toBe("Primary");
+    expect(configReaderOf(appWith(vault)).getConfig("trashOption")).toBe("local");
   });
 
   it("reads nothing from a vault without getConfig", () => {

@@ -202,7 +202,7 @@ describe("networkCodeIn", () => {
       ["el.doc.write(text)", "write or writeln, which a document has"],
       ['page["write"](text)', "write or writeln, which a document has"],
       ["new Audio(address).play()", "Audio"],
-      ['new FontFace("Alegreya", source).load()', "FontFace"],
+      ['new FontFace("Display", source).load()', "FontFace"],
       ["const sheet = new CSSStyleSheet();", "CSSStyleSheet"],
       ["document.adoptedStyleSheets = [sheet];", "adoptedStyleSheets"],
       ['document.head.createEl("style", { text })', "an element that loads from or sends to an address"],
@@ -355,16 +355,12 @@ describe("styleNetworkCodeIn", () => {
     for (const [sample, name] of samples) expect(styleNetworkCodeIn(sample), sample).toContain(name);
   });
 
-  it("finds nothing in embedded fonts and escaped arrows", () => {
+  it("finds nothing in embedded images and escaped arrows", () => {
     const allowed = [
-      "@font-face {",
-      '  font-family: "Alegreya";',
-      "  src: url(data:font/woff2;base64,d09GMgAB//AAAKnU+/z0kQY4w==) format(\"woff2\");",
-      "}",
       '.dd-frame { background-image: url("data:image/png;base64,iVBORw0KGgo="); }',
       '.dd-answer::before { content: "\\2192  "; }',
       '.dd-name::after { content: "\\00e9"; }',
-      "/* styles/fonts.css */",
+      "/* styles/frame.css */",
     ];
     expect(styleNetworkCodeIn(allowed.join("\n"))).toEqual([]);
   });
@@ -386,7 +382,7 @@ describe("the built plugin", () => {
 describe("the built styles", () => {
   it("hold no network code", async () => {
     const styles = await built(STYLES_BUNDLE);
-    expect(styles).toContain("url(data:font/woff2;base64,");
+    expect(styles).toContain(".dd-tokens");
     expect(styleNetworkCodeIn(styles)).toEqual([]);
   });
 });
