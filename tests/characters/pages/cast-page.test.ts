@@ -49,7 +49,7 @@ function openCast({ folder = "Pale Moon" as string | null, characters = ["Mira",
     return stopWatchingFiles;
   };
   const root = obsidianDocument().createElement("div");
-  const page = new CastPage(root, store as unknown as CampaignStore, notes, { openRow: vi.fn(), openLink: vi.fn() }, { newCharacter: vi.fn(), importCharacter: vi.fn(), makeMain: vi.fn() }, watchFiles);
+  const page = new CastPage(root, store as unknown as CampaignStore, notes, { openRow: vi.fn(), openLink: vi.fn() }, { newCharacter: vi.fn(), importCharacter: vi.fn(), makeMain: vi.fn(), died: vi.fn() }, watchFiles);
   page.load();
   return {
     root,

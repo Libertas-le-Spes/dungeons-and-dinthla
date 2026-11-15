@@ -177,12 +177,13 @@ export default class DungeonsAndDinthla extends Plugin {
       chooseValue: (file: TFile, value: SheetValue, onClosed: () => void) =>
         void chooseSheetValue(this.app, gate, this.store, sheetNotes, file, value, actions.openRow, onClosed),
       updateFromBeyond: beyond.updateFromBeyond.bind(beyond),
+      died: beyond.died.bind(beyond),
       tracking: new FundsTracking(this.app, gate, this.store, () => this.campaignFolders()),
     };
     const mentionNotes = mentionNotesOf(gate, campaignFolders);
     const galleryActions = { ...actions, openRow: (source: Source) => void openCharacterSheet(this.app, gate, source.path) };
     const newCharacter = (returnFocus: () => void) => openNewCharacter(this.app, gate, this.store.campaignFolder, returnFocus);
-    const creators = { newCharacter, importCharacter: beyond.importCharacter.bind(beyond), makeMain: beyond.makeMain.bind(beyond) };
+    const creators = { newCharacter, importCharacter: beyond.importCharacter.bind(beyond), makeMain: beyond.makeMain.bind(beyond), died: beyond.died.bind(beyond) };
     this.registerBasesView(CHARACTERS_VIEW, {
       name: "Characters",
       icon: "users",

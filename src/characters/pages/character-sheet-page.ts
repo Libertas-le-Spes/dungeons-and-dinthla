@@ -16,6 +16,7 @@ import { fillStatBlock } from "../cards/stat-block";
 import { PendingWork } from "../../views/pending/pending-work";
 import { addImportedLines } from "../imported/drawing/imported-lines";
 import { isCharacterNotePath } from "../../campaign/paths/character-note-path";
+import { addDiedButton } from "../cards/died-button";
 import { addUpdateButton } from "../imported/drawing/update-button";
 import { addImportedPanels } from "../imported/panels/imported-panels";
 import type { ItemTracking } from "../imported/tracking/item-tracking";
@@ -33,6 +34,7 @@ export const STATE_WORDS: Record<ValueState, string> = {
 export interface SheetActions extends LinkActions {
   editCharacter(file: TFile): void;
   updateFromBeyond(file: TFile, returnFocus: () => void): void;
+  died(path: string, returnFocus: () => void): void;
   chooseValue(file: TFile, value: SheetValue, onClosed: () => void): void;
   readonly tracking: ItemTracking;
 }
@@ -63,6 +65,7 @@ export class CharacterSheetPage extends Component {
   private renders = 0;
   private watched: string[] = [];
   private pendingFocus: { name: string; until: number } | null = null;
+  private focusEditUntil = 0;
   private readonly drawing = new PendingWork();
   private readonly mentions: MentionsPanel;
 
@@ -158,7 +161,11 @@ export class CharacterSheetPage extends Component {
     const actions = head.createDiv({ cls: "dd-head-actions" });
     const edit = actions.createEl("button", { cls: "dd-create", text: "Edit character" });
     edit.addEventListener("click", () => this.actions.editCharacter(file));
-    if (this.isUpdatable(file, read.campaignFolder)) addUpdateButton(actions, file, this.actions);
+    if (Date.now() < this.focusEditUntil) edit.focus();
+    if (this.isUpdatable(file, read.campaignFolder)) {
+      addUpdateButton(actions, file, this.actions);
+      addDiedButton(actions, file.path, { died: this.died.bind(this) });
+    }
     const subtitle = sheet.values.find((value) => value.name === "subtitle");
     if (subtitle !== undefined && subtitle.state !== "unknown") root.createEl("p", { cls: "dd-sheet-subtitle", text: shownTextOf(subtitle) });
     const abilities = root.createDiv({ cls: "dd-sheet-abilities" });
@@ -178,6 +185,15 @@ export class CharacterSheetPage extends Component {
     this.drawStatBlock(root, file, sheet);
     this.mentions.draw(root.createEl("section", { cls: "dd-sheet-mentions" }), file);
     this.focusPending();
+  }
+
+  private died(path: string, returnFocus: () => void): void {
+    this.actions.died(path, () => this.focusAfterDied(returnFocus));
+  }
+
+  private focusAfterDied(returnFocus: () => void): void {
+    returnFocus();
+    this.focusEditUntil = Date.now() + PENDING_FOCUS_MS;
   }
 
   private isUpdatable(file: TFile, campaignFolder: string | null): boolean {

@@ -6,6 +6,7 @@ export const CAMPAIGN_NOTE_UNREAD = "The campaign note couldn't be read, so noth
 export const NOTE_UNREAD = "A character's note couldn't be read, so nothing was switched.";
 export const MAIN_UNCLEAR =
   "The character line must be one link like [[Name]] to a note in Characters or Fallen. Nothing changed.";
+export const ALREADY_FALLEN = "Already in Fallen.";
 export const NOT_A_CAMPAIGN_CHARACTER = "This note isn't in a campaign's Characters or Fallen folder, so it can't be made your character.";
 
 export function charactersNoteExists(name: string): Refusal {

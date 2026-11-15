@@ -26,12 +26,6 @@ export function addCardButton(list: HTMLElement, card: CharacterCard, actions: L
   return dressedCard(addRowButton(list, { path: card.path, line: 0 }, actions), card);
 }
 
-export function addCharacterCard(gallery: HTMLElement, card: CharacterCard, actions: LinkActions): HTMLElement {
-  const element = addCardButton(gallery, card, actions);
-  fillStatBlock(element, card.name, card.values);
-  return element;
-}
-
 export function addCharacterCardIn(item: HTMLElement, card: CharacterCard, actions: LinkActions): HTMLElement {
   const element = dressedCard(addRowButtonIn(item, { path: card.path, line: 0 }, actions), card);
   fillStatBlock(element, card.name, card.values);
