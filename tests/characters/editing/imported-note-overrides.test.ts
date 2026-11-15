@@ -5,7 +5,7 @@ import { monkSheet, TODAY , stampedOn } from "../../imports/builders/made-up-imp
 import { textOf } from "../../imports/builders/line-helpers";
 
 const PATH = "D&D/Primary Campaign/Characters/Primary Monk.md";
-const NUMBERS = "## Numbers (from D&D Beyond)";
+const NUMBERS = "## Numbers";
 
 function lineIndexOf(text: string, line: string): number {
   return text.split("\n").indexOf(line);

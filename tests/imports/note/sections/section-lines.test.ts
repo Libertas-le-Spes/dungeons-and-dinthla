@@ -28,20 +28,20 @@ function known(value: number, working: string, route: Route = ONLINE): KnownValu
 }
 
 describe("numberLineOf", () => {
-  it("writes the name, the value and the route, for a printed number with no working", () => {
-    expect(numberLineOf("AC", known(18, "", PRINTED))).toBe("- AC · 18 · Printed on D&D Beyond's PDF");
+  it("writes the name and the value for a number with no working", () => {
+    expect(numberLineOf("AC", known(18, "", PRINTED))).toBe("- AC · 18");
   });
 
-  it("writes the working between the value and the route when there is one", () => {
-    expect(numberLineOf("AC", known(16, "10 + DEX 4 + WIS 2 = 16", ONLINE))).toBe("- AC · 16 · 10 + DEX 4 + WIS 2 = 16 · Worked out here, from D&D Beyond (online)");
+  it("writes the working after the value when there is one", () => {
+    expect(numberLineOf("AC", known(16, "10 + DEX 4 + WIS 2 = 16", ONLINE))).toBe("- AC · 16 · 10 + DEX 4 + WIS 2 = 16");
   });
 
   it("writes not known and the reason for a number that is not known", () => {
-    expect(numberLineOf("AC", new NotKnownValue("The sheet's field is blank.", PRINTED))).toBe("- AC · not known · The sheet's field is blank. · Printed on D&D Beyond's PDF");
+    expect(numberLineOf("AC", new NotKnownValue("The sheet's field is blank.", PRINTED))).toBe("- AC · not known · The sheet's field is blank.");
   });
 
   it("makes a link in the name or the working inert", () => {
-    expect(numberLineOf("[[A]]", known(1, "[[B]] and a: b", PRINTED))).toBe("- \\[\\[A\\]\\] · 1 · \\[\\[B\\]\\] and a: b · Printed on D&D Beyond's PDF");
+    expect(numberLineOf("[[A]]", known(1, "[[B]] and a: b", PRINTED))).toBe("- \\[\\[A\\]\\] · 1 · \\[\\[B\\]\\] and a: b");
   });
 });
 
@@ -50,18 +50,18 @@ describe("NumbersContent", () => {
 
   it("writes the six scores first, in the order of the sheet", () => {
     expect(firstLines(lines, 6)).toEqual([
-      "- STR · 11 · Printed on D&D Beyond's PDF",
-      "- DEX · 12 · Printed on D&D Beyond's PDF",
-      "- CON · 13 · Printed on D&D Beyond's PDF",
-      "- INT · 14 · Printed on D&D Beyond's PDF",
-      "- WIS · 15 · Printed on D&D Beyond's PDF",
-      "- CHA · 16 · Printed on D&D Beyond's PDF",
+      "- STR · 11",
+      "- DEX · 12",
+      "- CON · 13",
+      "- INT · 14",
+      "- WIS · 15",
+      "- CHA · 16",
     ]);
   });
 
   it("then writes every number of the import, one line each", () => {
     expect(lines.length).toBe(6 + monkSheet().character.numbers.length);
-    expect(lines).toContain("- AC · 18 · Printed on D&D Beyond's PDF");
+    expect(lines).toContain("- AC · 18");
   });
 
   it("writes not known for a score that is blank", () => {

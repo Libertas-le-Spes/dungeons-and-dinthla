@@ -5,7 +5,6 @@ import type { SourcedFact } from "../../../src/characters/reading/sheet-values";
 
 const NOTE = "D&D/Primary Campaign/Characters/Primary Monk.md";
 const SESSION = "D&D/Primary Campaign/Sessions/Session 1.md";
-const ROUTE = "Printed on D&D Beyond's PDF";
 
 function learned(value: string): SourcedFact {
   return { name: "AC", value, source: { path: SESSION, line: 3 } };
@@ -16,7 +15,7 @@ function override(value: string): SourcedFact {
 }
 
 function imported(value: string): ImportedFact {
-  return { name: "AC", value, source: { path: NOTE, line: 2 }, route: ROUTE, working: "" };
+  return { name: "AC", value, source: { path: NOTE, line: 2 } };
 }
 
 function carriedOf(value: string) {
@@ -40,7 +39,7 @@ describe("which value the sheet shows", () => {
   it("shows an imported value over one learned at the table", () => {
     const value = armourClass([learned("12")], [imported("16")], [], null);
     expect(value).toMatchObject({ state: "imported", shown: { value: "16", source: { path: NOTE, line: 2 } } });
-    expect(value.imported).toEqual({ value: "16", source: { path: NOTE, line: 2 }, route: ROUTE, working: "" });
+    expect(value.imported).toEqual({ value: "16", source: { path: NOTE, line: 2 } });
   });
 
   it("shows an imported value over one carried from another campaign", () => {
@@ -68,7 +67,7 @@ describe("which value the sheet shows", () => {
   });
 
   it("adds a row for an imported species, labelled Species", () => {
-    const species: ImportedFact = { name: "species", value: "Human", source: { path: NOTE, line: 3 }, route: ROUTE, working: "" };
+    const species: ImportedFact = { name: "species", value: "Human", source: { path: NOTE, line: 3 } };
     const rows = characterSheetOf([], [species], [], null).values;
     const labels: string[] = [];
     for (const row of rows) labels.push(row.label);

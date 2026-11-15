@@ -14,11 +14,6 @@ export interface StatedValue {
   source: Source;
 }
 
-export interface ImportedValue extends StatedValue {
-  route: string;
-  working: string;
-}
-
 export interface CarriedValues {
   campaign: string;
   values: Map<string, StatedValue>;
@@ -30,7 +25,7 @@ export interface SheetValue {
   state: ValueState;
   shown: StatedValue | null;
   override: StatedValue | null;
-  imported: ImportedValue | null;
+  imported: StatedValue | null;
   learned: StatedValue | null;
   carried: StatedValue | null;
   carriedCampaign: string | null;
@@ -88,10 +83,10 @@ function carriedFor(carried: CarriedValues, name: string): StatedValue | null {
   return null;
 }
 
-function importedFor(imported: readonly ImportedFact[], name: string): ImportedValue | null {
-  let found: ImportedValue | null = null;
+function importedFor(imported: readonly ImportedFact[], name: string): StatedValue | null {
+  let found: StatedValue | null = null;
   for (const fact of imported) {
-    if (sameName(fact.name, name)) found = { value: fact.value, source: fact.source, route: fact.route, working: fact.working };
+    if (sameName(fact.name, name)) found = stated(fact);
   }
   return found;
 }

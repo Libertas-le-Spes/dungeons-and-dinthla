@@ -116,7 +116,7 @@ describe("sameSheetValue", () => {
 
   it("tells apart a value imported again with another number", () => {
     const importedAc = (value: string) => {
-      const imported = { name: "AC", value, source: { path: MIRA.path, line: 2 }, route: "Printed on D&D Beyond's PDF", working: "" };
+      const imported = { name: "AC", value, source: { path: MIRA.path, line: 2 } };
       return characterSheetOf([LEARNED_15], [imported], [], null).values.find((sheetValue) => sheetValue.name === "AC")!;
     };
     expect(sameSheetValue(importedAc("16"), importedAc("16"))).toBe(true);
