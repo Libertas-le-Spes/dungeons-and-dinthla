@@ -56,7 +56,7 @@ export class ArmourClassRule implements Rule {
     const unknown = firstUnknown(candidates);
     if (unknown !== undefined) return notKnown(unknown.reason, character.route);
     const best = bestOf(candidates);
-    if (best === undefined) return notKnown("No way of working out armor class applies.", character.route);
+    if (best === undefined) return notKnown("No armor class rule fits.", character.route);
     return this.withBonuses(character, worn, best);
   }
 

@@ -23,7 +23,7 @@ describe("a chain of reasons with hostile class names", () => {
   });
 
   it("states Passive Perception's real reason, not a too-long placeholder", () => {
-    expect(numberNamed(character, "Passive Perception").explanation).toBe("It needs Perception, which is not known.");
+    expect(numberNamed(character, "Passive Perception").explanation).toBe("Needs Perception.");
   });
 
   it("states the reason down every step of the chain, with nothing escaped twice", () => {

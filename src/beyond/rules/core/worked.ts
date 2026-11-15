@@ -6,6 +6,8 @@ import type { Route } from "../../shape/route";
 import type { WorkedValue } from "../../shape/worked-value";
 import { neutralWorking } from "./working-text";
 
+export const SET_BY_HAND = "Set by hand";
+
 export function knownIn(value: number, range: NumberRange, working: string, route: Route): WorkedValue<number> {
   return numberInRange(value, range, neutralWorking(working), route);
 }

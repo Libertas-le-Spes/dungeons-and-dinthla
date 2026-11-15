@@ -128,9 +128,9 @@ describe("FundsPage", () => {
     expect(root.querySelector(`${PARTY_PANEL} .dd-coin`)).toBeNull();
   });
 
-  it("says how to note coin when there is none", async () => {
+  it("says no coin yet when there is none", async () => {
     const { root } = await openPage({ campaign: campaignOf([]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
-    expect(textsOf(root, `${PARTY_PANEL} .dd-coins .dd-empty`)).toEqual(["No coin yet. Note it as “$ 20 gp from the bandits”. A link to your character on the line, like “$ 30 gp from the bandits, share to [[Mira]]”, puts it on your list."]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-coins .dd-empty`)).toEqual(["No coin yet. Try “$ 20 gp”."]);
     expect(textsOf(root, `${PARTY_PANEL} .dd-ledger .dd-empty`)).toEqual(["No coin entries yet."]);
     expect(textsOf(root, `${PARTY_PANEL} .dd-purse`)).toEqual(["0 gp"]);
     expect(textsOf(root, `${PARTY_PANEL} .dd-ledger-panel .dd-title .dd-count`)).toEqual([""]);
@@ -213,10 +213,10 @@ describe("FundsPage", () => {
     expect(actions.openRow).toHaveBeenLastCalledWith({ path: "Pale Moon/Sessions/Session 2.md", line: 1 });
   });
 
-  it("says how to note an item, and that nothing is gone, when there are none", async () => {
+  it("says no items yet, and that nothing is gone, when there are none", async () => {
     const { root } = await openPage({ campaign: campaignOf(["$ 5 gp"]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
     expect(textsOf(root, `${PARTY_PANEL} .dd-scroll-list > .dd-empty`)).toEqual([
-      "No items held. A $ line with no amount adds one, like “$ Rope found at the old mill”.",
+      "No items yet. Try “$ Rope”.",
     ]);
     expect(textsOf(root, `${PARTY_PANEL} .dd-folded .dd-empty`)).toEqual(["Nothing sold, used or lost yet."]);
     expect(textsOf(root, `${PARTY_PANEL} .dd-items-panel .dd-title .dd-count`)).toEqual([""]);
@@ -464,14 +464,14 @@ describe("FundsPage with his funds and the party's in two tabs", () => {
     expect(textsOf(root, `${PARTY_PANEL} .dd-ledger .dd-amount`)).toEqual(["+5 gp", "+50 gp"]);
   });
 
-  it("shows the ledger of Mine when it is empty, saying how a line gets there, or that no character is named", async () => {
+  it("shows the ledger of Mine when it is empty, or that no character is named", async () => {
     const holdsNone = await openPage({ campaign: campaignOf(["$ +50 gp advance"]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: ["Mira"] });
     expect(textsOf(holdsNone.root, `${MINE_PANEL} .dd-ledger .dd-empty`)).toEqual([
-      "No coin of yours yet. Put your character's link anywhere on a $ line with an amount, like “$ 30 gp from the bandits, share to [[Mira]]”.",
+      "No coin yet. Try “$ 20 gp”.",
     ]);
     expect(textsOf(holdsNone.root, `${MINE_PANEL} .dd-ledger-panel .dd-title .dd-count`)).toEqual([""]);
     const none = await openPage({ campaign: campaignOf(["$ +50 gp advance"]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
-    expect(textsOf(none.root, `${MINE_PANEL} .dd-ledger .dd-empty`)).toEqual(["You have not named your character in this campaign yet."]);
+    expect(textsOf(none.root, `${MINE_PANEL} .dd-ledger .dd-empty`)).toEqual(["No character of yours yet."]);
   });
 
   it("opens a ledger entry of Mine to change it, and puts focus back on it after the redraw", async () => {
@@ -505,12 +505,12 @@ describe("FundsPage with his funds and the party's in two tabs", () => {
     expect(textsOf(root, `${PARTY_PANEL} .dd-folded .dd-text`)).toEqual(["Rope"]);
   });
 
-  it("says no character of his is named when none is, and says how to note an item when one is but holds none", async () => {
+  it("says no character of his is named when none is, and says no items yet when one is but holds none", async () => {
     const none = await openPage({ campaign: campaignOf(LINES), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
-    expect(textsOf(none.root, `${MINE_PANEL} .dd-items-panel .dd-scroll-list > .dd-empty`)).toEqual(["You have not named your character in this campaign yet."]);
+    expect(textsOf(none.root, `${MINE_PANEL} .dd-items-panel .dd-scroll-list > .dd-empty`)).toEqual(["No character of yours yet."]);
     const holdsNone = await openPage({ campaign: campaignOf(["$ [[Zed]] Rope"]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: ["Mira"] });
     expect(textsOf(holdsNone.root, `${MINE_PANEL} .dd-items-panel .dd-scroll-list > .dd-empty`)).toEqual([
-      "No items of yours yet. Put your character's link anywhere on a $ line with no amount, like “$ Flame Tongue longsword found by [[Mira]]”.",
+      "No items yet. Try “$ Rope”.",
     ]);
   });
 
@@ -586,14 +586,14 @@ describe("FundsPage with a purse of his own coin lines in Mine", () => {
     const { root } = await pageFor(["$ +50 gp advance"], ["Mira"]);
     expect(textsOf(root, `${OWN_PURSE} .dd-purse`)).toEqual(["0 gp"]);
     expect(textsOf(root, `${OWN_PURSE} .dd-coins .dd-empty`)).toEqual([
-      "No coin of yours yet. Put your character's link anywhere on a $ line with an amount, like “$ 30 gp from the bandits, share to [[Mira]]”.",
+      "No coin yet. Try “$ 20 gp”.",
     ]);
   });
 
   it("says no character is named when the campaign note names none", async () => {
     const { root } = await pageFor(["$ +50 gp advance", "$ 5 gp from [[Mira]]"], []);
     expect(textsOf(root, `${OWN_PURSE} .dd-purse`)).toEqual(["0 gp"]);
-    expect(textsOf(root, `${OWN_PURSE} .dd-coins .dd-empty`)).toEqual(["You have not named your character in this campaign yet."]);
+    expect(textsOf(root, `${OWN_PURSE} .dd-coins .dd-empty`)).toEqual(["No character of yours yet."]);
     expect(textsOf(root, `${PARTY_PANEL} .dd-purse`)).toEqual(["55 gp"]);
   });
 

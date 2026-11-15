@@ -54,8 +54,16 @@ describe("NoteLayout's sections", () => {
   });
 
   it("does not take a heading with other words, a different level or spaces before it for the section's", () => {
-    const near = textOf("## Inventory", "# Inventory (from D&D Beyond)", "### Inventory (from D&D Beyond)", ` ${INVENTORY}x`);
+    const near = textOf("# Inventory", "### Inventory", ` ${INVENTORY}x`, `${INVENTORY} extra`);
     expect(spanOf(near)).toBeNull();
+  });
+
+  it("takes the heading older notes were written with for the same section", () => {
+    expect(spanOf(textOf("Top", INVENTORY_SECTION.formerHeading, "- a", "## Mine", "Rest"))).toEqual({ start: 1, end: 3 });
+  });
+
+  it("refuses a note with a section under its heading and again under its older heading", () => {
+    expect(() => NoteLayout.of(textOf(INVENTORY, "- a", INVENTORY_SECTION.formerHeading, "- b"))).toThrow(Refusal);
   });
 
   it("takes a heading with up to three spaces before it as a heading, so it ends a section", () => {
@@ -134,7 +142,7 @@ describe("NoteLayout's code blocks", () => {
   });
 
   it("refuses a note that ends inside a block that is never closed, in words of its own", () => {
-    expect(() => NoteLayout.of(textOf("```", "x", "## Notes"))).toThrow("ends inside a code block or a comment that is never closed");
+    expect(() => NoteLayout.of(textOf("```", "x", "## Notes"))).toThrow("code block or comment that never closes");
   });
 });
 
@@ -172,15 +180,15 @@ describe("NoteLayout's comments", () => {
   });
 
   it("refuses a note that ends inside an HTML comment that is never closed", () => {
-    expect(() => NoteLayout.of(textOf("<!--", "x"))).toThrow("never closed");
+    expect(() => NoteLayout.of(textOf("<!--", "x"))).toThrow("never closes");
   });
 
   it("refuses a note that ends inside a percent comment that is never closed", () => {
-    expect(() => NoteLayout.of(textOf("a", "%% x"))).toThrow("never closed");
+    expect(() => NoteLayout.of(textOf("a", "%% x"))).toThrow("never closes");
   });
 
   it("refuses a note whose comment opens again on the line where one closed", () => {
-    expect(() => NoteLayout.of(textOf("<!-- a --> <!-- b"))).toThrow("never closed");
+    expect(() => NoteLayout.of(textOf("<!-- a --> <!-- b"))).toThrow("never closes");
   });
 });
 
@@ -216,7 +224,7 @@ describe("NoteLayout's size", () => {
   });
 
   it("refuses a note of one line more", () => {
-    expect(() => NoteLayout.of(manyLines(MOST_NOTE_LINES + 1))).toThrow(`more than ${MOST_NOTE_LINES} lines`);
+    expect(() => NoteLayout.of(manyLines(MOST_NOTE_LINES + 1))).toThrow(`over ${MOST_NOTE_LINES} lines`);
   });
 
   it("refuses a note of a hundred and fifty thousand lines with a Refusal", () => {

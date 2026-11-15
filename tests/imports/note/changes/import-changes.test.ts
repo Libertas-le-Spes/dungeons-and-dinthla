@@ -10,13 +10,17 @@ import {
 import { linesWithout } from "../../../../src/imports/note/changes/line-difference";
 import { sameTypedText } from "../../../../src/imports/note/changes/same-typed-text";
 import { importedNoteText } from "../../../../src/imports/note/writing/rewriting/imported-note";
+import { INVENTORY_SECTION } from "../../../../src/imports/layout/plugin-sections";
 import { MadeUpSheet } from "../../../beyond/builders/made-up-sheet";
 import { lineAt, textOf } from "../../builders/line-helpers";
 import { monkSheet, sheetOf, sheetWithCharacter, TODAY , stampedOn } from "../../builders/made-up-import";
 
-const NUMBERS = "## Numbers (from D&D Beyond)";
-const INVENTORY = "## Inventory (from D&D Beyond)";
-const SPELLS = "## Spells (from D&D Beyond)";
+const NUMBERS = "## Numbers";
+const INVENTORY = "## Inventory";
+const SPELLS = "## Spells";
+const NUMBERS_TITLE = "Numbers";
+const INVENTORY_TITLE = "Inventory";
+const SPELLS_TITLE = "Spells";
 
 function importedWith(made: MadeUpSheet, date = "2026-01-02"): string {
   return importedNoteText({ current: "His words.\n", sheet: sheetOf(made), stamp: stampedOn(date) });
@@ -26,8 +30,8 @@ function nameOf(change: PropertyChange): string {
   return change.name;
 }
 
-function headingOf(change: SectionChange): string {
-  return change.heading;
+function titleOf(change: SectionChange): string {
+  return change.title;
 }
 
 function isNotAdded(change: PropertyChange): boolean {
@@ -40,15 +44,15 @@ function isNotOnlyAdded(change: SectionChange): boolean {
   return change.added.length === 0;
 }
 
-function headingAndAdded(change: SectionChange): [string, number] {
-  return [change.heading, change.added.length];
+function titleAndAdded(change: SectionChange): [string, number] {
+  return [change.title, change.added.length];
 }
 
-function sectionNamed(changes: readonly SectionChange[], heading: string): SectionChange {
+function sectionNamed(changes: readonly SectionChange[], title: string): SectionChange {
   for (const change of changes) {
-    if (change.heading === heading) return change;
+    if (change.title === title) return change;
   }
-  throw new Error(`No change for ${heading}.`);
+  throw new Error(`No change for ${title}.`);
 }
 
 describe("linesWithout", () => {
@@ -66,14 +70,14 @@ describe("linesWithout", () => {
 });
 
 describe("sameTypedText", () => {
-  const one: TypedText[] = [{ heading: INVENTORY, lines: ["a", "b"] }];
+  const one: TypedText[] = [{ title: INVENTORY_TITLE, lines: ["a", "b"] }];
 
   it("is the same for two empty lists", () => {
     expect(sameTypedText([], [])).toBe(true);
   });
 
-  it("is the same for the same heading and lines", () => {
-    expect(sameTypedText(one, [{ heading: INVENTORY, lines: ["a", "b"] }])).toBe(true);
+  it("is the same for the same title and lines", () => {
+    expect(sameTypedText(one, [{ title: INVENTORY_TITLE, lines: ["a", "b"] }])).toBe(true);
   });
 
   it("differs when one list has more entries", () => {
@@ -81,18 +85,18 @@ describe("sameTypedText", () => {
     expect(sameTypedText([], one)).toBe(false);
   });
 
-  it("differs when the heading differs", () => {
-    expect(sameTypedText(one, [{ heading: SPELLS, lines: ["a", "b"] }])).toBe(false);
+  it("differs when the title differs", () => {
+    expect(sameTypedText(one, [{ title: SPELLS_TITLE, lines: ["a", "b"] }])).toBe(false);
   });
 
   it("differs when a line differs, or one is added or missing", () => {
-    expect(sameTypedText(one, [{ heading: INVENTORY, lines: ["a", "c"] }])).toBe(false);
-    expect(sameTypedText(one, [{ heading: INVENTORY, lines: ["a"] }])).toBe(false);
-    expect(sameTypedText(one, [{ heading: INVENTORY, lines: ["a", "b", "c"] }])).toBe(false);
+    expect(sameTypedText(one, [{ title: INVENTORY_TITLE, lines: ["a", "c"] }])).toBe(false);
+    expect(sameTypedText(one, [{ title: INVENTORY_TITLE, lines: ["a"] }])).toBe(false);
+    expect(sameTypedText(one, [{ title: INVENTORY_TITLE, lines: ["a", "b", "c"] }])).toBe(false);
   });
 
   it("differs when the lines are in another order", () => {
-    expect(sameTypedText(one, [{ heading: INVENTORY, lines: ["b", "a"] }])).toBe(false);
+    expect(sameTypedText(one, [{ title: INVENTORY_TITLE, lines: ["b", "a"] }])).toBe(false);
   });
 });
 
@@ -105,7 +109,7 @@ describe("importChangesOf for a note that was never imported", () => {
   });
 
   it("lists each section as added, with no line removed", () => {
-    expect(changes.sections.map(headingOf).length).toBe(5);
+    expect(changes.sections.map(titleOf).length).toBe(5);
     expect(changes.sections.filter(isNotOnlyAdded)).toEqual([]);
   });
 
@@ -124,8 +128,8 @@ describe("importChangesOf for a changed value", () => {
   });
 
   it("names the lines that go and the lines that come, section by section", () => {
-    expect(changes.sections.map(headingOf)).toEqual([NUMBERS, INVENTORY]);
-    expect(sectionNamed(changes.sections, INVENTORY)).toEqual({ heading: INVENTORY, removed: ["- Item 1 × 2"], added: ["- Item 1 × 7"] });
+    expect(changes.sections.map(titleOf)).toEqual([NUMBERS_TITLE, INVENTORY_TITLE]);
+    expect(sectionNamed(changes.sections, INVENTORY_TITLE)).toEqual({ title: INVENTORY_TITLE, removed: ["- Item 1 × 2"], added: ["- Item 1 × 7"] });
   });
 
   it("does not count a new date alone as a change", () => {
@@ -134,30 +138,53 @@ describe("importChangesOf for a changed value", () => {
 });
 
 describe("importChangesOf for typed text", () => {
-  const typed = textOf("His words.", INVENTORY, "- Old rope × 2", "I gave the gold to a friend", "", SPELLS, "- Light", "my own spell note", "### a heading");
+  const typed = textOf("---", "imported-from: pdf", "---", "His words.", INVENTORY, "- Old rope × 2", "I gave the gold to a friend", "", SPELLS, "- Light", "my own spell note", "### a heading");
   const changes = importChangesOf(typed, importedNoteText({ current: typed, sheet: monkSheet(), stamp: stampedOn(TODAY) }));
 
   it("lists a line in a section that is not one of the plugin's bullet lines, per section", () => {
     expect(changes.typed).toEqual([
-      { heading: INVENTORY, lines: ["I gave the gold to a friend"] },
-      { heading: SPELLS, lines: ["my own spell note", "### a heading"] },
+      { title: INVENTORY_TITLE, lines: ["I gave the gold to a friend"] },
+      { title: SPELLS_TITLE, lines: ["my own spell note", "### a heading"] },
     ]);
   });
 
   it("lists the typed lines among the lines that will go", () => {
-    expect(sectionNamed(changes.sections, INVENTORY).removed).toContain("I gave the gold to a friend");
+    expect(sectionNamed(changes.sections, INVENTORY_TITLE).removed).toContain("I gave the gold to a friend");
   });
 
   it("does not take a blank line for typed text", () => {
-    const withBlank = textOf(INVENTORY, "- a", "", "typed words", "", "more words");
+    const withBlank = textOf("---", "imported-from: pdf", "---", INVENTORY, "- a", "", "typed words", "", "more words");
     const found = importChangesOf(withBlank, importedNoteText({ current: withBlank, sheet: monkSheet(), stamp: stampedOn(TODAY) }));
-    expect(found.typed).toEqual([{ heading: INVENTORY, lines: ["typed words", "more words"] }]);
-    expect(sectionNamed(found.sections, INVENTORY).removed).toEqual(["- a", "typed words", "more words"]);
+    expect(found.typed).toEqual([{ title: INVENTORY_TITLE, lines: ["typed words", "more words"] }]);
+    expect(sectionNamed(found.sections, INVENTORY_TITLE).removed).toEqual(["- a", "typed words", "more words"]);
   });
 
   it("finds typed text in a section even when the import has nothing for that section", () => {
     const bare = sheetWithCharacter(monkSheet(), { spells: [] });
     expect(importChangesOf(typed, importedNoteText({ current: typed, sheet: bare, stamp: stampedOn(TODAY) })).typed.length).toBe(2);
+  });
+});
+
+describe("importChangesOf for a note the import has not written to yet", () => {
+  const own = textOf("His words.", INVENTORY, "- My rope × 2", "", SPELLS, "- My light", "## Features", "My own prose");
+  const changes = importChangesOf(own, importedNoteText({ current: own, sheet: monkSheet(), stamp: stampedOn(TODAY) }));
+
+  it("takes every line under a plain heading of his, bullets too, for typed text", () => {
+    expect(changes.typed).toEqual([
+      { title: INVENTORY_TITLE, lines: ["- My rope × 2"] },
+      { title: SPELLS_TITLE, lines: ["- My light"] },
+      { title: "Features", lines: ["My own prose"] },
+    ]);
+  });
+
+  it("takes the bullets for the import's once the note has the imported-from property", () => {
+    const marked = textOf("---", "imported-from: pdf", "---", INVENTORY, "- My rope × 2");
+    expect(importChangesOf(marked, importedNoteText({ current: marked, sheet: monkSheet(), stamp: stampedOn(TODAY) })).typed).toEqual([]);
+  });
+
+  it("takes the bullets for the import's once the note has an older heading", () => {
+    const older = textOf(INVENTORY_SECTION.formerHeading, "- Rope × 2");
+    expect(importChangesOf(older, importedNoteText({ current: older, sheet: monkSheet(), stamp: stampedOn(TODAY) })).typed).toEqual([]);
   });
 });
 
@@ -168,22 +195,22 @@ describe("importChangesOf for notes written in other ways", () => {
     expect(importChangesOf(before, after).properties).toEqual([{ name: "AC", before: "3", after: "18" }]);
   });
 
-  it("refuses a property that only differs by capitals from the import's", () => {
+  it("refuses a property that differs only by capitals from the import's", () => {
     expect(() => importChangesOf(textOf("---", "ac: 3", "---"), textOf("---", "AC: 18", "---"))).toThrow(Refusal);
   });
 
   it("gives the lines of a note with Windows line breaks without their returns", () => {
-    const before = ["x", INVENTORY, "- Old rope × 2", "typed", ""].join("\r\n");
+    const before = ["---", "imported-from: pdf", "---", "x", INVENTORY, "- Old rope × 2", "typed", ""].join("\r\n");
     const changes = importChangesOf(before, importedNoteText({ current: before, sheet: monkSheet(), stamp: stampedOn(TODAY) }));
-    expect(sectionNamed(changes.sections, INVENTORY).removed).toEqual(["- Old rope × 2", "typed"]);
-    expect(changes.typed).toEqual([{ heading: INVENTORY, lines: ["typed"] }]);
+    expect(sectionNamed(changes.sections, INVENTORY_TITLE).removed).toEqual(["- Old rope × 2", "typed"]);
+    expect(changes.typed).toEqual([{ title: INVENTORY_TITLE, lines: ["typed"] }]);
   });
 
   it("lists a section whose lines only go, when the import has nothing for it", () => {
     const before = importedNoteText({ current: "", sheet: monkSheet(), stamp: stampedOn("2026-01-02") });
     const changes = importChangesOf(before, importedNoteText({ current: before, sheet: sheetWithCharacter(monkSheet(), { spells: [] }), stamp: stampedOn(TODAY) }));
-    expect(changes.sections.map(headingAndAdded)).toEqual([[SPELLS, 0]]);
-    expect(lineAt(sectionNamed(changes.sections, SPELLS).removed, 0)).toBe("- Spell of spellName0");
+    expect(changes.sections.map(titleAndAdded)).toEqual([[SPELLS_TITLE, 0]]);
+    expect(lineAt(sectionNamed(changes.sections, SPELLS_TITLE).removed, 0)).toBe("- Spell of spellName0");
   });
 
   it("is not nothing when only a section's lines change", () => {

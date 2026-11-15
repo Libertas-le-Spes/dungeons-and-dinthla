@@ -9,7 +9,7 @@ import { ABILITY_IDS } from "./ability-ids";
 import type { AbilityId } from "./ability-ids";
 import { ScoreEntries } from "./score-entries";
 
-const UNEXPECTED = "D&D Beyond gave the scores, their bonuses or the scores set by hand in an unexpected form.";
+const UNEXPECTED = "Scores unreadable.";
 
 export interface ScoreInputs {
   readonly base: ByAbility<number>;

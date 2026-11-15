@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { sheetValueNamed } from "../builders/sheet-value-named";
 import type { App, TFile } from "obsidian";
 import type { SessionNote } from "../../../src/campaign/record/campaign";
 import { CHANGED_IN_NOTE } from "../../../src/campaign/writing/note-editor";
@@ -81,7 +82,7 @@ function setUp(texts: Record<string, string>, { readFails = false, folders = ["P
 }
 
 function acOf(learned: SourcedFact[], overrides: SourcedFact[] = []): SheetValue {
-  return characterSheetOf(learned, [], overrides, null).values.find((value) => value.name === "AC")!;
+  return sheetValueNamed(characterSheetOf({ learned, imported: [], overrides, carried: null }), "AC");
 }
 
 const LEARNED_15: SourcedFact = { name: "AC", value: "15", source: { path: ONE, line: 0 } };
@@ -116,8 +117,8 @@ describe("sameSheetValue", () => {
 
   it("tells apart a value imported again with another number", () => {
     const importedAc = (value: string) => {
-      const imported = { name: "AC", value, source: { path: MIRA.path, line: 2 }, route: "Printed on D&D Beyond's PDF", working: "" };
-      return characterSheetOf([LEARNED_15], [imported], [], null).values.find((sheetValue) => sheetValue.name === "AC")!;
+      const imported = { name: "AC", value, source: { path: MIRA.path, line: 2 } };
+      return sheetValueNamed(characterSheetOf({ learned: [LEARNED_15], imported: [imported], overrides: [], carried: null }), "AC");
     };
     expect(sameSheetValue(importedAc("16"), importedAc("16"))).toBe(true);
     expect(sameSheetValue(importedAc("16"), importedAc("17"))).toBe(false);
@@ -125,8 +126,8 @@ describe("sameSheetValue", () => {
 
   it("tells apart a value carried from another campaign that changed there", () => {
     const carriedAc = (value: string) => {
-      const carried = carriedValuesOf("Ashen Road", [], [], [{ name: "AC", value, source: { path: "Ashen Road/Characters/Mira.md", line: 0 } }], ["values"]);
-      return characterSheetOf([], [], [], carried).values.find((sheetValue) => sheetValue.name === "AC")!;
+      const carried = carriedValuesOf({ campaign: "Ashen Road", learned: [], imported: [], overrides: [{ name: "AC", value, source: { path: "Ashen Road/Characters/Mira.md", line: 0 } }], groups: ["values"] });
+      return sheetValueNamed(characterSheetOf({ learned: [], imported: [], overrides: [], carried }), "AC");
     };
     expect(sameSheetValue(carriedAc("13"), carriedAc("13"))).toBe(true);
     expect(sameSheetValue(carriedAc("13"), carriedAc("14"))).toBe(false);

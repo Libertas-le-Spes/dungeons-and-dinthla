@@ -1,3 +1,4 @@
+import { wholeNumberReason } from "../../shape/number-in-range";
 import type { ImportedNumber } from "../../shape/imported-number";
 import { CHARACTER_LEVEL, CLASS_LEVEL } from "../../shape/import-limits";
 import type { WorkedValue } from "../../shape/worked-value";
@@ -49,7 +50,7 @@ export class TotalLevelRule implements Rule {
     if (character.classes.length === 0) return notKnown("The character has no class.", character.route);
     const repeated = firstRepeated(character.classes);
     if (repeated !== undefined) return notKnown(`The class ${repeated} is listed more than once.`, character.route);
-    if (!character.classes.every(isLevel)) return notKnown(`${CLASS_LEVEL.what} has to be a whole number from ${CLASS_LEVEL.lowest} to ${CLASS_LEVEL.highest}.`, character.route);
+    if (!character.classes.every(isLevel)) return notKnown(wholeNumberReason(CLASS_LEVEL), character.route);
     const total = character.classes.reduce(addedLevel, 0);
     return knownIn(total, CHARACTER_LEVEL, `${character.classes.map(levelTerm).join(" + ")} = ${total}`, character.route);
   }

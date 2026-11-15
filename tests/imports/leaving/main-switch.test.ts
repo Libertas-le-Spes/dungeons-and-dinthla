@@ -124,13 +124,13 @@ describe("Died and Retired", () => {
 
   it("refuse what they were last doing over 300 characters before writing anything", async () => {
     const table = new LeavingTable();
-    expect(await refusalWhen(table.leaveAs(new Died()).run("a".repeat(301)))).toBe("Refusal: What they were last doing is longer than 300 characters, so nothing was changed.");
+    expect(await refusalWhen(table.leaveAs(new Died()).run("a".repeat(301)))).toBe("Refusal: What they were last doing is over 300 characters.");
     expect(table.vault.writes).toEqual([]);
   });
 
   it("refuse what they were last doing that isn't one line before writing anything", async () => {
     const table = new LeavingTable();
-    expect(await refusalWhen(table.leaveAs(new Retired()).run("one\ntwo"))).toBe("Refusal: What they were last doing has to be one line, so nothing was changed.");
+    expect(await refusalWhen(table.leaveAs(new Retired()).run("one\ntwo"))).toBe("Refusal: What they were last doing has to be one line.");
     expect(table.vault.writes).toEqual([]);
   });
 });
@@ -162,34 +162,34 @@ describe("everything is checked before the first write", () => {
   it("refuses when the old note has two standing properties, writing nothing", async () => {
     const table = new LeavingTable();
     table.vault.texts.set(MONK, "---\nstanding: a\nstanding: b\n---\n");
-    expect(await refusalWhen(table.leaveAs(new Died()).run(""))).toBe("Refusal: The note has two standing properties, so nothing was written. Remove one.");
+    expect(await refusalWhen(table.leaveAs(new Died()).run(""))).toBe("Refusal: The note has two standing properties. Remove one.");
     expect(table.vault.writes).toEqual([]);
   });
 
   it("refuses when the chosen note has two standing properties, writing nothing", async () => {
     const table = new LeavingTable();
     table.vault.texts.set(SECOND, "---\nstanding: backup\nstanding: died\n---\n");
-    expect(await refusalWhen(table.leaveAs(new Died()).run(""))).toBe("Refusal: The note has two standing properties, so nothing was written. Remove one.");
+    expect(await refusalWhen(table.leaveAs(new Died()).run(""))).toBe("Refusal: The note has two standing properties. Remove one.");
     expect(table.vault.writes).toEqual([]);
   });
 
   it("refuses when the campaign note has two character properties, writing nothing", async () => {
     const table = new LeavingTable('---\ncharacter: "[[A]]"\ncharacter: "[[B]]"\n---\n');
-    expect(await refusalWhen(table.leaveAs(new Died()).run(""))).toBe("Refusal: The note has two character properties, so nothing was written. Remove one.");
+    expect(await refusalWhen(table.leaveAs(new Died()).run(""))).toBe("Refusal: The note has two character properties. Remove one.");
     expect(table.vault.writes).toEqual([]);
   });
 
   it("refuses when Fallen already has a note of that name, whatever its capitals, writing nothing", async () => {
     const table = new LeavingTable();
     table.vault.note(`${CAMPAIGN}/Fallen/primary monk.md`, "an older note\n");
-    expect(await refusalWhen(table.leaveAs(new Died()).run(""))).toBe("Refusal: There is already a note called primary monk in Fallen, so nothing was changed. Rename or move that note first.");
+    expect(await refusalWhen(table.leaveAs(new Died()).run(""))).toBe("Refusal: A note called primary monk is already in Fallen. Rename or move it.");
     expect(table.vault.writes).toEqual([]);
   });
 
   it("refuses when the note's properties would no longer read as properties, writing nothing", async () => {
     const table = new LeavingTable();
     table.vault.texts.set(MONK, '---\nnote: "starts here\nstanding: died"\n---\n');
-    expect(await refusalWhen(table.leaveAs(new Backup()).run(""))).toBe("Refusal: The note's properties couldn't be read as properties, so standing wasn't written. Fix them first.");
+    expect(await refusalWhen(table.leaveAs(new Backup()).run(""))).toBe("Refusal: The properties couldn't be read, so standing wasn't written. Fix them.");
     expect(table.vault.writes).toEqual([]);
   });
 
@@ -360,7 +360,7 @@ describe("a fallen character coming back", () => {
   it("refuses when Characters already has a note of that name, writing nothing", async () => {
     const table = new LeavingTable("---\nrole: player\n---\n");
     table.vault.note(SECOND_FALLEN, FALLEN_TEXT);
-    expect(await refusalWhen(table.makeMain(SECOND_FALLEN).run())).toBe("Refusal: There is already a note called Secondary in Characters, so nothing was changed. Rename or move that note first.");
+    expect(await refusalWhen(table.makeMain(SECOND_FALLEN).run())).toBe("Refusal: A note called Secondary is already in Characters. Rename or move it.");
     expect(table.vault.writes).toEqual([]);
   });
 

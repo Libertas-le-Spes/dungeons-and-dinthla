@@ -11,7 +11,7 @@ import { SESSIONS_SHARE_A_NUMBER } from "../../src/campaign/paths/session-to-wri
 import { isShown, obsidianDocument } from "../stubs/obsidian-dom";
 
 const CAMPAIGN = "Pale Moon";
-const NO_CHARACTERS = "No characters yet. A note in the campaign’s Characters folder adds one.";
+const NO_CHARACTERS = "No characters yet.";
 
 function sessionOf(number: number, lines: string[]): SessionNote {
   return { path: `${CAMPAIGN}/Sessions/Session ${number}.md`, number, firstLine: 0, text: lines.join("\n") };
@@ -180,7 +180,7 @@ describe("DashboardPage", () => {
     await view.charactersDrawn();
     expect(textsOf(panel(root, CHARACTERS), ".dd-empty")).toEqual([NO_CHARACTERS]);
     expect(textsOf(panel(root, SESSION), ".dd-title")).toEqual(["Latest session"]);
-    expect(textsOf(panel(root, SESSION), ".dd-empty")).toEqual(["No sessions yet. Start one to write in it."]);
+    expect(textsOf(panel(root, SESSION), ".dd-empty")).toEqual(["No sessions yet."]);
   });
 
   it("puts the latest session panel first, before the questions", async () => {
@@ -236,7 +236,7 @@ describe("DashboardPage", () => {
 
   it("shows no latest session without a campaign", async () => {
     const { root } = await openDashboard([sessionOf(1, ["? Who"])], { folder: null });
-    expect(textsOf(panel(root, SESSION), ".dd-empty")).toEqual(["No sessions yet. Start one to write in it."]);
+    expect(textsOf(panel(root, SESSION), ".dd-empty")).toEqual(["No sessions yet."]);
   });
 
   it("shows the latest session's Notes page to write in it, and has nothing to show without one", async () => {

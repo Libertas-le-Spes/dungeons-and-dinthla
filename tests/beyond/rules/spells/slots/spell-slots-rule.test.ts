@@ -118,7 +118,7 @@ describe("SpellSlotsRule and the edition", () => {
 
   it("does not know the combined slots when one class is a half caster in 2024", () => {
     const character = madeUpRuleCharacter({ edition: "2024", classes: [classOf("Paladin", 4, 10), classOf("Wizard", 4, 6)] });
-    expect(numberNamed(character, "Spell slots").explanation).toBe("The slot tables of half and third casters differ between the 2014 and 2024 rules, and the edition is not 2014.");
+    expect(numberNamed(character, "Spell slots").explanation).toBe("Edition is not 2014.");
   });
 
   it("still knows a wizard's slots in 2024", () => {
@@ -140,7 +140,7 @@ describe("SpellSlotsRule and an Artificer", () => {
   it("does not know any slots for Wizard 5 and Artificer 3, so no table is shown as known", () => {
     const character = madeUpRuleCharacter({ classes: [classOf("Wizard", 5, 6), classOf("Artificer", 3, 8)] });
     const names = namesStartingWith(character, "Spell slots");
-    expect([names, numberNamed(character, "Spell slots").explanation]).toEqual([["Spell slots"], "Artificer is not built here yet."]);
+    expect([names, numberNamed(character, "Spell slots").explanation]).toEqual([["Spell slots"], "Artificer is not supported yet."]);
   });
 
   it("does not know the slots of an Artificer alone", () => {

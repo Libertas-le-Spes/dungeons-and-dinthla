@@ -77,7 +77,7 @@ describe("WritingPanel", () => {
     expect(box.getAttribute("placeholder")).toBe("! Find the caravan, from: [[Lady Vess]], reward: 200 gp");
     expect(box.getAttribute("spellcheck")).toBe("false");
     expect(root.querySelector(".dd-box-help")?.textContent).toBe(
-      "To find and update an earlier note, start a line with ?? for a question, !! for a quest or $$ for an item, then a few words.",
+      "Start with ??, !! or $$ to find an earlier line.",
     );
     expect(root.querySelector(".dd-save")?.textContent).toBe("Save");
     expect(root.querySelector(".dd-save-hint")?.textContent).toBe("Ctrl + Enter saves");

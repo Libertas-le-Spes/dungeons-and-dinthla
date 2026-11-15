@@ -96,7 +96,7 @@ describe("workedNumbersOf, for the made-up monk", () => {
   it("does not know the hit points when the dice total is missing, and says so", () => {
     const reply = MadeUpReply.levelOneMonk().without(["baseHitPoints"]);
     expect(numbersOf(reply).get("HP")).toBe("not known");
-    expect(explanationOf(reply, "HP")).toBe("The dice total or the bonus hit points are missing.");
+    expect(explanationOf(reply, "HP")).toBe("Dice total or bonus missing.");
   });
 
   it("subtracts the hit points lost from the current hit points", () => {
@@ -108,26 +108,26 @@ describe("workedNumbersOf, with values set by hand on D&D Beyond", () => {
   it("takes a score set by hand over the one worked out, and works the rest from it", () => {
     const reply = MadeUpReply.levelOneMonk().with(["overrideStats", 0, "value"], 18);
     expect(valuesOf(reply, ["STR", "STR modifier", "Carrying capacity", "DEX"])).toEqual(["STR 18", "STR modifier 4", "Carrying capacity 270", "DEX 16"]);
-    expect(explanationOf(reply, "STR")).toBe("Strength set on D&D Beyond: 18");
+    expect(explanationOf(reply, "STR")).toBe("Set by hand");
   });
 
   it("takes hit points set by hand over the dice, and says so", () => {
     const reply = MadeUpReply.levelOneMonk().with(["overrideHitPoints"], 30);
     expect(valuesOf(reply, ["HP", "Current HP"])).toEqual(["HP 30", "Current HP 30"]);
-    expect(explanationOf(reply, "HP")).toBe("Hit points set on D&D Beyond: 30");
+    expect(explanationOf(reply, "HP")).toBe("Set by hand");
   });
 
   it("does not know any score, nor what follows from it, when the scores come in an unexpected form", () => {
     const reply = MadeUpReply.levelOneMonk().with(["overrideStats"], [{ id: "1", value: 12 }]);
     const found = numbersOf(reply);
     expect(["STR", "CHA", "STR modifier", "DEX save", "AC", "Carrying capacity"].map((name) => found.get(name))).toEqual(Array(6).fill("not known"));
-    expect(explanationOf(reply, "STR")).toBe("D&D Beyond gave the scores, their bonuses or the scores set by hand in an unexpected form.");
+    expect(explanationOf(reply, "STR")).toBe("Scores unreadable.");
   });
 
   it("does not know the hit points, nor the current hit points, when they are set in an unexpected form", () => {
     const reply = MadeUpReply.levelOneMonk().with(["overrideHitPoints"], "30");
     expect(valuesOf(reply, ["HP", "Current HP"])).toEqual(["HP not known", "Current HP not known"]);
-    expect(explanationOf(reply, "HP")).toBe("D&D Beyond gave the hit points set by hand in an unexpected form.");
+    expect(explanationOf(reply, "HP")).toBe("Hit points unreadable.");
   });
 
   it("does not know the speed when one is set by hand, and says so", () => {

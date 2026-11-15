@@ -7,8 +7,8 @@ import { SettleRun } from "../tracking/tracking-runs";
 import { addPanelLine } from "./panel-parts";
 
 export const HELD_NOT_IMPORTED = "On the funds page, but not on this import";
-export const PICK_WHAT_HAPPENED = "Pick what happened to each. Nothing is written until you save it in the item dialog.";
-export const MAY_BE_LEFT_OUT = "Some of these may be among the lines left out of this import, so they may still be held.";
+export const PICK_WHAT_HAPPENED = "Pick what happened to each.";
+export const MAY_BE_LEFT_OUT = "Some may still be held.";
 const CHOICE_CLASSES = ["dd-create", "dd-panel-action"];
 
 function addChoices(line: HTMLElement, file: TFile, name: string, tracking: ItemTracking): void {

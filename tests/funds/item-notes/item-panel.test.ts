@@ -99,7 +99,7 @@ describe("ItemPanel", () => {
     expect(facts()).toEqual([]);
     expect(root.querySelector(".dd-item-facts .dd-empty")!.textContent).toBe(noLineText("Silvered lantern"));
     expect(noLineText("Silvered lantern")).toBe(
-      "No session line names Silvered lantern yet, so no one holds it. A line like “$$ [[Silvered lantern]] :changed to the party” in a session gives it to the party.",
+      "No line names Silvered lantern yet.",
     );
     expect(button(CHANGE_ITEM)).toBeUndefined();
   });

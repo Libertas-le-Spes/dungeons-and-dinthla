@@ -5,7 +5,7 @@ import type { EarlierNumbers } from "../core/earlier-numbers";
 import { NeededNumbers } from "../core/needed-numbers";
 import { MAX_HIT_POINTS_NAME, TOTAL_LEVEL_NAME } from "../core/number-names";
 import type { Rule } from "../core/rule";
-import { knownIn, notKnown } from "../core/worked";
+import { knownIn, notKnown, SET_BY_HAND } from "../core/worked";
 import { sumWorking } from "../core/working-text";
 import { CONSTITUTION } from "../input/ability";
 import type { RuleCharacter } from "../input/rule-character";
@@ -25,7 +25,7 @@ export class MaxHitPointsRule implements Rule {
 
   private maximum(character: RuleCharacter, earlier: EarlierNumbers): WorkedValue<number> {
     if (character.overrideHitPoints !== null) {
-      return knownIn(character.overrideHitPoints, MAX_HIT_POINTS, `Hit points set on D&D Beyond: ${character.overrideHitPoints}`, character.route);
+      return knownIn(character.overrideHitPoints, MAX_HIT_POINTS, SET_BY_HAND, character.route);
     }
     const needed = NeededNumbers.of([TOTAL_LEVEL_NAME, CONSTITUTION.modifierName], earlier, character.route);
     if (needed.missing !== null) return needed.missing;
@@ -41,7 +41,7 @@ export class MaxHitPointsRule implements Rule {
   }
 
   private missingDice(character: RuleCharacter): WorkedValue<number> {
-    return notKnown("The dice total or the bonus hit points are missing.", character.route);
+    return notKnown("Dice total or bonus missing.", character.route);
   }
 
   private withAdditions(character: RuleCharacter, base: number, bonus: number, constitution: number, level: number): WorkedValue<number> {

@@ -1,5 +1,4 @@
 import type { TFile } from "obsidian";
-import { NOT_IN_THE_PDF } from "../../../imports/layout/pdf-gaps";
 import { FEATURES_SECTION, SPELLS_SECTION } from "../../../imports/layout/plugin-sections";
 import type { ImportedLists } from "../lists/imported-lists";
 import type { ItemTracking } from "../tracking/item-tracking";
@@ -16,5 +15,4 @@ export function addImportedPanels(root: HTMLElement, file: TFile, lists: Importe
   if (lists === null) return;
   const panels = root.createDiv({ cls: "dd-sheet-imported" });
   for (const panel of panelsFor(file, tracking)) panel.addTo(panels, lists);
-  if (lists.isFromPdf) panels.createEl("p", { cls: "dd-note dd-pdf-gaps", text: NOT_IN_THE_PDF });
 }

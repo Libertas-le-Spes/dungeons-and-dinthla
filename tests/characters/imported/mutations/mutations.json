@@ -49,13 +49,6 @@
   "group": "lists"
  },
  {
-  "id": "words: one line",
-  "file": "src/characters/imported/lists/left-out-words.ts",
-  "find": "  if (count === 1) return `1 line ${what}`;\n",
-  "replace": "",
-  "group": "lists"
- },
- {
   "id": "entries: left-out line apart",
   "file": "src/characters/imported/lists/section-entries.ts",
   "find": "if (text.startsWith(LEFT_OUT_START)) leftOut",
@@ -121,15 +114,8 @@
  {
   "id": "lists: none without imported-from",
   "file": "src/characters/imported/lists/imported-lists.ts",
-  "find": "    if (routeName === null) return null;\n",
+  "find": "    if (!isImported(propertyEntriesOf(lines, bodyStart))) return null;\n",
   "replace": "",
-  "group": "lists"
- },
- {
-  "id": "lists: PDF route known",
-  "file": "src/characters/imported/lists/imported-lists.ts",
-  "find": "return this.routeName === PDF_ROUTE_NAME;",
-  "replace": "return true;",
   "group": "lists"
  },
  {
@@ -137,13 +123,6 @@
   "file": "src/characters/imported/panels/imported-panels.ts",
   "find": "  if (lists === null) return;\n",
   "replace": "  if (lists === null) throw new Error(\"x\");\n",
-  "group": "panels"
- },
- {
-  "id": "panels: PDF gaps for a PDF only",
-  "file": "src/characters/imported/panels/imported-panels.ts",
-  "find": "  if (lists.isFromPdf) panels",
-  "replace": "  if (lists !== null) panels",
   "group": "panels"
  },
  {

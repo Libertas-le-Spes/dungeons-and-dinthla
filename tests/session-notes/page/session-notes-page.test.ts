@@ -161,7 +161,7 @@ describe("SessionNotesPage", () => {
   it("moves to the latest session once the campaign is read, when none was asked for", () => {
     const { root, change, lineTexts } = pageWith([], null);
     expect(root.querySelector("textarea")).toBeNull();
-    expect(root.querySelector(".dd-empty")?.textContent).toBe("No sessions yet. Start one to write in it.");
+    expect(root.querySelector(".dd-empty")?.textContent).toBe("No sessions yet.");
     expect(root.querySelector(".dd-notes-title")?.textContent).toBe("Session notes");
     change(SESSIONS);
     expect(root.querySelector("textarea")).not.toBeNull();
@@ -227,7 +227,7 @@ describe("SessionNotesPage", () => {
     expect(lineTexts()).toEqual(["Who sent the letter"]);
     expect(root.querySelector(".dd-notes-title")?.textContent).toBe("Session 11");
     expect(root.querySelector(".dd-note-gone")?.textContent).toBe(
-      "This session's note was deleted, so nothing more can be saved to it. Lines typed in its box and not saved are kept below.",
+      "This session's note was deleted. Unsaved lines are kept below.",
     );
     change(SESSIONS);
     expect(root.querySelector(".dd-note-gone")?.textContent).toBe("");

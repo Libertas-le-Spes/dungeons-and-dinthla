@@ -7,7 +7,7 @@ import { lineOpenerOf, type LineClosed, type LineOpeners, type OpenLine } from "
 import { lineStateOf } from "./line-state-of";
 import type { WrittenLine } from "./written-lines";
 
-const NO_LINES = "No notes in this session yet. Type one above and save it.";
+const NO_LINES = "No notes yet.";
 
 function countText(count: number): string {
   if (count === 0) return "";

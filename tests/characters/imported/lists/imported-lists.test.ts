@@ -19,7 +19,7 @@ function smallSheetNote(): string {
 
 describe("the lists an import wrote into a note", () => {
   it("are none for a note with no imported-from property", () => {
-    expect(ImportedLists.of(textOf("---", "AC: 15", "---", "## Inventory (from D&D Beyond)", "- Rope", ""))).toBeNull();
+    expect(ImportedLists.of(textOf("---", "AC: 15", "---", "## Inventory", "- Rope", ""))).toBeNull();
   });
 
   it("are read back exactly as the writer wrote them", () => {
@@ -41,7 +41,7 @@ describe("the lists an import wrote into a note", () => {
   });
 
   it("leave out typed lines in a section that aren't bullets", () => {
-    const text = textOf("---", "imported-from: pdf", "---", "## Spells (from D&D Beyond)", "- Fire Bolt", "Range: 60 feet", "");
+    const text = textOf("---", "imported-from: pdf", "---", "## Spells", "- Fire Bolt", "Range: 60 feet", "");
     expect(listsOf(text).of(SPELLS_SECTION).entries).toEqual(["Fire Bolt"]);
   });
 
@@ -51,12 +51,7 @@ describe("the lists an import wrote into a note", () => {
   });
 
   it("say a section is there when its heading is, even with nothing under it", () => {
-    const text = textOf("---", "imported-from: pdf", "---", "## Spells (from D&D Beyond)", "");
+    const text = textOf("---", "imported-from: pdf", "---", "## Spells", "");
     expect(listsOf(text).of(SPELLS_SECTION)).toEqual({ present: true, entries: [], leftOut: null });
-  });
-
-  it("know a PDF import from any other", () => {
-    expect(listsOf(textOf("---", "imported-from: pdf", "---", "")).isFromPdf).toBe(true);
-    expect(listsOf(textOf("---", "imported-from: online", "---", "")).isFromPdf).toBe(false);
   });
 });

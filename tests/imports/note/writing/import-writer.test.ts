@@ -11,7 +11,7 @@ import { headingsOf, textOf } from "../../builders/line-helpers";
 import { monkSheet, sheetWithCharacter, TODAY , stampedOn } from "../../builders/made-up-import";
 
 const NOTE = `${CHARACTERS_FOLDER}/Primary Monk.md`;
-const INVENTORY = "## Inventory (from D&D Beyond)";
+const INVENTORY = "## Inventory";
 const NONE: TypedText[] = [];
 
 let vault: FakeNoteVault;
@@ -61,30 +61,30 @@ describe("ImportWriter.update", () => {
 
   it("refuses a note outside the Characters folder, without reading or writing it", async () => {
     const file = vault.note("D&D/Primary Campaign/Sessions/Session 1.md", "x\n");
-    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("is not a note in the campaign's Characters folder");
+    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("is not in the campaign's Characters folder");
     expect(vault.processed).toEqual([]);
   });
 
   it("refuses a note in the Fallen folder, without reading or writing it", async () => {
     const file = vault.note(`${CAMPAIGN_FOLDER}/Fallen/Primary Monk.md`, "x\n");
-    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("is not a note in the campaign's Characters folder");
+    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("is not in the campaign's Characters folder");
     expect(vault.processed).toEqual([]);
     expect(vault.textAt(`${CAMPAIGN_FOLDER}/Fallen/Primary Monk.md`)).toBe("x\n");
   });
 
   it("refuses a note in a folder inside the Characters folder", async () => {
     const file = vault.note(`${CHARACTERS_FOLDER}/Old/Primary Monk.md`, "x\n");
-    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("is not a note in the campaign's Characters folder");
+    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("is not in the campaign's Characters folder");
   });
 
   it("refuses a file that is not a Markdown note", async () => {
     const file = vault.note(`${CHARACTERS_FOLDER}/Primary Monk.txt`, "x\n");
-    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("is not a note in the campaign's Characters folder");
+    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("is not in the campaign's Characters folder");
   });
 
   it("refuses a folder that only starts with the Characters folder's name", async () => {
     const file = vault.note(`${CHARACTERS_FOLDER} Old/Primary Monk.md`, "x\n");
-    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("is not a note in the campaign's Characters folder");
+    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("is not in the campaign's Characters folder");
   });
 
   it("refuses, calls no process and leaves the note as it was, when the note holds a plugin section twice", async () => {
@@ -98,7 +98,7 @@ describe("ImportWriter.update", () => {
   it("refuses, calls no process and leaves the note as it was, when the text it would write changes a line outside the import", async () => {
     vi.spyOn(importedNote, "importedNoteText").mockReturnValue("Other words.\n");
     const file = vault.note(NOTE, "His words.\n");
-    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("outside its own properties");
+    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("more than its own parts");
     expect(vault.processed).toEqual([]);
     expect(vault.textAt(NOTE)).toBe("His words.\n");
   });
@@ -118,9 +118,9 @@ describe("ImportWriter.update", () => {
     expect(vault.textAt(NOTE)).toBe("Newer words.\n");
   });
 
-  it("refuses a property that only differs by capitals from the import's, and calls no process", async () => {
+  it("refuses a property that differs only by capitals from the import's, and calls no process", async () => {
     const file = vault.note(NOTE, textOf("---", "ac: 3", "---", "x"));
-    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("only differs by capitals");
+    await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("only by capitals");
     expect(vault.processed).toEqual([]);
   });
 });
@@ -143,7 +143,7 @@ describe("ImportWriter.update with text typed inside a plugin section", () => {
     const typed = await typedIn(current);
     expect(typed.length).toBeGreaterThan(0);
     const file = vault.note(NOTE, current);
-    await expect(writer.update(file, changed, TODAY, NONE)).rejects.toThrow("not the text that was shown");
+    await expect(writer.update(file, changed, TODAY, NONE)).rejects.toThrow("changed since it was shown");
     expect(vault.processed).toEqual([]);
     expect(vault.textAt(NOTE)).toBe(current);
   });
@@ -167,16 +167,22 @@ describe("ImportWriter.update with text typed inside a plugin section", () => {
     expect(vault.processed).toEqual([]);
   });
 
+  it("refuses to replace a section of his own, bullets included, until it was shown", async () => {
+    const file = vault.note(NOTE, "His words.\n## Inventory\n- My rope × 2\n## Spells\n- My light\n## Features\nMy own prose\n");
+    await expect(writer.update(file, changed, TODAY, NONE)).rejects.toThrow("changed since it was shown");
+    expect(vault.processed).toEqual([]);
+  });
+
   it("refuses when text was shown that is no longer there", async () => {
-    const shown: TypedText[] = [{ heading: INVENTORY, lines: ["words that are gone"] }];
+    const shown: TypedText[] = [{ title: "Inventory", lines: ["words that are gone"] }];
     const file = vault.note(NOTE, earlier);
-    await expect(writer.update(file, changed, TODAY, shown)).rejects.toThrow("not the text that was shown");
+    await expect(writer.update(file, changed, TODAY, shown)).rejects.toThrow("changed since it was shown");
   });
 
   it("refuses a note that ends in a code block that is never closed, even when its text was shown", async () => {
     const current = `${earlier}\`\`\`\nx\n## Notes\n`;
     const file = vault.note(NOTE, current);
-    await expect(writer.update(file, changed, TODAY, NONE)).rejects.toThrow("never closed");
+    await expect(writer.update(file, changed, TODAY, NONE)).rejects.toThrow("never closes");
     expect(vault.processed).toEqual([]);
   });
 
@@ -198,12 +204,12 @@ describe("ImportWriter.changesFor", () => {
 
   it("refuses a note in the Fallen folder", async () => {
     const file = vault.note(`${CAMPAIGN_FOLDER}/Fallen/Primary Monk.md`, "x\n");
-    await expect(writer.changesFor(file, monkSheet(), TODAY)).rejects.toThrow("is not a note in the campaign's Characters folder");
+    await expect(writer.changesFor(file, monkSheet(), TODAY)).rejects.toThrow("is not in the campaign's Characters folder");
   });
 
   it("refuses a note outside the Characters folder", async () => {
     const file = vault.note("D&D/Primary Campaign/Sessions/Session 1.md", "x\n");
-    await expect(writer.changesFor(file, monkSheet(), TODAY)).rejects.toThrow("is not a note in the campaign's Characters folder");
+    await expect(writer.changesFor(file, monkSheet(), TODAY)).rejects.toThrow("is not in the campaign's Characters folder");
   });
 });
 
@@ -278,7 +284,7 @@ describe("ImportWriter.create", () => {
 
   it("refuses a name that a note already has, whatever its capitals, and makes nothing", async () => {
     vault.note(`${CHARACTERS_FOLDER}/primary monk.md`, "x\n");
-    await expect(writer.create(monkSheet(), TODAY)).rejects.toThrow("There is already a note called primary monk");
+    await expect(writer.create(monkSheet(), TODAY)).rejects.toThrow("A note called primary monk is already in Characters");
     expect(vault.created).toEqual([]);
   });
 
@@ -299,7 +305,7 @@ describe("ImportWriter.create", () => {
 
   it("makes nothing when the text it would write is not only the import", async () => {
     vi.spyOn(importedNote, "importedNoteText").mockReturnValue("Other words.\n");
-    await expect(writer.create(monkSheet(), TODAY)).rejects.toThrow("outside its own properties");
+    await expect(writer.create(monkSheet(), TODAY)).rejects.toThrow("more than its own parts");
     expect(vault.created).toEqual([]);
   });
 

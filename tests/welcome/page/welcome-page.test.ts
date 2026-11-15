@@ -101,8 +101,8 @@ describe("WelcomePage", () => {
     const { root } = welcomeFor(CAMPAIGN, []);
     expect(root.querySelector("h2")!.textContent).toBe("Welcome to Dungeons & Dinthla");
     expect([...root.querySelectorAll("ol li")].map((step) => step.textContent)).toEqual([
-      "Your campaign lives in this tab. Use the sidebar (or the bar at the bottom on a phone) to move around.",
-      "Start a session with New session and type your notes; start a line with ? for a question, ! for a quest, $ for coin or an item.",
+      "Your campaign lives in this tab. Use the sidebar to move around.",
+      "Start a session with New session. Begin a line with ? for a question, ! for a quest, $ for coin or an item.",
       "Opening any note in your campaign brings you back here.",
     ]);
   });
@@ -123,7 +123,7 @@ describe("WelcomePage", () => {
 
   it("explains how to make a campaign and offers to make one when there is none", () => {
     const { root } = welcomeFor(null, []);
-    expect(root.querySelector(".dd-welcome-how")!.textContent).toContain("a folder inside your Campaigns folder holding a note with the same name");
+    expect(root.querySelector(".dd-welcome-how")?.textContent).toContain("a folder with a main note of the same name");
     expect(root.querySelector("input")!.getAttribute("aria-label")).toBe("Campaign name");
     expect(buttonTexts(root)).toEqual(["Make a campaign"]);
   });

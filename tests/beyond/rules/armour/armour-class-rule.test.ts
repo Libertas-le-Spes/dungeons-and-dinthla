@@ -39,12 +39,12 @@ describe("ArmourClassRule with more than one", () => {
   it("does not know the armour class with two body armours, and names both", () => {
     const character = madeUpRuleCharacter({ items: [itemOf("Leather", new LightArmour(), 11), itemOf("Chain Mail", new HeavyArmour(), 16)] });
     const value = numberNamed(character, "AC");
-    expect([value.isKnown, value.explanation]).toEqual([false, "More than one body armour is worn (Leather, Chain Mail). Settle it on D&D Beyond."]);
+    expect([value.isKnown, value.explanation]).toEqual([false, "More than one body armour worn (Leather, Chain Mail). Settle it on D&D Beyond."]);
   });
 
   it("does not know the armour class with two shields", () => {
     const character = madeUpRuleCharacter({ items: [itemOf("Oak Shield", new Shield(), 2), itemOf("Pale Shield", new Shield(), 2)] });
-    expect(numberNamed(character, "AC").explanation).toBe("More than one shield is held (Oak Shield, Pale Shield). Settle it on D&D Beyond.");
+    expect(numberNamed(character, "AC").explanation).toBe("More than one shield held (Oak Shield, Pale Shield). Settle it on D&D Beyond.");
   });
 
   it("knows the armour class when the second body armour is not equipped", () => {
@@ -58,7 +58,7 @@ describe("ArmourClassRule with what it does not know", () => {
 
   it("does not know the armour class with an armour class modifier it does not know, and names it", () => {
     const value = numberNamed(madeUpRuleCharacter({ modifiers: [unknownModifier] }), "AC");
-    expect([value.isKnown, value.explanation]).toEqual([false, 'D&D Beyond names a rule I can\'t work out here: "armored-armor-class". Type it on your note to set it.']);
+    expect([value.isKnown, value.explanation]).toEqual([false, 'Unread rule "armored-armor-class". Type it on your note.']);
   });
 
   it("leaves the hit points standing when only the armour class is not known", () => {
@@ -113,7 +113,7 @@ describe("ArmourClassRule and whole numbers", () => {
 
   it("names the modifier it could not use", () => {
     const value = numberNamed(madeUpRuleCharacter({ modifiers: [modifierOf("bonus", "armor-class", 0.5, "Pale Ring")] }), "AC");
-    expect(value.explanation).toBe('D&D Beyond names a rule I can\'t work out here: "armor-class". Type it on your note to set it.');
+    expect(value.explanation).toBe('Unread rule "armor-class". Type it on your note.');
   });
 });
 
@@ -129,7 +129,7 @@ describe("ArmourClassRule names that carry markup", () => {
 describe("ArmourClassRule and modifier values that are too big or not exact", () => {
   it.each([9_007_199_254_740_993, -9_007_199_254_740_992, 1e300, -1e300, 101, -101])("does not use a modifier of %s, and names it", (amount) => {
     const value = numberNamed(madeUpRuleCharacter({ modifiers: [modifierOf("bonus", "armor-class", amount, "Pale Ring")] }), "AC");
-    expect([value.isKnown, value.explanation]).toEqual([false, 'D&D Beyond names a rule I can\'t work out here: "armor-class". Type it on your note to set it.']);
+    expect([value.isKnown, value.explanation]).toEqual([false, 'Unread rule "armor-class". Type it on your note.']);
   });
 
   it("uses a modifier of 1 exactly", () => {

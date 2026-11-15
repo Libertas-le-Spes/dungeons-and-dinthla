@@ -17,7 +17,7 @@ import type { WorkedKind } from "./worked-kind";
 
 const DC_NAMES = ["spell-save-dc"];
 const ATTACK_NAMES = ["spell-attacks"];
-const CANNOT_TELL = "I can't tell whether this class casts yet in this edition.";
+const CANNOT_TELL = "Casting unclear in this edition.";
 
 export class SpellcastingRule implements Rule {
   constructor(private readonly caster: CasterClass) {}

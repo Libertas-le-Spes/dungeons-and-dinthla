@@ -1,21 +1,30 @@
 import { Refusal } from "../../../../beyond/shape/refusal";
 
 export function wouldChangeMore(): Refusal {
-  return new Refusal("The import would change something outside its own properties and sections, so nothing was written.");
+  return new Refusal("The import would change more than its own parts.");
 }
 
 export function notACharacterNote(path: string): Refusal {
-  return new Refusal(`${path} is not a note in the campaign's Characters folder, so nothing was written.`);
+  return new Refusal(`${path} is not in the campaign's Characters folder.`);
+}
+
+export interface TakenName {
+  readonly name: string;
+  readonly folder: string;
+}
+
+export function noteNameTaken({ name, folder }: TakenName): Refusal {
+  return new Refusal(`A note called ${name} is already in ${folder}. Rename or move it.`);
 }
 
 export function nameTaken(existing: string): Refusal {
-  return new Refusal(`There is already a note called ${existing} in the Characters folder.`);
+  return noteNameTaken({ name: existing, folder: "Characters" });
 }
 
 export function typedTextNotShown(): Refusal {
-  return new Refusal("Text typed inside a plugin section would be replaced, and it is not the text that was shown before, so nothing was written. Look at the changes again.");
+  return new Refusal("Typed text in a section changed since it was shown. Review again.");
 }
 
 export function changedSinceRead(): Refusal {
-  return new Refusal("The note changed since it was read, so nothing was written.");
+  return new Refusal("The note changed since it was read. Try again.");
 }

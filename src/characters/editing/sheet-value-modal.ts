@@ -31,8 +31,6 @@ const STATE_ON_ENTER: ReadonlyMap<ValueState, ValueState> = new Map<ValueState, 
   ["imported", "override"],
 ]);
 
-export const ONLY_AN_OVERRIDE = "Only an override shows over a value from D&D Beyond, so Override is the one choice here.";
-
 const CLEARING_STATES: ValueState[] = ["learned", "carried", "unknown"];
 
 export function removesNoteLines(value: SheetValue, state: ValueState): boolean {
@@ -40,14 +38,14 @@ export function removesNoteLines(value: SheetValue, state: ValueState): boolean 
 }
 
 export function notKnownOverCarriedText(label: string): string {
-  return `Not known yet adds a ? line, which wins over the carried ${label.toLowerCase()} until a later line states it.`;
+  return `Not known yet hides the carried ${label.toLowerCase()}.`;
 }
 
 export function secondPressText(character: string, label: string): string {
-  return `Learned at the table, Carried over and Not known yet remove ${label} from ${character}'s note, so they need a second press.`;
+  return `Press twice to remove ${label} from ${character}'s note.`;
 }
 
-export const CHANGE_ON_BEYOND = "Change this on D&D Beyond too, or the next update will replace it.";
+export const CHANGE_ON_BEYOND = "The next update replaces this.";
 
 function stateOnEnter(state: ValueState): ValueState {
   const entered = STATE_ON_ENTER.get(state);
@@ -67,8 +65,8 @@ export function earlierSourceOf(source: Source, notePath: string): string {
 }
 
 export function whereText(character: string, sessionLabel: string | null): string {
-  let learned = "Learned at the table and Not known yet need a session to write in.";
-  if (sessionLabel !== null) learned = `Learned at the table and Not known yet add a line to ${sessionLabel}.`;
+  let learned = "Learned at the table needs a session.";
+  if (sessionLabel !== null) learned = `Learned at the table adds a line to ${sessionLabel}.`;
   return `${learned} Override changes ${character}'s note.`;
 }
 
@@ -107,7 +105,6 @@ export class SheetValueModal extends ChangeDialog {
     this.addEarlier();
     const choices = contentEl.createDiv({ cls: "dd-state-choices" });
     for (const state of choicesFor(value.state)) this.addChoice(choices, state);
-    if (value.state === "imported") contentEl.createEl("p", { cls: "dd-where dd-only-override", text: ONLY_AN_OVERRIDE });
     if (value.imported !== null) contentEl.createEl("p", { cls: "dd-where dd-beyond-hint", text: CHANGE_ON_BEYOND });
     contentEl.createEl("p", { cls: "dd-where", text: whereText(this.dialog.character, this.dialog.sessionLabel) });
     if (value.carried !== null && value.learned === null) contentEl.createEl("p", { cls: "dd-where", text: notKnownOverCarriedText(value.label) });

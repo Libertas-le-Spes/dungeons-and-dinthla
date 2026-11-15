@@ -9,9 +9,8 @@ import type { CharacterNotes } from "../reading/character-notes";
 import { factsByCharacter } from "../reading/sheet-values";
 import type { Gate } from "../../fence/gate/gatekeeper";
 
-const NEW_WHERE = "Every other sheet value starts as not known.";
 export const EDIT_WHERE =
-  "Renaming updates every [[link]] to this character while Obsidian's Automatically update internal links setting is on.";
+  "Renaming updates links if Obsidian's link updating is on.";
 
 interface Character {
   file: TFile;
@@ -47,7 +46,7 @@ export function openNewCharacter(app: App, gate: Gate, campaignFolder: string | 
     void openMade(app, gate, note);
     return true;
   };
-  const where = `Adds a note to ${referenceFolderOf(characterReferenceKind, campaignFolder)}. ${NEW_WHERE}`;
+  const where = `Adds a note to ${referenceFolderOf(characterReferenceKind, campaignFolder)}.`;
   const dialog = { title: "New character", entry: blankEntry(), learned: new Map(), where, save, delete: null };
   new CharacterModal(app, dialog, onClosed).open();
 }

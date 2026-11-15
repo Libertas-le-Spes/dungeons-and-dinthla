@@ -28,21 +28,21 @@ describe("a note with a very long line", () => {
   });
 
   it("refuses a line one character over the most, in words", () => {
-    expect(refusalOf(noteWithLine("x".repeat(MOST_BODY_LINE + 1)))).toBe(`A line of the note is longer than ${MOST_BODY_LINE} characters, so nothing was written.`);
+    expect(refusalOf(noteWithLine("x".repeat(MOST_BODY_LINE + 1)))).toBe(`A line is over ${MOST_BODY_LINE} characters.`);
   });
 
   it("refuses ten thousand comments on one line in words, not with a stack overflow", () => {
-    expect(refusalOf(noteWithLine(COMMENT.repeat(10_000)))).toBe(`A line of the note is longer than ${MOST_BODY_LINE} characters, so nothing was written.`);
+    expect(refusalOf(noteWithLine(COMMENT.repeat(10_000)))).toBe(`A line is over ${MOST_BODY_LINE} characters.`);
   });
 
   it("refuses eleven thousand percent comments on one line in words, not with a stack overflow", () => {
-    expect(refusalOf(noteWithLine(PERCENT_COMMENT.repeat(11_000)))).toBe(`A line of the note is longer than ${MOST_BODY_LINE} characters, so nothing was written.`);
+    expect(refusalOf(noteWithLine(PERCENT_COMMENT.repeat(11_000)))).toBe(`A line is over ${MOST_BODY_LINE} characters.`);
   });
 
   it("imports into a note holding six thousand comments on one line, under the most characters", () => {
     const line = COMMENT.repeat(6_000);
     const after = importedNoteText({ current: noteWithLine(line), sheet: monkSheet(), stamp: stampedOn(TODAY) });
     expect(after.split("\n")).toContain(line);
-    expect(after).toContain("## Numbers (from D&D Beyond)");
+    expect(after).toContain("## Numbers");
   });
 });

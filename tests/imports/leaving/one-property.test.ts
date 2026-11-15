@@ -65,8 +65,8 @@ describe("one property line of a note", () => {
   });
 
   it("is refused when the note holds it twice, or under other capitals", () => {
-    expect(refusalOf(withTwoStandings)).toBe("The note has two standing properties, so nothing was written. Remove one.");
-    expect(refusalOf(withCapitals)).toBe("The note has a property called Standing, which only differs by capitals from standing. Rename or remove it first, so no second standing is written.");
+    expect(refusalOf(withTwoStandings)).toBe("The note has two standing properties. Remove one.");
+    expect(refusalOf(withCapitals)).toBe('The note has "Standing", which differs from "standing" only by capitals. Rename or remove it.');
   });
 });
 
@@ -76,7 +76,7 @@ describe("the check after one property is changed", () => {
   });
 
   it("refuses a change to the note's words, to another property, or to another value", () => {
-    const words = "Changing standing would change more of the note than that property, so nothing was written.";
+    const words = "Changing standing would change more than that property.";
     expect(refusalOf(readBackOfChangedBody)).toBe(words);
     expect(refusalOf(readBackOfChangedOtherProperty)).toBe(words);
     expect(refusalOf(readBackOfOtherValue)).toBe(words);
@@ -84,7 +84,7 @@ describe("the check after one property is changed", () => {
 });
 
 describe("a blank or comment line next to the property", () => {
-  const words = "standing has a blank or comment line next to it in the note's properties, so nothing was written. Tidy those lines first.";
+  const words = "standing has a blank or comment line beside it. Tidy the properties.";
 
   it("is refused above the property", () => {
     expect(refusalOf(() => withPropertyLine("---\nclass: Monk\n# keep\nstanding: backup\n---\n", "standing", "standing: died"))).toBe(words);
@@ -109,7 +109,7 @@ describe("a blank or comment line next to the property", () => {
 });
 
 describe("the properties as they are read", () => {
-  const unreadable = "The note's properties couldn't be read as properties, so standing wasn't written. Fix them first.";
+  const unreadable = "The properties couldn't be read, so standing wasn't written. Fix them.";
 
   it("are refused when a quote swallows the next line and the change would leave it open", () => {
     const note = '---\nnote: "starts here\nstanding: died"\n---\n';

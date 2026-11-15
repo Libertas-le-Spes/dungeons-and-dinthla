@@ -1,22 +1,25 @@
 export const IMPORT_TITLE = "Import from D&D Beyond";
 export const UPDATE_TITLE = "Update from D&D Beyond";
-export const WHERE_THE_PDF_IS = "On D&D Beyond: open your character, choose Manage next to the name, then Export to PDF at the bottom of the menu. Then choose that file here.";
-export const ONLINE_INTRO = "Bring your character in from D&D Beyond. Only your character's number is sent, to one address, and this plugin adds no login, cookies or other headers of its own. Nothing is saved until you press Import.";
-export const LINK_LABEL = "Your character's link or number";
-export const LINK_PLACEHOLDER = "The link from your character's page";
+export const LINK_LABEL = "Link or number";
 export const BRING_IN_BUTTON = "Bring in from D&D Beyond";
 export const ASKING = "Asking D&D Beyond…";
-export const NOTHING_SENT = "Nothing was sent. Press the button again to agree, or bring your character in with its PDF instead.";
-export const OR_THE_PDF = "Or bring your character in from its PDF.";
+export const NOTHING_SENT = "Nothing was sent.";
+export const OR_THE_PDF = "Or choose a PDF.";
+export const PDF_EXPORT_HINT = "Manage, then Export to PDF.";
+export const PDF_GAPS_NOTE = "PDF lacks attacks and proficiency marks.";
 export const CHOOSE_A_FILE = "Character PDF";
 export const READING = "Reading the file…";
 export const STILL_READING = "Still reading the first file.";
-export const TYPED_TEXT_WARNING = "Text you typed inside these sections will be replaced:";
-export const NOTHING_CHANGES = "Nothing in the note would change.";
+export function typedTextWords(titles: readonly string[]): string {
+  return `Your typed text is replaced in ${titles.join(", ")}.`;
+}
+
+export const IMPORT_MARKS_CHANGE = "Changes: import marks.";
+export const NOTHING_CHANGES = "Nothing changes.";
 export const CHOOSE_THE_NOTE = "Which note is this character?";
 export const WRITE_FAILED = "Couldn't write the import";
 export const NO_CAMPAIGN = "Open a campaign first, then import its character.";
-export const NOT_IN_A_CAMPAIGN = "This note isn't in a campaign, so it can't be updated from D&D Beyond.";
+export const NOT_IN_A_CAMPAIGN = "This note isn't in a campaign.";
 export const IMPORT_BUTTON = "Import";
 export const UPDATE_BUTTON = "Update";
 export const CLOSE_BUTTON = "Close";
@@ -33,11 +36,11 @@ export function existingNoteWords(name: string): string {
 const BYTES_IN_A_MEGABYTE = 1024 * 1024;
 
 export function fileTooBig(mostBytes: number): string {
-  return `This file is bigger than ${mostBytes / BYTES_IN_A_MEGABYTE} MB, so it was not read.`;
+  return `The file is over ${mostBytes / BYTES_IN_A_MEGABYTE} MB. Choose a smaller one.`;
 }
 
-export const FILE_NOT_READ = "The file could not be read, so nothing was imported.";
+export const FILE_NOT_READ = "Couldn't read the file. Try another.";
 
 export function notThisCharacter(pdfName: string, sheetName: string): string {
-  return `This PDF is for ${pdfName}, not ${sheetName}. Nothing was changed.`;
+  return `That is ${pdfName}, not ${sheetName}.`;
 }

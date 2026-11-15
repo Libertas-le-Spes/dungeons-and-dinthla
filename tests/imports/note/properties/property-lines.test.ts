@@ -137,11 +137,11 @@ describe("importMarkLinesOf", () => {
   });
 
   it.each(["PDF", "a b", "", "abcdefghijklmnopq", "pdf\n", "pdf1", "x:y"])("refuses the route name %j", (name) => {
-    expect(() => importMarkLinesOf({ route: { name, source: "" }, stamp: stampedOn(TODAY) })).toThrow(Refusal);
+    expect(() => importMarkLinesOf({ route: { name }, stamp: stampedOn(TODAY) })).toThrow(Refusal);
   });
 
   it.each(["p", "pdf", "abcdefghijklmnop"])("writes the route name %j", (name) => {
-    expect(importMarkLinesOf({ route: { name, source: "" }, stamp: { today: TODAY, session: 3 } })).toEqual(["imported: 2026-11-13", `imported-from: ${name}`, "imported-session: 3"]);
+    expect(importMarkLinesOf({ route: { name }, stamp: { today: TODAY, session: 3 } })).toEqual(["imported: 2026-11-13", `imported-from: ${name}`, "imported-session: 3"]);
   });
 });
 

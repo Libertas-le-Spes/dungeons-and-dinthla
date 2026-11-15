@@ -16,8 +16,8 @@ import { SessionWriting } from "./session-writing";
 import { writtenLinesOf } from "../lines/written-lines";
 
 const PAGE_TITLE = "Session notes";
-const NO_SESSION = "No sessions yet. Start one to write in it.";
-const NOTE_GONE = "This session's note was deleted, so nothing more can be saved to it. Lines typed in its box and not saved are kept below.";
+const NO_SESSION = "No sessions yet.";
+const NOTE_GONE = "This session's note was deleted. Unsaved lines are kept below.";
 
 export interface SessionNotesNeeds {
   store: CampaignStore;

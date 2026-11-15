@@ -21,18 +21,13 @@ import { whoseItems } from "../items/whose-items";
 import { RowFocus } from "../../views/lists/row-focus";
 import { shownItemName } from "../../characters/imported/lists/shown-item-name";
 
-const HOW_LINES_ARE_READ =
-  "A $ line with an amount is coin. Without one, it is an item. Coin is money out when it has a minus sign, or when “paid”, “spent”, “bought”, “gave” or “lost” comes before the amount with no comma between. A plus sign keeps it in. A link to your character anywhere on the line puts it on your list, in the Mine tab.";
-
 const MINE_PURSE_TITLE = "Purse";
 const PARTY_PURSE_TITLE = "Purse";
 const MINE = "Mine";
 const PARTY = "Party";
-const NO_OWN_CHARACTER = "You have not named your character in this campaign yet.";
-const NO_OWN_ITEMS = "No items of yours yet. Put your character's link anywhere on a $ line with no amount, like “$ Flame Tongue longsword found by [[Mira]]”.";
-const NO_OWN_COIN = "No coin of yours yet. Put your character's link anywhere on a $ line with an amount, like “$ 30 gp from the bandits, share to [[Mira]]”.";
-const NO_COIN_YET = "No coin yet. Note it as “$ 20 gp from the bandits”. A link to your character on the line, like “$ 30 gp from the bandits, share to [[Mira]]”, puts it on your list.";
-const NO_ITEMS = "No items held. A $ line with no amount adds one, like “$ Rope found at the old mill”.";
+const NO_OWN_CHARACTER = "No character of yours yet.";
+const NO_COIN = "No coin yet. Try “$ 20 gp”.";
+const NO_ITEMS = "No items yet. Try “$ Rope”.";
 
 interface OwnEmpty {
   ownNames: readonly string[];
@@ -138,7 +133,6 @@ export class FundsPage extends Component {
     this.partyItems = this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-items-panel" });
     this.mineLedger = this.ledgerBoxOf({ panel: this.tabs.firstPanel.createEl("section", { cls: "dd-panel dd-ledger-panel" }), addCoin: null, label: "Your ledger entries" });
     this.partyLedger = this.ledgerBoxOf({ panel: this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-ledger-panel" }), addCoin: parts.addCoin, label: "Party ledger entries" });
-    this.tabs.secondPanel.createEl("p", { cls: "dd-note", text: HOW_LINES_ARE_READ });
   }
 
   override onload(): void {
@@ -208,17 +202,17 @@ export class FundsPage extends Component {
     const items = whoseItems({ campaign, ownNames });
     const ledger = [...funds.mine.ledger, ...funds.party.ledger];
     this.renderMinePurse({ campaign, ownNames });
-    this.partyPurse.render({ summary: funds.party, empty: NO_COIN_YET });
-    this.renderItems({ panel: this.mineItems, summary: items.mine, ledger, empty: whenOwn({ ownNames, text: NO_OWN_ITEMS }), label: "Items that are yours" });
+    this.partyPurse.render({ summary: funds.party, empty: NO_COIN });
+    this.renderItems({ panel: this.mineItems, summary: items.mine, ledger, empty: whenOwn({ ownNames, text: NO_ITEMS }), label: "Items that are yours" });
     this.renderItems({ panel: this.partyItems, summary: items.party, ledger, empty: NO_ITEMS, label: "Items of the party" });
-    this.mineLedger.render({ lines: funds.mine.ledger, empty: whenOwn({ ownNames, text: NO_OWN_COIN }) });
+    this.mineLedger.render({ lines: funds.mine.ledger, empty: whenOwn({ ownNames, text: NO_COIN }) });
     this.partyLedger.render({ lines: funds.party.ledger, empty: NO_COIN_ENTRIES });
     this.rowFocus.afterRender();
   }
 
   private renderMinePurse({ campaign, ownNames }: Pick<WhoseFundsParts, "campaign" | "ownNames">): void {
     if (this.sheets === null) return;
-    this.minePurse.render({ summary: minePurseOf({ campaign, sheets: this.sheets }), empty: whenOwn({ ownNames, text: NO_OWN_COIN }) });
+    this.minePurse.render({ summary: minePurseOf({ campaign, sheets: this.sheets }), empty: whenOwn({ ownNames, text: NO_COIN }) });
   }
 
   private renderItems({ panel, summary, ledger, empty, label }: ItemsPanelParts): void {

@@ -41,5 +41,5 @@ export function reasonedWorking(terms: readonly string[], total: number, reason:
 
 export function withConditional(working: string, conditional: readonly string[]): string {
   if (conditional.length === 0) return working;
-  return `${working}. Plus conditional bonuses I don't apply: ${shortList(conditional)}`;
+  return `${working}. Not applied: ${shortList(conditional)}`;
 }
