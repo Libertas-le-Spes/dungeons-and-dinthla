@@ -30,7 +30,7 @@ describe("exitCodeOfCheck", () => {
   it("passes and says so for each file when neither holds network code", () => {
     const needs = checkWith({ "main.js": CLEAN_PLUGIN, "styles.css": CLEAN_STYLES });
     expect(exitCodeOfCheck(["main.js", "styles.css"], needs)).toBe(0);
-    expect(needs.said.mock.calls).toEqual([["main.js holds no network code."], ["styles.css holds no network code."]]);
+    expect(needs.said.mock.calls).toEqual([["main.js holds no network code beyond what is allowed."], ["styles.css holds no network code beyond what is allowed."]]);
     expect(needs.failed).not.toHaveBeenCalled();
   });
 

@@ -11,7 +11,7 @@ This page is for whoever picks the work up on another machine, person or session
 
 - **Design before code.** No feature code until the owner has designed it and asked for a build. "Start X" means scaffold only.
 - **Note syntax must be typeable.** Every line a player writes is typed by hand on a tablet mid-session: a short marker and a word or two. No block ids, no `[[Note#^id|alias]]`.
-- **Safety first.** Rank every security choice by how safe it is, and nothing else. Layer the protections and fail closed. The plugin reads and writes only inside the Campaigns folder, and the bundle holds no network code.
+- **Safety first.** Rank every security choice by how safe it is, and nothing else. Layer the protections and fail closed. The plugin reads and writes only inside the Campaigns folder. Its only network use is one GET to `character-service.dndbeyond.com` for a public D&D Beyond character, made only when the user presses the online import or update button after agreeing on that device. Nothing runs in the background, and the plugin adds no login or cookies. The bundle holds only that one call, in `src/online/beyond-call.ts`, and nothing else that could go online.
 - **Code:** no comments in any file, one class per kind with no switching on kinds, one job per file, and no ternaries or `||`/`??` shortcuts.
 - **Tests** check this project's code, not Obsidian's, with made-up names only. Each test's setup is exactly the scenario its name claims. Prove a guard by taking it out once and watching a test fail.
 - **No attribution.** Nothing in commits, pull requests or docs credits a tool.
@@ -52,7 +52,7 @@ A branch is deleted, locally and on origin, as soon as it is merged or becomes u
 
 1. Bump the version in `manifest.json`, `package.json`, `package-lock.json` and `versions.json` in one pull request.
 2. After it merges, tag `main` with the bare version (`0.3.0`, no `v`) and push the tag.
-3. The Release workflow checks the versions, builds, checks the built `main.js` and `styles.css` for network code (`node scripts/check-no-network.ts main.js styles.css`), runs the tests and attaches `main.js`, `manifest.json` and `styles.css`.
+3. The Release workflow checks the versions, builds, checks the built `main.js` and `styles.css` for network code beyond the one D&D Beyond call (`node scripts/check-no-network.ts main.js styles.css`), runs the tests and attaches `main.js`, `manifest.json` and `styles.css`.
 
 Stay on `0.x` until the plugin has held up in real games. Then go to `1.0.0`.
 
@@ -60,7 +60,7 @@ Stay on `0.x` until the plugin has held up in real games. Then go to `1.0.0`.
 
 - Node must be `^22.18.0 || ^24.0.0 || >=26.0.0`: the build and `scripts/` are TypeScript run by Node's own type stripping.
 - Run `npm install`, then `npm run build`. The build also copies the plugin into `demo-vault/`. Open `demo-vault` as a vault in Obsidian; the README has the steps. Its campaign sits in `D&D/Curse of the Pale Moon/`, with `D&D` as the Campaigns folder. Keep the demo vault up to date: when the note format or the folder rules change, the demo notes change in the same pull request.
-- After a build, `node scripts/check-no-network.ts main.js styles.css` checks the built files for network code, as every pull request and release does. It checks only the files it is given and refuses to run with none. It flags every `.write(` call and every `submit`, except the known ones at their exact counts in `scripts/network-code.ts`, so don't name a method `write` or `submit`. Rename the method; never loosen the check.
+- After a build, `node scripts/check-no-network.ts main.js styles.css` checks the built files for network code, as every pull request and release does. It lets through exactly one call and one address, the D&D Beyond call, and fails on anything more. It checks only the files it is given and refuses to run with none. It flags every `.write(` call and every `submit`, except the known ones at their exact counts in `scripts/network-code.ts`, so don't name a method `write` or `submit`. Rename the method; never loosen the check.
 - `npm test` runs the tests inside a 3 GB memory box with no swap (`systemd-run --user --scope`) when this machine can make one, and otherwise with one worker; arguments after `npm test --` go to vitest. A plain `npx vitest run` uses at most two workers (`MOST_TEST_WORKERS` in `tests/setup/memory-limits.ts`); add `--maxWorkers=1` to keep its memory lower still. Tests must not open a real browser.
 - To keep the machine responsive for other work, run builds and tests at low priority, one builder at a time:
 
