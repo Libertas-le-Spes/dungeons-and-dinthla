@@ -2,14 +2,14 @@ import { ITEM_ROWS } from "../../views/lists/row-keys";
 import { Component } from "obsidian";
 import { isItemNamed } from "../item-notes/item-of-note";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
-import { formatMoney } from "../../notes/parts/money";
 import { addNameLink, addRowButton, type LinkActions } from "../../views/lists/linked-text";
 import type { ItemEventKind, ItemRecord, Source } from "../../campaign/record/campaign";
 import { sessionLabelOf } from "../../campaign/paths/session-file";
-import { summariseFunds, type CoinCount, type FundsSummary, type LedgerLine } from "./funds-summary";
+import type { LedgerLine } from "./funds-summary";
 import { THE_PARTY_LABEL, type ItemSummary } from "../items/item-groups";
 import { NO_COIN_ENTRIES } from "./ledger-row";
 import { LedgerBox, type LedgerBoxParts } from "./ledger-box";
+import { PurseBox } from "./purse-box";
 import { whoseFunds } from "./whose-funds";
 import type { OpenLedgerEntry } from "../coins/open-ledger-entry";
 import { makeScrollList } from "../../views/lists/scroll-list";
@@ -21,12 +21,8 @@ import { shownItemName } from "../../characters/imported/lists/shown-item-name";
 const HOW_LINES_ARE_READ =
   "A $ line with an amount is coin. Without one, it is an item. Coin is money out when it has a minus sign, or when “paid”, “spent”, “bought”, “gave” or “lost” comes before the amount with no comma between. A plus sign keeps it in. A link to your character anywhere on the line puts it on your list, in the Mine tab.";
 
-function coinText({ kind, count }: CoinCount): string {
-  const written = Math.abs(count).toLocaleString("en");
-  if (count < 0) return `−${written} ${kind}`;
-  return `${written} ${kind}`;
-}
-
+const MINE_PURSE_TITLE = "Your purse from the ledger";
+const PARTY_PURSE_TITLE = "Purse";
 const MINE = "Mine";
 const PARTY = "Party";
 const NO_OWN_CHARACTER = "You have not named your character in this campaign yet.";
@@ -120,7 +116,8 @@ export class FundsPage extends Component {
   private readonly tabs: Tabs;
   private readonly shownPanel: Component | null;
   private readonly pursePanel: Component | null;
-  private readonly purse: HTMLElement;
+  private readonly minePurse: PurseBox;
+  private readonly partyPurse: PurseBox;
   private readonly mineItems: HTMLElement;
   private readonly partyItems: HTMLElement;
   private readonly mineLedger: LedgerBox;
@@ -135,8 +132,9 @@ export class FundsPage extends Component {
     this.shownPanel = this.shownPanelOf(root);
     this.tabs = new Tabs({ parent: root, label: "Funds", first: MINE, second: PARTY });
     this.pursePanel = this.pursePanelOf(this.tabs.firstPanel);
+    this.minePurse = new PurseBox({ panel: this.tabs.firstPanel.createEl("section", { cls: "dd-panel dd-purse-panel" }), title: MINE_PURSE_TITLE });
     this.mineItems = this.tabs.firstPanel.createEl("section", { cls: "dd-panel dd-items-panel" });
-    this.purse = this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-purse-panel" });
+    this.partyPurse = new PurseBox({ panel: this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-purse-panel" }), title: PARTY_PURSE_TITLE });
     this.partyItems = this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-items-panel" });
     this.mineLedger = this.ledgerBoxOf({ panel: this.tabs.firstPanel.createEl("section", { cls: "dd-panel dd-ledger-panel" }), addCoin: null, label: "Your ledger entries" });
     this.partyLedger = this.ledgerBoxOf({ panel: this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-ledger-panel" }), addCoin: parts.addCoin, label: "Party ledger entries" });
@@ -188,29 +186,13 @@ export class FundsPage extends Component {
     const funds = whoseFunds({ campaign, ownNames });
     const items = whoseItems({ campaign, ownNames });
     const ledger = [...funds.mine.ledger, ...funds.party.ledger];
-    this.renderPurse(funds.party);
+    this.minePurse.render({ summary: funds.mine, empty: whenOwn({ ownNames, text: NO_OWN_COIN }) });
+    this.partyPurse.render({ summary: funds.party, empty: NO_COIN_YET });
     this.renderItems({ panel: this.mineItems, summary: items.mine, ledger, empty: whenOwn({ ownNames, text: NO_OWN_ITEMS }), label: "Items that are yours" });
     this.renderItems({ panel: this.partyItems, summary: items.party, ledger, empty: NO_ITEMS, label: "Items of the party" });
     this.mineLedger.render({ lines: funds.mine.ledger, empty: whenOwn({ ownNames, text: NO_OWN_COIN }) });
     this.partyLedger.render({ lines: funds.party.ledger, empty: NO_COIN_ENTRIES });
     this.rowFocus.afterRender();
-  }
-
-  private renderPurse(summary: FundsSummary): void {
-    this.purse.empty();
-    this.purse.createEl("h2", { cls: "dd-title", text: "Purse" });
-    this.purse.createDiv({ cls: "dd-purse", text: formatMoney(summary.purse) });
-    const coins = this.purse.createDiv({ cls: "dd-coins" });
-    const chips = summary.coinCounts.map(coinText);
-    if (summary.ledger.length === 0) {
-      coins.createSpan({ cls: "dd-empty", text: NO_COIN_YET });
-    } else if (chips.join(" ") !== formatMoney(summary.purse)) {
-      coins.createSpan({ cls: "dd-coins-label", text: "In coins:" });
-      for (const chip of chips) coins.createSpan({ cls: "dd-coin", text: chip });
-    }
-    const inOut = this.purse.createDiv({ cls: "dd-in-out" });
-    inOut.createSpan({ text: "In " }).createEl("b", { text: formatMoney(summary.totalIn) });
-    inOut.createSpan({ text: "Out " }).createEl("b", { text: formatMoney(summary.totalOut) });
   }
 
   private renderItems({ panel, summary, ledger, empty, label }: ItemsPanelParts): void {
