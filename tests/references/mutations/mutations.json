@@ -1,0 +1,163 @@
+[
+ {
+  "id": "place link needs the at sign",
+  "file": "src/notes/parts/link.ts",
+  "find": "const PLACE_LINK = /@\\[\\[",
+  "replace": "const PLACE_LINK = /\\[\\[",
+  "group": "link"
+ },
+ {
+  "id": "a name once per line",
+  "file": "src/references/line-names.ts",
+  "find": "new Set(findLinks(text).filter((name) => name !== \"\"))",
+  "replace": "findLinks(text).filter((name) => name !== \"\")",
+  "group": "line kind"
+ },
+ {
+  "id": "giver only on quests",
+  "file": "src/references/character-roles/quest-giver-role.ts",
+  "find": "if (marked.marker !== \"quest\") return [];",
+  "replace": "",
+  "group": "roles"
+ },
+ {
+  "id": "first giver link only",
+  "file": "src/references/character-roles/quest-giver-role.ts",
+  "find": ".slice(0, 1)",
+  "replace": "",
+  "group": "roles"
+ },
+ {
+  "id": "holder only on ledger lines",
+  "file": "src/references/character-roles/ledger-holder-role.ts",
+  "find": "if (marked.marker !== \"ledger\") return [];",
+  "replace": "",
+  "group": "roles"
+ },
+ {
+  "id": "quest giver role listed",
+  "file": "src/references/character-roles/character-roles.ts",
+  "find": "[questGiverRole, ledgerHolderRole]",
+  "replace": "[ledgerHolderRole]",
+  "group": "roles"
+ },
+ {
+  "id": "ledger holder role listed",
+  "file": "src/references/character-roles/character-roles.ts",
+  "find": "[questGiverRole, ledgerHolderRole]",
+  "replace": "[questGiverRole]",
+  "group": "roles"
+ },
+ {
+  "id": "every kind's lines counted",
+  "file": "src/kind-notes/wanting/sources/tracked-sources.ts",
+  "find": "KIND_NOTE_SOURCES.flatMap(",
+  "replace": "KIND_NOTE_SOURCES.slice(0, 1).flatMap(",
+  "group": "counting"
+ },
+ {
+  "id": "a line counts for each name",
+  "file": "src/references/named-on-lines.ts",
+  "find": "tally.lineCount += 1;",
+  "replace": "tally.lineCount = 1;",
+  "group": "counting"
+ },
+ {
+  "id": "a line's kind is kept",
+  "file": "src/references/named-on-lines.ts",
+  "find": "if (kind !== null) tally.kinds.add(kind);",
+  "replace": "if (kind !== null) tally.kinds.add(\"character\");",
+  "group": "counting"
+ },
+ {
+  "id": "every given session",
+  "file": "src/references/named-on-lines.ts",
+  "find": "for (const session of sessions) {",
+  "replace": "for (const session of sessions.slice(1)) {",
+  "group": "counting"
+ },
+ {
+  "id": "three lines, not two",
+  "file": "src/kinds/lines-for-a-note.ts",
+  "find": "LINES_FOR_A_NOTE = 3",
+  "replace": "LINES_FOR_A_NOTE = 2",
+  "group": "often"
+ },
+ {
+  "id": "three lines are enough",
+  "file": "src/references/often-named.ts",
+  "find": "lineCount >= LINES_FOR_A_NOTE",
+  "replace": "lineCount > LINES_FOR_A_NOTE",
+  "group": "often"
+ },
+ {
+  "id": "known needs a kind",
+  "file": "src/references/often-named.ts",
+  "find": "known: often.filter(({ kind }) => kind !== null)",
+  "replace": "known: often",
+  "group": "often"
+ },
+ {
+  "id": "undecided needs no kind",
+  "file": "src/references/often-named.ts",
+  "find": "undecided: often.filter(({ kind }) => kind === null)",
+  "replace": "undecided: often",
+  "group": "often"
+ },
+ {
+  "id": "place read",
+  "file": "src/references/readers/place-reader.ts",
+  "find": "linksIn: findPlaceLinks,",
+  "replace": "linksIn: () => [],",
+  "group": "readers"
+ },
+ {
+  "id": "character read",
+  "file": "src/references/readers/character-reader.ts",
+  "find": "linksIn: characterLinksIn,",
+  "replace": "linksIn: () => [],",
+  "group": "readers"
+ },
+ {
+  "id": "place listed",
+  "file": "src/references/readers/reference-readers.ts",
+  "find": "[placeReader, characterReader]",
+  "replace": "[characterReader]",
+  "group": "readers"
+ },
+ {
+  "id": "character listed",
+  "file": "src/references/readers/reference-readers.ts",
+  "find": "[placeReader, characterReader]",
+  "replace": "[placeReader]",
+  "group": "readers"
+ },
+ {
+  "id": "place before character",
+  "file": "src/references/readers/reference-readers.ts",
+  "find": "[placeReader, characterReader]",
+  "replace": "[characterReader, placeReader]",
+  "group": "readers"
+ },
+ {
+  "id": "strongest kind found",
+  "file": "src/references/readers/reference-readers.ts",
+  "find": "if (kinds.includes(reader.kind)) return reader.kind;",
+  "replace": "",
+  "group": "readers"
+ },
+ {
+  "id": "a line's kinds read",
+  "file": "src/references/line-names.ts",
+  "find": "reader.linksIn(text).includes(name)",
+  "replace": "true",
+  "group": "line kind"
+ },
+ {
+  "id": "empty names dropped",
+  "file": "src/references/line-names.ts",
+  "find": ".filter((name) => name !== \"\")",
+  "replace": "",
+  "group": "line kind"
+ }
+]
