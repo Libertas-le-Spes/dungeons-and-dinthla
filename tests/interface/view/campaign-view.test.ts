@@ -6,6 +6,7 @@ import type { CampaignStore } from "../../../src/campaign/reading/campaign-store
 import type { NavSection, PageEntry, PageId, PathAfterDelete, ShowPage, StayOn } from "../../../src/interface/view/campaign-pages";
 import { CAMPAIGN_VIEW, CampaignView, type ViewFiles } from "../../../src/interface/view/campaign-view";
 import { campaignsFolderFirst } from "../../../src/interface/view/campaigns-folder-first";
+import { Menu } from "../../stubs/obsidian";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 class FakePage extends Component {
@@ -77,6 +78,10 @@ class FakeVault {
   }
 }
 
+function noCampaigns() {
+  return { folders: (): string[] => [], chosen: (): string | null => null, choose: async () => {}, startNewCampaign: () => {} };
+}
+
 const MIRA = "Pale Moon/Characters/Mira.md";
 
 function campaignOf(lines: string[]): Campaign {
@@ -108,6 +113,7 @@ async function openView({
   questionCount = (campaign: Campaign) => campaign.questions.length,
   castAfterDelete = LEAVE_DELETED,
   sectionsAround = (sections: NavSection[]) => sections,
+  campaigns = noCampaigns(),
 } = {}) {
   let listener = () => {};
   const unsubscribe = vi.fn();
@@ -140,14 +146,15 @@ async function openView({
   }
   const vault = new FakeVault();
   const backdrops: FakeBackdrop[] = [];
-  const view = new CampaignView(
-    leaf as unknown as WorkspaceLeaf,
-    store as unknown as CampaignStore,
-    sectionsAround(sections),
+  const view = new CampaignView({
+    leaf: leaf as unknown as WorkspaceLeaf,
+    store: store as unknown as CampaignStore,
+    sections: sectionsAround(sections),
     followCampaign,
-    backdropsInto(backdrops),
-    vault as unknown as ViewFiles,
-  );
+    backdropFor: backdropsInto(backdrops),
+    files: vault as unknown as ViewFiles,
+    campaigns,
+  });
   view.app = { workspace: { requestSaveLayout } } as unknown as CampaignView["app"];
   const root = obsidianDocument().createElement("div");
   view.contentEl = root;
@@ -176,7 +183,15 @@ function pageText(root: HTMLElement): string | null {
 
 describe("CampaignView", () => {
   it("gives its type while Obsidian is still building it", () => {
-    const view = new CampaignView({} as WorkspaceLeaf, {} as CampaignStore, [{ heading: null, pages: [entryOf("home", [])] }], vi.fn(), backdropsInto([]), {} as ViewFiles);
+    const view = new CampaignView({
+      leaf: {} as WorkspaceLeaf,
+      store: {} as CampaignStore,
+      sections: [{ heading: null, pages: [entryOf("home", [])] }],
+      followCampaign: vi.fn(),
+      backdropFor: backdropsInto([]),
+      files: {} as ViewFiles,
+      campaigns: noCampaigns(),
+    });
     expect(view.containerEl.getAttribute("data-type")).toBe(CAMPAIGN_VIEW);
   });
 
@@ -389,6 +404,16 @@ describe("CampaignView", () => {
     expect(root.querySelector(".dd-nav-campaign")!.textContent).toBe("No campaign open");
   });
 
+  it("puts a switcher beside the campaign's name that lists the campaigns it is given", async () => {
+    const campaigns = { ...noCampaigns(), folders: () => ["D&D/Pale Moon"], chosen: () => "D&D/Pale Moon" };
+    const { root } = await openView({ campaigns });
+    const heading = root.querySelector(".dd-nav-heading")!;
+    expect([...heading.children].map((child) => child.className)).toEqual(["dd-nav-campaign", "clickable-icon dd-nav-switch"]);
+    Menu.shown = [];
+    root.querySelector<HTMLElement>(".dd-nav-switch")!.click();
+    expect(Menu.shown[0]!.items.map((item) => item.title)).toEqual(["Pale Moon", "", "New campaign"]);
+  });
+
   it("builds the page it shows again when asked, so a page that asked for the Campaigns folder shows once one is set", async () => {
     let campaignsFolder: string | null = null;
     const asked: FakePage[] = [];
@@ -407,14 +432,15 @@ describe("CampaignView", () => {
   it("builds no page when asked to build its page again before it shows one", async () => {
     const made: FakePage[] = [];
     const store = { subscribe: () => () => {}, current: campaignOf([]), campaignFolder: null };
-    const view = new CampaignView(
-      {} as WorkspaceLeaf,
-      store as unknown as CampaignStore,
-      [{ heading: null, pages: [entryOf("home", made)] }],
-      vi.fn(),
-      backdropsInto([]),
-      new FakeVault() as unknown as ViewFiles,
-    );
+    const view = new CampaignView({
+      leaf: {} as WorkspaceLeaf,
+      store: store as unknown as CampaignStore,
+      sections: [{ heading: null, pages: [entryOf("home", made)] }],
+      followCampaign: vi.fn(),
+      backdropFor: backdropsInto([]),
+      files: new FakeVault() as unknown as ViewFiles,
+      campaigns: noCampaigns(),
+    });
     view.app = { workspace: { requestSaveLayout: vi.fn() } } as unknown as CampaignView["app"];
     view.contentEl = obsidianDocument().createElement("div");
     view.load();
@@ -431,14 +457,15 @@ describe("CampaignView", () => {
   it("builds no page until Obsidian gives it its state", async () => {
     const made: FakePage[] = [];
     const store = { subscribe: () => () => {}, current: campaignOf([]), campaignFolder: null };
-    const view = new CampaignView(
-      {} as WorkspaceLeaf,
-      store as unknown as CampaignStore,
-      [{ heading: null, pages: [entryOf("home", made), entryOf("funds", made)] }],
-      vi.fn(),
-      backdropsInto([]),
-      new FakeVault() as unknown as ViewFiles,
-    );
+    const view = new CampaignView({
+      leaf: {} as WorkspaceLeaf,
+      store: store as unknown as CampaignStore,
+      sections: [{ heading: null, pages: [entryOf("home", made), entryOf("funds", made)] }],
+      followCampaign: vi.fn(),
+      backdropFor: backdropsInto([]),
+      files: new FakeVault() as unknown as ViewFiles,
+      campaigns: noCampaigns(),
+    });
     view.app = { workspace: { requestSaveLayout: vi.fn() } } as unknown as CampaignView["app"];
     view.contentEl = obsidianDocument().createElement("div");
     view.load();

@@ -94,13 +94,8 @@ class FakeApp {
 
 class FakeCampaigns implements CampaignChoice {
   readonly choices: string[] = [];
-  newCampaigns = 0;
 
   constructor(private chosenFolder: string | null) {}
-
-  startNewCampaign(): void {
-    this.newCampaigns += 1;
-  }
 
   folders(): string[] {
     if (this.chosenFolder === null) return [];
@@ -203,15 +198,7 @@ describe("CampaignSettingTab", () => {
   it("asks for a campaign first when the vault has none, and still offers the welcome page", () => {
     const tab = tabFor(fake, new FakeCampaigns(null));
     expect(tab.containerEl.querySelector("p")!.textContent).toBe(NO_CAMPAIGN);
-    expect(rows(tab)).toEqual(["Campaigns folder", "New campaign", "Welcome page"]);
-  });
-
-  it("starts a new campaign when New campaign is pressed, whether or not the vault has one", () => {
-    const none = new FakeCampaigns(null);
-    buttonIn(rowNamed(tabFor(fake, none), "New campaign"), "New campaign").click();
-    const some = new FakeCampaigns("D&D/Pale Moon");
-    buttonIn(rowNamed(tabFor(fake, some), "New campaign"), "New campaign").click();
-    expect([none.newCampaigns, some.newCampaigns]).toEqual([1, 1]);
+    expect(rows(tab)).toEqual(["Campaigns folder", "Welcome page"]);
   });
 
   it("shows the welcome page again when Show this again is pressed", () => {
@@ -233,7 +220,7 @@ describe("CampaignSettingTab", () => {
   it("shows the chosen campaign, its background picture and how much of it shows", () => {
     fake.properties.set(PALE_MOON, { background: "[[pale-moon.jpg]]", wash: "strong" });
     const tab = tabFor(fake, new FakeCampaigns("D&D/Pale Moon"));
-    expect(rows(tab)).toEqual(["Campaigns folder", "Campaign", "Background picture", "How much of the picture shows", "New campaign", "Welcome page"]);
+    expect(rows(tab)).toEqual(["Campaigns folder", "Campaign", "Background picture", "How much of the picture shows", "Welcome page"]);
     expect(selectIn(tab, "Campaign").value).toBe("D&D/Pale Moon");
     expect([...selectIn(tab, "Campaign").options].map((option) => option.textContent)).toEqual(["Ashen Road", "Pale Moon"]);
     expect(pictureText(tab)).toBe("D&D/Art/pale-moon.jpg");

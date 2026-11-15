@@ -3,6 +3,7 @@ import { campaignNameOf } from "../../campaign/paths/campaign-folders";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { FencedFiles, GoneFile } from "../../fence/gate/fenced-files";
 import type { NavSection, PageEntry, PageTarget } from "./campaign-pages";
+import { CampaignSwitcher, type SwitchableCampaigns } from "./campaign-switcher";
 
 export const CAMPAIGN_VIEW = "dungeons-and-dinthla-campaign";
 export const CAMPAIGN_TITLE = "Campaign";
@@ -37,6 +38,16 @@ function isListed(entry: PageEntry): boolean {
   return entry.listed;
 }
 
+export interface CampaignViewNeeds {
+  leaf: WorkspaceLeaf;
+  store: CampaignStore;
+  sections: NavSection[];
+  followCampaign: FollowCampaign;
+  backdropFor: BackdropFor;
+  files: ViewFiles;
+  campaigns: SwitchableCampaigns;
+}
+
 export class CampaignView extends ItemView {
   override navigation = true;
   private current: Shown | null = null;
@@ -45,15 +56,20 @@ export class CampaignView extends ItemView {
   private campaignName!: HTMLElement;
   private links: NavLink[] = [];
 
-  constructor(
-    leaf: WorkspaceLeaf,
-    private readonly store: CampaignStore,
-    private readonly sections: NavSection[],
-    private readonly followCampaign: FollowCampaign,
-    private readonly backdropFor: BackdropFor,
-    private readonly files: ViewFiles,
-  ) {
-    super(leaf);
+  constructor(private readonly needs: CampaignViewNeeds) {
+    super(needs.leaf);
+  }
+
+  private get store(): CampaignStore {
+    return this.needs.store;
+  }
+
+  private get sections(): NavSection[] {
+    return this.needs.sections;
+  }
+
+  private get files(): ViewFiles {
+    return this.needs.files;
   }
 
   getViewType(): string {
@@ -82,7 +98,7 @@ export class CampaignView extends ItemView {
     const shown = this.shownFor(state);
     if (!this.isShowing(shown)) result.history = true;
     this.show(shown);
-    if (shown.path !== null) this.followCampaign(shown.path);
+    if (shown.path !== null) this.needs.followCampaign(shown.path);
     await super.setState(state, result);
   }
 
@@ -92,10 +108,12 @@ export class CampaignView extends ItemView {
     root.addClass("dd-tokens", "dd-root", "dd-campaign-frame");
     const frame = root.createDiv({ cls: "dd-campaign" });
     const nav = frame.createEl("nav", { cls: "dd-nav", attr: { "aria-label": CAMPAIGN_TITLE } });
-    this.campaignName = nav.createDiv({ cls: "dd-nav-campaign" });
+    const heading = nav.createDiv({ cls: "dd-nav-heading" });
+    this.campaignName = heading.createDiv({ cls: "dd-nav-campaign" });
+    this.addChild(new CampaignSwitcher({ parentEl: heading, campaigns: this.needs.campaigns }));
     for (const section of this.sections) this.addSection(nav, section);
     this.pageEl = frame.createDiv({ cls: "dd-page" });
-    this.addChild(this.backdropFor(root));
+    this.addChild(this.needs.backdropFor(root));
     this.register(this.store.subscribe(() => this.campaignChanged()));
     this.watchShownNote();
     this.campaignChanged();

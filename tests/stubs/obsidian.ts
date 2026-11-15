@@ -169,6 +169,64 @@ export class Notice {
   }
 }
 
+export class MenuItem {
+  title = "";
+  icon = "";
+  checked = false;
+  separator = false;
+  click: () => unknown = () => {};
+
+  setTitle(title: string): this {
+    this.title = title;
+    return this;
+  }
+
+  setIcon(icon: string): this {
+    this.icon = icon;
+    return this;
+  }
+
+  setChecked(checked: boolean): this {
+    this.checked = checked;
+    return this;
+  }
+
+  onClick(click: () => unknown): this {
+    this.click = click;
+    return this;
+  }
+}
+
+export class Menu {
+  static shown: Menu[] = [];
+  readonly items: MenuItem[] = [];
+  position: { x: number; y: number } | null = null;
+
+  addItem(build: (item: MenuItem) => void): this {
+    const item = new MenuItem();
+    build(item);
+    this.items.push(item);
+    return this;
+  }
+
+  addSeparator(): this {
+    const item = new MenuItem();
+    item.separator = true;
+    this.items.push(item);
+    return this;
+  }
+
+  showAtPosition(position: { x: number; y: number }): this {
+    this.position = position;
+    Menu.shown.push(this);
+    return this;
+  }
+}
+
+export function setIcon(parent: HTMLElement, icon: string): void {
+  parent.setAttribute("data-icon", icon);
+}
+
 const PROPERTIES_OPEN = /^---\r?\n/;
 
 export function getFrontMatterInfo(content: string): FrontMatterInfo {
