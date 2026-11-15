@@ -13,7 +13,6 @@ export const PLUGIN_BUNDLE: BuildOptions = {
 export const STYLES_BUNDLE: BuildOptions = {
   entryPoints: ["styles/index.css"],
   bundle: true,
-  loader: { ".woff2": "dataurl" },
   outfile: "styles.css",
   logLevel: "info",
 };
