@@ -3,7 +3,6 @@ import { Component, type TFile } from "obsidian";
 import { castPageFor, type CastPages } from "../../../src/characters/pages/cast-page-for";
 
 const MIRA = { path: "Pale Moon/Characters/Mira.md", basename: "Mira" } as TFile;
-const FALLEN_MIRA = { path: "Pale Moon/Fallen/Mira.md", basename: "Mira" } as TFile;
 const GALLERY = new Component();
 const CHARACTER = new Component();
 
@@ -31,21 +30,9 @@ describe("castPageFor", () => {
     expect(pages.gallery).not.toHaveBeenCalled();
   });
 
-  it("shows a fallen character's sheet for their note in the Fallen folder", () => {
-    const { pages } = pagesWith([FALLEN_MIRA]);
-    expect(castPageFor(contentEl, FALLEN_MIRA.path, pages)).toBe(CHARACTER);
-    expect(pages.character).toHaveBeenCalledExactlyOnceWith(contentEl, FALLEN_MIRA);
-  });
-
-  it("shows the gallery for a file in Fallen that is not a note, without looking it up", () => {
+  it("shows the gallery for a note in the Fallen folder, without looking it up", () => {
     const { pages, fileAt } = pagesWith([]);
-    expect(castPageFor(contentEl, "Pale Moon/Fallen/Mira.png", pages)).toBe(GALLERY);
-    expect(fileAt).not.toHaveBeenCalled();
-  });
-
-  it("shows the gallery for a note in the campaign that is in neither Characters nor Fallen, without looking it up", () => {
-    const { pages, fileAt } = pagesWith([]);
-    expect(castPageFor(contentEl, "Pale Moon/Sessions/Session 1.md", pages)).toBe(GALLERY);
+    expect(castPageFor(contentEl, "Pale Moon/Fallen/Mira.md", pages)).toBe(GALLERY);
     expect(fileAt).not.toHaveBeenCalled();
   });
 

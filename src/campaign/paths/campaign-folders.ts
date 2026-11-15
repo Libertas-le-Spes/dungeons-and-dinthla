@@ -80,13 +80,6 @@ export function campaignOfItem(path: string, campaignFolders: string[]): string 
   return folder;
 }
 
-export function campaignOfFallen(path: string, campaignFolders: string[]): string | null {
-  const folder = campaignFolderOf(path, campaignFolders);
-  if (folder === null) return null;
-  if (!isInFallenFolder(folder, path) || !isMarkdownNote(path)) return null;
-  return folder;
-}
-
 export function campaignNotePathOf(path: string, campaignFolders: string[]): string | null {
   const folder = campaignFolderOf(path, campaignFolders);
   if (folder === null) return null;
