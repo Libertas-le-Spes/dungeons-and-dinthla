@@ -82,6 +82,10 @@ export class BeyondOpeners {
     void this.offers.makeMain(path, returnFocus);
   }
 
+  died(path: string, returnFocus: () => void): void {
+    void this.offers.died(path, returnFocus);
+  }
+
   importCharacter(returnFocus: () => void): void {
     const folder = this.wiring.shownCampaignFolder();
     if (folder === null) {

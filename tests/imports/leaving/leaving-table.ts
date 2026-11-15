@@ -5,6 +5,7 @@ import type { Campaign } from "../../../src/campaign/record/campaign";
 import type { LeavingReason } from "../../../src/imports/leaving/reasons/leaving-reason";
 import { AskedNote } from "../../../src/imports/leaving/switching/asked-note";
 import type { CampaignCast } from "../../../src/imports/leaving/cast/campaign-cast";
+import { DiedChoice } from "../../../src/imports/leaving/choices/died-choice";
 import { LeaveAsChoice } from "../../../src/imports/leaving/choices/leave-as-choice";
 import { MainSwitch } from "../../../src/imports/leaving/switching/main-switch";
 import { MakeMainChoice } from "../../../src/imports/leaving/choices/make-main-choice";
@@ -100,6 +101,11 @@ export class LeavingTable {
   leaveAs(reason: LeavingReason, chosen: string = SECOND): LeaveAsChoice {
     const old = AskedNote.of(this.vault.fileAt(MONK));
     return new LeaveAsChoice(this.vault.gate, this.vault.actions, this.cast, this.switchTo(chosen), old, reason);
+  }
+
+  died(path: string, chosenIsNamed = false): DiedChoice {
+    const parts = { files: this.vault.gate, actions: this.vault.actions, cast: this.cast, mainSwitch: this.switchTo(path, chosenIsNamed) };
+    return new DiedChoice(parts, AskedNote.of(this.vault.fileAt(path)));
   }
 
   makeMain(path: string, old: string | null = null, chosenIsNamed = false): MakeMainChoice {

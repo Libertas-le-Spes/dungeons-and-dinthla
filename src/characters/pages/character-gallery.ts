@@ -3,9 +3,11 @@ import type { SessionNote } from "../../campaign/record/campaign";
 import { campaignFolderOf, campaignNotePathOf } from "../../campaign/paths/campaign-folders";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { LinkActions } from "../../views/lists/linked-text";
-import { addCharacterCard, addCharacterCardIn, type CharacterCard } from "../cards/character-card";
+import { PENDING_FOCUS_MS } from "../../views/lists/row-focus";
+import { addCharacterCardIn, type CharacterCard } from "../cards/character-card";
 import { backupCards, playedCards } from "../cards/card-groups";
 import { leftPlayMarkOf } from "../cards/card-standing";
+import { addDiedButton } from "../cards/died-button";
 import { addMakeMainButton } from "../cards/make-main-button";
 import type { CharacterNotes } from "../reading/character-notes";
 import { learnedFactsOf, type LearnedFacts } from "../reading/learned-facts";
@@ -22,6 +24,7 @@ export class CharacterGallery {
   private renders = 0;
   private campaignNotes = new Set<string | null>();
   private createButton: HTMLButtonElement | null = null;
+  private focusCreateUntil = 0;
   private readonly drawing = new PendingWork();
 
   constructor(
@@ -84,7 +87,7 @@ export class CharacterGallery {
 
   private drawPlayedCard(gallery: HTMLElement, card: CharacterCard): void {
     if (leftPlayMarkOf(card.standing) === null) {
-      addCharacterCard(gallery, card, this.actions);
+      this.drawWithDied(gallery, card, "dd-played");
       return;
     }
     this.drawWithMakeMain(gallery, card, "dd-left");
@@ -99,10 +102,26 @@ export class CharacterGallery {
     for (const card of cards) this.drawWithMakeMain(list, card, "dd-fallen-card");
   }
 
-  private drawWithMakeMain(list: HTMLElement, card: CharacterCard, cls: string): void {
+  private drawWithDied(list: HTMLElement, card: CharacterCard, cls: string): void {
+    const item = list.createEl("li", { cls });
+    addCharacterCardIn(item, card, this.actions);
+    addDiedButton(item, card.path, { died: this.died.bind(this) });
+  }
+
+  private died(path: string, returnFocus: () => void): void {
+    this.creators.died(path, () => this.focusAfterDied(returnFocus));
+  }
+
+  private focusAfterDied(returnFocus: () => void): void {
+    returnFocus();
+    this.focusCreateUntil = Date.now() + PENDING_FOCUS_MS;
+  }
+
+  private drawWithMakeMain(list: HTMLElement, card: CharacterCard, cls: string): HTMLElement {
     const item = list.createEl("li", { cls });
     addCharacterCardIn(item, card, this.actions);
     addMakeMainButton(item, card.path, this.creators);
+    return item;
   }
 
   private drawBackups(backups: readonly CharacterCard[]): void {
@@ -110,13 +129,14 @@ export class CharacterGallery {
     const section = this.root.createEl("section", { cls: "dd-backups" });
     section.createEl("h3", { cls: "dd-title", text: BACKUPS });
     const list = section.createEl("ul", { cls: "dd-gallery" });
-    for (const card of backups) this.drawWithMakeMain(list, card, "dd-backup");
+    for (const card of backups) addDiedButton(this.drawWithMakeMain(list, card, "dd-backup"), card.path, { died: this.died.bind(this) });
   }
 
   private addCreateButton(head: HTMLElement): void {
     const button = head.createEl("button", { cls: "dd-create", text: "New character" });
     button.addEventListener("click", () => this.creators.newCharacter(() => this.focusCreateButton()));
     this.createButton = button;
+    if (Date.now() < this.focusCreateUntil) button.focus();
   }
 
   private focusCreateButton(): void {
