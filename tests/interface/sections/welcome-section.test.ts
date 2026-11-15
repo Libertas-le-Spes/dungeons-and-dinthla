@@ -7,7 +7,7 @@ import { AnsweredAgreement } from "../../welcome/page/answered-agreement";
 
 function made(campaignFolder: string | null, sessionNotes: SessionNote[], campaignsFolder: string | null = "D&D", foldersThere: string[] = ["D&D"]) {
   const store = { campaignFolder, sessionNotes, subscribe: () => () => {} };
-  const maker = { make: vi.fn(async () => {}) };
+  const maker = { make: vi.fn(async () => true) };
   const campaignsFolderSetup = { path: campaignsFolder, pick: vi.fn(), make: vi.fn(async () => {}) };
   const startSession = vi.fn();
   const root = obsidianDocument().body.createDiv();

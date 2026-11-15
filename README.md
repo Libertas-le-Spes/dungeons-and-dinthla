@@ -36,6 +36,8 @@ npm run build
 
 Once the plugin is on, choose the **Campaigns folder**, on the welcome page or in the plugin's settings: the one folder of the vault where your campaigns live, such as `D&D`. The plugin reads and writes only inside it and does nothing until it is chosen, so the rest of your vault stays out of its reach. Every pull request and release scans the plugin's source for code that could go round that fence, working from allow-lists of what the plugin uses today and known patterns, and checks its released `main.js` and `styles.css` for known kinds of network code beyond the one D&D Beyond call described under *Network use*. Neither is a proof: they catch what they know to look for. [docs/note-format.md](docs/note-format.md#the-campaigns-folder) says what they check.
 
+To make another campaign any time, run the command *New campaign* or press *New campaign* in the plugin's settings, type its name and press *Make campaign*. The plugin makes its folder and main note inside the Campaigns folder and opens it; a name that is empty, already used or not allowed for a file is refused and nothing is made. [docs/note-format.md](docs/note-format.md#new-campaign) says more.
+
 The plugin checks paths, so it can't see where a folder really is: a symbolic link (or, on Windows, a junction) inside the Campaigns folder that points elsewhere on your disk lets the plugin read and write there too. Keep such links out of the Campaigns folder.
 
 ## Demo vault
@@ -69,7 +71,7 @@ A short walkthrough:
 2. Your character's sheet opens, and the plugin offers to make them your character in this campaign. Under the values you'll find your inventory, purse, spells and features, as D&D Beyond has them.
 3. Press *Track on the funds page* beside an item to give it to your character on the Party funds page, where the party can see it.
 4. Your own purse shows on the Party funds page beside the party's once the campaign note names your character, and is never added to it.
-5. After a level-up, press *Update from D&D Beyond* on your sheet and bring your character in again, online or by a new PDF. Anything you hold on the funds page that the new sheet doesn't list is marked; pick *Used up*, *Sold*, *Lost* or *Changed* to settle it.
+5. *Update from D&D Beyond* is on the sheet of every character in the campaign's `Characters` folder, including a character you wrote by hand, so you can bring them in from D&D Beyond or a PDF at any time. After a level-up, press it on your sheet and bring your character in again, online or by a new PDF. Anything you hold on the funds page that the new sheet doesn't list is marked; pick *Used up*, *Sold*, *Lost* or *Changed* to settle it.
 
 When a character leaves play:
 

@@ -25,16 +25,17 @@ import { listThreads } from "../views/threads/thread-list";
 import type { ThreadOpeners } from "../views/threads/thread-openers";
 import { addThreadRow } from "../views/threads/thread-row";
 import { linesWrittenIn, type WrittenLineRows } from "./latest-session";
+import { addItemEventRow } from "./item-event-row";
 import { addShortCharacterCard } from "./short-character-card";
 import { PendingWork } from "../views/pending/pending-work";
 
 const SHOWN_ROWS = 3;
-const SHOWN_SESSION_LINES = 4;
 const NO_SESSION = "No sessions yet. Start one to write in it.";
 const NO_CHARACTERS = "No characters yet. A note in the campaign’s Characters folder adds one.";
 
 export interface DashboardActions extends LinkActions, ThreadOpeners {
   openLedgerEntry(source: Source, onClosed: (outcome: CoinOutcome) => void): void;
+  openItem(name: string, source: Source, onClosed: (changed: boolean) => void): void;
   showFunds(): void;
   showCharacters(): void;
   openCharacterSheet(path: string): void;
@@ -82,6 +83,7 @@ export class DashboardPage extends Component {
   private readonly sessionRows: WrittenLineRows = {
     addThread: (shown, thread) => addThreadRow(shown, this.sessionList, thread, [], this.rowActions(this.session, this.openerOf(shown))),
     addLedgerLine: (ledgerLine) => addLedgerRow(this.sessionList, ledgerLine, this.ledgerActions(this.session), this.actions),
+    addItemEvent: (itemEvent) => addItemEventRow(this.sessionList, itemEvent, this.itemActions({ panel: this.session, name: itemEvent.item.name })),
   };
 
   constructor(
@@ -100,10 +102,10 @@ export class DashboardPage extends Component {
     root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-dashboard");
     this.addChild(this.newsLineFor(root.createDiv({ cls: "dd-news" })));
     const grid = root.createDiv({ cls: "dd-dashboard-grid" });
+    this.buildSession(grid);
     this.threadPanels = SHOWN_THREAD_KINDS.map((shown) => this.buildThreads(grid, shown));
     this.buildPurse(grid);
     this.buildCharacters(grid);
-    this.buildSession(grid);
     this.register(this.store.subscribe(() => this.render()));
     this.register(
       this.notes.onNoteChanged((path) => {
@@ -148,7 +150,10 @@ export class DashboardPage extends Component {
     const newSession = this.session.links.createEl("button", { cls: "dd-panel-link", text: "New session", prepend: true });
     this.registerDomEvent(newSession, "click", () => this.actions.startSession());
     this.sessionCount = this.session.section.createDiv({ cls: "dd-big" });
-    this.sessionList = this.session.section.createEl("ul", { cls: "dd-list" });
+    this.sessionList = this.session.section.createEl("ul", {
+      cls: ["dd-list", "dd-session-list"],
+      attr: { tabindex: "0", "aria-label": "Lines written in this session" },
+    });
   }
 
   private render(): void {
@@ -188,6 +193,13 @@ export class DashboardPage extends Component {
     return {
       ...this.actions,
       openRow: (source: Source) => this.actions.openLedgerEntry(source, (outcome) => this.afterLedgerEntry(panel, source, outcome)),
+    };
+  }
+
+  private itemActions({ panel, name }: { panel: Panel; name: string }): LinkActions {
+    return {
+      ...this.actions,
+      openRow: (source: Source) => this.actions.openItem(name, source, (changed) => this.afterClose(panel, () => focusRowAt(panel.section, source), changed)),
     };
   }
 
@@ -243,7 +255,7 @@ export class DashboardPage extends Component {
     this.session.title.setText(this.actions.sessionHeadingOf(latest));
     const lines = linesWrittenIn(latest, campaign, funds.ledger);
     this.showCount(this.sessionCount, lines.length, countWord(lines.length, "line", "lines"), "Nothing written yet");
-    for (const line of lines.slice(0, SHOWN_SESSION_LINES)) line.addTo(this.sessionRows);
+    for (const line of lines) line.addTo(this.sessionRows);
   }
 
   private writeInLatest(): void {

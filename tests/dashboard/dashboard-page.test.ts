@@ -62,13 +62,14 @@ async function openDashboard(sessions: SessionNote[], { folder = CAMPAIGN, chara
       return stopWatching;
     },
   };
-  const closers: { question: Closer[]; quest: Closer[]; coin: ((outcome: CoinOutcome) => void)[] } = { question: [], quest: [], coin: [] };
+  const closers: { question: Closer[]; quest: Closer[]; coin: ((outcome: CoinOutcome) => void)[]; item: Closer[] } = { question: [], quest: [], coin: [], item: [] };
   const actions = {
     openRow: vi.fn(),
     openLink: vi.fn(),
     openQuestion: vi.fn((_source: Source, onClosed: Closer) => void closers.question.push(onClosed)),
     openQuest: vi.fn((_source: Source, onClosed: Closer) => void closers.quest.push(onClosed)),
     openLedgerEntry: vi.fn((_source: Source, onClosed: (outcome: CoinOutcome) => void) => void closers.coin.push(onClosed)),
+    openItem: vi.fn((_name: string, _source: Source, onClosed: Closer) => void closers.item.push(onClosed)),
     showQuestions: vi.fn(),
     showQuests: vi.fn(),
     showFunds: vi.fn(),
@@ -101,6 +102,12 @@ function panel(root: HTMLElement, index: number): HTMLElement {
   return root.querySelectorAll<HTMLElement>(".dd-panel")[index]!;
 }
 
+function elementIn(root: HTMLElement, selector: string): HTMLElement {
+  const found = root.querySelector<HTMLElement>(selector);
+  if (found === null) throw new Error(`There is no ${selector}.`);
+  return found;
+}
+
 function textsOf(root: HTMLElement, selector: string): string[] {
   return Array.from(root.querySelectorAll(selector)).map((element) => String(element.textContent));
 }
@@ -113,11 +120,11 @@ function focusedLine(root: HTMLElement): string | undefined {
   return (root.ownerDocument.activeElement as HTMLElement).dataset.line;
 }
 
-const QUESTIONS = 0;
-const QUESTS = 1;
-const PURSE = 2;
-const CHARACTERS = 3;
-const SESSION = 4;
+const SESSION = 0;
+const QUESTIONS = 1;
+const QUESTS = 2;
+const PURSE = 3;
+const CHARACTERS = 4;
 
 describe("DashboardPage", () => {
   it("puts the line about what's new above the panels, and closes it with the dashboard", async () => {
@@ -176,14 +183,41 @@ describe("DashboardPage", () => {
     expect(textsOf(panel(root, SESSION), ".dd-empty")).toEqual(["No sessions yet. Start one to write in it."]);
   });
 
-  it("heads the latest session panel with its title and shows the four lines written last in it", async () => {
+  it("puts the latest session panel first, before the questions", async () => {
+    const { root } = await openDashboard([sessionOf(1, ["? Who"])]);
+    const titles = Array.from(root.querySelectorAll(".dd-panel")).map((element) => textsOf(element as HTMLElement, ".dd-title").join(""));
+    expect(titles).toEqual(["Session 1 · The ferry at dusk", "Open questions", "Active quests", "Purse", "Characters"]);
+  });
+
+  it("heads the latest session panel with its title and lists every line written in it, the last written first", async () => {
     const earlier = sessionOf(1, ["? Who sent the letter"]);
     const latest = sessionOf(2, ["? Why does the wheel turn", "! Find the caravan", "$ 5 gp found", "notes", "?= Who sent the letter: Vess", "? Who is she", "! Escort Mira"]);
     const { root } = await openDashboard([latest, earlier]);
     const session = panel(root, SESSION);
     expect(textsOf(session, ".dd-title")).toEqual(["Session 2 · The ferry at dusk"]);
     expect(textsOf(session, ".dd-big")).toEqual(["5lines"]);
-    expect(textsOf(session, ".dd-text, .dd-what")).toEqual(["Escort Mira", "Who is she", "5 gp found", "Find the caravan"]);
+    expect(textsOf(session, ".dd-text, .dd-what")).toEqual(["Escort Mira", "Who is she", "5 gp found", "Find the caravan", "Why does the wheel turn"]);
+  });
+
+  it("scrolls the session panel's lines, with the most recent quest, question and item or coin all in them", async () => {
+    const lines = ["? Who is she", "$ 5 gp found", "$ [[Mira]] Silvered lantern", "! Escort Mira", "! Guard the mill", "! Burn the mill", "! Bury the mill"];
+    const { root } = await openDashboard([sessionOf(1, lines)]);
+    const list = elementIn(panel(root, SESSION), ".dd-session-list");
+    expect(list.getAttribute("tabindex")).toBe("0");
+    expect(list.getAttribute("aria-label")).toBe("Lines written in this session");
+    expect(textsOf(list, ".dd-text, .dd-what")).toEqual(["Bury the mill", "Burn the mill", "Guard the mill", "Escort Mira", "Silvered lantern", "5 gp found", "Who is she"]);
+  });
+
+  it("opens an item written in the latest session from its row, and puts focus back on it", async () => {
+    const { root, actions, closers } = await openDashboard([sessionOf(1, ["$ [[Mira]] Silvered lantern"])]);
+    const row = elementIn(panel(root, SESSION), ".dd-row");
+    expect(textsOf(row, ".dd-meta")).toEqual(["Item"]);
+    row.click();
+    expect(actions.openItem).toHaveBeenCalledWith("Silvered lantern", { path: `${CAMPAIGN}/Sessions/Session 1.md`, line: 0 }, expect.any(Function));
+    const [closeItem] = closers.item;
+    expect(closeItem).toBeDefined();
+    closeItem?.(false);
+    expect(root.ownerDocument.activeElement).toBe(panel(root, SESSION).querySelector(".dd-row"));
   });
 
   it("says one line, and when nothing is written in the latest session yet", async () => {
