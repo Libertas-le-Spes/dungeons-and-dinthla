@@ -2,10 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App } from "obsidian";
 import { MainModal } from "../../../src/imports/leaving/dialog/main-modal";
 import { MainOffers } from "../../../src/imports/leaving/dialog/main-offers";
-import type { OfferWiring } from "../../../src/imports/leaving/dialog/offer-wiring";
+import type { OfferWiring } from "../../../src/imports/leaving/questions/offer-wiring";
 import type { CampaignCast } from "../../../src/imports/leaving/cast/campaign-cast";
 import type { LeavingActions, LeavingFiles } from "../../../src/imports/leaving/switching/switch-plan";
-import { COULD_NOT_ASK, MAIN_UNCLEAR, NOT_A_CAMPAIGN_CHARACTER, NOTE_MOVED } from "../../../src/imports/leaving/switching/switch-words";
+import { ALREADY_FALLEN, COULD_NOT_ASK, MAIN_UNCLEAR, NOT_A_CAMPAIGN_CHARACTER, NOTE_MOVED } from "../../../src/imports/leaving/switching/switch-words";
 import { Refusal } from "../../../src/beyond/shape/refusal";
 import { Modal, openedModals } from "../../stubs/obsidian";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
@@ -341,5 +341,87 @@ describe("after an update", () => {
     await new MainOffers(wiring).afterUpdate(SECOND);
     expect(wiring.told).toEqual(["A character's note couldn't be read, so nothing was switched."]);
     expect(lastMainModal()).toBeNull();
+  });
+});
+
+describe("Died on a character's page or card", () => {
+  it("asks What happened to them? of a character who is not the main, with Died and Not now, and writes nothing until Died is pressed", async () => {
+    const table = new LeavingTable();
+    await new MainOffers(new OfferTable(table)).died(SECOND, vi.fn());
+    const modal = shownModal();
+    expect(titleOf(modal)).toBe("Secondary");
+    expect(subjectOf(modal)).toBe("What happened to them?");
+    expect(buttonWords(modal)).toEqual(["Died", "Not now"]);
+    expect(modal.contentEl.querySelector("input")).not.toBeNull();
+    expect(table.vault.writes).toEqual([]);
+  });
+
+  it("marks them, adds what was typed to the snapshot, and moves them to Fallen when Died is pressed", async () => {
+    const table = new LeavingTable();
+    await new MainOffers(new OfferTable(table)).died(SECOND, vi.fn());
+    const modal = shownModal();
+    type(modal, "crossing the ford");
+    press(modal, "Died");
+    await modal.changeSettled();
+    expect(table.vault.textAt(SECOND_FALLEN)).toContain("\nstanding: died\n");
+    expect(table.vault.textAt(SECOND_FALLEN)).toContain("\nLast doing: crossing the ford\n");
+    expect(table.vault.files.has(SECOND)).toBe(false);
+    expect(table.vault.textAt(CAMPAIGN_NOTE)).toBe(CAMPAIGN_TEXT);
+  });
+
+  it("does the same for the main, whose campaign note is left naming them", async () => {
+    const table = new LeavingTable();
+    await new MainOffers(new OfferTable(table)).died(MONK, vi.fn());
+    const modal = shownModal();
+    press(modal, "Died");
+    await modal.changeSettled();
+    expect(table.vault.textAt(MONK_FALLEN)).toContain("\nstanding: died\n");
+    expect(table.vault.textAt(CAMPAIGN_NOTE)).toBe(CAMPAIGN_TEXT);
+  });
+
+  it("writes nothing and returns focus when Not now is pressed", async () => {
+    const table = new LeavingTable();
+    const returnFocus = vi.fn();
+    await new MainOffers(new OfferTable(table)).died(SECOND, returnFocus);
+    press(shownModal(), "Not now");
+    expect(table.vault.writes).toEqual([]);
+    expect(returnFocus).toHaveBeenCalledOnce();
+  });
+
+  it("says the note is gone, or already in Fallen, and asks nothing", async () => {
+    const table = new LeavingTable();
+    const wiring = new OfferTable(table);
+    const returnFocus = vi.fn();
+    await new MainOffers(wiring).died(MONK_FALLEN.replace("Primary Monk", "Brann"), returnFocus);
+    expect(wiring.told).toEqual([NOTE_MOVED]);
+    const fallen = table.vault.note(`${CAMPAIGN}/Fallen/Brann.md`, "---\nstanding: died\n---\n");
+    await new MainOffers(wiring).died(fallen.path, returnFocus);
+    expect(wiring.told).toEqual([NOTE_MOVED, ALREADY_FALLEN]);
+    expect(lastMainModal()).toBeNull();
+    expect(returnFocus).toHaveBeenCalledTimes(2);
+  });
+
+  it("says why and asks nothing when the campaign note's character isn't one clear link", async () => {
+    const table = new LeavingTable();
+    const wiring = new OfferTable(table, new UnclearCast());
+    await new MainOffers(wiring).died(SECOND, vi.fn());
+    expect(wiring.told).toEqual([MAIN_UNCLEAR]);
+    expect(lastMainModal()).toBeNull();
+  });
+
+  it("says a note outside a campaign's Characters folder can't be asked about", async () => {
+    const table = new LeavingTable();
+    const loose = table.vault.note(`${CAMPAIGN}/Characters/Old/Loose.md`, "");
+    const wiring = new OfferTable(table);
+    await new MainOffers(wiring).died(loose.path, vi.fn());
+    expect(wiring.told).toEqual([NOT_A_CAMPAIGN_CHARACTER]);
+  });
+
+  it("says what went wrong in plain words, and returns focus, when something unexpected is thrown", async () => {
+    const wiring = new OfferTable(new LeavingTable(), new BrokenCast());
+    const returnFocus = vi.fn();
+    await new MainOffers(wiring).died(SECOND, returnFocus);
+    expect(wiring.told).toEqual([COULD_NOT_ASK]);
+    expect(returnFocus).toHaveBeenCalledOnce();
   });
 });

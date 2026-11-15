@@ -15,6 +15,9 @@ export function notKnownCharacter(): ImportedCharacter {
     route: ROUTE,
     name: CleanLine.of("Primary Monk"),
     species: CleanLine.of("Human"),
+    size: null,
+    creatureType: null,
+    alignment: null,
     classes: [{ name: CleanLine.of("Monk"), level: missing() }],
     scores: {
       strength: missing(),

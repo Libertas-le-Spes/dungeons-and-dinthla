@@ -19,7 +19,7 @@ export interface FundsSummary {
   ledger: LedgerLine[];
 }
 
-const COIN_ORDER: CoinKind[] = ["pp", "gp", "ep", "sp", "cp"];
+export const COIN_ORDER: CoinKind[] = ["pp", "gp", "ep", "sp", "cp"];
 
 function coinCountsOf(records: CoinRecord[]): CoinCount[] {
   const counts = new Map<CoinKind, number>(COIN_ORDER.map((kind) => [kind, 0]));
@@ -48,4 +48,14 @@ export function summariseFunds(campaign: Campaign): FundsSummary {
     ledger.push({ record, balance });
   }
   return { purse: balance, totalIn, totalOut, coinCounts: coinCountsOf(campaign.coins), ledger: ledger.reverse() };
+}
+
+function countOf(counts: readonly CoinCount[], kind: CoinKind): number {
+  return counts.filter((coin) => coin.kind === kind).reduce((total, coin) => total + coin.count, 0);
+}
+
+export function withBase(summary: FundsSummary, base: readonly CoinCount[]): FundsSummary {
+  const coinCounts = COIN_ORDER.map((kind) => ({ kind, count: countOf(base, kind) + countOf(summary.coinCounts, kind) })).filter((coin) => coin.count !== 0);
+  const copper = base.reduce((total, { kind, count }) => total + copperOf({ kind, count, moneyOut: false }), 0);
+  return { ...summary, purse: summary.purse + copper, totalIn: summary.totalIn + copper, coinCounts };
 }

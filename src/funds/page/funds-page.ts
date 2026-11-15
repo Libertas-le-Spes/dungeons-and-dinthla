@@ -10,7 +10,10 @@ import { THE_PARTY_LABEL, type ItemSummary } from "../items/item-groups";
 import { NO_COIN_ENTRIES } from "./ledger-row";
 import { LedgerBox, type LedgerBoxParts } from "./ledger-box";
 import { PurseBox } from "./purse-box";
-import { whoseFunds } from "./whose-funds";
+import { whoseFunds, type WhoseFundsParts } from "./whose-funds";
+import type { OwnSheet } from "../purses/own-characters";
+import { minePurseOf } from "../purses/mine-purse";
+import { PendingWork } from "../../views/pending/pending-work";
 import type { OpenLedgerEntry } from "../coins/open-ledger-entry";
 import { makeScrollList } from "../../views/lists/scroll-list";
 import { Tabs } from "../../views/tabs/tabs";
@@ -77,12 +80,9 @@ export interface ShownItem {
 
 export type FundsStore = Pick<CampaignStore, "current" | "subscribe">;
 
-export interface PursesBeside {
-  panel(panelEl: HTMLElement): Component;
-}
-
 export interface OwnCharactersBeside {
   names(): string[];
+  sheets(): Promise<OwnSheet[]>;
   subscribe(changed: () => void): () => void;
 }
 
@@ -95,7 +95,6 @@ export interface FundsPageParts {
   openLedgerEntry: OpenLedgerEntry | null;
   openItem: ((name: string, source: Source, onClosed: (changed: boolean) => void) => void) | null;
   shownItem: ShownItem | null;
-  pursesBeside: PursesBeside | null;
   ownCharacters: OwnCharactersBeside;
 }
 
@@ -115,7 +114,6 @@ function rowNamed({ panel, name }: { panel: HTMLElement; name: string }): HTMLEl
 export class FundsPage extends Component {
   private readonly tabs: Tabs;
   private readonly shownPanel: Component | null;
-  private readonly pursePanel: Component | null;
   private readonly minePurse: PurseBox;
   private readonly partyPurse: PurseBox;
   private readonly mineItems: HTMLElement;
@@ -123,6 +121,9 @@ export class FundsPage extends Component {
   private readonly mineLedger: LedgerBox;
   private readonly partyLedger: LedgerBox;
   private readonly rowFocus = new RowFocus();
+  private readonly reading = new PendingWork();
+  private sheets: OwnSheet[] | null = null;
+  private reads = 0;
 
   constructor(private readonly parts: FundsPageParts) {
     super();
@@ -131,7 +132,6 @@ export class FundsPage extends Component {
     root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-funds");
     this.shownPanel = this.shownPanelOf(root);
     this.tabs = new Tabs({ parent: root, label: "Funds", first: MINE, second: PARTY });
-    this.pursePanel = this.pursePanelOf(this.tabs.firstPanel);
     this.minePurse = new PurseBox({ panel: this.tabs.firstPanel.createEl("section", { cls: "dd-panel dd-purse-panel" }), title: MINE_PURSE_TITLE });
     this.mineItems = this.tabs.firstPanel.createEl("section", { cls: "dd-panel dd-items-panel" });
     this.partyPurse = new PurseBox({ panel: this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-purse-panel" }), title: PARTY_PURSE_TITLE });
@@ -146,9 +146,35 @@ export class FundsPage extends Component {
     this.addChild(this.tabs);
     this.addChild(this.mineLedger);
     this.addChild(this.partyLedger);
-    if (this.pursePanel !== null) this.addChild(this.pursePanel);
     this.register(this.parts.store.subscribe(() => this.render()));
-    this.register(this.parts.ownCharacters.subscribe(() => this.render()));
+    this.register(this.parts.ownCharacters.subscribe(this.ownCharactersChanged.bind(this)));
+    this.render();
+    this.readSheets();
+  }
+
+  override onunload(): void {
+    this.reads += 1;
+  }
+
+  rendered(): Promise<void> {
+    return this.reading.settled();
+  }
+
+  private ownCharactersChanged(): void {
+    this.render();
+    this.readSheets();
+  }
+
+  private readSheets(): void {
+    this.reading.add(this.readSheetsNow());
+  }
+
+  private async readSheetsNow(): Promise<void> {
+    this.reads += 1;
+    const read = this.reads;
+    const sheets = await this.parts.ownCharacters.sheets();
+    if (read !== this.reads) return;
+    this.sheets = sheets;
     this.render();
   }
 
@@ -160,11 +186,6 @@ export class FundsPage extends Component {
   private shownPanelOf(root: HTMLElement): Component | null {
     if (this.parts.shownItem === null) return null;
     return this.parts.shownItem.panel(root.createEl("section", { cls: "dd-panel dd-shown-item" }));
-  }
-
-  private pursePanelOf(panel: HTMLElement): Component | null {
-    if (this.parts.pursesBeside === null) return null;
-    return this.parts.pursesBeside.panel(panel.createEl("section", { cls: "dd-panel dd-own-purse-panel" }));
   }
 
   private isShown(item: ItemRecord): boolean {
@@ -186,13 +207,18 @@ export class FundsPage extends Component {
     const funds = whoseFunds({ campaign, ownNames });
     const items = whoseItems({ campaign, ownNames });
     const ledger = [...funds.mine.ledger, ...funds.party.ledger];
-    this.minePurse.render({ summary: funds.mine, empty: whenOwn({ ownNames, text: NO_OWN_COIN }) });
+    this.renderMinePurse({ campaign, ownNames });
     this.partyPurse.render({ summary: funds.party, empty: NO_COIN_YET });
     this.renderItems({ panel: this.mineItems, summary: items.mine, ledger, empty: whenOwn({ ownNames, text: NO_OWN_ITEMS }), label: "Items that are yours" });
     this.renderItems({ panel: this.partyItems, summary: items.party, ledger, empty: NO_ITEMS, label: "Items of the party" });
     this.mineLedger.render({ lines: funds.mine.ledger, empty: whenOwn({ ownNames, text: NO_OWN_COIN }) });
     this.partyLedger.render({ lines: funds.party.ledger, empty: NO_COIN_ENTRIES });
     this.rowFocus.afterRender();
+  }
+
+  private renderMinePurse({ campaign, ownNames }: Pick<WhoseFundsParts, "campaign" | "ownNames">): void {
+    if (this.sheets === null) return;
+    this.minePurse.render({ summary: minePurseOf({ campaign, sheets: this.sheets }), empty: whenOwn({ ownNames, text: NO_OWN_COIN }) });
   }
 
   private renderItems({ panel, summary, ledger, empty, label }: ItemsPanelParts): void {

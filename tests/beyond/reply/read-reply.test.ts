@@ -46,6 +46,17 @@ afterEach(() => {
 });
 
 describe("readReply", () => {
+  it("reads the size, creature type and alignment the reply gives", () => {
+    const whole = clean().with(["alignmentId"], 2).with(["race", "creatureTypeId"], 11).wholeText();
+    const { character } = readReply(whole);
+    expect([character.size?.text, character.creatureType?.text, character.alignment?.text]).toEqual(["Medium", "Humanoid", "Neutral good"]);
+  });
+
+  it("leaves out what the reply does not give", () => {
+    const { character } = readReply(clean().without(["race", "sizeId"]).wholeText());
+    expect([character.size, character.creatureType, character.alignment]).toEqual([null, null, null]);
+  });
+
   it("reads a whole reply into the checked shape", () => {
     const { id, character } = readReply(clean().wholeText());
     expect(id).toBe(4242);

@@ -27,7 +27,7 @@ export class PurseBox {
     panel.createDiv({ cls: "dd-purse", text: formatMoney(summary.purse) });
     const coins = panel.createDiv({ cls: "dd-coins" });
     const chips = summary.coinCounts.map(coinText);
-    if (summary.ledger.length === 0) {
+    if (summary.ledger.length === 0 && chips.length === 0) {
       coins.createSpan({ cls: "dd-empty", text: empty });
     } else if (chips.join(" ") !== formatMoney(summary.purse)) {
       coins.createSpan({ cls: "dd-coins-label", text: "In coins:" });

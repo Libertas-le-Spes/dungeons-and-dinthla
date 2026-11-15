@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { importedFactsOf } from "../../../src/characters/imported/reading/imported-facts";
 import type { ImportedFact } from "../../../src/characters/imported/reading/imported-fact";
 import { importedNoteText } from "../../../src/imports/note/writing/rewriting/imported-note";
-import { monkSheet, sheetWithCharacter, TODAY } from "../../imports/builders/made-up-import";
+import { monkSheet, sheetWithCharacter, TODAY , stampedOn } from "../../imports/builders/made-up-import";
 import { CleanLine } from "../../../src/beyond/text/clean-line";
 import { textOf } from "../../imports/builders/line-helpers";
 
@@ -24,7 +24,7 @@ function namesOf(facts: readonly ImportedFact[]): string[] {
 
 describe("the values an import wrote into a note", () => {
   it("are read from the properties of a note the import wrote, with the PDF's route", () => {
-    const facts = importedFactsOf(importedNoteText("", monkSheet(), TODAY), PATH);
+    const facts = importedFactsOf(importedNoteText({ current: "", sheet: monkSheet(), stamp: stampedOn(TODAY) }), PATH);
     expect(namesOf(facts)).toContain("AC");
     expect(namesOf(facts)).toContain("STR");
     expect(factNamed(facts, "class")).toMatchObject({ value: "Monk 4", route: PRINTED });
@@ -48,7 +48,7 @@ describe("the values an import wrote into a note", () => {
   it("take the quotes and the escapes off a text value, giving back what the import was given", () => {
     const species = 'Sword_dancer [one] "Two" \\ back';
     const sheet = sheetWithCharacter(monkSheet(), { species: CleanLine.of(species) });
-    const written = importedNoteText("", sheet, TODAY);
+    const written = importedNoteText({ current: "", sheet: sheet, stamp: stampedOn(TODAY) });
     expect(written).not.toContain(`species: "${species}"`);
     expect(factNamed(importedFactsOf(written, PATH), "species").value).toBe(species);
   });

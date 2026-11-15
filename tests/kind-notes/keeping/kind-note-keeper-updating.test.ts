@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { FakeNotes } from "../fake-notes";
-import { keeperWith, QUESTIONS, SESSION, settled, wanted } from "../keeper-setup";
+import { CAMPAIGN, FUNDS, keeperWith, QUESTIONS, SESSION, settled, wanted } from "../keeper-setup";
+
+const QUESTS = `${CAMPAIGN}/Quests/Session 2.md`;
 
 const OLD = ["? Who sent [[Lady Vess]]"];
 const NEW = ["? Who sent [[Lady Vess]]", "?= Who sent [[Lady Vess]]: nobody"];
@@ -18,6 +20,18 @@ describe("KindNoteKeeper updating a note", () => {
     keeperWith(notes).keep([wanted(QUESTIONS, session, NEW)]);
     await settled();
     expect(notes.noteAt(QUESTIONS)?.properties?.lines).toEqual(NEW);
+  });
+
+  it("sets the lines of a note an earlier version linked by the short name, though notes of the same number are beside it", async () => {
+    const notes = new FakeNotes();
+    const session = notes.addSession(SESSION);
+    noteWith(notes, { session: "[[Session 2]]", lines: OLD });
+    notes.addNote(FUNDS, { session: "[[Session 2]]", lines: [] }, "");
+    notes.addNote(QUESTS, { session: "[[Session 2]]", lines: [] }, "");
+    keeperWith(notes).keep([wanted(QUESTIONS, session, NEW)]);
+    await settled();
+    expect(notes.noteAt(QUESTIONS)?.properties?.lines).toEqual(NEW);
+    expect(notes.said).toEqual([]);
   });
 
   it("writes nothing when the lines already match", async () => {

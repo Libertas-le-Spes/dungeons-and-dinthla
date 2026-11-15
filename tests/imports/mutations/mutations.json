@@ -226,15 +226,15 @@
  {
   "id": "layout: [IMPORTED_ON_PROPERTY, IMPORTED_FROM_PRO",
   "file": "src/imports/layout/import-properties.ts",
-  "find": "[IMPORTED_ON_PROPERTY, IMPORTED_FROM_PROPERTY, ...SHEET_VALUE_PROPERTIES]",
-  "replace": "[IMPORTED_ON_PROPERTY, ...SHEET_VALUE_PROPERTIES]",
+  "find": "[IMPORTED_ON_PROPERTY, IMPORTED_FROM_PROPERTY, IMPORTED_SESSION_PROPERTY, ...SHEET_VALUE_PROPERTIES]",
+  "replace": "[IMPORTED_ON_PROPERTY, IMPORTED_SESSION_PROPERTY, ...SHEET_VALUE_PROPERTIES]",
   "group": "layout"
  },
  {
   "id": "layout: import list without sheet values",
   "file": "src/imports/layout/import-properties.ts",
-  "find": "[IMPORTED_ON_PROPERTY, IMPORTED_FROM_PROPERTY, ...SHEET_VALUE_PROPERTIES]",
-  "replace": "[IMPORTED_ON_PROPERTY, IMPORTED_FROM_PROPERTY]",
+  "find": "[IMPORTED_ON_PROPERTY, IMPORTED_FROM_PROPERTY, IMPORTED_SESSION_PROPERTY, ...SHEET_VALUE_PROPERTIES]",
+  "replace": "[IMPORTED_ON_PROPERTY, IMPORTED_FROM_PROPERTY, IMPORTED_SESSION_PROPERTY]",
   "group": "layout"
  },
  {
@@ -245,17 +245,17 @@
   "group": "layout"
  },
  {
-  "id": "layout: export const PART_SEPARATOR = \" \u00b7 \";",
+  "id": "layout: export const PART_SEPARATOR = \" · \";",
   "file": "src/imports/layout/section-line-format.ts",
-  "find": "export const PART_SEPARATOR = \" \u00b7 \";",
-  "replace": "export const PART_SEPARATOR = \" \u00b7 x\"; ",
+  "find": "export const PART_SEPARATOR = \" · \";",
+  "replace": "export const PART_SEPARATOR = \" · x\"; ",
   "group": "layout"
  },
  {
-  "id": "layout: export const COUNT_SEPARATOR = \" \u00d7 \";",
+  "id": "layout: export const COUNT_SEPARATOR = \" × \";",
   "file": "src/imports/layout/section-line-format.ts",
-  "find": "export const COUNT_SEPARATOR = \" \u00d7 \";",
-  "replace": "export const COUNT_SEPARATOR = \" \u00d7 x\"; ",
+  "find": "export const COUNT_SEPARATOR = \" × \";",
+  "replace": "export const COUNT_SEPARATOR = \" × x\"; ",
   "group": "layout"
  },
  {
@@ -653,7 +653,7 @@
  {
   "id": "properties: if (!DATE.test(today)) throw new Refusal",
   "file": "src/imports/note/properties/helpers/import-mark-lines.ts",
-  "find": "if (!DATE.test(today)) throw new Refusal(\"The import's date is not a day written as year-month-day.\");",
+  "find": "if (!DATE.test(stamp.today)) throw new Refusal(\"The import's date is not a day written as year-month-day.\");",
   "replace": "",
   "group": "properties"
  },
@@ -681,14 +681,14 @@
  {
   "id": "properties: if (line !== null) lines.push(line);",
   "file": "src/imports/note/properties/property-lines-of.ts",
-  "find": "if (line !== null) lines.push(line);",
+  "find": "const lines = importMarkLinesOf({ route: character.route, stamp });",
   "replace": "lines.push(line!);",
   "group": "properties"
  },
  {
   "id": "properties: const lines = importMarkLinesOf(characte",
   "file": "src/imports/note/properties/property-lines-of.ts",
-  "find": "const lines = importMarkLinesOf(character.route, today);",
+  "find": "const lines = importMarkLinesOf({ route: character.route, stamp });",
   "replace": "const lines: string[] = [];",
   "group": "properties"
  },
@@ -1136,8 +1136,8 @@
  {
   "id": "writing: const text = checkedNewNoteText(sheet, t",
   "file": "src/imports/note/writing/import-writer.ts",
-  "find": "const text = checkedNewNoteText(sheet, today);",
-  "replace": "const text = importedNoteText(\"\", sheet, today);",
+  "find": "const text = checkedNewNoteText(sheet, this.stampOf(today));",
+  "replace": "const text = importedNoteText({ current: \"\", sheet, stamp: this.stampOf(today) });",
   "group": "writing"
  },
  {
@@ -1794,22 +1794,22 @@
  {
   "id": "keys: import-key.ts: if (name === key) return name;",
   "file": "src/imports/note/reading/import-key.ts",
-  "find": "if (name === key) return name;",
-  "replace": "",
+  "find": "throw keyDiffersByCapitals(key, name);",
+  "replace": "return name;",
   "group": "keys"
  },
  {
   "id": "keys: import-key.ts: if (name.toLowerCase() === key.toLowerCase()) thro",
   "file": "src/imports/note/reading/import-key.ts",
-  "find": "if (name.toLowerCase() === key.toLowerCase()) throw keyDiffersByCapitals(key, name);",
-  "replace": "",
+  "find": "throw keyDiffersByCapitals(key, name);",
+  "replace": "return name;",
   "group": "keys"
  },
  {
   "id": "keys: import-key.ts: if (key === null) return null;",
   "file": "src/imports/note/reading/import-key.ts",
-  "find": "if (key === null) return null;",
-  "replace": "",
+  "find": "throw keyDiffersByCapitals(key, name);",
+  "replace": "return name;",
   "group": "keys"
  },
  {
@@ -2074,8 +2074,8 @@
  {
   "id": "writing: import-writer.ts: checkedTextOf(before, sheet, today, shown)",
   "file": "src/imports/note/writing/import-writer.ts",
-  "find": "checkedTextOf(before, sheet, today, shown)",
-  "replace": "checkedTextOf(before, sheet, today, [])",
+  "find": "checkedTextOf({ before, sheet, stamp: this.stampOf(today), shown })",
+  "replace": "checkedTextOf({ before, sheet, stamp: this.stampOf(today), shown: [] })",
   "group": "writing"
  },
  {

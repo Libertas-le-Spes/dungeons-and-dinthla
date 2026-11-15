@@ -8,7 +8,7 @@ import { leftPlayWords } from "../../../../src/campaign/paths/fallen-notes";
 import * as importedNote from "../../../../src/imports/note/writing/rewriting/imported-note";
 import { CAMPAIGN_FOLDER, CHARACTERS_FOLDER, FakeNoteVault } from "../../builders/fake-note-vault";
 import { headingsOf, textOf } from "../../builders/line-helpers";
-import { monkSheet, sheetWithCharacter, TODAY } from "../../builders/made-up-import";
+import { monkSheet, sheetWithCharacter, TODAY , stampedOn } from "../../builders/made-up-import";
 
 const NOTE = `${CHARACTERS_FOLDER}/Primary Monk.md`;
 const INVENTORY = "## Inventory (from D&D Beyond)";
@@ -126,7 +126,7 @@ describe("ImportWriter.update", () => {
 });
 
 describe("ImportWriter.update with text typed inside a plugin section", () => {
-  const earlier = importedNote.importedNoteText("", monkSheet(), "2026-01-02");
+  const earlier = importedNote.importedNoteText({ current: "", sheet: monkSheet(), stamp: stampedOn("2026-01-02") });
   const changed = sheetWithCharacter(monkSheet(), { species: CleanLine.of("Elf") });
 
   async function typedIn(current: string): Promise<readonly TypedText[]> {
@@ -204,6 +204,50 @@ describe("ImportWriter.changesFor", () => {
   it("refuses a note outside the Characters folder", async () => {
     const file = vault.note("D&D/Primary Campaign/Sessions/Session 1.md", "x\n");
     await expect(writer.changesFor(file, monkSheet(), TODAY)).rejects.toThrow("is not a note in the campaign's Characters folder");
+  });
+});
+
+describe("ImportWriter and the session it was imported in", () => {
+  function sessionNote(path: string): void {
+    vault.note(path, "");
+  }
+
+  it("writes the latest session of the campaign into a new note", async () => {
+    sessionNote(`${CAMPAIGN_FOLDER}/Sessions/Session 2.md`);
+    sessionNote(`${CAMPAIGN_FOLDER}/Sessions/Session 10.md`);
+    sessionNote(`${CAMPAIGN_FOLDER}/Sessions/Session 3.md`);
+    await writer.create(monkSheet(), TODAY);
+    expect(vault.textAt(NOTE)).toContain("imported-session: 10\n");
+  });
+
+  it("writes 0 when the campaign has no session", async () => {
+    await writer.create(monkSheet(), TODAY);
+    expect(vault.textAt(NOTE)).toContain("imported-session: 0\n");
+  });
+
+  it("counts only the sessions of its own campaign", async () => {
+    sessionNote(`${CAMPAIGN_FOLDER}/Sessions/Session 2.md`);
+    sessionNote(`${CAMPAIGN_FOLDER}/Questions/Session 8.md`);
+    sessionNote("D&D/Other Campaign/Sessions/Session 9.md");
+    await writer.create(monkSheet(), TODAY);
+    expect(vault.textAt(NOTE)).toContain("imported-session: 2\n");
+  });
+
+  it("moves it to the latest session when the note is updated after more sessions, with nothing else changed", async () => {
+    sessionNote(`${CAMPAIGN_FOLDER}/Sessions/Session 3.md`);
+    const file = await writer.create(monkSheet(), TODAY);
+    sessionNote(`${CAMPAIGN_FOLDER}/Sessions/Session 5.md`);
+    await writer.update(file, monkSheet(), TODAY, NONE);
+    expect(vault.textAt(NOTE)).toContain("imported-session: 5\n");
+    expect(vault.textAt(NOTE)).not.toContain("imported-session: 3");
+  });
+
+  it("shows the move among the changes", async () => {
+    sessionNote(`${CAMPAIGN_FOLDER}/Sessions/Session 3.md`);
+    const file = await writer.create(monkSheet(), TODAY);
+    sessionNote(`${CAMPAIGN_FOLDER}/Sessions/Session 4.md`);
+    const changes = await writer.changesFor(file, monkSheet(), TODAY);
+    expect(changes.properties).toEqual([{ name: "imported-session", before: "3", after: "4" }]);
   });
 });
 

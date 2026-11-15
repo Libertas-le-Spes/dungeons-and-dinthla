@@ -1,9 +1,9 @@
 import type { TFile } from "obsidian";
-import type { OwnPurseNotes } from "../../../src/funds/purses/own-purses";
+import type { OwnCharacterNotes } from "../../../src/funds/purses/own-characters";
 import { madeUpFile } from "../../characters/imported/builders/made-up-file";
 import { HeldCalls } from "../../stubs/held-calls";
 
-export class FakePurseNotes implements OwnPurseNotes {
+export class FakeOwnCharacterNotes implements OwnCharacterNotes {
   readonly reads: string[] = [];
   readonly foldersAsked: string[] = [];
   private readonly listeners: ((path: string) => void)[] = [];
@@ -17,9 +17,17 @@ export class FakePurseNotes implements OwnPurseNotes {
 
   filesIn(campaignFolder: string): TFile[] {
     this.foldersAsked.push(campaignFolder);
+    return this.under(`${campaignFolder}/`).filter((file) => !file.path.startsWith(`${campaignFolder}/Fallen/`));
+  }
+
+  fallenFilesIn(campaignFolder: string): TFile[] {
+    return this.under(`${campaignFolder}/Fallen/`);
+  }
+
+  private under(folder: string): TFile[] {
     const files: TFile[] = [];
     for (const path of this.texts.keys()) {
-      if (path.startsWith(`${campaignFolder}/`)) files.push(madeUpFile(path));
+      if (path.startsWith(folder)) files.push(madeUpFile(path));
     }
     return files;
   }

@@ -4,11 +4,19 @@ import { changesNothing, importChangesOf, type TypedText } from "../changes/impo
 import { sameTypedText } from "../changes/same-typed-text";
 import { refuseUnlessOnlyTheImportChanged } from "./guarding/read-back";
 import { changedSinceRead, typedTextNotShown } from "./guarding/refusals";
+import type { ImportStamp } from "../properties/import-stamp";
 import { importedNoteText } from "./rewriting/imported-note";
 import type { NoteFiles } from "./note-files";
 
-export function checkedTextOf(before: string, sheet: PrintedSheet, today: string, shown: readonly TypedText[]): string {
-  const after = importedNoteText(before, sheet, today);
+export interface CheckedText {
+  before: string;
+  sheet: PrintedSheet;
+  stamp: ImportStamp;
+  shown: readonly TypedText[];
+}
+
+export function checkedTextOf({ before, sheet, stamp, shown }: CheckedText): string {
+  const after = importedNoteText({ current: before, sheet, stamp });
   refuseUnlessOnlyTheImportChanged(before, after);
   const changes = importChangesOf(before, after);
   if (!sameTypedText(shown, changes.typed)) throw typedTextNotShown();
@@ -26,6 +34,6 @@ export async function writeWhenUnchangedSinceRead(files: NoteFiles, file: TFile,
   if (refusal !== null) throw refusal;
 }
 
-export function checkedNewNoteText(sheet: PrintedSheet, today: string): string {
-  return checkedTextOf("", sheet, today, []);
+export function checkedNewNoteText(sheet: PrintedSheet, stamp: ImportStamp): string {
+  return checkedTextOf({ before: "", sheet, stamp, shown: [] });
 }

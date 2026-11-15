@@ -4,6 +4,7 @@ import type { Source } from "../../campaign/record/campaign";
 import { campaignFolderOf, charactersFolderOf } from "../../campaign/paths/campaign-folders";
 import { sessionLabelOf } from "../../campaign/paths/session-file";
 import type { LinkActions } from "../../views/lists/linked-text";
+import { FocusAfter } from "../../views/lists/focus-after";
 import { PENDING_FOCUS_MS } from "../../views/lists/row-focus";
 import { NOT_KNOWN, shownValuesOf, type CharacterSheet, type SheetValue, type ValueState } from "../reading/character-sheet";
 import { messageOf } from "../../views/dialogs/message-of";
@@ -16,6 +17,7 @@ import { fillStatBlock } from "../cards/stat-block";
 import { PendingWork } from "../../views/pending/pending-work";
 import { addImportedLines } from "../imported/drawing/imported-lines";
 import { isCharacterNotePath } from "../../campaign/paths/character-note-path";
+import { addDiedButton } from "../cards/died-button";
 import { addUpdateButton } from "../imported/drawing/update-button";
 import { addImportedPanels } from "../imported/panels/imported-panels";
 import type { ItemTracking } from "../imported/tracking/item-tracking";
@@ -33,6 +35,7 @@ export const STATE_WORDS: Record<ValueState, string> = {
 export interface SheetActions extends LinkActions {
   editCharacter(file: TFile): void;
   updateFromBeyond(file: TFile, returnFocus: () => void): void;
+  died(path: string, returnFocus: () => void): void;
   chooseValue(file: TFile, value: SheetValue, onClosed: () => void): void;
   readonly tracking: ItemTracking;
 }
@@ -63,6 +66,7 @@ export class CharacterSheetPage extends Component {
   private renders = 0;
   private watched: string[] = [];
   private pendingFocus: { name: string; until: number } | null = null;
+  private readonly focusEdit = new FocusAfter();
   private readonly drawing = new PendingWork();
   private readonly mentions: MentionsPanel;
 
@@ -158,7 +162,11 @@ export class CharacterSheetPage extends Component {
     const actions = head.createDiv({ cls: "dd-head-actions" });
     const edit = actions.createEl("button", { cls: "dd-create", text: "Edit character" });
     edit.addEventListener("click", () => this.actions.editCharacter(file));
-    if (this.isUpdatable(file, read.campaignFolder)) addUpdateButton(actions, file, this.actions);
+    if (this.focusEdit.isArmed()) edit.focus();
+    if (this.isUpdatable(file, read.campaignFolder)) {
+      addUpdateButton(actions, file, this.actions);
+      addDiedButton({ parent: actions, path: file.path, action: this.actions, focus: this.focusEdit });
+    }
     const subtitle = sheet.values.find((value) => value.name === "subtitle");
     if (subtitle !== undefined && subtitle.state !== "unknown") root.createEl("p", { cls: "dd-sheet-subtitle", text: shownTextOf(subtitle) });
     const abilities = root.createDiv({ cls: "dd-sheet-abilities" });

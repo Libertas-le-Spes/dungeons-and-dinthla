@@ -4,8 +4,13 @@ import type { PrintedSheet } from "../../../src/beyond/sheet/printed-sheet";
 import { MadeUpSheet } from "../../beyond/builders/made-up-sheet";
 import { printedOf } from "../../beyond/builders/sheet-reading";
 import { PRINTED } from "../../../src/beyond/sheet/printed-route";
+import type { ImportStamp } from "../../../src/imports/note/properties/import-stamp";
 
 export const TODAY = "2026-11-13";
+
+export function stampedOn(today: string): ImportStamp {
+  return { today, session: 0 };
+}
 
 export function monkSheet(): PrintedSheet {
   return printedOf(MadeUpSheet.monk());

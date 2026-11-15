@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TFile } from "obsidian";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
+import type { CharacterCreators } from "../../../src/characters/pages/character-creators";
 import { CastPage } from "../../../src/characters/pages/cast-page";
 import type { CastNotes } from "../../../src/characters/reading/character-notes";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
@@ -49,7 +50,8 @@ function openCast({ folder = "Pale Moon" as string | null, characters = ["Mira",
     return stopWatchingFiles;
   };
   const root = obsidianDocument().createElement("div");
-  const page = new CastPage(root, store as unknown as CampaignStore, notes, { openRow: vi.fn(), openLink: vi.fn() }, { newCharacter: vi.fn(), importCharacter: vi.fn(), makeMain: vi.fn() }, watchFiles);
+  const creators: CharacterCreators = { newCharacter: vi.fn(), importCharacter: vi.fn(), makeMain: vi.fn(), died: vi.fn() };
+  const page = new CastPage(root, store as unknown as CampaignStore, notes, { openRow: vi.fn(), openLink: vi.fn() }, creators, watchFiles);
   page.load();
   return {
     root,

@@ -32,6 +32,21 @@ describe("who the sheet says the character is", () => {
     expect([character.name.text, character.species.text]).toEqual(["Primary Monk", "Human"]);
   });
 
+  it("is the printed size and alignment, and no creature type, which the form has no field for", () => {
+    const character = readOf(MadeUpSheet.monk().with("SIZE", "Small").with("ALIGNMENT", "Lawful Neutral"));
+    expect([character.size?.text, character.alignment?.text, character.creatureType]).toEqual(["Small", "Lawful Neutral", null]);
+  });
+
+  it.each(["SIZE", "ALIGNMENT"])("has nothing for %j when it is missing, blank, of the wrong kind or unreadable", (field) => {
+    for (const printed of [undefined, "", "  ", true, "<b></b>", "two\nlines"]) {
+      const sheet = MadeUpSheet.monk();
+      if (printed === undefined) sheet.without(field);
+      else sheet.with(field, printed);
+      const character = readOf(sheet);
+      expect([character.size, character.alignment].filter((line) => line === null)).toHaveLength(1);
+    }
+  });
+
   it.each(["CharacterName", "RACE", "CLASS  LEVEL"])("is refused when %j is missing", (field) => {
     expect(() => readOf(MadeUpSheet.monk().without(field))).toThrow(Refusal);
   });

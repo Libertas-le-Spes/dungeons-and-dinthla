@@ -20,6 +20,8 @@ export function questionAbout(oldName: string): string {
   return `${oldName} is your character now. What happened to them?`;
 }
 
+export const WHAT_HAPPENED = "What happened to them?";
+
 export const NO_MAIN_YET = "No character is yours in this campaign yet.";
 
 export function leftButUnfinished(oldName: string): string {

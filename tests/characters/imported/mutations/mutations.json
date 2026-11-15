@@ -273,62 +273,6 @@
   "group": "purse"
  },
  {
-  "id": "own purse: only his own characters",
-  "file": "src/funds/purses/own-purses.ts",
-  "find": "    if (notes.isOwnCharacter(file) === false) continue;\n",
-  "replace": "",
-  "group": "purse"
- },
- {
-  "id": "own purse: only imported notes",
-  "file": "src/funds/purses/own-purses.ts",
-  "find": "  if (coins === null) return null;\n",
-  "replace": "  if (coins === null) return { name: file.basename, coins: [] };\n",
-  "group": "purse"
- },
- {
-  "id": "own purse: redraw only for character notes",
-  "file": "src/funds/purses/own-purse-panel.ts",
-  "find": "if (readsPurseFrom(folder, path)) this.refresh();",
-  "replace": "this.refresh();",
-  "group": "purse"
- },
- {
-  "id": "own purse: hidden when none",
-  "file": "src/funds/purses/own-purse-panel.ts",
-  "find": "this.panelEl.toggle(purses.length > 0);",
-  "replace": "this.panelEl.toggle(true);",
-  "group": "purse"
- },
- {
-  "id": "own purse: none without a campaign",
-  "file": "src/funds/purses/own-purse-panel.ts",
-  "find": "    if (folder === null) {\n      this.draw([]);\n      return;\n    }\n    try",
-  "replace": "    try",
-  "group": "purse"
- },
- {
-  "id": "own purse: errors in words",
-  "file": "src/funds/purses/own-purse-panel.ts",
-  "find": "      if (render === this.renders) this.drawError();",
-  "replace": "      if (render === this.renders) this.draw([]);",
-  "group": "purse"
- },
- {
-  "id": "funds page: purse beside the party's",
-  "file": "src/funds/page/funds-page.ts",
-  "find": "    this.addPursesBeside(root);\n",
-  "replace": "",
-  "group": "purse"
- },
- {
-  "id": "funds section: his purse wired",
-  "file": "src/interface/sections/funds-section.ts",
-  "find": "      new OwnPurses(needs),\n",
-  "replace": "      null,\n",
-  "group": "purse"
- },
- {
   "id": "look: standing by key",
   "file": "src/funds/tracking/items-look.ts",
   "find": "      if (item.gone === null && storedItemKeyOf(item.name) === key) return item;",
@@ -488,34 +432,6 @@
   "find": "    if (item.gone === null && storedItemKeyOf(item.name) === key) return true;",
   "replace": "    if (item.gone === null && item.name === key) return true;",
   "group": "tracking"
- },
- {
-  "id": "own purse: stale reading drawn",
-  "file": "src/funds/purses/own-purse-panel.ts",
-  "find": "      if (render === this.renders) this.draw(purses);",
-  "replace": "      this.draw(purses);",
-  "group": "purse"
- },
- {
-  "id": "own purse: error panel stays hidden",
-  "file": "src/funds/purses/own-purse-panel.ts",
-  "find": "    this.panelEl.empty();\n    this.panelEl.toggle(true);\n",
-  "replace": "    this.panelEl.empty();\n",
-  "group": "purse"
- },
- {
-  "id": "own purse: unload drops nothing",
-  "file": "src/funds/purses/own-purse-panel.ts",
-  "find": "  override onunload(): void {\n    this.renders += 1;\n",
-  "replace": "  override onunload(): void {\n",
-  "group": "purse"
- },
- {
-  "id": "own purse: campaign note ignored",
-  "file": "src/funds/purses/own-purse-panel.ts",
-  "find": "  return path === mainNotePathOf(folder) || isInReferenceFolder",
-  "replace": "  return isInReferenceFolder",
-  "group": "purse"
  },
  {
   "id": "settle: other campaign let through",
