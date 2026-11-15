@@ -22,11 +22,7 @@ function sourcesOf(data: JsonReader): readonly ModifierSource[] {
 }
 
 function modifiersFrom(lists: JsonReader, source: ModifierSource): readonly RuleModifier[] {
-  return lists
-    .listAt(source.key, MODIFIER_COUNT)
-    .filter(namesASubType)
-    .filter((entry) => source.keeps(entry))
-    .map((entry) => source.modifierOf(entry));
+  return source.modifiersOf(lists.listAt(source.key, MODIFIER_COUNT).filter(namesASubType));
 }
 
 export function ruleModifiersOf(data: JsonReader): readonly RuleModifier[] {

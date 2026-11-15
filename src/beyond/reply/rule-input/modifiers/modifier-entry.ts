@@ -20,7 +20,14 @@ function abilityOf(entry: JsonReader): string {
   return found.ability.short;
 }
 
-export function modifierEntryOf(entry: JsonReader, sourceName: CleanLine, inForce: boolean): RuleModifier {
+export interface ModifierEntry {
+  readonly entry: JsonReader;
+  readonly sourceName: CleanLine;
+  readonly inForce: boolean;
+}
+
+export function modifierEntryOf(read: ModifierEntry): RuleModifier {
+  const { entry, sourceName, inForce } = read;
   return {
     type: entry.textAt("type"),
     subType: CleanLine.of(entry.textAt("subType")),

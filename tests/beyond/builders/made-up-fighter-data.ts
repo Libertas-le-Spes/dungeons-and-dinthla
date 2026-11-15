@@ -1,7 +1,15 @@
 import type { Node } from "./made-up-data";
 
-function entryOf(name: string, id: number, armorTypeId: number, armorClass: number, strengthRequirement: number | null): Node {
-  return { quantity: 1, equipped: true, isAttuned: false, definition: { id, name, canAttune: false, armorTypeId, armorClass, strengthRequirement } };
+interface WornFields {
+  readonly name: string;
+  readonly id: number;
+  readonly armorTypeId: number;
+  readonly armorClass: number;
+  readonly strengthRequirement: number | null;
+}
+
+function entryOf(fields: WornFields): Node {
+  return { quantity: 1, equipped: true, isAttuned: false, definition: { ...fields, canAttune: false } };
 }
 
 function modifierOf(subType: string, componentId: number): Node {
@@ -31,7 +39,7 @@ export function madeUpFighterData(): Node {
     overrideHitPoints: null,
     removedHitPoints: 5,
     temporaryHitPoints: 0,
-    inventory: [entryOf("Chain Mail", 20, 3, 16, 13), entryOf("Shield", 21, 4, 2, null)],
+    inventory: [entryOf({ name: "Chain Mail", id: 20, armorTypeId: 3, armorClass: 16, strengthRequirement: 13 }), entryOf({ name: "Shield", id: 21, armorTypeId: 4, armorClass: 2, strengthRequirement: null })],
     currencies: { cp: 0, sp: 0, ep: 0, gp: 10, pp: 0 },
     spells: { race: null, class: null, background: null, item: null, feat: null },
     classSpells: [],

@@ -17,12 +17,25 @@ function named(name: string, quantity: number): Node {
   return { quantity, equipped: false, isAttuned: false, definition: { id: 0, name, canAttune: false, armorTypeId: null, armorClass: null, strengthRequirement: null } };
 }
 
-function featureOf(id: number, name: string, requiredLevel: number): Node {
-  return { definition: { id, name, requiredLevel } };
+interface FeatureFields {
+  readonly id: number;
+  readonly name: string;
+  readonly requiredLevel: number;
 }
 
-function modifierOf(type: string, subType: string, componentId: number, value: number | null): Node {
-  return { type, subType, value, restriction: "", requiresAttunement: false, componentId };
+function featureOf(fields: FeatureFields): Node {
+  return { definition: fields };
+}
+
+interface ModifierFields {
+  readonly type: string;
+  readonly subType: string;
+  readonly componentId: number;
+  readonly value: number | null;
+}
+
+function modifierOf(fields: ModifierFields): Node {
+  return { ...fields, restriction: "", requiresAttunement: false };
 }
 
 function definedAs(name: string): Node {
@@ -41,7 +54,7 @@ export function madeUpData(): Node {
         isStartingClass: true,
         subclassDefinition: null,
         definition: { name: "Monk", hitDice: 8 },
-        classFeatures: [featureOf(900, "Unarmored Defense", 1), featureOf(901, "Unarmored Movement", 2)],
+        classFeatures: [featureOf({ id: 900, name: "Unarmored Defense", requiredLevel: 1 }), featureOf({ id: 901, name: "Unarmored Movement", requiredLevel: 2 })],
       },
     ],
     stats: scoreEntries(10, 16, 12, 8, 14, 10),
@@ -61,10 +74,10 @@ export function madeUpData(): Node {
     customSpeeds: [],
     modifiers: {
       race: [],
-      class: [{ ...modifierOf("set", "unarmored-armor-class", 900, null), statId: 5 }, modifierOf("proficiency", "dexterity-saving-throws", 900, null), modifierOf("proficiency", "acrobatics", 900, null)],
-      background: [modifierOf("proficiency", "insight", 800, null)],
+      class: [{ ...modifierOf({ type: "set", subType: "unarmored-armor-class", componentId: 900, value: null }), statId: 5 }, modifierOf({ type: "proficiency", subType: "dexterity-saving-throws", componentId: 900, value: null }), modifierOf({ type: "proficiency", subType: "acrobatics", componentId: 900, value: null })],
+      background: [modifierOf({ type: "proficiency", subType: "insight", componentId: 800, value: null })],
       item: [],
-      feat: [modifierOf("bonus", "intelligence-score", 700, 1)],
+      feat: [modifierOf({ type: "bonus", subType: "intelligence-score", componentId: 700, value: 1 })],
       condition: [],
     },
     notes: { backstory: BACKSTORY_MARKER, allies: "Secondary Monk", enemies: "", organizations: "", otherHoldings: "", otherNotes: "", personalPossessions: "" },

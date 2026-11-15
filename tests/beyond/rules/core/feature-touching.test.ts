@@ -6,7 +6,7 @@ import { numberNamed } from "../../builders/rule-numbers";
 const AC_FEATURES = ["Medium Armor Master", "Dual Wielder", "Bladesong"];
 const AC_SPECIES = ["Autognome", "Lizardfolk", "Locathah", "Loxodon", "Simic Hybrid", "Thri-kreen", "Tortle", "Warforged"];
 const INITIATIVE_FEATURES = ["Alert", "Rakish Audacity", "Dread Ambusher", "Tactical Wit"];
-const SPEED_FEATURES = ["Mobile", "Fast Movement", "Unarmored Movement"];
+const SPEED_FEATURES = ["Mobile", "Fast Movement", "Unarmored Movement", "Speedy", "Squat Nimbleness"];
 
 describe("FeatureTouching", () => {
   const touching = new FeatureTouching(["Alert", "Tortle", "Artificer"], "changes it");

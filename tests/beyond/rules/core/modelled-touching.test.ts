@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
+import type { Edition } from "../../../../src/beyond/rules/input/edition";
 import { classOf, madeUpRuleCharacter, modifierOf } from "../../builders/made-up-rule-character";
 import { numberNamed } from "../../builders/rule-numbers";
+
+const UNSETTLED_EDITIONS: Edition[] = ["2014", "not stated"];
 
 describe("Remarkable Athlete", () => {
   it("changes no skill and no initiative in the 2024 rules, where it gives only advantage", () => {
@@ -8,7 +11,7 @@ describe("Remarkable Athlete", () => {
     expect([numberNamed(character, "Athletics").isKnown, numberNamed(character, "Initiative").isKnown]).toEqual([true, true]);
   });
 
-  it.each(["2014", "not stated"] as const)("makes every skill and initiative not known in the %s rules", (edition) => {
+  it.each(UNSETTLED_EDITIONS)("makes every skill and initiative not known in the %s rules", (edition) => {
     const character = madeUpRuleCharacter({ features: ["Remarkable Athlete"], edition });
     expect([numberNamed(character, "Athletics").isKnown, numberNamed(character, "Initiative").isKnown]).toEqual([false, false]);
   });

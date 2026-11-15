@@ -4,6 +4,7 @@ import { styleNetworkCodeIn } from "./style-network-code.ts";
 export interface FileChecker {
   ending: string;
   networkCodeIn: (text: string) => string[];
+  allowed: string;
 }
 
 export interface CheckNeeds {
@@ -15,8 +16,8 @@ export interface CheckNeeds {
 export const NO_FILES = "Name the files to check, such as: node scripts/check-no-network.ts main.js styles.css";
 
 const CHECKERS: FileChecker[] = [
-  { ending: ".js", networkCodeIn },
-  { ending: ".css", networkCodeIn: styleNetworkCodeIn },
+  { ending: ".js", networkCodeIn, allowed: " (the plugin's one D&D Beyond call is the only network use)" },
+  { ending: ".css", networkCodeIn: styleNetworkCodeIn, allowed: "" },
 ];
 
 function checkerFor(path: string): FileChecker | undefined {
@@ -31,7 +32,7 @@ function foundIn(path: string, needs: CheckNeeds): string[] {
   }
   const found = checker.networkCodeIn(needs.read(path));
   for (const name of found) needs.failed(`${path} holds network code: ${name}`);
-  if (found.length === 0) needs.said(`${path} holds no network code beyond what is allowed, which is the plugin's one D&D Beyond call.`);
+  if (found.length === 0) needs.said(`${path} holds no network code beyond what is allowed${checker.allowed}.`);
   return found;
 }
 

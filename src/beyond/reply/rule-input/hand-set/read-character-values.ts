@@ -53,12 +53,16 @@ function numberOf(found: Found): ImportedNumber {
   return { name: found.known.name, value: numberInRange(found.value, found.known.range, working, ONLINE) };
 }
 
+function holdsAValue(entry: JsonReader): boolean {
+  return !entry.holdsNothingAt("value");
+}
+
 function isFound(found: Found | undefined): found is Found {
   return found !== undefined;
 }
 
 export function characterValuesOf(data: JsonReader): CharacterValues {
-  const founds = data.listAtOrEmpty("characterValues", CHARACTER_VALUE_COUNT).map(foundIn);
+  const founds = data.listAtOrEmpty("characterValues", CHARACTER_VALUE_COUNT).filter(holdsAValue).map(foundIn);
   const unread = founds.some((found) => found === undefined);
   return { setByHand: founds.filter(isFound).map(numberOf), blankets: unreadBlankets(unread) };
 }

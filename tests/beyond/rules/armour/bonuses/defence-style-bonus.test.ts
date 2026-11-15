@@ -32,10 +32,10 @@ describe("DefenceStyleBonus and D&D Beyond's own modifier for it", () => {
   });
 
   it.each([
-    ["not in force", { inForce: false }, 17],
-    ["on another sub-type", { subType: CleanLine.of("speed") }, 17],
-    ["from another source", { sourceName: CleanLine.of("Pale Charm") }, 18],
-  ])("still adds the bonus from the feature when the modifier is %s", (_, changes, armourClass) => {
+    { label: "not in force", changes: { inForce: false }, armourClass: 17 },
+    { label: "on another sub-type", changes: { subType: CleanLine.of("speed") }, armourClass: 17 },
+    { label: "from another source", changes: { sourceName: CleanLine.of("Pale Charm") }, armourClass: 18 },
+  ])("still adds the bonus from the feature when the modifier is $label", ({ changes, armourClass }) => {
     expect(armourClassOf({ features: ["Defense"], items: [chain], modifiers: [own("", changes)] }).value).toBe(armourClass);
   });
 });
