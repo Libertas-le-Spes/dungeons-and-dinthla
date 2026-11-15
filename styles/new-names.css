@@ -1,0 +1,12 @@
+.dd-new-names .dd-new-names-words {
+  margin: 0 0 var(--space-3);
+  color: var(--text-muted-ui);
+}
+
+.dd-new-names .setting-item-description {
+  color: var(--text-strong);
+}
+
+.dd-new-names button {
+  min-height: var(--touch-min);
+}

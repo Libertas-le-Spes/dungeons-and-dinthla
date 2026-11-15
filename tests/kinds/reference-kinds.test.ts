@@ -5,11 +5,11 @@ import { REFERENCE_KIND_LIST, REFERENCE_KINDS } from "../../src/kinds/reference-
 
 describe("the reference kinds", () => {
   it("keeps characters in Characters and opens them on the cast page", () => {
-    expect(characterReferenceKind).toEqual({ name: "character", folder: "Characters", page: "cast" });
+    expect(characterReferenceKind).toEqual({ name: "character", label: "Character", folder: "Characters", page: "cast" });
   });
 
   it("keeps places in Places and opens them on the note page", () => {
-    expect(placeReferenceKind).toEqual({ name: "place", folder: "Places", page: "note" });
+    expect(placeReferenceKind).toEqual({ name: "place", label: "Place", folder: "Places", page: "note" });
   });
 
   it("finds each kind under its own name", () => {
