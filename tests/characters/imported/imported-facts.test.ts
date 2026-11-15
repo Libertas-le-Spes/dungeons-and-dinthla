@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { importedFactsOf } from "../../../src/characters/imported/reading/imported-facts";
-import type { ImportedFact } from "../../../src/characters/imported/reading/imported-fact";
+import type { SourcedFact } from "../../../src/characters/facts/sourced-fact";
 import { importedNoteText } from "../../../src/imports/note/writing/rewriting/imported-note";
 import { monkSheet, sheetWithCharacter, TODAY , stampedOn } from "../../imports/builders/made-up-import";
 import { CleanLine } from "../../../src/beyond/text/clean-line";
@@ -8,14 +8,14 @@ import { textOf } from "../../imports/builders/line-helpers";
 
 const PATH = "D&D/Primary Campaign/Characters/Primary Monk.md";
 
-function factNamed(facts: readonly ImportedFact[], name: string): ImportedFact {
+function factNamed(facts: readonly SourcedFact[], name: string): SourcedFact {
   for (const fact of facts) {
     if (fact.name === name) return fact;
   }
   throw new Error(`No imported fact is called ${name}.`);
 }
 
-function namesOf(facts: readonly ImportedFact[]): string[] {
+function namesOf(facts: readonly SourcedFact[]): string[] {
   const names: string[] = [];
   for (const fact of facts) names.push(fact.name);
   return names;

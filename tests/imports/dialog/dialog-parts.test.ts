@@ -117,21 +117,33 @@ describe("the list of changes", () => {
     expect(textsIn(parent, ".dd-import-properties li")).toEqual(["AC: 15 → 16"]);
   });
 
-  it("says no change line when only the import's own marks change", () => {
+  it("says the import marks change when only they do, and still shows no fold", () => {
     const parent = obsidianDocument().createElement("div");
     drawChanges(parent, { properties: [{ name: "imported-from", before: "pdf", after: "online" }], sections: [], typed: [] });
-    expect(parent.querySelector(".dd-import-changes-line")).toBeNull();
+    expect(textsIn(parent, ".dd-import-changes-line")).toEqual(["Changes: import marks."]);
     expect(parent.querySelector(".dd-import-fold")).toBeNull();
   });
 
-  it("puts the warning about typed text first, naming the sections and folding the lines", () => {
+  it("names the sections alone when only the import marks change beside them", () => {
+    const parent = obsidianDocument().createElement("div");
+    drawChanges(parent, {
+      properties: [{ name: "imported-from", before: "pdf", after: "online" }, { name: "imported-session", before: "1", after: "2" }],
+      sections: [{ title: "Numbers", removed: [], added: ["- AC · 1"] }],
+      typed: [],
+    });
+    expect(textsIn(parent, ".dd-import-changes-line")).toEqual(["Changes: Numbers."]);
+  });
+
+  it("puts the warning about typed text first, naming the sections and showing the lines", () => {
     const parent = obsidianDocument().createElement("div");
     drawChanges(parent, { properties: [{ name: "AC", before: "15", after: "16" }], sections: [], typed: [{ title: "Spells", lines: ["Range: 60 feet"] }] });
     const first = parent.firstElementChild;
     if (first === null) throw new Error("Nothing was drawn.");
     expect(first.className).toBe("dd-import-warning");
     expect(textsIn(first, "p")).toEqual(["Your typed text is replaced in Spells."]);
-    expect(textsIn(first, "summary")).toEqual(["Spells (1)"]);
+    expect(textsIn(first, ".dd-import-typed-title")).toEqual(["Spells (1)"]);
+    expect(textsIn(first, "li")).toEqual(["Range: 60 feet"]);
+    expect(first.querySelector("details")).toBeNull();
   });
 
   it("says nothing changes when nothing does", () => {

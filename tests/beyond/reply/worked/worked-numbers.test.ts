@@ -96,7 +96,7 @@ describe("workedNumbersOf, for the made-up monk", () => {
   it("does not know the hit points when the dice total is missing, and says so", () => {
     const reply = MadeUpReply.levelOneMonk().without(["baseHitPoints"]);
     expect(numbersOf(reply).get("HP")).toBe("not known");
-    expect(explanationOf(reply, "HP")).toBe("The dice total or the bonus hit points are missing.");
+    expect(explanationOf(reply, "HP")).toBe("Dice total or bonus missing.");
   });
 
   it("subtracts the hit points lost from the current hit points", () => {

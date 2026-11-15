@@ -10,11 +10,11 @@ function isInside(value: number, range: NumberRange): boolean {
   return value <= range.highest;
 }
 
-function reasonFor(range: NumberRange): string {
-  return `${range.what} has to be a whole number from ${range.lowest} to ${range.highest}.`;
+export function wholeNumberReason(range: NumberRange): string {
+  return `Must be a whole number ${range.lowest} to ${range.highest}.`;
 }
 
 export function numberInRange(value: number, range: NumberRange, working: string, route: Route): WorkedValue<number> {
   if (isPlainWholeNumber(value) && isInside(value, range)) return KnownValue.wholeNumber(value, working, route);
-  return new NotKnownValue(reasonFor(range), route);
+  return new NotKnownValue(wholeNumberReason(range), route);
 }

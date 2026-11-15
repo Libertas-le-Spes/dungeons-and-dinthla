@@ -65,6 +65,6 @@ describe("numberInRange", () => {
 
   it("says in plain words what range a number it does not know has to be in, and keeps the route", () => {
     const value = numberInRange(31, SCORE, "as printed", ROUTE);
-    expect([value.explanation, value.route]).toEqual(["An ability score has to be a whole number from 1 to 30.", ROUTE]);
+    expect([value.explanation, value.route]).toEqual(["Must be a whole number 1 to 30.", ROUTE]);
   });
 });

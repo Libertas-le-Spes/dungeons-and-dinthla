@@ -34,15 +34,15 @@ describe("the words of the note refusals", () => {
   });
 
   it("say the import would change more than its own part", () => {
-    expect(wouldChangeMore().message).toBe("The import would change something outside its own properties and sections, so nothing was written.");
+    expect(wouldChangeMore().message).toBe("The import would change more than its own parts.");
   });
 
   it("name the path that is not a character note", () => {
-    expect(notACharacterNote("a/b.md").message).toBe("a/b.md is not a note in the campaign's Characters folder, so nothing was written.");
+    expect(notACharacterNote("a/b.md").message).toBe("a/b.md is not in the campaign's Characters folder.");
   });
 
   it("name the note that already has the name", () => {
-    expect(nameTaken("Primary").message).toBe("There is already a note called Primary in the Characters folder.");
+    expect(nameTaken("Primary").message).toBe("A note called Primary is already in Characters. Rename or move it.");
   });
 
   it("say the typed text is not what was shown", () => {
@@ -52,7 +52,7 @@ describe("the words of the note refusals", () => {
   });
 
   it("say the note changed since it was read", () => {
-    expect(changedSinceRead().message).toBe("The note changed since it was read, so nothing was written.");
+    expect(changedSinceRead().message).toBe("The note changed since it was read. Try again.");
   });
 
   it("are all Refusals", () => {

@@ -62,7 +62,7 @@ describe("AbilityScoreRule", () => {
   it("does not know a score a modifier of a kind it does not know changes, and names the modifier", () => {
     const character = madeUpRuleCharacter({ modifiers: [modifierOf("set-base", "strength-score", 19, "Gauntlets")] });
     const strength = numberNamed(character, "STR");
-    expect([strength.isKnown, strength.explanation]).toEqual([false, 'Unread rule "strength-score".']);
+    expect([strength.isKnown, strength.explanation]).toEqual([false, 'Unread rule "strength-score". Type it on your note.']);
   });
 
   it("does not know a score when the base score is missing, and leaves the others standing", () => {
@@ -98,7 +98,7 @@ describe("AbilityScoreRule", () => {
 describe("AbilityScoreRule and the size of a score modifier", () => {
   it("does not use a score bonus of 31, and names it", () => {
     const value = numberNamed(madeUpRuleCharacter({ modifiers: [modifierOf("bonus", "dexterity-score", 31, "Gloves")] }), "DEX");
-    expect(value.explanation).toBe('Unread rule "dexterity-score".');
+    expect(value.explanation).toBe('Unread rule "dexterity-score". Type it on your note.');
   });
 
   it("does not use a huge score bonus", () => {

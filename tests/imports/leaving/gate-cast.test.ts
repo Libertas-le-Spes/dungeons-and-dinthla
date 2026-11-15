@@ -99,7 +99,7 @@ describe("the campaign's main character, read from the text that was asked about
   });
 
   it("is refused in words when the property is there twice", () => {
-    expect(refusalOf(propertiesWith('character: "[[A]]"\ncharacter: "[[B]]"'))).toBe("The note has two character properties, so nothing was written. Remove one.");
+    expect(refusalOf(propertiesWith('character: "[[A]]"\ncharacter: "[[B]]"'))).toBe("The note has two character properties. Remove one.");
   });
 });
 

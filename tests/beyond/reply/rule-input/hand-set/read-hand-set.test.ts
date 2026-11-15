@@ -35,7 +35,7 @@ describe("handSetOf, for values set by hand", () => {
   });
 
   it("marks a value out of range not known", () => {
-    expect(shown(setBy([valued({ typeId: 1, value: 99 })]))).toEqual(["AC|false|-1|Armor class has to be a whole number from 0 to 40."]);
+    expect(shown(setBy([valued({ typeId: 1, value: 99 })]))).toEqual(["AC|false|-1|Must be a whole number 0 to 40."]);
   });
 
   it.each([
@@ -96,8 +96,8 @@ describe("handSetOf, for proficiencies and conditions added by hand", () => {
   it("gives the reason of each in words", () => {
     const reply = MadeUpReply.levelOneMonk().with(["customProficiencies"], [{}]).with(["conditions"], [{}]);
     expect(handSetOf(reply.reader()).blankets.map((blanket) => blanket.reason)).toEqual([
-      "Proficiencies set by hand.",
-      "A condition applies.",
+      "Proficiencies set by hand. Type them on your note.",
+      "A condition applies. Type them on your note.",
     ]);
   });
 

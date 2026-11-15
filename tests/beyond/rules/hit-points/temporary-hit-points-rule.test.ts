@@ -18,6 +18,6 @@ describe("TemporaryHitPointsRule", () => {
   });
 
   it("does not know them when they are missing", () => {
-    expect(numberNamed(madeUpRuleCharacter({ temporaryHitPoints: null }), "Temporary HP").explanation).toBe("The temporary hit points are missing.");
+    expect(numberNamed(madeUpRuleCharacter({ temporaryHitPoints: null }), "Temporary HP").explanation).toBe("Temporary hit points missing.");
   });
 });

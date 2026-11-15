@@ -19,12 +19,12 @@ describe("the left-out line's counts", () => {
 
 describe("the left-out words on the sheet", () => {
   it("name both kinds in plain words", () => {
-    expect(leftOutWordsOf({ tooLong: 2, notClean: 3 })).toBe("Left out: 2 too long, 3 not plain text.");
+    expect(leftOutWordsOf({ tooLong: 2, notClean: 3 })).toBe("Left out: 2 too long, 3 not clean.");
   });
 
   it("say one line, not one lines", () => {
     expect(leftOutWordsOf({ tooLong: 1, notClean: 0 })).toBe("Left out: 1 too long.");
-    expect(leftOutWordsOf({ tooLong: 0, notClean: 1 })).toBe("Left out: 1 not plain text.");
+    expect(leftOutWordsOf({ tooLong: 0, notClean: 1 })).toBe("Left out: 1 not clean.");
   });
 
   it("are none when nothing was left out", () => {

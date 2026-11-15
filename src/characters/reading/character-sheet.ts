@@ -1,6 +1,5 @@
 import type { Source } from "../../campaign/record/campaign";
 import { ABILITIES, sameName, sheetNameOf, type SheetValues, type SourcedFact } from "./sheet-values";
-import type { ImportedFact } from "../imported/reading/imported-fact";
 import { firstRanked, type Rank } from "./value-ranks";
 
 export const NOT_KNOWN = "?";
@@ -83,7 +82,7 @@ function carriedFor(carried: CarriedValues, name: string): StatedValue | null {
   return null;
 }
 
-function importedFor(imported: readonly ImportedFact[], name: string): StatedValue | null {
+function importedFor(imported: readonly SourcedFact[], name: string): StatedValue | null {
   let found: StatedValue | null = null;
   for (const fact of imported) {
     if (sameName(fact.name, name)) found = stated(fact);
@@ -107,7 +106,22 @@ function showRanked(value: SheetValue): void {
   value.state = ranked.state;
 }
 
-function sheetValueOf(name: string, learned: SourcedFact[], imported: readonly ImportedFact[], overrides: SourcedFact[], carried: CarriedValues | null): SheetValue {
+export interface SheetFacts {
+  readonly learned: SourcedFact[];
+  readonly imported: readonly SourcedFact[];
+  readonly overrides: SourcedFact[];
+  readonly carried: CarriedValues | null;
+}
+
+export interface CarriedFacts {
+  readonly campaign: string;
+  readonly learned: SourcedFact[];
+  readonly imported: readonly SourcedFact[];
+  readonly overrides: SourcedFact[];
+  readonly groups: CarriedGroup[];
+}
+
+function sheetValueOf(name: string, { learned, imported, overrides, carried }: SheetFacts): SheetValue {
   const value: SheetValue = {
     name,
     label: labelOf(name),
@@ -147,15 +161,16 @@ function otherNamesOf(facts: SourcedFact[], carried: CarriedValues | null): stri
   return names;
 }
 
-export function characterSheetOf(learned: SourcedFact[], imported: readonly ImportedFact[], overrides: SourcedFact[], carried: CarriedValues | null): CharacterSheet {
-  const valueOf = (name: string) => sheetValueOf(name, learned, imported, overrides, carried);
+export function characterSheetOf(facts: SheetFacts): CharacterSheet {
+  const { learned, imported, overrides, carried } = facts;
+  const valueOf = (name: string) => sheetValueOf(name, facts);
   return {
     abilities: ABILITIES.map(valueOf),
     values: [...ROW_NAMES, ...otherNamesOf([...learned, ...imported, ...overrides], carried)].map(valueOf),
   };
 }
 
-export function carriedValuesOf(campaign: string, learned: SourcedFact[], imported: readonly ImportedFact[], overrides: SourcedFact[], groups: CarriedGroup[]): CarriedValues {
+export function carriedValuesOf({ campaign, learned, imported, overrides, groups }: CarriedFacts): CarriedValues {
   const values = new Map<string, StatedValue>();
   for (const fact of [...learned, ...imported, ...overrides]) {
     const name = sheetNameOf(fact.name);

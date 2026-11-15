@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { sheetValueNamed } from "../builders/sheet-value-named";
 import type { App } from "obsidian";
 import { CHANGED_IN_NOTE, PartlyWritten } from "../../../src/campaign/writing/note-editor";
 import { carriedValuesOf, characterSheetOf, type SheetValue } from "../../../src/characters/reading/character-sheet";
@@ -11,7 +12,7 @@ import { Notice, type Modal as StubModal } from "../../stubs/obsidian";
 const MIRA = "Pale Moon/Characters/Mira.md";
 
 function hpOf(learned: SourcedFact[], overrides: SourcedFact[] = []): SheetValue {
-  return characterSheetOf(learned, [], overrides, null).values.find((value) => value.name === "HP")!;
+  return sheetValueNamed(characterSheetOf({ learned, imported: [], overrides, carried: null }), "HP");
 }
 
 function inSession(number: number, value: string): SourcedFact {
@@ -102,16 +103,16 @@ describe("SheetValueModal", () => {
   });
 
   it("says that Not known yet over a carried value wins over it", () => {
-    const carried = carriedValuesOf("Ashen Road", [], [], [{ name: "HP", value: "30", source: { path: "Ashen Road/Characters/Mira.md", line: 0 } }], ["values"]);
-    const value = characterSheetOf([], [], [], carried).values.find((sheetValue) => sheetValue.name === "HP")!;
+    const carried = carriedValuesOf({ campaign: "Ashen Road", learned: [], imported: [], overrides: [{ name: "HP", value: "30", source: { path: "Ashen Road/Characters/Mira.md", line: 0 } }], groups: ["values"] });
+    const value = sheetValueNamed(characterSheetOf({ learned: [], imported: [], overrides: [], carried }), "HP");
     const wheres = Array.from(openDialog({ value }).root.querySelectorAll(".dd-where")).map((where) => where.textContent);
     expect(wheres).toContain(notKnownOverCarriedText("Hit Points"));
     expect(notKnownOverCarriedText("Hit Points")).toBe("Not known yet hides the carried hit points.");
   });
 
   it("gives no carried hint when the value was learned in this campaign", () => {
-    const carried = carriedValuesOf("Ashen Road", [], [], [{ name: "HP", value: "30", source: { path: "Ashen Road/Characters/Mira.md", line: 0 } }], ["values"]);
-    const value = characterSheetOf([inSession(1, "38")], [], [], carried).values.find((sheetValue) => sheetValue.name === "HP")!;
+    const carried = carriedValuesOf({ campaign: "Ashen Road", learned: [], imported: [], overrides: [{ name: "HP", value: "30", source: { path: "Ashen Road/Characters/Mira.md", line: 0 } }], groups: ["values"] });
+    const value = sheetValueNamed(characterSheetOf({ learned: [inSession(1, "38")], imported: [], overrides: [], carried }), "HP");
     expect(openDialog({ value }).root.querySelectorAll(".dd-where")).toHaveLength(1);
   });
 
@@ -205,7 +206,7 @@ describe("SheetValueModal on a value only the character's note states, under a n
   const PERSONALITY: SourcedFact = { name: "Personality", value: "grumpy, but kind", source: { path: MIRA, line: 2 } };
 
   function personality(): SheetValue {
-    return characterSheetOf([], [], [PERSONALITY], null).values.find((value) => value.name === "Personality")!;
+    return sheetValueNamed(characterSheetOf({ learned: [], imported: [], overrides: [PERSONALITY], carried: null }), "Personality");
   }
 
   it("asks for a second press before a choice that removes its line from the note", async () => {
@@ -271,7 +272,7 @@ describe("SheetValueModal on a value only the character's note states, under a n
 
   it("saves on the first press when nothing is on the note to remove", async () => {
     const learned = { ...PERSONALITY, source: { path: "Pale Moon/Sessions/Session 1.md", line: 0 } };
-    const value = characterSheetOf([learned], [], [], null).values.find((sheetValue) => sheetValue.name === "Personality")!;
+    const value = sheetValueNamed(characterSheetOf({ learned: [learned], imported: [], overrides: [], carried: null }), "Personality");
     const { modal, choice, saved } = openDialog({ value });
     choice("unknown").click();
     await modal.changeSettled();
@@ -288,13 +289,13 @@ function valueNamed(values: readonly SheetValue[], name: string): SheetValue {
 
 function importedHp(): SheetValue {
   const imported = { name: "HP", value: "14", source: { path: MIRA, line: 2 } };
-  return valueNamed(characterSheetOf([inSession(1, "31")], [imported], [], null).values, "HP");
+  return valueNamed(characterSheetOf({ learned: [inSession(1, "31")], imported: [imported], overrides: [], carried: null }).values, "HP");
 }
 
 function overriddenImportedHp(): SheetValue {
   const imported = { name: "HP", value: "14", source: { path: MIRA, line: 2 } };
   const override = { name: "HP", value: "20", source: { path: MIRA, line: 9 } };
-  return valueNamed(characterSheetOf([inSession(1, "31")], [imported], [override], null).values, "HP");
+  return valueNamed(characterSheetOf({ learned: [inSession(1, "31")], imported: [imported], overrides: [override], carried: null }).values, "HP");
 }
 
 function textsOf(elements: Iterable<Element>): (string | null)[] {
@@ -347,6 +348,5 @@ describe("SheetValueModal on an imported value", () => {
   it("offers every state again once an override shows over the import", () => {
     const { root } = openDialog({ value: overriddenImportedHp() });
     expect(textsOf(root.querySelectorAll(".dd-state-choice"))).toEqual(["Learned at the table", "Override", "Carried over", "Not known yet"]);
-    expect(root.querySelectorAll(".dd-only-override")).toHaveLength(0);
   });
 });

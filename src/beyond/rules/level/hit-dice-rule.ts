@@ -1,7 +1,7 @@
 import type { ImportedNumber } from "../../shape/imported-number";
 import type { WorkedValue } from "../../shape/worked-value";
 import type { EarlierNumbers } from "../core/earlier-numbers";
-import { isHitDie } from "../classes/hit-die";
+import { HIT_DIE_REASON, isHitDie } from "../classes/hit-die";
 import { NeededNumbers } from "../core/needed-numbers";
 import { HIT_DICE_NAME, TOTAL_LEVEL_NAME } from "../core/number-names";
 import type { Rule } from "../core/rule";
@@ -21,7 +21,7 @@ export class HitDiceRule implements Rule {
   private dice(character: RuleCharacter, earlier: EarlierNumbers): WorkedValue<number> {
     const needed = NeededNumbers.of([TOTAL_LEVEL_NAME], earlier, character.route);
     if (needed.missing !== null) return needed.missing;
-    if (!character.classes.every(isHitDie)) return notKnown("A hit die has to be a d4, d6, d8, d10 or d12.", character.route);
+    if (!character.classes.every(isHitDie)) return notKnown(HIT_DIE_REASON, character.route);
     return knownNumber(needed.numberOf(TOTAL_LEVEL_NAME), character.classes.map(diceTerm).join(" + "), character.route);
   }
 }

@@ -10,5 +10,5 @@ function quoted(name: string): string {
 
 export function unknownModifiers(tally: ModifierTally, route: Route): NotKnownValue<number> | null {
   if (tally.unknown.length === 0) return null;
-  return notKnown(`Unread rule ${shortList(tally.unknown.map(quoted))}.`, route);
+  return notKnown(`Unread rule ${shortList(tally.unknown.map(quoted))}. Type it on your note.`, route);
 }

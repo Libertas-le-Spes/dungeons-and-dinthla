@@ -9,7 +9,7 @@ export class UnbuiltCasterRule implements Rule {
   workOut(character: RuleCharacter): readonly ImportedNumber[] {
     const found: ImportedNumber[] = [];
     for (const name of SPELLCASTING_TOUCHING.named(character)) {
-      const reason = notKnown(`${name} is not built here yet.`, character.route);
+      const reason = notKnown("Not supported yet.", character.route);
       found.push({ name: spellSaveDcNameOf(name), value: reason });
       found.push({ name: spellAttackNameOf(name), value: reason });
     }

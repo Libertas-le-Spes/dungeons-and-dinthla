@@ -16,7 +16,7 @@ export class CurrentHitPointsRule implements Rule {
   private current(character: RuleCharacter, earlier: EarlierNumbers): WorkedValue<number> {
     const needed = NeededNumbers.of([MAX_HIT_POINTS_NAME], earlier, character.route);
     if (needed.missing !== null) return needed.missing;
-    if (character.removedHitPoints === null) return notKnown("The hit points lost are missing.", character.route);
+    if (character.removedHitPoints === null) return notKnown("Hit points lost missing.", character.route);
     const maximum = needed.numberOf(MAX_HIT_POINTS_NAME);
     const current = maximum - character.removedHitPoints;
     return knownIn(current, HIT_POINTS, `${maximum} - ${character.removedHitPoints} lost = ${current}`, character.route);
