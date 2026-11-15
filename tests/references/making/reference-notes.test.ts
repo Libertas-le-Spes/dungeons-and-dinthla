@@ -211,8 +211,8 @@ describe("ReferenceNotes", () => {
       return world;
     }
 
-    function choose({ names, to }: Asked, kind: ReferenceKindName): void {
-      to.chosen({ undecided: firstOf(names.names), kind });
+    function choose({ names, to }: Asked, kind: ReferenceKindName) {
+      return to.chosen({ undecided: firstOf(names.names), kind });
     }
 
     async function savedAndAsked(world: World) {
@@ -287,10 +287,34 @@ describe("ReferenceNotes", () => {
       files.markdownFilesUnder.mockImplementation(() => {
         throw new Error("folder gone");
       });
-      choose(firstOf(asked), "place");
-      choose(firstOf(asked), "place");
-      await settled();
+      const results = await Promise.all([choose(firstOf(asked), "place"), choose(firstOf(asked), "place")]);
+      expect(results).toEqual(["failed", "failed"]);
       expect(world.notes.said).toEqual(["Couldn't make the note for Mira: folder gone"]);
+    });
+
+    it("hands back made for a note it made, and left when a note of the name has appeared since", async () => {
+      const world = worldNamingMira();
+      const { asked } = await savedAndAsked(world);
+      world.existing = [fileAt(`${CAMPAIGN}/Fallen/Mira.md`)];
+      expect(await choose(firstOf(asked), "character")).toBe("left");
+      expect(world.notes.created).toEqual([]);
+      world.existing = [];
+      expect(await choose(firstOf(asked), "character")).toBe("made");
+    });
+
+    it("hands back left when another campaign is open by the time of the answer", async () => {
+      const world = worldNamingMira();
+      const { asked } = await savedAndAsked(world);
+      world.campaign.campaignFolder = "D&D/Other Moon";
+      expect(await choose(firstOf(asked), "place")).toBe("left");
+      expect(world.notes.created).toEqual([]);
+    });
+
+    it("hands back failed when the answer's note can't be made", async () => {
+      const world = worldNamingMira();
+      world.notes.failProperties = new Error("disk full");
+      const { asked } = await savedAndAsked(world);
+      expect(await choose(firstOf(asked), "place")).toBe("failed");
     });
   });
 });

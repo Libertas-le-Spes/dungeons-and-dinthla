@@ -5,7 +5,7 @@ import { DrawnModal, type Closable, type DrawnContent } from "../../views/dialog
 import type { UndecidedName } from "../making/reference-note-plan";
 import type { NewNames } from "./new-names";
 import type { AskNewNames, NewNamesChoice } from "./new-names-choice";
-import { NEW_NAMES_EXPLAINED, chosenWords, newNamesTitle } from "./new-names-words";
+import { NEW_NAMES_EXPLAINED, NO_NOTE_MADE, chosenWords, newNamesTitle } from "./new-names-words";
 
 class NameRow {
   private readonly buttons: ButtonComponent[] = [];
@@ -25,9 +25,12 @@ class NameRow {
     });
   }
 
-  settle(kind: ReferenceKind): void {
-    this.row.setDesc(chosenWords(kind.label));
+  lock(): void {
     for (const button of this.buttons) button.setDisabled(true);
+  }
+
+  say(words: string): void {
+    this.row.setDesc(words);
   }
 }
 
@@ -55,12 +58,17 @@ class Asking implements DrawnContent {
 
   private drawRow({ undecided, contentEl, dialog }: { undecided: UndecidedName; contentEl: HTMLElement; dialog: Closable }): void {
     const row = new NameRow(undecided, contentEl);
-    for (const kind of REFERENCE_KIND_LIST) row.addButton(kind, () => this.choose({ row, kind, dialog }));
+    for (const kind of REFERENCE_KIND_LIST) row.addButton(kind, () => void this.choose({ row, kind, dialog }));
   }
 
-  private choose({ row, kind, dialog }: { row: NameRow; kind: ReferenceKind; dialog: Closable }): void {
-    row.settle(kind);
-    this.to.chosen({ undecided: row.undecided, kind: kind.name });
+  private async choose({ row, kind, dialog }: { row: NameRow; kind: ReferenceKind; dialog: Closable }): Promise<void> {
+    row.lock();
+    const result = await this.to.chosen({ undecided: row.undecided, kind: kind.name });
+    if (result !== "made") {
+      row.say(NO_NOTE_MADE);
+      return;
+    }
+    row.say(chosenWords(kind.label));
     this.unanswered -= 1;
     if (this.unanswered === 0) dialog.close();
   }

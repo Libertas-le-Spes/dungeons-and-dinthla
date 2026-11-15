@@ -8,3 +8,5 @@ export const NEW_NAMES_EXPLAINED =
 export function chosenWords(label: string): string {
   return `You chose ${label}.`;
 }
+
+export const NO_NOTE_MADE = "No note was made. The name stays a plain link.";

@@ -502,5 +502,19 @@
   "find": "for (const kind of REFERENCE_KIND_LIST) row.addButton",
   "replace": "for (const kind of REFERENCE_KIND_LIST.slice(0, 1)) row.addButton",
   "group": "new names"
+ },
+ {
+  "id": "a row says when no note was made",
+  "file": "src/references/new-names/new-names-dialog.ts",
+  "find": "if (result !== \"made\") {",
+  "replace": "if (result === \"never\") {",
+  "group": "new names"
+ },
+ {
+  "id": "an answer that throws hands back failed",
+  "file": "src/references/making/reference-notes.ts",
+  "find": "    return \"failed\";\n  }\n\n  private failed(",
+  "replace": "    return \"made\";\n  }\n\n  private failed(",
+  "group": "new names"
  }
 ]
