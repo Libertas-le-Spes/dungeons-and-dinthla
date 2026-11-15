@@ -29,13 +29,15 @@ describe("importedNoteText for a note with nothing in it", () => {
   const written = importedNoteText({ current: "", sheet: monkSheet(), stamp: stampedOn(TODAY) });
 
   it("starts with a properties block holding the import's marks and values", () => {
-    expect(firstLines(linesOf(written), 15)).toEqual([
+    expect(firstLines(linesOf(written), 17)).toEqual([
       "---",
       "imported: 2026-11-13",
       "imported-from: pdf",
       "imported-session: 0",
       'class: "Monk 4"',
       'species: "Human"',
+      'type: "Medium (human), neutral"',
+      'subtitle: "Human Monk 4"',
       "AC: 18",
       "HP: 51",
       "speed: 35",

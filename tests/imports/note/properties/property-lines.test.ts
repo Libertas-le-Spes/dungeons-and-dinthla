@@ -147,12 +147,14 @@ describe("importMarkLinesOf", () => {
 
 describe("propertyLinesOf", () => {
   it("puts the three marks first and then each known value, in the order the layout lists them", () => {
-    expect(firstLines(propertyLinesOf({ character: monkSheet().character, stamp: stampedOn(TODAY) }), 7)).toEqual([
+    expect(firstLines(propertyLinesOf({ character: monkSheet().character, stamp: stampedOn(TODAY) }), 9)).toEqual([
       "imported: 2026-11-13",
       "imported-from: pdf",
       "imported-session: 0",
       'class: "Monk 4"',
       'species: "Human"',
+      'type: "Medium (human), neutral"',
+      'subtitle: "Human Monk 4"',
       "AC: 18",
       "HP: 51",
     ]);
@@ -166,6 +168,8 @@ describe("propertyLinesOf", () => {
       "imported-session: 0",
       'class: "Monk 4"',
       'species: "Human"',
+      'type: "Medium (human), neutral"',
+      'subtitle: "Human Monk 4"',
       "HP: 51",
       "STR: 11",
       "DEX: 12",
