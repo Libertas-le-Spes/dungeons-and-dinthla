@@ -18,11 +18,11 @@ import {
 } from "../../builders/line-helpers";
 import { monkSheet, sheetOf, sheetWithCharacter, TODAY , stampedOn } from "../../builders/made-up-import";
 
-const NUMBERS = "## Numbers (from D&D Beyond)";
-const INVENTORY = "## Inventory (from D&D Beyond)";
-const SPELLS = "## Spells (from D&D Beyond)";
-const FEATURES = "## Features (from D&D Beyond)";
-const PURSE = "## Purse (from D&D Beyond)";
+const NUMBERS = "## Numbers";
+const INVENTORY = "## Inventory";
+const SPELLS = "## Spells";
+const FEATURES = "## Features";
+const PURSE = "## Purse";
 const ALL_HEADINGS = [NUMBERS, INVENTORY, PURSE, SPELLS, FEATURES];
 
 describe("importedNoteText for a note with nothing in it", () => {
@@ -98,6 +98,22 @@ describe("importedNoteText for a note that was imported before", () => {
   });
 });
 
+describe("importedNoteText for a note written with the older headings", () => {
+  const stamp = stampedOn(TODAY);
+  const plain = importedNoteText({ current: "His own words.\n", sheet: monkSheet(), stamp });
+  const older = ALL_HEADINGS.reduce((text, heading) => text.replace(`${heading}\n`, `${heading} (from D&D Beyond)\n`), plain);
+
+  it("starts from a note that really has the older headings", () => {
+    expect(headingsOf(older)).toEqual(ALL_HEADINGS.map((heading) => `${heading} (from D&D Beyond)`));
+  });
+
+  it("gives each section the plain heading, once, and keeps the rest", () => {
+    const written = importedNoteText({ current: older, sheet: monkSheet(), stamp });
+    expect(headingsOf(written)).toEqual(ALL_HEADINGS);
+    expect(written).toBe(plain);
+  });
+});
+
 describe("importedNoteText for a note with words of his after every section", () => {
   it("keeps his last line as the last line, with nothing added after it", () => {
     const earlier = importedNoteText({ current: "", sheet: monkSheet(), stamp: stampedOn("2026-01-02") });
@@ -156,7 +172,7 @@ describe("importedNoteText replacing a section in the middle of a note", () => {
   });
 });
 
-describe("importedNoteText with a property whose name only differs by capitals from the import's", () => {
+describe("importedNoteText with a property whose name differs only by capitals from the import's", () => {
   it.each([
     ["ac: 11", "ac", "AC"],
     ["Speed: 30", "Speed", "speed"],
@@ -164,7 +180,7 @@ describe("importedNoteText with a property whose name only differs by capitals f
     ["Class: rogue", "Class", "class"],
   ])("refuses %j, naming it, so nothing of his is overwritten", (line, key, name) => {
     const current = textOf("---", line, "---", "words");
-    expect(() => importedNoteText({ current: current, sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow(`property called ${key}, which only differs by capitals from the import's ${name}`);
+    expect(() => importedNoteText({ current: current, sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow(`The note has "${key}", which differs from "${name}" only by capitals.`);
   });
 
   it("refuses it even when the exact name is there as well", () => {
@@ -212,12 +228,12 @@ describe("importedNoteText with a heading written inside a code block or a comme
   });
 
   it("refuses a note whose code block is never closed, rather than hide a section in it", () => {
-    expect(() => importedNoteText({ current: textOf("```", "x", "## Notes"), sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow("never closed");
+    expect(() => importedNoteText({ current: textOf("```", "x", "## Notes"), sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow("never closes");
   });
 
   it("refuses a note whose comment is never closed", () => {
-    expect(() => importedNoteText({ current: textOf("words", "<!-- x"), sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow("never closed");
-    expect(() => importedNoteText({ current: textOf("words", "%% x"), sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow("never closed");
+    expect(() => importedNoteText({ current: textOf("words", "<!-- x"), sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow("never closes");
+    expect(() => importedNoteText({ current: textOf("words", "%% x"), sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow("never closes");
   });
 });
 
@@ -297,7 +313,7 @@ describe("importedNoteText refusing", () => {
 
   it("a property line longer than the most it reads", () => {
     const current = textOf("---", `mood: ${" ".repeat(MOST_PROPERTY_LINE)}`, "---");
-    expect(() => importedNoteText({ current: current, sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow(`longer than ${MOST_PROPERTY_LINE} characters`);
+    expect(() => importedNoteText({ current: current, sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow(`over ${MOST_PROPERTY_LINE} characters`);
   });
 });
 
@@ -310,7 +326,7 @@ describe("importedNoteText on a big note", () => {
   });
 
   it("refuses a note of a hundred and fifty thousand lines with a Refusal, stating the most", () => {
-    expect(() => importedNoteText({ current: manyLines(150_000), sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow(`more than ${MOST_NOTE_LINES} lines`);
+    expect(() => importedNoteText({ current: manyLines(150_000), sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow(`over ${MOST_NOTE_LINES} lines`);
   });
 
   it("replaces a section in a note that is nearly the most lines", () => {

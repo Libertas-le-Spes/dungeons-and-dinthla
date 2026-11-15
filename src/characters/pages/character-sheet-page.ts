@@ -15,7 +15,6 @@ import type { SheetNotes } from "../reading/sheet-notes";
 import { modifierOf } from "../reading/sheet-values";
 import { fillStatBlock } from "../cards/stat-block";
 import { PendingWork } from "../../views/pending/pending-work";
-import { addImportedLines } from "../imported/drawing/imported-lines";
 import { isCharacterNotePath } from "../../campaign/paths/character-note-path";
 import { addDiedButton } from "../cards/died-button";
 import { addUpdateButton } from "../imported/drawing/update-button";
@@ -27,7 +26,7 @@ export const TAP_A_VALUE = "Tap a value to change it or its state.";
 export const STATE_WORDS: Record<ValueState, string> = {
   learned: "Learned at the table",
   override: "Override",
-  imported: "From D&D Beyond",
+  imported: "Imported",
   carried: "Carried over",
   unknown: "Not known yet",
 };
@@ -47,10 +46,17 @@ export function shownTextOf(value: SheetValue): string {
   return value.shown.value;
 }
 
-function sourceTextOf(value: SheetValue): string {
-  if (value.state === "learned" && value.shown !== null) return sessionLabelOf(value.shown.source.path);
-  if (value.state === "carried" && value.carriedCampaign !== null) return `Carried from ${value.carriedCampaign}`;
-  return STATE_WORDS[value.state];
+interface Caption {
+  readonly text: string;
+  readonly source: Source;
+}
+
+function captionOf(value: SheetValue): Caption | null {
+  const shown = value.shown;
+  if (shown === null) return null;
+  if (value.state === "learned") return { text: sessionLabelOf(shown.source.path), source: shown.source };
+  if (value.state === "carried" && value.carriedCampaign !== null) return { text: `Carried from ${value.carriedCampaign}`, source: shown.source };
+  return null;
 }
 
 export function couldNotRead(file: TFile, error: unknown): string {
@@ -221,14 +227,10 @@ export class CharacterSheetPage extends Component {
   }
 
   private addSource(parent: HTMLElement, value: SheetValue): void {
+    const caption = captionOf(value);
+    if (caption === null) return;
     const where = parent.createDiv({ cls: ["dd-value-source", `dd-state-${value.state}`] });
-    const shown = value.shown;
-    if (shown === null) {
-      where.setText(sourceTextOf(value));
-      return;
-    }
-    this.addSourceLink(where, sourceTextOf(value), shown.source);
-    addImportedLines(parent, value);
+    this.addSourceLink(where, caption.text, caption.source);
   }
 
   private addSourceLink(parent: HTMLElement, text: string, source: Source): void {

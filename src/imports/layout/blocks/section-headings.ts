@@ -17,7 +17,7 @@ export interface SectionHeadings {
 function sectionWithHeading(line: string): PluginSection | null {
   const written = line.trimEnd();
   for (const section of PLUGIN_SECTIONS) {
-    if (section.heading === written) return section;
+    if (section.isHeadedBy(written)) return section;
   }
   return null;
 }

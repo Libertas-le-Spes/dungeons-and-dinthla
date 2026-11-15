@@ -7,7 +7,6 @@ import { CleanLine } from "../../../src/beyond/text/clean-line";
 import { textOf } from "../../imports/builders/line-helpers";
 
 const PATH = "D&D/Primary Campaign/Characters/Primary Monk.md";
-const PRINTED = "Printed on D&D Beyond's PDF";
 
 function factNamed(facts: readonly ImportedFact[], name: string): ImportedFact {
   for (const fact of facts) {
@@ -23,12 +22,12 @@ function namesOf(facts: readonly ImportedFact[]): string[] {
 }
 
 describe("the values an import wrote into a note", () => {
-  it("are read from the properties of a note the import wrote, with the PDF's route", () => {
+  it("are read from the properties of a note the import wrote", () => {
     const facts = importedFactsOf(importedNoteText({ current: "", sheet: monkSheet(), stamp: stampedOn(TODAY) }), PATH);
     expect(namesOf(facts)).toContain("AC");
     expect(namesOf(facts)).toContain("STR");
-    expect(factNamed(facts, "class")).toMatchObject({ value: "Monk 4", route: PRINTED });
-    expect(factNamed(facts, "species")).toMatchObject({ value: "Human", route: PRINTED });
+    expect(factNamed(facts, "class")).toMatchObject({ value: "Monk 4" });
+    expect(factNamed(facts, "species")).toMatchObject({ value: "Human" });
   });
 
   it("are none when the note has no imported-from property", () => {
@@ -57,32 +56,8 @@ describe("the values an import wrote into a note", () => {
     expect(importedFactsOf(textOf("---", "imported-from: pdf", "AC:", "---", ""), PATH)).toEqual([]);
   });
 
-  it("say the online route for an online import, and a plain route for one they don't know", () => {
-    expect(factNamed(importedFactsOf(textOf("---", "imported-from: online", "AC: 15", "---", ""), PATH), "AC").route).toBe("Worked out here, from D&D Beyond (online)");
-    expect(factNamed(importedFactsOf(textOf("---", "imported-from: elsewhere", "AC: 15", "---", ""), PATH), "AC").route).toBe("From D&D Beyond");
-  });
-
-  it("carry the working from the Numbers section, by name and whatever the capitals", () => {
-    const text = textOf("---", "imported-from: online", "AC: 16", "speed: 40", "---", "## Numbers (from D&D Beyond)", "- AC · 16 · 10 + DEX 4 + WIS 2 · Worked out here", "- Speed · 40 · Worked out here", "");
-    const facts = importedFactsOf(text, PATH);
-    expect(factNamed(facts, "AC").working).toBe("10 + DEX 4 + WIS 2");
-    expect(factNamed(facts, "speed").working).toBe("");
-  });
-
-  it("read the working only inside the Numbers section", () => {
-    const text = textOf("---", "imported-from: online", "AC: 16", "---", "## Notes", "- AC · 16 · Typed by hand · Worked out here", "");
-    expect(factNamed(importedFactsOf(text, PATH), "AC").working).toBe("");
-  });
-
-  it("take the escapes off the working", () => {
-    const text = textOf("---", "imported-from: online", "AC: 16", "---", "## Numbers (from D&D Beyond)", "- AC · 16 · Ring of \\*luck\\* · Worked out here", "");
-    expect(factNamed(importedFactsOf(text, PATH), "AC").working).toBe("Ring of *luck*");
-  });
-});
-
-describe("the working of an imported value", () => {
-  it("is read only from under the Numbers heading, not from his own bullet just above it", () => {
-    const text = textOf("---", "imported-from: pdf", "AC: 16", "---", "- AC · 99 · a working of his · Typed", "## Numbers (from D&D Beyond)", "- AC · 16 · 10 + DEX 4 + WIS 2 · Printed", "");
-    expect(factNamed(importedFactsOf(text, PATH), "AC").working).toBe("10 + DEX 4 + WIS 2");
+  it("are read from a note whatever route the import took", () => {
+    expect(namesOf(importedFactsOf(textOf("---", "imported-from: online", "AC: 15", "---", ""), PATH))).toEqual(["AC"]);
+    expect(namesOf(importedFactsOf(textOf("---", "imported-from: elsewhere", "AC: 15", "---", ""), PATH))).toEqual(["AC"]);
   });
 });
