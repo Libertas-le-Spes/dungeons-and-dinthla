@@ -26,7 +26,7 @@ export class ExistingNoteSettler {
     const halfMade = await this.parts.halfMade.stateOf(file, note);
     if (halfMade === "unreadable" || halfMade === "too new") return;
     if (halfMade === "yes" && canMake(note)) {
-      await attempts.attempt(note, () => writer.fill(file, sessionLinkFor(metadata, note.sessionFile, note.path), note.lines));
+      await attempts.attempt(note, () => writer.fill(file, sessionLinkFor(note.sessionFile), note.lines));
       return;
     }
     const existing = readExistingNote(metadata, file, note);

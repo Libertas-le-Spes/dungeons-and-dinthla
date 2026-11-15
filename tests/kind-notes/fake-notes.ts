@@ -143,6 +143,8 @@ export class FakeNotes {
       return file.basename;
     }),
     getFirstLinkpathDest: vi.fn((target: string, source: string): TFile | null => {
+      const beside = this.notes.get(`${source.slice(0, source.lastIndexOf("/"))}/${target}.md`);
+      if (beside !== undefined) return beside.file;
       const [top, name] = source.split("/");
       const campaign = `${top}/${name}`;
       const named = this.sessions.filter((session) => session.path === `${target}.md` || session.basename === target);

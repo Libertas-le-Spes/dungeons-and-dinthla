@@ -1,3 +1,4 @@
+import type { TFile } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 import { linksToSession, sessionLinkFor } from "../../../src/kind-notes/keeping/session-link";
 import { fileAt } from "../fake-notes";
@@ -13,17 +14,13 @@ function resolvedAt(found: string | null) {
 function metadataResolving(found: string | null) {
   const resolved = resolvedAt(found);
   return {
-    fileToLinktext: vi.fn(() => "Session 2"),
     getFirstLinkpathDest: vi.fn(() => resolved),
   };
 }
 
 describe("sessionLinkFor", () => {
-  it("is the link text Obsidian gives from the note to the session, without the ending", () => {
-    const metadata = metadataResolving(SESSION);
-    const file = fileAt(SESSION);
-    expect(sessionLinkFor(metadata, file, NOTE)).toBe("[[Session 2]]");
-    expect(metadata.fileToLinktext).toHaveBeenCalledExactlyOnceWith(file, NOTE, true);
+  it("is the whole path of the session in the vault, without the ending, so no other note can be meant", () => {
+    expect(sessionLinkFor(fileAt(SESSION))).toBe("[[D&D/Pale Moon/Sessions/Session 2]]");
   });
 });
 
@@ -72,5 +69,63 @@ describe("linksToSession for a session that is gone", () => {
 
   it("is false when the link names another session", () => {
     expect(linksToSession(metadataResolving(null), "[[Session 3]]", NOTE, gone)).toBe(false);
+  });
+});
+
+const VAULT = ["Sessions", "Questions", "Funds", "Quests"].map((folder) => `D&D/Pale Moon/${folder}/Session 3.md`);
+
+function folderOf(path: string): string {
+  return path.slice(0, path.lastIndexOf("/"));
+}
+
+function resolvedFrom(target: string, source: string): TFile | null {
+  const named = VAULT.filter((path) => path.replace(/\.md$/, "").endsWith(target));
+  const here = named.find((path) => folderOf(path) === folderOf(source));
+  if (here !== undefined) return fileAt(here);
+  const [first] = named;
+  if (first === undefined) return null;
+  return fileAt(first);
+}
+
+const obsidian = { getFirstLinkpathDest: resolvedFrom };
+
+describe("linksToSession in a vault with a session note and three kind notes of the same number", () => {
+  const SESSION_THREE = "D&D/Pale Moon/Sessions/Session 3.md";
+  const session = { path: SESSION_THREE, file: fileAt(SESSION_THREE) };
+  const KIND_NOTES = VAULT.filter((path) => path !== SESSION_THREE);
+  const QUESTIONS_THREE = "D&D/Pale Moon/Questions/Session 3.md";
+
+  it("resolves the short link from each kind note's own folder to the kind note itself", () => {
+    for (const path of KIND_NOTES) expect(resolvedFrom("Session 3", path)?.path).toBe(path);
+  });
+
+  it("is true for the short link an earlier version wrote, in each kind note", () => {
+    for (const path of KIND_NOTES) expect(linksToSession(obsidian, "[[Session 3]]", path, session)).toBe(true);
+  });
+
+  it("is true for the whole path, in each kind note", () => {
+    for (const path of KIND_NOTES) expect(linksToSession(obsidian, "[[D&D/Pale Moon/Sessions/Session 3]]", path, session)).toBe(true);
+  });
+
+  it("is true for a link the session's own folder name qualifies", () => {
+    for (const path of KIND_NOTES) expect(linksToSession(obsidian, "[[Sessions/Session 3]]", path, session)).toBe(true);
+  });
+
+  it("is false for a link that names the kind note itself by its path", () => {
+    expect(linksToSession(obsidian, "[[D&D/Pale Moon/Questions/Session 3]]", QUESTIONS_THREE, session)).toBe(false);
+  });
+
+  it("is false for a short link to a different session, which resolves to nothing here", () => {
+    for (const path of KIND_NOTES) expect(linksToSession(obsidian, "[[Session 4]]", path, session)).toBe(false);
+  });
+
+  it("is false when the short link resolves to the note itself but the note belongs to another session", () => {
+    const four = { path: "D&D/Pale Moon/Sessions/Session 4.md", file: fileAt("D&D/Pale Moon/Sessions/Session 4.md") };
+    expect(linksToSession(obsidian, "[[Session 3]]", QUESTIONS_THREE, four)).toBe(false);
+  });
+
+  it("is false for a short link named like the session's tail, such as Old Session 3", () => {
+    const old = { path: "D&D/Pale Moon/Sessions/Old Session 3.md", file: fileAt("D&D/Pale Moon/Sessions/Old Session 3.md") };
+    for (const path of KIND_NOTES) expect(linksToSession(obsidian, "[[Session 3]]", path, old)).toBe(false);
   });
 });

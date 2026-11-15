@@ -19,10 +19,10 @@ export interface DmNameQuestionsStore {
   readonly sessionNotes: SessionNote[];
 }
 
-export interface DmNameQuestionsNeeds extends Omit<ReferenceNoteMakerNeeds, "failed" | "metadata" | "files"> {
+export interface DmNameQuestionsNeeds extends Omit<ReferenceNoteMakerNeeds, "failed" | "files"> {
   store: DmNameQuestionsStore;
   files: ReferenceNoteMakerNeeds["files"] & TakenNamesNeeds["files"] & Pick<FencedFiles, "getFileByPath">;
-  metadata: ReferenceNoteMakerNeeds["metadata"] & TakenNamesNeeds["metadata"] & Pick<FencedMetadata, "on" | "offref">;
+  metadata: TakenNamesNeeds["metadata"] & Pick<FencedMetadata, "on" | "offref" | "getFirstLinkpathDest">;
   campaignFolders(): string[];
   say(message: string): void;
   askNewNames: AskNewNames;

@@ -29,7 +29,7 @@ describe("KindNoteMover", () => {
     moverWith(notes).mover.sessionRenamed(THREE, TWO);
     await settled();
     expect(notes.noteAt(Q3)).toBeNull();
-    expect(notes.noteAt(Q2)?.properties).toEqual({ session: "[[Session 2]]", lines: ["? Who sent Mira"] });
+    expect(notes.noteAt(Q2)?.properties).toEqual({ session: `[[${CAMPAIGN}/Sessions/Session 2]]`, lines: ["? Who sent Mira"] });
     expect(notes.noteAt(Q2)?.words).toBe("His words");
   });
 
@@ -161,7 +161,7 @@ describe("KindNoteMover", () => {
     await settled();
     expect(notes.noteAt(Q2)?.properties?.lines).toEqual(["? Was three"]);
     expect(notes.noteAt(Q3)?.properties?.lines).toEqual(["? Was four"]);
-    expect(notes.noteAt(Q3)?.properties?.session).toBe("[[Session 3]]");
+    expect(notes.noteAt(Q3)?.properties?.session).toBe(`[[${CAMPAIGN}/Sessions/Session 3]]`);
     expect(notes.said).toEqual([]);
   });
 

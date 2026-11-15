@@ -122,7 +122,7 @@ describe("DmNameQuestions", () => {
     const { asked } = await savedAndAsked(world);
     expect(await choose(firstOf(asked), "place")).toBe("made");
     expect(world.notes.created).toEqual([MILL_PATH]);
-    expect(world.notes.noteAt(MILL_PATH)?.properties).toEqual({ "first named": "[[Session 1]]" });
+    expect(world.notes.noteAt(MILL_PATH)?.properties).toEqual({ "first named": `[[${CAMPAIGN}/Sessions/Session 1]]` });
   });
 
   it("asks once for a name written with a folder and with other capitals", async () => {

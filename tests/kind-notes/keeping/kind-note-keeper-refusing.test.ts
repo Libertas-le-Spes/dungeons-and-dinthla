@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { HALF_MADE_AFTER_MS } from "../../../src/kind-notes/keeping/half-made-note";
 import { FakeNotes } from "../fake-notes";
-import { keeperWith, QUESTIONS, SESSION, settled, wanted } from "../keeper-setup";
+import { CAMPAIGN, keeperWith, QUESTIONS, SESSION, settled, wanted } from "../keeper-setup";
 
 const LINES = ["? Who sent Mira"];
-const NOT_LINKED = `${QUESTIONS} already exists but isn't linked to its session in its properties, so it was left alone.`;
+const NOT_LINKED = `${QUESTIONS} isn't linked to its session, so it was left alone.`;
 
 function nothingTouched(notes: FakeNotes): void {
   expect(notes.actions.processFrontMatter).not.toHaveBeenCalled();
@@ -96,7 +96,7 @@ describe("KindNoteKeeper leaving a note that isn't its own", () => {
     notes.addNote(QUESTIONS, null, "");
     keeperWith(notes).keep([wanted(QUESTIONS, session, LINES)]);
     await settled();
-    expect(notes.noteAt(QUESTIONS)?.properties).toEqual({ session: "[[Session 2]]", lines: LINES });
+    expect(notes.noteAt(QUESTIONS)?.properties).toEqual({ session: `[[${CAMPAIGN}/Sessions/Session 2]]`, lines: LINES });
     expect(notes.said).toEqual([]);
   });
 
