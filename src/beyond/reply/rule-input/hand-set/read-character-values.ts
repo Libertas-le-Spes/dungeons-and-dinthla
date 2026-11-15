@@ -6,6 +6,7 @@ import type { NumberRange } from "../../../shape/number-range";
 import { ARMOUR_CLASS_NAME } from "../../../rules/core/number-names";
 import { PERCEPTION } from "../../../rules/proficiency/skills/skills";
 import { ONLINE } from "../../common/online-route";
+import { numericOf } from "../body/numeric-of";
 import type { JsonReader } from "../../json/json-reader";
 import { EveryNumberBlanket } from "./blanket";
 import type { Blanket } from "./blanket";
@@ -39,12 +40,10 @@ interface Found {
 }
 
 function foundIn(entry: JsonReader): Found | undefined {
-  const typeId = entry.numberAt("typeId");
   const value = entry.numberAt("value");
-  if (typeId === null) return undefined;
   if (value === null) return undefined;
   if (!isPlain(entry)) return undefined;
-  const known = KNOWN_VALUES.get(typeId);
+  const known = KNOWN_VALUES.get(numericOf(entry.numberAt("typeId")));
   if (known === undefined) return undefined;
   return { known, value };
 }

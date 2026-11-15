@@ -2,6 +2,7 @@ import { INVENTORY_COUNT } from "../../../shape/import-limits";
 import type { RuleModifier } from "../../../rules/input/rule-modifier";
 import { CleanLine } from "../../../text/clean-line";
 import type { JsonReader } from "../../json/json-reader";
+import { numericOf } from "../body/numeric-of";
 import { definitionNameOf } from "../../parts/definition-name";
 import { modifierEntryOf } from "./modifier-entry";
 import type { ModifierSource } from "./modifier-source";
@@ -59,10 +60,8 @@ export class ItemSource implements ModifierSource {
   }
 
   modifierOf(entry: JsonReader): RuleModifier {
-    const id = entry.numberAt("componentId");
     const subType = CleanLine.of(entry.textAt("subType"));
-    if (id === null) return unreadableModifierOf(subType, CleanLine.of(this.key));
-    const found = this.groups.get(id);
+    const found = this.groups.get(numericOf(entry.numberAt("componentId")));
     if (found === undefined) return unreadableModifierOf(subType, CleanLine.of(this.key));
     return modifierEntryOf(entry, found.name, found.copies.some(isInForce));
   }

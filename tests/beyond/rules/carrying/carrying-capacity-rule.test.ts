@@ -56,3 +56,10 @@ describe("CarryingCapacityRule and size", () => {
     expect(numberNamed(madeUpRuleCharacter({ size: "large", baseScores: strong }), "Carrying capacity").explanation).toBe("15 x STR 10 x 2 for a large load = 300");
   });
 });
+
+describe("CarryingCapacityRule with a Powerful Build and an unknown size", () => {
+  it("does not make an unknown size a tiny one one size larger", () => {
+    const found = numberNamed(madeUpRuleCharacter({ size: "", features: ["Powerful Build"] }), "Carrying capacity");
+    expect(found.isKnown).toBe(false);
+  });
+});

@@ -1,6 +1,7 @@
 import type { RuleModifier } from "../../../rules/input/rule-modifier";
 import { CleanLine } from "../../../text/clean-line";
 import type { JsonReader } from "../../json/json-reader";
+import { numericOf } from "../body/numeric-of";
 import type { ClassOwners } from "./class-owners";
 import { ListedSource } from "./listed-source";
 import type { ModifierNames } from "./modifier-names";
@@ -28,9 +29,7 @@ export class ClassSource implements ModifierSource {
   }
 
   private startedBy(entry: JsonReader): boolean | undefined {
-    const id = entry.numberAt("componentId");
-    if (id === null) return undefined;
-    return this.owners.startedBy.get(id);
+    return this.owners.startedBy.get(numericOf(entry.numberAt("componentId")));
   }
 
   private isSharedWithMulticlass(entry: JsonReader): boolean {

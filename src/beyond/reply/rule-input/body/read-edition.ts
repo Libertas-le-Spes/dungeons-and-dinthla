@@ -1,6 +1,7 @@
 import { CLASS_COUNT, SOURCE_COUNT } from "../../../shape/import-limits";
 import type { Edition } from "../../../rules/input/edition";
 import type { JsonReader } from "../../json/json-reader";
+import { numericOf } from "./numeric-of";
 import { agreedEdition } from "./agreed-edition";
 
 const EDITION_OF_SOURCE: ReadonlyMap<number, Edition> = new Map<number, Edition>([
@@ -9,9 +10,7 @@ const EDITION_OF_SOURCE: ReadonlyMap<number, Edition> = new Map<number, Edition>
 ]);
 
 function editionOfSource(source: JsonReader): Edition {
-  const id = source.numberAt("sourceId");
-  if (id === null) return "not stated";
-  const found = EDITION_OF_SOURCE.get(id);
+  const found = EDITION_OF_SOURCE.get(numericOf(source.numberAt("sourceId")));
   if (found === undefined) return "not stated";
   return found;
 }

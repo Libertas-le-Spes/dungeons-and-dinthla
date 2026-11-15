@@ -5,6 +5,7 @@ import { MediumArmour } from "../../../rules/input/armour/medium-armour";
 import { NotArmour } from "../../../rules/input/armour/not-armour";
 import { Shield } from "../../../rules/input/armour/shield";
 import type { JsonReader } from "../../json/json-reader";
+import { numericOf } from "../body/numeric-of";
 
 const ARMOUR_KINDS: ReadonlyMap<number, ArmourKind> = new Map<number, ArmourKind>([
   [1, new LightArmour()],
@@ -15,7 +16,5 @@ const ARMOUR_KINDS: ReadonlyMap<number, ArmourKind> = new Map<number, ArmourKind
 
 export function armourKindOf(definition: JsonReader): ArmourKind | undefined {
   if (definition.holdsNothingAt("armorTypeId")) return new NotArmour();
-  const id = definition.numberAt("armorTypeId");
-  if (id === null) return undefined;
-  return ARMOUR_KINDS.get(id);
+  return ARMOUR_KINDS.get(numericOf(definition.numberAt("armorTypeId")));
 }

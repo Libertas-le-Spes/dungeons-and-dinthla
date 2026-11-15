@@ -1,5 +1,6 @@
 import { MODIFIER_COUNT } from "../../../shape/import-limits";
 import type { JsonReader } from "../../json/json-reader";
+import { numericOf } from "./numeric-of";
 
 const SIZE_OF_ID: ReadonlyMap<number, string> = new Map([
   [3, "small"],
@@ -12,9 +13,7 @@ function isSize(entry: JsonReader): boolean {
 }
 
 function sizeFromId(data: JsonReader): string {
-  const id = data.readerAt("race").numberAt("sizeId");
-  if (id === null) return "";
-  const found = SIZE_OF_ID.get(id);
+  const found = SIZE_OF_ID.get(numericOf(data.readerAt("race").numberAt("sizeId")));
   if (found === undefined) return "";
   return found;
 }

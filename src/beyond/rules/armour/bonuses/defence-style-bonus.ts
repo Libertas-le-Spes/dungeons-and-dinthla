@@ -9,7 +9,6 @@ const FEATURE = "Defense";
 
 function isCountedModifier(modifier: RuleModifier): boolean {
   if (!modifier.inForce) return false;
-  if (modifier.type !== "bonus") return false;
   if (modifier.subType.text !== "armor-class") return false;
   if (modifier.restriction.trim() !== "") return false;
   return sameName(modifier.sourceName.text, FEATURE);

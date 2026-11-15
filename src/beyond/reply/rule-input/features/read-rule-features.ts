@@ -1,6 +1,7 @@
 import { FEATURE_COUNT } from "../../../shape/import-limits";
 import type { JsonReader } from "../../json/json-reader";
 import { definitionNameOf } from "../../parts/definition-name";
+import { numericOf } from "../body/numeric-of";
 import { classFeaturesOf } from "./class-features";
 
 const OPTION_SOURCES = ["race", "class", "background", "item", "feat"];
@@ -10,15 +11,12 @@ function nameOf(entry: JsonReader): string {
 }
 
 function reachedFeatures(classEntry: JsonReader): readonly JsonReader[] {
-  const level = classEntry.numberAt("level");
+  const level = numericOf(classEntry.numberAt("level"));
   return classFeaturesOf(classEntry).filter((feature) => isReached(feature, level));
 }
 
-function isReached(feature: JsonReader, level: number | null): boolean {
-  const required = feature.readerAt("definition").numberAt("requiredLevel");
-  if (required === null) return false;
-  if (level === null) return false;
-  return required <= level;
+function isReached(feature: JsonReader, level: number): boolean {
+  return numericOf(feature.readerAt("definition").numberAt("requiredLevel")) <= level;
 }
 
 function classFeatureNames(data: JsonReader): string[] {
