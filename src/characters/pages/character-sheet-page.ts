@@ -1,7 +1,7 @@
 import { VALUE_BUTTONS } from "../../views/lists/row-keys";
 import { Component, type TFile } from "obsidian";
 import type { Source } from "../../campaign/record/campaign";
-import { campaignFolderOf } from "../../campaign/paths/campaign-folders";
+import { campaignFolderOf, charactersFolderOf } from "../../campaign/paths/campaign-folders";
 import { sessionLabelOf } from "../../campaign/paths/session-file";
 import type { LinkActions } from "../../views/lists/linked-text";
 import { PENDING_FOCUS_MS } from "../../views/lists/row-focus";
@@ -15,6 +15,7 @@ import { modifierOf } from "../reading/sheet-values";
 import { fillStatBlock } from "../cards/stat-block";
 import { PendingWork } from "../../views/pending/pending-work";
 import { addImportedLines } from "../imported/drawing/imported-lines";
+import { isCharacterNotePath } from "../../campaign/paths/character-note-path";
 import { addUpdateButton } from "../imported/drawing/update-button";
 import { addImportedPanels } from "../imported/panels/imported-panels";
 import type { ItemTracking } from "../imported/tracking/item-tracking";
@@ -157,7 +158,7 @@ export class CharacterSheetPage extends Component {
     const actions = head.createDiv({ cls: "dd-head-actions" });
     const edit = actions.createEl("button", { cls: "dd-create", text: "Edit character" });
     edit.addEventListener("click", () => this.actions.editCharacter(file));
-    addUpdateButton(actions, file, this.actions);
+    if (this.isUpdatable(file, read.campaignFolder)) addUpdateButton(actions, file, this.actions);
     const subtitle = sheet.values.find((value) => value.name === "subtitle");
     if (subtitle !== undefined && subtitle.state !== "unknown") root.createEl("p", { cls: "dd-sheet-subtitle", text: shownTextOf(subtitle) });
     const abilities = root.createDiv({ cls: "dd-sheet-abilities" });
@@ -177,6 +178,11 @@ export class CharacterSheetPage extends Component {
     this.drawStatBlock(root, file, sheet);
     this.mentions.draw(root.createEl("section", { cls: "dd-sheet-mentions" }), file);
     this.focusPending();
+  }
+
+  private isUpdatable(file: TFile, campaignFolder: string | null): boolean {
+    if (campaignFolder === null) return false;
+    return isCharacterNotePath(file.path, charactersFolderOf(campaignFolder));
   }
 
   private drawStatBlock(root: HTMLElement, file: TFile, sheet: CharacterSheet): void {

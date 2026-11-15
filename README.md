@@ -71,7 +71,7 @@ A short walkthrough:
 2. Your character's sheet opens, and the plugin offers to make them your character in this campaign. Under the values you'll find your inventory, purse, spells and features, as D&D Beyond has them.
 3. Press *Track on the funds page* beside an item to give it to your character on the Party funds page, where the party can see it.
 4. Your own purse shows on the Party funds page beside the party's once the campaign note names your character, and is never added to it.
-5. *Update from D&D Beyond* is on every character's sheet, including a character you wrote by hand, so you can bring them in from D&D Beyond or a PDF at any time. After a level-up, press it on your sheet and bring your character in again, online or by a new PDF. Anything you hold on the funds page that the new sheet doesn't list is marked; pick *Used up*, *Sold*, *Lost* or *Changed* to settle it.
+5. *Update from D&D Beyond* is on the sheet of every character in the campaign's `Characters` folder, including a character you wrote by hand, so you can bring them in from D&D Beyond or a PDF at any time. After a level-up, press it on your sheet and bring your character in again, online or by a new PDF. Anything you hold on the funds page that the new sheet doesn't list is marked; pick *Used up*, *Sold*, *Lost* or *Changed* to settle it.
 
 When a character leaves play:
 

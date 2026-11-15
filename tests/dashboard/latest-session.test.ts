@@ -43,4 +43,14 @@ describe("linesWrittenIn", () => {
       ["item named", 0],
     ]);
   });
+
+  it("lists a sale once, as its coin entry, and not again as the item's line", () => {
+    const latest = sessionOf(2, ["$ Silvered lantern", "$$ Silvered lantern :sold 30gp"]);
+    const campaign = buildCampaign([latest]);
+    const lines = linesWrittenIn(latest.path, campaign, summariseFunds(campaign).ledger);
+    expect(rowsAddedBy(lines)).toEqual([
+      ["coin", 1],
+      ["item named", 0],
+    ]);
+  });
 });

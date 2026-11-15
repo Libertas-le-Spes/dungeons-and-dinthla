@@ -102,6 +102,12 @@ function panel(root: HTMLElement, index: number): HTMLElement {
   return root.querySelectorAll<HTMLElement>(".dd-panel")[index]!;
 }
 
+function elementIn(root: HTMLElement, selector: string): HTMLElement {
+  const found = root.querySelector<HTMLElement>(selector);
+  if (found === null) throw new Error(`There is no ${selector}.`);
+  return found;
+}
+
 function textsOf(root: HTMLElement, selector: string): string[] {
   return Array.from(root.querySelectorAll(selector)).map((element) => String(element.textContent));
 }
@@ -179,7 +185,7 @@ describe("DashboardPage", () => {
 
   it("puts the latest session panel first, before the questions", async () => {
     const { root } = await openDashboard([sessionOf(1, ["? Who"])]);
-    const titles = Array.from(root.querySelectorAll(".dd-panel")).map((element) => element.querySelector(".dd-title")!.textContent);
+    const titles = Array.from(root.querySelectorAll(".dd-panel")).map((element) => textsOf(element as HTMLElement, ".dd-title").join(""));
     expect(titles).toEqual(["Session 1 · The ferry at dusk", "Open questions", "Active quests", "Purse", "Characters"]);
   });
 
@@ -196,7 +202,7 @@ describe("DashboardPage", () => {
   it("scrolls the session panel's lines, with the most recent quest, question and item or coin all in them", async () => {
     const lines = ["? Who is she", "$ 5 gp found", "$ [[Mira]] Silvered lantern", "! Escort Mira", "! Guard the mill", "! Burn the mill", "! Bury the mill"];
     const { root } = await openDashboard([sessionOf(1, lines)]);
-    const list = panel(root, SESSION).querySelector<HTMLElement>(".dd-session-list")!;
+    const list = elementIn(panel(root, SESSION), ".dd-session-list");
     expect(list.getAttribute("tabindex")).toBe("0");
     expect(list.getAttribute("aria-label")).toBe("Lines written in this session");
     expect(textsOf(list, ".dd-text, .dd-what")).toEqual(["Bury the mill", "Burn the mill", "Guard the mill", "Escort Mira", "Silvered lantern", "5 gp found", "Who is she"]);
@@ -204,11 +210,13 @@ describe("DashboardPage", () => {
 
   it("opens an item written in the latest session from its row, and puts focus back on it", async () => {
     const { root, actions, closers } = await openDashboard([sessionOf(1, ["$ [[Mira]] Silvered lantern"])]);
-    const row = panel(root, SESSION).querySelector<HTMLElement>(".dd-row")!;
+    const row = elementIn(panel(root, SESSION), ".dd-row");
     expect(textsOf(row, ".dd-meta")).toEqual(["Item"]);
     row.click();
     expect(actions.openItem).toHaveBeenCalledWith("Silvered lantern", { path: `${CAMPAIGN}/Sessions/Session 1.md`, line: 0 }, expect.any(Function));
-    closers.item[0]!(false);
+    const [closeItem] = closers.item;
+    expect(closeItem).toBeDefined();
+    closeItem?.(false);
     expect(root.ownerDocument.activeElement).toBe(panel(root, SESSION).querySelector(".dd-row"));
   });
 

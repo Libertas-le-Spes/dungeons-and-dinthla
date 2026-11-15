@@ -6,13 +6,19 @@ import { Notice } from "../../stubs/obsidian";
 class Answers implements NewCampaignAnswers {
   readonly typed: string[] = [];
   opened = 0;
+  private finish: (made: boolean) => void = () => {};
 
-  constructor(private readonly outcome: boolean | Error) {}
+  constructor(private readonly outcome: boolean | Error | "held") {}
 
   async make(name: string): Promise<boolean> {
     this.typed.push(name);
     if (this.outcome instanceof Error) throw this.outcome;
+    if (this.outcome === "held") return new Promise((resolve) => (this.finish = resolve));
     return this.outcome;
+  }
+
+  release(): void {
+    this.finish(true);
   }
 
   made(): void {
@@ -26,19 +32,42 @@ function opened(answers: NewCampaignAnswers): NewCampaignModal {
   return modal;
 }
 
+function elementIn<Found extends Element>(modal: NewCampaignModal, selector: string): Found {
+  const found = modal.contentEl.querySelector<Found>(selector);
+  if (found === null) throw new Error(`The window has no ${selector}.`);
+  return found;
+}
+
+function inputOf(modal: NewCampaignModal): HTMLInputElement {
+  return elementIn<HTMLInputElement>(modal, "input");
+}
+
+function buttonSaying(modal: NewCampaignModal, words: string): HTMLButtonElement {
+  const found = Array.from(modal.contentEl.querySelectorAll("button")).find((button) => button.textContent === words);
+  if (found === undefined) throw new Error(`The window has no ${words} button.`);
+  return found;
+}
+
+function windowOf(element: Element): Window & typeof globalThis {
+  const window = element.ownerDocument.defaultView;
+  if (window === null) throw new Error("The page has no window.");
+  return window;
+}
+
 function typeIn(modal: NewCampaignModal, typed: string): void {
-  const input = modal.contentEl.querySelector("input")!;
+  const input = inputOf(modal);
   input.value = typed;
-  input.dispatchEvent(new (input.ownerDocument.defaultView!.Event)("input"));
+  input.dispatchEvent(new (windowOf(input).Event)("input"));
+}
+
+function press(modal: NewCampaignModal, key: string): void {
+  const input = inputOf(modal);
+  input.dispatchEvent(new (windowOf(input).KeyboardEvent)("keydown", { key, cancelable: true }));
 }
 
 function submit(modal: NewCampaignModal, typed: string): void {
   typeIn(modal, typed);
-  makeButton(modal).click();
-}
-
-function makeButton(modal: NewCampaignModal): HTMLButtonElement {
-  return Array.from(modal.contentEl.querySelectorAll("button")).find((button) => button.textContent === "Make campaign")!;
+  buttonSaying(modal, "Make campaign").click();
 }
 
 const settled = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -51,8 +80,7 @@ describe("NewCampaignModal", () => {
   it("asks for a name, and hands what was typed over to be made", async () => {
     const answers = new Answers(true);
     const modal = opened(answers);
-    expect((modal as unknown as { title: string }).title).toBe("New campaign");
-    expect(makeButton(modal).textContent).toBe("Make campaign");
+    expect(Reflect.get(modal, "title")).toBe("New campaign");
     submit(modal, "Silver Road");
     await settled();
     expect(answers.typed).toEqual(["Silver Road"]);
@@ -73,8 +101,8 @@ describe("NewCampaignModal", () => {
     submit(modal, "Silver Road");
     await settled();
     expect(answers.opened).toBe(0);
-    expect(modal.contentEl.querySelector("input")!.value).toBe("Silver Road");
-    expect(makeButton(modal).disabled).toBe(false);
+    expect(inputOf(modal).value).toBe("Silver Road");
+    expect(buttonSaying(modal, "Make campaign").disabled).toBe(false);
   });
 
   it("says why when making the campaign fails outright, and stays open", async () => {
@@ -84,15 +112,27 @@ describe("NewCampaignModal", () => {
     await settled();
     expect(Notice.shown).toEqual(["Couldn't make the campaign: The disk is full."]);
     expect(answers.opened).toBe(0);
-    expect(makeButton(modal).disabled).toBe(false);
+    expect(buttonSaying(modal, "Make campaign").disabled).toBe(false);
   });
 
   it("makes the campaign when Enter is pressed in the name box", async () => {
     const answers = new Answers(true);
     const modal = opened(answers);
     typeIn(modal, "Silver Road");
-    const input = modal.contentEl.querySelector("input")!;
-    input.dispatchEvent(new (input.ownerDocument.defaultView!.KeyboardEvent)("keydown", { key: "Enter", cancelable: true }));
+    press(modal, "Enter");
+    await settled();
+    expect(answers.typed).toEqual(["Silver Road"]);
+    expect(answers.opened).toBe(1);
+  });
+
+  it("makes the campaign once when Enter is pressed again while it is being made", async () => {
+    const answers = new Answers("held");
+    const modal = opened(answers);
+    typeIn(modal, "Silver Road");
+    press(modal, "Enter");
+    press(modal, "Enter");
+    await settled();
+    answers.release();
     await settled();
     expect(answers.typed).toEqual(["Silver Road"]);
     expect(answers.opened).toBe(1);
@@ -101,8 +141,7 @@ describe("NewCampaignModal", () => {
   it("makes nothing when another key is pressed in the name box", async () => {
     const answers = new Answers(true);
     const modal = opened(answers);
-    const input = modal.contentEl.querySelector("input")!;
-    input.dispatchEvent(new (input.ownerDocument.defaultView!.KeyboardEvent)("keydown", { key: "a", cancelable: true }));
+    press(modal, "a");
     await settled();
     expect(answers.typed).toEqual([]);
   });
@@ -110,7 +149,7 @@ describe("NewCampaignModal", () => {
   it("closes without making anything on Cancel", async () => {
     const answers = new Answers(true);
     const modal = opened(answers);
-    Array.from(modal.contentEl.querySelectorAll("button")).find((button) => button.textContent === "Cancel")!.click();
+    buttonSaying(modal, "Cancel").click();
     await settled();
     expect(answers.typed).toEqual([]);
     expect(modal.contentEl.querySelector("input")).toBeNull();
