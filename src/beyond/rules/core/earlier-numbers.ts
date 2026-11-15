@@ -18,7 +18,7 @@ export class EarlierNumbers {
 
   valueOf(name: string, route: Route): WorkedValue<number> {
     const value = this.found.get(name);
-    if (value === undefined) return new NotKnownValue(`${name} has not been worked out.`, route);
+    if (value === undefined) return new NotKnownValue(`${name} unknown.`, route);
     return value;
   }
 }

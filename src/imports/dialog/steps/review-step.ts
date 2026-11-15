@@ -1,12 +1,16 @@
 import { ButtonComponent } from "obsidian";
 import { CHOOSE_ANOTHER, CLOSE_BUTTON } from "../import-words";
-import { summaryLinesOf } from "../review/sheet-summary";
+import { problemLinesOf, summaryLinesOf } from "../review/sheet-summary";
 import type { Review, ReviewActions } from "./review";
 
 function drawSummary(parent: HTMLElement, review: Review): void {
   const summary = parent.createDiv({ cls: "dd-import-summary" });
   summary.createEl("h3", { text: review.sheet.character.name.text });
   for (const line of summaryLinesOf(review.sheet)) summary.createEl("p", { text: line });
+  const problems = problemLinesOf(review.sheet);
+  if (problems.length === 0) return;
+  const list = summary.createEl("ul", { cls: "dd-import-problems" });
+  for (const problem of problems) list.createEl("li", { text: problem });
 }
 
 function canWrite(review: Review): boolean {
@@ -28,7 +32,7 @@ function drawWhatChanges(parent: HTMLElement, review: Review): void {
 }
 
 function drawButtons(parent: HTMLElement, review: Review, actions: ReviewActions): void {
-  const row = parent.createDiv({ cls: "modal-button-container" });
+  const row = parent.createDiv({ cls: ["modal-button-container", "dd-import-footer"] });
   if (canWrite(review)) {
     const write = new ButtonComponent(row).setButtonText(review.target.buttonWords).setCta().onClick(actions.writeChosen.bind(actions));
     write.buttonEl.addClass("dd-import-write");
@@ -39,8 +43,9 @@ function drawButtons(parent: HTMLElement, review: Review, actions: ReviewActions
 }
 
 export function drawReview(parent: HTMLElement, review: Review, actions: ReviewActions): void {
-  drawSummary(parent, review);
-  drawFailure(parent, review);
-  drawWhatChanges(parent, review);
+  const body = parent.createDiv({ cls: "dd-import-body" });
+  drawSummary(body, review);
+  drawFailure(body, review);
+  drawWhatChanges(body, review);
   drawButtons(parent, review, actions);
 }

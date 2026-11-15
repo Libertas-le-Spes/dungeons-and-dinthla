@@ -1,11 +1,11 @@
 import { TIME_LIMIT_MS } from "./time-limit";
 
-export const NOT_A_CHARACTER_LINK = "That isn't a link to a D&D Beyond character, or a character's number. Paste the link from your character's page, or just the number in it.";
-export const STILL_WAITING = "Still waiting on D&D Beyond. Wait for its answer before trying again.";
-export const TOO_SOON = "That was only just tried. Wait a few seconds, then try again.";
-export const TIMED_OUT = `D&D Beyond didn't answer within ${TIME_LIMIT_MS / 1000} seconds, so the wait was stopped. Nothing was brought in. Try again, or use the PDF.`;
-export const COULD_NOT_REACH = "Couldn't reach D&D Beyond. Check your internet connection, or use the PDF.";
-export const NOT_PUBLIC = "D&D Beyond didn't send this character. Check it is set to Public.";
+export const NOT_A_CHARACTER_LINK = "Not a character link or number.";
+export const STILL_WAITING = "Still waiting for an answer.";
+export const TOO_SOON = "Wait a few seconds, then try again.";
+export const TIMED_OUT = `No answer in ${TIME_LIMIT_MS / 1000} seconds. Try again, or use a PDF.`;
+export const COULD_NOT_REACH = "Couldn't connect. Check your internet, or use a PDF.";
+export const NOT_PUBLIC = "Character not sent. Set it to Public.";
 export const NO_SUCH_CHARACTER = "No character has that link.";
 export const NOT_A_CHARACTER = "That reply wasn't a character's data.";
-export const A_DIFFERENT_CHARACTER = "D&D Beyond sent a different character than the one asked for, so nothing was brought in.";
+export const A_DIFFERENT_CHARACTER = "A different character came back. Nothing was brought in.";

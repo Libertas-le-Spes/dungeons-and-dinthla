@@ -7,11 +7,10 @@ import { messageOf } from "../../views/dialogs/message-of";
 import type { CampaignsFolderSetup } from "./campaigns-folder-setup";
 import { PictureSuggestModal } from "./picture-suggest-modal";
 
-const CAMPAIGNS_FOLDER_HINT =
-  "The folder your campaigns live in, one folder each. Dungeons & Dinthla reads and writes only inside it. Changing it moves nothing.";
-const FOLDER_HINT = "Its folder. Every note in it, and in the folders inside it, shows the background picture below.";
+const CAMPAIGNS_FOLDER_HINT = "Where your campaigns live.";
+const FOLDER_HINT = "Background picture for its notes.";
 const NO_PICTURE = "None yet.";
-const WELCOME_HINT = "The first steps for a new campaign. They open in the campaign tab, behind this window.";
+const WELCOME_HINT = "First steps for a new campaign.";
 const WASH_NAMES: Record<Wash, string> = { subtle: "Subtle", balanced: "Balanced", strong: "Strong" };
 
 export interface CampaignChoice {

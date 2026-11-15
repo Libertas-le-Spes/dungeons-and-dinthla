@@ -6,12 +6,6 @@
   font: var(--type-label);
 }
 
-.dd-import .dd-online-intro {
-  margin: 0 0 var(--size-4-2);
-  font-size: var(--font-ui-small);
-  color: var(--text-muted-ui);
-}
-
 .dd-import .dd-or-the-pdf {
   margin: var(--size-4-4) 0 0;
   font: var(--type-label);
@@ -44,9 +38,38 @@
   gap: var(--size-4-2);
 }
 
-.dd-import .dd-import-heading {
-  margin: var(--size-4-3) 0 var(--size-4-1);
+.dd-import .dd-import-body {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.dd-import .dd-import-footer {
+  position: sticky;
+  bottom: 0;
+  flex-wrap: wrap;
+  padding-top: var(--size-4-2);
+  background: var(--background-primary);
+}
+
+.dd-import .dd-import-problems {
+  margin: 0 0 var(--size-4-1);
+  padding-left: var(--size-4-4);
+  font-size: var(--font-ui-small);
+  color: var(--state-danger);
+}
+
+.dd-import .dd-import-changes-line {
+  margin: var(--size-4-2) 0;
+  font-size: var(--font-ui-small);
+}
+
+.dd-import .dd-import-fold {
+  margin: var(--size-4-1) 0;
+}
+
+.dd-import .dd-import-fold summary {
   font: var(--type-label);
+  cursor: pointer;
 }
 
 .dd-import .dd-import-lines,
@@ -64,4 +87,9 @@
   margin: var(--size-4-3) 0;
   padding: var(--size-4-2) var(--size-4-3);
   border-left: var(--rule-width) solid var(--state-danger);
+}
+
+.dd-import .dd-import-typed-title {
+  margin: var(--size-4-2) 0 var(--size-4-1);
+  font: var(--type-label);
 }

@@ -85,9 +85,21 @@ describe("the import dialog's own work, which its tests await", () => {
 });
 
 describe("importing a character from a made-up PDF", () => {
-  it("asks for the PDF first, saying where D&D Beyond makes it", () => {
+  it("lists a list that lost lines as one short problem, and no problem when none were lost", async () => {
+    const lost = importDialog();
+    lost.pick(pickedFileOf(madeUpPdf(MadeUpSheet.monk().with("Eq Name0", "x".repeat(5_000)))));
+    await lost.settled(".dd-import-write");
+    expect(lost.texts(".dd-import-problems li")).toEqual(["Items: 1 left out"]);
+    obsidianDocument().body.replaceChildren();
+    const whole = importDialog();
+    whole.pick(pickedFileOf(monkPdf()));
+    await whole.settled(".dd-import-write");
+    expect(whole.root.querySelector(".dd-import-problems")).toBeNull();
+  });
+
+  it("asks for the PDF first, with a short export hint and what the PDF lacks", () => {
     const dialog = importDialog();
-    expect(dialog.texts(".dd-where")).toEqual(["On D&D Beyond: open your character, choose Manage next to the name, then Export to PDF at the bottom of the menu. Then choose that file here."]);
+    expect(dialog.texts(".dd-where")).toEqual(["Manage, then Export to PDF.", "PDF lacks attacks and proficiency marks."]);
     expect(dialog.root.querySelectorAll('input[type="file"]')).toHaveLength(1);
   });
 
@@ -97,7 +109,9 @@ describe("importing a character from a made-up PDF", () => {
     await dialog.settled(".dd-import-write");
     expect(dialog.texts(".dd-import-summary h3")).toEqual(["Primary Monk"]);
     expect(dialog.texts(".dd-import-summary p")).toContain("Human · Monk 4");
-    expect(dialog.texts(".dd-import-summary p")).toContain("The PDF doesn't give proficiency marks, attacks, alignment, spell slots, total level, hit dice or carrying capacity, so none of them come in.");
+    expect(dialog.texts(".dd-import-summary p")).toHaveLength(2);
+    expect(dialog.root.querySelector(".dd-import-body .dd-import-write")).toBeNull();
+    expect(dialog.root.querySelectorAll(".dd-import-footer .dd-import-write")).toHaveLength(1);
     expect(dialog.texts(".dd-where")).toEqual(["Make a new note, Primary Monk"]);
     expect(vault.created).toEqual([]);
     dialog.press("Import");
@@ -126,11 +140,11 @@ describe("importing a character from a made-up PDF", () => {
   });
 
   it("shows the note's refusal in words, and offers no Update, when the note can't take an import", async () => {
-    vault.note(SHORT_NOTE, "## Spells (from D&D Beyond)\n- One\n## Spells (from D&D Beyond)\n- Two\n");
+    vault.note(SHORT_NOTE, "## Spells\n- One\n## Spells\n- Two\n");
     const dialog = updateDialog(SHORT_NOTE);
     dialog.pick(pickedFileOf(monkPdf()));
     const refusal = await dialog.settled(".dd-import-refusal");
-    expect(refusal.textContent).toBe('The note has two "## Spells (from D&D Beyond)" sections, so nothing was written. Remove one.');
+    expect(refusal.textContent).toBe('The note has two "## Spells" sections. Remove one.');
     expect(dialog.root.querySelector(".dd-import-write")).toBeNull();
     expect(vault.processed).toEqual([]);
   });
@@ -143,7 +157,8 @@ describe("importing a character from a made-up PDF", () => {
     dialog.press("Update Primary");
     await dialog.settled(".dd-import-write");
     expect(dialog.texts(".dd-import-properties li")).toContain("class: nothing → \"Monk 4\"");
-    expect(dialog.texts(".dd-import-heading")).toContain("## Spells (from D&D Beyond)");
+    expect(dialog.texts(".dd-import-fold summary")).toEqual(["Properties (13)", "Numbers (− 0 + 48)", "Inventory (− 0 + 26)", "Purse (− 0 + 5)", "Spells (− 0 + 47)", "Features (− 0 + 6)"]);
+    expect(dialog.texts(".dd-import-changes-line")).toEqual(["Changes: Numbers, Inventory, Purse, Spells, Features, 13 properties."]);
     expect(dialog.root.querySelector(".dd-import-warning")).toBeNull();
     dialog.press("Update");
     await dialog.modal.allSettled();
@@ -153,12 +168,12 @@ describe("importing a character from a made-up PDF", () => {
   });
 
   it("warns before replacing text typed inside a section, and replaces it only after Update", async () => {
-    const typed = "Notes of mine.\n## Spells (from D&D Beyond)\nRange: 60 feet\n";
+    const typed = "Notes of mine.\n## Spells\nRange: 60 feet\n";
     vault.note(SHORT_NOTE, typed);
     const dialog = updateDialog(SHORT_NOTE);
     dialog.pick(pickedFileOf(monkPdf()));
     await dialog.settled(".dd-import-warning");
-    expect(dialog.texts(".dd-import-warning p")).toEqual(["Text you typed inside these sections will be replaced:", "## Spells (from D&D Beyond)"]);
+    expect(dialog.texts(".dd-import-warning p")).toEqual(["Your typed text is replaced in Spells."]);
     expect(dialog.texts(".dd-import-warning li")).toEqual(["Range: 60 feet"]);
     expect(vault.textAt(SHORT_NOTE)).toBe(typed);
     dialog.press("Update");
@@ -172,7 +187,7 @@ describe("importing a character from a made-up PDF", () => {
     const dialog = updateDialog(SHORT_NOTE);
     dialog.pick(pickedFileOf(monkPdf()));
     await dialog.settled(".dd-import-write");
-    vault.texts.set(SHORT_NOTE, "Notes of mine.\n## Spells (from D&D Beyond)\nTyped later\n");
+    vault.texts.set(SHORT_NOTE, "Notes of mine.\n## Spells\nTyped later\n");
     dialog.press("Update");
     const failure = await dialog.settled(".dd-import-failure");
     expect(failure.textContent).toBe(TYPED_TEXT_NOT_SHOWN);
@@ -187,7 +202,7 @@ describe("importing a character from a made-up PDF", () => {
     const dialog = updateDialog(SHORT_NOTE);
     dialog.pick(pickedFileOf(monkPdf()));
     await dialog.settled(".dd-import-write");
-    vault.texts.set(SHORT_NOTE, "Notes of mine.\n## Spells (from D&D Beyond)\nTyped later\n");
+    vault.texts.set(SHORT_NOTE, "Notes of mine.\n## Spells\nTyped later\n");
     dialog.press("Update");
     await dialog.settled(".dd-import-failure");
     dialog.press("Update");
@@ -201,7 +216,7 @@ describe("importing a character from a made-up PDF", () => {
     const dialog = updateDialog(SHORT_NOTE);
     dialog.pick(pickedFileOf(monkPdf()));
     await dialog.settled(".dd-import-nothing");
-    expect(dialog.texts(".dd-import-nothing")).toEqual(["Nothing in the note would change."]);
+    expect(dialog.texts(".dd-import-nothing")).toEqual(["Nothing changes."]);
     expect(dialog.root.querySelector(".dd-import-write")).toBeNull();
     dialog.press("Close");
     expect(dialog.closed).toHaveBeenCalledWith(null);
@@ -228,7 +243,7 @@ describe("importing a character from a made-up PDF", () => {
     const huge = { size: 10 * 1024 * 1024 + 1, arrayBuffer: pickedFileOf(monkPdf()).arrayBuffer };
     dialog.pick(huge);
     const refusal = await dialog.settled(".dd-import-refusal");
-    expect(refusal.textContent).toBe("This file is bigger than 10 MB, so it was not read.");
+    expect(refusal.textContent).toBe("The file is over 10 MB. Choose a smaller one.");
     expect(huge.arrayBuffer).not.toHaveBeenCalled();
   });
 
@@ -244,7 +259,7 @@ describe("importing a character from a made-up PDF", () => {
     const dialog = importDialog();
     dialog.pick({ size: 10, arrayBuffer: failingRead });
     const refusal = await dialog.settled(".dd-import-refusal");
-    expect(refusal.textContent).toBe("The file could not be read, so nothing was imported.");
+    expect(refusal.textContent).toBe("Couldn't read the file. Try another.");
   });
 
   it("is refused by the gate for a Characters folder outside the Campaigns folder, and writes nothing", async () => {
@@ -307,8 +322,8 @@ describe("the import dialog's words when something other than a refusal goes wro
     const failure = await dialog.settled(".dd-import-failure");
     expect(failure.textContent).toBe(WRITING_WENT_WRONG);
     expect(Notice.shown).toEqual([`Couldn't write the import: ${WRITING_WENT_WRONG}`]);
-    expect(WRITING_WENT_WRONG).toBe("Something went wrong while writing the note. Look at the note before you try again.");
-    expect(READING_WENT_WRONG).toBe("Something went wrong while reading the note, so nothing was written.");
+    expect(WRITING_WENT_WRONG).toBe("Couldn't write the note. Check it, then try again.");
+    expect(READING_WENT_WRONG).toBe("Couldn't read the note. Nothing was written.");
   });
 });
 
@@ -318,7 +333,7 @@ describe("Update from D&D Beyond with another character's PDF", () => {
     const dialog = updateDialog(`${CHARACTERS_FOLDER}/Secondary.md`);
     dialog.pick(pickedFileOf(monkPdf()));
     const refusal = await dialog.settled(".dd-import-refusal");
-    expect(refusal.textContent).toBe("This PDF is for Primary Monk, not Secondary. Nothing was changed.");
+    expect(refusal.textContent).toBe("That is Primary Monk, not Secondary.");
     expect(dialog.root.querySelectorAll('input[type="file"]')).toHaveLength(1);
     expect(vault.processed).toEqual([]);
   });
@@ -330,7 +345,7 @@ describe("a new note whose name is taken", () => {
     const dialog = new DialogDriver(new NewImportFlow(new ImportWriter(vault.gate, CHARACTERS_FOLDER, CAMPAIGN_FOLDER), CHARACTERS_FOLDER, noNotes), { today: TODAY, online: NO_ONLINE });
     dialog.pick(pickedFileOf(monkPdf()));
     const refusal = await dialog.settled(".dd-import-refusal");
-    expect(refusal.textContent).toBe("There is already a note called primary monk in the Characters folder.");
+    expect(refusal.textContent).toBe("A note called primary monk is already in Characters. Rename or move it.");
     expect(dialog.root.querySelector(".dd-import-write")).toBeNull();
     expect(vault.created).toEqual([]);
   });

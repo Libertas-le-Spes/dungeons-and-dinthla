@@ -7,7 +7,6 @@ import { learnedFactsOf } from "./learned-facts";
 import type { SheetNotes } from "./sheet-notes";
 import { overrideFacts, type SourcedFact } from "./sheet-values";
 import { importedFactsOf } from "../imported/reading/imported-facts";
-import type { ImportedFact } from "../imported/reading/imported-fact";
 import { ImportedLists } from "../imported/lists/imported-lists";
 
 export type SheetStore = Pick<CampaignStore, "campaignFolder" | "sessionNotes">;
@@ -31,7 +30,7 @@ interface Facts {
   campaignFolder: string | null;
   sessions: SessionNote[];
   learned: SourcedFact[];
-  imported: ImportedFact[];
+  imported: SourcedFact[];
   overrides: SourcedFact[];
   lists: ImportedLists | null;
 }
@@ -59,7 +58,7 @@ async function carriedTo(file: TFile, store: SheetStore, notes: SheetNotes): Pro
   const facts = await factsAbout(carriedFile, store, notes);
   let campaign = carriedFrom.path;
   if (facts.campaignFolder !== null) campaign = facts.campaignFolder;
-  const values = carriedValuesOf(campaign, facts.learned, facts.imported, facts.overrides, carriedFrom.groups);
+  const values = carriedValuesOf({ campaign, learned: facts.learned, imported: facts.imported, overrides: facts.overrides, groups: carriedFrom.groups });
   return { path: carriedFrom.path, campaignFolder: facts.campaignFolder, values };
 }
 
@@ -75,7 +74,7 @@ export async function readCharacterSheet(file: TFile, store: SheetStore, notes: 
     carriedCampaignFolder = carried.campaignFolder;
   }
   return {
-    sheet: characterSheetOf(facts.learned, facts.imported, facts.overrides, carriedValues),
+    sheet: characterSheetOf({ learned: facts.learned, imported: facts.imported, overrides: facts.overrides, carried: carriedValues }),
     campaignFolder: facts.campaignFolder,
     sessions: facts.sessions,
     carriedPath,

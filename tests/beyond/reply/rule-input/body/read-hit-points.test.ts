@@ -35,7 +35,7 @@ describe("hitPointInputsOf", () => {
   it.each(["14", true, [14], { value: 14 }, {}, false])("doubts the hit points, and drops the dice total, when the override is %j", (value) => {
     const found = inputsOf(MadeUpReply.levelOneMonk().with(["overrideHitPoints"], value));
     expect(found.base).toBeNull();
-    expect(found.doubts.map((doubt) => [doubt.name, doubt.value.isKnown, doubt.value.explanation])).toEqual([["HP", false, "D&D Beyond gave the hit points set by hand in an unexpected form."]]);
+    expect(found.doubts.map((doubt) => [doubt.name, doubt.value.isKnown, doubt.value.explanation])).toEqual([["HP", false, "Hit points unreadable."]]);
   });
 
   it("leaves the hit points lost and the temporary hit points out when they are missing", () => {

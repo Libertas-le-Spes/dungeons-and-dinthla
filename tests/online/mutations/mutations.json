@@ -385,20 +385,6 @@
   "group": "button"
  },
  {
-  "id": "summary: the PDF's gaps are said of every route",
-  "file": "src/imports/dialog/review/sheet-summary.ts",
-  "find": "  if (sheet.character.route.name === PDF_ROUTE_NAME) return [NOT_IN_THE_PDF];\n",
-  "replace": "  return [NOT_IN_THE_PDF];\n",
-  "group": "button"
- },
- {
-  "id": "summary: the PDF's gaps are said of no route",
-  "file": "src/imports/dialog/review/sheet-summary.ts",
-  "find": "  if (sheet.character.route.name === PDF_ROUTE_NAME) return [NOT_IN_THE_PDF];\n",
-  "replace": "",
-  "group": "button"
- },
- {
   "id": "summary: the online sheet's lists are counted as lost",
   "file": "src/imports/dialog/online/online-sheet.ts",
   "find": "const NOTHING_LEFT_OUT: LineLoss = { tooLong: 0, notClean: 0 };",

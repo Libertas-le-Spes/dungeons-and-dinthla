@@ -2,7 +2,7 @@ import type { NotKnownValue } from "../../shape/not-known-value";
 import type { Edition } from "../input/edition";
 import type { RuleCharacter } from "../input/rule-character";
 import type { SubTypeFamily } from "../modifiers/sub-type-family";
-import { FeatureTouching } from "./feature-touching";
+import { FeatureTouching, MAY_CHANGE_IT } from "./feature-touching";
 import { sameName } from "./same-name";
 import { notKnown } from "./worked";
 import { shortList } from "./working-text";
@@ -14,13 +14,11 @@ export interface ModelledTouchingOptions {
   readonly noEffectIn: ReadonlyMap<string, Edition>;
 }
 
-const REASON = "may change this value and is not worked out here";
-
 export class ModelledTouching {
   private readonly touching: FeatureTouching;
 
   constructor(private readonly options: ModelledTouchingOptions) {
-    this.touching = new FeatureTouching(options.names, REASON);
+    this.touching = new FeatureTouching(options.names, MAY_CHANGE_IT);
   }
 
   named(character: RuleCharacter): readonly string[] {
@@ -30,7 +28,7 @@ export class ModelledTouching {
   unknownFor(character: RuleCharacter): NotKnownValue<number> | null {
     const found = this.named(character);
     if (found.length === 0) return null;
-    return notKnown(`${shortList(found)} ${REASON}.`, character.route);
+    return notKnown(`${shortList(found)} ${MAY_CHANGE_IT}.`, character.route);
   }
 
   private isUnsettled(character: RuleCharacter, name: string): boolean {

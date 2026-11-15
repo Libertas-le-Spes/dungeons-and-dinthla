@@ -5,8 +5,7 @@ import { addImportedPanels } from "../../../../src/characters/imported/panels/im
 import { HELD_NOT_IMPORTED, MAY_BE_LEFT_OUT, PICK_WHAT_HAPPENED } from "../../../../src/characters/imported/panels/held-not-imported";
 import { TRACK_ON_FUNDS } from "../../../../src/characters/imported/panels/inventory-panel";
 import { NOTHING_CAME_IN } from "../../../../src/characters/imported/panels/panel-parts";
-import { NO_COIN, NOT_IN_THE_PARTY_PURSE } from "../../../../src/characters/imported/purse/coin-chips";
-import { NOT_IN_THE_PDF } from "../../../../src/imports/layout/pdf-gaps";
+import { NO_COIN } from "../../../../src/characters/imported/purse/coin-chips";
 import { obsidianDocument } from "../../../stubs/obsidian-dom";
 import { textOf } from "../../../imports/builders/line-helpers";
 import { MADE_UP_ADVICE, MadeUpLook, RecordingTracking } from "../builders/recording-tracking";
@@ -19,17 +18,17 @@ function noteText(route: string): string {
     "---",
     `imported-from: ${route}`,
     "---",
-    "## Inventory (from D&D Beyond)",
+    "## Inventory",
     "- Rope × 2",
     "- Lantern × ?",
     "- Left out: 1 too long, 0 not clean",
-    "## Purse (from D&D Beyond)",
+    "## Purse",
     "- pp · 0",
     "- gp · 1200",
     "- ep · not known",
     "- sp · 0",
     "- cp · 3",
-    "## Spells (from D&D Beyond)",
+    "## Spells",
     "- Fire\\_Bolt",
     "",
   );
@@ -103,14 +102,10 @@ describe("the imported panels on a sheet", () => {
 
   it("say in plain words what the PDF's list left out", () => {
     const root = drawn(noteText("pdf"), new RecordingTracking(lookWith([], [])));
-    expect(textsIn(panelTitled(root, "Inventory"), ".dd-left-out")).toEqual(["Left out of the PDF's list: 1 line too long to bring in."]);
+    expect(textsIn(panelTitled(root, "Inventory"), ".dd-left-out")).toEqual(["Left out: 1 too long."]);
     expect(textsIn(panelTitled(root, "Spells"), ".dd-left-out")).toEqual([]);
   });
 
-  it("say once what the PDF doesn't give, for a PDF import only", () => {
-    expect(textsIn(drawn(noteText("pdf"), new RecordingTracking(null)), ".dd-pdf-gaps")).toEqual([NOT_IN_THE_PDF]);
-    expect(textsIn(drawn(noteText("online"), new RecordingTracking(null)), ".dd-pdf-gaps")).toEqual([]);
-  });
 });
 
 describe("the inventory panel", () => {
@@ -151,7 +146,7 @@ describe("the inventory panel", () => {
   });
 
   it("gives no advice about tracking when the inventory is empty", () => {
-    const empty = textOf("---", "imported-from: pdf", "---", "## Inventory (from D&D Beyond)", "");
+    const empty = textOf("---", "imported-from: pdf", "---", "## Inventory", "");
     const inventory = panelTitled(drawn(empty, new RecordingTracking(null)), "Inventory");
     expect(textsIn(inventory, ".dd-note")).toEqual([]);
   });
@@ -182,7 +177,7 @@ describe("the inventory panel", () => {
   });
 
   it("marks nothing when the note has no inventory section, since nothing can be said to be missing", () => {
-    const noInventory = textOf("---", "imported-from: pdf", "---", "## Purse (from D&D Beyond)", "- gp · 1", "");
+    const noInventory = textOf("---", "imported-from: pdf", "---", "## Purse", "- gp · 1", "");
     const tracking = new RecordingTracking(lookWith([], ["Silvered dagger"]));
     expect(drawn(noInventory, tracking).querySelector(".dd-held-not-imported")).toBeNull();
   });
@@ -193,7 +188,7 @@ describe("the inventory panel", () => {
   });
 
   it("says nothing of lines left out when the import left none out", () => {
-    const whole = textOf("---", "imported-from: pdf", "---", "## Inventory (from D&D Beyond)", "- Rope", "- Left out: 0 too long, 0 not clean", "");
+    const whole = textOf("---", "imported-from: pdf", "---", "## Inventory", "- Rope", "- Left out: 0 too long, 0 not clean", "");
     const root = drawn(whole, new RecordingTracking(lookWith([], ["Silvered dagger"])));
     expect(root.querySelector(".dd-may-be-left-out")).toBeNull();
   });
@@ -206,12 +201,12 @@ describe("the inventory panel", () => {
   });
 
   it.each(["Rope #loot", "Bag:: x", "Rope ==mark=="])("offers no Track for %s, a line the import couldn't have written", function noTrack(line: string): void {
-    const typed = textOf("---", "imported-from: pdf", "---", "## Inventory (from D&D Beyond)", `- ${line}`, "");
+    const typed = textOf("---", "imported-from: pdf", "---", "## Inventory", `- ${line}`, "");
     expect(buttonsIn(drawn(typed, new RecordingTracking(lookWith([], []))), TRACK_ON_FUNDS)).toEqual([]);
   });
 
   it("offers no Track for a name longer than the import writes", () => {
-    const long = textOf("---", "imported-from: pdf", "---", "## Inventory (from D&D Beyond)", `- ${"r".repeat(101)}`, "");
+    const long = textOf("---", "imported-from: pdf", "---", "## Inventory", `- ${"r".repeat(101)}`, "");
     expect(buttonsIn(drawn(long, new RecordingTracking(lookWith([], []))), TRACK_ON_FUNDS)).toEqual([]);
   });
 
@@ -227,14 +222,13 @@ describe("the purse panel", () => {
     expect(textsIn(panelTitled(root, "Purse"), ".dd-coin")).toEqual(["1,200 gp", "? ep", "3 cp"]);
   });
 
-  it("says it is not added to the party purse", () => {
+  it("puts no note under the purse", () => {
     const root = drawn(noteText("pdf"), new RecordingTracking(null));
-    expect(textsIn(panelTitled(root, "Purse"), ".dd-note")).toEqual([NOT_IN_THE_PARTY_PURSE]);
-    expect(NOT_IN_THE_PARTY_PURSE).toBe("From D&D Beyond. It is not added to the party purse.");
+    expect(textsIn(panelTitled(root, "Purse"), ".dd-note")).toEqual([]);
   });
 
   it("says no coin when every count is zero", () => {
-    const empty = textOf("---", "imported-from: pdf", "---", "## Purse (from D&D Beyond)", "- gp · 0", "");
+    const empty = textOf("---", "imported-from: pdf", "---", "## Purse", "- gp · 0", "");
     expect(textsIn(panelTitled(drawn(empty, new RecordingTracking(null)), "Purse"), ".dd-coins .dd-empty")).toEqual([NO_COIN]);
   });
 });
@@ -242,7 +236,7 @@ describe("the purse panel", () => {
 describe("the inventory panel and the note's escapes", () => {
   it("asks the funds page by the text as the note holds it, escapes and all", () => {
     const tracking = new RecordingTracking(lookWith([], []));
-    drawn(textOf("---", "imported-from: pdf", "---", "## Inventory (from D&D Beyond)", "- Rope\\_coil × 2", ""), tracking);
+    drawn(textOf("---", "imported-from: pdf", "---", "## Inventory", "- Rope\\_coil × 2", ""), tracking);
     expect(tracking.looks).toEqual([{ path: PRIMARY.path, written: ["Rope\\_coil"] }]);
   });
 });

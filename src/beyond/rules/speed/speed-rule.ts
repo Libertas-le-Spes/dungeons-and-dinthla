@@ -27,7 +27,7 @@ export class SpeedRule implements Rule {
   private speed(character: RuleCharacter, earlier: EarlierNumbers): WorkedValue<number> {
     const touching = SPEED_TOUCHING.unknownFor(character);
     if (touching !== null) return touching;
-    if (character.walkingSpeed === null) return notKnown("The walking speed is missing.", character.route);
+    if (character.walkingSpeed === null) return notKnown("Walking speed missing.", character.route);
     const needed = NeededNumbers.of([STRENGTH.short], earlier, character.route);
     if (needed.missing !== null) return needed.missing;
     const heavy = armourTooHeavy(character, needed.numberOf(STRENGTH.short));

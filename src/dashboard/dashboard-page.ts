@@ -31,8 +31,8 @@ import { addShortCharacterCard } from "./short-character-card";
 import { PendingWork } from "../views/pending/pending-work";
 
 const SHOWN_ROWS = 3;
-const NO_SESSION = "No sessions yet. Start one to write in it.";
-const NO_CHARACTERS = "No characters yet. A note in the campaign’s Characters folder adds one.";
+const NO_SESSION = "No sessions yet.";
+const NO_CHARACTERS = "No characters yet.";
 
 export interface DashboardActions extends LinkActions, ThreadOpeners {
   openLedgerEntry(source: Source, onClosed: (outcome: CoinOutcome) => void): void;

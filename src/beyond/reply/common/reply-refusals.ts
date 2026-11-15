@@ -21,7 +21,7 @@ export function needsList(key: string): Refusal {
 }
 
 export function beyondSaidNo(): Refusal {
-  return new Refusal("D&D Beyond says it could not give this character.");
+  return new Refusal("This character was not given.");
 }
 
 export function noClass(): Refusal {

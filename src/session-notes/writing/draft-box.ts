@@ -2,7 +2,7 @@ import { hasLinesToSave } from "../drafts/draft-lines";
 
 const LABEL = "Type a line starting with ? ! or $, and link names with [[ ]]";
 const PLACEHOLDER = "! Find the caravan, from: [[Lady Vess]], reward: 200 gp";
-const HELP = "To find and update an earlier note, start a line with ?? for a question, !! for a quest or $$ for an item, then a few words.";
+const HELP = "Start with ??, !! or $$ to find an earlier line.";
 const SAVE_HINT = "Ctrl + Enter saves";
 
 function isSaveKey(event: KeyboardEvent): boolean {

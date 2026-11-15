@@ -1,7 +1,6 @@
 import type { LineLoss } from "../../../beyond/sheet/lines/line-loss";
 import type { PrintedSheet } from "../../../beyond/sheet/printed-sheet";
 import type { ImportedClass } from "../../../beyond/shape/imported-class";
-import { NOT_IN_THE_PDF, PDF_ROUTE_NAME } from "../../layout/pdf-gaps";
 
 const BETWEEN_PARTS = " · ";
 const BETWEEN_CLASSES = " / ";
@@ -30,23 +29,19 @@ function listsLine(sheet: PrintedSheet): string {
 }
 
 function lossWords(what: string, loss: LineLoss): string | null {
-  if (loss.tooLong + loss.notClean === 0) return null;
-  return `Left out of the ${what}: ${loss.tooLong} too long, ${loss.notClean} not clean.`;
+  const count = loss.tooLong + loss.notClean;
+  if (count === 0) return null;
+  return `${what}: ${count} left out`;
 }
 
-function leftOutLines(sheet: PrintedSheet): string[] {
+export function problemLinesOf(sheet: PrintedSheet): string[] {
   const lines: string[] = [];
-  for (const words of [lossWords("items", sheet.leftOut.items), lossWords("spells", sheet.leftOut.spells), lossWords("features", sheet.leftOut.features)]) {
+  for (const words of [lossWords("Items", sheet.leftOut.items), lossWords("Spells", sheet.leftOut.spells), lossWords("Features", sheet.leftOut.features)]) {
     if (words !== null) lines.push(words);
   }
   return lines;
 }
 
-function pdfGapLines(sheet: PrintedSheet): string[] {
-  if (sheet.character.route.name === PDF_ROUTE_NAME) return [NOT_IN_THE_PDF];
-  return [];
-}
-
 export function summaryLinesOf(sheet: PrintedSheet): string[] {
-  return [identityLine(sheet), listsLine(sheet), ...leftOutLines(sheet), ...pdfGapLines(sheet)];
+  return [identityLine(sheet), listsLine(sheet)];
 }

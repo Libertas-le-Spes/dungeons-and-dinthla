@@ -5,7 +5,7 @@ import type { PrintedSheet } from "../../../src/beyond/sheet/printed-sheet";
 import { NewImportFlow } from "../../../src/imports/dialog/flows/new-import-flow";
 import { UpdateFlow } from "../../../src/imports/dialog/flows/update-flow";
 import { ONLINE_WENT_WRONG } from "../../../src/imports/dialog/failure-words";
-import { ASKING, BRING_IN_BUTTON, LINK_LABEL, notThisCharacter, ONLINE_INTRO, OR_THE_PDF } from "../../../src/imports/dialog/import-words";
+import { ASKING, BRING_IN_BUTTON, LINK_LABEL, notThisCharacter, OR_THE_PDF } from "../../../src/imports/dialog/import-words";
 import { onlineSheetOf } from "../../../src/imports/dialog/online/online-sheet";
 import { ImportWriter } from "../../../src/imports/note/writing/import-writer";
 import { importedNoteText } from "../../../src/imports/note/writing/rewriting/imported-note";
@@ -51,18 +51,13 @@ function updateDialog(path: string): DialogDriver {
 }
 
 describe("the import dialog's first view", () => {
-  it("offers the online way first, saying what is sent, with a box for the link, and the PDF below it", () => {
+  it("offers the online way first, with a box for the link, and the PDF below it", () => {
     const dialog = importDialog();
-    expect(dialog.texts(".dd-online-intro")).toEqual([ONLINE_INTRO]);
     expect(dialog.texts(".setting-item-name")).toEqual([LINK_LABEL]);
     expect(dialog.texts("button")).toEqual([BRING_IN_BUTTON]);
     expect(dialog.texts(".dd-or-the-pdf")).toEqual([OR_THE_PDF]);
     expect(dialog.root.querySelectorAll('input[type="file"]')).toHaveLength(1);
     expect(online.links).toEqual([]);
-  });
-
-  it("says the privacy line in the owner's words: only the character's number, one address, no login, cookies or headers of the plugin's own, nothing saved until Import", () => {
-    expect(ONLINE_INTRO).toBe("Bring your character in from D&D Beyond. Only your character's number is sent, to one address, and this plugin adds no login, cookies or other headers of its own. Nothing is saved until you press Import.");
   });
 
   it("sends nothing before the button is pressed, however the link is typed", () => {
@@ -109,7 +104,7 @@ describe("pressing the online button", () => {
     await queuedWorkRan();
     expect(vault.created).toEqual([]);
     expect(vault.writes).toEqual([]);
-    expect(dialog.texts(".dd-online-intro")).toEqual([ONLINE_INTRO]);
+    expect(dialog.texts(".setting-item-name")).toEqual([LINK_LABEL]);
   });
 
   it("falls back to the first view in the same dialog with the reason, the typed link kept and the PDF still offered", async () => {

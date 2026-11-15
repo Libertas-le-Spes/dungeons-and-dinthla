@@ -43,7 +43,7 @@ describe("unknownModifiers", () => {
   it("names up to five unknown sub-types and counts the rest", () => {
     const tally = new ModifierTally();
     for (let place = 0; place < 8; place += 1) tally.noteUnknown(`kind-${place}`);
-    expect(unknownModifiers(tally, ROUTE)?.explanation).toBe('D&D Beyond names a rule I can\'t work out here: "kind-0", "kind-1", "kind-2", "kind-3", "kind-4" and 3 more. Type it on your note to set it.');
+    expect(unknownModifiers(tally, ROUTE)?.explanation).toBe('Unread rule "kind-0", "kind-1", "kind-2", "kind-3", "kind-4" and 3 more. Type it on your note.');
   });
 
   it("is nothing when nothing is unknown", () => {

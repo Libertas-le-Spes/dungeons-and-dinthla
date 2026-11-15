@@ -1,7 +1,6 @@
 import type { PurseCoin } from "../lists/purse-coin";
 
 export const NO_COIN = "No coin.";
-export const NOT_IN_THE_PARTY_PURSE = "From D&D Beyond. It is not added to the party purse.";
 const NOT_KNOWN_COUNT = "?";
 
 function chipText(coin: PurseCoin): string {

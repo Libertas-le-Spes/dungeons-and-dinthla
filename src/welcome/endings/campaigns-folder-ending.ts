@@ -3,7 +3,7 @@ import { addNameForm } from "./name-form";
 import type { WelcomeActions, WelcomeState } from "./welcome-ending";
 
 export const HOW_TO_CHOOSE_THE_CAMPAIGNS_FOLDER =
-  "First, choose the folder your campaigns live in, such as D&D. Dungeons & Dinthla reads and writes only inside it and leaves the rest of your vault alone. Pick a folder you already have, or name a new one.";
+  "Choose the folder your campaigns live in, such as D&D.";
 export const CHOOSE_A_FOLDER = "Choose a folder";
 export const FOLDER_NAME = "Campaigns folder name";
 export const MAKE_THE_FOLDER = "Make the folder";

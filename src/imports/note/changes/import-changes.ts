@@ -1,4 +1,4 @@
-import { IMPORTED_ON_PROPERTY, IMPORT_PROPERTIES } from "../../layout/import-properties";
+import { IMPORTED_FROM_PROPERTY, IMPORTED_ON_PROPERTY, IMPORT_PROPERTIES } from "../../layout/import-properties";
 import { PLUGIN_SECTIONS } from "../../layout/plugin-sections";
 import { LINE_START } from "../../layout/section-line-format";
 import { NoteLayout } from "../reading/note-layout";
@@ -13,13 +13,13 @@ export interface PropertyChange {
 }
 
 export interface SectionChange {
-  readonly heading: string;
+  readonly title: string;
   readonly removed: readonly string[];
   readonly added: readonly string[];
 }
 
 export interface TypedText {
-  readonly heading: string;
+  readonly title: string;
   readonly lines: readonly string[];
 }
 
@@ -54,20 +54,32 @@ function sectionChangesOf(before: NoteLayout, after: NoteLayout): SectionChange[
     const now = writtenLinesOf(after.sectionLines(section));
     const removed = linesWithout(was, now);
     const added = linesWithout(now, was);
-    if (removed.length + added.length > 0) changes.push({ heading: section.heading, removed, added });
+    if (removed.length + added.length > 0) changes.push({ title: section.title, removed, added });
   }
   return changes;
 }
 
-function isTyped(line: string): boolean {
+function isClaimed(before: NoteLayout): boolean {
+  if (propertyValuesOf(before).has(IMPORTED_FROM_PROPERTY)) return true;
+  return PLUGIN_SECTIONS.some((section) => before.lines.some((line) => line.trimEnd() === section.formerHeading));
+}
+
+interface TypedCheck {
+  readonly claimed: boolean;
+  readonly line: string;
+}
+
+function isTyped({ claimed, line }: TypedCheck): boolean {
+  if (!claimed) return true;
   return !line.startsWith(LINE_START);
 }
 
 function typedTextIn(before: NoteLayout): TypedText[] {
+  const claimed = isClaimed(before);
   const found: TypedText[] = [];
   for (const section of PLUGIN_SECTIONS) {
-    const lines = writtenLinesOf(before.sectionLines(section)).filter(isTyped);
-    if (lines.length > 0) found.push({ heading: section.heading, lines });
+    const lines = writtenLinesOf(before.sectionLines(section)).filter((line) => isTyped({ claimed, line }));
+    if (lines.length > 0) found.push({ title: section.title, lines });
   }
   return found;
 }

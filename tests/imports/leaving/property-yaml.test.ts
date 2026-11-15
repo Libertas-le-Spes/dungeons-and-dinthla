@@ -11,7 +11,7 @@ vi.mock("obsidian", async (original) => {
 
 const BEFORE = "---\nclass: Monk\nstanding: died\n---\n";
 const AFTER = "---\nclass: Monk\nstanding: backup\n---\n";
-const WORDS = "The note's properties would read differently than only standing, so nothing was written.";
+const WORDS = "Changing standing would change the other properties.";
 
 function refusalOf(work: () => unknown): string {
   try {
@@ -49,7 +49,7 @@ describe("the properties read before and after", () => {
 
   it("are refused when the wanted line doesn't read as properties", () => {
     read.results = [{ class: "Monk", standing: "died" }, { class: "Monk", standing: "backup" }, "just words"];
-    expect(refusalOf(check)).toBe("The note's properties couldn't be read as properties, so standing wasn't written. Fix them first.");
+    expect(refusalOf(check)).toBe("The properties couldn't be read, so standing wasn't written. Fix them.");
   });
 
   it("are read as nothing when a block holds nothing", () => {

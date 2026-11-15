@@ -5,7 +5,7 @@ import { SPEED_NAME } from "../../../rules/core/number-names";
 import { ONLINE } from "../../common/online-route";
 import type { JsonReader } from "../../json/json-reader";
 
-const BY_HAND = "A speed is set by hand on D&D Beyond, and I do not read it yet. Type the speed on your note to set it.";
+const BY_HAND = "Speed set by hand. Type it on your note.";
 
 export interface SpeedInputs {
   readonly walking: number | null;

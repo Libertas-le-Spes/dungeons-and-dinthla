@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { App, TFile } from "obsidian";
 import { dayOf } from "../../../src/imports/dialog/today";
-import { summaryLinesOf } from "../../../src/imports/dialog/review/sheet-summary";
+import { problemLinesOf, summaryLinesOf } from "../../../src/imports/dialog/review/sheet-summary";
 import { drawChanges } from "../../../src/imports/dialog/review/change-list";
 import { AfterNewImport, AfterUpdate } from "../../../src/imports/dialog/opening/after-import";
 import type { ImportClosed } from "../../../src/imports/dialog/import-modal";
@@ -71,60 +71,90 @@ describe("the day an import is written", () => {
   });
 });
 
-describe("the summary of what a PDF brings in", () => {
-  it("names the species and class, counts the lists and says what the PDF doesn't give", () => {
-    expect(summaryLinesOf(printedOf(MadeUpSheet.monk()))).toEqual([
-      "Human · Monk 4",
-      expect.stringMatching(/^\d+ items · \d+ spells · \d+ feature lines$/),
-      "The PDF doesn't give proficiency marks, attacks, alignment, spell slots, total level, hit dice or carrying capacity, so none of them come in.",
-    ]);
+describe("the summary of what an import brings in", () => {
+  it("names the species and class and counts the lists", () => {
+    expect(summaryLinesOf(printedOf(MadeUpSheet.monk()))).toEqual(["Human · Monk 4", expect.stringMatching(/^\d+ items · \d+ spells · \d+ feature lines$/)]);
   });
 
-  it("says nothing about the PDF for a character that came online, and nothing is left out of it", () => {
-    const lines = summaryLinesOf(onlineSheetOf(readReply(MadeUpReply.levelOneMonk().wholeText())));
-    expect(lines).toEqual(["Human · Monk 1", "3 items · 2 spells · 3 feature lines"]);
-    expect(lines.join("\n")).not.toContain("PDF");
+  it("says the same for a character that came online", () => {
+    expect(summaryLinesOf(onlineSheetOf(readReply(MadeUpReply.levelOneMonk().wholeText())))).toEqual(["Human · Monk 1", "3 items · 2 spells · 3 feature lines"]);
   });
 
-  it("counts the lines left out of a list, too long and not clean", () => {
+  it("counts the lines left out of a list, too long and not clean together, as one short problem", () => {
     const sheet = printedOf(MadeUpSheet.monk().with("Eq Name0", "x".repeat(5_000)));
-    expect(summaryLinesOf(sheet)).toContain("Left out of the items: 1 too long, 0 not clean.");
+    expect(problemLinesOf(sheet)).toEqual(["Items: 1 left out"]);
   });
 
-  it("says nothing is left out when nothing is", () => {
-    const lines = summaryLinesOf(printedOf(MadeUpSheet.monk()));
-    expect(lines.filter(isLeftOutLine)).toEqual([]);
+  it("lists no problem when nothing is left out", () => {
+    expect(problemLinesOf(printedOf(MadeUpSheet.monk()))).toEqual([]);
   });
 });
 
-function isLeftOutLine(line: string): boolean {
-  return line.startsWith("Left out");
-}
-
 describe("the list of changes", () => {
-  it("shows each property before and after, and each section's lines taken out and put in", () => {
+  it("names what changes in one line and folds each property and section away", () => {
     const parent = obsidianDocument().createElement("div");
     drawChanges(parent, {
       properties: [{ name: "AC", before: "15", after: "16" }, { name: "speed", before: null, after: "40" }],
-      sections: [{ heading: "## Purse (from D&D Beyond)", removed: ["- gp · 2"], added: ["- gp · 3"] }],
+      sections: [{ title: "Purse", removed: ["- gp · 2"], added: ["- gp · 3"] }],
       typed: [],
     });
+    expect(textsIn(parent, ".dd-import-changes-line")).toEqual(["Changes: Purse, 2 properties."]);
+    expect(textsIn(parent, "summary")).toEqual(["Properties (2)", "Purse (− 1 + 1)"]);
     expect(textsIn(parent, ".dd-import-properties li")).toEqual(["AC: 15 → 16", "speed: nothing → 40"]);
     expect(textsIn(parent, ".dd-import-removed")).toEqual(["− - gp · 2"]);
     expect(textsIn(parent, ".dd-import-added")).toEqual(["+ - gp · 3"]);
     expect(parent.querySelector(".dd-import-warning")).toBeNull();
   });
 
-  it("puts the warning about typed text first", () => {
+  it("does not show the import's own marks", () => {
     const parent = obsidianDocument().createElement("div");
-    drawChanges(parent, { properties: [{ name: "AC", before: "15", after: "16" }], sections: [], typed: [{ heading: "## Spells (from D&D Beyond)", lines: ["Range: 60 feet"] }] });
+    drawChanges(parent, {
+      properties: [{ name: "imported-from", before: null, after: "pdf" }, { name: "imported-session", before: null, after: "3" }, { name: "AC", before: "15", after: "16" }],
+      sections: [],
+      typed: [],
+    });
+    expect(textsIn(parent, ".dd-import-changes-line")).toEqual(["Changes: 1 property."]);
+    expect(textsIn(parent, ".dd-import-properties li")).toEqual(["AC: 15 → 16"]);
+  });
+
+  it("says the import marks change when only they do, and still shows no fold", () => {
+    const parent = obsidianDocument().createElement("div");
+    drawChanges(parent, { properties: [{ name: "imported-from", before: "pdf", after: "online" }], sections: [], typed: [] });
+    expect(textsIn(parent, ".dd-import-changes-line")).toEqual(["Changes: import marks."]);
+    expect(parent.querySelector(".dd-import-fold")).toBeNull();
+  });
+
+  it("names the sections alone when only the import marks change beside them", () => {
+    const parent = obsidianDocument().createElement("div");
+    drawChanges(parent, {
+      properties: [{ name: "imported-from", before: "pdf", after: "online" }, { name: "imported-session", before: "1", after: "2" }],
+      sections: [{ title: "Numbers", removed: [], added: ["- AC · 1"] }],
+      typed: [],
+    });
+    expect(textsIn(parent, ".dd-import-changes-line")).toEqual(["Changes: Numbers."]);
+  });
+
+  it("puts the warning about typed text first, naming the sections and showing the lines", () => {
+    const parent = obsidianDocument().createElement("div");
+    drawChanges(parent, { properties: [{ name: "AC", before: "15", after: "16" }], sections: [], typed: [{ title: "Spells", lines: ["Range: 60 feet"] }] });
     const first = parent.firstElementChild;
     if (first === null) throw new Error("Nothing was drawn.");
     expect(first.className).toBe("dd-import-warning");
+    expect(textsIn(first, "p")).toEqual(["Your typed text is replaced in Spells."]);
+    expect(textsIn(first, ".dd-import-typed-title")).toEqual(["Spells (1)"]);
+    expect(textsIn(first, "li")).toEqual(["Range: 60 feet"]);
+    expect(first.querySelector("details")).toBeNull();
+  });
+
+  it("says nothing changes when nothing does", () => {
+    const parent = obsidianDocument().createElement("div");
+    drawChanges(parent, { properties: [], sections: [], typed: [] });
+    expect(textsIn(parent, ".dd-import-nothing")).toEqual(["Nothing changes."]);
   });
 });
 
-function textsIn(parent: HTMLElement, selector: string): string[] {
+
+function textsIn(parent: ParentNode, selector: string): string[] {
   const found: string[] = [];
   for (const element of parent.querySelectorAll(selector)) found.push(String(element.textContent));
   return found;
@@ -185,7 +215,7 @@ describe("opening the dialog", () => {
     expect(openedModals.length).toBe(before + 1);
     const outside = wiringWith(null, null);
     new BeyondOpeners(outside).updateFromBeyond(note, vi.fn());
-    expect(outside.tell).toHaveBeenCalledExactlyOnceWith("This note isn't in a campaign, so it can't be updated from D&D Beyond.");
+    expect(outside.tell).toHaveBeenCalledExactlyOnceWith("This note isn't in a campaign.");
     expect(openedModals.length).toBe(before + 1);
   });
 

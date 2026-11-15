@@ -21,11 +21,11 @@ describe("handSetOf, for values set by hand", () => {
   });
 
   it("takes the armor class set by hand, with its working", () => {
-    expect(shown(setBy([valued({ typeId: 1, value: 13 })]))).toEqual(["AC|true|13|Armor class set on D&D Beyond: 13"]);
+    expect(shown(setBy([valued({ typeId: 1, value: 13 })]))).toEqual(["AC|true|13|Set by hand"]);
   });
 
   it("takes the passive Perception set by hand", () => {
-    expect(shown(setBy([valued({ typeId: 5, value: 16 })]))).toEqual(["Passive Perception|true|16|Passive Perception set on D&D Beyond: 16"]);
+    expect(shown(setBy([valued({ typeId: 5, value: 16 })]))).toEqual(["Passive Perception|true|16|Set by hand"]);
   });
 
   it("takes both, and raises no blanket", () => {
@@ -35,7 +35,7 @@ describe("handSetOf, for values set by hand", () => {
   });
 
   it("marks a value out of range not known", () => {
-    expect(shown(setBy([valued({ typeId: 1, value: 99 })]))).toEqual(["AC|false|-1|Armor class has to be a whole number from 0 to 40."]);
+    expect(shown(setBy([valued({ typeId: 1, value: 99 })]))).toEqual(["AC|false|-1|Must be a whole number 0 to 40."]);
   });
 
   it.each([
@@ -64,7 +64,7 @@ describe("handSetOf, for values set by hand", () => {
 
   it("keeps the values it reads when another is not read", () => {
     const found = setBy([valued({ typeId: 1, value: 13 }), valued({ typeId: 2, value: 10 })]);
-    expect(shown(found)).toEqual(["AC|true|13|Armor class set on D&D Beyond: 13"]);
+    expect(shown(found)).toEqual(["AC|true|13|Set by hand"]);
     expect(found.blankets).toHaveLength(1);
   });
 
@@ -96,8 +96,8 @@ describe("handSetOf, for proficiencies and conditions added by hand", () => {
   it("gives the reason of each in words", () => {
     const reply = MadeUpReply.levelOneMonk().with(["customProficiencies"], [{}]).with(["conditions"], [{}]);
     expect(handSetOf(reply.reader()).blankets.map((blanket) => blanket.reason)).toEqual([
-      "Proficiencies are added by hand on D&D Beyond, and I do not read them yet. Type the numbers on your note to set them.",
-      "A condition is on the character on D&D Beyond, and I do not work out what it does to a number. Type the numbers on your note to set them.",
+      "Proficiencies set by hand. Type them on your note.",
+      "A condition applies. Type them on your note.",
     ]);
   });
 

@@ -4,7 +4,7 @@ import type { ByAbility } from "../../../../../src/beyond/rules/input/by-ability
 import { ABILITIES, STRENGTH, DEXTERITY } from "../../../../../src/beyond/rules/input/ability";
 import { MadeUpReply } from "../../../builders/made-up-reply";
 
-const UNEXPECTED = "D&D Beyond gave the scores, their bonuses or the scores set by hand in an unexpected form.";
+const UNEXPECTED = "Scores unreadable.";
 const SIX = [1, 2, 3, 4, 5, 6];
 
 function tableOf(table: ByAbility<number>): (number | undefined)[] {

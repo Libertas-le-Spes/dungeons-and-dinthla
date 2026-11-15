@@ -33,7 +33,7 @@ describe("InitiativeRule", () => {
 
   it("does not know initiative with the Alert feat, whatever the edition", () => {
     const value = numberNamed(madeUpRuleCharacter({ features: ["Alert"] }), "Initiative");
-    expect([value.isKnown, value.explanation]).toEqual([false, "Alert may change this value and is not worked out here."]);
+    expect([value.isKnown, value.explanation]).toEqual([false, "Alert may change this."]);
   });
 
   it("does not know initiative with a modifier it does not know", () => {

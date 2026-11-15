@@ -219,7 +219,7 @@ describe("CharacterSheetPage", () => {
     expect(sheet.button("alignment").getAttribute("aria-label")).toBe("Alignment: ?, Not known yet");
   });
 
-  it("names where each value came from: its session, an override or the campaign it was carried from", async () => {
+  it("names where a learned or carried value came from, and nothing under an override or a value not known", async () => {
     const sheet = openSheet({
       sessions: ["[[Mira]] AC: 15"],
       texts: { [MIRA.path]: "HP: 44", [OLD_MIRA]: "class: Ranger" },
@@ -227,10 +227,9 @@ describe("CharacterSheetPage", () => {
     });
     await sheet.load();
     expect(textsOf(sheet.rowOf("Armor Class"), ".dd-value-source")).toEqual(["Session 1"]);
-    expect(textsOf(sheet.rowOf("Hit Points"), ".dd-value-source")).toEqual(["Override"]);
+    expect(sheet.rowOf("Hit Points").querySelector(".dd-value-source")).toBeNull();
     expect(textsOf(sheet.rowOf("Class"), ".dd-value-source")).toEqual(["Carried from Ashen Road"]);
-    expect(textsOf(sheet.rowOf("Speed"), ".dd-value-source")).toEqual(["Not known yet"]);
-    expect(sheet.rowOf("Speed").querySelector(".dd-source-link")).toBeNull();
+    expect(sheet.rowOf("Speed").querySelector(".dd-value-source")).toBeNull();
   });
 
   it("opens the line a value came from", async () => {
@@ -596,22 +595,19 @@ const IMPORTED = [
   "AC: 16",
   "HP: 14",
   "---",
-  "## Numbers (from D&D Beyond)",
-  "- AC · 16 · 10 + DEX 4 + WIS 2 · Worked out here",
-  "- HP · 14 · Worked out here",
+  "## Numbers",
+  "- AC · 16 · 10 + DEX 4 + WIS 2",
+  "- HP · 14",
   "",
 ].join("\n");
 
 describe("CharacterSheetPage for an imported character", () => {
-  it("shows the route under an imported value, and its working when it has one", async () => {
+  it("puts nothing under an imported value", async () => {
     const { load, rowOf } = openSheet({ texts: { [MIRA.path]: IMPORTED } });
     await load();
     const armour = rowOf("Armor Class");
     expect(textIn(armour, ".dd-value")).toBe("16");
-    expect(textIn(armour, ".dd-value-source")).toBe("From D&D Beyond");
-    expect(textIn(armour, ".dd-value-working")).toBe("10 + DEX 4 + WIS 2");
-    expect(textIn(armour, ".dd-value-route")).toBe("Worked out here, from D&D Beyond (online)");
-    expect(rowOf("Hit Points").querySelector(".dd-value-working")).toBeNull();
+    expect(armour.querySelector(".dd-value-source")).toBeNull();
   });
 
   it("gives an imported value the imported look", async () => {
@@ -620,11 +616,11 @@ describe("CharacterSheetPage for an imported character", () => {
     expect(rowOf("Armor Class").querySelector(".dd-value.dd-state-imported")).not.toBeNull();
   });
 
-  it("shows no route under a value his own note overrides", async () => {
+  it("puts nothing under a value his own note overrides", async () => {
     const { load, rowOf } = openSheet({ texts: { [MIRA.path]: IMPORTED.replace("## Numbers", "AC: 18\n## Numbers") } });
     await load();
     expect(textIn(rowOf("Armor Class"), ".dd-value")).toBe("18");
-    expect(rowOf("Armor Class").querySelector(".dd-value-route")).toBeNull();
+    expect(rowOf("Armor Class").querySelector(".dd-value-source")).toBeNull();
   });
 
   it("offers Update from D&D Beyond, which asks once for this character's update", async () => {
@@ -726,7 +722,7 @@ describe("CharacterSheetPage carrying values from an imported note in another ca
 
 describe("CharacterSheetPage with an imported inventory", () => {
   it("draws the imported panels after the values and before the stat block", async () => {
-    const text = IMPORTED.replace("## Numbers", "## Inventory (from D&D Beyond)\n- Rope × 2\n## Numbers");
+    const text = IMPORTED.replace("## Numbers", "## Inventory\n- Rope × 2\n## Numbers");
     const { load, root } = openSheet({ texts: { [MIRA.path]: text } });
     await load();
     const sections: string[] = [];

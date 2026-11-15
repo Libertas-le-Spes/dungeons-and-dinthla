@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { sheetValueNamed } from "../builders/sheet-value-named";
 import type { TFile } from "obsidian";
 import { CHANGED_IN_NOTE, PartlyWritten, WOULD_BE_HIDDEN } from "../../../src/campaign/writing/note-editor";
 import { commentMarkIn, readsBackDifferently, stillReads } from "../../../src/characters/editing/character-entry";
@@ -34,9 +35,9 @@ function overrideLine(value: string): SourcedFact {
 function acOf(learned: SourcedFact[], overrides: SourcedFact[], carriedClass: string | null = null): SheetValue {
   let carried = null;
   if (carriedClass !== null) {
-    carried = carriedValuesOf("Ashen Road", [], [], [{ name: "AC", value: carriedClass, source: { path: "Ashen Road/Characters/Mira.md", line: 0 } }], ["values"]);
+    carried = carriedValuesOf({ campaign: "Ashen Road", learned: [], imported: [], overrides: [{ name: "AC", value: carriedClass, source: { path: "Ashen Road/Characters/Mira.md", line: 0 } }], groups: ["values"] });
   }
-  return characterSheetOf(learned, [], overrides, carried).values.find((value) => value.name === "AC")!;
+  return sheetValueNamed(characterSheetOf({ learned, imported: [], overrides, carried }), "AC");
 }
 
 describe("sheetWriteOf", () => {

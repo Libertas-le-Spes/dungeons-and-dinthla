@@ -6,7 +6,7 @@ function withConstitution(score: number) {
   return scoresOf(10, 10, score, 10, 10, 10);
 }
 
-const MINIMUM_REASON = "I could not tell whether the minimum of 1 hit point a level applies, because the constitution modifier is negative and the dice total is only a sum.";
+const MINIMUM_REASON = "Minimum hit points per level unclear.";
 
 describe("MaxHitPointsRule", () => {
   it("adds the constitution modifier for the one level: 12 + 2 = 14", () => {
@@ -41,7 +41,7 @@ describe("MaxHitPointsRule", () => {
   it("takes the hit points D&D Beyond itself holds over the working", () => {
     const character = madeUpRuleCharacter({ baseHitPoints: 12, overrideHitPoints: 40 });
     const hitPoints = numberNamed(character, "HP");
-    expect([hitPoints.valueOr(-1), hitPoints.explanation]).toEqual([40, "Hit points set on D&D Beyond: 40"]);
+    expect([hitPoints.valueOr(-1), hitPoints.explanation]).toEqual([40, "Set by hand"]);
   });
 
   it.each([
@@ -89,7 +89,7 @@ describe("MaxHitPointsRule", () => {
   it("does not know the hit points when a per-level modifier has a source it does not know", () => {
     const character = madeUpRuleCharacter({ modifiers: [modifierOf("bonus", "hit-points-per-level", 1, "Pale Charm")] });
     const hitPoints = numberNamed(character, "HP");
-    expect([hitPoints.isKnown, hitPoints.explanation]).toEqual([false, 'D&D Beyond names a rule I can\'t work out here: "hit-points-per-level". Type it on your note to set it.']);
+    expect([hitPoints.isKnown, hitPoints.explanation]).toEqual([false, 'Unread rule "hit-points-per-level". Type it on your note.']);
   });
 
   it("does not know the hit points when a modifier adds flat hit points under a name it does not know", () => {
@@ -141,11 +141,11 @@ describe("MaxHitPointsRule", () => {
 
   it("does not know the hit points when the constitution modifier is not known", () => {
     const character = madeUpRuleCharacter({ baseScores: scoresOf(10, 10, 0, 10, 10, 10) });
-    expect(numberNamed(character, "HP").explanation).toBe("It needs CON modifier, which is not known.");
+    expect(numberNamed(character, "HP").explanation).toBe("Needs CON modifier.");
   });
 });
 
-const DIE_REASON = "A hit die is not a d4, d6, d8, d10 or d12, so I could not tell whether the minimum of 1 hit point a level applies.";
+const DIE_REASON = "Hit die must be d4-d12.";
 
 describe("MaxHitPointsRule with a hit die that is not a die", () => {
   it.each([Number.NaN, 0, 3, 20, Number.POSITIVE_INFINITY])("does not know the hit points for a die of %s with a negative constitution modifier", (hitDie) => {
@@ -179,7 +179,7 @@ describe("MaxHitPointsRule with a modifier named like a source it works out itse
 
   it("does not know them for a huge amount from a source named Tough, with no feature", () => {
     const character = madeUpRuleCharacter({ classes: LEVEL_FIVE, baseHitPoints: 40, modifiers: [modifierOf("bonus", "hit-points-per-level", 50, "Tough")] });
-    expect(numberNamed(character, "HP").explanation).toBe('D&D Beyond names a rule I can\'t work out here: "hit-points-per-level". Type it on your note to set it.');
+    expect(numberNamed(character, "HP").explanation).toBe('Unread rule "hit-points-per-level". Type it on your note.');
   });
 
   it("does not know them for a Draconic Resilience modifier with no draconic sorcerer", () => {

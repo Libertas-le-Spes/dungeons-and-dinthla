@@ -1,4 +1,4 @@
-export const EDIT_ALL_WAITING = "A change made with Edit all isn't saved yet. Save it before adding lines here.";
+export const EDIT_ALL_WAITING = "Save your Edit all change first, or adding lines loses it.";
 
 export class EditAllReminder {
   private readonly note: HTMLElement;

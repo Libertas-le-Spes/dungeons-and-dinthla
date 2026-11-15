@@ -31,7 +31,7 @@ function campaignFolders(): string[] {
 function noFocus(): void {}
 
 function importedNoteWith(name: string): ImportedLists {
-  const lists = ImportedLists.of(textOf("---", "imported-from: pdf", "---", "## Inventory (from D&D Beyond)", pluginLineOf([neutralPartOf(name), "1"], COUNT_SEPARATOR), ""));
+  const lists = ImportedLists.of(textOf("---", "imported-from: pdf", "---", "## Inventory", pluginLineOf([neutralPartOf(name), "1"], COUNT_SEPARATOR), ""));
   if (lists === null) throw new Error("The note reads as not imported.");
   return lists;
 }

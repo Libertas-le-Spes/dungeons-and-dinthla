@@ -5,6 +5,5 @@ import { valueTextOf } from "./worked-text";
 export function numberLineOf(name: string, value: WorkedValue<number>): string {
   const parts = [neutralPartOf(name), valueTextOf(value)];
   if (value.explanation !== "") parts.push(neutralPartOf(value.explanation));
-  parts.push(value.route.source);
   return pluginLineOf(parts);
 }

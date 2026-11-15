@@ -92,7 +92,7 @@ describe("SpellcastingRule before a class casts", () => {
 
   it.each(["2024", "not stated"] as const)("does not know a level 1 paladin's spell numbers when the edition is %s", (edition) => {
     const character = madeUpRuleCharacter({ edition, classes: [classOf("Paladin", 1, 10)] });
-    expect([numberNamed(character, "Paladin spell save DC").explanation, numberNamed(character, "Paladin spell attack bonus").isKnown]).toEqual(["I can't tell whether this class casts yet in this edition.", false]);
+    expect([numberNamed(character, "Paladin spell save DC").explanation, numberNamed(character, "Paladin spell attack bonus").isKnown]).toEqual(["Casting unclear in this edition.", false]);
   });
 
   it("shows a level 1 wizard's spell numbers in every edition", () => {
@@ -104,7 +104,7 @@ describe("SpellcastingRule before a class casts", () => {
 describe("SpellcastingRule and an Artificer", () => {
   it("does not know the Artificer's own spell numbers and says it is not built", () => {
     const character = madeUpRuleCharacter({ classes: [classOf("Artificer", 3, 8)] });
-    expect([numberNamed(character, "Artificer spell save DC").explanation, numberNamed(character, "Artificer spell attack bonus").isKnown]).toEqual(["Artificer is not built here yet.", false]);
+    expect([numberNamed(character, "Artificer spell save DC").explanation, numberNamed(character, "Artificer spell attack bonus").isKnown]).toEqual(["Not supported yet.", false]);
   });
 
   it("leaves another class's spell numbers standing", () => {
@@ -139,7 +139,7 @@ describe("SpellcastingRule and modifiers", () => {
 
   it("lists a restricted spell attack bonus and does not apply it", () => {
     const character = madeUpRuleCharacter({ classes: wizard, modifiers: [modifierOf("bonus", "spell-attacks", 2, "Pale Rod", "against undead")] });
-    expect(numberNamed(character, "Wizard spell attack bonus").explanation).toBe("proficiency 3 + INT 0 = 3, Wizard, casting with Intelligence. Plus conditional bonuses I don't apply: Pale Rod");
+    expect(numberNamed(character, "Wizard spell attack bonus").explanation).toBe("proficiency 3 + INT 0 = 3, Wizard, casting with Intelligence. Not applied: Pale Rod");
   });
 });
 

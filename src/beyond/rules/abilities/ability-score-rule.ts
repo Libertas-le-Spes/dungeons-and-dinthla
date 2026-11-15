@@ -2,7 +2,7 @@ import type { ImportedNumber } from "../../shape/imported-number";
 import { SCORE, SCORE_MODIFIER_VALUE } from "../../shape/import-limits";
 import type { WorkedValue } from "../../shape/worked-value";
 import type { Rule } from "../core/rule";
-import { knownIn, notKnown } from "../core/worked";
+import { knownIn, notKnown, SET_BY_HAND } from "../core/worked";
 import { sumWorking } from "../core/working-text";
 import type { Ability } from "../input/ability";
 import type { RuleCharacter } from "../input/rule-character";
@@ -31,7 +31,7 @@ export class AbilityScoreRule implements Rule {
 
   private score(character: RuleCharacter): WorkedValue<number> {
     const override = character.scoreOverrides.get(this.ability);
-    if (override !== undefined) return knownIn(override, SCORE, `${this.ability.label} set on D&D Beyond: ${override}`, character.route);
+    if (override !== undefined) return knownIn(override, SCORE, SET_BY_HAND, character.route);
     return this.fromBase(character);
   }
 
@@ -44,7 +44,7 @@ export class AbilityScoreRule implements Rule {
   }
 
   private missing(character: RuleCharacter): WorkedValue<number> {
-    return notKnown(`${this.ability.label} is missing a base score or its bonus.`, character.route);
+    return notKnown("Base score or bonus missing.", character.route);
   }
 
   private withModifiers(character: RuleCharacter, base: number, bonus: number): WorkedValue<number> {
@@ -56,7 +56,7 @@ export class AbilityScoreRule implements Rule {
     const floor = highestFloorOf(tally);
     const working = sumWorking([`base ${base}`, `bonus ${bonus}`, ...tally.applied], summed);
     if (floor !== undefined && floor.value > summed) return knownIn(floor.value, SCORE, `${working}, set to ${floor.value} by ${floor.source}`, character.route);
-    if (summed > USUAL_MOST) return notKnown(`${working}, which is more than ${USUAL_MOST}, the most a score reaches unless a feature raises it, and I do not read those. Type the score on your note to set it.`, character.route);
+    if (summed > USUAL_MOST) return notKnown(`Score above ${USUAL_MOST}. Type it on your note.`, character.route);
     if (floor === undefined) return knownIn(summed, SCORE, working, character.route);
     return knownIn(summed, SCORE, `${working}, set to ${floor.value} by ${floor.source} has no effect`, character.route);
   }

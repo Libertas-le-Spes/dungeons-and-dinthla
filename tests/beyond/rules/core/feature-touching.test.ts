@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FeatureTouching } from "../../../../src/beyond/rules/core/feature-touching";
+import { FeatureTouching, MAY_CHANGE_IT } from "../../../../src/beyond/rules/core/feature-touching";
 import { classOf, madeUpRuleCharacter } from "../../builders/made-up-rule-character";
 import { numberNamed } from "../../builders/rule-numbers";
 
@@ -26,15 +26,15 @@ describe("FeatureTouching", () => {
   });
 
   it("lists at most five names and counts the rest", () => {
-    const many = new FeatureTouching(["A1", "A2", "A3", "A4", "A5", "A6", "A7"]);
+    const many = new FeatureTouching(["A1", "A2", "A3", "A4", "A5", "A6", "A7"], MAY_CHANGE_IT);
     const value = many.unknownFor(madeUpRuleCharacter({ features: ["A1", "A2", "A3", "A4", "A5", "A6", "A7"] }));
-    expect(value?.explanation).toBe("A1, A2, A3, A4, A5 and 2 more may change this value and is not worked out here.");
+    expect(value?.explanation).toBe("A1, A2, A3, A4, A5 and 2 more may change this.");
   });
 });
 
 describe("what makes armour class not known", () => {
   it.each(AC_FEATURES)("the feature %s", (feature) => {
-    expect(numberNamed(madeUpRuleCharacter({ features: [feature] }), "AC").explanation).toBe(`${feature} may change this value and is not worked out here.`);
+    expect(numberNamed(madeUpRuleCharacter({ features: [feature] }), "AC").explanation).toBe(`${feature} may change this.`);
   });
 
   it.each(AC_SPECIES)("the species %s", (species) => {

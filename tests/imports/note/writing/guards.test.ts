@@ -5,7 +5,7 @@ import { refuseUnlessOnlyTheImportChanged } from "../../../../src/imports/note/w
 import { foreignPropertyLinesOf } from "../../../../src/imports/note/writing/rewriting/foreign-property-lines";
 import { textOf } from "../../builders/line-helpers";
 
-const INVENTORY = "## Inventory (from D&D Beyond)";
+const INVENTORY = "## Inventory";
 
 describe("foreignPropertyLinesOf", () => {
   it("drops each of the import's properties and keeps the others", () => {
@@ -16,9 +16,9 @@ describe("foreignPropertyLinesOf", () => {
     expect(foreignPropertyLinesOf(['"AC": 1', "'HP': 2", "mood: calm"])).toEqual(["mood: calm"]);
   });
 
-  it("refuses a key that only differs by capitals from the import's", () => {
+  it("refuses a key that differs only by capitals from the import's", () => {
     expect(() => foreignPropertyLinesOf(["Imported: 2020-01-01"])).toThrow(Refusal);
-    expect(() => foreignPropertyLinesOf(["ac: 2"])).toThrow("only differs by capitals");
+    expect(() => foreignPropertyLinesOf(["ac: 2"])).toThrow("only by capitals");
   });
 
   it("drops a list or block under one of the import's properties", () => {
@@ -101,7 +101,7 @@ describe("refuseUnlessOnlyTheImportChanged", () => {
     expect(() => refuseUnlessOnlyTheImportChanged("a\nb", "a")).toThrow(Refusal);
   });
 
-  it("says nothing was written", () => {
-    expect(() => refuseUnlessOnlyTheImportChanged("a", "b")).toThrow("so nothing was written");
+  it("says what the import would change", () => {
+    expect(() => refuseUnlessOnlyTheImportChanged("a", "b")).toThrow("more than its own parts");
   });
 });

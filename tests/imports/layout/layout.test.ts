@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { ROUTE_WORDS, UNNAMED_ROUTE_WORDS } from "../../../src/imports/layout/import-routes";
-import { Online, Pdf } from "../../../src/beyond/shape/route";
 import {
   IMPORT_PROPERTIES,
   IMPORTED_FROM_PROPERTY,
@@ -29,6 +27,16 @@ function keyOf(line: string): string {
 describe("the layout the sheet and the note writer share", () => {
   it("heads the five sections as the owner's design words them", () => {
     expect(PLUGIN_SECTIONS.map(headingOf)).toEqual([
+      "## Numbers",
+      "## Inventory",
+      "## Purse",
+      "## Spells",
+      "## Features",
+    ]);
+  });
+
+  it("still knows the headings older notes were written with", () => {
+    expect(PLUGIN_SECTIONS.map((section) => section.formerHeading)).toEqual([
       "## Numbers (from D&D Beyond)",
       "## Inventory (from D&D Beyond)",
       "## Purse (from D&D Beyond)",
@@ -48,16 +56,5 @@ describe("the layout the sheet and the note writer share", () => {
   it("lists every property the writer can write, and no other, as an import property", () => {
     const marks = importMarkLinesOf({ route: monkSheet().character.route, stamp: stampedOn(TODAY) }).map(keyOf);
     expect([...marks, ...IMPORTED_PROPERTIES.map(nameOf)]).toEqual(IMPORT_PROPERTIES);
-  });
-});
-
-describe("the words for each route", () => {
-  it("are the routes' own words, by the name the import writes", () => {
-    const online = new Online();
-    const pdf = new Pdf();
-    expect(ROUTE_WORDS.get(online.name)).toBe(online.source);
-    expect(ROUTE_WORDS.get(pdf.name)).toBe(pdf.source);
-    expect(ROUTE_WORDS.size).toBe(2);
-    expect(UNNAMED_ROUTE_WORDS).toBe("From D&D Beyond");
   });
 });
