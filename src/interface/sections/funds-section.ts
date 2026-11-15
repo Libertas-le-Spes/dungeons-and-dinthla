@@ -3,6 +3,7 @@ import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { noteNameOf } from "../../campaign/paths/note-name";
 import type { NoteTexts } from "../../campaign/reading/note-texts";
 import { FundsPage, type PursesBeside, type ShownItem } from "../../funds/page/funds-page";
+import { OwnCharacters } from "../../funds/purses/own-characters";
 import { OwnPursePanel } from "../../funds/purses/own-purse-panel";
 import type { OwnPurseNotes } from "../../funds/purses/own-purses";
 import { ItemPanel, type OpenItem } from "../../funds/item-notes/item-panel";
@@ -48,15 +49,16 @@ function shownItemOf(path: string | null, needs: FundsNeeds, show: ShowPage): Sh
 
 export function fundsSection(needs: FundsNeeds): MakePage {
   return (contentEl, show, path) =>
-    new FundsPage(
+    new FundsPage({
       contentEl,
-      needs.store,
-      needs.actions,
-      (name, sourcePath) => needs.noteExists(name, sourcePath),
-      (returnFocus) => needs.addCoin(returnFocus),
-      needs.openLedgerEntry,
-      needs.openItem,
-      shownItemOf(path, needs, show),
-      new OwnPurses(needs),
-    );
+      store: needs.store,
+      actions: needs.actions,
+      noteExists: (name, sourcePath) => needs.noteExists(name, sourcePath),
+      addCoin: (returnFocus) => needs.addCoin(returnFocus),
+      openLedgerEntry: needs.openLedgerEntry,
+      openItem: needs.openItem,
+      shownItem: shownItemOf(path, needs, show),
+      pursesBeside: new OwnPurses(needs),
+      ownCharacters: new OwnCharacters({ store: needs.store, notes: needs.ownPurseNotes }),
+    });
 }
