@@ -26,6 +26,10 @@
   font: var(--type-note);
 }
 
+.dd-note-page .dd-note-mentions {
+  margin-top: var(--space-5);
+}
+
 .dd-note-page .dd-left-campaign {
   display: flex;
   flex-wrap: wrap;
