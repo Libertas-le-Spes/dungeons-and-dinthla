@@ -82,7 +82,7 @@ describe("the summary of what a PDF brings in", () => {
 
   it("says nothing about the PDF for a character that came online, and nothing is left out of it", () => {
     const lines = summaryLinesOf(onlineSheetOf(readReply(MadeUpReply.levelOneMonk().wholeText())));
-    expect(lines).toEqual(["Human · Monk 1", "3 items · 2 spells · 1 feature line"]);
+    expect(lines).toEqual(["Human · Monk 1", "3 items · 2 spells · 3 feature lines"]);
     expect(lines.join("\n")).not.toContain("PDF");
   });
 
