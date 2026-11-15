@@ -6,9 +6,22 @@ import { knownIn, notKnown } from "../core/worked";
 import { sumWorking } from "../core/working-text";
 import type { Ability } from "../input/ability";
 import type { RuleCharacter } from "../input/rule-character";
+import { SetFloor as SetFloorHandler } from "../modifiers/handlers/set-floor";
+import type { ModifierTally, SetFloor } from "../modifiers/modifier-tally";
 import { SubTypeFamily } from "../modifiers/sub-type-family";
 import { tallyFor } from "../modifiers/tally-for";
 import { unknownModifiers } from "../modifiers/unknown-modifiers";
+
+function higher(best: SetFloor, floor: SetFloor): SetFloor {
+  if (floor.value > best.value) return floor;
+  return best;
+}
+
+function highestFloorOf(tally: ModifierTally): SetFloor | undefined {
+  const [first, ...rest] = tally.floors;
+  if (first === undefined) return undefined;
+  return rest.reduce(higher, first);
+}
 
 export class AbilityScoreRule implements Rule {
   constructor(private readonly ability: Ability) {}
@@ -37,10 +50,14 @@ export class AbilityScoreRule implements Rule {
 
   private withModifiers(character: RuleCharacter, base: number, bonus: number): WorkedValue<number> {
     const own = `${this.ability.subTypeName}-score`;
-    const tally = tallyFor(character, new SubTypeFamily([], [own]), [own], [], SCORE_MODIFIER_VALUE);
+    const tally = tallyFor(character, new SubTypeFamily([], [own]), [own], [new SetFloorHandler(own, SCORE)], SCORE_MODIFIER_VALUE);
     const unknown = unknownModifiers(tally, character.route);
     if (unknown !== null) return unknown;
-    const total = base + bonus + tally.added;
-    return knownIn(total, SCORE, sumWorking([`base ${base}`, `bonus ${bonus}`, ...tally.applied], total), character.route);
+    const summed = base + bonus + tally.added;
+    const floor = highestFloorOf(tally);
+    const working = sumWorking([`base ${base}`, `bonus ${bonus}`, ...tally.applied], summed);
+    if (floor === undefined) return knownIn(summed, SCORE, working, character.route);
+    if (floor.value <= summed) return knownIn(summed, SCORE, `${working}, set to ${floor.value} by ${floor.source} has no effect`, character.route);
+    return knownIn(floor.value, SCORE, `${working}, set to ${floor.value} by ${floor.source}`, character.route);
   }
 }

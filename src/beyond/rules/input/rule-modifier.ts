@@ -5,6 +5,7 @@ export interface RuleModifier {
   readonly subType: CleanLine;
   readonly value: number | null;
   readonly restriction: string;
+  readonly ability: string;
   readonly sourceName: CleanLine;
   readonly inForce: boolean;
 }

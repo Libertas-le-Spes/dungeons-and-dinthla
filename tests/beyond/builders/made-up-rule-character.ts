@@ -38,7 +38,7 @@ export function otherItem(name: string): RuleItem {
 }
 
 export function modifierOf(type: string, subType: string, value: number | null, sourceName: string, restriction = ""): RuleModifier {
-  return { type, subType: CleanLine.of(subType), value, restriction, sourceName: CleanLine.of(sourceName), inForce: true };
+  return { type, subType: CleanLine.of(subType), value, restriction, ability: "", sourceName: CleanLine.of(sourceName), inForce: true };
 }
 
 export function madeUpRuleCharacter(changes: Partial<RuleCharacter> = {}): RuleCharacter {
