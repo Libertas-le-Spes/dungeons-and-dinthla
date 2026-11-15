@@ -12,10 +12,11 @@ export class CampaignMaker {
     private readonly choose: ChooseCampaign,
   ) {}
 
-  async make(name: string): Promise<void> {
+  async make(name: string): Promise<boolean> {
     const folder = await this.madeFolder(name);
-    if (folder === null) return;
+    if (folder === null) return false;
     await this.moveInto(folder);
+    return true;
   }
 
   private async madeFolder(name: string): Promise<string | null> {

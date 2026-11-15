@@ -17,6 +17,7 @@ const actions: DashboardActions = {
   openQuestion: nothing,
   openQuest: nothing,
   openLedgerEntry: nothing,
+  openItem: nothing,
   showQuestions: nothing,
   showQuests: nothing,
   showFunds: nothing,

@@ -188,3 +188,14 @@
   box-shadow: var(--focus-ring);
   outline: none;
 }
+
+.dd-dashboard .dd-session-list {
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.dd-dashboard .dd-session-list:focus-visible {
+  border-radius: var(--radius-xs);
+  box-shadow: var(--focus-ring);
+  outline: none;
+}

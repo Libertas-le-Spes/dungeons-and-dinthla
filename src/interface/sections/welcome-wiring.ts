@@ -33,6 +33,7 @@ export interface WelcomeWiringNeeds {
 }
 
 export interface WelcomeWiring {
+  maker: CampaignMaker;
   help: Help;
   campaignsFolderSetup: CampaignsFolderSetup;
   welcome: MakePage;
@@ -46,13 +47,14 @@ export function welcomeWiring(needs: WelcomeWiringNeeds): WelcomeWiring {
   };
   const help = new Help(needs.saver, needs.manifest, NEWS_BY_VERSION, helpFiles, needs.openWelcome);
   const campaignsFolderSetup = new CampaignsFolderSetup(needs.setting, needs.gate.folders, needs.pickFolder);
+  const maker = new CampaignMaker(files, () => needs.setting.path, needs.chooseCampaign);
   const welcome = welcomeSection({
     store: needs.store,
     campaignsFolderSetup,
-    maker: new CampaignMaker(files, () => needs.setting.path, needs.chooseCampaign),
+    maker,
     files,
     agreement: needs.agreement,
     startSession: () => needs.startSession(),
   });
-  return { help, campaignsFolderSetup, welcome };
+  return { maker, help, campaignsFolderSetup, welcome };
 }

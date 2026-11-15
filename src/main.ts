@@ -10,6 +10,7 @@ import {
   isSessionNote,
   startingCampaignFolder,
 } from "./campaign/paths/campaign-folders";
+import { NewCampaignModal } from "./campaign/writing/new-campaign-modal";
 import { CampaignStore } from "./campaign/reading/campaign-store";
 import { SavedCampaign } from "./campaign/reading/saved-campaign";
 import { characterNotesOf } from "./characters/reading/character-notes";
@@ -123,7 +124,7 @@ export default class DungeonsAndDinthla extends Plugin {
     this.addChild(gate.files);
     const openNotes = (path: string) => openCampaignPage(this.app, "notes", path);
     const newSession = () => startSession(this.app, gate, this.store.campaignFolder, openNotes);
-    const { help, campaignsFolderSetup, welcome } = welcomeWiring({
+    const { maker, help, campaignsFolderSetup, welcome } = welcomeWiring({
       gate,
       store: this.store,
       saver: this.settingsSaver,
@@ -136,7 +137,10 @@ export default class DungeonsAndDinthla extends Plugin {
       agreement: new CampaignAgreement(this.deviceAgreement),
       startSession: newSession,
     });
+    const startNewCampaign = () =>
+      new NewCampaignModal(this.app, { make: (name: string) => maker.make(name), made: () => void openCampaignPage(this.app, "home", null) }).open();
     const campaignChoice = {
+      startNewCampaign,
       folders: () => this.campaignFolders(),
       chosen: () => chosenCampaignFolder(this.chosen.folder, this.campaignFolders()),
       choose: (folder: string) => this.chosen.choose(folder),
@@ -195,6 +199,7 @@ export default class DungeonsAndDinthla extends Plugin {
       openQuestion: openQuestionAt,
       openQuest: openQuestAt,
       openLedgerEntry,
+      openItem,
       showQuestions: () => show({ page: "questions", path: null }),
       showQuests: () => show({ page: "quests", path: null }),
       showFunds: () => show({ page: "funds", path: null }),
@@ -250,6 +255,7 @@ export default class DungeonsAndDinthla extends Plugin {
     const backdropFor = (frameEl: HTMLElement) => new TabBackground(frameEl, this.store, gate.metadata, gate.files);
     this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView(leaf, this.store, sections, (path) => void this.followCampaignOf(path), backdropFor, gate.files));
     this.addPageOpeners(newSession);
+    this.addCommand({ id: "new-campaign", name: "New campaign", callback: startNewCampaign });
     this.colourSessionNotes();
     this.followTheme();
     this.app.workspace.onLayoutReady(() => {

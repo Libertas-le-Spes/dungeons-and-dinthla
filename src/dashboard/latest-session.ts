@@ -2,6 +2,7 @@ import type { Campaign, Source, SourcedText } from "../campaign/record/campaign"
 import type { ThreadRecord } from "../campaign/threads/thread-kind";
 import type { LedgerLine } from "../funds/page/funds-summary";
 import type { FollowUpName } from "../kinds/follow-up-name";
+import type { ItemEventLine } from "./item-event-row";
 import type { ShownThreadKind } from "../views/threads/shown-thread-kind";
 import { SHOWN_THREAD_KINDS } from "../views/threads/shown-thread-kinds";
 
@@ -11,6 +12,7 @@ export interface WrittenLineRows {
     thread: Thread,
   ): void;
   addLedgerLine(ledgerLine: LedgerLine): void;
+  addItemEvent(itemEvent: ItemEventLine): void;
 }
 
 export interface WrittenLine {
@@ -32,8 +34,16 @@ function ledgerLinesWrittenIn(path: string, ledger: LedgerLine[]): WrittenLine[]
   return written.map((ledgerLine) => ({ source: ledgerLine.record.source, addTo: (rows) => rows.addLedgerLine(ledgerLine) }));
 }
 
+function itemEventsWrittenIn(path: string, campaign: Campaign, ledgerLines: WrittenLine[]): WrittenLine[] {
+  const events = campaign.items.flatMap((item) => item.history.map((event) => ({ item, event })));
+  const written = events.filter((itemEvent) => itemEvent.event.source.path === path);
+  const alone = written.filter((itemEvent) => !ledgerLines.some((line) => line.source.line === itemEvent.event.source.line));
+  return alone.map((itemEvent) => ({ source: itemEvent.event.source, addTo: (rows) => rows.addItemEvent(itemEvent) }));
+}
+
 export function linesWrittenIn(path: string, campaign: Campaign, ledger: LedgerLine[]): WrittenLine[] {
   const threads = SHOWN_THREAD_KINDS.flatMap((shown) => threadsWrittenIn(path, campaign, shown));
-  const lines = [...threads, ...ledgerLinesWrittenIn(path, ledger)];
+  const ledgerLines = ledgerLinesWrittenIn(path, ledger);
+  const lines = [...threads, ...ledgerLines, ...itemEventsWrittenIn(path, campaign, ledgerLines)];
   return lines.sort((first, second) => second.source.line - first.source.line);
 }

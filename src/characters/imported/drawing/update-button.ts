@@ -8,15 +8,6 @@ export interface UpdateAction {
   updateFromBeyond(file: TFile, returnFocus: () => void): void;
 }
 
-export interface MaybeImported {
-  readonly imported: object | null;
-}
-
-export interface ImportedOrNot {
-  readonly abilities: readonly MaybeImported[];
-  readonly values: readonly MaybeImported[];
-}
-
 class UpdateRun implements ButtonAction {
   constructor(
     private readonly file: TFile,
@@ -28,18 +19,6 @@ class UpdateRun implements ButtonAction {
   }
 }
 
-function holdsAnImport(values: readonly MaybeImported[]): boolean {
-  for (const value of values) {
-    if (value.imported !== null) return true;
-  }
-  return false;
-}
-
-export function isImportedSheet(sheet: ImportedOrNot): boolean {
-  return holdsAnImport(sheet.abilities) || holdsAnImport(sheet.values);
-}
-
-export function addUpdateButton(head: HTMLElement, file: TFile, sheet: ImportedOrNot, action: UpdateAction): void {
-  if (!isImportedSheet(sheet)) return;
+export function addUpdateButton(head: HTMLElement, file: TFile, action: UpdateAction): void {
   addBeyondButton(head, UPDATE_FROM_BEYOND, new UpdateRun(file, action));
 }
