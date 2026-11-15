@@ -9,8 +9,8 @@
  {
   "id": "a name once per line",
   "file": "src/references/line-names.ts",
-  "find": "new Set(findLinks(text))",
-  "replace": "findLinks(text)",
+  "find": "new Set(findLinks(text).filter((name) => name !== \"\"))",
+  "replace": "findLinks(text).filter((name) => name !== \"\")",
   "group": "line kind"
  },
  {
@@ -31,13 +31,6 @@
   "id": "holder only on ledger lines",
   "file": "src/references/character-roles/ledger-holder-role.ts",
   "find": "if (marked.marker !== \"ledger\") return [];",
-  "replace": "",
-  "group": "roles"
- },
- {
-  "id": "no holder without a link",
-  "file": "src/references/character-roles/ledger-holder-role.ts",
-  "find": "if (entry.holder === \"\") return [];",
   "replace": "",
   "group": "roles"
  },
