@@ -14,6 +14,7 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "imports/dialog/online/online-stage.ts": ["focus"],
   "imports/dialog/picking/pdf-picker.ts": ["addEventListener", "arrayBuffer", "files", "item", "size"],
   "interface/view/campaign-view.ts": ["removeAttribute", "setAttribute"],
+  "interface/view/campaign-switcher.ts": ["bottom", "focus", "getBoundingClientRect", "left"],
   "interface/view/tab-picture.ts": ["removeProperty", "style"],
   "main.ts": ["clearTimeout", "setTimeout", "visibilityState"],
   "names/file-name.ts": ["encode"],
