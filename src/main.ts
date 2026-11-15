@@ -138,7 +138,7 @@ export default class DungeonsAndDinthla extends Plugin {
       startSession: newSession,
     });
     const startNewCampaign = () =>
-      new NewCampaignModal(this.app, { make: (name: string) => maker.tryMake(name), made: () => void openCampaignPage(this.app, "home", null) }).open();
+      new NewCampaignModal(this.app, { make: (name: string) => maker.make(name), made: () => void openCampaignPage(this.app, "home", null) }).open();
     const campaignChoice = {
       startNewCampaign,
       folders: () => this.campaignFolders(),

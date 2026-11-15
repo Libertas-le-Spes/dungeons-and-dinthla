@@ -25,7 +25,9 @@ export function welcomeSection(needs: WelcomeNeeds): MakePage {
       {
         startSession: () => needs.startSession(),
         showCampaign: () => show({ page: "home", path: null }),
-        makeCampaign: (name: string) => needs.maker.make(name),
+        makeCampaign: async (name: string) => {
+          await needs.maker.make(name);
+        },
         pickCampaignsFolder: () => needs.campaignsFolderSetup.pick(nothingMore),
         makeCampaignsFolder: (name: string) => needs.campaignsFolderSetup.make(name),
       },

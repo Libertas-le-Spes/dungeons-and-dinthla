@@ -22,6 +22,7 @@ const NOT_OPEN: Disableable = {
 
 export class NewCampaignModal extends Modal {
   private name = "";
+  private making = false;
   private makeButton: Disableable = NOT_OPEN;
 
   constructor(
@@ -59,14 +60,17 @@ export class NewCampaignModal extends Modal {
   }
 
   private makeTyped(): void {
+    if (this.making) return;
     this.makeAndOpen(this.name).catch((error: unknown) => new Notice(`Couldn't make the campaign: ${messageOf(error)}`));
   }
 
   private async makeAndOpen(name: string): Promise<void> {
+    this.making = true;
     this.makeButton.setDisabled(true);
     try {
       if (!(await this.answers.make(name))) return;
     } finally {
+      this.making = false;
       this.makeButton.setDisabled(false);
     }
     this.close();
