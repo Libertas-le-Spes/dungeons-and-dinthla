@@ -97,6 +97,18 @@ describe("NotePage, In the notes", () => {
     expect(root.querySelector(".dd-note-mentions")).toBeNull();
   });
 
+  it("is not settled until the lines being read are drawn", async () => {
+    let release: () => void = () => {};
+    const readyToRead = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const { root, page } = await open({ path: OLD_MILL, mentions: { ...MILL_IN_TWO_SESSIONS, readyToRead } });
+    const settled = page.mentionsSettled();
+    release();
+    await settled;
+    expect(textsOf(root, ".dd-note-mentions .dd-row .dd-meta")).toEqual(["Session 2", "Session 1"]);
+  });
+
   it("draws nothing if the page is closed while the lines are still being read", async () => {
     let release: () => void = () => {};
     const readyToRead = new Promise<void>((resolve) => {
