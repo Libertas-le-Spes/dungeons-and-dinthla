@@ -46,6 +46,7 @@ export function madeUpRuleCharacter(changes: Partial<RuleCharacter> = {}): RuleC
     route: ROUTE,
     edition: "2014",
     species: "Human",
+    size: "medium",
     classes: [classOf("Fighter", 1, 10)],
     baseScores: scoresOf(10, 10, 10, 10, 10, 10),
     bonusScores: noBonuses(),

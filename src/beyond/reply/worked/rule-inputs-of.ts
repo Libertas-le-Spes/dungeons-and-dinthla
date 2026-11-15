@@ -1,6 +1,9 @@
 import { speciesOf } from "../parts/read-identity";
 import { ONLINE } from "../common/online-route";
 import type { JsonReader } from "../json/json-reader";
+import { editionOf } from "../rule-input/body/read-edition";
+import { handSetOf } from "../rule-input/hand-set/read-hand-set";
+import { sizeOf } from "../rule-input/body/read-size";
 import { hitPointInputsOf } from "../rule-input/body/read-hit-points";
 import { ruleClassesOf } from "../rule-input/body/read-rule-classes";
 import { ruleFeaturesOf } from "../rule-input/features/read-rule-features";
@@ -17,8 +20,9 @@ export function ruleInputsOf(data: JsonReader): RuleInputs {
   return {
     character: {
       route: ONLINE,
-      edition: "not stated",
+      edition: editionOf(data),
       species: speciesOf(data).text,
+      size: sizeOf(data),
       classes: ruleClassesOf(data),
       baseScores: scores.base,
       bonusScores: scores.bonus,
@@ -34,5 +38,6 @@ export function ruleInputsOf(data: JsonReader): RuleInputs {
       features: ruleFeaturesOf(data),
     },
     doubts: [...scores.doubts, ...hitPoints.doubts, ...speed.doubts],
+    handSet: handSetOf(data),
   };
 }

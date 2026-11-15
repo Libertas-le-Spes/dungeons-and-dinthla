@@ -12,11 +12,12 @@ export function madeUpFighterData(): Node {
   return {
     id: 5151,
     name: "Secondary Fighter",
-    race: { fullName: "Dwarf", racialTraits: [], weightSpeeds: { normal: { walk: 30 }, override: null } },
+    race: { fullName: "Dwarf", sizeId: 4, racialTraits: [], weightSpeeds: { normal: { walk: 30 }, override: null } },
     background: { definition: { id: 810, name: "Soldier" } },
     classes: [
       {
         level: 3,
+        isStartingClass: true,
         subclassDefinition: { name: "Champion", classFeatures: [] },
         definition: { name: "Fighter", hitDice: 10 },
         classFeatures: [{ definition: { id: 910, name: "Second Wind", requiredLevel: 1 } }],

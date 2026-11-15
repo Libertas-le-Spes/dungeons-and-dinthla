@@ -88,9 +88,9 @@ describe("workedNumbersOf, for the made-up monk", () => {
     expect(explanationOf(reply, "Speed")).toContain("Unarmored Movement");
   });
 
-  it("does not know the carrying capacity of a character with a Powerful Build", () => {
+  it("counts a character with a Powerful Build as one size larger for the carrying capacity", () => {
     const reply = MadeUpReply.levelOneMonk().with(["race", "racialTraits"], [{ definition: { id: 1, name: "Powerful Build" } }]);
-    expect(numbersOf(reply).get("Carrying capacity")).toBe("not known");
+    expect(numbersOf(reply).get("Carrying capacity")).toBe("300");
   });
 
   it("does not know the hit points when the dice total is missing, and says so", () => {

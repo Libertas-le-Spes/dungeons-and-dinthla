@@ -56,7 +56,7 @@ describe("readReply", () => {
     expect(character.inventory.map((item) => item.name.text)).toEqual(["Quarterstaff", "Rope", "Torch"]);
     expect(character.purse.gold.valueOr(0)).toBe(15);
     expect(character.spells.map((spell) => spell.text)).toEqual(["Light", "Mage Hand"]);
-    expect(character.features.map((feature) => feature.text)).toEqual(["Alert"]);
+    expect(character.features.map((feature) => feature.text)).toEqual(["Alert", "Quick Learner", "Unarmored Defense"]);
     expect(character.scores.dexterity.valueOr(0)).toBe(16);
     expect(character.numbers.find((number) => number.name === "AC")?.value.valueOr(0)).toBe(15);
     expect(character.numbers.find((number) => number.name === "HP")?.value.valueOr(0)).toBe(13);
