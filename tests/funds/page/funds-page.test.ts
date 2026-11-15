@@ -569,7 +569,7 @@ describe("FundsPage with a purse of his own coin lines in Mine", () => {
 
   it("totals the coin lines that link his character, with money in and out", async () => {
     const { root } = await pageFor(["$ 30 gp from the bandits, share to [[Mira]]", "$ Paid 5 gp 2 sp for rope, [[Mira]]", "$ +50 gp advance"], ["Mira"]);
-    expect(textsOf(root, `${OWN_PURSE} .dd-title`)).toEqual(["Your purse from the ledger"]);
+    expect(textsOf(root, `${OWN_PURSE} .dd-title`)).toEqual(["Purse"]);
     expect(textsOf(root, `${OWN_PURSE} .dd-purse`)).toEqual(["24 gp 8 sp"]);
     expect(textsOf(root, `${OWN_PURSE} .dd-in-out > span`)).toEqual(["In 30 gp", "Out 5 gp 2 sp"]);
     expect(textsOf(root, `${PARTY_PANEL} .dd-purse`)).toEqual(["50 gp"]);
@@ -589,6 +589,13 @@ describe("FundsPage with a purse of his own coin lines in Mine", () => {
   it("matches his character's link whatever its capitals", async () => {
     const { root } = await pageFor(["$ 7 gp from the bandits, share to [[mira]]"], ["Mira"]);
     expect(textsOf(root, `${OWN_PURSE} .dd-purse`)).toEqual(["7 gp"]);
+  });
+
+  it("adds up the lines of every character of his", async () => {
+    const { root } = await pageFor(["$ 5 gp a [[Mira]]", "$ Paid 2 gp b [[Bo]]", "$ 9 gp c"], ["Mira", "Bo"]);
+    expect(textsOf(root, `${OWN_PURSE} .dd-purse`)).toEqual(["3 gp"]);
+    expect(textsOf(root, `${OWN_PURSE} .dd-in-out > span`)).toEqual(["In 5 gp", "Out 2 gp"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-purse`)).toEqual(["9 gp"]);
   });
 
   it("counts a sale line that links his character", async () => {

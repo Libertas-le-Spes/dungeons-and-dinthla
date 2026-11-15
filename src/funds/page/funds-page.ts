@@ -21,7 +21,7 @@ import { shownItemName } from "../../characters/imported/lists/shown-item-name";
 const HOW_LINES_ARE_READ =
   "A $ line with an amount is coin. Without one, it is an item. Coin is money out when it has a minus sign, or when “paid”, “spent”, “bought”, “gave” or “lost” comes before the amount with no comma between. A plus sign keeps it in. A link to your character anywhere on the line puts it on your list, in the Mine tab.";
 
-const MINE_PURSE_TITLE = "Your purse from the ledger";
+const MINE_PURSE_TITLE = "Purse";
 const PARTY_PURSE_TITLE = "Purse";
 const MINE = "Mine";
 const PARTY = "Party";

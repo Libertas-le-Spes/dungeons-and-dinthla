@@ -70,12 +70,16 @@ describe("making a character main when the old main's note was deleted", () => {
     expect(table.vault.created).toEqual([]);
   });
 
-  it("still refuses when the character line is several values, plain text, or a note outside Characters and Fallen", async () => {
-    const outside = tableWith('character: "[[Loose]]"');
-    outside.vault.note(`${CAMPAIGN}/People/Loose.md`, "");
-    expect(await refusalOf(outside)).toBe(MAIN_UNCLEAR);
-    for (const line of ['character:\n  - "[[Gone]]"\n  - "[[Other]]"', "character: Gone", 'character: "see [[Gone]]"']) {
-      expect(await refusalOf(tableWith(line))).toBe(MAIN_UNCLEAR);
-    }
+  const REFUSED = [
+    { name: "several values", line: 'character:\n  - "[[Gone]]"\n  - "[[Other]]"' },
+    { name: "plain text", line: "character: Gone" },
+    { name: "text around a link", line: 'character: "see [[Gone]]"' },
+    { name: "a note outside Characters and Fallen", line: 'character: "[[Loose]]"' },
+  ];
+
+  it.each(REFUSED)("still refuses $name", async ({ line }) => {
+    const table = tableWith(line);
+    table.vault.note(`${CAMPAIGN}/People/Loose.md`, "");
+    expect(await refusalOf(table)).toBe(MAIN_UNCLEAR);
   });
 });
