@@ -1,9 +1,10 @@
+import type { Edition } from "../input/edition";
 import { SKILLS } from "../proficiency/skills/skills";
 import { SubTypeFamily } from "../modifiers/sub-type-family";
 import { FeatureTouching } from "./feature-touching";
 import { ModelledTouching } from "./modelled-touching";
 
-const NO_EFFECT_IN_2024 = new Map([["Remarkable Athlete", "2024" as const]]);
+const NO_EFFECT_IN_2024 = new Map<string, Edition>([["Remarkable Athlete", "2024"]]);
 
 export const ARMOUR_CLASS_TOUCHING = new FeatureTouching([
   "Medium Armor Master",

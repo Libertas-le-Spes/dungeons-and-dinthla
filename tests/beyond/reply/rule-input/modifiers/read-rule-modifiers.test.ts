@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ruleModifiersOf } from "../../../../src/beyond/reply/rule-input/modifiers/read-rule-modifiers";
-import { MadeUpReply } from "../../builders/made-up-reply";
+import { ruleModifiersOf } from "../../../../../src/beyond/reply/rule-input/modifiers/read-rule-modifiers";
+import { MadeUpReply } from "../../../builders/made-up-reply";
 
 function modifier(type: string, subType: unknown, componentId: number | null, extra: Record<string, unknown>): Record<string, unknown> {
   return { type, subType, value: 1, restriction: "", requiresAttunement: false, componentId, ...extra };

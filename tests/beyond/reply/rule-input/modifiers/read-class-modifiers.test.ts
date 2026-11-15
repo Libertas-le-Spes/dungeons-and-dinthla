@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ruleModifiersOf } from "../../../../src/beyond/reply/rule-input/modifiers/read-rule-modifiers";
-import { MadeUpReply } from "../../builders/made-up-reply";
+import { ruleModifiersOf } from "../../../../../src/beyond/reply/rule-input/modifiers/read-rule-modifiers";
+import { MadeUpReply } from "../../../builders/made-up-reply";
 
 function feature(id: number, name: string): object {
   return { definition: { id, name, requiredLevel: 1 } };

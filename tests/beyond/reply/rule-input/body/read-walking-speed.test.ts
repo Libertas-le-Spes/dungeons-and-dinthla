@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { speedInputsOf } from "../../../../src/beyond/reply/rule-input/body/read-walking-speed";
-import { MadeUpReply } from "../../builders/made-up-reply";
+import { speedInputsOf } from "../../../../../src/beyond/reply/rule-input/body/read-walking-speed";
+import { MadeUpReply } from "../../../builders/made-up-reply";
 
 describe("speedInputsOf", () => {
   it("takes the walking speed", () => {

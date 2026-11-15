@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { hitPointInputsOf } from "../../../../src/beyond/reply/rule-input/body/read-hit-points";
-import { MadeUpReply } from "../../builders/made-up-reply";
+import { hitPointInputsOf } from "../../../../../src/beyond/reply/rule-input/body/read-hit-points";
+import { MadeUpReply } from "../../../builders/made-up-reply";
 
 function inputsOf(reply: MadeUpReply) {
   return hitPointInputsOf(reply.reader());
