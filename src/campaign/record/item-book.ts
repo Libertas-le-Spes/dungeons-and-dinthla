@@ -20,6 +20,16 @@ function keepWritten(record: ItemRecord, item: string): void {
   if (written.includes("[[") || !record.written.includes("[[")) record.written = written;
 }
 
+interface ItemStart {
+  item: string;
+  holder: string;
+  source: Source;
+}
+
+export interface ItemMention extends ItemStart {
+  links: string[];
+}
+
 export class ItemBook {
   private readonly byKey = new Map<string, ItemRecord>();
 
@@ -27,23 +37,25 @@ export class ItemBook {
     return [...this.byKey.values()];
   }
 
-  mention(item: string, holder: string, source: Source): void {
-    const record = this.recordFor(item, holder, source);
+  mention({ item, holder, links, source }: ItemMention): void {
+    const record = this.recordFor({ item, holder, source });
     keepWritten(record, item);
     if (holder !== "") {
       record.holder = holder;
       record.holderLinked = true;
+      record.links = links;
     }
     record.gone = null;
     record.history.push({ kind: "named", holder: record.holder, source });
   }
 
   change(change: ItemChange, source: Source): void {
-    const record = this.recordFor(change.item, "", source);
+    const record = this.recordFor({ item: change.item, holder: "", source });
     keepWritten(record, change.item);
     if (change.holder !== undefined) {
       record.holder = change.holder;
       record.holderLinked = change.holderLinked === true;
+      record.links = findLinks(change.text);
     }
     const event: ItemEvent = { kind: change.kind, holder: record.holder, source };
     record.history.push(event);
@@ -51,7 +63,7 @@ export class ItemBook {
     if (change.kind !== "changed") record.gone = event;
   }
 
-  private recordFor(item: string, holder: string, source: Source): ItemRecord {
+  private recordFor({ item, holder, source }: ItemStart): ItemRecord {
     const found = this.byKey.get(keyOf(item));
     if (found !== undefined) return found;
     const added: ItemRecord = {
@@ -59,6 +71,7 @@ export class ItemBook {
       written: item.trim(),
       holder,
       holderLinked: false,
+      links: [],
       source,
       history: [],
       gone: null,

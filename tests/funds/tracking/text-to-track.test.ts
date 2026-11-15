@@ -5,7 +5,7 @@ import { textToTrack } from "../../../src/funds/tracking/text-to-track";
 import { unlink } from "../../../src/notes/parts/link";
 
 function pageItem(name: string, written: string): ItemRecord {
-  return { name, written, holder: "Secondary", holderLinked: true, source: { path: "Pale Moon/Sessions/Session 1.md", line: 0 }, history: [], gone: null };
+  return { name, written, holder: "Secondary", holderLinked: true, links: ["Secondary"], source: { path: "Pale Moon/Sessions/Session 1.md", line: 0 }, history: [], gone: null };
 }
 
 const ACTIVE_ON_THE_PAGE = [

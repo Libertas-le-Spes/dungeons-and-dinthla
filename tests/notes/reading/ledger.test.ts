@@ -86,8 +86,8 @@ describe("readLedgerEntry", () => {
   });
 
   it("doesn't read an amount inside a word as coin", () => {
-    expect(readLedgerEntry("x5 gp token")).toEqual({ type: "item", item: "x5 gp token", holder: "" });
-    expect(readLedgerEntry("5 gpx")).toEqual({ type: "item", item: "5 gpx", holder: "" });
+    expect(readLedgerEntry("x5 gp token")).toEqual({ type: "item", item: "x5 gp token", holder: "", links: [] });
+    expect(readLedgerEntry("5 gpx")).toEqual({ type: "item", item: "5 gpx", holder: "", links: [] });
   });
 
   it("reads a line without an amount as an item held by the first linked name", () => {
@@ -95,22 +95,23 @@ describe("readLedgerEntry", () => {
       type: "item",
       item: "gave [[Tor]] the axe",
       holder: "Mira",
+      links: ["Mira", "Tor"],
     });
   });
 
   it("reads the holder of a link with a shown name", () => {
-    expect(readLedgerEntry("[[Mira Thorne|Mira]] Flame Tongue")).toEqual({ type: "item", item: "Flame Tongue", holder: "Mira Thorne" });
+    expect(readLedgerEntry("[[Mira Thorne|Mira]] Flame Tongue")).toEqual({ type: "item", item: "Flame Tongue", holder: "Mira Thorne", links: ["Mira Thorne"] });
   });
 
   it("reads an item nobody holds yet, with its spaces tidied", () => {
-    expect(readLedgerEntry("Potion   of healing")).toEqual({ type: "item", item: "Potion of healing", holder: "" });
+    expect(readLedgerEntry("Potion   of healing")).toEqual({ type: "item", item: "Potion of healing", holder: "", links: [] });
   });
 
   it("leaves a trailing block id out of an item's name", () => {
-    expect(readLedgerEntry("Rope ^r1")).toEqual({ type: "item", item: "Rope", holder: "" });
-    expect(readLedgerEntry("[[Mira]] Silvered lantern ^lantern-1 ")).toEqual({ type: "item", item: "Silvered lantern", holder: "Mira" });
-    expect(readLedgerEntry("Rope ^r1 and hook")).toEqual({ type: "item", item: "Rope ^r1 and hook", holder: "" });
-    expect(readLedgerEntry("Rope^r1")).toEqual({ type: "item", item: "Rope^r1", holder: "" });
+    expect(readLedgerEntry("Rope ^r1")).toEqual({ type: "item", item: "Rope", holder: "", links: [] });
+    expect(readLedgerEntry("[[Mira]] Silvered lantern ^lantern-1 ")).toEqual({ type: "item", item: "Silvered lantern", holder: "Mira", links: ["Mira"] });
+    expect(readLedgerEntry("Rope ^r1 and hook")).toEqual({ type: "item", item: "Rope ^r1 and hook", holder: "", links: [] });
+    expect(readLedgerEntry("Rope^r1")).toEqual({ type: "item", item: "Rope^r1", holder: "", links: [] });
   });
 
   it("reads a block id alone as no item", () => {
@@ -140,5 +141,9 @@ describe("readLedgerEntry", () => {
       ],
       copper: 4500,
     });
+  });
+
+  it("keeps every link of an item line", () => {
+    expect(readLedgerEntry("[[Zed]] gave a rope to [[Mira]]")).toMatchObject({ holder: "Zed", links: ["Zed", "Mira"] });
   });
 });

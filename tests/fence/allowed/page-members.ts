@@ -11,6 +11,7 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "funds/item-notes/item-panel.ts": ["addEventListener", "focus"],
   "funds/items/item-modal.ts": ["addEventListener", "defaultPrevented", "focus", "preventDefault"],
   "funds/page/funds-page.ts": ["closest", "focus", "open", "querySelectorAll", "setAttribute"],
+  "funds/page/ledger-box.ts": ["focus"],
   "imports/dialog/online/online-stage.ts": ["focus"],
   "imports/dialog/picking/pdf-picker.ts": ["addEventListener", "arrayBuffer", "files", "item", "size"],
   "interface/view/campaign-view.ts": ["removeAttribute", "setAttribute"],

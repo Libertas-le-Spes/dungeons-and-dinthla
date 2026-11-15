@@ -23,7 +23,7 @@ function storeRaisedIn(path: string): CampaignStore {
     current: {
       questions: [{ text: "Who rang the bell", source, clues: [], answer: null }],
       quests: [{ quest: { title: "Mend the bridge" }, source, progress: [], outcome: null }],
-      items: [{ name: "Lantern", written: "Lantern", holder: "the party", holderLinked: false, source, history: [{ source }], gone: null }],
+      items: [{ name: "Lantern", written: "Lantern", holder: "the party", holderLinked: false, links: [], source, history: [{ source }], gone: null }],
       coins: [],
     },
   } as unknown as CampaignStore;
