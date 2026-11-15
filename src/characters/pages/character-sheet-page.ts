@@ -157,7 +157,7 @@ export class CharacterSheetPage extends Component {
     const actions = head.createDiv({ cls: "dd-head-actions" });
     const edit = actions.createEl("button", { cls: "dd-create", text: "Edit character" });
     edit.addEventListener("click", () => this.actions.editCharacter(file));
-    addUpdateButton(actions, file, sheet, this.actions);
+    addUpdateButton(actions, file, this.actions);
     const subtitle = sheet.values.find((value) => value.name === "subtitle");
     if (subtitle !== undefined && subtitle.state !== "unknown") root.createEl("p", { cls: "dd-sheet-subtitle", text: shownTextOf(subtitle) });
     const abilities = root.createDiv({ cls: "dd-sheet-abilities" });

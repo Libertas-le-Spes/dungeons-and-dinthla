@@ -9,6 +9,7 @@ export const COMPUTED_KEY_READERS = [
   "characters/reading/character-sheet.ts",
   "characters/reading/mentions.ts",
   "characters/reading/sheet-values.ts",
+  "dashboard/item-event-row.ts",
   "funds/item-notes/item-panel.ts",
   "funds/page/funds-page.ts",
   "kinds/follow-ups.ts",

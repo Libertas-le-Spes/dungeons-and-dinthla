@@ -639,10 +639,14 @@ describe("CharacterSheetPage for an imported character", () => {
     expect(buttons).toContain(root.ownerDocument.activeElement);
   });
 
-  it("offers no update on a sheet nothing was imported into", async () => {
-    const { load, root } = openSheet({ texts: { [MIRA.path]: "AC: 16\n" } });
+  it("offers Update from D&D Beyond on a sheet nothing was imported into", async () => {
+    const { load, root, actions } = openSheet({ texts: { [MIRA.path]: "AC: 16\n" } });
     await load();
-    expect(buttonWords(root)).not.toContain("Update from D&D Beyond");
+    const buttons = buttonsSaying(root, "Update from D&D Beyond");
+    expect(buttons).toHaveLength(1);
+    for (const button of buttons) button.click();
+    const [[asked]] = vi.mocked(actions.updateFromBeyond).mock.calls as [[TFile, () => void]];
+    expect(asked).toBe(MIRA);
   });
 
   it("puts its buttons together in one row of actions beside the name", async () => {

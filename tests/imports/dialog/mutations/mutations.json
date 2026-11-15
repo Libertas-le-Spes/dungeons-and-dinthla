@@ -224,20 +224,6 @@
   "group": "draw"
  },
  {
-  "id": "draw: update only on imported sheets",
-  "file": "src/characters/imported/drawing/update-button.ts",
-  "find": "  if (!isImportedSheet(sheet)) return;\n",
-  "replace": "",
-  "group": "draw"
- },
- {
-  "id": "draw: imported sheet found",
-  "file": "src/characters/imported/drawing/update-button.ts",
-  "find": "    if (value.imported !== null) return true;",
-  "replace": "    if (value.imported === null) return true;",
-  "group": "draw"
- },
- {
   "id": "draw: update asks for this file",
   "file": "src/characters/imported/drawing/update-button.ts",
   "find": "this.action.updateFromBeyond(this.file, returnFocus);",

@@ -11,6 +11,7 @@ const CAMPAIGNS_FOLDER_HINT =
   "The folder your campaigns live in, one folder each. Dungeons & Dinthla reads and writes only inside it. Changing it moves nothing.";
 const FOLDER_HINT = "Its folder. Every note in it, and in the folders inside it, shows the background picture below.";
 const NO_PICTURE = "None yet.";
+const NEW_CAMPAIGN_HINT = "Make another campaign: a folder inside your Campaigns folder with its main note. It opens when it is made.";
 const WELCOME_HINT = "The first steps for a new campaign. They open in the campaign tab, behind this window.";
 const WASH_NAMES: Record<Wash, string> = { subtle: "Subtle", balanced: "Balanced", strong: "Strong" };
 
@@ -18,6 +19,7 @@ export interface CampaignChoice {
   folders(): string[];
   chosen(): string | null;
   choose(folder: string): Promise<void>;
+  startNewCampaign(): void;
 }
 
 interface PictureRows {
@@ -48,6 +50,7 @@ export class CampaignSettingTab extends PluginSettingTab {
     this.containerEl.empty();
     this.addCampaignsFolderRow();
     this.showCampaign();
+    this.addNewCampaignRow();
     this.addWelcomeRow();
   }
 
@@ -77,6 +80,11 @@ export class CampaignSettingTab extends PluginSettingTab {
     );
     this.rows = rows;
     this.showPictureSettings(rows);
+  }
+
+  private addNewCampaignRow(): void {
+    const row = new Setting(this.containerEl).setName("New campaign").setDesc(NEW_CAMPAIGN_HINT);
+    new ButtonComponent(row.controlEl).setButtonText("New campaign").onClick(() => this.campaigns.startNewCampaign());
   }
 
   private addWelcomeRow(): void {

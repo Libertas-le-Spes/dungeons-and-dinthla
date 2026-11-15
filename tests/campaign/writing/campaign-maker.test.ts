@@ -42,4 +42,17 @@ describe("CampaignMaker", () => {
     await new CampaignMaker(filesWith([]), IN_D_AND_D, choose).make("Silver Road");
     expect(Notice.shown).toEqual(["Made D&D/Silver Road, but couldn't move into it: data.json is read-only."]);
   });
+
+  it("says whether the campaign was made when it is asked to try", async () => {
+    const choose = vi.fn(async () => {});
+    await expect(new CampaignMaker(filesWith([]), IN_D_AND_D, choose).tryMake("Silver Road")).resolves.toBe(true);
+    await expect(new CampaignMaker(filesWith(["Silver Road"]), IN_D_AND_D, choose).tryMake("Silver Road")).resolves.toBe(false);
+  });
+
+  it("counts a campaign as made when it was made but couldn't be moved into", async () => {
+    const choose = vi.fn(async () => {
+      throw new Error("data.json is read-only.");
+    });
+    await expect(new CampaignMaker(filesWith([]), IN_D_AND_D, choose).tryMake("Silver Road")).resolves.toBe(true);
+  });
 });
