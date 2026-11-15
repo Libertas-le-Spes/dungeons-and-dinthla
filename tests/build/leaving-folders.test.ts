@@ -21,7 +21,8 @@ const LEAVING_FOLDERS: LeavingFolder[] = [
   { folder: "cast", reaches: ["cast", "properties", "switching"] },
   { folder: "switching", reaches: ["switching", "reasons", "snapshot", "properties", "writes", "cast"] },
   { folder: "choices", reaches: ["choices", "switching", "reasons", "cast", "writes"] },
-  { folder: "dialog", reaches: ["dialog", "choices", "switching", "reasons", "properties", "cast", "writes"] },
+  { folder: "questions", reaches: ["questions", "choices", "switching", "reasons", "properties", "cast", "writes"] },
+  { folder: "dialog", reaches: ["dialog", "questions", "choices", "switching", "reasons", "properties", "cast", "writes"] },
 ];
 
 const OUTSIDE_LEAVING_REACHED = ["note", "layout"];
