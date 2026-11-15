@@ -5,7 +5,7 @@ export const NOTE_MOVED = "A character's note was moved or deleted since you wer
 export const CAMPAIGN_NOTE_UNREAD = "The campaign note couldn't be read, so nothing was switched.";
 export const NOTE_UNREAD = "A character's note couldn't be read, so nothing was switched.";
 export const MAIN_UNCLEAR =
-  "The campaign note's character property isn't one link to a note in this campaign's Characters or Fallen folder, so nothing was switched. Fix it in the campaign note first.";
+  "The character line in the campaign note must be one link, like [[Name]], to a note in this campaign's Characters or Fallen folder. It isn't, so nothing was changed. Fix that line first.";
 export const NOT_A_CAMPAIGN_CHARACTER = "This note isn't in a campaign's Characters or Fallen folder, so it can't be made your character.";
 
 export function charactersNoteExists(name: string): Refusal {
