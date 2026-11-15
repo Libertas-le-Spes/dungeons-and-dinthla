@@ -61,7 +61,7 @@ export function madeUpData(): Node {
     customSpeeds: [],
     modifiers: {
       race: [],
-      class: [modifierOf("set", "unarmored-armor-class", 900, null), modifierOf("proficiency", "dexterity-saving-throws", 900, null), modifierOf("proficiency", "acrobatics", 900, null)],
+      class: [{ ...modifierOf("set", "unarmored-armor-class", 900, null), statId: 5 }, modifierOf("proficiency", "dexterity-saving-throws", 900, null), modifierOf("proficiency", "acrobatics", 900, null)],
       background: [modifierOf("proficiency", "insight", 800, null)],
       item: [],
       feat: [modifierOf("bonus", "intelligence-score", 700, 1)],
