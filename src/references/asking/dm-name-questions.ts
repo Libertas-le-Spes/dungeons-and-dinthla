@@ -67,7 +67,8 @@ export class DmNameQuestions implements ReferenceNotesPart {
     if (campaignFolder === null || store.opening || this.asking) return;
     const asked = askedNamesIn({ sessions: store.sessionNotes, taken: this.takenIn(campaignFolder) });
     for (const message of asked.refusals) this.said.say(message, message);
-    const names = newNamesFor({ undecided: asked.names, savedPath, sessionName: noteNameOf(savedPath) });
+    const unresolved = asked.names.filter(({ name }) => this.needs.metadata.getFirstLinkpathDest(name, savedPath) === null);
+    const names = newNamesFor({ undecided: unresolved, savedPath, sessionName: noteNameOf(savedPath) });
     if (names === null) return;
     const answers = new NewNameAnswers({
       maker: this.maker,

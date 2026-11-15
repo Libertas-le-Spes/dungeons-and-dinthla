@@ -114,8 +114,8 @@
  {
   "id": "a name has no folder",
   "file": "src/references/asking/asked-names.ts",
-  "find": "target.slice(target.lastIndexOf(\"/\") + 1).trim()",
-  "replace": "target.trim()",
+  "find": "target.slice(target.lastIndexOf(\"/\") + 1)",
+  "replace": "target",
   "group": "asked"
  },
  {
@@ -319,6 +319,13 @@
   "file": "src/references/asking/dm-name-questions.ts",
   "find": "metadata.offref(resolved)",
   "replace": "0",
+  "group": "questions"
+ },
+ {
+  "id": "a name that resolves to a note is not asked",
+  "file": "src/references/asking/dm-name-questions.ts",
+  "find": "this.needs.metadata.getFirstLinkpathDest(name, savedPath) === null",
+  "replace": "true",
   "group": "questions"
  }
 ]

@@ -23,7 +23,7 @@ interface Tally {
 }
 
 function nameOfLink(target: string): string {
-  return target.slice(target.lastIndexOf("/") + 1).trim();
+  return target.slice(target.lastIndexOf("/") + 1);
 }
 
 function namesOnLine(line: string): Map<string, string> {
