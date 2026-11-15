@@ -13,6 +13,7 @@ function rowsAddedBy(lines: WrittenLine[]): [string, number][] {
   const rows: WrittenLineRows = {
     addThread: (shown, thread) => void added.push([shown.threadKind.tracked.name, thread.source.line]),
     addLedgerLine: (ledgerLine) => void added.push(["coin", ledgerLine.record.source.line]),
+    addItemEvent: (itemEvent) => void added.push([`item ${itemEvent.event.kind}`, itemEvent.event.source.line]),
   };
   for (const line of lines) line.addTo(rows);
   return added;
@@ -29,6 +30,17 @@ describe("linesWrittenIn", () => {
       ["quest", 3],
       ["coin", 2],
       ["question", 0],
+    ]);
+  });
+
+  it("lists the items named or changed in the session, and none from another session", () => {
+    const earlier = sessionOf(1, ["$ [[Mira]] Rope"]);
+    const latest = sessionOf(2, ["$ Silvered lantern", "notes", "$$ Rope :sold"]);
+    const campaign = buildCampaign([earlier, latest]);
+    const lines = linesWrittenIn(latest.path, campaign, summariseFunds(campaign).ledger);
+    expect(rowsAddedBy(lines)).toEqual([
+      ["item sold", 2],
+      ["item named", 0],
     ]);
   });
 });

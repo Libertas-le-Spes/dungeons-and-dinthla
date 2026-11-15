@@ -27,6 +27,7 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "quests/dialogs/new-quest-modal.ts": ["addEventListener", "defaultPrevented", "focus", "preventDefault"],
   "quests/dialogs/quest-modal.ts": ["addEventListener", "focus", "preventDefault"],
   "reading/colour-markers.ts": ["ELEMENT_NODE", "TEXT_NODE", "append", "childNodes", "classList", "className", "closest", "contains", "createElement", "data", "matches", "nodeName", "nodeType", "ownerDocument", "parentElement", "querySelectorAll", "replaceWith", "splitText", "tagName", "textContent"],
+  "campaign/writing/new-campaign-modal.ts": ["addEventListener", "focus", "key", "preventDefault"],
   "reading/note-background.ts": ["className", "remove"],
   "session-notes/kept/kept-lines.ts": ["addEventListener", "disabled"],
   "session-notes/page/edit-all-panel.ts": ["addEventListener", "focus"],
