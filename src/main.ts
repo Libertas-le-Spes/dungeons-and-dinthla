@@ -220,6 +220,12 @@ export default class DungeonsAndDinthla extends Plugin {
       keeping,
       openers,
       actions,
+      lineOpeners: {
+        openQuestion: openQuestionAt,
+        openQuest: openQuestAt,
+        openItem,
+        openLedgerEntry,
+      },
       confirm: (text: ConfirmText, confirmed: () => void, closed: () => void) => new ConfirmModal(this.app, text, confirmed, closed).open(),
       campaignFolders: () => this.campaignFolders(),
       report: (message: string) => new Notice(message, NOTICE_STAYS_UNTIL_DISMISSED),

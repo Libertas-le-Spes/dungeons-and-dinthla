@@ -3,7 +3,7 @@ import type { ThreadKind, ThreadRecord } from "../../campaign/threads/thread-kin
 import type { FollowUpName } from "../../kinds/follow-up-name";
 import type { ThreadFact } from "./thread-fact";
 import type { EndedLook, ThreadLook } from "./thread-look";
-import type { ThreadOpeners } from "./thread-openers";
+import type { ThreadOpeners, ThreadRowOpeners } from "./thread-openers";
 
 export interface ThreadListWords {
   itemName: string;
@@ -27,5 +27,5 @@ export interface ShownThreadKind<Thread extends ThreadRecord, Ending extends Sou
   endedLookOf(ending: Ending): EndedLook;
   factsOf(thread: Thread): ThreadFact[];
   show(openers: ThreadOpeners): void;
-  open(openers: ThreadOpeners, source: Source, onClosed: (changed: boolean) => void): void;
+  open(openers: ThreadRowOpeners, source: Source, onClosed: (changed: boolean) => void): void;
 }

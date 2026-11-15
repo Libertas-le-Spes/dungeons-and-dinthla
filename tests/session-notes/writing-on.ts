@@ -14,6 +14,7 @@ import { writtenLinesOf } from "../../src/session-notes/lines/written-lines";
 import type { ConfirmText } from "../../src/views/dialogs/confirm-modal";
 import { FakeNotes } from "../note-editing/fake-notes";
 import { stubRenumbering } from "./renumbering/stub-renumbering";
+import { stubLineOpeners } from "./lines/stub-line-openers";
 import { isShown, obsidianDocument } from "../stubs/obsidian-dom";
 
 export const PATH = "Pale Moon/Sessions/Session 12.md";
@@ -61,6 +62,7 @@ export function writingOn(text: string | null, drafts = new Drafts({}, () => {})
       openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
       campaign: () => buildCampaign([]),
       actions: { openRow: vi.fn(), openLink: vi.fn() },
+      lineOpeners: stubLineOpeners(),
       wholeText: { texts: notes.texts, drafts: noteDrafts, saver: new NoteSaver(notes.vault) },
       removal: { clearer: new SessionClearer(notes.vault), trash: new SessionTrash(notes.vault, { trashFile }, permanently), renumbering, confirm, report },
     },

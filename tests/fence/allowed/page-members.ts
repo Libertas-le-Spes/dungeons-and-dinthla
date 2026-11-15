@@ -30,6 +30,7 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "campaign/writing/new-campaign-modal.ts": ["addEventListener", "focus", "key", "preventDefault"],
   "reading/note-background.ts": ["className", "remove"],
   "session-notes/kept/kept-lines.ts": ["addEventListener", "disabled"],
+  "session-notes/lines/lines-list.ts": ["focus"],
   "session-notes/page/edit-all-panel.ts": ["addEventListener", "focus"],
   "session-notes/page/notes-buttons.ts": ["addEventListener", "disabled"],
   "session-notes/page/session-picker.ts": ["addEventListener", "value"],

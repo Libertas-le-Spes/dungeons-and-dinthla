@@ -5,7 +5,7 @@ import type { LineState } from "../../views/threads/line-state";
 import type { ShownThreadKind } from "../../views/threads/shown-thread-kind";
 import type { ThreadFact } from "../../views/threads/thread-fact";
 import type { EndedLook } from "../../views/threads/thread-look";
-import type { ThreadOpeners } from "../../views/threads/thread-openers";
+import type { ThreadOpeners, ThreadRowOpeners } from "../../views/threads/thread-openers";
 
 const MARK_CLASS = "dd-mark-question";
 const ANSWERED: LineState = { sign: "✓", label: "Answered", struck: false };
@@ -31,7 +31,7 @@ export const questionShownKind: ShownThreadKind<QuestionRecord, SourcedText, "an
   show(openers: ThreadOpeners): void {
     openers.showQuestions();
   },
-  open(openers: ThreadOpeners, source: Source, onClosed: (changed: boolean) => void): void {
+  open(openers: ThreadRowOpeners, source: Source, onClosed: (changed: boolean) => void): void {
     openers.openQuestion(source, onClosed);
   },
 };
