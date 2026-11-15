@@ -42,3 +42,9 @@ describe("AbilityScoreRule with a score set by an item", () => {
     expect(strengthWith(off).valueOr(-1)).toBe(12);
   });
 });
+
+describe("AbilityScoreRule with a set modifier for a longer sub-type", () => {
+  it("does not take a set modifier whose sub-type only contains the score's", () => {
+    expect(strengthWith(modifierOf("set", "strength-score-cap", 19, "Gauntlets")).isKnown).toBe(false);
+  });
+});

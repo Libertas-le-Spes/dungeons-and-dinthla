@@ -12,15 +12,12 @@ import { SubTypeFamily } from "../modifiers/sub-type-family";
 import { tallyFor } from "../modifiers/tally-for";
 import { unknownModifiers } from "../modifiers/unknown-modifiers";
 
-function higher(best: SetFloor, floor: SetFloor): SetFloor {
-  if (floor.value > best.value) return floor;
-  return best;
+function byValueDescending(first: SetFloor, second: SetFloor): number {
+  return second.value - first.value;
 }
 
 function highestFloorOf(tally: ModifierTally): SetFloor | undefined {
-  const [first, ...rest] = tally.floors;
-  if (first === undefined) return undefined;
-  return rest.reduce(higher, first);
+  return [...tally.floors].sort(byValueDescending).find(() => true);
 }
 
 export class AbilityScoreRule implements Rule {

@@ -13,14 +13,12 @@ export class SetFloor implements ModifierHandler {
     if (modifier.type !== "set") return false;
     if (modifier.subType.text !== this.subType) return false;
     if (modifier.restriction.trim() !== "") return false;
-    if (modifier.value === null) return false;
-    if (!Number.isSafeInteger(modifier.value)) return false;
+    if (typeof modifier.value !== "number") return false;
     if (modifier.value < this.allowed.lowest) return false;
     return modifier.value <= this.allowed.highest;
   }
 
   applyTo(tally: ModifierTally, modifier: RuleModifier): void {
-    if (modifier.value === null) return;
-    tally.noteFloor(modifier.value, modifier.sourceName.text);
+    tally.noteFloor(Number(modifier.value), modifier.sourceName.text);
   }
 }

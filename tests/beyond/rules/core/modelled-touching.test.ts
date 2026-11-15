@@ -55,3 +55,10 @@ describe("Alert, which D&D Beyond states as a modifier", () => {
     expect(numberNamed(character, "Initiative").explanation).toBe("Tactical Wit may change this value and is not worked out here.");
   });
 });
+
+describe("a feature that is not modelled", () => {
+  it("stays named when a modifier of its own touches the value", () => {
+    const character = madeUpRuleCharacter({ features: ["Tactical Wit"], modifiers: [modifierOf("bonus", "initiative", 2, "Tactical Wit")] });
+    expect(numberNamed(character, "Initiative").explanation).toBe("Tactical Wit may change this value and is not worked out here.");
+  });
+});
