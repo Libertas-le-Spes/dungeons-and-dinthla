@@ -54,5 +54,19 @@
   "find": "    mentions.draw(root.createEl(\"section\", { cls: \"dd-note-mentions\" }), file);",
   "replace": "",
   "group": "note page"
+ },
+ {
+  "id": "only the place's own campaign",
+  "file": "src/characters/reading/mentions.ts",
+  "find": "const sessions = sessionsAmong(notes.linkingPaths(file.path), campaignFolders);",
+  "replace": "const sessions = sessionsAmong(notes.linkingPaths(file.path), campaignFolders).filter((session) => session.campaignFolder === ownCampaign);",
+  "group": "note page"
+ },
+ {
+  "id": "only notes straight in Places",
+  "file": "src/campaign/paths/campaign-folders.ts",
+  "find": "  return path.startsWith(`${referenceFolderOf(kind, campaignFolder)}/`);",
+  "replace": "  return path.startsWith(`${referenceFolderOf(kind, campaignFolder)}/`) && !path.slice(referenceFolderOf(kind, campaignFolder).length + 1).includes(\"/\");",
+  "group": "note page"
  }
 ]
