@@ -471,7 +471,7 @@
  {
   "id": "an answered row says what was chosen",
   "file": "src/references/new-names/new-names-dialog.ts",
-  "find": "this.row.setDesc(chosenWords(kind.label));",
+  "find": "row.say(chosenWords(kind.label));",
   "replace": "",
   "group": "new names"
  },
