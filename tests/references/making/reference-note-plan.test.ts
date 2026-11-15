@@ -76,6 +76,34 @@ describe("planReferenceNotes", () => {
     expect(plan.refusals).toEqual([]);
   });
 
+  it("lists a name no line says is a person or a place, with the session that first names it and every session that does", () => {
+    const sessions = [session(2, ["? Where is [[Mira]]"]), session(1, ["? Who is [[Mira]]", "? Why is [[Mira]] here"])];
+    const plan = planUnresolved(sessions, ["Mira"]);
+    expect(plan.undecided.map(({ name, firstSession, namedIn }) => ({ name, first: firstSession.path, namedIn }))).toEqual([
+      { name: "Mira", first: `${CAMPAIGN}/Sessions/Session 1.md`, namedIn: [`${CAMPAIGN}/Sessions/Session 1.md`, `${CAMPAIGN}/Sessions/Session 2.md`] },
+    ]);
+  });
+
+  it("lists no name that is on two lines, or that has a kind", () => {
+    const two = planUnresolved([session(1, ["? Who is [[Mira]]", "? Why is [[Mira]] here"])], ["Mira"]);
+    const known = planUnresolved(THREE_FROM, ["Lady Vess"]);
+    expect(two.undecided).toEqual([]);
+    expect(known.undecided).toEqual([]);
+  });
+
+  it("lists no name Obsidian can resolve, or that a note anywhere already has", () => {
+    const sessions = [session(1, ["? Who is [[Mira]]", "? Where is [[Mira]]", "? Why is [[Mira]] here"])];
+    expect(planUnresolved(sessions, []).undecided).toEqual([]);
+    expect(planFor({ sessions, unresolved: everywhere(sessions, ["Mira"]), existing: ["mira"] }).undecided).toEqual([]);
+  });
+
+  it("lists no name a file can't have, and says so once", () => {
+    const sessions = [session(1, ["? Who is [[Mi: ra]]", "? Where is [[Mi: ra]]", "? Why is [[Mi: ra]] here"])];
+    const plan = planUnresolved(sessions, ["Mi: ra"]);
+    expect(plan.undecided).toEqual([]);
+    expect(plan.refusals).toEqual([noReferenceNoteMessage("Mi: ra", BAD_NAME)]);
+  });
+
   it("names the earliest session that names it as where it was first named, whatever order the sessions come in", () => {
     const later = session(3, ["! Cross the river, from: [[Lady Vess]]"]);
     const plan = planUnresolved([later, ...THREE_FROM], ["Lady Vess"]);
