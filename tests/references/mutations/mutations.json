@@ -159,5 +159,180 @@
   "find": ".filter((name) => name !== \"\")",
   "replace": "",
   "group": "line kind"
+ },
+ {
+  "id": "fence gives nothing for a note outside",
+  "file": "src/fence/gate/fenced-metadata.ts",
+  "find": "    if (!this.held.holdsPath(path)) return [];\n    const links = this.metadata.unresolvedLinks",
+  "replace": "    const links = this.metadata.unresolvedLinks",
+  "group": "fence"
+ },
+ {
+  "id": "no kind, no note",
+  "file": "src/references/making/reference-note-plan.ts",
+  "find": "    if (kind === null) return;\n",
+  "replace": "",
+  "group": "making plan"
+ },
+ {
+  "id": "three lines, not fewer",
+  "file": "src/references/making/reference-note-plan.ts",
+  "find": "const { known } = oftenNamed(namedOnLines(input.campaign, input.sessions));",
+  "replace": "const known = namedOnLines(input.campaign, input.sessions);",
+  "group": "making plan"
+ },
+ {
+  "id": "unresolved in every session that names it",
+  "file": "src/references/making/reference-note-plan.ts",
+  "find": "naming.every(",
+  "replace": "naming.some(",
+  "group": "making plan"
+ },
+ {
+  "id": "unresolved only",
+  "file": "src/references/making/reference-note-plan.ts",
+  "find": "    if (!naming.every(({ session }) => this.isUnresolvedIn(session, name))) return;\n",
+  "replace": "",
+  "group": "making plan"
+ },
+ {
+  "id": "an existing note in the campaign is linked",
+  "file": "src/references/making/reference-note-plan.ts",
+  "find": "    if (this.existing.has(key)) return;\n",
+  "replace": "",
+  "group": "making plan"
+ },
+ {
+  "id": "existing names compared as keys",
+  "file": "src/references/making/reference-note-plan.ts",
+  "find": "new Set(input.existingNames.map(nameKeyOf))",
+  "replace": "new Set(input.existingNames)",
+  "group": "making plan"
+ },
+ {
+  "id": "a name a file can't have is refused",
+  "file": "src/references/making/reference-note-plan.ts",
+  "find": "if (reason !== null) {",
+  "replace": "if (reason === undefined) {",
+  "group": "making plan"
+ },
+ {
+  "id": "two names for one file name are refused",
+  "file": "src/references/making/reference-note-plan.ts",
+  "find": "if (owner !== undefined) {",
+  "replace": "if (owner === null) {",
+  "group": "making plan"
+ },
+ {
+  "id": "earliest session first",
+  "file": "src/references/making/reference-note-plan.ts",
+  "find": "[...input.sessions].sort((one, other) => one.number - other.number)",
+  "replace": "[...input.sessions]",
+  "group": "making plan"
+ },
+ {
+  "id": "the kind's own folder",
+  "file": "src/references/making/reference-note-plan.ts",
+  "find": "referenceFolderOf(REFERENCE_KINDS[kind],",
+  "replace": "referenceFolderOf(REFERENCE_KINDS.character,",
+  "group": "making plan"
+ },
+ {
+  "id": "never over a note that is there",
+  "file": "src/references/making/reference-note-maker.ts",
+  "find": "sessionFile === null || files.getFileByPath(note.path) !== null",
+  "replace": "sessionFile === null",
+  "group": "making maker"
+ },
+ {
+  "id": "no note without its session",
+  "file": "src/references/making/reference-note-maker.ts",
+  "find": "sessionFile === null || files",
+  "replace": "files",
+  "group": "making maker"
+ },
+ {
+  "id": "one note at a time per path",
+  "file": "src/references/making/reference-note-maker.ts",
+  "find": "    await this.queue.run(note.path, async () => {\n      result = await this.makeIfMissing(note);\n    });\n",
+  "replace": "    result = await this.makeIfMissing(note);\n",
+  "group": "making maker"
+ },
+ {
+  "id": "a failed make is told",
+  "file": "src/references/making/reference-note-maker.ts",
+  "find": "this.needs.failed(note, error);\n",
+  "replace": "",
+  "group": "making maker"
+ },
+ {
+  "id": "only a session saved here",
+  "file": "src/references/making/reference-notes.ts",
+  "find": "if (!this.pending.delete(path)) return;",
+  "replace": "this.pending.delete(path);",
+  "group": "making notes"
+ },
+ {
+  "id": "not while the campaign is opening",
+  "file": "src/references/making/reference-notes.ts",
+  "find": "campaignFolder === null || store.opening",
+  "replace": "campaignFolder === null",
+  "group": "making notes"
+ },
+ {
+  "id": "not without a campaign",
+  "file": "src/references/making/reference-notes.ts",
+  "find": "campaignFolder === null || store.opening",
+  "replace": "store.opening",
+  "group": "making notes"
+ },
+ {
+  "id": "a refusal is said once",
+  "file": "src/references/making/reference-notes.ts",
+  "find": "this.said.say(message, message)",
+  "replace": "this.needs.say(message)",
+  "group": "making notes"
+ },
+ {
+  "id": "a failed note is said once",
+  "file": "src/references/making/reference-notes.ts",
+  "find": "this.said.say(`${note.path}:${messageOf(error)}`, ",
+  "replace": "this.needs.say(",
+  "group": "making notes"
+ },
+ {
+  "id": "a plan that fails is said",
+  "file": "src/references/making/reference-notes.ts",
+  "find": ".catch((error: unknown) => this.said.say(`all:${messageOf(error)}`, `Couldn't make notes for new names: ${messageOf(error)}`));",
+  "replace": ";",
+  "group": "making notes"
+ },
+ {
+  "id": "listening stops",
+  "file": "src/references/making/reference-notes.ts",
+  "find": "return () => metadata.offref(resolved);",
+  "replace": "return () => undefined;",
+  "group": "making notes"
+ },
+ {
+  "id": "watcher tells the people and places",
+  "file": "src/kind-notes/watching/kind-note-watcher.ts",
+  "find": "    this.needs.references.sessionSaved(path);\n",
+  "replace": "",
+  "group": "making wiring"
+ },
+ {
+  "id": "wiring passes the people and places",
+  "file": "src/kind-notes/watching/kind-notes-wiring.ts",
+  "find": "items, references, mover }",
+  "replace": "items, references: { sessionSaved: () => undefined }, mover }",
+  "group": "making wiring"
+ },
+ {
+  "id": "the property is first named",
+  "file": "src/references/making/first-named-property.ts",
+  "find": "properties[FIRST_NAMED] = sessionLink;",
+  "replace": "properties.session = sessionLink;",
+  "group": "making maker"
  }
 ]

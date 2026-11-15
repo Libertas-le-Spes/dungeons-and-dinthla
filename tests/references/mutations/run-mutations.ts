@@ -4,7 +4,7 @@ import { runMutations } from "../../mutation-support/mutation-runner.ts";
 await runMutations({
   name: "references",
   root: fileURLToPath(new URL("../../..", import.meta.url)),
-  suites: ["tests/references", "tests/notes/parts/link.test.ts", "tests/funds/item-notes"],
+  suites: ["tests/references", "tests/notes/parts/link.test.ts", "tests/funds/item-notes", "tests/kind-notes/watching", "tests/fence/gate/fenced-metadata.test.ts"],
   limits: { memoryMax: "2G", seconds: 120 },
   mutations: new URL("./mutations.json", import.meta.url),
 });
