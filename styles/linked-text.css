@@ -31,5 +31,5 @@
 .dd-lookup mark {
   background: var(--marker-question-soft);
   color: inherit;
-  border-radius: 2px;
+  border-radius: var(--radius-s);
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contrast, over, parseColour, type Colour } from "./css-colour";
+import { contrast, distance, over, parseColour, type Colour } from "./css-colour";
 import { panelOver } from "./panel-background";
 import { textColourTokens, unclassifiedTextColours } from "./style-files";
 import { CATPPUCCIN_LATTE, OBSIDIAN_DARK, OBSIDIAN_LIGHT, SEE_THROUGH, THEMES, TOKYO_NIGHT } from "./sample-themes";
@@ -74,12 +74,45 @@ describe("following a community theme", () => {
   });
 });
 
+describe.each(Object.entries(THEMES))("the colours of meaning in %s", (_name, context) => {
+  const token = tokensFor(context);
+  const MARKERS = ["marker-question", "marker-quest", "marker-ledger"];
+  const STATES = ["state-override", "state-carried", "state-imported"];
+  const MINIMUM_FROM_TEXT = 0.08;
+  const MINIMUM_APART = 0.05;
+
+  it.each([...MARKERS, ...STATES])("%s stands clearly apart from body text", (name) => {
+    expect(distance(token(name), token("text-body"))).toBeGreaterThanOrEqual(MINIMUM_FROM_TEXT);
+  });
+
+  it.each([
+    ["markers", MARKERS],
+    ["states", STATES],
+  ])("the %s are clearly apart from each other", (_group, names) => {
+    for (const [index, first] of names.entries()) {
+      for (const second of names.slice(index + 1)) {
+        expect(distance(token(first), token(second)), `${first} and ${second}`).toBeGreaterThanOrEqual(MINIMUM_APART);
+      }
+    }
+  });
+});
+
+describe.each(Object.entries(THEMES))("faint text in %s", (_name, context) => {
+  const token = tokensFor(context);
+  const page = parseColour(context.obsidian["--background-primary"] as string);
+  const seen = (name: string) => over(token(name), page);
+
+  it("is never stronger than muted text", () => {
+    expect(contrast(seen("text-faint-ui"), page)).toBeLessThanOrEqual(contrast(seen("text-muted-ui"), page));
+  });
+});
+
 describe("markers in Obsidian's own editor", () => {
   const EDITOR_BACKGROUNDS: [string, ThemeContext, string][] = [
-    ["Obsidian light", THEMES["Obsidian light"]!, OBSIDIAN_LIGHT["--background-primary"]!],
-    ["Obsidian dark", THEMES["Obsidian dark"]!, OBSIDIAN_DARK["--background-primary"]!],
-    ["Tokyo Night", THEMES["Tokyo Night"]!, TOKYO_NIGHT["--background-primary"]!],
-    ["Catppuccin Latte", THEMES["Catppuccin Latte"]!, CATPPUCCIN_LATTE["--background-primary"]!],
+    ["Obsidian light", { obsidian: OBSIDIAN_LIGHT }, OBSIDIAN_LIGHT["--background-primary"] as string],
+    ["Obsidian dark", { obsidian: OBSIDIAN_DARK }, OBSIDIAN_DARK["--background-primary"] as string],
+    ["Tokyo Night", { obsidian: TOKYO_NIGHT }, TOKYO_NIGHT["--background-primary"] as string],
+    ["Catppuccin Latte", { obsidian: CATPPUCCIN_LATTE }, CATPPUCCIN_LATTE["--background-primary"] as string],
   ];
   const MARKERS = ["marker-question", "marker-quest", "marker-ledger"];
 
