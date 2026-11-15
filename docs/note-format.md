@@ -94,7 +94,7 @@ wash: balanced
 
 | Property | What it holds |
 |---|---|
-| `role` | `player`, `dm` or `researcher` |
+| `role` | `player`, `dm` or `researcher`. The plugin reads one value: exactly `dm` makes it ask you what a name is (see [A DM's campaign](#a-dms-campaign)). Any other value, a different capital (`DM`), or no `role` at all changes nothing |
 | `character` | Your own character, for a player. The dashboard and the Characters page show them first, before everyone else, and set them subtly apart. The plugin writes it only when you choose who is your character (see [Leaving play](#leaving-play)) |
 | `party` | The party members, used by `$ split` |
 | `system` | The note that describes the game system |
@@ -419,6 +419,19 @@ first named: "[[Session 2]]"
 - **Names are matched as written.** `[[Old Mill]]` and `[[old mill]]` are two names, but they would share a file name, so only the first gets a note and the second gets the message. A link with a folder in it, such as `[[Places/Old Mill]]`, can't be a note name and gets the message. A name that ends in `.md` gets the message too.
 - **When it happens.** Once Obsidian has resolved the links of the saved session. A session saved in Obsidian's own editor, or one that arrives by sync, makes no note until the next save made with the plugin, and the earlier sessions of a campaign are not looked at when it is opened.
 - **If a write fails.** A message says so once.
+
+### A DM's campaign
+
+Everything above is for a campaign whose main note does not say `role: dm`. In a campaign whose main note says exactly `role: dm`, the plugin does not guess what a name is from its line, and does not make a person's or place's note by itself. It asks you.
+
+- **When it asks.** A `[[link]]` on three or more lines of the campaign, whatever kind of line each is (a `$` line, a `?` line, plain text), is asked about once, in the same small list as above: *New names in Session 2*, each name with a *Character* and a *Place* button, the buttons coming from the plugin's kinds. Pressing one makes that note at once, in `Characters` or `Places`, holding the same `first named` property as above. Closing the list or pressing Escape answers nothing, and the name is asked about again after the next save that names it. A list already on screen is not opened again over itself.
+- **Only the DM.** The campaign's main note decides, for the campaign the session was saved in. A campaign with any other `role`, or none, is never asked, and keeps the behaviour described above, line guessing included.
+- **A name you answered is not asked again.** Once a name has a note, in any folder of the campaign, it is not asked about, and neither is a name Obsidian already resolves to a note anywhere in the vault, since answering would make a second note of that name. A name already in the `aliases` property of any note of the campaign counts as that note, so `[[The Mill]]` is not asked about when `Old Mill` lists `The Mill` as an alias.
+- **Characters and everything else.** A person you made a character is known in every campaign: a name with a note in the `Characters` or `Fallen` folder of any campaign of the vault, or listed in the `aliases` of such a note, is not asked about in another campaign. A place, or any other kind, is known only in the campaign it was made in, and the same name in another campaign is asked about there.
+- **The same name.** `[[Places/Old Mill]]`, `[[Old Mill]]` and `[[old mill]]` are one name, as are `[[Old Mill#Cellar]]` and `[[Old Mill|the mill]]`. The folder is left off, and the name is written as the first line that names it wrote it. Each line counts once however often it links the name, and the lines of every session of the campaign are added together.
+- **Code and comments.** A link in a code block (fenced with three backticks or three tildes), in code written in a line between single backticks, or in a `%% comment %%` is not counted.
+- **Names a file can't have.** A name with a character a file name can't hold gets no question, and a message says so once.
+- **When it happens.** Once Obsidian has resolved the links of the saved session, and only for names the saved session names. A session saved in Obsidian's own editor, one that arrives by sync, and the earlier sessions of a campaign opened for the first time do not start a question until the next save made with the plugin. A name made in this run stays answered until Obsidian restarts, even if you delete its note by hand.
 
 ## Character
 

@@ -8,7 +8,7 @@ export interface WantedProperties {
   alias: string | null;
 }
 
-function aliasesIn(properties: Record<string, unknown>): unknown[] {
+export function aliasesIn(properties: Record<string, unknown>): unknown[] {
   const aliases = properties.aliases;
   if (typeof aliases === "string") return [aliases];
   if (!Array.isArray(aliases)) return [];

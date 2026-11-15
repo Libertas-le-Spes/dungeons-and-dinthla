@@ -1,0 +1,331 @@
+[
+ {
+  "id": "a fence closes on its own kind",
+  "file": "src/references/asking/visible-lines.ts",
+  "find": "line.trim().startsWith(fence)",
+  "replace": "line.trim().startsWith(\"```\")",
+  "group": "visible"
+ },
+ {
+  "id": "a fence in a comment opens nothing",
+  "file": "src/references/asking/visible-lines.ts",
+  "find": "if (opening !== null && !commented) {",
+  "replace": "if (opening !== null) {",
+  "group": "visible"
+ },
+ {
+  "id": "properties are left out",
+  "file": "src/references/asking/visible-lines.ts",
+  "find": ".slice(session.firstLine)",
+  "replace": "",
+  "group": "visible"
+ },
+ {
+  "id": "code in a line is removed",
+  "file": "src/references/asking/visible-lines.ts",
+  "find": "visible.push(stripped.text.replace(INLINE_CODE, \"\"))",
+  "replace": "visible.push(stripped.text)",
+  "group": "visible"
+ },
+ {
+  "id": "text after a closer is kept",
+  "file": "src/references/asking/visible-lines.ts",
+  "find": "if (!inside) kept += text.slice(at);",
+  "replace": "",
+  "group": "visible"
+ },
+ {
+  "id": "text before a comment is kept",
+  "file": "src/references/asking/visible-lines.ts",
+  "find": "if (!inside) kept += text.slice(at, mark);",
+  "replace": "",
+  "group": "visible"
+ },
+ {
+  "id": "a mark closes a comment",
+  "file": "src/references/asking/visible-lines.ts",
+  "find": "inside = !inside;",
+  "replace": "inside = true;",
+  "group": "visible"
+ },
+ {
+  "id": "a comment runs over lines",
+  "file": "src/references/asking/visible-lines.ts",
+  "find": "commented = stripped.commented;",
+  "replace": "",
+  "group": "visible"
+ },
+ {
+  "id": "lines are read without code and comments",
+  "file": "src/references/asking/asked-names.ts",
+  "find": "visibleLinesOf(session)",
+  "replace": "session.text.split(\"\\n\")",
+  "group": "asked"
+ },
+ {
+  "id": "a name is keyed without folder or capitals",
+  "file": "src/references/asking/asked-names.ts",
+  "find": "names.set(nameKeyOf(name), name);",
+  "replace": "names.set(target, name);",
+  "group": "asked"
+ },
+ {
+  "id": "a link with no name is left out",
+  "file": "src/references/asking/asked-names.ts",
+  "find": "if (name !== \"\") names.set",
+  "replace": "if (true) names.set",
+  "group": "asked"
+ },
+ {
+  "id": "three lines are needed",
+  "file": "src/references/asking/asked-names.ts",
+  "find": "tally.lineCount < LINES_FOR_A_NOTE ||",
+  "replace": "tally.lineCount < 2 ||",
+  "group": "asked"
+ },
+ {
+  "id": "a taken name is not asked",
+  "file": "src/references/asking/asked-names.ts",
+  "find": " || takenKeys.has(key)",
+  "replace": "",
+  "group": "asked"
+ },
+ {
+  "id": "a refused name is not asked",
+  "file": "src/references/asking/asked-names.ts",
+  "find": "if (reason !== null) {",
+  "replace": "if (reason === \"never\") {",
+  "group": "asked"
+ },
+ {
+  "id": "sessions are read in order",
+  "file": "src/references/asking/asked-names.ts",
+  "find": "[...sessions].sort((one, other) => one.number - other.number)",
+  "replace": "sessions",
+  "group": "asked"
+ },
+ {
+  "id": "a session is named once",
+  "file": "src/references/asking/asked-names.ts",
+  "find": "if (!tally.namedIn.includes(session.path))",
+  "replace": "if (true)",
+  "group": "asked"
+ },
+ {
+  "id": "a name has no folder",
+  "file": "src/references/asking/asked-names.ts",
+  "find": "target.slice(target.lastIndexOf(\"/\") + 1)",
+  "replace": "target",
+  "group": "asked"
+ },
+ {
+  "id": "only text aliases count",
+  "file": "src/references/asking/taken-names.ts",
+  "find": ".filter((alias): alias is string => typeof alias === \"string\")",
+  "replace": ".filter((alias): alias is string => true)",
+  "group": "taken"
+ },
+ {
+  "id": "fallen characters are taken",
+  "file": "src/references/asking/taken-names.ts",
+  "find": " || isInFallenFolder(folder, path)",
+  "replace": "",
+  "group": "taken"
+ },
+ {
+  "id": "an unread note has no aliases",
+  "file": "src/references/asking/taken-names.ts",
+  "find": "cache === null || ",
+  "replace": "",
+  "group": "taken"
+ },
+ {
+  "id": "a note with no properties has no aliases",
+  "file": "src/references/asking/taken-names.ts",
+  "find": "|| cache.frontmatter === undefined",
+  "replace": "",
+  "group": "taken"
+ },
+ {
+  "id": "notes of the campaign are taken",
+  "file": "src/references/asking/taken-names.ts",
+  "find": "...files.markdownFilesUnder(campaignFolder), ",
+  "replace": "",
+  "group": "taken"
+ },
+ {
+  "id": "characters of every campaign are taken",
+  "file": "src/references/asking/taken-names.ts",
+  "find": ", ...characters]",
+  "replace": "]",
+  "group": "taken"
+ },
+ {
+  "id": "only exactly dm opts in",
+  "file": "src/references/asking/dm-campaign.ts",
+  "find": "properties.role === DM_ROLE",
+  "replace": "String(properties.role).toLowerCase() === DM_ROLE",
+  "group": "dm role"
+ },
+ {
+  "id": "the role must be dm",
+  "file": "src/references/asking/dm-campaign.ts",
+  "find": "properties.role === DM_ROLE",
+  "replace": "properties.role !== undefined",
+  "group": "dm role"
+ },
+ {
+  "id": "a main note with no properties is no dm",
+  "file": "src/references/asking/dm-campaign.ts",
+  "find": "if (properties === undefined) return false;",
+  "replace": "",
+  "group": "dm role"
+ },
+ {
+  "id": "no campaign goes to the others",
+  "file": "src/references/asking/role-routed-notes.ts",
+  "find": "if (campaignFolder === null) return forOthers;",
+  "replace": "",
+  "group": "routing"
+ },
+ {
+  "id": "a dm campaign goes to the dm part",
+  "file": "src/references/asking/role-routed-notes.ts",
+  "find": "if (isDmCampaign({ metadata, campaignFolder })) return forDm;",
+  "replace": "",
+  "group": "routing"
+ },
+ {
+  "id": "a gone session is told to the dm part",
+  "file": "src/references/asking/role-routed-notes.ts",
+  "find": "this.needs.forDm.sessionGone(path);",
+  "replace": "",
+  "group": "routing"
+ },
+ {
+  "id": "a gone session is told to the other part",
+  "file": "src/references/asking/role-routed-notes.ts",
+  "find": "this.needs.forOthers.sessionGone(path);",
+  "replace": "",
+  "group": "routing"
+ },
+ {
+  "id": "only a saved session is asked about",
+  "file": "src/references/asking/dm-name-questions.ts",
+  "find": "if (!this.pending.delete(path)) return;",
+  "replace": "",
+  "group": "questions"
+ },
+ {
+  "id": "a gone session is forgotten",
+  "file": "src/references/asking/dm-name-questions.ts",
+  "find": "sessionGone(path: string): void {\n    this.pending.delete(path);",
+  "replace": "sessionGone(path: string): void {",
+  "group": "questions"
+ },
+ {
+  "id": "no question while the campaign opens",
+  "file": "src/references/asking/dm-name-questions.ts",
+  "find": "if (campaignFolder === null || store.opening || this.asking) return;",
+  "replace": "if (campaignFolder === null || this.asking) return;",
+  "group": "questions"
+ },
+ {
+  "id": "no question with no campaign",
+  "file": "src/references/asking/dm-name-questions.ts",
+  "find": "if (campaignFolder === null || store.opening || this.asking) return;",
+  "replace": "if (store.opening || this.asking) return;",
+  "group": "questions"
+ },
+ {
+  "id": "no second list while one is open",
+  "file": "src/references/asking/dm-name-questions.ts",
+  "find": "if (campaignFolder === null || store.opening || this.asking) return;",
+  "replace": "if (campaignFolder === null || store.opening) return;",
+  "group": "questions"
+ },
+ {
+  "id": "a session that names nothing asks nothing",
+  "file": "src/references/asking/dm-name-questions.ts",
+  "find": "if (names === null) return;",
+  "replace": "",
+  "group": "questions"
+ },
+ {
+  "id": "a refused name is said",
+  "file": "src/references/asking/dm-name-questions.ts",
+  "find": "for (const message of asked.refusals) this.said.say(message, message);",
+  "replace": "",
+  "group": "questions"
+ },
+ {
+  "id": "closing frees the next list",
+  "file": "src/references/asking/dm-name-questions.ts",
+  "find": "this.asking = false;",
+  "replace": "",
+  "group": "questions"
+ },
+ {
+  "id": "an open list is noted",
+  "file": "src/references/asking/dm-name-questions.ts",
+  "find": "this.asking = true;",
+  "replace": "",
+  "group": "questions"
+ },
+ {
+  "id": "an answer waits for its campaign",
+  "file": "src/references/asking/dm-name-questions.ts",
+  "find": "campaignFolder: () => store.campaignFolder,",
+  "replace": "campaignFolder: () => campaignFolder,",
+  "group": "questions"
+ },
+ {
+  "id": "an answer sees a note made since",
+  "file": "src/references/asking/dm-name-questions.ts",
+  "find": "existingNames: () => this.takenIn(campaignFolder),",
+  "replace": "existingNames: () => [],",
+  "group": "questions"
+ },
+ {
+  "id": "taken names are not asked",
+  "file": "src/references/asking/dm-name-questions.ts",
+  "find": "taken: this.takenIn(campaignFolder)",
+  "replace": "taken: []",
+  "group": "questions"
+ },
+ {
+  "id": "an answer that throws hands back failed",
+  "file": "src/references/asking/dm-name-questions.ts",
+  "find": "return \"failed\";",
+  "replace": "return \"made\";",
+  "group": "questions"
+ },
+ {
+  "id": "a failure to ask is said once",
+  "file": "src/references/asking/dm-name-questions.ts",
+  "find": "`all:${messageOf(error)}`",
+  "replace": "Math.random().toString()",
+  "group": "questions"
+ },
+ {
+  "id": "the list is named for the saved session",
+  "file": "src/references/asking/dm-name-questions.ts",
+  "find": "sessionName: noteNameOf(savedPath)",
+  "replace": "sessionName: \"\"",
+  "group": "questions"
+ },
+ {
+  "id": "stopping stops listening",
+  "file": "src/references/asking/dm-name-questions.ts",
+  "find": "metadata.offref(resolved)",
+  "replace": "0",
+  "group": "questions"
+ },
+ {
+  "id": "a name that resolves to a note is not asked",
+  "file": "src/references/asking/dm-name-questions.ts",
+  "find": "this.needs.metadata.getFirstLinkpathDest(name, savedPath) === null",
+  "replace": "true",
+  "group": "questions"
+ }
+]
