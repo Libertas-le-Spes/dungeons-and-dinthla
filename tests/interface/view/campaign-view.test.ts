@@ -6,6 +6,7 @@ import type { CampaignStore } from "../../../src/campaign/reading/campaign-store
 import type { NavSection, PageEntry, PageId, PathAfterDelete, ShowPage, StayOn } from "../../../src/interface/view/campaign-pages";
 import { CAMPAIGN_VIEW, CampaignView, type ViewFiles } from "../../../src/interface/view/campaign-view";
 import { campaignsFolderFirst } from "../../../src/interface/view/campaigns-folder-first";
+import { present } from "../../pdf/support/present";
 import { Menu } from "../../stubs/obsidian";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
@@ -113,8 +114,19 @@ async function openView({
   questionCount = (campaign: Campaign) => campaign.questions.length,
   castAfterDelete = LEAVE_DELETED,
   sectionsAround = (sections: NavSection[]) => sections,
-  campaigns = noCampaigns(),
 } = {}) {
+  return openViewShowing({ folder, questionCount, castAfterDelete, sectionsAround, campaigns: noCampaigns() });
+}
+
+interface ViewOptions {
+  folder: string | null;
+  questionCount: (campaign: Campaign) => number;
+  castAfterDelete: PathAfterDelete;
+  sectionsAround: (sections: NavSection[]) => NavSection[];
+  campaigns: ReturnType<typeof noCampaigns>;
+}
+
+async function openViewShowing({ folder, questionCount, castAfterDelete, sectionsAround, campaigns }: ViewOptions) {
   let listener = () => {};
   const unsubscribe = vi.fn();
   const store = {
@@ -406,12 +418,18 @@ describe("CampaignView", () => {
 
   it("puts a switcher beside the campaign's name that lists the campaigns it is given", async () => {
     const campaigns = { ...noCampaigns(), folders: () => ["D&D/Pale Moon"], chosen: () => "D&D/Pale Moon" };
-    const { root } = await openView({ campaigns });
-    const heading = root.querySelector(".dd-nav-heading")!;
+    const { root } = await openViewShowing({
+      folder: "Pale Moon",
+      questionCount: () => 0,
+      castAfterDelete: LEAVE_DELETED,
+      sectionsAround: (sections) => sections,
+      campaigns,
+    });
+    const heading = present(root.querySelector(".dd-nav-heading"));
     expect([...heading.children].map((child) => child.className)).toEqual(["dd-nav-campaign", "clickable-icon dd-nav-switch"]);
     Menu.shown = [];
-    root.querySelector<HTMLElement>(".dd-nav-switch")!.click();
-    expect(Menu.shown[0]!.items.map((item) => item.title)).toEqual(["Pale Moon", "", "New campaign"]);
+    present(root.querySelector<HTMLElement>(".dd-nav-switch")).click();
+    expect(present(Menu.shown[0]).items.map((item) => item.title)).toEqual(["Pale Moon", "", "New campaign"]);
   });
 
   it("builds the page it shows again when asked, so a page that asked for the Campaigns folder shows once one is set", async () => {

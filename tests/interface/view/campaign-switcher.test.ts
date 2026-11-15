@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { CampaignSwitcher, NEW_CAMPAIGN_ENTRY, SWITCH_LABEL } from "../../../src/interface/view/campaign-switcher";
+import { present } from "../../pdf/support/present";
 import { Menu, Notice } from "../../stubs/obsidian";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
@@ -39,13 +40,13 @@ function settled(): Promise<void> {
 function switcherFor(campaigns: FakeCampaigns): HTMLElement {
   const parentEl = obsidianDocument().createElement("div");
   new CampaignSwitcher({ parentEl, campaigns }).load();
-  return parentEl.querySelector<HTMLElement>("button")!;
+  return present(parentEl.querySelector<HTMLElement>("button"));
 }
 
 function pressed(button: HTMLElement): Menu {
   Menu.shown = [];
   button.click();
-  return Menu.shown[0]!;
+  return present(Menu.shown[0]);
 }
 
 function titles(menu: Menu): string[] {
@@ -53,7 +54,7 @@ function titles(menu: Menu): string[] {
 }
 
 function itemTitled(menu: Menu, title: string) {
-  return menu.items.find((item) => item.title === title)!;
+  return present(menu.items.find((item) => item.title === title));
 }
 
 describe("CampaignSwitcher", () => {
@@ -74,7 +75,7 @@ describe("CampaignSwitcher", () => {
     const menu = pressed(switcherFor(new FakeCampaigns(["D&D/Ashen Road", "D&D/Pale Moon"], "D&D/Pale Moon")));
     expect(titles(menu)).toEqual(["Ashen Road", "Pale Moon", "", NEW_CAMPAIGN_ENTRY]);
     expect(menu.items.map((item) => item.checked)).toEqual([false, true, false, false]);
-    expect(menu.items[2]!.separator).toBe(true);
+    expect(present(menu.items[2]).separator).toBe(true);
     expect(itemTitled(menu, NEW_CAMPAIGN_ENTRY).icon).toBe("plus");
   });
 
@@ -140,5 +141,14 @@ describe("CampaignSwitcher", () => {
     pressed(button);
     campaigns.listed = ["D&D/Ashen Road", "D&D/Pale Moon"];
     expect(titles(pressed(button))).toEqual(["Ashen Road", "Pale Moon", "", NEW_CAMPAIGN_ENTRY]);
+  });
+
+  it("gives focus back to the button when the menu closes", () => {
+    const button = switcherFor(new FakeCampaigns(["D&D/Pale Moon"], "D&D/Pale Moon"));
+    button.ownerDocument.body.append(button);
+    const menu = pressed(button);
+    expect(button.ownerDocument.activeElement).not.toBe(button);
+    menu.hide();
+    expect(button.ownerDocument.activeElement).toBe(button);
   });
 });

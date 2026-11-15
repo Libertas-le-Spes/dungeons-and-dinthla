@@ -201,6 +201,7 @@ export class Menu {
   static shown: Menu[] = [];
   readonly items: MenuItem[] = [];
   position: { x: number; y: number } | null = null;
+  private readonly hiding: (() => unknown)[] = [];
 
   addItem(build: (item: MenuItem) => void): this {
     const item = new MenuItem();
@@ -213,6 +214,15 @@ export class Menu {
     const item = new MenuItem();
     item.separator = true;
     this.items.push(item);
+    return this;
+  }
+
+  onHide(callback: () => unknown): void {
+    this.hiding.push(callback);
+  }
+
+  hide(): this {
+    for (const callback of this.hiding) callback();
     return this;
   }
 
