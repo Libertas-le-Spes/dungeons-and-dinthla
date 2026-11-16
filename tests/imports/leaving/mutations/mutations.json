@@ -695,8 +695,8 @@
  {
   "id": "a main already in Fallen is only finished",
   "file": "src/imports/leaving/questions/question-for.ts",
-  "find": "  if (isInFallen(note, folder)) return true;\n",
-  "replace": "",
+  "find": "  if (isInFallen(note, folder)) return true;\n  return hasLeftPlay",
+  "replace": "  return hasLeftPlay",
   "group": "offers"
  },
  {
