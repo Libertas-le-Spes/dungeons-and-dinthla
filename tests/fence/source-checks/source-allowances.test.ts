@@ -33,7 +33,7 @@ const GATE_BUILDERS = ["main.ts"];
 const NETWORK_CALLERS = ["online/beyond-call.ts"];
 const BEYOND_CALLERS = ["online/beyond-call.ts", "online/call-rules.ts", "imports/dialog/online/online-wiring.ts", "imports/dialog/online/online-import.ts"];
 const POST_PROCESSING = ["main.ts"];
-const PAGE_TEXT_READERS = ["reading/colour-markers.ts"];
+const PAGE_TEXT_READERS = ["reading/colour-markers.ts", "reading/plain-dollars.ts"];
 const ELEMENT_QUERIERS = ["reading/colour-markers.ts", "reading/plain-dollars.ts", "characters/pages/character-sheet-page.ts", "funds/page/funds-page.ts", "views/lists/row-focus.ts"];
 
 function isOneOf(files: string[]): (path: string) => boolean {
