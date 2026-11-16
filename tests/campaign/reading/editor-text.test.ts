@@ -15,15 +15,15 @@ function vaultHolding(...files: TFile[]) {
 
 describe("editorTextOf", () => {
   it("reads the editor while it still shows the note that was edited", () => {
-    expect(editorTextOf(editorShowing(session, "? Who"), session, vaultHolding(session))).toBe("? Who");
+    expect(editorTextOf(editorShowing(session, "? Who\n"), session, vaultHolding(session))).toBe("? Who\n");
   });
 
   it("reads nothing once the editor has moved on to another note", () => {
-    expect(editorTextOf(editorShowing(other, "Mira's notes"), session, vaultHolding(session, other))).toBeNull();
+    expect(editorTextOf(editorShowing(other, "Mira's notes\n"), session, vaultHolding(session, other))).toBeNull();
   });
 
   it("reads nothing once the note was deleted", () => {
-    expect(editorTextOf(editorShowing(session, "? Who"), session, vaultHolding())).toBeNull();
+    expect(editorTextOf(editorShowing(session, "? Who\n"), session, vaultHolding())).toBeNull();
   });
 
   it("reads nothing when there is no editor", () => {
@@ -33,8 +33,8 @@ describe("editorTextOf", () => {
 
 describe("editorTextsOf", () => {
   it("reads every editor that shows the note, and none that shows another", () => {
-    const editors = [editorShowing(session, "? Who"), editorShowing(other, "Mira's notes"), editorShowing(session, "? Who sent Mira")];
-    expect(editorTextsOf(editors, session, vaultHolding(session, other))).toEqual(["? Who", "? Who sent Mira"]);
+    const editors = [editorShowing(session, "? Who\n"), editorShowing(other, "Mira's notes\n"), editorShowing(session, "? Who sent Mira\n")];
+    expect(editorTextsOf(editors, session, vaultHolding(session, other))).toEqual(["? Who\n", "? Who sent Mira\n"]);
   });
 
   it("reads nothing when no editor is open", () => {

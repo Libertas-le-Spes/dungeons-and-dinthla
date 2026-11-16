@@ -2,13 +2,14 @@ import { nothing } from "../../note-keeping/nothing";
 import { kindNoteTitleOf } from "../wanting/kind-note-path";
 import type { SessionWants } from "../wanting/session-wants";
 import { wantedKeyOf, type WantedNote } from "../wanting/wanted-note";
+import { ShownAsk, type DismissAsk } from "./shown-ask";
 
 export interface DifferingKeeper {
   isOutOfStep(note: WantedNote): boolean;
   keep(notes: WantedNote[]): void;
 }
 
-export type AskAboutDifference = (message: string, fix: () => void, keepAsItIs: () => void) => void;
+export type AskAboutDifference = (message: string, fix: () => void, keepAsItIs: () => void) => DismissAsk;
 
 export function differsMessage(note: WantedNote): string {
   return `${kindNoteTitleOf(note.folder, note.sessionPath)} differ from the session.`;
@@ -26,6 +27,7 @@ export function manyDifferMessage(count: number): string {
 
 export class DifferingNotes {
   private readonly asked = new Map<string, string>();
+  private readonly shown = new Map<string, ShownAsk>();
 
   constructor(
     private readonly keeper: DifferingKeeper,
@@ -44,7 +46,15 @@ export class DifferingNotes {
   }
 
   forget(sessionPath: string): void {
-    for (const note of this.wants.notesFor(sessionPath)) this.asked.delete(note.path);
+    for (const note of this.wants.notesFor(sessionPath)) this.putRight(note.path);
+  }
+
+  private putRight(notePath: string): void {
+    this.asked.delete(notePath);
+    const shown = this.shown.get(notePath);
+    if (shown === undefined) return;
+    this.shown.delete(notePath);
+    shown.putRight(notePath);
   }
 
   private differingIn(sessionPath: string): Differing[] {
@@ -61,7 +71,15 @@ export class DifferingNotes {
     if (first === undefined) return;
     for (const one of differing) this.asked.set(one.note.path, one.key);
     const message = this.messageFor(first, differing.length);
-    this.ask(message, () => this.fixEach(differing), nothing);
+    const dismiss = this.ask(message, this.fixEach.bind(this, differing), nothing);
+    this.showing(differing, dismiss);
+  }
+
+  private showing(differing: Differing[], dismiss: DismissAsk): void {
+    const notePaths: string[] = [];
+    for (const one of differing) notePaths.push(one.note.path);
+    const shown = new ShownAsk(notePaths, dismiss);
+    for (const notePath of notePaths) this.shown.set(notePath, shown);
   }
 
   private messageFor(first: Differing, count: number): string {

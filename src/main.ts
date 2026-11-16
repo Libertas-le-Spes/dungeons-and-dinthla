@@ -1,4 +1,4 @@
-import { debounce, MarkdownView, Notice, Plugin, WorkspaceLeaf, type MarkdownFileInfo, type PaneType, type TFile, type ViewState } from "obsidian";
+import { debounce, type MarkdownView, Notice, Plugin, WorkspaceLeaf, type MarkdownFileInfo, type PaneType, type TFile, type ViewState } from "obsidian";
 import type { Source } from "./campaign/record/campaign";
 import type { SheetValue } from "./characters/reading/character-sheet";
 import { messageOf } from "./views/dialogs/message-of";
@@ -19,7 +19,9 @@ import { addEditCharacterItem, editActiveCharacter, editCharacter, openNewCharac
 import { chooseSheetValue, openCharacterSheet } from "./characters/editing/open-character-sheet";
 import { sheetNotesOf } from "./characters/reading/sheet-notes";
 import { mentionNotesOf } from "./characters/reading/mention-notes";
-import { editorTextOf, editorTextsOf } from "./campaign/reading/editor-text";
+import { editorTextOf } from "./campaign/reading/editor-text";
+import { NoteViews } from "./campaign/reading/note-views";
+import { TypingPauses } from "./kind-notes/watching/typing-pauses";
 import { markerColouring } from "./editor/marker-decorations";
 import type { LookupOpeners } from "./kinds/lookup-openers";
 import { openNewQuestion } from "./questions/dialogs/open-new-question";
@@ -107,6 +109,8 @@ export default class DungeonsAndDinthla extends Plugin {
   private settingsSaver = this.settingsSaverOf(settingsOf(null, this.gate.configDir));
   private campaignsFolderSetting = this.campaignsFolderSettingFrom(this.settingsSaver);
   private readonly store = new CampaignStore(this.gate.files);
+  private readonly noteViews = new NoteViews(this.app.workspace, this.gate.files);
+  private readonly typingPauses = new TypingPauses();
   private readonly localStorage: LocalStorage = {
     load: (key) => this.app.loadLocalStorage(key),
     save: (key, value) => this.app.saveLocalStorage(key, value),
@@ -420,9 +424,7 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private eachNoteView(act: (view: MarkdownView) => void): void {
-    this.app.workspace.iterateAllLeaves((leaf) => {
-      if (leaf.view instanceof MarkdownView) act(leaf.view);
-    });
+    for (const view of this.noteViews.all()) act(view);
   }
 
   private async startCampaign(help: Help): Promise<void> {
@@ -476,27 +478,15 @@ export default class DungeonsAndDinthla extends Plugin {
     this.register(items.start());
     this.register(references.start());
     this.register(dmQuestions.start());
-    this.register(startKindNotes({ gate, written: gate.written, saved, made, items, references: routed, say, ask: askInNotice, editorTexts: this.editorTextsAt.bind(this) }));
+    this.register(startKindNotes({ gate, written: gate.written, saved, made, items, references: routed, say, ask: askInNotice, editorTexts: this.noteViews.textsAt.bind(this.noteViews), pauses: this.typingPauses }));
     this.register(saved.start());
-  }
-
-  private editorTextsAt(path: string): string[] {
-    const file = this.gate.files.getFileByPath(path);
-    if (file === null) return [];
-    return editorTextsOf(this.noteViews(), file, this.gate.files);
-  }
-
-  private noteViews(): MarkdownView[] {
-    const views: MarkdownView[] = [];
-    for (const leaf of this.app.workspace.getLeavesOfType("markdown")) {
-      if (leaf.view instanceof MarkdownView) views.push(leaf.view);
-    }
-    return views;
   }
 
   private readEditor(info: MarkdownFileInfo, file: TFile): void {
     const text = editorTextOf(info, file, this.gate.files);
-    if (text !== null) this.store.noteChanged(file.path, text);
+    if (text === null) return;
+    this.store.noteChanged(file.path, text);
+    this.typingPauses.paused(file.path, text);
   }
 
   private watchFiles(changed: (path: string) => void): () => void {

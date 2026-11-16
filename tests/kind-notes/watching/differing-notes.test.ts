@@ -24,12 +24,20 @@ function notesOf(path: string, mine: WantedNote[], other: WantedNote): WantedNot
   return [other];
 }
 
+const SESSION_THREE_FUNDS: WantedNote = { ...NOTE, path: "D&D/Pale Moon/Funds/Session 3.md", folder: "Funds", sessionPath: "D&D/Pale Moon/Sessions/Session 3.md" };
+
+function notesOfTwoSessions(path: string): WantedNote[] {
+  return notesOf(path, [NOTE], SESSION_THREE_FUNDS);
+}
+
 function differingWith(outOfStep: boolean) {
   const keeper = { isOutOfStep: vi.fn(() => outOfStep), keep: vi.fn() };
   const current = { notes: [NOTE] };
   const wants = { notesFor: vi.fn(() => current.notes) };
+  const dismiss = vi.fn();
   const ask = vi.fn();
-  return { differing: new DifferingNotes(keeper, wants, ask), keeper, ask, current };
+  ask.mockReturnValue(dismiss);
+  return { differing: new DifferingNotes(keeper, wants, ask), keeper, ask, dismiss, current };
 }
 
 describe("DifferingNotes", () => {
@@ -110,6 +118,7 @@ describe("DifferingNotes", () => {
     const other = { ...NOTE, path: "D&D/Pale Moon/Funds/Session 3.md", folder: "Funds", sessionPath: "D&D/Pale Moon/Sessions/Session 3.md" };
     const wants = { notesFor: vi.fn((path: string) => notesOf(path, mine, other)) };
     const ask = vi.fn();
+    ask.mockReturnValue(vi.fn());
     new DifferingNotes(keeper, wants, ask).checkAll([SESSION, "D&D/Pale Moon/Sessions/Session 3.md"]);
     expect(ask).toHaveBeenCalledOnce();
     expect(asked(ask).message).toBe("3 notes differ from their sessions.");
@@ -141,5 +150,42 @@ describe("DifferingNotes", () => {
     differing.checkAll([SESSION, SESSION]);
     asked(ask).keep();
     expect(keeper.keep).not.toHaveBeenCalled();
+  });
+
+  it("dismisses the question about a note once a save of its session puts the note right", () => {
+    const { differing, dismiss } = differingWith(true);
+    differing.check(SESSION);
+    expect(dismiss).not.toHaveBeenCalled();
+    differing.forget(SESSION);
+    expect(dismiss).toHaveBeenCalledOnce();
+  });
+
+  it("dismisses the question only once when the session is saved again", () => {
+    const { differing, dismiss } = differingWith(true);
+    differing.check(SESSION);
+    differing.forget(SESSION);
+    differing.forget(SESSION);
+    expect(dismiss).toHaveBeenCalledOnce();
+  });
+
+  it("keeps a question about notes of two sessions until saves of both put them right", () => {
+    const keeper = { isOutOfStep: vi.fn(), keep: vi.fn() };
+    keeper.isOutOfStep.mockReturnValue(true);
+    const wants = { notesFor: vi.fn(notesOfTwoSessions) };
+    const dismiss = vi.fn();
+    const ask = vi.fn();
+    ask.mockReturnValue(dismiss);
+    const differing = new DifferingNotes(keeper, wants, ask);
+    differing.checkAll([SESSION, "D&D/Pale Moon/Sessions/Session 3.md"]);
+    differing.forget(SESSION);
+    expect(dismiss).not.toHaveBeenCalled();
+    differing.forget("D&D/Pale Moon/Sessions/Session 3.md");
+    expect(dismiss).toHaveBeenCalledOnce();
+  });
+
+  it("dismisses nothing when a session is saved and nothing was asked about it", () => {
+    const { differing, dismiss } = differingWith(true);
+    differing.forget(SESSION);
+    expect(dismiss).not.toHaveBeenCalled();
   });
 });

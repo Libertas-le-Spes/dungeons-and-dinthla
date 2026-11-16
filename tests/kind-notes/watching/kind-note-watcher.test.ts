@@ -20,9 +20,11 @@ function watcherWith(campaign: FakeCampaign) {
   const mover = { sessionRenamed: vi.fn() };
   const references = { sessionSaved: vi.fn(), sessionGone: vi.fn() };
   const files = { getFileByPath: (path: string) => fileAt(path) };
-  const watcher = new KindNoteWatcher({ store: campaign, wants: new SessionWants(campaign, files), written: written.notes, keeper, differing, saves: new SavesHere(), items, references, mover });
+  const typing = { readWhileTyping: vi.fn(), forgetTyping: vi.fn() };
+  typing.readWhileTyping.mockReturnValue(false);
+  const watcher = new KindNoteWatcher({ store: campaign, wants: new SessionWants(campaign, files), written: written.notes, keeper, differing, saves: new SavesHere(), typing, items, references, mover });
   const stop = watcher.start();
-  return { written, keeper, differing, watcher, stop, items, references, mover };
+  return { written, keeper, differing, watcher, stop, items, references, mover, typing };
 }
 
 function keptNotes(keep: { mock: { calls: unknown[][] } }): WantedNote[] {
@@ -216,5 +218,51 @@ describe("KindNoteWatcher", () => {
     const { written, mover } = watcherWith(campaign);
     written.renamed(`${CAMPAIGN}/Sessions/Session 3.md`, SESSION);
     expect(mover.sessionRenamed).toHaveBeenCalledExactlyOnceWith(`${CAMPAIGN}/Sessions/Session 3.md`, SESSION);
+  });
+
+  it("asks nothing and keeps nothing for a read of a save made while typing in Obsidian's editor", () => {
+    const campaign = new FakeCampaign();
+    const { keeper, differing, typing } = watcherWith(campaign);
+    typing.readWhileTyping.mockReturnValue(true);
+    campaign.arrive(SESSION, TEXT);
+    expect(typing.readWhileTyping).toHaveBeenCalledExactlyOnceWith(SESSION, TEXT);
+    expect(differing.check).not.toHaveBeenCalled();
+    expect(keeper.keep).not.toHaveBeenCalled();
+  });
+
+  it("forgets the typing in a session saved here, without asking about it", () => {
+    const campaign = new FakeCampaign();
+    const { written, typing } = watcherWith(campaign);
+    written.textSaved(SESSION, TEXT);
+    campaign.arrive(SESSION, TEXT);
+    expect(typing.forgetTyping).toHaveBeenCalledExactlyOnceWith(SESSION);
+    expect(typing.readWhileTyping).not.toHaveBeenCalled();
+  });
+
+  it("keeps the notes, and lets the items, people and places know, when told a session was saved in Obsidian's editor", () => {
+    const campaign = new FakeCampaign();
+    campaign.hold(SESSION, TEXT);
+    const { watcher, keeper, differing, items, references } = watcherWith(campaign);
+    watcher.sessionSavedInEditor(SESSION);
+    expect(linesWanted(keptNotes(keeper.keep))).toEqual({ Questions: [TEXT], Quests: [], Funds: [] });
+    expect(differing.forget).toHaveBeenCalledExactlyOnceWith(SESSION);
+    expect(items.sessionSaved).toHaveBeenCalledOnce();
+    expect(references.sessionSaved).toHaveBeenCalledExactlyOnceWith(SESSION);
+  });
+
+  it("keeps nothing for a session saved in Obsidian's editor while the campaign is still opening", () => {
+    const campaign = new FakeCampaign();
+    campaign.opening = true;
+    const { watcher, keeper } = watcherWith(campaign);
+    watcher.sessionSavedInEditor(SESSION);
+    expect(keeper.keep).not.toHaveBeenCalled();
+  });
+
+  it("asks nothing about a change that arrives by sync while the campaign is still opening", () => {
+    const campaign = new FakeCampaign();
+    campaign.opening = true;
+    const { differing } = watcherWith(campaign);
+    campaign.arrive(SESSION, TEXT);
+    expect(differing.check).not.toHaveBeenCalled();
   });
 });

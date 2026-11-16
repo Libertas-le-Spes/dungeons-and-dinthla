@@ -2,8 +2,8 @@
  {
   "id": "editor saves only sessions of the open campaign",
   "file": "src/kind-notes/watching/editor-saves.ts",
-  "find": "    if (!this.needs.wants.isSession(path)) return;\n",
-  "replace": "",
+  "find": "    if (!this.needs.wants.isSession(path)) return;\n    const read",
+  "replace": "    const read",
   "group": "kind notes"
  },
  {
@@ -11,6 +11,13 @@
   "file": "src/kind-notes/watching/editor-saves.ts",
   "find": "    if (text === read) return;\n",
   "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves tell a line break added at the end from the text read",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "    if (text === read) return;",
+  "replace": "    if (text.trim() === String(read).trim()) return;",
   "group": "kind notes"
  },
  {
@@ -28,17 +35,318 @@
   "group": "kind notes"
  },
  {
-  "id": "editor saves stop listening",
+  "id": "editor saves hold a save only when the editor shows the text of the last pause",
   "file": "src/kind-notes/watching/editor-saves.ts",
-  "find": "      files.offref(event);\n",
+  "find": "    if (this.pausedTexts.holds(path, text)) {",
+  "replace": "    if (true) {",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves hold a save after a pause as a save made here",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "    if (this.pausedTexts.holds(path, text)) {\n      this.needs.saves.savedInEditor(path, text);\n",
+  "replace": "    if (this.pausedTexts.holds(path, text)) {\n",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves don't also hold a save after a pause as one made while typing",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "      this.needs.saves.savedInEditor(path, text);\n      return;\n    }\n    this.typedSaves.hold",
+  "replace": "      this.needs.saves.savedInEditor(path, text);\n    }\n    this.typedSaves.hold",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves hold a save made while typing",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "    this.typedSaves.hold(path, text);\n",
   "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves mark the text shown at a pause",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "    this.pausedTexts.hold(path, text);\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves mark pauses only in sessions",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "    if (!this.needs.wants.isSession(path)) return;\n    this.pausedTexts.hold",
+  "replace": "    this.pausedTexts.hold",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves count a save already read at the pause",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "      saved.sessionSavedInEditor(path);\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves count a save already read once",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "if (this.typedReads.takeIfHeld(path, text)) {",
+  "replace": "if (this.typedReads.holds(path, text)) {",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves hold a save not yet read at the pause",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "    this.typedSaves.forget(path);\n    this.needs.saves.savedInEditor(path, text);\n",
+  "replace": "    this.typedSaves.forget(path);\n",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves stop counting a save the pause held as made while typing",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "    this.typedSaves.forget(path);\n    this.needs.saves.savedInEditor(path, text);\n",
+  "replace": "    this.needs.saves.savedInEditor(path, text);\n",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves hold at the pause only a save of that text",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "    if (!this.typedSaves.holds(path, text)) return;\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves remember a read made while typing",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "    if (typed) this.typedReads.hold(path, text);\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves forget a save made while typing when told",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "  forgetTyping(path: string): void {\n    this.typedSaves.forget(path);\n",
+  "replace": "  forgetTyping(path: string): void {\n",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves forget a read made while typing when told",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "    this.typedReads.forget(path);\n  }\n\n  private paused",
+  "replace": "  }\n\n  private paused",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves forget the pause of a session that went",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "    this.pausedTexts.forget(path);\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves forget the typing of a session that went",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "    this.forgetTyping(path);\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves drop the save held for a session that went",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "    this.needs.saves.forget(path);\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves forget a deleted session",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "    this.forget(file.path);\n",
+  "replace": "    this.forget(\"\");\n",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves forget a renamed session by its old name",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "    this.forget(oldPath);\n",
+  "replace": "    this.forget(_file.path);\n",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves listen to deletes",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "files.on(\"delete\", this.deleted.bind(this))",
+  "replace": "files.on(\"create\", this.deleted.bind(this))",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves listen to renames",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "files.on(\"rename\", this.renamed.bind(this))",
+  "replace": "files.on(\"create\", this.renamed.bind(this))",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves listen to pauses",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "this.needs.pauses.onPause(this.paused.bind(this, saved))",
+  "replace": "this.needs.pauses.onPause(Object)",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves stop listening to files",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "      for (const event of events) files.offref(event);\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves stop listening to pauses",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "      stopPauses();\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "saves here hold the text saved in the editor",
+  "file": "src/kind-notes/watching/saves-here.ts",
+  "find": "    this.editorTexts.hold(path, text);\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "saves here know a read of the text saved in the editor",
+  "file": "src/kind-notes/watching/saves-here.ts",
+  "find": "    if (savedInEditor) return true;\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "saves here forget the text saved in the editor",
+  "file": "src/kind-notes/watching/saves-here.ts",
+  "find": "    this.editorTexts.forget(path);\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "held texts hold only the same text",
+  "file": "src/kind-notes/watching/held-texts.ts",
+  "find": "return this.texts.get(path) === text;",
+  "replace": "return this.texts.get(path) !== undefined;",
+  "group": "kind notes"
+ },
+ {
+  "id": "held texts drop the text on taking",
+  "file": "src/kind-notes/watching/held-texts.ts",
+  "find": "    const held = this.holds(path, text);\n    this.texts.delete(path);\n",
+  "replace": "    const held = this.holds(path, text);\n",
+  "group": "kind notes"
+ },
+ {
+  "id": "held texts forget",
+  "file": "src/kind-notes/watching/held-texts.ts",
+  "find": "  forget(path: string): void {\n    this.texts.delete(path);\n",
+  "replace": "  forget(path: string): void {\n",
+  "group": "kind notes"
+ },
+ {
+  "id": "held texts keep one text per note",
+  "file": "src/kind-notes/watching/held-texts.ts",
+  "find": "this.texts.set(path, text);",
+  "replace": "this.texts.set(\"\", text);",
+  "group": "kind notes"
+ },
+ {
+  "id": "typing pauses tell each listener",
+  "file": "src/kind-notes/watching/typing-pauses.ts",
+  "find": "    for (const listener of this.listeners) listener(path, text);\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "typing pauses stop telling a listener",
+  "file": "src/kind-notes/watching/typing-pauses.ts",
+  "find": "      listeners.delete(listener);\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "a shown ask is dismissed once",
+  "file": "src/kind-notes/watching/shown-ask.ts",
+  "find": "    if (!this.waiting.delete(notePath)) return;\n",
+  "replace": "    this.waiting.delete(notePath);\n",
+  "group": "kind notes"
+ },
+ {
+  "id": "a shown ask waits for every note",
+  "file": "src/kind-notes/watching/shown-ask.ts",
+  "find": "if (this.waiting.size === 0)",
+  "replace": "if (this.waiting.size <= 1)",
+  "group": "kind notes"
+ },
+ {
+  "id": "a shown ask is dismissed",
+  "file": "src/kind-notes/watching/shown-ask.ts",
+  "find": "    if (this.waiting.size === 0) this.dismiss();\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "differing notes remember the question shown",
+  "file": "src/kind-notes/watching/differing-notes.ts",
+  "find": "    this.showing(differing, dismiss);\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "differing notes put right only notes asked about",
+  "file": "src/kind-notes/watching/differing-notes.ts",
+  "find": "    if (shown === undefined) return;\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "differing notes put right the notes of the session saved",
+  "file": "src/kind-notes/watching/differing-notes.ts",
+  "find": "    shown.putRight(notePath);\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "the Fix and Keep notice can be dismissed",
+  "file": "src/views/dialogs/differing-notice.ts",
+  "find": "  return notice.hide.bind(notice);",
+  "replace": "  return Object;",
+  "group": "kind notes"
+ },
+ {
+  "id": "the watcher forgets the typing in a session saved here",
+  "file": "src/kind-notes/watching/kind-note-watcher.ts",
+  "find": "      this.needs.typing.forgetTyping(path);\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "the watcher asks nothing about a save made while typing",
+  "file": "src/kind-notes/watching/kind-note-watcher.ts",
+  "find": "    if (!typing) this.needs.differing.check(path);",
+  "replace": "    this.needs.differing.check(path);",
+  "group": "kind notes"
+ },
+ {
+  "id": "the watcher asks nothing while the campaign is opening",
+  "file": "src/kind-notes/watching/kind-note-watcher.ts",
+  "find": "    const typing = this.needs.typing.readWhileTyping(path, text);\n    if (this.needs.wants.opening) return;\n",
+  "replace": "    const typing = this.needs.typing.readWhileTyping(path, text);\n",
+  "group": "kind notes"
+ },
+ {
+  "id": "the watcher keeps the notes of a session saved in the editor",
+  "file": "src/kind-notes/watching/kind-note-watcher.ts",
+  "find": "  sessionSavedInEditor(path: string): void {\n    this.savedHere(path);\n",
+  "replace": "  sessionSavedInEditor(path: string): void {\n",
   "group": "kind notes"
  },
  {
   "id": "editor saves started",
   "file": "src/kind-notes/watching/kind-notes-wiring.ts",
-  "find": "  const stopEditorSaves = editorSaves.start();",
-  "replace": "  const stopEditorSaves = () => undefined;",
+  "find": "  const stopEditorSaves = editorSaves.start(watcher);",
+  "replace": "  const stopEditorSaves = Object;",
   "group": "kind notes"
  },
  {
@@ -56,10 +364,52 @@
   "group": "kind notes"
  },
  {
+  "id": "editor saves count pauses for the watcher",
+  "file": "src/kind-notes/watching/kind-notes-wiring.ts",
+  "find": "editorSaves.start(watcher)",
+  "replace": "editorSaves.start({ sessionSavedInEditor: Object })",
+  "group": "kind notes"
+ },
+ {
+  "id": "the watcher asks the editor saves about typing",
+  "file": "src/kind-notes/watching/kind-notes-wiring.ts",
+  "find": "typing: editorSaves, items",
+  "replace": "typing: new EditorSaves({ files: gate.files, store: saved, wants, saves, editorTexts: needs.editorTexts, pauses: needs.pauses }), items",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves hear the pauses",
+  "file": "src/kind-notes/watching/kind-notes-wiring.ts",
+  "find": "pauses: needs.pauses });",
+  "replace": "pauses: new TypingPauses() });",
+  "group": "kind notes"
+ },
+ {
   "id": "editor texts only of editors showing the note",
   "file": "src/campaign/reading/editor-text.ts",
   "find": "    if (text !== null) texts.push(text);",
   "replace": "    texts.push(String(text));",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor texts as the editor holds them",
+  "file": "src/campaign/reading/editor-text.ts",
+  "find": "  return info.editor.getValue();",
+  "replace": "  return info.editor.getValue().trim();",
+  "group": "kind notes"
+ },
+ {
+  "id": "note views only of note tabs",
+  "file": "src/campaign/reading/note-views.ts",
+  "find": "    if (leaf.view instanceof MarkdownView) this.views.push(leaf.view);",
+  "replace": "    this.views.push(leaf.view as MarkdownView);",
+  "group": "kind notes"
+ },
+ {
+  "id": "note views read nothing for a note the vault doesn't hold",
+  "file": "src/campaign/reading/note-views.ts",
+  "find": "    if (file === null) return [];\n",
+  "replace": "",
   "group": "kind notes"
  }
 ]

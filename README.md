@@ -64,8 +64,8 @@ Everything the plugin draws follows Obsidian's active theme, light, dark or a co
 ### Writing a session in Obsidian's own editor
 
 1. Write your lines in the session note in Obsidian's own editor, as you would in the campaign tab: `? Who sent the letter`.
-2. Obsidian saves the note a moment after you stop typing. Each time it does, the session's Questions, Quests and Funds notes follow, and so do the notes of items, people and places named on three lines, as they do when you press *Save* in the campaign tab.
-3. When a session changes on another device and arrives by sync, nothing is made on this one. If its notes differ, you'll see one line with *Fix* and *Keep*.
+2. Obsidian saves the note every couple of seconds while you type. Those saves make nothing. Stop typing for a moment, and the save of what you wrote makes the session's Questions, Quests and Funds notes follow, and the notes of items, people and places named on three lines, as *Save* in the campaign tab does.
+3. When a session changes on another device and arrives by sync, nothing is made on this one. If its notes differ, you'll see one line with *Fix* and *Keep*. It goes away by itself once a later save of that session puts its notes right.
 
 ## Importing a character from D&D Beyond
 

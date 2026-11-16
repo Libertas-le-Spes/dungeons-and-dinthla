@@ -78,4 +78,11 @@ describe("askInNotice", () => {
     expect(fix).not.toHaveBeenCalled();
     expect(firstOf(made.notices).hide).toHaveBeenCalledOnce();
   });
+
+  it("hides the notice when it is dismissed", () => {
+    const dismiss = askInNotice("message", vi.fn(), vi.fn());
+    expect(firstOf(made.notices).hide).not.toHaveBeenCalled();
+    dismiss();
+    expect(firstOf(made.notices).hide).toHaveBeenCalledOnce();
+  });
 });

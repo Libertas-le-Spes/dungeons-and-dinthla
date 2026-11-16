@@ -17,4 +17,5 @@ export const askInNotice: AskAboutDifference = (message, fix, keepAsItIs) => {
   notice.messageEl.createSpan({ text: `${message} ` });
   addChoice(notice, FIX, fix);
   addChoice(notice, KEEP, keepAsItIs);
+  return notice.hide.bind(notice);
 };

@@ -6,22 +6,48 @@ import { startKindNotes } from "../../../src/kind-notes/watching/kind-notes-wiri
 import type { NotesMade } from "../../../src/settings/saved/notes-made";
 import { firstOf } from "../../stubs/lists";
 import { FakeCampaign } from "../fake-campaign";
-import { FakeFileEvents } from "../fake-file-events";
-import { FakeNotes } from "../fake-notes";
+import { FileEvents } from "../file-events";
+import { TypingPauses } from "../../../src/kind-notes/watching/typing-pauses";
+import { FakeNotes, fileAt } from "../fake-notes";
 import { CAMPAIGN, FUNDS, QUESTIONS, SESSION, settled } from "../keeper-setup";
 
 const QUESTS = `${CAMPAIGN}/Quests/Session 2.md`;
 const SESSION_THREE = `${CAMPAIGN}/Sessions/Session 3.md`;
 const TWO_LINES = "? Who sent [[Lady Vess]] to the Old Mill\n! Find the caravan, from: [[Lady Vess]]\n$ 5 gp rooms at the Old Mill\n$ [[Mira]] Silvered lantern";
 
+interface Asked {
+  message: string;
+  fix: () => void;
+  keep: () => void;
+  dismiss: () => void;
+}
+
+function messagesOf(asked: Asked[]): string[] {
+  const messages: string[] = [];
+  for (const one of asked) messages.push(one.message);
+  return messages;
+}
+
+class AskedList {
+  readonly asked: Asked[] = [];
+
+  ask(message: string, fix: () => void, keep: () => void): () => void {
+    const dismiss = vi.fn();
+    this.asked.push({ message, fix, keep, dismiss });
+    return dismiss;
+  }
+}
+
 function startWith(notes: FakeNotes, campaign: FakeCampaign, alreadyMade: string[] = []) {
   const written = new NoteReporter();
-  const asked: { message: string; fix: () => void; keep: () => void }[] = [];
+  const askedList = new AskedList();
+  const asked = askedList.asked;
   const marked: string[] = [];
   const made = { hasMadeFor: (folder: string) => alreadyMade.includes(folder), markMadeFor: vi.fn(async (folder: string) => void marked.push(folder)) };
   const items = { sessionSaved: vi.fn(), makeMissing: vi.fn(async () => ({ made: 0, failed: 0 })) };
   const references = { sessionSaved: vi.fn(), sessionGone: vi.fn() };
-  const events = new FakeFileEvents();
+  const events = new FileEvents();
+  const pauses = new TypingPauses();
   const shown: string[] = [];
   const editorTexts = vi.fn();
   editorTexts.mockReturnValue(shown);
@@ -35,10 +61,11 @@ function startWith(notes: FakeNotes, campaign: FakeCampaign, alreadyMade: string
     items,
     references,
     say: (message) => notes.said.push(message),
-    ask: (message, fix, keep) => void asked.push({ message, fix, keep }),
+    ask: askedList.ask.bind(askedList),
     editorTexts,
+    pauses,
   });
-  return { written, asked, marked, stop, made, items, references, events, shown, editorTexts };
+  return { written, asked, marked, stop, made, items, references, events, pauses, shown, editorTexts };
 }
 
 function saveHere(written: NoteReporter, campaign: FakeCampaign, path: string, text: string): void {
@@ -126,41 +153,104 @@ describe("kind notes, from saving a session to the notes", () => {
   });
 });
 
-function saveInEditor(events: FakeFileEvents, campaign: FakeCampaign, path: string, text: string): void {
-  events.modify(path);
+const READ = "? Who sent Mira\n";
+const TYPED = "? Who sent [[Lady Vess]] to the Old Mill\n! Find the caravan, from: [[Lady Vess]]\n";
+const HALF_TYPED = "? Who sent [[Lady Vess]] to the Old Mill\n! Find the car\n";
+
+function show(shown: string[], text: string): void {
+  shown.length = 0;
+  shown.push(text);
+}
+
+function obsidianSaves(events: FileEvents, campaign: FakeCampaign, path: string, text: string): void {
+  events.trigger("modify", fileAt(path));
   campaign.arrive(path, text);
 }
 
 describe("kind notes, when a session is saved in Obsidian's own editor", () => {
-  it("makes the notes of Session 2, as a save through the plugin does, and asks nothing", async () => {
+  it("makes the notes of Session 2 from a save after a typing pause, as a save through the plugin does, and asks nothing", async () => {
     const { notes, campaign } = world();
-    const { events, shown, asked } = startWith(notes, campaign);
-    shown.push(TWO_LINES);
-    saveInEditor(events, campaign, SESSION, TWO_LINES);
+    const { events, pauses, shown, asked } = startWith(notes, campaign);
+    show(shown, TYPED);
+    pauses.paused(SESSION, TYPED);
+    obsidianSaves(events, campaign, SESSION, TYPED);
     await settled();
     expect(notes.noteAt(QUESTIONS)?.properties?.lines).toEqual(["? Who sent [[Lady Vess]] to the Old Mill"]);
     expect(notes.noteAt(QUESTS)?.properties?.lines).toEqual(["! Find the caravan, from: [[Lady Vess]]"]);
     expect(asked).toEqual([]);
   });
 
-  it("asks, and writes nothing, when the session changes to text the editor doesn't show", async () => {
+  it("makes nothing, asks nothing and tells the items, people and places nothing from a save while typing", async () => {
+    const { notes, campaign } = world();
+    const { events, shown, asked, items, references } = startWith(notes, campaign);
+    show(shown, HALF_TYPED);
+    obsidianSaves(events, campaign, SESSION, HALF_TYPED);
+    await settled();
+    expect(notes.created).toEqual([]);
+    expect(asked).toEqual([]);
+    expect(items.sessionSaved).not.toHaveBeenCalled();
+    expect(references.sessionSaved).not.toHaveBeenCalled();
+  });
+
+  it("makes the notes once at the pause when Obsidian saved the last of the typing just before it", async () => {
+    const { notes, campaign } = world();
+    const { events, pauses, shown, asked, items } = startWith(notes, campaign);
+    show(shown, TYPED);
+    obsidianSaves(events, campaign, SESSION, TYPED);
+    pauses.paused(SESSION, TYPED);
+    await settled();
+    expect(notes.noteAt(QUESTIONS)?.properties?.lines).toEqual(["? Who sent [[Lady Vess]] to the Old Mill"]);
+    expect(items.sessionSaved).toHaveBeenCalledOnce();
+    expect(asked).toEqual([]);
+  });
+
+  it("asks, and writes nothing, when a sync changes the session while the editor shows what was last read", async () => {
     const { notes, campaign } = world();
     const { events, shown, asked } = startWith(notes, campaign);
-    notes.addNote(QUESTIONS, { session: "[[Session 2]]", lines: ["? Old"] }, "");
-    shown.push("? Typed on this device");
-    saveInEditor(events, campaign, SESSION, "? Who sent Mira");
+    campaign.hold(SESSION, READ);
+    notes.addNote(QUESTIONS, { session: "[[Session 2]]", lines: ["? Who sent Mira"] }, "");
+    show(shown, READ);
+    obsidianSaves(events, campaign, SESSION, "? Who sent Baka\n");
     await settled();
-    expect(asked.map((ask) => ask.message)).toEqual(["Questions for Session 2 differ from the session."]);
+    expect(messagesOf(asked)).toEqual(["Questions for Session 2 differ from the session."]);
     expect(notes.actions.processFrontMatter).not.toHaveBeenCalled();
   });
 
-  it("stops looking at the editors when stopped", () => {
+  it("keeps the notes exactly once, and asks nothing, when the plugin writes a session open in the editor", async () => {
     const { notes, campaign } = world();
-    const { events, shown, editorTexts, stop } = startWith(notes, campaign);
-    shown.push(TWO_LINES);
+    const { events, pauses, shown, asked, items, references, written } = startWith(notes, campaign);
+    show(shown, TYPED);
+    events.trigger("modify", fileAt(SESSION));
+    saveHere(written, campaign, SESSION, TYPED);
+    pauses.paused(SESSION, TYPED);
+    await settled();
+    expect(items.sessionSaved).toHaveBeenCalledOnce();
+    expect(references.sessionSaved).toHaveBeenCalledOnce();
+    expect(notes.noteAt(QUESTIONS)?.properties?.lines).toEqual(["? Who sent [[Lady Vess]] to the Old Mill"]);
+    expect(asked).toEqual([]);
+  });
+
+  it("dismisses the Fix and Keep line when a later save in the editor puts the notes right", async () => {
+    const { notes, campaign } = world();
+    const { events, pauses, shown, asked } = startWith(notes, campaign);
+    notes.addNote(QUESTIONS, { session: "[[Session 2]]", lines: ["? Old"] }, "");
+    campaign.arrive(SESSION, READ);
+    show(shown, TYPED);
+    pauses.paused(SESSION, TYPED);
+    obsidianSaves(events, campaign, SESSION, TYPED);
+    await settled();
+    expect(firstOf(asked).dismiss).toHaveBeenCalledOnce();
+  });
+
+  it("stops looking at the editors and at the pauses when stopped", () => {
+    const { notes, campaign } = world();
+    const { events, pauses, shown, editorTexts, items, stop } = startWith(notes, campaign);
+    show(shown, TYPED);
     stop();
-    events.modify(SESSION);
+    events.trigger("modify", fileAt(SESSION));
+    pauses.paused(SESSION, TYPED);
     expect(editorTexts).not.toHaveBeenCalled();
+    expect(items.sessionSaved).not.toHaveBeenCalled();
   });
 });
 
@@ -171,7 +261,7 @@ describe("kind notes, when a session changed on another device", () => {
     notes.addNote(QUESTIONS, { session: "[[Session 2]]", lines: ["? Old"] }, "");
     campaign.arrive(SESSION, "? Who sent Mira");
     await settled();
-    expect(asked.map((ask) => ask.message)).toEqual(["Questions for Session 2 differ from the session."]);
+    expect(messagesOf(asked)).toEqual(["Questions for Session 2 differ from the session."]);
     expect(notes.actions.processFrontMatter).not.toHaveBeenCalled();
   });
 
