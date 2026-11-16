@@ -221,6 +221,8 @@ The plugin reads a line by its first character. A list bullet (`- `, `* ` or `+ 
 | `$$ Silvered lantern :sold 30gp` | Something happened to an item ([Items](#items)) |
 | `@[[Old Mill]]` inside a `?`, `!` or `$` line | A link to a place (see [People and places](#people-and-places)). It still shows as an ordinary link |
 
+<a id="dollar-lines-are-never-maths"></a>**`$` and `$$` lines are never maths.** Obsidian reads text between dollar signs as maths: a line starting with `$$` opens a block of maths that runs to the next `$$`, and `$3 to Mira$` is maths inside a line. In a note of a campaign, they are the plugin's own lines, so they never show as maths. The plugin's own pages show every line as written and never draw maths. Where Obsidian draws a campaign note itself (reading view, a hover preview, a note embedded in another note), any part Obsidian would draw as maths is shown instead as the lines written, dollar signs and all, as plain text: in a session the marks keep their colour, and links in those lines show as written, not as links. Where a campaign note is shown in Obsidian's editor, its dollar lines and the lines after them keep the font and colour of the rest of the note, where Obsidian would otherwise give them its maths style. Notes outside every campaign are left as Obsidian shows them, maths and all.
+
 `src/notes/` reads all of these today, and `src/campaign/` builds a campaign from the session notes in its folder, in session order. [#62](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/pull/62) lists the exact rules: commas, links, signs and the five coin kinds.
 
 ### Quest facts

@@ -18,8 +18,8 @@ const GATEKEEPER_FOLDER = "fence/gate/";
 const PARSED_DATA = ["settings/drafts/draft-record.ts", "beyond/reply/json/json-reader.ts"];
 const ALLOWED = ["fence/gate/gatekeeper.ts", "fence/gate/fenced-files.ts", "fence/gate/fenced-file-actions.ts", "fence/gate/folder-choices.ts", "fence/gate/vault-settings.ts"];
 const EDITOR_TEXT_READERS = ["campaign/reading/editor-text.ts"];
-const BASES_READERS = ["characters/pages/characters-view.ts"];
-const CODE_MIRROR_READERS = ["editor/marker-decorations.ts"];
+const NOTE_READERS = ["characters/pages/characters-view.ts", "reading/section-lines.ts"];
+const CODE_MIRROR_READERS = ["editor/marker-decorations.ts", "editor/plain-dollars-editor.ts"];
 const LOOSE_CASTERS = ["fence/gate/fenced-metadata.ts", "interface/view/campaign-view-registered.ts", "interface/tabs/one-campaign-tab.ts", "interface/tabs/seen-tab.ts"];
 const FILE_OPENERS = ["characters/editing/open-character-sheet.ts", "characters/editing/open-character.ts", "interface/view/open-in-editor.ts", "views/opening/open-link.ts", "views/opening/open-view.ts"];
 const VIEW_STATE_SETTERS = ["interface/view/campaign-view.ts", "interface/tabs/one-campaign-tab.ts", "interface/tabs/open-campaign.ts", "interface/takeover/take-open-leaves.ts", "interface/takeover/view-state-patch.ts"];
@@ -27,14 +27,14 @@ const ACTIVE_FILE_READERS = ["characters/editing/open-character.ts", "views/open
 const ACTIVE_VIEW_READERS = ["interface/view/open-in-editor.ts", "interface/view/shown-campaign-path.ts"];
 const EVENT_TRIGGERS = ["fence/gate/fenced-files.ts"];
 const LEAF_VIEW_READERS = ["main.ts", "interface/tabs/one-campaign-tab.ts", "interface/tabs/seen-tab.ts", "interface/takeover/view-state-patch.ts"];
-const VIEW_FILE_READERS = ["main.ts", "campaign/reading/editor-text.ts", "editor/marker-decorations.ts", "interface/takeover/campaign-takeover.ts"];
+const VIEW_FILE_READERS = ["main.ts", "campaign/reading/editor-text.ts", "editor/marker-decorations.ts", "editor/plain-dollars-editor.ts", "interface/takeover/campaign-takeover.ts"];
 const NOTE_EVENT_LISTENERS = ["main.ts"];
 const GATE_BUILDERS = ["main.ts"];
 const NETWORK_CALLERS = ["online/beyond-call.ts"];
 const BEYOND_CALLERS = ["online/beyond-call.ts", "online/call-rules.ts", "imports/dialog/online/online-wiring.ts", "imports/dialog/online/online-import.ts"];
 const POST_PROCESSING = ["main.ts"];
 const PAGE_TEXT_READERS = ["reading/colour-markers.ts"];
-const ELEMENT_QUERIERS = ["reading/colour-markers.ts", "characters/pages/character-sheet-page.ts", "funds/page/funds-page.ts", "views/lists/row-focus.ts"];
+const ELEMENT_QUERIERS = ["reading/colour-markers.ts", "reading/plain-dollars.ts", "characters/pages/character-sheet-page.ts", "funds/page/funds-page.ts", "views/lists/row-focus.ts"];
 
 function isOneOf(files: string[]): (path: string) => boolean {
   return (path) => files.some((file) => path === sourcePath(file));
@@ -69,7 +69,7 @@ const SOURCE_ALLOWANCES: Allowances = {
   editorReading: isOneOf(EDITOR_TEXT_READERS),
   fileTree: isGatekeeper,
   looseCasts: isOneOf(LOOSE_CASTERS),
-  noteReading: isOneOf(BASES_READERS),
+  noteReading: isOneOf(NOTE_READERS),
   codeMirror: isOneOf(CODE_MIRROR_READERS),
   fileOpening: isOneOf(FILE_OPENERS),
   viewState: isOneOf(VIEW_STATE_SETTERS),
@@ -218,7 +218,7 @@ function onlyNeededBy(allowance: string, files: string[], breach: string): Still
 
 const STILL_NEEDED: StillNeeded[] = [
   ...onlyNeededBy("keyReading", PARSED_DATA, "reads every key of a value"),
-  ...onlyNeededBy("noteReading", BASES_READERS, "reads a note's text through Obsidian"),
+  ...onlyNeededBy("noteReading", NOTE_READERS, "reads a note's text through Obsidian"),
   ...neededBy("editorReading", EDITOR_TEXT_READERS, "reads the text of an editor or view"),
   ...neededBy("looseCasts", LOOSE_CASTERS, "casts through unknown or any"),
   ...neededBy("codeMirror", CODE_MIRROR_READERS, /loads CodeMirror|reaches the editor/),

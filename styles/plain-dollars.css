@@ -1,0 +1,12 @@
+.dd-plain-lines {
+  white-space: pre-wrap;
+}
+
+.cm-editor.dd-plain-dollars span.cm-math,
+.cm-editor.dd-plain-dollars span.cm-formatting-math {
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  font-style: inherit;
+  font-weight: inherit;
+}

@@ -1,0 +1,86 @@
+[
+ {
+  "id": "only sections holding maths",
+  "file": "src/reading/plain-dollars.ts",
+  "find": "  if (maths.length === 0) return;\n",
+  "replace": "",
+  "group": "reading"
+ },
+ {
+  "id": "inline maths too",
+  "file": "src/reading/plain-dollars.ts",
+  "find": "const MATHS = \".math\";",
+  "replace": "const MATHS = \".math-block\";",
+  "group": "reading"
+ },
+ {
+  "id": "each piece of maths as its own text",
+  "file": "src/reading/plain-dollars.ts",
+  "find": "    for (const one of maths) showItsOwnText(one);\n",
+  "replace": "",
+  "group": "reading"
+ },
+ {
+  "id": "no lines without the section",
+  "file": "src/reading/plain-dollars.ts",
+  "find": "    return;\n  }\n  root.empty();",
+  "replace": "  }\n  root.empty();",
+  "group": "reading"
+ },
+ {
+  "id": "the maths drawn are taken away",
+  "file": "src/reading/plain-dollars.ts",
+  "find": "  root.empty();\n",
+  "replace": "",
+  "group": "reading"
+ },
+ {
+  "id": "no lines before the section",
+  "file": "src/reading/section-lines.ts",
+  "find": "number >= section.lineStart && ",
+  "replace": "",
+  "group": "reading"
+ },
+ {
+  "id": "no lines after the section",
+  "file": "src/reading/section-lines.ts",
+  "find": " && number <= section.lineEnd",
+  "replace": "",
+  "group": "reading"
+ },
+ {
+  "id": "nothing when Obsidian gives no section",
+  "file": "src/reading/section-lines.ts",
+  "find": "  if (section === null) return null;\n",
+  "replace": "",
+  "group": "reading"
+ },
+ {
+  "id": "the editor class only on campaign notes",
+  "file": "src/editor/plain-dollars-editor.ts",
+  "find": "  if (!isCampaignNote(info.file.path)) return null;\n",
+  "replace": "",
+  "group": "reading"
+ },
+ {
+  "id": "the editor class only with a note",
+  "file": "src/editor/plain-dollars-editor.ts",
+  "find": "if (info === undefined || info.file === null) return null;",
+  "replace": "if (info === undefined) return null;",
+  "group": "reading"
+ },
+ {
+  "id": "campaign notes only inside the Campaigns folder",
+  "file": "src/campaign/paths/campaign-folders.ts",
+  "find": "  const folder = campaignFolderAround(path, campaignsFolder);\n  if (folder === null) return false;\n  return noteExists",
+  "replace": "  const folder = campaignFolderAround(path, campaignsFolder);\n  if (folder === null) return true;\n  return noteExists",
+  "group": "reading"
+ },
+ {
+  "id": "campaign notes only of a campaign",
+  "file": "src/campaign/paths/campaign-folders.ts",
+  "find": "  if (folder === null) return false;\n  return noteExists(mainNotePathOf(folder));\n}\n\nexport function isSessionNote",
+  "replace": "  if (folder === null) return false;\n  return true;\n}\n\nexport function isSessionNote",
+  "group": "reading"
+ }
+]
