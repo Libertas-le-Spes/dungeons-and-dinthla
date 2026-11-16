@@ -20,6 +20,12 @@ function sourceGiving(section: MarkdownSectionInformation | null) {
   return { source, getSectionInfo };
 }
 
+function plainTextIn(root: HTMLElement): string | null {
+  const shown = root.querySelector(".dd-plain-lines");
+  if (shown === null) return null;
+  return shown.textContent;
+}
+
 function renderedSection(html: string): HTMLElement {
   const root = obsidianDocument().createElement("div");
   root.innerHTML = html;
@@ -65,7 +71,7 @@ describe("showDollarsPlain", () => {
     const root = renderedSection(`<div class="math math-block">${maths}</div>`);
     const { source } = sourceGiving(null);
     showDollarsPlain(root, source, new NoteLines());
-    expect(root.querySelector(".dd-plain-lines")?.textContent).toBe(shown);
+    expect(plainTextIn(root)).toBe(shown);
   });
 
   it("leaves a section without maths as Obsidian drew it, without asking for its lines", () => {
