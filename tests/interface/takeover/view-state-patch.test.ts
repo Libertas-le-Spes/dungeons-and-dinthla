@@ -32,7 +32,7 @@ describe("patchSetViewState", () => {
     const { leaf, restore } = patchedLeaf(change);
     await leaf.setViewState(NOTE, { line: 4 });
     restore();
-    expect(change).toHaveBeenCalledExactlyOnceWith(NOTE);
+    expect(change).toHaveBeenCalledExactlyOnceWith(NOTE, leaf);
     expect(leaf.calls).toEqual([{ leaf, viewState: TAKEN, eState: { line: 4 } }]);
   });
 

@@ -61,6 +61,12 @@ Everything the plugin draws follows Obsidian's active theme, light, dark or a co
 
 [docs/note-format.md](docs/note-format.md) says how a campaign is kept in plain notes: the folders, sessions, marked lines and character facts the plugin reads and writes.
 
+### Opening a note as plain Markdown
+
+1. Open any note of your campaign: it shows in the campaign tab, on its own page.
+2. To see or change the note itself as Markdown, choose *Open in Obsidian's editor* from the ⋯ menu at the top right of the campaign tab, or from the command palette.
+3. The tab now shows the note in Obsidian's editor. Switching to reading view keeps you there. A link you press opens in the campaign tab again, and so does the note when you open it in another tab or after Obsidian starts again.
+
 ## Importing a character from D&D Beyond
 
 In the plugin, press *Import from D&D Beyond* on the Characters page, paste your character's link or number and press *Bring in from D&D Beyond*. The plugin asks once, on each device, before it sends anything (see *Network use* below). Or bring your character in from its PDF: on D&D Beyond, open your character, choose *Manage* next to the name, then *Export to PDF* at the bottom of the menu, and choose that file in the same dialog. A PDF is read on your device and sends nothing anywhere. Either way the plugin shows what will be written before it writes. Online, D&D Beyond sends only the base scores, bonuses and modifiers, so the plugin works out your scores, modifiers, armor class, hit points, initiative, speed, saving throws, skills, passive scores, proficiency bonus and more itself, shows the working, and leaves a number as *Not known yet* with its reason when the rules cannot work it out (a speed set by hand, say). A score or hit points you set by hand on D&D Beyond win. [docs/note-format.md](docs/note-format.md#importing-online) has the details.

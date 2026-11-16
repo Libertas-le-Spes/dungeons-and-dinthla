@@ -1,14 +1,32 @@
 import { describe, expect, it, vi } from "vitest";
-import { Component, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
+import { Component, Menu as ObsidianMenu, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { Campaign } from "../../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import type { NavSection, PageEntry, PageId, PathAfterDelete, ShowPage, StayOn } from "../../../src/interface/view/campaign-pages";
 import { CAMPAIGN_VIEW, CampaignView, type ViewFiles } from "../../../src/interface/view/campaign-view";
 import { campaignsFolderFirst } from "../../../src/interface/view/campaigns-folder-first";
+import type { EditorStep } from "../../../src/interface/takeover/editor-step";
+import { FakeEditorStep } from "../fake-editor-step";
+import { firstOf } from "../../stubs/lists";
 import { present } from "../../pdf/support/present";
-import { Menu } from "../../stubs/obsidian";
+import { Menu, type MenuItem } from "../../stubs/obsidian";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+
+class NoEditorStep implements EditorStep {
+  noteOf(): string | null {
+    return null;
+  }
+
+  open(): void {}
+}
+
+const NO_EDITOR_STEP: EditorStep = new NoEditorStep();
+
+function itemsOf(menu: ObsidianMenu): MenuItem[] {
+  if (!(menu instanceof Menu)) throw new Error("The menu isn't the stand-in's.");
+  return menu.items;
+}
 
 class FakePage extends Component {
   loaded = false;
@@ -114,8 +132,9 @@ async function openView({
   questionCount = (campaign: Campaign) => campaign.questions.length,
   castAfterDelete = LEAVE_DELETED,
   sectionsAround = (sections: NavSection[]) => sections,
+  editorStep = NO_EDITOR_STEP,
 } = {}) {
-  return openViewShowing({ folder, questionCount, castAfterDelete, sectionsAround, campaigns: noCampaigns() });
+  return openViewShowing({ folder, questionCount, castAfterDelete, sectionsAround, campaigns: noCampaigns(), editorStep });
 }
 
 interface ViewOptions {
@@ -124,9 +143,10 @@ interface ViewOptions {
   castAfterDelete: PathAfterDelete;
   sectionsAround: (sections: NavSection[]) => NavSection[];
   campaigns: ReturnType<typeof noCampaigns>;
+  editorStep: EditorStep;
 }
 
-async function openViewShowing({ folder, questionCount, castAfterDelete, sectionsAround, campaigns }: ViewOptions) {
+async function openViewShowing({ folder, questionCount, castAfterDelete, sectionsAround, campaigns, editorStep }: ViewOptions) {
   let listener = () => {};
   const unsubscribe = vi.fn();
   const store = {
@@ -166,6 +186,7 @@ async function openViewShowing({ folder, questionCount, castAfterDelete, section
     backdropFor: backdropsInto(backdrops),
     files: vault as unknown as ViewFiles,
     campaigns,
+    editorStep,
   });
   view.app = { workspace: { requestSaveLayout } } as unknown as CampaignView["app"];
   const root = obsidianDocument().createElement("div");
@@ -203,6 +224,7 @@ describe("CampaignView", () => {
       backdropFor: backdropsInto([]),
       files: {} as ViewFiles,
       campaigns: noCampaigns(),
+      editorStep: NO_EDITOR_STEP,
     });
     expect(view.containerEl.getAttribute("data-type")).toBe(CAMPAIGN_VIEW);
   });
@@ -424,6 +446,7 @@ describe("CampaignView", () => {
       castAfterDelete: LEAVE_DELETED,
       sectionsAround: (sections) => sections,
       campaigns,
+      editorStep: NO_EDITOR_STEP,
     });
     const heading = present(root.querySelector(".dd-nav-heading"));
     expect([...heading.children].map((child) => child.className)).toEqual(["dd-nav-campaign", "clickable-icon dd-nav-switch"]);
@@ -458,6 +481,7 @@ describe("CampaignView", () => {
       backdropFor: backdropsInto([]),
       files: new FakeVault() as unknown as ViewFiles,
       campaigns: noCampaigns(),
+      editorStep: NO_EDITOR_STEP,
     });
     view.app = { workspace: { requestSaveLayout: vi.fn() } } as unknown as CampaignView["app"];
     view.contentEl = obsidianDocument().createElement("div");
@@ -483,6 +507,7 @@ describe("CampaignView", () => {
       backdropFor: backdropsInto([]),
       files: new FakeVault() as unknown as ViewFiles,
       campaigns: noCampaigns(),
+      editorStep: NO_EDITOR_STEP,
     });
     view.app = { workspace: { requestSaveLayout: vi.fn() } } as unknown as CampaignView["app"];
     view.contentEl = obsidianDocument().createElement("div");
@@ -536,5 +561,27 @@ describe("CampaignView", () => {
     expect(backdrops[0]!.loaded).toBe(false);
     expect(unsubscribe).toHaveBeenCalledOnce();
     expect(vault.removed.sort()).toEqual(["delete", "rename"]);
+  });
+
+  it("offers Open in Obsidian's editor in its own menu for the note it shows, which opens that note there", async () => {
+    const step = new FakeEditorStep([MIRA]);
+    const { view, made, navigated } = await openView({ editorStep: step });
+    firstOf(made).show({ page: "cast", path: MIRA });
+    await navigated();
+    const menu = new ObsidianMenu();
+    view.onPaneMenu(menu, "more-options");
+    const item = firstOf(itemsOf(menu));
+    expect(item.title).toBe("Open in Obsidian's editor");
+    item.click();
+    expect(step.opened).toEqual([MIRA]);
+  });
+
+  it("offers nothing in its own menu while it shows no note", async () => {
+    const step = new FakeEditorStep([MIRA]);
+    const { view } = await openView({ editorStep: step });
+    const menu = new ObsidianMenu();
+    view.onPaneMenu(menu, "more-options");
+    expect(itemsOf(menu)).toEqual([]);
+    expect(step.asked).toEqual([null]);
   });
 });

@@ -5,7 +5,7 @@ function wouldChange(leaf: WorkspaceLeaf, change: ChangeViewState): boolean {
   if (leaf.isDeferred) return false;
   const viewState = leaf.getViewState();
   try {
-    return change(viewState) !== viewState;
+    return change(viewState, leaf) !== viewState;
   } catch {
     return false;
   }

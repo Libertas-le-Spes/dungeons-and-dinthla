@@ -8,7 +8,7 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "fence/": ["App", "CachedMetadata", "Component", "EventRef", "Events", "FileManager", "MetadataCache", "TAbstractFile", "TFile", "TFolder", "Vault", "normalizePath"],
   "funds/": ["App", "ButtonComponent", "CachedMetadata", "Component", "Notice", "Setting", "TFile", "getFrontMatterInfo"],
   "imports/": ["App", "ButtonComponent", "Setting", "TFile", "parseYaml"],
-  "interface/": ["App", "Component", "EventRef", "ItemView", "PluginManifest", "TAbstractFile", "TFile", "ViewState", "ViewStateResult", "Workspace", "WorkspaceLeaf"],
+  "interface/": ["App", "Component", "EventRef", "ItemView", "Menu", "PluginManifest", "TAbstractFile", "TFile", "ViewState", "ViewStateResult", "Workspace", "WorkspaceLeaf"],
   "kind-notes/": ["TFile"],
   "main.ts": ["MarkdownFileInfo", "MarkdownView", "Notice", "PaneType", "Plugin", "TFile", "ViewState", "WorkspaceLeaf", "debounce"],
   "note-keeping/": ["CachedMetadata", "TFile", "getFrontMatterInfo"],

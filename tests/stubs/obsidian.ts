@@ -131,6 +131,8 @@ export class ItemView extends Component {
   }
 
   async setState(..._args: Parameters<RealItemView["setState"]>): Promise<void> {}
+
+  onPaneMenu(..._args: Parameters<RealItemView["onPaneMenu"]>): void {}
 }
 
 const MIDDLE_BUTTON = 1;

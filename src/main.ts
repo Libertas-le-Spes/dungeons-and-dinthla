@@ -50,7 +50,10 @@ import { isCampaignViewRegistered } from "./interface/view/campaign-view-registe
 import { castSection } from "./interface/sections/cast-section";
 import { fundsSection } from "./interface/sections/funds-section";
 import { noteSection } from "./interface/sections/note-section";
-import { openInEditor } from "./interface/view/open-in-editor";
+import { ObsidianEditorStep, openInEditor } from "./interface/view/open-in-editor";
+import { openShownInEditor, type EditorStep } from "./interface/takeover/editor-step";
+import { EditorLeaves } from "./interface/takeover/editor-leaves";
+import { OPEN_IN_EDITOR } from "./note-page/left-campaign";
 import { notesSection } from "./interface/sections/notes-section";
 import { keepOneCampaignTab } from "./interface/tabs/one-campaign-tab";
 import { pathYouAreIn, shownCampaignPathOf } from "./interface/view/shown-campaign-path";
@@ -115,6 +118,7 @@ export default class DungeonsAndDinthla extends Plugin {
   private readonly deviceAgreement = new DeviceAgreement(this.localStorage);
   private readonly onlineImport = onlineImportFor(this.app, this.deviceAgreement);
   private chosen = this.chosenCampaignFrom(this.settingsSaver);
+  private readonly editorLeaves = new EditorLeaves();
 
   override async onload(): Promise<void> {
     await this.loadSettings();
@@ -252,13 +256,15 @@ export default class DungeonsAndDinthla extends Plugin {
         actions,
         mentionNotes,
         isCampaignNote: (path: string) => campaignFolderOf(path, this.campaignFolders()) !== null,
-        openInEditor: (path: string) => void openInEditor(this.app, gate, path),
+        openInEditor: (path: string) => void openInEditor(this.app, gate, this.editorLeaves, path),
       }),
       welcome,
     });
     const sections = campaignsFolderFirst(pages, welcome, () => this.campaignsFolderSetting.path);
     const backdropFor = (frameEl: HTMLElement) => new TabBackground(frameEl, this.store, gate.metadata, gate.files);
-    this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView({ leaf, store: this.store, sections, followCampaign: (path) => void this.followCampaignOf(path), backdropFor, files: gate.files, campaigns: campaignChoice }));
+    const editorStep = new ObsidianEditorStep(this.app, gate, this.editorLeaves);
+    this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView({ leaf, store: this.store, sections, followCampaign: (path) => void this.followCampaignOf(path), backdropFor, files: gate.files, campaigns: campaignChoice, editorStep }));
+    this.addCommand({ id: "open-in-editor", name: OPEN_IN_EDITOR, checkCallback: this.openShownInEditor.bind(this, editorStep) });
     this.addPageOpeners(newSession);
     this.colourSessionNotes();
     this.app.workspace.onLayoutReady(() => {
@@ -310,11 +316,16 @@ export default class DungeonsAndDinthla extends Plugin {
       campaignViewRegistered: () => isCampaignViewRegistered(this.app),
       holds: (path: string) => this.gate.fence.holds(path),
       campaignFolders: () => this.campaignFolders(),
+      keptInEditor: this.editorLeaves.keeps.bind(this.editorLeaves),
     };
-    const change = (viewState: ViewState) => campaignStateFor(viewState, takeover);
+    const change = (viewState: ViewState, leaf: WorkspaceLeaf) => campaignStateFor(viewState, leaf, takeover);
     const settled = keepOneCampaignTab(this.app.workspace, (run) => window.setTimeout(run, 0));
     this.register(patchSetViewState(WorkspaceLeaf.prototype, { change, settled }));
     this.app.workspace.onLayoutReady(() => void this.openCampaignFiles(change));
+  }
+
+  private openShownInEditor(step: EditorStep, checking: boolean): boolean {
+    return openShownInEditor(step, shownCampaignPathOf(this.app.workspace), checking);
   }
 
   private async openCampaignFiles(change: ChangeViewState): Promise<void> {

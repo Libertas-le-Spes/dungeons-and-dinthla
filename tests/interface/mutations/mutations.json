@@ -1,0 +1,114 @@
+[
+ {
+  "id": "a note kept in the editor stays there",
+  "file": "src/interface/takeover/campaign-takeover.ts",
+  "find": "  if (staysInEditor(viewState, path, leaf, takeover)) return viewState;\n",
+  "replace": "",
+  "group": "interface"
+ },
+ {
+  "id": "only Obsidian's editor stays",
+  "file": "src/interface/takeover/campaign-takeover.ts",
+  "find": "  if (viewState.type !== EDITOR_TYPE) return false;\n",
+  "replace": "",
+  "group": "interface"
+ },
+ {
+  "id": "the fence before the editor",
+  "file": "src/interface/takeover/campaign-takeover.ts",
+  "find": "  if (path === null || !takeover.holds(path)) return viewState;\n  if (!takeover.campaignViewRegistered()) return viewState;\n  if (staysInEditor(viewState, path, leaf, takeover)) return viewState;",
+  "replace": "  if (path === null) return viewState;\n  if (staysInEditor(viewState, path, leaf, takeover)) return viewState;\n  if (!takeover.holds(path)) return viewState;\n  if (!takeover.campaignViewRegistered()) return viewState;",
+  "group": "interface"
+ },
+ {
+  "id": "a tab keeps only its own note",
+  "file": "src/interface/takeover/editor-leaves.ts",
+  "find": "return this.paths.get(leaf) === path;",
+  "replace": "return this.paths.has(leaf);",
+  "group": "interface"
+ },
+ {
+  "id": "the patch names the tab",
+  "file": "src/interface/takeover/view-state-patch.ts",
+  "find": "return change(viewState, leaf);",
+  "replace": "return change(viewState, {} as WorkspaceLeaf);",
+  "group": "interface"
+ },
+ {
+  "id": "open tabs are named",
+  "file": "src/interface/takeover/take-open-leaves.ts",
+  "find": "return change(viewState, leaf) !== viewState;",
+  "replace": "return change(viewState, {} as WorkspaceLeaf) !== viewState;",
+  "group": "interface"
+ },
+ {
+  "id": "the editor tab is kept",
+  "file": "src/interface/view/open-in-editor.ts",
+  "find": "  leaves.keep(leaf, file.path);\n",
+  "replace": "",
+  "group": "interface"
+ },
+ {
+  "id": "the editor tab is kept before it opens",
+  "file": "src/interface/view/open-in-editor.ts",
+  "find": "  leaves.keep(leaf, file.path);\n  await leaf.openFile(file);",
+  "replace": "  await leaf.openFile(file);\n  leaves.keep(leaf, file.path);",
+  "group": "interface"
+ },
+ {
+  "id": "only Markdown notes go to the editor",
+  "file": "src/interface/view/open-in-editor.ts",
+  "find": "if (path === null || !path.endsWith(NOTE_ENDING)) return null;",
+  "replace": "if (path === null) return null;",
+  "group": "interface"
+ },
+ {
+  "id": "only notes the gate holds go to the editor",
+  "file": "src/interface/view/open-in-editor.ts",
+  "find": "    if (this.gate.files.getFileByPath(path) === null) return null;\n",
+  "replace": "",
+  "group": "interface"
+ },
+ {
+  "id": "no menu item without a note",
+  "file": "src/interface/takeover/editor-step.ts",
+  "find": "  if (path === null) return;\n  const offer",
+  "replace": "  const offer",
+  "group": "interface"
+ },
+ {
+  "id": "the menu item opens its note",
+  "file": "src/interface/takeover/editor-step.ts",
+  "find": "this.step.open(this.path);",
+  "replace": "this.step.open(\"\");",
+  "group": "interface"
+ },
+ {
+  "id": "no command without a note",
+  "file": "src/interface/takeover/editor-step.ts",
+  "find": "  if (path === null) return false;\n",
+  "replace": "",
+  "group": "interface"
+ },
+ {
+  "id": "the command only checks while checking",
+  "file": "src/interface/takeover/editor-step.ts",
+  "find": "  if (!checking) step.open(path);",
+  "replace": "  step.open(path);",
+  "group": "interface"
+ },
+ {
+  "id": "the tab's menu offers the editor",
+  "file": "src/interface/view/campaign-view.ts",
+  "find": "    addEditorItem(menu, this.needs.editorStep, this.shownPath());\n",
+  "replace": "",
+  "group": "interface"
+ },
+ {
+  "id": "the tab's menu offers the note shown",
+  "file": "src/interface/view/campaign-view.ts",
+  "find": "addEditorItem(menu, this.needs.editorStep, this.shownPath());",
+  "replace": "addEditorItem(menu, this.needs.editorStep, null);",
+  "group": "interface"
+ }
+]

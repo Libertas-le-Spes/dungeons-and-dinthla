@@ -1,9 +1,10 @@
-import { ItemView, type Component, type TAbstractFile, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
+import { ItemView, type Component, type Menu, type TAbstractFile, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
 import { campaignNameOf } from "../../campaign/paths/campaign-folders";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { FencedFiles, GoneFile } from "../../fence/gate/fenced-files";
 import type { NavSection, PageEntry, PageTarget } from "./campaign-pages";
 import { CampaignSwitcher, type SwitchableCampaigns } from "./campaign-switcher";
+import { addEditorItem, type EditorStep } from "../takeover/editor-step";
 
 export const CAMPAIGN_VIEW = "dungeons-and-dinthla-campaign";
 export const CAMPAIGN_TITLE = "Campaign";
@@ -46,6 +47,7 @@ export interface CampaignViewNeeds {
   backdropFor: BackdropFor;
   files: ViewFiles;
   campaigns: SwitchableCampaigns;
+  editorStep: EditorStep;
 }
 
 export class CampaignView extends ItemView {
@@ -87,6 +89,11 @@ export class CampaignView extends ItemView {
   shownPath(): string | null {
     if (this.current === null) return null;
     return this.current.path;
+  }
+
+  override onPaneMenu(menu: Menu, source: string): void {
+    super.onPaneMenu(menu, source);
+    addEditorItem(menu, this.needs.editorStep, this.shownPath());
   }
 
   override getState(): Record<string, unknown> {

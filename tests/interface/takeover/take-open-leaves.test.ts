@@ -57,4 +57,11 @@ describe("takeOpenLeaves", () => {
     expect(failing.setViewState).not.toHaveBeenCalled();
     expect(mira.setViewState).toHaveBeenCalledOnce();
   });
+
+  it("asks about each tab with the tab itself, so a tab kept in Obsidian's editor can be told apart", async () => {
+    const mira = leafShowing(MIRA);
+    const change = vi.fn(changeMira);
+    await takeOpenLeaves(workspaceWith([mira]), change);
+    expect(change).toHaveBeenCalledExactlyOnceWith(MIRA, mira);
+  });
 });
