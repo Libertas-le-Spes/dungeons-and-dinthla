@@ -1,0 +1,65 @@
+[
+ {
+  "id": "page text: Obsidian's getText reads the page's text",
+  "file": "tests/fence/scan/reading/names.ts",
+  "find": "\"serializeToString\", \"getText\"]",
+  "replace": "\"serializeToString\"]",
+  "group": "page fence"
+ },
+ {
+  "id": "page queries: Obsidian's matchParent looks elements up",
+  "file": "tests/fence/scan/reading/names.ts",
+  "find": "\"findAllSelf\", \"matchParent\"]",
+  "replace": "\"findAllSelf\"]",
+  "group": "page fence"
+ },
+ {
+  "id": "page escapes: Obsidian's getAttr reads an attribute",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"getAttr\",\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page escapes: Obsidian's constructorWin reaches the window",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"constructorWin\",\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: Obsidian's additions to the page's elements count",
+  "file": "tests/fence/scan/page-rules/page-member-rules.ts",
+  "find": "  return isAddedToThePage(scan, owner);",
+  "replace": "  return false;",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: only additions made in a global block count",
+  "file": "tests/fence/scan/page-rules/page-member-rules.ts",
+  "find": "  if (block.name !== GLOBAL_ADDITIONS) return false;\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: a member of a type with no owner is no addition",
+  "file": "tests/fence/scan/page-rules/page-member-rules.ts",
+  "find": "  if (block === undefined) return false;\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: only additions to the page's own types count",
+  "file": "tests/fence/scan/page-rules/page-member-rules.ts",
+  "find": "  return isPageDeclared(merged);",
+  "replace": "  return true;",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: the page's own members still count",
+  "file": "tests/fence/scan/page-rules/page-member-rules.ts",
+  "find": "  if (isPageDeclared(owner)) return true;\n",
+  "replace": "",
+  "group": "page fence"
+ }
+]
