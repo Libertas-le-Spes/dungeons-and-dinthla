@@ -5,6 +5,7 @@ import type { FencedFiles, GoneFile } from "../../fence/gate/fenced-files";
 import type { NavSection, PageEntry, PageTarget } from "./campaign-pages";
 import { CampaignSwitcher, type SwitchableCampaigns } from "./campaign-switcher";
 import { addEditorItem } from "../editor/editor-menu-item";
+import { drawEditNoteButton } from "../editor/edit-note-button";
 import type { EditorStep } from "../editor/editor-step";
 
 export const CAMPAIGN_VIEW = "dungeons-and-dinthla-campaign";
@@ -13,6 +14,7 @@ export const CAMPAIGN_ICON = "shield";
 
 const NO_CAMPAIGN_TITLE = "No campaign open";
 const IN_BAR_CLASS = "dd-nav-in-bar";
+const PAGE_TOOLS_CLASS = "dd-page-tools";
 
 interface NavLink {
   entry: PageEntry;
@@ -191,18 +193,25 @@ export class CampaignView extends ItemView {
     if (pageEl === null) return;
     this.closePage();
     pageEl.empty();
+    const toolsEl = pageEl.createDiv({ cls: PAGE_TOOLS_CLASS });
+    this.drawEditNote(toolsEl);
     const navigate = (target: PageTarget) => this.navigate(target);
-    const stayOn = (path: string) => this.stayOn(shown.entry, path);
+    const stayOn = (path: string) => this.stayOn(shown.entry, path, toolsEl);
     this.shownPage = this.addChild(shown.entry.make(pageEl.createDiv({ cls: "dd-page-body" }), navigate, shown.path, stayOn));
     this.markCurrent();
     this.app.workspace.requestSaveLayout();
   }
 
-  private stayOn(entry: PageEntry, path: string): void {
+  private stayOn(entry: PageEntry, path: string, toolsEl: HTMLElement): void {
     const current = this.current;
     if (current === null || current.entry !== entry || current.path !== null) return;
     this.current = { entry, path };
+    this.drawEditNote(toolsEl);
     this.app.workspace.requestSaveLayout();
+  }
+
+  private drawEditNote(toolsEl: HTMLElement): void {
+    drawEditNoteButton(toolsEl, this.needs.editorStep, this.shownPath(), this.leaf);
   }
 
   private closePage(): void {

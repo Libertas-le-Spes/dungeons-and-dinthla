@@ -1,0 +1,32 @@
+.dd-campaign .dd-page-tools {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--size-4-2);
+}
+
+.dd-campaign .dd-page-tools:empty {
+  display: none;
+}
+
+.dd-campaign .dd-edit-note {
+  min-height: var(--touch-min);
+  padding: 0 var(--size-4-3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background-color: var(--mono-0);
+  background-image: linear-gradient(var(--surface-page), var(--surface-page));
+  box-shadow: none;
+  font: var(--type-label);
+  color: var(--text-muted-ui);
+  cursor: pointer;
+}
+
+.dd-campaign .dd-edit-note:hover {
+  color: var(--text-body);
+  text-decoration: underline;
+}
+
+.dd-campaign .dd-edit-note:focus-visible {
+  box-shadow: var(--focus-ring);
+  outline: none;
+}

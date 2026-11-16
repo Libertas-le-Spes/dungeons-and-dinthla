@@ -257,5 +257,75 @@
   "find": "    return openShownInEditor(this.step, this.shownNote(), checking);",
   "replace": "    return openShownInEditor(this.step, this.shownNote(), false);",
   "group": "interface"
+ },
+ {
+  "id": "the Edit note button needs a note the editor can open",
+  "file": "src/interface/editor/edit-note-button.ts",
+  "find": "  if (path === null) return;\n",
+  "replace": "",
+  "group": "interface"
+ },
+ {
+  "id": "the Edit note button opens on a press",
+  "file": "src/interface/editor/edit-note-button.ts",
+  "find": "    button.addEventListener(\"click\", this.open.bind(this));\n",
+  "replace": "",
+  "group": "interface"
+ },
+ {
+  "id": "the Edit note button opens the note in its own tab",
+  "file": "src/interface/editor/edit-note-button.ts",
+  "find": "    this.step.openIn(this.path, this.leaf);",
+  "replace": "    this.step.openIn(this.path, {} as WorkspaceLeaf);",
+  "group": "interface"
+ },
+ {
+  "id": "the Edit note button opens the note shown",
+  "file": "src/interface/editor/edit-note-button.ts",
+  "find": "    this.step.openIn(this.path, this.leaf);",
+  "replace": "    this.step.openIn(\"Pale Moon/Characters/Other.md\", this.leaf);",
+  "group": "interface"
+ },
+ {
+  "id": "the Edit note button keeps the quiet style",
+  "file": "src/interface/editor/edit-note-button.ts",
+  "find": "{ cls: EDIT_NOTE_CLASS, text: EDIT_NOTE }",
+  "replace": "{ cls: \"mod-cta\", text: EDIT_NOTE }",
+  "group": "interface"
+ },
+ {
+  "id": "the tab draws the Edit note button for each page",
+  "file": "src/interface/view/campaign-view.ts",
+  "find": "    this.drawEditNote(toolsEl);\n    const navigate",
+  "replace": "    const navigate",
+  "group": "interface"
+ },
+ {
+  "id": "a page settling on a note gets the Edit note button",
+  "file": "src/interface/view/campaign-view.ts",
+  "find": "    this.drawEditNote(toolsEl);\n    this.app.workspace.requestSaveLayout();",
+  "replace": "    this.app.workspace.requestSaveLayout();",
+  "group": "interface"
+ },
+ {
+  "id": "the Edit note button is for the note shown",
+  "file": "src/interface/view/campaign-view.ts",
+  "find": "drawEditNoteButton(toolsEl, this.needs.editorStep, this.shownPath(), this.leaf);",
+  "replace": "drawEditNoteButton(toolsEl, this.needs.editorStep, null, this.leaf);",
+  "group": "interface"
+ },
+ {
+  "id": "the Edit note button opens in the campaign tab",
+  "file": "src/interface/view/campaign-view.ts",
+  "find": "drawEditNoteButton(toolsEl, this.needs.editorStep, this.shownPath(), this.leaf);",
+  "replace": "drawEditNoteButton(toolsEl, this.needs.editorStep, this.shownPath(), {} as WorkspaceLeaf);",
+  "group": "interface"
+ },
+ {
+  "id": "the Edit note button sits in the page's tools row",
+  "file": "src/interface/view/campaign-view.ts",
+  "find": "    const toolsEl = pageEl.createDiv({ cls: PAGE_TOOLS_CLASS });",
+  "replace": "    const toolsEl = pageEl.createDiv();",
+  "group": "interface"
  }
 ]

@@ -14,6 +14,7 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "funds/page/ledger-box.ts": ["focus"],
   "imports/dialog/online/online-stage.ts": ["focus"],
   "imports/dialog/picking/pdf-picker.ts": ["addEventListener", "arrayBuffer", "files", "item", "size"],
+  "interface/editor/edit-note-button.ts": ["addEventListener"],
   "interface/view/campaign-view.ts": ["removeAttribute", "setAttribute"],
   "interface/view/campaign-switcher.ts": ["bottom", "focus", "getBoundingClientRect", "left"],
   "interface/view/tab-picture.ts": ["removeProperty", "style"],

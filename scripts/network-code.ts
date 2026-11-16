@@ -32,7 +32,7 @@ export const ALLOWED_IN_PLACE: AllowedCode[] = [
   { code: "submit() {", count: 2 },
   { code: 'formEl.createEl("button", { cls: form.buttonCls, type: "submit", text: form.buttonText })', count: 1 },
   { code: 'owner.registerDomEvent(formEl, "submit", ', count: 1 },
-  { code: 'addEventListener("click", ', count: 25 },
+  { code: 'addEventListener("click", ', count: 26 },
   { code: ', "click", ', count: 14 },
   { code: 'this.input.dispatchEvent(new Event("input"))', count: 1 },
   { code: '.requestUrl)({ url: beyondAddressOf(id), method: "GET", throw: false })', count: 1 },

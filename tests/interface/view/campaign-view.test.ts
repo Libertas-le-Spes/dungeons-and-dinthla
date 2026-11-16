@@ -8,7 +8,7 @@ import { CAMPAIGN_VIEW, CampaignView, type ViewFiles } from "../../../src/interf
 import { campaignsFolderFirst } from "../../../src/interface/view/campaigns-folder-first";
 import type { EditorStep } from "../../../src/interface/editor/editor-step";
 import { FakeEditorStep } from "../fake-editor-step";
-import { firstOf } from "../../stubs/lists";
+import { firstOf, secondOf } from "../../stubs/lists";
 import { present } from "../../pdf/support/present";
 import { Menu, paneMenusShown, type MenuItem } from "../../stubs/obsidian";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
@@ -208,6 +208,10 @@ function linkLabelled(root: HTMLElement, label: string): HTMLElement {
 
 function currentLabels(root: HTMLElement): string[] {
   return [...root.querySelectorAll<HTMLElement>('.dd-nav-link[aria-current="page"] .dd-nav-label')].map((label) => label.textContent!);
+}
+
+function editNoteButtonsIn(root: HTMLElement): HTMLButtonElement[] {
+  return [...root.querySelectorAll<HTMLButtonElement>(".dd-page button")];
 }
 
 function pageText(root: HTMLElement): string | null {
@@ -546,12 +550,12 @@ describe("CampaignView", () => {
     expect(root.querySelector(".dd-campaign")!.parentElement).toBe(root);
   });
 
-  it("holds only the sidebar and the page, with the page's content in one solid body", async () => {
+  it("holds only the sidebar and the page, with the page's content in one solid body under a row for its tools", async () => {
     const { root } = await openView();
     const campaign = root.querySelector(".dd-campaign")!;
     expect([...campaign.children].map((child) => child.className)).toEqual(["dd-nav", "dd-page"]);
     const page = campaign.querySelector(".dd-page")!;
-    expect([...page.children].map((child) => child.className)).toEqual(["dd-page-body"]);
+    expect([...page.children].map((child) => child.className)).toEqual(["dd-page-tools", "dd-page-body"]);
   });
 
   it("closes the shown page and stops listening to the campaign and the vault when it is closed", async () => {
@@ -588,8 +592,50 @@ describe("CampaignView", () => {
     const step = new FakeEditorStep([MIRA]);
     const { view } = await openView({ editorStep: step });
     const menu = new ObsidianMenu();
+    step.asked.length = 0;
     view.onPaneMenu(menu, "more-options");
     expect(itemsOf(menu)).toEqual([]);
     expect(step.asked).toEqual([null]);
+  });
+
+  it("puts an Edit note button above the page for the note it shows, which opens that note in this tab", async () => {
+    const step = new FakeEditorStep([MIRA]);
+    const { view, root, made, navigated } = await openView({ editorStep: step });
+    firstOf(made).show({ page: "cast", path: MIRA });
+    await navigated();
+    const button = firstOf(editNoteButtonsIn(root));
+    expect(present(button.parentElement).className).toBe("dd-page-tools");
+    expect(button.className).toBe("dd-edit-note");
+    button.click();
+    expect(step.opened).toEqual([{ path: MIRA, leaf: view.leaf }]);
+  });
+
+  it("puts no Edit note button above a page that shows no note", async () => {
+    const step = new FakeEditorStep([MIRA]);
+    const { root } = await openView({ editorStep: step });
+    expect(editNoteButtonsIn(root)).toEqual([]);
+    expect(step.asked).toEqual([null]);
+  });
+
+  it("takes the Edit note button away when it moves on to a page without a note", async () => {
+    const step = new FakeEditorStep([MIRA]);
+    const { root, made, navigated } = await openView({ editorStep: step });
+    firstOf(made).show({ page: "cast", path: MIRA });
+    await navigated();
+    firstOf(made).show({ page: "home", path: null });
+    await navigated();
+    expect(editNoteButtonsIn(root)).toEqual([]);
+  });
+
+  it("puts one Edit note button above a page once it settles on a note, for that note", async () => {
+    const session = "Pale Moon/Sessions/Session 3.md";
+    const step = new FakeEditorStep([session]);
+    const { view, root, made } = await openView({ editorStep: step });
+    await view.setState({ page: "cast", path: null }, { history: false });
+    secondOf(made).stayOn(session);
+    const buttons = editNoteButtonsIn(root);
+    expect(buttons).toHaveLength(1);
+    firstOf(buttons).click();
+    expect(step.opened).toEqual([{ path: session, leaf: view.leaf }]);
   });
 });
