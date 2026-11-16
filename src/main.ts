@@ -7,6 +7,7 @@ import {
   charactersFolderOf,
   chosenCampaignFolder,
   findCampaignFolders,
+  isCampaignNote,
   isSessionNote,
   startingCampaignFolder,
 } from "./campaign/paths/campaign-folders";
@@ -62,6 +63,7 @@ import { openCampaignPage } from "./interface/tabs/open-campaign";
 import { TabBackground } from "./interface/view/tab-background";
 import { closeRetiredViews } from "./interface/takeover/retired-views";
 import { colourMarkers } from "./reading/colour-markers";
+import { BEFORE_OBSIDIANS_MATHS, plainDollarsProcessor } from "./reading/plain-dollars-processor";
 import { BackgroundRefresh, showBackground, shownBackgroundOf } from "./reading/note-background";
 import { CampaignSettingTab } from "./settings/choosing/campaign-setting-tab";
 import { FolderSuggestModal } from "./settings/choosing/folder-suggest-modal";
@@ -251,7 +253,7 @@ export default class DungeonsAndDinthla extends Plugin {
         ...sessionNotes.wholeText,
         actions,
         mentionNotes,
-        isCampaignNote: (path: string) => campaignFolderOf(path, this.campaignFolders()) !== null,
+        isCampaignNote: this.isCampaignNote.bind(this),
         openInEditor: (path: string) => void openInEditor(this.app, gate, path),
       }),
       welcome,
@@ -265,6 +267,7 @@ export default class DungeonsAndDinthla extends Plugin {
       this.startCampaign(help).catch((error: unknown) => new Notice(`Couldn't start the campaign: ${messageOf(error)}`));
     });
     this.app.workspace.onLayoutReady(() => this.watchBackgrounds());
+    this.keepDollarsPlain();
     this.takeOverOpening();
   }
 
@@ -298,7 +301,7 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private colourSessionNotes(): void {
-    const inSession = (path: string) => isSessionNote(path, this.campaignsFolderSetting.path, (notePath) => this.gate.files.getFileByPath(notePath) !== null);
+    const inSession = this.isSessionNote.bind(this);
     this.registerEditorExtension(markerColouring(inSession));
     this.registerMarkdownPostProcessor((element, context) => {
       if (inSession(context.sourcePath)) colourMarkers(element);
@@ -505,6 +508,23 @@ export default class DungeonsAndDinthla extends Plugin {
 
   private startingCampaignFolder(): string | null {
     return startingCampaignFolder(activePathOf(this.app), this.chosen.folder, this.campaignFolders());
+  }
+
+  private keepDollarsPlain(): void {
+    const inCampaign = this.isCampaignNote.bind(this);
+    this.registerMarkdownPostProcessor(plainDollarsProcessor(inCampaign), BEFORE_OBSIDIANS_MATHS);
+  }
+
+  private isSessionNote(path: string): boolean {
+    return isSessionNote(path, this.campaignsFolderSetting.path, this.noteExists.bind(this));
+  }
+
+  private isCampaignNote(path: string): boolean {
+    return isCampaignNote(path, this.campaignsFolderSetting.path, this.noteExists.bind(this));
+  }
+
+  private noteExists(path: string): boolean {
+    return this.gate.files.getFileByPath(path) !== null;
   }
 
   private async followCampaignOf(path: string): Promise<void> {
