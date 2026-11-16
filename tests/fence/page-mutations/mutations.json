@@ -257,5 +257,12 @@
   "find": "event.eventPhase !== event.AT_TARGET",
   "replace": "event.eventPhase !== event.BUBBLING_PHASE",
   "group": "page fence"
+ },
+ {
+  "id": "page members: a member declared on the page counts whatever its parent",
+  "file": "tests/fence/scan/page-rules/page-member-rules.ts",
+  "find": "  if (isDeclaredOnThePage(scan, symbol)) return true;\n",
+  "replace": "",
+  "group": "page fence"
  }
 ]

@@ -50,6 +50,8 @@ export const PAGE_TEXT_SAMPLES = [
   'import { Plugin } from "obsidian";\nexport class Reader extends Plugin {\n  override onload(): void {\n    this.registerMarkdownPostProcessor((el) => el.childElementCount);\n  }\n}',
   'import { Plugin } from "obsidian";\nexport class Reader extends Plugin {\n  override onload(): void {\n    this.registerMarkdownCodeBlockProcessor("dd", (source) => source.length);\n  }\n}',
   "export const text = (el: HTMLElement) => el.textContent;",
+  "export const text = (el: any) => el.textContent;",
+  "export const text = (el: any) => el.getText();",
   "export const text = (el: HTMLElement) => el.innerText;",
   "export const text = (el: HTMLElement) => el.outerText;",
   "export const text = (node: Text) => node.data;",
@@ -102,6 +104,9 @@ export const PAGE_READ_SAMPLES = [
   'import type { App } from "obsidian"; export const read = (_app: App, el: Partial<HTMLElement>) => el.doc;',
   'import type { App } from "obsidian"; export const read = (_app: App, el: Partial<HTMLElement>) => el.getAttr("x");',
   'import type { App } from "obsidian"; export function read(_app: App, el: Partial<HTMLElement>) { const { getAttr } = el; return getAttr; }',
+  'import type { App } from "obsidian"; interface Mine { doc: Document; getAttr(name: string): string; ownerDocument: Document; } export const read = (_app: App, el: (HTMLElement & Mine) | Mine) => el.doc;',
+  'import type { App } from "obsidian"; interface Mine { doc: Document; getAttr(name: string): string; ownerDocument: Document; } export const read = (_app: App, el: (HTMLElement & Mine) | Mine) => el.getAttr("x");',
+  'import type { App } from "obsidian"; interface Mine { doc: Document; getAttr(name: string): string; ownerDocument: Document; } export const read = (_app: App, el: (HTMLElement & Mine) | Mine) => el.ownerDocument;',
 ];
 
 export const OWN_ELEMENT_SAMPLES = [
