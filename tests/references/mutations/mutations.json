@@ -366,7 +366,7 @@
  {
   "id": "a name ending in .md is refused",
   "file": "src/references/making/reference-note-plan.ts",
-  "find": "    if (name.toLowerCase().endsWith(NOTE_ENDING)) return ENDS_LIKE_A_NOTE;\n",
+  "find": "  if (name.toLowerCase().endsWith(NOTE_ENDING)) return ENDS_LIKE_A_NOTE;\n",
   "replace": "",
   "group": "making plan"
  },
