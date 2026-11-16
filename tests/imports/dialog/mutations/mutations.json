@@ -303,8 +303,8 @@
  {
   "id": "dialog: typed warning first",
   "file": "src/imports/dialog/review/change-list.ts",
-  "find": "  drawTyped(parent, changes.typed);\n  if (properties.length",
-  "replace": "  if (properties.length",
+  "find": "  drawTyped(parent, changes.typed);\n  parent.createEl(\"p\", { cls: \"dd-import-changes-line\", text: changeWords(properties, changes.sections) });\n  drawProperties(parent, properties);\n",
+  "replace": "  parent.createEl(\"p\", { cls: \"dd-import-changes-line\", text: changeWords(properties, changes.sections) });\n  drawProperties(parent, properties);\n  drawTyped(parent, changes.typed);\n",
   "group": "dialog"
  },
  {
@@ -562,7 +562,7 @@
  {
   "id": "pdf stage: sheet reading not awaited",
   "file": "src/imports/dialog/stages/pdf-stage.ts",
-  "find": "    this.work.add(this.readSheet(bytes));",
+  "find": "    this.parts.work.add(this.readSheet(bytes));",
   "replace": "    void this.readSheet(bytes);",
   "group": "waiting"
  },
