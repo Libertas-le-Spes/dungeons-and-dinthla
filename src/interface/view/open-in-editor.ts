@@ -5,8 +5,8 @@ import { editorLeavesOf, type EditorLeaves } from "../editor/editor-leaves";
 import type { EditorStep } from "../editor/editor-step";
 
 const NOTE_ENDING = ".md";
-function livePreview(): Record<string, unknown> {
-  return { source: false };
+function sourceMode(): Record<string, unknown> {
+  return { source: true };
 }
 
 export interface EditorApp {
@@ -27,7 +27,7 @@ export async function openInTab(leaf: WorkspaceLeaf, gate: EditorGate, path: str
   const file = gate.files.getFileByPath(path);
   if (file === null) return;
   leaves.keep(leaf, file);
-  await leaf.openFile(file, { state: livePreview() });
+  await leaf.openFile(file, { state: sourceMode() });
 }
 
 export async function openInEditor(app: EditorApp, gate: EditorGate, path: string): Promise<void> {

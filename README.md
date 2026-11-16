@@ -55,7 +55,7 @@ After the next build, reload the vault (**Reload app without saving** in the com
 
 1. Open any note of your campaign: it shows in the campaign tab, on its own page.
 2. To see or change the note itself as Markdown, choose *Open in Obsidian's editor* from the ⋯ menu at the top right of the campaign tab, from a right-click on the tab's header, or from the command palette.
-3. The tab now shows the note in Obsidian's editor, in Live Preview. Switching to reading view or source mode keeps you there. A link you press opens in the campaign tab again, and so does the note when you open it in another tab or after Obsidian starts again.
+3. The tab now shows the note in Obsidian's editor, in source mode, as plain Markdown. Switching to reading view keeps you there. A link you press opens in the campaign tab again, and so does the note when you open it in another tab or after Obsidian starts again.
 
 ## Look
 

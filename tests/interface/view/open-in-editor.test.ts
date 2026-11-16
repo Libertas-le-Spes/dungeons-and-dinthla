@@ -8,7 +8,7 @@ const MOVED = "Loose notes/Old Mill.md";
 const BASE = "Loose notes/Places.base";
 const LOOKS_LIKE_A_NOTE = "Loose notes/Notes.md.base";
 const GONE = "Loose notes/Gilded Stag.md";
-const LIVE_PREVIEW = { state: { source: false } };
+const SOURCE_MODE = { state: { source: true } };
 
 interface Opened {
   file: TFile;
@@ -69,11 +69,11 @@ function worldWith(activeShows: string | null) {
 }
 
 describe("openInTab", () => {
-  it("keeps the tab in the editor for the note before it opens it there in Live Preview", async () => {
+  it("keeps the tab in the editor for the note before it opens it there in source mode", async () => {
     const { gate, file, leaves, campaignLeaf } = worldWith(MOVED);
     await openInTab(campaignLeaf, gate, MOVED, leaves);
     expect(campaignLeaf.opened).toEqual([{ file, kept: true }]);
-    expect(campaignLeaf.states).toEqual([LIVE_PREVIEW]);
+    expect(campaignLeaf.states).toEqual([SOURCE_MODE]);
   });
 });
 
@@ -126,11 +126,11 @@ describe("ObsidianEditorStep", () => {
     expect(new ObsidianEditorStep(gate, new EditorLeaves()).noteOf(path)).toBeNull();
   });
 
-  it("opens the note in the tab it is given, in Live Preview, keeping that tab for the note", () => {
+  it("opens the note in the tab it is given, in source mode, keeping that tab for the note", () => {
     const { gate, file, leaves, campaignLeaf, newLeaf } = worldWith(null);
     new ObsidianEditorStep(gate, leaves).openIn(MOVED, newLeaf);
     expect(newLeaf.opened).toEqual([{ file, kept: true }]);
-    expect(newLeaf.states).toEqual([LIVE_PREVIEW]);
+    expect(newLeaf.states).toEqual([SOURCE_MODE]);
     expect(campaignLeaf.opened).toEqual([]);
   });
 

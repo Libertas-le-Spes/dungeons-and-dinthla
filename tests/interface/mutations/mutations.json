@@ -2,15 +2,15 @@
  {
   "id": "a note kept in the editor stays there",
   "file": "src/interface/takeover/campaign-takeover.ts",
-  "find": "  if (staysInEditor(viewState, path, leaf, takeover)) return viewState;\n",
+  "find": "  if (staysInEditor(viewState, path, leaf, takeover)) return inSourceMode(viewState);\n",
   "replace": "",
   "group": "interface"
  },
  {
-  "id": "a note kept in the editor keeps the state its tab asked for",
+  "id": "the kept tab is in source mode",
   "file": "src/interface/takeover/campaign-takeover.ts",
-  "find": "  if (staysInEditor(viewState, path, leaf, takeover)) return viewState;",
-  "replace": "  if (staysInEditor(viewState, path, leaf, takeover)) return { ...viewState, state: { ...viewState.state, source: true } };",
+  "find": "  return { ...viewState, state: { ...viewState.state, source: true } };",
+  "replace": "  return viewState;",
   "group": "interface"
  },
  {
@@ -100,15 +100,15 @@
  {
   "id": "the editor tab is kept before it opens",
   "file": "src/interface/view/open-in-editor.ts",
-  "find": "  leaves.keep(leaf, file);\n  await leaf.openFile(file, { state: livePreview() });",
-  "replace": "  await leaf.openFile(file, { state: livePreview() });\n  leaves.keep(leaf, file);",
+  "find": "  leaves.keep(leaf, file);\n  await leaf.openFile(file, { state: sourceMode() });",
+  "replace": "  await leaf.openFile(file, { state: sourceMode() });\n  leaves.keep(leaf, file);",
   "group": "interface"
  },
  {
-  "id": "the editor opens in Live Preview",
+  "id": "the editor opens in source mode",
   "file": "src/interface/view/open-in-editor.ts",
-  "find": "  return { source: false };",
-  "replace": "  return { source: true };",
+  "find": "  return { source: true };",
+  "replace": "  return { source: false };",
   "group": "interface"
  },
  {

@@ -25,6 +25,10 @@ function filePathIn(viewState: ShownViewState): string | null {
   return file;
 }
 
+function inSourceMode(viewState: ShownViewState): ShownViewState {
+  return { ...viewState, state: { ...viewState.state, source: true } };
+}
+
 function staysInEditor(viewState: ShownViewState, path: string, leaf: object, takeover: Takeover): boolean {
   if (viewState.type !== EDITOR_TYPE) return false;
   return takeover.keptInEditor(leaf, path);
@@ -34,7 +38,7 @@ export function campaignStateFor(viewState: ShownViewState, leaf: object, takeov
   const path = filePathIn(viewState);
   if (path === null || !takeover.holds(path)) return viewState;
   if (!takeover.campaignViewRegistered()) return viewState;
-  if (staysInEditor(viewState, path, leaf, takeover)) return viewState;
+  if (staysInEditor(viewState, path, leaf, takeover)) return inSourceMode(viewState);
   const page = pageOfFile(path, takeover.campaignFolders());
   if (page === null) return viewState;
   return { ...viewState, type: CAMPAIGN_VIEW, state: { page, path }, icon: CAMPAIGN_ICON, title: CAMPAIGN_TITLE };

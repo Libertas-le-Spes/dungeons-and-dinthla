@@ -124,15 +124,17 @@ describe("campaignStateFor", () => {
     expect(campaignStateFor(oddFile, LEAF, TAKEOVER)).toBe(oddFile);
   });
 
-  it.each([
-    { mode: "reading view", state: { file: MIRA, mode: "preview" } },
-    { mode: "Live Preview", state: { file: MIRA, mode: "source", source: false } },
-    { mode: "source mode", state: { file: MIRA, mode: "source", source: true } },
-  ])("hands back the very same state for a note kept in Obsidian's editor when its tab switches to $mode", ({ state }) => {
+  it("keeps a note opened in Obsidian's editor there when its tab sets it again, as switching to reading view does", () => {
     const takeover = takeoverWith({ kept: keptInEditor(LEAF, MIRA) });
-    const switched = { type: "markdown", state, active: true };
-    expect(campaignStateFor(switched, LEAF, takeover)).toBe(switched);
+    const reading = { type: "markdown", state: { file: MIRA, mode: "preview" }, active: true };
+    expect(campaignStateFor(reading, LEAF, takeover)).toEqual({ type: "markdown", state: { file: MIRA, mode: "preview", source: true }, active: true });
     expect(takeover.keptInEditor).toHaveBeenCalledExactlyOnceWith(LEAF, MIRA);
+  });
+
+  it("keeps that tab in source mode, where Obsidian draws no maths, when Live Preview is asked for", () => {
+    const takeover = takeoverWith({ kept: keptInEditor(LEAF, MIRA) });
+    const livePreview = { type: "markdown", state: { file: MIRA, mode: "source", source: false } };
+    expect(campaignStateFor(livePreview, LEAF, takeover).state).toEqual({ file: MIRA, mode: "source", source: true });
   });
 
   it("opens that note in the campaign tab from any other tab", () => {
@@ -164,8 +166,8 @@ describe("CampaignTakeover", () => {
   it("changes a state the way campaignStateFor does, with the takeover it was given", () => {
     const takeover = takeoverWith({ kept: keptInEditor(LEAF, MIRA) });
     const change = new CampaignTakeover(takeover);
-    const kept = { type: "markdown", state: { file: MIRA, mode: "source", source: false } };
-    expect(change.change(kept, LEAF)).toBe(kept);
+    const kept = { type: "markdown", state: { file: MIRA, source: true } };
+    expect(change.change(kept, LEAF)).toEqual(kept);
     expect(change.change(kept, {}).type).toBe(CAMPAIGN_VIEW);
   });
 });
