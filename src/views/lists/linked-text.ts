@@ -76,7 +76,7 @@ export function addRowButtonIn(item: HTMLElement, source: Source, actions: LinkA
   SOURCE_ROWS.mark(row, sourceKeyOf(source));
   row.addEventListener("click", () => actions.openRow(source));
   row.addEventListener("keydown", (event) => {
-    if (event.target !== row) return;
+    if (event.eventPhase !== event.AT_TARGET) return;
     if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
     actions.openRow(source);

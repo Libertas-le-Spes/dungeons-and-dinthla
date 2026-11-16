@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { addLinkedText, addNameLink } from "../../../src/views/lists/linked-text";
+import { addLinkedText, addNameLink, addRowButtonIn } from "../../../src/views/lists/linked-text";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 const SOURCE = "D&D/Pale Moon/Sessions/Session 1.md";
@@ -101,5 +101,29 @@ describe("addLinkedText", () => {
     const names = Array.from(parent.querySelectorAll("a"));
     expect(names).toHaveLength(2);
     for (const name of names) expect(name.hasAttribute("href")).toBe(false);
+  });
+});
+
+function rowIn() {
+  const document = obsidianDocument();
+  const item = document.createElement("li");
+  document.body.append(item);
+  const actions = { openRow: vi.fn(), openLink: vi.fn() };
+  const row = addRowButtonIn(item, { path: SOURCE, line: 3 }, actions);
+  return { document, row, actions };
+}
+
+describe("addRowButtonIn", () => {
+  it("opens the row's line when Enter is pressed on the row", () => {
+    const { document, row, actions } = rowIn();
+    fire(row, new (windowOf(document).KeyboardEvent)("keydown", { bubbles: true, cancelable: true, key: "Enter" }));
+    expect(actions.openRow).toHaveBeenCalledExactlyOnceWith({ path: SOURCE, line: 3 });
+  });
+
+  it("leaves Enter pressed on something inside the row to that thing", () => {
+    const { document, row, actions } = rowIn();
+    const inside = row.createSpan();
+    fire(inside, new (windowOf(document).KeyboardEvent)("keydown", { bubbles: true, cancelable: true, key: "Enter" }));
+    expect(actions.openRow).not.toHaveBeenCalled();
   });
 });
