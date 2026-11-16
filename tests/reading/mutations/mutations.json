@@ -56,20 +56,6 @@
   "group": "reading"
  },
  {
-  "id": "the editor class only on campaign notes",
-  "file": "src/editor/plain-dollars-editor.ts",
-  "find": "  if (!isCampaignNote(info.file.path)) return null;\n",
-  "replace": "",
-  "group": "reading"
- },
- {
-  "id": "the editor class only with a note",
-  "file": "src/editor/plain-dollars-editor.ts",
-  "find": "if (info === undefined || info.file === null) return null;",
-  "replace": "if (info === undefined) return null;",
-  "group": "reading"
- },
- {
   "id": "campaign notes only inside the Campaigns folder",
   "file": "src/campaign/paths/campaign-folders.ts",
   "find": "  const folder = campaignFolderAround(path, campaignsFolder);\n  if (folder === null) return false;\n  return noteExists",
