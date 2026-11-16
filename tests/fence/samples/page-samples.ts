@@ -55,11 +55,13 @@ export const PAGE_TEXT_SAMPLES = [
   "export const text = (node: Text) => node.data;",
   "export const text = (node: Text) => node.wholeText;",
   "export const text = (node: Node) => node.nodeValue;",
+  'import type { App } from "obsidian";\nexport const text = (_app: App, el: HTMLElement) => el.getText();',
   "export function text(el: HTMLElement) {\n  const range = el.ownerDocument.createRange();\n  range.selectNodeContents(el.ownerDocument.body);\n  return range.toString();\n}",
   "export function text(el: HTMLElement) {\n  const { textContent } = el;\n  return textContent;\n}",
   'export const found = (el: HTMLElement) => el.ownerDocument.querySelector(".cm-content");',
   'export const found = (el: HTMLElement) => el.closest(".workspace");',
   'export const found = (el: HTMLElement) => el.find(".cm-content");',
+  'import type { App } from "obsidian";\nexport const found = (_app: App, el: HTMLElement) => el.matchParent(".workspace");',
   'export const found = (el: HTMLElement) => el.ownerDocument.getElementsByClassName("cm-line");',
   'import { ItemView } from "obsidian";\nexport class Ledger extends ItemView {\n  getViewType(): string {\n    return "ledger";\n  }\n  getDisplayText(): string {\n    return this.contentEl.textContent;\n  }\n}',
 ];
@@ -84,6 +86,17 @@ export const PAGE_READ_SAMPLES = [
   "export const read = (el: HTMLElement) => el.nextElementSibling;",
   "export function read(el: HTMLElement) {\n  const { ownerDocument } = el;\n  return ownerDocument;\n}",
   'export const read = (el: HTMLElement) => el.attributes.getNamedItem("data-href");',
+  'import type { App } from "obsidian";\nexport const read = (_app: App, el: HTMLElement) => el.getAttr("data-href");',
+  'import type { App } from "obsidian";\nexport const read = (_app: App, el: HTMLElement) => el.doc;',
+  'import type { App } from "obsidian";\nexport const read = (_app: App, el: HTMLElement) => el.constructorWin;',
 ];
 
-export const OWN_ELEMENT_SAMPLES = ['export const label = (el: HTMLElement) => el.createDiv({ cls: "dd-frame" }).addClass("dd-shown");'];
+export const OWN_ELEMENT_SAMPLES = [
+  'export const label = (el: HTMLElement) => el.createDiv({ cls: "dd-frame" }).addClass("dd-shown");',
+  'import type { App } from "obsidian";\nexport const label = (_app: App, el: HTMLElement) => el.createDiv({ cls: "dd-frame" }).addClass("dd-shown");',
+];
+
+export const NOT_PAGE_SAMPLES = [
+  'import type { App } from "obsidian";\nexport const has = (_app: App, list: number[]) => list.contains(1);',
+  'import type { Plugin } from "obsidian";\nexport const host = (plugin: Plugin) => plugin.app;',
+];
