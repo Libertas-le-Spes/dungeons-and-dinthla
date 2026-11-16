@@ -199,12 +199,14 @@ describe("EditorSaves, a change that isn't a save in the editor", () => {
     expect(editorTexts).not.toHaveBeenCalled();
   });
 
-  it("counts nothing at a pause in a note that isn't a session", () => {
-    const { events, pauses, shown, savedInEditor, editorSaves } = editorSavesWith(campaignHolding(READ));
+  it("counts nothing at a pause once the campaign is closed, though a save made while typing was read", () => {
+    const campaign = campaignHolding(READ);
+    const { events, pauses, shown, savedInEditor, editorSaves } = editorSavesWith(campaign);
     show(shown, TYPED);
-    events.trigger("modify", fileAt(QUESTIONS));
-    editorSaves.readWhileTyping(QUESTIONS, TYPED);
-    pauses.paused(QUESTIONS, TYPED);
+    events.trigger("modify", fileAt(SESSION));
+    editorSaves.readWhileTyping(SESSION, TYPED);
+    campaign.campaignFolder = null;
+    pauses.paused(SESSION, TYPED);
     expect(savedInEditor.sessionSavedInEditor).not.toHaveBeenCalled();
   });
 
