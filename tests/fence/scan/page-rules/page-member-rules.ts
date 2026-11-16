@@ -2,24 +2,27 @@ import { isBindingElement, isObjectBindingPattern, type Node } from "typescript/
 import type { Symbol as TypeSymbol } from "typescript/unstable/sync";
 import type { FileScan } from "../reading/file-scan";
 import type { Named } from "../reading/found";
-import { PAGE_LIBRARY } from "../reading/names";
+import { isAddedToThePage, isDeclaredAsAPageAddition, isPageDeclared } from "./page-additions";
 
-function isPageDeclared(symbol: TypeSymbol): boolean {
-  return symbol.declarations.some((declaration) => declaration.path.endsWith(PAGE_LIBRARY));
+function isDeclaredOnThePage(scan: FileScan, symbol: TypeSymbol): boolean {
+  if (isPageDeclared(symbol)) return true;
+  return isDeclaredAsAPageAddition(scan.project.checker, symbol);
 }
 
-function isPageMember(symbol: TypeSymbol | undefined): boolean {
+function isPageMember(scan: FileScan, symbol: TypeSymbol | undefined): boolean {
   if (symbol === undefined) return false;
+  if (isDeclaredOnThePage(scan, symbol)) return true;
   const owner = symbol.getParent();
-  if (owner === undefined) return isPageDeclared(symbol);
-  return isPageDeclared(owner);
+  if (owner === undefined) return false;
+  if (isPageDeclared(owner)) return true;
+  return isAddedToThePage(scan.project.checker, owner);
 }
 
 function memberUses(scan: FileScan): Named[] {
   const members = scan.found.members;
   if (members.length === 0) return [];
   const symbols = scan.project.checker.getSymbolAtLocation(members.map((member) => member.node));
-  return members.filter((_member, index) => isPageMember(symbols[index]));
+  return members.filter((_member, index) => isPageMember(scan, symbols[index]));
 }
 
 function patternOf(key: Node): Node | null {
@@ -34,7 +37,7 @@ function boundUses(scan: FileScan): Named[] {
     if (pattern === null) return false;
     const type = scan.project.checker.getTypeAtLocation(pattern);
     if (type === undefined) return true;
-    return isPageMember(scan.project.checker.getPropertyOfType(type, bound.name));
+    return isPageMember(scan, scan.project.checker.getPropertyOfType(type, bound.name));
   });
 }
 

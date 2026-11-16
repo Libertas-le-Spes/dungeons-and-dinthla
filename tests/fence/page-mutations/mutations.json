@@ -1,0 +1,268 @@
+[
+ {
+  "id": "page text: Obsidian's getText reads the page's text",
+  "file": "tests/fence/scan/reading/names.ts",
+  "find": "\"serializeToString\", \"getText\"]",
+  "replace": "\"serializeToString\"]",
+  "group": "page fence"
+ },
+ {
+  "id": "page queries: Obsidian's matchParent looks elements up",
+  "file": "tests/fence/scan/reading/names.ts",
+  "find": "\"findAllSelf\", \"matchParent\"]",
+  "replace": "\"findAllSelf\"]",
+  "group": "page fence"
+ },
+ {
+  "id": "page escapes: Obsidian's getAttr reads an attribute",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"getAttr\",\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page escapes: Obsidian's constructorWin reaches the window",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"constructorWin\",\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: Obsidian's additions to the page's elements count",
+  "file": "tests/fence/scan/page-rules/page-member-rules.ts",
+  "find": "  return isAddedToThePage(scan.project.checker, owner);",
+  "replace": "  return false;",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: only additions made in a global block count",
+  "file": "tests/fence/scan/page-rules/page-additions.ts",
+  "find": "  if (block.name !== GLOBAL_ADDITIONS) return false;\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: a member of a type with no owner is no addition",
+  "file": "tests/fence/scan/page-rules/page-additions.ts",
+  "find": "  if (block === undefined) return false;\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: only additions to the page's own types count",
+  "file": "tests/fence/scan/page-rules/page-additions.ts",
+  "find": "  return isPageDeclared(merged);",
+  "replace": "  return true;",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: the page's own members still count",
+  "file": "tests/fence/scan/page-rules/page-member-rules.ts",
+  "find": "  if (isPageDeclared(owner)) return true;\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: a global block's type that can't be found counts as the page's",
+  "file": "tests/fence/scan/page-rules/page-additions.ts",
+  "find": "  if (merged === undefined) return true;",
+  "replace": "  if (merged === undefined) return false;",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: Obsidian's additions count on unions, intersections and mapped types",
+  "file": "tests/fence/scan/page-rules/page-member-rules.ts",
+  "find": "  return isDeclaredAsAPageAddition(scan.project.checker, symbol);",
+  "replace": "  return false;",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: the page's own members count on unions, intersections and mapped types",
+  "file": "tests/fence/scan/page-rules/page-member-rules.ts",
+  "find": "  if (isPageDeclared(symbol)) return true;\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: any declaration that is an addition counts, not only when all are",
+  "file": "tests/fence/scan/page-rules/page-additions.ts",
+  "find": "symbol.declarations.some((declaration) => isPageAddition(checker, declaration))",
+  "replace": "symbol.declarations.every((declaration) => isPageAddition(checker, declaration))",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: a declaration that can't be found counts as the page's",
+  "file": "tests/fence/scan/page-rules/page-additions.ts",
+  "find": "  if (node === undefined) return true;",
+  "replace": "  if (node === undefined) return false;",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: only members of an interface are additions",
+  "file": "tests/fence/scan/page-rules/page-additions.ts",
+  "find": "  if (!isInterfaceDeclaration(owner)) return null;\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: only an interface in a global block is an addition",
+  "file": "tests/fence/scan/page-rules/page-additions.ts",
+  "find": "  if (!isGlobalBlock(owner.parent)) return null;\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: an interface at a file's top is in no global block",
+  "file": "tests/fence/scan/page-rules/page-additions.ts",
+  "find": "  if (isSourceFile(block)) return false;\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: a global block's holder is a module",
+  "file": "tests/fence/scan/page-rules/page-additions.ts",
+  "find": "  if (!isModuleDeclaration(holder)) return false;\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: a global block is the one named global",
+  "file": "tests/fence/scan/page-rules/page-additions.ts",
+  "find": "  return holder.name.text === GLOBAL_BLOCK;",
+  "replace": "  return true;",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: a member that is no addition isn't looked up",
+  "file": "tests/fence/scan/page-rules/page-additions.ts",
+  "find": "  if (name === null) return false;\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: only additions to the page's own types count, on unions too",
+  "file": "tests/fence/scan/page-rules/page-additions.ts",
+  "find": "  if (name === null) return false;\n  return isPageTypeNamed(checker, name);",
+  "replace": "  if (name === null) return false;\n  return true;",
+  "group": "page fence"
+ },
+ {
+  "id": "page text: a name any library declares reads the page's text, though one of ours shares it",
+  "file": "tests/fence/scan/page-rules/page-text-rules.ts",
+  "find": "return symbol.declarations.some((declaration) => isLibraryFile(declaration.path));",
+  "replace": "return symbol.declarations.every((declaration) => isLibraryFile(declaration.path));",
+  "group": "page fence"
+ },
+ {
+  "id": "page escapes: onWindowMigrated reaches past the file's own elements",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"onWindowMigrated\",\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page escapes: targetNode reaches past the file's own elements",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"targetNode\",\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page escapes: activeDocument reaches past the file's own elements",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"activeDocument\",\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page escapes: activeWindow reaches past the file's own elements",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"activeWindow\",\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page escapes: _EVENTS reaches past the file's own elements",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"_EVENTS\",\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page escapes: document reaches past the file's own elements",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"document\",\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page escapes: target reaches past the file's own elements",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"target\",\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page escapes: currentTarget reaches past the file's own elements",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"currentTarget\",\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page escapes: relatedTarget reaches past the file's own elements",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"relatedTarget\",\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page escapes: view reaches past the file's own elements",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"view\",\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page escapes: activeElement reaches past the file's own elements",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"activeElement\",\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page escapes: offsetParent reaches past the file's own elements",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"offsetParent\",\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "page escapes: ownerElement reaches past the file's own elements",
+  "file": "tests/fence/allowed/page-members.ts",
+  "find": "  \"ownerElement\",\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "rows: Enter inside a row is left to what it was pressed on",
+  "file": "src/views/lists/linked-text.ts",
+  "find": "    if (event.eventPhase !== event.AT_TARGET) return;\n",
+  "replace": "",
+  "group": "page fence"
+ },
+ {
+  "id": "rows: Enter on the row itself opens it",
+  "file": "src/views/lists/linked-text.ts",
+  "find": "event.eventPhase !== event.AT_TARGET",
+  "replace": "event.eventPhase !== event.BUBBLING_PHASE",
+  "group": "page fence"
+ },
+ {
+  "id": "page members: a member declared on the page counts whatever its parent",
+  "file": "tests/fence/scan/page-rules/page-member-rules.ts",
+  "find": "  if (isDeclaredOnThePage(scan, symbol)) return true;\n",
+  "replace": "",
+  "group": "page fence"
+ }
+]
