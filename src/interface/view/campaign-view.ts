@@ -4,6 +4,8 @@ import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { FencedFiles, GoneFile } from "../../fence/gate/fenced-files";
 import type { NavSection, PageEntry, PageTarget } from "./campaign-pages";
 import { CampaignSwitcher, type SwitchableCampaigns } from "./campaign-switcher";
+import { askedLineOf } from "../../views/opening/asked-line";
+import type { WantedLines } from "../../views/opening/wanted-lines";
 
 export const CAMPAIGN_VIEW = "dungeons-and-dinthla-campaign";
 export const CAMPAIGN_TITLE = "Campaign";
@@ -46,6 +48,7 @@ export interface CampaignViewNeeds {
   backdropFor: BackdropFor;
   files: ViewFiles;
   campaigns: SwitchableCampaigns;
+  wantedLines: WantedLines;
 }
 
 export class CampaignView extends ItemView {
@@ -100,6 +103,14 @@ export class CampaignView extends ItemView {
     this.show(shown);
     if (shown.path !== null) this.needs.followCampaign(shown.path);
     await super.setState(state, result);
+  }
+
+  override setEphemeralState(state: unknown): void {
+    super.setEphemeralState(state);
+    const line = askedLineOf(state);
+    const path = this.shownPath();
+    if (line === null || path === null) return;
+    this.needs.wantedLines.want(path, line);
   }
 
   override async onOpen(): Promise<void> {
