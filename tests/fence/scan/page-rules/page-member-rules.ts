@@ -4,15 +4,16 @@ import type { FileScan } from "../reading/file-scan";
 import type { Named } from "../reading/found";
 import { isAddedToThePage, isDeclaredAsAPageAddition, isPageDeclared } from "./page-additions";
 
-function isOwnerlessPageMember(scan: FileScan, symbol: TypeSymbol): boolean {
+function isDeclaredOnThePage(scan: FileScan, symbol: TypeSymbol): boolean {
   if (isPageDeclared(symbol)) return true;
   return isDeclaredAsAPageAddition(scan.project.checker, symbol);
 }
 
 function isPageMember(scan: FileScan, symbol: TypeSymbol | undefined): boolean {
   if (symbol === undefined) return false;
+  if (isDeclaredOnThePage(scan, symbol)) return true;
   const owner = symbol.getParent();
-  if (owner === undefined) return isOwnerlessPageMember(scan, symbol);
+  if (owner === undefined) return false;
   if (isPageDeclared(owner)) return true;
   return isAddedToThePage(scan.project.checker, owner);
 }
