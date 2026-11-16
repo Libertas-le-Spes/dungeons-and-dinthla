@@ -1,11 +1,8 @@
+import type { WorkspaceLeaf } from "obsidian";
 import { OPEN_IN_EDITOR } from "../../note-page/left-campaign";
+import type { EditorStep } from "./editor-step";
 
 const EDITOR_ICON = "file-pen-line";
-
-export interface EditorStep {
-  noteOf(path: string | null): string | null;
-  open(path: string): void;
-}
 
 export interface EditorItem {
   setTitle(title: string): EditorItem;
@@ -21,6 +18,7 @@ class EditorOffer {
   constructor(
     private readonly step: EditorStep,
     private readonly path: string,
+    private readonly leaf: WorkspaceLeaf,
   ) {}
 
   build(item: EditorItem): void {
@@ -28,20 +26,13 @@ class EditorOffer {
   }
 
   private open(): void {
-    this.step.open(this.path);
+    this.step.openIn(this.path, this.leaf);
   }
 }
 
-export function addEditorItem(menu: EditorMenu, step: EditorStep, shownPath: string | null): void {
+export function addEditorItem(menu: EditorMenu, step: EditorStep, shownPath: string | null, leaf: WorkspaceLeaf): void {
   const path = step.noteOf(shownPath);
   if (path === null) return;
-  const offer = new EditorOffer(step, path);
+  const offer = new EditorOffer(step, path, leaf);
   menu.addItem(offer.build.bind(offer));
-}
-
-export function openShownInEditor(step: EditorStep, shownPath: string | null, checking: boolean): boolean {
-  const path = step.noteOf(shownPath);
-  if (path === null) return false;
-  if (!checking) step.open(path);
-  return true;
 }

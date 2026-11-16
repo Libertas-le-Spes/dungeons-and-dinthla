@@ -10,7 +10,7 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "imports/": ["App", "ButtonComponent", "Setting", "TFile", "parseYaml"],
   "interface/": ["App", "Component", "EventRef", "ItemView", "Menu", "PluginManifest", "TAbstractFile", "TFile", "ViewState", "ViewStateResult", "Workspace", "WorkspaceLeaf"],
   "kind-notes/": ["TFile"],
-  "main.ts": ["MarkdownFileInfo", "MarkdownView", "Notice", "PaneType", "Plugin", "TFile", "ViewState", "WorkspaceLeaf", "debounce"],
+  "main.ts": ["MarkdownFileInfo", "MarkdownView", "Notice", "PaneType", "Plugin", "TFile", "WorkspaceLeaf", "debounce"],
   "note-keeping/": ["CachedMetadata", "TFile", "getFrontMatterInfo"],
   "names/": ["normalizePath"],
   "note-page/": ["Component"],

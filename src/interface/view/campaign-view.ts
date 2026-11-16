@@ -4,7 +4,8 @@ import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { FencedFiles, GoneFile } from "../../fence/gate/fenced-files";
 import type { NavSection, PageEntry, PageTarget } from "./campaign-pages";
 import { CampaignSwitcher, type SwitchableCampaigns } from "./campaign-switcher";
-import { addEditorItem, type EditorStep } from "../takeover/editor-step";
+import { addEditorItem } from "../editor/editor-menu-item";
+import type { EditorStep } from "../editor/editor-step";
 
 export const CAMPAIGN_VIEW = "dungeons-and-dinthla-campaign";
 export const CAMPAIGN_TITLE = "Campaign";
@@ -50,6 +51,8 @@ export interface CampaignViewNeeds {
   editorStep: EditorStep;
 }
 
+export type CampaignViewParts = Omit<CampaignViewNeeds, "leaf">;
+
 export class CampaignView extends ItemView {
   override navigation = true;
   private current: Shown | null = null;
@@ -93,7 +96,7 @@ export class CampaignView extends ItemView {
 
   override onPaneMenu(menu: Menu, source: string): void {
     super.onPaneMenu(menu, source);
-    addEditorItem(menu, this.needs.editorStep, this.shownPath());
+    addEditorItem(menu, this.needs.editorStep, this.shownPath(), this.leaf);
   }
 
   override getState(): Record<string, unknown> {

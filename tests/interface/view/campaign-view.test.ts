@@ -6,11 +6,11 @@ import type { CampaignStore } from "../../../src/campaign/reading/campaign-store
 import type { NavSection, PageEntry, PageId, PathAfterDelete, ShowPage, StayOn } from "../../../src/interface/view/campaign-pages";
 import { CAMPAIGN_VIEW, CampaignView, type ViewFiles } from "../../../src/interface/view/campaign-view";
 import { campaignsFolderFirst } from "../../../src/interface/view/campaigns-folder-first";
-import type { EditorStep } from "../../../src/interface/takeover/editor-step";
+import type { EditorStep } from "../../../src/interface/editor/editor-step";
 import { FakeEditorStep } from "../fake-editor-step";
 import { firstOf } from "../../stubs/lists";
 import { present } from "../../pdf/support/present";
-import { Menu, type MenuItem } from "../../stubs/obsidian";
+import { Menu, paneMenusShown, type MenuItem } from "../../stubs/obsidian";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 class NoEditorStep implements EditorStep {
@@ -18,7 +18,7 @@ class NoEditorStep implements EditorStep {
     return null;
   }
 
-  open(): void {}
+  openIn(): void {}
 }
 
 const NO_EDITOR_STEP: EditorStep = new NoEditorStep();
@@ -563,17 +563,25 @@ describe("CampaignView", () => {
     expect(vault.removed.sort()).toEqual(["delete", "rename"]);
   });
 
-  it("offers Open in Obsidian's editor in its own menu for the note it shows, which opens that note there", async () => {
+  it.each(["more-options", "tab-header"])("offers Open in Obsidian's editor in its %s menu for the note it shows, which opens that note in this tab", async (source) => {
     const step = new FakeEditorStep([MIRA]);
     const { view, made, navigated } = await openView({ editorStep: step });
     firstOf(made).show({ page: "cast", path: MIRA });
     await navigated();
     const menu = new ObsidianMenu();
-    view.onPaneMenu(menu, "more-options");
+    view.onPaneMenu(menu, source);
     const item = firstOf(itemsOf(menu));
     expect(item.title).toBe("Open in Obsidian's editor");
     item.click();
-    expect(step.opened).toEqual([MIRA]);
+    expect(step.opened).toEqual([{ path: MIRA, leaf: view.leaf }]);
+  });
+
+  it("still gives Obsidian's own items to its menu", async () => {
+    const { view } = await openView();
+    const menu = new ObsidianMenu();
+    paneMenusShown.length = 0;
+    view.onPaneMenu(menu, "more-options");
+    expect(paneMenusShown).toEqual([[menu, "more-options"]]);
   });
 
   it("offers nothing in its own menu while it shows no note", async () => {

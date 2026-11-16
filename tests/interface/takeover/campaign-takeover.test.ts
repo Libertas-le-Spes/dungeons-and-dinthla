@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { WorkspaceLeaf } from "obsidian";
-import { campaignStateFor } from "../../../src/interface/takeover/campaign-takeover";
-import { EditorLeaves } from "../../../src/interface/takeover/editor-leaves";
+import { CampaignTakeover, campaignStateFor } from "../../../src/interface/takeover/campaign-takeover";
+import { EditorLeaves } from "../../../src/interface/editor/editor-leaves";
 import { CAMPAIGN_VIEW } from "../../../src/interface/view/campaign-view";
 
 const MIRA = "Pale Moon/Characters/Mira.md";
@@ -19,7 +19,7 @@ function takeoverWith({ registered = true, fenced = true, kept = new EditorLeave
 
 function keptInEditor(leaf: object, path: string): EditorLeaves {
   const kept = new EditorLeaves();
-  kept.keep(leaf, path);
+  kept.keep(leaf, { path });
   return kept;
 }
 
@@ -124,17 +124,15 @@ describe("campaignStateFor", () => {
     expect(campaignStateFor(oddFile, LEAF, TAKEOVER)).toBe(oddFile);
   });
 
-  it("keeps a note opened in Obsidian's editor there when its tab sets it again, as switching to reading view does", () => {
+  it.each([
+    { mode: "reading view", state: { file: MIRA, mode: "preview" } },
+    { mode: "Live Preview", state: { file: MIRA, mode: "source", source: false } },
+    { mode: "source mode", state: { file: MIRA, mode: "source", source: true } },
+  ])("hands back the very same state for a note kept in Obsidian's editor when its tab switches to $mode", ({ state }) => {
     const takeover = takeoverWith({ kept: keptInEditor(LEAF, MIRA) });
-    const reading = { type: "markdown", state: { file: MIRA, mode: "preview" }, active: true };
-    expect(campaignStateFor(reading, LEAF, takeover)).toEqual({ type: "markdown", state: { file: MIRA, mode: "preview", source: true }, active: true });
+    const switched = { type: "markdown", state, active: true };
+    expect(campaignStateFor(switched, LEAF, takeover)).toBe(switched);
     expect(takeover.keptInEditor).toHaveBeenCalledExactlyOnceWith(LEAF, MIRA);
-  });
-
-  it("keeps that tab in source mode, the plain Markdown, when Live Preview is asked for", () => {
-    const takeover = takeoverWith({ kept: keptInEditor(LEAF, MIRA) });
-    const livePreview = { type: "markdown", state: { file: MIRA, mode: "source", source: false } };
-    expect(campaignStateFor(livePreview, LEAF, takeover).state).toEqual({ file: MIRA, mode: "source", source: true });
   });
 
   it("opens that note in the campaign tab from any other tab", () => {
@@ -159,5 +157,15 @@ describe("campaignStateFor", () => {
     const takeover = takeoverWith({ fenced: false, kept: keptInEditor(LEAF, MIRA) });
     campaignStateFor({ type: "markdown", state: { file: MIRA } }, LEAF, takeover);
     expect(takeover.keptInEditor).not.toHaveBeenCalled();
+  });
+});
+
+describe("CampaignTakeover", () => {
+  it("changes a state the way campaignStateFor does, with the takeover it was given", () => {
+    const takeover = takeoverWith({ kept: keptInEditor(LEAF, MIRA) });
+    const change = new CampaignTakeover(takeover);
+    const kept = { type: "markdown", state: { file: MIRA, mode: "source", source: false } };
+    expect(change.change(kept, LEAF)).toBe(kept);
+    expect(change.change(kept, {}).type).toBe(CAMPAIGN_VIEW);
   });
 });

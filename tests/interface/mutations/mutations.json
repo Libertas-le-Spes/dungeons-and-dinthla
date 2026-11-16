@@ -2,15 +2,15 @@
  {
   "id": "a note kept in the editor stays there",
   "file": "src/interface/takeover/campaign-takeover.ts",
-  "find": "  if (staysInEditor(viewState, path, leaf, takeover)) return inSourceMode(viewState, path);\n",
+  "find": "  if (staysInEditor(viewState, path, leaf, takeover)) return viewState;\n",
   "replace": "",
   "group": "interface"
  },
  {
-  "id": "the kept tab is in source mode",
+  "id": "a note kept in the editor keeps the state its tab asked for",
   "file": "src/interface/takeover/campaign-takeover.ts",
-  "find": "file: path, source: true",
-  "replace": "file: path",
+  "find": "  if (staysInEditor(viewState, path, leaf, takeover)) return viewState;",
+  "replace": "  if (staysInEditor(viewState, path, leaf, takeover)) return { ...viewState, state: { ...viewState.state, source: true } };",
   "group": "interface"
  },
  {
@@ -23,15 +23,22 @@
  {
   "id": "the fence before the editor",
   "file": "src/interface/takeover/campaign-takeover.ts",
-  "find": "  if (path === null || !takeover.holds(path)) return viewState;\n  if (!takeover.campaignViewRegistered()) return viewState;\n  if (staysInEditor(viewState, path, leaf, takeover)) return inSourceMode(viewState, path);",
-  "replace": "  if (path === null) return viewState;\n  if (staysInEditor(viewState, path, leaf, takeover)) return inSourceMode(viewState, path);\n  if (!takeover.holds(path)) return viewState;\n  if (!takeover.campaignViewRegistered()) return viewState;",
+  "find": "  if (path === null || !takeover.holds(path)) return viewState;\n  if (!takeover.campaignViewRegistered()) return viewState;\n  if (staysInEditor",
+  "replace": "  if (path === null) return viewState;\n  if (!takeover.campaignViewRegistered()) return viewState;\n  if (staysInEditor",
   "group": "interface"
  },
  {
-  "id": "a tab keeps only its own note",
-  "file": "src/interface/takeover/editor-leaves.ts",
-  "find": "return this.paths.get(leaf) === path;",
-  "replace": "return this.paths.has(leaf);",
+  "id": "the takeover object changes with its takeover",
+  "file": "src/interface/takeover/campaign-takeover.ts",
+  "find": "    return campaignStateFor(viewState, leaf, this.takeover);",
+  "replace": "    return viewState;",
+  "group": "interface"
+ },
+ {
+  "id": "the takeover object names the tab",
+  "file": "src/interface/takeover/campaign-takeover.ts",
+  "find": "    return campaignStateFor(viewState, leaf, this.takeover);",
+  "replace": "    return campaignStateFor(viewState, {}, this.takeover);",
   "group": "interface"
  },
  {
@@ -49,24 +56,94 @@
   "group": "interface"
  },
  {
+  "id": "a tab keeps only its own note",
+  "file": "src/interface/editor/editor-leaves.ts",
+  "find": "    return note.path === path;",
+  "replace": "    return true;",
+  "group": "interface"
+ },
+ {
+  "id": "a tab keeps nothing it wasn't given",
+  "file": "src/interface/editor/editor-leaves.ts",
+  "find": "    if (note === undefined) return false;\n",
+  "replace": "",
+  "group": "interface"
+ },
+ {
+  "id": "a tab keeps the note itself, renamed or not",
+  "file": "src/interface/editor/editor-leaves.ts",
+  "find": "    this.notes.set(leaf, note);",
+  "replace": "    this.notes.set(leaf, { path: note.path });",
+  "group": "interface"
+ },
+ {
+  "id": "one set of kept tabs for each app",
+  "file": "src/interface/editor/editor-leaves.ts",
+  "find": "  if (known !== undefined) return known;\n",
+  "replace": "",
+  "group": "interface"
+ },
+ {
+  "id": "kept tabs remembered for their app",
+  "file": "src/interface/editor/editor-leaves.ts",
+  "find": "  LEAVES_OF_EACH_APP.set(app, leaves);\n",
+  "replace": "",
+  "group": "interface"
+ },
+ {
   "id": "the editor tab is kept",
   "file": "src/interface/view/open-in-editor.ts",
-  "find": "  leaves.keep(leaf, file.path);\n",
+  "find": "  leaves.keep(leaf, file);\n",
   "replace": "",
   "group": "interface"
  },
  {
   "id": "the editor tab is kept before it opens",
   "file": "src/interface/view/open-in-editor.ts",
-  "find": "  leaves.keep(leaf, file.path);\n  await leaf.openFile(file);",
-  "replace": "  await leaf.openFile(file);\n  leaves.keep(leaf, file.path);",
+  "find": "  leaves.keep(leaf, file);\n  await leaf.openFile(file, { state: livePreview() });",
+  "replace": "  await leaf.openFile(file, { state: livePreview() });\n  leaves.keep(leaf, file);",
+  "group": "interface"
+ },
+ {
+  "id": "the editor opens in Live Preview",
+  "file": "src/interface/view/open-in-editor.ts",
+  "find": "  return { mode: EDITING_MODE, source: false };",
+  "replace": "  return { mode: EDITING_MODE, source: true };",
+  "group": "interface"
+ },
+ {
+  "id": "the editor opens in editing mode",
+  "file": "src/interface/view/open-in-editor.ts",
+  "find": "const EDITING_MODE = \"source\";",
+  "replace": "const EDITING_MODE = \"preview\";",
+  "group": "interface"
+ },
+ {
+  "id": "only a note that is there opens in a tab",
+  "file": "src/interface/view/open-in-editor.ts",
+  "find": "  if (file === null) return;\n  leaves.keep",
+  "replace": "  leaves.keep",
+  "group": "interface"
+ },
+ {
+  "id": "no new tab for a note that is gone",
+  "file": "src/interface/view/open-in-editor.ts",
+  "find": "  if (gate.files.getFileByPath(path) === null) return;\n",
+  "replace": "",
+  "group": "interface"
+ },
+ {
+  "id": "the page's note opens with this app's kept tabs",
+  "file": "src/interface/view/open-in-editor.ts",
+  "find": "editorLeavesOf(app));",
+  "replace": "editorLeavesOf({}));",
   "group": "interface"
  },
  {
   "id": "only Markdown notes go to the editor",
   "file": "src/interface/view/open-in-editor.ts",
-  "find": "if (path === null || !path.endsWith(NOTE_ENDING)) return null;",
-  "replace": "if (path === null) return null;",
+  "find": "!path.endsWith(NOTE_ENDING)",
+  "replace": "!path.includes(NOTE_ENDING)",
   "group": "interface"
  },
  {
@@ -77,45 +154,115 @@
   "group": "interface"
  },
  {
+  "id": "the step opens in the tab it is given",
+  "file": "src/interface/view/open-in-editor.ts",
+  "find": "    void openInTab(leaf, this.gate, path, this.leaves);",
+  "replace": "    void openInTab({} as WorkspaceLeaf, this.gate, path, this.leaves);",
+  "group": "interface"
+ },
+ {
   "id": "no menu item without a note",
-  "file": "src/interface/takeover/editor-step.ts",
+  "file": "src/interface/editor/editor-menu-item.ts",
   "find": "  if (path === null) return;\n  const offer",
   "replace": "  const offer",
   "group": "interface"
  },
  {
   "id": "the menu item opens its note",
-  "file": "src/interface/takeover/editor-step.ts",
-  "find": "this.step.open(this.path);",
-  "replace": "this.step.open(\"\");",
+  "file": "src/interface/editor/editor-menu-item.ts",
+  "find": "    this.step.openIn(this.path, this.leaf);\n",
+  "replace": "",
+  "group": "interface"
+ },
+ {
+  "id": "the menu item opens in its own tab",
+  "file": "src/interface/editor/editor-menu-item.ts",
+  "find": "addEditorItem(menu: EditorMenu, step: EditorStep, shownPath: string | null, leaf: WorkspaceLeaf): void {\n  const path = step.noteOf(shownPath);\n  if (path === null) return;\n  const offer = new EditorOffer(step, path, leaf);",
+  "replace": "addEditorItem(menu: EditorMenu, step: EditorStep, shownPath: string | null, leaf: WorkspaceLeaf): void {\n  const path = step.noteOf(shownPath);\n  if (path === null) return;\n  const offer = new EditorOffer(step, path, {} as WorkspaceLeaf);",
+  "group": "interface"
+ },
+ {
+  "id": "no command without a tab in front",
+  "file": "src/interface/editor/editor-command.ts",
+  "find": "  if (shown === null) return false;\n",
+  "replace": "",
   "group": "interface"
  },
  {
   "id": "no command without a note",
-  "file": "src/interface/takeover/editor-step.ts",
+  "file": "src/interface/editor/editor-command.ts",
   "find": "  if (path === null) return false;\n",
   "replace": "",
   "group": "interface"
  },
  {
-  "id": "the command only checks while checking",
-  "file": "src/interface/takeover/editor-step.ts",
-  "find": "  if (!checking) step.open(path);",
-  "replace": "  step.open(path);",
+  "id": "the command only opens while not checking",
+  "file": "src/interface/editor/editor-command.ts",
+  "find": "  if (!checking) step.openIn(path, shown.leaf);",
+  "replace": "  step.openIn(path, shown.leaf);",
+  "group": "interface"
+ },
+ {
+  "id": "the command opens in the tab in front",
+  "file": "src/interface/editor/editor-command.ts",
+  "find": "step.openIn(path, shown.leaf);",
+  "replace": "step.openIn(path, {} as WorkspaceLeaf);",
   "group": "interface"
  },
  {
   "id": "the tab's menu offers the editor",
   "file": "src/interface/view/campaign-view.ts",
-  "find": "    addEditorItem(menu, this.needs.editorStep, this.shownPath());\n",
+  "find": "    addEditorItem(menu, this.needs.editorStep, this.shownPath(), this.leaf);\n",
   "replace": "",
   "group": "interface"
  },
  {
   "id": "the tab's menu offers the note shown",
   "file": "src/interface/view/campaign-view.ts",
-  "find": "addEditorItem(menu, this.needs.editorStep, this.shownPath());",
-  "replace": "addEditorItem(menu, this.needs.editorStep, null);",
+  "find": "addEditorItem(menu, this.needs.editorStep, this.shownPath(), this.leaf);",
+  "replace": "addEditorItem(menu, this.needs.editorStep, null, this.leaf);",
+  "group": "interface"
+ },
+ {
+  "id": "the tab's menu keeps Obsidian's own items",
+  "file": "src/interface/view/campaign-view.ts",
+  "find": "    super.onPaneMenu(menu, source);\n",
+  "replace": "",
+  "group": "interface"
+ },
+ {
+  "id": "the wiring shares the kept tabs of the app",
+  "file": "src/interface/view/editor-wiring.ts",
+  "find": "    this.leaves = editorLeavesOf(app);",
+  "replace": "    this.leaves = editorLeavesOf({});",
+  "group": "interface"
+ },
+ {
+  "id": "the takeover reads the tabs the step keeps",
+  "file": "src/interface/view/editor-wiring.ts",
+  "find": "    return this.leaves.keeps(leaf, path);",
+  "replace": "    return editorLeavesOf({}).keeps(leaf, path);",
+  "group": "interface"
+ },
+ {
+  "id": "the command looks at the campaign tab in front",
+  "file": "src/interface/view/editor-wiring.ts",
+  "find": "    if (view === null) return null;\n",
+  "replace": "",
+  "group": "interface"
+ },
+ {
+  "id": "the command uses the tab in front",
+  "file": "src/interface/view/editor-wiring.ts",
+  "find": "    return { path: view.shownPath(), leaf: view.leaf };",
+  "replace": "    return { path: view.shownPath(), leaf: {} as never };",
+  "group": "interface"
+ },
+ {
+  "id": "the command checks as Obsidian asks",
+  "file": "src/interface/view/editor-wiring.ts",
+  "find": "    return openShownInEditor(this.step, this.shownNote(), checking);",
+  "replace": "    return openShownInEditor(this.step, this.shownNote(), false);",
   "group": "interface"
  }
 ]

@@ -1,8 +1,14 @@
-import type { EditorStep } from "../../src/interface/takeover/editor-step";
+import type { WorkspaceLeaf } from "obsidian";
+import type { EditorStep } from "../../src/interface/editor/editor-step";
+
+export interface OpenedIn {
+  path: string;
+  leaf: WorkspaceLeaf;
+}
 
 export class FakeEditorStep implements EditorStep {
   readonly asked: (string | null)[] = [];
-  readonly opened: string[] = [];
+  readonly opened: OpenedIn[] = [];
 
   constructor(private readonly notes: string[]) {}
 
@@ -12,7 +18,7 @@ export class FakeEditorStep implements EditorStep {
     return path;
   }
 
-  open(path: string): void {
-    this.opened.push(path);
+  openIn(path: string, leaf: WorkspaceLeaf): void {
+    this.opened.push({ path, leaf });
   }
 }
