@@ -1,28 +1,20 @@
 import { isBindingElement, isObjectBindingPattern, type Node } from "typescript/unstable/ast";
-import { SymbolFlags, type Symbol as TypeSymbol } from "typescript/unstable/sync";
+import type { Symbol as TypeSymbol } from "typescript/unstable/sync";
 import type { FileScan } from "../reading/file-scan";
 import type { Named } from "../reading/found";
-import { GLOBAL_ADDITIONS, PAGE_LIBRARY } from "../reading/names";
+import { isAddedToThePage, isDeclaredAsAPageAddition, isPageDeclared } from "./page-additions";
 
-function isPageDeclared(symbol: TypeSymbol): boolean {
-  return symbol.declarations.some((declaration) => declaration.path.endsWith(PAGE_LIBRARY));
-}
-
-function isAddedToThePage(scan: FileScan, owner: TypeSymbol): boolean {
-  const block = owner.getParent();
-  if (block === undefined) return false;
-  if (block.name !== GLOBAL_ADDITIONS) return false;
-  const merged = scan.project.checker.resolveName(owner.name, SymbolFlags.Type);
-  if (merged === undefined) return true;
-  return isPageDeclared(merged);
+function isOwnerlessPageMember(scan: FileScan, symbol: TypeSymbol): boolean {
+  if (isPageDeclared(symbol)) return true;
+  return isDeclaredAsAPageAddition(scan.project.checker, symbol);
 }
 
 function isPageMember(scan: FileScan, symbol: TypeSymbol | undefined): boolean {
   if (symbol === undefined) return false;
   const owner = symbol.getParent();
-  if (owner === undefined) return isPageDeclared(symbol);
+  if (owner === undefined) return isOwnerlessPageMember(scan, symbol);
   if (isPageDeclared(owner)) return true;
-  return isAddedToThePage(scan, owner);
+  return isAddedToThePage(scan.project.checker, owner);
 }
 
 function memberUses(scan: FileScan): Named[] {

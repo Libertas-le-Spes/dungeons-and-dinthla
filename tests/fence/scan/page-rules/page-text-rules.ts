@@ -32,7 +32,7 @@ function pageTextNames(scan: FileScan): NameUse[] {
   return uses.filter((use, index) => {
     const symbol = symbols[index];
     if (symbol === undefined || isBindingElement(use.node.parent)) return true;
-    return symbol.declarations.every((declaration) => isLibraryFile(declaration.path));
+    return symbol.declarations.some((declaration) => isLibraryFile(declaration.path));
   });
 }
 

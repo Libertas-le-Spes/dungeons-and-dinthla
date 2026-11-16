@@ -200,6 +200,8 @@ export const PAGE_LIBRARY = "/lib.dom.d.ts";
 
 export const GLOBAL_ADDITIONS = "__global";
 
+export const GLOBAL_BLOCK = "global";
+
 export const UNSAFE_KEYS = ["constructor", "__proto__", "prototype"];
 
 export const NETWORK_CALL = "requestUrl";
