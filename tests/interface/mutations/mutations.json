@@ -107,15 +107,8 @@
  {
   "id": "the editor opens in Live Preview",
   "file": "src/interface/view/open-in-editor.ts",
-  "find": "  return { mode: EDITING_MODE, source: false };",
-  "replace": "  return { mode: EDITING_MODE, source: true };",
-  "group": "interface"
- },
- {
-  "id": "the editor opens in editing mode",
-  "file": "src/interface/view/open-in-editor.ts",
-  "find": "const EDITING_MODE = \"source\";",
-  "replace": "const EDITING_MODE = \"preview\";",
+  "find": "  return { source: false };",
+  "replace": "  return { source: true };",
   "group": "interface"
  },
  {

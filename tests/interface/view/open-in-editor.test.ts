@@ -8,7 +8,7 @@ const MOVED = "Loose notes/Old Mill.md";
 const BASE = "Loose notes/Places.base";
 const LOOKS_LIKE_A_NOTE = "Loose notes/Notes.md.base";
 const GONE = "Loose notes/Gilded Stag.md";
-const LIVE_PREVIEW = { state: { mode: "source", source: false } };
+const LIVE_PREVIEW = { state: { source: false } };
 
 interface Opened {
   file: TFile;

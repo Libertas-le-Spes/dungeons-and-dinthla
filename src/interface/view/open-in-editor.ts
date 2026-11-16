@@ -5,10 +5,8 @@ import { editorLeavesOf, type EditorLeaves } from "../editor/editor-leaves";
 import type { EditorStep } from "../editor/editor-step";
 
 const NOTE_ENDING = ".md";
-const EDITING_MODE = "source";
-
 function livePreview(): Record<string, unknown> {
-  return { mode: EDITING_MODE, source: false };
+  return { source: false };
 }
 
 export interface EditorApp {
