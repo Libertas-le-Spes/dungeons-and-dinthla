@@ -1,4 +1,4 @@
-import { debounce, MarkdownView, Notice, type MarkdownPostProcessorContext, Plugin, WorkspaceLeaf, type MarkdownFileInfo, type PaneType, type TFile, type ViewState } from "obsidian";
+import { debounce, MarkdownView, Notice, Plugin, WorkspaceLeaf, type MarkdownFileInfo, type PaneType, type TFile, type ViewState } from "obsidian";
 import type { Source } from "./campaign/record/campaign";
 import type { SheetValue } from "./characters/reading/character-sheet";
 import { messageOf } from "./views/dialogs/message-of";
@@ -63,7 +63,7 @@ import { openCampaignPage } from "./interface/tabs/open-campaign";
 import { TabBackground } from "./interface/view/tab-background";
 import { closeRetiredViews } from "./interface/takeover/retired-views";
 import { colourMarkers } from "./reading/colour-markers";
-import { BEFORE_OBSIDIANS_MATHS, showDollarsPlain } from "./reading/plain-dollars";
+import { BEFORE_OBSIDIANS_MATHS, plainDollarsProcessor } from "./reading/plain-dollars-processor";
 import { plainDollarsIn } from "./editor/plain-dollars-editor";
 import { BackgroundRefresh, showBackground, shownBackgroundOf } from "./reading/note-background";
 import { CampaignSettingTab } from "./settings/choosing/campaign-setting-tab";
@@ -254,7 +254,7 @@ export default class DungeonsAndDinthla extends Plugin {
         ...sessionNotes.wholeText,
         actions,
         mentionNotes,
-        isCampaignNote: (path: string) => campaignFolderOf(path, this.campaignFolders()) !== null,
+        isCampaignNote: this.isCampaignNote.bind(this),
         openInEditor: (path: string) => void openInEditor(this.app, gate, path),
       }),
       welcome,
@@ -302,7 +302,7 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private colourSessionNotes(): void {
-    const inSession = (path: string) => isSessionNote(path, this.campaignsFolderSetting.path, (notePath) => this.gate.files.getFileByPath(notePath) !== null);
+    const inSession = this.isSessionNote.bind(this);
     this.registerEditorExtension(markerColouring(inSession));
     this.registerMarkdownPostProcessor((element, context) => {
       if (inSession(context.sourcePath)) colourMarkers(element);
@@ -514,11 +514,11 @@ export default class DungeonsAndDinthla extends Plugin {
   private keepDollarsPlain(): void {
     const inCampaign = this.isCampaignNote.bind(this);
     this.registerEditorExtension(plainDollarsIn(inCampaign));
-    this.registerMarkdownPostProcessor(this.showDollarsPlainIn.bind(this), BEFORE_OBSIDIANS_MATHS);
+    this.registerMarkdownPostProcessor(plainDollarsProcessor(inCampaign), BEFORE_OBSIDIANS_MATHS);
   }
 
-  private showDollarsPlainIn(element: HTMLElement, context: MarkdownPostProcessorContext): void {
-    if (this.isCampaignNote(context.sourcePath)) showDollarsPlain(element, context);
+  private isSessionNote(path: string): boolean {
+    return isSessionNote(path, this.campaignsFolderSetting.path, this.noteExists.bind(this));
   }
 
   private isCampaignNote(path: string): boolean {

@@ -1,18 +1,20 @@
+import type { NoteLines } from "./note-lines";
 import { sectionTextOf, type SectionSource } from "./section-lines";
-
-export const BEFORE_OBSIDIANS_MATHS = -100;
+import { withoutComments } from "./without-comments";
 
 const MATHS = ".math";
 const PLAIN_LINES = "dd-plain-lines";
 
-function showItsOwnText(maths: Element): void {
+function showItsOwnText(maths: HTMLElement): void {
+  const text = withoutComments(maths.getText());
   maths.className = PLAIN_LINES;
+  maths.setText(text);
 }
 
-export function showDollarsPlain(root: HTMLElement, source: SectionSource): void {
-  const maths = Array.from(root.querySelectorAll(MATHS));
+export function showDollarsPlain(root: HTMLElement, source: SectionSource, noteLines: NoteLines): void {
+  const maths = Array.from(root.querySelectorAll<HTMLElement>(MATHS));
   if (maths.length === 0) return;
-  const text = sectionTextOf(root, source);
+  const text = sectionTextOf(root, source, noteLines);
   if (text === null) {
     for (const one of maths) showItsOwnText(one);
     return;

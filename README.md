@@ -60,7 +60,7 @@ Everything the plugin draws follows Obsidian's active theme, light, dark or a co
 ### Dollar lines stay plain
 
 1. Write two item changes in a session, such as `$$ Potion of healing :used` and, a few lines later, `$$ Rope :lost`.
-2. Obsidian would read the lines between them as maths. In your campaign's notes it doesn't: the campaign tab shows each line as you wrote it, and so do reading view and a preview of the note, dollar signs and all.
+2. Obsidian would read every line from the first one on as maths, since no line ends in `$$`. In your campaign's notes it doesn't: the campaign tab shows each line as you wrote it, and so do reading view and a preview of the note, dollar signs and all, leaving out anything you hid in a `%% %%` comment. Obsidian's editor shows them in source mode, as plain text.
 3. In a note outside your campaigns, Obsidian draws maths as usual.
 
 ## Notes

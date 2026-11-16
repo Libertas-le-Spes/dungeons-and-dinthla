@@ -30,8 +30,10 @@ describe("plainDollarsClassOf", () => {
     expect(plainDollarsClassOf(editorShowing(fileAt("Maths/Proofs.md")), isPaleMoonNote)).toBeNull();
   });
 
-  it("leaves an editor on no note, or one Obsidian doesn't say the note of, alone", () => {
-    expect(plainDollarsClassOf(editorShowing(null), isPaleMoonNote)).toBeNull();
-    expect(plainDollarsClassOf(EditorState.create({}), isPaleMoonNote)).toBeNull();
+  it.each([
+    { what: "no note", state: editorShowing(null) },
+    { what: "a note Obsidian doesn't name", state: EditorState.create({}) },
+  ])("leaves an editor on $what alone", ({ state }) => {
+    expect(plainDollarsClassOf(state, isPaleMoonNote)).toBeNull();
   });
 });

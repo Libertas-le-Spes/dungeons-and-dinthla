@@ -236,16 +236,12 @@ function paleMoonIsACampaign(path: string): boolean {
 }
 
 describe("isCampaignNote", () => {
-  it("knows every note inside a campaign's folder, its main note too", () => {
-    for (const path of ["Games/D&D/Pale Moon/Pale Moon.md", "Games/D&D/Pale Moon/Sessions/Session 3.md", "Games/D&D/Pale Moon/Questions/Session 3.md", "Games/D&D/Pale Moon/Old Mill.md"]) {
-      expect(isCampaignNote(path, "Games/D&D", paleMoonIsACampaign)).toBe(true);
-    }
+  it.each(["Games/D&D/Pale Moon/Pale Moon.md", "Games/D&D/Pale Moon/Sessions/Session 3.md", "Games/D&D/Pale Moon/Questions/Session 3.md", "Games/D&D/Pale Moon/Old Mill.md"])("knows %s, a note inside a campaign's folder", (path) => {
+    expect(isCampaignNote(path, "Games/D&D", paleMoonIsACampaign)).toBe(true);
   });
 
-  it("leaves out notes of a folder that isn't a campaign, notes loose in the Campaigns folder and notes outside it", () => {
-    for (const path of ["Games/D&D/Recipes/Bread.md", "Games/D&D/Inbox.md", "Games/Pale Moon/Pale Moon.md", "Pale Moon/Pale Moon.md"]) {
-      expect(isCampaignNote(path, "Games/D&D", paleMoonIsACampaign)).toBe(false);
-    }
+  it.each(["Games/D&D/Recipes/Bread.md", "Games/D&D/Inbox.md", "Games/Pale Moon/Pale Moon.md", "Pale Moon/Pale Moon.md"])("leaves out %s, in a folder that isn't a campaign, loose in the Campaigns folder or outside it", (path) => {
+    expect(isCampaignNote(path, "Games/D&D", paleMoonIsACampaign)).toBe(false);
   });
 
   it("knows no campaign note while no Campaigns folder is set", () => {

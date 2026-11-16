@@ -110,6 +110,9 @@ export function obsidianDocument(): Document {
   prototype.setText = function (this: HTMLElement, text: string) {
     this.textContent = text;
   };
+  prototype.getText = function (this: HTMLElement) {
+    return String(this.textContent);
+  };
   prototype.setAttr = function (this: HTMLElement, name: string, value: string) {
     this.setAttribute(name, value);
   };
