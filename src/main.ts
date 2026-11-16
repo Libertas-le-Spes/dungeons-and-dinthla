@@ -64,7 +64,6 @@ import { TabBackground } from "./interface/view/tab-background";
 import { closeRetiredViews } from "./interface/takeover/retired-views";
 import { colourMarkers } from "./reading/colour-markers";
 import { BEFORE_OBSIDIANS_MATHS, plainDollarsProcessor } from "./reading/plain-dollars-processor";
-import { plainDollarsIn } from "./editor/plain-dollars-editor";
 import { BackgroundRefresh, showBackground, shownBackgroundOf } from "./reading/note-background";
 import { CampaignSettingTab } from "./settings/choosing/campaign-setting-tab";
 import { FolderSuggestModal } from "./settings/choosing/folder-suggest-modal";
@@ -513,7 +512,6 @@ export default class DungeonsAndDinthla extends Plugin {
 
   private keepDollarsPlain(): void {
     const inCampaign = this.isCampaignNote.bind(this);
-    this.registerEditorExtension(plainDollarsIn(inCampaign));
     this.registerMarkdownPostProcessor(plainDollarsProcessor(inCampaign), BEFORE_OBSIDIANS_MATHS);
   }
 
