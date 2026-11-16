@@ -2,8 +2,15 @@
  {
   "id": "a note kept in the editor stays there",
   "file": "src/interface/takeover/campaign-takeover.ts",
-  "find": "  if (staysInEditor(viewState, path, leaf, takeover)) return viewState;\n",
+  "find": "  if (staysInEditor(viewState, path, leaf, takeover)) return inSourceMode(viewState, path);\n",
   "replace": "",
+  "group": "interface"
+ },
+ {
+  "id": "the kept tab is in source mode",
+  "file": "src/interface/takeover/campaign-takeover.ts",
+  "find": "file: path, source: true",
+  "replace": "file: path",
   "group": "interface"
  },
  {
@@ -16,8 +23,8 @@
  {
   "id": "the fence before the editor",
   "file": "src/interface/takeover/campaign-takeover.ts",
-  "find": "  if (path === null || !takeover.holds(path)) return viewState;\n  if (!takeover.campaignViewRegistered()) return viewState;\n  if (staysInEditor(viewState, path, leaf, takeover)) return viewState;",
-  "replace": "  if (path === null) return viewState;\n  if (staysInEditor(viewState, path, leaf, takeover)) return viewState;\n  if (!takeover.holds(path)) return viewState;\n  if (!takeover.campaignViewRegistered()) return viewState;",
+  "find": "  if (path === null || !takeover.holds(path)) return viewState;\n  if (!takeover.campaignViewRegistered()) return viewState;\n  if (staysInEditor(viewState, path, leaf, takeover)) return inSourceMode(viewState, path);",
+  "replace": "  if (path === null) return viewState;\n  if (staysInEditor(viewState, path, leaf, takeover)) return inSourceMode(viewState, path);\n  if (!takeover.holds(path)) return viewState;\n  if (!takeover.campaignViewRegistered()) return viewState;",
   "group": "interface"
  },
  {

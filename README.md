@@ -51,6 +51,12 @@ The plugin checks paths, so it can't see where a folder really is: a symbolic li
 
 After the next build, reload the vault (**Reload app without saving** in the command palette, or Ctrl+R on desktop) to see the newest version. When the note format changes, the demo notes change in the same pull request, and each pull request says what to look for in the demo vault.
 
+## Opening a note as plain Markdown
+
+1. Open any note of your campaign: it shows in the campaign tab, on its own page.
+2. To see or change the note itself as Markdown, choose *Open in Obsidian's editor* from the ⋯ menu at the top right of the campaign tab, or from the command palette.
+3. The tab now shows the note in Obsidian's editor, in source mode, as plain Markdown. Switching to reading view keeps you there. A link you press opens in the campaign tab again, and so does the note when you open it in another tab or after Obsidian starts again.
+
 ## Look
 
 Everything the plugin draws follows Obsidian's active theme, light, dark or a community theme such as an Omarchy theme: its colours, fonts, font sizes, corners, spacing and shadows are Obsidian's own, and change when the theme does. Where a colour must stay readable on any theme, the plugin takes a colour from the theme and lightens or darkens it toward the theme's text colour. `tests/styles/literal-colours.test.ts` fails if a stylesheet or source file writes a literal colour.
@@ -60,12 +66,6 @@ Everything the plugin draws follows Obsidian's active theme, light, dark or a co
 ## Notes
 
 [docs/note-format.md](docs/note-format.md) says how a campaign is kept in plain notes: the folders, sessions, marked lines and character facts the plugin reads and writes.
-
-### Opening a note as plain Markdown
-
-1. Open any note of your campaign: it shows in the campaign tab, on its own page.
-2. To see or change the note itself as Markdown, choose *Open in Obsidian's editor* from the ⋯ menu at the top right of the campaign tab, or from the command palette.
-3. The tab now shows the note in Obsidian's editor. Switching to reading view keeps you there. A link you press opens in the campaign tab again, and so does the note when you open it in another tab or after Obsidian starts again.
 
 ## Importing a character from D&D Beyond
 

@@ -126,9 +126,15 @@ describe("campaignStateFor", () => {
 
   it("keeps a note opened in Obsidian's editor there when its tab sets it again, as switching to reading view does", () => {
     const takeover = takeoverWith({ kept: keptInEditor(LEAF, MIRA) });
-    const reading = { type: "markdown", state: { file: MIRA, mode: "preview" } };
-    expect(campaignStateFor(reading, LEAF, takeover)).toBe(reading);
+    const reading = { type: "markdown", state: { file: MIRA, mode: "preview" }, active: true };
+    expect(campaignStateFor(reading, LEAF, takeover)).toEqual({ type: "markdown", state: { file: MIRA, mode: "preview", source: true }, active: true });
     expect(takeover.keptInEditor).toHaveBeenCalledExactlyOnceWith(LEAF, MIRA);
+  });
+
+  it("keeps that tab in source mode, the plain Markdown, when Live Preview is asked for", () => {
+    const takeover = takeoverWith({ kept: keptInEditor(LEAF, MIRA) });
+    const livePreview = { type: "markdown", state: { file: MIRA, mode: "source", source: false } };
+    expect(campaignStateFor(livePreview, LEAF, takeover).state).toEqual({ file: MIRA, mode: "source", source: true });
   });
 
   it("opens that note in the campaign tab from any other tab", () => {
