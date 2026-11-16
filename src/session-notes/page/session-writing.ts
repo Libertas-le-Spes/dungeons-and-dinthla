@@ -65,6 +65,10 @@ export class SessionWriting {
     this.writing.focus();
   }
 
+  reveal(line: number): void {
+    this.lines.reveal(line);
+  }
+
   async settled(): Promise<void> {
     await this.linesSaveSettled();
     await this.editAllSettled();

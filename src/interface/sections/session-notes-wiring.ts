@@ -1,3 +1,4 @@
+import type { WantedLines } from "../../views/opening/wanted-lines";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { noteTextsOf } from "../../campaign/reading/note-texts";
 import type { Gate } from "../../fence/gate/gatekeeper";
@@ -28,6 +29,7 @@ export interface SessionNotesWiringNeeds {
   openers: LookupOpeners;
   actions: LinkActions;
   lineOpeners: LineOpeners;
+  wantedLines: WantedLines;
   confirm: OpenConfirm;
   campaignFolders(): string[];
   report(message: string): void;
@@ -60,6 +62,7 @@ export function sessionNotesWiring(needs: SessionNotesWiringNeeds): SessionNotes
       report: (message: string) => needs.report(message),
     },
     startSession: () => needs.startSession(),
+    wantedLines: needs.wantedLines,
   };
   return { notes, wholeText };
 }

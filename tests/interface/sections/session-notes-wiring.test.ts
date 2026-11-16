@@ -12,6 +12,7 @@ import { NoteDrafts } from "../../../src/note-editing/note-drafts";
 import { Drafts } from "../../../src/session-notes/drafts/drafts";
 import { stubLineOpeners } from "../../session-notes/lines/stub-line-openers";
 import { KeptDrafts } from "../../../src/session-notes/kept/kept-drafts";
+import { WantedLines } from "../../../src/views/opening/wanted-lines";
 import { FakeEvents, fileAt, rawVaultWith } from "../../fence/gate/fake-raw-vault";
 
 const SESSION = fileAt("D&D/Pale Moon/Sessions/Session 1.md");
@@ -48,6 +49,7 @@ function wiredWith(trashOption: string) {
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
     actions: { openRow: vi.fn(), openLink: vi.fn() },
     lineOpeners: stubLineOpeners(),
+    wantedLines: new WantedLines(),
     confirm: vi.fn(),
     campaignFolders: vi.fn(() => ["D&D/Pale Moon"]),
     report: vi.fn(),

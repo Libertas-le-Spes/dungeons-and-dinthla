@@ -131,6 +131,8 @@ export class ItemView extends Component {
   }
 
   async setState(..._args: Parameters<RealItemView["setState"]>): Promise<void> {}
+
+  setEphemeralState(_state: unknown): void {}
 }
 
 const MIDDLE_BUTTON = 1;

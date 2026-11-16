@@ -43,6 +43,7 @@ import { NotesMade } from "./settings/saved/notes-made";
 import { ledgerEntryOpener } from "./funds/coins/open-ledger-entry";
 import { ListPage } from "./views/lists/list-page";
 import { activePathOf, openSource } from "./views/opening/open-view";
+import { WantedLines } from "./views/opening/wanted-lines";
 import { openLink } from "./views/opening/open-link";
 import type { DashboardActions } from "./dashboard/dashboard-page";
 import { campaignSections, type PageId, type ShowPage } from "./interface/view/campaign-pages";
@@ -214,6 +215,7 @@ export default class DungeonsAndDinthla extends Plugin {
     const castNeeds = { store: this.store, characterNotes, sheetNotes, mentionNotes, actions, sheetActions, creators, watchFiles };
     const openers: LookupOpeners = { question: openQuestionAt, quest: openQuestAt, item: openItem };
     const { drafts, keeping } = this.keepDrafts();
+    const wantedLines = new WantedLines();
     const sessionNotes = sessionNotesWiring({
       gate,
       store: this.store,
@@ -227,6 +229,7 @@ export default class DungeonsAndDinthla extends Plugin {
         openItem,
         openLedgerEntry,
       },
+      wantedLines,
       confirm: (text: ConfirmText, confirmed: () => void, closed: () => void) => new ConfirmModal(this.app, text, confirmed, closed).open(),
       campaignFolders: () => this.campaignFolders(),
       report: (message: string) => new Notice(message, NOTICE_STAYS_UNTIL_DISMISSED),
@@ -260,7 +263,7 @@ export default class DungeonsAndDinthla extends Plugin {
     });
     const sections = campaignsFolderFirst(pages, welcome, () => this.campaignsFolderSetting.path);
     const backdropFor = (frameEl: HTMLElement) => new TabBackground(frameEl, this.store, gate.metadata, gate.files);
-    this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView({ leaf, store: this.store, sections, followCampaign: (path) => void this.followCampaignOf(path), backdropFor, files: gate.files, campaigns: campaignChoice }));
+    this.registerView(CAMPAIGN_VIEW, (leaf) => new CampaignView({ leaf, store: this.store, sections, followCampaign: (path) => void this.followCampaignOf(path), backdropFor, files: gate.files, campaigns: campaignChoice, wantedLines }));
     this.addPageOpeners(newSession);
     this.colourSessionNotes();
     this.app.workspace.onLayoutReady(() => {
