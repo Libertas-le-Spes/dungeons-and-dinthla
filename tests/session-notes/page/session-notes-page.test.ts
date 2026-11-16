@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { SessionNote } from "../../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
@@ -15,6 +15,7 @@ import type { ConfirmText } from "../../../src/views/dialogs/confirm-modal";
 import type { SessionProperties } from "../../../src/sessions/session-properties";
 import { isShown, obsidianDocument } from "../../stubs/obsidian-dom";
 import { stubLineOpeners } from "../lines/stub-line-openers";
+import { WantedLines } from "../../../src/views/opening/wanted-lines";
 import { stubRenumbering } from "../renumbering/stub-renumbering";
 
 const FOLDER = "Pale Moon";
@@ -38,7 +39,7 @@ function propertiesOf(path: string): SessionProperties {
 function pageWith(
   sessions: SessionNote[],
   asked: string | null,
-  { folder = FOLDER as string | null, drafts = new Drafts({}, () => {}), notes = new FakeNotes(`${FOLDER}/Sessions/Session 12.md`, ""), latestAfterDelete = null as string | null } = {},
+  { folder = FOLDER as string | null, drafts = new Drafts({}, () => {}), notes = new FakeNotes(`${FOLDER}/Sessions/Session 12.md`, ""), latestAfterDelete = null as string | null, wanted = null as WantedLine | null } = {},
 ) {
   let listener = () => {};
   const unsubscribe = vi.fn();
@@ -67,6 +68,8 @@ function pageWith(
   const trashFile = vi.fn(async () => {});
   const writer = { save: vi.fn(async () => "") };
   const keptDrafts = new KeptDrafts(drafts, () => DELETED_AT);
+  const wantedLines = new WantedLines();
+  if (wanted !== null) wantedLines.want(wanted.path, wanted.line);
   const needs = {
     store: store as unknown as CampaignStore,
     drafts,
@@ -78,13 +81,45 @@ function pageWith(
     lineOpeners: stubLineOpeners(),
     wholeText: { texts: notes.texts, drafts: new NoteDrafts(drafts), saver: new NoteSaver(notes.vault) },
     removal: { clearer: new SessionClearer(notes.vault), trash: new SessionTrash(notes.vault, { trashFile }, () => false), renumbering: stubRenumbering({ latest: latestAfterDelete }), confirm, report: vi.fn() },
+    wantedLines,
   };
   const page = new SessionNotesPage(root, asked, needs, moves);
   page.load();
   const select = () => root.querySelector("select")!;
   const lineOpeners = needs.lineOpeners;
   const lineTexts = () => Array.from(root.querySelectorAll(".dd-written-line .dd-line-text")).map((line) => line.textContent);
-  return { root, page, moves, writer, lineOpeners, change, unsubscribe, select, lineTexts, drafts, keptDrafts, confirm, trashFile };
+  return { root, page, moves, writer, lineOpeners, change, unsubscribe, select, lineTexts, drafts, keptDrafts, confirm, trashFile, wantedLines };
+}
+
+interface WantedLine {
+  path: string;
+  line: number;
+}
+
+const SESSION_12 = `${FOLDER}/Sessions/Session 12.md`;
+const SESSION_11 = `${FOLDER}/Sessions/Session 11.md`;
+
+class ScrollWatch {
+  readonly lines: (string | null)[] = [];
+
+  constructor(root: HTMLElement) {
+    const window = root.ownerDocument.defaultView;
+    if (window === null) throw new Error("The test page has no window.");
+    vi.spyOn(window.Element.prototype, "scrollIntoView").mockImplementation(this.scrolledFrom());
+  }
+
+  private scrolledFrom(): (this: Element) => void {
+    const lines = this.lines;
+    return function scrolled(this: Element): void {
+      lines.push(this.getAttribute("data-line"));
+    };
+  }
+}
+
+function wantedRows(root: HTMLElement): (string | null)[] {
+  const lines: (string | null)[] = [];
+  for (const row of root.querySelectorAll(".dd-line-wanted")) lines.push(row.getAttribute("data-line"));
+  return lines;
 }
 
 const SESSIONS = [
@@ -371,5 +406,46 @@ describe("SessionNotesPage", () => {
     finish("");
     await saving;
     expect(box.value).toBe("? Who");
+  });
+  describe("a line asked for by its note", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("marks and scrolls to the line asked for before the page was drawn", () => {
+      const scrolls = new ScrollWatch(obsidianDocument().body);
+      const { root } = pageWith(SESSIONS, SESSION_12, { wanted: { path: SESSION_12, line: 1 } });
+      expect(wantedRows(root)).toEqual(["1"]);
+      expect(scrolls.lines).toEqual(["1"]);
+    });
+
+    it("marks and scrolls to a line asked for while the session is already shown", () => {
+      const { root, wantedLines } = pageWith(SESSIONS, SESSION_12);
+      const scrolls = new ScrollWatch(root);
+      wantedLines.want(SESSION_12, 0);
+      expect(wantedRows(root)).toEqual(["0"]);
+      expect(scrolls.lines).toEqual(["0"]);
+    });
+
+    it("marks nothing for a line asked for in another session, leaving it for that session", () => {
+      const { root, wantedLines } = pageWith(SESSIONS, SESSION_12);
+      const scrolls = new ScrollWatch(root);
+      wantedLines.want(SESSION_11, 0);
+      expect(wantedRows(root)).toEqual([]);
+      expect(scrolls.lines).toEqual([]);
+      expect(wantedLines.takeFor(SESSION_11)).toBe(0);
+    });
+
+    it("marks a line asked for only once, not again when the session is drawn again", () => {
+      const { root, change } = pageWith(SESSIONS, SESSION_12, { wanted: { path: SESSION_12, line: 1 } });
+      change(SESSIONS);
+      expect(wantedRows(root)).toEqual([]);
+    });
+
+    it("marks nothing for a line the session doesn't have", () => {
+      const { root, wantedLines } = pageWith(SESSIONS, SESSION_12);
+      wantedLines.want(SESSION_12, 9);
+      expect(wantedRows(root)).toEqual([]);
+    });
   });
 });

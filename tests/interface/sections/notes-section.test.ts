@@ -15,6 +15,7 @@ import type { SessionTrash } from "../../../src/session-notes/removal/session-tr
 import type { ConfirmText } from "../../../src/views/dialogs/confirm-modal";
 import { stubLineOpeners } from "../../session-notes/lines/stub-line-openers";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { WantedLines } from "../../../src/views/opening/wanted-lines";
 import { stubRenumbering } from "../../session-notes/renumbering/stub-renumbering";
 
 const ELEVEN = "Pale Moon/Sessions/Session 11.md";
@@ -53,6 +54,7 @@ function made(path: string | null, sessions = BOTH, latestAfterDelete: string | 
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
     actions: { openRow: vi.fn(), openLink: vi.fn() },
     lineOpeners: stubLineOpeners(),
+    wantedLines: new WantedLines(),
     wholeText: { texts: texts as unknown as NoteTexts, drafts: new NoteDrafts(drafts), saver: {} as NoteSaver },
     removal: { clearer: {} as SessionClearer, trash: trash as unknown as SessionTrash, renumbering: stubRenumbering({ latest: latestAfterDelete }), confirm, report: vi.fn() },
     startSession,

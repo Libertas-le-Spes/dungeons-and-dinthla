@@ -8,6 +8,7 @@ import { CAMPAIGN_VIEW, CampaignView, type ViewFiles } from "../../../src/interf
 import { campaignsFolderFirst } from "../../../src/interface/view/campaigns-folder-first";
 import { present } from "../../pdf/support/present";
 import { Menu } from "../../stubs/obsidian";
+import { WantedLines } from "../../../src/views/opening/wanted-lines";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 class FakePage extends Component {
@@ -109,6 +110,8 @@ function entryOf(id: PageId, made: FakePage[], { countOf = () => 0, inBar = true
   return { id, label: `Label ${id}`, shortLabel: `Short ${id}`, listed, inBar, glyph: "?", glyphClass: "dd-marker-question", make, pathAfterDelete, countOf };
 }
 
+const OLD_MILL = "Pale Moon/Places/Old Mill.md";
+
 async function openView({
   folder = "Pale Moon" as string | null,
   questionCount = (campaign: Campaign) => campaign.questions.length,
@@ -158,6 +161,7 @@ async function openViewShowing({ folder, questionCount, castAfterDelete, section
   }
   const vault = new FakeVault();
   const backdrops: FakeBackdrop[] = [];
+  const wantedLines = new WantedLines();
   const view = new CampaignView({
     leaf: leaf as unknown as WorkspaceLeaf,
     store: store as unknown as CampaignStore,
@@ -166,6 +170,7 @@ async function openViewShowing({ folder, questionCount, castAfterDelete, section
     backdropFor: backdropsInto(backdrops),
     files: vault as unknown as ViewFiles,
     campaigns,
+    wantedLines,
   });
   view.app = { workspace: { requestSaveLayout } } as unknown as CampaignView["app"];
   const root = obsidianDocument().createElement("div");
@@ -178,7 +183,7 @@ async function openViewShowing({ folder, questionCount, castAfterDelete, section
     store.campaignFolder = nextFolder;
     listener();
   };
-  return { view, root, made, change, unsubscribe, requestSaveLayout, leaf, navigated, results, vault, followCampaign, backdrops };
+  return { view, root, made, change, unsubscribe, requestSaveLayout, leaf, navigated, results, vault, followCampaign, backdrops, wantedLines };
 }
 
 function linkLabelled(root: HTMLElement, label: string): HTMLElement {
@@ -203,6 +208,7 @@ describe("CampaignView", () => {
       backdropFor: backdropsInto([]),
       files: {} as ViewFiles,
       campaigns: noCampaigns(),
+      wantedLines: new WantedLines(),
     });
     expect(view.containerEl.getAttribute("data-type")).toBe(CAMPAIGN_VIEW);
   });
@@ -225,6 +231,30 @@ describe("CampaignView", () => {
     const nav = root.querySelector(".dd-nav")!;
     const shown = [...nav.children].map((child) => child.textContent);
     expect(shown).toEqual(["Pale Moon", "?Label homeShort home", "?Label castShort cast", "From the notes", "?Label questionsShort questions", "?Label fundsShort funds"]);
+  });
+
+  it("passes a line the note was opened at on to the page showing that note", async () => {
+    const { view, wantedLines } = await openView();
+    await view.setState({ page: "note", path: OLD_MILL }, { history: false });
+    view.setEphemeralState({ line: 3 });
+    expect(wantedLines.takeFor(OLD_MILL)).toBe(3);
+  });
+
+  it("passes no line on while it shows no note", async () => {
+    const { view, wantedLines } = await openView();
+    const listener = vi.fn();
+    wantedLines.subscribe(listener);
+    view.setEphemeralState({ line: 3 });
+    expect(listener).not.toHaveBeenCalled();
+  });
+
+  it("passes nothing on when the note was opened without a line", async () => {
+    const { view, wantedLines } = await openView();
+    await view.setState({ page: "note", path: OLD_MILL }, { history: false });
+    const listener = vi.fn();
+    wantedLines.subscribe(listener);
+    view.setEphemeralState({ subpath: "#Notes" });
+    expect(listener).not.toHaveBeenCalled();
   });
 
   it("leaves a page that isn't listed out of the sidebar, and marks no link current while it is shown", async () => {
@@ -458,6 +488,7 @@ describe("CampaignView", () => {
       backdropFor: backdropsInto([]),
       files: new FakeVault() as unknown as ViewFiles,
       campaigns: noCampaigns(),
+      wantedLines: new WantedLines(),
     });
     view.app = { workspace: { requestSaveLayout: vi.fn() } } as unknown as CampaignView["app"];
     view.contentEl = obsidianDocument().createElement("div");
@@ -483,6 +514,7 @@ describe("CampaignView", () => {
       backdropFor: backdropsInto([]),
       files: new FakeVault() as unknown as ViewFiles,
       campaigns: noCampaigns(),
+      wantedLines: new WantedLines(),
     });
     view.app = { workspace: { requestSaveLayout: vi.fn() } } as unknown as CampaignView["app"];
     view.contentEl = obsidianDocument().createElement("div");

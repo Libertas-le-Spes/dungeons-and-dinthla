@@ -267,3 +267,7 @@
   font-size: var(--font-ui-small);
   color: var(--text-body);
 }
+
+.dd-session-notes .dd-written-line.dd-line-wanted {
+  background-color: var(--accent-soft);
+}
