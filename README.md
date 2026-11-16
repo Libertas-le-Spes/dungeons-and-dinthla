@@ -57,6 +57,12 @@ Everything the plugin draws follows Obsidian's active theme, light, dark or a co
 
 `styles.css` is built from `styles/` by `npm run build`. `tests/styles/contrast.test.ts` checks the plugin's contrast pairs in Obsidian's default light and dark themes, Tokyo Night and Catppuccin Latte.
 
+### Dollar lines stay plain
+
+1. Write two item changes in a session, such as `$$ Potion of healing :used` and, a few lines later, `$$ Rope :lost`.
+2. Obsidian would read every line from the first one on as maths, since no line ends in `$$`. In your campaign's notes it doesn't: the campaign tab shows each line as you wrote it, and so do a preview of the note and the note embedded in another, dollar signs and all, leaving out anything you hid in a `%% %%` comment.
+3. In a note outside your campaigns, Obsidian draws maths as usual.
+
 ## Notes
 
 [docs/note-format.md](docs/note-format.md) says how a campaign is kept in plain notes: the folders, sessions, marked lines and character facts the plugin reads and writes.

@@ -17,7 +17,7 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "online/beyond-call.ts": ["requestUrl"],
   "questions/": ["App", "Notice", "Setting"],
   "quests/": ["AbstractInputSuggest", "App", "Notice", "Setting", "TextAreaComponent"],
-  "reading/": ["Debouncer", "debounce"],
+  "reading/": ["Debouncer", "MarkdownPostProcessorContext", "MarkdownSectionInformation", "debounce"],
   "references/new-names/": ["App", "ButtonComponent", "Setting"],
   "session-notes/": ["Component", "EventRef", "TFile", "getFrontMatterInfo"],
   "sessions/": ["App", "Modal", "Notice", "Setting", "TFile"],

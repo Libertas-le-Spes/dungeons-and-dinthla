@@ -68,6 +68,7 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "reading/colour-markers.ts": ["ELEMENT_NODE", "TEXT_NODE", "append", "childNodes", "classList", "className", "closest", "contains", "createElement", "data", "matches", "nodeName", "nodeType", "ownerDocument", "parentElement", "querySelectorAll", "replaceWith", "splitText", "tagName", "textContent"],
   "campaign/writing/new-campaign-modal.ts": ["addClass", "addEventListener", "empty", "focus", "key", "preventDefault"],
   "reading/note-background.ts": ["addClass", "className", "createDiv", "remove", "removeClass", "setCssProps"],
+  "reading/plain-dollars.ts": ["className", "createEl", "empty", "getText", "querySelectorAll", "setText"],
   "references/new-names/new-names-dialog.ts": ["addClass", "createEl"],
   "session-notes/kept/kept-lines.ts": ["addEventListener", "createDiv", "createEl", "disabled", "empty", "setText", "toggle"],
   "session-notes/lines/lines-list.ts": ["addClass", "createDiv", "createEl", "createSpan", "empty", "focus", "setText", "toggle"],

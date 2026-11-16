@@ -126,6 +126,12 @@ export function startingCampaignFolder(activePath: string | null, chosen: string
   return chosenCampaignFolder(chosen, campaignFolders);
 }
 
+export function isCampaignNote(path: string, campaignsFolder: string | null, noteExists: (path: string) => boolean): boolean {
+  const folder = campaignFolderAround(path, campaignsFolder);
+  if (folder === null) return false;
+  return noteExists(mainNotePathOf(folder));
+}
+
 export function isSessionNote(path: string, campaignsFolder: string | null, noteExists: (path: string) => boolean): boolean {
   const folder = campaignFolderAround(path, campaignsFolder);
   if (folder === null || sessionNumberOf(path, folder) === null) return false;

@@ -6,6 +6,7 @@ import {
   chosenCampaignFolder,
   findCampaignFolders,
   isMainNote,
+  isCampaignNote,
   isSessionNote,
   mainNotePathOf,
   charactersBasePathOf,
@@ -227,6 +228,24 @@ describe("isSessionNote", () => {
 
   it("knows no session note while no Campaigns folder is set", () => {
     expect(isSessionNote("Games/D&D/Pale Moon/Sessions/Session 3.md", null, exists)).toBe(false);
+  });
+});
+
+function paleMoonIsACampaign(path: string): boolean {
+  return path === "Games/D&D/Pale Moon/Pale Moon.md";
+}
+
+describe("isCampaignNote", () => {
+  it.each(["Games/D&D/Pale Moon/Pale Moon.md", "Games/D&D/Pale Moon/Sessions/Session 3.md", "Games/D&D/Pale Moon/Questions/Session 3.md", "Games/D&D/Pale Moon/Old Mill.md"])("knows %s, a note inside a campaign's folder", (path) => {
+    expect(isCampaignNote(path, "Games/D&D", paleMoonIsACampaign)).toBe(true);
+  });
+
+  it.each(["Games/D&D/Recipes/Bread.md", "Games/D&D/Inbox.md", "Games/Pale Moon/Pale Moon.md", "Pale Moon/Pale Moon.md"])("leaves out %s, in a folder that isn't a campaign, loose in the Campaigns folder or outside it", (path) => {
+    expect(isCampaignNote(path, "Games/D&D", paleMoonIsACampaign)).toBe(false);
+  });
+
+  it("knows no campaign note while no Campaigns folder is set", () => {
+    expect(isCampaignNote("Games/D&D/Pale Moon/Pale Moon.md", null, paleMoonIsACampaign)).toBe(false);
   });
 });
 
