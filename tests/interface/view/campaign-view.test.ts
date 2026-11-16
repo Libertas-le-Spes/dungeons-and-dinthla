@@ -218,6 +218,12 @@ function pageText(root: HTMLElement): string | null {
   return root.querySelector(".dd-page")!.textContent;
 }
 
+function classNamesOf(parent: Element): string[] {
+  const names: string[] = [];
+  for (const child of parent.children) names.push(child.className);
+  return names;
+}
+
 describe("CampaignView", () => {
   it("gives its type while Obsidian is still building it", () => {
     const view = new CampaignView({
@@ -453,7 +459,7 @@ describe("CampaignView", () => {
       editorStep: NO_EDITOR_STEP,
     });
     const heading = present(root.querySelector(".dd-nav-heading"));
-    expect([...heading.children].map((child) => child.className)).toEqual(["dd-nav-campaign", "clickable-icon dd-nav-switch"]);
+    expect(classNamesOf(heading)).toEqual(["dd-nav-campaign", "clickable-icon dd-nav-switch"]);
     Menu.shown = [];
     present(root.querySelector<HTMLElement>(".dd-nav-switch")).click();
     expect(present(Menu.shown[0]).items.map((item) => item.title)).toEqual(["Pale Moon", "", "New campaign"]);
@@ -553,9 +559,9 @@ describe("CampaignView", () => {
   it("holds only the sidebar and the page, with the page's content in one solid body under a row for its tools", async () => {
     const { root } = await openView();
     const campaign = root.querySelector(".dd-campaign")!;
-    expect([...campaign.children].map((child) => child.className)).toEqual(["dd-nav", "dd-page"]);
+    expect(classNamesOf(campaign)).toEqual(["dd-nav", "dd-page"]);
     const page = campaign.querySelector(".dd-page")!;
-    expect([...page.children].map((child) => child.className)).toEqual(["dd-page-tools", "dd-page-body"]);
+    expect(classNamesOf(page)).toEqual(["dd-page-tools", "dd-page-body"]);
   });
 
   it("closes the shown page and stops listening to the campaign and the vault when it is closed", async () => {

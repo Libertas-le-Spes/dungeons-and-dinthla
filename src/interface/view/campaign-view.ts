@@ -196,13 +196,13 @@ export class CampaignView extends ItemView {
     const toolsEl = pageEl.createDiv({ cls: PAGE_TOOLS_CLASS });
     this.drawEditNote(toolsEl);
     const navigate = (target: PageTarget) => this.navigate(target);
-    const stayOn = (path: string) => this.stayOn(shown.entry, path, toolsEl);
+    const stayOn = this.stayOn.bind(this, shown.entry, toolsEl);
     this.shownPage = this.addChild(shown.entry.make(pageEl.createDiv({ cls: "dd-page-body" }), navigate, shown.path, stayOn));
     this.markCurrent();
     this.app.workspace.requestSaveLayout();
   }
 
-  private stayOn(entry: PageEntry, path: string, toolsEl: HTMLElement): void {
+  private stayOn(entry: PageEntry, toolsEl: HTMLElement, path: string): void {
     const current = this.current;
     if (current === null || current.entry !== entry || current.path !== null) return;
     this.current = { entry, path };
