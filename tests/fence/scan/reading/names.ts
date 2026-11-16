@@ -172,7 +172,7 @@ export const PICTURE_VALUE = "value";
 
 export const POST_PROCESSORS = ["registerMarkdownPostProcessor"];
 
-export const PAGE_TEXT = ["textContent", "innerText", "outerText", "nodeValue", "wholeText", "getHTML", "createRange", "createTreeWalker", "createNodeIterator", "XMLSerializer", "serializeToString"];
+export const PAGE_TEXT = ["textContent", "innerText", "outerText", "nodeValue", "wholeText", "getHTML", "createRange", "createTreeWalker", "createNodeIterator", "XMLSerializer", "serializeToString", "getText"];
 
 export const CHARACTER_DATA = "data";
 
@@ -180,7 +180,7 @@ export const CHARACTER_DATA_OWNERS = ["CharacterData", "Text", "Comment", "Proce
 
 export const ELEMENT_QUERIES = ["querySelector", "querySelectorAll", "getElementsByClassName", "getElementsByTagName", "getElementsByTagNameNS", "getElementsByName", "getElementById", "closest", "elementFromPoint", "elementsFromPoint"];
 
-export const OBSIDIAN_ELEMENT_QUERIES = ["find", "findAll", "findAllSelf"];
+export const OBSIDIAN_ELEMENT_QUERIES = ["find", "findAll", "findAllSelf", "matchParent"];
 
 export const LOADING_MEMBERS = ["href", "src", "srcset", "action", "formAction", "poster", "background", "codebase"];
 
@@ -197,6 +197,10 @@ export const PAGE_LINK = "#";
 export const PAGE_NAMES = [...TIMERS, ...ATTRIBUTE_SETTERS, ...ELEMENT_MAKERS, ...OPTION_TAKERS.map((taker) => taker.name), ...CSS_PROPERTY_SETTERS, ...POST_PROCESSORS, ...PAGE_TEXT, CHARACTER_DATA, ...ELEMENT_QUERIES, ...OBSIDIAN_ELEMENT_QUERIES];
 
 export const PAGE_LIBRARY = "/lib.dom.d.ts";
+
+export const GLOBAL_ADDITIONS = "__global";
+
+export const GLOBAL_BLOCK = "global";
 
 export const UNSAFE_KEYS = ["constructor", "__proto__", "prototype"];
 
