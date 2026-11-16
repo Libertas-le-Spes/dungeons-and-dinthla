@@ -119,6 +119,13 @@
   "group": "kind notes"
  },
  {
+  "id": "editor saves drop a read made while typing at the next read",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "    this.typedReads.forget(path);\n    const typed",
+  "replace": "    const typed",
+  "group": "kind notes"
+ },
+ {
   "id": "editor saves forget a save made while typing when told",
   "file": "src/kind-notes/watching/editor-saves.ts",
   "find": "  forgetTyping(path: string): void {\n    this.typedSaves.forget(path);\n",
@@ -214,6 +221,13 @@
   "file": "src/kind-notes/watching/saves-here.ts",
   "find": "    if (savedInEditor) return true;\n",
   "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "saves here take a save through the plugin of the same text as the one saved in the editor",
+  "file": "src/kind-notes/watching/saves-here.ts",
+  "find": "    const savedByThePlugin = this.takeSaved(path, text);\n    const savedInEditor = this.editorTexts.takeIfHeld(path, text);\n    if (savedInEditor) return true;\n    return savedByThePlugin;",
+  "replace": "    if (this.editorTexts.takeIfHeld(path, text)) return true;\n    return this.takeSaved(path, text);",
   "group": "kind notes"
  },
  {

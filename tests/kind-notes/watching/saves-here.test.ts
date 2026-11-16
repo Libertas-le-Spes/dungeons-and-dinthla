@@ -75,6 +75,14 @@ describe("SavesHere", () => {
     expect(saves.takeIfSavedHere(SESSION, "? Who sent Baka\n")).toBe(true);
   });
 
+  it("a read of a text saved both by the plugin and in the editor takes both", () => {
+    const saves = new SavesHere();
+    saves.saved(SESSION, "? Who sent Mira\n");
+    saves.savedInEditor(SESSION, "? Who sent Mira\n");
+    expect(saves.takeIfSavedHere(SESSION, "? Who sent Mira\n")).toBe(true);
+    expect(saves.takeIfSavedHere(SESSION, "? Who sent Mira\n")).toBe(false);
+  });
+
   it("forgets the text saved in the editor when told to", () => {
     const saves = new SavesHere();
     saves.savedInEditor(SESSION, "? Who sent Mira\n");

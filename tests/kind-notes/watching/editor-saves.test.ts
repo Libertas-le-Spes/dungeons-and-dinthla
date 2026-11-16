@@ -155,6 +155,16 @@ describe("EditorSaves, a save made while typing", () => {
     expect(editorSaves.readWhileTyping(SESSION, TYPED)).toBe(false);
   });
 
+  it("drops a save made while typing that was read, on the next read of that session, so the pause after it counts nothing", () => {
+    const { events, pauses, shown, savedInEditor, editorSaves } = editorSavesWith(campaignHolding(READ));
+    show(shown, HALF_TYPED);
+    events.trigger("modify", fileAt(SESSION));
+    editorSaves.readWhileTyping(SESSION, HALF_TYPED);
+    editorSaves.readWhileTyping(SESSION, TYPED);
+    pauses.paused(SESSION, HALF_TYPED);
+    expect(savedInEditor.sessionSavedInEditor).not.toHaveBeenCalled();
+  });
+
   it("forgets a save made while typing that the campaign hasn't read yet, when told to", () => {
     const { events, shown, editorSaves } = editorSavesWith(campaignHolding(READ));
     show(shown, TYPED);

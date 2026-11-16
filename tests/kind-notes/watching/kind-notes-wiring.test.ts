@@ -162,6 +162,14 @@ function show(shown: string[], text: string): void {
   shown.push(text);
 }
 
+function linesAt(notes: FakeNotes, path: string): unknown {
+  const note = notes.noteAt(path);
+  if (note === null) return null;
+  const properties = note.properties;
+  if (properties === null) return null;
+  return properties.lines;
+}
+
 function obsidianSaves(events: FileEvents, campaign: FakeCampaign, path: string, text: string): void {
   events.trigger("modify", fileAt(path));
   campaign.arrive(path, text);
@@ -175,8 +183,8 @@ describe("kind notes, when a session is saved in Obsidian's own editor", () => {
     pauses.paused(SESSION, TYPED);
     obsidianSaves(events, campaign, SESSION, TYPED);
     await settled();
-    expect(notes.noteAt(QUESTIONS)?.properties?.lines).toEqual(["? Who sent [[Lady Vess]] to the Old Mill"]);
-    expect(notes.noteAt(QUESTS)?.properties?.lines).toEqual(["! Find the caravan, from: [[Lady Vess]]"]);
+    expect(linesAt(notes, QUESTIONS)).toEqual(["? Who sent [[Lady Vess]] to the Old Mill"]);
+    expect(linesAt(notes, QUESTS)).toEqual(["! Find the caravan, from: [[Lady Vess]]"]);
     expect(asked).toEqual([]);
   });
 
@@ -199,7 +207,7 @@ describe("kind notes, when a session is saved in Obsidian's own editor", () => {
     obsidianSaves(events, campaign, SESSION, TYPED);
     pauses.paused(SESSION, TYPED);
     await settled();
-    expect(notes.noteAt(QUESTIONS)?.properties?.lines).toEqual(["? Who sent [[Lady Vess]] to the Old Mill"]);
+    expect(linesAt(notes, QUESTIONS)).toEqual(["? Who sent [[Lady Vess]] to the Old Mill"]);
     expect(items.sessionSaved).toHaveBeenCalledOnce();
     expect(asked).toEqual([]);
   });
@@ -226,7 +234,7 @@ describe("kind notes, when a session is saved in Obsidian's own editor", () => {
     await settled();
     expect(items.sessionSaved).toHaveBeenCalledOnce();
     expect(references.sessionSaved).toHaveBeenCalledOnce();
-    expect(notes.noteAt(QUESTIONS)?.properties?.lines).toEqual(["? Who sent [[Lady Vess]] to the Old Mill"]);
+    expect(linesAt(notes, QUESTIONS)).toEqual(["? Who sent [[Lady Vess]] to the Old Mill"]);
     expect(asked).toEqual([]);
   });
 
@@ -240,6 +248,23 @@ describe("kind notes, when a session is saved in Obsidian's own editor", () => {
     obsidianSaves(events, campaign, SESSION, TYPED);
     await settled();
     expect(firstOf(asked).dismiss).toHaveBeenCalledOnce();
+  });
+
+  it("keeps no notes and leaves the Fix and Keep line when a sync is read between a save while typing and the pause", async () => {
+    const { notes, campaign } = world();
+    const { events, pauses, shown, asked } = startWith(notes, campaign);
+    campaign.hold(SESSION, READ);
+    notes.addNote(QUESTIONS, { session: "[[Session 2]]", lines: ["? Who sent Mira"] }, "");
+    show(shown, HALF_TYPED);
+    obsidianSaves(events, campaign, SESSION, HALF_TYPED);
+    await settled();
+    campaign.arrive(SESSION, "? Who sent Baka\n");
+    await settled();
+    pauses.paused(SESSION, HALF_TYPED);
+    await settled();
+    expect(messagesOf(asked)).toEqual(["Questions for Session 2 differ from the session."]);
+    expect(firstOf(asked).dismiss).not.toHaveBeenCalled();
+    expect(notes.actions.processFrontMatter).not.toHaveBeenCalled();
   });
 
   it("stops looking at the editors and at the pauses when stopped", () => {

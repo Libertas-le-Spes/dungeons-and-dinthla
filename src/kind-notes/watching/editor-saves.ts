@@ -46,6 +46,7 @@ export class EditorSaves {
   }
 
   readWhileTyping(path: string, text: string): boolean {
+    this.typedReads.forget(path);
     const typed = this.typedSaves.takeIfHeld(path, text);
     if (typed) this.typedReads.hold(path, text);
     return typed;
