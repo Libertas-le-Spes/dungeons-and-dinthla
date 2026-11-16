@@ -88,7 +88,7 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "views/dialogs/drawn-modal.ts": ["addClass", "empty"],
   "views/dialogs/keys.ts": ["ctrlKey", "isComposing", "key", "metaKey"],
   "views/dialogs/second-press.ts": ["addClass"],
-  "views/lists/linked-text.ts": ["addEventListener", "appendText", "button", "createDiv", "createEl", "createSpan", "key", "preventDefault", "stopPropagation", "target"],
+  "views/lists/linked-text.ts": ["AT_TARGET", "addEventListener", "appendText", "button", "createDiv", "createEl", "createSpan", "eventPhase", "key", "preventDefault", "stopPropagation"],
   "views/lists/list-page.ts": ["addClass", "createDiv", "createEl", "createSpan", "empty", "focus", "setText", "value"],
   "views/lists/row-focus.ts": ["closest", "focus", "open", "querySelectorAll"],
   "views/lists/scroll-list.ts": ["addClass", "setAttr"],
@@ -140,6 +140,19 @@ export const PAGE_ESCAPES = [
   "hasAttribute",
   "dataset",
   "attributes",
+  "onWindowMigrated",
+  "targetNode",
+  "activeDocument",
+  "activeWindow",
+  "_EVENTS",
+  "document",
+  "target",
+  "currentTarget",
+  "relatedTarget",
+  "view",
+  "activeElement",
+  "offsetParent",
+  "ownerElement",
 ];
 
 export const PAGE_ESCAPE_READERS: Record<string, string[]> = {
