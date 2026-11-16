@@ -71,7 +71,7 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "reading/plain-dollars.ts": ["className", "createEl", "empty", "getText", "querySelectorAll", "setText"],
   "references/new-names/new-names-dialog.ts": ["addClass", "createEl"],
   "session-notes/kept/kept-lines.ts": ["addEventListener", "createDiv", "createEl", "disabled", "empty", "setText", "toggle"],
-  "session-notes/lines/lines-list.ts": ["addClass", "createDiv", "createEl", "createSpan", "empty", "focus", "setText", "toggle"],
+  "session-notes/lines/lines-list.ts": ["addClass", "createDiv", "createEl", "createSpan", "empty", "focus", "scrollIntoView", "setText", "toggle"],
   "session-notes/page/edit-all-panel.ts": ["addEventListener", "createDiv", "createEl", "empty", "focus", "toggle"],
   "session-notes/page/notes-buttons.ts": ["addEventListener", "createDiv", "createEl", "disabled", "setText"],
   "session-notes/page/session-notes-page.ts": ["addClass", "createEl", "empty", "setText"],

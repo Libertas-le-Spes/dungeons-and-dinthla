@@ -4,6 +4,7 @@ import { latestNumberIsShared, SESSIONS_SHARE_A_NUMBER } from "../../campaign/pa
 import type { LookupOpeners } from "../../kinds/lookup-openers";
 import type { NoteEditingNeeds } from "../../note-editing/note-editing";
 import type { LinkActions } from "../../views/lists/linked-text";
+import type { WantedLines } from "../../views/opening/wanted-lines";
 import type { LineOpeners } from "../lines/line-opener-of";
 import type { AppendWriter } from "../drafts/append-writer";
 import type { Drafts } from "../drafts/drafts";
@@ -30,6 +31,7 @@ export interface SessionNotesNeeds {
   lineOpeners: LineOpeners;
   wholeText: NoteEditingNeeds;
   removal: RemovalTools;
+  wantedLines: WantedLines;
 }
 
 export interface NotesMoves extends PickerMoves {
@@ -64,6 +66,7 @@ export class SessionNotesPage extends Component {
   override onload(): void {
     this.contentEl.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-session-notes");
     this.register(this.needs.store.subscribe(() => this.campaignChanged()));
+    this.register(this.needs.wantedLines.subscribe(this.lineWanted.bind(this)));
     this.register(() => this.closeDrawn());
     this.draw();
   }
@@ -149,6 +152,19 @@ export class SessionNotesPage extends Component {
     drawn.gone.setText("");
     drawn.session.setGone(false);
     drawn.session.show(writtenLinesOf(note), store.current);
+    this.revealWanted(drawn.session, drawn.path);
+  }
+
+  private lineWanted(): void {
+    const drawn = this.drawn;
+    if (drawn === null) return;
+    this.showSession(drawn);
+  }
+
+  private revealWanted(session: SessionWriting, path: string): void {
+    const line = this.needs.wantedLines.takeFor(path);
+    if (line === null) return;
+    session.reveal(line);
   }
 
   private missing(drawn: Drawn, session: SessionWriting): void {

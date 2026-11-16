@@ -1,0 +1,93 @@
+[
+ {
+  "id": "a line is handed over once",
+  "file": "src/views/opening/wanted-lines.ts",
+  "find": "    this.wanted = null;\n    return wanted.line;",
+  "replace": "    return wanted.line;",
+  "group": "go to the line"
+ },
+ {
+  "id": "a line goes only to its own session",
+  "file": "src/views/opening/wanted-lines.ts",
+  "find": "    if (wanted === null || wanted.path !== path) return null;",
+  "replace": "    if (wanted === null) return null;",
+  "group": "go to the line"
+ },
+ {
+  "id": "asking for a line tells the listeners",
+  "file": "src/views/opening/wanted-lines.ts",
+  "find": "    for (const listener of this.listeners) listener();\n",
+  "replace": "",
+  "group": "go to the line"
+ },
+ {
+  "id": "a stopped listener hears nothing",
+  "file": "src/views/opening/wanted-lines.ts",
+  "find": "    this.listeners.delete(listener);\n",
+  "replace": "",
+  "group": "go to the line"
+ },
+ {
+  "id": "no line below zero",
+  "file": "src/views/opening/asked-line.ts",
+  "find": "  if (!Number.isInteger(line) || line < 0) return null;",
+  "replace": "  if (!Number.isInteger(line)) return null;",
+  "group": "go to the line"
+ },
+ {
+  "id": "no line with a fraction",
+  "file": "src/views/opening/asked-line.ts",
+  "find": "  if (!Number.isInteger(line) || line < 0) return null;",
+  "replace": "  if (line < 0) return null;",
+  "group": "go to the line"
+ },
+ {
+  "id": "no line from text",
+  "file": "src/views/opening/asked-line.ts",
+  "find": "  if (typeof line !== \"number\") return null;\n  if (!Number.isInteger(line) || line < 0) return null;\n  return line;",
+  "replace": "  return Number(line);",
+  "group": "go to the line"
+ },
+ {
+  "id": "the tab passes the line on",
+  "file": "src/interface/view/campaign-view.ts",
+  "find": "    this.needs.wantedLines.want(path, line);\n",
+  "replace": "",
+  "group": "go to the line"
+ },
+ {
+  "id": "the tab passes a line on only with one",
+  "file": "src/interface/view/campaign-view.ts",
+  "find": "    if (line === null || path === null) return;",
+  "replace": "    if (path === null) return;",
+  "group": "go to the line"
+ },
+ {
+  "id": "the wanted row is marked",
+  "file": "src/session-notes/lines/lines-list.ts",
+  "find": "    item.addClass(WANTED_CLASS);\n",
+  "replace": "",
+  "group": "go to the line"
+ },
+ {
+  "id": "the wanted row is scrolled to",
+  "file": "src/session-notes/lines/lines-list.ts",
+  "find": "    item.scrollIntoView({ block: \"center\" });\n",
+  "replace": "",
+  "group": "go to the line"
+ },
+ {
+  "id": "the page listens for wanted lines",
+  "file": "src/session-notes/page/session-notes-page.ts",
+  "find": "    this.register(this.needs.wantedLines.subscribe(this.lineWanted.bind(this)));\n",
+  "replace": "",
+  "group": "go to the line"
+ },
+ {
+  "id": "the page shows a wanted line as it draws",
+  "file": "src/session-notes/page/session-notes-page.ts",
+  "find": "    this.revealWanted(drawn.session, drawn.path);\n",
+  "replace": "",
+  "group": "go to the line"
+ }
+]

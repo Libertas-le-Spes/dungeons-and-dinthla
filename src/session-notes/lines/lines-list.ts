@@ -8,6 +8,7 @@ import { lineStateOf } from "./line-state-of";
 import type { WrittenLine } from "./written-lines";
 
 const NO_LINES = "No notes yet.";
+const WANTED_CLASS = "dd-line-wanted";
 
 function countText(count: number): string {
   if (count === 0) return "";
@@ -42,6 +43,7 @@ export class LinesList {
   private readonly count: HTMLElement;
   private readonly list: HTMLElement;
   private readonly rowFocus = new RowFocus();
+  private readonly rows = new Map<number, HTMLElement>();
 
   constructor(
     parent: HTMLElement,
@@ -54,6 +56,13 @@ export class LinesList {
     this.list = this.panel.createEl("ul", { cls: "dd-written-lines", attr: { "aria-live": "polite", tabindex: "-1" } });
   }
 
+  reveal(line: number): void {
+    const item = this.rows.get(line);
+    if (item === undefined) return;
+    item.addClass(WANTED_CLASS);
+    item.scrollIntoView({ block: "center" });
+  }
+
   setShown(shown: boolean): void {
     this.panel.toggle(shown);
   }
@@ -61,6 +70,7 @@ export class LinesList {
   show(lines: WrittenLine[], campaign: Campaign): void {
     this.count.setText(countText(lines.length));
     this.list.empty();
+    this.rows.clear();
     if (lines.length === 0) this.list.createEl("li", { cls: "dd-empty", text: NO_LINES });
     for (const line of newestFirst(lines)) this.addLine(line, campaign);
     this.rowFocus.afterRender();
@@ -68,6 +78,7 @@ export class LinesList {
 
   private addLine(line: WrittenLine, campaign: Campaign): void {
     const item = this.list.createEl("li", { cls: "dd-written-line", attr: { "data-line": String(line.source.line) } });
+    this.rows.set(line.source.line, item);
     const opener = lineOpenerOf({ campaign, source: line.source, openers: this.needs.openers });
     const row = this.rowOf(item, { source: line.source, opener });
     row.createSpan({ cls: glyphClassOf(line), text: line.glyph, attr: { "aria-hidden": "true" } });
