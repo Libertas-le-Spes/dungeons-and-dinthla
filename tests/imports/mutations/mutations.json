@@ -1051,28 +1051,28 @@
  },
  {
   "id": "writing: if (!path.startsWith(inside)) throw notA",
-  "file": "src/imports/note/writing/guarding/in-characters-folder.ts",
-  "find": "if (!path.startsWith(inside)) throw notACharacterNote(path);",
+  "file": "src/campaign/paths/character-note-path.ts",
+  "find": "  if (!path.startsWith(inside)) return false;\n",
   "replace": "",
   "group": "writing"
  },
  {
   "id": "writing: rest.includes(SLASH) || ",
-  "file": "src/imports/note/writing/guarding/in-characters-folder.ts",
-  "find": "rest.includes(SLASH) || ",
+  "file": "src/campaign/paths/character-note-path.ts",
+  "find": "!rest.includes(SLASH) && ",
   "replace": "",
   "group": "writing"
  },
  {
   "id": "writing: || !rest.endsWith(NOTE_EXTENSION)",
-  "file": "src/imports/note/writing/guarding/in-characters-folder.ts",
-  "find": "|| !rest.endsWith(NOTE_EXTENSION)",
+  "file": "src/campaign/paths/character-note-path.ts",
+  "find": " && rest.endsWith(NOTE_EXTENSION)",
   "replace": "",
   "group": "writing"
  },
  {
   "id": "writing: `${charactersFolder}${SLASH}`",
-  "file": "src/imports/note/writing/guarding/in-characters-folder.ts",
+  "file": "src/campaign/paths/character-note-path.ts",
   "find": "`${charactersFolder}${SLASH}`",
   "replace": "charactersFolder",
   "group": "writing"
@@ -1332,15 +1332,15 @@
  {
   "id": "folders:   { folder: \"imports\", reaches: [\"import",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "  { folder: \"imports\", reaches: [\"imports\", \"imports/layout\", \"beyond\", \"names\", \"fence/gate\", \"campaign\", \"views/dialogs\", \"views/pending\"] },\n",
+  "find": "  { folder: \"imports\", reaches: [\"imports\", \"imports/layout\", \"beyond\", \"online\", \"names\", \"fence/gate\", \"campaign\", \"views/dialogs\", \"views/pending\"] },\n",
   "replace": "",
   "group": "folders"
  },
  {
   "id": "folders: BEYOND_IMPORTERS: string[] = [\"imports\"]",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "BEYOND_IMPORTERS: string[] = [\"imports\"]",
-  "replace": "BEYOND_IMPORTERS: string[] = []",
+  "find": "BEYOND_IMPORTERS: string[] = [\"imports\", \"online\"]",
+  "replace": "BEYOND_IMPORTERS: string[] = [\"online\"]",
   "group": "folders"
  },
  {
