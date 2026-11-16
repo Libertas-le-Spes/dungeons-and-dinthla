@@ -26,10 +26,11 @@ const VIEW_STATE_SETTERS = ["interface/view/campaign-view.ts", "interface/tabs/o
 const ACTIVE_FILE_READERS = ["characters/editing/open-character.ts", "views/opening/open-view.ts"];
 const ACTIVE_VIEW_READERS = ["interface/view/open-in-editor.ts", "interface/view/shown-campaign-path.ts"];
 const EVENT_TRIGGERS = ["fence/gate/fenced-files.ts"];
-const LEAF_VIEW_READERS = ["main.ts", "campaign/reading/note-views.ts", "interface/tabs/one-campaign-tab.ts", "interface/tabs/seen-tab.ts", "interface/takeover/view-state-patch.ts"];
+const LEAF_VIEW_READERS = ["main.ts", "interface/tabs/one-campaign-tab.ts", "interface/tabs/seen-tab.ts", "interface/takeover/view-state-patch.ts"];
 const VIEW_FILE_READERS = ["main.ts", "campaign/reading/editor-text.ts", "editor/marker-decorations.ts", "interface/takeover/campaign-takeover.ts"];
 const NOTE_EVENT_LISTENERS = ["main.ts"];
 const GATE_BUILDERS = ["main.ts"];
+const NOTE_VIEW_FINDERS = ["campaign/reading/note-views.ts"];
 const NETWORK_CALLERS = ["online/beyond-call.ts"];
 const BEYOND_CALLERS = ["online/beyond-call.ts", "online/call-rules.ts", "imports/dialog/online/online-wiring.ts", "imports/dialog/online/online-import.ts"];
 const POST_PROCESSING = ["main.ts"];
@@ -76,7 +77,7 @@ const SOURCE_ALLOWANCES: Allowances = {
   activeFile: isOneOf(ACTIVE_FILE_READERS),
   activeView: isOneOf(ACTIVE_VIEW_READERS),
   eventTrigger: isOneOf(EVENT_TRIGGERS),
-  leafView: isOneOf(LEAF_VIEW_READERS),
+  leafView: isOneOf([...LEAF_VIEW_READERS, ...NOTE_VIEW_FINDERS]),
   viewFile: isOneOf(VIEW_FILE_READERS),
   noteEvents: isOneOf(NOTE_EVENT_LISTENERS),
   gateBuilding: isOneOf(GATE_BUILDERS),
@@ -227,7 +228,7 @@ const STILL_NEEDED: StillNeeded[] = [
   ...neededBy("activeFile", ACTIVE_FILE_READERS, "opens, shows or picks a note with getActiveFile"),
   ...neededBy("activeView", ACTIVE_VIEW_READERS, "opens, shows or picks a note with getActiveViewOfType"),
   ...neededBy("eventTrigger", EVENT_TRIGGERS, "takes trigger without calling it with what it can read"),
-  ...neededBy("leafView", LEAF_VIEW_READERS, "reads the view of a leaf"),
+  ...neededBy("leafView", [...LEAF_VIEW_READERS, ...NOTE_VIEW_FINDERS], "reads the view of a leaf"),
   ...neededBy("viewFile", VIEW_FILE_READERS, "reads the file of a view"),
   ...neededBy("noteEvents", NOTE_EVENT_LISTENERS, "workspace event, which hands over any note"),
   ...neededBy("gateBuilding", GATE_BUILDERS, "builds the gate's Gatekeeper"),
