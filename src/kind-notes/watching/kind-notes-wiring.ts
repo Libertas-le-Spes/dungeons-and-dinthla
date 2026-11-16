@@ -11,6 +11,7 @@ import { KindNoteBackfill } from "./kind-note-backfill";
 import { KindNoteMover } from "../keeping/kind-note-mover";
 import { KindNoteKeeper } from "../keeping/kind-note-keeper";
 import { KindNoteWatcher } from "./kind-note-watcher";
+import { EditorSaves, type EditorTexts } from "./editor-saves";
 import { SavesHere } from "./saves-here";
 
 export interface KindNotesNeeds {
@@ -22,6 +23,7 @@ export interface KindNotesNeeds {
   references: ReferenceNotesPart;
   say(message: string): void;
   ask: AskAboutDifference;
+  editorTexts: EditorTexts;
 }
 
 export function startKindNotes(needs: KindNotesNeeds): () => void {
@@ -30,9 +32,12 @@ export function startKindNotes(needs: KindNotesNeeds): () => void {
   const wants = new SessionWants(saved, gate.files);
   const mover = new KindNoteMover({ files: gate.files, metadata: gate.metadata, actions: gate.fileActions, keeper, wants, say });
   const differing = new DifferingNotes(keeper, wants, needs.ask);
-  const watcher = new KindNoteWatcher({ store: saved, wants, written: needs.written, keeper, differing, saves: new SavesHere(), items, references, mover });
+  const saves = new SavesHere();
+  const watcher = new KindNoteWatcher({ store: saved, wants, written: needs.written, keeper, differing, saves, items, references, mover });
+  const editorSaves = new EditorSaves({ files: gate.files, store: saved, wants, saves, editorTexts: needs.editorTexts });
   const backfill = new KindNoteBackfill({ store: saved, files: gate.files, keeper, items, made, say });
   const stopWatching = watcher.start();
+  const stopEditorSaves = editorSaves.start();
   const opened = async (folder: string): Promise<void> => {
     await backfill.run(folder).catch((error: unknown) => say(`Couldn't make notes for the earlier sessions: ${messageOf(error)}`));
     watcher.checkAll();
@@ -40,6 +45,7 @@ export function startKindNotes(needs: KindNotesNeeds): () => void {
   const stopOpened = saved.onOpened((folder) => void opened(folder));
   return () => {
     stopWatching();
+    stopEditorSaves();
     stopOpened();
   };
 }

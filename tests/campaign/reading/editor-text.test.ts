@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Editor, MarkdownFileInfo, TFile } from "obsidian";
-import { editorTextOf } from "../../../src/campaign/reading/editor-text";
+import { editorTextOf, editorTextsOf } from "../../../src/campaign/reading/editor-text";
 
 const session = { path: "Pale Moon/Sessions/Session 3.md" } as TFile;
 const other = { path: "Pale Moon/Characters/Mira.md" } as TFile;
@@ -28,5 +28,16 @@ describe("editorTextOf", () => {
 
   it("reads nothing when there is no editor", () => {
     expect(editorTextOf({ file: session } as MarkdownFileInfo, session, vaultHolding(session))).toBeNull();
+  });
+});
+
+describe("editorTextsOf", () => {
+  it("reads every editor that shows the note, and none that shows another", () => {
+    const editors = [editorShowing(session, "? Who"), editorShowing(other, "Mira's notes"), editorShowing(session, "? Who sent Mira")];
+    expect(editorTextsOf(editors, session, vaultHolding(session, other))).toEqual(["? Who", "? Who sent Mira"]);
+  });
+
+  it("reads nothing when no editor is open", () => {
+    expect(editorTextsOf([], session, vaultHolding(session))).toEqual([]);
   });
 });

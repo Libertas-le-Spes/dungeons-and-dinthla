@@ -1,0 +1,65 @@
+[
+ {
+  "id": "editor saves only sessions of the open campaign",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "    if (!this.needs.wants.isSession(path)) return;\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves only text changed since the last read",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "    if (text === read) return;\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves read the text of the same session",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "if (note.path === path) return note.text;",
+  "replace": "if (note.path !== path) return note.text;",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves ask the editors of the note saved",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "this.needs.editorTexts(path)",
+  "replace": "this.needs.editorTexts(\"\")",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves stop listening",
+  "file": "src/kind-notes/watching/editor-saves.ts",
+  "find": "      files.offref(event);\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves started",
+  "file": "src/kind-notes/watching/kind-notes-wiring.ts",
+  "find": "  const stopEditorSaves = editorSaves.start();",
+  "replace": "  const stopEditorSaves = () => undefined;",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves stopped",
+  "file": "src/kind-notes/watching/kind-notes-wiring.ts",
+  "find": "    stopEditorSaves();\n",
+  "replace": "",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor saves share the watcher's saves",
+  "file": "src/kind-notes/watching/kind-notes-wiring.ts",
+  "find": "saves, editorTexts: needs.editorTexts",
+  "replace": "saves: new SavesHere(), editorTexts: needs.editorTexts",
+  "group": "kind notes"
+ },
+ {
+  "id": "editor texts only of editors showing the note",
+  "file": "src/campaign/reading/editor-text.ts",
+  "find": "    if (text !== null) texts.push(text);",
+  "replace": "    texts.push(String(text));",
+  "group": "kind notes"
+ }
+]

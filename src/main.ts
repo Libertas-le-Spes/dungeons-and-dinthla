@@ -19,7 +19,7 @@ import { addEditCharacterItem, editActiveCharacter, editCharacter, openNewCharac
 import { chooseSheetValue, openCharacterSheet } from "./characters/editing/open-character-sheet";
 import { sheetNotesOf } from "./characters/reading/sheet-notes";
 import { mentionNotesOf } from "./characters/reading/mention-notes";
-import { editorTextOf } from "./campaign/reading/editor-text";
+import { editorTextOf, editorTextsOf } from "./campaign/reading/editor-text";
 import { markerColouring } from "./editor/marker-decorations";
 import type { LookupOpeners } from "./kinds/lookup-openers";
 import { openNewQuestion } from "./questions/dialogs/open-new-question";
@@ -476,8 +476,22 @@ export default class DungeonsAndDinthla extends Plugin {
     this.register(items.start());
     this.register(references.start());
     this.register(dmQuestions.start());
-    this.register(startKindNotes({ gate, written: gate.written, saved, made, items, references: routed, say, ask: askInNotice }));
+    this.register(startKindNotes({ gate, written: gate.written, saved, made, items, references: routed, say, ask: askInNotice, editorTexts: this.editorTextsAt.bind(this) }));
     this.register(saved.start());
+  }
+
+  private editorTextsAt(path: string): string[] {
+    const file = this.gate.files.getFileByPath(path);
+    if (file === null) return [];
+    return editorTextsOf(this.noteViews(), file, this.gate.files);
+  }
+
+  private noteViews(): MarkdownView[] {
+    const views: MarkdownView[] = [];
+    for (const leaf of this.app.workspace.getLeavesOfType("markdown")) {
+      if (leaf.view instanceof MarkdownView) views.push(leaf.view);
+    }
+    return views;
   }
 
   private readEditor(info: MarkdownFileInfo, file: TFile): void {
