@@ -43,7 +43,7 @@ export function addNameLink(
   return name;
 }
 
-function addLink(parent: HTMLElement, linktext: string, sourcePath: string, actions: LinkActions): HTMLElement {
+export function addLink(parent: HTMLElement, linktext: string, sourcePath: string, actions: LinkActions): HTMLElement {
   const link = parent.createSpan({ cls: "dd-link" });
   link.createSpan({ cls: "dd-link-bracket", text: "[[" });
   const name = addNameLink(link, "", linktext, sourcePath, actions);
