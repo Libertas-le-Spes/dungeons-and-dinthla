@@ -73,7 +73,7 @@ describe("CampaignsFolderSetup", () => {
   });
 
   it("says the folder was set, and still says it is chosen, when opening a campaign in it fails", async () => {
-    const saver = new SettingsSaver({ campaignsFolder: null, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null, notesMadeFor: [], beyondAgreed: false }, async () => {});
+    const saver = new SettingsSaver({ campaignsFolder: null, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null, notesMadeFor: [], beyondAgreed: false, charactersBasesSwept: false }, async () => {});
     const setting = new CampaignsFolderSetting(saver, async () => {
       throw new Error("The note can't be read.");
     }, ".obsidian");
@@ -91,7 +91,7 @@ describe("CampaignsFolderSetup", () => {
   });
 
   it("makes the folder without failing when opening a campaign in it fails", async () => {
-    const saver = new SettingsSaver({ campaignsFolder: null, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null, notesMadeFor: [], beyondAgreed: false }, async () => {});
+    const saver = new SettingsSaver({ campaignsFolder: null, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null, notesMadeFor: [], beyondAgreed: false, charactersBasesSwept: false }, async () => {});
     const setting = new CampaignsFolderSetting(saver, async () => {
       throw new Error("The note can't be read.");
     }, ".obsidian");

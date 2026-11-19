@@ -8,7 +8,7 @@ import { carriedValuesOf, characterSheetOf, type SheetValue } from "../../../src
 import { noteNameOf } from "../../../src/campaign/paths/note-name";
 import { NoSessionNamed } from "../../../src/characters/editing/no-session-named";
 import { OpenedSession } from "../../../src/campaign/paths/session-gone";
-import { chooseSheetValue, NO_SESSION, openCharacterSheet, sameSheetValue, saveSheetValue } from "../../../src/characters/editing/open-character-sheet";
+import { chooseSheetValue, NO_SESSION, sameSheetValue, saveSheetValue } from "../../../src/characters/editing/open-character-sheet";
 import { readCharacterSheet } from "../../../src/characters/reading/read-character-sheet";
 import type { SheetNotes } from "../../../src/characters/reading/sheet-notes";
 import type { SheetValueDialog } from "../../../src/characters/editing/sheet-value-modal";
@@ -86,20 +86,6 @@ function acOf(learned: SourcedFact[], overrides: SourcedFact[] = []): SheetValue
 }
 
 const LEARNED_15: SourcedFact = { name: "AC", value: "15", source: { path: ONE, line: 0 } };
-
-describe("openCharacterSheet", () => {
-  it("opens the character's note in the tab in use, where the campaign tab shows it as their sheet", async () => {
-    const { app, gate, opened } = setUp({ [MIRA.path]: "" });
-    await openCharacterSheet(app, gate, MIRA.path);
-    expect(opened).toEqual([{ newLeaf: false, path: MIRA.path, options: { active: true } }]);
-  });
-
-  it("opens nothing for a note that's gone", async () => {
-    const { app, gate, opened } = setUp({});
-    await openCharacterSheet(app, gate, MIRA.path);
-    expect(opened).toEqual([]);
-  });
-});
 
 describe("sameSheetValue", () => {
   it("matches a value read again unchanged", () => {

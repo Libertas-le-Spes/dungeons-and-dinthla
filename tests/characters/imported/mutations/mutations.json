@@ -1132,5 +1132,68 @@
   "find": "const own = ownLinkOf({ links: [item.holder], ownNames });",
   "replace": "const own = ownLinkOf({ links: [], ownNames });",
   "group": "mine"
+ },
+ {
+  "id": "bases: once only",
+  "file": "src/characters/retiring/old-characters-bases.ts",
+  "find": "    if (this.needs.mark.swept() || !this.needs.campaignsFolderChosen()) return;",
+  "replace": "    if (!this.needs.campaignsFolderChosen()) return;",
+  "group": "bases"
+ },
+ {
+  "id": "bases: waits for a Campaigns folder",
+  "file": "src/characters/retiring/old-characters-bases.ts",
+  "find": "    if (this.needs.mark.swept() || !this.needs.campaignsFolderChosen()) return;",
+  "replace": "    if (this.needs.mark.swept()) return;",
+  "group": "bases"
+ },
+ {
+  "id": "bases: remembers it was done",
+  "file": "src/characters/retiring/old-characters-bases.ts",
+  "find": "    await this.needs.mark.keepSwept();\n",
+  "replace": "",
+  "group": "bases"
+ },
+ {
+  "id": "bases: only the Characters base",
+  "file": "src/characters/retiring/old-characters-bases.ts",
+  "find": "    const file = this.needs.fileAt(charactersBasePathOf(folder));",
+  "replace": "    const file = this.needs.fileAt(`${folder}/Places.base`);",
+  "group": "bases"
+ },
+ {
+  "id": "bases: moves it to the trash",
+  "file": "src/characters/retiring/old-characters-bases.ts",
+  "find": "      await this.needs.trash(file);\n",
+  "replace": "",
+  "group": "bases"
+ },
+ {
+  "id": "bases: says what it moved",
+  "file": "src/characters/retiring/old-characters-bases.ts",
+  "find": "      this.needs.tell(movedToTrash(folder));\n",
+  "replace": "",
+  "group": "bases"
+ },
+ {
+  "id": "bases: says what it couldn't",
+  "file": "src/characters/retiring/old-characters-bases.ts",
+  "find": "      this.needs.tell(notMovedToTrash(folder, error));\n",
+  "replace": "",
+  "group": "bases"
+ },
+ {
+  "id": "bases: data.json takes only true",
+  "file": "src/settings/saved/plugin-settings.ts",
+  "find": "saved.charactersBasesSwept === true) settings.charactersBasesSwept = true;",
+  "replace": "saved.charactersBasesSwept) settings.charactersBasesSwept = true;",
+  "group": "bases"
+ },
+ {
+  "id": "bases: data.json keeps it",
+  "file": "src/settings/saved/plugin-settings.ts",
+  "find": "  if (\"charactersBasesSwept\" in saved && saved.charactersBasesSwept === true) settings.charactersBasesSwept = true;\n",
+  "replace": "",
+  "group": "bases"
  }
 ]

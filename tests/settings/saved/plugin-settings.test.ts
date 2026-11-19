@@ -3,7 +3,7 @@ import { settingsOf } from "../../../src/settings/saved/plugin-settings";
 
 const CONFIG_DIR = ".obsidian";
 
-const NOTHING_SAVED = { campaignsFolder: null, campaignFolder: null, welcomeSeen: false, lastVersionSeen: null, notesMadeFor: [], beyondAgreed: false };
+const NOTHING_SAVED = { campaignsFolder: null, campaignFolder: null, welcomeSeen: false, lastVersionSeen: null, notesMadeFor: [], beyondAgreed: false, charactersBasesSwept: false };
 
 describe("settingsOf", () => {
   it("keeps the campaign chosen last time", () => {
@@ -36,7 +36,13 @@ describe("settingsOf", () => {
       lastVersionSeen: "1.4.0",
       notesMadeFor: [],
       beyondAgreed: false,
+      charactersBasesSwept: false,
     });
+  });
+
+  it("keeps that the old Characters bases were dealt with only when data.json holds true for it", () => {
+    expect(settingsOf({ charactersBasesSwept: true }, CONFIG_DIR).charactersBasesSwept).toBe(true);
+    expect(settingsOf({ charactersBasesSwept: "true" }, CONFIG_DIR).charactersBasesSwept).toBe(false);
   });
 
   it("keeps the D&D Beyond agreement only when data.json holds true for it", () => {
@@ -87,12 +93,12 @@ describe("settingsOf", () => {
 
 describe("settingsOf notes made for", () => {
   it("keeps the campaigns whose old sessions got their notes", () => {
-    const saved = { campaignsFolder: "D&D", notesMadeFor: ["D&D/Pale Moon", "D&D/Silver Road"], beyondAgreed: false };
+    const saved = { campaignsFolder: "D&D", notesMadeFor: ["D&D/Pale Moon", "D&D/Silver Road"], beyondAgreed: false, charactersBasesSwept: false };
     expect(settingsOf(saved, CONFIG_DIR).notesMadeFor).toEqual(["D&D/Pale Moon", "D&D/Silver Road"]);
   });
 
   it("drops a saved campaign outside the Campaigns folder, or one that isn't a text", () => {
-    const saved = { campaignsFolder: "D&D", notesMadeFor: ["Self/Pale Moon", "D&D/../Self/Pale Moon", 4, "D&D/Pale Moon"], beyondAgreed: false };
+    const saved = { campaignsFolder: "D&D", notesMadeFor: ["Self/Pale Moon", "D&D/../Self/Pale Moon", 4, "D&D/Pale Moon"], beyondAgreed: false, charactersBasesSwept: false };
     expect(settingsOf(saved, CONFIG_DIR).notesMadeFor).toEqual(["D&D/Pale Moon"]);
   });
 
