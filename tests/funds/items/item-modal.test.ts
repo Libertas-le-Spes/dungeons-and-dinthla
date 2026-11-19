@@ -54,7 +54,7 @@ describe("the item dialog", () => {
     expect(save).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ status: "lost", howMany: "4" }));
   });
 
-  it.each([["$ Rope x1\n"], ["$ Rope\n"], ["$ Rope x5\n$$ Rope :lost\n"]])("doesn't ask how many for %j", (text) => {
+  it.each([["$ Rope x1\n"], ["$ Rope\n"], ["$ Rope x5\n$$ Rope x5 :lost\n"]])("doesn't ask how many for %j", (text) => {
     const { root } = openDialog(text, vi.fn());
     expect(root.querySelector('input[aria-label="How many"]')).toBeNull();
   });

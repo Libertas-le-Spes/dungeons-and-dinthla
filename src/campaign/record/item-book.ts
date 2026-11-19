@@ -1,8 +1,11 @@
 import type { ItemChange } from "../../notes/reading/item-change";
 import { findLinks, unlink } from "../../notes/parts/link";
 import type { ItemEvent, ItemRecord, Source } from "./campaign";
+import { holderKeyOf } from "./holder-key";
+import { ItemHoldings } from "./item-holdings";
 
 const ONE_LINK = /^\[\[[^[\]]+\]\]$/;
+const NO_COUNT_IS_ONE = 1;
 
 function nameOf(item: string): string {
   const written = item.trim();
@@ -15,90 +18,164 @@ function keyOf(item: string): string {
   return nameOf(item).toLowerCase();
 }
 
-function keepWritten(record: ItemRecord, item: string): void {
-  const written = item.trim();
-  if (written.includes("[[") || !record.written.includes("[[")) record.written = written;
+function targetOf(change: ItemChange): string {
+  if (change.holder === undefined) return "";
+  return change.holder;
 }
 
-interface ItemStart {
+function countOf(count: number | null): number {
+  if (count === null) return NO_COUNT_IS_ONE;
+  return count;
+}
+
+export interface ItemMention {
   item: string;
+  count: number | null;
   holder: string;
+  links: string[];
   source: Source;
 }
 
-export interface ItemMention extends ItemStart {
-  count: number | null;
-  links: string[];
+interface ChangedItem {
+  readonly item: string;
+  readonly named: readonly string[];
 }
 
-function isFresh(record: ItemRecord): boolean {
-  return record.history.length === 0 || record.gone !== null;
-}
-
-function heldAfterGaining(record: ItemRecord, count: number | null): number | null {
-  if (isFresh(record)) return count;
-  if (record.held === null || count === null) return record.held;
-  return record.held + count;
-}
-
-function takesSome(record: ItemRecord, change: ItemChange): boolean {
-  if (change.kind === "changed" || isFresh(record)) return false;
-  if (record.held === null || change.count === null) return false;
-  return change.count < record.held;
+interface Move {
+  readonly holdings: ItemHoldings;
+  readonly from: ItemRecord;
+  readonly change: ItemChange;
+  readonly event: ItemEvent;
 }
 
 export class ItemBook {
-  private readonly byKey = new Map<string, ItemRecord>();
+  private readonly byKey = new Map<string, ItemHoldings>();
 
   get items(): ItemRecord[] {
-    return [...this.byKey.values()];
+    const records: ItemRecord[] = [];
+    for (const holdings of this.byKey.values()) records.push(...holdings.records);
+    return records;
   }
 
   mention({ item, count, holder, links, source }: ItemMention): void {
-    const record = this.recordFor({ item, holder, source });
-    keepWritten(record, item);
-    record.held = heldAfterGaining(record, count);
+    const holdings = this.holdingsFor(item);
+    holdings.keepWritten(item);
+    const gained = countOf(count);
+    const record = this.holdingGaining(holdings, holder, gained, source);
+    record.gone = null;
     if (holder !== "") {
-      record.holder = holder;
       record.holderLinked = true;
       record.links = links;
     }
-    record.gone = null;
-    record.history.push({ kind: "named", count, holder: record.holder, links, source });
+    holdings.history.push({ kind: "named", count: gained, holder: record.holder, links, source });
   }
 
   change(change: ItemChange, source: Source): void {
-    const record = this.recordFor({ item: change.item, holder: "", source });
-    keepWritten(record, change.item);
-    const partly = takesSome(record, change);
-    if (change.kind === "changed" && isFresh(record)) record.held = change.count;
-    if (partly && record.held !== null && change.count !== null) record.held -= change.count;
-    if (change.holder !== undefined) {
-      record.holder = change.holder;
-      record.holderLinked = change.holderLinked === true;
-      record.links = findLinks(change.text);
-    }
-    const event: ItemEvent = { kind: change.kind, count: change.count, holder: record.holder, links: findLinks(change.text), source };
-    record.history.push(event);
-    record.gone = null;
-    if (change.kind !== "changed" && !partly) record.gone = event;
+    const changed = this.changedItemOf(change);
+    const holdings = this.holdingsFor(changed.item);
+    holdings.keepWritten(changed.item);
+    const event: ItemEvent = { kind: change.kind, count: countOf(change.count), holder: "", links: findLinks(change.text), source };
+    const from = holdings.heldBy(changed.named);
+    if (change.kind === "changed") this.changeHands(holdings, from, change, event);
+    else this.take(holdings, from, event);
   }
 
-  private recordFor({ item, holder, source }: ItemStart): ItemRecord {
-    const found = this.byKey.get(keyOf(item));
+  private changedItemOf(change: ItemChange): ChangedItem {
+    const named = change.named;
+    if (named !== null && this.byKey.has(keyOf(named.item))) return { item: named.item, named: [named.holder, ...change.namedAfter] };
+    return { item: change.item, named: change.namedAfter };
+  }
+
+  private take(holdings: ItemHoldings, from: ItemRecord | null, event: ItemEvent): void {
+    let record = from;
+    if (record === null) record = holdings.first();
+    if (record === null) record = holdings.add({ holder: "", holderLinked: false, held: event.count, source: event.source });
+    event.holder = record.holder;
+    holdings.history.push(event);
+    if (from !== null && event.count < from.held) {
+      from.held -= event.count;
+      return;
+    }
+    record.gone = event;
+  }
+
+  private changeHands(holdings: ItemHoldings, from: ItemRecord | null, change: ItemChange, event: ItemEvent): void {
+    const target = targetOf(change);
+    event.holder = target;
+    holdings.history.push(event);
+    if (from === null) {
+      this.bringBack(holdings, change, event);
+      return;
+    }
+    if (holderKeyOf(from.holder) === holderKeyOf(target)) return;
+    this.move({ holdings, from, change, event });
+  }
+
+  private move({ holdings, from, change, event }: Move): void {
+    const moved = Math.min(countOf(change.count), from.held);
+    const existing = holdings.holdingOf(targetOf(change));
+    if (existing === null && moved === from.held) {
+      this.takeOver(from, change);
+      return;
+    }
+    from.held -= moved;
+    if (from.held === 0) holdings.remove(from);
+    this.give(holdings, change, event, moved);
+  }
+
+  private holdingGaining(holdings: ItemHoldings, holder: string, gained: number, source: Source): ItemRecord {
+    let record = holdings.holdingOf(holder);
+    if (record === null) record = this.goneToBringBack(holdings);
+    if (record === null) return holdings.add({ holder, holderLinked: holder !== "", held: gained, source });
+    if (record.gone === null) {
+      record.held += gained;
+      return record;
+    }
+    record.holder = holder;
+    record.holderLinked = holder !== "";
+    record.held = gained;
+    return record;
+  }
+
+  private goneToBringBack(holdings: ItemHoldings): ItemRecord | null {
+    if (holdings.firstHeld() !== null) return null;
+    return holdings.first();
+  }
+
+  private bringBack(holdings: ItemHoldings, change: ItemChange, event: ItemEvent): void {
+    const gone = holdings.first();
+    if (gone === null || holdings.holdingOf(targetOf(change)) !== null) {
+      this.give(holdings, change, event, countOf(change.count));
+      return;
+    }
+    gone.gone = null;
+    gone.held = countOf(change.count);
+    this.takeOver(gone, change);
+  }
+
+  private takeOver(record: ItemRecord, change: ItemChange): void {
+    record.holder = targetOf(change);
+    record.holderLinked = change.holderLinked === true;
+    record.links = findLinks(change.text);
+  }
+
+  private give(holdings: ItemHoldings, change: ItemChange, event: ItemEvent, count: number): void {
+    const holder = targetOf(change);
+    let record = holdings.holdingOf(holder);
+    if (record === null) record = holdings.add({ holder, holderLinked: change.holderLinked === true, held: count, source: event.source });
+    else if (record.gone !== null) record.held = count;
+    else record.held += count;
+    record.gone = null;
+    record.holderLinked = change.holderLinked === true;
+    record.links = findLinks(change.text);
+  }
+
+  private holdingsFor(item: string): ItemHoldings {
+    const key = keyOf(item);
+    const found = this.byKey.get(key);
     if (found !== undefined) return found;
-    const added: ItemRecord = {
-      name: nameOf(item),
-      written: item.trim(),
-      holder,
-      holderLinked: false,
-      links: [],
-      source,
-      history: [],
-      gone: null,
-      held: null,
-    };
-    this.byKey.set(keyOf(item), added);
+    const added = new ItemHoldings(item.trim(), nameOf(item));
+    this.byKey.set(key, added);
     return added;
   }
 }

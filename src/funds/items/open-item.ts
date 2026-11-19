@@ -6,7 +6,7 @@ import { sessionLabelOf } from "../../campaign/paths/session-file";
 import { sessionForDialog } from "../../campaign/paths/session-for-dialog";
 import { openSource } from "../../views/opening/open-view";
 import { ItemModal } from "./item-modal";
-import { itemNamed } from "./item-named";
+import { itemNamedAt } from "./item-named";
 import { holderOptionOf, holderOptions, latestSessionOfItem, type ItemEdit, type ItemStatus } from "./item-plan";
 import { openedItem } from "./item-writer";
 import type { Gate } from "../../fence/gate/gatekeeper";
@@ -21,13 +21,15 @@ export function openItemDialog(
   openNote: () => void,
   onClosed: (changed: boolean) => void,
   activePath: string | null,
+  source: Source | null,
 ): void {
-  openItemDialogAs(app, gate, store, { name, status: null }, openNote, onClosed, activePath);
+  openItemDialogAs(app, gate, store, { name, status: null, source }, openNote, onClosed, activePath);
 }
 
 export interface ItemAsked {
   name: string;
   status: ItemStatus | null;
+  source: Source | null;
 }
 
 function editAsked(opened: ItemEdit, asked: ItemAsked): ItemEdit {
@@ -45,7 +47,7 @@ export function openItemDialogAs(
   activePath: string | null,
 ): void {
   const name = asked.name;
-  const item = itemNamed(store.current.items, name);
+  const item = itemNamedAt(store.current.items, name, asked.source);
   const folder = store.campaignFolder;
   if (item === null || folder === null) {
     openNote();

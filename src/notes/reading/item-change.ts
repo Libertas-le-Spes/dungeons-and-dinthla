@@ -2,7 +2,7 @@ import { readLedgerEntry, type CoinEntry } from "./ledger";
 import { findLinks, unlink } from "../parts/link";
 import { withoutBlockId } from "../parts/block-id";
 import { withoutBullet } from "../parts/bullet";
-import { countedItemOf } from "../parts/item-count";
+import { heldWordsOf, type NamedHolder } from "../parts/item-holder";
 
 export type ItemChangeKind = "changed" | "sold" | "used" | "lost";
 
@@ -10,6 +10,8 @@ export interface ItemChange {
   text: string;
   item: string;
   count: number | null;
+  named: NamedHolder | null;
+  namedAfter: string[];
   kind: ItemChangeKind;
   holder?: string;
   holderLinked?: boolean;
@@ -44,16 +46,17 @@ export function readItemChange(line: string): ItemChange | null {
   const body = withoutBlockId(text.slice(2));
   const last = [...body.matchAll(CHANGE_WORD)].at(-1);
   if (last === undefined) return null;
-  const counted = countedItemOf(withoutBlockId(body.slice(0, last.index)).trim());
-  if (counted.item === "") return null;
+  const held = heldWordsOf(withoutBlockId(body.slice(0, last.index)).trim());
+  if (held.item === "") return null;
   const kind = KINDS.get(last[1]!.toLowerCase())!;
   const rest = body.slice(last.index + last[0].length);
-  const change: ItemChange = { text: body.trim(), item: counted.item, count: counted.count, kind };
+  const change: ItemChange = { text: body.trim(), item: held.item, count: held.count, named: held.named, namedAfter: [], kind };
   if (kind === "changed") {
     const found = holderIn(rest);
     change.holder = found.holder;
     change.holderLinked = found.holderLinked;
   }
   if (kind === "sold") change.sale = saleIn(rest);
+  if (kind !== "changed") change.namedAfter = findLinks(rest);
   return change;
 }

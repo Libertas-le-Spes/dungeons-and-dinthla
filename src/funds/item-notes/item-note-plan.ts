@@ -1,3 +1,4 @@
+import { onePerItem } from "../../campaign/record/one-per-item";
 import type { TFile } from "obsidian";
 import type { Campaign, ItemRecord, SessionNote } from "../../campaign/record/campaign";
 import { LINES_FOR_A_NOTE } from "../../kinds/lines-for-a-note";
@@ -87,6 +88,6 @@ class ItemNotePlanner {
 
 export function planItemNotes(campaign: Campaign, sessions: SessionNote[], itemsFolder: string, existing: TFile[]): ItemNotePlan {
   const planner = new ItemNotePlanner(sessions, itemsFolder, existing);
-  for (const item of campaign.items) planner.consider(item);
+  for (const item of onePerItem(campaign.items)) planner.consider(item);
   return planner.plan;
 }

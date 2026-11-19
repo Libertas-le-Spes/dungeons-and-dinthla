@@ -18,6 +18,12 @@ function times(count: number, line: string): string[] {
 }
 
 describe("planItemNotes", () => {
+  it("plans one note for an item held by more than one, with every line about it", () => {
+    const plan = planFor(["$ [[Mira]] Rope x2", "$$ Rope :changed to [[Thessaly]]", "$ Rope"]);
+    expect(plan.notes.map((note) => [note.name, note.lines.length])).toEqual([["Rope", 3]]);
+    expect(plan.refusals).toEqual([]);
+  });
+
   it("plans a note for each named item at Items/<name>.md with its holder and every line", () => {
     const plan = planFor(["$ [[Mira]] Rope", "$ Rope"]);
     expect(plan.notes).toEqual([{ name: "Rope", path: `${ITEMS}/Rope.md`, file: null, holder: "[[Mira]]", lines: ["$ [[Mira]] Rope", "$ Rope"], alias: null, makes: false }]);
