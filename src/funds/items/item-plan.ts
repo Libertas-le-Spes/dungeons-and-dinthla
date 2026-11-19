@@ -9,6 +9,7 @@ import { readAmount, type AmountReading } from "../../notes/writing/coin-lines";
 import { readItemChange } from "../../notes/reading/item-change";
 import { findLinks } from "../../notes/parts/link";
 import { oneLine } from "../../notes/parts/one-line";
+import { countTextOf } from "../../notes/parts/item-count";
 import { holderNameOf, THE_PARTY, THE_PARTY_LABEL } from "./item-groups";
 import { itemSessionChange } from "./item-session-change";
 
@@ -23,6 +24,7 @@ export interface ItemEdit {
   holder: string;
   status: ItemStatus;
   price: string;
+  howMany: string;
 }
 
 export interface ItemPlan {
@@ -33,7 +35,18 @@ export interface ItemPlan {
   holderName: string;
   holderLinked: boolean;
   status: ItemStatus;
+  held: number | null;
   purseCopper: number;
+}
+
+interface Taken {
+  readonly count: number | null;
+}
+
+const WHOLE_COUNT = /^[1-9]\d*$/;
+
+export function howManyWords(held: number): string {
+  return `How many has to be a whole number from 1 to ${held}.`;
 }
 
 export const CHANGES_ANOTHER_ITEM =
@@ -48,6 +61,24 @@ function isGoneStatus(kind: string): kind is "sold" | "used" | "lost" {
 export function statusOf(item: ItemRecord): ItemStatus {
   if (item.gone === null || !isGoneStatus(item.gone.kind)) return "held";
   return item.gone.kind;
+}
+
+export function asksHowMany(item: ItemRecord): boolean {
+  if (statusOf(item) !== "held" || item.held === null) return false;
+  return item.held > 1;
+}
+
+function takenOf(item: ItemRecord, edit: ItemEdit): Taken | { error: string } {
+  if (!asksHowMany(item) || item.held === null) return { count: null };
+  const typed = edit.howMany.trim();
+  const count = Number(typed);
+  if (!WHOLE_COUNT.test(typed) || count > item.held) return { error: howManyWords(item.held) };
+  return { count };
+}
+
+function leftAfter(item: ItemRecord, taken: Taken): number | null {
+  if (item.held === null || taken.count === null) return null;
+  return item.held - taken.count;
 }
 
 export function holderTextOf(item: ItemRecord): string {
@@ -90,7 +121,7 @@ function priceWritten(item: ItemRecord, sessions: SessionNote[]): string {
 }
 
 export function initialItemEdit(item: ItemRecord, sessions: SessionNote[]): ItemEdit {
-  return { holder: holderTextOf(item), status: statusOf(item), price: priceWritten(item, sessions) };
+  return { holder: holderTextOf(item), status: statusOf(item), price: priceWritten(item, sessions), howMany: "1" };
 }
 
 export function holderOptions(itemHolders: HolderOption[], characters: HolderOption[]): HolderOption[] {
@@ -161,6 +192,7 @@ function planPriceChange(
     holderName: holderNameOf(item.holder),
     holderLinked: item.holderLinked,
     status: "sold",
+    held: item.held,
     purseCopper: price.copper - priceCopperOf(item, coins),
   };
 }
@@ -206,8 +238,17 @@ export function planItemSave(
     added.push(`$$ ${item.written} :changed to ${edit.holder}`);
     holderLinked = findLinks(edit.holder).length > 0;
   }
+  let status = edit.status;
+  let held = item.held;
   if (statusChanged && edit.status !== "held") {
-    let line = `$$ ${item.written} :${edit.status}`;
+    const taken = takenOf(item, edit);
+    if ("error" in taken) return taken;
+    const left = leftAfter(item, taken);
+    if (left !== null && left > 0) {
+      status = "held";
+      held = left;
+    }
+    let line = `$$ ${item.written}${countTextOf(taken.count)} :${edit.status}`;
     const price = oneLine(edit.price);
     if (edit.status === "sold" && price !== "") {
       const reading = readAmount("in", price);
@@ -217,22 +258,34 @@ export function planItemSave(
     }
     added.push(line);
   }
-  return { targetPath, added, removal, rewrite: null, holderName, holderLinked, status: edit.status, purseCopper };
+  return { targetPath, added, removal, rewrite: null, holderName, holderLinked, status, held, purseCopper };
 }
 
-function signature(item: ItemRecord, holderName: string, holderLinked: boolean, status: ItemStatus): string {
-  return JSON.stringify([item.name.toLowerCase(), item.written, holderName.toLowerCase(), holderLinked, status]);
+interface ItemState {
+  readonly holderName: string;
+  readonly holderLinked: boolean;
+  readonly status: ItemStatus;
+  readonly held: number | null;
+}
+
+function heldWhileHeld(state: ItemState): number | null {
+  if (state.status !== "held") return null;
+  return state.held;
+}
+
+function signature(item: ItemRecord, state: ItemState): string {
+  return JSON.stringify([item.name.toLowerCase(), item.written, state.holderName.toLowerCase(), state.holderLinked, state.status, heldWhileHeld(state)]);
 }
 
 function signatureOf(item: ItemRecord): string {
-  return signature(item, holderNameOf(item.holder), item.holderLinked, statusOf(item));
+  return signature(item, { holderName: holderNameOf(item.holder), holderLinked: item.holderLinked, status: statusOf(item), held: item.held });
 }
 
 export function refusalForItemPlan(sessions: SessionNote[], item: ItemRecord, plan: ItemPlan): string | null {
   const before = buildCampaign(sessions);
   const after = buildCampaign(applySessionChange(sessions, itemSessionChange(plan)).sessions);
   const wanted = before.items.map((candidate) => {
-    if (candidate.name === item.name) return signature(item, plan.holderName, plan.holderLinked, plan.status);
+    if (candidate.name === item.name) return signature(item, plan);
     return signatureOf(candidate);
   });
   const found = after.items.map(signatureOf);

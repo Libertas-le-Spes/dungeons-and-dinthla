@@ -27,6 +27,38 @@ function openDialog(text: string, save: (edit: ItemEdit) => Promise<boolean>) {
 const refuse = (message: string) => () => Promise.reject(new Error(message));
 
 describe("the item dialog", () => {
+  it("asks how many, starting at 1, once Used up, Sold or Lost is chosen for an item held several times", () => {
+    const { root, status } = openDialog("$ Arrow x20\n", vi.fn());
+    const howMany = root.querySelector('input[aria-label="How many"]') as HTMLInputElement;
+    const row = howMany.closest(".setting-item") as HTMLElement;
+    expect(row.querySelector(".setting-item-name")?.textContent).toBe("How many? (20 held)");
+    expect([howMany.value, isShown(row)]).toEqual(["1", false]);
+    status.value = "used";
+    status.dispatchEvent(new status.ownerDocument.defaultView!.Event("change"));
+    expect(isShown(row)).toBe(true);
+    status.value = "held";
+    status.dispatchEvent(new status.ownerDocument.defaultView!.Event("change"));
+    expect(isShown(row)).toBe(false);
+  });
+
+  it("saves the count typed for how many", async () => {
+    const save = vi.fn(async () => true);
+    const { dialog, root, status, button } = openDialog("$ Arrow x20\n", save);
+    status.value = "lost";
+    status.dispatchEvent(new status.ownerDocument.defaultView!.Event("change"));
+    const howMany = root.querySelector('input[aria-label="How many"]') as HTMLInputElement;
+    howMany.value = "4";
+    howMany.dispatchEvent(new howMany.ownerDocument.defaultView!.Event("input"));
+    button("Save").click();
+    await dialog.changeSettled();
+    expect(save).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ status: "lost", howMany: "4" }));
+  });
+
+  it.each([["$ Rope x1\n"], ["$ Rope\n"], ["$ Rope x5\n$$ Rope :lost\n"]])("doesn't ask how many for %j", (text) => {
+    const { root } = openDialog(text, vi.fn());
+    expect(root.querySelector('input[aria-label="How many"]')).toBeNull();
+  });
+
   it("shows a sold item's price as written", () => {
     const { price, priceRow } = openDialog("$ Rope\n$$ Rope :sold 30gp\n", vi.fn());
     expect(price.value).toBe("30gp");

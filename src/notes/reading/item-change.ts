@@ -2,12 +2,14 @@ import { readLedgerEntry, type CoinEntry } from "./ledger";
 import { findLinks, unlink } from "../parts/link";
 import { withoutBlockId } from "../parts/block-id";
 import { withoutBullet } from "../parts/bullet";
+import { countedItemOf } from "../parts/item-count";
 
 export type ItemChangeKind = "changed" | "sold" | "used" | "lost";
 
 export interface ItemChange {
   text: string;
   item: string;
+  count: number | null;
   kind: ItemChangeKind;
   holder?: string;
   holderLinked?: boolean;
@@ -42,11 +44,11 @@ export function readItemChange(line: string): ItemChange | null {
   const body = withoutBlockId(text.slice(2));
   const last = [...body.matchAll(CHANGE_WORD)].at(-1);
   if (last === undefined) return null;
-  const item = withoutBlockId(body.slice(0, last.index)).trim();
-  if (item === "") return null;
+  const counted = countedItemOf(withoutBlockId(body.slice(0, last.index)).trim());
+  if (counted.item === "") return null;
   const kind = KINDS.get(last[1]!.toLowerCase())!;
   const rest = body.slice(last.index + last[0].length);
-  const change: ItemChange = { text: body.trim(), item, kind };
+  const change: ItemChange = { text: body.trim(), item: counted.item, count: counted.count, kind };
   if (kind === "changed") {
     const found = holderIn(rest);
     change.holder = found.holder;
