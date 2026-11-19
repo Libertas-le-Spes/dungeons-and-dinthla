@@ -7,6 +7,7 @@ import { creatureTypeOf } from "./details/read-creature-type";
 import { featuresOf } from "./parts/read-features";
 import { nameOf, speciesOf } from "./parts/read-identity";
 import { inventoryOf } from "./parts/read-inventory";
+import { oneRowEach } from "../shape/one-row-each";
 import { purseOf } from "./parts/read-purse";
 import { sizeOf } from "./details/read-size";
 import { spellsOf } from "./parts/read-spells";
@@ -31,7 +32,7 @@ export function readReply(text: string): RepliedCharacter {
       classes: classesOf(data),
       scores: scoresIn(worked),
       numbers: numbersWithoutScores(worked),
-      inventory: inventoryOf(data),
+      inventory: oneRowEach(inventoryOf(data)),
       purse: purseOf(data),
       spells: spellsOf(data),
       features: featuresOf(data),
