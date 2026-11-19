@@ -45,9 +45,9 @@ function importDialog(): DialogDriver {
   return new DialogDriver(new NewImportFlow(writer, CHARACTERS_FOLDER, vault.allNotes.bind(vault)), { today: TODAY, online });
 }
 
-function updateDialog(path: string): DialogDriver {
+function updateDialog(path: string, kept: string | null = null): DialogDriver {
   const writer = new ImportWriter(vault.gate, CHARACTERS_FOLDER, CAMPAIGN_FOLDER);
-  return new DialogDriver(new UpdateFlow(writer, vault.fileAt(path)), { today: TODAY, online });
+  return new DialogDriver(new UpdateFlow(writer, vault.fileAt(path), kept), { today: TODAY, online });
 }
 
 describe("the import dialog's first view", () => {
@@ -212,6 +212,60 @@ describe("updating from D&D Beyond", () => {
     dialog.press("Update");
     await dialog.modal.allSettled();
     expect(vault.processed).toEqual([`${CHARACTERS_FOLDER}/Primary Monk.md`]);
+  });
+});
+
+describe("updating a character whose note keeps their D&D Beyond number", () => {
+  const MONK = `${CHARACTERS_FOLDER}/Primary Monk.md`;
+
+  it("asks D&D Beyond for that number as the dialog opens, with nothing to paste or press", () => {
+    vault.note(MONK, "Notes of mine.\n");
+    const dialog = updateDialog(MONK, "12345678");
+    expect(online.links).toEqual(["12345678"]);
+    expect(dialog.texts(".dd-import-reading")).toEqual([ASKING]);
+  });
+
+  it("shows the changes once the character comes back, and writes only on Update", async () => {
+    vault.note(MONK, "Notes of mine.\n");
+    const dialog = updateDialog(MONK, "12345678");
+    online.held.resolve(0, onlineSheet());
+    await dialog.settled(".dd-import-write");
+    expect(vault.processed).toEqual([]);
+    dialog.press("Update");
+    await dialog.modal.allSettled();
+    expect(vault.processed).toEqual([MONK]);
+  });
+
+  it("falls back to the first view, the number in the box and the reason above it, when D&D Beyond refuses", async () => {
+    vault.note(MONK, "Notes of mine.\n");
+    const dialog = updateDialog(MONK, "12345678");
+    online.held.reject(0, new Refusal("That character isn't public."));
+    const refusal = await dialog.settled(".dd-import-refusal");
+    expect(refusal.textContent).toBe("That character isn't public.");
+    expect(dialog.linkBox()).toBe("12345678");
+    expect(online.links).toEqual(["12345678"]);
+  });
+
+  it("starts at the first view, asking nothing, when the note keeps no number", () => {
+    vault.note(MONK, "Notes of mine.\n");
+    const dialog = updateDialog(MONK);
+    expect(dialog.texts("button")).toEqual([BRING_IN_BUTTON]);
+    expect(online.links).toEqual([]);
+  });
+});
+
+describe("what an online import keeps in the note", () => {
+  it("writes the character's D&D Beyond number, so the next update needs no link", async () => {
+    vault.note(`${CHARACTERS_FOLDER}/Primary Monk.md`, "Notes of mine.\n");
+    const dialog = updateDialog(`${CHARACTERS_FOLDER}/Primary Monk.md`);
+    dialog.typeLink(LINK);
+    dialog.press(BRING_IN_BUTTON);
+    const sheet = onlineSheet();
+    online.held.resolve(0, sheet);
+    await dialog.settled(".dd-import-write");
+    dialog.press("Update");
+    await dialog.modal.allSettled();
+    expect(vault.textAt(`${CHARACTERS_FOLDER}/Primary Monk.md`)).toContain(`\nbeyond: ${sheet.beyondNumber}\n`);
   });
 });
 

@@ -226,15 +226,15 @@
  {
   "id": "layout: [IMPORTED_ON_PROPERTY, IMPORTED_FROM_PRO",
   "file": "src/imports/layout/import-properties.ts",
-  "find": "[IMPORTED_ON_PROPERTY, IMPORTED_FROM_PROPERTY, IMPORTED_SESSION_PROPERTY, ...SHEET_VALUE_PROPERTIES]",
-  "replace": "[IMPORTED_ON_PROPERTY, IMPORTED_SESSION_PROPERTY, ...SHEET_VALUE_PROPERTIES]",
+  "find": "[IMPORTED_ON_PROPERTY, IMPORTED_FROM_PROPERTY, IMPORTED_SESSION_PROPERTY, BEYOND_PROPERTY, ...SHEET_VALUE_PROPERTIES]",
+  "replace": "[IMPORTED_ON_PROPERTY, IMPORTED_SESSION_PROPERTY, BEYOND_PROPERTY, ...SHEET_VALUE_PROPERTIES]",
   "group": "layout"
  },
  {
   "id": "layout: import list without sheet values",
   "file": "src/imports/layout/import-properties.ts",
-  "find": "[IMPORTED_ON_PROPERTY, IMPORTED_FROM_PROPERTY, IMPORTED_SESSION_PROPERTY, ...SHEET_VALUE_PROPERTIES]",
-  "replace": "[IMPORTED_ON_PROPERTY, IMPORTED_FROM_PROPERTY, IMPORTED_SESSION_PROPERTY]",
+  "find": "[IMPORTED_ON_PROPERTY, IMPORTED_FROM_PROPERTY, IMPORTED_SESSION_PROPERTY, BEYOND_PROPERTY, ...SHEET_VALUE_PROPERTIES]",
+  "replace": "[IMPORTED_ON_PROPERTY, IMPORTED_FROM_PROPERTY, IMPORTED_SESSION_PROPERTY, BEYOND_PROPERTY]",
   "group": "layout"
  },
  {
@@ -681,14 +681,14 @@
  {
   "id": "properties: if (line !== null) lines.push(line);",
   "file": "src/imports/note/properties/property-lines-of.ts",
-  "find": "const lines = importMarkLinesOf({ route: character.route, stamp });",
-  "replace": "lines.push(line!);",
+  "find": "    if (line !== null) lines.push(line);",
+  "replace": "    lines.push(line!);",
   "group": "properties"
  },
  {
   "id": "properties: const lines = importMarkLinesOf(characte",
   "file": "src/imports/note/properties/property-lines-of.ts",
-  "find": "const lines = importMarkLinesOf({ route: character.route, stamp });",
+  "find": "const lines = importMarkLinesOf({ route: character.route, stamp, beyondNumber });",
   "replace": "const lines: string[] = [];",
   "group": "properties"
  },
@@ -2224,5 +2224,145 @@
   "find": "const ASCII_PUNCTUATION = /^[!-/:-@[-`{-~]/;",
   "replace": "const ASCII_PUNCTUATION = /^[!-/:-@]/;",
   "group": "layout"
+ },
+ {
+  "id": "beyond number is an import property",
+  "file": "src/imports/layout/import-properties.ts",
+  "find": "[IMPORTED_ON_PROPERTY, IMPORTED_FROM_PROPERTY, IMPORTED_SESSION_PROPERTY, BEYOND_PROPERTY, ...SHEET_VALUE_PROPERTIES]",
+  "replace": "[IMPORTED_ON_PROPERTY, IMPORTED_FROM_PROPERTY, IMPORTED_SESSION_PROPERTY, ...SHEET_VALUE_PROPERTIES]",
+  "group": "beyond-number"
+ },
+ {
+  "id": "alignment is a sheet value",
+  "file": "src/imports/layout/import-properties.ts",
+  "find": "  SPEED_PROPERTY,\n  ALIGNMENT_PROPERTY,\n",
+  "replace": "  SPEED_PROPERTY,\n",
+  "group": "beyond-number"
+ },
+ {
+  "id": "the beyond number is written",
+  "file": "src/imports/note/properties/helpers/import-mark-lines.ts",
+  "find": ", ...beyondLinesOf(beyondNumber)];",
+  "replace": "];",
+  "group": "beyond-number"
+ },
+ {
+  "id": "no beyond number writes no line",
+  "file": "src/imports/note/properties/helpers/import-mark-lines.ts",
+  "find": "  if (beyondNumber === null) return [];\n",
+  "replace": "  if (beyondNumber === null) return [`${BEYOND_PROPERTY}: `];\n",
+  "group": "beyond-number"
+ },
+ {
+  "id": "a beyond number must be whole",
+  "file": "src/imports/note/properties/helpers/import-mark-lines.ts",
+  "find": "!Number.isSafeInteger(beyondNumber) || ",
+  "replace": "",
+  "group": "beyond-number"
+ },
+ {
+  "id": "a beyond number must be above 0",
+  "file": "src/imports/note/properties/helpers/import-mark-lines.ts",
+  "find": " || beyondNumber < 1 ||",
+  "replace": " ||",
+  "group": "beyond-number"
+ },
+ {
+  "id": "a beyond number must fit D&D Beyond",
+  "file": "src/imports/note/properties/helpers/import-mark-lines.ts",
+  "find": " || beyondNumber > MOST_BEYOND_NUMBER)",
+  "replace": ")",
+  "group": "beyond-number"
+ },
+ {
+  "id": "the import passes its beyond number",
+  "file": "src/imports/note/writing/rewriting/imported-note.ts",
+  "find": "beyondNumber: sheet.beyondNumber })",
+  "replace": "beyondNumber: null })",
+  "group": "beyond-number"
+ },
+ {
+  "id": "alignment is written",
+  "file": "src/imports/note/properties/imported-properties.ts",
+  "find": "  new AlignmentProperty(),\n",
+  "replace": "",
+  "group": "beyond-number"
+ },
+ {
+  "id": "no alignment writes no line",
+  "file": "src/imports/note/properties/kinds/alignment-property.ts",
+  "find": "    if (character.alignment === null) return null;\n",
+  "replace": "    if (character.alignment === null) return `${this.name}: \"\"`;\n",
+  "group": "beyond-number"
+ },
+ {
+  "id": "alignment is made inert",
+  "file": "src/imports/note/properties/kinds/alignment-property.ts",
+  "find": "NeutralText.ofOneLine(character.alignment).written",
+  "replace": "character.alignment.text",
+  "group": "beyond-number"
+ },
+ {
+  "id": "the kept number is the beyond property",
+  "file": "src/imports/note/reading/kept-beyond-number.ts",
+  "find": "if (propertyKeyOf(plain) !== BEYOND_PROPERTY) continue;",
+  "replace": "if (propertyKeyOf(plain) === null) continue;",
+  "group": "beyond-number"
+ },
+ {
+  "id": "the kept number starts with no 0",
+  "file": "src/imports/note/reading/kept-beyond-number.ts",
+  "find": "/^[1-9]\\d{0,11}$/",
+  "replace": "/^\\d{1,12}$/",
+  "group": "beyond-number"
+ },
+ {
+  "id": "the kept number has at most twelve digits",
+  "file": "src/imports/note/reading/kept-beyond-number.ts",
+  "find": "/^[1-9]\\d{0,11}$/",
+  "replace": "/^[1-9]\\d*$/",
+  "group": "beyond-number"
+ },
+ {
+  "id": "the kept number is the whole value",
+  "file": "src/imports/note/reading/kept-beyond-number.ts",
+  "find": "/^[1-9]\\d{0,11}$/",
+  "replace": "/[1-9]\\d{0,11}/",
+  "group": "beyond-number"
+ },
+ {
+  "id": "a broken note keeps no number",
+  "file": "src/imports/note/reading/kept-beyond-number.ts",
+  "find": "  } catch {\n    return null;\n  }",
+  "replace": "  } catch (error) {\n    throw error;\n  }",
+  "group": "beyond-number"
+ },
+ {
+  "id": "an update starts with the kept number",
+  "file": "src/imports/dialog/flows/update-flow.ts",
+  "find": "    else steps.bringInKept(this.kept);",
+  "replace": "    else steps.chooseSource();",
+  "group": "beyond-number"
+ },
+ {
+  "id": "an update reads the kept number",
+  "file": "src/imports/dialog/opening/open-import.ts",
+  "find": "  const kept = await keptNumberOf(place, file);",
+  "replace": "  const kept = null;",
+  "group": "beyond-number"
+ },
+ {
+  "id": "an unreadable note starts the update at the first view",
+  "file": "src/imports/dialog/opening/open-import.ts",
+  "find": "  } catch {\n    return null;\n  }",
+  "replace": "  } catch {\n    return \"12345678\";\n  }",
+  "group": "beyond-number"
+ },
+ {
+  "id": "the online sheet keeps its number",
+  "file": "src/imports/dialog/online/online-sheet.ts",
+  "find": "beyondNumber: replied.id };",
+  "replace": "beyondNumber: null };",
+  "group": "beyond-number"
  }
 ]

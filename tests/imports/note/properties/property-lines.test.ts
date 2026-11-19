@@ -10,6 +10,7 @@ import { ClassProperty } from "../../../../src/imports/note/properties/kinds/cla
 import { NumberProperty } from "../../../../src/imports/note/properties/kinds/number-property";
 import { ScoreProperty } from "../../../../src/imports/note/properties/kinds/score-property";
 import { SpeciesProperty } from "../../../../src/imports/note/properties/kinds/species-property";
+import { AlignmentProperty } from "../../../../src/imports/note/properties/kinds/alignment-property";
 import { propertyLinesOf } from "../../../../src/imports/note/properties/property-lines-of";
 import { SCORE_ROWS } from "../../../../src/imports/note/rows/score-rows";
 import { MadeUpSheet } from "../../../beyond/builders/made-up-sheet";
@@ -133,21 +134,52 @@ describe("importMarkLinesOf", () => {
   const route = monkSheet().character.route;
 
   it.each(["x2026-11-13", "2026-11-13x", "2026-11-133", "226-11-13", "2026-11-1"])("refuses the date %j", (date) => {
-    expect(() => importMarkLinesOf({ route, stamp: stampedOn(date) })).toThrow(Refusal);
+    expect(() => importMarkLinesOf({ route, stamp: stampedOn(date), beyondNumber: null })).toThrow(Refusal);
   });
 
   it.each(["PDF", "a b", "", "abcdefghijklmnopq", "pdf\n", "pdf1", "x:y"])("refuses the route name %j", (name) => {
-    expect(() => importMarkLinesOf({ route: { name }, stamp: stampedOn(TODAY) })).toThrow(Refusal);
+    expect(() => importMarkLinesOf({ route: { name }, stamp: stampedOn(TODAY), beyondNumber: null })).toThrow(Refusal);
   });
 
   it.each(["p", "pdf", "abcdefghijklmnop"])("writes the route name %j", (name) => {
-    expect(importMarkLinesOf({ route: { name }, stamp: { today: TODAY, session: 3 } })).toEqual(["imported: 2026-11-13", `imported-from: ${name}`, "imported-session: 3"]);
+    expect(importMarkLinesOf({ route: { name }, stamp: { today: TODAY, session: 3 }, beyondNumber: null })).toEqual(["imported: 2026-11-13", `imported-from: ${name}`, "imported-session: 3"]);
+  });
+});
+
+describe("the alignment property", () => {
+  it("writes the alignment in quotes", () => {
+    expect(new AlignmentProperty().lineOf(monkSheet().character)).toBe('alignment: "Neutral"');
+  });
+
+  it("makes markup in the alignment inert", () => {
+    const character = sheetWithCharacter(monkSheet(), { alignment: CleanLine.of("[[Chaotic]] good") }).character;
+    expect(new AlignmentProperty().lineOf(character)).toBe('alignment: "\\\\[\\\\[Chaotic\\\\]\\\\] good"');
+  });
+
+  it("writes nothing when the sheet gives no alignment", () => {
+    const character = sheetWithCharacter(monkSheet(), { alignment: null }).character;
+    expect(new AlignmentProperty().lineOf(character)).toBeNull();
+  });
+});
+
+describe("the D&D Beyond number among the import's marks", () => {
+  it("is written after the session for a character that came from D&D Beyond", () => {
+    expect(importMarkLinesOf({ route: { name: "online" }, stamp: { today: TODAY, session: 3 }, beyondNumber: 12345678 })).toEqual([
+      "imported: 2026-11-13",
+      "imported-from: online",
+      "imported-session: 3",
+      "beyond: 12345678",
+    ]);
+  });
+
+  it.each([0, -5, 1.5, 1_000_000_000_000, Number.NaN])("refuses %d, which D&D Beyond could not give", (beyondNumber) => {
+    expect(() => importMarkLinesOf({ route: { name: "online" }, stamp: stampedOn(TODAY), beyondNumber })).toThrow(Refusal);
   });
 });
 
 describe("propertyLinesOf", () => {
   it("puts the three marks first and then each known value, in the order the layout lists them", () => {
-    expect(firstLines(propertyLinesOf({ character: monkSheet().character, stamp: stampedOn(TODAY) }), 9)).toEqual([
+    expect(firstLines(propertyLinesOf({ character: monkSheet().character, stamp: stampedOn(TODAY), beyondNumber: null }), 9)).toEqual([
       "imported: 2026-11-13",
       "imported-from: pdf",
       "imported-session: 0",
@@ -161,7 +193,7 @@ describe("propertyLinesOf", () => {
   });
 
   it("writes exactly the marks and the known values when two are not known", () => {
-    const lines = propertyLinesOf({ character: sheetOf(MadeUpSheet.monk().with("AC", "").with("Speed", "")).character, stamp: stampedOn(TODAY) });
+    const lines = propertyLinesOf({ character: sheetOf(MadeUpSheet.monk().with("AC", "").with("Speed", "")).character, stamp: stampedOn(TODAY), beyondNumber: null });
     expect(lines).toEqual([
       "imported: 2026-11-13",
       "imported-from: pdf",
@@ -171,6 +203,7 @@ describe("propertyLinesOf", () => {
       'type: "Medium (human), neutral"',
       'subtitle: "Human Monk 4"',
       "HP: 51",
+      'alignment: "Neutral"',
       "STR: 11",
       "DEX: 12",
       "CON: 13",
@@ -181,7 +214,7 @@ describe("propertyLinesOf", () => {
   });
 
   it("leaves out a value that is not known, and keeps the rest", () => {
-    const text = textOf(...propertyLinesOf({ character: sheetOf(MadeUpSheet.monk().with("AC", "").with("Speed", "")).character, stamp: stampedOn(TODAY) }));
+    const text = textOf(...propertyLinesOf({ character: sheetOf(MadeUpSheet.monk().with("AC", "").with("Speed", "")).character, stamp: stampedOn(TODAY), beyondNumber: null }));
     expect([linesStartingWith(text, "AC"), linesStartingWith(text, "speed"), linesStartingWith(text, "HP")]).toEqual([[], [], ["HP: 51"]]);
   });
 });

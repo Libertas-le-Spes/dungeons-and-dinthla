@@ -95,12 +95,12 @@ export class BeyondOpeners {
     openImport(new CampaignPlace(this.wiring, folder), new AfterNewImport(returnFocus, this.wiring.showSheet.bind(this.wiring), this.offers));
   }
 
-  updateFromBeyond(file: TFile, returnFocus: () => void): void {
+  async updateFromBeyond(file: TFile, returnFocus: () => void): Promise<void> {
     const folder = this.wiring.campaignFolderOf(file.path);
     if (folder === null) {
       this.wiring.tell(NOT_IN_A_CAMPAIGN);
       return;
     }
-    openUpdate(new CampaignPlace(this.wiring, folder), file, new AfterUpdate(returnFocus, this.offers));
+    await openUpdate(new CampaignPlace(this.wiring, folder), file, new AfterUpdate(returnFocus, this.offers));
   }
 }

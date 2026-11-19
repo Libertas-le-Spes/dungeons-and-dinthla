@@ -41,6 +41,11 @@ export class OnlineStage implements OnlineBlock {
     this.typed = value;
   }
 
+  bringInFrom(link: string): void {
+    this.typed = link;
+    this.pressed();
+  }
+
   pressed(): void {
     this.contentEl.empty();
     this.contentEl.createEl("p", { cls: "dd-import-reading", text: ASKING, attr: { "aria-live": "polite" } });

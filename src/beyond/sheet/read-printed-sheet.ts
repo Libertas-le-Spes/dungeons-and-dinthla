@@ -34,5 +34,6 @@ export function readPrintedSheet(values: ReadonlyMap<string, FieldValue>): Print
       features: features.lines,
     },
     leftOut: { items: inventory.loss, spells: spells.loss, features: features.loss },
+    beyondNumber: null,
   };
 }
