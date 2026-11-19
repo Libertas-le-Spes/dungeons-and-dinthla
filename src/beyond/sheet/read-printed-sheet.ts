@@ -2,6 +2,7 @@ import type { FieldValue } from "../../pdf/fields/field-value";
 import { classesOf } from "./classes/read-classes";
 import { featuresOf } from "./parts/read-features";
 import { inventoryOf } from "./parts/read-inventory";
+import { oneRowEach } from "../shape/one-row-each";
 import { numbersOf } from "./parts/read-numbers";
 import { purseOf } from "./parts/read-purse";
 import { scoresOf } from "./parts/read-scores";
@@ -28,7 +29,7 @@ export function readPrintedSheet(values: ReadonlyMap<string, FieldValue>): Print
       classes: classesOf(fields),
       scores: scoresOf(fields),
       numbers: numbersOf(fields),
-      inventory: inventory.items,
+      inventory: oneRowEach(inventory.items),
       purse: purseOf(fields),
       spells: spells.lines,
       features: features.lines,
