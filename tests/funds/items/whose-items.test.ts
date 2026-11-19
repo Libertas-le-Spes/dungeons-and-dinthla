@@ -76,15 +76,15 @@ describe("whoseItems", () => {
     expect(mine.heldCount).toBe(0);
   });
 
-  it.each(["$ Flame Tongue longsword found by [[Mira]]", "$ Rope for [[Zed]] and [[Mira]] to share", "$ [[Zed]] Rope given to [[Mira]]"])("gives a line to him when his character's link is anywhere on it, as in %s", (line) => {
+  it.each(["$ Rope for [[Zed]] and [[Mira]] to share", "$ [[Zed]] Rope given to [[Mira]]", "$ [[Innkeeper]] gave [[Mira]] a sword"])("gives a line whose holder is another to the party, though it links his character too, as in %s", (line) => {
     const { mine, party } = whoseItems({ campaign: campaignOf([line]), ownNames: ["Mira"] });
-    expect(mine.heldCount).toBe(1);
-    expect(party.heldCount).toBe(0);
+    expect(mine.heldCount).toBe(0);
+    expect(party.heldCount).toBe(1);
   });
 
-  it("shows an item given to his character under his character's name", () => {
-    const { mine } = whoseItems({ campaign: campaignOf(["$ [[Innkeeper]] gave [[Mira]] a sword"]), ownNames: ["Mira"] });
-    expect(heldOf(mine)).toEqual([["Mira", ["gave Mira a sword"]]]);
+  it("gives a line whose first link is his character to him", () => {
+    const { mine } = whoseItems({ campaign: campaignOf(["$ Flame Tongue longsword found by [[Mira]]"]), ownNames: ["Mira"] });
+    expect(mine.heldCount).toBe(1);
   });
 
   it("follows the link of the line that last gave the item a holder", () => {
@@ -98,24 +98,41 @@ describe("whoseItems", () => {
     expect(heldOf(mine)).toEqual([["Mira", ["Rope"]]]);
   });
 
-  it("keeps the links of the earlier line when a later one names no link", () => {
-    const { mine } = whoseItems({ campaign: campaignOf(["$ [[Mira]] Rope", "$ Rope"]), ownNames: ["Mira"] });
-    expect(mine.heldCount).toBe(1);
+  it("keeps his character's own and gives the party's own to the party when a later line gives the party one", () => {
+    const { mine, party } = whoseItems({ campaign: campaignOf(["$ [[Mira]] Rope", "$ Rope"]), ownNames: ["Mira"] });
+    expect([mine.heldCount, party.heldCount]).toEqual([1, 1]);
   });
 
   it.each([
-    ["sold", "$$ Rope :sold 5 gp to [[Mira]]"],
-    ["used", "$$ Rope :used by [[Mira]]"],
-    ["lost", "$$ Rope :lost by [[Mira]]"],
-  ])("gives an item gone %s to him when the gone line links his character, whoever held it", (_kind, goneLine) => {
-    const { mine, party } = whoseItems({ campaign: campaignOf(["$ [[Zed]] Rope"], [goneLine]), ownNames: ["Mira"] });
+    ["sold", "$$ Rope :sold 5 gp to [[Zed]]"],
+    ["used", "$$ Rope :used"],
+    ["lost", "$$ Rope :lost"],
+  ])("keeps an item his character held under Mine once it is %s, whatever the gone line links", (_kind, goneLine) => {
+    const { mine, party } = whoseItems({ campaign: campaignOf(["$ [[Mira]] Rope"], [goneLine]), ownNames: ["Mira"] });
     expect(mine.gone.map((item) => item.name)).toEqual(["Rope"]);
     expect(party.gone).toEqual([]);
   });
 
-  it("gives an item gone to the party when the gone line links only others, though his character held it", () => {
-    const { mine, party } = whoseItems({ campaign: campaignOf(["$ [[Mira]] Rope"], ["$$ Rope :sold 5 gp to [[Zed]]"]), ownNames: ["Mira"] });
+  it("gives an item another held to the party once it is gone, though the gone line links his character", () => {
+    const { mine, party } = whoseItems({ campaign: campaignOf(["$ [[Zed]] Rope"], ["$$ Rope :sold 5 gp to [[Mira]]"]), ownNames: ["Mira"] });
     expect(mine.gone).toEqual([]);
     expect(party.gone.map((item) => item.name)).toEqual(["Rope"]);
+  });
+
+  it("moves an item to the party when his character gives it to the party, and to him when he is given it", () => {
+    const given = whoseItems({ campaign: campaignOf(["$ [[Mira]] Rope", "$$ Rope :changed to the party"]), ownNames: ["Mira"] });
+    const received = whoseItems({ campaign: campaignOf(["$ Rope", "$$ Rope :changed to [[Mira]]"]), ownNames: ["Mira"] });
+    expect([given.mine.heldCount, given.party.heldCount]).toEqual([0, 1]);
+    expect([received.mine.heldCount, received.party.heldCount]).toEqual([1, 0]);
+  });
+
+  it("counts his character written as plain text as his, as the same holder as the link", () => {
+    const { mine } = whoseItems({ campaign: campaignOf(["$ Rope", "$$ Rope :changed to Mira"]), ownNames: ["Mira"] });
+    expect(heldOf(mine)).toEqual([["Mira", ["Rope"]]]);
+  });
+
+  it("puts each holder's share of a split item on their side", () => {
+    const { mine, party } = whoseItems({ campaign: campaignOf(["$ [[Mira]] Arrow x20", "$$ Arrow x5 :changed to [[Zed]]"]), ownNames: ["Mira"] });
+    expect([heldOf(mine), heldOf(party)]).toEqual([[["Mira", ["Arrow"]]], [["Zed", ["Arrow"]]]]);
   });
 });
