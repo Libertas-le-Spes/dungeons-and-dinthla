@@ -82,8 +82,8 @@ export class BeyondOpeners {
     void this.offers.makeMain(path, returnFocus);
   }
 
-  died(path: string, returnFocus: () => void): void {
-    void this.offers.died(path, returnFocus);
+  depart(path: string, returnFocus: () => void): void {
+    void this.offers.depart(path, returnFocus);
   }
 
   importCharacter(returnFocus: () => void): void {

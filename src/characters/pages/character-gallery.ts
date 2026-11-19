@@ -3,11 +3,9 @@ import type { SessionNote } from "../../campaign/record/campaign";
 import { campaignFolderOf, campaignNotePathOf } from "../../campaign/paths/campaign-folders";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { LinkActions } from "../../views/lists/linked-text";
-import { FocusAfter } from "../../views/lists/focus-after";
 import { addCharacterCardIn, type CharacterCard } from "../cards/character-card";
 import { backupCards, playedCards } from "../cards/card-groups";
 import { leftPlayMarkOf } from "../cards/card-standing";
-import { addDiedButton } from "../cards/died-button";
 import { addMakeMainButton } from "../cards/make-main-button";
 import type { CharacterNotes } from "../reading/character-notes";
 import { learnedFactsOf, type LearnedFacts } from "../reading/learned-facts";
@@ -30,7 +28,6 @@ export class CharacterGallery {
   private renders = 0;
   private campaignNotes = new Set<string | null>();
   private createButton: HTMLButtonElement | null = null;
-  private readonly focusCreate = new FocusAfter();
   private readonly drawing = new PendingWork();
 
   constructor(
@@ -95,7 +92,6 @@ export class CharacterGallery {
     if (leftPlayMarkOf(card.standing) === null) {
       const item = gallery.createEl("li", { cls: "dd-played" });
       addCharacterCardIn(item, card, this.actions);
-      this.addDied(item, card);
       return;
     }
     this.drawWithMakeMain({ list: gallery, card, cls: "dd-left" });
@@ -117,23 +113,18 @@ export class CharacterGallery {
     return item;
   }
 
-  private addDied(parent: HTMLElement, card: CharacterCard): void {
-    addDiedButton({ parent, path: card.path, action: this.creators, focus: this.focusCreate });
-  }
-
   private drawBackups(backups: readonly CharacterCard[]): void {
     if (backups.length === 0) return;
     const section = this.root.createEl("section", { cls: "dd-backups" });
     section.createEl("h3", { cls: "dd-title", text: BACKUPS });
     const list = section.createEl("ul", { cls: "dd-gallery" });
-    for (const card of backups) this.addDied(this.drawWithMakeMain({ list, card, cls: "dd-backup" }), card);
+    for (const card of backups) this.drawWithMakeMain({ list, card, cls: "dd-backup" });
   }
 
   private addCreateButton(head: HTMLElement): void {
     const button = head.createEl("button", { cls: "dd-create", text: "New character" });
     button.addEventListener("click", () => this.creators.newCharacter(() => this.focusCreateButton()));
     this.createButton = button;
-    if (this.focusCreate.isArmed()) button.focus();
   }
 
   private focusCreateButton(): void {

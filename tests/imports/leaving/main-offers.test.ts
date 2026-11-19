@@ -93,9 +93,24 @@ function press(modal: MainModal, words: string): void {
   throw new Error(`No button says ${words}.`);
 }
 
-function type(modal: MainModal, text: string): void {
-  const input = modal.contentEl.querySelector("input");
-  if (input === null) throw new Error("The dialog asks for nothing.");
+function fieldNames(modal: MainModal): string[] {
+  const names: string[] = [];
+  for (const name of modal.contentEl.querySelectorAll(".setting-item-name")) {
+    if (name.textContent !== "") names.push(name.textContent);
+  }
+  return names;
+}
+
+function inputNamed(modal: MainModal, name: string): HTMLInputElement {
+  for (const setting of modal.contentEl.querySelectorAll(".setting-item")) {
+    const input = setting.querySelector("input");
+    if (input !== null && setting.querySelector(".setting-item-name")?.textContent === name) return input;
+  }
+  throw new Error(`The dialog has no field called ${name}.`);
+}
+
+function type(modal: MainModal, text: string, name = "What were they last doing?"): void {
+  const input = inputNamed(modal, name);
   const view = input.ownerDocument.defaultView;
   if (view === null) throw new Error("The dialog is not in a window.");
   input.value = text;
@@ -344,21 +359,21 @@ describe("after an update", () => {
   });
 });
 
-describe("Died on a character's page or card", () => {
-  it("asks What happened to them? of a character who is not the main, with Died and Not now, and writes nothing until Died is pressed", async () => {
+describe("Depart at the bottom of a character's page", () => {
+  it("asks What happened to them? of a character who is not the main, with Died, Retired, Something else and Not now, and writes nothing until one is pressed", async () => {
     const table = new LeavingTable();
-    await new MainOffers(new OfferTable(table)).died(SECOND, vi.fn());
+    await new MainOffers(new OfferTable(table)).depart(SECOND, vi.fn());
     const modal = shownModal();
     expect(titleOf(modal)).toBe("Secondary");
     expect(subjectOf(modal)).toBe("What happened to them?");
-    expect(buttonWords(modal)).toEqual(["Died", "Not now"]);
-    expect(modal.contentEl.querySelector("input")).not.toBeNull();
+    expect(buttonWords(modal)).toEqual(["Died", "Retired", "Something else", "Not now"]);
+    expect(fieldNames(modal)).toEqual(["Something else", "What were they last doing?"]);
     expect(table.vault.writes).toEqual([]);
   });
 
   it("marks them, adds what was typed to the snapshot, and moves them to Fallen when Died is pressed", async () => {
     const table = new LeavingTable();
-    await new MainOffers(new OfferTable(table)).died(SECOND, vi.fn());
+    await new MainOffers(new OfferTable(table)).depart(SECOND, vi.fn());
     const modal = shownModal();
     type(modal, "crossing the ford");
     press(modal, "Died");
@@ -369,9 +384,27 @@ describe("Died on a character's page or card", () => {
     expect(table.vault.textAt(CAMPAIGN_NOTE)).toBe(CAMPAIGN_TEXT);
   });
 
+  it("writes what they typed under Something else as what happened when Something else is pressed", async () => {
+    const table = new LeavingTable();
+    await new MainOffers(new OfferTable(table)).depart(SECOND, vi.fn());
+    const modal = shownModal();
+    type(modal, "Joined the Silver Order", "Something else");
+    type(modal, "crossing the ford");
+    press(modal, "Something else");
+    await modal.changeSettled();
+    expect(table.vault.textAt(SECOND_FALLEN)).toContain('\nstanding: departed\ndeparture: "Joined the Silver Order"\n');
+    expect(table.vault.textAt(SECOND_FALLEN)).toContain("\nJoined the Silver Order on 2026-11-12, after [[Session 7]].\nLast doing: crossing the ford\n");
+  });
+
+  it("asks only for what they were last doing when someone else becomes the character", async () => {
+    const table = new LeavingTable();
+    await new MainOffers(new OfferTable(table)).afterImport(SECOND);
+    expect(fieldNames(shownModal())).toEqual(["What were they last doing?"]);
+  });
+
   it("does the same for the main, whose campaign note is left naming them", async () => {
     const table = new LeavingTable();
-    await new MainOffers(new OfferTable(table)).died(MONK, vi.fn());
+    await new MainOffers(new OfferTable(table)).depart(MONK, vi.fn());
     const modal = shownModal();
     press(modal, "Died");
     await modal.changeSettled();
@@ -382,7 +415,7 @@ describe("Died on a character's page or card", () => {
   it("writes nothing and returns focus when Not now is pressed", async () => {
     const table = new LeavingTable();
     const returnFocus = vi.fn();
-    await new MainOffers(new OfferTable(table)).died(SECOND, returnFocus);
+    await new MainOffers(new OfferTable(table)).depart(SECOND, returnFocus);
     press(shownModal(), "Not now");
     expect(table.vault.writes).toEqual([]);
     expect(returnFocus).toHaveBeenCalledOnce();
@@ -392,10 +425,10 @@ describe("Died on a character's page or card", () => {
     const table = new LeavingTable();
     const wiring = new OfferTable(table);
     const returnFocus = vi.fn();
-    await new MainOffers(wiring).died(MONK_FALLEN.replace("Primary Monk", "Brann"), returnFocus);
+    await new MainOffers(wiring).depart(MONK_FALLEN.replace("Primary Monk", "Brann"), returnFocus);
     expect(wiring.told).toEqual([NOTE_MOVED]);
     const fallen = table.vault.note(`${CAMPAIGN}/Fallen/Brann.md`, "---\nstanding: died\n---\n");
-    await new MainOffers(wiring).died(fallen.path, returnFocus);
+    await new MainOffers(wiring).depart(fallen.path, returnFocus);
     expect(wiring.told).toEqual([NOTE_MOVED, ALREADY_FALLEN]);
     expect(lastMainModal()).toBeNull();
     expect(returnFocus).toHaveBeenCalledTimes(2);
@@ -404,7 +437,7 @@ describe("Died on a character's page or card", () => {
   it("says why and asks nothing when the campaign note's character isn't one clear link", async () => {
     const table = new LeavingTable();
     const wiring = new OfferTable(table, new UnclearCast());
-    await new MainOffers(wiring).died(SECOND, vi.fn());
+    await new MainOffers(wiring).depart(SECOND, vi.fn());
     expect(wiring.told).toEqual([MAIN_UNCLEAR]);
     expect(lastMainModal()).toBeNull();
   });
@@ -413,14 +446,14 @@ describe("Died on a character's page or card", () => {
     const table = new LeavingTable();
     const loose = table.vault.note(`${CAMPAIGN}/Characters/Old/Loose.md`, "");
     const wiring = new OfferTable(table);
-    await new MainOffers(wiring).died(loose.path, vi.fn());
+    await new MainOffers(wiring).depart(loose.path, vi.fn());
     expect(wiring.told).toEqual([NOT_A_CAMPAIGN_CHARACTER]);
   });
 
   it("says what went wrong in plain words, and returns focus, when something unexpected is thrown", async () => {
     const wiring = new OfferTable(new LeavingTable(), new BrokenCast());
     const returnFocus = vi.fn();
-    await new MainOffers(wiring).died(SECOND, returnFocus);
+    await new MainOffers(wiring).depart(SECOND, returnFocus);
     expect(wiring.told).toEqual([COULD_NOT_ASK]);
     expect(returnFocus).toHaveBeenCalledOnce();
   });

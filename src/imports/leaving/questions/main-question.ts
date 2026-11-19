@@ -1,7 +1,10 @@
 import type { SwitchChoice } from "../choices/switch-choice";
+import type { OwnWords } from "../reasons/own-words";
 
 export const LAST_DOING_LABEL = "What were they last doing?";
-export const LAST_DOING_HINT = "Optional. Goes in the snapshot that Died and Retired add to their note in Fallen.";
+export const LAST_DOING_HINT = "Optional. Goes in the snapshot added to their note when it moves to Fallen.";
+export const OWN_WORDS_LABEL = "Something else";
+export const OWN_WORDS_HINT = "If they didn't die or retire, write what happened, such as Stayed behind at the abbey, then press Something else.";
 export const NOT_NOW = "Not now";
 export const SWITCH_FAILED = "Couldn't switch your character";
 
@@ -9,6 +12,7 @@ export interface MainQuestion {
   readonly title: string;
   readonly question: string;
   readonly asksLastDoing: boolean;
+  readonly ownWords: OwnWords | null;
   readonly choices: readonly SwitchChoice[];
 }
 

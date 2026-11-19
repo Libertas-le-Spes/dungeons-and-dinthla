@@ -1,11 +1,13 @@
 import type { TFile } from "obsidian";
 import { fallenNotePathOf } from "../../../campaign/paths/campaign-folders";
 import { noteAtPathOf } from "../../../campaign/paths/note-at-path";
-import { hasLeftPlay, STANDING_PROPERTY } from "../../layout/standing";
+import { DEPARTED_STANDING, hasLeftPlay, STANDING_PROPERTY } from "../../layout/standing";
+import { DEPARTURE_PROPERTY, departureLine } from "../../layout/departure";
 import { standingOf } from "../properties/property-value";
 import { LineEnding } from "../../note/reading/line-ending";
 import { propertyLine, textWithProperty } from "../properties/property-setter";
 import type { LeavingSteps } from "../reasons/leaving-reason";
+import { departureWordsOf } from "../snapshot/departure-words";
 import { heldOf } from "../snapshot/held-by-character";
 import { lastDoingOf } from "../snapshot/last-doing";
 import { fallenNoteExists } from "../snapshot/snapshot-refusals";
@@ -19,6 +21,13 @@ import { textOfNote } from "./read-note";
 import type { LeavingActions, LeavingFiles, SwitchPlan } from "./switch-plan";
 import { marked, markedWithSnapshot, markFailed, movedToFallen, moveToFallenFailed, NOTE_UNREAD } from "./switch-words";
 
+interface MarkedNote {
+  before: string;
+  markedText: string;
+  standing: string;
+  how: string;
+}
+
 export class OldMainSteps implements LeavingSteps {
   constructor(
     private readonly files: LeavingFiles,
@@ -30,9 +39,21 @@ export class OldMainSteps implements LeavingSteps {
   ) {}
 
   async intoFallen(standing: string, how: string): Promise<PlannedWrite[]> {
-    const lastDoing = lastDoingOf(this.typedLastDoing);
     const before = await textOfNote(this.files, this.old, NOTE_UNREAD);
     const markedText = textWithProperty(before, STANDING_PROPERTY, propertyLine(STANDING_PROPERTY, standing));
+    return this.movedWith({ before, markedText, standing, how });
+  }
+
+  async departedIntoFallen(typedWords: string): Promise<PlannedWrite[]> {
+    const words = departureWordsOf(typedWords);
+    const before = await textOfNote(this.files, this.old, NOTE_UNREAD);
+    const standingText = textWithProperty(before, STANDING_PROPERTY, propertyLine(STANDING_PROPERTY, DEPARTED_STANDING));
+    const markedText = textWithProperty(standingText, DEPARTURE_PROPERTY, departureLine(words.written));
+    return this.movedWith({ before, markedText, standing: DEPARTED_STANDING, how: words.snapshot });
+  }
+
+  private async movedWith({ before, markedText, standing, how }: MarkedNote): Promise<PlannedWrite[]> {
+    const lastDoing = lastDoingOf(this.typedLastDoing);
     const destination = this.fallenPath();
     const campaign = await this.cast.campaignOf(this.plan.campaignFolder);
     const sessionLink = this.cast.latestSessionLink(this.plan.campaignFolder, destination);

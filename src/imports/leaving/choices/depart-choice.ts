@@ -1,4 +1,4 @@
-import { Died } from "../reasons/died";
+import type { LeavingReason } from "../reasons/leaving-reason";
 import { WriteSequence } from "../writes/write-sequence";
 import type { AskedNote } from "../switching/asked-note";
 import type { CampaignCast } from "../cast/campaign-cast";
@@ -7,21 +7,23 @@ import type { LeavingActions, LeavingFiles } from "../switching/switch-plan";
 import { OldMainSteps } from "../switching/old-main-steps";
 import type { SwitchChoice } from "./switch-choice";
 
-export interface DiedParts {
+export interface DepartParts {
   readonly files: LeavingFiles;
   readonly actions: LeavingActions;
   readonly cast: CampaignCast;
   readonly mainSwitch: MainSwitch;
 }
 
-export class DiedChoice implements SwitchChoice {
-  private readonly reason = new Died();
-  readonly words = this.reason.words;
+export class DepartChoice implements SwitchChoice {
+  readonly words: string;
 
   constructor(
-    private readonly parts: DiedParts,
+    private readonly parts: DepartParts,
     private readonly note: AskedNote,
-  ) {}
+    private readonly reason: LeavingReason,
+  ) {
+    this.words = reason.words;
+  }
 
   async run(typedLastDoing: string): Promise<boolean> {
     const { files, actions, cast, mainSwitch } = this.parts;
