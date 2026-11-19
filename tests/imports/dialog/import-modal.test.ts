@@ -49,7 +49,7 @@ function importDialog(): DialogDriver {
 
 function updateDialog(path: string): DialogDriver {
   const writer = new ImportWriter(vault.gate, CHARACTERS_FOLDER, CAMPAIGN_FOLDER);
-  return new DialogDriver(new UpdateFlow(writer, vault.fileAt(path)), { today: TODAY, online: NO_ONLINE });
+  return new DialogDriver(new UpdateFlow(writer, vault.fileAt(path), null), { today: TODAY, online: NO_ONLINE });
 }
 
 function monkNoteText(before: string): string {
@@ -157,8 +157,8 @@ describe("importing a character from a made-up PDF", () => {
     dialog.press("Update Primary");
     await dialog.settled(".dd-import-write");
     expect(dialog.texts(".dd-import-properties li")).toContain("class: nothing → \"Monk 4\"");
-    expect(dialog.texts(".dd-import-fold summary")).toEqual(["Properties (13)", "Numbers (− 0 + 48)", "Inventory (− 0 + 26)", "Purse (− 0 + 5)", "Spells (− 0 + 47)", "Features (− 0 + 6)"]);
-    expect(dialog.texts(".dd-import-changes-line")).toEqual(["Changes: Numbers, Inventory, Purse, Spells, Features, 13 properties."]);
+    expect(dialog.texts(".dd-import-fold summary")).toEqual(["Properties (14)", "Numbers (− 0 + 48)", "Inventory (− 0 + 26)", "Purse (− 0 + 5)", "Spells (− 0 + 47)", "Features (− 0 + 6)"]);
+    expect(dialog.texts(".dd-import-changes-line")).toEqual(["Changes: Numbers, Inventory, Purse, Spells, Features, 14 properties."]);
     expect(dialog.root.querySelector(".dd-import-warning")).toBeNull();
     dialog.press("Update");
     await dialog.modal.allSettled();

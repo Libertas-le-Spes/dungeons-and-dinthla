@@ -1,5 +1,5 @@
 import type { PrintedSheet } from "../../beyond/sheet/printed-sheet";
-import type { ImportFlow } from "./flows/import-flow";
+import type { FlowStart, ImportFlow } from "./flows/import-flow";
 import { DialogShown } from "./stages/dialog-shown";
 import { OnlineStage, type OnlineArrival } from "./online/online-stage";
 import type { OnlineSource } from "./online/online-source";
@@ -20,9 +20,10 @@ export interface StepsParts {
   readonly host: StepsHost;
 }
 
-export class ImportSteps implements SheetArrival, OnlineArrival, StagesHost {
+export class ImportSteps implements SheetArrival, OnlineArrival, StagesHost, FlowStart {
   private readonly shown = new DialogShown();
   private readonly work = new PendingWork();
+  private readonly online: OnlineStage;
   private readonly pdf: PdfStage;
   private readonly review: ReviewStage;
 
@@ -30,8 +31,8 @@ export class ImportSteps implements SheetArrival, OnlineArrival, StagesHost {
     contentEl: HTMLElement,
     private readonly parts: StepsParts,
   ) {
-    const online = new OnlineStage(contentEl, { shown: this.shown, arrival: this, source: parts.online, work: this.work });
-    this.pdf = new PdfStage(contentEl, { shown: this.shown, arrival: this, reader: new PdfSheetReader(), work: this.work, online });
+    this.online = new OnlineStage(contentEl, { shown: this.shown, arrival: this, source: parts.online, work: this.work });
+    this.pdf = new PdfStage(contentEl, { shown: this.shown, arrival: this, reader: new PdfSheetReader(), work: this.work, online: this.online });
     this.review = new ReviewStage(contentEl, this.shown, parts.today, this, this.work);
   }
 
@@ -44,7 +45,15 @@ export class ImportSteps implements SheetArrival, OnlineArrival, StagesHost {
   }
 
   start(): void {
-    this.pdf.show(null);
+    this.parts.flow.start(this);
+  }
+
+  chooseSource(): void {
+    if (this.shown.isShown) this.pdf.show(null);
+  }
+
+  bringInKept(beyondNumber: string): void {
+    if (this.shown.isShown) this.online.bringInFrom(beyondNumber);
   }
 
   stop(): void {

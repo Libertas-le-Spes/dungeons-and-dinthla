@@ -5,7 +5,7 @@ import type { ImportWriter } from "../../note/writing/import-writer";
 import { notThisCharacter, UPDATE_TITLE } from "../import-words";
 import { ExistingNoteTarget } from "../targets/existing-note-target";
 import type { ImportTarget } from "../targets/import-target";
-import type { ImportFlow } from "./import-flow";
+import type { FlowStart, ImportFlow } from "./import-flow";
 
 export class UpdateFlow implements ImportFlow {
   readonly title = UPDATE_TITLE;
@@ -13,7 +13,13 @@ export class UpdateFlow implements ImportFlow {
   constructor(
     private readonly writer: ImportWriter,
     private readonly file: TFile,
+    private readonly kept: string | null,
   ) {}
+
+  start(steps: FlowStart): void {
+    if (this.kept === null) steps.chooseSource();
+    else steps.bringInKept(this.kept);
+  }
 
   refusalFor(sheet: PrintedSheet): string | null {
     const name = sheet.character.name.text;

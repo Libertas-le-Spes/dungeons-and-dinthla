@@ -10,4 +10,5 @@ export interface LeftOut {
 export interface PrintedSheet {
   readonly character: ImportedCharacter;
   readonly leftOut: LeftOut;
+  readonly beyondNumber: number | null;
 }
