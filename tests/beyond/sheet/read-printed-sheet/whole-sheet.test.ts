@@ -20,6 +20,13 @@ describe("reading a whole made-up sheet", () => {
     expect(valueNamed(readOf(MadeUpSheet.monk()), name)).toBe(value);
   });
 
+  it("lists an item printed on several rows once, with its quantities added up", () => {
+    const sheet = MadeUpSheet.monk().with("Eq Name0", "Dagger").with("Eq Qty0", "1").with("Eq Name1", "Dagger").with("Eq Qty1", "2");
+    const [first] = readOf(sheet).inventory;
+    expect([first!.name.text, first!.count.valueOr(-1)]).toEqual(["Dagger", 3]);
+    expect(readOf(sheet).inventory.filter((item) => item.name.text === "Dagger")).toHaveLength(1);
+  });
+
   it("says nothing was left out of a sheet whose lines are all usable", () => {
     expect(printedOf(MadeUpSheet.monk()).leftOut).toEqual({ items: NOTHING_LEFT_OUT, spells: NOTHING_LEFT_OUT, features: NOTHING_LEFT_OUT });
   });

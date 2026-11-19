@@ -36,6 +36,10 @@ function placesWithEachKey(): { where: string; path: (string | number)[]; key: s
   return found;
 }
 
+function itemNamed(name: string, quantity: number) {
+  return { quantity, equipped: false, isAttuned: false, definition: { id: 0, name, canAttune: false, armorTypeId: null, armorClass: null, strengthRequirement: null } };
+}
+
 function clean(): MadeUpReply {
   return MadeUpReply.levelOneMonk();
 }
@@ -55,6 +59,13 @@ describe("readReply", () => {
   it("leaves out what the reply does not give", () => {
     const { character } = readReply(clean().without(["race", "sizeId"]).wholeText());
     expect([character.size, character.creatureType, character.alignment]).toEqual([null, null, null]);
+  });
+
+  it("lists an item D&D Beyond gives in several entries once, with their quantities added up", () => {
+    const reply = clean().with(["inventory"], [itemNamed("Dagger", 1), itemNamed("Rope", 50), itemNamed("Dagger", 1), itemNamed("Dagger", 3)]);
+    const inventory = readReply(reply.wholeText()).character.inventory;
+    expect(inventory.map((item) => item.name.text)).toEqual(["Dagger", "Rope"]);
+    expect(inventory.map((item) => item.count.valueOr(-1))).toEqual([5, 50]);
   });
 
   it("reads a whole reply into the checked shape", () => {
