@@ -104,7 +104,7 @@ describe("importChangesOf for a note that was never imported", () => {
   const changes = importChangesOf("His words.\n", importedWith(MadeUpSheet.monk()));
 
   it("lists each property the import writes as added, except the date", () => {
-    expect(changes.properties.map(nameOf)).toEqual(["imported-from", "imported-session", "class", "species", "type", "subtitle", "AC", "HP", "speed", "STR", "DEX", "CON", "INT", "WIS", "CHA"]);
+    expect(changes.properties.map(nameOf)).toEqual(["imported-from", "imported-session", "class", "species", "type", "subtitle", "AC", "HP", "speed", "alignment", "STR", "DEX", "CON", "INT", "WIS", "CHA"]);
     expect(changes.properties.filter(isNotAdded)).toEqual([]);
   });
 
