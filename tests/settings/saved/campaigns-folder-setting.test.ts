@@ -9,7 +9,7 @@ import { SettleWatch } from "../../stubs/settle-watch";
 import { queuedWorkRan } from "../../stubs/queued-work";
 
 function settingFrom(campaignsFolder: string | null, configDir = ".obsidian") {
-  const settings: PluginSettings = { campaignsFolder, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null, notesMadeFor: [] };
+  const settings: PluginSettings = { campaignsFolder, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null, notesMadeFor: [], beyondAgreed: false };
   const order: string[] = [];
   const save = vi.fn(async (written: PluginSettings) => {
     await queuedWorkRan();

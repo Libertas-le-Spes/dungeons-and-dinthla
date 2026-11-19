@@ -1,6 +1,6 @@
 import type { AgreementAnswer } from "./agreement-answer";
 import { AGREED } from "./agreement-answers";
-import type { DeviceAgreement } from "./device-agreement";
+import type { KeptAgreement } from "./kept-agreement";
 
 export interface AskAgreement {
   ask(): Promise<AgreementAnswer>;
@@ -8,14 +8,14 @@ export interface AskAgreement {
 
 export class FirstPress {
   constructor(
-    private readonly device: DeviceAgreement,
+    private readonly kept: KeptAgreement,
     private readonly asking: AskAgreement,
   ) {}
 
   async answer(): Promise<AgreementAnswer> {
-    if (this.device.given()) return AGREED;
+    if (this.kept.given()) return AGREED;
     const answer = await this.asking.ask();
-    answer.keepOn(this.device);
+    answer.keepOn(this.kept);
     return answer;
   }
 }

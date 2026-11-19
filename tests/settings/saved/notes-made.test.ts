@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { NotesMade } from "../../../src/settings/saved/notes-made";
 import { SettingsSaver } from "../../../src/settings/saved/settings-saver";
 
-const FRESH = { campaignsFolder: "D&D", campaignFolder: null, welcomeSeen: true, lastVersionSeen: null, notesMadeFor: [] };
+const FRESH = { campaignsFolder: "D&D", campaignFolder: null, welcomeSeen: true, lastVersionSeen: null, notesMadeFor: [], beyondAgreed: false };
 
 function notesMadeWith(notesMadeFor: string[]) {
   const write = vi.fn(async () => {});
@@ -21,7 +21,7 @@ describe("NotesMade", () => {
   it("keeps the campaigns marked before, and writes the settings once for each new one", async () => {
     const { made, write } = notesMadeWith(["D&D/Silver Road"]);
     await made.markMadeFor("D&D/Pale Moon");
-    expect(write).toHaveBeenCalledExactlyOnceWith({ ...FRESH, notesMadeFor: ["D&D/Silver Road", "D&D/Pale Moon"] });
+    expect(write).toHaveBeenCalledExactlyOnceWith({ ...FRESH, notesMadeFor: ["D&D/Silver Road", "D&D/Pale Moon"], beyondAgreed: false });
   });
 
   it("writes nothing for a campaign already marked", async () => {

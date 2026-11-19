@@ -3,7 +3,7 @@ import { Plugin, type App, type PluginManifest } from "obsidian";
 import { NOT_THE_CONFIG_FOLDER } from "../src/fence/paths/campaigns-folder-path";
 import DungeonsAndDinthla from "../src/main";
 import type { CampaignsFolderSetting } from "../src/settings/saved/campaigns-folder-setting";
-import { AGREEMENT_KEY } from "../src/imports/agreement/device-agreement";
+import { AGREEMENT_KEY } from "../src/imports/agreement/kept-agreement";
 import { MadeUpDevice } from "./imports/agreement/made-up-device";
 import { pressOn } from "./imports/agreement/shown-parts";
 import { obsidianDocument } from "./stubs/obsidian-dom";
@@ -45,7 +45,7 @@ async function nothingSaved(): Promise<void> {}
 function pluginSaved(saved: unknown, device: MadeUpDevice) {
   vi.stubGlobal("document", inertWith());
   vi.stubGlobal("window", inertWith());
-  const app = inertWith({ vault: inertWith({ configDir: CONFIG_DIR }), loadLocalStorage: device.loadLocalStorage, saveLocalStorage: device.saveLocalStorage }) as App;
+  const app = inertWith({ vault: inertWith({ configDir: CONFIG_DIR }), loadLocalStorage: device.loadLocalStorage, saveLocalStorage: vi.fn() }) as App;
   const plugin = new DungeonsAndDinthla(app, { version: "1.0.0" } as PluginManifest);
   const pluginParts = ["addChild", "register", "registerView", "registerEvent", "registerDomEvent", "registerEditorExtension", "registerMarkdownPostProcessor", "registerBasesView", "addRibbonIcon", "addCommand", "addSettingTab"];
   for (const part of pluginParts) Object.assign(plugin, { [part]: () => inertWith() });
@@ -76,26 +76,34 @@ describe("DungeonsAndDinthla", () => {
     expect(campaignsFolder().path).toBeNull();
   });
 
-  it("keeps the D&D Beyond agreement in this device's own storage, never in the plugin's synced data.json", async () => {
-    const device = new MadeUpDevice();
-    const { plugin, saveData } = pluginSaved({}, device);
+  it("keeps the D&D Beyond agreement in the plugin's data.json, so the vault carries it to every device", async () => {
+    const { plugin, saveData } = pluginSaved({}, new MadeUpDevice());
     await plugin.onload();
     const stepEl = obsidianDocument().createElement("div");
     (wired.agreement as WelcomeAgreement).showIn(stepEl, nothingToDo);
     pressOn(stepEl, "Agree");
-    expect(device.saveLocalStorage).toHaveBeenCalledExactlyOnceWith(AGREEMENT_KEY, true);
-    expect(JSON.stringify(saveData.mock.calls)).not.toContain(AGREEMENT_KEY);
+    await plugin["settingsSaver"].whenSaved();
+    expect(saveData).toHaveBeenCalledOnce();
+    expect(saveData).toHaveBeenCalledWith(expect.objectContaining({ beyondAgreed: true }));
   });
 
-  it("doesn't take a D&D Beyond agreement found in the plugin's synced data.json", async () => {
-    const { plugin } = pluginSaved({ [AGREEMENT_KEY]: true }, new MadeUpDevice());
+  it("takes the D&D Beyond agreement the plugin's data.json holds", async () => {
+    const device = new MadeUpDevice();
+    const { plugin } = pluginSaved({ beyondAgreed: true }, device);
     await plugin.onload();
-    expect(plugin["deviceAgreement"].given()).toBe(false);
+    expect(plugin["keptAgreement"].given()).toBe(true);
+    expect(device.loadLocalStorage).not.toHaveBeenCalledWith(AGREEMENT_KEY);
   });
 
-  it("takes the D&D Beyond agreement this device's own storage holds", async () => {
-    const { plugin } = pluginSaved({}, MadeUpDevice.agreed());
+  it.each([["true"], [1], [{}]])("takes no D&D Beyond agreement from %j in data.json", async (saved) => {
+    const { plugin } = pluginSaved({ beyondAgreed: saved }, new MadeUpDevice());
     await plugin.onload();
-    expect(plugin["deviceAgreement"].given()).toBe(true);
+    expect(plugin["keptAgreement"].given()).toBe(false);
+  });
+
+  it("takes the D&D Beyond agreement this device gave before it was kept in the vault", async () => {
+    const { plugin } = pluginSaved({}, MadeUpDevice.agreedOnThisDeviceBefore());
+    await plugin.onload();
+    expect(plugin["keptAgreement"].given()).toBe(true);
   });
 });

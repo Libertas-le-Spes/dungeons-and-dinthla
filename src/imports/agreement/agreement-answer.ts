@@ -1,6 +1,6 @@
-import type { DeviceAgreement } from "./device-agreement";
+import type { KeptAgreement } from "./kept-agreement";
 
 export interface AgreementAnswer {
   readonly agreed: boolean;
-  keepOn(device: DeviceAgreement): void;
+  keepOn(kept: KeptAgreement): void;
 }
