@@ -5,6 +5,7 @@ import { CastPage, type WatchFiles } from "../../characters/pages/cast-page";
 import { castPageFor, type CastPages } from "../../characters/pages/cast-page-for";
 import { CharacterPage } from "../../characters/pages/character-page";
 import { CharacterSheetPage, type SheetActions } from "../../characters/pages/character-sheet-page";
+import { FallenSheetPage } from "../../characters/pages/fallen-sheet-page";
 import type { CastNotes } from "../../characters/reading/character-notes";
 import type { MentionNotes } from "../../characters/reading/mention-notes";
 import type { SheetNotes } from "../../characters/reading/sheet-notes";
@@ -35,11 +36,19 @@ function characterPageOf(contentEl: HTMLElement, file: TFile, needs: CastNeeds, 
   return new CharacterPage(contentEl, file, sheet, () => show({ page: "cast", path: null }));
 }
 
+function fallenPageOf(contentEl: HTMLElement, file: TFile, needs: CastNeeds, show: ShowPage): CharacterPage {
+  const leave = () => show({ page: "cast", path: file.path });
+  const sheet = (sheetEl: HTMLElement, sheetFile: TFile) =>
+    new FallenSheetPage(sheetEl, sheetFile, { store: needs.store, notes: needs.sheetNotes, links: needs.sheetActions, makeMain: needs.creators, leave });
+  return new CharacterPage(contentEl, file, sheet, () => show({ page: "cast", path: null }));
+}
+
 function castPagesOf(needs: CastNeeds, show: ShowPage): CastPages {
   return {
     notes: needs.sheetNotes,
     gallery: (contentEl) => galleryOf(contentEl, needs, show),
     character: (contentEl, file) => characterPageOf(contentEl, file, needs, show),
+    fallen: (contentEl, file) => fallenPageOf(contentEl, file, needs, show),
   };
 }
 
