@@ -15,12 +15,6 @@ import type { Gate } from "../../fence/gate/gatekeeper";
 
 export const NO_SESSION = "There's no session to write in yet. Start one first.";
 
-export async function openCharacterSheet(app: App, gate: Gate, path: string): Promise<void> {
-  const file = gate.files.getFileByPath(path);
-  if (file === null) return;
-  await app.workspace.getLeaf(false).openFile(file, { active: true });
-}
-
 function sameStated(first: StatedValue | null, second: StatedValue | null): boolean {
   if (first === null || second === null) return first === second;
   return first.value === second.value && first.source.path === second.source.path && first.source.line === second.source.line;
