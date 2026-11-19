@@ -2231,5 +2231,75 @@
   "find": "features: features.loss",
   "replace": "features: inventory.loss",
   "group": "count"
+ },
+ {
+  "id": "one row: a single row stays as read",
+  "file": "src/beyond/shape/one-row-each.ts",
+  "find": "  if (same.counts.length === 1) return same.first;\n",
+  "replace": "",
+  "group": "one row"
+ },
+ {
+  "id": "one row: a repeat joins the first row",
+  "file": "src/beyond/shape/one-row-each.ts",
+  "find": "    else same.counts.push(item.count);",
+  "replace": "    else byName.set(item.name.text + \" \", { first: item, counts: [item.count] });",
+  "group": "one row"
+ },
+ {
+  "id": "one row: counts are added up",
+  "file": "src/beyond/shape/one-row-each.ts",
+  "find": "    total += count.valueOr(0);",
+  "replace": "    total = count.valueOr(0);",
+  "group": "one row"
+ },
+ {
+  "id": "one row: a row with no count makes the total unknown",
+  "file": "src/beyond/shape/one-row-each.ts",
+  "find": "    if (!count.isKnown) return new NotKnownValue(A_ROW_HAS_NO_COUNT, first.count.route);\n",
+  "replace": "",
+  "group": "one row"
+ },
+ {
+  "id": "one row: the total keeps to the item count range",
+  "file": "src/beyond/shape/one-row-each.ts",
+  "find": "numberInRange(total, ITEM_COUNT, ",
+  "replace": "numberInRange(total, { ...ITEM_COUNT, highest: Number.MAX_SAFE_INTEGER }, ",
+  "group": "one row"
+ },
+ {
+  "id": "one row: the total says how many rows",
+  "file": "src/beyond/shape/one-row-each.ts",
+  "find": "addedUpWords(counts.length)",
+  "replace": "addedUpWords(1)",
+  "group": "one row"
+ },
+ {
+  "id": "one row: the route is kept",
+  "file": "src/beyond/shape/one-row-each.ts",
+  "find": "addedUpWords(counts.length), first.count.route)",
+  "replace": "addedUpWords(counts.length), { name: \"pdf\" })",
+  "group": "one row"
+ },
+ {
+  "id": "one row: names are matched exactly",
+  "file": "src/beyond/shape/one-row-each.ts",
+  "find": "    const same = byName.get(item.name.text);",
+  "replace": "    const same = byName.get(item.name.text.toLowerCase());",
+  "group": "one row"
+ },
+ {
+  "id": "one row: the online route merges",
+  "file": "src/beyond/reply/read-reply.ts",
+  "find": "      inventory: oneRowEach(inventoryOf(data)),",
+  "replace": "      inventory: inventoryOf(data),",
+  "group": "one row"
+ },
+ {
+  "id": "one row: the PDF route merges",
+  "file": "src/beyond/sheet/read-printed-sheet.ts",
+  "find": "      inventory: oneRowEach(inventory.items),",
+  "replace": "      inventory: inventory.items,",
+  "group": "one row"
  }
 ]
