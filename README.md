@@ -86,6 +86,7 @@ When a character leaves play:
 3. A *Backup* stays in `Characters`. You'll find your backups at the bottom of the Characters page, each with *Make main* for when you want to play them, and the *Fallen* list sits below them.
 4. Fallen characters are listed on the Characters page under *Fallen*, each with *Make main*. Their note moves back to `Characters` and keeps its snapshots; if they leave play again, another dated snapshot is added.
 5. If a switch stops part way, the message says what was written. Press *Make main* again to finish it.
+6. To take a character out of the adventure without bringing in another, open their page and press *Depart* at the very bottom. Choose *Died* or *Retired*, or write what happened under *Something else*, such as *Joined the Silver Order*, and press *Something else*. Their note moves to `Fallen`, and the Characters page marks them with your words.
 
 ### Agreeing to the online import
 

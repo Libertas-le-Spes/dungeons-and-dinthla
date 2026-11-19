@@ -10,6 +10,7 @@ await runMutations({
     "tests/imports/note/writing/import-writer.test.ts",
     "tests/characters/editing/character-files.test.ts",
     "tests/characters/pages/character-gallery-standing.test.ts",
+    "tests/characters/pages/character-sheet-page.test.ts",
     "tests/characters/pages/cast-page.test.ts",
     "tests/characters/pages/characters-view.test.ts",
     "tests/characters/reading/character-notes.test.ts",

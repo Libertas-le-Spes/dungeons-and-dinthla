@@ -16,7 +16,7 @@ import { modifierOf } from "../reading/sheet-values";
 import { fillStatBlock } from "../cards/stat-block";
 import { PendingWork } from "../../views/pending/pending-work";
 import { isCharacterNotePath } from "../../campaign/paths/character-note-path";
-import { addDiedButton } from "../cards/died-button";
+import { addDepartButton } from "../cards/depart-button";
 import { addUpdateButton } from "../imported/drawing/update-button";
 import { addImportedPanels } from "../imported/panels/imported-panels";
 import type { ItemTracking } from "../imported/tracking/item-tracking";
@@ -34,7 +34,7 @@ export const STATE_WORDS: Record<ValueState, string> = {
 export interface SheetActions extends LinkActions {
   editCharacter(file: TFile): void;
   updateFromBeyond(file: TFile, returnFocus: () => void): void;
-  died(path: string, returnFocus: () => void): void;
+  depart(path: string, returnFocus: () => void): void;
   chooseValue(file: TFile, value: SheetValue, onClosed: () => void): void;
   readonly tracking: ItemTracking;
 }
@@ -171,7 +171,6 @@ export class CharacterSheetPage extends Component {
     if (this.focusEdit.isArmed()) edit.focus();
     if (this.isUpdatable(file, read.campaignFolder)) {
       addUpdateButton(actions, file, this.actions);
-      addDiedButton({ parent: actions, path: file.path, action: this.actions, focus: this.focusEdit });
     }
     const subtitle = sheet.values.find((value) => value.name === "subtitle");
     if (subtitle !== undefined && subtitle.state !== "unknown") root.createEl("p", { cls: "dd-sheet-subtitle", text: shownTextOf(subtitle) });
@@ -191,6 +190,9 @@ export class CharacterSheetPage extends Component {
     addImportedPanels(root, file, read.lists, this.actions.tracking);
     this.drawStatBlock(root, file, sheet);
     this.mentions.draw(root.createEl("section", { cls: "dd-sheet-mentions" }), file);
+    if (this.isUpdatable(file, read.campaignFolder)) {
+      addDepartButton({ parent: root.createDiv({ cls: "dd-sheet-depart" }), path: file.path, action: this.actions, focus: this.focusEdit });
+    }
     this.focusPending();
   }
 

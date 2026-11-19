@@ -7,6 +7,7 @@ export class NoMainQuestion implements MainQuestion {
   readonly title: string;
   readonly question = NO_MAIN_YET;
   readonly asksLastDoing = false;
+  readonly ownWords = null;
   readonly choices: readonly SwitchChoice[];
 
   constructor(parts: QuestionParts) {

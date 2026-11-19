@@ -4,7 +4,7 @@ import { MainModal } from "./main-modal";
 import { plainWordsOf } from "../writes/write-words";
 import type { OfferWiring } from "../questions/offer-wiring";
 import { questionFor } from "../questions/question-for";
-import { diedQuestionFor } from "../questions/died-question-for";
+import { departQuestionFor } from "../questions/depart-question-for";
 import type { MainQuestion } from "../questions/main-question";
 import { COULD_NOT_ASK, NOTE_MOVED } from "../switching/switch-words";
 
@@ -48,10 +48,10 @@ export class MainOffers {
     await this.ask(file, returnFocus, new AskAlways());
   }
 
-  async died(path: string, returnFocus: () => void): Promise<void> {
+  async depart(path: string, returnFocus: () => void): Promise<void> {
     const file = this.fileOrTell(path, returnFocus);
     if (file === null) return;
-    await this.askWith({ file, returnFocus }, diedQuestionFor);
+    await this.askWith({ file, returnFocus }, departQuestionFor);
   }
 
   private fileOrTell(path: string, returnFocus: () => void): TFile | null {

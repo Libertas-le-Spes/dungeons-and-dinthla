@@ -7,6 +7,7 @@ import type { QuestionParts } from "./question-parts";
 export class FinishingQuestion implements MainQuestion {
   readonly title: string;
   readonly asksLastDoing = false;
+  readonly ownWords = null;
   readonly choices: readonly SwitchChoice[];
 
   constructor(
