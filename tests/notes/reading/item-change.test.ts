@@ -7,6 +7,8 @@ describe("readItemChange", () => {
       text: "Silvered lantern :changed to [[Mira]]",
       item: "Silvered lantern",
       count: null,
+      named: null,
+      namedAfter: [],
       kind: "changed",
       holder: "Mira",
       holderLinked: true,
@@ -22,6 +24,20 @@ describe("readItemChange", () => {
     expect(readItemChange(line)).toMatchObject({ item, count, kind });
   });
 
+  it.each([
+    ["$$ Arrow [[Mira]] :lost", "Arrow [[Mira]]", null, { item: "Arrow", holder: "Mira" }],
+    ["$$ Arrow x2 [[Mira]] :lost", "Arrow x2 [[Mira]]", 2, { item: "Arrow", holder: "Mira" }],
+    ["$$ Arrow [[Mira]] x2 :lost", "Arrow [[Mira]]", 2, { item: "Arrow", holder: "Mira" }],
+    ["$$ [[Ring of warmth]] :lost", "[[Ring of warmth]]", null, null],
+  ])("reads %j as the item %j, %j of it, naming %j", (line, item, count, named) => {
+    expect(readItemChange(line)).toMatchObject({ item, count, named });
+  });
+
+  it("reads who a use, sale or loss names after its word, and nobody after a change of hands", () => {
+    expect(readItemChange("$$ Arrow :used by [[Mira]]")?.namedAfter).toEqual(["Mira"]);
+    expect(readItemChange("$$ Arrow :changed to [[Mira]]")?.namedAfter).toEqual([]);
+  });
+
   it("reads a holder written without a link", () => {
     expect(readItemChange("$$ Silvered lantern :changed to Mira")).toMatchObject({ holder: "Mira", holderLinked: false });
   });
@@ -35,17 +51,17 @@ describe("readItemChange", () => {
   });
 
   it("reads a sale with no price", () => {
-    expect(readItemChange("$$ Silvered lantern :sold")).toEqual({ text: "Silvered lantern :sold", item: "Silvered lantern", count: null, kind: "sold" });
+    expect(readItemChange("$$ Silvered lantern :sold")).toEqual({ text: "Silvered lantern :sold", item: "Silvered lantern", count: null, named: null, namedAfter: [], kind: "sold" });
   });
 
   it("reads an item used up or lost", () => {
-    expect(readItemChange("$$ Potion of healing :used")).toEqual({ text: "Potion of healing :used", item: "Potion of healing", count: null, kind: "used" });
-    expect(readItemChange("$$ Silvered lantern :lost")).toEqual({ text: "Silvered lantern :lost", item: "Silvered lantern", count: null, kind: "lost" });
+    expect(readItemChange("$$ Potion of healing :used")).toEqual({ text: "Potion of healing :used", item: "Potion of healing", count: null, named: null, namedAfter: [], kind: "used" });
+    expect(readItemChange("$$ Silvered lantern :lost")).toEqual({ text: "Silvered lantern :lost", item: "Silvered lantern", count: null, named: null, namedAfter: [], kind: "lost" });
   });
 
   it("leaves a trailing block id out of the holder", () => {
     expect(readItemChange("$$ Rope :changed to Old Tom ^h1")?.holder).toBe("Old Tom");
-    expect(readItemChange("$$ Rope :used ^r-1")).toMatchObject({ item: "Rope", count: null, kind: "used" });
+    expect(readItemChange("$$ Rope :used ^r-1")).toMatchObject({ item: "Rope", count: null, named: null, namedAfter: [], kind: "used" });
   });
 
   it("leaves a block id before the change word out of the item", () => {
@@ -58,7 +74,7 @@ describe("readItemChange", () => {
   });
 
   it("counts only the last change word", () => {
-    expect(readItemChange("$$ Lantern :lost and found :used")).toMatchObject({ item: "Lantern :lost and found", count: null, kind: "used" });
+    expect(readItemChange("$$ Lantern :lost and found :used")).toMatchObject({ item: "Lantern :lost and found", count: null, named: null, namedAfter: [], kind: "used" });
   });
 
   it("keeps a linked name as written", () => {

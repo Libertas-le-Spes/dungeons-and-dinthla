@@ -102,7 +102,7 @@ export class FundsTracking implements ItemTracking {
       return;
     }
     const note = new ItemNote(this.app, this.gate, item);
-    openItemDialogAs(this.app, this.gate, this.store, { name, status }, note.show.bind(note), returnFocus, null);
+    openItemDialogAs(this.app, this.gate, this.store, { name, status, source: null }, note.show.bind(note), returnFocus, null);
   }
 
   private isInSomeCampaign(file: TFile): boolean {

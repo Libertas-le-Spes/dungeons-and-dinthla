@@ -175,7 +175,7 @@ export default class DungeonsAndDinthla extends Plugin {
     const noteExists = (name: string, sourcePath: string) => gate.metadata.getFirstLinkpathDest(name, sourcePath) !== null;
     const addCoin = (returnFocus: () => void) => openAddCoin(this.app, gate, this.store, returnFocus, pathYouAreIn(this.app));
     const openItem = (name: string, source: Source, onClosed: (changed: boolean) => void) =>
-      openItemDialog(this.app, gate, this.store, name, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app));
+      openItemDialog(this.app, gate, this.store, name, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app), source);
     const openLedgerEntry = ledgerEntryOpener(this.app, gate, this.store, openItem);
     const campaignFolders = () => this.campaignFolders();
     const characterNotes = characterNotesOf(gate, campaignFolders);

@@ -1,3 +1,4 @@
+import { onePerItem } from "../campaign/record/one-per-item";
 import type { Campaign, Source, SourcedText } from "../campaign/record/campaign";
 import type { ThreadRecord } from "../campaign/threads/thread-kind";
 import type { LedgerLine } from "../funds/page/funds-summary";
@@ -35,7 +36,7 @@ function ledgerLinesWrittenIn(path: string, ledger: LedgerLine[]): WrittenLine[]
 }
 
 function itemEventsWrittenIn(path: string, campaign: Campaign, ledgerLines: WrittenLine[]): WrittenLine[] {
-  const events = campaign.items.flatMap((item) => item.history.map((event) => ({ item, event })));
+  const events = onePerItem(campaign.items).flatMap((item) => item.history.map((event) => ({ item, event })));
   const written = events.filter((itemEvent) => itemEvent.event.source.path === path);
   const alone = written.filter((itemEvent) => !ledgerLines.some((line) => line.source.line === itemEvent.event.source.line));
   return alone.map((itemEvent) => ({ source: itemEvent.event.source, addTo: (rows) => rows.addItemEvent(itemEvent) }));
