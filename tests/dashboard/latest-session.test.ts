@@ -33,6 +33,15 @@ describe("linesWrittenIn", () => {
     ]);
   });
 
+  it("lists each line about an item held by more than one once", () => {
+    const latest = sessionOf(1, ["$ [[Mira]] Arrow x20", "$$ Arrow x5 :changed to [[Thessaly]]"]);
+    const campaign = buildCampaign([latest]);
+    expect(rowsAddedBy(linesWrittenIn(latest.path, campaign, summariseFunds(campaign).ledger))).toEqual([
+      ["item changed", 1],
+      ["item named", 0],
+    ]);
+  });
+
   it("lists the items named or changed in the session, and none from another session", () => {
     const earlier = sessionOf(1, ["$ [[Mira]] Rope"]);
     const latest = sessionOf(2, ["$ Silvered lantern", "notes", "$$ Rope :sold"]);

@@ -4,9 +4,16 @@ import type { EditorFiles } from "../../campaign/writing/note-editor";
 import { sessionNoteOf } from "../../campaign/paths/session-file";
 import type { ItemSource } from "./item-source";
 
+function isSameHolding(candidate: ItemRecord, item: ItemRecord): boolean {
+  if (candidate.name !== item.name) return false;
+  return candidate.source.path === item.source.path && candidate.source.line === item.source.line;
+}
+
 function sameItem(items: ItemRecord[], item: ItemRecord): boolean {
-  const now = items.find((candidate) => candidate.name === item.name);
-  return JSON.stringify(now) === JSON.stringify(item);
+  for (const candidate of items) {
+    if (isSameHolding(candidate, item)) return JSON.stringify(candidate) === JSON.stringify(item);
+  }
+  return false;
 }
 
 async function readAgain(files: EditorFiles, sessions: SessionNote[]): Promise<SessionNote[] | null> {

@@ -17,7 +17,7 @@ interface ItemChoices {
 describe("the item dialog, when the session it writes into is gone", () => {
   it.each(SESSION_TWO_LOST)("refuses with the session gone words, writing nothing when its session was %s", async (_how, lost) => {
     const campaign = new DialogCampaign({ [ONE]: "$ Rope\n", [TWO]: "We camped.\n" });
-    openItemDialog(app, campaign.gate, campaign.store, "Rope", () => undefined, () => undefined, null);
+    openItemDialog(app, campaign.gate, campaign.store, "Rope", () => undefined, () => undefined, null, null);
     lost(campaign);
     const dialog = lastDialog<ItemChoices>();
     await expect(dialog.save({ ...dialog.edit, status: "lost" })).rejects.toThrow("Session 2 was moved or deleted, so nothing was written.");

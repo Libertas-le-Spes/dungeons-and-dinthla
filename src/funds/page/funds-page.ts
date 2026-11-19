@@ -281,7 +281,7 @@ export class FundsPage extends Component {
       if (isSaleLogged(item, ledger)) meta.appendText(" · sale in the ledger");
       meta.appendText(" · ");
     }
-    if (goneWord === null && item.held !== null) meta.appendText(`× ${item.held} · `);
+    if (goneWord === null && item.held > 1) meta.appendText(`× ${item.held} · `);
     meta.appendText(sessionLabelOf(source.path));
   }
 
