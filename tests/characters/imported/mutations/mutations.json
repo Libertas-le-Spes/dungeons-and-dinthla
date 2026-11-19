@@ -1118,5 +1118,19 @@
   "find": "    if (goneWord === null && item.held > 1) meta.appendText(`× ${item.held} · `);\n",
   "replace": "",
   "group": "holdings"
+ },
+ {
+  "id": "mine: by the holder",
+  "file": "src/funds/items/whose-items.ts",
+  "find": "const own = ownLinkOf({ links: [item.holder], ownNames });",
+  "replace": "const own = ownLinkOf({ links: item.links, ownNames });",
+  "group": "mine"
+ },
+ {
+  "id": "mine: the holder named",
+  "file": "src/funds/items/whose-items.ts",
+  "find": "const own = ownLinkOf({ links: [item.holder], ownNames });",
+  "replace": "const own = ownLinkOf({ links: [], ownNames });",
+  "group": "mine"
  }
 ]

@@ -12,16 +12,12 @@ export interface WhoseItems {
   party: ItemSummary;
 }
 
-function linksOf(item: ItemRecord): string[] {
-  if (item.gone === null) return item.links;
-  return item.gone.links;
-}
 
 export function whoseItems({ campaign, ownNames }: WhoseItemsParts): WhoseItems {
   const mine: ItemRecord[] = [];
   const party: ItemRecord[] = [];
   for (const item of campaign.items) {
-    const own = ownLinkOf({ links: linksOf(item), ownNames });
+    const own = ownLinkOf({ links: [item.holder], ownNames });
     if (own === undefined) party.push(item);
     else mine.push({ ...item, holder: own });
   }
