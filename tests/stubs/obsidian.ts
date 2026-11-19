@@ -443,6 +443,7 @@ export class ButtonComponent {
   }
 
   setCta(): this {
+    this.buttonEl.addClass("mod-cta");
     return this;
   }
 

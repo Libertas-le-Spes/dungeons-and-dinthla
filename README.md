@@ -90,11 +90,11 @@ When a character leaves play:
 
 ### Agreeing to the online import
 
-The plugin can fetch your character from D&D Beyond with one button, and it asks first, once on each device:
+The plugin can fetch your character from D&D Beyond with one button, and it asks first, once for the whole vault:
 
-1. After you make a campaign on the welcome page, you'll see *Bringing your character in*. Read what the online import would send.
+1. After you make a campaign on the welcome page, you'll see *Bringing your character in*: three short sentences on what the online import sends.
 2. Press *Agree* if that's fine with you, or *Not yet* to decide later. Either way, the page moves on.
-3. Your answer stays on this device only, never in your vault, so another device you sync to doesn't know it. The welcome page shows by itself once per vault, so a second device never shows this step; it will ask at the first press of the online button. If you pressed *Not yet*, the step comes back only when you open the welcome page again with *Show this again* in the plugin's settings, and the online button will ask at its first press.
+3. *Agree* is kept in the plugin's settings in your vault, so another device you sync to doesn't ask again. If you skipped the step, the first press of the online button asks instead, with *Cancel* and *Import*. If you pressed *Not yet*, the step comes back only when you open the welcome page again with *Show this again* in the plugin's settings, and the online button will ask at its first press.
 
 [docs/note-format.md](docs/note-format.md#the-dd-beyond-agreement) has the words and where the answer is kept.
 
@@ -103,7 +103,7 @@ The plugin can fetch your character from D&D Beyond with one button, and it asks
 The plugin reads and writes only inside your Campaigns folder, and it sends nothing anywhere, with one exception: bringing your character in from D&D Beyond online, which is a manual button press. Nothing runs in the background, the plugin adds no login or cookies, and your agreement is kept per device.
 
 - **What is sent.** One GET to `https://character-service.dndbeyond.com/character/v5/character/` followed by your character's number, and nothing else: this plugin adds no login, cookies or other headers of its own, and no body. Obsidian sends the call and may add its own details, and follows redirects. Nothing from the rest of a link you paste reaches the address.
-- **When.** Only when you press *Bring in from D&D Beyond*, after you have agreed once on this device. Never in the background, never on a timer, never again by itself, with no retries and nothing cached. One call at a time, ten seconds apart at least, and the plugin stops waiting after fifteen seconds.
+- **When.** Only when you press *Bring in from D&D Beyond*, or *Update from D&D Beyond* for a character whose note keeps their number, after you have agreed once in this vault. Never in the background, never on a timer, never again by itself, with no retries and nothing cached. One call at a time, ten seconds apart at least, and the plugin stops waiting after fifteen seconds.
 - **What comes back and what is kept.** The character's data. The plugin checks it (status 200, JSON, at most 5 MB, the number you asked for), reads from it only what the import shows, and throws the rest away, including your character's backstory and notes. Nothing is written to your vault until you press *Import* or *Update* on the review.
 - **Public characters only.** The character must be set to Public on D&D Beyond, which makes its data, notes and backstory included, readable by anyone with the link.
 - **Keep your link safe.** You are responsible for keeping the link or number of your public character safe: anyone who has it can read that character.

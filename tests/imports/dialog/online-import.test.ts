@@ -2,7 +2,7 @@ import type { RequestUrlResponse } from "obsidian";
 import { afterEach, describe, expect, it } from "vitest";
 import { Refusal } from "../../../src/beyond/shape/refusal";
 import { AGREED, NOT_YET } from "../../../src/imports/agreement/agreement-answers";
-import { DeviceAgreement } from "../../../src/imports/agreement/device-agreement";
+import { KeptAgreement } from "../../../src/imports/agreement/kept-agreement";
 import { FirstPress } from "../../../src/imports/agreement/first-press";
 import { NOTHING_SENT } from "../../../src/imports/dialog/import-words";
 import { OnlineImport } from "../../../src/imports/dialog/online/online-import";
@@ -20,7 +20,7 @@ function goodAnswer(): RequestUrlResponse {
 }
 
 function onlineWith(device: MadeUpDevice, asking: MadeUpAsking): OnlineImport {
-  return new OnlineImport(new FirstPress(new DeviceAgreement(device.storage), asking), new BeyondCalls(callBeyond, () => 0));
+  return new OnlineImport(new FirstPress(new KeptAgreement(device.places), asking), new BeyondCalls(callBeyond, () => 0));
 }
 
 afterEach(() => {
@@ -71,7 +71,7 @@ describe("OnlineImport", () => {
     answerUrlsWith(async () => goodAnswer());
     const device = MadeUpDevice.agreed();
     for (const link of ["4242", "dndbeyond.com/characters/4242", "https://www.dndbeyond.com/characters/4242/sheet?a=b#c"]) {
-      const online = new OnlineImport(new FirstPress(new DeviceAgreement(device.storage), new MadeUpAsking(AGREED)), new BeyondCalls(callBeyond, () => 0));
+      const online = new OnlineImport(new FirstPress(new KeptAgreement(device.places), new MadeUpAsking(AGREED)), new BeyondCalls(callBeyond, () => 0));
       await online.sheetFor(link);
     }
     expect(urlsAsked.map((asked) => asked.url)).toEqual([`${BEYOND_ADDRESS}4242`, `${BEYOND_ADDRESS}4242`, `${BEYOND_ADDRESS}4242`]);

@@ -2,7 +2,7 @@ import type { AgreementAnswer } from "./agreement-answer";
 import { drawAgreement, type AnswerChosen } from "./agreement-text";
 import { AGREEMENT_TITLE } from "./agreement-words";
 import { STEP_BUTTONS } from "./answer-buttons";
-import type { DeviceAgreement } from "./device-agreement";
+import type { KeptAgreement } from "./kept-agreement";
 
 class StepChoice implements AnswerChosen {
   constructor(
@@ -19,11 +19,11 @@ class StepChoice implements AnswerChosen {
 export class CampaignAgreement {
   private answeredHere = false;
 
-  constructor(private readonly device: DeviceAgreement) {}
+  constructor(private readonly kept: KeptAgreement) {}
 
   wanted(): boolean {
     if (this.answeredHere) return false;
-    return this.device.given() === false;
+    return this.kept.given() === false;
   }
 
   showIn(parentEl: HTMLElement, answered: () => void): void {
@@ -32,7 +32,7 @@ export class CampaignAgreement {
   }
 
   take(answer: AgreementAnswer): void {
-    answer.keepOn(this.device);
+    answer.keepOn(this.kept);
     this.answeredHere = true;
   }
 }
