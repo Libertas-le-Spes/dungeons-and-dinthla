@@ -9,6 +9,7 @@ export class LeavingQuestion implements MainQuestion {
   readonly title: string;
   readonly question: string;
   readonly asksLastDoing = true;
+  readonly ownWords = null;
   readonly choices: readonly SwitchChoice[];
 
   constructor(parts: QuestionParts, old: AskedNote) {

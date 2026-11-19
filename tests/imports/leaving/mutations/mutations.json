@@ -359,8 +359,8 @@
  {
   "id": "last doing is checked before any write",
   "file": "src/imports/leaving/switching/old-main-steps.ts",
-  "find": "    const lastDoing = lastDoingOf(this.typedLastDoing);\n    const before = await textOfNote(this.files, this.old, NOTE_UNREAD);",
-  "replace": "    const before = await textOfNote(this.files, this.old, NOTE_UNREAD);\n    const lastDoing = null;",
+  "find": "    const lastDoing = lastDoingOf(this.typedLastDoing);\n    const destination = this.fallenPath();",
+  "replace": "    const lastDoing = null;\n    const destination = this.fallenPath();",
   "group": "snapshot"
  },
  {
@@ -805,9 +805,9 @@
   "group": "standing"
  },
  {
-  "id": "only died and retired have left play",
+  "id": "only died, retired and departed have left play",
   "file": "src/imports/layout/standing.ts",
-  "find": "  return LEFT_PLAY_MARKS.has(standing);",
+  "find": "  return LEFT_PLAY_STANDINGS.has(standing);",
   "replace": "  return true;",
   "group": "standing"
  },
@@ -1069,5 +1069,152 @@
   "find": "\"properties\", \"cast\", \"writes\"] },\n];",
   "replace": "\"properties\", \"cast\"] },\n];",
   "group": "folders"
+ },
+ {
+  "id": "departed has left play",
+  "file": "src/imports/layout/standing.ts",
+  "find": "new Set([DIED_STANDING, RETIRED_STANDING, DEPARTED_STANDING])",
+  "replace": "new Set([DIED_STANDING, RETIRED_STANDING])",
+  "group": "depart"
+ },
+ {
+  "id": "something else is marked departed",
+  "file": "src/imports/leaving/switching/old-main-steps.ts",
+  "find": "propertyLine(STANDING_PROPERTY, DEPARTED_STANDING));\n    const markedText",
+  "replace": "propertyLine(STANDING_PROPERTY, \"died\"));\n    const markedText",
+  "group": "depart"
+ },
+ {
+  "id": "something else keeps its words in the note",
+  "file": "src/imports/leaving/switching/old-main-steps.ts",
+  "find": "    const markedText = textWithProperty(standingText, DEPARTURE_PROPERTY, departureLine(words.written));",
+  "replace": "    const markedText = standingText;",
+  "group": "depart"
+ },
+ {
+  "id": "something else's words are checked",
+  "file": "src/imports/leaving/switching/old-main-steps.ts",
+  "find": "    const words = departureWordsOf(typedWords);",
+  "replace": "    const words = { written: typedWords, snapshot: typedWords };",
+  "group": "depart"
+ },
+ {
+  "id": "the snapshot takes the words made safe",
+  "file": "src/imports/leaving/switching/old-main-steps.ts",
+  "find": "how: words.snapshot });",
+  "replace": "how: words.written });",
+  "group": "depart"
+ },
+ {
+  "id": "the note keeps the words as typed",
+  "file": "src/imports/leaving/switching/old-main-steps.ts",
+  "find": "departureLine(words.written));",
+  "replace": "departureLine(words.snapshot));",
+  "group": "depart"
+ },
+ {
+  "id": "the departure is quoted",
+  "file": "src/imports/layout/departure.ts",
+  "find": "${JSON.stringify(words)}",
+  "replace": "${words}",
+  "group": "depart"
+ },
+ {
+  "id": "quoted departure words are unquoted",
+  "file": "src/imports/layout/departure.ts",
+  "find": "  if (!trimmed.startsWith(QUOTE)) return wordsOrNull(trimmed);",
+  "replace": "  return wordsOrNull(trimmed);",
+  "group": "depart"
+ },
+ {
+  "id": "blank departure words are none",
+  "file": "src/imports/layout/departure.ts",
+  "find": "  if (words === \"\") return null;\n",
+  "replace": "",
+  "group": "depart"
+ },
+ {
+  "id": "broken quotes are no words",
+  "file": "src/imports/layout/departure.ts",
+  "find": "  } catch {\n    return null;\n  }",
+  "replace": "  } catch {\n    return value;\n  }",
+  "group": "depart"
+ },
+ {
+  "id": "empty words are refused",
+  "file": "src/imports/leaving/snapshot/departure-words.ts",
+  "find": "  if (trimmed === \"\") throw new Refusal(NO_DEPARTURE);\n",
+  "replace": "",
+  "group": "depart"
+ },
+ {
+  "id": "long words are refused",
+  "file": "src/imports/leaving/snapshot/departure-words.ts",
+  "find": "  if (characterCountOf(trimmed) > MOST_DEPARTURE) throw departureTooLong();\n",
+  "replace": "",
+  "group": "depart"
+ },
+ {
+  "id": "words over lines are refused",
+  "file": "src/imports/leaving/snapshot/departure-words.ts",
+  "find": "  if (line === null) throw departureNotOneLine();\n",
+  "replace": "",
+  "group": "depart"
+ },
+ {
+  "id": "the words are trimmed",
+  "file": "src/imports/leaving/snapshot/departure-words.ts",
+  "find": "return { written: trimmed, snapshot: line };",
+  "replace": "return { written: typed, snapshot: line };",
+  "group": "depart"
+ },
+ {
+  "id": "a departed card shows its words",
+  "file": "src/characters/cards/card-standing.ts",
+  "find": "  if (standing.standing === DEPARTED_STANDING) return departedMarkOf(standing);\n",
+  "replace": "",
+  "group": "depart"
+ },
+ {
+  "id": "a departed card without words says Departed",
+  "file": "src/characters/cards/card-standing.ts",
+  "find": "  if (standing.departure === null) return DEPARTED_WORDS;\n  return standing.departure;",
+  "replace": "  return String(standing.departure);",
+  "group": "depart"
+ },
+ {
+  "id": "the departure is read from the properties",
+  "file": "src/characters/cards/card-standing.ts",
+  "find": "    departure: departureOf(valueOf(entries, DEPARTURE_PROPERTY)),",
+  "replace": "    departure: null,",
+  "group": "depart"
+ },
+ {
+  "id": "the dialog asks for their own words",
+  "file": "src/imports/leaving/dialog/main-modal.ts",
+  "find": "    if (ownWords !== null) new Setting(contentEl)",
+  "replace": "    if (ownWords === undefined) new Setting(contentEl)",
+  "group": "depart"
+ },
+ {
+  "id": "the dialog keeps their own words",
+  "file": "src/imports/leaving/dialog/main-modal.ts",
+  "find": "    field.onChange(ownWords.keep.bind(ownWords));\n",
+  "replace": "",
+  "group": "depart"
+ },
+ {
+  "id": "Depart only on a note in Characters",
+  "file": "src/characters/pages/character-sheet-page.ts",
+  "find": "    if (this.isUpdatable(file, read.campaignFolder)) {\n      addDepartButton",
+  "replace": "    if (file.path !== \"\") {\n      addDepartButton",
+  "group": "depart"
+ },
+ {
+  "id": "Depart is at the page's bottom",
+  "file": "src/characters/pages/character-sheet-page.ts",
+  "find": "    this.mentions.draw(root.createEl(\"section\", { cls: \"dd-sheet-mentions\" }), file);\n    if (this.isUpdatable(file, read.campaignFolder)) {\n      addDepartButton({ parent: root.createDiv({ cls: \"dd-sheet-depart\" }), path: file.path, action: this.actions, focus: this.focusEdit });\n    }\n",
+  "replace": "    if (this.isUpdatable(file, read.campaignFolder)) {\n      addDepartButton({ parent: root.createDiv({ cls: \"dd-sheet-depart\" }), path: file.path, action: this.actions, focus: this.focusEdit });\n    }\n    this.mentions.draw(root.createEl(\"section\", { cls: \"dd-sheet-mentions\" }), file);\n",
+  "group": "depart"
  }
 ]

@@ -75,7 +75,7 @@ async function galleryOf(own: string, notes: Record<string, string>, fallen: Rec
   for (const [name, text] of Object.entries(notes)) files.push(noteNamed(cardNotes, name, text));
   for (const [name, text] of Object.entries(fallen)) fallenFiles.push(noteNamed(cardNotes, name, text, FALLEN_FOLDER));
   const root = obsidianDocument().createElement("div");
-  const creators = { newCharacter: vi.fn(), importCharacter: vi.fn(), makeMain: vi.fn(), died: vi.fn() };
+  const creators = { newCharacter: vi.fn(), importCharacter: vi.fn(), makeMain: vi.fn() };
   const gallery = new CharacterGallery(root, new CampaignStore(new FakeNoteVault().gate), cardNotes, { openRow: vi.fn(), openLink: vi.fn() }, creators);
   gallery.show(files, fallenFiles);
   await gallery.shown();
@@ -149,63 +149,45 @@ describe("the Characters page's standings", () => {
   });
 });
 
-describe("the Died button on the Characters page", () => {
-  it("is on each card of a character in play and each backup, in Obsidian's warning style", async () => {
-    const { root } = await galleryOf("Primary", NOTES);
-    expect(textsOf(root, ".dd-played .dd-died")).toEqual(["Died", "Died"]);
-    expect(textsOf(root, ".dd-backup .dd-died")).toEqual(["Died", "Died"]);
-    for (const button of root.querySelectorAll(".dd-died")) expect(button.classList.contains("mod-warning")).toBe(true);
-  });
-
-  it("is not on a card in Fallen, nor on a note in Characters that already says it left play", async () => {
+describe("leaving play on the Characters page", () => {
+  it("offers no Depart on any card, as it is at the bottom of each character's own page", async () => {
     const { root } = await galleryOf("Primary", NOTES, { Brann: "---\nstanding: died\n---\n" });
-    expect(root.querySelector(".dd-fallen .dd-died")).toBeNull();
-    expect(root.querySelector(".dd-left .dd-died")).toBeNull();
+    expect(root.querySelector(".dd-depart, .dd-died")).toBeNull();
   });
 
-  it("asks once about that card's note, handing a way back", async () => {
-    const { root, creators } = await galleryOf("Primary", NOTES);
-    const buttons = root.querySelectorAll<HTMLButtonElement>(".dd-played .dd-died");
-    for (const button of [...buttons].slice(1, 2)) button.click();
-    expect(creators.died).toHaveBeenCalledExactlyOnceWith(`${FOLDER}/Aldric.md`, expect.any(Function));
+  it("marks a character who departed for something else with the words written for them", async () => {
+    const { root } = await galleryOf("Primary", { Primary: "Hand-made.\n" }, { Brann: '---\nstanding: departed\ndeparture: "Joined the Silver Order"\n---\n' });
+    expect(textsOf(root, ".dd-fallen .dd-card-standing")).toEqual(["Joined the Silver Order"]);
   });
 
-  it("asks about a backup's own note too", async () => {
-    const { root, creators } = await galleryOf("Primary", NOTES);
-    for (const button of [...root.querySelectorAll<HTMLButtonElement>(".dd-backup .dd-died")].slice(1)) button.click();
-    expect(creators.died).toHaveBeenCalledExactlyOnceWith(`${FOLDER}/Spare.md`, expect.any(Function));
+  it("marks a character who departed as Departed when no words were kept", async () => {
+    const { root } = await galleryOf("Primary", { Primary: "Hand-made.\n" }, { Brann: "---\nstanding: departed\n---\n" });
+    expect(textsOf(root, ".dd-fallen .dd-card-standing")).toEqual(["Departed"]);
   });
 
-  it("puts focus back on the button when the dialog closes, and on New character when the page redraws just after", async () => {
-    const { root, creators, gallery, files, fallenFiles } = await galleryOf("Primary", NOTES);
-    root.ownerDocument.body.append(root);
-    const button = root.querySelector<HTMLButtonElement>(".dd-played .dd-died");
-    if (button === null) throw new Error("No Died button.");
-    button.click();
-    const returnFocus = vi.mocked(creators.died).mock.calls[0]?.[1];
-    if (returnFocus === undefined) throw new Error("Died was not asked.");
-    returnFocus();
-    expect(root.ownerDocument.activeElement).toBe(button);
-    gallery.show(files, fallenFiles);
-    await gallery.shown();
-    expect(root.ownerDocument.activeElement).toBe(root.querySelector(".dd-head .dd-create"));
-  });
-
-  it("leaves focus alone when the page redraws and Died was never pressed", async () => {
-    const { root, gallery, files, fallenFiles } = await galleryOf("Primary", NOTES);
-    root.ownerDocument.body.append(root);
-    gallery.show(files, fallenFiles);
-    await gallery.shown();
-    expect(root.ownerDocument.activeElement).not.toBe(root.querySelector(".dd-head .dd-create"));
+  it("treats a note in Characters marked departed as having left play, with Make main to finish the switch", async () => {
+    const { root } = await galleryOf("Primary", { Primary: "Hand-made.\n", Mira: '---\nstanding: departed\ndeparture: "Went home"\n---\n' });
+    expect(textsOf(root, ".dd-left .dd-card-standing")).toEqual(["Went home"]);
+    expect(textsOf(root, ".dd-left .dd-make-main")).toEqual(["Make main"]);
   });
 });
 
 describe("a card's standing", () => {
+  it.each([
+    ["quoted words", '"Joined the Silver Order: for good"', "Joined the Silver Order: for good"],
+    ["words written by hand", "Went home", "Went home"],
+    ["quoted blank words", '"  "', null],
+    ["broken quotes", '"Went home', null],
+    ["a quoted number", '"3"', "3"],
+  ])("reads the departure from %s", (_case, value, departure) => {
+    expect(cardStandingOf(`---\nstanding: departed\ndeparture: ${value}\n---\n`).departure).toBe(departure);
+  });
+
   it("is read from the note's own properties", () => {
-    expect(cardStandingOf("---\nstanding: died\nimported-from: pdf\n---\n")).toEqual({ standing: "died", imported: true });
-    expect(cardStandingOf("standing: died\n")).toEqual({ standing: null, imported: false });
-    expect(cardStandingOf("---\nclass: Monk\n---\nstanding: died\n")).toEqual({ standing: null, imported: false });
-    expect(cardStandingOf("---\nstanding:  \r\n---\n")).toEqual({ standing: null, imported: false });
-    expect(cardStandingOf("---\r\nstanding: retired\r\n---\r\n")).toEqual({ standing: "retired", imported: false });
+    expect(cardStandingOf("---\nstanding: died\nimported-from: pdf\n---\n")).toEqual({ standing: "died", imported: true, departure: null });
+    expect(cardStandingOf("standing: died\n")).toEqual({ standing: null, imported: false, departure: null });
+    expect(cardStandingOf("---\nclass: Monk\n---\nstanding: died\n")).toEqual({ standing: null, imported: false, departure: null });
+    expect(cardStandingOf("---\nstanding:  \r\n---\n")).toEqual({ standing: null, imported: false, departure: null });
+    expect(cardStandingOf("---\r\nstanding: retired\r\n---\r\n")).toEqual({ standing: "retired", imported: false, departure: null });
   });
 });

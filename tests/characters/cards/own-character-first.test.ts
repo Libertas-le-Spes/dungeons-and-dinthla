@@ -3,7 +3,7 @@ import type { CharacterCard } from "../../../src/characters/cards/character-card
 import { ownCharacterFirst } from "../../../src/characters/cards/own-character-first";
 
 function cardOf(name: string, isOwn = false): CharacterCard {
-  return { path: `Pale Moon/Characters/${name}.md`, name, values: new Map(), isOwn, standing: { standing: null, imported: false } };
+  return { path: `Pale Moon/Characters/${name}.md`, name, values: new Map(), isOwn, standing: { standing: null, imported: false, departure: null } };
 }
 
 function namesOf(cards: CharacterCard[]): string[] {

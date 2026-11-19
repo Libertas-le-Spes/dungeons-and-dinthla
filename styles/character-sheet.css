@@ -223,8 +223,19 @@
 }
 
 .dd-sheet .dd-sheet-stat-block,
-.dd-sheet .dd-sheet-mentions {
+.dd-sheet .dd-sheet-mentions,
+.dd-sheet .dd-sheet-depart {
   margin-top: var(--size-4-5);
+}
+
+.dd-sheet .dd-sheet-depart {
+  display: flex;
+  padding-top: var(--size-4-4);
+  border-top: var(--border-width) solid var(--border-subtle);
+}
+
+.dd-sheet .dd-sheet-depart .dd-depart {
+  min-height: var(--touch-min);
 }
 
 .dd-sheet .dd-sheet-stat-block .dd-title {

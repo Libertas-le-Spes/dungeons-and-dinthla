@@ -268,6 +268,13 @@ describe("finishing for an old main", () => {
     expect(table.vault.moved).toEqual([]);
     expect(table.vault.textAt(MONK)).toBe(MONK_TEXT);
   });
+
+  it.each(["died", "retired", "departed"])("moves an old main still in Characters but marked %s to Fallen", async (standing) => {
+    const table = new LeavingTable();
+    table.vault.texts.set(MONK, `---\nstanding: ${standing}\n---\n`);
+    await table.makeMain(SECOND, MONK).run();
+    expect(table.vault.moved).toEqual([`${MONK} -> ${MONK_FALLEN}`]);
+  });
 });
 
 describe("before anything is switched", () => {

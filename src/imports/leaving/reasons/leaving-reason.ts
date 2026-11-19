@@ -2,6 +2,7 @@ import type { PlannedWrite } from "../writes/planned-write";
 
 export interface LeavingSteps {
   intoFallen(standing: string, how: string): Promise<PlannedWrite[]>;
+  departedIntoFallen(typedWords: string): Promise<PlannedWrite[]>;
   markedOnly(standing: string): Promise<PlannedWrite[]>;
 }
 
