@@ -118,7 +118,7 @@ function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf, link
     openLink: vi.fn(),
     editCharacter: vi.fn(),
     updateFromBeyond: vi.fn(),
-    died: vi.fn(),
+    depart: vi.fn(),
     tracking: new RecordingTracking(null),
     chooseValue: (_file, value, onClosed) => {
       chosen.push(value);
@@ -489,14 +489,17 @@ describe("CharacterSheetPage", () => {
     expect(sheet.root.childElementCount).toBe(0);
   });
 
-  it("lists the session lines that link to the character after the stat block", async () => {
+  it("lists the session lines that link to the character after the stat block, above Depart", async () => {
     const sheet = openSheet({ linking: { [ONE]: [0] }, texts: { [ONE]: "- Met [[Mira]] at the ford" } });
     await sheet.load();
     await sheet.rendered();
     expect(textsOf(sheet.root, ".dd-sheet-mentions .dd-text")).toEqual(["Met [[Mira]] at the ford"]);
     expect(textsOf(sheet.root, ".dd-sheet-mentions .dd-title")).toEqual([`${IN_THE_NOTES}1 line`]);
-    expect(sheet.root.lastElementChild!.classList.contains("dd-sheet-mentions")).toBe(true);
-    expect(sheet.root.lastElementChild!.previousElementSibling!.classList.contains("dd-sheet-stat-block")).toBe(true);
+    const depart = sheet.root.lastElementChild!;
+    const mentions = depart.previousElementSibling!;
+    expect(depart.classList.contains("dd-sheet-depart")).toBe(true);
+    expect(mentions.classList.contains("dd-sheet-mentions")).toBe(true);
+    expect(mentions.previousElementSibling!.classList.contains("dd-sheet-stat-block")).toBe(true);
   });
 
   it("isn't rendered while the lines that link to the character are still being read", async () => {
@@ -656,44 +659,44 @@ describe("CharacterSheetPage for an imported character", () => {
     }
   });
 
-  it("offers Died in Obsidian's warning style, which asks once about this character", async () => {
+  it("offers Depart in Obsidian's warning style, which asks once about this character", async () => {
     const { load, root, actions } = openSheet({ texts: { [MIRA.path]: IMPORTED } });
     await load();
-    const buttons = buttonsSaying(root, "Died");
+    const buttons = buttonsSaying(root, "Depart");
     expect(buttons).toHaveLength(1);
     expect(buttons[0]?.classList.contains("mod-warning")).toBe(true);
     for (const button of buttons) button.click();
-    expect(actions.died).toHaveBeenCalledOnce();
-    expect(vi.mocked(actions.died).mock.calls[0]?.[0]).toBe(MIRA.path);
+    expect(actions.depart).toHaveBeenCalledOnce();
+    expect(vi.mocked(actions.depart).mock.calls[0]?.[0]).toBe(MIRA.path);
   });
 
-  it("offers Died on a Characters note nothing was imported into", async () => {
+  it("offers Depart on a Characters note nothing was imported into", async () => {
     const { load, root } = openSheet({ texts: { [MIRA.path]: "AC: 16\n" } });
     await load();
-    expect(buttonsSaying(root, "Died")).toHaveLength(1);
+    expect(buttonsSaying(root, "Depart")).toHaveLength(1);
   });
 
-  it("offers no Died on a sheet whose note is in Fallen, deeper than Characters, or in no campaign", async () => {
+  it("offers no Depart on a sheet whose note is in Fallen, deeper than Characters, or in no campaign", async () => {
     for (const path of ["Pale Moon/Fallen/Thessaly.md", "Pale Moon/Characters/Old/Mira.md", "Notes/Mira.md"]) {
       const { load, root } = openSheet();
       await load(fileAt(path));
-      expect(buttonWords(root), path).not.toContain("Died");
+      expect(buttonWords(root), path).not.toContain("Depart");
     }
   });
 
   it("puts focus on Edit character when the dialog closes, and again when the sheet redraws just after", async () => {
     const { load, root, actions, listener, rendered } = openSheet({ texts: { [MIRA.path]: IMPORTED } });
     await load();
-    for (const button of buttonsSaying(root, "Died")) button.click();
-    const returnFocus = vi.mocked(actions.died).mock.calls[0]?.[1];
-    if (returnFocus === undefined) throw new Error("Died was not asked.");
+    for (const button of buttonsSaying(root, "Depart")) button.click();
+    const returnFocus = vi.mocked(actions.depart).mock.calls[0]?.[1];
+    if (returnFocus === undefined) throw new Error("Depart was not asked.");
     returnFocus();
     listener();
     await rendered();
     expect(root.ownerDocument.activeElement).toBe(buttonsSaying(root, "Edit character")[0]);
   });
 
-  it("does not take focus when the sheet redraws and Died was never pressed", async () => {
+  it("does not take focus when the sheet redraws and Depart was never pressed", async () => {
     const { load, root, listener, rendered } = openSheet({ texts: { [MIRA.path]: IMPORTED } });
     await load();
     listener();
@@ -701,12 +704,21 @@ describe("CharacterSheetPage for an imported character", () => {
     expect(root.ownerDocument.activeElement).not.toBe(buttonsSaying(root, "Edit character")[0]);
   });
 
-  it("puts its buttons together in one row of actions beside the name", async () => {
+  it("puts editing and updating together in one row of actions beside the name", async () => {
     const { load, root } = openSheet({ texts: { [MIRA.path]: IMPORTED } });
     await load();
     const actions = root.querySelector<HTMLElement>(".dd-head .dd-head-actions");
     if (actions === null) throw new Error("The head has no actions row.");
-    expect(buttonWords(actions)).toEqual(["Edit character", "Update from D&D Beyond", "Died"]);
+    expect(buttonWords(actions)).toEqual(["Edit character", "Update from D&D Beyond"]);
+  });
+
+  it("puts Depart alone at the very bottom of the page, below the mentions", async () => {
+    const { load, root } = openSheet({ texts: { [MIRA.path]: IMPORTED } });
+    await load();
+    const last = root.lastElementChild;
+    if (last === null) throw new Error("The page is empty.");
+    expect(last.className).toBe("dd-sheet-depart");
+    expect(buttonWords(last as HTMLElement)).toEqual(["Depart"]);
   });
 });
 
