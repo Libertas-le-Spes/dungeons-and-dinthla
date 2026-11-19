@@ -1,5 +1,6 @@
 import { campaignFolderOf, campaignOfItem, campaignOfReference, charactersBasePathOf, mainNotePathOf } from "../../campaign/paths/campaign-folders";
 import { sessionNumberOf } from "../../campaign/paths/session-file";
+import { isFallenNotePath } from "../../campaign/paths/character-note-path";
 import type { ReferenceKind } from "../../kinds/reference-kind";
 import { REFERENCE_KIND_LIST } from "../../kinds/reference-kinds";
 import type { PageId } from "../view/campaign-pages";
@@ -21,6 +22,10 @@ function isMainNote(file: OpenedFile): boolean {
 
 function isCharactersBase(file: OpenedFile): boolean {
   return file.path === charactersBasePathOf(file.campaignFolder);
+}
+
+function isFallenNote(file: OpenedFile): boolean {
+  return isFallenNotePath(file.path, file.campaignFolders);
 }
 
 function isSessionNote(file: OpenedFile): boolean {
@@ -50,6 +55,7 @@ class ReferenceRule implements FileRule {
 const FILE_RULES: FileRule[] = [
   { page: "home", matches: isMainNote },
   { page: "cast", matches: isCharactersBase },
+  { page: "cast", matches: isFallenNote },
   ...REFERENCE_KIND_LIST.map((kind) => new ReferenceRule(kind)),
   { page: "notes", matches: isSessionNote },
   { page: "funds", matches: isItemNote },

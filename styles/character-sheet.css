@@ -269,3 +269,41 @@
   box-shadow: var(--focus-ring);
   outline: none;
 }
+
+.dd-sheet .dd-value-read {
+  padding: var(--size-2-1) var(--size-4-2);
+  font: var(--type-score);
+  color: var(--state-known);
+}
+
+.dd-sheet .dd-left-play {
+  margin-top: var(--size-4-6);
+  padding-top: var(--size-4-4);
+  border-top: var(--border-width) solid var(--border-subtle);
+}
+
+.dd-sheet .dd-left-play-heading {
+  margin: var(--size-4-4) 0 var(--size-4-2);
+  font: var(--type-label);
+  font-size: var(--font-ui-medium);
+}
+
+.dd-sheet .dd-left-play-heading:first-child {
+  margin-top: 0;
+}
+
+.dd-sheet .dd-left-play-list {
+  margin: var(--size-4-3) 0 var(--size-4-1);
+  font: var(--type-label);
+  font-size: var(--font-ui-small);
+  color: var(--text-muted-ui);
+}
+
+.dd-sheet .dd-left-play-line,
+.dd-sheet .dd-left-play-entry {
+  margin: var(--size-4-1) 0;
+}
+
+.dd-sheet .dd-left-play-entry {
+  padding-left: var(--size-4-4);
+}

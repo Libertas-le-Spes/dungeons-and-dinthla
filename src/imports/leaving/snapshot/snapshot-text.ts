@@ -1,7 +1,7 @@
 import type { LineEnding } from "../../note/reading/line-ending";
 import type { Held, Leaving } from "./snapshot-facts";
+import { SNAPSHOT_HEADING } from "../../layout/snapshot-heading";
 
-const SNAPSHOT_HEADING = "Left play on";
 const LINE_BREAK = "\n";
 
 function listLines(heading: string, entries: readonly string[]): string[] {
