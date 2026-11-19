@@ -15,6 +15,6 @@ export interface ImportedNote {
 
 export function importedNoteText({ current, sheet, stamp }: ImportedNote): string {
   const layout = NoteLayout.of(current);
-  const properties = propertyLinesWith(layout, propertyLinesOf({ character: sheet.character, stamp }));
+  const properties = propertyLinesWith(layout, propertyLinesOf({ character: sheet.character, stamp, beyondNumber: sheet.beyondNumber }));
   return properties.concat(bodyLinesWith(layout, sheet)).join(LINE_BREAK);
 }

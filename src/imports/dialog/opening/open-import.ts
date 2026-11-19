@@ -6,6 +6,7 @@ import { UpdateFlow } from "../flows/update-flow";
 import { ImportModal, type ImportClosed } from "../import-modal";
 import type { OnlineSource } from "../online/online-source";
 import { dayOf } from "../today";
+import { keptBeyondNumberOf } from "../../note/reading/kept-beyond-number";
 
 export interface ImportPlace {
   readonly app: App;
@@ -21,7 +22,16 @@ export function openImport(place: ImportPlace, closed: ImportClosed): void {
   new ImportModal(place.app, { flow: new NewImportFlow(writer, place.charactersFolder, place.notes.bind(place)), today: dayOf(new Date()), online: place.online, onClosed: closed }).open();
 }
 
-export function openUpdate(place: ImportPlace, file: TFile, closed: ImportClosed): void {
+async function keptNumberOf(place: ImportPlace, file: TFile): Promise<string | null> {
+  try {
+    return keptBeyondNumberOf(await place.files.read(file));
+  } catch {
+    return null;
+  }
+}
+
+export async function openUpdate(place: ImportPlace, file: TFile, closed: ImportClosed): Promise<void> {
+  const kept = await keptNumberOf(place, file);
   const writer = new ImportWriter(place.files, place.charactersFolder, place.campaignFolder);
-  new ImportModal(place.app, { flow: new UpdateFlow(writer, file), today: dayOf(new Date()), online: place.online, onClosed: closed }).open();
+  new ImportModal(place.app, { flow: new UpdateFlow(writer, file, kept), today: dayOf(new Date()), online: place.online, onClosed: closed }).open();
 }

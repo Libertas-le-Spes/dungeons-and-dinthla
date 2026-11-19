@@ -8,7 +8,8 @@ import type { ImportClosed } from "../../../src/imports/dialog/import-modal";
 import { readReply } from "../../../src/beyond/reply/read-reply";
 import { onlineSheetOf } from "../../../src/imports/dialog/online/online-sheet";
 import { MadeUpReply } from "../../beyond/builders/made-up-reply";
-import { NO_ONLINE } from "../builders/made-up-online";
+import { HeldOnline, NO_ONLINE } from "../builders/made-up-online";
+import type { OnlineSource } from "../../../src/imports/dialog/online/online-source";
 import { BeyondOpeners, type BeyondWiring } from "../../../src/imports/dialog/opening/beyond-openers";
 import { MadeUpSheet } from "../../beyond/builders/made-up-sheet";
 import { printedOf } from "../../beyond/builders/sheet-reading";
@@ -47,14 +48,13 @@ class NoOffers {
   }
 }
 
-function wiringWith(shownFolder: string | null, folderOfNote: string | null): BeyondWiring {
-  const vault = new FakeNoteVault();
+function wiringWith(shownFolder: string | null, folderOfNote: string | null, vault = new FakeNoteVault(), online: OnlineSource = NO_ONLINE): BeyondWiring {
   return {
     app: {} as App,
     files: vault.gate,
     actions: vault.actions,
     metadata: new NoMetadata(),
-    online: NO_ONLINE,
+    online,
     shownCampaignFolder: vi.fn().mockReturnValue(shownFolder),
     campaignFolderOf: vi.fn().mockReturnValue(folderOfNote),
     charactersFolderOf: vi.fn().mockReturnValue(CHARACTERS_FOLDER),
@@ -206,15 +206,38 @@ describe("opening the dialog", () => {
     expect(wiring.tell).not.toHaveBeenCalled();
   });
 
-  it("opens an update for a note in a campaign, and refuses one in none", () => {
+  it.each([
+    ["keeps a D&D Beyond number", "---\nimported-from: online\nbeyond: 12345678\n---\n", ["12345678"]],
+    ["keeps none", "---\nimported-from: pdf\n---\n", []],
+    ["keeps a number D&D Beyond could not give", "---\nbeyond: 0123\n---\n", []],
+  ])("opens an update that asks D&D Beyond at once only when the note %s", async (_case, text, asked) => {
+    const vault = new FakeNoteVault();
+    const note = vault.note(`${CHARACTERS_FOLDER}/Primary.md`, text);
+    const online = new HeldOnline();
+    await new BeyondOpeners(wiringWith(null, "D&D/Primary Campaign", vault, online)).updateFromBeyond(note, vi.fn());
+    expect(online.links).toEqual(asked);
+  });
+
+  it("opens an update that starts at the first view when the note can't be read", async () => {
+    const vault = new FakeNoteVault();
+    const note = vault.note(`${CHARACTERS_FOLDER}/Primary.md`, "---\nbeyond: 12345678\n---\n");
+    vault.failReadsWith(new Error("Locked."));
+    const online = new HeldOnline();
+    const before = openedModals.length;
+    await new BeyondOpeners(wiringWith(null, "D&D/Primary Campaign", vault, online)).updateFromBeyond(note, vi.fn());
+    expect(openedModals.length).toBe(before + 1);
+    expect(online.links).toEqual([]);
+  });
+
+  it("opens an update for a note in a campaign, and refuses one in none", async () => {
     const note = { path: `${CHARACTERS_FOLDER}/Primary.md`, basename: "Primary" } as TFile;
     const inCampaign = wiringWith(null, "D&D/Primary Campaign");
     const before = openedModals.length;
-    new BeyondOpeners(inCampaign).updateFromBeyond(note, vi.fn());
+    await new BeyondOpeners(inCampaign).updateFromBeyond(note, vi.fn());
     expect(inCampaign.campaignFolderOf).toHaveBeenCalledWith(note.path);
     expect(openedModals.length).toBe(before + 1);
     const outside = wiringWith(null, null);
-    new BeyondOpeners(outside).updateFromBeyond(note, vi.fn());
+    await new BeyondOpeners(outside).updateFromBeyond(note, vi.fn());
     expect(outside.tell).toHaveBeenCalledExactlyOnceWith("This note isn't in a campaign.");
     expect(openedModals.length).toBe(before + 1);
   });
