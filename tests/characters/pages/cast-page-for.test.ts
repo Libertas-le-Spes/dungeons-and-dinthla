@@ -5,6 +5,8 @@ import { castPageFor, type CastPages } from "../../../src/characters/pages/cast-
 const MIRA = { path: "Pale Moon/Characters/Mira.md", basename: "Mira" } as TFile;
 const GALLERY = new Component();
 const CHARACTER = new Component();
+const FALLEN = new Component();
+const BRANN = { path: "Pale Moon/Fallen/Brann.md", basename: "Brann" } as TFile;
 
 function pagesWith(files: TFile[]) {
   const fileAt = vi.fn((path: string) => {
@@ -16,6 +18,7 @@ function pagesWith(files: TFile[]) {
     notes: { fileAt, campaignFolders: () => ["Pale Moon"] },
     gallery: vi.fn(() => GALLERY),
     character: vi.fn(() => CHARACTER),
+    fallen: vi.fn(() => FALLEN),
   };
   return { pages, fileAt };
 }
@@ -30,9 +33,23 @@ describe("castPageFor", () => {
     expect(pages.gallery).not.toHaveBeenCalled();
   });
 
-  it("shows the gallery for a note in the Fallen folder, without looking it up", () => {
+  it("shows a fallen character's page for their note in the Fallen folder", () => {
+    const { pages } = pagesWith([BRANN]);
+    expect(castPageFor(contentEl, BRANN.path, pages)).toBe(FALLEN);
+    expect(pages.fallen).toHaveBeenCalledExactlyOnceWith(contentEl, BRANN);
+    expect(pages.character).not.toHaveBeenCalled();
+  });
+
+  it("shows the gallery for a fallen character's note that is gone", () => {
     const { pages, fileAt } = pagesWith([]);
-    expect(castPageFor(contentEl, "Pale Moon/Fallen/Mira.md", pages)).toBe(GALLERY);
+    expect(castPageFor(contentEl, BRANN.path, pages)).toBe(GALLERY);
+    expect(fileAt).toHaveBeenCalledExactlyOnceWith(BRANN.path);
+    expect(pages.fallen).not.toHaveBeenCalled();
+  });
+
+  it.each(["Pale Moon/Fallen/Old/Brann.md", "Pale Moon/Fallen/Brann.base", "Ashen Road/Fallen/Brann.md"])("shows the gallery for %s, without looking it up", (path) => {
+    const { pages, fileAt } = pagesWith([]);
+    expect(castPageFor(contentEl, path, pages)).toBe(GALLERY);
     expect(fileAt).not.toHaveBeenCalled();
   });
 
