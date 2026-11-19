@@ -5,12 +5,13 @@ import { isSubmit } from "../../views/dialogs/keys";
 import { messageOf } from "../../views/dialogs/message-of";
 import { RecordChangeDialog } from "../../views/dialogs/record-change-dialog";
 import { holderNameOf } from "./item-groups";
-import { GONE_LINE_SAYS_MORE, type HolderOption, type ItemEdit, type ItemStatus } from "./item-plan";
+import { asksHowMany, GONE_LINE_SAYS_MORE, type HolderOption, type ItemEdit, type ItemStatus } from "./item-plan";
 import { ITEM_STATUSES, STATUS_WORDS } from "./status-words";
 
 export class ItemModal extends RecordChangeDialog {
   private readonly edit: ItemEdit;
   private priceRow: HTMLElement | null = null;
+  private howManyRow: HTMLElement | null = null;
   private openNoteButton: HTMLElement | null = null;
 
   constructor(
@@ -48,9 +49,11 @@ export class ItemModal extends RecordChangeDialog {
         if (status === undefined) return;
         this.edit.status = status;
         this.showPrice();
+        this.showHowMany();
         this.hideOpenNote();
       });
     });
+    if (asksHowMany(this.item)) this.addHowMany(contentEl);
     const price = new Setting(contentEl).setName("Sold for (adds it to the purse)").addText((text) => {
       text.setPlaceholder("150 gp").setValue(this.edit.price).onChange((value) => {
         this.edit.price = value;
@@ -79,6 +82,22 @@ export class ItemModal extends RecordChangeDialog {
   protected override failed(error: unknown): void {
     if (messageOf(error) === GONE_LINE_SAYS_MORE && this.openNoteButton !== null) this.openNoteButton.toggle(true);
     super.failed(error);
+  }
+
+  private addHowMany(contentEl: HTMLElement): void {
+    const howMany = new Setting(contentEl).setName(`How many? (${this.item.held} held)`).addText((text) => {
+      text.setValue(this.edit.howMany).onChange((value) => {
+        this.edit.howMany = value;
+      });
+      text.inputEl.setAttr("aria-label", "How many");
+    });
+    this.howManyRow = howMany.settingEl;
+    this.showHowMany();
+  }
+
+  private showHowMany(): void {
+    if (this.howManyRow === null) return;
+    this.howManyRow.toggle(this.edit.status !== "held");
   }
 
   private showPrice(): void {

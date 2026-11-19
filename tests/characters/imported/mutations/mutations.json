@@ -170,8 +170,8 @@
  {
   "id": "inventory: track asks for this line",
   "file": "src/characters/imported/panels/inventory-panel.ts",
-  "find": "new TrackRun(this.file, entry.written, this.tracking)",
-  "replace": "new TrackRun(this.file, entry.name + \" \", this.tracking)",
+  "find": "new TrackRun(this.file, entry, this.tracking)",
+  "replace": "new TrackRun(this.file, { written: entry.name + \" \", count: entry.count }, this.tracking)",
   "group": "panels"
  },
  {
@@ -338,8 +338,8 @@
  {
   "id": "line: holder then name",
   "file": "src/funds/tracking/tracked-item.ts",
-  "find": "return `$ ${holderText} ${written}`;",
-  "replace": "return `$ ${written} ${holderText}`;",
+  "find": "return `$ ${holderText} ${written}${countTextOf(count)}`;",
+  "replace": "return `$ ${written} ${holderText}${countTextOf(count)}`;",
   "group": "tracking"
  },
  {
@@ -647,7 +647,7 @@
   "id": "retrack: dialog shows the line written",
   "file": "src/funds/tracking/funds-tracking.ts",
   "find": "line: tracked.line };",
-  "replace": "line: trackedItemOf(holder, written, file.basename).line };",
+  "replace": "line: trackedItemOf({ holderText: holder, written, holderName: file.basename, count: trackedCountOf(item.count) }).line };",
   "group": "tracking"
  },
  {
@@ -684,5 +684,229 @@
   "find": "    if (path === null) return false;\n    return path !== this.file.path;",
   "replace": "    return path !== this.file.path;",
   "group": "tracking"
+ },
+ {
+  "id": "count: read after the name",
+  "file": "src/notes/parts/item-count.ts",
+  "find": "const COUNT_AT_END = /^(.*\\S)\\s+[x×]\\s?([1-9]\\d{0,3})$/i;",
+  "replace": "const COUNT_AT_END = /^(.*\\S)\\s+[x]\\s?([1-9]\\d{0,3})$/;",
+  "group": "item counts"
+ },
+ {
+  "id": "count: only at the end",
+  "file": "src/notes/parts/item-count.ts",
+  "find": "([1-9]\\d{0,3})$/i;",
+  "replace": "([1-9]\\d{0,3})/i;",
+  "group": "item counts"
+ },
+ {
+  "id": "count: at most four digits",
+  "file": "src/notes/parts/item-count.ts",
+  "find": "([1-9]\\d{0,3})$/i;",
+  "replace": "([1-9]\\d*)$/i;",
+  "group": "item counts"
+ },
+ {
+  "id": "count: none below 1",
+  "file": "src/notes/parts/item-count.ts",
+  "find": "([1-9]\\d{0,3})$/i;",
+  "replace": "(\\d{1,4})$/i;",
+  "group": "item counts"
+ },
+ {
+  "id": "count: written as x and the number",
+  "file": "src/notes/parts/item-count.ts",
+  "find": "  return ` x${count}`;",
+  "replace": "  return ` ${count}`;",
+  "group": "item counts"
+ },
+ {
+  "id": "count: none written for none",
+  "file": "src/notes/parts/item-count.ts",
+  "find": "  if (count === null) return \"\";\n",
+  "replace": "",
+  "group": "item counts"
+ },
+ {
+  "id": "count: a change reads its count",
+  "file": "src/notes/reading/item-change.ts",
+  "find": "item: counted.item, count: counted.count, kind };",
+  "replace": "item: counted.item, count: null, kind };",
+  "group": "item counts"
+ },
+ {
+  "id": "count: a change's name leaves the count out",
+  "file": "src/notes/reading/item-change.ts",
+  "find": "item: counted.item, count: counted.count, kind };",
+  "replace": "item: withoutBlockId(body.slice(0, last.index)).trim(), count: counted.count, kind };",
+  "group": "item counts"
+ },
+ {
+  "id": "count: a $ line reads its count",
+  "file": "src/notes/reading/ledger.ts",
+  "find": "item: counted.item, count: counted.count, holder, links };",
+  "replace": "item: counted.item, count: null, holder, links };",
+  "group": "item counts"
+ },
+ {
+  "id": "held: the first line sets it",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "  if (isFresh(record)) return count;\n",
+  "replace": "",
+  "group": "item counts"
+ },
+ {
+  "id": "held: more lines add to it",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "  return record.held + count;",
+  "replace": "  return record.held;",
+  "group": "item counts"
+ },
+ {
+  "id": "held: a gone item starts again",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "  return record.history.length === 0 || record.gone !== null;",
+  "replace": "  return record.history.length === 0;",
+  "group": "item counts"
+ },
+ {
+  "id": "held: a use takes some",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "    if (partly && record.held !== null && change.count !== null) record.held -= change.count;\n",
+  "replace": "",
+  "group": "item counts"
+ },
+ {
+  "id": "held: some taken keeps it held",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "    if (change.kind !== \"changed\" && !partly) record.gone = event;",
+  "replace": "    if (change.kind !== \"changed\") record.gone = event;",
+  "group": "item counts"
+ },
+ {
+  "id": "held: taking all makes it gone",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "  return change.count < record.held;",
+  "replace": "  return change.count <= record.held;",
+  "group": "item counts"
+ },
+ {
+  "id": "held: a change of hands takes none",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "  if (change.kind === \"changed\" || isFresh(record)) return false;",
+  "replace": "  if (isFresh(record)) return false;",
+  "group": "item counts"
+ },
+ {
+  "id": "held: a first change of hands sets it",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "    if (change.kind === \"changed\" && isFresh(record)) record.held = change.count;\n",
+  "replace": "",
+  "group": "item counts"
+ },
+ {
+  "id": "held: the event keeps its count",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "const event: ItemEvent = { kind: change.kind, count: change.count,",
+  "replace": "const event: ItemEvent = { kind: change.kind, count: null,",
+  "group": "item counts"
+ },
+ {
+  "id": "how many: asked only above 1",
+  "file": "src/funds/items/item-plan.ts",
+  "find": "  return item.held > 1;",
+  "replace": "  return item.held > 0;",
+  "group": "item counts"
+ },
+ {
+  "id": "how many: asked only while held",
+  "file": "src/funds/items/item-plan.ts",
+  "find": "  if (statusOf(item) !== \"held\" || item.held === null) return false;",
+  "replace": "  if (item.held === null) return false;",
+  "group": "item counts"
+ },
+ {
+  "id": "how many: no more than held",
+  "file": "src/funds/items/item-plan.ts",
+  "find": "if (!WHOLE_COUNT.test(typed) || count > item.held) return",
+  "replace": "if (!WHOLE_COUNT.test(typed)) return",
+  "group": "item counts"
+ },
+ {
+  "id": "how many: whole numbers only",
+  "file": "src/funds/items/item-plan.ts",
+  "find": "if (!WHOLE_COUNT.test(typed) || count > item.held) return",
+  "replace": "if (count > item.held || count < 1) return",
+  "group": "item counts"
+ },
+ {
+  "id": "how many: typed spaces trimmed",
+  "file": "src/funds/items/item-plan.ts",
+  "find": "  const typed = edit.howMany.trim();",
+  "replace": "  const typed = edit.howMany;",
+  "group": "item counts"
+ },
+ {
+  "id": "how many: starts at 1",
+  "file": "src/funds/items/item-plan.ts",
+  "find": "howMany: \"1\" };",
+  "replace": "howMany: \"\" };",
+  "group": "item counts"
+ },
+ {
+  "id": "how many: the count is written",
+  "file": "src/funds/items/item-plan.ts",
+  "find": "${countTextOf(taken.count)} :${edit.status}`;",
+  "replace": " :${edit.status}`;",
+  "group": "item counts"
+ },
+ {
+  "id": "how many: some left keeps it held",
+  "file": "src/funds/items/item-plan.ts",
+  "find": "      status = \"held\";\n",
+  "replace": "",
+  "group": "item counts"
+ },
+ {
+  "id": "how many: the read-back checks the count",
+  "file": "src/funds/items/item-plan.ts",
+  "find": "state.status, heldWhileHeld(state)]);",
+  "replace": "state.status]);",
+  "group": "item counts"
+ },
+ {
+  "id": "tracking: the sheet count is written",
+  "file": "src/funds/tracking/tracked-item.ts",
+  "find": "  return `$ ${holderText} ${written}${countTextOf(count)}`;",
+  "replace": "  return `$ ${holderText} ${written}`;",
+  "group": "item counts"
+ },
+ {
+  "id": "tracking: no count of 1",
+  "file": "src/funds/tracking/tracked-item.ts",
+  "find": "  if (number < 2 || number > MOST_COUNT) return null;",
+  "replace": "  if (number > MOST_COUNT) return null;",
+  "group": "item counts"
+ },
+ {
+  "id": "tracking: the sheet count is passed on",
+  "file": "src/funds/tracking/funds-tracking.ts",
+  "find": "count: trackedCountOf(item.count) });",
+  "replace": "count: null });",
+  "group": "item counts"
+ },
+ {
+  "id": "tracking: the panel passes its count",
+  "file": "src/characters/imported/panels/inventory-panel.ts",
+  "find": "new TrackRun(this.file, entry, this.tracking)",
+  "replace": "new TrackRun(this.file, { written: entry.written, count: null }, this.tracking)",
+  "group": "item counts"
+ },
+ {
+  "id": "funds row: how many are left",
+  "file": "src/funds/page/funds-page.ts",
+  "find": "    if (goneWord === null && item.held !== null) meta.appendText(`× ${item.held} · `);\n",
+  "replace": "",
+  "group": "item counts"
  }
 ]

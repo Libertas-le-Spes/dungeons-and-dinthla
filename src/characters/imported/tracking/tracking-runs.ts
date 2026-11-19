@@ -1,17 +1,17 @@
 import type { TFile } from "obsidian";
 import type { ButtonAction } from "../drawing/action-button";
-import type { ItemTracking } from "./item-tracking";
+import type { ItemTracking, SheetItem } from "./item-tracking";
 import type { SettleChoice } from "./settle-choices";
 
 export class TrackRun implements ButtonAction {
   constructor(
     private readonly file: TFile,
-    private readonly written: string,
+    private readonly item: SheetItem,
     private readonly tracking: ItemTracking,
   ) {}
 
   run(returnFocus: () => void): void {
-    this.tracking.track(this.file, this.written, returnFocus);
+    this.tracking.track(this.file, this.item, returnFocus);
   }
 }
 

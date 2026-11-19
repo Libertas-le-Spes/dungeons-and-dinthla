@@ -57,7 +57,7 @@ export class InventoryPanel implements SheetPanel {
     const standing = look.standingOf(entry.written);
     if (standing !== null) line.createSpan({ cls: "dd-meta dd-panel-standing", text: standing });
     if (look.canTrack(entry.written) && isImporterWritten(entry.written)) {
-      addActionButton(line, TRACK_ON_FUNDS, PANEL_ACTION_CLASSES, new TrackRun(this.file, entry.written, this.tracking));
+      addActionButton(line, TRACK_ON_FUNDS, PANEL_ACTION_CLASSES, new TrackRun(this.file, entry, this.tracking));
     }
   }
 }
