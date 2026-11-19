@@ -1,9 +1,10 @@
 import type { TFile } from "obsidian";
-import type { FundsLook, HeldItem, ItemTracking, SettledStatus } from "../../../../src/characters/imported/tracking/item-tracking";
+import type { FundsLook, HeldItem, ItemTracking, SettledStatus, SheetItem } from "../../../../src/characters/imported/tracking/item-tracking";
 
 export interface TrackCall {
   path: string;
   written: string;
+  count: string | null;
 }
 
 export interface SettleCall {
@@ -66,8 +67,8 @@ export class RecordingTracking implements ItemTracking {
     return MADE_UP_ADVICE;
   }
 
-  track(file: TFile, written: string, returnFocus: () => void): void {
-    this.tracked.push({ path: file.path, written });
+  track(file: TFile, item: SheetItem, returnFocus: () => void): void {
+    this.tracked.push({ path: file.path, written: item.written, count: item.count });
     this.focusReturns.push(returnFocus);
   }
 

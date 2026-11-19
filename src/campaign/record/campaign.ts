@@ -47,6 +47,7 @@ export type ItemEventKind = "named" | ItemChangeKind;
 
 export interface ItemEvent {
   kind: ItemEventKind;
+  count: number | null;
   holder: string;
   links: string[];
   source: Source;
@@ -61,6 +62,7 @@ export interface ItemRecord {
   source: Source;
   history: ItemEvent[];
   gone: ItemEvent | null;
+  held: number | null;
 }
 
 export interface Campaign {

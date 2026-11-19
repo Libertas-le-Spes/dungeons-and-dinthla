@@ -6,7 +6,7 @@ import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { ItemRecord } from "../../campaign/record/campaign";
 import { isImporterWritten } from "../../characters/imported/lists/importer-written";
 import { withoutEscapes } from "../../characters/imported/reading/shown-text";
-import type { FundsLook, ItemTracking, SettledStatus } from "../../characters/imported/tracking/item-tracking";
+import type { FundsLook, ItemTracking, SettledStatus, SheetItem } from "../../characters/imported/tracking/item-tracking";
 import type { Gate } from "../../fence/gate/gatekeeper";
 import { characterReferenceKind } from "../../kinds/character-reference-kind";
 import { openSource } from "../../views/opening/open-view";
@@ -15,7 +15,7 @@ import { openItemDialogAs } from "../items/open-item";
 import { ItemsLook, type HolderPaths } from "./items-look";
 import { TrackItemModal } from "./track-item-modal";
 import { textToTrack } from "./text-to-track";
-import { trackedItemOf } from "./tracked-item";
+import { trackedCountOf, trackedItemOf } from "./tracked-item";
 import { TrackingSave } from "./tracking-save";
 
 export const NO_SESSION = "Start a session first: tracked items are written into a session note.";
@@ -66,7 +66,8 @@ export class FundsTracking implements ItemTracking {
     return NOT_IN_A_CAMPAIGN;
   }
 
-  track(file: TFile, written: string, returnFocus: () => void): void {
+  track(file: TFile, item: SheetItem, returnFocus: () => void): void {
+    const written = item.written;
     const folder = this.shownFolderOf(file);
     if (folder === null) {
       new Notice(this.whyNotTracked(file));
@@ -84,7 +85,7 @@ export class FundsTracking implements ItemTracking {
       new Notice(NOT_INERT_ON_PAGE);
       return;
     }
-    const tracked = trackedItemOf(holder, text, file.basename);
+    const tracked = trackedItemOf({ holderText: holder, written: text, holderName: file.basename, count: trackedCountOf(item.count) });
     const saving = new TrackingSave(this.gate.files, this.store, tracked, sessionPath);
     const shown = { name: withoutEscapes(text), holder: file.basename, writesTo: sessionLabelOf(sessionPath), line: tracked.line };
     new TrackItemModal(this.app, shown, saving, returnFocus).open();

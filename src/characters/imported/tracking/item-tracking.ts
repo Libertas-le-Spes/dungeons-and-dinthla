@@ -7,6 +7,11 @@ export interface HeldItem {
   readonly shown: string;
 }
 
+export interface SheetItem {
+  readonly written: string;
+  readonly count: string | null;
+}
+
 export interface FundsLook {
   standingOf(written: string): string | null;
   canTrack(written: string): boolean;
@@ -16,6 +21,6 @@ export interface FundsLook {
 export interface ItemTracking {
   lookAt(file: TFile, written: readonly string[]): FundsLook | null;
   whyNotTracked(file: TFile): string;
-  track(file: TFile, written: string, returnFocus: () => void): void;
+  track(file: TFile, item: SheetItem, returnFocus: () => void): void;
   settle(file: TFile, name: string, status: SettledStatus, returnFocus: () => void): void;
 }

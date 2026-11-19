@@ -59,7 +59,7 @@ class CampaignBuilder {
   private addLedgerEntry(body: string, source: Source): void {
     const entry = readLedgerEntry(body);
     if (entry?.type === "coin") this.coins.push({ entry, text: body, source, isSale: false, links: findLinks(body) });
-    if (entry?.type === "item") this.itemBook.mention({ item: entry.item, holder: entry.holder, links: entry.links, source });
+    if (entry?.type === "item") this.itemBook.mention({ item: entry.item, count: entry.count, holder: entry.holder, links: entry.links, source });
   }
 }
 

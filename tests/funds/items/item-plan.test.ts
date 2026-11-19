@@ -12,6 +12,8 @@ import {
   holderOptionOf,
   holderOptions,
   HOLDER_OF_GONE,
+  howManyWords,
+  asksHowMany,
   initialItemEdit,
   planItemSave,
   refusalForItemPlan,
@@ -78,6 +80,70 @@ class FakeNotes {
     return { current: this.current, sessionNotes: this.sessionNotes };
   }
 }
+
+describe("using, selling or losing some of an item held several times", () => {
+  it("asks how many only for a held item with a count over 1, starting at 1", () => {
+    const notes = new FakeNotes({ [ONE]: "$ Arrow x20\n$ Rope x1\n$ Torch\n$ Dagger x3\n$$ Dagger :lost\n", [TWO]: "" });
+    expect(["Arrow", "Rope", "Torch", "Dagger"].map((name) => asksHowMany(notes.item(name)))).toEqual([true, false, false, false]);
+    expect(notes.open("Arrow").edit.howMany).toBe("1");
+  });
+
+  it("writes the count taken, and keeps the item held with what is left", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ [[Mira]] Arrow x20\n", [TWO]: "" });
+    expect(await notes.save("Arrow", { status: "used", howMany: "3" })).toBe(true);
+    expect(notes.texts.get(TWO)).toBe("$$ Arrow x3 :used\n");
+    expect([statusOf(notes.item("Arrow")), notes.item("Arrow").held]).toEqual(["held", 17]);
+  });
+
+  it("sells some for a price, which goes into the purse, and keeps the rest held", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ Dagger x5\n", [TWO]: "" });
+    await notes.save("Dagger", { status: "sold", howMany: "2", price: "4 gp" });
+    expect(notes.texts.get(TWO)).toBe("$$ Dagger x2 :sold 4 gp\n");
+    expect([notes.item("Dagger").held, notes.current.purseCopper]).toEqual([3, 400]);
+  });
+
+  it("marks the item gone when all that are held are taken", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ Dagger x5\n", [TWO]: "" });
+    await notes.save("Dagger", { status: "lost", howMany: "5" });
+    expect(notes.texts.get(TWO)).toBe("$$ Dagger x5 :lost\n");
+    expect(statusOf(notes.item("Dagger"))).toBe("lost");
+  });
+
+  it("writes no count for an item held once or with no count", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ Rope x1\n$ Torch\n", [TWO]: "" });
+    await notes.save("Rope", { status: "used", howMany: "7" });
+    await notes.save("Torch", { status: "used", howMany: "7" });
+    expect(notes.texts.get(TWO)).toBe("$$ Rope :used\n$$ Torch :used\n");
+  });
+
+  it.each(["0", "6", "2.5", "-1", "", "two", " 2x"])("refuses %j and writes nothing", async (howMany) => {
+    const notes = new FakeNotes({ [ONE]: "$ Dagger x5\n", [TWO]: "" });
+    const plan = planItemSave(notes.item("Dagger"), { ...notes.open("Dagger").edit, status: "used", howMany }, notes.sessionNotes, notes.current.coins, TWO);
+    expect(plan).toEqual({ error: howManyWords(5) });
+  });
+
+  it("takes a count typed with spaces around it", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ Dagger x5\n", [TWO]: "" });
+    await notes.save("Dagger", { status: "used", howMany: " 2 " });
+    expect(notes.texts.get(TWO)).toBe("$$ Dagger x2 :used\n");
+  });
+
+  it("gives some to someone and uses others in one save, keeping the count with the new holder", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ Arrow x20\n", [TWO]: "" });
+    await notes.save("Arrow", { holder: "[[Mira]]", status: "used", howMany: "4" });
+    expect(notes.texts.get(TWO)).toBe("$$ Arrow :changed to [[Mira]]\n$$ Arrow x4 :used\n");
+    expect([notes.item("Arrow").holder, notes.item("Arrow").held]).toEqual(["Mira", 16]);
+  });
+
+  it("refuses a change whose count would read back as another count", () => {
+    const notes = new FakeNotes({ [ONE]: "$ Dagger x5\n", [TWO]: "" });
+    const item = notes.item("Dagger");
+    const plan = planItemSave(item, { ...notes.open("Dagger").edit, status: "used", howMany: "2" }, notes.sessionNotes, notes.current.coins, TWO);
+    if ("error" in plan) throw new Error(plan.error);
+    expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, held: 4 })).toBe(CHANGES_ANOTHER_ITEM);
+    expect(refusalForItemPlan(notes.sessionNotes, item, plan)).toBeNull();
+  });
+});
 
 describe("saving an item", () => {
   it("sells an item, and the sale goes into the purse", async () => {
