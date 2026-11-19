@@ -133,7 +133,7 @@ describe("the inventory panel", () => {
     const [rope] = buttonsIn(panelTitled(root, "Inventory"), TRACK_ON_FUNDS);
     if (rope === undefined) throw new Error("No track button.");
     rope.click();
-    expect(tracking.tracked).toEqual([{ path: PRIMARY.path, written: "Rope" }]);
+    expect(tracking.tracked).toEqual([{ path: PRIMARY.path, written: "Rope", count: "2" }]);
     for (const returnFocus of tracking.focusReturns) returnFocus();
     expect(root.ownerDocument.activeElement).toBe(rope);
   });

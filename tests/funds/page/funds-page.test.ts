@@ -191,6 +191,12 @@ describe("FundsPage", () => {
     expect(root.querySelectorAll(".dd-folded .dd-text.dd-gone")).toHaveLength(2);
   });
 
+  it("says how many of a held item are left before its session, and nothing for an item with no count", async () => {
+    const { root } = await openPage({ campaign: campaignOf(["$ Arrow x20", "$ Rope"], ["$$ Arrow x3 :used"]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
+    expect(textsOf(root, `${PARTY_PANEL} .dd-scroll-list > .dd-list .dd-text`)).toEqual(["Rope", "Arrow"]);
+    expect(textsOf(root, `${PARTY_PANEL} .dd-scroll-list > .dd-list .dd-meta`)).toEqual(["Session 1", "× 17 · Session 1"]);
+  });
+
   it("says how and in which session each item went, and when its sale is in the ledger", async () => {
     const { root } = await openPage({ campaign: campaignOf(["$ Spyglass", "$ Rope", "$ Map"], ["$$ Spyglass :sold 20 gp", "$$ Map :sold", "$$ Rope :used"]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
     expect(textsOf(root, `${PARTY_PANEL} .dd-folded .dd-meta`)).toEqual([

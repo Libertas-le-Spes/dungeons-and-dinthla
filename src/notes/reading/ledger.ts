@@ -2,6 +2,7 @@ import { choiceOf } from "../../views/dialogs/choice-of";
 import { withoutBlockId } from "../parts/block-id";
 import { partsBetweenCommas } from "../parts/comma";
 import { blankLinks, findLinks, removeFirstLink } from "../parts/link";
+import { countedItemOf } from "../parts/item-count";
 
 export type CoinKind = "pp" | "gp" | "ep" | "sp" | "cp";
 
@@ -23,6 +24,7 @@ export interface CoinEntry {
 export interface ItemEntry {
   type: "item";
   item: string;
+  count: number | null;
   holder: string;
   links: string[];
 }
@@ -77,9 +79,9 @@ function readItem(written: string): ItemEntry | null {
   const body = withoutBlockId(written);
   const links = findLinks(body);
   const [holder = ""] = links;
-  const item = removeFirstLink(body).replace(/\s+/g, " ").trim();
-  if (item === "") return null;
-  return { type: "item", item, holder, links };
+  const counted = countedItemOf(removeFirstLink(body).replace(/\s+/g, " ").trim());
+  if (counted.item === "") return null;
+  return { type: "item", item: counted.item, count: counted.count, holder, links };
 }
 
 export function readLedgerEntry(body: string): LedgerEntry | null {

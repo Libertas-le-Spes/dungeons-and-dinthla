@@ -102,7 +102,7 @@ describe("an inventory name the import guarded at the start of its line", () => 
     const after = sheet.drawn();
     expect(textsIn(after, ".dd-panel-standing")).toEqual([ON_THE_FUNDS_PAGE]);
     expect(trackButtonsIn(after)).toEqual([]);
-    sheet.tracking.track(sheet.primary, neutralPartOf(name), noFocus);
+    sheet.tracking.track(sheet.primary, { written: neutralPartOf(name), count: null }, noFocus);
     await expect(lastDialog<TrackSaving>().saving.save()).rejects.toThrow(ALREADY_ON_FUNDS_PAGE);
   });
 });
