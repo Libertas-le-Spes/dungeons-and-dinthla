@@ -39,6 +39,7 @@ export class ItemModal extends RecordChangeDialog {
       for (const option of this.holders) dropdown.addOption(option.text, option.label);
       dropdown.setValue(this.edit.holder).onChange((value) => {
         this.edit.holder = value;
+        this.showHowMany();
       });
       dropdown.selectEl.focus();
     });
@@ -97,7 +98,8 @@ export class ItemModal extends RecordChangeDialog {
 
   private showHowMany(): void {
     if (this.howManyRow === null) return;
-    this.howManyRow.toggle(this.edit.status !== "held");
+    const holderChanged = holderNameOf(this.edit.holder).toLowerCase() !== holderNameOf(this.item.holder).toLowerCase();
+    this.howManyRow.toggle(this.edit.status !== "held" || holderChanged);
   }
 
   private showPrice(): void {

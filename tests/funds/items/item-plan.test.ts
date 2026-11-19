@@ -12,6 +12,7 @@ import {
   holderOptionOf,
   holderOptions,
   HOLDER_OF_GONE,
+  CANT_SAY_WHOSE,
   howManyWords,
   asksHowMany,
   initialItemEdit,
@@ -76,6 +77,15 @@ class FakeNotes {
     return opened.save({ ...opened.edit, ...changes });
   }
 
+  holding(name: string, holder: string) {
+    return this.current.items.find((item) => item.name === name && item.holder === holder)!;
+  }
+
+  saveHolding(name: string, holder: string, changes: Partial<ItemEdit>, sessionPath = TWO): Promise<boolean> {
+    const opened = openedItem(this.vault, this, this.holding(name, holder), sessionPath);
+    return opened.save({ ...opened.edit, ...changes });
+  }
+
   readBefore(): ItemSource {
     return { current: this.current, sessionNotes: this.sessionNotes };
   }
@@ -83,7 +93,7 @@ class FakeNotes {
 
 describe("using, selling or losing some of an item held several times", () => {
   it("asks how many only for a held item with a count over 1, starting at 1", () => {
-    const notes = new FakeNotes({ [ONE]: "$ Arrow x20\n$ Rope x1\n$ Torch\n$ Dagger x3\n$$ Dagger :lost\n", [TWO]: "" });
+    const notes = new FakeNotes({ [ONE]: "$ Arrow x20\n$ Rope x1\n$ Torch\n$ Dagger x3\n$$ Dagger x3 :lost\n", [TWO]: "" });
     expect(["Arrow", "Rope", "Torch", "Dagger"].map((name) => asksHowMany(notes.item(name)))).toEqual([true, false, false, false]);
     expect(notes.open("Arrow").edit.howMany).toBe("1");
   });
@@ -131,7 +141,7 @@ describe("using, selling or losing some of an item held several times", () => {
   it("gives some to someone and uses others in one save, keeping the count with the new holder", async () => {
     const notes = new FakeNotes({ [ONE]: "$ Arrow x20\n", [TWO]: "" });
     await notes.save("Arrow", { holder: "[[Mira]]", status: "used", howMany: "4" });
-    expect(notes.texts.get(TWO)).toBe("$$ Arrow :changed to [[Mira]]\n$$ Arrow x4 :used\n");
+    expect(notes.texts.get(TWO)).toBe("$$ Arrow x20 :changed to [[Mira]]\n$$ Arrow x4 :used\n");
     expect([notes.item("Arrow").holder, notes.item("Arrow").held]).toEqual(["Mira", 16]);
   });
 
@@ -140,8 +150,60 @@ describe("using, selling or losing some of an item held several times", () => {
     const item = notes.item("Dagger");
     const plan = planItemSave(item, { ...notes.open("Dagger").edit, status: "used", howMany: "2" }, notes.sessionNotes, notes.current.coins, TWO);
     if ("error" in plan) throw new Error(plan.error);
-    expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, held: 4 })).toBe(CHANGES_ANOTHER_ITEM);
+    expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, expected: [{ ...plan.expected[0]!, held: 4 }] })).toBe(CHANGES_ANOTHER_ITEM);
     expect(refusalForItemPlan(notes.sessionNotes, item, plan)).toBeNull();
+  });
+});
+
+describe("an item held by more than one, from its dialog", () => {
+  const SPLIT = "$ [[Primary Monk]] Arrow x15\n$ [[Mira]] Arrow x5\n";
+
+  it("names the holder whose arrows a use takes when they aren't the first holder's", async () => {
+    const notes = new FakeNotes({ [ONE]: SPLIT, [TWO]: "" });
+    expect(await notes.saveHolding("Arrow", "Mira", { status: "used", howMany: "2" })).toBe(true);
+    expect(notes.texts.get(TWO)).toBe("$$ Arrow x2 [[Mira]] :used\n");
+    expect([notes.holding("Arrow", "Primary Monk").held, notes.holding("Arrow", "Mira").held]).toEqual([15, 3]);
+  });
+
+  it("names nobody for a use of the first holder's", async () => {
+    const notes = new FakeNotes({ [ONE]: SPLIT, [TWO]: "" });
+    await notes.saveHolding("Arrow", "Primary Monk", { status: "lost", howMany: "1" });
+    expect(notes.texts.get(TWO)).toBe("$$ Arrow :lost\n");
+    expect(notes.holding("Arrow", "Primary Monk").held).toBe(14);
+  });
+
+  it("gives some to someone else, asking how many, and keeps the rest with the giver", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ [[Primary Monk]] Arrow x20\n", [TWO]: "" });
+    expect(await notes.saveHolding("Arrow", "Primary Monk", { holder: "[[Mira]]", howMany: "5" })).toBe(true);
+    expect(notes.texts.get(TWO)).toBe("$$ Arrow x5 :changed to [[Mira]]\n");
+    expect([notes.holding("Arrow", "Primary Monk").held, notes.holding("Arrow", "Mira").held]).toEqual([15, 5]);
+  });
+
+  it("gives some from the second holder, naming them", async () => {
+    const notes = new FakeNotes({ [ONE]: SPLIT, [TWO]: "" });
+    await notes.saveHolding("Arrow", "Mira", { holder: "[[Thessaly]]", howMany: "2" });
+    expect(notes.texts.get(TWO)).toBe("$$ Arrow x2 [[Mira]] :changed to [[Thessaly]]\n");
+    expect(notes.holding("Arrow", "Thessaly").held).toBe(2);
+  });
+
+  it("joins what it gives to what the receiver already holds", async () => {
+    const notes = new FakeNotes({ [ONE]: SPLIT, [TWO]: "" });
+    await notes.saveHolding("Arrow", "Mira", { holder: "[[Primary Monk]]", howMany: "5" });
+    expect(notes.current.items.filter((item) => item.name === "Arrow").map((item) => [item.holder, item.held])).toEqual([["Primary Monk", 20]]);
+  });
+
+  it("names nobody when it hands the first holder's whole holding to someone and uses some of them", async () => {
+    const notes = new FakeNotes({ [ONE]: SPLIT, [TWO]: "" });
+    await notes.saveHolding("Arrow", "Primary Monk", { holder: "[[Thessaly]]", status: "used", howMany: "2" });
+    expect(notes.texts.get(TWO)).toBe("$$ Arrow x15 :changed to [[Thessaly]]\n$$ Arrow x2 :used\n");
+    expect([notes.holding("Arrow", "Thessaly").held, notes.holding("Arrow", "Mira").held]).toEqual([13, 5]);
+  });
+
+  it("refuses, writing nothing, when the holder it would have to name isn't linked", async () => {
+    const notes = new FakeNotes({ [ONE]: "$ [[Primary Monk]] Arrow x15\n$$ Arrow x5 :changed to Old Tom\n", [TWO]: "" });
+    const holding = notes.holding("Arrow", "Old Tom");
+    const plan = planItemSave(holding, { ...initialItemEdit(holding, notes.sessionNotes), status: "used", howMany: "1" }, notes.sessionNotes, notes.current.coins, TWO);
+    expect(plan).toEqual({ error: CANT_SAY_WHOSE });
   });
 });
 
@@ -191,7 +253,7 @@ describe("saving an item", () => {
   });
 
   it("reads a holder named by a $ line as linked again after a plain one", () => {
-    const notes = new FakeNotes({ [ONE]: "$ Rope\n$$ Rope :changed to Old Tom\n$ [[Mira]] Rope\n" });
+    const notes = new FakeNotes({ [ONE]: "$ Rope\n$$ Rope :changed to Old Tom\n$$ Rope :lost\n$ [[Mira]] Rope\n" });
     expect(initialItemEdit(notes.item("Rope"), notes.sessionNotes).holder).toBe("[[Mira]]");
   });
 

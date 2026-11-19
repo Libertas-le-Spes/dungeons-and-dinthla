@@ -9,7 +9,8 @@ import { readAmount, type AmountReading } from "../../notes/writing/coin-lines";
 import { readItemChange } from "../../notes/reading/item-change";
 import { findLinks } from "../../notes/parts/link";
 import { oneLine } from "../../notes/parts/one-line";
-import { countTextOf } from "../../notes/parts/item-count";
+import { holderKeyOf } from "../../campaign/record/holder-key";
+import { ExpectedHoldings, type HoldingState } from "./expected-holdings";
 import { holderNameOf, THE_PARTY, THE_PARTY_LABEL } from "./item-groups";
 import { itemSessionChange } from "./item-session-change";
 
@@ -32,15 +33,8 @@ export interface ItemPlan {
   added: string[];
   removal: Removal | null;
   rewrite: Rewrite | null;
-  holderName: string;
-  holderLinked: boolean;
-  status: ItemStatus;
-  held: number | null;
+  expected: readonly HoldingState[];
   purseCopper: number;
-}
-
-interface Taken {
-  readonly count: number | null;
 }
 
 const WHOLE_COUNT = /^[1-9]\d*$/;
@@ -52,6 +46,7 @@ export function howManyWords(held: number): string {
 export const CHANGES_ANOTHER_ITEM =
   "That change wouldn't be read as asked, or would change another item or the purse beyond the sale, so nothing was written.";
 export const GONE_LINE_SAYS_MORE = "The line that took it says more than the dialog writes, so change it in its note.";
+export const CANT_SAY_WHOSE = "This item is held by more than one, and a line can name only a linked holder, so change it in its note.";
 export const HOLDER_OF_GONE = "Set it to Held to give it to someone else: a new holder would bring it back.";
 
 function isGoneStatus(kind: string): kind is "sold" | "used" | "lost" {
@@ -64,21 +59,40 @@ export function statusOf(item: ItemRecord): ItemStatus {
 }
 
 export function asksHowMany(item: ItemRecord): boolean {
-  if (statusOf(item) !== "held" || item.held === null) return false;
+  if (statusOf(item) !== "held") return false;
   return item.held > 1;
 }
 
-function takenOf(item: ItemRecord, edit: ItemEdit): Taken | { error: string } {
-  if (!asksHowMany(item) || item.held === null) return { count: null };
+function countAsked(item: ItemRecord, edit: ItemEdit): number | { error: string } {
+  if (!asksHowMany(item)) return item.held;
   const typed = edit.howMany.trim();
   const count = Number(typed);
   if (!WHOLE_COUNT.test(typed) || count > item.held) return { error: howManyWords(item.held) };
-  return { count };
+  return count;
 }
 
-function leftAfter(item: ItemRecord, taken: Taken): number | null {
-  if (item.held === null || taken.count === null) return null;
-  return item.held - taken.count;
+function countWords(count: number): string {
+  if (count < 2) return "";
+  return ` x${count}`;
+}
+
+function whoseWords(expected: ExpectedHoldings, holderText: string): string | { error: string } {
+  if (!expected.needsName(holderText)) return "";
+  const state = expected.stateOf(holderText);
+  if (state === null || !state.holderLinked) return { error: CANT_SAY_WHOSE };
+  return ` ${state.holderText}`;
+}
+
+function stateOf(item: ItemRecord): HoldingState {
+  return { holderText: holderTextOf(item), holderLinked: item.holderLinked, status: statusOf(item), held: item.held };
+}
+
+function expectedOf(item: ItemRecord, sessions: SessionNote[]): ExpectedHoldings {
+  const states: HoldingState[] = [];
+  for (const candidate of buildCampaign(sessions).items) {
+    if (candidate.name === item.name) states.push(stateOf(candidate));
+  }
+  return new ExpectedHoldings(states);
 }
 
 export function holderTextOf(item: ItemRecord): string {
@@ -189,10 +203,7 @@ function planPriceChange(
     added: [],
     removal: null,
     rewrite: { old: removalAsRead(sessions, sold.source), line: withPrice(read, price.amount) },
-    holderName: holderNameOf(item.holder),
-    holderLinked: item.holderLinked,
-    status: "sold",
-    held: item.held,
+    expected: expectedOf(item, sessions).all,
     purseCopper: price.copper - priceCopperOf(item, coins),
   };
 }
@@ -220,8 +231,8 @@ export function planItemSave(
     const priceChanged = planPriceChange(item, sold, edit, sessions, coins, targetPath);
     if (priceChanged !== null) return priceChanged;
   }
-  let holderName = holderNameOf(item.holder);
-  if (holderChanged) holderName = holderNameOf(edit.holder);
+  const expected = expectedOf(item, sessions);
+  const holderText = holderTextOf(item);
   const added: string[] = [];
   let removal: Removal | null = null;
   let purseCopper = 0;
@@ -230,25 +241,32 @@ export function planItemSave(
     if (!writtenAsTheDialogWould(lineAsRead(sessions, gone.source))) return { error: GONE_LINE_SAYS_MORE };
     removal = removalAsRead(sessions, gone.source);
     purseCopper -= priceCopperOf(item, coins);
+    expected.revive(holderText);
   }
   let keepsItsWritten = false;
   if (removal !== null && edit.status === "held") keepsItsWritten = writtenAfterRemoval(sessions, removal, item) !== item.written;
-  let holderLinked = item.holderLinked;
+  let takenFrom = holderText;
   if (holderChanged || keepsItsWritten) {
-    added.push(`$$ ${item.written} :changed to ${edit.holder}`);
-    holderLinked = findLinks(edit.holder).length > 0;
-  }
-  let status = edit.status;
-  let held = item.held;
-  if (statusChanged && edit.status !== "held") {
-    const taken = takenOf(item, edit);
-    if ("error" in taken) return taken;
-    const left = leftAfter(item, taken);
-    if (left !== null && left > 0) {
-      status = "held";
-      held = left;
+    let given = item.held;
+    if (!statusChanged) {
+      const asked = countAsked(item, edit);
+      if (typeof asked !== "number") return asked;
+      given = asked;
     }
-    let line = `$$ ${item.written}${countTextOf(taken.count)} :${edit.status}`;
+    const whose = whoseWords(expected, holderText);
+    if (typeof whose !== "string") return whose;
+    let moved = "";
+    if (holderChanged) moved = countWords(given);
+    added.push(`$$ ${item.written}${moved}${whose} :changed to ${edit.holder}`);
+    if (holderChanged) expected.give(holderText, given, { holderText: edit.holder, holderLinked: findLinks(edit.holder).length > 0 });
+    if (holderChanged) takenFrom = edit.holder;
+  }
+  if (statusChanged && edit.status !== "held") {
+    const taken = countAsked(item, edit);
+    if (typeof taken !== "number") return taken;
+    const whose = whoseWords(expected, takenFrom);
+    if (typeof whose !== "string") return whose;
+    let line = `$$ ${item.written}${countWords(taken)}${whose} :${edit.status}`;
     const price = oneLine(edit.price);
     if (edit.status === "sold" && price !== "") {
       const reading = readAmount("in", price);
@@ -257,37 +275,32 @@ export function planItemSave(
       purseCopper += reading.copper;
     }
     added.push(line);
+    expected.take(takenFrom, taken, edit.status);
   }
-  return { targetPath, added, removal, rewrite: null, holderName, holderLinked, status, held, purseCopper };
+  return { targetPath, added, removal, rewrite: null, expected: expected.all, purseCopper };
 }
 
-interface ItemState {
-  readonly holderName: string;
-  readonly holderLinked: boolean;
-  readonly status: ItemStatus;
-  readonly held: number | null;
-}
-
-function heldWhileHeld(state: ItemState): number | null {
+function heldWhileHeld(state: HoldingState): number | null {
   if (state.status !== "held") return null;
   return state.held;
 }
 
-function signature(item: ItemRecord, state: ItemState): string {
-  return JSON.stringify([item.name.toLowerCase(), item.written, state.holderName.toLowerCase(), state.holderLinked, state.status, heldWhileHeld(state)]);
+function signature(item: ItemRecord, state: HoldingState): string {
+  return JSON.stringify([item.name.toLowerCase(), item.written, holderKeyOf(state.holderText), state.holderLinked, state.status, heldWhileHeld(state)]);
 }
 
 function signatureOf(item: ItemRecord): string {
-  return signature(item, { holderName: holderNameOf(item.holder), holderLinked: item.holderLinked, status: statusOf(item), held: item.held });
+  return signature(item, stateOf(item));
 }
 
 export function refusalForItemPlan(sessions: SessionNote[], item: ItemRecord, plan: ItemPlan): string | null {
   const before = buildCampaign(sessions);
   const after = buildCampaign(applySessionChange(sessions, itemSessionChange(plan)).sessions);
-  const wanted = before.items.map((candidate) => {
-    if (candidate.name === item.name) return signature(item, plan);
-    return signatureOf(candidate);
-  });
+  const wanted: string[] = [];
+  for (const candidate of before.items) {
+    if (candidate.name !== item.name) wanted.push(signatureOf(candidate));
+  }
+  for (const state of plan.expected) wanted.push(signature(item, state));
   const found = after.items.map(signatureOf);
   const itemsMatch = JSON.stringify(wanted.sort()) === JSON.stringify(found.sort());
   const purseMatches = after.purseCopper - before.purseCopper === plan.purseCopper;

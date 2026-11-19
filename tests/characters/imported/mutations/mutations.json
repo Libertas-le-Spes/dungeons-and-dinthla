@@ -317,8 +317,8 @@
  {
   "id": "tracking: status handed on",
   "file": "src/funds/tracking/funds-tracking.ts",
-  "find": "{ name, status }",
-  "replace": "{ name, status: null }",
+  "find": "{ name, status, source: null }",
+  "replace": "{ name, status: null, source: null }",
   "group": "tracking"
  },
  {
@@ -728,20 +728,6 @@
   "group": "item counts"
  },
  {
-  "id": "count: a change reads its count",
-  "file": "src/notes/reading/item-change.ts",
-  "find": "item: counted.item, count: counted.count, kind };",
-  "replace": "item: counted.item, count: null, kind };",
-  "group": "item counts"
- },
- {
-  "id": "count: a change's name leaves the count out",
-  "file": "src/notes/reading/item-change.ts",
-  "find": "item: counted.item, count: counted.count, kind };",
-  "replace": "item: withoutBlockId(body.slice(0, last.index)).trim(), count: counted.count, kind };",
-  "group": "item counts"
- },
- {
   "id": "count: a $ line reads its count",
   "file": "src/notes/reading/ledger.ts",
   "find": "item: counted.item, count: counted.count, holder, links };",
@@ -749,80 +735,10 @@
   "group": "item counts"
  },
  {
-  "id": "held: the first line sets it",
-  "file": "src/campaign/record/item-book.ts",
-  "find": "  if (isFresh(record)) return count;\n",
-  "replace": "",
-  "group": "item counts"
- },
- {
-  "id": "held: more lines add to it",
-  "file": "src/campaign/record/item-book.ts",
-  "find": "  return record.held + count;",
-  "replace": "  return record.held;",
-  "group": "item counts"
- },
- {
-  "id": "held: a gone item starts again",
-  "file": "src/campaign/record/item-book.ts",
-  "find": "  return record.history.length === 0 || record.gone !== null;",
-  "replace": "  return record.history.length === 0;",
-  "group": "item counts"
- },
- {
-  "id": "held: a use takes some",
-  "file": "src/campaign/record/item-book.ts",
-  "find": "    if (partly && record.held !== null && change.count !== null) record.held -= change.count;\n",
-  "replace": "",
-  "group": "item counts"
- },
- {
-  "id": "held: some taken keeps it held",
-  "file": "src/campaign/record/item-book.ts",
-  "find": "    if (change.kind !== \"changed\" && !partly) record.gone = event;",
-  "replace": "    if (change.kind !== \"changed\") record.gone = event;",
-  "group": "item counts"
- },
- {
-  "id": "held: taking all makes it gone",
-  "file": "src/campaign/record/item-book.ts",
-  "find": "  return change.count < record.held;",
-  "replace": "  return change.count <= record.held;",
-  "group": "item counts"
- },
- {
-  "id": "held: a change of hands takes none",
-  "file": "src/campaign/record/item-book.ts",
-  "find": "  if (change.kind === \"changed\" || isFresh(record)) return false;",
-  "replace": "  if (isFresh(record)) return false;",
-  "group": "item counts"
- },
- {
-  "id": "held: a first change of hands sets it",
-  "file": "src/campaign/record/item-book.ts",
-  "find": "    if (change.kind === \"changed\" && isFresh(record)) record.held = change.count;\n",
-  "replace": "",
-  "group": "item counts"
- },
- {
-  "id": "held: the event keeps its count",
-  "file": "src/campaign/record/item-book.ts",
-  "find": "const event: ItemEvent = { kind: change.kind, count: change.count,",
-  "replace": "const event: ItemEvent = { kind: change.kind, count: null,",
-  "group": "item counts"
- },
- {
   "id": "how many: asked only above 1",
   "file": "src/funds/items/item-plan.ts",
   "find": "  return item.held > 1;",
   "replace": "  return item.held > 0;",
-  "group": "item counts"
- },
- {
-  "id": "how many: asked only while held",
-  "file": "src/funds/items/item-plan.ts",
-  "find": "  if (statusOf(item) !== \"held\" || item.held === null) return false;",
-  "replace": "  if (item.held === null) return false;",
   "group": "item counts"
  },
  {
@@ -851,20 +767,6 @@
   "file": "src/funds/items/item-plan.ts",
   "find": "howMany: \"1\" };",
   "replace": "howMany: \"\" };",
-  "group": "item counts"
- },
- {
-  "id": "how many: the count is written",
-  "file": "src/funds/items/item-plan.ts",
-  "find": "${countTextOf(taken.count)} :${edit.status}`;",
-  "replace": " :${edit.status}`;",
-  "group": "item counts"
- },
- {
-  "id": "how many: some left keeps it held",
-  "file": "src/funds/items/item-plan.ts",
-  "find": "      status = \"held\";\n",
-  "replace": "",
   "group": "item counts"
  },
  {
@@ -903,10 +805,318 @@
   "group": "item counts"
  },
  {
+  "id": "change: reads its count",
+  "file": "src/notes/reading/item-change.ts",
+  "find": "item: held.item, count: held.count, named:",
+  "replace": "item: held.item, count: null, named:",
+  "group": "holdings"
+ },
+ {
+  "id": "change: reads a holder named in the item",
+  "file": "src/notes/reading/item-change.ts",
+  "find": "count: held.count, named: held.named,",
+  "replace": "count: held.count, named: null,",
+  "group": "holdings"
+ },
+ {
+  "id": "change: reads holders named after the word",
+  "file": "src/notes/reading/item-change.ts",
+  "find": "  if (kind !== \"changed\") change.namedAfter = findLinks(rest);\n",
+  "replace": "",
+  "group": "holdings"
+ },
+ {
+  "id": "named: a link after the count",
+  "file": "src/notes/parts/item-holder.ts",
+  "find": "    return { item: written, count: counted.count, named: { item: counted.item, holder: linkLast.holder } };",
+  "replace": "    return { item: written, count: null, named: null };",
+  "group": "holdings"
+ },
+ {
+  "id": "named: a link before the count",
+  "file": "src/notes/parts/item-holder.ts",
+  "find": "  return { item: counted.item, count: counted.count, named: { item: countLast.rest, holder: countLast.holder } };",
+  "replace": "  return { item: counted.item, count: counted.count, named: null };",
+  "group": "holdings"
+ },
+ {
+  "id": "named: only a link at the end",
+  "file": "src/notes/parts/item-holder.ts",
+  "find": "const TRAILING_LINK = /^(.*\\S)\\s+(\\[\\[[^[\\]]+\\]\\])$/;",
+  "replace": "const TRAILING_LINK = /^(.*\\S)\\s+(\\[\\[[^[\\]]+\\]\\])/;",
+  "group": "holdings"
+ },
+ {
+  "id": "named: only for an item already known",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "if (named !== null && this.byKey.has(keyOf(named.item))) return",
+  "replace": "if (named !== null) return",
+  "group": "holdings"
+ },
+ {
+  "id": "no count: means one",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "const NO_COUNT_IS_ONE = 1;",
+  "replace": "const NO_COUNT_IS_ONE = 0;",
+  "group": "holdings"
+ },
+ {
+  "id": "gaining: adds to what is held",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "      record.held += gained;\n      return record;",
+  "replace": "      record.held = gained;\n      return record;",
+  "group": "holdings"
+ },
+ {
+  "id": "gaining: a gone item comes back",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "    if (record === null) record = this.goneToBringBack(holdings);\n",
+  "replace": "",
+  "group": "holdings"
+ },
+ {
+  "id": "gaining: comes back only when all are gone",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "    if (holdings.firstHeld() !== null) return null;\n",
+  "replace": "",
+  "group": "holdings"
+ },
+ {
+  "id": "gaining: a brought-back item takes the new holder",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "    record.holder = holder;\n    record.holderLinked = holder !== \"\";\n    record.held = gained;",
+  "replace": "    record.holderLinked = holder !== \"\";\n    record.held = gained;",
+  "group": "holdings"
+ },
+ {
+  "id": "taking: some taken keeps it held",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "    if (from !== null && event.count < from.held) {",
+  "replace": "    if (from !== null && event.count < 0) {",
+  "group": "holdings"
+ },
+ {
+  "id": "taking: takes the count",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "      from.held -= event.count;",
+  "replace": "      from.held -= 1;",
+  "group": "holdings"
+ },
+ {
+  "id": "taking: from the named holder",
+  "file": "src/campaign/record/item-holdings.ts",
+  "find": "      if (record !== null && record.gone === null) return record;\n    }\n    return this.firstHeld();",
+  "replace": "    }\n    return this.firstHeld();",
+  "group": "holdings"
+ },
+ {
+  "id": "taking: the first who still holds some",
+  "file": "src/campaign/record/item-holdings.ts",
+  "find": "      if (record.gone === null) return record;\n    }\n    return null;\n  }\n\n  first()",
+  "replace": "      return record;\n    }\n    return null;\n  }\n\n  first()",
+  "group": "holdings"
+ },
+ {
+  "id": "moving: moves the count",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "    const moved = Math.min(countOf(change.count), from.held);",
+  "replace": "    const moved = from.held;",
+  "group": "holdings"
+ },
+ {
+  "id": "moving: never more than held",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "    const moved = Math.min(countOf(change.count), from.held);",
+  "replace": "    const moved = countOf(change.count);",
+  "group": "holdings"
+ },
+ {
+  "id": "moving: hands over a whole holding",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "    if (existing === null && moved === from.held) {",
+  "replace": "    if (existing === null && moved === -1) {",
+  "group": "holdings"
+ },
+ {
+  "id": "moving: a holding moved away goes",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "    if (from.held === 0) holdings.remove(from);\n",
+  "replace": "",
+  "group": "holdings"
+ },
+ {
+  "id": "moving: joins the receiver's",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "    if (record.gone === null) {\n      record.held += gained;",
+  "replace": "    if (record.gone === null) {\n      record.held = gained;",
+  "group": "holdings"
+ },
+ {
+  "id": "moving: to the same holder moves nothing",
+  "file": "src/campaign/record/item-book.ts",
+  "find": "    if (holderKeyOf(from.holder) === holderKeyOf(target)) return;\n",
+  "replace": "",
+  "group": "holdings"
+ },
+ {
+  "id": "history: shared by holdings",
+  "file": "src/campaign/record/item-holdings.ts",
+  "find": "history: this.history, gone: null, held };",
+  "replace": "history: [], gone: null, held };",
+  "group": "holdings"
+ },
+ {
+  "id": "holder key: the party",
+  "file": "src/campaign/record/holder-key.ts",
+  "find": "  if (name === THE_PARTY) return \"\";\n",
+  "replace": "",
+  "group": "holdings"
+ },
+ {
+  "id": "holder key: any capitals",
+  "file": "src/campaign/record/holder-key.ts",
+  "find": "  const name = unlink(holder).trim().toLowerCase();",
+  "replace": "  const name = unlink(holder).trim();",
+  "group": "holdings"
+ },
+ {
+  "id": "dialog: names a holder that isn't first",
+  "file": "src/funds/items/expected-holdings.ts",
+  "find": "    return !sameHolder(first, holderText);",
+  "replace": "    return false;",
+  "group": "holdings"
+ },
+ {
+  "id": "dialog: refuses an unlinked holder to name",
+  "file": "src/funds/items/item-plan.ts",
+  "find": "  if (state === null || !state.holderLinked) return { error: CANT_SAY_WHOSE };",
+  "replace": "  if (state === null) return { error: CANT_SAY_WHOSE };",
+  "group": "holdings"
+ },
+ {
+  "id": "dialog: writes the holder's name",
+  "file": "src/funds/items/item-plan.ts",
+  "find": "  return ` ${state.holderText}`;",
+  "replace": "  return \"\";",
+  "group": "holdings"
+ },
+ {
+  "id": "dialog: writes the count",
+  "file": "src/funds/items/item-plan.ts",
+  "find": "  if (count < 2) return \"\";",
+  "replace": "  if (count < 99999) return \"\";",
+  "group": "holdings"
+ },
+ {
+  "id": "dialog: gives how many",
+  "file": "src/funds/items/item-plan.ts",
+  "find": "      given = asked;\n",
+  "replace": "",
+  "group": "holdings"
+ },
+ {
+  "id": "dialog: expects what it gives",
+  "file": "src/funds/items/item-plan.ts",
+  "find": "    if (holderChanged) expected.give(holderText, given, { holderText: edit.holder, holderLinked: findLinks(edit.holder).length > 0 });\n",
+  "replace": "",
+  "group": "holdings"
+ },
+ {
+  "id": "dialog: takes from the new holder",
+  "file": "src/funds/items/item-plan.ts",
+  "find": "    if (holderChanged) takenFrom = edit.holder;\n",
+  "replace": "",
+  "group": "holdings"
+ },
+ {
+  "id": "dialog: expects what it takes",
+  "file": "src/funds/items/item-plan.ts",
+  "find": "    expected.take(takenFrom, taken, edit.status);\n",
+  "replace": "",
+  "group": "holdings"
+ },
+ {
+  "id": "dialog: expects the gone line removed",
+  "file": "src/funds/items/item-plan.ts",
+  "find": "    expected.revive(holderText);\n",
+  "replace": "",
+  "group": "holdings"
+ },
+ {
+  "id": "dialog: asks only above 1",
+  "file": "src/funds/items/item-plan.ts",
+  "find": "  return item.held > 1;",
+  "replace": "  return item.held > 0;",
+  "group": "holdings"
+ },
+ {
+  "id": "dialog: asks only while held",
+  "file": "src/funds/items/item-plan.ts",
+  "find": "  if (statusOf(item) !== \"held\") return false;\n  return item.held > 1;",
+  "replace": "  return item.held > 1;",
+  "group": "holdings"
+ },
+ {
+  "id": "expected: some taken stays held",
+  "file": "src/funds/items/expected-holdings.ts",
+  "find": "    if (count < state.held) state.held -= count;",
+  "replace": "    if (count < 0) state.held -= count;",
+  "group": "holdings"
+ },
+ {
+  "id": "expected: a whole holding handed over",
+  "file": "src/funds/items/expected-holdings.ts",
+  "find": "    if (existing === null && count >= from.held) {",
+  "replace": "    if (existing === null && count < 0) {",
+  "group": "holdings"
+ },
+ {
+  "id": "expected: joins the receiver's",
+  "file": "src/funds/items/expected-holdings.ts",
+  "find": "    else existing.held += count;",
+  "replace": "    else existing.held = count;",
+  "group": "holdings"
+ },
+ {
+  "id": "open: the holding a row belongs to",
+  "file": "src/funds/items/item-named.ts",
+  "find": "    if (item.name === name && holdsLine(item, source)) return item;",
+  "replace": "    if (item.name === name) return item;",
+  "group": "holdings"
+ },
+ {
+  "id": "open: a gone holding by its gone line",
+  "file": "src/funds/items/item-named.ts",
+  "find": "  return item.gone !== null && isAt(item.gone.source, source);",
+  "replace": "  return false;",
+  "group": "holdings"
+ },
+ {
+  "id": "as opened: the same holding",
+  "file": "src/funds/items/reads-as-opened.ts",
+  "find": "  return candidate.source.path === item.source.path && candidate.source.line === item.source.line;",
+  "replace": "  return true;",
+  "group": "holdings"
+ },
+ {
+  "id": "notes: one per item",
+  "file": "src/funds/item-notes/item-note-plan.ts",
+  "find": "  for (const item of onePerItem(campaign.items)) planner.consider(item);",
+  "replace": "  for (const item of campaign.items) planner.consider(item);",
+  "group": "holdings"
+ },
+ {
+  "id": "dashboard: one per item",
+  "file": "src/dashboard/latest-session.ts",
+  "find": "onePerItem(campaign.items).flatMap(",
+  "replace": "campaign.items.flatMap(",
+  "group": "holdings"
+ },
+ {
   "id": "funds row: how many are left",
   "file": "src/funds/page/funds-page.ts",
-  "find": "    if (goneWord === null && item.held !== null) meta.appendText(`× ${item.held} · `);\n",
+  "find": "    if (goneWord === null && item.held > 1) meta.appendText(`× ${item.held} · `);\n",
   "replace": "",
-  "group": "item counts"
+  "group": "holdings"
  }
 ]
