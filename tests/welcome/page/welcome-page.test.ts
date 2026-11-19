@@ -4,7 +4,7 @@ import type { SessionNote } from "../../../src/campaign/record/campaign";
 import type { CampaignListener } from "../../../src/campaign/reading/campaign-store";
 import type { WelcomeActions, WelcomeAgreement } from "../../../src/welcome/endings/welcome-ending";
 import { CampaignAgreement } from "../../../src/imports/agreement/campaign-agreement";
-import { AGREEMENT_KEY, DeviceAgreement } from "../../../src/imports/agreement/device-agreement";
+import { AGREEMENT_KEY, KeptAgreement } from "../../../src/imports/agreement/kept-agreement";
 import { MadeUpDevice } from "../../imports/agreement/made-up-device";
 import { textsIn } from "../../imports/agreement/shown-parts";
 import { AnsweredAgreement } from "./answered-agreement";
@@ -220,25 +220,25 @@ describe("WelcomePage", () => {
   });
 
   it("asks for the agreement once the campaign is made, on a device that hasn't answered it", () => {
-    const { root, change } = welcomeWith(null, [], "D&D", new CampaignAgreement(new DeviceAgreement(new MadeUpDevice().storage)));
+    const { root, change } = welcomeWith(null, [], "D&D", new CampaignAgreement(new KeptAgreement(new MadeUpDevice().places)));
     change(CAMPAIGN, []);
     expect(textsIn(root, ".dd-welcome-step")).toEqual(["Bringing your character in"]);
     expect(buttonTexts(root)).toEqual(["Agree", "Not yet"]);
   });
 
-  it("keeps Agree on this device and moves on to the first session", () => {
+  it("keeps Agree in the vault and moves on to the first session", () => {
     const device = new MadeUpDevice();
-    const { root } = welcomeWith(CAMPAIGN, [], "D&D", new CampaignAgreement(new DeviceAgreement(device.storage)));
+    const { root } = welcomeWith(CAMPAIGN, [], "D&D", new CampaignAgreement(new KeptAgreement(device.places)));
     buttonNamed(root, "Agree").click();
-    expect(device.saveLocalStorage).toHaveBeenCalledExactlyOnceWith(AGREEMENT_KEY, true);
+    expect(device.keepAgreed).toHaveBeenCalledOnce();
     expect(buttonTexts(root)).toEqual(["Start my first session"]);
   });
 
   it("keeps nothing for Not yet and moves on to the first session", () => {
     const device = new MadeUpDevice();
-    const { root } = welcomeWith(CAMPAIGN, [], "D&D", new CampaignAgreement(new DeviceAgreement(device.storage)));
+    const { root } = welcomeWith(CAMPAIGN, [], "D&D", new CampaignAgreement(new KeptAgreement(device.places)));
     buttonNamed(root, "Not yet").click();
-    expect(device.saveLocalStorage).not.toHaveBeenCalled();
+    expect(device.keepAgreed).not.toHaveBeenCalled();
     expect(buttonTexts(root)).toEqual(["Start my first session"]);
   });
 });

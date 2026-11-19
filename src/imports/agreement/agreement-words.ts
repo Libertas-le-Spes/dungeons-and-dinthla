@@ -1,12 +1,10 @@
-export const AGREEMENT_TITLE = "Fetch your character from D&D Beyond?";
+export const AGREEMENT_TITLE = "Bring in your character from D&D Beyond?";
 
 export const AGREEMENT_PARAGRAPHS: readonly string[] = [
-  "To bring your character in, this plugin sends one message to one address, character-service.dndbeyond.com. The message holds your character's number and nothing else. This plugin adds no login, cookies or other headers of its own, and it never touches your D&D Beyond account. Obsidian sends the message and may add its own details and follow redirects.",
-  "Your character has to be set to Public on D&D Beyond. A public character's backstory and notes can be read by anyone who has the link, not only by this plugin. The plugin throws them away before it reads anything and never saves them in your vault. You are responsible for keeping the link or number of your public character safe, because anyone who has it can read that character.",
-  "You are asked this once on this device. After you continue, the button fetches only when you press it. If you would rather send nothing, bring your character in with its PDF instead.",
+  "The plugin asks D&D Beyond for your character by its number, and sends nothing else. The character must be set to Public there, so anyone with its link can see it. Its backstory and notes are never saved.",
 ];
 
-export const CONTINUE_WORDS = "Continue";
-export const USE_A_PDF_WORDS = "Use a PDF instead";
+export const CANCEL_WORDS = "Cancel";
+export const IMPORT_WORDS = "Import";
 export const AGREE_WORDS = "Agree";
 export const NOT_YET_WORDS = "Not yet";

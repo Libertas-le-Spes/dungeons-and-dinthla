@@ -3,7 +3,7 @@ import { MOVED_KEY, OldDrafts } from "../../../src/settings/drafts/old-drafts";
 
 const THREE = "Pale Moon/Sessions/Session 3.md";
 const FOUR = "Pale Moon/Sessions/Session 4.md";
-const SETTINGS = { campaignsFolder: null, campaignFolder: "Pale Moon", welcomeSeen: true, lastVersionSeen: "1.0.0", notesMadeFor: [] };
+const SETTINGS = { campaignsFolder: null, campaignFolder: "Pale Moon", welcomeSeen: true, lastVersionSeen: "1.0.0", notesMadeFor: [], beyondAgreed: false };
 
 function storageWith(moved: unknown) {
   return { load: vi.fn(() => moved), save: vi.fn() };

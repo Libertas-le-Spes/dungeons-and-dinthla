@@ -20,7 +20,8 @@ class AnswerPress {
 
 function addAnswer(row: HTMLElement, button: AnswerButton, to: AnswerChosen): void {
   const press = new AnswerPress(button, to);
-  new ButtonComponent(row).setButtonText(button.words).onClick(press.press.bind(press));
+  const drawn = new ButtonComponent(row).setButtonText(button.words).onClick(press.press.bind(press));
+  if (button.highlighted) drawn.setCta();
 }
 
 export function drawAgreement(parentEl: HTMLElement, buttons: readonly AnswerButton[], to: AnswerChosen): void {
