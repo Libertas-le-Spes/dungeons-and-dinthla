@@ -1,22 +1,22 @@
 [
  {
   "id": "stored answer: only true counts",
-  "file": "src/imports/agreement/device-agreement.ts",
-  "find": "return this.storage.load(AGREEMENT_KEY) === true;",
-  "replace": "return this.storage.load(AGREEMENT_KEY) == true;",
+  "file": "src/imports/agreement/kept-agreement.ts",
+  "find": "return this.places.device.load(AGREEMENT_KEY) === true;",
+  "replace": "return this.places.device.load(AGREEMENT_KEY) == true;",
   "group": "stored answer"
  },
  {
-  "id": "stored answer: true is kept",
-  "file": "src/imports/agreement/device-agreement.ts",
-  "find": "this.storage.save(AGREEMENT_KEY, true);",
-  "replace": "this.storage.save(AGREEMENT_KEY, \"yes\");",
+  "id": "stored answer: giving keeps it in the settings",
+  "file": "src/imports/agreement/kept-agreement.ts",
+  "find": "    return this.places.settings.keepAgreed().catch(",
+  "replace": "    return Promise.resolve().catch(",
   "group": "stored answer"
  },
  {
   "id": "stored answer: Agree keeps it",
   "file": "src/imports/agreement/agreement-answers.ts",
-  "find": "device.give();",
+  "find": "void kept.give();",
   "replace": "",
   "group": "stored answer"
  },
@@ -24,34 +24,34 @@
   "id": "stored answer: Not yet keeps nothing",
   "file": "src/imports/agreement/agreement-answers.ts",
   "find": "keepOn(): void {}",
-  "replace": "keepOn(device: DeviceAgreement): void {\n    device.give();\n  }",
+  "replace": "keepOn(kept: KeptAgreement): void {\n    void kept.give();\n  }",
   "group": "stored answer"
  },
  {
   "id": "stored answer: the first press keeps the answer",
   "file": "src/imports/agreement/first-press.ts",
-  "find": "answer.keepOn(this.device);",
+  "find": "answer.keepOn(this.kept);",
   "replace": "",
   "group": "stored answer"
  },
  {
   "id": "stored answer: the step keeps the answer",
   "file": "src/imports/agreement/campaign-agreement.ts",
-  "find": "answer.keepOn(this.device);",
+  "find": "answer.keepOn(this.kept);",
   "replace": "",
   "group": "stored answer"
  },
  {
   "id": "ask once: the first press asks only without an agreement",
   "file": "src/imports/agreement/first-press.ts",
-  "find": "if (this.device.given()) return AGREED;",
+  "find": "if (this.kept.given()) return AGREED;",
   "replace": "",
   "group": "ask once"
  },
  {
   "id": "ask once: the step isn't wanted once agreed",
   "file": "src/imports/agreement/campaign-agreement.ts",
-  "find": "return this.device.given() === false;",
+  "find": "return this.kept.given() === false;",
   "replace": "return true;",
   "group": "ask once"
  },
@@ -72,29 +72,29 @@
  {
   "id": "buttons: Agree agrees",
   "file": "src/imports/agreement/answer-buttons.ts",
-  "find": "{ words: AGREE_WORDS, answer: AGREED }",
-  "replace": "{ words: AGREE_WORDS, answer: NOT_YET }",
+  "find": "{ words: AGREE_WORDS, answer: AGREED, highlighted: false }",
+  "replace": "{ words: AGREE_WORDS, answer: NOT_YET, highlighted: false }",
   "group": "buttons"
  },
  {
   "id": "buttons: Not yet doesn't agree",
   "file": "src/imports/agreement/answer-buttons.ts",
-  "find": "{ words: NOT_YET_WORDS, answer: NOT_YET }",
-  "replace": "{ words: NOT_YET_WORDS, answer: AGREED }",
+  "find": "{ words: NOT_YET_WORDS, answer: NOT_YET, highlighted: false }",
+  "replace": "{ words: NOT_YET_WORDS, answer: AGREED, highlighted: false }",
   "group": "buttons"
  },
  {
-  "id": "buttons: Continue agrees",
+  "id": "buttons: Import agrees",
   "file": "src/imports/agreement/answer-buttons.ts",
-  "find": "{ words: CONTINUE_WORDS, answer: AGREED }",
-  "replace": "{ words: CONTINUE_WORDS, answer: NOT_YET }",
+  "find": "{ words: IMPORT_WORDS, answer: AGREED, highlighted: true }",
+  "replace": "{ words: IMPORT_WORDS, answer: NOT_YET, highlighted: true }",
   "group": "buttons"
  },
  {
-  "id": "buttons: Use a PDF instead doesn't agree",
+  "id": "buttons: Cancel doesn't agree",
   "file": "src/imports/agreement/answer-buttons.ts",
-  "find": "{ words: USE_A_PDF_WORDS, answer: NOT_YET }",
-  "replace": "{ words: USE_A_PDF_WORDS, answer: AGREED }",
+  "find": "{ words: CANCEL_WORDS, answer: NOT_YET, highlighted: false }",
+  "replace": "{ words: CANCEL_WORDS, answer: AGREED, highlighted: false }",
   "group": "buttons"
  },
  {
@@ -140,17 +140,94 @@
   "group": "welcome"
  },
  {
-  "id": "device-local: kept in the plugin's settings instead",
-  "file": "src/main.ts",
-  "find": "new DeviceAgreement(this.localStorage)",
-  "replace": "new DeviceAgreement({ load: (key: string) => Object.getOwnPropertyDescriptor(this.settingsSaver.settings, key)?.value, save: (key: string, value: unknown) => void this.settingsSaver.save({ [key]: value }) })",
-  "group": "device-local"
+  "id": "buttons: Import is highlighted",
+  "file": "src/imports/agreement/answer-buttons.ts",
+  "find": "answer: AGREED, highlighted: true }",
+  "replace": "answer: AGREED, highlighted: false }",
+  "group": "buttons"
  },
  {
-  "id": "device-local: the welcome step keeps its answer in the plugin's settings instead",
+  "id": "buttons: Agree isn't highlighted",
+  "file": "src/imports/agreement/answer-buttons.ts",
+  "find": "{ words: AGREE_WORDS, answer: AGREED, highlighted: false }",
+  "replace": "{ words: AGREE_WORDS, answer: AGREED, highlighted: true }",
+  "group": "buttons"
+ },
+ {
+  "id": "buttons: Cancel comes first",
+  "file": "src/imports/agreement/answer-buttons.ts",
+  "find": "  { words: CANCEL_WORDS, answer: NOT_YET, highlighted: false },\n  { words: IMPORT_WORDS, answer: AGREED, highlighted: true },",
+  "replace": "  { words: IMPORT_WORDS, answer: AGREED, highlighted: true },\n  { words: CANCEL_WORDS, answer: NOT_YET, highlighted: false },",
+  "group": "buttons"
+ },
+ {
+  "id": "buttons: the highlight is drawn",
+  "file": "src/imports/agreement/agreement-text.ts",
+  "find": "  if (button.highlighted) drawn.setCta();\n",
+  "replace": "",
+  "group": "buttons"
+ },
+ {
+  "id": "in the vault: the settings' answer counts",
+  "file": "src/imports/agreement/kept-agreement.ts",
+  "find": "    if (this.places.settings.agreed()) return true;\n",
+  "replace": "",
+  "group": "in the vault"
+ },
+ {
+  "id": "in the vault: an old device answer still counts",
+  "file": "src/imports/agreement/kept-agreement.ts",
+  "find": "    return this.places.device.load(AGREEMENT_KEY) === true;",
+  "replace": "    return false;",
+  "group": "in the vault"
+ },
+ {
+  "id": "in the vault: given here stays given",
+  "file": "src/imports/agreement/kept-agreement.ts",
+  "find": "    this.givenHere = true;\n",
+  "replace": "",
+  "group": "in the vault"
+ },
+ {
+  "id": "in the vault: a failure to keep it is told",
+  "file": "src/imports/agreement/kept-agreement.ts",
+  "find": ".catch(this.places.notKept.bind(this.places));",
+  "replace": ".catch(() => undefined);",
+  "group": "in the vault"
+ },
+ {
+  "id": "in the vault: main keeps it in data.json",
   "file": "src/main.ts",
-  "find": "agreement: new CampaignAgreement(this.deviceAgreement),",
-  "replace": "agreement: new CampaignAgreement(new DeviceAgreement({ load: (key: string) => Object.getOwnPropertyDescriptor(this.settingsSaver.settings, key)?.value, save: (key: string, value: unknown) => void this.settingsSaver.save({ [key]: value }) })),",
-  "group": "device-local"
+  "find": "keepAgreed: () => this.settingsSaver.save({ beyondAgreed: true }),",
+  "replace": "keepAgreed: () => Promise.resolve(),",
+  "group": "in the vault"
+ },
+ {
+  "id": "in the vault: main reads it from data.json",
+  "file": "src/main.ts",
+  "find": "agreed: () => this.settingsSaver.settings.beyondAgreed,",
+  "replace": "agreed: () => false,",
+  "group": "in the vault"
+ },
+ {
+  "id": "in the vault: main reads the old device answer",
+  "file": "src/main.ts",
+  "find": "    device: this.localStorage,\n",
+  "replace": "    device: { load: () => undefined },\n",
+  "group": "in the vault"
+ },
+ {
+  "id": "in the vault: data.json takes only true",
+  "file": "src/settings/saved/plugin-settings.ts",
+  "find": "saved.beyondAgreed === true) settings.beyondAgreed = true;",
+  "replace": "saved.beyondAgreed) settings.beyondAgreed = true;",
+  "group": "in the vault"
+ },
+ {
+  "id": "in the vault: data.json keeps it",
+  "file": "src/settings/saved/plugin-settings.ts",
+  "find": "  if (\"beyondAgreed\" in saved && saved.beyondAgreed === true) settings.beyondAgreed = true;\n",
+  "replace": "",
+  "group": "in the vault"
  }
 ]

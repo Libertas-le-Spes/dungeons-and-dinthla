@@ -12,30 +12,31 @@ afterEach(() => {
 });
 
 describe("the first press's dialog", () => {
-  it("shows the agreement's title and words with Continue and Use a PDF instead", async () => {
+  it("shows the agreement's title and words with Cancel, then Import as the highlighted button", async () => {
     const setTitle = vi.spyOn(Modal.prototype, "setTitle");
     const opened = nextModal();
     void new AgreementDialog(NO_APP).ask();
     const modal = await opened;
     expect(setTitle).toHaveBeenCalledExactlyOnceWith(AGREEMENT_TITLE);
     expect(textsIn(modal.contentEl, ".dd-agreement-words")).toEqual(AGREEMENT_PARAGRAPHS);
-    expect(textsIn(modal.contentEl, "button")).toEqual(["Continue", "Use a PDF instead"]);
+    expect(textsIn(modal.contentEl, "button")).toEqual(["Cancel", "Import"]);
+    expect(textsIn(modal.contentEl, "button.mod-cta")).toEqual(["Import"]);
   });
 
-  it("answers agreed on Continue and closes", async () => {
+  it("answers agreed on Import and closes", async () => {
     const opened = nextModal();
     const asked = new AgreementDialog(NO_APP).ask();
     const modal = await opened;
-    pressOn(modal.contentEl, "Continue");
+    pressOn(modal.contentEl, "Import");
     expect((await asked).agreed).toBe(true);
     expect(modal.contentEl.childElementCount).toBe(0);
   });
 
-  it("answers not yet on Use a PDF instead and closes", async () => {
+  it("answers not yet on Cancel and closes", async () => {
     const opened = nextModal();
     const asked = new AgreementDialog(NO_APP).ask();
     const modal = await opened;
-    pressOn(modal.contentEl, "Use a PDF instead");
+    pressOn(modal.contentEl, "Cancel");
     expect((await asked).agreed).toBe(false);
     expect(modal.contentEl.childElementCount).toBe(0);
   });
@@ -48,11 +49,11 @@ describe("the first press's dialog", () => {
     expect((await asked).agreed).toBe(false);
   });
 
-  it("answers not yet when closed without a choice after an earlier Continue", async () => {
+  it("answers not yet when closed without a choice after an earlier Import", async () => {
     const dialog = new AgreementDialog(NO_APP);
     const firstOpened = nextModal();
     const first = dialog.ask();
-    pressOn((await firstOpened).contentEl, "Continue");
+    pressOn((await firstOpened).contentEl, "Import");
     await first;
     const secondOpened = nextModal();
     const second = dialog.ask();

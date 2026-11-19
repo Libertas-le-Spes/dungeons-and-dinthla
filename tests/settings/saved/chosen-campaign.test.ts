@@ -7,7 +7,7 @@ import { queuedWorkRan } from "../../stubs/queued-work";
 function chosenFrom(campaignFolder: string | null, saveFails = false, savesThatFail: string[] = []) {
   const saved: (string | null)[] = [];
   const opened: string[] = [];
-  const saver = new SettingsSaver({ campaignsFolder: null, campaignFolder, welcomeSeen: true, lastVersionSeen: null, notesMadeFor: [] }, async (settings: PluginSettings) => {
+  const saver = new SettingsSaver({ campaignsFolder: null, campaignFolder, welcomeSeen: true, lastVersionSeen: null, notesMadeFor: [], beyondAgreed: false }, async (settings: PluginSettings) => {
     await queuedWorkRan();
     if (saveFails) throw new Error("data.json is read-only.");
     if (settings.campaignFolder !== null && savesThatFail.includes(settings.campaignFolder)) throw new Error("The disk is full.");

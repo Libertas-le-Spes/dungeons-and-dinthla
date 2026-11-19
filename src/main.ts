@@ -91,7 +91,7 @@ import { NOTICE_STAYS_UNTIL_DISMISSED } from "./views/dialogs/notice-stays";
 import { ConfirmModal, type ConfirmText } from "./views/dialogs/confirm-modal";
 import { BeyondOpeners, type BeyondWiring } from "./imports/dialog/opening/beyond-openers";
 import { CampaignAgreement } from "./imports/agreement/campaign-agreement";
-import { DeviceAgreement } from "./imports/agreement/device-agreement";
+import { KeptAgreement } from "./imports/agreement/kept-agreement";
 import { onlineImportFor } from "./imports/dialog/online/online-wiring";
 import type { CharacterNotes } from "./characters/reading/character-notes";
 
@@ -115,8 +115,15 @@ export default class DungeonsAndDinthla extends Plugin {
     save: (key, value) => this.app.saveLocalStorage(key, value),
   };
   private oldDrafts = new OldDrafts(null, this.localStorage);
-  private readonly deviceAgreement = new DeviceAgreement(this.localStorage);
-  private readonly onlineImport = onlineImportFor(this.app, this.deviceAgreement);
+  private readonly keptAgreement = new KeptAgreement({
+    settings: {
+      agreed: () => this.settingsSaver.settings.beyondAgreed,
+      keepAgreed: () => this.settingsSaver.save({ beyondAgreed: true }),
+    },
+    device: this.localStorage,
+    notKept: (error: unknown) => new Notice(`Couldn't remember your answer about D&D Beyond: ${messageOf(error)}`),
+  });
+  private readonly onlineImport = onlineImportFor(this.app, this.keptAgreement);
   private chosen = this.chosenCampaignFrom(this.settingsSaver);
 
   override async onload(): Promise<void> {
@@ -135,7 +142,7 @@ export default class DungeonsAndDinthla extends Plugin {
       chooseCampaign: (folder: string) => this.chosen.choose(folder),
       openWelcome: welcomeOpenerOf(this.app),
       pickFolder: (folders: string[], chosen: (folder: string) => void) => new FolderSuggestModal(this.app, folders, chosen).open(),
-      agreement: new CampaignAgreement(this.deviceAgreement),
+      agreement: new CampaignAgreement(this.keptAgreement),
       startSession: newSession,
     });
     const startNewCampaign = () =>

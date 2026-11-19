@@ -1,11 +1,11 @@
 import type { AgreementAnswer } from "./agreement-answer";
-import type { DeviceAgreement } from "./device-agreement";
+import type { KeptAgreement } from "./kept-agreement";
 
 class Agreed implements AgreementAnswer {
   readonly agreed = true;
 
-  keepOn(device: DeviceAgreement): void {
-    device.give();
+  keepOn(kept: KeptAgreement): void {
+    void kept.give();
   }
 }
 
