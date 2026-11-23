@@ -1,6 +1,6 @@
 import { isBindingElement } from "typescript/unstable/ast";
 import type { FileScan } from "../reading/file-scan";
-import { CHARACTER_DATA, CHARACTER_DATA_OWNERS, ELEMENT_QUERIES, OBSIDIAN_ELEMENT_QUERIES, PAGE_TEXT, POST_PROCESSORS } from "../reading/names";
+import { CHARACTER_DATA, CHARACTER_DATA_OWNERS, ELEMENT_LISTENER_OWNERS, ELEMENT_QUERIES, OBSIDIAN_ELEMENT_LISTENERS, OBSIDIAN_ELEMENT_QUERIES, PAGE_TEXT, POST_PROCESSORS } from "../reading/names";
 import type { NameUse } from "../reading/page-found";
 import { isInObsidianFolder } from "../reading/library-paths";
 import { isLibraryFile, isOwnedByOneOf } from "../reading/type-shapes";
@@ -22,6 +22,18 @@ function obsidianQueries(scan: FileScan): NameUse[] {
   return uses.filter((_use, index) => {
     const symbol = symbols[index];
     if (symbol === undefined) return true;
+    return symbol.declarations.some((declaration) => isInObsidianFolder(declaration.path));
+  });
+}
+
+function elementListeners(scan: FileScan): NameUse[] {
+  const uses = scan.page.uses.filter((use) => OBSIDIAN_ELEMENT_LISTENERS.includes(use.name) && use.member);
+  const symbols = symbolsOf(scan, uses);
+  return uses.filter((_use, index) => {
+    const symbol = symbols[index];
+    if (symbol === undefined) return true;
+    const owner = symbol.getParent();
+    if (owner === undefined || !ELEMENT_LISTENER_OWNERS.includes(owner.name)) return false;
     return symbol.declarations.some((declaration) => isInObsidianFolder(declaration.path));
   });
 }
@@ -50,7 +62,7 @@ function textBreaches(scan: FileScan): string[] {
 
 function queryBreaches(scan: FileScan): string[] {
   if (scan.allowances.elementQueries(scan.path)) return [];
-  const uses = [...scan.page.uses.filter((use) => ELEMENT_QUERIES.includes(use.name)), ...obsidianQueries(scan)];
+  const uses = [...scan.page.uses.filter((use) => ELEMENT_QUERIES.includes(use.name)), ...obsidianQueries(scan), ...elementListeners(scan)];
   return uses.map((use) => `${scan.where(use.node)} looks elements up with ${use.name}`);
 }
 

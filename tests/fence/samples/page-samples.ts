@@ -43,6 +43,10 @@ export const PAGE_ELEMENT_SAMPLES = [
 ];
 
 export const PAGE_TEXT_SAMPLES = [
+  'export const listen = (el: HTMLElement, run: () => void) => el.on("click", ".dd-row", run);',
+  'export const stop = (el: HTMLElement, run: () => void) => el.off("click", ".dd-row", run);',
+  'export const listen = (doc: Document, run: () => void) => doc.on("click", ".dd-row", run);',
+  'export const listen = (text: string, run: () => void) => JSON.parse(text).on("click", ".dd-row", run);',
   "export const text = () => document.body.innerText;",
   'export const text = () => document.querySelector(".cm-content")?.textContent;',
   'import { MarkdownPreviewRenderer } from "obsidian";\nexport const hook = () => MarkdownPreviewRenderer.registerPostProcessor((el) => el.childElementCount);',
@@ -82,6 +86,9 @@ export const ALLOWED_PAGE_SAMPLES = [
 ];
 
 export const PAGE_READ_SAMPLES = [
+  "export const read = (text: string) => JSON.parse(text).ownerDocument;",
+  "export const read = (text: string) => JSON.parse(text).parentElement.dataset;",
+  "export function read(text: string) {\n  const { ownerDocument } = JSON.parse(text);\n  return ownerDocument;\n}",
   "export function read(el: HTMLElement): string {\n  const out: string[] = [];\n  const visit = (node: Node): void => {\n    if (node.nodeType === 3) {\n      const text = node as CharacterData;\n      out.push(text.substringData(0, text.length));\n    }\n    node.childNodes.forEach(visit);\n  };\n  visit(el.ownerDocument.body);\n  return out.join(\"\");\n}",
   'export function read(el: HTMLElement): string {\n  const selection = el.ownerDocument.getSelection();\n  if (selection === null) return "";\n  selection.selectAllChildren(el.ownerDocument.body);\n  return selection.toString();\n}',
   'export function read(el: HTMLElement): string[] {\n  const out: string[] = [];\n  const visit = (node: Element): void => {\n    const target = node.getAttribute("data-href");\n    if (target !== null) out.push(target);\n    Array.from(node.children).forEach(visit);\n  };\n  visit(el.ownerDocument.body);\n  return out;\n}',
@@ -115,12 +122,16 @@ export const OWN_ELEMENT_SAMPLES = [
 ];
 
 export const NOT_PAGE_SAMPLES = [
+  'import type { Vault } from "obsidian"; export const listen = (vault: Vault, run: () => void) => vault.on("create", run);',
+  'import type { Events } from "obsidian"; export const stop = (events: Events, run: () => void) => events.off("changed", run);',
+  "export const read = (text: string) => JSON.parse(text).title;",
   'import type { App } from "obsidian"; export const has = (_app: App, list: number[]) => list.contains(1);',
   'import type { Plugin } from "obsidian"; export const host = (plugin: Plugin) => plugin.app;',
   'import type { App } from "obsidian"; interface Mine { contains(value: number): boolean; } export const has = (_app: App, list: number[] | Mine) => list.contains(1);',
 ];
 
 export const ESCAPE_SAMPLES = [
+  "export const read = (el: HTMLElement) => el.isActiveElement();",
   "export const moved = (el: HTMLElement, run: (win: Window) => void) => el.onWindowMigrated(run);",
   "export const read = (event: UIEvent) => event.targetNode;",
   "export const read = (view: Window) => view.activeDocument;",

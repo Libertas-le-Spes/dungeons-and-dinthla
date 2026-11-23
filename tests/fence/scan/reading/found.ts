@@ -69,6 +69,7 @@ export interface Found {
   gateOnly: Named[];
   constructors: Node[];
   casts: Cast[];
+  anyTypes: Node[];
   destructured: Named[];
   computedBindings: Node[];
   computedKeys: ElementAccessExpression[];
@@ -112,6 +113,7 @@ function emptyFound(): Found {
     gateOnly: [],
     constructors: [],
     casts: [],
+    anyTypes: [],
     destructured: [],
     computedBindings: [],
     computedKeys: [],
@@ -316,6 +318,7 @@ export function foundIn(sourceFile: SourceFile): Found {
     if (isCallExpression(node) && isWholeCopy(node)) found.readWhole.push(...node.arguments);
     if (isIdentifier(node) && node.text === OBJECT && !isCalledOnObject(node)) found.objectTaken.push(node);
     if (isAsExpression(node) || isTypeAssertion(node)) found.casts.push(node);
+    if (node.kind === SyntaxKind.AnyKeyword) found.anyTypes.push(node);
     if (isSatisfiesExpression(node)) found.satisfied.push(node.type);
     addChange(found, node);
     addPlaced(found, node);
