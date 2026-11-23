@@ -31,11 +31,11 @@ describe("campaignStateFor", () => {
     });
   });
 
-  it("opens the main note on the dashboard and the Characters base on the Characters page", () => {
+  it("opens the main note on the dashboard, and leaves a Characters base to Bases", () => {
     const main = campaignStateFor({ type: "markdown", state: { file: "Pale Moon/Pale Moon.md" } }, TAKEOVER);
-    const base = campaignStateFor({ type: "bases", state: { file: "Pale Moon/Characters.base" } }, TAKEOVER);
+    const base = { type: "bases", state: { file: "Pale Moon/Characters.base" } };
     expect(main.state).toEqual({ page: "home", path: "Pale Moon/Pale Moon.md" });
-    expect(base.state).toEqual({ page: "cast", path: "Pale Moon/Characters.base" });
+    expect(campaignStateFor(base, TAKEOVER)).toBe(base);
   });
 
   it("puts the campaign tab's icon and title in place of the note's, so a tab in the background waits as the campaign tab", () => {

@@ -12,7 +12,6 @@ await runMutations({
     "tests/characters/pages/character-gallery-standing.test.ts",
     "tests/characters/pages/character-sheet-page.test.ts",
     "tests/characters/pages/cast-page.test.ts",
-    "tests/characters/pages/characters-view.test.ts",
     "tests/characters/reading/character-notes.test.ts",
     "tests/build/leaving-folders.test.ts",
     "tests/fence/source-checks",

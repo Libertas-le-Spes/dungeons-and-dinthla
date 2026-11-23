@@ -15,9 +15,9 @@ import { NewCampaignModal } from "./campaign/writing/new-campaign-modal";
 import { CampaignStore } from "./campaign/reading/campaign-store";
 import { SavedCampaign } from "./campaign/reading/saved-campaign";
 import { characterNotesOf } from "./characters/reading/character-notes";
-import { CHARACTERS_VIEW, CharactersView } from "./characters/pages/characters-view";
 import { addEditCharacterItem, editActiveCharacter, editCharacter, openNewCharacter } from "./characters/editing/open-character";
-import { chooseSheetValue, openCharacterSheet } from "./characters/editing/open-character-sheet";
+import { chooseSheetValue } from "./characters/editing/open-character-sheet";
+import { OldCharactersBases } from "./characters/retiring/old-characters-bases";
 import { sheetNotesOf } from "./characters/reading/sheet-notes";
 import { mentionNotesOf } from "./characters/reading/mention-notes";
 import { editorTextOf } from "./campaign/reading/editor-text";
@@ -191,14 +191,8 @@ export default class DungeonsAndDinthla extends Plugin {
       tracking: new FundsTracking(this.app, gate, this.store, () => this.campaignFolders()),
     };
     const mentionNotes = mentionNotesOf(gate, campaignFolders);
-    const galleryActions = { ...actions, openRow: (source: Source) => void openCharacterSheet(this.app, gate, source.path) };
     const newCharacter = (returnFocus: () => void) => openNewCharacter(this.app, gate, this.store.campaignFolder, returnFocus);
     const creators = { newCharacter, importCharacter: beyond.importCharacter.bind(beyond), makeMain: beyond.makeMain.bind(beyond) };
-    this.registerBasesView(CHARACTERS_VIEW, {
-      name: "Characters",
-      icon: "users",
-      factory: (controller, containerEl) => new CharactersView(controller, containerEl, this.store, characterNotes, galleryActions, creators),
-    });
     const shownPath = () => shownCampaignPathOf(this.app.workspace);
     this.addCommand({ id: "edit-character", name: "Edit character", checkCallback: (checking) => editActiveCharacter(this.app, gate, characterNotes, shownPath, checking) });
     this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => addEditCharacterItem(this.app, gate, characterNotes, menu, file)));
@@ -277,8 +271,21 @@ export default class DungeonsAndDinthla extends Plugin {
       this.startCampaign(help).catch((error: unknown) => new Notice(`Couldn't start the campaign: ${messageOf(error)}`));
     });
     this.app.workspace.onLayoutReady(() => this.watchBackgrounds());
+    this.app.workspace.onLayoutReady(() => this.sweepOldCharactersBases());
     this.keepDollarsPlain();
     this.takeOverOpening();
+  }
+
+  private sweepOldCharactersBases(): void {
+    const bases = new OldCharactersBases({
+      mark: { swept: () => this.settingsSaver.settings.charactersBasesSwept, keepSwept: () => this.settingsSaver.save({ charactersBasesSwept: true }) },
+      campaignsFolderChosen: () => this.campaignsFolderSetting.path !== null,
+      campaignFolders: () => this.campaignFolders(),
+      fileAt: (path: string) => this.gate.files.getFileByPath(path),
+      trash: (file: TFile) => this.gate.fileActions.trashFile(file),
+      tell: (words: string) => new Notice(words),
+    });
+    bases.sweep().catch((error: unknown) => new Notice(`Couldn't remember that the old Characters.base files were dealt with: ${messageOf(error)}`));
   }
 
   private async loadSettings(): Promise<void> {
