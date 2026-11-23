@@ -182,6 +182,62 @@ export const ELEMENT_QUERIES = ["querySelector", "querySelectorAll", "getElement
 
 export const OBSIDIAN_ELEMENT_QUERIES = ["find", "findAll", "findAllSelf", "matchParent"];
 
+export const OBSIDIAN_ELEMENT_LISTENERS = ["on", "off"];
+
+export const ELEMENT_LISTENER_OWNERS = ["HTMLElement", "Document"];
+
+export const PAGE_ESCAPES = [
+  "ownerDocument",
+  "doc",
+  "win",
+  "body",
+  "documentElement",
+  "defaultView",
+  "constructorWin",
+  "parentElement",
+  "parentNode",
+  "childNodes",
+  "children",
+  "firstChild",
+  "lastChild",
+  "nextSibling",
+  "previousSibling",
+  "firstElementChild",
+  "lastElementChild",
+  "nextElementSibling",
+  "previousElementSibling",
+  "getRootNode",
+  "getSelection",
+  "data",
+  "length",
+  "substringData",
+  "wholeText",
+  "nodeValue",
+  "splitText",
+  "getAttribute",
+  "getAttributeNames",
+  "getAttributeNode",
+  "getAttributeNS",
+  "getAttr",
+  "hasAttribute",
+  "dataset",
+  "attributes",
+  "onWindowMigrated",
+  "targetNode",
+  "activeDocument",
+  "activeWindow",
+  "_EVENTS",
+  "document",
+  "target",
+  "currentTarget",
+  "relatedTarget",
+  "view",
+  "activeElement",
+  "offsetParent",
+  "ownerElement",
+  "isActiveElement",
+];
+
 export const LOADING_MEMBERS = ["href", "src", "srcset", "action", "formAction", "poster", "background", "codebase"];
 
 export const STYLE_OWNERS = ["CSSStyleDeclaration"];
@@ -194,7 +250,7 @@ export const LINK_OPTION = "href";
 
 export const PAGE_LINK = "#";
 
-export const PAGE_NAMES = [...TIMERS, ...ATTRIBUTE_SETTERS, ...ELEMENT_MAKERS, ...OPTION_TAKERS.map((taker) => taker.name), ...CSS_PROPERTY_SETTERS, ...POST_PROCESSORS, ...PAGE_TEXT, CHARACTER_DATA, ...ELEMENT_QUERIES, ...OBSIDIAN_ELEMENT_QUERIES];
+export const PAGE_NAMES = [...TIMERS, ...ATTRIBUTE_SETTERS, ...ELEMENT_MAKERS, ...OPTION_TAKERS.map((taker) => taker.name), ...CSS_PROPERTY_SETTERS, ...POST_PROCESSORS, ...PAGE_TEXT, CHARACTER_DATA, ...ELEMENT_QUERIES, ...OBSIDIAN_ELEMENT_QUERIES, ...OBSIDIAN_ELEMENT_LISTENERS];
 
 export const PAGE_LIBRARY = "/lib.dom.d.ts";
 
