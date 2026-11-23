@@ -31,4 +31,5 @@ export interface Allowances {
   attributes: AllowedName;
   elementOptions: AllowedName;
   globals: AllowedName;
+  hostNeutral: Allowed;
 }

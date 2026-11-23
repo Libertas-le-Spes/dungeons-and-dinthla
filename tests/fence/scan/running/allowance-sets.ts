@@ -58,6 +58,7 @@ export const NOTHING_ALLOWED: Allowances = {
   tags: isPageTag,
   attributes: isPageAttribute,
   elementOptions: isPageOption,
+  hostNeutral: isAlwaysAllowed,
 };
 
 export const ALL_ALLOWED: Allowances = {
@@ -89,6 +90,7 @@ export const ALL_ALLOWED: Allowances = {
   tags: isPageTag,
   attributes: isPageAttribute,
   elementOptions: isPageOption,
+  hostNeutral: isAlwaysAllowed,
 };
 
 export const LOOSE_CASTS_ALLOWED: Allowances = { ...NOTHING_ALLOWED, looseCasts: isAlwaysAllowed };
