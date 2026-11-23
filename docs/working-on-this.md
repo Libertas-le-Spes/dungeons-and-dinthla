@@ -27,6 +27,15 @@ Every count a pull request states comes from a command, not from counting by han
 
 Four pull requests in the folder-move series stated a count that was short or a list that was wrong, and a reviewer had to put each right; a wrong number reads as a proof that wasn't run.
 
+## Obsidian kept apart (#230, in progress)
+
+The plugin's own code is meant to work with any notes program, with Obsidian as one adapter. Code that talks to Obsidian lives in `src/obsidian/` (one folder per area), in the gate (`src/fence/gate/`) or in `src/main.ts`; everything else is the plugin's own. Two checks keep it that way, and both are being tightened as the series moves files:
+
+- `tests/build/obsidian-side.test.ts`: a core file loads no `obsidian` or `@codemirror/*`, in any import form, and imports nothing from the Obsidian side.
+- The fence scan's rule in `tests/fence/scan/code-rules/host-neutral-rules.ts`: a core file uses nothing Obsidian or CodeMirror declares (page helpers like `createEl` included, which need no import), and holds no value whose type reaches such a type, through a list, a property, a function's parameters or return, an index, or a `Pick`, `Partial` or other alias's arguments.
+
+Files that break either today are listed by area in `tests/build/obsidian-ties/`. A file may leave a list, never join one, and a listed file that no longer breaks either rule fails a test until it is taken off. When a commit fixes a file, delete its line.
+
 ## Moving files
 
 A type check (`tsc --noEmit`) proves the imports and nothing else. After a move, look for what it cannot see:
