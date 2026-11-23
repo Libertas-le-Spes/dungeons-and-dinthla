@@ -12,7 +12,8 @@ import { SourceScanner } from "../scan/running/source-scanner";
 import { PAGE_GLOBALS, PLAIN_GLOBALS } from "../allowed/globals";
 import { OBSIDIAN_IMPORTS } from "../allowed/obsidian-imports";
 import { COMPUTED_KEY_READERS } from "../allowed/computed-keys";
-import { PAGE_ESCAPE_READERS, PAGE_ESCAPES, PAGE_MEMBERS } from "../allowed/page-members";
+import { PAGE_ESCAPE_READERS, PAGE_MEMBERS } from "../allowed/page-members";
+import { PAGE_ESCAPES } from "../scan/reading/names";
 
 const GATEKEEPER_FOLDER = "fence/gate/";
 const PARSED_DATA = ["settings/drafts/draft-record.ts", "beyond/reply/json/json-reader.ts"];
