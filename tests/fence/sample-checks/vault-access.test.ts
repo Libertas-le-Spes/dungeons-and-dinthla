@@ -10,6 +10,7 @@ import {
   GLOBAL_APP_SAMPLES,
   HARMLESS_SAMPLES,
   LOOSE_CAST_SAMPLES,
+  ANY_TYPE_SAMPLES,
   OTHER_PLUGIN_SAMPLES,
   REACHING_SAMPLES,
   WIDENING_SAMPLES,
@@ -17,7 +18,7 @@ import {
   ALLOWED_KEY_SAMPLES,
 } from "../samples/vault-access-samples";
 
-const SAMPLES = [...REACHING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...FOLDER_WALK_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...WIDENING_SAMPLES, ...KEY_SAMPLES, ...ALLOWED_KEY_SAMPLES, ...HARMLESS_SAMPLES];
+const SAMPLES = [...REACHING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...FOLDER_WALK_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...ANY_TYPE_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...WIDENING_SAMPLES, ...KEY_SAMPLES, ...ALLOWED_KEY_SAMPLES, ...HARMLESS_SAMPLES];
 
 let scan: SampleScan;
 
@@ -52,6 +53,14 @@ describe("the source scan's vault access rules", () => {
 
   it.each(LOOSE_CAST_SAMPLES)("would catch casting through unknown or any with %s", (sample) => {
     expect(scan.breaches(sample)).not.toEqual([]);
+  });
+
+  it.each(ANY_TYPE_SAMPLES)("would catch writing the type any with %s, which the scan can't follow", (sample) => {
+    expect(scan.breaches(sample)).toEqual([expect.stringContaining("writes the type any")]);
+  });
+
+  it.each(ANY_TYPE_SAMPLES)("lets %s pass in a file allowed to cast through unknown or any", (sample) => {
+    expect(scan.breaches(sample, LOOSE_CASTS_ALLOWED)).toEqual([]);
   });
 
   it.each(OTHER_PLUGIN_SAMPLES)("would catch reaching other plugins or checking for a key in the app or a window with %s", (sample) => {

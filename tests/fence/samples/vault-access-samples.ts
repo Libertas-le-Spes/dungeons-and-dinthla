@@ -84,6 +84,13 @@ export const CAST_SAMPLES = [
   'import type { App } from "obsidian";\nexport function files(app: App, key: string) {\n  const loose = app as any;\n  const words: Record<string, object> = loose;\n  return words[key];\n}',
 ];
 
+export const ANY_TYPE_SAMPLES = [
+  "export const keep = (value: any) => value;",
+  "export const list: any[] = [];",
+  "export function read(): Promise<any> {\n  return Promise.resolve(null);\n}",
+  "export type Loose = Record<string, any>;",
+];
+
 export const LOOSE_CAST_SAMPLES = [
   'import type { App } from "obsidian";\nexport const registry = (app: App) => (app as unknown as { viewRegistry: object }).viewRegistry;',
   'import type { App } from "obsidian";\nexport const registry = (app: App) => (app as any).viewRegistry;',

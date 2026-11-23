@@ -3,7 +3,7 @@ import { isAnyNameAllowed, isNoNameAllowed, NOTHING_ALLOWED } from "../scan/runn
 import { numberedFileNames, SampleScan } from "../scan/running/sample-scan";
 import { ALLOWED_PAGE_SAMPLES, CODE_TEXT_SAMPLES, ESCAPE_SAMPLES, NOT_PAGE_SAMPLES, OWN_ELEMENT_SAMPLES, PAGE_ELEMENT_SAMPLES, PAGE_READ_SAMPLES, PAGE_TEXT_SAMPLES } from "../samples/page-samples";
 import type { Allowances } from "../scan/reading/allowances";
-import { PAGE_ESCAPES } from "../allowed/page-members";
+import { PAGE_ESCAPES } from "../scan/reading/names";
 
 const SAMPLES = [...CODE_TEXT_SAMPLES, ...PAGE_ELEMENT_SAMPLES, ...PAGE_TEXT_SAMPLES, ...ALLOWED_PAGE_SAMPLES, ...PAGE_READ_SAMPLES, ...OWN_ELEMENT_SAMPLES, ...NOT_PAGE_SAMPLES, ...ESCAPE_SAMPLES];
 

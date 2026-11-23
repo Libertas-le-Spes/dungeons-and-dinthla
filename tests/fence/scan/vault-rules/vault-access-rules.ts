@@ -16,6 +16,7 @@ function castBreaches(scan: FileScan): string[] {
   const breaches: string[] = [];
   if (!scan.allowances.looseCasts(scan.path)) {
     for (const cast of found.casts.filter((candidate) => types.isLooseCast(project, candidate))) breaches.push(`${where(cast)} casts through unknown or any`);
+    for (const node of found.anyTypes) breaches.push(`${where(node)} writes the type any, which the scan can't follow`);
   }
   for (const node of types.castKeys(project, found)) breaches.push(`${where(node)} reads a computed key of a value cast through unknown or any`);
   return breaches;

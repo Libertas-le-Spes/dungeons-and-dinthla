@@ -3,6 +3,7 @@ import type { Symbol as TypeSymbol } from "typescript/unstable/sync";
 import type { FileScan } from "../reading/file-scan";
 import type { Named } from "../reading/found";
 import { isAddedToThePage, isDeclaredAsAPageAddition, isPageDeclared } from "./page-additions";
+import { PAGE_ESCAPES } from "../reading/names";
 
 function isDeclaredOnThePage(scan: FileScan, symbol: TypeSymbol): boolean {
   if (isPageDeclared(symbol)) return true;
@@ -22,7 +23,11 @@ function memberUses(scan: FileScan): Named[] {
   const members = scan.found.members;
   if (members.length === 0) return [];
   const symbols = scan.project.checker.getSymbolAtLocation(members.map((member) => member.node));
-  return members.filter((_member, index) => isPageMember(scan, symbols[index]));
+  return members.filter((member, index) => {
+    const symbol = symbols[index];
+    if (symbol === undefined) return PAGE_ESCAPES.includes(member.name);
+    return isPageMember(scan, symbol);
+  });
 }
 
 function patternOf(key: Node): Node | null {
@@ -31,13 +36,15 @@ function patternOf(key: Node): Node | null {
   return binding.parent;
 }
 
-function boundUses(scan: FileScan): Named[] {
+export function boundUses(scan: FileScan): Named[] {
   return scan.found.destructured.filter((bound) => {
     const pattern = patternOf(bound.node);
     if (pattern === null) return false;
     const type = scan.project.checker.getTypeAtLocation(pattern);
     if (type === undefined) return true;
-    return isPageMember(scan, scan.project.checker.getPropertyOfType(type, bound.name));
+    const symbol = scan.project.checker.getPropertyOfType(type, bound.name);
+    if (symbol === undefined) return PAGE_ESCAPES.includes(bound.name);
+    return isPageMember(scan, symbol);
   });
 }
 
