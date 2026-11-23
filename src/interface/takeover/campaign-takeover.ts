@@ -11,7 +11,7 @@ export interface Takeover {
   campaignFolders(): string[];
 }
 
-const TAKEN_TYPES = ["markdown", "bases", RETIRED_SHEET_VIEW];
+const TAKEN_TYPES = ["markdown", RETIRED_SHEET_VIEW];
 
 function filePathIn(viewState: ShownViewState): string | null {
   if (!TAKEN_TYPES.includes(viewState.type)) return null;

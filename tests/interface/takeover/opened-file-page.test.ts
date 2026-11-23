@@ -23,10 +23,6 @@ describe("pageOfFile", () => {
     expect(pageOfFile("Ashen Road/Places/Coast/Harbour.md", FOLDERS)).toBe("note");
   });
 
-  it("shows a campaign's Characters base on the Characters page", () => {
-    expect(pageOfFile("Pale Moon/Characters.base", FOLDERS)).toBe("cast");
-  });
-
   it("shows a session note on the Notes page", () => {
     expect(pageOfFile("Pale Moon/Sessions/Session 1.md", FOLDERS)).toBe("notes");
     expect(pageOfFile("Ashen Road/Sessions/Session 12.md", FOLDERS)).toBe("notes");
@@ -47,7 +43,8 @@ describe("pageOfFile", () => {
     expect(pageOfFile("Pale Moon/Items.md", FOLDERS)).toBe("note");
   });
 
-  it("leaves a campaign's files that aren't Markdown notes to Obsidian, but for its Characters base", () => {
+  it("leaves a campaign's files that aren't Markdown notes to Obsidian, its Characters base too", () => {
+    expect(pageOfFile("Pale Moon/Characters.base", FOLDERS)).toBeNull();
     expect(pageOfFile("Pale Moon/Characters/Mira.png", FOLDERS)).toBeNull();
     expect(pageOfFile("Pale Moon/Items/Silvered lantern.jpg", FOLDERS)).toBeNull();
     expect(pageOfFile("Pale Moon/Places.base", FOLDERS)).toBeNull();

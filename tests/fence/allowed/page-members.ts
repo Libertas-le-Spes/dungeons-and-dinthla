@@ -17,7 +17,6 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "characters/pages/character-gallery.ts": ["addEventListener", "createDiv", "createEl", "createSpan", "empty", "focus"],
   "characters/pages/character-page.ts": ["addClass", "createDiv", "createEl", "empty"],
   "characters/pages/character-sheet-page.ts": ["addClass", "addEventListener", "createDiv", "createEl", "createSpan", "empty", "focus", "preventDefault", "querySelectorAll"],
-  "characters/pages/characters-view.ts": ["createDiv"],
   "characters/pages/fallen-sheet-page.ts": ["addClass", "createDiv", "createEl", "createSpan", "empty"],
   "characters/pages/left-play-section.ts": ["appendText", "createEl"],
   "characters/pages/mentions-panel.ts": ["createDiv", "createEl", "createSpan", "empty"],
