@@ -16,7 +16,7 @@ interface Vault {
 
 function hostWith({ links = [], hasCampaignNote = true, notes = [THESSALY.path], files = [] }: Vault = {}) {
   const notesAskedFor: string[] = [];
-  const watchers: ((note: NoteRef) => void)[] = [];
+  const watchers: ((note: NoteRef, text: string) => void)[] = [];
   const stop = vi.fn();
   const host = {
     store: {
@@ -43,7 +43,7 @@ function hostWith({ links = [], hasCampaignNote = true, notes = [THESSALY.path],
       },
     },
     changes: {
-      onRead: (heard: (note: NoteRef) => void) => {
+      onRead: (heard: (note: NoteRef, text: string) => void) => {
         watchers.push(heard);
         return stop;
       },
@@ -141,7 +141,7 @@ describe("HostCharacterNotes", () => {
     const { host, watchers, stop } = hostWith();
     const changed: string[] = [];
     const stopWatching = notesOf(host).onNoteChanged((path) => changed.push(path));
-    watchers[0]!(CAMPAIGN);
+    watchers[0]!(CAMPAIGN, "text");
     expect(changed).toEqual([CAMPAIGN_NOTE]);
     expect(stopWatching).toBe(stop);
   });

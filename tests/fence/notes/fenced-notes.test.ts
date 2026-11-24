@@ -129,6 +129,29 @@ describe("the plugin's own fence over a notes program", () => {
     expect(heard).toEqual([SESSION]);
   });
 
+  it("tells of a note read inside, with its text, and of none read outside", () => {
+    const raw = new InMemoryNotes();
+    const inside = raw.put(SESSION, "? Who");
+    const outside = raw.put(OUTSIDE, "Private.");
+    const { notes } = fencedOver(raw);
+    const heard: string[] = [];
+    notes.changes.onRead((note, text) => void heard.push(`${note.path}: ${text}`));
+    raw.readBack(outside);
+    raw.readBack(inside);
+    expect(heard).toEqual([`${SESSION}: ? Who`]);
+  });
+
+  it("tells of a folder moved inside, and of no folder moved from or to outside", () => {
+    const raw = new InMemoryNotes();
+    const { notes } = fencedOver(raw);
+    const heard: string[] = [];
+    notes.changes.onFolderMoved((path, oldPath) => void heard.push(`${oldPath} to ${path}`));
+    raw.moveFolder("D&D/Pale Moon", "D&D/Ashen Road");
+    raw.moveFolder("D&D/Pale Moon", "Diary/Pale Moon");
+    raw.moveFolder("Diary/Pale Moon", "D&D/Pale Moon");
+    expect(heard).toEqual(["D&D/Pale Moon to D&D/Ashen Road"]);
+  });
+
   it("tells of no move for a note brought in from outside", async () => {
     const raw = new InMemoryNotes();
     const outside = raw.put(OUTSIDE, "Private.");

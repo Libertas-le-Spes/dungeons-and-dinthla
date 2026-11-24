@@ -42,6 +42,14 @@ class HeardNote {
   }
 }
 
+class HeardRead {
+  constructor(private readonly heard: (note: NoteRef, text: string) => void) {}
+
+  read(file: TFile, text: string): void {
+    this.heard(file, text);
+  }
+}
+
 class HeardGone {
   constructor(private readonly heard: (path: string) => void) {}
 
@@ -55,6 +63,14 @@ class HeardMove {
 
   file(file: TAbstractFile, oldPath: string): void {
     if (isNote(file)) this.heard(file, oldPath);
+  }
+}
+
+class HeardFolderMove {
+  constructor(private readonly heard: (path: string, oldPath: string) => void) {}
+
+  file(file: TAbstractFile, oldPath: string): void {
+    if (!isNote(file)) this.heard(file.path, oldPath);
   }
 }
 
@@ -170,8 +186,13 @@ export class ObsidianNotes implements HostNotes, NoteStore, NoteKeeping, NoteCha
     return this.stopperOf(this.gate.files.on("rename", listener.file.bind(listener)));
   }
 
-  onRead(heard: (note: NoteRef) => void): Stop {
-    const listener = new HeardNote(heard);
+  onFolderMoved(heard: (path: string, oldPath: string) => void): Stop {
+    const listener = new HeardFolderMove(heard);
+    return this.stopperOf(this.gate.files.on("rename", listener.file.bind(listener)));
+  }
+
+  onRead(heard: (note: NoteRef, text: string) => void): Stop {
+    const listener = new HeardRead(heard);
     return this.metadataStopperOf(this.gate.metadata.on("changed", listener.read.bind(listener)));
   }
 

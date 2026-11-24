@@ -4,6 +4,7 @@ import { latestSession } from "../../../campaign/paths/session-to-write";
 import { buildCampaign } from "../../../campaign/reading/build-campaign";
 import { readSessions, type CampaignFiles } from "../../../campaign/reading/read-campaign";
 import type { Campaign } from "../../../campaign/record/campaign";
+import type { FencedFiles } from "../../../fence/gate/fenced-files";
 import type { FencedMetadata } from "../../../fence/gate/fenced-metadata";
 import { MAIN_CHARACTER_PROPERTY } from "../../layout/standing";
 import { valuesOf } from "../properties/property-value";
@@ -11,7 +12,7 @@ import type { CampaignCast } from "./campaign-cast";
 import { MAIN_UNCLEAR } from "../switching/switch-words";
 
 export type CastMetadata = Pick<FencedMetadata, "getFirstLinkpathDest" | "fileToLinktext">;
-export type CastFiles = CampaignFiles;
+export type CastFiles = Pick<FencedFiles, "getFiles" | "getFileByPath">;
 
 const NO_VALUES: readonly string[] = ["", "null"];
 const WHOLE_LINK = /^\[\[([^[\]|#]+)(?:[|#][^[\]]*)?\]\]$/;
@@ -35,6 +36,7 @@ export class GateCast implements CampaignCast {
   constructor(
     private readonly metadata: CastMetadata,
     private readonly files: CastFiles,
+    private readonly sessions: CampaignFiles,
   ) {}
 
   mainFrom(campaignNote: TFile, asked: string): TFile | null {
@@ -47,7 +49,7 @@ export class GateCast implements CampaignCast {
   }
 
   async campaignOf(campaignFolder: string): Promise<Campaign> {
-    return buildCampaign(await readSessions(this.files, campaignFolder));
+    return buildCampaign(await readSessions(this.sessions, campaignFolder));
   }
 
   latestSessionLink(campaignFolder: string, fromPath: string): string | null {

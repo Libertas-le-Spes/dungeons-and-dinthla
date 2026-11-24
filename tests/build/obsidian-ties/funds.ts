@@ -1,6 +1,5 @@
 export const TIES: readonly string[] = [
   "funds/coins/coin-modal.ts",
-  "funds/coins/new-coin-change.ts",
   "funds/coins/open-add-coin.ts",
   "funds/coins/open-ledger-entry.ts",
   "funds/item-notes/item-panel.ts",
@@ -10,7 +9,6 @@ export const TIES: readonly string[] = [
   "funds/page/ledger-box.ts",
   "funds/page/ledger-row.ts",
   "funds/page/purse-box.ts",
-  "funds/purses/own-characters.ts",
   "funds/tracking/funds-tracking.ts",
   "funds/tracking/items-look.ts",
   "funds/tracking/track-item-modal.ts",

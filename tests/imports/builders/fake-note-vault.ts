@@ -1,5 +1,7 @@
 import { STUB_SPELLING } from "../../host/stub-spelling";
 import { vi } from "vitest";
+import type { ObsidianNotes } from "../../../src/obsidian/notes/obsidian-notes";
+import { notesOverFakes } from "../../host/notes-over-fakes";
 import type { TFile, TFolder } from "obsidian";
 import { Fence } from "../../../src/fence/paths/fence";
 import { FencedFileActions, type RawFileManager } from "../../../src/fence/gate/fenced-file-actions";
@@ -39,6 +41,7 @@ export class FakeNoteVault {
   readonly writes: string[] = [];
   readonly gate: FencedFiles;
   readonly actions: FencedFileActions;
+  readonly notes: ObsidianNotes;
   readonly moved: string[] = [];
   private readFailure: Error | null = null;
   private heldReads: HeldCalls<string> | null = null;
@@ -54,6 +57,7 @@ export class FakeNoteVault {
     const reporter = new NoteReporter();
     this.gate = new FencedFiles(raw, held, reporter);
     this.actions = new FencedFileActions(this.fileManager(), held, reporter);
+    this.notes = notesOverFakes({ files: this.gate, actions: this.actions });
   }
 
   note(path: string, text: string): TFile {

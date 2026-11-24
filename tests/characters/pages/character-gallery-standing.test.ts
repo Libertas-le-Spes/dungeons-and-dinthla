@@ -76,7 +76,7 @@ async function galleryOf(own: string, notes: Record<string, string>, fallen: Rec
   for (const [name, text] of Object.entries(fallen)) fallenFiles.push(noteNamed(cardNotes, name, text, FALLEN_FOLDER));
   const root = obsidianDocument().createElement("div");
   const creators = { newCharacter: vi.fn(), importCharacter: vi.fn(), makeMain: vi.fn() };
-  const gallery = new CharacterGallery(root, new CampaignStore(new FakeNoteVault().gate), cardNotes, { openRow: vi.fn(), openLink: vi.fn() }, creators);
+  const gallery = new CharacterGallery(root, new CampaignStore(new FakeNoteVault().notes.store), cardNotes, { openRow: vi.fn(), openLink: vi.fn() }, creators);
   gallery.show(files, fallenFiles);
   await gallery.shown();
   return { root, creators, gallery, files, fallenFiles };

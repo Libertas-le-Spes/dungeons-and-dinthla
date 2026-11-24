@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TFile } from "obsidian";
 import { CampaignStore } from "../../../src/campaign/reading/campaign-store";
-import { SavedCampaign, type SavedCampaignNeeds } from "../../../src/campaign/reading/saved-campaign";
+import { SavedCampaign } from "../../../src/campaign/reading/saved-campaign";
 import { Fence } from "../../../src/fence/paths/fence";
 import { FencedFileActions, type ChangeProperties, type RawFileManager } from "../../../src/fence/gate/fenced-file-actions";
 import { FencedFiles } from "../../../src/fence/gate/fenced-files";
@@ -284,10 +284,10 @@ describe("ItemNotes from the saved session notes", () => {
     const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
     const fileEvents = new FakeEvents();
     const metadataEvents = new FakeEvents();
-    const files = { ...sessions.vault, on: fileEvents.on.bind(fileEvents), offref: fileEvents.offref.bind(fileEvents) } as unknown as SavedCampaignNeeds["files"];
-    const metadata = { on: metadataEvents.on.bind(metadataEvents), offref: metadataEvents.offref.bind(metadataEvents) } as unknown as SavedCampaignNeeds["metadata"];
+    const files = { on: fileEvents.on.bind(fileEvents), offref: fileEvents.offref.bind(fileEvents) };
+    const metadata = { on: metadataEvents.on.bind(metadataEvents), offref: metadataEvents.offref.bind(metadataEvents) };
     const shown = new CampaignStore(sessions.vault);
-    const saved = new SavedCampaign({ shown, files, metadata, failed: () => {} });
+    const saved = new SavedCampaign({ shown, notes: { store: sessions.vault, changes: notesOverFakes({ files, metadata }) }, failed: () => {} });
     const itemNotes = new FakeItemNotes([{ path: LANTERN, properties: { holder: "[[Mira]]" } }]);
     new ItemNotes(itemNotes.needsFor(saved)).start();
     saved.start();

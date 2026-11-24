@@ -46,7 +46,7 @@ function wiredWith(trashOption: string) {
   const keeping = { keptDrafts: new KeptDrafts(drafts, () => 1_000), noteDrafts: new NoteDrafts(drafts) };
   const needs = {
     gate: fullGate,
-    store: new CampaignStore(gate.files),
+    store: new CampaignStore(fullGate.notes.store),
     drafts,
     keeping,
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },

@@ -93,7 +93,7 @@ export class CampaignStore {
 
   private async readIfSession(path: string): Promise<boolean> {
     const number = this.numberInCampaign(path);
-    const file = this.files.getFileByPath(path);
+    const file = this.files.note(path);
     if (number === null || file === null) return false;
     const opening = this.openings;
     const since = this.changes;
