@@ -143,7 +143,7 @@ export default class DungeonsAndDinthla extends Plugin {
     const gate = this.gate;
     this.addChild(gate.files);
     const openNotes = (path: string) => openCampaignPage(this.app, "notes", path);
-    const newSession = () => startSession(this.app, gate, this.store.campaignFolder, openNotes);
+    const newSession = () => startSession(this.showing, this.notes, this.store.campaignFolder, openNotes);
     const { maker, help, campaignsFolderSetup, welcome } = welcomeWiring({
       gate,
       store: this.store,

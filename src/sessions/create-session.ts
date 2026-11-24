@@ -6,6 +6,11 @@ import type { NoteStore } from "../host/notes/note-store";
 export type SessionFiles = Pick<NoteStore, "files" | "hasFolder" | "makeFolder" | "make">;
 export type SessionFileActions = Pick<NoteKeeping, "changeProperties">;
 
+export interface SessionMaking {
+  readonly store: SessionFiles;
+  readonly keeping: SessionFileActions;
+}
+
 export interface NewSession {
   title: string;
   played: string;

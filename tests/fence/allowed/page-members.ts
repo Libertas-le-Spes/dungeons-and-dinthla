@@ -86,7 +86,6 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "session-notes/writing/edit-all-reminder.ts": ["createEl", "toggle"],
   "session-notes/writing/lookup-list.ts": ["addEventListener", "createDiv", "createEl", "empty", "preventDefault", "setAttribute", "setText", "toggle"],
   "session-notes/writing/writing-panel.ts": ["addEventListener", "createEl", "setSelectionRange", "toggle"],
-  "sessions/new-session-modal.ts": ["addClass", "addEventListener", "empty", "focus", "key", "preventDefault", "type"],
   "settings/choosing/campaign-setting-tab.ts": ["createEl", "empty"],
   "views/dialogs/change-dialog.ts": ["empty"],
   "views/dialogs/confirm-modal.ts": ["addClass", "addEventListener", "createDiv", "createEl", "empty", "focus"],
