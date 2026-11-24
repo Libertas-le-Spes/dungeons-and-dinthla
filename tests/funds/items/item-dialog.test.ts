@@ -3,11 +3,14 @@ import type { App } from "obsidian";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import { PartlyWritten } from "../../../src/campaign/writing/note-editor";
 import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
-import { ItemModal } from "../../../src/funds/items/item-modal";
+import { ItemDialog } from "../../../src/funds/items/item-dialog";
+import { OBSIDIAN_TELLING } from "../../../src/obsidian/views/frames/obsidian-telling";
+import { ModalFrame } from "../../../src/obsidian/views/frames/modal-frame";
 import { GONE_LINE_SAYS_MORE, HOLDER_OF_GONE, initialItemEdit, type ItemEdit } from "../../../src/funds/items/item-plan";
 import { Notice } from "../../stubs/obsidian";
 import { isShown } from "../../stubs/obsidian-dom";
 import { STUB_SYNTAX } from "../../host/stub-syntax";
+import { MountedView } from "../../host/showing/mounted-view";
 
 function openDialog(text: string, save: (edit: ItemEdit) => Promise<boolean>) {
   const sessions = [sessionNoteOf("Pale Moon/Sessions/Session 1.md", 1, text, STUB_SYNTAX)];
@@ -15,14 +18,15 @@ function openDialog(text: string, save: (edit: ItemEdit) => Promise<boolean>) {
   const openNoteAt = vi.fn();
   const onClosed = vi.fn();
   const holders = [{ text: "the party", label: "The party" }];
-  const dialog = new ItemModal({} as App, item, initialItemEdit(item, sessions), holders, "Session 2", save, openNoteAt, onClosed);
+  const shown = new ItemDialog(OBSIDIAN_TELLING, item, initialItemEdit(item, sessions), holders, "Session 2", save, openNoteAt, onClosed);
+  const dialog = new ModalFrame({} as App, shown);
   dialog.open();
   const root = dialog.contentEl;
   const button = (name: string) => Array.from(root.querySelectorAll("button")).find((candidate) => candidate.textContent === name)!;
   const price = root.querySelector('input[aria-label="Sold for"]') as HTMLInputElement;
   const status = root.querySelectorAll("select")[1] as HTMLSelectElement;
   const priceRow = price.closest(".setting-item") as HTMLElement;
-  return { dialog, root, openNoteAt, onClosed, button, price, status, priceRow };
+  return { dialog, shown, root, openNoteAt, onClosed, button, price, status, priceRow };
 }
 
 const refuse = (message: string) => () => Promise.reject(new Error(message));
@@ -44,14 +48,14 @@ describe("the item dialog", () => {
 
   it("saves the count typed for how many", async () => {
     const save = vi.fn(async () => true);
-    const { dialog, root, status, button } = openDialog("$ Arrow x20\n", save);
+    const { shown, root, status, button } = openDialog("$ Arrow x20\n", save);
     status.value = "lost";
     status.dispatchEvent(new status.ownerDocument.defaultView!.Event("change"));
     const howMany = root.querySelector('input[aria-label="How many"]') as HTMLInputElement;
     howMany.value = "4";
     howMany.dispatchEvent(new howMany.ownerDocument.defaultView!.Event("input"));
     button("Save").click();
-    await dialog.changeSettled();
+    await shown.settled();
     expect(save).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ status: "lost", howMany: "4" }));
   });
 
@@ -76,10 +80,10 @@ describe("the item dialog", () => {
   });
 
   it("offers to open the line that took the item when it refuses because that line says more than it writes", async () => {
-    const { dialog, openNoteAt, onClosed, button } = openDialog("$ Rope\n$$ Rope :lost in the river\n", refuse(GONE_LINE_SAYS_MORE));
+    const { shown, openNoteAt, onClosed, button } = openDialog("$ Rope\n$$ Rope :lost in the river\n", refuse(GONE_LINE_SAYS_MORE));
     expect(isShown(button("Open note"))).toBe(false);
     button("Save").click();
-    await dialog.changeSettled();
+    await shown.settled();
     expect(isShown(button("Open note"))).toBe(true);
     expect(Notice.shown.at(-1)).toBe(`Couldn't change the item: ${GONE_LINE_SAYS_MORE}`);
     expect(onClosed).not.toHaveBeenCalled();
@@ -89,16 +93,16 @@ describe("the item dialog", () => {
   });
 
   it("hides Open note again once the status or price changes", async () => {
-    const { dialog, button, status, price } = openDialog("$ Rope\n$$ Rope :sold 3 gp to Bram\n", refuse(GONE_LINE_SAYS_MORE));
+    const { shown, button, status, price } = openDialog("$ Rope\n$$ Rope :sold 3 gp to Bram\n", refuse(GONE_LINE_SAYS_MORE));
     const window = status.ownerDocument.defaultView!;
     button("Save").click();
-    await dialog.changeSettled();
+    await shown.settled();
     expect(isShown(button("Open note"))).toBe(true);
     status.value = "lost";
     status.dispatchEvent(new window.Event("change"));
     expect(isShown(button("Open note"))).toBe(false);
     button("Save").click();
-    await dialog.changeSettled();
+    await shown.settled();
     expect(isShown(button("Open note"))).toBe(true);
     price.value = "4 gp";
     price.dispatchEvent(new window.Event("input"));
@@ -106,9 +110,9 @@ describe("the item dialog", () => {
   });
 
   it("says why and closes as changed when only part of a save was written", async () => {
-    const { dialog, root, onClosed, button } = openDialog("$ Rope\n", () => Promise.reject(new PartlyWritten("Only the new line was written.")));
+    const { shown, root, onClosed, button } = openDialog("$ Rope\n", () => Promise.reject(new PartlyWritten("Only the new line was written.")));
     button("Save").click();
-    await dialog.changeSettled();
+    await shown.settled();
     expect(onClosed).toHaveBeenCalledWith(true);
     expect(Notice.shown.at(-1)).toBe("Couldn't change the item: Only the new line was written.");
     expect(onClosed).toHaveBeenCalledOnce();
@@ -116,10 +120,31 @@ describe("the item dialog", () => {
   });
 
   it("doesn't offer the note for a refusal the dialog itself can fix", async () => {
-    const { dialog, button } = openDialog("$ Rope\n$$ Rope :lost in the river\n", refuse(HOLDER_OF_GONE));
+    const { shown, button } = openDialog("$ Rope\n$$ Rope :lost in the river\n", refuse(HOLDER_OF_GONE));
     button("Save").click();
-    await dialog.changeSettled();
+    await shown.settled();
     expect(Notice.shown).toContain(`Couldn't change the item: ${HOLDER_OF_GONE}`);
     expect(isShown(button("Open note"))).toBe(false);
+  });
+});
+
+describe("the item dialog's start", () => {
+  function shownFor(holder: string) {
+    const sessions = [sessionNoteOf("Pale Moon/Sessions/Session 1.md", 1, `$ ${holder} Rope\n`, STUB_SYNTAX)];
+    const item = buildCampaign(sessions).items[0]!;
+    const holders = [{ text: "the party", label: "The party" }, { text: "[[Mira]]", label: "Mira" }];
+    const view = new MountedView();
+    new ItemDialog(OBSIDIAN_TELLING, item, initialItemEdit(item, sessions), holders, "Session 2", vi.fn(), vi.fn(), vi.fn()).opened(view);
+    return view;
+  }
+
+  it("starts in Held by", () => {
+    const view = shownFor("[[Mira]]");
+    expect(view.focused()).toBe(view.into.querySelector("select"));
+  });
+
+  it("chooses the holder's own option however its capitals are written", () => {
+    const view = shownFor("[[mira]]");
+    expect((view.into.querySelector("select") as HTMLSelectElement).value).toBe("[[Mira]]");
   });
 });

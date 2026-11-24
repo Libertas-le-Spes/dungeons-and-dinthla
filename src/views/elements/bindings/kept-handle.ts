@@ -15,4 +15,8 @@ export class KeptHandle implements HandleWanted {
   setText(text: string): void {
     if (this.handle !== null) this.handle.setText(text);
   }
+
+  setClassOn(name: string, on: boolean): void {
+    if (this.handle !== null) this.handle.setClassOn(name, on);
+  }
 }

@@ -1,6 +1,6 @@
 import { Component } from "obsidian";
 import type { Source } from "../../campaign/record/campaign";
-import type { CoinOutcome } from "../coins/coin-modal";
+import type { CoinOutcome } from "../coins/coin-dialog";
 import type { OpenLedgerEntry } from "../coins/open-ledger-entry";
 import type { LinkActions } from "../../views/lists/linked-text";
 import { focusRowAt, NO_ROW, type RowFocus } from "../../views/lists/row-focus";
