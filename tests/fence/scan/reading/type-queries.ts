@@ -12,6 +12,10 @@ const PROTOTYPE = "prototype";
 
 const PLAIN_VALUES = TypeFlags.Undefined | TypeFlags.Null | TypeFlags.Void | TypeFlags.StringLike | TypeFlags.NumberLike | TypeFlags.BooleanLike | TypeFlags.BigIntLike;
 
+function isPlainObject(type: Type): boolean {
+  return (type.flags & TypeFlags.Object) !== 0 && !isLibraryReference(type);
+}
+
 function isBindingPatternInitializer(node: Expression): boolean {
   const declaration = node.parent;
   if (!isVariableDeclaration(declaration) && !isBindingElement(declaration) && !isParameterDeclaration(declaration)) return false;
@@ -22,6 +26,7 @@ function isBindingPatternInitializer(node: Expression): boolean {
 export class TypeQueries {
   private readonly reachingTypes = new Map<number, boolean>();
   private readonly namedReach = new Map<number, boolean>();
+  private readonly comparing = new Set<string>();
 
   ownedReads(project: Project, found: Found, name: string, owners: string[]): Named[] {
     const read = this.ownedBy(project, found.members.filter((member) => member.name === name), (symbol) => isObsidianOwnedByOneOf(symbol, owners));
@@ -183,10 +188,46 @@ export class TypeQueries {
     if (value === undefined) return false;
     for (const wanted of flattened(context)) {
       for (const given of flattened(value)) {
-        if (this.argumentsHide(project, given, wanted, handlesAllowed)) return true;
+        if (this.partsHide(project, given, wanted, handlesAllowed)) return true;
       }
     }
     return false;
+  }
+
+  private partsHide(project: Project, given: Type, wanted: Type, handlesAllowed: boolean): boolean {
+    const key = `${given.id}:${wanted.id}`;
+    if (this.comparing.has(key)) return false;
+    this.comparing.add(key);
+    try {
+      return this.argumentsHide(project, given, wanted, handlesAllowed) || this.propertiesHide(project, given, wanted, handlesAllowed) || this.indexesHide(project, given, wanted, handlesAllowed);
+    } finally {
+      this.comparing.delete(key);
+    }
+  }
+
+  private propertiesHide(project: Project, given: Type, wanted: Type, handlesAllowed: boolean): boolean {
+    if (!isPlainObject(given) || !isPlainObject(wanted)) return false;
+    for (const property of project.checker.getPropertiesOfType(wanted)) {
+      const held = project.checker.getPropertyOfType(given, property.name);
+      if (held === undefined) continue;
+      const wantedType = project.checker.getTypeOfSymbol(property);
+      if (wantedType !== undefined && this.hides(project, project.checker.getTypeOfSymbol(held), wantedType, handlesAllowed)) return true;
+    }
+    return false;
+  }
+
+  private propertyTypesOf(project: Project, type: Type): (Type | undefined)[] {
+    const properties = project.checker.getPropertiesOfType(type);
+    if (properties.length === 0) return [];
+    return project.checker.getTypeOfSymbol(properties);
+  }
+
+  private indexesHide(project: Project, given: Type, wanted: Type, handlesAllowed: boolean): boolean {
+    if (!isPlainObject(given) || !isPlainObject(wanted)) return false;
+    const wantedValues = project.checker.getIndexInfosOfType(wanted).map((info) => info.valueType);
+    if (wantedValues.length === 0) return false;
+    const heldTypes = [...this.propertyTypesOf(project, given), ...project.checker.getIndexInfosOfType(given).map((info) => info.valueType)];
+    return wantedValues.some((wantedValue) => heldTypes.some((held) => this.hides(project, held, wantedValue, handlesAllowed)));
   }
 
   private argumentsHide(project: Project, given: Type, wanted: Type, handlesAllowed: boolean): boolean {

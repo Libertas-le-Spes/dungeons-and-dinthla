@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { App } from "obsidian";
-import { ModalFrame, ObsidianDialogs } from "../../../../src/obsidian/views/frames/modal-frame";
+import { ModalFrame, obsidianDialogsOf } from "../../../../src/obsidian/views/frames/modal-frame";
 import type { DialogView, ShownDialog } from "../../../../src/views/dialogs/dialog-view";
 import { Paragraph } from "../../../../src/views/elements/kinds/containers";
 import { openedModals, type Modal as StubModal } from "../../../stubs/obsidian";
@@ -65,7 +65,7 @@ describe("the modal frame", () => {
   it("is what Obsidian's dialogs open for a dialog", () => {
     const dialog = new SampleDialog();
     const open = vi.spyOn(ModalFrame.prototype, "open");
-    new ObsidianDialogs({} as App).open(dialog);
+    obsidianDialogsOf({} as App).open(dialog);
     expect(open).toHaveBeenCalledOnce();
     expect((openedModals[openedModals.length - 1] as unknown as ModalFrame).dialog).toBe(dialog);
     open.mockRestore();

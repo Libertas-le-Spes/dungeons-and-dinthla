@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import type { App } from "obsidian";
 import { newNamesDialogIn } from "../../../src/references/new-names/new-names-dialog";
 import type { NewNames } from "../../../src/references/new-names/new-names";
 import { NEW_NAMES_EXPLAINED, NO_NOTE_MADE } from "../../../src/references/new-names/new-names-words";
 import type { MakeResult } from "../../../src/note-keeping/make-result";
 import { settled } from "../../kind-notes/keeper-setup";
-import { nextModal } from "../../stubs/obsidian";
+import { nextModal, type Modal as StubModal } from "../../stubs/obsidian";
+import { OBSIDIAN_SHOWING } from "../../host/showing/obsidian-showing";
 import { pressOn, textsIn } from "../../imports/agreement/shown-parts";
 
 const FIRST = { path: "Pale Moon/Sessions/Session 2.md", number: 2, text: "", firstLine: 0 };
@@ -20,7 +20,7 @@ const NAMES: NewNames = {
 async function opened(result: MakeResult = "made") {
   const to = { chosen: vi.fn(async () => result), closed: vi.fn() };
   const modalOpened = nextModal();
-  newNamesDialogIn({} as App)(NAMES, to);
+  newNamesDialogIn(OBSIDIAN_SHOWING.dialogs)(NAMES, to);
   return { to, modal: await modalOpened };
 }
 
@@ -34,7 +34,7 @@ function rowOf(contentEl: HTMLElement, name: string): HTMLElement {
 describe("the new-names list", () => {
   it("is titled by the session and lists each name with Character and Place", async () => {
     const { modal } = await opened();
-    expect(modal.title).toBe("New names in Session 2");
+    expect((modal as unknown as StubModal).title).toBe("New names in Session 2");
     expect(textsIn(modal.contentEl, ".dd-new-names-words")).toEqual([NEW_NAMES_EXPLAINED]);
     expect(textsIn(modal.contentEl, ".setting-item-name")).toEqual(["Lady Vess", "Old Mill"]);
     expect(textsIn(modal.contentEl, "button")).toEqual(["Character", "Place", "Character", "Place"]);

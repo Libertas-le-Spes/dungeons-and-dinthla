@@ -103,7 +103,7 @@ import { KeptAgreement } from "./imports/agreement/kept-agreement";
 import { onlineImportFor } from "./imports/dialog/online/online-wiring";
 import { OBSIDIAN_BEYOND_CALL } from "./obsidian/online/obsidian-beyond-call";
 import { OBSIDIAN_TELLING } from "./obsidian/views/frames/obsidian-telling";
-import { ObsidianDialogs } from "./obsidian/views/frames/modal-frame";
+import { obsidianDialogsOf } from "./obsidian/views/frames/modal-frame";
 import type { CharacterNotes } from "./characters/reading/character-notes";
 
 const TYPING_PAUSE_MS = 250;
@@ -137,7 +137,7 @@ export default class DungeonsAndDinthla extends Plugin {
   });
   private readonly onlineImport = onlineImportFor(this.app, this.keptAgreement, OBSIDIAN_BEYOND_CALL);
   private chosen = this.chosenCampaignFrom(this.settingsSaver);
-  private readonly showing = { dialogs: new ObsidianDialogs(this.app), telling: OBSIDIAN_TELLING };
+  private readonly showing = { dialogs: obsidianDialogsOf(this.app), telling: OBSIDIAN_TELLING };
 
   override async onload(): Promise<void> {
     await this.loadSettings();
@@ -504,14 +504,14 @@ export default class DungeonsAndDinthla extends Plugin {
     const syntax = OBSIDIAN_SYNTAX;
     const items = new ItemNotes({ store: saved, notes, syntax, failed, say });
     const made = new NotesMade(this.settingsSaver);
-    const references = new ReferenceNotes({ store: saved, notes, syntax, say, askNewNames: newNamesDialogIn(this.app) });
+    const references = new ReferenceNotes({ store: saved, notes, syntax, say, askNewNames: newNamesDialogIn(this.showing.dialogs) });
     const dmQuestions = new DmNameQuestions({
       store: saved,
       notes,
       syntax,
       campaignFolders: () => this.campaignFolders(),
       say,
-      askNewNames: newNamesDialogIn(this.app),
+      askNewNames: newNamesDialogIn(this.showing.dialogs),
     });
     const routed = new RoleRoutedNotes({ store: saved, notes, forDm: dmQuestions, forOthers: references });
     this.register(items.start());
