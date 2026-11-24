@@ -1,7 +1,9 @@
 import { vi } from "vitest";
 import type { App, TFile } from "obsidian";
 import type { ImportFlow } from "../../../src/imports/dialog/flows/import-flow";
-import { ImportModal } from "../../../src/imports/dialog/import-modal";
+import { ImportDialog } from "../../../src/imports/dialog/import-dialog";
+import { ModalFrame } from "../../../src/obsidian/views/frames/modal-frame";
+import { OBSIDIAN_TELLING } from "../../../src/obsidian/views/frames/obsidian-telling";
 import type { OnlineSource } from "../../../src/imports/dialog/online/online-source";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
@@ -27,10 +29,12 @@ export interface DialogSetup {
 
 export class DialogDriver {
   readonly closed = vi.fn();
-  readonly modal: ImportModal;
+  readonly dialog: ImportDialog;
+  readonly modal: ModalFrame;
 
   constructor(flow: ImportFlow, setup: DialogSetup) {
-    this.modal = new ImportModal({} as App, { flow, today: setup.today, online: setup.online, onClosed: { importClosed: this.closed } });
+    this.dialog = new ImportDialog(OBSIDIAN_TELLING, { flow, today: setup.today, online: setup.online, onClosed: { importClosed: this.closed } });
+    this.modal = new ModalFrame({} as App, this.dialog);
     obsidianDocument().body.append(this.modal.contentEl);
     this.modal.open();
   }
@@ -72,7 +76,7 @@ export class DialogDriver {
   }
 
   async settled(selector: string): Promise<HTMLElement> {
-    await this.modal.allSettled();
+    await this.dialog.allSettled();
     const element = this.root.querySelector<HTMLElement>(selector);
     if (element === null) throw new Error(`Nothing matches ${selector}.`);
     return element;

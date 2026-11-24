@@ -1036,10 +1036,10 @@
   "group": "folders"
  },
  {
-  "id": "fence: imports may use Setting",
+  "id": "fence: imports may use ButtonComponent",
   "file": "tests/fence/allowed/obsidian-imports.ts",
-  "find": "\"imports/\": [\"App\", \"ButtonComponent\", \"Setting\"]",
-  "replace": "\"imports/\": [\"App\", \"ButtonComponent\"]",
+  "find": "\"imports/\": [\"App\", \"ButtonComponent\"]",
+  "replace": "\"imports/\": [\"App\"]",
   "group": "allow"
  },
  {

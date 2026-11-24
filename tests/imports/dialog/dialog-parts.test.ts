@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import type { App, TFile } from "obsidian";
+import type { TFile } from "obsidian";
 import { dayOf } from "../../../src/imports/dialog/today";
 import { problemLinesOf, summaryLinesOf } from "../../../src/imports/dialog/review/sheet-summary";
-import { drawChanges } from "../../../src/imports/dialog/review/change-list";
+import { changeTrees } from "../../../src/imports/dialog/review/change-list";
+import type { ImportChanges } from "../../../src/imports/note/changes/import-changes";
+import { mountTree } from "../../../src/obsidian/views/mount/mount-tree";
 import { AfterNewImport, AfterUpdate } from "../../../src/imports/dialog/opening/after-import";
-import type { ImportClosed } from "../../../src/imports/dialog/import-modal";
+import type { ImportClosed } from "../../../src/imports/dialog/import-dialog";
 import { readReply } from "../../../src/beyond/reply/read-reply";
 import { onlineSheetOf } from "../../../src/imports/dialog/online/online-sheet";
 import { MadeUpReply } from "../../beyond/builders/made-up-reply";
@@ -52,7 +54,6 @@ class NoOffers {
 
 function wiringWith(shownFolder: string | null, folderOfNote: string | null, vault = new FakeNoteVault(), online: OnlineSource = NO_ONLINE): BeyondWiring {
   return {
-    app: {} as App,
     showing: OBSIDIAN_SHOWING,
     files: vault.notes.store,
     actions: vault.notes.keeping,
@@ -95,8 +96,7 @@ describe("the summary of what an import brings in", () => {
 
 describe("the list of changes", () => {
   it("names what changes in one line and folds each property and section away", () => {
-    const parent = obsidianDocument().createElement("div");
-    drawChanges(parent, {
+    const parent = mountedChanges({
       properties: [{ name: "AC", before: "15", after: "16" }, { name: "speed", before: null, after: "40" }],
       sections: [{ title: "Purse", removed: ["- gp · 2"], added: ["- gp · 3"] }],
       typed: [],
@@ -110,8 +110,7 @@ describe("the list of changes", () => {
   });
 
   it("does not show the import's own marks", () => {
-    const parent = obsidianDocument().createElement("div");
-    drawChanges(parent, {
+    const parent = mountedChanges({
       properties: [{ name: "imported-from", before: null, after: "pdf" }, { name: "imported-session", before: null, after: "3" }, { name: "AC", before: "15", after: "16" }],
       sections: [],
       typed: [],
@@ -121,15 +120,13 @@ describe("the list of changes", () => {
   });
 
   it("says the import marks change when only they do, and still shows no fold", () => {
-    const parent = obsidianDocument().createElement("div");
-    drawChanges(parent, { properties: [{ name: "imported-from", before: "pdf", after: "online" }], sections: [], typed: [] });
+    const parent = mountedChanges({ properties: [{ name: "imported-from", before: "pdf", after: "online" }], sections: [], typed: [] });
     expect(textsIn(parent, ".dd-import-changes-line")).toEqual(["Changes: import marks."]);
     expect(parent.querySelector(".dd-import-fold")).toBeNull();
   });
 
   it("names the sections alone when only the import marks change beside them", () => {
-    const parent = obsidianDocument().createElement("div");
-    drawChanges(parent, {
+    const parent = mountedChanges({
       properties: [{ name: "imported-from", before: "pdf", after: "online" }, { name: "imported-session", before: "1", after: "2" }],
       sections: [{ title: "Numbers", removed: [], added: ["- AC · 1"] }],
       typed: [],
@@ -138,8 +135,7 @@ describe("the list of changes", () => {
   });
 
   it("puts the warning about typed text first, naming the sections and showing the lines", () => {
-    const parent = obsidianDocument().createElement("div");
-    drawChanges(parent, { properties: [{ name: "AC", before: "15", after: "16" }], sections: [], typed: [{ title: "Spells", lines: ["Range: 60 feet"] }] });
+    const parent = mountedChanges({ properties: [{ name: "AC", before: "15", after: "16" }], sections: [], typed: [{ title: "Spells", lines: ["Range: 60 feet"] }] });
     const first = parent.firstElementChild;
     if (first === null) throw new Error("Nothing was drawn.");
     expect(first.className).toBe("dd-import-warning");
@@ -150,12 +146,17 @@ describe("the list of changes", () => {
   });
 
   it("says nothing changes when nothing does", () => {
-    const parent = obsidianDocument().createElement("div");
-    drawChanges(parent, { properties: [], sections: [], typed: [] });
+    const parent = mountedChanges({ properties: [], sections: [], typed: [] });
     expect(textsIn(parent, ".dd-import-nothing")).toEqual(["Nothing changes."]);
   });
 });
 
+
+function mountedChanges(changes: ImportChanges): HTMLElement {
+  const parent = obsidianDocument().createElement("div");
+  for (const tree of changeTrees(changes)) mountTree(tree, parent);
+  return parent;
+}
 
 function textsIn(parent: ParentNode, selector: string): string[] {
   const found: string[] = [];

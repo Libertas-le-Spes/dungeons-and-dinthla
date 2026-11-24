@@ -90,7 +90,7 @@ describe("pressing the online button", () => {
     expect(vault.writes).toEqual([]);
     expect(vault.processed).toEqual([]);
     dialog.press("Import");
-    await dialog.modal.allSettled();
+    await dialog.dialog.allSettled();
     expect(vault.created).toEqual([NEW_NOTE]);
     expect(vault.textAt(NEW_NOTE)).toBe(importedNoteText({ current: "", sheet: onlineSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX));
   });
@@ -150,7 +150,7 @@ describe("pressing the online button", () => {
     dialog.press(BRING_IN_BUTTON);
     dialog.modal.close();
     online.held.resolve(0, onlineSheet());
-    await dialog.modal.allSettled();
+    await dialog.dialog.allSettled();
     expect(vault.created).toEqual([]);
     expect(dialog.root.querySelector(".dd-import-write")).toBeNull();
     expect(dialog.root.querySelector(".dd-import-summary")).toBeNull();
@@ -163,7 +163,7 @@ describe("pressing the online button", () => {
     dialog.press(BRING_IN_BUTTON);
     dialog.modal.close();
     online.held.resolve(0, onlineSheet());
-    await dialog.modal.allSettled();
+    await dialog.dialog.allSettled();
     expect(dialog.root.querySelector(".dd-import-refusal")).toBeNull();
   });
 
@@ -171,7 +171,7 @@ describe("pressing the online button", () => {
     const dialog = importDialog();
     dialog.typeLink(LINK);
     dialog.press(BRING_IN_BUTTON);
-    const watch = new SettleWatch(dialog.modal.allSettled());
+    const watch = new SettleWatch(dialog.dialog.allSettled());
     await queuedWorkRan();
     expect(watch.settled).toBe(false);
     online.held.resolve(0, onlineSheet());
@@ -185,7 +185,7 @@ describe("pressing the online button", () => {
     dialog.press(BRING_IN_BUTTON);
     dialog.modal.close();
     online.held.reject(0, new Refusal("No character has that link."));
-    await dialog.modal.allSettled();
+    await dialog.dialog.allSettled();
     expect(dialog.root.querySelector(".dd-import-refusal")).toBeNull();
   });
 });
@@ -211,7 +211,7 @@ describe("updating from D&D Beyond", () => {
     await dialog.settled(".dd-import-write");
     expect(vault.processed).toEqual([]);
     dialog.press("Update");
-    await dialog.modal.allSettled();
+    await dialog.dialog.allSettled();
     expect(vault.processed).toEqual([`${CHARACTERS_FOLDER}/Primary Monk.md`]);
   });
 });
@@ -233,7 +233,7 @@ describe("updating a character whose note keeps their D&D Beyond number", () => 
     await dialog.settled(".dd-import-write");
     expect(vault.processed).toEqual([]);
     dialog.press("Update");
-    await dialog.modal.allSettled();
+    await dialog.dialog.allSettled();
     expect(vault.processed).toEqual([MONK]);
   });
 
@@ -265,7 +265,7 @@ describe("what an online import keeps in the note", () => {
     online.held.resolve(0, sheet);
     await dialog.settled(".dd-import-write");
     dialog.press("Update");
-    await dialog.modal.allSettled();
+    await dialog.dialog.allSettled();
     expect(vault.textAt(`${CHARACTERS_FOLDER}/Primary Monk.md`)).toContain(`\nbeyond: ${sheet.beyondNumber}\n`);
   });
 });

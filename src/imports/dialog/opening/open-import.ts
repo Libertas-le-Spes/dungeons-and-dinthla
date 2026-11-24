@@ -1,9 +1,9 @@
-import type { App } from "obsidian";
 import { ImportWriter } from "../../note/writing/import-writer";
 import type { NoteFiles } from "../../note/writing/note-files";
 import { NewImportFlow } from "../flows/new-import-flow";
 import { UpdateFlow } from "../flows/update-flow";
-import { ImportModal, type ImportClosed } from "../import-modal";
+import { ImportDialog, type ImportClosed } from "../import-dialog";
+import type { DialogShowing } from "../../../views/dialogs/dialog-view";
 import type { OnlineSource } from "../online/online-source";
 import { dayOf } from "../today";
 import { keptBeyondNumberOf } from "../../note/reading/kept-beyond-number";
@@ -11,7 +11,7 @@ import type { NoteRef } from "../../../host/notes/note-ref";
 import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
 
 export interface ImportPlace {
-  readonly app: App;
+  readonly showing: DialogShowing;
   readonly files: NoteFiles;
   readonly charactersFolder: string;
   readonly campaignFolder: string;
@@ -21,7 +21,7 @@ export interface ImportPlace {
 
 export function openImport(place: ImportPlace, closed: ImportClosed, syntax: PropertiesSyntax): void {
   const writer = new ImportWriter(place.files, place.charactersFolder, place.campaignFolder, syntax);
-  new ImportModal(place.app, { flow: new NewImportFlow(writer, place.charactersFolder, place.notes.bind(place)), today: dayOf(new Date()), online: place.online, onClosed: closed }).open();
+  place.showing.dialogs.open(new ImportDialog(place.showing.telling, { flow: new NewImportFlow(writer, place.charactersFolder, place.notes.bind(place)), today: dayOf(new Date()), online: place.online, onClosed: closed }));
 }
 
 async function keptNumberOf(place: ImportPlace, file: NoteRef, syntax: PropertiesSyntax): Promise<string | null> {
@@ -35,5 +35,5 @@ async function keptNumberOf(place: ImportPlace, file: NoteRef, syntax: Propertie
 export async function openUpdate(place: ImportPlace, file: NoteRef, closed: ImportClosed, syntax: PropertiesSyntax): Promise<void> {
   const kept = await keptNumberOf(place, file, syntax);
   const writer = new ImportWriter(place.files, place.charactersFolder, place.campaignFolder, syntax);
-  new ImportModal(place.app, { flow: new UpdateFlow(writer, file, kept), today: dayOf(new Date()), online: place.online, onClosed: closed }).open();
+  place.showing.dialogs.open(new ImportDialog(place.showing.telling, { flow: new UpdateFlow(writer, file, kept), today: dayOf(new Date()), online: place.online, onClosed: closed }));
 }

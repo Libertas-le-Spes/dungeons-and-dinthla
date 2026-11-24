@@ -62,7 +62,7 @@ describe("the import dialog's own work, which its tests await", () => {
     const bytes = new HeldCalls<ArrayBuffer>();
     const dialog = importDialog();
     dialog.pick({ size: 10, arrayBuffer: bytes.hold.bind(bytes) });
-    const watch = new SettleWatch(dialog.modal.allSettled());
+    const watch = new SettleWatch(dialog.dialog.allSettled());
     await queuedWorkRan();
     expect(watch.settled).toBe(false);
     bytes.resolve(0, new Uint8Array(monkPdf()).buffer);
@@ -76,7 +76,7 @@ describe("the import dialog's own work, which its tests await", () => {
     const dialog = updateDialog(NEW_NOTE);
     dialog.pick(pickedFileOf(monkPdf()));
     await reads.made(1);
-    const watch = new SettleWatch(dialog.modal.allSettled());
+    const watch = new SettleWatch(dialog.dialog.allSettled());
     await queuedWorkRan();
     expect(watch.settled).toBe(false);
     reads.resolve(0, "Notes of mine.\n");
@@ -116,7 +116,7 @@ describe("importing a character from a made-up PDF", () => {
     expect(dialog.texts(".dd-where")).toEqual(["Make a new note, Primary Monk"]);
     expect(vault.created).toEqual([]);
     dialog.press("Import");
-    await dialog.modal.allSettled();
+    await dialog.dialog.allSettled();
     expect(closedWith(dialog)).toEqual([[NEW_NOTE]]);
     expect(vault.created).toEqual([NEW_NOTE]);
     expect(vault.textAt(NEW_NOTE)).toBe(monkNoteText(""));
@@ -162,7 +162,7 @@ describe("importing a character from a made-up PDF", () => {
     expect(dialog.texts(".dd-import-changes-line")).toEqual(["Changes: Numbers, Inventory, Purse, Spells, Features, 14 properties."]);
     expect(dialog.root.querySelector(".dd-import-warning")).toBeNull();
     dialog.press("Update");
-    await dialog.modal.allSettled();
+    await dialog.dialog.allSettled();
     expect(closedWith(dialog)).toEqual([[SHORT_NOTE]]);
     expect(vault.textAt(SHORT_NOTE)).toBe(monkNoteText("Notes of mine.\n"));
     expect(vault.created).toEqual([]);
@@ -178,7 +178,7 @@ describe("importing a character from a made-up PDF", () => {
     expect(dialog.texts(".dd-import-warning li")).toEqual(["Range: 60 feet"]);
     expect(vault.textAt(SHORT_NOTE)).toBe(typed);
     dialog.press("Update");
-    await dialog.modal.allSettled();
+    await dialog.dialog.allSettled();
     expect(closedWith(dialog)).toEqual([[SHORT_NOTE]]);
     expect(vault.textAt(SHORT_NOTE)).not.toContain("Range: 60 feet");
   });
@@ -207,7 +207,7 @@ describe("importing a character from a made-up PDF", () => {
     dialog.press("Update");
     await dialog.settled(".dd-import-failure");
     dialog.press("Update");
-    await dialog.modal.allSettled();
+    await dialog.dialog.allSettled();
     expect(closedWith(dialog)).toEqual([[SHORT_NOTE]]);
     expect(vault.textAt(SHORT_NOTE)).not.toContain("Typed later");
   });

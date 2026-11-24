@@ -14,9 +14,9 @@ import { mountTree } from "../../../src/obsidian/views/mount/mount-tree";
 import { addNameLink, addRowButtonIn } from "../../../src/views/lists/linked-text";
 import { makeScrollList } from "../../../src/views/lists/scroll-list";
 import { Tabs } from "../../../src/views/tabs/tabs";
-import { drawFold } from "../../../src/imports/dialog/review/fold";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { shapeOf } from "./same-page";
+import { Paragraph } from "../../../src/views/elements/kinds/containers";
 
 const SOURCE = { path: "D&D/Pale Moon/Sessions/Session 1.md", line: 3 };
 
@@ -80,10 +80,11 @@ describe("the plugin's own components, against today's drawing", () => {
     expect(shapeOf(mounted(new List(scrollListParts({ cls: ["dd-ledger"] }, "Ledger"))))).toEqual(shapeOf(today));
   });
 
-  it("draws a fold just as today's import fold", () => {
-    const today = root();
-    drawFold(today, "Properties (3)");
-    expect(shapeOf(mounted(new Folded(["dd-import-fold"], "Properties (3)").build([])))).toEqual(shapeOf(today));
+  it("draws a fold as details with its title in the summary first", () => {
+    const fold = mounted(new Folded(["dd-import-fold"], "Properties (3)").build([new Paragraph({ text: "AC: 15 → 16" })])).firstElementChild!;
+    expect(fold.tagName).toBe("DETAILS");
+    expect(fold.className).toBe("dd-import-fold");
+    expect(Array.from(fold.children).map((child) => `${child.tagName} ${child.textContent}`)).toEqual(["SUMMARY Properties (3)", "P AC: 15 → 16"]);
   });
 
   it("draws two tabs just as today's, with the first chosen, and moves between them with the arrow keys", () => {

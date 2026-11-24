@@ -1,7 +1,9 @@
 import { IMPORTED_FROM_PROPERTY, IMPORTED_SESSION_PROPERTY } from "../../layout/import-properties";
 import { changesNothing, type ImportChanges, type PropertyChange, type SectionChange, type TypedText } from "../../note/changes/import-changes";
 import { IMPORT_MARKS_CHANGE, NOTHING_CHANGES, typedTextWords } from "../import-words";
-import { drawFold } from "./fold";
+import { foldOf } from "./fold";
+import { Div, Heading3, List, ListItem, Paragraph } from "../../../views/elements/kinds/containers";
+import type { ViewElement } from "../../../views/elements/view-element";
 
 const NO_VALUE = "nothing";
 const ARROW = " → ";
@@ -34,37 +36,36 @@ function changeWords(properties: readonly PropertyChange[], sections: readonly S
   return `Changes: ${parts.join(", ")}.`;
 }
 
-function drawProperties(parent: HTMLElement, changes: readonly PropertyChange[]): void {
-  if (changes.length === 0) return;
-  const list = drawFold(parent, `Properties (${changes.length})`).createEl("ul", { cls: "dd-import-properties" });
-  for (const change of changes) list.createEl("li", { text: propertyWords(change) });
+function propertiesTree(changes: readonly PropertyChange[]): ViewElement[] {
+  if (changes.length === 0) return [];
+  const items = changes.map((change) => new ListItem({ text: propertyWords(change) }));
+  return [foldOf(`Properties (${changes.length})`, new List({ cls: ["dd-import-properties"] }, items))];
 }
 
-function drawSection(parent: HTMLElement, change: SectionChange): void {
-  const list = drawFold(parent, `${change.title} (${REMOVED}${change.removed.length} ${ADDED}${change.added.length})`).createEl("ul", { cls: "dd-import-lines" });
-  for (const line of change.removed) list.createEl("li", { cls: "dd-import-removed", text: `${REMOVED}${line}` });
-  for (const line of change.added) list.createEl("li", { cls: "dd-import-added", text: `${ADDED}${line}` });
+function sectionTree(change: SectionChange): ViewElement {
+  const items: ViewElement[] = [];
+  for (const line of change.removed) items.push(new ListItem({ cls: ["dd-import-removed"], text: `${REMOVED}${line}` }));
+  for (const line of change.added) items.push(new ListItem({ cls: ["dd-import-added"], text: `${ADDED}${line}` }));
+  return foldOf(`${change.title} (${REMOVED}${change.removed.length} ${ADDED}${change.added.length})`, new List({ cls: ["dd-import-lines"] }, items));
 }
 
-function drawTyped(parent: HTMLElement, typed: readonly TypedText[]): void {
-  if (typed.length === 0) return;
-  const warning = parent.createDiv({ cls: "dd-import-warning", attr: { role: "alert" } });
-  warning.createEl("p", { text: typedTextWords(typed.map((text) => text.title)) });
+function typedTree(typed: readonly TypedText[]): ViewElement[] {
+  if (typed.length === 0) return [];
+  const inside: ViewElement[] = [new Paragraph({ text: typedTextWords(typed.map((text) => text.title)) })];
   for (const text of typed) {
-    warning.createEl("h3", { cls: "dd-import-typed-title", text: `${text.title} (${text.lines.length})` });
-    const list = warning.createEl("ul", { cls: "dd-import-lines" });
-    for (const line of text.lines) list.createEl("li", { text: line });
+    inside.push(new Heading3({ cls: ["dd-import-typed-title"], text: `${text.title} (${text.lines.length})` }));
+    inside.push(new List({ cls: ["dd-import-lines"] }, text.lines.map((line) => new ListItem({ text: line }))));
   }
+  return [new Div({ cls: ["dd-import-warning"], role: "alert" }, inside)];
 }
 
-export function drawChanges(parent: HTMLElement, changes: ImportChanges): void {
-  if (changesNothing(changes)) {
-    parent.createEl("p", { cls: "dd-import-nothing", text: NOTHING_CHANGES });
-    return;
-  }
+export function changeTrees(changes: ImportChanges): ViewElement[] {
+  if (changesNothing(changes)) return [new Paragraph({ cls: ["dd-import-nothing"], text: NOTHING_CHANGES })];
   const properties = changes.properties.filter(isShown);
-  drawTyped(parent, changes.typed);
-  parent.createEl("p", { cls: "dd-import-changes-line", text: changeWords(properties, changes.sections) });
-  drawProperties(parent, properties);
-  for (const section of changes.sections) drawSection(parent, section);
+  return [
+    ...typedTree(changes.typed),
+    new Paragraph({ cls: ["dd-import-changes-line"], text: changeWords(properties, changes.sections) }),
+    ...propertiesTree(properties),
+    ...changes.sections.map(sectionTree),
+  ];
 }

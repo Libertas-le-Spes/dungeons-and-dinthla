@@ -62,3 +62,23 @@ export class Switch implements ViewElement {
     mounter.toggleSwitch(this, into);
   }
 }
+
+export interface ChosenFile {
+  readonly size: number;
+  bytes(): Promise<Uint8Array>;
+}
+
+export interface FileChoice {
+  chosen(file: ChosenFile): void;
+}
+
+export class FileInput implements ViewElement {
+  constructor(
+    readonly parts: ElementParts,
+    readonly field: FileChoice,
+  ) {}
+
+  mountOn(mounter: Mounter, into: MountPlace): void {
+    mounter.fileInput(this, into);
+  }
+}

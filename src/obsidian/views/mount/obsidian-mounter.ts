@@ -1,6 +1,7 @@
 import { ToggleComponent } from "obsidian";
 import type { Anchor, Bold, Button, Description, DescriptionList, Details, Div, Form, Heading1, Heading2, Heading3, Label, List, ListItem, Mark, Nav, OrderedList, Paragraph, Pre, Section, Select, Span, Strong, Summary, Term, NameLink, FieldRow } from "../../../views/elements/kinds/containers";
-import type { DateInput, Option, Switch, TextArea, TextInput } from "../../../views/elements/kinds/fields";
+import type { DateInput, FileInput, Option, Switch, TextArea, TextInput } from "../../../views/elements/kinds/fields";
+import { FilePick } from "./file-pick";
 import type { Mounter, MountPlace } from "../../../views/elements/mounter";
 import { partsOn } from "./element-parts-on";
 import type { MountKit } from "./mount-kit";
@@ -161,5 +162,11 @@ export class ObsidianMounter implements Mounter {
     toggle.setValue(element.on);
     toggle.onChange(element.field.flipped.bind(element.field));
     return placed(partsOn(toggle.toggleEl, element.parts, this.kit));
+  }
+
+  fileInput(element: FileInput, into: MountPlace): MountPlace {
+    const input = elementOf(into).createEl("input", { type: "file" });
+    new FilePick(input, element.field).listen();
+    return placed(partsOn(input, element.parts, this.kit));
   }
 }

@@ -1,9 +1,10 @@
 import type { PrintedSheet } from "../../../beyond/sheet/printed-sheet";
 import { plainRefusalOf, READING_WENT_WRONG, wordsOf, WRITING_WENT_WRONG } from "../failure-words";
 import { WRITE_FAILED } from "../import-words";
-import { drawChooseNote, type TargetChooser } from "../steps/choose-note-step";
+import { chooseNoteTrees, type TargetChooser } from "../steps/choose-note-step";
 import type { Review, ReviewActions } from "../steps/review";
-import { drawReview } from "../steps/review-step";
+import { reviewTrees } from "../steps/review-step";
+import type { StageScreen } from "./stage-screen";
 import type { ImportTarget } from "../targets/import-target";
 import type { DialogShown } from "./dialog-shown";
 import type { PendingWork } from "../../../views/pending/pending-work";
@@ -29,7 +30,7 @@ export class ReviewStage implements TargetChooser, ReviewActions {
   private writtenPath: string | null = null;
 
   constructor(
-    private readonly contentEl: HTMLElement,
+    private readonly screen: StageScreen,
     private readonly shown: DialogShown,
     private readonly today: string,
     private readonly host: StagesHost,
@@ -47,8 +48,7 @@ export class ReviewStage implements TargetChooser, ReviewActions {
       this.work.add(this.reviewWith(sheet, only, null));
       return;
     }
-    this.contentEl.empty();
-    drawChooseNote(this.contentEl, targets, this);
+    this.screen.show(chooseNoteTrees(targets, this));
   }
 
   targetChosen(target: ImportTarget): void {
@@ -85,8 +85,7 @@ export class ReviewStage implements TargetChooser, ReviewActions {
     }
     if (this.shown.isShown === false) return;
     this.review = review;
-    this.contentEl.empty();
-    drawReview(this.contentEl, review, this);
+    this.screen.show(reviewTrees(review, this));
   }
 
   private async writeReviewed(): Promise<boolean> {

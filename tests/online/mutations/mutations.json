@@ -352,8 +352,8 @@
  {
   "id": "online: the typed link is not put back",
   "file": "src/imports/dialog/online/online-stage.ts",
-  "find": ".setValue(this.typed)",
-  "replace": "",
+  "find": "new TextInput({ value: this.typed, ",
+  "replace": "new TextInput({ ",
   "group": "button"
  },
  {
@@ -373,14 +373,14 @@
  {
   "id": "online: asking is not shown",
   "file": "src/imports/dialog/online/online-stage.ts",
-  "find": "    this.contentEl.empty();\n    this.contentEl.createEl(\"p\", { cls: \"dd-import-reading\", text: ASKING, attr: { \"aria-live\": \"polite\" } });\n",
+  "find": "    this.screen.show([new Paragraph({ cls: [\"dd-import-reading\"], text: ASKING, live: \"polite\" })]);\n",
   "replace": "",
   "group": "button"
  },
  {
   "id": "online: the link box is not focused",
   "file": "src/imports/dialog/online/online-stage.ts",
-  "find": "        text.inputEl.focus();\n",
+  "find": "    this.link.focus();\n",
   "replace": "",
   "group": "button"
  },
