@@ -19,6 +19,10 @@ import { addEditCharacterItem, editActiveCharacter, editCharacter, openNewCharac
 import { chooseSheetValue } from "./characters/editing/open-character-sheet";
 import { OldCharactersBases } from "./characters/retiring/old-characters-bases";
 import { OBSIDIAN_SPELLING } from "./obsidian/notes/obsidian-spelling";
+import { FencedNotes } from "./fence/notes/fenced-notes";
+import { ObsidianNotes } from "./obsidian/notes/obsidian-notes";
+import { OBSIDIAN_SYNTAX } from "./obsidian/notes/obsidian-syntax";
+import { GATE_REPORTS_WRITES } from "./obsidian/notes/quiet-report";
 import { sheetNotesOf } from "./characters/reading/sheet-notes";
 import { mentionNotesOf } from "./characters/reading/mention-notes";
 import { editorTextOf } from "./campaign/reading/editor-text";
@@ -482,14 +486,17 @@ export default class DungeonsAndDinthla extends Plugin {
     const saved = new SavedCampaign({ shown: this.store, files: gate.files, metadata: gate.metadata, failed: notRead });
     const say = (message: string) => new Notice(message, NOTICE_STAYS_UNTIL_DISMISSED);
     const failed = (error: unknown) => new Notice(`Couldn't write an item's note: ${messageOf(error)}`);
-    const items = new ItemNotes({ store: saved, files: gate.files, metadata: gate.metadata, actions: gate.fileActions, failed, say });
+    const notes = new FencedNotes(new ObsidianNotes(gate), gate.fence, GATE_REPORTS_WRITES);
+    const syntax = OBSIDIAN_SYNTAX;
+    const items = new ItemNotes({ store: saved, notes, syntax, failed, say });
     const made = new NotesMade(this.settingsSaver);
-    const references = new ReferenceNotes({ store: saved, files: gate.files, metadata: gate.metadata, actions: gate.fileActions, say, askNewNames: newNamesDialogIn(this.app) });
+    const references = new ReferenceNotes({ store: saved, notes, syntax, say, askNewNames: newNamesDialogIn(this.app) });
     const dmQuestions = new DmNameQuestions({
       store: saved,
       files: gate.files,
       metadata: gate.metadata,
-      actions: gate.fileActions,
+      notes,
+      syntax,
       campaignFolders: () => this.campaignFolders(),
       say,
       askNewNames: newNamesDialogIn(this.app),
@@ -498,7 +505,7 @@ export default class DungeonsAndDinthla extends Plugin {
     this.register(items.start());
     this.register(references.start());
     this.register(dmQuestions.start());
-    this.register(startKindNotes({ gate, written: gate.written, saved, made, items, references: routed, say, ask: askInNotice }));
+    this.register(startKindNotes({ notes, syntax, written: gate.written, saved, made, items, references: routed, say, ask: askInNotice }));
     this.register(saved.start());
   }
 

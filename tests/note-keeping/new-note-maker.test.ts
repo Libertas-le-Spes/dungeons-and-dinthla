@@ -5,7 +5,7 @@ import { FakeNotes } from "../kind-notes/fake-notes";
 const PATH = "D&D/Pale Moon/Funds/Session 2.md";
 
 function makerWith(notes: FakeNotes): NewNoteMaker {
-  return new NewNoteMaker(notes.files, notes.actions);
+  return new NewNoteMaker(notes.makerParts());
 }
 
 describe("NewNoteMaker", () => {

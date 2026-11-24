@@ -1,4 +1,4 @@
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../host/notes/note-ref";
 import type { SaidOnce } from "../../note-keeping/said-once";
 import { canMake, wantedKeyOf, type WantedNote } from "../wanting/wanted-note";
 import { readExistingNote, type ExistingMetadata } from "./existing-note";
@@ -21,7 +21,7 @@ export interface ExistingNoteSettlerParts {
 export class ExistingNoteSettler {
   constructor(private readonly parts: ExistingNoteSettlerParts) {}
 
-  async settle(file: TFile, note: WantedNote): Promise<void> {
+  async settle(file: NoteRef, note: WantedNote): Promise<void> {
     const { metadata, writer, memos, said, attempts } = this.parts;
     const halfMade = await this.parts.halfMade.stateOf(file, note);
     if (halfMade === "unreadable" || halfMade === "too new") return;
@@ -49,7 +49,7 @@ export class ExistingNoteSettler {
     await attempts.attempt(note, () => writer.setLines(file, note.lines));
   }
 
-  private async removeLines(file: TFile, note: WantedNote, linesToEmpty: boolean): Promise<void> {
+  private async removeLines(file: NoteRef, note: WantedNote, linesToEmpty: boolean): Promise<void> {
     const trashed = await this.parts.writer.trashOrEmpty(file, linesToEmpty);
     if (!trashed && note.sessionFile === null) this.parts.said.say(`stays:${note.path}`, staysMessage(note));
   }

@@ -1,13 +1,12 @@
 import type { MakeResult } from "../../note-keeping/make-result";
-import { NewNoteMaker, type MakerActions, type MakerFiles } from "../../note-keeping/new-note-maker";
+import { NewNoteMaker, type MakerParts } from "../../note-keeping/new-note-maker";
 import { ItemNoteBusy } from "./item-note-busy";
 import { keyOf } from "./item-note-key";
 import { changeFor } from "./item-note-change";
 import type { PlannedItemNote } from "./item-note-plan";
 
 export interface ItemNoteMakerNeeds {
-  files: MakerFiles;
-  actions: MakerActions;
+  parts: MakerParts;
   busy: ItemNoteBusy;
   failed(error: unknown): void;
 }
@@ -16,7 +15,7 @@ export class ItemNoteMaker {
   private readonly maker: NewNoteMaker;
 
   constructor(private readonly needs: ItemNoteMakerNeeds) {
-    this.maker = new NewNoteMaker(needs.files, needs.actions);
+    this.maker = new NewNoteMaker(needs.parts);
   }
 
   async make(note: PlannedItemNote): Promise<MakeResult> {

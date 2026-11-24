@@ -1,12 +1,12 @@
-import { getFrontMatterInfo } from "obsidian";
+import type { NoteSyntax } from "../host/rules/note-syntax";
 import { PLUGIN_PROPERTIES } from "./note-properties";
 
-export function wordsOf(text: string): string {
-  return text.substring(getFrontMatterInfo(text).contentStart);
+export function wordsOf(text: string, syntax: NoteSyntax): string {
+  return text.substring(syntax.propertiesIn(text).contentStart);
 }
 
-export function hasNoWords(text: string): boolean {
-  return wordsOf(text).trim() === "";
+export function hasNoWords(text: string, syntax: NoteSyntax): boolean {
+  return wordsOf(text, syntax).trim() === "";
 }
 
 const A_KEY = /^(["']?)([^"':]+)\1\s*:/;
@@ -27,8 +27,8 @@ function isPluginsLine(line: string): boolean {
   return PLUGIN_PROPERTIES.includes(nameOfKey(key));
 }
 
-export function holdsOnlyPluginPropertiesIn(text: string): boolean {
-  for (const line of getFrontMatterInfo(text).frontmatter.split("\n")) {
+export function holdsOnlyPluginPropertiesIn(text: string, syntax: NoteSyntax): boolean {
+  for (const line of syntax.propertiesIn(text).text.split("\n")) {
     if (line.trim() === "" || isContinuation(line)) continue;
     if (!isPluginsLine(line)) return false;
   }

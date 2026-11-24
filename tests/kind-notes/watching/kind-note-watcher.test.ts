@@ -19,7 +19,7 @@ function watcherWith(campaign: FakeCampaign) {
   const items = { sessionSaved: vi.fn() };
   const mover = { sessionRenamed: vi.fn() };
   const references = { sessionSaved: vi.fn(), sessionGone: vi.fn() };
-  const files = { getFileByPath: (path: string) => fileAt(path) };
+  const files = { note: (path: string) => fileAt(path) };
   const watcher = new KindNoteWatcher({ store: campaign, wants: new SessionWants(campaign, files), written: written.notes, keeper, differing, saves: new SavesHere(), items, references, mover });
   const stop = watcher.start();
   return { written, keeper, differing, watcher, stop, items, references, mover };

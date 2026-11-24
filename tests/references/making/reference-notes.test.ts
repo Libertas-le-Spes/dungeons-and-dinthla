@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import { notesOverFakes } from "../../host/notes-over-fakes";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 import type { TFile } from "obsidian";
 import { ReferenceNotes } from "../../../src/references/making/reference-notes";
 import { FakeCampaign } from "../../kind-notes/fake-campaign";
@@ -56,7 +58,7 @@ function startWith(world: World) {
   const askNewNames: AskNewNames = (names, to) => {
     asked.push({ names, to });
   };
-  const referenceNotes = new ReferenceNotes({ store: world.campaign, files, metadata, actions: world.notes.actions, say: (message) => world.notes.said.push(message), askNewNames });
+  const referenceNotes = new ReferenceNotes({ store: world.campaign, notes: notesOverFakes({ files, metadata, actions: world.notes.actions }), syntax: STUB_SYNTAX, say: (message) => world.notes.said.push(message), askNewNames });
   const stop = referenceNotes.start();
   const resolve = (path: string) => {
     for (const listener of listeners) listener(fileAt(path));

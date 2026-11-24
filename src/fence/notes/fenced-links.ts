@@ -23,19 +23,18 @@ export class FencedLinks implements LinkLookup {
   }
 
   linkCounts(): LinkCounts {
-    const inside: Record<string, Record<string, number>> = {};
+    const inside: [string, Record<string, number>][] = [];
     for (const [from, targets] of Object.entries(this.raw.linkCounts())) {
-      if (!this.handed.holds(from)) continue;
-      inside[from] = this.countsInside(targets);
+      if (this.handed.holds(from)) inside.push([from, this.countsInside(targets)]);
     }
-    return inside;
+    return Object.fromEntries(inside);
   }
 
   private countsInside(targets: Readonly<Record<string, number>>): Record<string, number> {
-    const inside: Record<string, number> = {};
+    const inside: [string, number][] = [];
     for (const [target, count] of Object.entries(targets)) {
-      if (this.handed.holds(target)) inside[target] = count;
+      if (this.handed.holds(target)) inside.push([target, count]);
     }
-    return inside;
+    return Object.fromEntries(inside);
   }
 }

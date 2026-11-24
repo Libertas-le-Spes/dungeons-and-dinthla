@@ -133,11 +133,11 @@ describe("Obsidian's answers to the plugin's notes ports", () => {
     const { notes, metadataEvents } = gateWith();
     const heard: string[] = [];
     notes.onRead((note) => void heard.push(`read ${note.path}`));
-    const stop = notes.onLinksSettled(() => void heard.push("settled"));
+    const stop = notes.onLinksSettled((note) => void heard.push(`settled ${note.path}`));
     metadataEvents.trigger("changed", SESSION, "? Who", {});
-    metadataEvents.trigger("resolve");
+    metadataEvents.trigger("resolve", SESSION);
     stop();
-    expect(heard).toEqual([`read ${SESSION.path}`, "settled"]);
+    expect(heard).toEqual([`read ${SESSION.path}`, `settled ${SESSION.path}`]);
     expect(metadataEvents.stopped).toHaveLength(1);
   });
 });

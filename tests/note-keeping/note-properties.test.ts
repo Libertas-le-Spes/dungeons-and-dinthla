@@ -1,34 +1,33 @@
 import { describe, expect, it } from "vitest";
-import type { CachedMetadata } from "obsidian";
 import { linesIn, sameLines, sessionPropertyIn } from "../../src/note-keeping/note-properties";
 
-function cacheOf(properties: Record<string, unknown> | undefined): CachedMetadata {
-  if (properties === undefined) return {};
-  return { frontmatter: properties } as CachedMetadata;
+function propertiesOf(properties: Record<string, unknown> | undefined): Record<string, unknown> | null {
+  if (properties === undefined) return null;
+  return properties;
 }
 
 describe("linesIn", () => {
   it("is the list of lines the note holds", () => {
-    expect(linesIn(cacheOf({ lines: ["? One", "$ Two"] }))).toEqual(["? One", "$ Two"]);
+    expect(linesIn(propertiesOf({ lines: ["? One", "$ Two"] }))).toEqual(["? One", "$ Two"]);
   });
 
   it("is an empty list for a note with no properties, no lines or an empty value", () => {
-    expect(linesIn(cacheOf(undefined))).toEqual([]);
-    expect(linesIn(cacheOf({}))).toEqual([]);
-    expect(linesIn(cacheOf({ lines: null }))).toEqual([]);
+    expect(linesIn(propertiesOf(undefined))).toEqual([]);
+    expect(linesIn(propertiesOf({}))).toEqual([]);
+    expect(linesIn(propertiesOf({ lines: null }))).toEqual([]);
   });
 
   it("is nothing for lines that aren't a list of texts", () => {
-    expect(linesIn(cacheOf({ lines: "? One" }))).toBeNull();
-    expect(linesIn(cacheOf({ lines: ["? One", 2] }))).toBeNull();
+    expect(linesIn(propertiesOf({ lines: "? One" }))).toBeNull();
+    expect(linesIn(propertiesOf({ lines: ["? One", 2] }))).toBeNull();
   });
 });
 
 describe("sessionPropertyIn", () => {
   it("is what the session property holds, or nothing", () => {
-    expect(sessionPropertyIn(cacheOf({ session: "[[Session 2]]" }))).toBe("[[Session 2]]");
-    expect(sessionPropertyIn(cacheOf({}))).toBeUndefined();
-    expect(sessionPropertyIn(cacheOf(undefined))).toBeUndefined();
+    expect(sessionPropertyIn(propertiesOf({ session: "[[Session 2]]" }))).toBe("[[Session 2]]");
+    expect(sessionPropertyIn(propertiesOf({}))).toBeUndefined();
+    expect(sessionPropertyIn(propertiesOf(undefined))).toBeUndefined();
   });
 });
 

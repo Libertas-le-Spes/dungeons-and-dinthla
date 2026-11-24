@@ -38,6 +38,7 @@ const NETWORK_CALLERS = ["online/beyond-call.ts"];
 const BEYOND_CALLERS = ["online/beyond-call.ts", "online/call-rules.ts", "imports/dialog/online/online-wiring.ts", "imports/dialog/online/online-import.ts"];
 const POST_PROCESSING = ["main.ts"];
 const PAGE_TEXT_READERS = ["reading/colour-markers.ts", "reading/plain-dollars.ts"];
+const NOTE_HANDLERS = ["obsidian/notes/obsidian-notes.ts"];
 const ELEMENT_QUERIERS = ["reading/colour-markers.ts", "reading/plain-dollars.ts", "characters/pages/character-sheet-page.ts", "funds/page/funds-page.ts", "views/lists/row-focus.ts"];
 
 function isOneOf(files: string[]): (path: string) => boolean {
@@ -99,6 +100,7 @@ const SOURCE_ALLOWANCES: Allowances = {
   attributes: isPageAttribute,
   elementOptions: isPageOption,
   hostNeutral: isOneOf(TIED),
+  noteHandles: isOneOf(NOTE_HANDLERS),
 };
 
 const scanner = new SourceScanner(ROOT, virtualFileSystem(VIRTUAL_FOLDER, bundledProjectFiles()));
@@ -244,6 +246,7 @@ const STILL_NEEDED: StillNeeded[] = [
   ...neededBy("computedKeys", COMPUTED_KEY_READERS, "reads a key that isn't written in place"),
   ...neededBy("pageText", PAGE_TEXT_READERS, "reads the page's text"),
   ...neededBy("elementQueries", ELEMENT_QUERIERS, "looks elements up"),
+  ...neededBy("noteHandles", NOTE_HANDLERS, "where a type that hides it goes"),
 ];
 
 describe("the plugin's own source", () => {

@@ -14,7 +14,7 @@ function resolvedAt(found: string | null) {
 function metadataResolving(found: string | null) {
   const resolved = resolvedAt(found);
   return {
-    getFirstLinkpathDest: vi.fn(() => resolved),
+    target: vi.fn(() => resolved),
   };
 }
 
@@ -36,7 +36,7 @@ describe("linksToSession for a session that is there", () => {
   it("asks Obsidian to resolve the link from the note's own place", () => {
     const metadata = metadataResolving(SESSION);
     linksToSession(metadata, "[[Session 2]]", NOTE, session);
-    expect(metadata.getFirstLinkpathDest).toHaveBeenCalledExactlyOnceWith("Session 2", NOTE);
+    expect(metadata.target).toHaveBeenCalledExactlyOnceWith("Session 2", NOTE);
   });
 
   it("is false when the link resolves to another note, or to none", () => {
@@ -49,7 +49,7 @@ describe("linksToSession for a session that is there", () => {
     expect(linksToSession(metadata, 2, NOTE, session)).toBe(false);
     expect(linksToSession(metadata, "Session 2", NOTE, session)).toBe(false);
     expect(linksToSession(metadata, "[[Session 2]] [[Session 3]]", NOTE, session)).toBe(false);
-    expect(metadata.getFirstLinkpathDest).not.toHaveBeenCalled();
+    expect(metadata.target).not.toHaveBeenCalled();
   });
 });
 
@@ -93,7 +93,7 @@ function resolvedFrom(target: string, source: string): TFile | null {
   return fileAt(first);
 }
 
-const obsidian = { getFirstLinkpathDest: resolvedFrom };
+const obsidian = { target: resolvedFrom };
 
 describe("linksToSession in a vault with a session note and three kind notes of the same number", () => {
   const SESSION_THREE = "D&D/Pale Moon/Sessions/Session 3.md";

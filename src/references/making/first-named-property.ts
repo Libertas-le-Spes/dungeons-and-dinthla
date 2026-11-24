@@ -1,4 +1,4 @@
-import type { ChangeProperties } from "../../fence/gate/fenced-file-actions";
+import type { ChangeProperties } from "../../host/notes/note-keeping";
 
 export function firstNamedIn(sessionLink: string): ChangeProperties {
   return (properties) => {

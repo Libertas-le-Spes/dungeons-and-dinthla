@@ -1,4 +1,4 @@
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../host/notes/note-ref";
 import type { Campaign, SessionNote } from "../../campaign/record/campaign";
 import { kindNoteLines } from "./kind-note-lines";
 import { kindNotePathOf } from "./kind-note-path";
@@ -7,7 +7,7 @@ import type { WantedNote } from "./wanted-note";
 
 export interface WantedSession {
   path: string;
-  file: TFile | null;
+  file: NoteRef | null;
   note: SessionNote | null;
 }
 

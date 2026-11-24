@@ -1,12 +1,12 @@
 import type { Campaign, SessionNote } from "../../campaign/record/campaign";
-import type { FencedFileActions } from "../../fence/gate/fenced-file-actions";
-import type { FencedFiles } from "../../fence/gate/fenced-files";
-import type { FencedMetadata } from "../../fence/gate/fenced-metadata";
-import type { MakerFiles } from "../../note-keeping/new-note-maker";
+import type { LinkLookup } from "../../host/notes/link-lookup";
+import type { NoteChanges } from "../../host/notes/note-changes";
+import type { NoteStore } from "../../host/notes/note-store";
+import type { NoteSyntax } from "../../host/rules/note-syntax";
 import type { MakeResult } from "../../note-keeping/make-result";
 import { SaidOnce } from "../../note-keeping/said-once";
 import { messageOf } from "../../views/dialogs/message-of";
-import { ReferenceNoteMaker } from "./reference-note-maker";
+import { ReferenceNoteMaker, type ReferenceMakerNotes } from "./reference-note-maker";
 import { planReferenceNotes, type PlannedReferenceNote } from "./reference-note-plan";
 import { noteNameOf } from "../../campaign/paths/note-name";
 import { NewNameAnswers } from "../new-names/new-name-answers";
@@ -21,11 +21,16 @@ export interface ReferenceNotesStore {
   readonly sessionNotes: SessionNote[];
 }
 
+export interface ReferenceNotesNotes extends ReferenceMakerNotes {
+  readonly store: ReferenceMakerNotes["store"] & Pick<NoteStore, "notesUnder">;
+  readonly changes: Pick<NoteChanges, "onLinksSettled">;
+  readonly links: Pick<LinkLookup, "unresolvedIn">;
+}
+
 export interface ReferenceNotesNeeds {
   store: ReferenceNotesStore;
-  files: Pick<FencedFiles, "markdownFilesUnder" | "getFileByPath"> & MakerFiles;
-  metadata: Pick<FencedMetadata, "on" | "offref" | "unresolvedLinksOf" | "fileToLinktext" | "getFirstLinkpathDest">;
-  actions: Pick<FencedFileActions, "processFrontMatter" | "trashFile">;
+  notes: ReferenceNotesNotes;
+  syntax: NoteSyntax;
   say(message: string): void;
   askNewNames: AskNewNames;
 }
@@ -42,9 +47,7 @@ export class ReferenceNotes implements ReferenceNotesPart {
   }
 
   start(): () => void {
-    const { metadata } = this.needs;
-    const resolved = metadata.on("resolve", (file) => this.resolved(file.path));
-    return () => metadata.offref(resolved);
+    return this.needs.notes.changes.onLinksSettled((note) => this.resolved(note.path));
   }
 
   sessionSaved(path: string): void {
@@ -61,7 +64,7 @@ export class ReferenceNotes implements ReferenceNotesPart {
   }
 
   private async makeAll(savedPath: string): Promise<void> {
-    const { store, metadata } = this.needs;
+    const { store, notes } = this.needs;
     const campaignFolder = store.campaignFolder;
     if (campaignFolder === null || store.opening) return;
     const plan = planReferenceNotes({
@@ -69,7 +72,7 @@ export class ReferenceNotes implements ReferenceNotesPart {
       sessions: store.sessionNotes,
       campaignFolder,
       existingNames: this.existingNamesIn(campaignFolder),
-      unresolvedLinksOf: (path) => metadata.unresolvedLinksOf(path),
+      unresolvedLinksOf: (path) => notes.links.unresolvedIn(path),
     });
     for (const message of plan.refusals) this.said.say(message, message);
     for (const note of plan.notes) await this.maker.make(note);
@@ -95,7 +98,7 @@ export class ReferenceNotes implements ReferenceNotesPart {
   }
 
   private existingNamesIn(campaignFolder: string): string[] {
-    return this.needs.files.markdownFilesUnder(campaignFolder).map((file) => file.basename);
+    return this.needs.notes.store.notesUnder(campaignFolder).map((file) => file.basename);
   }
 
   private answerFailed(name: string, error: unknown): MakeResult {

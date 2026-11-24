@@ -233,15 +233,15 @@
  {
   "id": "never over a note that is there",
   "file": "src/references/making/reference-note-maker.ts",
-  "find": "sessionFile === null || files.getFileByPath(note.path) !== null",
+  "find": "sessionFile === null || store.note(note.path) !== null",
   "replace": "sessionFile === null",
   "group": "making maker"
  },
  {
   "id": "no note without its session",
   "file": "src/references/making/reference-note-maker.ts",
-  "find": "sessionFile === null || files",
-  "replace": "files",
+  "find": "sessionFile === null || store.note",
+  "replace": "store.note",
   "group": "making maker"
  },
  {
@@ -296,8 +296,8 @@
  {
   "id": "listening stops",
   "file": "src/references/making/reference-notes.ts",
-  "find": "return () => metadata.offref(resolved);",
-  "replace": "return () => undefined;",
+  "find": "return this.needs.notes.changes.onLinksSettled((note) => this.resolved(note.path));",
+  "replace": "this.needs.notes.changes.onLinksSettled((note) => this.resolved(note.path));\n    return () => undefined;",
   "group": "making notes"
  },
  {

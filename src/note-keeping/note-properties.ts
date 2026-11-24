@@ -1,4 +1,4 @@
-import type { CachedMetadata } from "obsidian";
+import type { Properties } from "../host/notes/note-facts";
 
 export const PLUGIN_PROPERTIES = ["session", "lines"];
 
@@ -6,18 +6,16 @@ function isText(value: unknown): value is string {
   return typeof value === "string";
 }
 
-export function linesIn(cache: CachedMetadata): string[] | null {
-  const properties = cache.frontmatter;
-  if (properties === undefined) return [];
+export function linesIn(properties: Properties | null): string[] | null {
+  if (properties === null) return [];
   const lines: unknown = properties.lines;
   if (lines === undefined || lines === null) return [];
   if (!Array.isArray(lines) || !lines.every(isText)) return null;
   return lines;
 }
 
-export function sessionPropertyIn(cache: CachedMetadata): unknown {
-  const properties = cache.frontmatter;
-  if (properties === undefined) return undefined;
+export function sessionPropertyIn(properties: Properties | null): unknown {
+  if (properties === null) return undefined;
   return properties.session;
 }
 

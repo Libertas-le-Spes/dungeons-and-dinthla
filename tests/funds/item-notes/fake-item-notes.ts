@@ -1,8 +1,10 @@
 import type { CachedMetadata, TFile, TFolder } from "obsidian";
 import { CampaignStore } from "../../../src/campaign/reading/campaign-store";
-import type { ChangeProperties } from "../../../src/fence/gate/fenced-file-actions";
+import type { ChangeProperties } from "../../../src/host/notes/note-keeping";
 import { ItemNotes, type ItemNotesStore } from "../../../src/funds/item-notes/item-notes";
 import { FakeVault } from "../../campaign/fake-vault";
+import { notesOverFakes } from "../../host/notes-over-fakes";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 import { CAMPAIGN, cacheOf, fileAt, type Properties } from "../../stubs/note-files";
 
 export { CAMPAIGN, cacheOf, fileAt, type Properties };
@@ -32,6 +34,7 @@ export class FakeItemNotes {
   afterWrite: () => void = () => {};
   private held: Promise<void> = Promise.resolve();
   private readonly notes: ItemNote[];
+  private readonly handles = new Map<string, TFile>();
 
   constructor(notes: ItemNote[]) {
     this.notes = notes.map((note) => ({ ...note }));
@@ -50,24 +53,27 @@ export class FakeItemNotes {
   }
 
   needsFor(store: ItemNotesStore) {
+    const files = {
+      getFileByPath: (path: string) => this.noteHandleAt(path),
+      markdownFilesUnder: (path: string) => this.notesUnder(path),
+      getFolderByPath: (path: string) => this.folderAt(path),
+      createFolder: async (path: string) => this.folderMade(path),
+      create: async (path: string) => this.created(path),
+      read: async () => this.textRead(),
+      process: async (_file: TFile, change: (text: string) => string) => change(""),
+    };
+    const metadata = {
+      getFileCache: (file: TFile) => {
+        const properties = this.noteAt(file.path).properties;
+        if (properties === null) return null;
+        return cacheOf(properties);
+      },
+    };
+    const actions = { processFrontMatter: async (file: TFile, change: ChangeProperties) => this.write(file, change), trashFile: async (file: TFile) => this.trash(file) };
     return {
       store,
-      files: {
-        markdownFilesUnder: (path: string) => this.notesUnder(path),
-        getFolderByPath: (path: string) => this.folderAt(path),
-        createFolder: async (path: string) => this.folderMade(path),
-        create: async (path: string) => this.created(path),
-        read: async () => this.textRead(),
-        process: async (_file: TFile, change: (text: string) => string) => change(""),
-      },
-      metadata: {
-        getFileCache: (file: TFile) => {
-          const properties = this.noteAt(file.path).properties;
-          if (properties === null) return null;
-          return cacheOf(properties);
-        },
-      },
-      actions: { processFrontMatter: async (file: TFile, change: ChangeProperties) => this.write(file, change), trashFile: async (file: TFile) => this.trash(file) },
+      notes: notesOverFakes({ files, metadata, actions }),
+      syntax: STUB_SYNTAX,
       failed: (error: unknown) => this.failures.push(error),
       say: (message: string) => this.said.push(message),
     };
@@ -112,12 +118,25 @@ export class FakeItemNotes {
   private made(path: string): TFile {
     if (this.failNextCreate !== null) throw this.failNextCreate;
     this.notes.push({ path, properties: null });
-    return fileAt(path);
+    return this.handleOf(path);
+  }
+
+  private noteHandleAt(path: string): TFile | null {
+    if (!this.notes.some((note) => note.path === path)) return null;
+    return this.handleOf(path);
+  }
+
+  private handleOf(path: string): TFile {
+    const known = this.handles.get(path);
+    if (known !== undefined) return known;
+    const made = fileAt(path);
+    this.handles.set(path, made);
+    return made;
   }
 
   private notesUnder(path: string): TFile[] {
     this.foldersListed.push(path);
-    return this.notes.filter((note) => note.path.startsWith(`${path}/`) && note.path.endsWith(".md")).map((note) => fileAt(note.path));
+    return this.notes.filter((note) => note.path.startsWith(`${path}/`) && note.path.endsWith(".md")).map((note) => this.handleOf(note.path));
   }
 
   private async write(file: TFile, change: ChangeProperties): Promise<void> {

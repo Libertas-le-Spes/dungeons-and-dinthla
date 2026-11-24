@@ -8,5 +8,5 @@ export interface NoteChanges {
   onGone(heard: (path: string) => void): Stop;
   onMoved(heard: (note: NoteRef, oldPath: string) => void): Stop;
   onRead(heard: (note: NoteRef) => void): Stop;
-  onLinksSettled(heard: () => void): Stop;
+  onLinksSettled(heard: (note: NoteRef) => void): Stop;
 }

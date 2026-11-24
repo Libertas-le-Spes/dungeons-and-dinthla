@@ -1,5 +1,5 @@
 import { onePerItem } from "../../campaign/record/one-per-item";
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../host/notes/note-ref";
 import type { Campaign, ItemRecord, SessionNote } from "../../campaign/record/campaign";
 import { LINES_FOR_A_NOTE } from "../../kinds/lines-for-a-note";
 import { noteNameOf } from "../../campaign/paths/note-name";
@@ -12,7 +12,7 @@ import { hasNoteNamed } from "./item-of-note";
 export interface PlannedItemNote {
   name: string;
   path: string;
-  file: TFile | null;
+  file: NoteRef | null;
   holder: string;
   lines: string[];
   alias: string | null;
@@ -32,13 +32,13 @@ export function sharedNameMessage(name: string, owner: string): string {
   return noNoteMessage(name, `its note would have the same name as the note of ${owner}.`);
 }
 
-function existingNoteOf(item: ItemRecord, existing: TFile[]): TFile | null {
+function existingNoteOf(item: ItemRecord, existing: NoteRef[]): NoteRef | null {
   const found = existing.find((file) => hasNoteNamed(item, noteNameOf(file.path)));
   if (found === undefined) return null;
   return found;
 }
 
-function isToBeMade(file: TFile | null, lines: string[]): boolean {
+function isToBeMade(file: NoteRef | null, lines: string[]): boolean {
   return file === null && lines.length >= LINES_FOR_A_NOTE;
 }
 
@@ -47,7 +47,7 @@ function aliasFor(item: ItemRecord): string | null {
   return item.name;
 }
 
-function pathFor(item: ItemRecord, file: TFile | null, itemsFolder: string): string {
+function pathFor(item: ItemRecord, file: NoteRef | null, itemsFolder: string): string {
   if (file === null) return `${itemsFolder}/${itemFileNameOf(item.name)}.md`;
   return file.path;
 }
@@ -59,7 +59,7 @@ class ItemNotePlanner {
   constructor(
     private readonly sessions: SessionNote[],
     private readonly itemsFolder: string,
-    private readonly existing: TFile[],
+    private readonly existing: NoteRef[],
   ) {}
 
   consider(item: ItemRecord): void {
@@ -86,7 +86,7 @@ class ItemNotePlanner {
   }
 }
 
-export function planItemNotes(campaign: Campaign, sessions: SessionNote[], itemsFolder: string, existing: TFile[]): ItemNotePlan {
+export function planItemNotes(campaign: Campaign, sessions: SessionNote[], itemsFolder: string, existing: NoteRef[]): ItemNotePlan {
   const planner = new ItemNotePlanner(sessions, itemsFolder, existing);
   for (const item of onePerItem(campaign.items)) planner.consider(item);
   return planner.plan;
