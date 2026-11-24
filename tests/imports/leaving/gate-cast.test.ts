@@ -48,6 +48,18 @@ class MadeUpFiles {
   async cachedRead(file: TFile): Promise<string> {
     return `? A question in ${file.basename}`;
   }
+
+  files(): TFile[] {
+    return this.getFiles();
+  }
+
+  note(path: string): TFile | null {
+    return this.getFileByPath(path);
+  }
+
+  async readKept(file: TFile): Promise<string> {
+    return this.cachedRead(file);
+  }
 }
 
 function propertiesWith(line: string): string {
@@ -56,7 +68,8 @@ function propertiesWith(line: string): string {
 
 function castWith(paths: readonly string[] = []): { cast: GateCast; metadata: MadeUpMetadata } {
   const metadata = new MadeUpMetadata();
-  return { cast: new GateCast(metadata, new MadeUpFiles(paths)), metadata };
+  const files = new MadeUpFiles(paths);
+  return { cast: new GateCast(metadata, files, files), metadata };
 }
 
 function refusalOf(asked: string): string {

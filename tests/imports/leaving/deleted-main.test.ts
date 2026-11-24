@@ -27,7 +27,7 @@ function wiringFor(table: LeavingTable): OfferWiring {
     app: {} as App,
     files: table.vault.gate,
     actions: table.vault.actions,
-    cast: new GateCast(new VaultMetadata(table), table.vault.gate),
+    cast: new GateCast(new VaultMetadata(table), table.vault.gate, table.vault.notes.store),
     campaignFolderOf: () => CAMPAIGN,
     today: () => TODAY,
     tell: () => {},

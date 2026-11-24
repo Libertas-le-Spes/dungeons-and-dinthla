@@ -54,6 +54,7 @@ function wiringWith(shownFolder: string | null, folderOfNote: string | null, vau
     files: vault.gate,
     actions: vault.actions,
     metadata: new NoMetadata(),
+    sessions: vault.notes.store,
     online,
     shownCampaignFolder: vi.fn().mockReturnValue(shownFolder),
     campaignFolderOf: vi.fn().mockReturnValue(folderOfNote),

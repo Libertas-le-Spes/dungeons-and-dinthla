@@ -1,4 +1,5 @@
 import type { App, TFile } from "obsidian";
+import type { CampaignFiles } from "../../../campaign/reading/read-campaign";
 import { MainOffers } from "../../leaving/dialog/main-offers";
 import type { OfferWiring } from "../../leaving/questions/offer-wiring";
 import type { CampaignCast } from "../../leaving/cast/campaign-cast";
@@ -15,6 +16,7 @@ export interface BeyondWiring {
   readonly files: LeavingFiles;
   readonly actions: LeavingActions;
   readonly metadata: CastMetadata;
+  readonly sessions: CampaignFiles;
   readonly online: OnlineSource;
   shownCampaignFolder(): string | null;
   campaignFolderOf(path: string): string | null;
@@ -55,7 +57,7 @@ class WiredOffers implements OfferWiring {
     this.app = wiring.app;
     this.files = wiring.files;
     this.actions = wiring.actions;
-    this.cast = new GateCast(wiring.metadata, wiring.files);
+    this.cast = new GateCast(wiring.metadata, wiring.files, wiring.sessions);
   }
 
   campaignFolderOf(path: string): string | null {

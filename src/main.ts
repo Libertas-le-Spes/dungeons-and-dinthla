@@ -117,7 +117,7 @@ export default class DungeonsAndDinthla extends Plugin {
   private readonly notes = this.gate.notes;
   private settingsSaver = this.settingsSaverOf(settingsOf(null, this.gate.configDir));
   private campaignsFolderSetting = this.campaignsFolderSettingFrom(this.settingsSaver);
-  private readonly store = new CampaignStore(this.gate.files);
+  private readonly store = new CampaignStore(this.gate.notes.store);
   private readonly localStorage: LocalStorage = {
     load: (key) => this.app.loadLocalStorage(key),
     save: (key, value) => this.app.saveLocalStorage(key, value),
@@ -187,11 +187,11 @@ export default class DungeonsAndDinthla extends Plugin {
       openItemDialog(this.app, gate, this.store, name, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app), source);
     const openLedgerEntry = ledgerEntryOpener(this.app, gate, this.store, openItem);
     const campaignFolders = () => this.campaignFolders();
-    const sessionsOf = (campaignFolder: string) => readSessions(gate.files, campaignFolder);
+    const sessionsOf = (campaignFolder: string) => readSessions(gate.notes.store, campaignFolder);
     const characterParts = { notes: this.notes, campaignFolders, sessionsOf };
     const characterNotes = new HostCharacterNotes(characterParts);
     const sheetNotes = new HostSheetNotes(characterParts);
-    const beyond = new BeyondOpeners(new PluginBeyondWiring({ app: this.app, files: gate.files, actions: gate.fileActions, metadata: gate.metadata, online: this.onlineImport, store: this.store, characterNotes, campaignFolders }));
+    const beyond = new BeyondOpeners(new PluginBeyondWiring({ app: this.app, files: gate.files, actions: gate.fileActions, metadata: gate.metadata, sessions: gate.notes.store, online: this.onlineImport, store: this.store, characterNotes, campaignFolders }));
     const sheetActions = {
       ...actions,
       editCharacter: (file: NoteRef) => editCharacter(this.app, gate, characterNotes, file),
@@ -488,7 +488,7 @@ export default class DungeonsAndDinthla extends Plugin {
   private keepNotes(): void {
     const gate = this.gate;
     const notRead = (error: unknown) => new Notice(`Couldn't read the saved session notes: ${messageOf(error)}`);
-    const saved = new SavedCampaign({ shown: this.store, files: gate.files, metadata: gate.metadata, failed: notRead });
+    const saved = new SavedCampaign({ shown: this.store, notes: gate.notes, failed: notRead });
     const say = (message: string) => new Notice(message, NOTICE_STAYS_UNTIL_DISMISSED);
     const failed = (error: unknown) => new Notice(`Couldn't write an item's note: ${messageOf(error)}`);
     const notes = this.notes;
@@ -568,6 +568,7 @@ interface BeyondWiringParts {
   readonly files: BeyondWiring["files"];
   readonly actions: BeyondWiring["actions"];
   readonly metadata: BeyondWiring["metadata"];
+  readonly sessions: BeyondWiring["sessions"];
   readonly online: BeyondWiring["online"];
   readonly store: CampaignStore;
   readonly characterNotes: CharacterNotes;
@@ -579,6 +580,7 @@ class PluginBeyondWiring implements BeyondWiring {
   readonly files: BeyondWiring["files"];
   readonly actions: BeyondWiring["actions"];
   readonly metadata: BeyondWiring["metadata"];
+  readonly sessions: BeyondWiring["sessions"];
   readonly online: BeyondWiring["online"];
 
   constructor(private readonly parts: BeyondWiringParts) {
@@ -586,6 +588,7 @@ class PluginBeyondWiring implements BeyondWiring {
     this.files = parts.files;
     this.actions = parts.actions;
     this.metadata = parts.metadata;
+    this.sessions = parts.sessions;
     this.online = parts.online;
   }
 

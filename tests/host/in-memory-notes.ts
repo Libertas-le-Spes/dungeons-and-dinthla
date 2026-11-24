@@ -46,7 +46,8 @@ export class InMemoryNotes implements HostNotes, NoteStore, NoteKeeping, NoteCha
   private readonly changedNotes = new Listeners<[NoteRef]>();
   private readonly gone = new Listeners<[string]>();
   private readonly moved = new Listeners<[NoteRef, string]>();
-  private readonly read_ = new Listeners<[NoteRef]>();
+  private readonly foldersMoved = new Listeners<[string, string]>();
+  private readonly read_ = new Listeners<[NoteRef, string]>();
   private readonly settled = new Listeners<[NoteRef]>();
   forGood = false;
 
@@ -140,6 +141,14 @@ export class InMemoryNotes implements HostNotes, NoteStore, NoteKeeping, NoteCha
     this.rename(note, newPath);
   }
 
+  readBack(note: NoteRef): void {
+    this.read_.tell(note, this.textOf(note));
+  }
+
+  moveFolder(oldPath: string, path: string): void {
+    this.foldersMoved.tell(path, oldPath);
+  }
+
   async throwAway(note: NoteRef): Promise<void> {
     this.texts.delete(note.path);
     this.handles.delete(note.path);
@@ -173,7 +182,11 @@ export class InMemoryNotes implements HostNotes, NoteStore, NoteKeeping, NoteCha
     return this.moved.add(heard);
   }
 
-  onRead(heard: Heard<[NoteRef]>): Stop {
+  onFolderMoved(heard: Heard<[string, string]>): Stop {
+    return this.foldersMoved.add(heard);
+  }
+
+  onRead(heard: Heard<[NoteRef, string]>): Stop {
     return this.read_.add(heard);
   }
 

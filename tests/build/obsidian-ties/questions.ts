@@ -3,6 +3,4 @@ export const TIES: readonly string[] = [
   "questions/dialogs/open-new-question.ts",
   "questions/dialogs/open-question.ts",
   "questions/dialogs/question-modal.ts",
-  "questions/writing/new-question-change.ts",
-  "questions/writing/question-change.ts",
 ];

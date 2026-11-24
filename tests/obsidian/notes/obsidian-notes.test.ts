@@ -129,15 +129,26 @@ describe("Obsidian's answers to the plugin's notes ports", () => {
     expect(fileEvents.stopped).toHaveLength(1);
   });
 
-  it("tells when Obsidian has read a note and when its links are settled", () => {
+  it("tells of a folder moved, passing notes over", () => {
+    const { notes, fileEvents } = gateWith();
+    const heard: string[] = [];
+    const stop = notes.onFolderMoved((path, oldPath) => void heard.push(`${oldPath} to ${path}`));
+    fileEvents.trigger("rename", { path: "D&D/Ashen Road", children: [] }, "D&D/Pale Moon");
+    fileEvents.trigger("rename", SESSION, "D&D/old.md");
+    stop();
+    expect(heard).toEqual(["D&D/Pale Moon to D&D/Ashen Road"]);
+    expect(fileEvents.stopped).toHaveLength(1);
+  });
+
+  it("tells when Obsidian has read a note, with the text it read, and when its links are settled", () => {
     const { notes, metadataEvents } = gateWith();
     const heard: string[] = [];
-    notes.onRead((note) => void heard.push(`read ${note.path}`));
+    notes.onRead((note, text) => void heard.push(`read ${note.path}: ${text}`));
     const stop = notes.onLinksSettled((note) => void heard.push(`settled ${note.path}`));
     metadataEvents.trigger("changed", SESSION, "? Who", {});
     metadataEvents.trigger("resolve", SESSION);
     stop();
-    expect(heard).toEqual([`read ${SESSION.path}`, `settled ${SESSION.path}`]);
+    expect(heard).toEqual([`read ${SESSION.path}: ? Who`, `settled ${SESSION.path}`]);
     expect(metadataEvents.stopped).toHaveLength(1);
   });
 });
