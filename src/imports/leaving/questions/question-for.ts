@@ -1,4 +1,3 @@
-import type { TFile } from "obsidian";
 import { hasLeftPlay } from "../../layout/standing";
 import { standingOf } from "../properties/property-value";
 import { AskedNote } from "../switching/asked-note";
@@ -12,10 +11,11 @@ import { LeavingQuestion } from "./leaving-question";
 import { leftButUnfinished, namedButUnfinished, type MainQuestion } from "./main-question";
 import { NoMainQuestion } from "./no-main-question";
 import type { OfferWiring } from "./offer-wiring";
+import type { NoteRef } from "../../../host/notes/note-ref";
 
 interface NoteIn {
   files: LeavingFiles;
-  note: TFile;
+  note: NoteRef;
   folder: string;
 }
 
@@ -29,7 +29,7 @@ async function needsFinishing({ files, note, folder }: NoteIn): Promise<boolean>
   return standingOf(await textOfNote(files, note, NOTE_UNREAD)) !== null;
 }
 
-export async function questionFor(wiring: OfferWiring, chosen: TFile): Promise<MainQuestion | null> {
+export async function questionFor(wiring: OfferWiring, chosen: NoteRef): Promise<MainQuestion | null> {
   const { folder, old, chosenIsNamed, parts } = await askedAbout(wiring, chosen);
   if (old === null) return new NoMainQuestion(parts);
   if (chosenIsNamed) {

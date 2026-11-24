@@ -1,4 +1,3 @@
-import type { TFile } from "obsidian";
 import { AskAlways, AskWhenLeftPlay, type AskWhen } from "./ask-when";
 import { MainModal } from "./main-modal";
 import { plainWordsOf } from "../writes/write-words";
@@ -7,6 +6,7 @@ import { questionFor } from "../questions/question-for";
 import { departQuestionFor } from "../questions/depart-question-for";
 import type { MainQuestion } from "../questions/main-question";
 import { COULD_NOT_ASK, NOTE_MOVED } from "../switching/switch-words";
+import type { NoteRef } from "../../../host/notes/note-ref";
 
 class FocusBack {
   constructor(private readonly returnFocus: () => void) {}
@@ -17,11 +17,11 @@ class FocusBack {
 }
 
 interface Asking {
-  file: TFile;
+  file: NoteRef;
   returnFocus: () => void;
 }
 
-type AskedQuestion = (wiring: OfferWiring, note: TFile) => Promise<MainQuestion | null>;
+type AskedQuestion = (wiring: OfferWiring, note: NoteRef) => Promise<MainQuestion | null>;
 
 function stayPut(): void {
   return;
@@ -31,13 +31,13 @@ export class MainOffers {
   constructor(private readonly wiring: OfferWiring) {}
 
   async afterImport(path: string): Promise<void> {
-    const file = this.wiring.files.getFileByPath(path);
+    const file = this.wiring.files.note(path);
     if (file === null) return;
     await this.ask(file, stayPut, new AskAlways());
   }
 
   async afterUpdate(path: string): Promise<void> {
-    const file = this.wiring.files.getFileByPath(path);
+    const file = this.wiring.files.note(path);
     if (file === null) return;
     await this.ask(file, stayPut, new AskWhenLeftPlay());
   }
@@ -54,8 +54,8 @@ export class MainOffers {
     await this.askWith({ file, returnFocus }, departQuestionFor);
   }
 
-  private fileOrTell(path: string, returnFocus: () => void): TFile | null {
-    const file = this.wiring.files.getFileByPath(path);
+  private fileOrTell(path: string, returnFocus: () => void): NoteRef | null {
+    const file = this.wiring.files.note(path);
     if (file === null) {
       this.wiring.tell(NOTE_MOVED);
       returnFocus();
@@ -63,8 +63,8 @@ export class MainOffers {
     return file;
   }
 
-  private async ask(file: TFile, returnFocus: () => void, when: AskWhen): Promise<void> {
-    const questionAbout = async (wiring: OfferWiring, note: TFile): Promise<MainQuestion | null> => {
+  private async ask(file: NoteRef, returnFocus: () => void, when: AskWhen): Promise<void> {
+    const questionAbout = async (wiring: OfferWiring, note: NoteRef): Promise<MainQuestion | null> => {
       if (await when.wants(wiring.files, note)) return questionFor(wiring, note);
       return null;
     };

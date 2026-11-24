@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { Refusal } from "../../../src/beyond/shape/refusal";
-import { GateCast } from "../../../src/imports/leaving/cast/gate-cast";
+import { NotesCast } from "../../../src/imports/leaving/cast/notes-cast";
 import { MAIN_UNCLEAR } from "../../../src/imports/leaving/switching/switch-words";
 import { madeUpCampaign } from "./leaving-table";
 
@@ -20,7 +20,7 @@ class MadeUpMetadata {
   readonly notes: TFile[] = [MONK];
   readonly asked: string[] = [];
 
-  getFirstLinkpathDest(linkpath: string, sourcePath: string): TFile | null {
+  target(linkpath: string, sourcePath: string): TFile | null {
     this.asked.push(`${linkpath} from ${sourcePath}`);
     for (const note of this.notes) {
       if (note.basename === linkpath) return note;
@@ -28,7 +28,7 @@ class MadeUpMetadata {
     return null;
   }
 
-  fileToLinktext(file: TFile, sourcePath: string): string {
+  linkTextTo(file: TFile, sourcePath: string): string {
     return `${file.basename} from ${sourcePath}`;
   }
 }
@@ -66,10 +66,10 @@ function propertiesWith(line: string): string {
   return `---\nrole: player\n${line}\n---\nOur table.\n`;
 }
 
-function castWith(paths: readonly string[] = []): { cast: GateCast; metadata: MadeUpMetadata } {
+function castWith(paths: readonly string[] = []): { cast: NotesCast; metadata: MadeUpMetadata } {
   const metadata = new MadeUpMetadata();
   const files = new MadeUpFiles(paths);
-  return { cast: new GateCast(metadata, files, files), metadata };
+  return { cast: new NotesCast(metadata, files), metadata };
 }
 
 function refusalOf(asked: string): string {

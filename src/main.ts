@@ -191,7 +191,7 @@ export default class DungeonsAndDinthla extends Plugin {
     const characterParts = { notes: this.notes, campaignFolders, sessionsOf };
     const characterNotes = new HostCharacterNotes(characterParts);
     const sheetNotes = new HostSheetNotes(characterParts);
-    const beyond = new BeyondOpeners(new PluginBeyondWiring({ app: this.app, files: gate.files, actions: gate.fileActions, metadata: gate.metadata, sessions: gate.notes.store, online: this.onlineImport, store: this.store, characterNotes, campaignFolders }));
+    const beyond = new BeyondOpeners(new PluginBeyondWiring({ app: this.app, files: gate.notes.store, actions: gate.notes.keeping, metadata: gate.notes.links, online: this.onlineImport, store: this.store, characterNotes, campaignFolders }));
     const sheetActions = {
       ...actions,
       editCharacter: (file: NoteRef) => editCharacter(this.app, gate, characterNotes, file),
@@ -568,7 +568,6 @@ interface BeyondWiringParts {
   readonly files: BeyondWiring["files"];
   readonly actions: BeyondWiring["actions"];
   readonly metadata: BeyondWiring["metadata"];
-  readonly sessions: BeyondWiring["sessions"];
   readonly online: BeyondWiring["online"];
   readonly store: CampaignStore;
   readonly characterNotes: CharacterNotes;
@@ -580,7 +579,6 @@ class PluginBeyondWiring implements BeyondWiring {
   readonly files: BeyondWiring["files"];
   readonly actions: BeyondWiring["actions"];
   readonly metadata: BeyondWiring["metadata"];
-  readonly sessions: BeyondWiring["sessions"];
   readonly online: BeyondWiring["online"];
 
   constructor(private readonly parts: BeyondWiringParts) {
@@ -588,7 +586,6 @@ class PluginBeyondWiring implements BeyondWiring {
     this.files = parts.files;
     this.actions = parts.actions;
     this.metadata = parts.metadata;
-    this.sessions = parts.sessions;
     this.online = parts.online;
   }
 
@@ -604,13 +601,8 @@ class PluginBeyondWiring implements BeyondWiring {
     return charactersFolderOf(campaignFolder);
   }
 
-  notesIn(campaignFolder: string): readonly TFile[] {
-    const files: TFile[] = [];
-    for (const note of this.parts.characterNotes.filesIn(campaignFolder)) {
-      const file = this.parts.files.getFileByPath(note.path);
-      if (file !== null) files.push(file);
-    }
-    return files;
+  notesIn(campaignFolder: string): readonly NoteRef[] {
+    return this.parts.characterNotes.filesIn(campaignFolder);
   }
 
   showSheet(path: string): void {

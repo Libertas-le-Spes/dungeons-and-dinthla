@@ -1,4 +1,3 @@
-import type { TFile } from "obsidian";
 import { fallenNotePathOf } from "../../../campaign/paths/campaign-folders";
 import { noteAtPathOf } from "../../../campaign/paths/note-at-path";
 import { DEPARTED_STANDING, hasLeftPlay, STANDING_PROPERTY } from "../../layout/standing";
@@ -20,6 +19,7 @@ import { isInCharacters } from "../../../campaign/paths/character-membership";
 import { textOfNote } from "./read-note";
 import type { LeavingActions, LeavingFiles, SwitchPlan } from "./switch-plan";
 import { marked, markedWithSnapshot, markFailed, movedToFallen, moveToFallenFailed, NOTE_UNREAD } from "./switch-words";
+import type { NoteRef } from "../../../host/notes/note-ref";
 
 interface MarkedNote {
   before: string;
@@ -34,7 +34,7 @@ export class OldMainSteps implements LeavingSteps {
     private readonly actions: LeavingActions,
     private readonly cast: CampaignCast,
     private readonly plan: SwitchPlan,
-    private readonly old: TFile,
+    private readonly old: NoteRef,
     private readonly typedLastDoing: string,
   ) {}
 
@@ -80,7 +80,7 @@ export class OldMainSteps implements LeavingSteps {
 
   private fallenPath(): string {
     const destination = fallenNotePathOf(this.plan.campaignFolder, this.old.basename);
-    const taken = noteAtPathOf(this.files.getFiles(), destination);
+    const taken = noteAtPathOf(this.files.files(), destination);
     if (taken !== null) throw fallenNoteExists(taken.basename);
     return destination;
   }

@@ -12,7 +12,7 @@ import { deletesPermanently } from "../../session-notes/removal/trash-option";
 
 type Gate = Pick<Gatekeeper, "files" | "fileActions" | "metadata" | "vaultSettings">;
 
-const KEPT_HERE_ONLY = "Only notes the gate handed out can be used here.";
+export const KEPT_HERE_ONLY = "Only notes the gate handed out can be used here.";
 
 interface CachedLink {
   readonly link: string;

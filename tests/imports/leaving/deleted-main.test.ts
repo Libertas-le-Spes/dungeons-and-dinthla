@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { App, TFile } from "obsidian";
 import { Refusal } from "../../../src/beyond/shape/refusal";
-import { GateCast } from "../../../src/imports/leaving/cast/gate-cast";
+import { NotesCast } from "../../../src/imports/leaving/cast/notes-cast";
 import { questionFor } from "../../../src/imports/leaving/questions/question-for";
 import { NoMainQuestion } from "../../../src/imports/leaving/questions/no-main-question";
 import type { OfferWiring } from "../../../src/imports/leaving/questions/offer-wiring";
@@ -11,13 +11,13 @@ import { CAMPAIGN, CAMPAIGN_NOTE, LeavingTable, SECOND, SECOND_AS_MAIN, SECOND_T
 class VaultMetadata {
   constructor(private readonly table: LeavingTable) {}
 
-  getFirstLinkpathDest(linkpath: string): TFile | null {
+  target(linkpath: string): TFile | null {
     const found = this.table.vault.allNotes().find((note) => note.basename === linkpath);
     if (found === undefined) return null;
     return found;
   }
 
-  fileToLinktext(file: TFile): string {
+  linkTextTo(file: TFile): string {
     return file.basename;
   }
 }
@@ -25,9 +25,9 @@ class VaultMetadata {
 function wiringFor(table: LeavingTable): OfferWiring {
   return {
     app: {} as App,
-    files: table.vault.gate,
-    actions: table.vault.actions,
-    cast: new GateCast(new VaultMetadata(table), table.vault.gate, table.vault.notes.store),
+    files: table.vault.notes.store,
+    actions: table.vault.notes.keeping,
+    cast: new NotesCast(new VaultMetadata(table), table.vault.notes.store),
     campaignFolderOf: () => CAMPAIGN,
     today: () => TODAY,
     tell: () => {},

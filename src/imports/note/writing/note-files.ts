@@ -1,3 +1,3 @@
-import type { FencedFiles } from "../../../fence/gate/fenced-files";
+import type { NoteStore } from "../../../host/notes/note-store";
 
-export type NoteFiles = Pick<FencedFiles, "process" | "read" | "create" | "createFolder" | "getFolderByPath" | "getFiles">;
+export type NoteFiles = Pick<NoteStore, "change" | "read" | "make" | "makeFolder" | "hasFolder" | "files">;

@@ -26,11 +26,11 @@ class NoMetadata {
     return null;
   }
 
-  getFirstLinkpathDest(): null {
+  target(): null {
     return null;
   }
 
-  fileToLinktext(file: TFile): string {
+  linkTextTo(file: TFile): string {
     return file.basename;
   }
 }
@@ -51,10 +51,9 @@ class NoOffers {
 function wiringWith(shownFolder: string | null, folderOfNote: string | null, vault = new FakeNoteVault(), online: OnlineSource = NO_ONLINE): BeyondWiring {
   return {
     app: {} as App,
-    files: vault.gate,
-    actions: vault.actions,
+    files: vault.notes.store,
+    actions: vault.notes.keeping,
     metadata: new NoMetadata(),
-    sessions: vault.notes.store,
     online,
     shownCampaignFolder: vi.fn().mockReturnValue(shownFolder),
     campaignFolderOf: vi.fn().mockReturnValue(folderOfNote),
