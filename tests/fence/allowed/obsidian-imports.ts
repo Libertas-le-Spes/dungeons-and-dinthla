@@ -22,7 +22,6 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "obsidian/views/mount/obsidian-mounter.ts": ["ToggleComponent"],
   "obsidian/views/mount/obsidian-wiring.ts": ["Keymap"],
   "reading/": ["Debouncer", "MarkdownPostProcessorContext", "MarkdownSectionInformation", "debounce"],
-  "references/new-names/": ["App", "ButtonComponent", "Setting"],
   "session-notes/": ["Component", "EventRef"],
   "settings/": ["App", "ButtonComponent", "DropdownComponent", "FuzzySuggestModal", "Notice", "Plugin", "PluginSettingTab", "Setting", "TFile"],
   "views/": ["App", "ButtonComponent", "Component", "Keymap", "Modal", "Notice", "PaneType", "parseLinktext"],

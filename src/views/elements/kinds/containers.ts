@@ -293,6 +293,7 @@ export class FieldRow implements ViewElement {
     readonly description: string | null,
     readonly controls: readonly ViewElement[],
     readonly parts: ElementParts = {},
+    readonly descriptionParts: ElementParts = {},
   ) {}
 
   mountOn(mounter: Mounter, into: MountPlace): void {

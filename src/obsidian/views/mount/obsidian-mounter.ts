@@ -144,7 +144,7 @@ export class ObsidianMounter implements Mounter {
     const row = partsOn(elementOf(into).createDiv({ cls: "setting-item" }), element.parts, this.kit);
     const info = row.createDiv({ cls: "setting-item-info" });
     info.createDiv({ cls: "setting-item-name", text: element.name });
-    const description = info.createDiv({ cls: "setting-item-description" });
+    const description = partsOn(info.createDiv({ cls: "setting-item-description" }), element.descriptionParts, this.kit);
     if (element.description !== null) description.setText(element.description);
     return placed(row.createDiv({ cls: "setting-item-control" }));
   }

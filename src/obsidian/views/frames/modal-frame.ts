@@ -48,10 +48,23 @@ export class ModalFrame extends Modal {
   }
 }
 
-export class ObsidianDialogs implements Dialogs {
+class FramedDialogs implements Dialogs {
+  constructor(private readonly opens: (dialog: ShownDialog) => void) {}
+
+  open(dialog: ShownDialog): void {
+    this.opens(dialog);
+  }
+}
+
+class FrameOpening {
   constructor(private readonly app: App) {}
 
   open(dialog: ShownDialog): void {
     new ModalFrame(this.app, dialog).open();
   }
+}
+
+export function obsidianDialogsOf(app: App): Dialogs {
+  const opening = new FrameOpening(app);
+  return new FramedDialogs(opening.open.bind(opening));
 }
