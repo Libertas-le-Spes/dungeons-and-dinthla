@@ -1,0 +1,57 @@
+.dd-tokens {
+  --dd-hue-mix: 30%;
+  --dd-chroma-boost: 3;
+  --dd-soft-mix: 6%;
+
+  --dd-surface-page: var(--dd-background-primary);
+  --dd-surface-sunken: var(--dd-background-secondary);
+  --dd-surface-card: var(--dd-background-primary-alt);
+  --dd-surface-raised: var(--dd-background-secondary-alt);
+  --dd-surface-hover: var(--dd-background-modifier-hover);
+  --dd-surface-active: var(--dd-background-modifier-active-hover);
+  --dd-surface-overlay: var(--dd-background-modifier-cover);
+  --dd-surface-statblock: var(--dd-background-secondary);
+
+  --dd-text-strong: var(--dd-text-normal);
+  --dd-text-body: var(--dd-text-normal);
+  --dd-text-muted-ui: var(--dd-text-muted);
+  --dd-text-faint-ui: color-mix(in srgb, var(--dd-text-muted) 96%, transparent);
+  --dd-text-link: oklch(from color-mix(in oklch, var(--dd-text-accent) var(--dd-hue-mix), var(--dd-text-normal)) l calc(c * var(--dd-chroma-boost)) h);
+
+  --dd-border-subtle: var(--dd-background-modifier-border);
+  --dd-border-strong: color-mix(in oklab, var(--dd-background-modifier-border-hover) 40%, var(--dd-text-normal));
+  --dd-border-focus: var(--dd-background-modifier-border-focus);
+
+  --dd-accent: var(--dd-interactive-accent);
+  --dd-accent-hover: color-mix(in oklab, var(--dd-interactive-accent) 88%, var(--dd-text-normal));
+  --dd-accent-press: color-mix(in oklab, var(--dd-interactive-accent) 76%, var(--dd-text-normal));
+  --dd-accent-soft: color-mix(in srgb, var(--dd-interactive-accent) 18%, transparent);
+
+  --dd-marker-question: oklch(from color-mix(in oklch, var(--dd-color-blue) var(--dd-hue-mix), var(--dd-text-normal)) l calc(c * var(--dd-chroma-boost)) h);
+  --dd-marker-question-soft: color-mix(in srgb, var(--dd-color-blue) var(--dd-soft-mix), transparent);
+  --dd-marker-quest: oklch(from color-mix(in oklch, var(--dd-color-yellow) var(--dd-hue-mix), var(--dd-text-normal)) l calc(c * var(--dd-chroma-boost)) h);
+  --dd-marker-quest-soft: color-mix(in srgb, var(--dd-color-yellow) var(--dd-soft-mix), transparent);
+  --dd-marker-ledger: oklch(from color-mix(in oklch, var(--dd-color-green) var(--dd-hue-mix), var(--dd-text-normal)) l calc(c * var(--dd-chroma-boost)) h);
+  --dd-marker-ledger-soft: color-mix(in srgb, var(--dd-color-green) var(--dd-soft-mix), transparent);
+  --dd-marker-link: var(--dd-text-link);
+  --dd-marker-link-soft: color-mix(in srgb, var(--dd-text-accent) var(--dd-soft-mix), transparent);
+
+  --dd-state-known: var(--dd-text-normal);
+  --dd-state-unknown: var(--dd-text-faint-ui);
+  --dd-state-unknown-soft: var(--dd-background-modifier-hover);
+  --dd-state-override: oklch(from color-mix(in oklch, var(--dd-color-purple) var(--dd-hue-mix), var(--dd-text-normal)) l calc(c * var(--dd-chroma-boost)) h);
+  --dd-state-override-soft: color-mix(in srgb, var(--dd-color-purple) var(--dd-soft-mix), transparent);
+  --dd-state-carried: oklch(from color-mix(in oklch, var(--dd-color-cyan) var(--dd-hue-mix), var(--dd-text-normal)) l calc(c * var(--dd-chroma-boost)) h);
+  --dd-state-carried-soft: color-mix(in srgb, var(--dd-color-cyan) var(--dd-soft-mix), transparent);
+  --dd-state-imported: oklch(from color-mix(in oklch, var(--dd-color-blue) var(--dd-hue-mix), var(--dd-text-normal)) l calc(c * var(--dd-chroma-boost)) h);
+  --dd-state-imported-soft: color-mix(in srgb, var(--dd-color-blue) var(--dd-soft-mix), transparent);
+  --dd-state-history: var(--dd-text-muted);
+  --dd-state-danger: oklch(from color-mix(in oklch, var(--dd-text-error) var(--dd-hue-mix), var(--dd-text-normal)) l calc(c * var(--dd-chroma-boost)) h);
+  --dd-state-danger-soft: color-mix(in srgb, var(--dd-text-error) var(--dd-soft-mix), transparent);
+  --dd-text-on-danger: var(--dd-background-primary);
+
+  --dd-statblock-heading: var(--dd-text-link);
+  --dd-statblock-rule: var(--dd-interactive-accent);
+  --dd-statblock-text: var(--dd-text-normal);
+  --dd-statblock-subtitle: var(--dd-text-muted);
+}

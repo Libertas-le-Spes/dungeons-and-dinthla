@@ -1,0 +1,15 @@
+.dd-marker {
+  font-weight: var(--dd-font-bold);
+}
+
+.dd-marker-question {
+  color: var(--dd-marker-question);
+}
+
+.dd-marker-quest {
+  color: var(--dd-marker-quest);
+}
+
+.dd-marker-ledger {
+  color: var(--dd-marker-ledger);
+}

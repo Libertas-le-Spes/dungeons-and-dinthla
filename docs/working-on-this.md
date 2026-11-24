@@ -37,6 +37,8 @@ The plugin's own code is meant to work with any notes program, with Obsidian as 
 
 What the plugin's own code needs from a notes program is written as ports in `src/host/` (notes, keeping, showing, rules, online), interfaces only. `src/fence/notes/` is the plugin's own fence over the notes ports: every path and handle passes the same `Fence` rules, it refuses any handle it didn't hand out, and it tells a `WriteReport` of each write it lets through. Obsidian's answers are in `src/obsidian/notes/`, built over the gate, which stays behind as a second wall. `tests/host/` holds an in-memory notes program and the contract every notes program must keep.
 
+The look follows the same split. `styles/plugin/` holds every rule, written only with the plugin's own variables (`--dd-…`) and classes (`dd-…`); `styles/plugin/defaults.css` gives the non-colour variables plain values for a program with no theme. `styles/obsidian/theme.css` maps each `--dd-` variable that stands for one of Obsidian's to it, one per line, on `.dd-tokens`, the same root the plugin's own colours already resolve on. `tests/styles/plugin-styles.test.ts` keeps it so, with a frozen list of the few Obsidian pieces the plugin's styles still name.
+
 Files that break either today are listed by area in `tests/build/obsidian-ties/`. A file may leave a list, never join one, and a listed file that no longer breaks either rule fails a test until it is taken off. When a commit fixes a file, delete its line.
 
 ## Moving files

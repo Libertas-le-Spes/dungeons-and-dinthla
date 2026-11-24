@@ -9,7 +9,7 @@ export function readStyles(file: string): string {
 }
 
 export function importedFiles(): string[] {
-  return [...readStyles("index.css").matchAll(/@import "\.\/([\w-]+\.css)";/g)].map(([, file]) => file!);
+  return [...readStyles("index.css").matchAll(/@import "\.\/([\w/-]+\.css)";/g)].map(([, file]) => file!);
 }
 
 function textColourValues(): string[] {
@@ -17,10 +17,14 @@ function textColourValues(): string[] {
   return [...css.matchAll(TEXT_COLOUR)].map(([, value]) => value!.trim());
 }
 
+const PLUGIN_TOKEN = "dd-";
+
 function tokenOf(value: string): string | null {
   const token = TOKEN.exec(value);
   if (token === null) return null;
-  return token[1]!;
+  const name = token[1]!;
+  if (name.startsWith(PLUGIN_TOKEN)) return name.slice(PLUGIN_TOKEN.length);
+  return name;
 }
 
 function isClassified(value: string): boolean {
