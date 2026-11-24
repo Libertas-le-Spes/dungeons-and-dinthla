@@ -38,12 +38,13 @@ function foldersUnder(path: string): string[] {
   return found;
 }
 
-function breakingCoreFiles(): string[] {
-  const breaking: string[] = [];
-  for (const file of filesUnder(SOURCE)) {
-    if (coreBreachesOf(reader, file, readFileSync(file, "utf8")).length > 0) breaking.push(relative(SOURCE, file));
-  }
-  return breaking;
+const SOURCE_PATHS = filesUnder(SOURCE).map((file) => relative(SOURCE, file));
+
+const TIED = tiedPaths(await allTies());
+
+function breaches(path: string): string[] {
+  const file = join(SOURCE, path);
+  return coreBreachesOf(reader, file, readFileSync(file, "utf8"));
 }
 
 function madeUp(path: string, text: string): string[] {
@@ -59,13 +60,8 @@ function coreAreas(): string[] {
 }
 
 describe("the plugin's own code, kept apart from Obsidian", () => {
-  it("lets no core file load Obsidian or reach the Obsidian side, but for the files still listed", async () => {
-    const tied = tiedPaths(await allTies());
-    const unlisted: string[] = [];
-    for (const path of breakingCoreFiles()) {
-      if (!tied.includes(path)) unlisted.push(path);
-    }
-    expect(unlisted).toEqual([]);
+  it.each(SOURCE_PATHS.filter((path) => !TIED.includes(path)))("lets %s load nothing of Obsidian and reach nothing on the Obsidian side, as it isn't listed", (path) => {
+    expect(breaches(path)).toEqual([]);
   });
 
   it("lists only existing core files, each under its own area, never the Obsidian side or a folder", async () => {

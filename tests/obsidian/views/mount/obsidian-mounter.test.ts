@@ -36,7 +36,7 @@ describe("Obsidian's mount step", () => {
 
   it("sets every attribute a part names, by its own name", () => {
     const into = root();
-    mountTree(new Div({ role: "button", tabIndex: 0, dataPath: "D&D/a.md", dataLine: 3, dataName: "AC", dataItem: "Rope", dataState: "held", id: "dd-1", title: "Rope", current: "page", selected: true, pressed: false, expanded: true, controls: "dd-2", hasPopup: "listbox", labelledBy: "dd-3", hiddenFromReaders: true }), into);
+    mountTree(new Div({ role: "button", tabIndex: 0, dataPath: "D&D/a.md", dataLine: 3, dataName: "AC", dataItem: "Rope", dataState: "held", id: "dd-1", title: "Rope", current: "page", selected: true, pressed: false, controls: "dd-2", hasPopup: "listbox", labelledBy: "dd-3", hiddenFromReaders: true }), into);
     const div = into.firstElementChild!;
     expect(Object.fromEntries(Array.from(div.attributes).map((attribute) => [attribute.name, attribute.value]))).toEqual({
       role: "button",
@@ -51,7 +51,6 @@ describe("Obsidian's mount step", () => {
       "aria-current": "page",
       "aria-selected": "true",
       "aria-pressed": "false",
-      "aria-expanded": "true",
       "aria-controls": "dd-2",
       "aria-haspopup": "listbox",
       "aria-labelledby": "dd-3",

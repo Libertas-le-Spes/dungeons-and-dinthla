@@ -12,6 +12,7 @@ import { newCoin } from "./new-coin-change";
 import { coinEntryEdit, entryToEdit } from "./coin-entry";
 import { CoinModal, type CoinOutcome } from "./coin-modal";
 import type { Gate } from "../../fence/gate/gatekeeper";
+import { OBSIDIAN_TELLING } from "../../obsidian/views/frames/obsidian-telling";
 
 const NO_SESSION = "Start a session first: coin is written into a session note.";
 
@@ -22,7 +23,7 @@ export function openAddCoin(app: App, gate: Gate, store: CampaignStore, onClosed
     return;
   }
   const wanted = { activePath, earliestSession: 0, noSession: NO_SESSION };
-  const sessionPath = sessionForDialog(gate.files, folder, wanted);
+  const sessionPath = sessionForDialog(gate.notes.store, OBSIDIAN_TELLING, folder, wanted);
   if (sessionPath === null) return;
   const writer = new SessionChangeWriter(gate.notes.store, syntax);
   const opened = new OpenedSession(gate.notes.store, sessionPath);

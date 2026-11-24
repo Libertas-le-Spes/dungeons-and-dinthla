@@ -18,6 +18,7 @@ import { TrackItemModal } from "./track-item-modal";
 import { textToTrack } from "./text-to-track";
 import { trackedCountOf, trackedItemOf } from "./tracked-item";
 import { TrackingSave } from "./tracking-save";
+import { OBSIDIAN_TELLING } from "../../obsidian/views/frames/obsidian-telling";
 
 export const NO_SESSION = "Start a session first: tracked items are written into a session note.";
 export const NOT_THE_SHOWN_CAMPAIGN = "Show this character's campaign first, then track its items.";
@@ -79,7 +80,7 @@ export class FundsTracking implements ItemTracking {
       new Notice(NOT_AS_IMPORTED);
       return;
     }
-    const sessionPath = sessionForDialog(this.gate.files, folder, { activePath: null, earliestSession: 0, noSession: NO_SESSION });
+    const sessionPath = sessionForDialog(this.gate.notes.store, OBSIDIAN_TELLING, folder, { activePath: null, earliestSession: 0, noSession: NO_SESSION });
     if (sessionPath === null) return;
     const holder = `[[${this.gate.notes.links.linkTextTo(file, sessionPath, true)}]]`;
     const text = textToTrack(this.store.current.items, written);

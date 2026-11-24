@@ -21,6 +21,17 @@ export class KeyBinding implements ElementBinding {
   }
 }
 
+export class EnterBinding implements ElementBinding {
+  constructor(
+    private readonly needsModifier: boolean,
+    private readonly action: PageAction,
+  ) {}
+
+  wireOn(wiring: BindingWiring): void {
+    wiring.enter(this.needsModifier, this.action);
+  }
+}
+
 export class ChangeBinding implements ElementBinding {
   constructor(private readonly field: TextChange) {}
 

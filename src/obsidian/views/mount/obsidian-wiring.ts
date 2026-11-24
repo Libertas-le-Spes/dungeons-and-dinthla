@@ -2,6 +2,7 @@ import { Keymap } from "obsidian";
 import type { BindingWiring, HandleWanted, TextChange } from "../../../views/elements/bindings/binding-wiring";
 import { HERE, NEW_TAB, type OpenPlace } from "../../../views/elements/bindings/open-place";
 import type { PageAction } from "../../../views/elements/bindings/page-action";
+import { isSubmit } from "../../../views/dialogs/keys";
 import { ObsidianHandle } from "./obsidian-handle";
 
 function placeOf(event: MouseEvent | KeyboardEvent): OpenPlace {
@@ -27,6 +28,19 @@ class Keys {
     if (event.eventPhase !== event.AT_TARGET || !this.keys.includes(event.key)) return;
     event.preventDefault();
     this.action.run(placeOf(event));
+  }
+}
+
+class Enter {
+  constructor(
+    private readonly needsModifier: boolean,
+    private readonly action: PageAction,
+  ) {}
+
+  pressed(event: KeyboardEvent): void {
+    if (!isSubmit(event, this.needsModifier)) return;
+    event.preventDefault();
+    this.action.run(HERE);
   }
 }
 
@@ -87,6 +101,11 @@ export class ObsidianWiring implements BindingWiring {
   keys(keys: readonly string[], action: PageAction): void {
     const listener = new Keys(keys, action);
     this.el.addEventListener("keydown", listener.pressed.bind(listener));
+  }
+
+  enter(needsModifier: boolean, action: PageAction): void {
+    const enter = new Enter(needsModifier, action);
+    this.el.addEventListener("keydown", enter.pressed.bind(enter));
   }
 
   change(field: TextChange): void {

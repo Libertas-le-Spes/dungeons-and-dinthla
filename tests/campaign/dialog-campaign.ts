@@ -8,6 +8,7 @@ import type { Gate } from "../../src/fence/gate/gatekeeper";
 import { notesOverFakes } from "../host/notes-over-fakes";
 import { openedModals } from "../stubs/obsidian";
 import { STUB_SYNTAX } from "../host/stub-syntax";
+import { ModalFrame } from "../../src/obsidian/views/frames/modal-frame";
 
 function numberOf(path: string): number {
   const found = /(\d+)\.md$/.exec(path);
@@ -138,7 +139,9 @@ export class DialogCampaign {
 }
 
 export function lastDialog<T>(): T {
-  return openedModals[openedModals.length - 1] as unknown as T;
+  const modal = openedModals[openedModals.length - 1];
+  if (modal instanceof ModalFrame) return modal.dialog as unknown as T;
+  return modal as unknown as T;
 }
 
 const SESSION_TWO = "Pale Moon/Sessions/Session 2.md";

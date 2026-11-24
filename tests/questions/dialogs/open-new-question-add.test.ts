@@ -1,18 +1,16 @@
 import { describe, expect, it } from "vitest";
-import type { App } from "obsidian";
 import { ANSWER_GOES_ELSEWHERE, SAME_TEXT_AS_EXISTING } from "../../../src/questions/writing/current-question";
 import type { NewQuestion } from "../../../src/questions/writing/new-question";
 import { openNewQuestion } from "../../../src/questions/dialogs/open-new-question";
 import { DialogCampaign, lastDialog, SESSION_TWO_LOST } from "../../campaign/dialog-campaign";
 import { STUB_SYNTAX } from "../../host/stub-syntax";
+import { OBSIDIAN_SHOWING } from "../../host/showing/obsidian-showing";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
 
-const app = {} as App;
-
 function addThroughDialog(campaign: DialogCampaign, entry: NewQuestion): Promise<boolean> {
-  openNewQuestion(app, campaign.gate, campaign.store, () => undefined, STUB_SYNTAX);
+  openNewQuestion(OBSIDIAN_SHOWING, campaign.gate.notes.store, campaign.store, () => undefined, STUB_SYNTAX);
   return lastDialog<{ add(entry: NewQuestion): Promise<boolean> }>().add(entry);
 }
 
@@ -39,7 +37,7 @@ describe("the new question dialog", () => {
 describe("the new question dialog, when the session it writes into is gone", () => {
   it.each(SESSION_TWO_LOST)("refuses with the session gone words, writing nothing when its session was %s", async (_how, lost) => {
     const campaign = new DialogCampaign({ [ONE]: "We rode on.\n", [TWO]: "We camped.\n" });
-    openNewQuestion(app, campaign.gate, campaign.store, () => undefined, STUB_SYNTAX);
+    openNewQuestion(OBSIDIAN_SHOWING, campaign.gate.notes.store, campaign.store, () => undefined, STUB_SYNTAX);
     lost(campaign);
     await expect(lastDialog<{ add(entry: NewQuestion): Promise<boolean> }>().add({ question: "Who", answer: "" })).rejects.toThrow("Session 2 was moved or deleted, so nothing was written.");
     expect(campaign.writes).toBe(0);

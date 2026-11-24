@@ -38,7 +38,8 @@ const INNER_FOLDERS: InnerFolder[] = [
   { folder: "characters/facts", reaches: ["characters/facts", "campaign", "notes"] },
   { folder: "characters/imported", reaches: ["characters/imported", "characters/facts", "imports/layout", "campaign", "host", "kinds", "notes"] },
   { folder: "views/pending", reaches: ["views/pending"] },
-  { folder: "views/dialogs", reaches: ["views/dialogs", "campaign", "kind-notes"] },
+  { folder: "views/elements", reaches: ["views/elements"] },
+  { folder: "views/dialogs", reaches: ["views/dialogs", "views/elements", "campaign", "kind-notes", "host"] },
   { folder: "imports", reaches: ["imports", "imports/layout", "beyond", "online", "names", "fence/gate", "campaign", "host", "views/dialogs", "views/pending"] },
 ];
 

@@ -15,7 +15,6 @@ function setReaderParts(el: HTMLElement, parts: ElementParts): void {
   if (parts.current !== undefined) el.setAttr("aria-current", parts.current);
   if (parts.selected !== undefined) el.setAttr("aria-selected", String(parts.selected));
   if (parts.pressed !== undefined) el.setAttr("aria-pressed", String(parts.pressed));
-  if (parts.expanded !== undefined) el.setAttr("aria-expanded", String(parts.expanded));
   if (parts.controls !== undefined) el.setAttr("aria-controls", parts.controls);
   if (parts.hasPopup !== undefined) el.setAttr("aria-haspopup", parts.hasPopup);
   if (parts.hiddenFromReaders === true) el.setAttr("aria-hidden", "true");

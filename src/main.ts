@@ -101,6 +101,8 @@ import { CampaignAgreement } from "./imports/agreement/campaign-agreement";
 import { KeptAgreement } from "./imports/agreement/kept-agreement";
 import { onlineImportFor } from "./imports/dialog/online/online-wiring";
 import { OBSIDIAN_BEYOND_CALL } from "./obsidian/online/obsidian-beyond-call";
+import { OBSIDIAN_TELLING } from "./obsidian/views/frames/obsidian-telling";
+import { ObsidianDialogs } from "./obsidian/views/frames/modal-frame";
 import type { CharacterNotes } from "./characters/reading/character-notes";
 
 const TYPING_PAUSE_MS = 250;
@@ -134,6 +136,7 @@ export default class DungeonsAndDinthla extends Plugin {
   });
   private readonly onlineImport = onlineImportFor(this.app, this.keptAgreement, OBSIDIAN_BEYOND_CALL);
   private chosen = this.chosenCampaignFrom(this.settingsSaver);
+  private readonly showing = { dialogs: new ObsidianDialogs(this.app), telling: OBSIDIAN_TELLING };
 
   override async onload(): Promise<void> {
     await this.loadSettings();
@@ -171,10 +174,10 @@ export default class DungeonsAndDinthla extends Plugin {
         void openLink(this.app, linkPlace, linktext, sourcePath, newLeaf),
     };
     const openQuestionAt = (source: Source, onClosed: (changed: boolean) => void) =>
-      openQuestion(this.app, gate, this.store, source, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app), OBSIDIAN_SYNTAX);
+      openQuestion(this.showing, this.notes.store, this.store, source, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app), OBSIDIAN_SYNTAX);
     const createQuestion = {
       label: "New question",
-      open: (returnFocus: () => void) => openNewQuestion(this.app, gate, this.store, returnFocus, OBSIDIAN_SYNTAX),
+      open: (returnFocus: () => void) => openNewQuestion(this.showing, this.notes.store, this.store, returnFocus, OBSIDIAN_SYNTAX),
     };
     const openQuestAt = (source: Source, onClosed: (changed: boolean) => void) =>
       openQuest(this.app, gate, this.store, source, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app), OBSIDIAN_SYNTAX);

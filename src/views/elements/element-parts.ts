@@ -10,7 +10,6 @@ export interface ElementParts {
   readonly current?: string;
   readonly selected?: boolean;
   readonly pressed?: boolean;
-  readonly expanded?: boolean;
   readonly controls?: string;
   readonly hasPopup?: string;
   readonly hiddenFromReaders?: boolean;

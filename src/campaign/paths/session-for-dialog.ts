@@ -1,14 +1,19 @@
-import { Notice } from "obsidian";
-import type { FencedFiles } from "../../fence/gate/fenced-files";
+import type { NoteStore } from "../../host/notes/note-store";
+import type { Telling } from "../../host/showing/telling";
 import { NoSessionToWrite, sessionToWrite, type SessionWanted } from "./session-to-write";
 
-export function sessionForDialog(files: Pick<FencedFiles, "getFiles">, campaignFolder: string, wanted: SessionWanted): string | null {
-  const paths = files.getFiles().map((file) => file.path);
+function pathsOf(files: Pick<NoteStore, "files">): string[] {
+  const paths: string[] = [];
+  for (const file of files.files()) paths.push(file.path);
+  return paths;
+}
+
+export function sessionForDialog(files: Pick<NoteStore, "files">, telling: Pick<Telling, "say">, campaignFolder: string, wanted: SessionWanted): string | null {
   try {
-    return sessionToWrite(campaignFolder, paths, wanted);
+    return sessionToWrite(campaignFolder, pathsOf(files), wanted);
   } catch (error) {
     if (!(error instanceof NoSessionToWrite)) throw error;
-    new Notice(error.message);
+    telling.say(error.message);
     return null;
   }
 }
