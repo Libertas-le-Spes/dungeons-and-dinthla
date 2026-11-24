@@ -1,4 +1,4 @@
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../../host/notes/note-ref";
 import { INVENTORY_SECTION } from "../../../imports/layout/plugin-sections";
 import { addActionButton } from "../drawing/action-button";
 import { isImporterWritten } from "../lists/importer-written";
@@ -22,7 +22,7 @@ function writtenOf(entries: readonly InventoryEntry[]): string[] {
 
 export class InventoryPanel implements SheetPanel {
   constructor(
-    private readonly file: TFile,
+    private readonly file: NoteRef,
     private readonly tracking: ItemTracking,
   ) {}
 

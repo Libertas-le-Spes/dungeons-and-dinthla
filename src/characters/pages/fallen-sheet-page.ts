@@ -1,4 +1,5 @@
-import { Component, type TFile } from "obsidian";
+import { Component } from "obsidian";
+import type { NoteRef } from "../../host/notes/note-ref";
 import type { LinkActions } from "../../views/lists/linked-text";
 import { PendingWork } from "../../views/pending/pending-work";
 import type { CharacterSheet, SheetValue } from "../reading/character-sheet";
@@ -49,7 +50,7 @@ export class FallenSheetPage extends Component {
 
   constructor(
     private readonly contentEl: HTMLElement,
-    private readonly file: TFile,
+    private readonly file: NoteRef,
     private readonly needs: FallenNeeds,
   ) {
     super();

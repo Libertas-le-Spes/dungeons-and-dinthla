@@ -14,17 +14,19 @@ import {
 import { NewCampaignModal } from "./campaign/writing/new-campaign-modal";
 import { CampaignStore } from "./campaign/reading/campaign-store";
 import { SavedCampaign } from "./campaign/reading/saved-campaign";
-import { characterNotesOf } from "./characters/reading/character-notes";
+import { HostCharacterNotes } from "./characters/reading/character-notes";
 import { addEditCharacterItem, editActiveCharacter, editCharacter, openNewCharacter } from "./characters/editing/open-character";
 import { chooseSheetValue } from "./characters/editing/open-character-sheet";
 import { OldCharactersBases } from "./characters/retiring/old-characters-bases";
 import { OBSIDIAN_SPELLING } from "./obsidian/notes/obsidian-spelling";
 import { FencedNotes } from "./fence/notes/fenced-notes";
+import type { NoteRef } from "./host/notes/note-ref";
+import { readSessions } from "./campaign/reading/read-campaign";
 import { ObsidianNotes } from "./obsidian/notes/obsidian-notes";
 import { OBSIDIAN_SYNTAX } from "./obsidian/notes/obsidian-syntax";
 import { GATE_REPORTS_WRITES } from "./obsidian/notes/quiet-report";
-import { sheetNotesOf } from "./characters/reading/sheet-notes";
-import { mentionNotesOf } from "./characters/reading/mention-notes";
+import { HostSheetNotes } from "./characters/reading/sheet-notes";
+import { HostMentionNotes } from "./characters/reading/mention-notes";
 import { editorTextOf } from "./campaign/reading/editor-text";
 import { markerColouring } from "./editor/marker-decorations";
 import type { LookupOpeners } from "./kinds/lookup-openers";
@@ -112,6 +114,7 @@ const PAGE_OPENERS: { page: PageId; id: string; name: string; icon: string }[] =
 
 export default class DungeonsAndDinthla extends Plugin {
   private readonly gate = new Gatekeeper(this.app, () => this.campaignsFolderSetting.path);
+  private readonly notes = new FencedNotes(new ObsidianNotes(this.gate), this.gate.fence, GATE_REPORTS_WRITES);
   private settingsSaver = this.settingsSaverOf(settingsOf(null, this.gate.configDir));
   private campaignsFolderSetting = this.campaignsFolderSettingFrom(this.settingsSaver);
   private readonly store = new CampaignStore(this.gate.files);
@@ -184,19 +187,21 @@ export default class DungeonsAndDinthla extends Plugin {
       openItemDialog(this.app, gate, this.store, name, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app), source);
     const openLedgerEntry = ledgerEntryOpener(this.app, gate, this.store, openItem);
     const campaignFolders = () => this.campaignFolders();
-    const characterNotes = characterNotesOf(gate, campaignFolders);
-    const sheetNotes = sheetNotesOf(gate, campaignFolders);
+    const sessionsOf = (campaignFolder: string) => readSessions(gate.files, campaignFolder);
+    const characterParts = { notes: this.notes, campaignFolders, sessionsOf };
+    const characterNotes = new HostCharacterNotes(characterParts);
+    const sheetNotes = new HostSheetNotes(characterParts);
     const beyond = new BeyondOpeners(new PluginBeyondWiring({ app: this.app, files: gate.files, actions: gate.fileActions, metadata: gate.metadata, online: this.onlineImport, store: this.store, characterNotes, campaignFolders }));
     const sheetActions = {
       ...actions,
-      editCharacter: (file: TFile) => editCharacter(this.app, gate, characterNotes, file),
-      chooseValue: (file: TFile, value: SheetValue, onClosed: () => void) =>
+      editCharacter: (file: NoteRef) => editCharacter(this.app, gate, characterNotes, file),
+      chooseValue: (file: NoteRef, value: SheetValue, onClosed: () => void) =>
         void chooseSheetValue(this.app, gate, this.store, sheetNotes, file, value, actions.openRow, onClosed),
       updateFromBeyond: beyond.updateFromBeyond.bind(beyond),
       depart: beyond.depart.bind(beyond),
       tracking: new FundsTracking(this.app, gate, this.store, () => this.campaignFolders()),
     };
-    const mentionNotes = mentionNotesOf(gate, campaignFolders);
+    const mentionNotes = new HostMentionNotes({ ...characterParts, syntax: OBSIDIAN_SYNTAX });
     const newCharacter = (returnFocus: () => void) => openNewCharacter(this.app, gate, this.store.campaignFolder, returnFocus);
     const creators = { newCharacter, importCharacter: beyond.importCharacter.bind(beyond), makeMain: beyond.makeMain.bind(beyond) };
     const shownPath = () => shownCampaignPathOf(this.app.workspace);
@@ -287,8 +292,8 @@ export default class DungeonsAndDinthla extends Plugin {
       mark: { swept: () => this.settingsSaver.settings.charactersBasesSwept, keepSwept: () => this.settingsSaver.save({ charactersBasesSwept: true }) },
       campaignsFolderChosen: () => this.campaignsFolderSetting.path !== null,
       campaignFolders: () => this.campaignFolders(),
-      fileAt: (path: string) => this.gate.files.getFileByPath(path),
-      trash: (file: TFile) => this.gate.fileActions.trashFile(file),
+      fileAt: (path: string) => this.notes.store.note(path),
+      trash: (note: NoteRef) => this.notes.keeping.throwAway(note),
       tell: (words: string) => new Notice(words),
     });
     bases.sweep().catch((error: unknown) => new Notice(`Couldn't remember that the old Characters.base files were dealt with: ${messageOf(error)}`));
@@ -486,7 +491,7 @@ export default class DungeonsAndDinthla extends Plugin {
     const saved = new SavedCampaign({ shown: this.store, files: gate.files, metadata: gate.metadata, failed: notRead });
     const say = (message: string) => new Notice(message, NOTICE_STAYS_UNTIL_DISMISSED);
     const failed = (error: unknown) => new Notice(`Couldn't write an item's note: ${messageOf(error)}`);
-    const notes = new FencedNotes(new ObsidianNotes(gate), gate.fence, GATE_REPORTS_WRITES);
+    const notes = this.notes;
     const syntax = OBSIDIAN_SYNTAX;
     const items = new ItemNotes({ store: saved, notes, syntax, failed, say });
     const made = new NotesMade(this.settingsSaver);
@@ -597,7 +602,12 @@ class PluginBeyondWiring implements BeyondWiring {
   }
 
   notesIn(campaignFolder: string): readonly TFile[] {
-    return this.parts.characterNotes.filesIn(campaignFolder);
+    const files: TFile[] = [];
+    for (const note of this.parts.characterNotes.filesIn(campaignFolder)) {
+      const file = this.parts.files.getFileByPath(note.path);
+      if (file !== null) files.push(file);
+    }
+    return files;
   }
 
   showSheet(path: string): void {

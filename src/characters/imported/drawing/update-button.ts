@@ -1,16 +1,16 @@
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../../host/notes/note-ref";
 import type { ButtonAction } from "./action-button";
 import { addBeyondButton } from "./beyond-button";
 
 export const UPDATE_FROM_BEYOND = "Update from D&D Beyond";
 
 export interface UpdateAction {
-  updateFromBeyond(file: TFile, returnFocus: () => void): void;
+  updateFromBeyond(file: NoteRef, returnFocus: () => void): void;
 }
 
 class UpdateRun implements ButtonAction {
   constructor(
-    private readonly file: TFile,
+    private readonly file: NoteRef,
     private readonly action: UpdateAction,
   ) {}
 
@@ -19,6 +19,6 @@ class UpdateRun implements ButtonAction {
   }
 }
 
-export function addUpdateButton(head: HTMLElement, file: TFile, action: UpdateAction): void {
+export function addUpdateButton(head: HTMLElement, file: NoteRef, action: UpdateAction): void {
   addBeyondButton(head, UPDATE_FROM_BEYOND, new UpdateRun(file, action));
 }

@@ -1,16 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
-import { Component, type TFile } from "obsidian";
+import { Component } from "obsidian";
+import type { NoteRef } from "../../../src/host/notes/note-ref";
+import { fileAt } from "../../stubs/note-files";
 import { ALL_CHARACTERS, CharacterPage } from "../../../src/characters/pages/character-page";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
-const MIRA = { path: "Pale Moon/Characters/Mira.md", basename: "Mira" } as TFile;
+const MIRA = fileAt("Pale Moon/Characters/Mira.md");
 
 class FakeSheet extends Component {
   loaded = false;
 
   constructor(
     readonly contentEl: HTMLElement,
-    readonly file: TFile,
+    readonly file: NoteRef,
   ) {
     super();
   }
@@ -29,7 +31,7 @@ function openPage() {
   const root = obsidianDocument().createElement("div");
   root.createDiv({ text: "left from the page before" });
   const sheets: FakeSheet[] = [];
-  const makeSheet = (contentEl: HTMLElement, file: TFile) => {
+  const makeSheet = (contentEl: HTMLElement, file: NoteRef) => {
     const sheet = new FakeSheet(contentEl, file);
     sheets.push(sheet);
     return sheet;

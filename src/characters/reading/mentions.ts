@@ -1,4 +1,4 @@
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../host/notes/note-ref";
 import type { Source } from "../../campaign/record/campaign";
 import { campaignFolderOf, campaignNameOf } from "../../campaign/paths/campaign-folders";
 import { sessionLabelOf, sessionNumberOf } from "../../campaign/paths/session-file";
@@ -67,7 +67,7 @@ function newestSessionFirst(first: SessionPlace, second: SessionPlace, ownCampai
   return first.path.localeCompare(second.path);
 }
 
-export async function readMentions(file: TFile, notes: MentionNotes): Promise<Mention[]> {
+export async function readMentions(file: NoteRef, notes: MentionNotes): Promise<Mention[]> {
   const campaignFolders = notes.campaignFolders();
   const ownCampaign = campaignFolderOf(file.path, campaignFolders);
   const sessions = sessionsAmong(notes.linkingPaths(file.path), campaignFolders);

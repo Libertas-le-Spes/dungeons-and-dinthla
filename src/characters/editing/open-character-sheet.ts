@@ -12,6 +12,7 @@ import type { SheetNotes } from "../reading/sheet-notes";
 import { SheetValueModal } from "./sheet-value-modal";
 import { sheetWriteOf, writeSheetValue, type ValueChoice } from "./sheet-value-writer";
 import type { Gate } from "../../fence/gate/gatekeeper";
+import type { NoteRef } from "../../host/notes/note-ref";
 
 export const NO_SESSION = "There's no session to write in yet. Start one first.";
 
@@ -36,6 +37,14 @@ function sessionPathIn(read: ReadSheet): string {
 
 export type SheetSession = OpenedSession | NoSessionNamed;
 
+export const NOT_HELD = "the note isn't one the plugin may use.";
+
+function vaultFileOf(gate: Gate, note: NoteRef): TFile {
+  const file = gate.files.getFileByPath(note.path);
+  if (file === null || file !== note) throw new Error(`Couldn't use ${note.path}: ${NOT_HELD}`);
+  return file;
+}
+
 function openedSessionIn(gate: Gate, read: ReadSheet): SheetSession {
   try {
     return new OpenedSession(gate.files, sessionPathIn(read));
@@ -55,20 +64,21 @@ export async function saveSheetValue(
   gate: Gate,
   store: SheetStore,
   notes: SheetNotes,
-  file: TFile,
+  file: NoteRef,
   opened: SheetValue,
   choice: ValueChoice,
   openedSession: SheetSession,
 ): Promise<boolean> {
+  const vaultFile = vaultFileOf(gate, file);
   const read = await readCharacterSheet(file, store, notes);
   const current = valueIn(read, opened.name);
   if (current === undefined || !sameSheetValue(current, opened)) throw new Error(CHANGED_IN_NOTE);
   return writeSheetValue(
     {
       files: gate.files,
-      file,
+      file: vaultFile,
       sessionPath: () => sessionPathToSave(openedSession),
-      linktextFrom: (sessionPath) => gate.metadata.fileToLinktext(file, sessionPath, true),
+      linktextFrom: (sessionPath) => gate.metadata.fileToLinktext(vaultFile, sessionPath, true),
       pathOfLink: (linktext, sourcePath) => notes.pathOfLink(linktext, sourcePath),
     },
     sheetWriteOf(current, choice),
@@ -80,7 +90,7 @@ export async function chooseSheetValue(
   gate: Gate,
   store: SheetStore,
   notes: SheetNotes,
-  file: TFile,
+  file: NoteRef,
   value: SheetValue,
   openSource: (source: Source) => void,
   onClosed: () => void,

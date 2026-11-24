@@ -1,100 +1,125 @@
-import { describe, expect, it } from "vitest";
-import type { CachedMetadata, LinkCache, TFile } from "obsidian";
-import { mentionNotesOf } from "../../../src/characters/reading/mention-notes";
-import type { Gate } from "../../../src/fence/gate/gatekeeper";
+import { describe, expect, it, vi } from "vitest";
+import { HostMentionNotes } from "../../../src/characters/reading/mention-notes";
+import type { LinkFact, PropertyLinkFact } from "../../../src/host/notes/note-facts";
+import type { NoteRef } from "../../../src/host/notes/note-ref";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
+import { fileAt } from "../../stubs/note-files";
 
 const MIRA = "Pale Moon/Characters/Mira.md";
 const VESS = "Pale Moon/Characters/Vess.md";
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
 
-function linkAt(link: string, line: number): LinkCache {
-  const position = { start: { line, col: 0, offset: 0 }, end: { line, col: 0, offset: 0 } };
-  return { link, original: `[[${link}]]`, displayText: link, position };
+function linkAt(linkText: string, line: number): LinkFact {
+  return { linkText, line };
+}
+
+interface NoteLinks {
+  links?: LinkFact[];
+  embeds?: LinkFact[];
+  propertyLinks?: PropertyLinkFact[];
 }
 
 interface Stub {
-  resolvedLinks?: Record<string, Record<string, number>>;
-  caches?: Record<string, CachedMetadata>;
+  linkCounts?: Record<string, Record<string, number>>;
+  read?: Record<string, NoteLinks>;
 }
 
-function notesWith({ resolvedLinks = {}, caches = {} }: Stub) {
-  const events: { resolve: (file: TFile) => void } = { resolve: () => {} };
-  const stopped: unknown[] = [];
-  const gate = {
-    files: { on: () => ({}), offref: () => {}, getFileByPath: () => null, cachedRead: async () => "" },
-    metadata: {
-      resolvedLinks,
-      getCache: (path: string) => {
-        const cache = caches[path];
-        if (cache === undefined) return null;
-        return cache;
+function factsOf(read: Record<string, NoteLinks>, note: NoteRef): Required<NoteLinks> {
+  const none: Required<NoteLinks> = { links: [], embeds: [], propertyLinks: [] };
+  const found = read[note.path];
+  if (found === undefined) return none;
+  return { ...none, ...found };
+}
+
+function notesWith({ linkCounts = {}, read = {} }: Stub) {
+  const settled: ((note: NoteRef) => void)[] = [];
+  const stop = vi.fn();
+  const host = {
+    store: {
+      note: (path: string) => {
+        if (read[path] === undefined) return null;
+        return fileAt(path);
       },
-      getFirstLinkpathDest: (linkpath: string) => {
-        const path = [MIRA, VESS].find((candidate) => candidate.endsWith(`/${linkpath}.md`));
-        if (path === undefined) return null;
-        return { path } as TFile;
-      },
-      on: (name: string, callback: (file: TFile) => void) => {
-        if (name === "resolve") events.resolve = callback;
-        return { name };
-      },
-      offref: (event: unknown) => stopped.push(event),
+      notes: () => [],
+      readKept: async () => "",
     },
-  } as unknown as Gate;
-  return { notes: mentionNotesOf(gate, () => ["Pale Moon"]), events, stopped };
+    facts: {
+      propertiesOf: () => null,
+      propertyLinksIn: (note: NoteRef) => factsOf(read, note).propertyLinks,
+      linksIn: (note: NoteRef) => factsOf(read, note).links,
+      embedsIn: (note: NoteRef) => factsOf(read, note).embeds,
+    },
+    links: {
+      linkCounts: () => linkCounts,
+      target: (linkPath: string) => {
+        const path = [MIRA, VESS].find((candidate) => candidate.endsWith(`/${linkPath}.md`));
+        if (path === undefined) return null;
+        return fileAt(path);
+      },
+    },
+    changes: {
+      onRead: () => vi.fn(),
+      onGone: () => vi.fn(),
+      onMoved: () => vi.fn(),
+      onLinksSettled: (heard: (note: NoteRef) => void) => {
+        settled.push(heard);
+        return stop;
+      },
+    },
+  };
+  const notes = new HostMentionNotes({ notes: host, syntax: STUB_SYNTAX, campaignFolders: () => ["Pale Moon"], sessionsOf: async () => [] });
+  return { notes, settled, stop };
 }
 
-describe("mentionNotesOf", () => {
-  it("finds the notes that link to a character from Obsidian's resolved links", () => {
-    const { notes } = notesWith({ resolvedLinks: { [ONE]: { [MIRA]: 2 }, [TWO]: { [VESS]: 1 } } });
+describe("HostMentionNotes", () => {
+  it("finds the notes that link to a character from the link counts", () => {
+    const { notes } = notesWith({ linkCounts: { [ONE]: { [MIRA]: 2 }, [TWO]: { [VESS]: 1 } } });
     expect(notes.linkingPaths(MIRA)).toEqual([ONE]);
   });
 
   it("finds each line with a link to the character once, however many links it has", () => {
-    const { notes } = notesWith({ caches: { [ONE]: { links: [linkAt("Mira", 3), linkAt("Mira", 3), linkAt("Mira", 7)] } } });
+    const { notes } = notesWith({ read: { [ONE]: { links: [linkAt("Mira", 3), linkAt("Mira", 3), linkAt("Mira", 7)] } } });
     expect(notes.linkedLines(ONE, MIRA)).toEqual([3, 7]);
   });
 
   it("leaves out links to other notes and links that go nowhere", () => {
-    const { notes } = notesWith({ caches: { [ONE]: { links: [linkAt("Vess", 1), linkAt("Nobody", 2), linkAt("Mira", 4)] } } });
+    const { notes } = notesWith({ read: { [ONE]: { links: [linkAt("Vess", 1), linkAt("Nobody", 2), linkAt("Mira", 4)] } } });
     expect(notes.linkedLines(ONE, MIRA)).toEqual([4]);
   });
 
   it("counts a link to a heading in the character's note", () => {
-    const { notes } = notesWith({ caches: { [ONE]: { links: [linkAt("Mira#Stats", 5)] } } });
+    const { notes } = notesWith({ read: { [ONE]: { links: [linkAt("Mira#Stats", 5)] } } });
     expect(notes.linkedLines(ONE, MIRA)).toEqual([5]);
   });
 
   it("counts an embed of the character's note as a link", () => {
-    const { notes } = notesWith({ caches: { [ONE]: { embeds: [linkAt("Mira", 2), linkAt("Vess", 3)] } } });
+    const { notes } = notesWith({ read: { [ONE]: { embeds: [linkAt("Mira", 2), linkAt("Vess", 3)] } } });
     expect(notes.linkedLines(ONE, MIRA)).toEqual([2]);
   });
 
   it("finds the lines of links and embeds together", () => {
-    const { notes } = notesWith({ caches: { [ONE]: { links: [linkAt("Mira", 1)], embeds: [linkAt("Mira", 4)] } } });
+    const { notes } = notesWith({ read: { [ONE]: { links: [linkAt("Mira", 1)], embeds: [linkAt("Mira", 4)] } } });
     expect(notes.linkedLines(ONE, MIRA)).toEqual([1, 4]);
   });
 
   it("leaves out links in the note's properties", () => {
-    const cache = { frontmatterLinks: [{ key: "character", link: "Mira", original: "[[Mira]]", displayText: "Mira" }] };
-    const { notes } = notesWith({ caches: { [ONE]: cache } });
+    const { notes } = notesWith({ read: { [ONE]: { propertyLinks: [{ key: "character", linkText: "Mira" }] } } });
     expect(notes.linkedLines(ONE, MIRA)).toEqual([]);
   });
 
-  it("finds no lines in a note Obsidian hasn't read, or with no links", () => {
-    const { notes } = notesWith({ caches: { [TWO]: {} } });
+  it("finds no lines in a note that isn't there, or with no links", () => {
+    const { notes } = notesWith({ read: { [TWO]: {} } });
     expect(notes.linkedLines(ONE, MIRA)).toEqual([]);
     expect(notes.linkedLines(TWO, MIRA)).toEqual([]);
   });
 
-  it("tells when a note's links are resolved, until stopped", () => {
-    const { notes, events, stopped } = notesWith({});
+  it("tells when a note's links are settled, and hands back the store's own stop", () => {
+    const { notes, settled, stop } = notesWith({});
     const resolved: string[] = [];
-    const stop = notes.onLinksResolved((path) => resolved.push(path));
-    events.resolve({ path: ONE } as TFile);
+    const stopListening = notes.onLinksResolved((path) => resolved.push(path));
+    settled[0]!(fileAt(ONE));
     expect(resolved).toEqual([ONE]);
-    stop();
-    expect(stopped).toEqual([{ name: "resolve" }]);
+    expect(stopListening).toBe(stop);
   });
 });

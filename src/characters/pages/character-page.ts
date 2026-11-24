@@ -1,13 +1,14 @@
-import { Component, type TFile } from "obsidian";
+import { Component } from "obsidian";
+import type { NoteRef } from "../../host/notes/note-ref";
 
 export const ALL_CHARACTERS = "← All characters";
 
-export type MakeSheet = (contentEl: HTMLElement, file: TFile) => Component;
+export type MakeSheet = (contentEl: HTMLElement, file: NoteRef) => Component;
 
 export class CharacterPage extends Component {
   constructor(
     private readonly contentEl: HTMLElement,
-    private readonly file: TFile,
+    private readonly file: NoteRef,
     private readonly makeSheet: MakeSheet,
     private readonly showGallery: () => void,
   ) {

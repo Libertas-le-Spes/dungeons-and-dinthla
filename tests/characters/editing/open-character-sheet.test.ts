@@ -8,7 +8,7 @@ import { carriedValuesOf, characterSheetOf, type SheetValue } from "../../../src
 import { noteNameOf } from "../../../src/campaign/paths/note-name";
 import { NoSessionNamed } from "../../../src/characters/editing/no-session-named";
 import { OpenedSession } from "../../../src/campaign/paths/session-gone";
-import { chooseSheetValue, NO_SESSION, sameSheetValue, saveSheetValue } from "../../../src/characters/editing/open-character-sheet";
+import { chooseSheetValue, NO_SESSION, NOT_HELD, sameSheetValue, saveSheetValue } from "../../../src/characters/editing/open-character-sheet";
 import { readCharacterSheet } from "../../../src/characters/reading/read-character-sheet";
 import type { SheetNotes } from "../../../src/characters/reading/sheet-notes";
 import type { SheetValueDialog } from "../../../src/characters/editing/sheet-value-modal";
@@ -27,7 +27,7 @@ beforeEach(() => {
 
 function setUp(texts: Record<string, string>, { readFails = false, folders = ["Pale Moon"], sessions = [ONE, TWO] } = {}) {
   const notesText = new Map(Object.entries(texts));
-  const madeFiles = new Map<string, TFile>();
+  const madeFiles = new Map<string, TFile>([[MIRA.path, MIRA]]);
   const opened: { newLeaf: unknown; path: string; options: unknown }[] = [];
   const app = {
     workspace: {
@@ -145,6 +145,13 @@ describe("saveSheetValue", () => {
     const { app, gate, store, notes, notesText } = setUp({ [MIRA.path]: "AC: 18", [ONE]: "[[Mira]] AC: 15" });
     await expect(saveSheetValue(app, gate, store, notes, MIRA, acOf([LEARNED_15]), { state: "override", value: "16" }, NONE_NAMED)).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notesText.get(MIRA.path)).toBe("AC: 18");
+  });
+
+  it("writes nothing for a stand-in for the character's note, though it shares the note's path", async () => {
+    const { app, gate, store, notes, notesText } = setUp({ [MIRA.path]: "AC: 15", [ONE]: "" });
+    const standIn = { path: MIRA.path, basename: MIRA.basename } as TFile;
+    await expect(saveSheetValue(app, gate, store, notes, standIn, acOf([]), { state: "override", value: "16" }, NONE_NAMED)).rejects.toThrow(NOT_HELD);
+    expect(notesText.get(MIRA.path)).toBe("AC: 15");
   });
 
   it("refuses a learned value for a character outside any campaign", async () => {

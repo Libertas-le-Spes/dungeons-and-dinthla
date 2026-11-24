@@ -8,6 +8,7 @@ import { CharacterModal } from "./character-modal";
 import type { CharacterNotes } from "../reading/character-notes";
 import { factsByCharacter } from "../reading/sheet-values";
 import type { Gate } from "../../fence/gate/gatekeeper";
+import type { NoteRef } from "../../host/notes/note-ref";
 
 export const EDIT_WHERE =
   "Renaming updates links if Obsidian's link updating is on.";
@@ -100,7 +101,7 @@ export function editActiveCharacter(app: App, gate: Gate, notes: CharacterNotes,
 
 export const NOT_A_CHARACTER = "Only a note in a campaign's Characters folder can be edited as a character.";
 
-export function editCharacter(app: App, gate: Gate, notes: CharacterNotes, file: TFile): void {
+export function editCharacter(app: App, gate: Gate, notes: CharacterNotes, file: NoteRef): void {
   const character = characterAt(gate, notes, file.path);
   if (character === null) {
     new Notice(NOT_A_CHARACTER);
