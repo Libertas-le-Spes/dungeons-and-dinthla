@@ -4,6 +4,7 @@ import type { ReadCampaignsFolder } from "../../fence/paths/fence";
 import type { AgreementShower, WelcomeActions, WelcomeAgreement, WelcomeEnding, WelcomeState } from "../endings/welcome-ending";
 import { endingFor } from "../endings/welcome-endings";
 import { WELCOME_STEPS, WELCOME_TITLE } from "./welcome-steps";
+import { mountTree } from "../../obsidian/views/mount/mount-tree";
 
 export type WelcomeStore = Pick<CampaignStore, "campaignFolder" | "sessionNotes" | "subscribe">;
 
@@ -35,7 +36,7 @@ export class WelcomePage extends Component implements AgreementShower {
   }
 
   showAgreement(parentEl: HTMLElement): void {
-    this.agreement.showIn(parentEl, () => this.agreementAnswered());
+    for (const tree of this.agreement.trees(() => this.agreementAnswered())) mountTree(tree, parentEl);
   }
 
   private agreementAnswered(): void {

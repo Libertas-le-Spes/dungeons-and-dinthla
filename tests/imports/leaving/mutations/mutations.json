@@ -1036,13 +1036,6 @@
   "group": "folders"
  },
  {
-  "id": "fence: imports may use ButtonComponent",
-  "file": "tests/fence/allowed/obsidian-imports.ts",
-  "find": "\"imports/\": [\"App\", \"ButtonComponent\"]",
-  "replace": "\"imports/\": [\"App\"]",
-  "group": "allow"
- },
- {
   "id": "the cast refusal words are the shared plain words",
   "file": "src/imports/leaving/dialog/main-offers.ts",
   "find": "plainWordsOf(error, COULD_NOT_ASK)",

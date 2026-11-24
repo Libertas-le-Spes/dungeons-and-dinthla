@@ -1,29 +1,37 @@
-import type { App } from "obsidian";
-import { DrawnModal, type Closable, type DrawnContent } from "../../views/dialogs/drawn-modal";
+import type { DialogView, Dialogs, ShownDialog } from "../../views/dialogs/dialog-view";
 import type { AgreementAnswer } from "./agreement-answer";
 import { NOT_YET } from "./agreement-answers";
-import { drawAgreement, type AnswerChosen } from "./agreement-text";
+import { agreementTrees, type AnswerChosen } from "./agreement-text";
 import { AGREEMENT_TITLE } from "./agreement-words";
 import { PRESS_BUTTONS } from "./answer-buttons";
 import { AnswerWait } from "./answer-wait";
 import type { AskAgreement } from "./first-press";
 
-class Asking implements DrawnContent {
+const DIALOG_CLASSES = ["dd-agreement"];
+
+export class AgreementDialog implements ShownDialog, AnswerChosen {
   readonly title = AGREEMENT_TITLE;
+  readonly cls = DIALOG_CLASSES;
   private answer: AgreementAnswer = NOT_YET;
   private readonly wait = new AnswerWait();
+  private view: DialogView | null = null;
 
   get answered(): Promise<AgreementAnswer> {
     return this.wait.answered;
   }
 
-  draw(contentEl: HTMLElement, dialog: Closable): void {
-    contentEl.addClass("dd-agreement");
-    drawAgreement(contentEl, PRESS_BUTTONS, new DialogChoice(this, dialog));
+  opened(view: DialogView): void {
+    this.view = view;
+    view.show(agreementTrees(PRESS_BUTTONS, this));
   }
 
-  choose(answer: AgreementAnswer): void {
+  chosen(answer: AgreementAnswer): void {
     this.answer = answer;
+    if (this.view !== null) this.view.close();
+  }
+
+  mayClose(): boolean {
+    return true;
   }
 
   closed(): void {
@@ -31,28 +39,16 @@ class Asking implements DrawnContent {
   }
 }
 
-class DialogChoice implements AnswerChosen {
-  constructor(
-    private readonly asking: Asking,
-    private readonly dialog: Closable,
-  ) {}
-
-  chosen(answer: AgreementAnswer): void {
-    this.asking.choose(answer);
-    this.dialog.close();
-  }
-}
-
-export class AgreementDialog implements AskAgreement {
-  constructor(private readonly app: App) {}
+class DialogAgreement implements AskAgreement {
+  constructor(private readonly dialogs: Dialogs) {}
 
   ask(): Promise<AgreementAnswer> {
-    const asking = new Asking();
-    new DrawnModal(this.app, asking).open();
-    return asking.answered;
+    const dialog = new AgreementDialog();
+    this.dialogs.open(dialog);
+    return dialog.answered;
   }
 }
 
-export function agreementDialogIn(app: App): AskAgreement {
-  return { ask: () => new AgreementDialog(app).ask() };
+export function agreementDialogIn(dialogs: Dialogs): AskAgreement {
+  return new DialogAgreement(dialogs);
 }

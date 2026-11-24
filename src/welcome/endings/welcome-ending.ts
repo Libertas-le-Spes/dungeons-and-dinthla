@@ -1,4 +1,5 @@
 import type { Component } from "obsidian";
+import type { ViewElement } from "../../views/elements/view-element";
 
 export interface WelcomeState {
   campaignsFolder: string | null;
@@ -17,7 +18,7 @@ export interface WelcomeActions {
 
 export interface WelcomeAgreement {
   wanted(): boolean;
-  showIn(parentEl: HTMLElement, answered: () => void): void;
+  trees(answered: () => void): ViewElement[];
 }
 
 export interface AgreementShower {

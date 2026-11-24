@@ -9,6 +9,7 @@ import { pressOn } from "./imports/agreement/shown-parts";
 import { obsidianDocument } from "./stubs/obsidian-dom";
 import type { WelcomeAgreement } from "../src/welcome/endings/welcome-ending";
 import type { WelcomeWiringNeeds } from "../src/interface/sections/welcome-wiring";
+import { mountedIn } from "./imports/agreement/shown-parts";
 
 const wired = vi.hoisted(() => ({ agreement: null as unknown }));
 
@@ -80,7 +81,7 @@ describe("DungeonsAndDinthla", () => {
     const { plugin, saveData } = pluginSaved({}, new MadeUpDevice());
     await plugin.onload();
     const stepEl = obsidianDocument().createElement("div");
-    (wired.agreement as WelcomeAgreement).showIn(stepEl, nothingToDo);
+    mountedIn(stepEl, (wired.agreement as WelcomeAgreement).trees(nothingToDo));
     pressOn(stepEl, "Agree");
     await plugin["settingsSaver"].whenSaved();
     expect(saveData).toHaveBeenCalledOnce();

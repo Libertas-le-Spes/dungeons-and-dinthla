@@ -136,9 +136,9 @@ export default class DungeonsAndDinthla extends Plugin {
     device: this.localStorage,
     notKept: (error: unknown) => new Notice(`Couldn't remember your answer about D&D Beyond: ${messageOf(error)}`),
   });
-  private readonly onlineImport = onlineImportFor(this.app, this.keptAgreement, OBSIDIAN_BEYOND_CALL);
   private chosen = this.chosenCampaignFrom(this.settingsSaver);
   private readonly showing = { dialogs: obsidianDialogsOf(this.app), telling: OBSIDIAN_TELLING };
+  private readonly onlineImport = onlineImportFor(this.showing.dialogs, this.keptAgreement, OBSIDIAN_BEYOND_CALL);
 
   override async onload(): Promise<void> {
     await this.loadSettings();

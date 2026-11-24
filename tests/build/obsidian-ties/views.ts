@@ -1,9 +1,6 @@
 export const TIES: readonly string[] = [
-  "views/dialogs/change-dialog.ts",
   "views/dialogs/confirm-modal.ts",
   "views/dialogs/differing-notice.ts",
-  "views/dialogs/drawn-modal.ts",
-  "views/dialogs/record-change-dialog.ts",
   "views/dialogs/second-press.ts",
   "views/lists/linked-text.ts",
   "views/lists/list-page.ts",
