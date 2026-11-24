@@ -86,7 +86,7 @@ describe("the keys of the allowances matched by the start of a path", () => {
 describe("the one allowance that lets a file call out", () => {
   it("names requestUrl for one file only, never an area", () => {
     const keys = Object.entries(OBSIDIAN_IMPORTS).filter(([, names]) => names.includes("requestUrl")).map(([key]) => key);
-    expect(keys).toEqual(["online/beyond-call.ts"]);
+    expect(keys).toEqual(["obsidian/online/obsidian-beyond-call.ts"]);
   });
 });
 

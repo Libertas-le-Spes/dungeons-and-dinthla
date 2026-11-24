@@ -264,7 +264,7 @@ export const NETWORK_CALL = "requestUrl";
 
 export const NETWORK_NAMES = [NETWORK_CALL, "request"];
 
-export const BEYOND_CALLING_NAMES = ["callBeyond", "BeyondCalls"];
+export const BEYOND_CALLING_NAMES = ["callBeyond", "BeyondCalls", "OBSIDIAN_BEYOND_CALL"];
 
 export const NETWORK_ADDRESS_BUILDER = "beyondAddressOf";
 

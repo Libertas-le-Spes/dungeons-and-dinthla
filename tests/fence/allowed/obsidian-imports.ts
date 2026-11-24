@@ -14,7 +14,7 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "obsidian/notes/obsidian-notes.ts": ["CachedMetadata", "EventRef", "TAbstractFile", "TFile"],
   "obsidian/notes/obsidian-spelling.ts": ["normalizePath"],
   "obsidian/notes/obsidian-syntax.ts": ["getFrontMatterInfo", "getLinkpath", "parseYaml"],
-  "online/beyond-call.ts": ["requestUrl"],
+  "obsidian/online/obsidian-beyond-call.ts": ["requestUrl"],
   "questions/": ["App", "Notice", "Setting"],
   "quests/": ["AbstractInputSuggest", "App", "Notice", "Setting", "TextAreaComponent"],
   "reading/": ["Debouncer", "MarkdownPostProcessorContext", "MarkdownSectionInformation", "debounce"],

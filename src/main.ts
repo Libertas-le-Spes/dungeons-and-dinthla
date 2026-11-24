@@ -100,6 +100,7 @@ import { BeyondOpeners, type BeyondWiring } from "./imports/dialog/opening/beyon
 import { CampaignAgreement } from "./imports/agreement/campaign-agreement";
 import { KeptAgreement } from "./imports/agreement/kept-agreement";
 import { onlineImportFor } from "./imports/dialog/online/online-wiring";
+import { OBSIDIAN_BEYOND_CALL } from "./obsidian/online/obsidian-beyond-call";
 import type { CharacterNotes } from "./characters/reading/character-notes";
 
 const TYPING_PAUSE_MS = 250;
@@ -131,7 +132,7 @@ export default class DungeonsAndDinthla extends Plugin {
     device: this.localStorage,
     notKept: (error: unknown) => new Notice(`Couldn't remember your answer about D&D Beyond: ${messageOf(error)}`),
   });
-  private readonly onlineImport = onlineImportFor(this.app, this.keptAgreement);
+  private readonly onlineImport = onlineImportFor(this.app, this.keptAgreement, OBSIDIAN_BEYOND_CALL);
   private chosen = this.chosenCampaignFrom(this.settingsSaver);
 
   override async onload(): Promise<void> {
