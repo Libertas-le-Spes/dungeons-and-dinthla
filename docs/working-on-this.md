@@ -35,6 +35,8 @@ The plugin's own code is meant to work with any notes program, with Obsidian as 
 - `tests/build/obsidian-side.test.ts`: a core file loads no `obsidian` or `@codemirror/*`, in any import form, and imports nothing from the Obsidian side.
 - The fence scan's rule in `tests/fence/scan/code-rules/host-neutral-rules.ts`: a core file uses nothing Obsidian or CodeMirror declares (page helpers like `createEl` included, which need no import), and holds no value whose type reaches such a type, through a list, a property, a function's parameters or return, an index, or a `Pick`, `Partial` or other alias's arguments.
 
+What the plugin's own code needs from a notes program is written as ports in `src/host/` (notes, keeping, showing, rules, online), interfaces only. `src/fence/notes/` is the plugin's own fence over the notes ports: every path and handle passes the same `Fence` rules, it refuses any handle it didn't hand out, and it tells a `WriteReport` of each write it lets through. Obsidian's answers are in `src/obsidian/notes/`, built over the gate, which stays behind as a second wall. `tests/host/` holds an in-memory notes program and the contract every notes program must keep.
+
 Files that break either today are listed by area in `tests/build/obsidian-ties/`. A file may leave a list, never join one, and a listed file that no longer breaks either rule fails a test until it is taken off. When a commit fixes a file, delete its line.
 
 ## Moving files

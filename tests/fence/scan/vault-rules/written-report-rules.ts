@@ -1,5 +1,5 @@
 import type { Symbol as TypeSymbol } from "typescript/unstable/sync";
-import { isInGateFolder, isReportSource } from "../reading/gate-paths";
+import { isInCoreFenceFolder, isInGateFolder, isReportSource } from "../reading/gate-paths";
 import type { FileScan } from "../reading/file-scan";
 
 const REPORT_CALLS = ["textSaved", "trashed", "renamed"];
@@ -10,7 +10,7 @@ function isOfTheReport(symbol: TypeSymbol | undefined): boolean {
 }
 
 export function writtenReportBreaches(scan: FileScan): string[] {
-  if (isInGateFolder(scan.path)) return [];
+  if (isInGateFolder(scan.path) || isInCoreFenceFolder(scan.path)) return [];
   const { project, found, where, types } = scan;
   const members = found.members.filter((member) => REPORT_CALLS.includes(member.name));
   return types.ownedBy(project, members, isOfTheReport).map(({ node, name }) => `${where(node)} tells the gate's report of written notes that a note was ${name}`);

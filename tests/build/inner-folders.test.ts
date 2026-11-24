@@ -29,6 +29,8 @@ const INNER_FOLDERS: InnerFolder[] = [
   { folder: "names", reaches: ["names"] },
   { folder: "fence/paths", reaches: ["fence/paths", "names"] },
   { folder: "fence/gate", reaches: ["fence/gate", "fence/paths", "names"] },
+  { folder: "fence/notes", reaches: ["fence/notes", "fence/paths", "host", "names"] },
+  { folder: "host", reaches: ["host"] },
   { folder: "beyond", reaches: ["beyond", "names", "pdf", "imports/layout"] },
   { folder: "pdf", reaches: ["pdf"] },
   { folder: "online", reaches: ["online", "beyond"] },
