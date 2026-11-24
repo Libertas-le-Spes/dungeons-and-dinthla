@@ -8,7 +8,7 @@ import type { LinkFact, NoteFacts, Properties, PropertyLinkFact } from "../../ho
 import type { ChangeProperties, NoteKeeping } from "../../host/notes/note-keeping";
 import type { NoteRef } from "../../host/notes/note-ref";
 import type { NoteEdit, NoteStore } from "../../host/notes/note-store";
-import { deletesPermanently } from "../../session-notes/removal/trash-option";
+import { deletesPermanently } from "./trash-option";
 
 type Gate = Pick<Gatekeeper, "files" | "fileActions" | "metadata" | "vaultSettings">;
 

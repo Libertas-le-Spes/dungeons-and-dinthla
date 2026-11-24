@@ -20,7 +20,8 @@ function appWith(paths: string[], { createFails = false } = {}) {
   const fileManager = { processFrontMatter: vi.fn(async () => {}) };
   const getLeaf = vi.fn();
   const app = { workspace: { getLeaf } } as unknown as App;
-  const gate = { files: vault, fileActions: fileManager } as unknown as Gate;
+  const store = { files: vault.getFiles, hasFolder: () => true, makeFolder: vault.createFolder, make: create };
+  const gate = { notes: { store, keeping: { changeProperties: fileManager.processFrontMatter } } } as unknown as Gate;
   return { app, gate, create, getLeaf };
 }
 

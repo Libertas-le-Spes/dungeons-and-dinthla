@@ -16,6 +16,7 @@ import { FakeNotes } from "../note-editing/fake-notes";
 import { stubRenumbering } from "./renumbering/stub-renumbering";
 import { stubLineOpeners } from "./lines/stub-line-openers";
 import { isShown, obsidianDocument } from "../stubs/obsidian-dom";
+import { STUB_SYNTAX } from "../host/stub-syntax";
 
 export const PATH = "Pale Moon/Sessions/Session 12.md";
 export const NOTE = "---\nplayed: 2026-11-09\n---\nTracks lead to the [[Old Mill]].\n? Who sent the leter";
@@ -64,7 +65,7 @@ export function writingOn(text: string | null, drafts = new Drafts({}, () => {})
       actions: { openRow: vi.fn(), openLink: vi.fn() },
       lineOpeners: stubLineOpeners(),
       wholeText: { texts: notes.texts, drafts: noteDrafts, saver: new NoteSaver(notes.vault) },
-      removal: { clearer: new SessionClearer(notes.vault), trash: new SessionTrash(notes.vault, { trashFile }, permanently), renumbering, confirm, report },
+      removal: { clearer: new SessionClearer(notes.store, STUB_SYNTAX), trash: new SessionTrash(notes.store, { throwAway: trashFile }, permanently), renumbering, confirm, report },
     },
     moves,
   );

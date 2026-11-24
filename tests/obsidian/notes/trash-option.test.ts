@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { deletesPermanently } from "../../../src/session-notes/removal/trash-option";
+import { deletesPermanently } from "../../../src/obsidian/notes/trash-option";
 
 function vaultSettingsSetTo(option: unknown) {
   const trashOption = vi.fn(() => option);
