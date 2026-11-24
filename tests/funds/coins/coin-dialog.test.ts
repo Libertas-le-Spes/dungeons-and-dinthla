@@ -15,6 +15,7 @@ import { Notice, openedModals } from "../../stubs/obsidian";
 import { STUB_SYNTAX } from "../../host/stub-syntax";
 import { MountedView } from "../../host/showing/mounted-view";
 import { readCoinDraft, type CoinDraft, type CoinLine } from "../../../src/notes/writing/coin-lines";
+import { HeldCoinReader, PARTY_COIN, type CoinReader } from "../../../src/funds/coins/coin-readers";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 
@@ -56,7 +57,7 @@ function openDialog(canDelete: boolean, deleteNote: () => Promise<boolean> = asy
   let given: CoinEntryChoices | null = null;
   if (canDelete) given = entry;
   const onClosed = vi.fn();
-  const shown = new CoinDialog(OBSIDIAN_TELLING, "Session 1", vi.fn(async () => true), given, null, onClosed);
+  const shown = new CoinDialog(OBSIDIAN_TELLING, "Session 1", vi.fn(async () => true), given, null, onClosed, PARTY_COIN);
   const modal = new ModalFrame({} as App, shown);
   modal.open();
   const button = (text: string) => Array.from(modal.contentEl.querySelectorAll("button")).find((candidate) => candidate.textContent === text);
@@ -139,7 +140,7 @@ function openHeldEntry() {
   const save = vi.fn(hold);
   const entry = { draft: { direction: "in" as const, amount: "2 gp", what: "tip" }, cannotSave: null, delete: vi.fn(hold) };
   const onClosed = vi.fn();
-  const shown = new CoinDialog(OBSIDIAN_TELLING, "Session 1", save, entry, null, onClosed);
+  const shown = new CoinDialog(OBSIDIAN_TELLING, "Session 1", save, entry, null, onClosed, PARTY_COIN);
   const modal = new ModalFrame({} as App, shown);
   modal.open();
   const button = (text: string) => Array.from(modal.contentEl.querySelectorAll("button")).find((candidate) => candidate.textContent === text)!;
@@ -197,8 +198,8 @@ class CoinAt {
   readonly view = new MountedView();
   readonly shown: CoinDialog;
 
-  constructor(entry: CoinEntryChoices | null) {
-    this.shown = new CoinDialog(OBSIDIAN_TELLING, "Session 1", this.save, entry, null, vi.fn());
+  constructor(entry: CoinEntryChoices | null, reader: CoinReader = PARTY_COIN) {
+    this.shown = new CoinDialog(OBSIDIAN_TELLING, "Session 1", this.save, entry, null, vi.fn(), reader);
     this.shown.opened(this.view);
   }
 
@@ -279,5 +280,16 @@ describe("the coin dialog's reading", () => {
   it("says in its reading why an entry it can't show can't be saved", () => {
     const coin = new CoinAt({ draft: { direction: "in", amount: "2 gp", what: "tip" }, cannotSave: "Change it in its note.", delete: vi.fn() });
     expect(coin.reading()).toEqual({ text: "Change it in its note.", isError: true });
+  });
+});
+
+describe("the coin dialog for one character", () => {
+  it("reads the line back as that character's, and saves it with their link first", () => {
+    const coin = new CoinAt(null, new HeldCoinReader({ linktext: "Mira", name: "Mira" }));
+    expect(coin.el(".dd-where").textContent).toBe("Adds a line for Mira to Session 1.");
+    coin.typed("Amount", "5 gp");
+    expect(coin.reading()).toEqual({ text: "Reads as In 5 gp for Mira: 5 gp", isError: false });
+    coin.pressSave();
+    expect(coin.save.mock.calls[0]![0].line).toBe("$ [[Mira]] 5 gp");
   });
 });

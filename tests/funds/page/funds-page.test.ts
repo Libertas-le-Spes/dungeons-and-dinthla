@@ -4,10 +4,12 @@ import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { Campaign, Source } from "../../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import type { CoinOutcome } from "../../../src/funds/coins/coin-dialog";
-import { FundsPage, type ShownItem } from "../../../src/funds/page/funds-page";
+import { FundsPage, type AddCoinOn, type ShownItem } from "../../../src/funds/page/funds-page";
 import type { OwnSheet } from "../../../src/funds/purses/own-characters";
 import { HeldCalls } from "../../stubs/held-calls";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { PARTY_SIDE } from "../../../src/funds/coins/coin-sides";
+import type { NoteRef } from "../../../src/host/notes/note-ref";
 
 function campaignOf(lines: string[], ...laterSessions: string[][]): Campaign {
   return buildCampaign(
@@ -26,7 +28,7 @@ type OpenItem = (name: string, source: Source, onClosed: (changed: boolean) => v
 interface PageParts {
   campaign: Campaign;
   noteNames: string[];
-  addCoin: ((returnFocus: () => void) => void) | null;
+  addCoin: AddCoinOn | null;
   openLedgerEntry: OpenLedgerEntry | null;
   openItem: OpenItem | null;
   shownItem: ShownItem | null;
@@ -44,6 +46,12 @@ class MadeUpOwnCharacters {
   reads = 0;
 
   constructor(public names: () => string[]) {}
+
+  inPlay(): NoteRef | null {
+    const [name] = this.names();
+    if (name === undefined) return null;
+    return { path: `Pale Moon/Characters/${name}.md`, basename: name } as NoteRef;
+  }
 
   async sheets(): Promise<OwnSheet[]> {
     this.reads += 1;
@@ -240,18 +248,51 @@ describe("FundsPage", () => {
     expect(root.querySelector(`${PARTY_PANEL} .dd-holder a`)).toBeNull();
   });
 
-  it("offers Add coin on the ledger when coin can be added, handing it a way back", async () => {
-    expect((await openPage({ campaign: campaignOf([]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] })).root.querySelector(`${PARTY_PANEL} .dd-ledger-panel .dd-create`)).toBeNull();
-    const addCoin = vi.fn();
-    const { root, change } = await openPage({ campaign: campaignOf([]), noteNames: [], addCoin, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
+  it.each([
+    { tab: "Mine", panel: MINE_PANEL },
+    { tab: "Party", panel: PARTY_PANEL },
+  ])("offers Add coin on the $tab ledger when coin can be added, handing it a way back", async ({ panel }) => {
+    expect((await openPage({ campaign: campaignOf([]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: ["Mira"] })).root.querySelector(`${panel} .dd-ledger-panel .dd-create`)).toBeNull();
+    const addCoin = vi.fn<AddCoinOn>();
+    const { root, change } = await openPage({ campaign: campaignOf([]), noteNames: [], addCoin, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: ["Mira"] });
     root.ownerDocument.body.append(root);
-    const button = root.querySelector(`${PARTY_PANEL} .dd-ledger-panel .dd-create`) as HTMLElement;
+    const button = root.querySelector(`${panel} .dd-ledger-panel .dd-create`) as HTMLElement;
     expect(button.textContent).toBe("Add coin");
     button.click();
     expect(addCoin).toHaveBeenCalledTimes(1);
     change(campaignOf(["$ 5 gp found"]));
-    addCoin.mock.calls[0]![0]();
+    addCoin.mock.calls[0]![1]();
     expect(root.ownerDocument.activeElement).toBe(button);
+  });
+
+  it("writes coin added on Party for the party", async () => {
+    const addCoin = vi.fn<AddCoinOn>();
+    const { root } = await openPage({ campaign: campaignOf([]), noteNames: [], addCoin, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: ["Mira"] });
+    elementIn(root, `${PARTY_PANEL} .dd-ledger-panel .dd-create`).click();
+    expect(addCoin.mock.calls[0]![0]).toBe(PARTY_SIDE);
+  });
+
+  it.each([
+    { own: ["Mira"], adds: "Adds a line for Mira to Session 1." },
+    { own: ["Thessaly", "Mira"], adds: "Adds a line for Thessaly to Session 1." },
+  ])("writes coin added on Mine for the character in play of $own", async ({ own, adds }) => {
+    const addCoin = vi.fn<AddCoinOn>();
+    const { root } = await openPage({ campaign: campaignOf([]), noteNames: [], addCoin, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: own });
+    elementIn(root, `${MINE_PANEL} .dd-ledger-panel .dd-create`).click();
+    const reader = addCoin.mock.calls[0]![0].readerIn("Pale Moon/Sessions/Session 1.md", { linkTextTo: (note) => note.basename });
+    expect(reader?.addsWords("Session 1")).toBe(adds);
+  });
+
+  it("finds no one to write coin for on Mine without a character of yours", async () => {
+    const addCoin = vi.fn<AddCoinOn>();
+    const { root } = await openPage({ campaign: campaignOf([]), noteNames: [], addCoin, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
+    elementIn(root, `${MINE_PANEL} .dd-ledger-panel .dd-create`).click();
+    expect(addCoin.mock.calls[0]![0].readerIn("Pale Moon/Sessions/Session 1.md", { linkTextTo: (note) => note.basename })).toBeNull();
+  });
+
+  it("counts a new party entry after the redraw", async () => {
+    const { root, change } = await openPage({ campaign: campaignOf([]), noteNames: [], addCoin: vi.fn(), openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
+    change(campaignOf(["$ 5 gp found"]));
     expect(root.querySelector(`${PARTY_PANEL} .dd-ledger-panel .dd-count`)?.textContent).toBe("1 entry");
   });
 
@@ -486,7 +527,6 @@ describe("FundsPage with his funds and the party's in two tabs", () => {
     const { root, change } = await openPage({ campaign: campaignOf(lines), noteNames: [], addCoin: vi.fn(), openLedgerEntry, openItem: null, shownItem: null, ownNames: ["Mira"] });
     const document = root.ownerDocument;
     document.body.append(root);
-    expect(root.querySelector(`${MINE_PANEL} .dd-create`)).toBeNull();
     elementIn(root, `${MINE_PANEL} .dd-ledger-row`).click();
     expect(openLedgerEntry).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 0 }, expect.any(Function));
     openLedgerEntry.mock.calls[0]![1]("written");

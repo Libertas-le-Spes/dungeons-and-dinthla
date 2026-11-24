@@ -1,5 +1,5 @@
 import type { Telling } from "../../host/showing/telling";
-import { readCoinDraft, type CoinDraft, type CoinLine, type Direction } from "../../notes/writing/coin-lines";
+import type { CoinDraft, CoinLine, Direction } from "../../notes/writing/coin-lines";
 import { ButtonRow } from "../../views/components/dialogs/button-row";
 import { ChoiceField } from "../../views/components/dialogs/choice-field";
 import { DeleteButton } from "../../views/components/dialogs/delete-button";
@@ -16,6 +16,7 @@ import { Paragraph } from "../../views/elements/kinds/containers";
 import type { Stoppable } from "../../views/dialogs/record-changing";
 import type { ViewElement } from "../../views/elements/view-element";
 import type { CoinEntryChoices } from "./coin-entry";
+import type { CoinReader } from "./coin-readers";
 
 export type CoinOutcome = "unchanged" | "written" | "deleted";
 
@@ -67,6 +68,7 @@ export class CoinDialog implements ShownDialog, ChangeEnds {
     private readonly entry: CoinEntryChoices | null,
     private readonly openNote: (() => void) | null,
     private readonly onClosed: (outcome: CoinOutcome) => void,
+    private readonly reader: CoinReader,
   ) {
     this.work = new ChangeWork(telling, this);
     this.draft = { direction: "in", amount: "", what: "" };
@@ -113,7 +115,7 @@ export class CoinDialog implements ShownDialog, ChangeEnds {
     const cannotSave = this.cannotSave();
     if (cannotSave !== null) return { text: cannotSave, isError: true };
     if (this.draft.amount.trim() === "") return { text: "", isError: false };
-    const reading = readCoinDraft(this.draft);
+    const reading = this.reader.readingOf(this.draft);
     if ("error" in reading) return { text: reading.error, isError: true };
     return { text: reading.reads, isError: false };
   }
@@ -155,7 +157,7 @@ export class CoinDialog implements ShownDialog, ChangeEnds {
   }
 
   private whereWords(): string {
-    if (this.entry === null) return `Adds a line to ${this.writesTo}.`;
+    if (this.entry === null) return this.reader.addsWords(this.writesTo);
     return `Saving replaces the entry's line in ${this.writesTo}.`;
   }
 
@@ -174,7 +176,7 @@ export class CoinDialog implements ShownDialog, ChangeEnds {
   }
 
   private saveDraft(): void {
-    const reading = readCoinDraft(this.draft);
+    const reading = this.reader.readingOf(this.draft);
     if (this.cannotSave() !== null || "error" in reading) {
       this.showReading();
       this.amountHandle.focus();
