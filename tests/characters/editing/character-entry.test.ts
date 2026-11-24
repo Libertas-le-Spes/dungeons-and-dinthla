@@ -17,6 +17,7 @@ import {
   withOverrides,
   type CharacterEntry,
 } from "../../../src/characters/editing/character-entry";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const PATH = "Pale Moon/Characters/Mira.md";
 
@@ -25,22 +26,22 @@ function entry(values: Partial<CharacterEntry> = {}): CharacterEntry {
 }
 
 function edited(text: string, after: Partial<CharacterEntry>): string {
-  const before = entryOf("Mira", PATH, text);
-  return withEntryValues(text, PATH, before, { ...before, ...after });
+  const before = entryOf("Mira", PATH, text, STUB_SYNTAX);
+  return withEntryValues(text, PATH, before, { ...before, ...after }, STUB_SYNTAX);
 }
 
 describe("entryOf", () => {
   it("reads the type line, subtitle and speed from the character's own note", () => {
     const text = "---\ntags: npc\n---\ntype: Medium humanoid (elf), chaotic good\nSubtitle: Elf Rogue 3, speed: 35 ft.\nShe owes us.";
-    expect(entryOf("Mira", PATH, text)).toEqual(entry({ type: "Medium humanoid (elf), chaotic good", subtitle: "Elf Rogue 3", speed: "35 ft." }));
+    expect(entryOf("Mira", PATH, text, STUB_SYNTAX)).toEqual(entry({ type: "Medium humanoid (elf), chaotic good", subtitle: "Elf Rogue 3", speed: "35 ft." }));
   });
 
   it("takes the last line that states a value", () => {
-    expect(entryOf("Mira", PATH, "speed: 30 ft.\nspeed: 40 ft.")).toEqual(entry({ speed: "40 ft." }));
+    expect(entryOf("Mira", PATH, "speed: 30 ft.\nspeed: 40 ft.", STUB_SYNTAX)).toEqual(entry({ speed: "40 ft." }));
   });
 
   it("leaves a value no line states empty", () => {
-    expect(entryOf("Mira", PATH, "")).toEqual(entry());
+    expect(entryOf("Mira", PATH, "", STUB_SYNTAX)).toEqual(entry());
   });
 });
 
@@ -166,12 +167,12 @@ describe("withEntryValues", () => {
 
   it("refuses when the note changed the value since the dialog read it", () => {
     const before = entry({ speed: "30 ft." });
-    expect(() => withEntryValues("speed: 25 ft.\n", PATH, before, entry({ speed: "40 ft." }))).toThrow(CHANGED_IN_NOTE);
+    expect(() => withEntryValues("speed: 25 ft.\n", PATH, before, entry({ speed: "40 ft." }), STUB_SYNTAX)).toThrow(CHANGED_IN_NOTE);
   });
 
   it("changes one value even when another changed in the note since the dialog read it", () => {
     const before = entry({ speed: "30 ft." });
-    expect(withEntryValues("speed: 25 ft.\n", PATH, before, entry({ speed: "30 ft.", type: "elf" }))).toBe("speed: 25 ft.\ntype: elf\n");
+    expect(withEntryValues("speed: 25 ft.\n", PATH, before, entry({ speed: "30 ft.", type: "elf" }), STUB_SYNTAX)).toBe("speed: 25 ft.\ntype: elf\n");
   });
 
   it("refuses to add a line inside a comment that never closes", () => {
@@ -206,16 +207,16 @@ describe("withEntryValues", () => {
 describe("withOverrides", () => {
   it("rewrites any value, whatever the capitals it was written with", () => {
     const change = { name: "Patron", label: "Patron", before: "Lady Vess", after: "the Duke" };
-    expect(withOverrides("patron: Lady Vess\n", PATH, [change])).toBe("Patron: the Duke\n");
+    expect(withOverrides("patron: Lady Vess\n", PATH, [change], STUB_SYNTAX)).toBe("Patron: the Duke\n");
   });
 
   it("refuses when the note changed the value since it was read", () => {
     const change = { name: "AC", label: "Armor Class", before: "15", after: "16" };
-    expect(() => withOverrides("AC: 14\n", PATH, [change])).toThrow(CHANGED_IN_NOTE);
+    expect(() => withOverrides("AC: 14\n", PATH, [change], STUB_SYNTAX)).toThrow(CHANGED_IN_NOTE);
   });
 
   it("writes ? to mark a value not known", () => {
     const change = { name: "HP", label: "Hit Points", before: "", after: "?" };
-    expect(withOverrides("AC: 14\n", PATH, [change])).toBe("AC: 14\nHP: ?\n");
+    expect(withOverrides("AC: 14\n", PATH, [change], STUB_SYNTAX)).toBe("AC: 14\nHP: ?\n");
   });
 });

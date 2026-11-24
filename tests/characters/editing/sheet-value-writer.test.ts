@@ -19,6 +19,7 @@ import {
   type SheetWrite,
 } from "../../../src/characters/editing/sheet-value-writer";
 import type { SourcedFact } from "../../../src/characters/reading/sheet-values";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const MIRA = "Pale Moon/Characters/Mira.md";
 const ONE = "Pale Moon/Sessions/Session 1.md";
@@ -181,51 +182,51 @@ const LEARNED_AND_CLEARED: SheetWrite = {
 describe("writeSheetValue", () => {
   it("adds the learned line to the session and clears the override", async () => {
     const { target, texts } = targetWith({ notes: { [MIRA]: "AC: 16\nspeed: 30 ft.", [TWO]: "Notes\n" } });
-    expect(await writeSheetValue(target, LEARNED_AND_CLEARED)).toBe(true);
+    expect(await writeSheetValue(target, LEARNED_AND_CLEARED, STUB_SYNTAX)).toBe(true);
     expect(texts.get(TWO)).toBe("Notes\n[[Mira]] AC: 17\n");
     expect(texts.get(MIRA)).toBe("speed: 30 ft.");
   });
 
   it("writes nothing when there is nothing to write", async () => {
     const { target, processed } = targetWith({ notes: { [MIRA]: "" } });
-    expect(await writeSheetValue(target, { override: null, sessionFact: null })).toBe(false);
+    expect(await writeSheetValue(target, { override: null, sessionFact: null }, STUB_SYNTAX)).toBe(false);
     expect(processed).toEqual([]);
   });
 
   it("writes nothing anywhere when the override changed in the note since the sheet read it", async () => {
     const { target, texts, processed } = targetWith({ notes: { [MIRA]: "AC: 18", [TWO]: "Notes\n" } });
-    await expect(writeSheetValue(target, LEARNED_AND_CLEARED)).rejects.toThrow(CHANGED_IN_NOTE);
+    await expect(writeSheetValue(target, LEARNED_AND_CLEARED, STUB_SYNTAX)).rejects.toThrow(CHANGED_IN_NOTE);
     expect(processed).toEqual([]);
     expect(texts.get(TWO)).toBe("Notes\n");
   });
 
   it("writes nothing anywhere when the override can't be cleared", async () => {
     const { target, processed } = targetWith({ notes: { [MIRA]: "AC: 16, HP: 3", [TWO]: "Notes\n" } });
-    await expect(writeSheetValue(target, LEARNED_AND_CLEARED)).rejects.toThrow(stillReads("Armor Class", "16"));
+    await expect(writeSheetValue(target, LEARNED_AND_CLEARED, STUB_SYNTAX)).rejects.toThrow(stillReads("Armor Class", "16"));
     expect(processed).toEqual([]);
   });
 
   it("writes nothing when the link wouldn't point to this character from the session", async () => {
     const { target, processed } = targetWith({ notes: { [MIRA]: "AC: 16", [TWO]: "" }, linkedTo: "Elsewhere/Mira.md" });
-    await expect(writeSheetValue(target, LEARNED_AND_CLEARED)).rejects.toThrow(linksElsewhere("Mira", TWO));
+    await expect(writeSheetValue(target, LEARNED_AND_CLEARED, STUB_SYNTAX)).rejects.toThrow(linksElsewhere("Mira", TWO));
     expect(processed).toEqual([]);
   });
 
   it("writes nothing when the link wouldn't read as a link", async () => {
     const { target, processed } = targetWith({ notes: { [MIRA]: "AC: 16", [TWO]: "" }, linktext: "[Mira" });
-    await expect(writeSheetValue(target, LEARNED_AND_CLEARED)).rejects.toThrow(linksElsewhere("[Mira", TWO));
+    await expect(writeSheetValue(target, LEARNED_AND_CLEARED, STUB_SYNTAX)).rejects.toThrow(linksElsewhere("[Mira", TWO));
     expect(processed).toEqual([]);
   });
 
   it("leaves the override when the learned line would be hidden in the session", async () => {
     const { target, texts } = targetWith({ notes: { [MIRA]: "AC: 16", [TWO]: "%% open" } });
-    await expect(writeSheetValue(target, LEARNED_AND_CLEARED)).rejects.toThrow(WOULD_BE_HIDDEN);
+    await expect(writeSheetValue(target, LEARNED_AND_CLEARED, STUB_SYNTAX)).rejects.toThrow(WOULD_BE_HIDDEN);
     expect(texts.get(MIRA)).toBe("AC: 16");
   });
 
   it("says the line was added when the override couldn't then be cleared", async () => {
     const { target, texts } = targetWith({ notes: { [MIRA]: "AC: 16", [TWO]: "" }, failOwn: true });
-    const written = writeSheetValue(target, LEARNED_AND_CLEARED);
+    const written = writeSheetValue(target, LEARNED_AND_CLEARED, STUB_SYNTAX);
     await expect(written).rejects.toBeInstanceOf(PartlyWritten);
     await expect(written).rejects.toThrow("The line was added to the session, but Mira's note was left: disk full");
     expect(texts.get(TWO)).toBe("[[Mira]] AC: 17\n");
@@ -233,14 +234,14 @@ describe("writeSheetValue", () => {
 
   it("passes on a refusal to write only the override", async () => {
     const { target } = targetWith({ notes: { [MIRA]: "AC: 16" }, failOwn: true });
-    const written = writeSheetValue(target, { override: LEARNED_AND_CLEARED.override, sessionFact: null });
+    const written = writeSheetValue(target, { override: LEARNED_AND_CLEARED.override, sessionFact: null }, STUB_SYNTAX);
     await expect(written).rejects.not.toBeInstanceOf(PartlyWritten);
     await expect(written).rejects.toThrow("disk full");
   });
 
   it("writes an override line on the character's note", async () => {
     const { target, texts } = targetWith({ notes: { [MIRA]: "speed: 30 ft." } });
-    await writeSheetValue(target, { override: { name: "AC", label: "Armor Class", before: "", after: "16" }, sessionFact: null });
+    await writeSheetValue(target, { override: { name: "AC", label: "Armor Class", before: "", after: "16" }, sessionFact: null }, STUB_SYNTAX);
     expect(texts.get(MIRA)).toBe("speed: 30 ft.\nAC: 16\n");
   });
 });

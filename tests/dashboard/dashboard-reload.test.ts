@@ -6,6 +6,7 @@ import type { CampaignStore } from "../../src/campaign/reading/campaign-store";
 import type { CharacterNotes } from "../../src/characters/reading/character-notes";
 import { DashboardPage, type DashboardActions } from "../../src/dashboard/dashboard-page";
 import { obsidianDocument } from "../stubs/obsidian-dom";
+import { STUB_SYNTAX } from "../host/stub-syntax";
 
 const SESSION: SessionNote = { path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: "? Who sent the letter\n! Find the caravan" };
 
@@ -62,7 +63,7 @@ function readsOnRedraw(loads: number): number {
     },
   };
   const root = obsidianDocument().createElement("div");
-  const page = new DashboardPage(root, store as unknown as CampaignStore, notes, actions, () => new Component());
+  const page = new DashboardPage(root, store as unknown as CampaignStore, notes, actions, () => new Component(), STUB_SYNTAX);
   for (let load = 0; load < loads; load++) {
     page.unload();
     page.load();

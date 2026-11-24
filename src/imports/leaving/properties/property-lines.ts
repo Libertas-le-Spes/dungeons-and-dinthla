@@ -1,4 +1,4 @@
-import { firstLineAfterProperties } from "../../../campaign/paths/session-file";
+import { firstLineAfterProperties, type PropertiesSyntax } from "../../../campaign/paths/session-file";
 import { LineEnding, plainLineOf } from "../../note/reading/line-ending";
 import { propertySpanOf, type PropertySpan } from "./property-span";
 
@@ -18,8 +18,8 @@ export class PropertyLines {
     readonly ending: LineEnding,
   ) {}
 
-  static of(text: string): PropertyLines {
-    return new PropertyLines(text.split(LINE_BREAK), firstLineAfterProperties(text), LineEnding.of(text));
+  static of(text: string, syntax: PropertiesSyntax): PropertyLines {
+    return new PropertyLines(text.split(LINE_BREAK), firstLineAfterProperties(text, syntax), LineEnding.of(text));
   }
 
   hasBlock(): boolean {

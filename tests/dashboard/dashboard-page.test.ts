@@ -9,6 +9,7 @@ import type { CoinOutcome } from "../../src/funds/coins/coin-modal";
 import { NO_COIN_ENTRIES } from "../../src/funds/page/ledger-row";
 import { SESSIONS_SHARE_A_NUMBER } from "../../src/campaign/paths/session-to-write";
 import { isShown, obsidianDocument } from "../stubs/obsidian-dom";
+import { STUB_SYNTAX } from "../host/stub-syntax";
 
 const CAMPAIGN = "Pale Moon";
 const NO_CHARACTERS = "No characters yet.";
@@ -87,7 +88,7 @@ async function openDashboard(sessions: SessionNote[], { folder = CAMPAIGN, chara
     newsLines.push(lineEl);
     return newsLine;
   };
-  const view = new DashboardPage(root, store as unknown as CampaignStore, notes, actions, newsLineFor);
+  const view = new DashboardPage(root, store as unknown as CampaignStore, notes, actions, newsLineFor, STUB_SYNTAX);
   view.load();
   const change = (next: SessionNote[]) => {
     store.current = buildCampaign(next);

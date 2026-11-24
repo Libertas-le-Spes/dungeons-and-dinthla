@@ -6,6 +6,7 @@ import type { DashboardActions } from "../../../src/dashboard/dashboard-page";
 import { homeSection } from "../../../src/interface/sections/home-section";
 import type { News } from "../../../src/whats-new/news-item";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 function made() {
   const store = { campaignFolder: "Silver Road", sessionNotes: [], current: buildCampaign([]), subscribe: () => () => {} };
@@ -14,7 +15,7 @@ function made() {
   const actionsFor = vi.fn(() => ({ startSession: vi.fn() }) as unknown as DashboardActions);
   const root = obsidianDocument().body.createDiv();
   const show = vi.fn();
-  const page = homeSection({ store: store as unknown as CampaignStore, characterNotes, news, actionsFor })(root, show, null, vi.fn());
+  const page = homeSection({ store: store as unknown as CampaignStore, characterNotes, news, actionsFor }, STUB_SYNTAX)(root, show, null, vi.fn());
   page.load();
   return { root, show, actionsFor };
 }

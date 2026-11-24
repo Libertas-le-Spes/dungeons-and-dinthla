@@ -3,6 +3,7 @@ import type { Decisions } from "./link-decisions";
 import { LinkWriter, type LinkFiles } from "./link-writer";
 import type { SessionRename } from "./renumbering-plan";
 import type { NewTarget } from "./wiki-links";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export interface LinkUpdateReport {
   notUpdated: string[];
@@ -19,8 +20,8 @@ function pathNowOf(path: string, renames: SessionRename[]): string {
 export class LinkUpdates {
   private readonly writer: LinkWriter;
 
-  constructor(files: LinkFiles) {
-    this.writer = new LinkWriter(files);
+  constructor(files: LinkFiles, syntax: PropertiesSyntax) {
+    this.writer = new LinkWriter(files, syntax);
   }
 
   async apply(decisions: Decisions, renames: SessionRename[]): Promise<LinkUpdateReport> {

@@ -7,6 +7,7 @@ import { BACKUPS, CharacterGallery, FALLEN } from "../../../src/characters/pages
 import type { CharacterNotes } from "../../../src/characters/reading/character-notes";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { FakeNoteVault } from "../../imports/builders/fake-note-vault";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const FOLDER = "D&D/Primary Campaign/Characters";
 
@@ -76,7 +77,7 @@ async function galleryOf(own: string, notes: Record<string, string>, fallen: Rec
   for (const [name, text] of Object.entries(fallen)) fallenFiles.push(noteNamed(cardNotes, name, text, FALLEN_FOLDER));
   const root = obsidianDocument().createElement("div");
   const creators = { newCharacter: vi.fn(), importCharacter: vi.fn(), makeMain: vi.fn() };
-  const gallery = new CharacterGallery(root, new CampaignStore(new FakeNoteVault().notes.store), cardNotes, { openRow: vi.fn(), openLink: vi.fn() }, creators);
+  const gallery = new CharacterGallery(root, new CampaignStore(new FakeNoteVault().notes.store, STUB_SYNTAX), cardNotes, { openRow: vi.fn(), openLink: vi.fn() }, creators, STUB_SYNTAX);
   gallery.show(files, fallenFiles);
   await gallery.shown();
   return { root, creators, gallery, files, fallenFiles };
@@ -180,14 +181,14 @@ describe("a card's standing", () => {
     ["broken quotes", '"Went home', null],
     ["a quoted number", '"3"', "3"],
   ])("reads the departure from %s", (_case, value, departure) => {
-    expect(cardStandingOf(`---\nstanding: departed\ndeparture: ${value}\n---\n`).departure).toBe(departure);
+    expect(cardStandingOf(`---\nstanding: departed\ndeparture: ${value}\n---\n`, STUB_SYNTAX).departure).toBe(departure);
   });
 
   it("is read from the note's own properties", () => {
-    expect(cardStandingOf("---\nstanding: died\nimported-from: pdf\n---\n")).toEqual({ standing: "died", imported: true, departure: null });
-    expect(cardStandingOf("standing: died\n")).toEqual({ standing: null, imported: false, departure: null });
-    expect(cardStandingOf("---\nclass: Monk\n---\nstanding: died\n")).toEqual({ standing: null, imported: false, departure: null });
-    expect(cardStandingOf("---\nstanding:  \r\n---\n")).toEqual({ standing: null, imported: false, departure: null });
-    expect(cardStandingOf("---\r\nstanding: retired\r\n---\r\n")).toEqual({ standing: "retired", imported: false, departure: null });
+    expect(cardStandingOf("---\nstanding: died\nimported-from: pdf\n---\n", STUB_SYNTAX)).toEqual({ standing: "died", imported: true, departure: null });
+    expect(cardStandingOf("standing: died\n", STUB_SYNTAX)).toEqual({ standing: null, imported: false, departure: null });
+    expect(cardStandingOf("---\nclass: Monk\n---\nstanding: died\n", STUB_SYNTAX)).toEqual({ standing: null, imported: false, departure: null });
+    expect(cardStandingOf("---\nstanding:  \r\n---\n", STUB_SYNTAX)).toEqual({ standing: null, imported: false, departure: null });
+    expect(cardStandingOf("---\r\nstanding: retired\r\n---\r\n", STUB_SYNTAX)).toEqual({ standing: "retired", imported: false, departure: null });
   });
 });

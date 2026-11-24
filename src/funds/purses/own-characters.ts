@@ -4,6 +4,7 @@ import type { PurseCoin } from "../../characters/imported/lists/purse-coin";
 import { importedPurseOf } from "../../characters/imported/purse/note-purse";
 import { mainNotePathOf } from "../../campaign/paths/campaign-folders";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export interface OwnCharacterNotes {
   filesIn(campaignFolder: string): NoteRef[];
@@ -25,7 +26,7 @@ export interface OwnCharactersParts {
 }
 
 export class OwnCharacters {
-  constructor(private readonly parts: OwnCharactersParts) {}
+  constructor(private readonly parts: OwnCharactersParts, private readonly syntax: PropertiesSyntax) {}
 
   names(): string[] {
     return this.files().map((file) => file.basename);
@@ -35,7 +36,7 @@ export class OwnCharacters {
     const sheets: OwnSheet[] = [];
     for (const file of this.files()) {
       const text = await this.parts.notes.textOf(file);
-      sheets.push({ name: file.basename, purse: importedPurseOf(text), importedSession: importedSessionOf(text) });
+      sheets.push({ name: file.basename, purse: importedPurseOf(text, this.syntax), importedSession: importedSessionOf(text, this.syntax) });
     }
     return sheets;
   }

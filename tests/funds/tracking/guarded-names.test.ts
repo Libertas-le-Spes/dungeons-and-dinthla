@@ -13,6 +13,7 @@ import { DialogCampaign, lastDialog } from "../../campaign/dialog-campaign";
 import { textOf } from "../../imports/builders/line-helpers";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { Notice, openedModals } from "../../stubs/obsidian";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const PRIMARY_PATH = "Pale Moon/Characters/Primary Monk.md";
@@ -31,7 +32,7 @@ function campaignFolders(): string[] {
 function noFocus(): void {}
 
 function importedNoteWith(name: string): ImportedLists {
-  const lists = ImportedLists.of(textOf("---", "imported-from: pdf", "---", "## Inventory", pluginLineOf([neutralPartOf(name), "1"], COUNT_SEPARATOR), ""));
+  const lists = ImportedLists.of(textOf("---", "imported-from: pdf", "---", "## Inventory", pluginLineOf([neutralPartOf(name), "1"], COUNT_SEPARATOR), ""), STUB_SYNTAX);
   if (lists === null) throw new Error("The note reads as not imported.");
   return lists;
 }
@@ -43,7 +44,7 @@ class TrackedSheet {
 
   constructor(private readonly name: string) {
     this.primary = this.campaign.addCharacterNote(PRIMARY_PATH);
-    this.tracking = new FundsTracking(app, this.campaign.gate, this.campaign.store, campaignFolders);
+    this.tracking = new FundsTracking(app, this.campaign.gate, this.campaign.store, campaignFolders, STUB_SYNTAX);
   }
 
   drawn(): HTMLElement {

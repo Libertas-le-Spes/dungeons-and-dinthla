@@ -2,10 +2,11 @@ import { describe, expect, it } from "vitest";
 import { EditorState } from "@codemirror/state";
 import { editorInfoField, type MarkdownFileInfo, type TFile } from "obsidian";
 import { isSessionEditor, markerDecorations, type VisibleRange } from "../../src/editor/marker-decorations";
+import { STUB_SYNTAX } from "../host/stub-syntax";
 
 function marked(doc: string, ranges: VisibleRange[] = [{ from: 0, to: doc.length }]): [string, string][] {
   const state = EditorState.create({ doc });
-  const decorations = markerDecorations(state, ranges);
+  const decorations = markerDecorations(state, ranges, STUB_SYNTAX);
   const found: [string, string][] = [];
   decorations.between(0, doc.length, (from, to, decoration) => {
     found.push([doc.slice(from, to), String(decoration.spec.class)]);

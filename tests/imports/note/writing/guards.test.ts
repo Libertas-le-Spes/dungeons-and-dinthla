@@ -4,6 +4,7 @@ import { outsideTheImport } from "../../../../src/imports/note/writing/guarding/
 import { refuseUnlessOnlyTheImportChanged } from "../../../../src/imports/note/writing/guarding/read-back";
 import { foreignPropertyLinesOf } from "../../../../src/imports/note/writing/rewriting/foreign-property-lines";
 import { textOf } from "../../builders/line-helpers";
+import { STUB_SYNTAX } from "../../../host/stub-syntax";
 
 const INVENTORY = "## Inventory";
 
@@ -44,23 +45,23 @@ describe("foreignPropertyLinesOf", () => {
 
 describe("outsideTheImport", () => {
   it("leaves out the import's properties and the properties block's own fences", () => {
-    expect(outsideTheImport(textOf("---", "AC: 1", "mood: calm", "---", "body"))).toEqual(["mood: calm", "body"]);
+    expect(outsideTheImport(textOf("---", "AC: 1", "mood: calm", "---", "body"), STUB_SYNTAX)).toEqual(["mood: calm", "body"]);
   });
 
   it("leaves out each plugin section, up to the next big heading, but not the blank line before it", () => {
-    expect(outsideTheImport(textOf("top", INVENTORY, "- a", "", "## Mine", "end"))).toEqual(["top", "", "## Mine", "end"]);
+    expect(outsideTheImport(textOf("top", INVENTORY, "- a", "", "## Mine", "end"), STUB_SYNTAX)).toEqual(["top", "", "## Mine", "end"]);
   });
 
   it("is the same for a note with no properties block as for one with only the import's properties", () => {
-    expect(outsideTheImport(textOf("---", "AC: 1", "---", "body"))).toEqual(outsideTheImport("body"));
+    expect(outsideTheImport(textOf("---", "AC: 1", "---", "body"), STUB_SYNTAX)).toEqual(outsideTheImport("body", STUB_SYNTAX));
   });
 
   it("keeps a Windows line break on the lines it returns", () => {
-    expect(outsideTheImport("a\r\nb")).toEqual(["a\r", "b"]);
+    expect(outsideTheImport("a\r\nb", STUB_SYNTAX)).toEqual(["a\r", "b"]);
   });
 
   it("keeps the final empty line of a note whose last section is the import's", () => {
-    expect(outsideTheImport(textOf("top", INVENTORY, "- a", ""))).toEqual(["top", ""]);
+    expect(outsideTheImport(textOf("top", INVENTORY, "- a", ""), STUB_SYNTAX)).toEqual(["top", ""]);
   });
 });
 
@@ -69,39 +70,39 @@ describe("refuseUnlessOnlyTheImportChanged", () => {
 
   it("lets a change in the import's own properties and sections through", () => {
     const after = textOf("---", "mood: calm", "AC: 5", "---", "His words.", INVENTORY, "- b", "");
-    expect(() => refuseUnlessOnlyTheImportChanged(before, after)).not.toThrow();
+    expect(() => refuseUnlessOnlyTheImportChanged(before, after, STUB_SYNTAX)).not.toThrow();
   });
 
   it("refuses a changed line of his", () => {
-    expect(() => refuseUnlessOnlyTheImportChanged(before, before.replace("His words.", "Other words."))).toThrow(Refusal);
+    expect(() => refuseUnlessOnlyTheImportChanged(before, before.replace("His words.", "Other words."), STUB_SYNTAX)).toThrow(Refusal);
   });
 
   it("refuses a line of his that was taken out", () => {
-    expect(() => refuseUnlessOnlyTheImportChanged(before, before.replace("His words.\n", ""))).toThrow(Refusal);
+    expect(() => refuseUnlessOnlyTheImportChanged(before, before.replace("His words.\n", ""), STUB_SYNTAX)).toThrow(Refusal);
   });
 
   it("refuses a line added outside the import", () => {
-    expect(() => refuseUnlessOnlyTheImportChanged(before, before.replace("His words.\n", "His words.\nExtra\n"))).toThrow(Refusal);
+    expect(() => refuseUnlessOnlyTheImportChanged(before, before.replace("His words.\n", "His words.\nExtra\n"), STUB_SYNTAX)).toThrow(Refusal);
   });
 
   it("refuses a final empty line taken away", () => {
-    expect(() => refuseUnlessOnlyTheImportChanged(before, before.replace("- a\n", "- a"))).toThrow(Refusal);
+    expect(() => refuseUnlessOnlyTheImportChanged(before, before.replace("- a\n", "- a"), STUB_SYNTAX)).toThrow(Refusal);
   });
 
   it("refuses a property of his that was changed", () => {
-    expect(() => refuseUnlessOnlyTheImportChanged(before, before.replace("mood: calm", "mood: angry"))).toThrow(Refusal);
+    expect(() => refuseUnlessOnlyTheImportChanged(before, before.replace("mood: calm", "mood: angry"), STUB_SYNTAX)).toThrow(Refusal);
   });
 
   it("refuses a line break changed on a line of his", () => {
-    expect(() => refuseUnlessOnlyTheImportChanged("a\nb", "a\r\nb")).toThrow(Refusal);
+    expect(() => refuseUnlessOnlyTheImportChanged("a\nb", "a\r\nb", STUB_SYNTAX)).toThrow(Refusal);
   });
 
   it("refuses a note that grew lines at its end, and one that lost them", () => {
-    expect(() => refuseUnlessOnlyTheImportChanged("a", "a\nb")).toThrow(Refusal);
-    expect(() => refuseUnlessOnlyTheImportChanged("a\nb", "a")).toThrow(Refusal);
+    expect(() => refuseUnlessOnlyTheImportChanged("a", "a\nb", STUB_SYNTAX)).toThrow(Refusal);
+    expect(() => refuseUnlessOnlyTheImportChanged("a\nb", "a", STUB_SYNTAX)).toThrow(Refusal);
   });
 
   it("says what the import would change", () => {
-    expect(() => refuseUnlessOnlyTheImportChanged("a", "b")).toThrow("more than its own parts");
+    expect(() => refuseUnlessOnlyTheImportChanged("a", "b", STUB_SYNTAX)).toThrow("more than its own parts");
   });
 });

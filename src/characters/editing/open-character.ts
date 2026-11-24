@@ -10,6 +10,7 @@ import { factsByCharacter } from "../reading/sheet-values";
 import type { Gate } from "../../fence/gate/gatekeeper";
 import type { NoteRef } from "../../host/notes/note-ref";
 import { OBSIDIAN_SPELLING } from "../../obsidian/notes/obsidian-spelling";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 function characterFilesOf(gate: Gate): CharacterFiles {
   return { store: gate.notes.store, spelling: OBSIDIAN_SPELLING };
@@ -64,13 +65,13 @@ async function learnedAbout(notes: CharacterNotes, character: Character): Promis
   return learnedOf(facts);
 }
 
-export async function openEditCharacter(app: App, gate: Gate, notes: CharacterNotes, character: Character): Promise<void> {
+export async function openEditCharacter(app: App, gate: Gate, notes: CharacterNotes, character: Character, syntax: PropertiesSyntax): Promise<void> {
   const { file } = character;
   const openedPath = file.path;
   let before: CharacterEntry;
   let learned: Learned;
   try {
-    before = entryOf(file.basename, file.path, await gate.notes.store.read(file));
+    before = entryOf(file.basename, file.path, await gate.notes.store.read(file), syntax);
     learned = await learnedAbout(notes, character);
   } catch (error) {
     new Notice(`Couldn't read ${file.basename}: ${messageOf(error)}`);
@@ -81,7 +82,7 @@ export async function openEditCharacter(app: App, gate: Gate, notes: CharacterNo
     entry: before,
     learned,
     where: EDIT_WHERE,
-    save: (after: CharacterEntry) => saveCharacter(characterFilesOf(gate), gate.notes.keeping, character.campaignFolder, file, openedPath, before, after),
+    save: (after: CharacterEntry) => saveCharacter(characterFilesOf(gate), gate.notes.keeping, character.campaignFolder, file, openedPath, before, after, syntax),
     delete: () => deleteCharacter(gate.notes.keeping, file),
   };
   new CharacterModal(app, dialog, () => {}).open();
@@ -95,28 +96,28 @@ function activePathOf(app: App, shownPath: ShownPath): string | null {
   return shownPath();
 }
 
-export function editActiveCharacter(app: App, gate: Gate, notes: CharacterNotes, shownPath: ShownPath, checking: boolean): boolean {
+export function editActiveCharacter(app: App, gate: Gate, notes: CharacterNotes, shownPath: ShownPath, checking: boolean, syntax: PropertiesSyntax): boolean {
   const path = activePathOf(app, shownPath);
   if (path === null) return false;
   const character = characterAt(gate, notes, path);
   if (character === null) return false;
-  if (!checking) void openEditCharacter(app, gate, notes, character);
+  if (!checking) void openEditCharacter(app, gate, notes, character, syntax);
   return true;
 }
 
 export const NOT_A_CHARACTER = "Only a note in a campaign's Characters folder can be edited as a character.";
 
-export function editCharacter(app: App, gate: Gate, notes: CharacterNotes, file: NoteRef): void {
+export function editCharacter(app: App, gate: Gate, notes: CharacterNotes, file: NoteRef, syntax: PropertiesSyntax): void {
   const character = characterAt(gate, notes, file.path);
   if (character === null) {
     new Notice(NOT_A_CHARACTER);
     return;
   }
-  void openEditCharacter(app, gate, notes, character);
+  void openEditCharacter(app, gate, notes, character, syntax);
 }
 
-export function addEditCharacterItem(app: App, gate: Gate, notes: CharacterNotes, menu: Menu, file: TAbstractFile): void {
+export function addEditCharacterItem(app: App, gate: Gate, notes: CharacterNotes, menu: Menu, file: TAbstractFile, syntax: PropertiesSyntax): void {
   const character = characterAt(gate, notes, file.path);
   if (character === null) return;
-  menu.addItem((item) => item.setTitle("Edit character").setIcon("pencil").onClick(() => void openEditCharacter(app, gate, notes, character)));
+  menu.addItem((item) => item.setTitle("Edit character").setIcon("pencil").onClick(() => void openEditCharacter(app, gate, notes, character, syntax)));
 }

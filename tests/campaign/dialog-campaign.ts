@@ -7,6 +7,7 @@ import { sessionNoteOf } from "../../src/campaign/paths/session-file";
 import type { Gate } from "../../src/fence/gate/gatekeeper";
 import { notesOverFakes } from "../host/notes-over-fakes";
 import { openedModals } from "../stubs/obsidian";
+import { STUB_SYNTAX } from "../host/stub-syntax";
 
 function numberOf(path: string): number {
   const found = /(\d+)\.md$/.exec(path);
@@ -69,7 +70,7 @@ export class DialogCampaign {
   }
 
   get sessionNotes(): SessionNote[] {
-    return [...this.read].map(([path, text]) => sessionNoteOf(path, numberOf(path), text));
+    return [...this.read].map(([path, text]) => sessionNoteOf(path, numberOf(path), text, STUB_SYNTAX));
   }
 
   get current(): Campaign {

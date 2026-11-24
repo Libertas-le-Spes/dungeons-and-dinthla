@@ -8,6 +8,7 @@ import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
 import { canCollectReward, CHANGES_ANOTHER_QUEST, FOLLOW_UP_TITLE_TAKEN, initialQuestEdit, planQuestSave, refusalForQuestPlan, type QuestEdit } from "../../../src/quests/writing/quest-plan";
 import { questSessionChange } from "../../../src/quests/writing/quest-session-change";
 import { QuestWriter } from "../../../src/quests/writing/quest-writer";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 class FakeNotes {
   readonly texts: Map<string, string>;
@@ -34,7 +35,7 @@ class FakeNotes {
   }
 
   sessions() {
-    return [...this.texts].map(([path, text]) => sessionNoteOf(path, Number(/(\d+)\.md$/.exec(path)![1]), text));
+    return [...this.texts].map(([path, text]) => sessionNoteOf(path, Number(/(\d+)\.md$/.exec(path)![1]), text, STUB_SYNTAX));
   }
 
   campaign() {
@@ -45,9 +46,9 @@ class FakeNotes {
     const campaign = this.campaign();
     const record = campaign.quests[index]!;
     const plan = planQuestSave(record, edit(changes), campaign.coins, targetPath);
-    const refusal = refusalForQuestPlan(this.sessions(), record, plan);
+    const refusal = refusalForQuestPlan(this.sessions(), record, plan, STUB_SYNTAX);
     if (refusal !== null) throw new Error(refusal);
-    return new SessionChangeWriter(this.vault).apply(questSessionChange(plan));
+    return new SessionChangeWriter(this.vault, STUB_SYNTAX).apply(questSessionChange(plan));
   }
 }
 
@@ -138,7 +139,7 @@ describe("saving a quest", () => {
     const campaign = notes.campaign();
     const plan = planQuestSave(campaign.quests[0]!, edit({ status: "active" }), campaign.coins, ONE);
     notes.texts.set(ONE, "! Find it\n!= Find it: done, mostly\n");
-    await expect(new SessionChangeWriter(notes.vault).apply(questSessionChange(plan))).rejects.toThrow(CHANGED_IN_NOTE);
+    await expect(new SessionChangeWriter(notes.vault, STUB_SYNTAX).apply(questSessionChange(plan))).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notes.texts.get(ONE)).toBe("! Find it\n!= Find it: done, mostly\n");
   });
 
@@ -148,7 +149,7 @@ describe("saving a quest", () => {
     const plan = planQuestSave(campaign.quests[0]!, edit({ status: "active" }), campaign.coins, ONE);
     const handEdited = "! Find it\n!= Find it: done, mostly\n!= Find it: done\n";
     notes.texts.set(ONE, handEdited);
-    await expect(new SessionChangeWriter(notes.vault).apply(questSessionChange(plan))).rejects.toThrow(CHANGED_IN_NOTE);
+    await expect(new SessionChangeWriter(notes.vault, STUB_SYNTAX).apply(questSessionChange(plan))).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notes.texts.get(ONE)).toBe(handEdited);
   });
 });
@@ -206,14 +207,14 @@ describe("refusing changes that swap same-titled quests in one note", () => {
     const notes = new FakeNotes({ [ONE]: "! Find it\n$$\nx: 2\n" });
     const campaign = notes.campaign();
     const plan = planQuestSave(campaign.quests[0]!, edit({ followUp: "Other" }), campaign.coins, ONE);
-    expect(refusalForQuestPlan(notes.sessions(), campaign.quests[0]!, plan)).toBe(WOULD_BE_HIDDEN);
+    expect(refusalForQuestPlan(notes.sessions(), campaign.quests[0]!, plan, STUB_SYNTAX)).toBe(WOULD_BE_HIDDEN);
   });
 
   it("refuses a plan that would move the purse by more than the reward", () => {
     const notes = new FakeNotes({ [ONE]: "! Find it\n" });
     const campaign = notes.campaign();
     const plan = planQuestSave(campaign.quests[0]!, edit({ happened: "tracks" }), campaign.coins, ONE);
-    expect(refusalForQuestPlan(notes.sessions(), campaign.quests[0]!, { ...plan, added: [...plan.added, "$ 5 gp found"] })).toBe(
+    expect(refusalForQuestPlan(notes.sessions(), campaign.quests[0]!, { ...plan, added: [...plan.added, "$ 5 gp found"] }, STUB_SYNTAX)).toBe(
       CHANGES_ANOTHER_QUEST,
     );
   });
@@ -286,7 +287,7 @@ describe("refusing a quest change that swaps lines with a quest starting the sam
 describe("adding a quest", () => {
   it("adds the new quest's line to the session", async () => {
     const notes = new FakeNotes({ [ONE]: "We rode on.\n" });
-    expect(await new SessionChangeWriter(notes.vault).apply(linesAddedTo(ONE, ["! Escort Mira, reward: 50 gp"]))).toBe(true);
+    expect(await new SessionChangeWriter(notes.vault, STUB_SYNTAX).apply(linesAddedTo(ONE, ["! Escort Mira, reward: 50 gp"]))).toBe(true);
     expect(notes.campaign().quests.map((record) => [record.quest.title, record.quest.reward])).toEqual([["Escort Mira", "50 gp"]]);
   });
 });
@@ -294,14 +295,14 @@ describe("adding a quest", () => {
 describe("deleting a quest", () => {
   it("removes it with its progress and outcome, wherever they were written", async () => {
     const notes = new FakeNotes({ [ONE]: "! Find it, from: [[Lady Vess]]\n!+ Find it: tracks\n! Keep this\n", [TWO]: "!= Find it: done\n" });
-    await new QuestWriter(notes.vault).delete(notes.campaign().quests[0]!);
+    await new QuestWriter(notes.vault, STUB_SYNTAX).delete(notes.campaign().quests[0]!);
     expect(notes.texts.get(ONE)).toBe("! Keep this\n");
     expect(notes.texts.get(TWO)).toBe("");
   });
 
   it("deletes only the opened quest when another line reads the same", async () => {
     const notes = new FakeNotes({ [ONE]: "! Find it\n!= Find it: done\n! Find it\n" });
-    await new QuestWriter(notes.vault).delete(notes.campaign().quests[1]!);
+    await new QuestWriter(notes.vault, STUB_SYNTAX).delete(notes.campaign().quests[1]!);
     expect(notes.texts.get(ONE)).toBe("! Find it\n!= Find it: done\n");
   });
 
@@ -309,7 +310,7 @@ describe("deleting a quest", () => {
     const notes = new FakeNotes({ [ONE]: "! Find it\n!+ Find it: tracks\n!= Find it: done\n" });
     const record = notes.campaign().quests[0]!;
     notes.texts.set(ONE, "! Find it\nmid\n!+ Find it: tracks\n!= Find it: done\n");
-    await expect(new QuestWriter(notes.vault).delete(record)).rejects.toThrow(`${LINES_LEFT} ${ONE}.`);
+    await expect(new QuestWriter(notes.vault, STUB_SYNTAX).delete(record)).rejects.toThrow(`${LINES_LEFT} ${ONE}.`);
     expect(notes.texts.get(ONE)).toBe("mid\n!+ Find it: tracks\n!= Find it: done\n");
   });
 });

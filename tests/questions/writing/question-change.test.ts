@@ -9,6 +9,7 @@ import { writeRecordChange } from "../../../src/campaign/changes/write-record-ch
 import { ANSWER_GOES_ELSEWHERE } from "../../../src/questions/writing/current-question";
 import { questionReopen, questionSave } from "../../../src/questions/writing/question-change";
 import { CHANGES_MORE_THAN_ASKED } from "../../../src/questions/writing/question-plan";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
@@ -51,7 +52,7 @@ class FakeNotes {
   }
 
   get sessionNotes(): SessionNote[] {
-    return [...this.read].map(([path, text]) => sessionNoteOf(path, numberOf(path), text));
+    return [...this.read].map(([path, text]) => sessionNoteOf(path, numberOf(path), text, STUB_SYNTAX));
   }
 
   get current(): Campaign {
@@ -73,11 +74,11 @@ class FakeNotes {
 }
 
 function save(notes: FakeNotes, text: string, answer: string, followUp: string, sessionPath: string): Promise<boolean> {
-  return writeRecordChange(questionSave(notes, notes.question(text), { answer, followUp }, sessionPath), new SessionChangeWriter(notes.vault));
+  return writeRecordChange(questionSave(notes, notes.question(text), { answer, followUp }, sessionPath, STUB_SYNTAX), new SessionChangeWriter(notes.vault, STUB_SYNTAX));
 }
 
 function reopen(notes: FakeNotes, text: string, sessionPath: string): Promise<boolean> {
-  return writeRecordChange(questionReopen(notes, notes.question(text), sessionPath), new SessionChangeWriter(notes.vault));
+  return writeRecordChange(questionReopen(notes, notes.question(text), sessionPath, STUB_SYNTAX), new SessionChangeWriter(notes.vault, STUB_SYNTAX));
 }
 
 describe("saving a question", () => {

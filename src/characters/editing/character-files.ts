@@ -11,6 +11,7 @@ import type { NoteKeeping } from "../../host/notes/note-keeping";
 import type { NoteRef } from "../../host/notes/note-ref";
 import type { NoteStore } from "../../host/notes/note-store";
 import type { PathSpelling } from "../../host/rules/path-spelling";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export interface CharacterFiles {
   readonly store: Pick<NoteStore, "files" | "hasFolder" | "makeFolder" | "make" | "change">;
@@ -78,6 +79,7 @@ export async function saveCharacter(
   openedPath: string,
   before: CharacterEntry,
   after: CharacterEntry,
+  syntax: PropertiesSyntax,
 ): Promise<boolean> {
   if (after.name === "") return false;
   const folder = parentFolderOf(file.path);
@@ -87,7 +89,7 @@ export async function saveCharacter(
   if (renamed) refuseIfAny(refusalForFallen(files, campaignFolder, after.name));
   refuseIfAny(refusalForValues(after));
   const writes = valuesChanged(before, after);
-  if (writes) await writeOverrides(files.store, file, (text) => withEntryValues(text, file.path, before, after));
+  if (writes) await writeOverrides(files.store, file, (text) => withEntryValues(text, file.path, before, after, syntax));
   if (!renamed) return true;
   try {
     await actions.moveWithLinks(file, notePathOf(files, folder, after.name));

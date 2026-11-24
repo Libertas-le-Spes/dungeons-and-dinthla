@@ -1,5 +1,6 @@
 import { joinedLines, PropertyLines } from "./property-lines";
 import { propertyNextToLoose } from "./property-refusals";
+import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
 
 const FENCE = "---";
 
@@ -22,8 +23,8 @@ function withNewBlock(note: PropertyLines, added: readonly string[]): string {
   return joinedLines([note.ending.ends(FENCE), ...added, note.ending.ends(FENCE), ...note.lines]);
 }
 
-export function withPropertyLine(text: string, key: string, wanted: string | null): string {
-  const note = PropertyLines.of(text);
+export function withPropertyLine(text: string, key: string, wanted: string | null, syntax: PropertiesSyntax): string {
+  const note = PropertyLines.of(text, syntax);
   const added = endedLine(note, wanted);
   if (!note.hasBlock()) return withNewBlock(note, added);
   const span = note.spanOf(key);

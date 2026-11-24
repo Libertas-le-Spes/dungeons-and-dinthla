@@ -2,7 +2,7 @@ import { Notice, type App } from "obsidian";
 import type { Source } from "../../campaign/record/campaign";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { SessionChangeWriter } from "../../campaign/changes/session-change-writer";
-import { sessionLabelOf } from "../../campaign/paths/session-file";
+import { sessionLabelOf, type PropertiesSyntax } from "../../campaign/paths/session-file";
 import { sessionForDialog } from "../../campaign/paths/session-for-dialog";
 import { writeInSession } from "../../campaign/changes/write-in-session";
 import { OpenedSession } from "../../campaign/paths/session-gone";
@@ -24,6 +24,7 @@ export function openQuestion(
   openNote: () => void,
   onClosed: (changed: boolean) => void,
   activePath: string | null,
+  syntax: PropertiesSyntax,
 ): void {
   const questions = store.current.questions;
   const question = questions.find((candidate) => candidate.source.path === source.path && candidate.source.line === source.line);
@@ -40,13 +41,13 @@ export function openQuestion(
   const wanted = { activePath, earliestSession: latestSessionOfQuestion(question, folder), noSession: NO_SESSION };
   const sessionPath = sessionForDialog(gate.files, folder, wanted);
   if (sessionPath === null) return;
-  const questionWriter = new QuestionWriter(gate.notes.store);
-  const writer = new SessionChangeWriter(gate.notes.store);
+  const questionWriter = new QuestionWriter(gate.notes.store, syntax);
+  const writer = new SessionChangeWriter(gate.notes.store, syntax);
   const opened = new OpenedSession(gate.notes.store, sessionPath);
   const latest = () => currentQuestion(store.current.questions, question);
   const choices = {
-    save: async (edit: QuestionEdit) => writeInSession(opened, () => questionSave(store, latest(), edit, sessionPath), writer),
-    reopen: () => writeInSession(opened, () => questionReopen(store, latest(), sessionPath), writer),
+    save: async (edit: QuestionEdit) => writeInSession(opened, () => questionSave(store, latest(), edit, sessionPath, syntax), writer),
+    reopen: () => writeInSession(opened, () => questionReopen(store, latest(), sessionPath, syntax), writer),
     delete: async () => questionWriter.delete(latest()),
   };
   let answeredIn = sessionLabelOf(sessionPath);

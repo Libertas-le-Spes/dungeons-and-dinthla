@@ -8,6 +8,7 @@ import { ItemPanel, type OpenItem } from "../../funds/item-notes/item-panel";
 import type { OpenLedgerEntry } from "../../funds/coins/open-ledger-entry";
 import type { LinkActions } from "../../views/lists/linked-text";
 import type { MakePage, ShowPage } from "../view/campaign-pages";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export interface FundsNeeds {
   store: CampaignStore;
@@ -37,7 +38,7 @@ function shownItemOf(path: string | null, needs: FundsNeeds, show: ShowPage): Sh
   return { name: noteNameOf(path), panel: (panelEl) => itemPanelOf(panelEl, path, needs, show) };
 }
 
-export function fundsSection(needs: FundsNeeds): MakePage {
+export function fundsSection(needs: FundsNeeds, syntax: PropertiesSyntax): MakePage {
   return (contentEl, show, path) =>
     new FundsPage({
       contentEl,
@@ -48,6 +49,6 @@ export function fundsSection(needs: FundsNeeds): MakePage {
       openLedgerEntry: needs.openLedgerEntry,
       openItem: needs.openItem,
       shownItem: shownItemOf(path, needs, show),
-      ownCharacters: new OwnCharacters({ store: needs.store, notes: needs.ownCharacterNotes }),
+      ownCharacters: new OwnCharacters({ store: needs.store, notes: needs.ownCharacterNotes }, syntax),
     });
 }

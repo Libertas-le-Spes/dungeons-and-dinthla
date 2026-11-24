@@ -18,6 +18,7 @@ import { sessionPropertiesOf } from "../../sessions/session-properties";
 import type { OpenConfirm } from "../../views/dialogs/confirm-modal";
 import type { LinkActions } from "../../views/lists/linked-text";
 import type { NotesNeeds } from "./notes-section";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export type SessionNotesGate = Gate & { vaultSettings: Pick<VaultSettings, "trashOption"> };
 
@@ -41,14 +42,14 @@ export interface SessionNotesWiring {
   wholeText: NoteEditingNeeds;
 }
 
-export function sessionNotesWiring(needs: SessionNotesWiringNeeds): SessionNotesWiring {
+export function sessionNotesWiring(needs: SessionNotesWiringNeeds, syntax: PropertiesSyntax): SessionNotesWiring {
   const gate = needs.gate;
   const wholeText = { texts: new HostNoteTexts(gate.notes), drafts: needs.keeping.noteDrafts, saver: new NoteSaver(gate.notes.store) };
   const notes = {
     store: needs.store,
     drafts: needs.drafts,
     keptDrafts: needs.keeping.keptDrafts,
-    writer: new AppendWriter(gate.notes.store),
+    writer: new AppendWriter(gate.notes.store, syntax),
     propertiesOf: (path: string) => sessionPropertiesOf(path, gate.notes),
     openers: needs.openers,
     actions: needs.actions,
@@ -57,7 +58,7 @@ export function sessionNotesWiring(needs: SessionNotesWiringNeeds): SessionNotes
     removal: {
       clearer: new SessionClearer(gate.notes.store, OBSIDIAN_SYNTAX),
       trash: new SessionTrash(gate.notes.store, gate.notes.keeping, gate.notes.keeping.throwsAwayForGood.bind(gate.notes.keeping)),
-      renumbering: new SessionRenumbering(gate.notes.store, () => needs.campaignFolders()),
+      renumbering: new SessionRenumbering(gate.notes.store, () => needs.campaignFolders(), syntax),
       confirm: needs.confirm,
       report: (message: string) => needs.report(message),
     },

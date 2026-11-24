@@ -16,6 +16,7 @@ import { printedOf } from "../../beyond/builders/sheet-reading";
 import { openedModals } from "../../stubs/obsidian";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { CHARACTERS_FOLDER, FakeNoteVault } from "../builders/fake-note-vault";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 class NoMetadata {
   getCache(): null {
@@ -192,7 +193,7 @@ describe("opening the dialog", () => {
   it("says to open a campaign first when none is shown, and opens nothing", () => {
     const wiring = wiringWith(null, null);
     const before = openedModals.length;
-    new BeyondOpeners(wiring).importCharacter(vi.fn());
+    new BeyondOpeners(wiring, STUB_SYNTAX).importCharacter(vi.fn());
     expect(wiring.tell).toHaveBeenCalledWith("Open a campaign first, then import its character.");
     expect(openedModals.length).toBe(before);
   });
@@ -200,7 +201,7 @@ describe("opening the dialog", () => {
   it("opens the import for the shown campaign's Characters folder", () => {
     const wiring = wiringWith("D&D/Primary Campaign", null);
     const before = openedModals.length;
-    new BeyondOpeners(wiring).importCharacter(vi.fn());
+    new BeyondOpeners(wiring, STUB_SYNTAX).importCharacter(vi.fn());
     expect(wiring.charactersFolderOf).toHaveBeenCalledWith("D&D/Primary Campaign");
     expect(openedModals.length).toBe(before + 1);
     expect(wiring.tell).not.toHaveBeenCalled();
@@ -214,7 +215,7 @@ describe("opening the dialog", () => {
     const vault = new FakeNoteVault();
     const note = vault.note(`${CHARACTERS_FOLDER}/Primary.md`, text);
     const online = new HeldOnline();
-    await new BeyondOpeners(wiringWith(null, "D&D/Primary Campaign", vault, online)).updateFromBeyond(note, vi.fn());
+    await new BeyondOpeners(wiringWith(null, "D&D/Primary Campaign", vault, online), STUB_SYNTAX).updateFromBeyond(note, vi.fn());
     expect(online.links).toEqual(asked);
   });
 
@@ -224,7 +225,7 @@ describe("opening the dialog", () => {
     vault.failReadsWith(new Error("Locked."));
     const online = new HeldOnline();
     const before = openedModals.length;
-    await new BeyondOpeners(wiringWith(null, "D&D/Primary Campaign", vault, online)).updateFromBeyond(note, vi.fn());
+    await new BeyondOpeners(wiringWith(null, "D&D/Primary Campaign", vault, online), STUB_SYNTAX).updateFromBeyond(note, vi.fn());
     expect(openedModals.length).toBe(before + 1);
     expect(online.links).toEqual([]);
   });
@@ -233,11 +234,11 @@ describe("opening the dialog", () => {
     const note = { path: `${CHARACTERS_FOLDER}/Primary.md`, basename: "Primary" } as TFile;
     const inCampaign = wiringWith(null, "D&D/Primary Campaign");
     const before = openedModals.length;
-    await new BeyondOpeners(inCampaign).updateFromBeyond(note, vi.fn());
+    await new BeyondOpeners(inCampaign, STUB_SYNTAX).updateFromBeyond(note, vi.fn());
     expect(inCampaign.campaignFolderOf).toHaveBeenCalledWith(note.path);
     expect(openedModals.length).toBe(before + 1);
     const outside = wiringWith(null, null);
-    await new BeyondOpeners(outside).updateFromBeyond(note, vi.fn());
+    await new BeyondOpeners(outside, STUB_SYNTAX).updateFromBeyond(note, vi.fn());
     expect(outside.tell).toHaveBeenCalledExactlyOnceWith("This note isn't in a campaign.");
     expect(openedModals.length).toBe(before + 1);
   });
@@ -245,7 +246,7 @@ describe("opening the dialog", () => {
   it("asks about Make main for a note that is gone, telling the user and returning focus", () => {
     const wiring = wiringWith("D&D/Primary Campaign", "D&D/Primary Campaign");
     const returnFocus = vi.fn();
-    new BeyondOpeners(wiring).makeMain(`${CHARACTERS_FOLDER}/Gone.md`, returnFocus);
+    new BeyondOpeners(wiring, STUB_SYNTAX).makeMain(`${CHARACTERS_FOLDER}/Gone.md`, returnFocus);
     expect(wiring.tell).toHaveBeenCalledExactlyOnceWith("A character's note was moved or deleted since you were asked, so nothing was switched.");
     expect(returnFocus).toHaveBeenCalledOnce();
   });

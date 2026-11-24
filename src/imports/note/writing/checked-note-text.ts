@@ -7,6 +7,7 @@ import type { ImportStamp } from "../properties/import-stamp";
 import { importedNoteText } from "./rewriting/imported-note";
 import type { NoteFiles } from "./note-files";
 import type { NoteRef } from "../../../host/notes/note-ref";
+import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
 
 export interface CheckedText {
   before: string;
@@ -15,10 +16,10 @@ export interface CheckedText {
   shown: readonly TypedText[];
 }
 
-export function checkedTextOf({ before, sheet, stamp, shown }: CheckedText): string {
-  const after = importedNoteText({ current: before, sheet, stamp });
-  refuseUnlessOnlyTheImportChanged(before, after);
-  const changes = importChangesOf(before, after);
+export function checkedTextOf({ before, sheet, stamp, shown }: CheckedText, syntax: PropertiesSyntax): string {
+  const after = importedNoteText({ current: before, sheet, stamp }, syntax);
+  refuseUnlessOnlyTheImportChanged(before, after, syntax);
+  const changes = importChangesOf(before, after, syntax);
   if (!sameTypedText(shown, changes.typed)) throw typedTextNotShown();
   if (changesNothing(changes)) return before;
   return after;
@@ -34,6 +35,6 @@ export async function writeWhenUnchangedSinceRead(files: NoteFiles, file: NoteRe
   if (refusal !== null) throw refusal;
 }
 
-export function checkedNewNoteText(sheet: PrintedSheet, stamp: ImportStamp): string {
-  return checkedTextOf({ before: "", sheet, stamp, shown: [] });
+export function checkedNewNoteText(sheet: PrintedSheet, stamp: ImportStamp, syntax: PropertiesSyntax): string {
+  return checkedTextOf({ before: "", sheet, stamp, shown: [] }, syntax);
 }

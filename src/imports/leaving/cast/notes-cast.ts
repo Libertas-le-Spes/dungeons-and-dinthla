@@ -9,6 +9,7 @@ import type { CampaignCast } from "./campaign-cast";
 import { MAIN_UNCLEAR } from "../switching/switch-words";
 import type { NoteRef } from "../../../host/notes/note-ref";
 import type { LinkLookup } from "../../../host/notes/link-lookup";
+import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
 
 export type CastMetadata = Pick<LinkLookup, "target" | "linkTextTo">;
 export type CastFiles = CampaignFiles;
@@ -35,10 +36,11 @@ export class NotesCast implements CampaignCast {
   constructor(
     private readonly metadata: CastMetadata,
     private readonly files: CastFiles,
+    private readonly syntax: PropertiesSyntax,
   ) {}
 
   mainFrom(campaignNote: NoteRef, asked: string): NoteRef | null {
-    const values = valuesOf(asked, MAIN_CHARACTER_PROPERTY);
+    const values = valuesOf(asked, MAIN_CHARACTER_PROPERTY, this.syntax);
     if (values === null) return null;
     if (values.length !== 1) throw new Refusal(MAIN_UNCLEAR);
     const written = unquoted(values.join(""));
@@ -47,7 +49,7 @@ export class NotesCast implements CampaignCast {
   }
 
   async campaignOf(campaignFolder: string): Promise<Campaign> {
-    return buildCampaign(await readSessions(this.files, campaignFolder));
+    return buildCampaign(await readSessions(this.files, campaignFolder, this.syntax));
   }
 
   latestSessionLink(campaignFolder: string, fromPath: string): string | null {

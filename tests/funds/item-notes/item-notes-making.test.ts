@@ -4,6 +4,7 @@ import { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { ItemNotes } from "../../../src/funds/item-notes/item-notes";
 import { FakeVault } from "../../campaign/fake-vault";
 import { CAMPAIGN, FakeItemNotes, LANTERN, ROPE, SESSION, settle, type ItemNote } from "./fake-item-notes";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const THREE_LINES = ["$ [[Mira]] Silvered lantern", "We rested.", "$$ Silvered lantern :changed to [[Baka]]", "$$ Silvered lantern :changed to the party"];
 const ITEMS = `${CAMPAIGN}/Items`;
@@ -15,7 +16,7 @@ function lastWrite(fake: FakeItemNotes) {
 
 async function opened(lines: string[], notes: ItemNote[] = [], folderThere = true) {
   const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
-  const store = new CampaignStore(sessions.vault);
+  const store = new CampaignStore(sessions.vault, STUB_SYNTAX);
   const fake = new FakeItemNotes(notes);
   if (!folderThere) fake.foldersThere.delete(ITEMS);
   const itemNotes = new ItemNotes(fake.needsFor(store));
@@ -133,7 +134,7 @@ describe("ItemNotes making a note", () => {
 describe("ItemNotes while the campaign is still opening", () => {
   it("plans nothing from a campaign not yet built, whether a session was saved or the notes of earlier sessions are made", async () => {
     const sessions = new FakeVault([{ path: SESSION, text: THREE_LINES.join("\n") }]);
-    const built = new CampaignStore(sessions.vault);
+    const built = new CampaignStore(sessions.vault, STUB_SYNTAX);
     await built.open(CAMPAIGN);
     const store = { current: built.current, campaignFolder: CAMPAIGN, sessionNotes: built.sessionNotes, opening: true, subscribe: () => () => {} };
     const fake = new FakeItemNotes([]);

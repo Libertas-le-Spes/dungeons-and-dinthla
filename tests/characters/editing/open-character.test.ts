@@ -14,6 +14,7 @@ import {
 } from "../../../src/characters/editing/open-character";
 import { forgetModalWaiters, nextModal, Notice, openedModals } from "../../stubs/obsidian";
 import type { Gate } from "../../../src/fence/gate/gatekeeper";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const CAMPAIGNS = ["Ashen Road", "Pale Moon"];
 const MIRA = "Pale Moon/Characters/Mira.md";
@@ -87,7 +88,7 @@ describe("openEditCharacter", () => {
     const sessions = [{ path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: "[[Mira]] speed: 30 ft.\n[[Vess]] type: fiend\n" }];
     const { app, gate, notes, fileAt } = setUp({ sessions, ownNote: "speed: 40 ft.\n" });
     const before = openedModals.length;
-    await openEditCharacter(app, gate, notes, { file: fileAt(MIRA), campaignFolder: "Pale Moon" });
+    await openEditCharacter(app, gate, notes, { file: fileAt(MIRA), campaignFolder: "Pale Moon" }, STUB_SYNTAX);
     expect(openedModals.length).toBe(before + 1);
     expect(lastDialogText()).toContain("Learned in the sessions: 30 ft.");
     expect(lastDialogText()).not.toContain("fiend");
@@ -97,7 +98,7 @@ describe("openEditCharacter", () => {
   it("opens for a character the sessions never mention", async () => {
     const { app, gate, notes, fileAt } = setUp();
     const before = openedModals.length;
-    await openEditCharacter(app, gate, notes, { file: fileAt(MIRA), campaignFolder: "Pale Moon" });
+    await openEditCharacter(app, gate, notes, { file: fileAt(MIRA), campaignFolder: "Pale Moon" }, STUB_SYNTAX);
     expect(openedModals.length).toBe(before + 1);
     expect(lastDialogText()).not.toContain("Learned");
   });
@@ -105,7 +106,7 @@ describe("openEditCharacter", () => {
   it("says why when the note can't be read", async () => {
     const { app, gate, notes, fileAt } = setUp({ readFails: true });
     const before = openedModals.length;
-    await openEditCharacter(app, gate, notes, { file: fileAt(MIRA), campaignFolder: "Pale Moon" });
+    await openEditCharacter(app, gate, notes, { file: fileAt(MIRA), campaignFolder: "Pale Moon" }, STUB_SYNTAX);
     expect(Notice.shown).toEqual(["Couldn't read Mira: the disk is gone"]);
     expect(openedModals.length).toBe(before);
   });
@@ -116,7 +117,7 @@ describe("editCharacter", () => {
     const { app, gate, notes, fileAt, read } = setUp();
     const before = openedModals.length;
     const opened = nextModal();
-    editCharacter(app, gate, notes, fileAt(MIRA));
+    editCharacter(app, gate, notes, fileAt(MIRA), STUB_SYNTAX);
     await opened;
     expect(openedModals.length).toBe(before + 1);
     expect(read).toHaveBeenCalledOnce();
@@ -125,7 +126,7 @@ describe("editCharacter", () => {
   it("says so for a note outside a campaign's Characters folder", () => {
     const { app, gate, notes, fileAt, read } = setUp();
     const before = openedModals.length;
-    editCharacter(app, gate, notes, fileAt("Drafts/Characters/Mira.md"));
+    editCharacter(app, gate, notes, fileAt("Drafts/Characters/Mira.md"), STUB_SYNTAX);
     expect(Notice.shown).toEqual([NOT_A_CHARACTER]);
     expect(read).not.toHaveBeenCalled();
     expect(openedModals.length).toBe(before);
@@ -137,19 +138,19 @@ const NOTHING_SHOWN = () => null;
 describe("editActiveCharacter", () => {
   it("is offered on a character's note without reading it yet", () => {
     const { app, gate, notes, read } = setUp();
-    expect(editActiveCharacter(app, gate, notes, NOTHING_SHOWN, true)).toBe(true);
+    expect(editActiveCharacter(app, gate, notes, NOTHING_SHOWN, true, STUB_SYNTAX)).toBe(true);
     expect(read).not.toHaveBeenCalled();
   });
 
   it("isn't offered with no note open and no sheet shown", () => {
     const { app, gate, notes, read } = setUp({ active: null });
-    expect(editActiveCharacter(app, gate, notes, NOTHING_SHOWN, false)).toBe(false);
+    expect(editActiveCharacter(app, gate, notes, NOTHING_SHOWN, false, STUB_SYNTAX)).toBe(false);
     expect(read).not.toHaveBeenCalled();
   });
 
   it("isn't offered on a note outside a campaign's Characters folder", () => {
     const { app, gate, notes, read } = setUp({ active: "Drafts/Characters/Mira.md" });
-    expect(editActiveCharacter(app, gate, notes, NOTHING_SHOWN, false)).toBe(false);
+    expect(editActiveCharacter(app, gate, notes, NOTHING_SHOWN, false, STUB_SYNTAX)).toBe(false);
     expect(read).not.toHaveBeenCalled();
   });
 
@@ -157,9 +158,9 @@ describe("editActiveCharacter", () => {
     const { app, gate, notes, read } = setUp({ active: null, ownNote: "speed: 40 ft.\n" });
     const before = openedModals.length;
     const opened = nextModal();
-    expect(editActiveCharacter(app, gate, notes, () => MIRA, true)).toBe(true);
+    expect(editActiveCharacter(app, gate, notes, () => MIRA, true, STUB_SYNTAX)).toBe(true);
     expect(read).not.toHaveBeenCalled();
-    expect(editActiveCharacter(app, gate, notes, () => MIRA, false)).toBe(true);
+    expect(editActiveCharacter(app, gate, notes, () => MIRA, false, STUB_SYNTAX)).toBe(true);
     await opened;
     expect(openedModals.length).toBe(before + 1);
     expect(read).toHaveBeenCalledOnce();
@@ -168,7 +169,7 @@ describe("editActiveCharacter", () => {
 
   it("isn't offered when the campaign tab shows a page with no character", () => {
     const { app, gate, notes } = setUp({ active: null });
-    expect(editActiveCharacter(app, gate, notes, () => "Pale Moon/Characters.base", true)).toBe(false);
+    expect(editActiveCharacter(app, gate, notes, () => "Pale Moon/Characters.base", true, STUB_SYNTAX)).toBe(false);
   });
 });
 
@@ -203,7 +204,7 @@ describe("addEditCharacterItem", () => {
   it("adds Edit character to a character note's menu, which opens the dialog", async () => {
     const { app, gate, notes, read } = setUp();
     const { menu, items } = menuOf();
-    addEditCharacterItem(app, gate, notes, menu, { path: MIRA } as TAbstractFile);
+    addEditCharacterItem(app, gate, notes, menu, { path: MIRA } as TAbstractFile, STUB_SYNTAX);
     expect(items.map(({ title, icon }) => [title, icon])).toEqual([["Edit character", "pencil"]]);
     expect(read).not.toHaveBeenCalled();
     const before = openedModals.length;
@@ -216,14 +217,14 @@ describe("addEditCharacterItem", () => {
   it("adds nothing to the menu of another note", () => {
     const { app, gate, notes } = setUp();
     const { menu, items } = menuOf();
-    addEditCharacterItem(app, gate, notes, menu, { path: "Drafts/Characters/Mira.md" } as TAbstractFile);
+    addEditCharacterItem(app, gate, notes, menu, { path: "Drafts/Characters/Mira.md" } as TAbstractFile, STUB_SYNTAX);
     expect(items).toEqual([]);
   });
 
   it("adds nothing to the menu of a folder named like a note", () => {
     const { app, gate, notes } = setUp();
     const { menu, items } = menuOf();
-    addEditCharacterItem(app, gate, notes, menu, { path: "Pale Moon/Characters/Old.md" } as TAbstractFile);
+    addEditCharacterItem(app, gate, notes, menu, { path: "Pale Moon/Characters/Old.md" } as TAbstractFile, STUB_SYNTAX);
     expect(items).toEqual([]);
   });
 });

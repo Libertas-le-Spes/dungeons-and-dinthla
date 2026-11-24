@@ -2,13 +2,14 @@ import { describe, expect, it } from "vitest";
 import type { Campaign } from "../../../src/campaign/record/campaign";
 import { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { FakeVault } from "../fake-vault";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 function questionsIn(campaign: Campaign): string[] {
   return campaign.questions.map((question) => question.text);
 }
 
 async function openStore(fake: FakeVault): Promise<{ store: CampaignStore; seen: Campaign[] }> {
-  const store = new CampaignStore(fake.vault);
+  const store = new CampaignStore(fake.vault, STUB_SYNTAX);
   const seen: Campaign[] = [];
   store.subscribe((campaign) => seen.push(campaign));
   await store.open("Pale Moon");
@@ -120,7 +121,7 @@ describe("CampaignStore", () => {
 
   it("stops telling a listener once it unsubscribes", async () => {
     const fake = new FakeVault([]);
-    const store = new CampaignStore(fake.vault);
+    const store = new CampaignStore(fake.vault, STUB_SYNTAX);
     const seen: Campaign[] = [];
     const unsubscribe = store.subscribe((campaign) => seen.push(campaign));
     unsubscribe();
@@ -130,7 +131,7 @@ describe("CampaignStore", () => {
 
   it("reads nothing before a campaign is opened", () => {
     const fake = new FakeVault([]);
-    const store = new CampaignStore(fake.vault);
+    const store = new CampaignStore(fake.vault, STUB_SYNTAX);
     store.noteChanged("Pale Moon/Sessions/Session 1.md", "? Who");
     expect(store.current.questions).toEqual([]);
     expect(store.campaignFolder).toBeNull();
@@ -141,7 +142,7 @@ describe("CampaignStore", () => {
       { path: "Pale Moon/Sessions/Session 1.md", text: "? From Pale Moon" },
       { path: "Ashen Road/Sessions/Session 1.md", text: "? From Ashen Road" },
     ]);
-    const store = new CampaignStore(fake.vault);
+    const store = new CampaignStore(fake.vault, STUB_SYNTAX);
     const release = fake.holdReadsOf("Pale Moon/Sessions/Session 1.md");
     const first = store.open("Pale Moon");
     await store.open("Ashen Road");
@@ -163,7 +164,7 @@ describe("CampaignStore", () => {
 
   it("stays closed when a campaign opened before it finishes reading", async () => {
     const fake = new FakeVault([{ path: "Pale Moon/Sessions/Session 1.md", text: "? Who" }]);
-    const store = new CampaignStore(fake.vault);
+    const store = new CampaignStore(fake.vault, STUB_SYNTAX);
     const release = fake.holdReadsOf("Pale Moon/Sessions/Session 1.md");
     const opening = store.open("Pale Moon");
     store.close();
@@ -190,7 +191,7 @@ describe("CampaignStore", () => {
 
   it("keeps an edit made while the campaign was being read", async () => {
     const fake = new FakeVault([{ path: "Pale Moon/Sessions/Session 1.md", text: "? Saved" }]);
-    const store = new CampaignStore(fake.vault);
+    const store = new CampaignStore(fake.vault, STUB_SYNTAX);
     const release = fake.holdReadsOf("Pale Moon/Sessions/Session 1.md");
     const opening = store.open("Pale Moon");
     store.noteChanged("Pale Moon/Sessions/Session 1.md", "? Typed");
@@ -201,7 +202,7 @@ describe("CampaignStore", () => {
 
   it("keeps a session renamed while the campaign was being read under its new name", async () => {
     const fake = new FakeVault([{ path: "Pale Moon/Sessions/Session 1.md", text: "? Who" }]);
-    const store = new CampaignStore(fake.vault);
+    const store = new CampaignStore(fake.vault, STUB_SYNTAX);
     const release = fake.holdReadsOf("Pale Moon/Sessions/Session 1.md");
     const opening = store.open("Pale Moon");
     fake.rename("Pale Moon/Sessions/Session 1.md", "Pale Moon/Sessions/Session 2.md");
@@ -215,7 +216,7 @@ describe("CampaignStore", () => {
 
   it("keeps a session deleted while the campaign was being read gone", async () => {
     const fake = new FakeVault([{ path: "Pale Moon/Sessions/Session 1.md", text: "? Who" }]);
-    const store = new CampaignStore(fake.vault);
+    const store = new CampaignStore(fake.vault, STUB_SYNTAX);
     const release = fake.holdReadsOf("Pale Moon/Sessions/Session 1.md");
     const opening = store.open("Pale Moon");
     store.noteDeleted("Pale Moon/Sessions/Session 1.md");

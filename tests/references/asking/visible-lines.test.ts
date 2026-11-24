@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
 import { visibleLinesOf } from "../../../src/references/asking/visible-lines";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 function visible(text: string): string[] {
-  return visibleLinesOf(sessionNoteOf("Pale Moon/Sessions/Session 1.md", 1, text));
+  return visibleLinesOf(sessionNoteOf("Pale Moon/Sessions/Session 1.md", 1, text, STUB_SYNTAX));
 }
 
 describe("visibleLinesOf", () => {

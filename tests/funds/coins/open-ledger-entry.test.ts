@@ -7,6 +7,7 @@ import type { CoinOutcome } from "../../../src/funds/coins/coin-modal";
 import { ledgerEntryOpener, routeLedgerEntry, type LedgerOpeners } from "../../../src/funds/coins/open-ledger-entry";
 import { openedModals } from "../../stubs/obsidian";
 import type { Gate } from "../../../src/fence/gate/gatekeeper";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
@@ -65,7 +66,7 @@ describe("ledgerEntryOpener", () => {
   function opener(campaign: Campaign) {
     const store = { current: campaign, sessionNotes: [] };
     const openItem = vi.fn<LedgerOpeners["item"]>();
-    const open = ledgerEntryOpener({} as App, { files: {}, notes: { store: {} } } as unknown as Gate, store as unknown as CampaignStore, openItem);
+    const open = ledgerEntryOpener({} as App, { files: {}, notes: { store: {} } } as unknown as Gate, store as unknown as CampaignStore, openItem, STUB_SYNTAX);
     return { store, openItem, open };
   }
 

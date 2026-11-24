@@ -9,6 +9,7 @@ import { writeRecordChange } from "../../../src/campaign/changes/write-record-ch
 import { GOES_ELSEWHERE } from "../../../src/quests/writing/current-quest";
 import { questSave } from "../../../src/quests/writing/quest-change";
 import { canCollectReward, CHANGES_ANOTHER_QUEST, FOLLOW_UP_TITLE_TAKEN, type QuestEdit } from "../../../src/quests/writing/quest-plan";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
@@ -51,7 +52,7 @@ class FakeNotes {
   }
 
   get sessionNotes(): SessionNote[] {
-    return [...this.read].map(([path, text]) => sessionNoteOf(path, numberOf(path), text));
+    return [...this.read].map(([path, text]) => sessionNoteOf(path, numberOf(path), text, STUB_SYNTAX));
   }
 
   get current(): Campaign {
@@ -74,7 +75,7 @@ class FakeNotes {
 
 function save(notes: FakeNotes, title: string, changes: Partial<QuestEdit>, sessionPath: string): Promise<boolean> {
   const edit = { status: "active" as const, happened: "", collectReward: false, followUp: "", ...changes };
-  return writeRecordChange(questSave(notes, notes.quest(title), edit, sessionPath), new SessionChangeWriter(notes.vault));
+  return writeRecordChange(questSave(notes, notes.quest(title), edit, sessionPath, STUB_SYNTAX), new SessionChangeWriter(notes.vault, STUB_SYNTAX));
 }
 
 describe("saving a quest", () => {

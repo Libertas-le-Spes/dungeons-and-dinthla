@@ -2,7 +2,7 @@ import { Notice, type App } from "obsidian";
 import type { Source } from "../../campaign/record/campaign";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { SessionChangeWriter } from "../../campaign/changes/session-change-writer";
-import { sessionLabelOf } from "../../campaign/paths/session-file";
+import { sessionLabelOf, type PropertiesSyntax } from "../../campaign/paths/session-file";
 import { sessionForDialog } from "../../campaign/paths/session-for-dialog";
 import { writeInSession } from "../../campaign/changes/write-in-session";
 import { OpenedSession } from "../../campaign/paths/session-gone";
@@ -23,6 +23,7 @@ export function openQuest(
   openNote: () => void,
   onClosed: (changed: boolean) => void,
   activePath: string | null,
+  syntax: PropertiesSyntax,
 ): void {
   const quests = store.current.quests;
   const record = quests.find((candidate) => candidate.source.path === source.path && candidate.source.line === source.line);
@@ -39,12 +40,12 @@ export function openQuest(
   const wanted = { activePath, earliestSession: latestSessionOfQuest(record, folder), noSession: NO_SESSION };
   const sessionPath = sessionForDialog(gate.files, folder, wanted);
   if (sessionPath === null) return;
-  const questWriter = new QuestWriter(gate.notes.store);
-  const writer = new SessionChangeWriter(gate.notes.store);
+  const questWriter = new QuestWriter(gate.notes.store, syntax);
+  const writer = new SessionChangeWriter(gate.notes.store, syntax);
   const opened = new OpenedSession(gate.notes.store, sessionPath);
   const latest = () => currentQuest(store.current.quests, record);
   const choices = {
-    save: async (edit: QuestEdit) => writeInSession(opened, () => questSave(store, latest(), edit, sessionPath), writer),
+    save: async (edit: QuestEdit) => writeInSession(opened, () => questSave(store, latest(), edit, sessionPath, syntax), writer),
     delete: async () => questWriter.delete(latest()),
   };
   let finishedIn = sessionLabelOf(sessionPath);

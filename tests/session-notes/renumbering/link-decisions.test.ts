@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { LinkDecider, type DecisionPlan, type NoteDecision } from "../../../src/session-notes/renumbering/link-decisions";
 import type { SessionRename } from "../../../src/session-notes/renumbering/renumbering-plan";
 import { FakeCampaignFiles } from "./fake-campaign-files";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const PALE = "D&D/Pale Moon";
 const ASHEN = "D&D/Ashen Road";
@@ -35,7 +36,7 @@ function firstOf(notes: NoteDecision[]): NoteDecision {
 }
 
 async function decided(files: FakeCampaignFiles, notes: string[]) {
-  return new LinkDecider(files).decide(planFor(notes));
+  return new LinkDecider(files, STUB_SYNTAX).decide(planFor(notes));
 }
 
 describe("LinkDecider", () => {

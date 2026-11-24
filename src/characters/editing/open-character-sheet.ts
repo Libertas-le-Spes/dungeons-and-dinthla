@@ -13,6 +13,7 @@ import { SheetValueModal } from "./sheet-value-modal";
 import { sheetWriteOf, writeSheetValue, type ValueChoice } from "./sheet-value-writer";
 import type { Gate } from "../../fence/gate/gatekeeper";
 import type { NoteRef } from "../../host/notes/note-ref";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export const NO_SESSION = "There's no session to write in yet. Start one first.";
 
@@ -62,8 +63,9 @@ export async function saveSheetValue(
   opened: SheetValue,
   choice: ValueChoice,
   openedSession: SheetSession,
+  syntax: PropertiesSyntax,
 ): Promise<boolean> {
-  const read = await readCharacterSheet(file, store, notes);
+  const read = await readCharacterSheet(file, store, notes, syntax);
   const current = valueIn(read, opened.name);
   if (current === undefined || !sameSheetValue(current, opened)) throw new Error(CHANGED_IN_NOTE);
   return writeSheetValue(
@@ -75,6 +77,7 @@ export async function saveSheetValue(
       pathOfLink: (linktext, sourcePath) => notes.pathOfLink(linktext, sourcePath),
     },
     sheetWriteOf(current, choice),
+    syntax,
   );
 }
 
@@ -87,10 +90,11 @@ export async function chooseSheetValue(
   value: SheetValue,
   openSource: (source: Source) => void,
   onClosed: () => void,
+  syntax: PropertiesSyntax,
 ): Promise<void> {
   let openedSession: SheetSession;
   try {
-    openedSession = openedSessionIn(gate, await readCharacterSheet(file, store, notes));
+    openedSession = openedSessionIn(gate, await readCharacterSheet(file, store, notes, syntax));
   } catch (error) {
     new Notice(`Couldn't read ${file.basename}: ${messageOf(error)}`);
     return;
@@ -100,7 +104,7 @@ export async function chooseSheetValue(
     notePath: file.path,
     value,
     sessionLabel: openedSession.label,
-    save: (choice: ValueChoice) => saveSheetValue(app, gate, store, notes, file, value, choice, openedSession),
+    save: (choice: ValueChoice) => saveSheetValue(app, gate, store, notes, file, value, choice, openedSession, syntax),
     openSource,
   };
   new SheetValueModal(app, dialog, onClosed).open();

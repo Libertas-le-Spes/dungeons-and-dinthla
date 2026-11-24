@@ -6,6 +6,7 @@ import { linkOnSkippedLine, withLinksRewritten } from "./link-rewriting";
 import { NoteLinks } from "./note-links";
 import type { SessionRename } from "./renumbering-plan";
 import type { NewTarget } from "./wiki-links";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export type DecisionFiles = Pick<NoteStore, "note" | "read" | "files">;
 
@@ -36,7 +37,7 @@ function candidateCampaigns(notePath: string, plan: DecisionPlan): string[] {
 }
 
 export class LinkDecider {
-  constructor(private readonly files: DecisionFiles) {}
+  constructor(private readonly files: DecisionFiles, private readonly syntax: PropertiesSyntax) {}
 
   async decide(plan: DecisionPlan): Promise<Decisions> {
     const decisions: Decisions = { notes: [], unread: [] };
@@ -62,8 +63,8 @@ export class LinkDecider {
       const replacement = links.newTarget(target);
       targets.record(target, replacement);
       return replacement;
-    });
-    const skipped = linkOnSkippedLine(text, links.newTarget);
+    }, this.syntax);
+    const skipped = linkOnSkippedLine(text, links.newTarget, this.syntax);
     return { path, changes: targets.hasChange(), leftAsWritten: links.leftAsWritten().length > 0, skipped, newTarget: targets.newTarget };
   }
 }

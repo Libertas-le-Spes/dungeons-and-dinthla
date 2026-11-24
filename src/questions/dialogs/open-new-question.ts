@@ -2,7 +2,7 @@ import { Notice, type App } from "obsidian";
 import { NO_CAMPAIGN } from "../../campaign/paths/campaign-folders";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { SessionChangeWriter } from "../../campaign/changes/session-change-writer";
-import { sessionLabelOf } from "../../campaign/paths/session-file";
+import { sessionLabelOf, type PropertiesSyntax } from "../../campaign/paths/session-file";
 import { sessionForDialog } from "../../campaign/paths/session-for-dialog";
 import { latestSessionWanted } from "../../campaign/paths/session-to-write";
 import { writeInSession } from "../../campaign/changes/write-in-session";
@@ -14,7 +14,7 @@ import type { Gate } from "../../fence/gate/gatekeeper";
 
 const NO_SESSION = "Start a session first: questions are written into a session note.";
 
-export function openNewQuestion(app: App, gate: Gate, store: CampaignStore, onClosed: () => void): void {
+export function openNewQuestion(app: App, gate: Gate, store: CampaignStore, onClosed: () => void, syntax: PropertiesSyntax): void {
   const folder = store.campaignFolder;
   if (folder === null) {
     new Notice(NO_CAMPAIGN);
@@ -22,8 +22,8 @@ export function openNewQuestion(app: App, gate: Gate, store: CampaignStore, onCl
   }
   const sessionPath = sessionForDialog(gate.files, folder, latestSessionWanted(NO_SESSION));
   if (sessionPath === null) return;
-  const writer = new SessionChangeWriter(gate.notes.store);
+  const writer = new SessionChangeWriter(gate.notes.store, syntax);
   const opened = new OpenedSession(gate.notes.store, sessionPath);
-  const add = async (entry: NewQuestion) => writeInSession(opened, () => newQuestion(store, entry, sessionPath), writer);
+  const add = async (entry: NewQuestion) => writeInSession(opened, () => newQuestion(store, entry, sessionPath, syntax), writer);
   new NewQuestionModal(app, sessionLabelOf(sessionPath), add, onClosed).open();
 }

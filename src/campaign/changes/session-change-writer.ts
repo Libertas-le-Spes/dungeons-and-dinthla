@@ -1,6 +1,7 @@
 import { messageOf } from "../../views/dialogs/message-of";
 import { NoteEditor, PartlyWritten, WOULD_BE_HIDDEN, type EditorFiles, type Removal } from "../writing/note-editor";
 import type { AddedLines, LaterLines, LinesChange, SessionChange } from "./session-change";
+import type { PropertiesSyntax } from "../paths/session-file";
 
 export const LATER_NOTE_HIDDEN =
   "The first lines were written, but the later note has a block that never closes, so the rest was left out. Close the block in the note and add the rest by hand.";
@@ -8,8 +9,8 @@ export const LATER_NOTE_HIDDEN =
 export class SessionChangeWriter {
   private readonly editor: NoteEditor;
 
-  constructor(files: EditorFiles) {
-    this.editor = new NoteEditor(files);
+  constructor(files: EditorFiles, syntax: PropertiesSyntax) {
+    this.editor = new NoteEditor(files, syntax);
   }
 
   async apply(change: SessionChange): Promise<boolean> {

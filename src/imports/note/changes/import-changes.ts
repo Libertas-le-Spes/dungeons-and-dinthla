@@ -5,6 +5,7 @@ import { NoteLayout } from "../reading/note-layout";
 import { linesWithout } from "./line-difference";
 import { propertyValuesOf } from "./property-values";
 import { writtenLinesOf } from "./written-lines";
+import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
 
 export interface PropertyChange {
   readonly name: string;
@@ -84,9 +85,9 @@ function typedTextIn(before: NoteLayout): TypedText[] {
   return found;
 }
 
-export function importChangesOf(before: string, after: string): ImportChanges {
-  const was = NoteLayout.of(before);
-  const now = NoteLayout.of(after);
+export function importChangesOf(before: string, after: string, syntax: PropertiesSyntax): ImportChanges {
+  const was = NoteLayout.of(before, syntax);
+  const now = NoteLayout.of(after, syntax);
   return { properties: propertyChangesOf(was, now), sections: sectionChangesOf(was, now), typed: typedTextIn(was) };
 }
 

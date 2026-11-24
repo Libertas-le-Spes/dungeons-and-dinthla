@@ -1,5 +1,5 @@
 import { CHANGED_IN_NOTE, PROPERTIES_WOULD_CHANGE } from "../../campaign/writing/note-editor";
-import { keepsProperties } from "../../campaign/paths/session-file";
+import { keepsProperties, type PropertiesSyntax } from "../../campaign/paths/session-file";
 import { withoutBullet } from "../../notes/parts/bullet";
 import { factsOf, type CharacterFact } from "../../notes/reading/character-facts";
 import { hiddenLines } from "../../notes/reading/hidden-lines";
@@ -39,8 +39,8 @@ export function learnedOf(facts: CharacterFact[]): Learned {
   return learned;
 }
 
-export function entryOf(name: string, path: string, ownNote: string): CharacterEntry {
-  const values = learnedOf(overrideFacts(ownNote, path));
+export function entryOf(name: string, path: string, ownNote: string, syntax: PropertiesSyntax): CharacterEntry {
+  const values = learnedOf(overrideFacts(ownNote, path, syntax));
   const entry = { ...blankEntry(), name };
   for (const { fact } of ENTRY_FIELDS) {
     const value = values.get(fact);
@@ -64,9 +64,9 @@ export function factLine(name: string, value: string): string {
   return `${name}: ${value}`;
 }
 
-export function overrideValueOf(text: string, path: string, name: string): string {
+export function overrideValueOf(text: string, path: string, name: string, syntax: PropertiesSyntax): string {
   let value = "";
-  for (const fact of overrideFacts(text, path)) {
+  for (const fact of overrideFacts(text, path, syntax)) {
     if (sameName(fact.name, name)) value = fact.value;
   }
   return value;
@@ -129,10 +129,10 @@ interface StatingLine {
   hidden: boolean;
 }
 
-function linesStating(text: string, path: string, name: string): StatingLine[] {
+function linesStating(text: string, path: string, name: string, syntax: PropertiesSyntax): StatingLine[] {
   const lines = text.split("\n");
-  const hidden = hiddenLines(text);
-  return overrideFacts(text, path)
+  const hidden = hiddenLines(text, syntax);
+  return overrideFacts(text, path, syntax)
     .filter((candidate) => sameName(candidate.name, name))
     .map(({ source }) => ({
       line: source.line,
@@ -195,9 +195,9 @@ function withInserted(draft: Draft, written: string, at: number): Draft {
   return { text: insertLineAt(draft.text, at, written), origins: originsWithNewLine(draft.origins, at) };
 }
 
-function withAdded(draft: Draft, written: string): Draft {
+function withAdded(draft: Draft, written: string, syntax: PropertiesSyntax): Draft {
   const lines = draft.text.split("\n");
-  const bodyStart = firstLineAfterProperties(draft.text);
+  const bodyStart = firstLineAfterProperties(draft.text, syntax);
   const heading = firstImportHeading(lines, bodyStart);
   if (heading === null) return withAppended(draft, written);
   return withInserted(draft, written, afterHisOwnText(lines, bodyStart, heading));
@@ -212,27 +212,27 @@ function withAppended(draft: Draft, written: string): Draft {
   return { text, origins };
 }
 
-function withValue(draft: Draft, path: string, name: string, label: string, value: string): Draft {
-  const stating = linesStating(draft.text, path, name);
+function withValue(draft: Draft, path: string, name: string, label: string, value: string, syntax: PropertiesSyntax): Draft {
+  const stating = linesStating(draft.text, path, name, syntax);
   if (value === "") {
     const alone = stating.filter((candidate) => candidate.alone && !candidate.hidden);
     return withDropped(draft, alone.map(({ line }) => changeable(draft.text, line, label)));
   }
   const last = stating[stating.length - 1];
-  if (last === undefined || !last.alone || last.hidden) return withAdded(draft, factLine(name, value));
+  if (last === undefined || !last.alone || last.hidden) return withAdded(draft, factLine(name, value), syntax);
   return withRewritten(draft, changeable(draft.text, last.line, label), factLine(name, value));
 }
 
-function refuseUnlessWritten(changed: string, path: string, changes: OverrideChange[]): void {
+function refuseUnlessWritten(changed: string, path: string, changes: OverrideChange[], syntax: PropertiesSyntax): void {
   for (const { name, label, after } of changes) {
-    const written = overrideValueOf(changed, path, name);
+    const written = overrideValueOf(changed, path, name, syntax);
     if (written !== after) throw new Error(stillReads(label, written));
   }
 }
 
-function refuseIfHidingChanges(text: string, draft: Draft): void {
-  const hiddenBefore = hiddenLines(text);
-  const hiddenAfter = hiddenLines(draft.text);
+function refuseIfHidingChanges(text: string, draft: Draft, syntax: PropertiesSyntax): void {
+  const hiddenBefore = hiddenLines(text, syntax);
+  const hiddenAfter = hiddenLines(draft.text, syntax);
   for (const [index, origin] of draft.origins.entries()) {
     let wasHidden = false;
     if (origin !== null) wasHidden = hiddenBefore.has(origin);
@@ -240,20 +240,20 @@ function refuseIfHidingChanges(text: string, draft: Draft): void {
   }
 }
 
-export function withOverrides(text: string, path: string, changes: OverrideChange[]): string {
+export function withOverrides(text: string, path: string, changes: OverrideChange[], syntax: PropertiesSyntax): string {
   const changed = changes.filter(({ before, after }) => after !== before);
   let draft: Draft = { text, origins: text.split("\n").map((_line, index) => index) };
   for (const { name, label, before, after } of changed) {
-    if (overrideValueOf(text, path, name) !== before) throw new Error(CHANGED_IN_NOTE);
-    draft = withValue(draft, path, name, label, after);
+    if (overrideValueOf(text, path, name, syntax) !== before) throw new Error(CHANGED_IN_NOTE);
+    draft = withValue(draft, path, name, label, after, syntax);
   }
-  refuseUnlessWritten(draft.text, path, changed);
-  refuseIfHidingChanges(text, draft);
-  if (!keepsProperties(text, draft.text)) throw new Error(PROPERTIES_WOULD_CHANGE);
+  refuseUnlessWritten(draft.text, path, changed, syntax);
+  refuseIfHidingChanges(text, draft, syntax);
+  if (!keepsProperties(text, draft.text, syntax)) throw new Error(PROPERTIES_WOULD_CHANGE);
   return draft.text;
 }
 
-export function withEntryValues(text: string, path: string, before: CharacterEntry, after: CharacterEntry): string {
+export function withEntryValues(text: string, path: string, before: CharacterEntry, after: CharacterEntry, syntax: PropertiesSyntax): string {
   const changes = ENTRY_FIELDS.map(({ fact, label }) => ({ name: fact, label, before: before[fact], after: after[fact] }));
-  return withOverrides(text, path, changes);
+  return withOverrides(text, path, changes, syntax);
 }

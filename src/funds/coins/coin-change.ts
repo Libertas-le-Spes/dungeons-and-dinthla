@@ -6,6 +6,7 @@ import type { Check, RecordChange } from "../../campaign/changes/record-change";
 import { verdictOf, writeNothingWhen } from "../../campaign/changes/verdict";
 import type { CoinLine, CoinReading } from "../../notes/writing/coin-lines";
 import { coinSessionChange } from "./coin-session-change";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export const CHANGES_OTHER_MONEY = "That change would also change other money in the purse, so nothing was written.";
 
@@ -15,8 +16,8 @@ export interface EntryAsOpened {
   removal: Removal;
 }
 
-export function refusalForEntryChange(sessions: SessionNote[], record: CoinRecord, removal: Removal, coinLine: CoinLine | null): string | null {
-  const after = applySessionChange(sessions, coinSessionChange(removal, coinLine));
+export function refusalForEntryChange(sessions: SessionNote[], record: CoinRecord, removal: Removal, coinLine: CoinLine | null, syntax: PropertiesSyntax): string | null {
+  const after = applySessionChange(sessions, coinSessionChange(removal, coinLine), syntax);
   if (!after.linesAsRead) return CHANGED_IN_NOTE;
   let newCopper = 0;
   if (coinLine !== null) newCopper = coinLine.copper;
@@ -25,19 +26,19 @@ export function refusalForEntryChange(sessions: SessionNote[], record: CoinRecor
   return null;
 }
 
-function entryChange(entry: EntryAsOpened, coinLine: CoinLine | null, checksFirst: Check<CoinLine | null>[]): RecordChange<CoinLine | null> {
+function entryChange(entry: EntryAsOpened, coinLine: CoinLine | null, checksFirst: Check<CoinLine | null>[], syntax: PropertiesSyntax): RecordChange<CoinLine | null> {
   return {
     plan: () => coinLine,
-    checks: [...checksFirst, (plan) => verdictOf(refusalForEntryChange(entry.store.sessionNotes, entry.record, entry.removal, plan))],
+    checks: [...checksFirst, (plan) => verdictOf(refusalForEntryChange(entry.store.sessionNotes, entry.record, entry.removal, plan, syntax))],
     sessionChangeOf: (plan) => coinSessionChange(entry.removal, plan),
   };
 }
 
-export function coinSave(entry: EntryAsOpened, coinLine: CoinLine, cannotSave: string | null, opened: CoinReading): RecordChange<CoinLine | null> {
+export function coinSave(entry: EntryAsOpened, coinLine: CoinLine, cannotSave: string | null, opened: CoinReading, syntax: PropertiesSyntax): RecordChange<CoinLine | null> {
   const unchanged = () => writeNothingWhen("line" in opened && coinLine.line === opened.line);
-  return entryChange(entry, coinLine, [() => verdictOf(cannotSave), unchanged]);
+  return entryChange(entry, coinLine, [() => verdictOf(cannotSave), unchanged], syntax);
 }
 
-export function coinDelete(entry: EntryAsOpened): RecordChange<CoinLine | null> {
-  return entryChange(entry, null, []);
+export function coinDelete(entry: EntryAsOpened, syntax: PropertiesSyntax): RecordChange<CoinLine | null> {
+  return entryChange(entry, null, [], syntax);
 }

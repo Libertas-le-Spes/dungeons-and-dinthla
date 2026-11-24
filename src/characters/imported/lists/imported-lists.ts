@@ -1,4 +1,4 @@
-import { firstLineAfterProperties } from "../../../campaign/paths/session-file";
+import { firstLineAfterProperties, type PropertiesSyntax } from "../../../campaign/paths/session-file";
 import { IMPORTED_FROM_PROPERTY } from "../../../imports/layout/import-properties";
 import type { PluginSection } from "../../../imports/layout/plugin-section";
 import { PLUGIN_SECTIONS } from "../../../imports/layout/plugin-sections";
@@ -13,9 +13,9 @@ function isImported(entries: readonly PropertyEntry[]): boolean {
 export class ImportedLists {
   private constructor(private readonly sections: ReadonlyMap<PluginSection, SectionEntries>) {}
 
-  static of(text: string): ImportedLists | null {
+  static of(text: string, syntax: PropertiesSyntax): ImportedLists | null {
     const lines = noteLinesOf(text);
-    const bodyStart = firstLineAfterProperties(text);
+    const bodyStart = firstLineAfterProperties(text, syntax);
     if (!isImported(propertyEntriesOf(lines, bodyStart))) return null;
     const sections = new Map<PluginSection, SectionEntries>();
     for (const section of PLUGIN_SECTIONS) sections.set(section, sectionEntriesOf(lines, bodyStart, section));

@@ -3,7 +3,7 @@ import { Component } from "obsidian";
 import type { NoteRef } from "../../host/notes/note-ref";
 import type { Source } from "../../campaign/record/campaign";
 import { campaignFolderOf, charactersFolderOf } from "../../campaign/paths/campaign-folders";
-import { sessionLabelOf } from "../../campaign/paths/session-file";
+import { sessionLabelOf, type PropertiesSyntax } from "../../campaign/paths/session-file";
 import type { LinkActions } from "../../views/lists/linked-text";
 import { FocusAfter } from "../../views/lists/focus-after";
 import { PENDING_FOCUS_MS } from "../../views/lists/row-focus";
@@ -84,6 +84,7 @@ export class CharacterSheetPage extends Component {
     private readonly notes: SheetNotes,
     private readonly actions: SheetActions,
     mentionNotes: MentionNotes,
+    private readonly syntax: PropertiesSyntax,
   ) {
     super();
     this.mentions = new MentionsPanel(mentionNotes, actions);
@@ -123,7 +124,7 @@ export class CharacterSheetPage extends Component {
     const render = ++this.renders;
     let read: ReadSheet;
     try {
-      read = await readCharacterSheet(file, this.store, this.notes);
+      read = await readCharacterSheet(file, this.store, this.notes, this.syntax);
     } catch (error) {
       if (render !== this.renders) return;
       this.watched = this.watchedAlso(this.characterPaths(file));

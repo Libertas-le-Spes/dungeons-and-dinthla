@@ -4,6 +4,7 @@ import { Refusal } from "../../../src/beyond/shape/refusal";
 import { NotesCast } from "../../../src/imports/leaving/cast/notes-cast";
 import { MAIN_UNCLEAR } from "../../../src/imports/leaving/switching/switch-words";
 import { madeUpCampaign } from "./leaving-table";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const CAMPAIGN = "D&D/Primary Campaign";
 const CAMPAIGN_NOTE_PATH = `${CAMPAIGN}/Primary Campaign.md`;
@@ -69,7 +70,7 @@ function propertiesWith(line: string): string {
 function castWith(paths: readonly string[] = []): { cast: NotesCast; metadata: MadeUpMetadata } {
   const metadata = new MadeUpMetadata();
   const files = new MadeUpFiles(paths);
-  return { cast: new NotesCast(metadata, files), metadata };
+  return { cast: new NotesCast(metadata, files, STUB_SYNTAX), metadata };
 }
 
 function refusalOf(asked: string): string {

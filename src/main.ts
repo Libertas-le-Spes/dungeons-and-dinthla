@@ -118,7 +118,7 @@ export default class DungeonsAndDinthla extends Plugin {
   private readonly notes = this.gate.notes;
   private settingsSaver = this.settingsSaverOf(settingsOf(null, this.gate.configDir));
   private campaignsFolderSetting = this.campaignsFolderSettingFrom(this.settingsSaver);
-  private readonly store = new CampaignStore(this.gate.notes.store);
+  private readonly store = new CampaignStore(this.gate.notes.store, OBSIDIAN_SYNTAX);
   private readonly localStorage: LocalStorage = {
     load: (key) => this.app.loadLocalStorage(key),
     save: (key, value) => this.app.saveLocalStorage(key, value),
@@ -171,43 +171,43 @@ export default class DungeonsAndDinthla extends Plugin {
         void openLink(this.app, linkPlace, linktext, sourcePath, newLeaf),
     };
     const openQuestionAt = (source: Source, onClosed: (changed: boolean) => void) =>
-      openQuestion(this.app, gate, this.store, source, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app));
+      openQuestion(this.app, gate, this.store, source, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app), OBSIDIAN_SYNTAX);
     const createQuestion = {
       label: "New question",
-      open: (returnFocus: () => void) => openNewQuestion(this.app, gate, this.store, returnFocus),
+      open: (returnFocus: () => void) => openNewQuestion(this.app, gate, this.store, returnFocus, OBSIDIAN_SYNTAX),
     };
     const openQuestAt = (source: Source, onClosed: (changed: boolean) => void) =>
-      openQuest(this.app, gate, this.store, source, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app));
+      openQuest(this.app, gate, this.store, source, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app), OBSIDIAN_SYNTAX);
     const createQuest = {
       label: "New quest",
-      open: (returnFocus: () => void) => openNewQuest(this.app, gate, this.store, returnFocus),
+      open: (returnFocus: () => void) => openNewQuest(this.app, gate, this.store, returnFocus, OBSIDIAN_SYNTAX),
     };
     const noteExists = (name: string, sourcePath: string) => gate.metadata.getFirstLinkpathDest(name, sourcePath) !== null;
-    const addCoin = (returnFocus: () => void) => openAddCoin(this.app, gate, this.store, returnFocus, pathYouAreIn(this.app));
+    const addCoin = (returnFocus: () => void) => openAddCoin(this.app, gate, this.store, returnFocus, pathYouAreIn(this.app), OBSIDIAN_SYNTAX);
     const openItem = (name: string, source: Source, onClosed: (changed: boolean) => void) =>
-      openItemDialog(this.app, gate, this.store, name, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app), source);
-    const openLedgerEntry = ledgerEntryOpener(this.app, gate, this.store, openItem);
+      openItemDialog(this.app, gate, this.store, name, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app), source, OBSIDIAN_SYNTAX);
+    const openLedgerEntry = ledgerEntryOpener(this.app, gate, this.store, openItem, OBSIDIAN_SYNTAX);
     const campaignFolders = () => this.campaignFolders();
-    const sessionsOf = (campaignFolder: string) => readSessions(gate.notes.store, campaignFolder);
+    const sessionsOf = (campaignFolder: string) => readSessions(gate.notes.store, campaignFolder, OBSIDIAN_SYNTAX);
     const characterParts = { notes: this.notes, campaignFolders, sessionsOf };
     const characterNotes = new HostCharacterNotes(characterParts);
     const sheetNotes = new HostSheetNotes(characterParts);
-    const beyond = new BeyondOpeners(new PluginBeyondWiring({ app: this.app, files: gate.notes.store, actions: gate.notes.keeping, metadata: gate.notes.links, online: this.onlineImport, store: this.store, characterNotes, campaignFolders }));
+    const beyond = new BeyondOpeners(new PluginBeyondWiring({ app: this.app, files: gate.notes.store, actions: gate.notes.keeping, metadata: gate.notes.links, online: this.onlineImport, store: this.store, characterNotes, campaignFolders }), OBSIDIAN_SYNTAX);
     const sheetActions = {
       ...actions,
-      editCharacter: (file: NoteRef) => editCharacter(this.app, gate, characterNotes, file),
+      editCharacter: (file: NoteRef) => editCharacter(this.app, gate, characterNotes, file, OBSIDIAN_SYNTAX),
       chooseValue: (file: NoteRef, value: SheetValue, onClosed: () => void) =>
-        void chooseSheetValue(this.app, gate, this.store, sheetNotes, file, value, actions.openRow, onClosed),
+        void chooseSheetValue(this.app, gate, this.store, sheetNotes, file, value, actions.openRow, onClosed, OBSIDIAN_SYNTAX),
       updateFromBeyond: beyond.updateFromBeyond.bind(beyond),
       depart: beyond.depart.bind(beyond),
-      tracking: new FundsTracking(this.app, gate, this.store, () => this.campaignFolders()),
+      tracking: new FundsTracking(this.app, gate, this.store, () => this.campaignFolders(), OBSIDIAN_SYNTAX),
     };
     const mentionNotes = new HostMentionNotes({ ...characterParts, syntax: OBSIDIAN_SYNTAX });
     const newCharacter = (returnFocus: () => void) => openNewCharacter(this.app, gate, this.store.campaignFolder, returnFocus);
     const creators = { newCharacter, importCharacter: beyond.importCharacter.bind(beyond), makeMain: beyond.makeMain.bind(beyond) };
     const shownPath = () => shownCampaignPathOf(this.app.workspace);
-    this.addCommand({ id: "edit-character", name: "Edit character", checkCallback: (checking) => editActiveCharacter(this.app, gate, characterNotes, shownPath, checking) });
-    this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => addEditCharacterItem(this.app, gate, characterNotes, menu, file)));
+    this.addCommand({ id: "edit-character", name: "Edit character", checkCallback: (checking) => editActiveCharacter(this.app, gate, characterNotes, shownPath, checking, OBSIDIAN_SYNTAX) });
+    this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => addEditCharacterItem(this.app, gate, characterNotes, menu, file, OBSIDIAN_SYNTAX)));
     this.addRibbonIcon("calendar-plus", "Start a new session", newSession);
     const dashboardActionsFor = (show: ShowPage): DashboardActions => ({
       ...actions,
@@ -247,11 +247,11 @@ export default class DungeonsAndDinthla extends Plugin {
       campaignFolders: () => this.campaignFolders(),
       report: (message: string) => new Notice(message, NOTICE_STAYS_UNTIL_DISMISSED),
       startSession: newSession,
-    });
+    }, OBSIDIAN_SYNTAX);
     const pages = campaignSections({
-      home: homeSection({ store: this.store, characterNotes, news: help.whatsNew, actionsFor: dashboardActionsFor }),
-      cast: castSection(castNeeds),
-      notes: notesSection(sessionNotes.notes),
+      home: homeSection({ store: this.store, characterNotes, news: help.whatsNew, actionsFor: dashboardActionsFor }, OBSIDIAN_SYNTAX),
+      cast: castSection(castNeeds, OBSIDIAN_SYNTAX),
+      notes: notesSection(sessionNotes.notes, OBSIDIAN_SYNTAX),
       questions: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestionAt, questionsKind, createQuestion),
       quests: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestAt, questsKind, createQuest),
       funds: fundsSection({
@@ -264,7 +264,7 @@ export default class DungeonsAndDinthla extends Plugin {
         openItem,
         campaignFolders: () => this.campaignFolders(),
         ownCharacterNotes: characterNotes,
-      }),
+      }, OBSIDIAN_SYNTAX),
       note: noteSection({
         ...sessionNotes.wholeText,
         actions,
@@ -331,7 +331,7 @@ export default class DungeonsAndDinthla extends Plugin {
 
   private colourSessionNotes(): void {
     const inSession = this.isSessionNote.bind(this);
-    this.registerEditorExtension(markerColouring(inSession));
+    this.registerEditorExtension(markerColouring(inSession, OBSIDIAN_SYNTAX));
     this.registerMarkdownPostProcessor((element, context) => {
       if (inSession(context.sourcePath)) colourMarkers(element);
     });
@@ -489,7 +489,7 @@ export default class DungeonsAndDinthla extends Plugin {
   private keepNotes(): void {
     const gate = this.gate;
     const notRead = (error: unknown) => new Notice(`Couldn't read the saved session notes: ${messageOf(error)}`);
-    const saved = new SavedCampaign({ shown: this.store, notes: gate.notes, failed: notRead });
+    const saved = new SavedCampaign({ shown: this.store, notes: gate.notes, failed: notRead }, OBSIDIAN_SYNTAX);
     const say = (message: string) => new Notice(message, NOTICE_STAYS_UNTIL_DISMISSED);
     const failed = (error: unknown) => new Notice(`Couldn't write an item's note: ${messageOf(error)}`);
     const notes = this.notes;

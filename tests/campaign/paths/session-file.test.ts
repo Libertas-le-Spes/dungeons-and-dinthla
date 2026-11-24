@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { firstLineAfterProperties, keepsProperties, sessionLabelOf, sessionNumberOf } from "../../../src/campaign/paths/session-file";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 describe("sessionNumberOf", () => {
   it("reads the number of a note in the campaign's Sessions folder", () => {
@@ -28,38 +29,38 @@ describe("sessionLabelOf", () => {
 
 describe("firstLineAfterProperties", () => {
   it("starts after the properties block", () => {
-    expect(firstLineAfterProperties("---\nplayed: 2026-03-14\ntitle: The ford\n---\n? Who")).toBe(4);
+    expect(firstLineAfterProperties("---\nplayed: 2026-03-14\ntitle: The ford\n---\n? Who", STUB_SYNTAX)).toBe(4);
   });
 
   it("starts at the top of a note with no properties", () => {
-    expect(firstLineAfterProperties("? Who\n---\nnot properties\n---")).toBe(0);
+    expect(firstLineAfterProperties("? Who\n---\nnot properties\n---", STUB_SYNTAX)).toBe(0);
   });
 
   it("starts after an empty properties block", () => {
-    expect(firstLineAfterProperties("---\n---\n? Who")).toBe(2);
+    expect(firstLineAfterProperties("---\n---\n? Who", STUB_SYNTAX)).toBe(2);
   });
 
   it("starts after properties that end the note", () => {
-    expect(firstLineAfterProperties("---\nplayed: 2026-03-14\n---")).toBe(3);
+    expect(firstLineAfterProperties("---\nplayed: 2026-03-14\n---", STUB_SYNTAX)).toBe(3);
   });
 });
 
 describe("keepsProperties", () => {
   it("knows when a change would turn lines into properties", () => {
-    expect(keepsProperties("? Who\n---\n? Where\n---\n", "---\n? Where\n---\n")).toBe(false);
-    expect(keepsProperties("---\na: 1\n---\n? Who\n", "---\na: 1\n---\n")).toBe(true);
-    expect(keepsProperties("? Who\n---\nmid\n", "---\nmid\n")).toBe(true);
+    expect(keepsProperties("? Who\n---\n? Where\n---\n", "---\n? Where\n---\n", STUB_SYNTAX)).toBe(false);
+    expect(keepsProperties("---\na: 1\n---\n? Who\n", "---\na: 1\n---\n", STUB_SYNTAX)).toBe(true);
+    expect(keepsProperties("? Who\n---\nmid\n", "---\nmid\n", STUB_SYNTAX)).toBe(true);
   });
 
   it("ignores a line ending that a change adds or takes away", () => {
-    expect(keepsProperties("---\r\na: 1\r\n---", "---\r\na: 1\r\n---\r\n? y\r\n")).toBe(true);
+    expect(keepsProperties("---\r\na: 1\r\n---", "---\r\na: 1\r\n---\r\n? y\r\n", STUB_SYNTAX)).toBe(true);
   });
 });
 
 describe("properties, as Obsidian reads them", () => {
   it("closes them only at a --- that starts a line after a line break", () => {
-    expect(firstLineAfterProperties("---\na\r---\n")).toBe(0);
-    expect(firstLineAfterProperties("---\na\n---\rb")).toBe(0);
-    expect(firstLineAfterProperties("---\n---\nb")).toBe(2);
+    expect(firstLineAfterProperties("---\na\r---\n", STUB_SYNTAX)).toBe(0);
+    expect(firstLineAfterProperties("---\na\n---\rb", STUB_SYNTAX)).toBe(0);
+    expect(firstLineAfterProperties("---\n---\nb", STUB_SYNTAX)).toBe(2);
   });
 });

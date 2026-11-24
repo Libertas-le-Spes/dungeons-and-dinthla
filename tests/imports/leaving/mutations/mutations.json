@@ -9,15 +9,15 @@
  {
   "id": "campaign note before the new one's mark comes off",
   "file": "src/imports/leaving/switching/chosen-steps.ts",
-  "find": "    if (!this.plan.chosenIsNamed) writes.push(new CampaignWrite(this.files, this.cast, this.plan));\n    if (after !== before) writes.push(new TextWrite(this.files, chosen, before, after, markTakenOff(chosen.basename), markTakeOffFailed(chosen.basename)));\n",
+  "find": "    if (!this.plan.chosenIsNamed) writes.push(new CampaignWrite(this.files, this.cast, this.plan, this.syntax));\n    if (after !== before) writes.push(new TextWrite(this.files, chosen, before, after, markTakenOff(chosen.basename), markTakeOffFailed(chosen.basename)));\n",
   "replace": "    if (after !== before) writes.push(new TextWrite(this.files, chosen, before, after, markTakenOff(chosen.basename), markTakeOffFailed(chosen.basename)));\n    if (!this.plan.chosenIsNamed) writes.push(new CampaignWrite(this.files, this.cast, this.plan));\n",
   "group": "order"
  },
  {
   "id": "the new one moves back before the campaign note names them",
   "file": "src/imports/leaving/switching/chosen-steps.ts",
-  "find": "    if (isInFallen(chosen, this.plan.campaignFolder)) writes.push(this.moveBack());\n    if (!this.plan.chosenIsNamed) writes.push(new CampaignWrite(this.files, this.cast, this.plan));\n",
-  "replace": "    if (!this.plan.chosenIsNamed) writes.push(new CampaignWrite(this.files, this.cast, this.plan));\n    if (isInFallen(chosen, this.plan.campaignFolder)) writes.push(this.moveBack());\n",
+  "find": "    if (isInFallen(chosen, this.plan.campaignFolder)) writes.push(this.moveBack());\n    if (!this.plan.chosenIsNamed) writes.push(new CampaignWrite(this.files, this.cast, this.plan, this.syntax));\n",
+  "replace": "    if (!this.plan.chosenIsNamed) writes.push(new CampaignWrite(this.files, this.cast, this.plan, this.syntax));\n    if (isInFallen(chosen, this.plan.campaignFolder)) writes.push(this.moveBack());\n",
   "group": "order"
  },
  {
@@ -156,21 +156,21 @@
  {
   "id": "the old note is marked as asked",
   "file": "src/imports/leaving/switching/old-main-steps.ts",
-  "find": "const markedText = textWithProperty(before, STANDING_PROPERTY, propertyLine(STANDING_PROPERTY, standing));",
+  "find": "const markedText = textWithProperty(before, STANDING_PROPERTY, propertyLine(STANDING_PROPERTY, standing), this.syntax);",
   "replace": "const markedText = before;",
   "group": "reasons"
  },
  {
   "id": "the new one's mark is taken off",
   "file": "src/imports/leaving/switching/chosen-steps.ts",
-  "find": "const after = textWithProperty(before, STANDING_PROPERTY, null);",
+  "find": "const after = textWithProperty(before, STANDING_PROPERTY, null, this.syntax);",
   "replace": "const after = before;",
   "group": "reasons"
  },
  {
   "id": "a character left in Characters with a left mark moves to Fallen when finished",
   "file": "src/imports/leaving/switching/old-main-steps.ts",
-  "find": "    if (!hasLeftPlay(standingOf(await textOfNote(this.files, this.old, NOTE_UNREAD)))) return [];\n",
+  "find": "    if (!hasLeftPlay(standingOf(await textOfNote(this.files, this.old, NOTE_UNREAD), this.syntax))) return [];\n",
   "replace": "",
   "group": "reasons"
  },
@@ -464,14 +464,14 @@
  {
   "id": "nothing but the property may change",
   "file": "src/imports/leaving/properties/property-read-back.ts",
-  "find": "  if (outsideTheProperty(before, key) !== outsideTheProperty(after, key)) throw propertyChangedMore(key);\n",
+  "find": "  if (outsideTheProperty(before, key, syntax) !== outsideTheProperty(after, key, syntax)) throw propertyChangedMore(key);\n",
   "replace": "",
   "group": "properties"
  },
  {
   "id": "the property must read as wanted",
   "file": "src/imports/leaving/properties/property-read-back.ts",
-  "find": "  if (propertyLinesOf(after, key) !== wantedLinesOf(wanted)) throw propertyChangedMore(key);\n",
+  "find": "  if (propertyLinesOf(after, key, syntax) !== wantedLinesOf(wanted)) throw propertyChangedMore(key);\n",
   "replace": "",
   "group": "properties"
  },
@@ -485,15 +485,15 @@
  {
   "id": "the property must read as wanted by Obsidian",
   "file": "src/imports/leaving/properties/property-read-back.ts",
-  "find": "  if (valueIn(readAfter, key) !== wantedValueOf(wanted, key)) throw propertyReadsDifferently(key);\n",
+  "find": "  if (valueIn(readAfter, key) !== wantedValueOf(wanted, key, syntax)) throw propertyReadsDifferently(key);\n",
   "replace": "",
   "group": "properties"
  },
  {
   "id": "properties that can't be read are refused",
   "file": "src/imports/leaving/properties/property-yaml.ts",
-  "find": "  try {\n    parsed = parseYaml(yaml);\n  } catch {\n    throw propertiesUnreadable(key);\n  }",
-  "replace": "  parsed = parseYaml(yaml);",
+  "find": "  try {\n    parsed = syntax.readProperties(yaml);\n  } catch {\n    throw propertiesUnreadable(key);\n  }",
+  "replace": "  parsed = syntax.readProperties(yaml);",
   "group": "properties"
  },
  {
@@ -618,14 +618,14 @@
  {
   "id": "an update asks only about a character who left play",
   "file": "src/imports/leaving/dialog/main-offers.ts",
-  "find": "await this.ask(file, stayPut, new AskWhenLeftPlay());",
+  "find": "await this.ask(file, stayPut, new AskWhenLeftPlay(this.syntax));",
   "replace": "await this.ask(file, stayPut, new AskAlways());",
   "group": "offers"
  },
  {
   "id": "a note that left play is told by its standing",
   "file": "src/imports/leaving/dialog/ask-when.ts",
-  "find": "return hasLeftPlay(standingOf(await textOfNote(files, file, NOTE_UNREAD)));",
+  "find": "return hasLeftPlay(standingOf(await textOfNote(files, file, NOTE_UNREAD), this.syntax));",
   "replace": "return true;",
   "group": "offers"
  },
@@ -688,7 +688,7 @@
  {
   "id": "no main yet asks only Make main",
   "file": "src/imports/leaving/questions/question-for.ts",
-  "find": "  if (old === null) return new NoMainQuestion(parts);\n",
+  "find": "  if (old === null) return new NoMainQuestion(parts, syntax);\n",
   "replace": "",
   "group": "offers"
  },
@@ -702,14 +702,14 @@
  {
   "id": "a main marked as left is only finished",
   "file": "src/imports/leaving/questions/question-for.ts",
-  "find": "  return hasLeftPlay(standingOf(await textOfNote(files, note, NOTE_UNREAD)));",
+  "find": "  return hasLeftPlay(standingOf(await textOfNote(files, note, NOTE_UNREAD), syntax));",
   "replace": "  return false;",
   "group": "offers"
  },
  {
   "id": "a new one already named with nothing to finish asks nothing",
   "file": "src/imports/leaving/questions/question-for.ts",
-  "find": "    if (!(await needsFinishing({ files: wiring.files, note: chosen, folder }))) return null;\n",
+  "find": "    if (!(await needsFinishing({ files: wiring.files, note: chosen, folder }, syntax))) return null;\n",
   "replace": "",
   "group": "offers"
  },
@@ -723,7 +723,7 @@
  {
   "id": "a new one with a mark needs finishing",
   "file": "src/imports/leaving/questions/question-for.ts",
-  "find": "  return standingOf(await textOfNote(files, note, NOTE_UNREAD)) !== null;",
+  "find": "  return standingOf(await textOfNote(files, note, NOTE_UNREAD), syntax) !== null;",
   "replace": "  return false;",
   "group": "offers"
  },
@@ -980,13 +980,6 @@
   "group": "gallery"
  },
  {
-  "id": "fence: imports may read Obsidian's yaml",
-  "file": "tests/fence/allowed/obsidian-imports.ts",
-  "find": "\"imports/\": [\"App\", \"ButtonComponent\", \"Setting\", \"parseYaml\"],",
-  "replace": "\"imports/\": [\"App\", \"ButtonComponent\", \"Setting\"],",
-  "group": "allow"
- },
- {
   "id": "folders: the writes reach only themselves",
   "file": "tests/build/leaving-folders.test.ts",
   "find": "{ folder: \"writes\", reaches: [\"writes\"] },",
@@ -1045,8 +1038,8 @@
  {
   "id": "fence: imports may use Setting",
   "file": "tests/fence/allowed/obsidian-imports.ts",
-  "find": "\"ButtonComponent\", \"Setting\", \"parseYaml\"]",
-  "replace": "\"ButtonComponent\", \"parseYaml\"]",
+  "find": "\"imports/\": [\"App\", \"ButtonComponent\", \"Setting\"]",
+  "replace": "\"imports/\": [\"App\", \"ButtonComponent\"]",
   "group": "allow"
  },
  {
@@ -1080,14 +1073,14 @@
  {
   "id": "something else is marked departed",
   "file": "src/imports/leaving/switching/old-main-steps.ts",
-  "find": "propertyLine(STANDING_PROPERTY, DEPARTED_STANDING));\n    const markedText",
-  "replace": "propertyLine(STANDING_PROPERTY, \"died\"));\n    const markedText",
+  "find": "propertyLine(STANDING_PROPERTY, DEPARTED_STANDING), this.syntax);\n    const markedText",
+  "replace": "propertyLine(STANDING_PROPERTY, \"died\"), this.syntax);\n    const markedText",
   "group": "depart"
  },
  {
   "id": "something else keeps its words in the note",
   "file": "src/imports/leaving/switching/old-main-steps.ts",
-  "find": "    const markedText = textWithProperty(standingText, DEPARTURE_PROPERTY, departureLine(words.written));",
+  "find": "    const markedText = textWithProperty(standingText, DEPARTURE_PROPERTY, departureLine(words.written), this.syntax);",
   "replace": "    const markedText = standingText;",
   "group": "depart"
  },
@@ -1108,8 +1101,8 @@
  {
   "id": "the note keeps the words as typed",
   "file": "src/imports/leaving/switching/old-main-steps.ts",
-  "find": "departureLine(words.written));",
-  "replace": "departureLine(words.snapshot));",
+  "find": "departureLine(words.written), this.syntax);",
+  "replace": "departureLine(words.snapshot), this.syntax);",
   "group": "depart"
  },
  {

@@ -4,6 +4,7 @@ import { SessionChangeWriter } from "../../campaign/changes/session-change-write
 import { writeRecordChange } from "../../campaign/changes/write-record-change";
 import { comparableLine, draftOf, readCoinDraft, type CoinDraft, type CoinLine } from "../../notes/writing/coin-lines";
 import { coinDelete, coinSave } from "./coin-change";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export const CANNOT_SHOW = "The dialog can't show this entry as it is written, so it can only be deleted here. Change it in its note.";
 
@@ -29,8 +30,8 @@ function keepsTheEntry(record: CoinRecord, draft: CoinDraft): boolean {
   return comparableLine(reading.line) === comparableLine(`$ ${record.text}`);
 }
 
-export function coinEntryEdit(files: EditorFiles, store: { readonly sessionNotes: SessionNote[] }, record: CoinRecord): CoinEntryEdit {
-  const writer = new SessionChangeWriter(files);
+export function coinEntryEdit(files: EditorFiles, store: { readonly sessionNotes: SessionNote[] }, record: CoinRecord, syntax: PropertiesSyntax): CoinEntryEdit {
+  const writer = new SessionChangeWriter(files, syntax);
   const entry = { store, record, removal: removalAsRead(store.sessionNotes, record.source) };
   const draft = draftOf(record.text, record.entry.copper, record.entry.coins);
   let cannotSave: string | null = CANNOT_SHOW;
@@ -39,7 +40,7 @@ export function coinEntryEdit(files: EditorFiles, store: { readonly sessionNotes
   return {
     draft,
     cannotSave,
-    save: async (coinLine) => writeRecordChange(coinSave(entry, coinLine, cannotSave, opened), writer),
-    delete: () => writeRecordChange(coinDelete(entry), writer),
+    save: async (coinLine) => writeRecordChange(coinSave(entry, coinLine, cannotSave, opened, syntax), writer),
+    delete: () => writeRecordChange(coinDelete(entry, syntax), writer),
   };
 }

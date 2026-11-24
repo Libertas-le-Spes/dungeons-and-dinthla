@@ -1,4 +1,4 @@
-import { firstLineAfterProperties } from "../../../campaign/paths/session-file";
+import { firstLineAfterProperties, type PropertiesSyntax } from "../../../campaign/paths/session-file";
 import { IMPORTED_FROM_PROPERTY, SHEET_VALUE_PROPERTIES } from "../../../imports/layout/import-properties";
 import type { SourcedFact } from "../../facts/sourced-fact";
 import { noteLinesOf } from "./note-lines";
@@ -9,9 +9,9 @@ function isImported(entries: readonly PropertyEntry[]): boolean {
   return entries.some((entry) => entry.key === IMPORTED_FROM_PROPERTY);
 }
 
-export function importedFactsOf(text: string, path: string): SourcedFact[] {
+export function importedFactsOf(text: string, path: string, syntax: PropertiesSyntax): SourcedFact[] {
   const lines = noteLinesOf(text);
-  const bodyStart = firstLineAfterProperties(text);
+  const bodyStart = firstLineAfterProperties(text, syntax);
   const entries = propertyEntriesOf(lines, bodyStart);
   if (!isImported(entries)) return [];
   const facts: SourcedFact[] = [];

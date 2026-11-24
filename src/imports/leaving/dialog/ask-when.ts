@@ -4,6 +4,7 @@ import { textOfNote } from "../switching/read-note";
 import type { LeavingFiles } from "../switching/switch-plan";
 import { NOTE_UNREAD } from "../switching/switch-words";
 import type { NoteRef } from "../../../host/notes/note-ref";
+import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
 
 export interface AskWhen {
   wants(files: LeavingFiles, file: NoteRef): Promise<boolean>;
@@ -16,7 +17,9 @@ export class AskAlways implements AskWhen {
 }
 
 export class AskWhenLeftPlay implements AskWhen {
+  constructor(private readonly syntax: PropertiesSyntax) {}
+
   async wants(files: LeavingFiles, file: NoteRef): Promise<boolean> {
-    return hasLeftPlay(standingOf(await textOfNote(files, file, NOTE_UNREAD)));
+    return hasLeftPlay(standingOf(await textOfNote(files, file, NOTE_UNREAD), this.syntax));
   }
 }

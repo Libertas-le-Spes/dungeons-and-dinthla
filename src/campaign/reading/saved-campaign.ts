@@ -3,6 +3,7 @@ import { CampaignStore, type CampaignListener } from "./campaign-store";
 import type { CampaignFiles } from "./read-campaign";
 import type { NoteChanges, Stop } from "../../host/notes/note-changes";
 import type { NoteRef } from "../../host/notes/note-ref";
+import type { PropertiesSyntax } from "../paths/session-file";
 
 export type ShownCampaign = Pick<CampaignStore, "campaignFolder" | "subscribe">;
 
@@ -26,8 +27,8 @@ export class SavedCampaign {
   private readonly readListeners = new Set<NoteRead>();
   private readonly openedListeners = new Set<CampaignOpened>();
 
-  constructor(private readonly needs: SavedCampaignNeeds) {
-    this.saved = new CampaignStore(needs.notes.store);
+  constructor(private readonly needs: SavedCampaignNeeds, syntax: PropertiesSyntax) {
+    this.saved = new CampaignStore(needs.notes.store, syntax);
   }
 
   get current(): Campaign {

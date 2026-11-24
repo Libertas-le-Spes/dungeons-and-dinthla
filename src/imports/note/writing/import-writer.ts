@@ -12,38 +12,40 @@ import { Refusal } from "../../../beyond/shape/refusal";
 import { fallenNoteOf, leftPlayWords } from "../../../campaign/paths/fallen-notes";
 import { highestNumber } from "../../../campaign/paths/session-to-write";
 import type { NoteRef } from "../../../host/notes/note-ref";
+import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
 
 export class ImportWriter {
   constructor(
     private readonly files: NoteFiles,
     private readonly charactersFolder: string,
     private readonly campaignFolder: string,
+    private readonly syntax: PropertiesSyntax,
   ) {}
 
   async changesFor(file: NoteRef, sheet: PrintedSheet, today: string): Promise<ImportChanges> {
     refuseUnlessCharacterNote(file.path, this.charactersFolder);
     const before = await this.files.read(file);
-    return importChangesOf(before, importedNoteText({ current: before, sheet, stamp: this.stampOf(today) }));
+    return importChangesOf(before, importedNoteText({ current: before, sheet, stamp: this.stampOf(today) }, this.syntax), this.syntax);
   }
 
   async update(file: NoteRef, sheet: PrintedSheet, today: string, shown: readonly TypedText[]): Promise<void> {
     refuseUnlessCharacterNote(file.path, this.charactersFolder);
     const before = await this.files.read(file);
-    const after = checkedTextOf({ before, sheet, stamp: this.stampOf(today), shown });
+    const after = checkedTextOf({ before, sheet, stamp: this.stampOf(today), shown }, this.syntax);
     if (after === before) return;
     await writeWhenUnchangedSinceRead(this.files, file, before, after);
   }
 
   refuseUnlessCreatable(sheet: PrintedSheet, today: string): void {
     this.refuseUnlessNew(sheet.character.name.text);
-    checkedNewNoteText(sheet, this.stampOf(today));
+    checkedNewNoteText(sheet, this.stampOf(today), this.syntax);
   }
 
   async create(sheet: PrintedSheet, today: string): Promise<NoteRef> {
     const name = sheet.character.name.text;
     const path = this.newNotePathOf(name);
     this.refuseUnlessNew(name);
-    const text = checkedNewNoteText(sheet, this.stampOf(today));
+    const text = checkedNewNoteText(sheet, this.stampOf(today), this.syntax);
     if (!this.files.hasFolder(this.charactersFolder)) await this.files.makeFolder(this.charactersFolder);
     return this.files.make(path, text);
   }

@@ -5,6 +5,7 @@ import type { CharacterCreators } from "../../../src/characters/pages/character-
 import { CastPage } from "../../../src/characters/pages/cast-page";
 import type { CastNotes } from "../../../src/characters/reading/character-notes";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 function fileOf(name: string): TFile {
   return { path: `Pale Moon/Characters/${name}.md`, basename: name } as TFile;
@@ -51,7 +52,7 @@ function openCast({ folder = "Pale Moon" as string | null, characters = ["Mira",
   };
   const root = obsidianDocument().createElement("div");
   const creators: CharacterCreators = { newCharacter: vi.fn(), importCharacter: vi.fn(), makeMain: vi.fn() };
-  const page = new CastPage(root, store as unknown as CampaignStore, notes, { openRow: vi.fn(), openLink: vi.fn() }, creators, watchFiles);
+  const page = new CastPage(root, store as unknown as CampaignStore, notes, { openRow: vi.fn(), openLink: vi.fn() }, creators, watchFiles, STUB_SYNTAX);
   page.load();
   return {
     root,

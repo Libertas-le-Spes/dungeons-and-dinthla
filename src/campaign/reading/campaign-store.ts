@@ -1,7 +1,7 @@
 import { buildCampaign } from "./build-campaign";
 import type { Campaign, SessionNote } from "../record/campaign";
 import { readSession, readSessions, type CampaignFiles } from "./read-campaign";
-import { sessionNoteOf, sessionNumberOf } from "../paths/session-file";
+import { sessionNoteOf, sessionNumberOf, type PropertiesSyntax } from "../paths/session-file";
 
 export type CampaignListener = (campaign: Campaign) => void;
 
@@ -15,7 +15,7 @@ export class CampaignStore {
   private settled = 0;
   private changes = 0;
 
-  constructor(private readonly files: CampaignFiles) {}
+  constructor(private readonly files: CampaignFiles, private readonly syntax: PropertiesSyntax) {}
 
   get current(): Campaign {
     return this.campaign;
@@ -44,7 +44,7 @@ export class CampaignStore {
     this.sessions.clear();
     this.changedAt.clear();
     const since = this.changes;
-    const read = await readSessions(this.files, folder);
+    const read = await readSessions(this.files, folder, this.syntax);
     if (opening !== this.openings) return;
     this.settled = opening;
     for (const session of read) {
@@ -65,7 +65,7 @@ export class CampaignStore {
     this.markChanged(path);
     const number = this.numberInCampaign(path);
     if (number === null) return;
-    this.sessions.set(path, sessionNoteOf(path, number, text));
+    this.sessions.set(path, sessionNoteOf(path, number, text, this.syntax));
     if (this.isOpening()) return;
     this.rebuild();
   }
@@ -97,7 +97,7 @@ export class CampaignStore {
     if (number === null || file === null) return false;
     const opening = this.openings;
     const since = this.changes;
-    const session = await readSession(file, number, this.files);
+    const session = await readSession(file, number, this.files, this.syntax);
     if (opening !== this.openings || this.changedSince(path, since)) return false;
     this.sessions.set(path, session);
     return true;
