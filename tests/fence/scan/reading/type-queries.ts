@@ -6,7 +6,7 @@ import { isInCodeMirrorFolder, isInObsidianFolder } from "./library-paths";
 import { DOCUMENT, EDITOR_OWNERS, EDITOR_READS, EDITOR_WRITES, FILE_OWNERS, FORBIDDEN_NAMES, OBJECT, REACHING_HOLDERS, UNTYPED, VAULT_NAMES, VIEW_OWNERS } from "./names";
 import { isCast, layersOf, unwrapped, type Cast } from "./syntax";
 import { isNoteHandle } from "./note-handles";
-import { anyMemberCould, flattened, isLibraryFile, isLibraryType, isNamedGlobal, isNamedOneOf, isObsidianOwnedByOneOf, isOwnedByOneOf } from "./type-shapes";
+import { anyMemberCould, flattened, isLibraryFile, isLibraryReference, isLibraryType, isNamedGlobal, isNamedOneOf, isObsidianOwnedByOneOf, isOwnedByOneOf } from "./type-shapes";
 
 const PROTOTYPE = "prototype";
 
@@ -169,9 +169,30 @@ export class TypeQueries {
     return shown.filter((node, index) => {
       const context = project.checker.getContextualType(node);
       if (context === undefined) return false;
-      if (handlesAllowed && isNoteHandle(context)) return false;
-      return this.holdsReach(project, values[index]) && !this.couldReach(project, context);
+      return this.hides(project, values[index], context, handlesAllowed);
     });
+  }
+
+  private hides(project: Project, value: Type | undefined, context: Type, handlesAllowed: boolean): boolean {
+    if (handlesAllowed && isNoteHandle(context)) return false;
+    if (this.holdsReach(project, value) && !this.couldReach(project, context)) return true;
+    return this.hidesInside(project, value, context, handlesAllowed);
+  }
+
+  private hidesInside(project: Project, value: Type | undefined, context: Type, handlesAllowed: boolean): boolean {
+    if (value === undefined) return false;
+    for (const wanted of flattened(context)) {
+      for (const given of flattened(value)) {
+        if (this.argumentsHide(project, given, wanted, handlesAllowed)) return true;
+      }
+    }
+    return false;
+  }
+
+  private argumentsHide(project: Project, given: Type, wanted: Type, handlesAllowed: boolean): boolean {
+    if (!isLibraryReference(given) || !isLibraryReference(wanted)) return false;
+    const givenArguments = project.checker.getTypeArguments(given);
+    return project.checker.getTypeArguments(wanted).some((argument, index) => this.hides(project, givenArguments[index], argument, handlesAllowed));
   }
 
   private holdsReach(project: Project, type: Type | undefined): boolean {
