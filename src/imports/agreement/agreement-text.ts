@@ -1,7 +1,10 @@
-import { ButtonComponent } from "obsidian";
 import type { AgreementAnswer } from "./agreement-answer";
 import { AGREEMENT_PARAGRAPHS } from "./agreement-words";
 import type { AnswerButton } from "./answer-buttons";
+import { PressBinding } from "../../views/elements/bindings/bindings";
+import { RunAction } from "../../views/elements/bindings/run-action";
+import { Button, Div, Paragraph } from "../../views/elements/kinds/containers";
+import type { ViewElement } from "../../views/elements/view-element";
 
 export interface AnswerChosen {
   chosen(answer: AgreementAnswer): void;
@@ -18,14 +21,18 @@ class AnswerPress {
   }
 }
 
-function addAnswer(row: HTMLElement, button: AnswerButton, to: AnswerChosen): void {
-  const press = new AnswerPress(button, to);
-  const drawn = new ButtonComponent(row).setButtonText(button.words).onClick(press.press.bind(press));
-  if (button.highlighted) drawn.setCta();
+function buttonClasses(button: AnswerButton): string[] {
+  if (button.highlighted) return ["mod-cta"];
+  return [];
 }
 
-export function drawAgreement(parentEl: HTMLElement, buttons: readonly AnswerButton[], to: AnswerChosen): void {
-  for (const paragraph of AGREEMENT_PARAGRAPHS) parentEl.createEl("p", { cls: "dd-agreement-words", text: paragraph });
-  const row = parentEl.createDiv({ cls: "modal-button-container dd-agreement-answers" });
-  for (const button of buttons) addAnswer(row, button, to);
+function answerButton(button: AnswerButton, to: AnswerChosen): ViewElement {
+  const press = new AnswerPress(button, to);
+  return new Button({ cls: buttonClasses(button), text: button.words, bindings: [new PressBinding(new RunAction(press.press.bind(press)))] });
+}
+
+export function agreementTrees(buttons: readonly AnswerButton[], to: AnswerChosen): ViewElement[] {
+  const trees: ViewElement[] = AGREEMENT_PARAGRAPHS.map((paragraph) => new Paragraph({ cls: ["dd-agreement-words"], text: paragraph }));
+  trees.push(new Div({ cls: ["modal-button-container", "dd-agreement-answers"] }, buttons.map((button) => answerButton(button, to))));
+  return trees;
 }

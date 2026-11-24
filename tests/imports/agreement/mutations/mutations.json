@@ -163,7 +163,7 @@
  {
   "id": "buttons: the highlight is drawn",
   "file": "src/imports/agreement/agreement-text.ts",
-  "find": "  if (button.highlighted) drawn.setCta();\n",
+  "find": "  if (button.highlighted) return [\"mod-cta\"];\n",
   "replace": "",
   "group": "buttons"
  },

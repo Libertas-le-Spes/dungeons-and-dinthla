@@ -3,7 +3,7 @@ import { CampaignAgreement } from "../../../src/imports/agreement/campaign-agree
 import { AGREEMENT_KEY, KeptAgreement } from "../../../src/imports/agreement/kept-agreement";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { MadeUpDevice } from "./made-up-device";
-import { pressOn, textsIn } from "./shown-parts";
+import { mountedIn, pressOn, textsIn } from "./shown-parts";
 
 class MadeUpPage {
   readonly answered = vi.fn();
@@ -12,7 +12,7 @@ class MadeUpPage {
 function shownStep(device: MadeUpDevice, page: MadeUpPage): { agreement: CampaignAgreement; stepEl: HTMLElement } {
   const agreement = new CampaignAgreement(new KeptAgreement(device.places));
   const stepEl = obsidianDocument().createElement("div");
-  agreement.showIn(stepEl, page.answered);
+  mountedIn(stepEl, agreement.trees(page.answered));
   return { agreement, stepEl };
 }
 

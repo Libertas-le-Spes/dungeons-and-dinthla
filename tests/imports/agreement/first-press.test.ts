@@ -7,6 +7,7 @@ import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { MadeUpAsking } from "./made-up-asking";
 import { MadeUpDevice } from "./made-up-device";
 import { pressOn } from "./shown-parts";
+import { mountedIn } from "./shown-parts";
 
 function nothingToDo(): void {}
 
@@ -57,7 +58,7 @@ describe("the first press of the button that would go online", () => {
     const device = new MadeUpDevice();
     const agreement = new KeptAgreement(device.places);
     const stepEl = obsidianDocument().createElement("div");
-    new CampaignAgreement(agreement).showIn(stepEl, nothingToDo);
+    mountedIn(stepEl, new CampaignAgreement(agreement).trees(nothingToDo));
     pressOn(stepEl, "Not yet");
     const asking = new MadeUpAsking(AGREED);
     const answer = await new FirstPress(agreement, asking).answer();

@@ -16,22 +16,22 @@
  {
   "id": "fence: imports may reach the shared dialogs",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "\"campaign\", \"host\", \"views/dialogs\", \"views/pending\"] },",
-  "replace": "\"campaign\", \"host\", \"views/pending\"] },",
+  "find": "\"views/components\", \"views/dialogs\", \"views/elements\", \"views/pending\"] },",
+  "replace": "\"views/components\", \"views/elements\", \"views/pending\"] },",
   "group": "folders"
  },
  {
   "id": "fence: picker's page members",
   "file": "tests/fence/allowed/page-members.ts",
-  "find": "  \"imports/dialog/picking/pdf-picker.ts\": [\"addEventListener\", \"arrayBuffer\", \"createEl\", \"files\", \"item\", \"size\"],\n",
+  "find": "  \"obsidian/views/mount/file-pick.ts\": [\"addEventListener\", \"arrayBuffer\", \"files\", \"item\", \"size\"],\n",
   "replace": "",
   "group": "allow"
  },
  {
   "id": "fence: picker lists only what it uses",
   "file": "tests/fence/allowed/page-members.ts",
-  "find": "[\"addEventListener\", \"arrayBuffer\", \"createEl\", \"files\", \"item\", \"size\"]",
-  "replace": "[\"addEventListener\", \"arrayBuffer\", \"createEl\", \"files\", \"item\", \"size\", \"value\"]",
+  "find": "[\"addEventListener\", \"arrayBuffer\", \"files\", \"item\", \"size\"]",
+  "replace": "[\"addEventListener\", \"arrayBuffer\", \"files\", \"item\", \"size\", \"value\"]",
   "group": "allow"
  },
  {
@@ -58,7 +58,7 @@
  {
   "id": "fence: picker's Uint8Array",
   "file": "tests/fence/allowed/globals.ts",
-  "find": "  \"imports/dialog/picking/pdf-picker.ts\": [\"Uint8Array\"],\n",
+  "find": "  \"obsidian/views/mount/file-pick.ts\": [\"Uint8Array\"],\n",
   "replace": "",
   "group": "allow"
  },
@@ -84,24 +84,17 @@
   "group": "allow"
  },
  {
-  "id": "fence: imports' Obsidian names",
+  "id": "fence: imports may take nothing from Obsidian",
   "file": "tests/fence/allowed/obsidian-imports.ts",
-  "find": "  \"imports/\": [\"App\", \"ButtonComponent\", \"Setting\"],\n",
-  "replace": "",
-  "group": "allow"
- },
- {
-  "id": "fence: imports' Obsidian names exact",
-  "file": "tests/fence/allowed/obsidian-imports.ts",
-  "find": "\"imports/\": [\"App\", \"ButtonComponent\", \"Setting\"]",
-  "replace": "\"imports/\": [\"App\", \"ButtonComponent\", \"Modal\", \"Setting\"]",
+  "find": "  \"obsidian/views/mount/obsidian-mounter.ts\": [\"ToggleComponent\"],\n",
+  "replace": "  \"obsidian/views/mount/obsidian-mounter.ts\": [\"ToggleComponent\"],\n  \"imports/\": [\"App\"],\n",
   "group": "allow"
  },
  {
   "id": "fence: imports reach no other part of views",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "\"campaign\", \"host\", \"views/dialogs\", \"views/pending\"] },",
-  "replace": "\"campaign\", \"host\", \"views/dialogs\", \"views/pending\", \"views\"] },",
+  "find": "\"views/components\", \"views/dialogs\", \"views/elements\", \"views/pending\"] },",
+  "replace": "\"views/components\", \"views/dialogs\", \"views/elements\", \"views/pending\", \"views\"] },",
   "group": "folders"
  },
  {
