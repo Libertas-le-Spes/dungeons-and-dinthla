@@ -15,7 +15,8 @@ import { NewCampaignDialog } from "./campaign/writing/new-campaign-dialog";
 import { CampaignStore } from "./campaign/reading/campaign-store";
 import { SavedCampaign } from "./campaign/reading/saved-campaign";
 import { HostCharacterNotes } from "./characters/reading/character-notes";
-import { addEditCharacterItem, editActiveCharacter, editCharacter, openNewCharacter } from "./characters/editing/open-character";
+import { editCharacter, openNewCharacter } from "./characters/editing/open-character";
+import { addEditCharacterItem, editActiveCharacter, openMadeNote } from "./obsidian/characters/character-editing-hooks";
 import { chooseSheetValue } from "./characters/editing/open-character-sheet";
 import { OldCharactersBases } from "./characters/retiring/old-characters-bases";
 import { OBSIDIAN_SPELLING } from "./obsidian/notes/obsidian-spelling";
@@ -197,23 +198,24 @@ export default class DungeonsAndDinthla extends Plugin {
     const sessionsOf = (campaignFolder: string) => readSessions(gate.notes.store, campaignFolder, OBSIDIAN_SYNTAX);
     const characterParts = { notes: this.notes, campaignFolders, sessionsOf };
     const characterNotes = new HostCharacterNotes(characterParts);
+    const editing = { showing: this.showing, notes: this.notes, characters: characterNotes, spelling: OBSIDIAN_SPELLING, syntax: OBSIDIAN_SYNTAX };
     const sheetNotes = new HostSheetNotes(characterParts);
     const beyond = new BeyondOpeners(new PluginBeyondWiring({ app: this.app, files: gate.notes.store, actions: gate.notes.keeping, metadata: gate.notes.links, online: this.onlineImport, store: this.store, characterNotes, campaignFolders }), OBSIDIAN_SYNTAX);
     const sheetActions = {
       ...actions,
-      editCharacter: (file: NoteRef) => editCharacter(this.app, gate, characterNotes, file, OBSIDIAN_SYNTAX),
+      editCharacter: (file: NoteRef) => editCharacter(editing, file),
       chooseValue: (file: NoteRef, value: SheetValue, onClosed: () => void) =>
-        void chooseSheetValue(this.app, gate, this.store, sheetNotes, file, value, actions.openRow, onClosed, OBSIDIAN_SYNTAX),
+        void chooseSheetValue(this.showing, this.notes, this.store, sheetNotes, file, value, actions.openRow, onClosed, OBSIDIAN_SYNTAX),
       updateFromBeyond: beyond.updateFromBeyond.bind(beyond),
       depart: beyond.depart.bind(beyond),
       tracking: new FundsTracking(itemOpening, this.store, () => this.campaignFolders(), OBSIDIAN_SYNTAX),
     };
     const mentionNotes = new HostMentionNotes({ ...characterParts, syntax: OBSIDIAN_SYNTAX });
-    const newCharacter = (returnFocus: () => void) => openNewCharacter(this.app, gate, this.store.campaignFolder, returnFocus);
+    const newCharacter = (returnFocus: () => void) => openNewCharacter(editing, this.store.campaignFolder, (note: NoteRef) => openMadeNote(this.app, gate, note), returnFocus);
     const creators = { newCharacter, importCharacter: beyond.importCharacter.bind(beyond), makeMain: beyond.makeMain.bind(beyond) };
     const shownPath = () => shownCampaignPathOf(this.app.workspace);
-    this.addCommand({ id: "edit-character", name: "Edit character", checkCallback: (checking) => editActiveCharacter(this.app, gate, characterNotes, shownPath, checking, OBSIDIAN_SYNTAX) });
-    this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => addEditCharacterItem(this.app, gate, characterNotes, menu, file, OBSIDIAN_SYNTAX)));
+    this.addCommand({ id: "edit-character", name: "Edit character", checkCallback: (checking) => editActiveCharacter(this.app, editing, shownPath, checking) });
+    this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => addEditCharacterItem(editing, menu, file)));
     this.addRibbonIcon("calendar-plus", "Start a new session", newSession);
     const dashboardActionsFor = (show: ShowPage): DashboardActions => ({
       ...actions,

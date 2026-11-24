@@ -5,8 +5,6 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "campaign/background/picture-css.ts": ["encode"],
   "characters/cards/character-card.ts": ["addClass", "createDiv"],
   "characters/cards/stat-block.ts": ["addClass", "appendText", "createDiv", "createEl", "createSpan"],
-  "characters/editing/character-modal.ts": ["addClass", "addEventListener", "createEl", "defaultPrevented", "focus", "preventDefault", "setAttr"],
-  "characters/editing/sheet-value-modal.ts": ["addClass", "addEventListener", "createDiv", "createEl", "defaultPrevented", "focus", "preventDefault", "setAttr"],
   "characters/imported/drawing/action-button.ts": ["addClass", "focus"],
   "characters/imported/panels/held-not-imported.ts": ["createDiv", "createEl"],
   "characters/imported/panels/imported-panels.ts": ["createDiv"],

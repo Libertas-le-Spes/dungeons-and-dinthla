@@ -3,11 +3,14 @@ import { sheetValueNamed } from "../builders/sheet-value-named";
 import type { App } from "obsidian";
 import { CHANGED_IN_NOTE, PartlyWritten } from "../../../src/campaign/writing/note-editor";
 import { carriedValuesOf, characterSheetOf, type SheetValue } from "../../../src/characters/reading/character-sheet";
-import { CHANGE_ON_BEYOND, notKnownOverCarriedText, secondPressText, SheetValueModal, whereText, type SheetValueDialog } from "../../../src/characters/editing/sheet-value-modal";
+import { CHANGE_ON_BEYOND, notKnownOverCarriedText, secondPressText, SheetValueEditDialog, whereText, type SheetValueDialog } from "../../../src/characters/editing/sheet-value-dialog";
+import { OBSIDIAN_TELLING } from "../../../src/obsidian/views/frames/obsidian-telling";
+import { ModalFrame } from "../../../src/obsidian/views/frames/modal-frame";
 import type { ValueChoice } from "../../../src/characters/editing/sheet-value-writer";
 import type { SourcedFact } from "../../../src/characters/reading/sheet-values";
 import { PRESS_AGAIN } from "../../../src/views/dialogs/second-press";
 import { Notice, type Modal as StubModal } from "../../stubs/obsidian";
+import { MountedView } from "../../host/showing/mounted-view";
 
 const MIRA = "Pale Moon/Characters/Mira.md";
 
@@ -40,7 +43,8 @@ function openDialog({ value = hpOf([inSession(1, "31"), inSession(2, "38")]), sa
     },
     openSource,
   };
-  const modal = new SheetValueModal({} as App, dialog, onClosed);
+  const shown = new SheetValueEditDialog(OBSIDIAN_TELLING, dialog, onClosed);
+  const modal = new ModalFrame({} as App, shown);
   modal.contentEl.ownerDocument.body.append(modal.contentEl);
   modal.open();
   const root = modal.contentEl;
@@ -51,16 +55,16 @@ function openDialog({ value = hpOf([inSession(1, "31"), inSession(2, "38")]), sa
     input.dispatchEvent(new input.ownerDocument.defaultView!.Event("input"));
   };
   const enter = () => input.dispatchEvent(new input.ownerDocument.defaultView!.KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }));
-  return { modal, root, input, choice, type, enter, saved, onClosed, openSource };
+  return { modal, shown, root, input, choice, type, enter, saved, onClosed, openSource };
 }
 
 beforeEach(() => {
   Notice.shown = [];
 });
 
-describe("SheetValueModal", () => {
+describe("SheetValueEditDialog", () => {
   it("is titled with the value's name and starts with the value shown", () => {
-    const { modal, input, root } = openDialog();
+    const { shown, modal, input, root } = openDialog();
     expect((modal as unknown as StubModal).title).toBe("Hit Points");
     expect(input.value).toBe("38");
     expect(root.ownerDocument.activeElement).toBe(input);
@@ -123,81 +127,81 @@ describe("SheetValueModal", () => {
   });
 
   it("saves the state tapped with the value typed, then closes", async () => {
-    const { modal, type, choice, saved, onClosed } = openDialog();
+    const { shown, modal, type, choice, saved, onClosed } = openDialog();
     type("40");
     choice("override").click();
-    await modal.changeSettled();
+    await shown.settled();
     expect(onClosed).toHaveBeenCalledOnce();
     expect(saved).toEqual([{ state: "override", value: "40" }]);
   });
 
   it("closes when there was nothing to write", async () => {
-    const { modal, choice, onClosed } = openDialog({ save: async () => false });
+    const { shown, modal, choice, onClosed } = openDialog({ save: async () => false });
     choice("learned").click();
-    await modal.changeSettled();
+    await shown.settled();
     expect(onClosed).toHaveBeenCalledOnce();
   });
 
   it("keeps the value's state on Enter", async () => {
-    const { modal, type, enter, saved } = openDialog({ value: hpOf([], [{ name: "HP", value: "40", source: { path: MIRA, line: 0 } }]) });
+    const { shown, modal, type, enter, saved } = openDialog({ value: hpOf([], [{ name: "HP", value: "40", source: { path: MIRA, line: 0 } }]) });
     type("41");
     enter();
-    await modal.changeSettled();
+    await shown.settled();
     expect(saved).toEqual([{ state: "override", value: "41" }]);
   });
 
   it("saves a value not known as learned on Enter", async () => {
-    const { modal, type, enter, saved } = openDialog({ value: hpOf([]) });
+    const { shown, modal, type, enter, saved } = openDialog({ value: hpOf([]) });
     type("41");
     enter();
-    await modal.changeSettled();
+    await shown.settled();
     expect(saved).toEqual([{ state: "learned", value: "41" }]);
   });
 
   it("saves once however often a state is tapped while saving", async () => {
     let finish: (written: boolean) => void = () => {};
-    const { modal, choice, saved, onClosed } = openDialog({ save: () => new Promise((resolve) => { finish = resolve; }) });
+    const { shown, modal, choice, saved, onClosed } = openDialog({ save: () => new Promise((resolve) => { finish = resolve; }) });
     choice("override").click();
     choice("unknown").click();
     expect(saved).toHaveLength(1);
     finish(true);
-    await modal.changeSettled();
+    await shown.settled();
     expect(onClosed).toHaveBeenCalledOnce();
   });
 
   it("stays open while saving, however it is asked to close", () => {
-    const { modal, choice, onClosed } = openDialog({ save: () => new Promise(() => {}) });
+    const { shown, modal, choice, onClosed } = openDialog({ save: () => new Promise(() => {}) });
     choice("override").click();
     modal.close();
     expect(onClosed).not.toHaveBeenCalled();
   });
 
   it("says why nothing was written, and stays open with focus on the value", async () => {
-    const { modal, choice, onClosed, input, root } = openDialog({ save: async () => {
+    const { shown, modal, choice, onClosed, input, root } = openDialog({ save: async () => {
       throw new Error("Type a value first.");
     } });
     choice("override").click();
-    await modal.changeSettled();
+    await shown.settled();
     expect(Notice.shown).toEqual(["Couldn't change the hit points: Type a value first."]);
     expect(onClosed).not.toHaveBeenCalled();
     expect(root.ownerDocument.activeElement).toBe(input);
   });
 
   it("closes when the note changed since the sheet was read", async () => {
-    const { modal, choice, onClosed } = openDialog({ save: async () => {
+    const { shown, modal, choice, onClosed } = openDialog({ save: async () => {
       throw new Error(CHANGED_IN_NOTE);
     } });
     choice("override").click();
-    await modal.changeSettled();
+    await shown.settled();
     expect(onClosed).toHaveBeenCalledOnce();
   });
 
   it("closes when only part was written", async () => {
-    const { modal, choice, onClosed } = openDialog({ save: async () => {
+    const { shown, modal, choice, onClosed } = openDialog({ save: async () => {
       throw new PartlyWritten("The line was added to the session, but Mira's note was left.");
     } });
     choice("learned").click();
-    await modal.changeSettled();
+    await shown.settled();
     expect(onClosed).toHaveBeenCalledOnce();
   });
 });
@@ -210,37 +214,37 @@ describe("SheetValueModal on a value only the character's note states, under a n
   }
 
   it("asks for a second press before a choice that removes its line from the note", async () => {
-    const { modal, choice, saved } = openDialog({ value: personality() });
+    const { shown, modal, choice, saved } = openDialog({ value: personality() });
     choice("carried").click();
     expect(choice("carried").textContent).toBe(PRESS_AGAIN);
     choice("unknown").click();
     expect(saved).toEqual([]);
     expect(choice("unknown").textContent).toBe(PRESS_AGAIN);
     choice("unknown").click();
-    await modal.changeSettled();
+    await shown.settled();
     expect(saved).toEqual([{ state: "unknown", value: "grumpy, but kind" }]);
   });
 
   it("saves the override on Enter, which removes nothing", async () => {
-    const { modal, enter, saved } = openDialog({ value: personality() });
+    const { shown, modal, enter, saved } = openDialog({ value: personality() });
     enter();
-    await modal.changeSettled();
+    await shown.settled();
     expect(saved).toEqual([{ state: "override", value: "grumpy, but kind" }]);
   });
 
   it("asks for a second press before Learned at the table, which clears the override", async () => {
-    const { modal, choice, saved } = openDialog({ value: personality() });
+    const { shown, modal, choice, saved } = openDialog({ value: personality() });
     choice("learned").click();
     expect(saved).toEqual([]);
     choice("learned").click();
-    await modal.changeSettled();
+    await shown.settled();
     expect(saved).toEqual([{ state: "learned", value: "grumpy, but kind" }]);
   });
 
   it("stops waiting for the second press when the dialog closes", () => {
     vi.useFakeTimers();
     try {
-      const { modal, choice } = openDialog({ value: personality() });
+      const { shown, modal, choice } = openDialog({ value: personality() });
       choice("unknown").click();
       expect(vi.getTimerCount()).toBe(1);
       modal.close();
@@ -256,26 +260,26 @@ describe("SheetValueModal on a value only the character's note states, under a n
   });
 
   it("saves an override on the first press", async () => {
-    const { modal, choice, saved } = openDialog({ value: personality() });
+    const { shown, modal, choice, saved } = openDialog({ value: personality() });
     choice("override").click();
-    await modal.changeSettled();
+    await shown.settled();
     expect(saved).toHaveLength(1);
   });
 
   it("saves on the first press for a name the sheet knows", async () => {
-    const { modal, choice, saved, root } = openDialog({ value: hpOf([], [{ name: "HP", value: "40", source: { path: MIRA, line: 0 } }]) });
+    const { shown, modal, choice, saved, root } = openDialog({ value: hpOf([], [{ name: "HP", value: "40", source: { path: MIRA, line: 0 } }]) });
     expect(Array.from(root.querySelectorAll(".dd-where")).map((where) => where.textContent)).toHaveLength(1);
     choice("unknown").click();
-    await modal.changeSettled();
+    await shown.settled();
     expect(saved).toEqual([{ state: "unknown", value: "40" }]);
   });
 
   it("saves on the first press when nothing is on the note to remove", async () => {
     const learned = { ...PERSONALITY, source: { path: "Pale Moon/Sessions/Session 1.md", line: 0 } };
     const value = sheetValueNamed(characterSheetOf({ learned: [learned], imported: [], overrides: [], carried: null }), "Personality");
-    const { modal, choice, saved } = openDialog({ value });
+    const { shown, modal, choice, saved } = openDialog({ value });
     choice("unknown").click();
-    await modal.changeSettled();
+    await shown.settled();
     expect(saved).toHaveLength(1);
   });
 });
@@ -338,15 +342,39 @@ describe("SheetValueModal on an imported value", () => {
   });
 
   it("saves an override when Override is pressed", async () => {
-    const { modal, type, choice, saved } = openDialog({ value: importedHp() });
+    const { shown, modal, type, choice, saved } = openDialog({ value: importedHp() });
     type("22");
     choice("override").click();
-    await modal.changeSettled();
+    await shown.settled();
     expect(saved).toEqual([{ state: "override", value: "22" }]);
   });
 
   it("offers every state again once an override shows over the import", () => {
     const { root } = openDialog({ value: overriddenImportedHp() });
     expect(textsOf(root.querySelectorAll(".dd-state-choice"))).toEqual(["Learned at the table", "Override", "Carried over", "Not known yet"]);
+  });
+});
+
+describe("SheetValueEditDialog's cursor", () => {
+  function shownIn(view: MountedView, save: SheetValueDialog["save"]): SheetValueEditDialog {
+    const dialog: SheetValueDialog = { character: "Mira", notePath: MIRA, value: hpOf([inSession(1, "31")]), sessionLabel: "Session 2", save, openSource: vi.fn() };
+    const shown = new SheetValueEditDialog(OBSIDIAN_TELLING, dialog, vi.fn());
+    shown.opened(view);
+    return shown;
+  }
+
+  it("starts in the value, whatever the frame focuses", () => {
+    const view = new MountedView();
+    shownIn(view, vi.fn());
+    expect(view.focused()).toBe(view.into.querySelector("input"));
+  });
+
+  it("goes back to the value when a change fails and the dialog stays open", async () => {
+    const view = new MountedView();
+    const shown = shownIn(view, async () => Promise.reject(new Error("the disk is full")));
+    view.into.querySelector<HTMLButtonElement>('.dd-state-choice[data-state="override"]')!.focus();
+    view.into.querySelector<HTMLButtonElement>('.dd-state-choice[data-state="override"]')!.click();
+    await shown.settled();
+    expect(view.focused()).toBe(view.into.querySelector("input"));
   });
 });

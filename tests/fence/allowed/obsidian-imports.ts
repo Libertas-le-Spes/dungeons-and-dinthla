@@ -1,7 +1,7 @@
 export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "interface/view/campaign-switcher.ts": ["Component", "Menu", "Notice", "setIcon"],
   "campaign/": ["CachedMetadata", "MarkdownFileInfo", "Platform", "TFile"],
-  "characters/": ["App", "ButtonComponent", "Component", "Debouncer", "Menu", "Notice", "Setting", "TAbstractFile", "debounce"],
+  "characters/": ["ButtonComponent", "Component", "Debouncer", "debounce"],
   "dashboard/": ["Component"],
   "editor/": ["editorInfoField"],
   "fence/": ["App", "CachedMetadata", "Component", "EventRef", "Events", "FileManager", "MetadataCache", "TAbstractFile", "TFile", "TFolder", "Vault"],
@@ -10,6 +10,7 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "interface/": ["App", "Component", "EventRef", "ItemView", "PluginManifest", "TAbstractFile", "TFile", "ViewState", "ViewStateResult", "Workspace", "WorkspaceLeaf"],
   "main.ts": ["MarkdownFileInfo", "MarkdownView", "Notice", "PaneType", "Plugin", "TFile", "ViewState", "WorkspaceLeaf", "debounce"],
   "note-page/": ["Component"],
+  "obsidian/characters/character-editing-hooks.ts": ["App", "Menu", "TAbstractFile"],
   "obsidian/notes/obsidian-notes.ts": ["CachedMetadata", "EventRef", "TAbstractFile", "TFile"],
   "obsidian/notes/obsidian-spelling.ts": ["normalizePath"],
   "obsidian/notes/obsidian-syntax.ts": ["getFrontMatterInfo", "getLinkpath", "parseYaml"],

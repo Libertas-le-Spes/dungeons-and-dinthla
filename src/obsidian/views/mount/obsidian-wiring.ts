@@ -16,6 +16,7 @@ class Press {
   constructor(private readonly action: PageAction) {}
 
   clicked(event: MouseEvent): void {
+    event.preventDefault();
     this.action.run(placeOf(event));
   }
 }

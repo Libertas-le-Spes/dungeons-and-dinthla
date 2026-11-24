@@ -3,8 +3,11 @@ import type { App } from "obsidian";
 import { CHANGED_IN_NOTE, PartlyWritten } from "../../../src/campaign/writing/note-editor";
 import type { CharacterEntry, Learned } from "../../../src/characters/editing/character-entry";
 import { NOTE_MOVED } from "../../../src/characters/editing/character-files";
-import { CharacterModal, type CharacterDialog } from "../../../src/characters/editing/character-modal";
+import { CharacterEditDialog, type CharacterDialog } from "../../../src/characters/editing/character-dialog";
+import { OBSIDIAN_TELLING } from "../../../src/obsidian/views/frames/obsidian-telling";
+import { ModalFrame } from "../../../src/obsidian/views/frames/modal-frame";
 import { Notice } from "../../stubs/obsidian";
+import { MountedView } from "../../host/showing/mounted-view";
 
 function entry(values: Partial<CharacterEntry> = {}): CharacterEntry {
   return { name: "Mira", type: "", subtitle: "", speed: "", ...values };
@@ -33,7 +36,8 @@ function openDialog({ save = async () => true, canDelete = true, learned = new M
     delete: null,
   };
   if (canDelete) dialog.delete = deleteNote;
-  const modal = new CharacterModal({} as App, dialog, onClosed);
+  const shown = new CharacterEditDialog(OBSIDIAN_TELLING, dialog, onClosed);
+  const modal = new ModalFrame({} as App, shown);
   modal.contentEl.ownerDocument.body.append(modal.contentEl);
   modal.open();
   const root = modal.contentEl;
@@ -44,7 +48,7 @@ function openDialog({ save = async () => true, canDelete = true, learned = new M
     field.value = value;
     field.dispatchEvent(new field.ownerDocument.defaultView!.Event("input"));
   };
-  return { modal, root, input, button, type, saved, deleteNote, onClosed };
+  return { modal, shown, root, input, button, type, saved, deleteNote, onClosed };
 }
 
 beforeEach(() => {
@@ -55,7 +59,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("CharacterModal", () => {
+describe("CharacterEditDialog", () => {
   it("fills the fields from the note and says what the sessions taught", () => {
     const { input, root } = openDialog({ values: { speed: "40 ft." }, learned: new Map([["speed", "30 ft."]]) });
     expect(input("Name").value).toBe("Mira");
@@ -69,70 +73,70 @@ describe("CharacterModal", () => {
   });
 
   it("saves the values trimmed and closes", async () => {
-    const { modal, type, button, saved, onClosed } = openDialog();
+    const { shown, type, button, saved, onClosed } = openDialog();
     type("Name", " Mirabel ");
     type("Type line", " elf ");
     button("Save")!.click();
-    await modal.changeSettled();
+    await shown.settled();
     expect(onClosed).toHaveBeenCalledOnce();
     expect(saved).toEqual([entry({ name: "Mirabel", type: "elf" })]);
   });
 
   it("saves once however often Save is pressed while saving", async () => {
-    const { modal, button, saved, onClosed } = openDialog();
+    const { shown, button, saved, onClosed } = openDialog();
     button("Save")!.click();
     button("Save")!.click();
-    await modal.changeSettled();
+    await shown.settled();
     expect(onClosed).toHaveBeenCalledOnce();
     expect(saved).toHaveLength(1);
   });
 
   it("stays open on the name when nothing was saved", async () => {
-    const { modal, input, button, saved, onClosed } = openDialog({ save: async () => false });
+    const { shown, input, button, saved, onClosed } = openDialog({ save: async () => false });
     input("Speed").focus();
     button("Save")!.click();
-    await modal.changeSettled();
+    await shown.settled();
     expect(saved).toHaveLength(1);
     expect(input("Name").ownerDocument.activeElement).toBe(input("Name"));
     expect(onClosed).not.toHaveBeenCalled();
   });
 
   it("says why and stays open when a save is refused", async () => {
-    const { modal, button, onClosed } = openDialog({ save: async () => Promise.reject(new Error("There is already a note called Vess.")) });
+    const { shown, button, onClosed } = openDialog({ save: async () => Promise.reject(new Error("There is already a note called Vess.")) });
     button("Save")!.click();
-    await modal.changeSettled();
+    await shown.settled();
     expect(Notice.shown).toEqual(["Couldn't save the character: There is already a note called Vess."]);
     expect(onClosed).not.toHaveBeenCalled();
   });
 
   it("closes when part of a save was written", async () => {
-    const { modal, button, onClosed } = openDialog({ save: async () => Promise.reject(new PartlyWritten("The values were saved.")) });
+    const { shown, button, onClosed } = openDialog({ save: async () => Promise.reject(new PartlyWritten("The values were saved.")) });
     button("Save")!.click();
-    await modal.changeSettled();
+    await shown.settled();
     expect(onClosed).toHaveBeenCalledOnce();
   });
 
   it("closes when the note changed since it opened, as its values are out of date", async () => {
-    const { modal, button, onClosed } = openDialog({ save: async () => Promise.reject(new Error(CHANGED_IN_NOTE)) });
+    const { shown, button, onClosed } = openDialog({ save: async () => Promise.reject(new Error(CHANGED_IN_NOTE)) });
     button("Save")!.click();
-    await modal.changeSettled();
+    await shown.settled();
     expect(onClosed).toHaveBeenCalledOnce();
     expect(Notice.shown).toEqual([`Couldn't save the character: ${CHANGED_IN_NOTE}`]);
   });
 
   it("closes when the note was moved since it opened", async () => {
-    const { modal, button, onClosed } = openDialog({ save: async () => Promise.reject(new Error(NOTE_MOVED)) });
+    const { shown, button, onClosed } = openDialog({ save: async () => Promise.reject(new Error(NOTE_MOVED)) });
     button("Save")!.click();
-    await modal.changeSettled();
+    await shown.settled();
     expect(onClosed).toHaveBeenCalledOnce();
   });
 
   it("deletes only on a second press, then closes", async () => {
-    const { modal, button, deleteNote, onClosed } = openDialog();
+    const { shown, button, deleteNote, onClosed } = openDialog();
     button("Delete character")!.click();
     expect(deleteNote).not.toHaveBeenCalled();
     button("Press again to delete")!.click();
-    await modal.changeSettled();
+    await shown.settled();
     expect(onClosed).toHaveBeenCalledOnce();
     expect(deleteNote).toHaveBeenCalledOnce();
   });
@@ -148,5 +152,14 @@ describe("CharacterModal", () => {
 
   it("has no delete button for a new character", () => {
     expect(openDialog({ canDelete: false }).button("Delete character")).toBeUndefined();
+  });
+});
+
+describe("CharacterEditDialog's start", () => {
+  it("puts the cursor in the name when it opens, whatever the frame focuses", () => {
+    const view = new MountedView();
+    const dialog = { title: "New character", entry: entry(), learned: new Map(), where: "", save: vi.fn(), delete: null };
+    new CharacterEditDialog(OBSIDIAN_TELLING, dialog, vi.fn()).opened(view);
+    expect(view.focused()).toBe(view.into.querySelector('input[aria-label="Name"]'));
   });
 });

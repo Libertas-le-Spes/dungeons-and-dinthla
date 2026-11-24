@@ -14,10 +14,14 @@ export class TextField {
   ) {}
 
   build(value: string, handle: HandleWanted | null, row: HandleWanted | null = null): FieldRow {
+    return this.described(value, null, handle, row);
+  }
+
+  described(value: string, description: string | null, handle: HandleWanted | null, row: HandleWanted | null = null): FieldRow {
     const bindings: ElementBinding[] = [new ChangeBinding(this.field), new EnterBinding(false, this.entered)];
     if (handle !== null) bindings.push(new HandleRequest(handle));
     const input = new TextInput({ placeholder: this.words.placeholder, value, label: this.words.label, bindings });
-    if (row === null) return new FieldRow(this.words.name, null, [input]);
-    return new FieldRow(this.words.name, null, [input], { bindings: [new HandleRequest(row)] });
+    if (row === null) return new FieldRow(this.words.name, description, [input]);
+    return new FieldRow(this.words.name, description, [input], { bindings: [new HandleRequest(row)] });
   }
 }
