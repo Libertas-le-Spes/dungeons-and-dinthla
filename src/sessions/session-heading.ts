@@ -1,9 +1,9 @@
 import { sessionLabelOf } from "../campaign/paths/session-file";
-import type { FencedMetadata } from "../fence/gate/fenced-metadata";
+import { sessionPropertiesOf, type SessionPropertyNotes } from "./session-properties";
 
-export function sessionHeadingOf(path: string, metadata: Pick<FencedMetadata, "getCache">): string {
+export function sessionHeadingOf(path: string, notes: SessionPropertyNotes): string {
   const label = sessionLabelOf(path);
-  const title: unknown = metadata.getCache(path)?.frontmatter?.title;
-  if (typeof title !== "string" || title.trim() === "") return label;
-  return `${label} · ${title.trim()}`;
+  const title = sessionPropertiesOf(path, notes).title;
+  if (title === "") return label;
+  return `${label} · ${title}`;
 }

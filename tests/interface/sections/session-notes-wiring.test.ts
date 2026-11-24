@@ -41,7 +41,7 @@ function wiredWith(trashOption: string) {
     metadata: new FencedMetadata(rawMetadata as unknown as RawMetadata, held),
     vaultSettings: { trashOption: () => trashOption },
   };
-  const fullGate = { ...gate, notes: notesOverFakes({ files: gate.files, metadata: gate.metadata, actions: gate.fileActions }) };
+  const fullGate = { ...gate, notes: notesOverFakes({ files: gate.files, metadata: gate.metadata, actions: gate.fileActions, vaultSettings: gate.vaultSettings }) };
   const drafts = new Drafts({}, () => {});
   const keeping = { keptDrafts: new KeptDrafts(drafts, () => 1_000), noteDrafts: new NoteDrafts(drafts) };
   const needs = {
@@ -80,10 +80,10 @@ describe("sessionNotesWiring", () => {
     expect(wiring.notes.wholeText).toBe(wiring.wholeText);
   });
 
-  it("reads a session's properties through the fenced metadata", () => {
+  it("reads a session's properties through the gate's metadata", () => {
     const { wiring, rawMetadata } = wiredWith("local");
     expect(wiring.notes.propertiesOf(SESSION.path).title).toBe("The Old Mill");
-    expect(rawMetadata.getCache).toHaveBeenCalledExactlyOnceWith(SESSION.path);
+    expect(rawMetadata.getFileCache).toHaveBeenCalledExactlyOnceWith(SESSION);
   });
 
   it("deletes a session note for good only when Obsidian keeps no trash", () => {

@@ -1,8 +1,14 @@
-import type { FencedMetadata } from "../fence/gate/fenced-metadata";
+import type { NoteFacts, Properties } from "../host/notes/note-facts";
+import type { NoteStore } from "../host/notes/note-store";
 
 export interface SessionProperties {
   title: string;
   played: string;
+}
+
+export interface SessionPropertyNotes {
+  readonly store: Pick<NoteStore, "note">;
+  readonly facts: Pick<NoteFacts, "propertiesOf">;
 }
 
 function textOf(value: unknown): string {
@@ -10,13 +16,15 @@ function textOf(value: unknown): string {
   return value.trim();
 }
 
-function propertiesIn(path: string, metadata: Pick<FencedMetadata, "getCache">): Record<string, unknown> {
-  const cache = metadata.getCache(path);
-  if (cache === null || cache.frontmatter === undefined) return {};
-  return cache.frontmatter;
+function propertiesIn(path: string, notes: SessionPropertyNotes): Properties {
+  const note = notes.store.note(path);
+  if (note === null) return {};
+  const properties = notes.facts.propertiesOf(note);
+  if (properties === null) return {};
+  return properties;
 }
 
-export function sessionPropertiesOf(path: string, metadata: Pick<FencedMetadata, "getCache">): SessionProperties {
-  const properties = propertiesIn(path, metadata);
+export function sessionPropertiesOf(path: string, notes: SessionPropertyNotes): SessionProperties {
+  const properties = propertiesIn(path, notes);
   return { title: textOf(properties.title), played: textOf(properties.played) };
 }

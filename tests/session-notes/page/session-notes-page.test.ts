@@ -17,6 +17,7 @@ import { isShown, obsidianDocument } from "../../stubs/obsidian-dom";
 import { stubLineOpeners } from "../lines/stub-line-openers";
 import { WantedLines } from "../../../src/views/opening/wanted-lines";
 import { stubRenumbering } from "../renumbering/stub-renumbering";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const FOLDER = "Pale Moon";
 const DELETED_AT = new Date(2026, 10, 2, 21, 5).getTime();
@@ -80,7 +81,7 @@ function pageWith(
     actions: { openRow: vi.fn(), openLink: vi.fn() },
     lineOpeners: stubLineOpeners(),
     wholeText: { texts: notes.texts, drafts: new NoteDrafts(drafts), saver: new NoteSaver(notes.vault) },
-    removal: { clearer: new SessionClearer(notes.vault), trash: new SessionTrash(notes.vault, { trashFile }, () => false), renumbering: stubRenumbering({ latest: latestAfterDelete }), confirm, report: vi.fn() },
+    removal: { clearer: new SessionClearer(notes.store, STUB_SYNTAX), trash: new SessionTrash(notes.store, { throwAway: trashFile }, () => false), renumbering: stubRenumbering({ latest: latestAfterDelete }), confirm, report: vi.fn() },
     wantedLines,
   };
   const page = new SessionNotesPage(root, asked, needs, moves);

@@ -222,7 +222,7 @@ export default class DungeonsAndDinthla extends Plugin {
       openCharacterSheet: (path: string) => show({ page: "cast", path }),
       startSession: newSession,
       writeNotes: (path: string) => show({ page: "notes", path }),
-      sessionHeadingOf: (path: string) => sessionHeadingOf(path, gate.metadata),
+      sessionHeadingOf: (path: string) => sessionHeadingOf(path, gate.notes),
     });
     const watchFiles = (changed: (path: string) => void) => this.watchFiles(changed);
     const castNeeds = { store: this.store, characterNotes, sheetNotes, mentionNotes, actions, sheetActions, creators, watchFiles };

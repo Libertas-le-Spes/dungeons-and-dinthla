@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../../src/host/notes/note-ref";
 import { SESSION_GONE } from "../../../src/session-notes/removal/session-clearer";
 import { CHANGED_SINCE_ASKED_TO_DELETE, SessionTrash } from "../../../src/session-notes/removal/session-trash";
 import { BOM, FakeNotes } from "../../note-editing/fake-notes";
@@ -9,15 +9,15 @@ const NOTE = "Tracks\n? Who";
 
 function trashOn(text: string | null) {
   const notes = new FakeNotes(PATH, text);
-  const fileManager = { trashFile: vi.fn(async (_file: TFile) => {}) };
-  return { trash: new SessionTrash(notes.vault, fileManager, () => false), notes, fileManager };
+  const fileManager = { throwAway: vi.fn(async (_file: NoteRef) => {}) };
+  return { trash: new SessionTrash(notes.store, fileManager, () => false), notes, fileManager };
 }
 
 describe("SessionTrash", () => {
   it("keeps the note and its text as the box reads it when asking", async () => {
     const { trash, notes } = trashOn(`${BOM}Tracks\r\n? Who`);
     const asked = await trash.ask(PATH);
-    expect(asked).toEqual({ file: notes.vault.getFileByPath(PATH), text: NOTE });
+    expect(asked).toEqual({ file: notes.store.note(PATH), text: NOTE });
   });
 
   it("has nothing to ask about when the note is gone", async () => {
@@ -29,7 +29,7 @@ describe("SessionTrash", () => {
     const { trash, fileManager } = trashOn(NOTE);
     const asked = (await trash.ask(PATH))!;
     await trash.trash(PATH, asked);
-    expect(fileManager.trashFile).toHaveBeenCalledExactlyOnceWith(asked.file);
+    expect(fileManager.throwAway).toHaveBeenCalledExactlyOnceWith(asked.file);
   });
 
   it("trashes nothing and says so when the note's text changed since asking", async () => {
@@ -37,7 +37,7 @@ describe("SessionTrash", () => {
     const asked = (await trash.ask(PATH))!;
     notes.text = `${NOTE}\n! Ride to Thessaly`;
     await expect(trash.trash(PATH, asked)).rejects.toThrow(CHANGED_SINCE_ASKED_TO_DELETE);
-    expect(fileManager.trashFile).not.toHaveBeenCalled();
+    expect(fileManager.throwAway).not.toHaveBeenCalled();
   });
 
   it("trashes nothing and says so when another note now has the path, even with the same text", async () => {
@@ -45,7 +45,7 @@ describe("SessionTrash", () => {
     const asked = (await trash.ask(PATH))!;
     notes.makeAgain(NOTE);
     await expect(trash.trash(PATH, asked)).rejects.toThrow(CHANGED_SINCE_ASKED_TO_DELETE);
-    expect(fileManager.trashFile).not.toHaveBeenCalled();
+    expect(fileManager.throwAway).not.toHaveBeenCalled();
   });
 
   it("says the note is gone and trashes nothing", async () => {
@@ -53,6 +53,6 @@ describe("SessionTrash", () => {
     const asked = (await trash.ask(PATH))!;
     notes.text = null;
     await expect(trash.trash(PATH, asked)).rejects.toThrow(SESSION_GONE);
-    expect(fileManager.trashFile).not.toHaveBeenCalled();
+    expect(fileManager.throwAway).not.toHaveBeenCalled();
   });
 });

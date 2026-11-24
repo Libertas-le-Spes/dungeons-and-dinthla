@@ -1,7 +1,12 @@
 import { vi } from "vitest";
 import type { TAbstractFile, TFile, Vault } from "obsidian";
 import type { Gate } from "../../src/fence/gate/gatekeeper";
-import { noteTextsOf, type NoteTexts } from "../../src/campaign/reading/note-texts";
+import { HostNoteTexts, type NoteTexts } from "../../src/campaign/reading/note-texts";
+import { notesOverFakes } from "../host/notes-over-fakes";
+
+function textsOver(gate: Pick<Gate, "files" | "metadata">): HostNoteTexts {
+  return new HostNoteTexts(notesOverFakes({ files: gate.files, metadata: gate.metadata }));
+}
 
 export type NotesVault = Pick<Vault, "getFileByPath" | "process" | "read">;
 
@@ -44,7 +49,11 @@ export class FakeNotes {
   }
 
   get texts(): NoteTexts {
-    return noteTextsOf(this.gate);
+    return textsOver(this.gate);
+  }
+
+  get store() {
+    return { note: (path: string) => this.fileAt(path), change: this.process, read: this.read };
   }
 
   get vault(): NotesVault {
