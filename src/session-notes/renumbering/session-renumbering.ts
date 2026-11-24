@@ -11,7 +11,9 @@ export type RenumberingFiles = RenameFiles & LinkFiles & DecisionFiles & Pick<Fe
 
 export type CampaignFolders = () => string[];
 
-function namesOf(files: { path: string }[]): string[] {
+type VaultFile = ReturnType<FencedFiles["getFiles"]>[number];
+
+function namesOf(files: VaultFile[]): string[] {
   return files.map((file) => file.path);
 }
 

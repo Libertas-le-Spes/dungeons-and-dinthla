@@ -185,6 +185,9 @@ export const WIDENING_SAMPLES = [
   'import type { App } from "obsidian";\nexport const parts = (app: Pick<App, "scope" | "keymap">) => Object.values(app);',
   'import type { ItemView } from "obsidian";\nexport const parts = (view: ItemView) => Object.values(view);',
   'import type { FencedFiles } from "../../../../src/fence/gate/fenced-files";\nexport const parts = (files: Pick<FencedFiles, "getFileByPath">) => Object.values(files);',
+  'import type { App } from "obsidian";\nexport function steal(apps: readonly App[]) {\n  const o: readonly { scope: object }[] = apps;\n  return o.map((one) => Object.values(one));\n}',
+  'import type { App } from "obsidian";\nexport function steal(apps: Map<string, App[]>) {\n  const o: Map<string, { scope: object }[]> = apps;\n  return [...o.values()].map((all) => all.map((one) => Object.values(one)));\n}',
+  'import type { App } from "obsidian";\nexport function steal(apps: Promise<App> | null) {\n  const o: Promise<{ scope: object }> | null = apps;\n  return o?.then((one) => Object.values(one));\n}',
 ];
 
 const NOTE_REF = 'import type { NoteRef } from "../../../../src/host/notes/note-ref";\n';
@@ -193,9 +196,11 @@ export const HANDLE_SAMPLES = [
   `import type { TFile } from "obsidian";\n${NOTE_REF}export const handle = (file: TFile): NoteRef => file;`,
   `import type { TFile } from "obsidian";\n${NOTE_REF}export const handle = (file: TFile | null): NoteRef | null => file;`,
   `import type { TFile } from "obsidian";\n${NOTE_REF}export const hand = (file: TFile, heard: (note: NoteRef) => void) => heard(file);`,
+  `import type { TFile } from "obsidian";\n${NOTE_REF}export const handles = (files: TFile[]): NoteRef[] => files;`,
 ];
 
 export const HANDLE_LOOK_ALIKE_SAMPLES = [
+  `import type { App } from "obsidian";\n${NOTE_REF}export const handles = (apps: App[]): (NoteRef & { readonly scope: unknown })[] => apps;`,
   'import type { TFile } from "obsidian";\ninterface NoteRef {\n  readonly path: string;\n}\nexport const handle = (file: TFile): NoteRef => file;',
   `import type { App } from "obsidian";\n${NOTE_REF}export const handle = (app: App): NoteRef & { readonly scope: unknown } => app;`,
 ];
