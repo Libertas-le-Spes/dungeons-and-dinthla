@@ -1,3 +1,4 @@
+import { STUB_SPELLING } from "../../host/stub-spelling";
 import { describe, expect, it, vi } from "vitest";
 import type { CachedMetadata, TFile } from "obsidian";
 import { CampaignStore } from "../../../src/campaign/reading/campaign-store";
@@ -20,7 +21,7 @@ const CACHE = { frontmatter: { title: "The Old Mill" } } as unknown as CachedMet
 
 function wiredWith(trashOption: string) {
   const { vault } = rawVaultWith([SESSION]);
-  const held = new HeldFiles(vault, new Fence(() => "D&D", ".obsidian"));
+  const held = new HeldFiles(vault, new Fence(() => "D&D", ".obsidian", STUB_SPELLING));
   const events = new FakeEvents();
   const rawMetadata = {
     getCache: vi.fn(() => CACHE),

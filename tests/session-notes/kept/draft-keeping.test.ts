@@ -1,3 +1,4 @@
+import { STUB_SPELLING } from "../../host/stub-spelling";
 import { describe, expect, it, vi } from "vitest";
 import type { TFile } from "obsidian";
 import { Fence } from "../../../src/fence/paths/fence";
@@ -23,7 +24,7 @@ function keepingWith(kept: Record<string, string>, notes: string[]) {
       return fileAt(path);
     }),
   };
-  const fence = new Fence(() => FOLDER, ".obsidian");
+  const fence = new Fence(() => FOLDER, ".obsidian", STUB_SPELLING);
   const drafts = new Drafts(kept, () => {});
   const keeping = new DraftKeeping(drafts, { files, fence, campaignsFolder: () => FOLDER, now: () => AT });
   keeping.load();

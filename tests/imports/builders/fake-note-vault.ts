@@ -1,3 +1,4 @@
+import { STUB_SPELLING } from "../../host/stub-spelling";
 import { vi } from "vitest";
 import type { TFile, TFolder } from "obsidian";
 import { Fence } from "../../../src/fence/paths/fence";
@@ -47,7 +48,7 @@ export class FakeNoteVault {
   private readonly readsAs = new Map<string, string>();
 
   constructor() {
-    const fence = new Fence(campaignsFolder, ".obsidian");
+    const fence = new Fence(campaignsFolder, ".obsidian", STUB_SPELLING);
     const raw = this.rawVault();
     const held = new HeldFiles(raw, fence);
     const reporter = new NoteReporter();

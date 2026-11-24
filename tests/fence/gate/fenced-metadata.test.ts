@@ -1,3 +1,4 @@
+import { STUB_SPELLING } from "../../host/stub-spelling";
 import { describe, expect, it, vi } from "vitest";
 import type { CachedMetadata, TFile } from "obsidian";
 import { Fence, OUTSIDE_FENCE } from "../../../src/fence/paths/fence";
@@ -31,7 +32,7 @@ function metadataWith(linkLeadsTo: TFile | null = MIRA) {
     on: (name: string, callback: (...data: unknown[]) => unknown) => events.on(name, callback),
     offref: vi.fn(),
   };
-  const held = new HeldFiles(vault, new Fence(() => "D&D", CONFIG_DIR));
+  const held = new HeldFiles(vault, new Fence(() => "D&D", CONFIG_DIR, STUB_SPELLING));
   return { metadata: new FencedMetadata(raw as unknown as RawMetadata, held), raw, events };
 }
 

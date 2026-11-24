@@ -1,3 +1,4 @@
+import { STUB_SPELLING } from "../../host/stub-spelling";
 import { describe, expect, it, vi } from "vitest";
 import type { TAbstractFile } from "obsidian";
 import { Fence, NOT_WRITTEN_AS_OBSIDIAN_WRITES, OUTSIDE_FENCE } from "../../../src/fence/paths/fence";
@@ -19,7 +20,7 @@ function filesWith(campaignsFolder: string | null = "D&D") {
   const outside = folderAt("Private", []);
   const campaigns = folderAt("D&D", [folderAt("D&D/Pale Moon", [empty, full])]);
   const raw = rawVaultWith([SESSION, PRIVATE, BESIDE, DECOMPOSED, NO_BREAK], [empty, full, outside, campaigns]);
-  return { files: new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => campaignsFolder, ".obsidian")), new NoteReporter()), ...raw };
+  return { files: new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => campaignsFolder, ".obsidian", STUB_SPELLING)), new NoteReporter()), ...raw };
 }
 
 describe("FencedFiles lookups", () => {
@@ -61,7 +62,7 @@ describe("FencedFiles lookups", () => {
     const lantern = fileAt("D&D/Pale Moon/Items/Silvered lantern.md");
     const refused = fileAt("D&D/Pale Moon/Items/Old./Lantern.md");
     const raw = rawVaultWith([SESSION, lantern, refused]);
-    const files = new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => "D&D", ".obsidian")), new NoteReporter());
+    const files = new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => "D&D", ".obsidian", STUB_SPELLING)), new NoteReporter());
     expect(files.markdownFilesUnder("D&D/Pale Moon/Items")).toEqual([lantern]);
   });
 
@@ -307,7 +308,7 @@ describe("FencedFiles report of what it wrote", () => {
     const reporter = new NoteReporter();
     const heard = reportListenerSpy();
     reporter.notes.listen(heard);
-    const files = new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => "D&D", ".obsidian")), reporter);
+    const files = new FencedFiles(raw.vault, new HeldFiles(raw.vault, new Fence(() => "D&D", ".obsidian", STUB_SPELLING)), reporter);
     return { files, heard, raw };
   }
 

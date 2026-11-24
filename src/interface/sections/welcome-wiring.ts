@@ -1,3 +1,4 @@
+import type { PathSpelling } from "../../host/rules/path-spelling";
 import type { PluginManifest } from "obsidian";
 import { CampaignMaker, type ChooseCampaign } from "../../campaign/writing/campaign-maker";
 import type { FencedFiles } from "../../fence/gate/fenced-files";
@@ -29,6 +30,7 @@ export interface WelcomeWiringNeeds {
   openWelcome: ShowWelcome;
   pickFolder: PickFolder;
   agreement: WelcomeAgreement;
+  spelling: PathSpelling;
   startSession(): void;
 }
 
@@ -47,7 +49,7 @@ export function welcomeWiring(needs: WelcomeWiringNeeds): WelcomeWiring {
   };
   const help = new Help(needs.saver, needs.manifest, NEWS_BY_VERSION, helpFiles, needs.openWelcome);
   const campaignsFolderSetup = new CampaignsFolderSetup(needs.setting, needs.gate.folders, needs.pickFolder);
-  const maker = new CampaignMaker(files, () => needs.setting.path, needs.chooseCampaign);
+  const maker = new CampaignMaker(files, () => needs.setting.path, needs.chooseCampaign, needs.spelling);
   const welcome = welcomeSection({
     store: needs.store,
     campaignsFolderSetup,

@@ -1,3 +1,4 @@
+import { OBSIDIAN_SPELLING } from "../../obsidian/notes/obsidian-spelling";
 import type { App } from "obsidian";
 import { Fence, type ReadCampaignsFolder } from "../paths/fence";
 import { FencedFileActions } from "./fenced-file-actions";
@@ -20,7 +21,7 @@ export class Gatekeeper {
 
   constructor(app: App, readCampaignsFolder: ReadCampaignsFolder) {
     this.configDir = app.vault.configDir;
-    this.fence = new Fence(readCampaignsFolder, this.configDir);
+    this.fence = new Fence(readCampaignsFolder, this.configDir, OBSIDIAN_SPELLING);
     const held = new HeldFiles(app.vault, this.fence);
     const reporter = new NoteReporter();
     this.written = reporter.notes;
