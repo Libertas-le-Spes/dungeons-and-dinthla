@@ -16,6 +16,10 @@ export class KeptHandle implements HandleWanted {
     if (this.handle !== null) this.handle.setText(text);
   }
 
+  setDisabled(disabled: boolean): void {
+    if (this.handle !== null) this.handle.setDisabled(disabled);
+  }
+
   setClassOn(name: string, on: boolean): void {
     if (this.handle !== null) this.handle.setClassOn(name, on);
   }

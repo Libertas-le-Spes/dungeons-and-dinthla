@@ -1,6 +1,6 @@
-import { Notice } from "obsidian";
 import type { ReadCampaignsFolder } from "../../fence/paths/fence";
 import type { PathSpelling } from "../../host/rules/path-spelling";
+import type { Telling } from "../../host/showing/telling";
 import { messageOf } from "../../views/dialogs/message-of";
 import { makeCampaign, type NewCampaignFiles } from "./make-campaign";
 
@@ -12,6 +12,7 @@ export class CampaignMaker {
     private readonly readCampaignsFolder: ReadCampaignsFolder,
     private readonly choose: ChooseCampaign,
     private readonly spelling: PathSpelling,
+    private readonly telling: Pick<Telling, "say">,
   ) {}
 
   async make(name: string): Promise<boolean> {
@@ -25,7 +26,7 @@ export class CampaignMaker {
     try {
       return await makeCampaign(this.files, this.readCampaignsFolder(), name, this.spelling);
     } catch (error) {
-      new Notice(`Couldn't make the campaign: ${messageOf(error)}`);
+      this.telling.say(`Couldn't make the campaign: ${messageOf(error)}`);
       return null;
     }
   }
@@ -34,7 +35,7 @@ export class CampaignMaker {
     try {
       await this.choose(folder);
     } catch (error) {
-      new Notice(`Made ${folder}, but couldn't move into it: ${messageOf(error)}`);
+      this.telling.say(`Made ${folder}, but couldn't move into it: ${messageOf(error)}`);
     }
   }
 }

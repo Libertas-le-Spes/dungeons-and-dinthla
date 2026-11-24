@@ -13,6 +13,7 @@ import type { WelcomeStore } from "../../welcome/page/welcome-page";
 import { NEWS_BY_VERSION } from "../../whats-new/news-by-version";
 import type { MakePage } from "../view/campaign-pages";
 import { welcomeSection } from "./welcome-section";
+import type { Telling } from "../../host/showing/telling";
 
 export interface WelcomeGate {
   notes: { readonly store: Pick<NoteStore, "files" | "hasFolder" | "namesIn" | "makeFolder" | "make" | "removeEmptyFolder"> };
@@ -31,6 +32,7 @@ export interface WelcomeWiringNeeds {
   pickFolder: PickFolder;
   agreement: WelcomeAgreement;
   spelling: PathSpelling;
+  telling: Pick<Telling, "say">;
   startSession(): void;
 }
 
@@ -49,7 +51,7 @@ export function welcomeWiring(needs: WelcomeWiringNeeds): WelcomeWiring {
   };
   const help = new Help(needs.saver, needs.manifest, NEWS_BY_VERSION, helpFiles, needs.openWelcome);
   const campaignsFolderSetup = new CampaignsFolderSetup(needs.setting, needs.gate.folders, needs.pickFolder);
-  const maker = new CampaignMaker(files, () => needs.setting.path, needs.chooseCampaign, needs.spelling);
+  const maker = new CampaignMaker(files, () => needs.setting.path, needs.chooseCampaign, needs.spelling, needs.telling);
   const welcome = welcomeSection({
     store: needs.store,
     campaignsFolderSetup,

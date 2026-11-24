@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { App } from "obsidian";
-import { NewCampaignModal, type NewCampaignAnswers } from "../../../src/campaign/writing/new-campaign-modal";
+import { NewCampaignDialog, type NewCampaignAnswers } from "../../../src/campaign/writing/new-campaign-dialog";
+import { OBSIDIAN_TELLING } from "../../../src/obsidian/views/frames/obsidian-telling";
+import { ModalFrame } from "../../../src/obsidian/views/frames/modal-frame";
+import { MountedView } from "../../host/showing/mounted-view";
 import { Notice } from "../../stubs/obsidian";
 
 class Answers implements NewCampaignAnswers {
@@ -26,23 +29,23 @@ class Answers implements NewCampaignAnswers {
   }
 }
 
-function opened(answers: NewCampaignAnswers): NewCampaignModal {
-  const modal = new NewCampaignModal({} as App, answers);
+function opened(answers: NewCampaignAnswers): ModalFrame {
+  const modal = new ModalFrame({} as App, new NewCampaignDialog(OBSIDIAN_TELLING, answers));
   modal.open();
   return modal;
 }
 
-function elementIn<Found extends Element>(modal: NewCampaignModal, selector: string): Found {
+function elementIn<Found extends Element>(modal: ModalFrame, selector: string): Found {
   const found = modal.contentEl.querySelector<Found>(selector);
   if (found === null) throw new Error(`The window has no ${selector}.`);
   return found;
 }
 
-function inputOf(modal: NewCampaignModal): HTMLInputElement {
+function inputOf(modal: ModalFrame): HTMLInputElement {
   return elementIn<HTMLInputElement>(modal, "input");
 }
 
-function buttonSaying(modal: NewCampaignModal, words: string): HTMLButtonElement {
+function buttonSaying(modal: ModalFrame, words: string): HTMLButtonElement {
   const found = Array.from(modal.contentEl.querySelectorAll("button")).find((button) => button.textContent === words);
   if (found === undefined) throw new Error(`The window has no ${words} button.`);
   return found;
@@ -54,25 +57,25 @@ function windowOf(element: Element): Window & typeof globalThis {
   return window;
 }
 
-function typeIn(modal: NewCampaignModal, typed: string): void {
+function typeIn(modal: ModalFrame, typed: string): void {
   const input = inputOf(modal);
   input.value = typed;
   input.dispatchEvent(new (windowOf(input).Event)("input"));
 }
 
-function press(modal: NewCampaignModal, key: string): void {
+function press(modal: ModalFrame, key: string): void {
   const input = inputOf(modal);
   input.dispatchEvent(new (windowOf(input).KeyboardEvent)("keydown", { key, cancelable: true }));
 }
 
-function submit(modal: NewCampaignModal, typed: string): void {
+function submit(modal: ModalFrame, typed: string): void {
   typeIn(modal, typed);
   buttonSaying(modal, "Make campaign").click();
 }
 
 const settled = () => new Promise((resolve) => setTimeout(resolve, 0));
 
-describe("NewCampaignModal", () => {
+describe("NewCampaignDialog", () => {
   beforeEach(() => {
     Notice.shown = [];
   });
@@ -132,10 +135,17 @@ describe("NewCampaignModal", () => {
     press(modal, "Enter");
     press(modal, "Enter");
     await settled();
+    expect(buttonSaying(modal, "Make campaign").disabled).toBe(true);
     answers.release();
     await settled();
     expect(answers.typed).toEqual(["Silver Road"]);
     expect(answers.opened).toBe(1);
+  });
+
+  it("puts the cursor in the name when it opens, whatever the frame focuses", () => {
+    const view = new MountedView();
+    new NewCampaignDialog(OBSIDIAN_TELLING, new Answers(true)).opened(view);
+    expect(view.focused()).toBe(view.into.querySelector("input"));
   });
 
   it("makes nothing when another key is pressed in the name box", async () => {

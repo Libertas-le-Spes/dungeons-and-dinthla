@@ -3,6 +3,4 @@ export const TIES: readonly string[] = [
   "campaign/background/picture-css.ts",
   "campaign/background/shown-background.ts",
   "campaign/reading/editor-text.ts",
-  "campaign/writing/campaign-maker.ts",
-  "campaign/writing/new-campaign-modal.ts",
 ];
