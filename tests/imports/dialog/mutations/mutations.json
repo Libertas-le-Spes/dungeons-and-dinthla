@@ -176,14 +176,14 @@
  },
  {
   "id": "modal: hint on imported values",
-  "file": "src/characters/editing/sheet-value-modal.ts",
-  "find": "if (value.imported !== null) contentEl",
-  "replace": "if (value.label !== \"\") contentEl",
+  "file": "src/characters/editing/sheet-value-dialog.ts",
+  "find": "if (value.imported !== null) trees.push(",
+  "replace": "if (value.label !== \"\") trees.push(",
   "group": "modal"
  },
  {
   "id": "modal: Enter overrides an import",
-  "file": "src/characters/editing/sheet-value-modal.ts",
+  "file": "src/characters/editing/sheet-value-dialog.ts",
   "find": "  [\"imported\", \"override\"],\n]);",
   "replace": "]);",
   "group": "modal"
@@ -379,30 +379,30 @@
  },
  {
   "id": "modal: Enter learns a value not known",
-  "file": "src/characters/editing/sheet-value-modal.ts",
+  "file": "src/characters/editing/sheet-value-dialog.ts",
   "find": "  [\"unknown\", \"learned\"],\n",
   "replace": "",
   "group": "modal"
  },
  {
   "id": "modal: only Override on an imported value",
-  "file": "src/characters/editing/sheet-value-modal.ts",
+  "file": "src/characters/editing/sheet-value-dialog.ts",
   "find": "new Map([[\"imported\", IMPORTED_CHOICES]])",
   "replace": "new Map()",
   "group": "modal"
  },
  {
   "id": "modal: imported shown as the current choice",
-  "file": "src/characters/editing/sheet-value-modal.ts",
+  "file": "src/characters/editing/sheet-value-dialog.ts",
   "find": "const IMPORTED_CHOICES: ValueState[] = [\"imported\", \"override\"];",
   "replace": "const IMPORTED_CHOICES: ValueState[] = [\"override\"];",
   "group": "modal"
  },
  {
   "id": "modal: imported choice can't be pressed",
-  "file": "src/characters/editing/sheet-value-modal.ts",
-  "find": "setButtonText(STATE_WORDS[state]).setDisabled(true);",
-  "replace": "setButtonText(STATE_WORDS[state]);",
+  "file": "src/characters/editing/sheet-value-dialog.ts",
+  "find": "bindings: [new HandleRequest(new Disabled())]",
+  "replace": "bindings: []",
   "group": "modal"
  },
  {

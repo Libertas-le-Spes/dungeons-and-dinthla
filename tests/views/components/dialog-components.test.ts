@@ -9,6 +9,8 @@ import { MainButton, PlainButton } from "../../../src/views/components/dialogs/d
 import { TextAreaField } from "../../../src/views/components/dialogs/text-area-field";
 import { TextField } from "../../../src/views/components/dialogs/text-field";
 import { KeptHandle } from "../../../src/views/elements/bindings/kept-handle";
+import { PressBinding } from "../../../src/views/elements/bindings/bindings";
+import { Anchor } from "../../../src/views/elements/kinds/containers";
 import { HERE } from "../../../src/views/elements/bindings/open-place";
 import type { ViewElement } from "../../../src/views/elements/view-element";
 import { CONFIRM_MS, PRESS_AGAIN } from "../../../src/views/dialogs/second-press";
@@ -209,5 +211,16 @@ describe("a date field", () => {
     expect(input.getAttribute("aria-label")).toBe("Played on");
     typed(input, "2026-03-01");
     expect(field.changed).toHaveBeenCalledWith("2026-03-01");
+  });
+});
+
+describe("a press", () => {
+  it("keeps a link from following its address", () => {
+    const action = { run: vi.fn() };
+    const link = mounted(new Anchor({ text: "Session 1", bindings: [new PressBinding(action)] })).querySelector("a")!;
+    const click = new (link.ownerDocument.defaultView!).MouseEvent("click", { cancelable: true });
+    link.dispatchEvent(click);
+    expect(click.defaultPrevented).toBe(true);
+    expect(action.run.mock.calls).toEqual([[HERE]]);
   });
 });

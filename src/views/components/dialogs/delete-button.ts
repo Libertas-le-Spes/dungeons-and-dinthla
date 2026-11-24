@@ -3,6 +3,7 @@ import { KeptHandle } from "../../elements/bindings/kept-handle";
 import { HERE, type OpenPlace } from "../../elements/bindings/open-place";
 import type { PageAction } from "../../elements/bindings/page-action";
 import { Button } from "../../elements/kinds/containers";
+import type { ElementParts } from "../../elements/element-parts";
 import { PRESS_AGAIN, SecondPress } from "../../dialogs/second-press";
 
 const DELETE_CLASSES = ["mod-warning", "dd-delete"];
@@ -18,8 +19,11 @@ export class DeleteButton implements PageAction {
     this.secondPress = new SecondPress(this.showArmed.bind(this), this.confirm.bind(this));
   }
 
-  build(): Button {
-    return new Button({ cls: DELETE_CLASSES, text: this.label, bindings: [new PressBinding(this), new HandleRequest(this.kept)] });
+  build(extra: ElementParts = {}): Button {
+    const cls: string[] = [];
+    if (extra.cls !== undefined) cls.push(...extra.cls);
+    cls.push(...DELETE_CLASSES);
+    return new Button({ ...extra, cls, text: this.label, bindings: [new PressBinding(this), new HandleRequest(this.kept)] });
   }
 
   run(_place: OpenPlace): void {

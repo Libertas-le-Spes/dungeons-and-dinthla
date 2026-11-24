@@ -7,7 +7,8 @@ import { sessionLabelOf, type PropertiesSyntax } from "../../campaign/paths/sess
 import type { LinkActions } from "../../views/lists/linked-text";
 import { FocusAfter } from "../../views/lists/focus-after";
 import { PENDING_FOCUS_MS } from "../../views/lists/row-focus";
-import { NOT_KNOWN, shownValuesOf, type CharacterSheet, type SheetValue, type ValueState } from "../reading/character-sheet";
+import { shownValuesOf, type CharacterSheet, type SheetValue } from "../reading/character-sheet";
+import { shownTextOf, STATE_WORDS } from "../reading/sheet-value-words";
 import { messageOf } from "../../views/dialogs/message-of";
 import { readCharacterSheet, type ReadSheet, type SheetStore } from "../reading/read-character-sheet";
 import type { MentionNotes } from "../reading/mention-notes";
@@ -24,14 +25,6 @@ import type { ItemTracking } from "../imported/tracking/item-tracking";
 
 export const TAP_A_VALUE = "Tap a value to change it or its state.";
 
-export const STATE_WORDS: Record<ValueState, string> = {
-  learned: "Learned at the table",
-  override: "Override",
-  imported: "Imported",
-  carried: "Carried over",
-  unknown: "Not known yet",
-};
-
 export interface SheetActions extends LinkActions {
   editCharacter(file: NoteRef): void;
   updateFromBeyond(file: NoteRef, returnFocus: () => void): void;
@@ -41,11 +34,6 @@ export interface SheetActions extends LinkActions {
 }
 
 type WatchedStore = SheetStore & { subscribe(listener: () => void): () => void };
-
-export function shownTextOf(value: SheetValue): string {
-  if (value.shown === null) return NOT_KNOWN;
-  return value.shown.value;
-}
 
 interface Caption {
   readonly text: string;
