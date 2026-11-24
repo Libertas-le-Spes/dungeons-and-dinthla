@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { App, TFile } from "obsidian";
+import type { TFile } from "obsidian";
+import { OBSIDIAN_SHOWING } from "../../host/showing/obsidian-showing";
 import { Refusal } from "../../../src/beyond/shape/refusal";
 import { NotesCast } from "../../../src/imports/leaving/cast/notes-cast";
 import { questionFor } from "../../../src/imports/leaving/questions/question-for";
@@ -25,7 +26,7 @@ class VaultMetadata {
 
 function wiringFor(table: LeavingTable): OfferWiring {
   return {
-    app: {} as App,
+    showing: OBSIDIAN_SHOWING,
     files: table.vault.notes.store,
     actions: table.vault.notes.keeping,
     cast: new NotesCast(new VaultMetadata(table), table.vault.notes.store, STUB_SYNTAX),

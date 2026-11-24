@@ -11,9 +11,11 @@ import { AfterNewImport, AfterUpdate } from "./after-import";
 import { openImport, openUpdate, type ImportPlace } from "./open-import";
 import type { NoteRef } from "../../../host/notes/note-ref";
 import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
+import type { DialogShowing } from "../../../views/dialogs/dialog-view";
 
 export interface BeyondWiring {
   readonly app: App;
+  readonly showing: DialogShowing;
   readonly files: LeavingFiles;
   readonly actions: LeavingActions;
   readonly metadata: CastMetadata;
@@ -49,13 +51,13 @@ class CampaignPlace implements ImportPlace {
 }
 
 class WiredOffers implements OfferWiring {
-  readonly app: App;
+  readonly showing: DialogShowing;
   readonly files: LeavingFiles;
   readonly actions: LeavingActions;
   readonly cast: CampaignCast;
 
   constructor(private readonly wiring: BeyondWiring, syntax: PropertiesSyntax) {
-    this.app = wiring.app;
+    this.showing = wiring.showing;
     this.files = wiring.files;
     this.actions = wiring.actions;
     this.cast = new NotesCast(wiring.metadata, wiring.files, syntax);

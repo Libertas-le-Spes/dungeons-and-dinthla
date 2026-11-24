@@ -43,7 +43,6 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "imports/dialog/steps/review-step.ts": ["addClass", "createDiv", "createEl"],
   "imports/dialog/targets/existing-note-target.ts": ["createDiv"],
   "imports/dialog/targets/new-note-target.ts": ["createEl"],
-  "imports/leaving/dialog/main-modal.ts": ["addClass", "createEl"],
   "interface/tabs/seen-tab.ts": ["isShown"],
   "interface/view/campaign-view.ts": ["addClass", "createDiv", "createEl", "createSpan", "empty", "removeAttribute", "setAttribute", "setText", "toggleClass"],
   "interface/view/campaign-switcher.ts": ["bottom", "createEl", "focus", "getBoundingClientRect", "left"],

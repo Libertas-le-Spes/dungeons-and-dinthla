@@ -17,10 +17,4 @@ export const TIES: readonly string[] = [
   "imports/dialog/steps/review-step.ts",
   "imports/dialog/targets/existing-note-target.ts",
   "imports/dialog/targets/new-note-target.ts",
-  "imports/leaving/dialog/main-modal.ts",
-  "imports/leaving/dialog/main-offers.ts",
-  "imports/leaving/questions/asked-about.ts",
-  "imports/leaving/questions/depart-question-for.ts",
-  "imports/leaving/questions/offer-wiring.ts",
-  "imports/leaving/questions/question-for.ts",
 ];

@@ -750,16 +750,16 @@
  },
  {
   "id": "a modal passes what was typed",
-  "file": "src/imports/leaving/dialog/main-modal.ts",
-  "find": "this.runChange(choice.run.bind(choice, this.lastDoing), SWITCH_FAILED);",
-  "replace": "this.runChange(choice.run.bind(choice, \"\"), SWITCH_FAILED);",
+  "file": "src/imports/leaving/dialog/main-question-dialog.ts",
+  "find": "this.changing.run(choice.run.bind(choice, this.lastDoing), SWITCH_FAILED);",
+  "replace": "this.changing.run(choice.run.bind(choice, \"\"), SWITCH_FAILED);",
   "group": "offers"
  },
  {
   "id": "Not now writes nothing",
-  "file": "src/imports/leaving/dialog/main-modal.ts",
-  "find": ".setButtonText(NOT_NOW).onClick(this.close.bind(this));",
-  "replace": ".setButtonText(NOT_NOW).onClick(this.keepLastDoing.bind(this, \"\"));",
+  "file": "src/imports/leaving/dialog/main-question-dialog.ts",
+  "find": "new PlainButton(NOT_NOW, new RunAction(this.changing.close.bind(this.changing)))",
+  "replace": "new PlainButton(NOT_NOW, new RunAction(this.keepLastDoing.bind(this, \"\")))",
   "group": "offers"
  },
  {
@@ -1184,15 +1184,15 @@
  },
  {
   "id": "the dialog asks for their own words",
-  "file": "src/imports/leaving/dialog/main-modal.ts",
-  "find": "    if (ownWords !== null) new Setting(contentEl)",
-  "replace": "    if (ownWords === undefined) new Setting(contentEl)",
+  "file": "src/imports/leaving/dialog/main-question-dialog.ts",
+  "find": "    if (ownWords !== null) trees.push(",
+  "replace": "    if (ownWords === undefined) trees.push(",
   "group": "depart"
  },
  {
   "id": "the dialog keeps their own words",
-  "file": "src/imports/leaving/dialog/main-modal.ts",
-  "find": "    field.onChange(ownWords.keep.bind(ownWords));\n",
+  "file": "src/imports/leaving/dialog/main-question-dialog.ts",
+  "find": "    this.ownWords.keep(value);\n",
   "replace": "",
   "group": "depart"
  },
