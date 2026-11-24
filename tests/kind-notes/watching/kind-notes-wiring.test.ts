@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from "vitest";
-import type { SavedCampaign } from "../../../src/campaign/reading/saved-campaign";
 import { NoteReporter } from "../../../src/fence/gate/written-notes";
 import { startKindNotes } from "../../../src/kind-notes/watching/kind-notes-wiring";
 import type { NotesMade } from "../../../src/settings/saved/notes-made";
@@ -25,7 +24,7 @@ function startWith(notes: FakeNotes, campaign: FakeCampaign, alreadyMade: string
     notes: notesOverFakes({ files: notes.files, metadata: notes.metadata, actions: notes.actions }),
     syntax: STUB_SYNTAX,
     written: written.notes,
-    saved: campaign as unknown as SavedCampaign,
+    saved: campaign,
     made: made as unknown as NotesMade,
     items,
     references,
