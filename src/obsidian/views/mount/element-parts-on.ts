@@ -30,6 +30,7 @@ function setPlainParts(el: HTMLElement, parts: ElementParts): void {
   if (parts.dataName !== undefined) el.setAttr("data-name", parts.dataName);
   if (parts.dataItem !== undefined) el.setAttr("data-item", parts.dataItem);
   if (parts.dataState !== undefined) el.setAttr("data-state", parts.dataState);
+  if (parts.undraggable === true) el.setAttr("draggable", "false");
 }
 
 export function partsOn(el: HTMLElement, parts: ElementParts): HTMLElement {

@@ -30,6 +30,10 @@ export class ObsidianHandle implements ElementHandle {
     this.el.setText(text);
   }
 
+  setTabIndex(index: number): void {
+    this.el.setAttr("tabindex", String(index));
+  }
+
   replaceWith(tree: ViewElement): void {
     this.el.empty();
     tree.mountOn(new ObsidianMounter(), new ElementPlace(this.el));

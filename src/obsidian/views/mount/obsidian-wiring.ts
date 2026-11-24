@@ -43,6 +43,35 @@ class Change {
 
 const FIELD_TAGS = ["INPUT", "TEXTAREA", "SELECT"];
 
+const MIDDLE_BUTTON = 1;
+const FOLLOWING_KEYS = ["Enter", " "];
+
+class Follow {
+  constructor(private readonly action: PageAction) {}
+
+  clicked(event: MouseEvent): void {
+    this.follow(event);
+  }
+
+  middleClicked(event: MouseEvent): void {
+    if (event.button === MIDDLE_BUTTON) this.follow(event);
+  }
+
+  pressed(event: KeyboardEvent): void {
+    if (FOLLOWING_KEYS.includes(event.key)) this.follow(event);
+  }
+
+  dragged(event: DragEvent): void {
+    event.preventDefault();
+  }
+
+  private follow(event: MouseEvent | KeyboardEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.action.run(placeOf(event));
+  }
+}
+
 function isField(el: HTMLElement): el is HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement {
   return FIELD_TAGS.includes(el.tagName);
 }
@@ -65,6 +94,14 @@ export class ObsidianWiring implements BindingWiring {
     const change = new Change(this.el, field);
     this.el.addEventListener("input", change.changed.bind(change));
     this.el.addEventListener("change", change.changed.bind(change));
+  }
+
+  follow(action: PageAction): void {
+    const follow = new Follow(action);
+    this.el.addEventListener("click", follow.clicked.bind(follow));
+    this.el.addEventListener("auxclick", follow.middleClicked.bind(follow));
+    this.el.addEventListener("keydown", follow.pressed.bind(follow));
+    this.el.addEventListener("dragstart", follow.dragged.bind(follow));
   }
 
   handle(wanted: HandleWanted): void {
