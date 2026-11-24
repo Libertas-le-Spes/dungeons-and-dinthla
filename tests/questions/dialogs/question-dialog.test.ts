@@ -7,20 +7,7 @@ import { OBSIDIAN_TELLING } from "../../../src/obsidian/views/frames/obsidian-te
 import { ModalFrame } from "../../../src/obsidian/views/frames/modal-frame";
 import { CONFIRM_MS } from "../../../src/views/dialogs/second-press";
 import { Notice } from "../../stubs/obsidian";
-import { obsidianDocument } from "../../stubs/obsidian-dom";
-import { mountTree } from "../../../src/obsidian/views/mount/mount-tree";
-import type { ViewElement } from "../../../src/views/elements/view-element";
-import type { DialogView } from "../../../src/views/dialogs/dialog-view";
-
-class MountedView implements DialogView {
-  constructor(private readonly into: HTMLElement) {}
-
-  show(trees: readonly ViewElement[]): void {
-    for (const tree of trees) mountTree(tree, this.into);
-  }
-
-  close(): void {}
-}
+import { MountedView } from "../../host/showing/mounted-view";
 
 function dialog(deleteNote: () => Promise<boolean> = async () => true) {
   const [record] = buildCampaign([{ path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: "? Who sent the letter" }]).questions;
@@ -145,10 +132,9 @@ describe("QuestionDialog", () => {
 
   it("puts the cursor in the answer when it opens, whatever the frame focuses", () => {
     const { shown } = dialog();
-    const into = obsidianDocument().createElement("div");
-    into.ownerDocument.body.append(into);
-    shown.opened(new MountedView(into));
-    expect(into.ownerDocument.activeElement).toBe(into.querySelector("textarea"));
+    const view = new MountedView();
+    shown.opened(view);
+    expect(view.focused()).toBe(view.into.querySelector("textarea"));
   });
 
   it("closes safely when it never finished opening", () => {

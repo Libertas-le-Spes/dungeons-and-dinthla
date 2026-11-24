@@ -16,6 +16,14 @@ export class TextInput implements ViewElement {
   }
 }
 
+export class DateInput implements ViewElement {
+  constructor(readonly parts: Field) {}
+
+  mountOn(mounter: Mounter, into: MountPlace): void {
+    mounter.dateInput(this, into);
+  }
+}
+
 export class TextArea implements ViewElement {
   constructor(
     readonly parts: Field,

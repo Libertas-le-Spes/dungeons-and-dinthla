@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ButtonRow } from "../../../src/views/components/dialogs/button-row";
 import { ChoiceField } from "../../../src/views/components/dialogs/choice-field";
+import { DateField } from "../../../src/views/components/dialogs/date-field";
 import { SuggestField } from "../../../src/views/components/dialogs/suggest-field";
 import { SwitchField } from "../../../src/views/components/dialogs/switch-field";
 import { DeleteButton } from "../../../src/views/components/dialogs/delete-button";
@@ -194,5 +195,19 @@ describe("a suggest field", () => {
     expect(input.placeholder).toBe("Lady Vess");
     expect(field.changed).toHaveBeenCalledWith("Mi");
     expect(suggested).toEqual([[input, ["Mira"]]]);
+  });
+});
+
+describe("a date field", () => {
+  it("draws a settings row holding a labelled date input with its value, handing on each change", () => {
+    const field = { changed: vi.fn() };
+    const built = mounted(new DateField("Played on", field).build("2026-03-07"));
+    const input = built.querySelector(".setting-item-control input") as HTMLInputElement;
+    expect(built.querySelector(".setting-item-name")!.textContent).toBe("Played on");
+    expect(input.type).toBe("date");
+    expect(input.value).toBe("2026-03-07");
+    expect(input.getAttribute("aria-label")).toBe("Played on");
+    typed(input, "2026-03-01");
+    expect(field.changed).toHaveBeenCalledWith("2026-03-01");
   });
 });

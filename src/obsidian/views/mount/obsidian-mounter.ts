@@ -1,6 +1,6 @@
 import { ToggleComponent } from "obsidian";
 import type { Anchor, Bold, Button, Description, DescriptionList, Details, Div, Form, Heading1, Heading2, Heading3, Label, List, ListItem, Mark, Nav, OrderedList, Paragraph, Pre, Section, Select, Span, Strong, Summary, Term, NameLink, FieldRow } from "../../../views/elements/kinds/containers";
-import type { Option, Switch, TextArea, TextInput } from "../../../views/elements/kinds/fields";
+import type { DateInput, Option, Switch, TextArea, TextInput } from "../../../views/elements/kinds/fields";
 import type { Mounter, MountPlace } from "../../../views/elements/mounter";
 import { partsOn } from "./element-parts-on";
 import type { MountKit } from "./mount-kit";
@@ -118,6 +118,12 @@ export class ObsidianMounter implements Mounter {
     if (element.parts.value !== undefined) input.value = element.parts.value;
     if (element.parts.placeholder !== undefined) input.placeholder = element.parts.placeholder;
     if (element.parts.spellcheck !== undefined) input.spellcheck = element.parts.spellcheck;
+    return placed(partsOn(input, element.parts, this.kit));
+  }
+
+  dateInput(element: DateInput, into: MountPlace): MountPlace {
+    const input = elementOf(into).createEl("input", { type: "date" });
+    if (element.parts.value !== undefined) input.value = element.parts.value;
     return placed(partsOn(input, element.parts, this.kit));
   }
 
