@@ -1,6 +1,8 @@
 import type { ElementHandle } from "../../../views/elements/element-handle";
 import type { ViewElement } from "../../../views/elements/view-element";
 import { ElementPlace } from "./element-place";
+import { isField } from "./field-element";
+import type { MountKit } from "./mount-kit";
 import { ObsidianMounter } from "./obsidian-mounter";
 
 function isDetails(el: HTMLElement): el is HTMLDetailsElement {
@@ -8,7 +10,10 @@ function isDetails(el: HTMLElement): el is HTMLDetailsElement {
 }
 
 export class ObsidianHandle implements ElementHandle {
-  constructor(private readonly el: HTMLElement) {}
+  constructor(
+    private readonly el: HTMLElement,
+    private readonly kit: MountKit,
+  ) {}
 
   focus(): void {
     this.el.focus();
@@ -30,13 +35,17 @@ export class ObsidianHandle implements ElementHandle {
     this.el.setText(text);
   }
 
+  setValue(value: string): void {
+    if (isField(this.el)) this.el.value = value;
+  }
+
   setTabIndex(index: number): void {
     this.el.setAttr("tabindex", String(index));
   }
 
   replaceWith(tree: ViewElement): void {
     this.el.empty();
-    tree.mountOn(new ObsidianMounter(), new ElementPlace(this.el));
+    tree.mountOn(new ObsidianMounter(this.kit), new ElementPlace(this.el));
   }
 
   isShown(): boolean {

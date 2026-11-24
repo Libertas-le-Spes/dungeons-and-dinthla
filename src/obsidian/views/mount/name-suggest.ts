@@ -1,17 +1,17 @@
 import { AbstractInputSuggest, type App } from "obsidian";
 
-export class CharacterSuggest extends AbstractInputSuggest<string> {
+export class NameSuggest extends AbstractInputSuggest<string> {
   constructor(
     app: App,
     private readonly input: HTMLInputElement,
-    private readonly characters: string[],
+    private readonly names: readonly string[],
   ) {
     super(app, input);
   }
 
   protected getSuggestions(query: string): string[] {
     const typed = query.toLowerCase();
-    return this.characters.filter((name) => name.toLowerCase().includes(typed));
+    return this.names.filter((name) => name.toLowerCase().includes(typed));
   }
 
   renderSuggestion(name: string, element: HTMLElement): void {

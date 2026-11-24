@@ -1,6 +1,7 @@
 import { Modal, type App } from "obsidian";
 import type { DialogView, Dialogs, ShownDialog } from "../../../views/dialogs/dialog-view";
 import type { ViewElement } from "../../../views/elements/view-element";
+import { AppKit, type MountKit } from "../mount/mount-kit";
 import { mountTree } from "../mount/mount-tree";
 
 const TOKENS_CLASS = "dd-tokens";
@@ -8,12 +9,13 @@ const TOKENS_CLASS = "dd-tokens";
 class FrameView implements DialogView {
   constructor(
     private readonly contentEl: HTMLElement,
+    private readonly kit: MountKit,
     private readonly closes: () => void,
   ) {}
 
   show(trees: readonly ViewElement[]): void {
     this.contentEl.empty();
-    for (const tree of trees) mountTree(tree, this.contentEl);
+    for (const tree of trees) mountTree(tree, this.contentEl, this.kit);
   }
 
   close(): void {
@@ -32,7 +34,7 @@ export class ModalFrame extends Modal {
   override onOpen(): void {
     this.setTitle(this.dialog.title);
     this.contentEl.addClass(TOKENS_CLASS, ...this.dialog.cls);
-    this.dialog.opened(new FrameView(this.contentEl, this.close.bind(this)));
+    this.dialog.opened(new FrameView(this.contentEl, new AppKit(this.app), this.close.bind(this)));
   }
 
   override close(): void {

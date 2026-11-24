@@ -180,10 +180,10 @@ export default class DungeonsAndDinthla extends Plugin {
       open: (returnFocus: () => void) => openNewQuestion(this.showing, this.notes.store, this.store, returnFocus, OBSIDIAN_SYNTAX),
     };
     const openQuestAt = (source: Source, onClosed: (changed: boolean) => void) =>
-      openQuest(this.app, gate, this.store, source, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app), OBSIDIAN_SYNTAX);
+      openQuest(this.showing, this.notes.store, this.store, source, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app), OBSIDIAN_SYNTAX);
     const createQuest = {
       label: "New quest",
-      open: (returnFocus: () => void) => openNewQuest(this.app, gate, this.store, returnFocus, OBSIDIAN_SYNTAX),
+      open: (returnFocus: () => void) => openNewQuest(this.showing, this.notes, this.store, returnFocus, OBSIDIAN_SYNTAX),
     };
     const noteExists = (name: string, sourcePath: string) => gate.metadata.getFirstLinkpathDest(name, sourcePath) !== null;
     const addCoin = (returnFocus: () => void) => openAddCoin(this.app, gate, this.store, returnFocus, pathYouAreIn(this.app), OBSIDIAN_SYNTAX);

@@ -52,15 +52,15 @@ function raisedSource(store: CampaignStore): { path: string; line: number } {
 const REFUSING: [string, string, Open][] = [
   ["Add coin", "Start a session first: coin is written into a session note.", (gate, store, _openNote, activePath) => openAddCoin(app, gate, store, vi.fn(), activePath, STUB_SYNTAX)],
   ["New question", "Start a session first: questions are written into a session note.", (gate, store) => openNewQuestion(OBSIDIAN_SHOWING, gate.notes.store, store, vi.fn(), STUB_SYNTAX)],
-  ["New quest", "Start a session first: quests are written into a session note.", (gate, store) => openNewQuest(app, gate, store, vi.fn(), STUB_SYNTAX)],
+  ["New quest", "Start a session first: quests are written into a session note.", (gate, store) => openNewQuest(OBSIDIAN_SHOWING, gate.notes, store, vi.fn(), STUB_SYNTAX)],
   ["Question", "Start a session first: answers are written into a session note.", (gate, store, openNote, activePath) => openQuestion(OBSIDIAN_SHOWING, gate.notes.store, store, raisedSource(store), openNote, vi.fn(), activePath, STUB_SYNTAX)],
-  ["Quest", "Start a session first: quest changes are written into a session note.", (gate, store, openNote, activePath) => openQuest(app, gate, store, raisedSource(store), openNote, vi.fn(), activePath, STUB_SYNTAX)],
+  ["Quest", "Start a session first: quest changes are written into a session note.", (gate, store, openNote, activePath) => openQuest(OBSIDIAN_SHOWING, gate.notes.store, store, raisedSource(store), openNote, vi.fn(), activePath, STUB_SYNTAX)],
   ["Item", "Start a session first: item changes are written into a session note.", (gate, store, openNote, activePath) => openItemDialog(app, gate, store, "Lantern", openNote, vi.fn(), activePath, null, STUB_SYNTAX)],
 ];
 
 const ADD_COIN: [string, string, Open] = ["Add coin", "Adds a line to", (gate, store, _openNote, activePath) => openAddCoin(app, gate, store, vi.fn(), activePath, STUB_SYNTAX)];
 const QUESTION: [string, string, Open] = ["Question", "New lines go into", (gate, store, openNote, activePath) => openQuestion(OBSIDIAN_SHOWING, gate.notes.store, store, raisedSource(store), openNote, vi.fn(), activePath, STUB_SYNTAX)];
-const QUEST: [string, string, Open] = ["Quest", "New lines go into", (gate, store, openNote, activePath) => openQuest(app, gate, store, raisedSource(store), openNote, vi.fn(), activePath, STUB_SYNTAX)];
+const QUEST: [string, string, Open] = ["Quest", "New lines go into", (gate, store, openNote, activePath) => openQuest(OBSIDIAN_SHOWING, gate.notes.store, store, raisedSource(store), openNote, vi.fn(), activePath, STUB_SYNTAX)];
 const ITEM: [string, string, Open] = ["Item", "New lines go into", (gate, store, openNote, activePath) => openItemDialog(app, gate, store, "Lantern", openNote, vi.fn(), activePath, null, STUB_SYNTAX)];
 
 const FINDING = [ADD_COIN, QUESTION, QUEST, ITEM];

@@ -7,6 +7,7 @@ import { Option, TextArea, TextInput } from "../../../../src/views/elements/kind
 import { mountTree } from "../../../../src/obsidian/views/mount/mount-tree";
 import { ObsidianMounter } from "../../../../src/obsidian/views/mount/obsidian-mounter";
 import { obsidianDocument } from "../../../stubs/obsidian-dom";
+import { PLAIN_KIT } from "../../../../src/obsidian/views/mount/mount-kit";
 
 function root(): HTMLElement {
   const el = obsidianDocument().createElement("div");
@@ -125,6 +126,6 @@ describe("Obsidian's mount step", () => {
   });
 
   it("refuses a place it didn't make, making nothing", () => {
-    expect(() => new ObsidianMounter().span(new Span({ text: "x" }), { mountPlace: true })).toThrow("isn't a place the Obsidian mount step made");
+    expect(() => new ObsidianMounter(PLAIN_KIT).span(new Span({ text: "x" }), { mountPlace: true })).toThrow("isn't a place the Obsidian mount step made");
   });
 });

@@ -359,11 +359,26 @@ class TextAreaComponent extends AbstractTextComponent<HTMLTextAreaElement> {
 
 export class MarkdownView {}
 
+export const openedInputSuggests: AbstractInputSuggest[] = [];
+
 export class AbstractInputSuggest {
   app: RealInputSuggest<unknown>["app"];
+  closedTimes = 0;
 
-  constructor(...[app]: ConstructorParameters<typeof RealInputSuggest>) {
+  constructor(...[app, textInputEl]: ConstructorParameters<typeof RealInputSuggest>) {
     this.app = app;
+    this.textInputEl = textInputEl;
+    openedInputSuggests.push(this);
+  }
+
+  readonly textInputEl: HTMLInputElement | HTMLDivElement;
+
+  setValue(value: string): void {
+    if (this.textInputEl instanceof this.textInputEl.ownerDocument.defaultView!.HTMLInputElement) this.textInputEl.value = value;
+  }
+
+  close(): void {
+    this.closedTimes += 1;
   }
 }
 
@@ -422,6 +437,38 @@ export class DropdownComponent {
   onChange(callback: (value: string) => unknown): this {
     this.selectEl.addEventListener("change", () => callback(this.selectEl.value));
     return this;
+  }
+}
+
+export class ToggleComponent {
+  readonly toggleEl: HTMLElement;
+  private on = false;
+  private changed: ((on: boolean) => unknown) | null = null;
+
+  constructor(containerEl: HTMLElement) {
+    this.toggleEl = containerEl.createDiv({ cls: "checkbox-container" });
+    this.toggleEl.createEl("input", { type: "checkbox" });
+    this.toggleEl.addEventListener("click", () => this.flip());
+  }
+
+  getValue(): boolean {
+    return this.on;
+  }
+
+  setValue(on: boolean): this {
+    this.on = on;
+    this.toggleEl.toggleClass("is-enabled", on);
+    return this;
+  }
+
+  onChange(callback: (on: boolean) => unknown): this {
+    this.changed = callback;
+    return this;
+  }
+
+  private flip(): void {
+    this.setValue(!this.on);
+    if (this.changed !== null) this.changed(this.on);
   }
 }
 
