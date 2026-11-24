@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildCampaign } from "../../src/campaign/reading/build-campaign";
 import type { SessionNote } from "../../src/campaign/record/campaign";
-import { linesWrittenIn, type WrittenLine, type WrittenLineRows } from "../../src/dashboard/latest-session";
+import { kindsWrittenIn, latestOfEachKind, linesWrittenIn, type WrittenLine, type WrittenLineRows } from "../../src/dashboard/latest-session";
 import { summariseFunds } from "../../src/funds/page/funds-summary";
 
 function sessionOf(number: number, lines: string[]): SessionNote {
@@ -61,5 +61,34 @@ describe("linesWrittenIn", () => {
       ["coin", 1],
       ["item named", 0],
     ]);
+  });
+});
+
+describe("latestOfEachKind", () => {
+  it.each([
+    { kind: "questions", lines: ["? Who rang the bell", "? Why is the well dry", "? Where is the ferryman", "? What does the mark mean"] },
+    { kind: "quests", lines: ["! Find the caravan", "! Guard the mill", "! Burn the map", "! Escort the miller"] },
+    { kind: "coin and item lines together", lines: ["$ 5 gp found", "$ [[Mira]] Rope", "$ Paid 2 gp for rooms", "$ [[Mira]] Silvered lantern"] },
+  ])("shows only the three last written of four $kind", ({ lines }) => {
+    const latest = sessionOf(1, lines);
+    const campaign = buildCampaign([latest]);
+    const shown = latestOfEachKind(kindsWrittenIn(latest.path, campaign, summariseFunds(campaign).ledger));
+    expect(shown.map((line) => line.source.line)).toEqual([3, 2, 1]);
+  });
+
+  it("keeps three of each kind side by side, the last written first, while every line still counts", () => {
+    const lines = ["? Who rang the bell", "! Find the caravan", "$ 5 gp found", "? Why is the well dry", "! Guard the mill", "$ [[Mira]] Rope", "? Where is the ferryman", "! Burn the map", "$ Paid 2 gp for rooms", "? What does the mark mean", "! Escort the miller", "$ [[Mira]] Silvered lantern"];
+    const latest = sessionOf(1, lines);
+    const campaign = buildCampaign([latest]);
+    const ledger = summariseFunds(campaign).ledger;
+    expect(latestOfEachKind(kindsWrittenIn(latest.path, campaign, ledger)).map((line) => line.source.line)).toEqual([11, 10, 9, 8, 7, 6, 5, 4, 3]);
+    expect(linesWrittenIn(latest.path, campaign, ledger)).toHaveLength(12);
+  });
+
+  it("shows nothing from another session", () => {
+    const earlier = sessionOf(1, ["? Who rang the bell", "! Find the caravan", "$ 5 gp found"]);
+    const latest = sessionOf(2, ["notes"]);
+    const campaign = buildCampaign([earlier, latest]);
+    expect(latestOfEachKind(kindsWrittenIn(latest.path, campaign, summariseFunds(campaign).ledger))).toEqual([]);
   });
 });
