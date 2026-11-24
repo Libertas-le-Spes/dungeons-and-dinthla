@@ -1,3 +1,4 @@
+import { notesOverFakes } from "../../host/notes-over-fakes";
 import { STUB_SPELLING } from "../../host/stub-spelling";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App, TFile, TFolder } from "obsidian";
@@ -19,7 +20,9 @@ function placeWith(linkLeadsTo: TFile | null, files: TFile[] = [SESSION, MIRA, P
   const { vault, calls } = rawVaultWith(files, folders);
   const raw = { getFirstLinkpathDest: vi.fn(() => linkLeadsTo) };
   const held = new HeldFiles(vault, new Fence(() => "D&D", ".obsidian", STUB_SPELLING));
-  const gate = { files: new FencedFiles(vault, held, new NoteReporter()), metadata: new FencedMetadata(raw as unknown as RawMetadata, held) };
+  const fenced = new FencedFiles(vault, held, new NoteReporter());
+  const metadata = new FencedMetadata(raw as unknown as RawMetadata, held);
+  const gate = { files: fenced, metadata, notes: notesOverFakes({ files: fenced, metadata }) };
   const leaf = { openFile: vi.fn(async () => {}) };
   const openLinkText = vi.fn(async () => {});
   const app = { workspace: { getLeaf: vi.fn(() => leaf), openLinkText } } as unknown as App;

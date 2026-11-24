@@ -1,5 +1,6 @@
 import { STUB_SPELLING } from "../../host/stub-spelling";
 import { describe, expect, it, vi } from "vitest";
+import { notesOverFakes } from "../../host/notes-over-fakes";
 import type { CachedMetadata, TFile } from "obsidian";
 import { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { Fence } from "../../../src/fence/paths/fence";
@@ -40,10 +41,11 @@ function wiredWith(trashOption: string) {
     metadata: new FencedMetadata(rawMetadata as unknown as RawMetadata, held),
     vaultSettings: { trashOption: () => trashOption },
   };
+  const fullGate = { ...gate, notes: notesOverFakes({ files: gate.files, metadata: gate.metadata, actions: gate.fileActions }) };
   const drafts = new Drafts({}, () => {});
   const keeping = { keptDrafts: new KeptDrafts(drafts, () => 1_000), noteDrafts: new NoteDrafts(drafts) };
   const needs = {
-    gate,
+    gate: fullGate,
     store: new CampaignStore(gate.files),
     drafts,
     keeping,

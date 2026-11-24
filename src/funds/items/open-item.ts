@@ -60,7 +60,7 @@ export function openItemDialogAs(
     store.current.items.map(holderOptionOf),
     charactersIn(gate, folder, sessionPath).map((character) => ({ text: `[[${character.linktext}]]`, label: character.name })),
   );
-  const opened = openedItem(gate.files, store, item, sessionPath);
+  const opened = openedItem(gate.notes.store, store, item, sessionPath);
   const openNoteAt = (source: Source) => void openSource(app, gate, source);
   new ItemModal(app, item, editAsked(opened.edit, asked), holders, sessionLabelOf(sessionPath), opened.save, openNoteAt, onClosed).open();
 }

@@ -1,12 +1,12 @@
-import type { TFile } from "obsidian";
 import { addedLinesHidden } from "../../notes/reading/hidden-lines";
 import { appendLines, dropLine, removeLines, rewriteLine, type LineToRemove } from "../../notes/writing/note-lines";
 import { messageOf } from "../../views/dialogs/message-of";
 import type { SessionNote, Source } from "../record/campaign";
 import { keepsProperties } from "../paths/session-file";
-import type { FencedFiles } from "../../fence/gate/fenced-files";
+import type { NoteRef } from "../../host/notes/note-ref";
+import type { NoteStore } from "../../host/notes/note-store";
 
-export type EditorFiles = Pick<FencedFiles, "getFileByPath" | "process" | "read">;
+export type EditorFiles = Pick<NoteStore, "note" | "change" | "read">;
 
 export const CHANGED_IN_NOTE = "A line was changed in its note since the dialog was opened, so nothing was written.";
 export const OLD_LINE_LEFT =
@@ -155,7 +155,7 @@ export class NoteEditor {
     return true;
   }
 
-  private async removeOwnLine(file: TFile, own: Removal, alongside: Removal[]): Promise<boolean> {
+  private async removeOwnLine(file: NoteRef, own: Removal, alongside: Removal[]): Promise<boolean> {
     let left = false;
     await this.changeOrRefuse(file, CHANGED_IN_NOTE, (text) => {
       if (removeLines(text, [own]).removed === 0) return null;
@@ -166,14 +166,14 @@ export class NoteEditor {
     return left;
   }
 
-  private async checkRemoval(file: TFile, removals: Removal[]): Promise<number> {
+  private async checkRemoval(file: NoteRef, removals: Removal[]): Promise<number> {
     const text = await this.files.read(file);
     const removal = removeLines(text, removals);
     if (!keepsProperties(text, removal.text)) throw new Error(PROPERTIES_WOULD_CHANGE);
     return removal.removed;
   }
 
-  private async removeOrRefuse(file: TFile, removals: Removal[], message: string): Promise<void> {
+  private async removeOrRefuse(file: NoteRef, removals: Removal[], message: string): Promise<void> {
     await this.changeOrRefuse(file, message, (text) => {
       const removal = removeLines(text, removals);
       if (removal.removed < removals.length) return null;
@@ -181,9 +181,9 @@ export class NoteEditor {
     });
   }
 
-  private async changeOrRefuse(file: TFile, message: string, change: (text: string) => string | Refusal | null): Promise<void> {
+  private async changeOrRefuse(file: NoteRef, message: string, change: (text: string) => string | Refusal | null): Promise<void> {
     let refusal: string | null = null;
-    await this.files.process(file, (text) => {
+    await this.files.change(file, (text) => {
       const changed = change(text);
       if (changed === null) {
         refusal = message;
@@ -202,8 +202,8 @@ export class NoteEditor {
     if (refusal !== null) throw new Error(refusal);
   }
 
-  private fileAt(path: string): TFile {
-    const file = this.files.getFileByPath(path);
+  private fileAt(path: string): NoteRef {
+    const file = this.files.note(path);
     if (file === null) throw new Error(`${path} was moved or deleted`);
     return file;
   }

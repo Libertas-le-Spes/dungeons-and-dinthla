@@ -24,8 +24,8 @@ export function openNewQuest(app: App, gate: Gate, store: CampaignStore, onClose
   const sessionPath = sessionForDialog(gate.files, folder, latestSessionWanted(NO_SESSION));
   if (sessionPath === null) return;
   const characters = charactersIn(gate, folder, sessionPath);
-  const writer = new SessionChangeWriter(gate.files);
-  const opened = new OpenedSession(gate.files, sessionPath);
+  const writer = new SessionChangeWriter(gate.notes.store);
+  const opened = new OpenedSession(gate.notes.store, sessionPath);
   const add = async (entry: NewQuest) => writeInSession(opened, () => newQuest(store, entry, characters, sessionPath), writer);
   const names = characters.map((character) => character.name);
   new NewQuestModal(app, sessionLabelOf(sessionPath), names, add, onClosed).open();

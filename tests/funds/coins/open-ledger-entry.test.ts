@@ -65,7 +65,7 @@ describe("ledgerEntryOpener", () => {
   function opener(campaign: Campaign) {
     const store = { current: campaign, sessionNotes: [] };
     const openItem = vi.fn<LedgerOpeners["item"]>();
-    const open = ledgerEntryOpener({} as App, { files: {} } as unknown as Gate, store as unknown as CampaignStore, openItem);
+    const open = ledgerEntryOpener({} as App, { files: {}, notes: { store: {} } } as unknown as Gate, store as unknown as CampaignStore, openItem);
     return { store, openItem, open };
   }
 

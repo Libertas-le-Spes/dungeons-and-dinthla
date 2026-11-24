@@ -1,5 +1,4 @@
 export const TIES: readonly string[] = [
-  "session-notes/drafts/append-writer.ts",
   "session-notes/kept/draft-keeping.ts",
   "session-notes/kept/kept-lines.ts",
   "session-notes/lines/lines-list.ts",
@@ -12,12 +11,6 @@ export const TIES: readonly string[] = [
   "session-notes/removal/session-removal.ts",
   "session-notes/removal/session-trash.ts",
   "session-notes/removal/trash-option.ts",
-  "session-notes/renumbering/link-decisions.ts",
-  "session-notes/renumbering/link-updates.ts",
-  "session-notes/renumbering/link-writer.ts",
-  "session-notes/renumbering/note-links.ts",
-  "session-notes/renumbering/session-renamer.ts",
-  "session-notes/renumbering/session-renumbering.ts",
   "session-notes/writing/draft-box.ts",
   "session-notes/writing/edit-all-reminder.ts",
   "session-notes/writing/lookup-list.ts",

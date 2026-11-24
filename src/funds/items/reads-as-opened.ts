@@ -19,7 +19,7 @@ function sameItem(items: ItemRecord[], item: ItemRecord): boolean {
 async function readAgain(files: EditorFiles, sessions: SessionNote[]): Promise<SessionNote[] | null> {
   const fresh: SessionNote[] = [];
   for (const session of sessions) {
-    const file = files.getFileByPath(session.path);
+    const file = files.note(session.path);
     if (file === null) return null;
     fresh.push(sessionNoteOf(session.path, session.number, await files.read(file)));
   }

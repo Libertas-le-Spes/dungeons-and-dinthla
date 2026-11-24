@@ -5,6 +5,7 @@ import type { CampaignStore } from "../../src/campaign/reading/campaign-store";
 import { noteNameOf } from "../../src/campaign/paths/note-name";
 import { sessionNoteOf } from "../../src/campaign/paths/session-file";
 import type { Gate } from "../../src/fence/gate/gatekeeper";
+import { notesOverFakes } from "../host/notes-over-fakes";
 import { openedModals } from "../stubs/obsidian";
 
 function numberOf(path: string): number {
@@ -47,7 +48,7 @@ export class DialogCampaign {
       fileToLinktext: (file: TFile) => file.basename,
       getFirstLinkpathDest: (linkpath: string) => this.linkDestination(linkpath),
     };
-    return { files, metadata } as unknown as Gate;
+    return { files, metadata, notes: notesOverFakes({ files, metadata }) } as unknown as Gate;
   }
 
   get store(): CampaignStore {

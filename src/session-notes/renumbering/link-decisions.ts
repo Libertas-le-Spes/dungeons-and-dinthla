@@ -1,5 +1,5 @@
 import { campaignFolderOf } from "../../campaign/paths/campaign-folders";
-import type { FencedFiles } from "../../fence/gate/fenced-files";
+import type { NoteStore } from "../../host/notes/note-store";
 import { messageOf } from "../../views/dialogs/message-of";
 import { DecidedTargets } from "./decided-targets";
 import { linkOnSkippedLine, withLinksRewritten } from "./link-rewriting";
@@ -7,7 +7,7 @@ import { NoteLinks } from "./note-links";
 import type { SessionRename } from "./renumbering-plan";
 import type { NewTarget } from "./wiki-links";
 
-export type DecisionFiles = Pick<FencedFiles, "getFileByPath" | "read" | "getFiles">;
+export type DecisionFiles = Pick<NoteStore, "note" | "read" | "files">;
 
 export interface DecisionPlan {
   campaignFolder: string;
@@ -53,7 +53,7 @@ export class LinkDecider {
   }
 
   private async decisionFor(path: string, plan: DecisionPlan): Promise<NoteDecision> {
-    const file = this.files.getFileByPath(path);
+    const file = this.files.note(path);
     if (file === null) throw new Error(`${path} was moved or deleted`);
     const text = await this.files.read(file);
     const links = new NoteLinks(path, candidateCampaigns(path, plan), this.files, plan.renames);

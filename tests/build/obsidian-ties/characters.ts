@@ -1,12 +1,10 @@
 export const TIES: readonly string[] = [
   "characters/cards/character-card.ts",
   "characters/cards/stat-block.ts",
-  "characters/editing/character-files.ts",
   "characters/editing/character-modal.ts",
   "characters/editing/open-character-sheet.ts",
   "characters/editing/open-character.ts",
   "characters/editing/sheet-value-modal.ts",
-  "characters/editing/sheet-value-writer.ts",
   "characters/imported/drawing/action-button.ts",
   "characters/imported/panels/held-not-imported.ts",
   "characters/imported/panels/imported-panels.ts",

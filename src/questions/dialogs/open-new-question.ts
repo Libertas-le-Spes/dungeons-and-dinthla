@@ -22,8 +22,8 @@ export function openNewQuestion(app: App, gate: Gate, store: CampaignStore, onCl
   }
   const sessionPath = sessionForDialog(gate.files, folder, latestSessionWanted(NO_SESSION));
   if (sessionPath === null) return;
-  const writer = new SessionChangeWriter(gate.files);
-  const opened = new OpenedSession(gate.files, sessionPath);
+  const writer = new SessionChangeWriter(gate.notes.store);
+  const opened = new OpenedSession(gate.notes.store, sessionPath);
   const add = async (entry: NewQuestion) => writeInSession(opened, () => newQuestion(store, entry, sessionPath), writer);
   new NewQuestionModal(app, sessionLabelOf(sessionPath), add, onClosed).open();
 }

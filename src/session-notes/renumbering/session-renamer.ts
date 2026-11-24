@@ -1,9 +1,9 @@
 import { messageOf } from "../../views/dialogs/message-of";
-import type { FencedFiles } from "../../fence/gate/fenced-files";
+import type { NoteStore } from "../../host/notes/note-store";
 import type { SessionRename } from "./renumbering-plan";
 import { renameSourceGoneWords } from "./renumbering-words";
 
-export type RenameFiles = Pick<FencedFiles, "getFileByPath" | "rename">;
+export type RenameFiles = Pick<NoteStore, "note" | "move">;
 
 export interface RenameOutcome {
   renamed: SessionRename[];
@@ -29,10 +29,10 @@ export class SessionRenamer {
   }
 
   private async renameOne(rename: SessionRename): Promise<string | null> {
-    const file = this.files.getFileByPath(rename.from);
+    const file = this.files.note(rename.from);
     if (file === null) return renameSourceGoneWords(rename.from);
     try {
-      await this.files.rename(file, rename.to);
+      await this.files.move(file, rename.to);
     } catch (error) {
       return messageOf(error);
     }

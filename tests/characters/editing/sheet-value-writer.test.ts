@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { sheetValueNamed } from "../builders/sheet-value-named";
-import type { TFile } from "obsidian";
+import { fileAt } from "../../stubs/note-files";
 import { CHANGED_IN_NOTE, PartlyWritten, WOULD_BE_HIDDEN } from "../../../src/campaign/writing/note-editor";
 import { commentMarkIn, readsBackDifferently, stillReads } from "../../../src/characters/editing/character-entry";
 import { carriedValuesOf, characterSheetOf, type SheetValue } from "../../../src/characters/reading/character-sheet";
@@ -152,12 +152,12 @@ function targetWith({ notes, failOwn = false, linkedTo = MIRA, linktext = "Mira"
   const processed: string[] = [];
   const target: SheetTarget = {
     files: {
-      getFileByPath: (path) => {
+      note: (path) => {
         if (!texts.has(path)) return null;
-        return { path } as TFile;
+        return fileAt(path);
       },
       read: async (file) => texts.get(file.path)!,
-      process: async (file, change) => {
+      change: async (file, change) => {
         if (failOwn && file.path === MIRA) throw new Error("disk full");
         processed.push(file.path);
         const text = change(texts.get(file.path)!);
@@ -165,7 +165,7 @@ function targetWith({ notes, failOwn = false, linkedTo = MIRA, linktext = "Mira"
         return text;
       },
     },
-    file: { path: MIRA, basename: "Mira" } as TFile,
+    file: fileAt(MIRA),
     sessionPath: () => TWO,
     linktextFrom: () => linktext,
     pathOfLink: () => linkedTo,

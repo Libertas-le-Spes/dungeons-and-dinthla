@@ -1,4 +1,3 @@
-import type { TFile } from "obsidian";
 import { NoteEditor, PartlyWritten, type EditorFiles } from "../../campaign/writing/note-editor";
 import { sessionLabelOf } from "../../campaign/paths/session-file";
 import { linkedFactsOf } from "../../notes/reading/character-facts";
@@ -6,7 +5,7 @@ import { messageOf } from "../../views/dialogs/message-of";
 import { factLine, refusalForValue, withOverrides, type OverrideChange } from "./character-entry";
 import { writeOverrides } from "./character-files";
 import { NOT_KNOWN, type SheetValue, type StatedValue, type ValueState } from "../reading/character-sheet";
-import type { FencedFiles } from "../../fence/gate/fenced-files";
+import type { NoteRef } from "../../host/notes/note-ref";
 
 export interface ValueChoice {
   state: ValueState;
@@ -19,8 +18,8 @@ export interface SheetWrite {
 }
 
 export interface SheetTarget {
-  files: EditorFiles & Pick<FencedFiles, "process">;
-  file: TFile;
+  files: EditorFiles;
+  file: NoteRef;
   sessionPath(): string;
   linktextFrom(sessionPath: string): string;
   pathOfLink(linktext: string, sourcePath: string): string | null;

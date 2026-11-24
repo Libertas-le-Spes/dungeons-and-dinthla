@@ -48,7 +48,7 @@ export function sessionNotesWiring(needs: SessionNotesWiringNeeds): SessionNotes
     store: needs.store,
     drafts: needs.drafts,
     keptDrafts: needs.keeping.keptDrafts,
-    writer: new AppendWriter(gate.files),
+    writer: new AppendWriter(gate.notes.store),
     propertiesOf: (path: string) => sessionPropertiesOf(path, gate.metadata),
     openers: needs.openers,
     actions: needs.actions,
@@ -57,7 +57,7 @@ export function sessionNotesWiring(needs: SessionNotesWiringNeeds): SessionNotes
     removal: {
       clearer: new SessionClearer(gate.files),
       trash: new SessionTrash(gate.files, gate.fileActions, () => deletesPermanently(gate.vaultSettings)),
-      renumbering: new SessionRenumbering(gate.files, () => needs.campaignFolders()),
+      renumbering: new SessionRenumbering(gate.notes.store, () => needs.campaignFolders()),
       confirm: needs.confirm,
       report: (message: string) => needs.report(message),
     },

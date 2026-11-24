@@ -1,5 +1,5 @@
-import type { TFile } from "obsidian";
-import type { FencedFiles } from "../../fence/gate/fenced-files";
+import type { NoteRef } from "../../host/notes/note-ref";
+import type { NoteStore } from "../../host/notes/note-store";
 import { sessionLabelOf } from "./session-file";
 
 export function sessionGoneWords(sessionPath: string): string {
@@ -7,13 +7,13 @@ export function sessionGoneWords(sessionPath: string): string {
 }
 
 export class OpenedSession {
-  private readonly file: TFile | null;
+  private readonly file: NoteRef | null;
 
   constructor(
-    private readonly files: Pick<FencedFiles, "getFileByPath">,
+    private readonly files: Pick<NoteStore, "note">,
     readonly path: string,
   ) {
-    this.file = files.getFileByPath(path);
+    this.file = files.note(path);
   }
 
   get label(): string {
@@ -21,7 +21,7 @@ export class OpenedSession {
   }
 
   refuseIfMoved(): void {
-    const current = this.files.getFileByPath(this.path);
+    const current = this.files.note(this.path);
     if (current === null || current !== this.file) throw new Error(sessionGoneWords(this.path));
   }
 }

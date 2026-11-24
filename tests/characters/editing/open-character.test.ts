@@ -45,14 +45,13 @@ function setUp({ active = MIRA, files = [MIRA, "Drafts/Characters/Mira.md"], own
       },
     },
   } as unknown as App;
+  const held = (path: string) => {
+    if (!files.includes(path)) return null;
+    return fileAt(path);
+  };
   const gate = {
-    files: {
-      read,
-      getFileByPath: (path: string) => {
-        if (!files.includes(path)) return null;
-        return fileAt(path);
-      },
-    },
+    files: { read, getFileByPath: held },
+    notes: { store: { read, note: held } },
   } as unknown as Gate;
   const notes = {
     campaignFolders: () => CAMPAIGNS,

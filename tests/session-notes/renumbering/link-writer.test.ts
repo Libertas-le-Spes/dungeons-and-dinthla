@@ -22,7 +22,7 @@ describe("LinkWriter", () => {
     const files = new FakeCampaignFiles({ [NOTE]: "Met in [[Session 4]].\n" });
     await new LinkWriter(files).rewrite(NOTE, FOUR_TO_THREE);
     expect(files.textAt(NOTE)).toBe("Met in [[Session 3]].\n");
-    expect(files.process).toHaveBeenCalledTimes(1);
+    expect(files.change).toHaveBeenCalledTimes(1);
   });
 
   it("keeps the note's properties exactly", async () => {

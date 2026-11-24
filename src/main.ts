@@ -114,7 +114,7 @@ const PAGE_OPENERS: { page: PageId; id: string; name: string; icon: string }[] =
 
 export default class DungeonsAndDinthla extends Plugin {
   private readonly gate = new Gatekeeper(this.app, () => this.campaignsFolderSetting.path);
-  private readonly notes = new FencedNotes(new ObsidianNotes(this.gate), this.gate.fence, GATE_REPORTS_WRITES);
+  private readonly notes = this.gate.notes;
   private settingsSaver = this.settingsSaverOf(settingsOf(null, this.gate.configDir));
   private campaignsFolderSetting = this.campaignsFolderSettingFrom(this.settingsSaver);
   private readonly store = new CampaignStore(this.gate.files);

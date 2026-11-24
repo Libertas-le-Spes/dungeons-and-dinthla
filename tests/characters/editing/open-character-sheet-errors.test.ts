@@ -36,7 +36,7 @@ describe("chooseSheetValue, when choosing the session fails for a reason that is
     } as unknown as SheetNotes;
     const value = sheetValueNamed(characterSheetOf({ learned: [], imported: [], overrides: [], carried: null }), "AC");
     const before = openedModals.length;
-    await chooseSheetValue({} as App, {} as Gate, store, notes, MIRA, value, vi.fn(), vi.fn());
+    await chooseSheetValue({} as App, { notes: { store: {} } } as unknown as Gate, store, notes, MIRA, value, vi.fn(), vi.fn());
     expect(Notice.shown).toEqual(["Couldn't read Mira: The campaign couldn't be read."]);
     expect(openedModals.length).toBe(before);
   });

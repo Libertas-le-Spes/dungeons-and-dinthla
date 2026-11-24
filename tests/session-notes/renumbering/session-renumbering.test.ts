@@ -221,7 +221,7 @@ describe("SessionRenumbering.carryOut", () => {
   it("renames nothing and writes nothing when no session moves", async () => {
     const files = new FakeCampaignFiles({ [`${PALE}/Pale Moon.md`]: "", [pale(1)]: "", [pale(2)]: "[[Session 1]]\n" });
     await renumberedAfterDeleting(files, pale(2));
-    expect(files.rename).not.toHaveBeenCalled();
-    expect(files.process).not.toHaveBeenCalled();
+    expect(files.move).not.toHaveBeenCalled();
+    expect(files.change).not.toHaveBeenCalled();
   });
 });

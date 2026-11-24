@@ -29,7 +29,7 @@ describe("LinkUpdates", () => {
   it("writes nothing for a note with no change decided", async () => {
     const files = new FakeCampaignFiles({ [NOTE]: "Met [[Session 4]].\n" });
     await new LinkUpdates(files).apply(decisions([decisionFor(NOTE, { "Session 4": null })]), []);
-    expect(files.process).not.toHaveBeenCalled();
+    expect(files.change).not.toHaveBeenCalled();
   });
 
   it("leaves a link the note gained after the decisions were made as written", async () => {

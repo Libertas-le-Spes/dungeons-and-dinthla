@@ -4,7 +4,7 @@ import type { Gate } from "../../fence/gate/gatekeeper";
 import { noteInCampaignFor } from "./note-in-campaign";
 
 export interface LinkPlace {
-  gate: Pick<Gate, "files" | "metadata">;
+  gate: Pick<Gate, "files" | "metadata" | "notes">;
   campaignFolders: () => string[];
 }
 
@@ -33,7 +33,7 @@ export async function openLink(app: App, place: LinkPlace, linktext: string, sou
   }
   const campaignFolder = campaignFolderOf(sourcePath, place.campaignFolders());
   if (campaignFolder !== null) {
-    const inCampaign = noteInCampaignFor(place.gate.files, campaignFolder, linkpath, sourcePath);
+    const inCampaign = noteInCampaignFor(place.gate.notes.store, campaignFolder, linkpath, sourcePath);
     if (inCampaign !== null) {
       await openNote(app, place, inCampaign.path, subpath, newLeaf);
       return;

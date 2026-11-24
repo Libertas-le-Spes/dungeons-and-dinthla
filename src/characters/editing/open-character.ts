@@ -1,32 +1,37 @@
-import { Notice, type App, type Menu, type TAbstractFile, type TFile } from "obsidian";
+import { Notice, type App, type Menu, type TAbstractFile } from "obsidian";
 import { campaignOfReference, NO_CAMPAIGN, referenceFolderOf } from "../../campaign/paths/campaign-folders";
 import { characterReferenceKind } from "../../kinds/character-reference-kind";
 import { messageOf } from "../../views/dialogs/message-of";
 import { blankEntry, entryOf, learnedOf, type CharacterEntry, type Learned } from "./character-entry";
-import { createCharacter, deleteCharacter, saveCharacter } from "./character-files";
+import { createCharacter, deleteCharacter, saveCharacter, type CharacterFiles } from "./character-files";
 import { CharacterModal } from "./character-modal";
 import type { CharacterNotes } from "../reading/character-notes";
 import { factsByCharacter } from "../reading/sheet-values";
 import type { Gate } from "../../fence/gate/gatekeeper";
 import type { NoteRef } from "../../host/notes/note-ref";
+import { OBSIDIAN_SPELLING } from "../../obsidian/notes/obsidian-spelling";
+
+function characterFilesOf(gate: Gate): CharacterFiles {
+  return { store: gate.notes.store, spelling: OBSIDIAN_SPELLING };
+}
 
 export const EDIT_WHERE =
   "Renaming updates links if Obsidian's link updating is on.";
 
 interface Character {
-  file: TFile;
+  file: NoteRef;
   campaignFolder: string;
 }
 
 function characterAt(gate: Gate, notes: CharacterNotes, path: string): Character | null {
   const campaignFolder = campaignOfReference(characterReferenceKind, path, notes.campaignFolders());
   if (campaignFolder === null) return null;
-  const file = gate.files.getFileByPath(path);
+  const file = gate.notes.store.note(path);
   if (file === null) return null;
   return { file, campaignFolder };
 }
 
-async function openMade(app: App, gate: Gate, note: TFile): Promise<void> {
+async function openMade(app: App, gate: Gate, note: NoteRef): Promise<void> {
   const file = gate.files.getFileByPath(note.path);
   if (file === null) return;
   try {
@@ -42,7 +47,7 @@ export function openNewCharacter(app: App, gate: Gate, campaignFolder: string | 
     return;
   }
   const save = async (entry: CharacterEntry) => {
-    const note = await createCharacter(gate.files, campaignFolder, entry);
+    const note = await createCharacter(characterFilesOf(gate), campaignFolder, entry);
     if (note === null) return false;
     void openMade(app, gate, note);
     return true;
@@ -65,7 +70,7 @@ export async function openEditCharacter(app: App, gate: Gate, notes: CharacterNo
   let before: CharacterEntry;
   let learned: Learned;
   try {
-    before = entryOf(file.basename, file.path, await gate.files.read(file));
+    before = entryOf(file.basename, file.path, await gate.notes.store.read(file));
     learned = await learnedAbout(notes, character);
   } catch (error) {
     new Notice(`Couldn't read ${file.basename}: ${messageOf(error)}`);
@@ -76,8 +81,8 @@ export async function openEditCharacter(app: App, gate: Gate, notes: CharacterNo
     entry: before,
     learned,
     where: EDIT_WHERE,
-    save: (after: CharacterEntry) => saveCharacter(gate.files, gate.fileActions, character.campaignFolder, file, openedPath, before, after),
-    delete: () => deleteCharacter(gate.fileActions, file),
+    save: (after: CharacterEntry) => saveCharacter(characterFilesOf(gate), gate.notes.keeping, character.campaignFolder, file, openedPath, before, after),
+    delete: () => deleteCharacter(gate.notes.keeping, file),
   };
   new CharacterModal(app, dialog, () => {}).open();
 }

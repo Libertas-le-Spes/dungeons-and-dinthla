@@ -40,9 +40,9 @@ export function openQuestion(
   const wanted = { activePath, earliestSession: latestSessionOfQuestion(question, folder), noSession: NO_SESSION };
   const sessionPath = sessionForDialog(gate.files, folder, wanted);
   if (sessionPath === null) return;
-  const questionWriter = new QuestionWriter(gate.files);
-  const writer = new SessionChangeWriter(gate.files);
-  const opened = new OpenedSession(gate.files, sessionPath);
+  const questionWriter = new QuestionWriter(gate.notes.store);
+  const writer = new SessionChangeWriter(gate.notes.store);
+  const opened = new OpenedSession(gate.notes.store, sessionPath);
   const latest = () => currentQuestion(store.current.questions, question);
   const choices = {
     save: async (edit: QuestionEdit) => writeInSession(opened, () => questionSave(store, latest(), edit, sessionPath), writer),

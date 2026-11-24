@@ -891,22 +891,22 @@
  {
   "id": "the Characters list leaves out Fallen",
   "file": "src/characters/reading/character-notes.ts",
-  "find": "isInReferenceFolder(characterReferenceKind, campaignFolder, file.path)",
+  "find": "isInReferenceFolder(characterReferenceKind, campaignFolder, note.path)",
   "replace": "true",
   "group": "gallery"
  },
  {
   "id": "the Fallen list is the campaign's Fallen folder",
   "file": "src/characters/reading/character-notes.ts",
-  "find": "isInFallenFolder(campaignFolder, file.path)",
+  "find": "isInFallenFolder(campaignFolder, note.path)",
   "replace": "true",
   "group": "gallery"
  },
  {
   "id": "the Fallen list is by name",
   "file": "src/characters/reading/character-notes.ts",
-  "find": "function fallenFilesIn(gate: Gate, campaignFolder: string): TFile[] {\n  const files = gate.files.getMarkdownFiles().filter((file) => isInFallenFolder(campaignFolder, file.path));\n  return files.sort((first, second) => first.basename.localeCompare(second.basename));",
-  "replace": "function fallenFilesIn(gate: Gate, campaignFolder: string): TFile[] {\n  return gate.files.getMarkdownFiles().filter((file) => isInFallenFolder(campaignFolder, file.path));",
+  "find": "    return files.sort(byName);\n  }\n\n  sessionsOf",
+  "replace": "    return files;\n  }\n\n  sessionsOf",
   "group": "gallery"
  },
  {

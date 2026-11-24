@@ -1,8 +1,8 @@
-import type { TFile } from "obsidian";
 import { nameKeyOf } from "../../names/name-key";
-import type { FencedFiles } from "../../fence/gate/fenced-files";
+import type { NoteRef } from "../../host/notes/note-ref";
+import type { NoteStore } from "../../host/notes/note-store";
 
-export type CampaignNoteFiles = Pick<FencedFiles, "getFiles">;
+export type CampaignNoteFiles = Pick<NoteStore, "files">;
 
 const NOTE_ENDING = ".md";
 
@@ -23,7 +23,7 @@ function stepsBetween(sourcePath: string, path: string): number {
   return from.length - shared + (to.length - shared);
 }
 
-function nearerFirst(sourcePath: string): (one: TFile, other: TFile) => number {
+function nearerFirst(sourcePath: string): (one: NoteRef, other: NoteRef) => number {
   return (one, other) => {
     const steps = stepsBetween(sourcePath, one.path) - stepsBetween(sourcePath, other.path);
     if (steps !== 0) return steps;
@@ -31,16 +31,16 @@ function nearerFirst(sourcePath: string): (one: TFile, other: TFile) => number {
   };
 }
 
-function nearest(notes: TFile[], sourcePath: string): TFile | null {
+function nearest(notes: NoteRef[], sourcePath: string): NoteRef | null {
   const byNearness = [...notes].sort(nearerFirst(sourcePath));
   const first = byNearness[0];
   if (first === undefined) return null;
   return first;
 }
 
-export function noteInCampaignFor(files: CampaignNoteFiles, campaignFolder: string, linkpath: string, sourcePath: string): TFile | null {
+export function noteInCampaignFor(files: CampaignNoteFiles, campaignFolder: string, linkpath: string, sourcePath: string): NoteRef | null {
   if (linkpath === "") return null;
-  const inCampaign = files.getFiles().filter((file) => file.path.startsWith(`${campaignFolder}/`));
+  const inCampaign = files.files().filter((file) => file.path.startsWith(`${campaignFolder}/`));
   const exactPath = notePathOf(campaignFolder, linkpath);
   const exactKey = nameKeyOf(exactPath);
   const exact = inCampaign.find((file) => nameKeyOf(file.path) === exactKey);
