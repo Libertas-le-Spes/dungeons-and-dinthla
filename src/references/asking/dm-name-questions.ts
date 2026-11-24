@@ -1,17 +1,17 @@
 import type { SessionNote } from "../../campaign/record/campaign";
 import { noteNameOf } from "../../campaign/paths/note-name";
-import type { FencedFiles } from "../../fence/gate/fenced-files";
 import type { MakeResult } from "../../note-keeping/make-result";
 import { SaidOnce } from "../../note-keeping/said-once";
 import { messageOf } from "../../views/dialogs/message-of";
-import { ReferenceNoteMaker, type ReferenceNoteMakerNeeds } from "../making/reference-note-maker";
+import type { LinkLookup } from "../../host/notes/link-lookup";
+import type { NoteChanges } from "../../host/notes/note-changes";
+import { ReferenceNoteMaker, type ReferenceMakerNotes, type ReferenceNoteMakerNeeds } from "../making/reference-note-maker";
 import type { ReferenceNotesPart } from "../making/reference-notes-part";
 import { NewNameAnswers } from "../new-names/new-name-answers";
 import { newNamesFor } from "../new-names/new-names";
 import type { AskNewNames } from "../new-names/new-names-choice";
 import { askedNamesIn } from "./asked-names";
-import { takenNamesOf, type TakenNamesNeeds } from "./taken-names";
-import type { FencedMetadata } from "../../fence/gate/fenced-metadata";
+import { takenNamesOf, type TakenNamesNotes } from "./taken-names";
 
 export interface DmNameQuestionsStore {
   readonly campaignFolder: string | null;
@@ -19,10 +19,16 @@ export interface DmNameQuestionsStore {
   readonly sessionNotes: SessionNote[];
 }
 
-export interface DmNameQuestionsNeeds extends Omit<ReferenceNoteMakerNeeds, "failed"> {
+export interface DmNameQuestionsNotes extends ReferenceMakerNotes {
+  readonly store: ReferenceMakerNotes["store"] & TakenNamesNotes["store"];
+  readonly facts: TakenNamesNotes["facts"];
+  readonly changes: Pick<NoteChanges, "onLinksSettled">;
+  readonly links: Pick<LinkLookup, "target">;
+}
+
+export interface DmNameQuestionsNeeds extends Omit<ReferenceNoteMakerNeeds, "failed" | "notes"> {
   store: DmNameQuestionsStore;
-  files: TakenNamesNeeds["files"] & Pick<FencedFiles, "getFileByPath">;
-  metadata: TakenNamesNeeds["metadata"] & Pick<FencedMetadata, "on" | "offref" | "getFirstLinkpathDest">;
+  notes: DmNameQuestionsNotes;
   campaignFolders(): string[];
   say(message: string): void;
   askNewNames: AskNewNames;
@@ -43,9 +49,7 @@ export class DmNameQuestions implements ReferenceNotesPart {
   }
 
   start(): () => void {
-    const { metadata } = this.needs;
-    const resolved = metadata.on("resolve", (file) => this.resolved(file.path));
-    return () => metadata.offref(resolved);
+    return this.needs.notes.changes.onLinksSettled((note) => this.resolved(note.path));
   }
 
   sessionSaved(path: string): void {
@@ -67,7 +71,7 @@ export class DmNameQuestions implements ReferenceNotesPart {
     if (campaignFolder === null || store.opening || this.asking) return;
     const asked = askedNamesIn({ sessions: store.sessionNotes, taken: this.takenIn(campaignFolder) });
     for (const message of asked.refusals) this.said.say(message, message);
-    const unresolved = asked.names.filter(({ name }) => this.needs.metadata.getFirstLinkpathDest(name, savedPath) === null);
+    const unresolved = asked.names.filter(({ name }) => this.needs.notes.links.target(name, savedPath) === null);
     const names = newNamesFor({ undecided: unresolved, savedPath, sessionName: noteNameOf(savedPath) });
     if (names === null) return;
     const answers = new NewNameAnswers({

@@ -135,21 +135,14 @@
  {
   "id": "an unread note has no aliases",
   "file": "src/references/asking/taken-names.ts",
-  "find": "cache === null || ",
-  "replace": "",
-  "group": "taken"
- },
- {
-  "id": "a note with no properties has no aliases",
-  "file": "src/references/asking/taken-names.ts",
-  "find": "|| cache.frontmatter === undefined",
-  "replace": "",
+  "find": "if (properties === null) return [];\n  return aliasesIn",
+  "replace": "return aliasesIn",
   "group": "taken"
  },
  {
   "id": "notes of the campaign are taken",
   "file": "src/references/asking/taken-names.ts",
-  "find": "...files.markdownFilesUnder(campaignFolder), ",
+  "find": "...store.notesUnder(campaignFolder), ",
   "replace": "",
   "group": "taken"
  },
@@ -177,7 +170,14 @@
  {
   "id": "a main note with no properties is no dm",
   "file": "src/references/asking/dm-campaign.ts",
-  "find": "if (properties === undefined) return false;",
+  "find": "if (properties === null) return false;",
+  "replace": "",
+  "group": "dm role"
+ },
+ {
+  "id": "a campaign with no main note is no dm",
+  "file": "src/references/asking/dm-campaign.ts",
+  "find": "if (main === null) return false;",
   "replace": "",
   "group": "dm role"
  },
@@ -191,7 +191,7 @@
  {
   "id": "a dm campaign goes to the dm part",
   "file": "src/references/asking/role-routed-notes.ts",
-  "find": "if (isDmCampaign({ metadata, campaignFolder })) return forDm;",
+  "find": "if (isDmCampaign({ notes, campaignFolder })) return forDm;",
   "replace": "",
   "group": "routing"
  },
@@ -317,14 +317,14 @@
  {
   "id": "stopping stops listening",
   "file": "src/references/asking/dm-name-questions.ts",
-  "find": "metadata.offref(resolved)",
-  "replace": "0",
+  "find": "return this.needs.notes.changes.onLinksSettled((note) => this.resolved(note.path));",
+  "replace": "this.needs.notes.changes.onLinksSettled((note) => this.resolved(note.path));\n    return () => undefined;",
   "group": "questions"
  },
  {
   "id": "a name that resolves to a note is not asked",
   "file": "src/references/asking/dm-name-questions.ts",
-  "find": "this.needs.metadata.getFirstLinkpathDest(name, savedPath) === null",
+  "find": "this.needs.notes.links.target(name, savedPath) === null",
   "replace": "true",
   "group": "questions"
  }

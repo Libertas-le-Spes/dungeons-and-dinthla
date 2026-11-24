@@ -1,10 +1,9 @@
-import type { FencedMetadata } from "../../fence/gate/fenced-metadata";
 import type { ReferenceNotesPart } from "../making/reference-notes-part";
-import { isDmCampaign } from "./dm-campaign";
+import { isDmCampaign, type DmCampaignNotes } from "./dm-campaign";
 
 export interface RoleRoutedNotesNeeds {
   store: { readonly campaignFolder: string | null };
-  metadata: Pick<FencedMetadata, "getCache">;
+  notes: DmCampaignNotes;
   forDm: ReferenceNotesPart;
   forOthers: ReferenceNotesPart;
 }
@@ -22,9 +21,9 @@ export class RoleRoutedNotes implements ReferenceNotesPart {
   }
 
   private partFor(campaignFolder: string | null): ReferenceNotesPart {
-    const { metadata, forDm, forOthers } = this.needs;
+    const { notes, forDm, forOthers } = this.needs;
     if (campaignFolder === null) return forOthers;
-    if (isDmCampaign({ metadata, campaignFolder })) return forDm;
+    if (isDmCampaign({ notes, campaignFolder })) return forDm;
     return forOthers;
   }
 }
