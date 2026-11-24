@@ -38,7 +38,7 @@ async function open({ path, mentions }: Opened) {
   const needs = {
     texts: notes.texts,
     drafts: new NoteDrafts(new Drafts({}, () => {})),
-    saver: new NoteSaver(notes.vault),
+    saver: new NoteSaver(notes.store),
     actions,
     mentionNotes: mentioned.notes,
     isCampaignNote: () => true,

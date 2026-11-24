@@ -29,12 +29,12 @@ export class FencedStore implements NoteStore {
   }
 
   hasFolder(path: string): boolean {
-    if (!this.handed.holds(path)) return false;
+    if (!this.handed.holdsFolder(path)) return false;
     return this.raw.hasFolder(path);
   }
 
   namesIn(folder: string): string[] {
-    if (!this.handed.holds(folder)) return [];
+    if (!this.handed.holdsFolder(folder)) return [];
     return this.raw.namesIn(folder);
   }
 

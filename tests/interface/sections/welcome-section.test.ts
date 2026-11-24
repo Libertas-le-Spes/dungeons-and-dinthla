@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from "vitest";
-import type { TFolder } from "obsidian";
 import { welcomeSection } from "../../../src/interface/sections/welcome-section";
 import type { SessionNote } from "../../../src/campaign/record/campaign";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
@@ -12,17 +11,13 @@ function made(campaignFolder: string | null, sessionNotes: SessionNote[], campai
   const startSession = vi.fn();
   const root = obsidianDocument().body.createDiv();
   const show = vi.fn();
-  const files = { getFolderByPath: vi.fn((path: string) => folderAt(path, foldersThere)) };
+  const files = { hasFolder: vi.fn((path: string) => foldersThere.includes(path)) };
   const page = welcomeSection({ store, campaignsFolderSetup, maker, files, agreement: new AnsweredAgreement(), startSession })(root, show, null, vi.fn());
   page.load();
   const button = (text: string) => Array.from(root.querySelectorAll("button")).find((candidate) => candidate.textContent === text)!;
   return { root, show, maker, campaignsFolderSetup, startSession, button };
 }
 
-function folderAt(path: string, foldersThere: string[]): TFolder | null {
-  if (!foldersThere.includes(path)) return null;
-  return { path } as TFolder;
-}
 
 function send(root: HTMLElement, typed: string): void {
   root.querySelector("input")!.value = typed;

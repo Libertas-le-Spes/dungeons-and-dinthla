@@ -6,6 +6,5 @@ export const TIES: readonly string[] = [
   "campaign/paths/session-for-dialog.ts",
   "campaign/reading/editor-text.ts",
   "campaign/writing/campaign-maker.ts",
-  "campaign/writing/make-campaign.ts",
   "campaign/writing/new-campaign-modal.ts",
 ];

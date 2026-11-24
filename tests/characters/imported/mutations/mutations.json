@@ -303,8 +303,8 @@
  {
   "id": "tracking: holder linked",
   "file": "src/funds/tracking/funds-tracking.ts",
-  "find": "const holder = `[[${this.gate.metadata.fileToLinktext(file, sessionPath, true)}]]`;",
-  "replace": "const holder = this.gate.metadata.fileToLinktext(file, sessionPath, true);",
+  "find": "const holder = `[[${this.gate.notes.links.linkTextTo(file, sessionPath, true)}]]`;",
+  "replace": "const holder = this.gate.notes.links.linkTextTo(file, sessionPath, true);",
   "group": "tracking"
  },
  {
@@ -415,8 +415,8 @@
  {
   "id": "settle: other campaign let through",
   "file": "src/funds/tracking/funds-tracking.ts",
-  "find": "  settle(file: TFile, name: string, status: SettledStatus, returnFocus: () => void): void {\n    if (this.shownFolderOf(file) === null) {\n      new Notice(this.whyNotTracked(file));\n      return;\n    }\n",
-  "replace": "  settle(file: TFile, name: string, status: SettledStatus, returnFocus: () => void): void {\n",
+  "find": "  settle(file: NoteRef, name: string, status: SettledStatus, returnFocus: () => void): void {\n    if (this.shownFolderOf(file) === null) {\n      new Notice(this.whyNotTracked(file));\n      return;\n    }\n",
+  "replace": "  settle(file: NoteRef, name: string, status: SettledStatus, returnFocus: () => void): void {\n",
   "group": "tracking"
  },
  {

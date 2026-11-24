@@ -1,30 +1,27 @@
 import { STUB_SPELLING } from "../../host/stub-spelling";
 import { describe, expect, it, vi } from "vitest";
-import type { TFile, TFolder } from "obsidian";
 import { welcomeWiring } from "../../../src/interface/sections/welcome-wiring";
 import { settingsOf } from "../../../src/settings/saved/plugin-settings";
 import { SettingsSaver } from "../../../src/settings/saved/settings-saver";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { AnsweredAgreement } from "../../welcome/page/answered-agreement";
+import type { NoteRef } from "../../../src/host/notes/note-ref";
+import { fileAt } from "../../stubs/note-files";
 
-function folderAt(path: string, foldersThere: string[]): TFolder | null {
-  if (!foldersThere.includes(path)) return null;
-  return { path, children: [] } as unknown as TFolder;
-}
 
 function wiredWith(foldersThere: string[]) {
   const files = {
-    getFiles: vi.fn((): TFile[] => []),
-    getFolderByPath: vi.fn((path: string) => folderAt(path, foldersThere)),
+    files: vi.fn((): NoteRef[] => []),
+    hasFolder: vi.fn((path: string) => foldersThere.includes(path)),
     namesIn: vi.fn((): string[] => []),
-    createFolder: vi.fn(async (path: string) => ({ path }) as TFolder),
-    create: vi.fn(async (path: string) => ({ path }) as TFile),
+    makeFolder: vi.fn(async () => {}),
+    make: vi.fn(async (path: string) => fileAt(path)),
     removeEmptyFolder: vi.fn(async () => {}),
   };
   const folders = { folderPaths: vi.fn(() => ["D&D", "Games"]), make: vi.fn(async (typed: string) => typed) };
   const setting = { path: "D&D", choose: vi.fn(async () => {}) };
   const needs = {
-    gate: { files, folders },
+    gate: { notes: { store: files }, folders },
     store: { campaignFolder: null, sessionNotes: [], subscribe: () => () => {} },
     saver: new SettingsSaver(settingsOf(null, ".obsidian"), async () => {}),
     manifest: { version: "1.0.0" },
@@ -84,7 +81,7 @@ describe("welcomeWiring", () => {
     const form = root.querySelector("form")!;
     form.dispatchEvent(new form.ownerDocument.defaultView!.Event("submit", { cancelable: true }));
     await settled();
-    expect(files.createFolder).toHaveBeenCalledExactlyOnceWith("D&D/Silver Road");
+    expect(files.makeFolder).toHaveBeenCalledExactlyOnceWith("D&D/Silver Road");
     expect(needs.chooseCampaign).toHaveBeenCalledExactlyOnceWith("D&D/Silver Road");
   });
 });

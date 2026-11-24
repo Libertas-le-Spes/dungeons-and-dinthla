@@ -129,6 +129,25 @@ describe("the plugin's own fence over a notes program", () => {
     expect(heard).toEqual([SESSION]);
   });
 
+  it("finds the Campaigns folder itself and folders inside it, but no folder outside", () => {
+    const raw = new InMemoryNotes();
+    for (const folder of ["D&D", "D&D/Pale Moon", "Diary"]) raw.folders.add(folder);
+    const { notes } = fencedOver(raw);
+    expect(notes.store.hasFolder("D&D")).toBe(true);
+    expect(notes.store.hasFolder("D&D/Pale Moon")).toBe(true);
+    expect(notes.store.hasFolder("Diary")).toBe(false);
+  });
+
+  it("names what is in the Campaigns folder itself and in folders inside it, but nothing outside", () => {
+    const raw = new InMemoryNotes();
+    raw.put("D&D/Pale Moon/Pale Moon.md", "");
+    raw.put(OUTSIDE, "Private.");
+    const { notes } = fencedOver(raw);
+    expect(notes.store.namesIn("D&D")).toEqual(["Pale Moon"]);
+    expect(notes.store.namesIn("D&D/Pale Moon")).toEqual(["Pale Moon.md"]);
+    expect(notes.store.namesIn("Diary")).toEqual([]);
+  });
+
   it("tells of a note read inside, with its text, and of none read outside", () => {
     const raw = new InMemoryNotes();
     const inside = raw.put(SESSION, "? Who");

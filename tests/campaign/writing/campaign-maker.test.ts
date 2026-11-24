@@ -1,6 +1,5 @@
 import { STUB_SPELLING } from "../../host/stub-spelling";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { TFolder } from "obsidian";
 import { CampaignMaker } from "../../../src/campaign/writing/campaign-maker";
 import type { NewCampaignFiles } from "../../../src/campaign/writing/make-campaign";
 import { Notice } from "../../stubs/obsidian";
@@ -8,8 +7,8 @@ import { Notice } from "../../stubs/obsidian";
 function filesWith(inCampaigns: string[]): NewCampaignFiles {
   return {
     namesIn: () => inCampaigns,
-    createFolder: vi.fn(async () => ({}) as TFolder),
-    create: vi.fn(async () => ({}) as never),
+    makeFolder: vi.fn(async () => {}),
+    make: vi.fn(async () => ({}) as never),
     removeEmptyFolder: vi.fn(async () => {}),
   };
 }

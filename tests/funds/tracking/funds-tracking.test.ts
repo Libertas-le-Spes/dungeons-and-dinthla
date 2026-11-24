@@ -35,7 +35,7 @@ function campaignFolders(): string[] {
 }
 
 function trackingIn(campaign: DialogCampaign, store: CampaignStore = campaign.store): FundsTracking {
-  campaign.addCharacterNote(PRIMARY.path);
+  campaign.holdCharacterNote(PRIMARY);
   campaign.addCharacterNote("Pale Moon/Characters/Secondary.md");
   return new FundsTracking(app, campaign.gate, store, campaignFolders);
 }
@@ -270,6 +270,14 @@ describe("what the funds page says about an imported list", () => {
     expect(look.standingOf("Rope")).toBe(heldByWords("Secondary"));
     expect(heldByWords("Secondary")).toBe("Held by Secondary, on the funds page");
     expect(look.canTrack("Rope")).toBe(false);
+  });
+
+  it("follows a holder's link from the session that last wrote the item", () => {
+    const campaign = new DialogCampaign({ [ONE]: "$ Rope\n", [TWO]: "$$ Rope :changed to [[Secondary]]\n" });
+    const look = lookOf(campaign, ["Rope"]);
+    look.standingOf("Rope");
+    expect(campaign.linksAsked).toContainEqual({ linkpath: "Secondary", sourcePath: TWO });
+    expect(campaign.linksAsked).not.toContainEqual({ linkpath: "Secondary", sourcePath: ONE });
   });
 
   it("says an item is held by another note of the character's name, not by him, and offers no tracking for it", () => {

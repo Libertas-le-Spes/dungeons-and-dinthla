@@ -17,6 +17,7 @@ function numberOf(path: string): number {
 export class DialogCampaign {
   readonly texts: Map<string, string>;
   writes = 0;
+  readonly linksAsked: { linkpath: string; sourcePath: string }[] = [];
   private files = new Map<string, TFile>();
   private readonly characterPaths: string[] = [];
   read: Map<string, string>;
@@ -33,7 +34,7 @@ export class DialogCampaign {
       getFiles: () => [...this.texts.keys()].map(fileOf),
       getMarkdownFiles: () => [...this.texts.keys()].map(fileOf),
       getFileByPath: (path: string) => {
-        if (!this.texts.has(path)) return null;
+        if (!this.texts.has(path) && !this.characterPaths.includes(path)) return null;
         return this.fileAt(path);
       },
       process: async (file: TFile, change: (text: string) => string) => {
@@ -46,7 +47,10 @@ export class DialogCampaign {
     };
     const metadata = {
       fileToLinktext: (file: TFile) => file.basename,
-      getFirstLinkpathDest: (linkpath: string) => this.linkDestination(linkpath),
+      getFirstLinkpathDest: (linkpath: string, sourcePath: string) => {
+        this.linksAsked.push({ linkpath, sourcePath });
+        return this.linkDestination(linkpath);
+      },
     };
     return { files, metadata, notes: notesOverFakes({ files, metadata }) } as unknown as Gate;
   }
@@ -91,6 +95,11 @@ export class DialogCampaign {
     file.path = to;
     this.files.set(to, file);
     this.texts.set(to, text);
+  }
+
+  holdCharacterNote(file: TFile): void {
+    this.characterPaths.push(file.path);
+    this.files.set(file.path, file);
   }
 
   addCharacterNote(path: string): TFile {

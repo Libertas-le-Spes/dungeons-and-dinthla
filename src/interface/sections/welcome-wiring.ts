@@ -1,8 +1,8 @@
 import type { PathSpelling } from "../../host/rules/path-spelling";
 import type { PluginManifest } from "obsidian";
 import { CampaignMaker, type ChooseCampaign } from "../../campaign/writing/campaign-maker";
-import type { FencedFiles } from "../../fence/gate/fenced-files";
 import type { FolderChoices } from "../../fence/gate/folder-choices";
+import type { NoteStore } from "../../host/notes/note-store";
 import type { CampaignsFolderSetting } from "../../settings/saved/campaigns-folder-setting";
 import { CampaignsFolderSetup, type PickFolder } from "../../settings/choosing/campaigns-folder-setup";
 import type { SettingsSaver } from "../../settings/saved/settings-saver";
@@ -15,7 +15,7 @@ import type { MakePage } from "../view/campaign-pages";
 import { welcomeSection } from "./welcome-section";
 
 export interface WelcomeGate {
-  files: Pick<FencedFiles, "getFiles" | "getFolderByPath" | "namesIn" | "createFolder" | "create" | "removeEmptyFolder">;
+  notes: { readonly store: Pick<NoteStore, "files" | "hasFolder" | "namesIn" | "makeFolder" | "make" | "removeEmptyFolder"> };
   folders: Pick<FolderChoices, "folderPaths" | "make">;
 }
 
@@ -42,10 +42,10 @@ export interface WelcomeWiring {
 }
 
 export function welcomeWiring(needs: WelcomeWiringNeeds): WelcomeWiring {
-  const files = needs.gate.files;
+  const files = needs.gate.notes.store;
   const helpFiles = {
     campaignFolders: () => needs.campaignFolders(),
-    filePaths: () => files.getFiles().map((file) => file.path),
+    filePaths: () => files.files().map((file) => file.path),
   };
   const help = new Help(needs.saver, needs.manifest, NEWS_BY_VERSION, helpFiles, needs.openWelcome);
   const campaignsFolderSetup = new CampaignsFolderSetup(needs.setting, needs.gate.folders, needs.pickFolder);
