@@ -22,45 +22,45 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--surface-page);
+  background: var(--dd-surface-page);
 }
 
 .dd-wash-subtle::after {
-  opacity: var(--campaign-wash-subtle);
+  opacity: var(--dd-campaign-wash-subtle);
 }
 
 .dd-wash-balanced::after {
-  opacity: var(--campaign-wash-balanced);
+  opacity: var(--dd-campaign-wash-balanced);
 }
 
 .dd-wash-strong::after {
-  opacity: var(--campaign-wash-strong);
+  opacity: var(--dd-campaign-wash-strong);
 }
 
 .dd-campaign-frame.dd-tab-picture {
   background:
     linear-gradient(var(--dd-tab-wash), var(--dd-tab-wash)),
     var(--dd-campaign-picture) center / cover no-repeat,
-    var(--surface-page);
+    var(--dd-surface-page);
 }
 
 .dd-tab-wash-subtle {
-  --dd-tab-wash: color-mix(in srgb, var(--surface-page) calc(var(--campaign-wash-subtle) * 100%), transparent);
+  --dd-tab-wash: color-mix(in srgb, var(--dd-surface-page) calc(var(--dd-campaign-wash-subtle) * 100%), transparent);
 }
 
 .dd-tab-wash-balanced {
-  --dd-tab-wash: color-mix(in srgb, var(--surface-page) calc(var(--campaign-wash-balanced) * 100%), transparent);
+  --dd-tab-wash: color-mix(in srgb, var(--dd-surface-page) calc(var(--dd-campaign-wash-balanced) * 100%), transparent);
 }
 
 .dd-tab-wash-strong {
-  --dd-tab-wash: color-mix(in srgb, var(--surface-page) calc(var(--campaign-wash-strong) * 100%), transparent);
+  --dd-tab-wash: color-mix(in srgb, var(--dd-surface-page) calc(var(--dd-campaign-wash-strong) * 100%), transparent);
 }
 
 .dd-tab-picture .dd-box-frame {
   position: relative;
   isolation: isolate;
-  border-radius: var(--radius-m);
-  background: var(--surface-sunken);
+  border-radius: var(--dd-radius-m);
+  background: var(--dd-surface-sunken);
 }
 
 .dd-tab-picture .dd-box-frame::before {
@@ -71,9 +71,9 @@
   border-radius: inherit;
   pointer-events: none;
   background: var(--dd-campaign-picture) center / cover no-repeat;
-  opacity: var(--campaign-picture-idle);
+  opacity: var(--dd-campaign-picture-idle);
   filter: contrast(0.6) brightness(1.1);
-  transition: opacity var(--dur-med) var(--ease-out);
+  transition: opacity var(--dd-dur-med) var(--dd-ease-out);
 }
 
 

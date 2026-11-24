@@ -1,0 +1,49 @@
+.dd-sheet .dd-sheet-imported {
+  margin-top: var(--dd-size-4-5);
+}
+
+.dd-sheet .dd-sheet-panel + .dd-sheet-panel {
+  margin-top: var(--dd-size-4-5);
+}
+
+.dd-sheet .dd-panel-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dd-size-4-1) var(--dd-size-4-3);
+  align-items: center;
+  min-height: var(--dd-touch-min);
+  padding: var(--dd-size-4-2);
+  font: var(--dd-type-note);
+  color: var(--dd-text-body);
+}
+
+.dd-sheet .dd-panel-line .dd-text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.dd-sheet .dd-panel-line .dd-meta {
+  display: inline;
+  margin-top: 0;
+}
+
+.dd-sheet .dd-panel-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dd-size-4-2);
+}
+
+.dd-sheet .dd-sheet-panel .dd-note {
+  margin: var(--dd-size-4-2) 0 0;
+  font-size: var(--dd-font-ui-small);
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-sheet .dd-sheet-panel .dd-holder {
+  margin: var(--dd-size-4-4) 0 var(--dd-size-4-1);
+  font: var(--dd-type-panel-title);
+  font-size: var(--dd-font-ui-small);
+  letter-spacing: var(--dd-tracking-caps);
+  color: var(--dd-text-muted-ui);
+}

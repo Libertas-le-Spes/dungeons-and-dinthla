@@ -22,7 +22,7 @@ function ruleFor(block: string, selector: string): string {
 }
 
 describe("the campaign tab on a narrow layout", () => {
-  const block = narrowBlock(readStyles("campaign.css"));
+  const block = narrowBlock(readStyles("plugin/campaign.css"));
 
   it("hides the campaign's name but keeps the switcher and its row", () => {
     const hidden = hiddenSelectors(block);
@@ -32,8 +32,8 @@ describe("the campaign tab on a narrow layout", () => {
   });
 
   it("keeps the switcher a touch-sized target as tall as the bar, in a row with no padding", () => {
-    expect(ruleFor(block, ".dd-campaign .dd-nav-switch")).toContain("min-width: var(--touch-min)");
-    expect(ruleFor(block, ".dd-campaign .dd-nav-switch")).toContain("min-height: var(--bar-height)");
+    expect(ruleFor(block, ".dd-campaign .dd-nav-switch")).toContain("min-width: var(--dd-touch-min)");
+    expect(ruleFor(block, ".dd-campaign .dd-nav-switch")).toContain("min-height: var(--dd-bar-height)");
     expect(ruleFor(block, ".dd-campaign .dd-nav-heading")).toContain("padding: 0");
   });
 });

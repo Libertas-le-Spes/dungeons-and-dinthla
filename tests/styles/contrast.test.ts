@@ -200,8 +200,8 @@ describe("text in the campaign tab over its background picture", () => {
     const token = tokensFor(context);
 
     it.each(PANELS_IN_TAB)("%s hides the picture entirely", (selector) => {
-      const overBlack = panelOver(token, "campaign.css", selector, PICTURES[0]![1]);
-      const overWhite = panelOver(token, "campaign.css", selector, PICTURES[1]![1]);
+      const overBlack = panelOver(token, "plugin/campaign.css", selector, PICTURES[0]![1]);
+      const overWhite = panelOver(token, "plugin/campaign.css", selector, PICTURES[1]![1]);
       expect(overBlack).toEqual(overWhite);
     });
 
@@ -210,7 +210,7 @@ describe("text in the campaign tab over its background picture", () => {
       expect(SOLID).toContain(bottom);
       for (const selector of PANELS_IN_TAB) {
         for (const [picture, colour] of PICTURES) {
-          const behind = layered(token, layers, panelOver(token, "campaign.css", selector, colour));
+          const behind = layered(token, layers, panelOver(token, "plugin/campaign.css", selector, colour));
           expect(contrast(over(token(text), behind), behind), `${picture} behind ${selector}`).toBeGreaterThanOrEqual(4.5);
         }
       }

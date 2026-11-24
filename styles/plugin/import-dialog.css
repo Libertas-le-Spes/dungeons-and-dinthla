@@ -1,0 +1,95 @@
+.dd-import .dd-pdf-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dd-size-4-2);
+  margin: var(--dd-size-4-3) 0 0;
+  font: var(--dd-type-label);
+}
+
+.dd-import .dd-or-the-pdf {
+  margin: var(--dd-size-4-4) 0 0;
+  font: var(--dd-type-label);
+}
+
+.dd-import .dd-import-refusal {
+  margin: 0 0 var(--dd-size-4-3);
+  color: var(--dd-state-danger);
+}
+
+.dd-import .dd-import-reading,
+.dd-import .dd-import-nothing {
+  margin: var(--dd-size-4-2) 0 0;
+  font-size: var(--dd-font-ui-small);
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-import .dd-import-summary h3 {
+  margin: 0 0 var(--dd-size-4-2);
+}
+
+.dd-import .dd-import-summary p {
+  margin: 0 0 var(--dd-size-4-1);
+  font-size: var(--dd-font-ui-small);
+}
+
+.dd-import .dd-import-targets {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dd-size-4-2);
+}
+
+.dd-import .dd-import-body {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.dd-import .dd-import-footer {
+  position: sticky;
+  bottom: 0;
+  flex-wrap: wrap;
+  padding-top: var(--dd-size-4-2);
+  background: var(--dd-background-primary);
+}
+
+.dd-import .dd-import-problems {
+  margin: 0 0 var(--dd-size-4-1);
+  padding-left: var(--dd-size-4-4);
+  font-size: var(--dd-font-ui-small);
+  color: var(--dd-state-danger);
+}
+
+.dd-import .dd-import-changes-line {
+  margin: var(--dd-size-4-2) 0;
+  font-size: var(--dd-font-ui-small);
+}
+
+.dd-import .dd-import-fold {
+  margin: var(--dd-size-4-1) 0;
+}
+
+.dd-import .dd-import-fold summary {
+  font: var(--dd-type-label);
+  cursor: pointer;
+}
+
+.dd-import .dd-import-lines,
+.dd-import .dd-import-properties {
+  margin: 0;
+  padding-left: var(--dd-size-4-4);
+  font-size: var(--dd-font-ui-small);
+}
+
+.dd-import .dd-import-removed {
+  color: var(--dd-state-danger);
+}
+
+.dd-import .dd-import-warning {
+  margin: var(--dd-size-4-3) 0;
+  padding: var(--dd-size-4-2) var(--dd-size-4-3);
+  border-left: var(--dd-rule-width) solid var(--dd-state-danger);
+}
+
+.dd-import .dd-import-typed-title {
+  margin: var(--dd-size-4-2) 0 var(--dd-size-4-1);
+  font: var(--dd-type-label);
+}

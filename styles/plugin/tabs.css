@@ -1,0 +1,47 @@
+.dd-root .dd-tabs {
+  display: flex;
+  gap: var(--dd-size-4-1);
+  margin-bottom: var(--dd-size-4-4);
+  padding: var(--dd-size-4-1);
+  border-radius: var(--dd-radius-m);
+  background: var(--dd-surface-hover);
+}
+
+.dd-root .dd-tab {
+  flex: 1;
+  min-height: var(--dd-control-md);
+  padding: 0 var(--dd-size-4-3);
+  border: none;
+  border-radius: var(--dd-radius-s);
+  background: transparent;
+  box-shadow: none;
+  font: var(--dd-type-panel-title);
+  font-size: var(--dd-font-ui-medium);
+  letter-spacing: var(--dd-tracking-caps);
+  color: var(--dd-text-muted-ui);
+  cursor: pointer;
+  transition: background var(--dd-dur-fast) var(--dd-ease-out);
+}
+
+.dd-root .dd-tab:hover {
+  color: var(--dd-text-body);
+}
+
+.dd-root .dd-tab:focus-visible {
+  outline: none;
+  box-shadow: var(--dd-focus-ring);
+}
+
+.dd-root .dd-tab[aria-selected="true"] {
+  background: var(--dd-surface-card);
+  color: var(--dd-text-strong);
+  box-shadow: inset 0 0 0 var(--dd-border-width) var(--dd-border-subtle);
+}
+
+.dd-root .dd-tab[aria-selected="true"]:focus-visible {
+  box-shadow: var(--dd-focus-ring);
+}
+
+.dd-root .dd-panel + .dd-tabs {
+  margin-top: var(--dd-size-4-5);
+}

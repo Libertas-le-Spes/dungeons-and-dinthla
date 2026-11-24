@@ -1,0 +1,56 @@
+.dd-root .dd-stat-block {
+  display: block;
+  padding: var(--dd-size-4-4) var(--dd-size-4-5);
+  border-radius: var(--dd-radius-s);
+  background: var(--dd-surface-statblock);
+  box-shadow: var(--dd-shadow-s);
+  font: var(--dd-type-body);
+  font-variant-ligatures: normal;
+  color: var(--dd-statblock-text);
+}
+
+.dd-root .dd-stat-block-name {
+  font: var(--dd-font-bold) var(--dd-h3-size) / var(--dd-line-height-tight) var(--dd-font-text);
+  color: var(--dd-statblock-heading);
+}
+
+.dd-root .dd-stat-block-type,
+.dd-root .dd-stat-block-subtitle {
+  font: var(--dd-font-normal) var(--dd-font-ui-small) / var(--dd-line-height-tight) var(--dd-font-text);
+  color: var(--dd-statblock-subtitle);
+}
+
+.dd-root .dd-stat-block-rule {
+  height: 3px;
+  margin: var(--dd-size-4-2) 0;
+  background: linear-gradient(90deg, var(--dd-statblock-rule), var(--dd-statblock-rule) 70%, transparent);
+}
+
+.dd-root .dd-stat-block-line {
+  font: var(--dd-font-normal) var(--dd-font-ui-small) / var(--dd-line-height-normal) var(--dd-font-text);
+  color: var(--dd-statblock-text);
+}
+
+.dd-root .dd-stat-block-line strong {
+  font-weight: var(--dd-font-bold);
+  color: var(--dd-statblock-heading);
+}
+
+.dd-root .dd-stat-block-abilities {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  text-align: center;
+  font: var(--dd-font-normal) var(--dd-font-ui-small) / var(--dd-line-height-tight) var(--dd-font-text);
+  color: var(--dd-statblock-text);
+}
+
+.dd-root .dd-stat-block-abilities b {
+  display: block;
+  font: var(--dd-font-bold) var(--dd-font-ui-smaller) / var(--dd-line-height-tight) var(--dd-font-text);
+  letter-spacing: var(--dd-tracking-label);
+  color: var(--dd-statblock-heading);
+}
+
+.dd-root .dd-stat-block .dd-unknown {
+  color: var(--dd-state-unknown);
+}

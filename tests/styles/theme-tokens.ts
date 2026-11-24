@@ -45,5 +45,5 @@ export function tokensFor(context: ThemeContext): (token: string) => Colour {
       if (obsidian !== undefined) return resolve(obsidian);
       throw new Error(`Nothing defines ${name}`);
     });
-  return (token) => parseColour(resolve(`var(--${token})`));
+  return (token) => parseColour(resolve(`var(--dd-${token})`));
 }

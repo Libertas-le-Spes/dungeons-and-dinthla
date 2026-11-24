@@ -1,8 +1,8 @@
 .dd-note-page .dd-note-title {
   margin: 0;
-  font: var(--type-panel-title);
-  font-size: var(--h3-size);
-  color: var(--text-strong);
+  font: var(--dd-type-panel-title);
+  font-size: var(--dd-h3-size);
+  color: var(--dd-text-strong);
   overflow-wrap: anywhere;
 }
 
@@ -11,33 +11,33 @@
 }
 
 .dd-note-page .dd-note-links-title {
-  margin: 0 0 var(--size-4-2);
-  font: var(--type-label);
-  color: var(--text-muted-ui);
+  margin: 0 0 var(--dd-size-4-2);
+  font: var(--dd-type-label);
+  color: var(--dd-text-muted-ui);
 }
 
 .dd-note-page .dd-note-links-list {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--size-4-2) var(--size-4-4);
+  gap: var(--dd-size-4-2) var(--dd-size-4-4);
   margin: 0;
   padding: 0;
   list-style: none;
-  font: var(--type-note);
+  font: var(--dd-type-note);
 }
 
 .dd-note-page .dd-note-mentions {
-  margin-top: var(--size-4-5);
+  margin-top: var(--dd-size-4-5);
 }
 
 .dd-note-page .dd-left-campaign {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--size-4-2) var(--size-4-4);
+  gap: var(--dd-size-4-2) var(--dd-size-4-4);
 }
 
 .dd-note-page .dd-left-campaign-message {
   margin: 0;
-  font: var(--type-note);
+  font: var(--dd-type-note);
 }

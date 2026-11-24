@@ -1,5 +1,5 @@
 .dd-root .dd-link-name {
-  color: var(--marker-link);
+  color: var(--dd-marker-link);
   text-decoration: none;
   cursor: pointer;
 }
@@ -9,7 +9,7 @@
 }
 
 .dd-root .dd-link {
-  color: var(--marker-link);
+  color: var(--dd-marker-link);
 }
 
 .dd-root .dd-link a {
@@ -22,14 +22,14 @@
 }
 
 .dd-root .dd-link-bracket {
-  padding: 0 var(--size-2-1);
-  border-radius: var(--radius-s);
-  background: var(--marker-link-soft);
+  padding: 0 var(--dd-size-2-1);
+  border-radius: var(--dd-radius-s);
+  background: var(--dd-marker-link-soft);
 }
 
 .dd-root mark,
 .dd-lookup mark {
-  background: var(--marker-question-soft);
+  background: var(--dd-marker-question-soft);
   color: inherit;
-  border-radius: var(--radius-s);
+  border-radius: var(--dd-radius-s);
 }
