@@ -39,8 +39,9 @@ const INNER_FOLDERS: InnerFolder[] = [
   { folder: "characters/imported", reaches: ["characters/imported", "characters/facts", "imports/layout", "campaign", "host", "kinds", "notes"] },
   { folder: "views/pending", reaches: ["views/pending"] },
   { folder: "views/elements", reaches: ["views/elements"] },
+  { folder: "views/components", reaches: ["views/components", "views/elements", "views/dialogs", "campaign"] },
   { folder: "views/dialogs", reaches: ["views/dialogs", "views/elements", "campaign", "kind-notes", "host"] },
-  { folder: "imports", reaches: ["imports", "imports/layout", "beyond", "online", "names", "fence/gate", "campaign", "host", "views/dialogs", "views/pending"] },
+  { folder: "imports", reaches: ["imports", "imports/layout", "beyond", "online", "names", "fence/gate", "campaign", "host", "views/components", "views/dialogs", "views/elements", "views/pending"] },
 ];
 
 const BEYOND_IMPORTERS: string[] = ["imports", "online"];
@@ -440,6 +441,10 @@ describe("the inner folders of src/characters, over made-up files", () => {
 describe("what src/imports may take from src/views, over made-up files", () => {
   it("lets the import dialog build on the shared dialogs", () => {
     expect(breachesOfMadeUpFileInside("imports", "dialog", 'import { a } from "../../views/dialogs/change-dialog";')).toEqual([]);
+  });
+
+  it("lets a dialog of the import build on the shared components", () => {
+    expect(breachesOfMadeUpFileInside("imports", "dialog", 'import { a } from "../../views/components/dialogs/text-field";')).toEqual([]);
   });
 
   it("refuses any other part of src/views", () => {

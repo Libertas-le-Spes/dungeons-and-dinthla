@@ -1,5 +1,5 @@
 import { AskAlways, AskWhenLeftPlay, type AskWhen } from "./ask-when";
-import { MainModal } from "./main-modal";
+import { MainQuestionDialog } from "./main-question-dialog";
 import { plainWordsOf } from "../writes/write-words";
 import type { OfferWiring } from "../questions/offer-wiring";
 import { questionFor } from "../questions/question-for";
@@ -93,6 +93,6 @@ export class MainOffers {
       return;
     }
     const back = new FocusBack(returnFocus);
-    new MainModal(this.wiring.app, question, back.closed.bind(back)).open();
+    this.wiring.showing.dialogs.open(new MainQuestionDialog(this.wiring.showing.telling, question, back.closed.bind(back)));
   }
 }

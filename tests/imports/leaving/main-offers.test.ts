@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { App } from "obsidian";
-import { MainModal } from "../../../src/imports/leaving/dialog/main-modal";
+import { MainQuestionDialog } from "../../../src/imports/leaving/dialog/main-question-dialog";
+import { ModalFrame } from "../../../src/obsidian/views/frames/modal-frame";
+import { OBSIDIAN_SHOWING } from "../../host/showing/obsidian-showing";
 import { MainOffers } from "../../../src/imports/leaving/dialog/main-offers";
 import type { OfferWiring } from "../../../src/imports/leaving/questions/offer-wiring";
 import type { CampaignCast } from "../../../src/imports/leaving/cast/campaign-cast";
@@ -25,7 +26,7 @@ class BrokenCast extends TableCast {
 }
 
 class OfferTable implements OfferWiring {
-  readonly app = {} as App;
+  readonly showing = OBSIDIAN_SHOWING;
   readonly files: LeavingFiles;
   readonly actions: LeavingActions;
   readonly told: string[] = [];
@@ -52,39 +53,44 @@ class OfferTable implements OfferWiring {
   }
 }
 
-function lastMainModal(): MainModal | null {
-  let found: MainModal | null = null;
+function lastModalFrame(): ModalFrame | null {
+  let found: ModalFrame | null = null;
   for (const modal of openedModals) {
-    if (modal instanceof MainModal) found = modal;
+    if (modal instanceof ModalFrame && modal.dialog instanceof MainQuestionDialog) found = modal;
   }
   return found;
 }
 
-function shownModal(): MainModal {
-  const modal = lastMainModal();
+function shownModal(): ModalFrame {
+  const modal = lastModalFrame();
   if (modal === null) throw new Error("No question was asked.");
   obsidianDocument().body.append(modal.contentEl);
   return modal;
 }
 
-function titleOf(dialog: MainModal): string {
+function settledOf(frame: ModalFrame): Promise<void> {
+  if (!(frame.dialog instanceof MainQuestionDialog)) throw new Error("The frame doesn't show the question.");
+  return frame.dialog.settled();
+}
+
+function titleOf(dialog: ModalFrame): string {
   if (!(dialog instanceof Modal)) throw new Error("The dialog isn't a modal.");
   return dialog.title;
 }
 
-function subjectOf(modal: MainModal): string {
+function subjectOf(modal: ModalFrame): string {
   const subject = modal.contentEl.querySelector(".dd-subject");
   if (subject === null) throw new Error("The dialog asks nothing.");
   return String(subject.textContent);
 }
 
-function buttonWords(modal: MainModal): string[] {
+function buttonWords(modal: ModalFrame): string[] {
   const words: string[] = [];
   for (const button of modal.contentEl.querySelectorAll("button")) words.push(String(button.textContent));
   return words;
 }
 
-function press(modal: MainModal, words: string): void {
+function press(modal: ModalFrame, words: string): void {
   for (const button of modal.contentEl.querySelectorAll<HTMLButtonElement>("button")) {
     if (button.textContent === words) {
       button.click();
@@ -94,7 +100,7 @@ function press(modal: MainModal, words: string): void {
   throw new Error(`No button says ${words}.`);
 }
 
-function fieldNames(modal: MainModal): string[] {
+function fieldNames(modal: ModalFrame): string[] {
   const names: string[] = [];
   for (const name of modal.contentEl.querySelectorAll(".setting-item-name")) {
     if (name.textContent !== "") names.push(name.textContent);
@@ -102,7 +108,7 @@ function fieldNames(modal: MainModal): string[] {
   return names;
 }
 
-function inputNamed(modal: MainModal, name: string): HTMLInputElement {
+function inputNamed(modal: ModalFrame, name: string): HTMLInputElement {
   for (const setting of modal.contentEl.querySelectorAll(".setting-item")) {
     const input = setting.querySelector("input");
     if (input !== null && setting.querySelector(".setting-item-name")?.textContent === name) return input;
@@ -110,7 +116,7 @@ function inputNamed(modal: MainModal, name: string): HTMLInputElement {
   throw new Error(`The dialog has no field called ${name}.`);
 }
 
-function type(modal: MainModal, text: string, name = "What were they last doing?"): void {
+function type(modal: ModalFrame, text: string, name = "What were they last doing?"): void {
   const input = inputNamed(modal, name);
   const view = input.ownerDocument.defaultView;
   if (view === null) throw new Error("The dialog is not in a window.");
@@ -139,7 +145,7 @@ describe("after a new import", () => {
     const modal = shownModal();
     type(modal, "holding the bridge");
     press(modal, "Died");
-    await modal.changeSettled();
+    await settledOf(modal);
     expect(table.vault.textAt(MONK_FALLEN)).toContain("\nLast doing: holding the bridge\n");
     expect(table.vault.textAt(CAMPAIGN_NOTE)).toContain('character: "[[Secondary]]"');
   });
@@ -164,7 +170,7 @@ describe("after a new import", () => {
   it("asks nothing when the import went into the main's own note", async () => {
     const table = new LeavingTable();
     await new MainOffers(new OfferTable(table), STUB_SYNTAX).afterImport(MONK);
-    expect(lastMainModal()).toBeNull();
+    expect(lastModalFrame()).toBeNull();
   });
 
   it("says why and asks nothing when the campaign note's character isn't one clear link", async () => {
@@ -172,7 +178,7 @@ describe("after a new import", () => {
     const wiring = new OfferTable(table, new UnclearCast());
     await new MainOffers(wiring, STUB_SYNTAX).afterImport(SECOND);
     expect(wiring.told).toEqual([MAIN_UNCLEAR]);
-    expect(lastMainModal()).toBeNull();
+    expect(lastModalFrame()).toBeNull();
   });
 
   it("says why and asks nothing when the main is a note outside the Characters and Fallen folders", async () => {
@@ -181,7 +187,7 @@ describe("after a new import", () => {
     const wiring = new OfferTable(table);
     await new MainOffers(wiring, STUB_SYNTAX).afterImport(SECOND);
     expect(wiring.told).toEqual([MAIN_UNCLEAR]);
-    expect(lastMainModal()).toBeNull();
+    expect(lastModalFrame()).toBeNull();
   });
 
   it("says a note outside a campaign's Characters folder can't be made main", async () => {
@@ -201,7 +207,7 @@ describe("after a new import", () => {
     await new MainOffers(wiring, STUB_SYNTAX).makeMain(SECOND, returnFocus);
     expect(wiring.told).toEqual([COULD_NOT_ASK]);
     expect(returnFocus).toHaveBeenCalledOnce();
-    expect(lastMainModal()).toBeNull();
+    expect(lastModalFrame()).toBeNull();
   });
 
   it("says the campaign note couldn't be read, in plain words, and asks nothing", async () => {
@@ -210,7 +216,7 @@ describe("after a new import", () => {
     const wiring = new OfferTable(table);
     await new MainOffers(wiring, STUB_SYNTAX).afterImport(SECOND);
     expect(wiring.told).toEqual(["The campaign note couldn't be read, so nothing was switched."]);
-    expect(lastMainModal()).toBeNull();
+    expect(lastModalFrame()).toBeNull();
   });
 });
 
@@ -251,7 +257,7 @@ describe("Make main on a fallen character", () => {
     await new MainOffers(new OfferTable(table), STUB_SYNTAX).makeMain(SECOND_FALLEN, vi.fn());
     const modal = shownModal();
     press(modal, "Make main");
-    await modal.changeSettled();
+    await settledOf(modal);
     expect(table.vault.textAt(SECOND)).toBe("---\n---\nBack.\n");
     expect(table.vault.textAt(CAMPAIGN_NOTE)).toContain('character: "[[Secondary]]"');
   });
@@ -306,7 +312,7 @@ describe("a switch that was left part done", () => {
     await new MainOffers(new OfferTable(table), STUB_SYNTAX).makeMain(SECOND, vi.fn());
     const modal = shownModal();
     press(modal, "Make main");
-    await modal.changeSettled();
+    await settledOf(modal);
     expect(table.vault.moved).toEqual([`${MONK} -> ${MONK_FALLEN}`]);
     expect(table.vault.textAt(CAMPAIGN_NOTE)).toContain('character: "[[Secondary]]"');
   });
@@ -326,7 +332,7 @@ describe("a switch that was left part done", () => {
     table.cast.main = table.vault.fileAt(SECOND);
     const returnFocus = vi.fn();
     await new MainOffers(new OfferTable(table), STUB_SYNTAX).makeMain(SECOND, returnFocus);
-    expect(lastMainModal()).toBeNull();
+    expect(lastModalFrame()).toBeNull();
     expect(returnFocus).toHaveBeenCalledOnce();
   });
 });
@@ -339,14 +345,14 @@ describe("after an update", () => {
     const modal = shownModal();
     expect(titleOf(modal)).toBe("Make Secondary your character");
     press(modal, "Backup");
-    await modal.changeSettled();
+    await settledOf(modal);
     expect(table.vault.textAt(SECOND)).toBe("---\nimported-from: pdf\n---\n");
   });
 
   it("offers nothing for a character who hasn't left play", async () => {
     const table = new LeavingTable();
     await new MainOffers(new OfferTable(table), STUB_SYNTAX).afterUpdate(SECOND);
-    expect(lastMainModal()).toBeNull();
+    expect(lastModalFrame()).toBeNull();
     expect(table.vault.textAt(CAMPAIGN_NOTE)).toBe(CAMPAIGN_TEXT);
   });
 
@@ -356,7 +362,7 @@ describe("after an update", () => {
     const wiring = new OfferTable(table);
     await new MainOffers(wiring, STUB_SYNTAX).afterUpdate(SECOND);
     expect(wiring.told).toEqual(["A character's note couldn't be read, so nothing was switched."]);
-    expect(lastMainModal()).toBeNull();
+    expect(lastModalFrame()).toBeNull();
   });
 });
 
@@ -378,7 +384,7 @@ describe("Depart at the bottom of a character's page", () => {
     const modal = shownModal();
     type(modal, "crossing the ford");
     press(modal, "Died");
-    await modal.changeSettled();
+    await settledOf(modal);
     expect(table.vault.textAt(SECOND_FALLEN)).toContain("\nstanding: died\n");
     expect(table.vault.textAt(SECOND_FALLEN)).toContain("\nLast doing: crossing the ford\n");
     expect(table.vault.files.has(SECOND)).toBe(false);
@@ -392,7 +398,7 @@ describe("Depart at the bottom of a character's page", () => {
     type(modal, "Joined the Silver Order", "Something else");
     type(modal, "crossing the ford");
     press(modal, "Something else");
-    await modal.changeSettled();
+    await settledOf(modal);
     expect(table.vault.textAt(SECOND_FALLEN)).toContain('\nstanding: departed\ndeparture: "Joined the Silver Order"\n');
     expect(table.vault.textAt(SECOND_FALLEN)).toContain("\nJoined the Silver Order on 2026-11-12, after [[Session 7]].\nLast doing: crossing the ford\n");
   });
@@ -408,7 +414,7 @@ describe("Depart at the bottom of a character's page", () => {
     await new MainOffers(new OfferTable(table), STUB_SYNTAX).depart(MONK, vi.fn());
     const modal = shownModal();
     press(modal, "Died");
-    await modal.changeSettled();
+    await settledOf(modal);
     expect(table.vault.textAt(MONK_FALLEN)).toContain("\nstanding: died\n");
     expect(table.vault.textAt(CAMPAIGN_NOTE)).toBe(CAMPAIGN_TEXT);
   });
@@ -431,7 +437,7 @@ describe("Depart at the bottom of a character's page", () => {
     const fallen = table.vault.note(`${CAMPAIGN}/Fallen/Brann.md`, "---\nstanding: died\n---\n");
     await new MainOffers(wiring, STUB_SYNTAX).depart(fallen.path, returnFocus);
     expect(wiring.told).toEqual([NOTE_MOVED, ALREADY_FALLEN]);
-    expect(lastMainModal()).toBeNull();
+    expect(lastModalFrame()).toBeNull();
     expect(returnFocus).toHaveBeenCalledTimes(2);
   });
 
@@ -440,7 +446,7 @@ describe("Depart at the bottom of a character's page", () => {
     const wiring = new OfferTable(table, new UnclearCast());
     await new MainOffers(wiring, STUB_SYNTAX).depart(SECOND, vi.fn());
     expect(wiring.told).toEqual([MAIN_UNCLEAR]);
-    expect(lastMainModal()).toBeNull();
+    expect(lastModalFrame()).toBeNull();
   });
 
   it("says a note outside a campaign's Characters folder can't be asked about", async () => {

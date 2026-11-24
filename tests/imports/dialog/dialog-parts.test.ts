@@ -17,6 +17,7 @@ import { openedModals } from "../../stubs/obsidian";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { CHARACTERS_FOLDER, FakeNoteVault } from "../builders/fake-note-vault";
 import { STUB_SYNTAX } from "../../host/stub-syntax";
+import { OBSIDIAN_SHOWING } from "../../host/showing/obsidian-showing";
 
 class NoMetadata {
   getCache(): null {
@@ -52,6 +53,7 @@ class NoOffers {
 function wiringWith(shownFolder: string | null, folderOfNote: string | null, vault = new FakeNoteVault(), online: OnlineSource = NO_ONLINE): BeyondWiring {
   return {
     app: {} as App,
+    showing: OBSIDIAN_SHOWING,
     files: vault.notes.store,
     actions: vault.notes.keeping,
     metadata: new NoMetadata(),
