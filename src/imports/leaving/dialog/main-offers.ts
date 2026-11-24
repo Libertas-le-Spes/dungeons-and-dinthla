@@ -7,6 +7,7 @@ import { departQuestionFor } from "../questions/depart-question-for";
 import type { MainQuestion } from "../questions/main-question";
 import { COULD_NOT_ASK, NOTE_MOVED } from "../switching/switch-words";
 import type { NoteRef } from "../../../host/notes/note-ref";
+import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
 
 class FocusBack {
   constructor(private readonly returnFocus: () => void) {}
@@ -28,7 +29,10 @@ function stayPut(): void {
 }
 
 export class MainOffers {
-  constructor(private readonly wiring: OfferWiring) {}
+  constructor(
+    private readonly wiring: OfferWiring,
+    private readonly syntax: PropertiesSyntax,
+  ) {}
 
   async afterImport(path: string): Promise<void> {
     const file = this.wiring.files.note(path);
@@ -39,7 +43,7 @@ export class MainOffers {
   async afterUpdate(path: string): Promise<void> {
     const file = this.wiring.files.note(path);
     if (file === null) return;
-    await this.ask(file, stayPut, new AskWhenLeftPlay());
+    await this.ask(file, stayPut, new AskWhenLeftPlay(this.syntax));
   }
 
   async makeMain(path: string, returnFocus: () => void): Promise<void> {
@@ -51,7 +55,11 @@ export class MainOffers {
   async depart(path: string, returnFocus: () => void): Promise<void> {
     const file = this.fileOrTell(path, returnFocus);
     if (file === null) return;
-    await this.askWith({ file, returnFocus }, departQuestionFor);
+    await this.askWith({ file, returnFocus }, this.departQuestion.bind(this));
+  }
+
+  private departQuestion(wiring: OfferWiring, note: NoteRef): Promise<MainQuestion> {
+    return departQuestionFor(wiring, note, this.syntax);
   }
 
   private fileOrTell(path: string, returnFocus: () => void): NoteRef | null {
@@ -65,7 +73,7 @@ export class MainOffers {
 
   private async ask(file: NoteRef, returnFocus: () => void, when: AskWhen): Promise<void> {
     const questionAbout = async (wiring: OfferWiring, note: NoteRef): Promise<MainQuestion | null> => {
-      if (await when.wants(wiring.files, note)) return questionFor(wiring, note);
+      if (await when.wants(wiring.files, note)) return questionFor(wiring, note, this.syntax);
       return null;
     };
     await this.askWith({ file, returnFocus }, questionAbout);

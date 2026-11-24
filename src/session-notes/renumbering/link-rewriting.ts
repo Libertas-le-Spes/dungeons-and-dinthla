@@ -1,4 +1,4 @@
-import { firstLineAfterProperties } from "../../campaign/paths/session-file";
+import { firstLineAfterProperties, type PropertiesSyntax } from "../../campaign/paths/session-file";
 import { hiddenLines } from "../../notes/reading/hidden-lines";
 import { paired } from "./paired";
 import { lineWithTargetsMasked, lineWithTargetsReplaced, targetsOf, type NewTarget } from "./wiki-links";
@@ -8,8 +8,8 @@ interface LineRules {
   hidden: Set<number>;
 }
 
-function rulesOf(text: string): LineRules {
-  return { firstLine: firstLineAfterProperties(text), hidden: hiddenLines(text) };
+function rulesOf(text: string, syntax: PropertiesSyntax): LineRules {
+  return { firstLine: firstLineAfterProperties(text, syntax), hidden: hiddenLines(text, syntax) };
 }
 
 function isRewritable(index: number, rules: LineRules): boolean {
@@ -32,8 +32,8 @@ function lineChangedOnlyInTargets(before: string, after: string, newTarget: NewT
   return targetsKeptOrRenamed(before, after, newTarget);
 }
 
-export function withLinksRewritten(text: string, newTarget: NewTarget): string {
-  const rules = rulesOf(text);
+export function withLinksRewritten(text: string, newTarget: NewTarget, syntax: PropertiesSyntax): string {
+  const rules = rulesOf(text, syntax);
   const rewritten: string[] = [];
   for (const [index, line] of text.split("\n").entries()) {
     if (isRewritable(index, rules)) rewritten.push(lineWithTargetsReplaced(line, newTarget));
@@ -47,8 +47,8 @@ function lineKeptOrRetargeted(index: number, was: string, now: string, rules: Li
   return was === now;
 }
 
-export function linkOnSkippedLine(text: string, newTarget: NewTarget): boolean {
-  const rules = rulesOf(text);
+export function linkOnSkippedLine(text: string, newTarget: NewTarget, syntax: PropertiesSyntax): boolean {
+  const rules = rulesOf(text, syntax);
   for (const [index, line] of text.split("\n").entries()) {
     if (isRewritable(index, rules)) continue;
     if (lineWithTargetsReplaced(line, newTarget) !== line) return true;
@@ -56,8 +56,8 @@ export function linkOnSkippedLine(text: string, newTarget: NewTarget): boolean {
   return false;
 }
 
-export function onlyLinkTargetsChanged(before: string, after: string, newTarget: NewTarget): boolean {
-  const rules = rulesOf(before);
+export function onlyLinkTargetsChanged(before: string, after: string, newTarget: NewTarget, syntax: PropertiesSyntax): boolean {
+  const rules = rulesOf(before, syntax);
   const lines = paired(before.split("\n"), after.split("\n"));
   if (lines === null) return false;
   for (const [index, [was, now]] of lines.entries()) {

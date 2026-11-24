@@ -6,6 +6,7 @@ import { CLOSE_ITEM, EDIT_NOTE } from "../../../src/funds/item-notes/item-panel"
 import { fundsSection } from "../../../src/interface/sections/funds-section";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { FakeOwnCharacterNotes } from "../../funds/purses/fake-own-character-notes";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const LANTERN = "Pale Moon/Items/Silvered lantern.md";
 
@@ -26,7 +27,7 @@ function made(path: string | null) {
   };
   const root = obsidianDocument().createElement("div");
   const show = vi.fn();
-  const page = fundsSection(needs)(root, show, path, vi.fn());
+  const page = fundsSection(needs, STUB_SYNTAX)(root, show, path, vi.fn());
   page.load();
   const button = (text: string) => Array.from(root.querySelectorAll("button")).find((candidate) => candidate.textContent === text);
   return { page, root, show, button, texts };

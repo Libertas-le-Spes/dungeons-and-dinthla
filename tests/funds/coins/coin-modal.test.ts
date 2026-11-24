@@ -9,16 +9,17 @@ import { openCoinEntry } from "../../../src/funds/coins/open-add-coin";
 import type { Gate } from "../../../src/fence/gate/gatekeeper";
 import { CONFIRM_MS } from "../../../src/views/dialogs/second-press";
 import { Notice, openedModals } from "../../stubs/obsidian";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 
 function openEntryAt(line: number) {
-  const sessionNotes = [sessionNoteOf(ONE, 1, "$ Bought rope for 2 gp\n$ 2 gp tip\n$ Rope\n$$ Rope :sold 3 gp\n")];
+  const sessionNotes = [sessionNoteOf(ONE, 1, "$ Bought rope for 2 gp\n$ 2 gp tip\n$ Rope\n$$ Rope :sold 3 gp\n", STUB_SYNTAX)];
   const store = { current: buildCampaign(sessionNotes), sessionNotes } as unknown as CampaignStore;
   const openNote = vi.fn();
   const onClosed = vi.fn();
   const before = openedModals.length;
-  openCoinEntry({} as App, { files: {}, notes: { store: {} } } as unknown as Gate, store, { path: ONE, line }, openNote, onClosed);
+  openCoinEntry({} as App, { files: {}, notes: { store: {} } } as unknown as Gate, store, { path: ONE, line }, openNote, onClosed, STUB_SYNTAX);
   const opened = openedModals.slice(before);
   const buttons = opened.flatMap((dialog) => Array.from(dialog.contentEl.querySelectorAll("button")));
   const button = (text: string) => buttons.find((candidate) => candidate.textContent === text)!;

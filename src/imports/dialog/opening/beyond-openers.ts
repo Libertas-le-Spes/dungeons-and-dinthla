@@ -10,6 +10,7 @@ import type { OnlineSource } from "../online/online-source";
 import { AfterNewImport, AfterUpdate } from "./after-import";
 import { openImport, openUpdate, type ImportPlace } from "./open-import";
 import type { NoteRef } from "../../../host/notes/note-ref";
+import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
 
 export interface BeyondWiring {
   readonly app: App;
@@ -34,6 +35,7 @@ class CampaignPlace implements ImportPlace {
   constructor(
     private readonly wiring: BeyondWiring,
     readonly campaignFolder: string,
+    private readonly syntax: PropertiesSyntax,
   ) {
     this.app = wiring.app;
     this.files = wiring.files;
@@ -52,11 +54,11 @@ class WiredOffers implements OfferWiring {
   readonly actions: LeavingActions;
   readonly cast: CampaignCast;
 
-  constructor(private readonly wiring: BeyondWiring) {
+  constructor(private readonly wiring: BeyondWiring, syntax: PropertiesSyntax) {
     this.app = wiring.app;
     this.files = wiring.files;
     this.actions = wiring.actions;
-    this.cast = new NotesCast(wiring.metadata, wiring.files);
+    this.cast = new NotesCast(wiring.metadata, wiring.files, syntax);
   }
 
   campaignFolderOf(path: string): string | null {
@@ -75,8 +77,11 @@ class WiredOffers implements OfferWiring {
 export class BeyondOpeners {
   private readonly offers: MainOffers;
 
-  constructor(private readonly wiring: BeyondWiring) {
-    this.offers = new MainOffers(new WiredOffers(wiring));
+  constructor(
+    private readonly wiring: BeyondWiring,
+    private readonly syntax: PropertiesSyntax,
+  ) {
+    this.offers = new MainOffers(new WiredOffers(wiring, syntax), this.syntax);
   }
 
   makeMain(path: string, returnFocus: () => void): void {
@@ -93,7 +98,7 @@ export class BeyondOpeners {
       this.wiring.tell(NO_CAMPAIGN);
       return;
     }
-    openImport(new CampaignPlace(this.wiring, folder), new AfterNewImport(returnFocus, this.wiring.showSheet.bind(this.wiring), this.offers));
+    openImport(new CampaignPlace(this.wiring, folder, this.syntax), new AfterNewImport(returnFocus, this.wiring.showSheet.bind(this.wiring), this.offers), this.syntax);
   }
 
   async updateFromBeyond(file: NoteRef, returnFocus: () => void): Promise<void> {
@@ -102,6 +107,6 @@ export class BeyondOpeners {
       this.wiring.tell(NOT_IN_A_CAMPAIGN);
       return;
     }
-    await openUpdate(new CampaignPlace(this.wiring, folder), file, new AfterUpdate(returnFocus, this.offers));
+    await openUpdate(new CampaignPlace(this.wiring, folder, this.syntax), file, new AfterUpdate(returnFocus, this.offers), this.syntax);
   }
 }

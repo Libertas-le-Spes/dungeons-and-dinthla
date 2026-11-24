@@ -7,6 +7,7 @@ import type { MainSwitch } from "../switching/main-switch";
 import { OldMainSteps } from "../switching/old-main-steps";
 import type { SwitchChoice } from "./switch-choice";
 import type { LeavingActions, LeavingFiles } from "../switching/switch-plan";
+import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
 
 export class MakeMainChoice implements SwitchChoice {
   readonly words = MAKE_MAIN_WORDS;
@@ -17,6 +18,7 @@ export class MakeMainChoice implements SwitchChoice {
     private readonly cast: CampaignCast,
     private readonly mainSwitch: MainSwitch,
     private readonly old: AskedNote | null,
+    private readonly syntax: PropertiesSyntax,
   ) {}
 
   async run(): Promise<boolean> {
@@ -29,6 +31,6 @@ export class MakeMainChoice implements SwitchChoice {
 
   private async oldWrites(): Promise<PlannedWrite[]> {
     if (this.old === null) return [];
-    return new OldMainSteps(this.files, this.actions, this.cast, this.mainSwitch.plan, this.old.file, "").finishing();
+    return new OldMainSteps(this.files, this.actions, this.cast, this.mainSwitch.plan, this.old.file, "", this.syntax).finishing();
   }
 }

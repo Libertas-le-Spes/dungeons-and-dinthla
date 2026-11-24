@@ -17,6 +17,7 @@ import { stubLineOpeners } from "../../session-notes/lines/stub-line-openers";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { WantedLines } from "../../../src/views/opening/wanted-lines";
 import { stubRenumbering } from "../../session-notes/renumbering/stub-renumbering";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const ELEVEN = "Pale Moon/Sessions/Session 11.md";
 const TWELVE = "Pale Moon/Sessions/Session 12.md";
@@ -63,7 +64,7 @@ function made(path: string | null, sessions = BOTH, latestAfterDelete: string | 
   root.ownerDocument.body.append(root);
   const show = vi.fn();
   const stayOn = vi.fn();
-  const page = notesSection(needs)(root, show, path, stayOn);
+  const page = notesSection(needs, STUB_SYNTAX)(root, show, path, stayOn);
   page.load();
   return { root, page, show, startSession, stayOn, trash };
 }

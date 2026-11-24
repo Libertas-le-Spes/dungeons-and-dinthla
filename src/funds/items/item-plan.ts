@@ -3,7 +3,7 @@ import { buildCampaign } from "../../campaign/reading/build-campaign";
 import type { CoinRecord, ItemEvent, ItemRecord, SessionNote } from "../../campaign/record/campaign";
 import { lineAsRead, removalAsRead, type Removal } from "../../campaign/writing/note-editor";
 import { lineTakenOut, type Rewrite } from "../../campaign/changes/session-change";
-import { sessionNumberOf } from "../../campaign/paths/session-file";
+import { sessionNumberOf, type PropertiesSyntax } from "../../campaign/paths/session-file";
 import { withoutBullet } from "../../notes/parts/bullet";
 import { readAmount, type AmountReading } from "../../notes/writing/coin-lines";
 import { readItemChange } from "../../notes/reading/item-change";
@@ -208,8 +208,8 @@ function planPriceChange(
   };
 }
 
-function writtenAfterRemoval(sessions: SessionNote[], removal: Removal, item: ItemRecord): string | undefined {
-  const removed = applySessionChange(sessions, lineTakenOut(removal));
+function writtenAfterRemoval(sessions: SessionNote[], removal: Removal, item: ItemRecord, syntax: PropertiesSyntax): string | undefined {
+  const removed = applySessionChange(sessions, lineTakenOut(removal), syntax);
   const after = buildCampaign(removed.sessions);
   const found = after.items.find((candidate) => candidate.name === item.name);
   if (found === undefined) return undefined;
@@ -222,6 +222,7 @@ export function planItemSave(
   sessions: SessionNote[],
   coins: CoinRecord[],
   targetPath: string,
+  syntax: PropertiesSyntax,
 ): ItemPlan | { error: string } {
   const statusChanged = edit.status !== statusOf(item);
   const holderChanged = !sameName(edit.holder, item.holder);
@@ -244,7 +245,7 @@ export function planItemSave(
     expected.revive(holderText);
   }
   let keepsItsWritten = false;
-  if (removal !== null && edit.status === "held") keepsItsWritten = writtenAfterRemoval(sessions, removal, item) !== item.written;
+  if (removal !== null && edit.status === "held") keepsItsWritten = writtenAfterRemoval(sessions, removal, item, syntax) !== item.written;
   let takenFrom = holderText;
   if (holderChanged || keepsItsWritten) {
     let given = item.held;
@@ -293,9 +294,9 @@ function signatureOf(item: ItemRecord): string {
   return signature(item, stateOf(item));
 }
 
-export function refusalForItemPlan(sessions: SessionNote[], item: ItemRecord, plan: ItemPlan): string | null {
+export function refusalForItemPlan(sessions: SessionNote[], item: ItemRecord, plan: ItemPlan, syntax: PropertiesSyntax): string | null {
   const before = buildCampaign(sessions);
-  const after = buildCampaign(applySessionChange(sessions, itemSessionChange(plan)).sessions);
+  const after = buildCampaign(applySessionChange(sessions, itemSessionChange(plan), syntax).sessions);
   const wanted: string[] = [];
   for (const candidate of before.items) {
     if (candidate.name !== item.name) wanted.push(signatureOf(candidate));

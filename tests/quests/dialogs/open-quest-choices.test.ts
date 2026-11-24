@@ -6,6 +6,7 @@ import { GOES_ELSEWHERE } from "../../../src/quests/writing/current-quest";
 import { openQuest } from "../../../src/quests/dialogs/open-quest";
 import type { QuestEdit } from "../../../src/quests/writing/quest-plan";
 import { DialogCampaign, lastDialog, SESSION_TWO_LOST } from "../../campaign/dialog-campaign";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
@@ -18,7 +19,7 @@ interface QuestChoices {
 const app = {} as App;
 
 function questChoices(campaign: DialogCampaign, source: Source, activePath: string = ONE): QuestChoices {
-  openQuest(app, campaign.gate, campaign.store, source, () => undefined, () => undefined, activePath);
+  openQuest(app, campaign.gate, campaign.store, source, () => undefined, () => undefined, activePath, STUB_SYNTAX);
   return lastDialog<{ choices: QuestChoices }>().choices;
 }
 

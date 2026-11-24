@@ -8,6 +8,7 @@ import { readMarker } from "../../notes/reading/marker";
 import { oneLine } from "../../notes/parts/one-line";
 import { answerLine, followUpQuestionLine, questionTextOf } from "../../notes/writing/question-lines";
 import { questionSessionChange } from "./question-session-change";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export interface QuestionEdit {
   answer: string;
@@ -88,12 +89,12 @@ function followUpOf(campaign: Campaign, plan: QuestionPlan): QuestionRecord | un
   return campaign.questions.filter((question) => question.source.path === plan.followUpPath && question.text === plan.followUpText).pop();
 }
 
-export function refusalForQuestionPlan(sessions: SessionNote[], question: QuestionRecord, plan: QuestionPlan): string | null {
+export function refusalForQuestionPlan(sessions: SessionNote[], question: QuestionRecord, plan: QuestionPlan, syntax: PropertiesSyntax): string | null {
   const known = new Set(sessions.map((session) => session.path));
   if (!known.has(plan.answerPath) || !known.has(plan.followUpPath)) return CHANGES_MORE_THAN_ASKED;
   const before = buildCampaign(sessions);
   if (plan.followUpText !== null && before.questions.some((existing) => existing.text === plan.followUpText)) return FOLLOW_UP_ALREADY_ASKED;
-  const after = buildCampaign(applySessionChange(sessions, questionSessionChange(plan)).sessions);
+  const after = buildCampaign(applySessionChange(sessions, questionSessionChange(plan), syntax).sessions);
   const wanted = before.questions.map((candidate) => {
     const isOpened = candidate.source.path === question.source.path && candidate.source.line === question.source.line;
     if (isOpened) return signatureOf(candidate, plan.expectedAnswer);

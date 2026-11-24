@@ -3,9 +3,10 @@ import type { SessionNote } from "../../../src/campaign/record/campaign";
 import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
 import { askedNamesIn } from "../../../src/references/asking/asked-names";
 import { firstOf } from "../../stubs/lists";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 function session(number: number, lines: string[]): SessionNote {
-  return sessionNoteOf(`Pale Moon/Sessions/Session ${number}.md`, number, lines.join("\n"));
+  return sessionNoteOf(`Pale Moon/Sessions/Session ${number}.md`, number, lines.join("\n"), STUB_SYNTAX);
 }
 
 function askedFrom(sessions: SessionNote[]) {

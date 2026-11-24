@@ -11,6 +11,7 @@ import { ItemModal } from "../../../src/funds/items/item-modal";
 import type { ItemEdit } from "../../../src/funds/items/item-plan";
 import { DialogCampaign, lastDialog } from "../../campaign/dialog-campaign";
 import { Modal, Notice, openedModals } from "../../stubs/obsidian";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
@@ -37,7 +38,7 @@ function campaignFolders(): string[] {
 function trackingIn(campaign: DialogCampaign, store: CampaignStore = campaign.store): FundsTracking {
   campaign.holdCharacterNote(PRIMARY);
   campaign.addCharacterNote("Pale Moon/Characters/Secondary.md");
-  return new FundsTracking(app, campaign.gate, store, campaignFolders);
+  return new FundsTracking(app, campaign.gate, store, campaignFolders, STUB_SYNTAX);
 }
 
 function lookOf(campaign: DialogCampaign, written: string[]) {

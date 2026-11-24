@@ -7,6 +7,7 @@ import { openAddCoin } from "../../../src/funds/coins/open-add-coin";
 import { openNewQuestion } from "../../../src/questions/dialogs/open-new-question";
 import { openNewQuest } from "../../../src/quests/dialogs/open-new-quest";
 import { Notice, openedModals } from "../../stubs/obsidian";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const noCampaign = { campaignFolder: null } as CampaignStore;
 
@@ -16,9 +17,9 @@ beforeEach(() => {
 
 describe("a dialog that writes into a session, without a campaign", () => {
   it.each([
-    ["Add coin", (app: App) => openAddCoin(app, {} as Gate, noCampaign, vi.fn(), null)],
-    ["New question", (app: App) => openNewQuestion(app, {} as Gate, noCampaign, vi.fn())],
-    ["New quest", (app: App) => openNewQuest(app, {} as Gate, noCampaign, vi.fn())],
+    ["Add coin", (app: App) => openAddCoin(app, {} as Gate, noCampaign, vi.fn(), null, STUB_SYNTAX)],
+    ["New question", (app: App) => openNewQuestion(app, {} as Gate, noCampaign, vi.fn(), STUB_SYNTAX)],
+    ["New quest", (app: App) => openNewQuest(app, {} as Gate, noCampaign, vi.fn(), STUB_SYNTAX)],
   ])("%s says to make a campaign first and opens nothing", (_name, open) => {
     const before = openedModals.length;
     open({} as App);

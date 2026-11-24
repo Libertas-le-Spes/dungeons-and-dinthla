@@ -1,7 +1,7 @@
 import { RangeSetBuilder, type EditorState } from "@codemirror/state";
 import { Decoration, ViewPlugin, type DecorationSet, type EditorView, type ViewUpdate } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
-import { firstLineAfterProperties } from "../campaign/paths/session-file";
+import { firstLineAfterProperties, type PropertiesSyntax } from "../campaign/paths/session-file";
 import type { MarkerName } from "../kinds/marker-name";
 import type { TrackedMarker } from "../kinds/tracked-marker";
 import { ALL_MARKERS } from "../kinds/tracked-markers";
@@ -20,14 +20,14 @@ function colourOf(marker: TrackedMarker): [MarkerName, Decoration] {
 
 const MARKER_COLOURS = new Map<MarkerName, Decoration>(ALL_MARKERS.map(colourOf));
 
-export function bodyStartOf(state: EditorState): number {
+export function bodyStartOf(state: EditorState, syntax: PropertiesSyntax): number {
   const lastSearched = state.doc.line(Math.min(state.doc.lines, PROPERTIES_SEARCH_LINES));
-  return firstLineAfterProperties(state.doc.sliceString(0, lastSearched.to));
+  return firstLineAfterProperties(state.doc.sliceString(0, lastSearched.to), syntax);
 }
 
-export function markerDecorations(state: EditorState, ranges: readonly VisibleRange[]): DecorationSet {
+export function markerDecorations(state: EditorState, ranges: readonly VisibleRange[], syntax: PropertiesSyntax): DecorationSet {
   const builder = new RangeSetBuilder<Decoration>();
-  let lastLine = bodyStartOf(state);
+  let lastLine = bodyStartOf(state, syntax);
   for (const { from, to } of ranges) {
     let position = from;
     while (position <= to) {
@@ -50,10 +50,10 @@ export function isSessionEditor(state: EditorState, isSessionNote: (path: string
   return isSessionNote(info.file.path);
 }
 
-export function markerColouring(isSessionNote: (path: string) => boolean) {
+export function markerColouring(isSessionNote: (path: string) => boolean, syntax: PropertiesSyntax) {
   const colour = (view: EditorView): DecorationSet => {
     if (!isSessionEditor(view.state, isSessionNote)) return Decoration.none;
-    return markerDecorations(view.state, view.visibleRanges);
+    return markerDecorations(view.state, view.visibleRanges, syntax);
   };
 
   class MarkerColouring {

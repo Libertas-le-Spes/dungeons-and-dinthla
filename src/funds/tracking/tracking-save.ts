@@ -1,6 +1,6 @@
 import { writeInSession } from "../../campaign/changes/write-in-session";
 import { OpenedSession } from "../../campaign/paths/session-gone";
-import { sessionNoteOf } from "../../campaign/paths/session-file";
+import { sessionNoteOf, type PropertiesSyntax } from "../../campaign/paths/session-file";
 import type { SessionNote } from "../../campaign/record/campaign";
 import { NoteEditor, type EditorFiles } from "../../campaign/writing/note-editor";
 import type { RecordChange } from "../../campaign/changes/record-change";
@@ -9,10 +9,10 @@ import type { TrackedItem } from "./tracked-item";
 import { trackingChange, type TrackingSessions } from "./tracking-change";
 import { refusalForTracking } from "./tracking-refusal";
 
-function withLiveText(sessions: readonly SessionNote[], sessionPath: string, liveText: string): SessionNote[] {
+function withLiveText(sessions: readonly SessionNote[], sessionPath: string, liveText: string, syntax: PropertiesSyntax): SessionNote[] {
   const live: SessionNote[] = [];
   for (const session of sessions) {
-    if (session.path === sessionPath) live.push(sessionNoteOf(session.path, session.number, liveText));
+    if (session.path === sessionPath) live.push(sessionNoteOf(session.path, session.number, liveText, syntax));
     else live.push(session);
   }
   return live;
@@ -26,8 +26,9 @@ class LiveTrackingWriter {
     private readonly store: TrackingSessions,
     private readonly tracked: TrackedItem,
     private readonly sessionPath: string,
+    private readonly syntax: PropertiesSyntax,
   ) {
-    this.editor = new NoteEditor(files);
+    this.editor = new NoteEditor(files, syntax);
   }
 
   async apply(): Promise<boolean> {
@@ -35,7 +36,7 @@ class LiveTrackingWriter {
   }
 
   private refusalFor(liveText: string): string | null {
-    return refusalForTracking(withLiveText(this.store.sessionNotes, this.sessionPath, liveText), this.tracked, this.sessionPath);
+    return refusalForTracking(withLiveText(this.store.sessionNotes, this.sessionPath, liveText, this.syntax), this.tracked, this.sessionPath, this.syntax);
   }
 }
 
@@ -48,8 +49,9 @@ export class TrackingSave implements TrackSaving {
     private readonly store: TrackingSessions,
     private readonly tracked: TrackedItem,
     private readonly sessionPath: string,
+    private readonly syntax: PropertiesSyntax,
   ) {
-    this.writer = new LiveTrackingWriter(files, store, tracked, sessionPath);
+    this.writer = new LiveTrackingWriter(files, store, tracked, sessionPath, this.syntax);
     this.session = new OpenedSession(files, sessionPath);
   }
 
@@ -58,6 +60,6 @@ export class TrackingSave implements TrackSaving {
   }
 
   private change(): RecordChange<TrackedItem> {
-    return trackingChange(this.store, this.tracked, this.sessionPath);
+    return trackingChange(this.store, this.tracked, this.sessionPath, this.syntax);
   }
 }

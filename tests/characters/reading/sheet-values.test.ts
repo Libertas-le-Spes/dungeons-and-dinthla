@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { SessionNote } from "../../../src/campaign/record/campaign";
 import { factsByCharacter, isSheetName, modifierOf, overrideFacts, sheetValuesOf } from "../../../src/characters/reading/sheet-values";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 function session(number: number, lines: string[], firstLine = 0): SessionNote {
   return { path: `Pale Moon/Sessions/Session ${number}.md`, number, firstLine, text: lines.join("\n") };
@@ -49,7 +50,7 @@ describe("factsByCharacter", () => {
 describe("overrideFacts", () => {
   it("reads facts at the start of the character's own lines, after its properties, with their lines", () => {
     const note = ["---", "class: wizard", "---", "AC: 16", "- speed: 30 ft.", "She knows every ferry."].join("\n");
-    expect(overrideFacts(note, MIRA)).toEqual([
+    expect(overrideFacts(note, MIRA, STUB_SYNTAX)).toEqual([
       { name: "AC", value: "16", source: { path: MIRA, line: 3 } },
       { name: "speed", value: "30 ft.", source: { path: MIRA, line: 4 } },
     ]);

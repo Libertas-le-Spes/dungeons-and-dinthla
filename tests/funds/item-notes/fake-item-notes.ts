@@ -164,7 +164,7 @@ export async function settle(): Promise<void> {
 
 export async function keepHolders(lines: string[], notes: ItemNote[]) {
   const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
-  const store = new CampaignStore(sessions.vault);
+  const store = new CampaignStore(sessions.vault, STUB_SYNTAX);
   const itemNotes = new FakeItemNotes(notes);
   const stop = new ItemNotes(itemNotes.needsFor(store)).start();
   await store.open(CAMPAIGN);

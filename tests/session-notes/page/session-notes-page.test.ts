@@ -84,7 +84,7 @@ function pageWith(
     removal: { clearer: new SessionClearer(notes.store, STUB_SYNTAX), trash: new SessionTrash(notes.store, { throwAway: trashFile }, () => false), renumbering: stubRenumbering({ latest: latestAfterDelete }), confirm, report: vi.fn() },
     wantedLines,
   };
-  const page = new SessionNotesPage(root, asked, needs, moves);
+  const page = new SessionNotesPage(root, asked, needs, moves, STUB_SYNTAX);
   page.load();
   const select = () => root.querySelector("select")!;
   const lineOpeners = needs.lineOpeners;

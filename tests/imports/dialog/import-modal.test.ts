@@ -20,6 +20,7 @@ import { IMPORT_TITLE, STILL_READING, UPDATE_TITLE } from "../../../src/imports/
 import type { Modal as StubModal } from "../../stubs/obsidian";
 import { queuedWorkRan } from "../../stubs/queued-work";
 import { SettleWatch } from "../../stubs/settle-watch";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const TYPED_TEXT_NOT_SHOWN = typedTextNotShown().message;
 
@@ -43,17 +44,17 @@ function monkPdf(): Uint8Array {
 }
 
 function importDialog(): DialogDriver {
-  const writer = new ImportWriter(vault.notes.store, CHARACTERS_FOLDER, CAMPAIGN_FOLDER);
+  const writer = new ImportWriter(vault.notes.store, CHARACTERS_FOLDER, CAMPAIGN_FOLDER, STUB_SYNTAX);
   return new DialogDriver(new NewImportFlow(writer, CHARACTERS_FOLDER, vault.allNotes.bind(vault)), { today: TODAY, online: NO_ONLINE });
 }
 
 function updateDialog(path: string): DialogDriver {
-  const writer = new ImportWriter(vault.notes.store, CHARACTERS_FOLDER, CAMPAIGN_FOLDER);
+  const writer = new ImportWriter(vault.notes.store, CHARACTERS_FOLDER, CAMPAIGN_FOLDER, STUB_SYNTAX);
   return new DialogDriver(new UpdateFlow(writer, vault.fileAt(path), null), { today: TODAY, online: NO_ONLINE });
 }
 
 function monkNoteText(before: string): string {
-  return importedNoteText({ current: before, sheet: printedOf(MadeUpSheet.monk()), stamp: stampedOn(TODAY) });
+  return importedNoteText({ current: before, sheet: printedOf(MadeUpSheet.monk()), stamp: stampedOn(TODAY) }, STUB_SYNTAX);
 }
 
 describe("the import dialog's own work, which its tests await", () => {
@@ -263,7 +264,7 @@ describe("importing a character from a made-up PDF", () => {
   });
 
   it("is refused by the gate for a Characters folder outside the Campaigns folder, and writes nothing", async () => {
-    const writer = new ImportWriter(vault.notes.store, "Private/Characters", "Private");
+    const writer = new ImportWriter(vault.notes.store, "Private/Characters", "Private", STUB_SYNTAX);
     const dialog = new DialogDriver(new NewImportFlow(writer, "Private/Characters", vault.allNotes.bind(vault)), { today: TODAY, online: NO_ONLINE });
     dialog.pick(pickedFileOf(monkPdf()));
     await dialog.settled(".dd-import-write");
@@ -342,7 +343,7 @@ describe("Update from D&D Beyond with another character's PDF", () => {
 describe("a new note whose name is taken", () => {
   it("is refused in the review, before any Import button", async () => {
     vault.note(`${CHARACTERS_FOLDER}/primary monk.md`, "Notes of mine.\n");
-    const dialog = new DialogDriver(new NewImportFlow(new ImportWriter(vault.notes.store, CHARACTERS_FOLDER, CAMPAIGN_FOLDER), CHARACTERS_FOLDER, noNotes), { today: TODAY, online: NO_ONLINE });
+    const dialog = new DialogDriver(new NewImportFlow(new ImportWriter(vault.notes.store, CHARACTERS_FOLDER, CAMPAIGN_FOLDER, STUB_SYNTAX), CHARACTERS_FOLDER, noNotes), { today: TODAY, online: NO_ONLINE });
     dialog.pick(pickedFileOf(monkPdf()));
     const refusal = await dialog.settled(".dd-import-refusal");
     expect(refusal.textContent).toBe("A note called primary monk is already in Characters. Rename or move it.");

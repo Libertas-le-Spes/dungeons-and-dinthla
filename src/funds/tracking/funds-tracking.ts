@@ -1,7 +1,7 @@
 import { Notice, type App } from "obsidian";
 import type { NoteRef } from "../../host/notes/note-ref";
 import { isInReferenceFolder } from "../../campaign/paths/campaign-folders";
-import { sessionLabelOf } from "../../campaign/paths/session-file";
+import { sessionLabelOf, type PropertiesSyntax } from "../../campaign/paths/session-file";
 import { sessionForDialog } from "../../campaign/paths/session-for-dialog";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { ItemRecord } from "../../campaign/record/campaign";
@@ -55,6 +55,7 @@ export class FundsTracking implements ItemTracking {
     private readonly gate: Gate,
     private readonly store: CampaignStore,
     private readonly campaignFolders: () => string[],
+    private readonly syntax: PropertiesSyntax,
   ) {}
 
   lookAt(file: NoteRef, written: readonly string[]): FundsLook | null {
@@ -87,7 +88,7 @@ export class FundsTracking implements ItemTracking {
       return;
     }
     const tracked = trackedItemOf({ holderText: holder, written: text, holderName: file.basename, count: trackedCountOf(item.count) });
-    const saving = new TrackingSave(this.gate.notes.store, this.store, tracked, sessionPath);
+    const saving = new TrackingSave(this.gate.notes.store, this.store, tracked, sessionPath, this.syntax);
     const shown = { name: withoutEscapes(text), holder: file.basename, writesTo: sessionLabelOf(sessionPath), line: tracked.line };
     new TrackItemModal(this.app, shown, saving, returnFocus).open();
   }
@@ -103,7 +104,7 @@ export class FundsTracking implements ItemTracking {
       return;
     }
     const note = new ItemNote(this.app, this.gate, item);
-    openItemDialogAs(this.app, this.gate, this.store, { name, status, source: null }, note.show.bind(note), returnFocus, null);
+    openItemDialogAs(this.app, this.gate, this.store, { name, status, source: null }, note.show.bind(note), returnFocus, null, this.syntax);
   }
 
   private isInSomeCampaign(file: NoteRef): boolean {

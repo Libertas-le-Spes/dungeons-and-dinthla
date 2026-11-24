@@ -29,6 +29,7 @@ import { linesWrittenIn, type WrittenLineRows } from "./latest-session";
 import { addItemEventRow } from "./item-event-row";
 import { addShortCharacterCard } from "./short-character-card";
 import { PendingWork } from "../views/pending/pending-work";
+import type { PropertiesSyntax } from "../campaign/paths/session-file";
 
 const SHOWN_ROWS = 3;
 const NO_SESSION = "No sessions yet.";
@@ -93,6 +94,7 @@ export class DashboardPage extends Component {
     private readonly notes: CharacterNotes,
     private readonly actions: DashboardActions,
     private readonly newsLineFor: NewsLineFor,
+    private readonly syntax: PropertiesSyntax,
   ) {
     super();
   }
@@ -290,6 +292,6 @@ export class DashboardPage extends Component {
     const folder = this.store.campaignFolder;
     if (folder === null) return [];
     const learned = learnedFactsOf(this.store.sessionNotes, this.notes);
-    return Promise.all(this.notes.filesIn(folder).map((file) => readCharacterCard(file, learned, this.notes)));
+    return Promise.all(this.notes.filesIn(folder).map((file) => readCharacterCard(file, learned, this.notes, this.syntax)));
   }
 }

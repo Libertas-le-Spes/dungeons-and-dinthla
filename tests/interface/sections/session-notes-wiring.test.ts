@@ -16,6 +16,7 @@ import { stubLineOpeners } from "../../session-notes/lines/stub-line-openers";
 import { KeptDrafts } from "../../../src/session-notes/kept/kept-drafts";
 import { WantedLines } from "../../../src/views/opening/wanted-lines";
 import { FakeEvents, fileAt, rawVaultWith } from "../../fence/gate/fake-raw-vault";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const SESSION = fileAt("D&D/Pale Moon/Sessions/Session 1.md");
 const CACHE = { frontmatter: { title: "The Old Mill" } } as unknown as CachedMetadata;
@@ -46,7 +47,7 @@ function wiredWith(trashOption: string) {
   const keeping = { keptDrafts: new KeptDrafts(drafts, () => 1_000), noteDrafts: new NoteDrafts(drafts) };
   const needs = {
     gate: fullGate,
-    store: new CampaignStore(fullGate.notes.store),
+    store: new CampaignStore(fullGate.notes.store, STUB_SYNTAX),
     drafts,
     keeping,
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
@@ -58,7 +59,7 @@ function wiredWith(trashOption: string) {
     report: vi.fn(),
     startSession: vi.fn(),
   };
-  return { wiring: sessionNotesWiring(needs), needs, rawMetadata };
+  return { wiring: sessionNotesWiring(needs, STUB_SYNTAX), needs, rawMetadata };
 }
 
 describe("sessionNotesWiring", () => {

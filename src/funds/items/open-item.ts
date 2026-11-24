@@ -2,7 +2,7 @@ import type { App } from "obsidian";
 import type { Source } from "../../campaign/record/campaign";
 import { charactersIn } from "../../characters/reading/characters";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
-import { sessionLabelOf } from "../../campaign/paths/session-file";
+import { sessionLabelOf, type PropertiesSyntax } from "../../campaign/paths/session-file";
 import { sessionForDialog } from "../../campaign/paths/session-for-dialog";
 import { openSource } from "../../views/opening/open-view";
 import { ItemModal } from "./item-modal";
@@ -22,8 +22,9 @@ export function openItemDialog(
   onClosed: (changed: boolean) => void,
   activePath: string | null,
   source: Source | null,
+  syntax: PropertiesSyntax,
 ): void {
-  openItemDialogAs(app, gate, store, { name, status: null, source }, openNote, onClosed, activePath);
+  openItemDialogAs(app, gate, store, { name, status: null, source }, openNote, onClosed, activePath, syntax);
 }
 
 export interface ItemAsked {
@@ -45,6 +46,7 @@ export function openItemDialogAs(
   openNote: () => void,
   onClosed: (changed: boolean) => void,
   activePath: string | null,
+  syntax: PropertiesSyntax,
 ): void {
   const name = asked.name;
   const item = itemNamedAt(store.current.items, name, asked.source);
@@ -60,7 +62,7 @@ export function openItemDialogAs(
     store.current.items.map(holderOptionOf),
     charactersIn(gate, folder, sessionPath).map((character) => ({ text: `[[${character.linktext}]]`, label: character.name })),
   );
-  const opened = openedItem(gate.notes.store, store, item, sessionPath);
+  const opened = openedItem(gate.notes.store, store, item, sessionPath, syntax);
   const openNoteAt = (source: Source) => void openSource(app, gate, source);
   new ItemModal(app, item, editAsked(opened.edit, asked), holders, sessionLabelOf(sessionPath), opened.save, openNoteAt, onClosed).open();
 }

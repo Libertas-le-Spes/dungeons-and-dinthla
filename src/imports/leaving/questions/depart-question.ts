@@ -7,6 +7,7 @@ import { Retired } from "../reasons/retired";
 import type { AskedNote } from "../switching/asked-note";
 import { WHAT_HAPPENED, type MainQuestion } from "./main-question";
 import type { QuestionParts } from "./question-parts";
+import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
 
 export class DepartQuestion implements MainQuestion {
   readonly title: string;
@@ -15,10 +16,10 @@ export class DepartQuestion implements MainQuestion {
   readonly ownWords = new OwnWords();
   readonly choices: readonly SwitchChoice[];
 
-  constructor(parts: QuestionParts, note: AskedNote) {
+  constructor(parts: QuestionParts, note: AskedNote, syntax: PropertiesSyntax) {
     this.title = note.file.basename;
     const choices: SwitchChoice[] = [];
-    for (const reason of [new Died(), new Retired(), new Departed(this.ownWords)]) choices.push(new DepartChoice(parts, note, reason));
+    for (const reason of [new Died(), new Retired(), new Departed(this.ownWords)]) choices.push(new DepartChoice(parts, note, reason, syntax));
     this.choices = choices;
   }
 }

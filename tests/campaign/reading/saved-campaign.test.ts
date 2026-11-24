@@ -8,6 +8,7 @@ import { FakeEvents } from "../../fence/gate/fake-raw-vault";
 import { notesOverFakes } from "../../host/notes-over-fakes";
 import { noteNameOf } from "../../../src/campaign/paths/note-name";
 import { FakeVault } from "../fake-vault";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const CAMPAIGN = "D&D/Pale Moon";
 const SESSION = `${CAMPAIGN}/Sessions/Session 1.md`;
@@ -35,9 +36,9 @@ function savedCampaignOf(text: string) {
   const files = { on: fileEvents.on.bind(fileEvents), offref: fileEvents.offref.bind(fileEvents) };
   const metadata = { on: metadataEvents.on.bind(metadataEvents), offref: metadataEvents.offref.bind(metadataEvents) };
   const changes = notesOverFakes({ files, metadata });
-  const shown = new CampaignStore(shownVault);
+  const shown = new CampaignStore(shownVault, STUB_SYNTAX);
   const failures: unknown[] = [];
-  const saved = new SavedCampaign({ shown, notes: { store, changes }, failed: (error) => failures.push(error) });
+  const saved = new SavedCampaign({ shown, notes: { store, changes }, failed: (error) => failures.push(error) }, STUB_SYNTAX);
   const saveSession = (saved: string) => metadataEvents.trigger("changed", { path: SESSION }, saved, {});
   const renameSession = (oldPath: string, path: string) => {
     sessions.rename(oldPath, path);

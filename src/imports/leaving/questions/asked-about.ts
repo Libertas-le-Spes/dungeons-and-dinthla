@@ -8,6 +8,7 @@ import { CAMPAIGN_NOTE_UNREAD, MAIN_UNCLEAR, NOT_A_CAMPAIGN_CHARACTER } from "..
 import type { OfferWiring } from "./offer-wiring";
 import type { QuestionParts } from "./question-parts";
 import type { NoteRef } from "../../../host/notes/note-ref";
+import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
 
 export interface Asked {
   readonly folder: string;
@@ -23,7 +24,7 @@ function campaignOfChosen(wiring: OfferWiring, file: NoteRef): string {
   return folder;
 }
 
-export async function askedAbout(wiring: OfferWiring, chosen: NoteRef): Promise<Asked> {
+export async function askedAbout(wiring: OfferWiring, chosen: NoteRef, syntax: PropertiesSyntax): Promise<Asked> {
   const folder = campaignOfChosen(wiring, chosen);
   const campaignNote = wiring.files.note(mainNotePathOf(folder));
   if (campaignNote === null) throw new Refusal(CAMPAIGN_NOTE_UNREAD);
@@ -32,6 +33,6 @@ export async function askedAbout(wiring: OfferWiring, chosen: NoteRef): Promise<
   if (old !== null && !isInCharactersOrFallen(old, folder)) throw new Refusal(MAIN_UNCLEAR);
   const chosenIsNamed = old !== null && old.path === chosen.path;
   const plan = { campaignFolder: folder, campaignNote: AskedNote.of(campaignNote), asked, chosen: AskedNote.of(chosen), chosenIsNamed, today: wiring.today() };
-  const parts: QuestionParts = { files: wiring.files, actions: wiring.actions, cast: wiring.cast, mainSwitch: new MainSwitch(wiring.files, wiring.actions, wiring.cast, plan) };
+  const parts: QuestionParts = { files: wiring.files, actions: wiring.actions, cast: wiring.cast, mainSwitch: new MainSwitch(wiring.files, wiring.actions, wiring.cast, plan, syntax) };
   return { folder, old, chosenIsNamed, parts };
 }

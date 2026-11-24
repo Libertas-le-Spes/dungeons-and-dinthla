@@ -11,6 +11,7 @@ import { HeldCalls } from "../../stubs/held-calls";
 import { queuedWorkRan } from "../../stubs/queued-work";
 import { SettleWatch } from "../../stubs/settle-watch";
 import { RecordingTracking } from "../imported/builders/recording-tracking";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 function fileAt(path: string): TFile {
   return { path, basename: path.slice(path.lastIndexOf("/") + 1, -3) } as TFile;
@@ -129,7 +130,7 @@ function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf, link
   root.ownerDocument.body.append(root);
   const pages: CharacterSheetPage[] = [];
   const start = (file = MIRA) => {
-    const page = new CharacterSheetPage(root, file, store, notes, actions, mentionNotes);
+    const page = new CharacterSheetPage(root, file, store, notes, actions, mentionNotes, STUB_SYNTAX);
     pages.push(page);
     page.load();
     return page;

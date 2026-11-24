@@ -10,6 +10,7 @@ import { obsidianDocument } from "../../../stubs/obsidian-dom";
 import { textOf } from "../../../imports/builders/line-helpers";
 import { MADE_UP_ADVICE, MadeUpLook, RecordingTracking } from "../builders/recording-tracking";
 import { madeUpFile } from "../builders/made-up-file";
+import { STUB_SYNTAX } from "../../../host/stub-syntax";
 
 const PRIMARY = madeUpFile("D&D/Primary Campaign/Characters/Primary Monk.md");
 
@@ -35,7 +36,7 @@ function noteText(route: string): string {
 }
 
 function listsOf(text: string): ImportedLists {
-  const lists = ImportedLists.of(text);
+  const lists = ImportedLists.of(text, STUB_SYNTAX);
   if (lists === null) throw new Error("The note reads as not imported.");
   return lists;
 }

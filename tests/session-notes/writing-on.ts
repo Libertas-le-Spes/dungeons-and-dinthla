@@ -68,8 +68,9 @@ export function writingOn(text: string | null, drafts = new Drafts({}, () => {})
       removal: { clearer: new SessionClearer(notes.store, STUB_SYNTAX), trash: new SessionTrash(notes.store, { throwAway: trashFile }, permanently), renumbering, confirm, report },
     },
     moves,
+    STUB_SYNTAX,
   );
-  const showNote = () => session.show(writtenLinesOf(sessionNoteOf(PATH, 12, String(notes.text))), buildCampaign([]));
+  const showNote = () => session.show(writtenLinesOf(sessionNoteOf(PATH, 12, String(notes.text), STUB_SYNTAX)), buildCampaign([]));
   const window = document.defaultView!;
   const find = <T extends HTMLElement>(selector: string) => root.querySelector<T>(selector)!;
   const button = (selector: string) => find<HTMLButtonElement>(selector);

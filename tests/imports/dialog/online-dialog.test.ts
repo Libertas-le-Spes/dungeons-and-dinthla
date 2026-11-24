@@ -19,6 +19,7 @@ import { DialogDriver, pickedFileOf } from "../builders/dialog-driver";
 import { HeldOnline } from "../builders/made-up-online";
 import { TODAY , stampedOn } from "../builders/made-up-import";
 import { madeUpPdf } from "../builders/made-up-pdf";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const NEW_NOTE = `${CHARACTERS_FOLDER}/Primary Monk.md`;
 const LINK = "https://www.dndbeyond.com/characters/4242";
@@ -41,12 +42,12 @@ function onlineSheet(): PrintedSheet {
 }
 
 function importDialog(): DialogDriver {
-  const writer = new ImportWriter(vault.notes.store, CHARACTERS_FOLDER, CAMPAIGN_FOLDER);
+  const writer = new ImportWriter(vault.notes.store, CHARACTERS_FOLDER, CAMPAIGN_FOLDER, STUB_SYNTAX);
   return new DialogDriver(new NewImportFlow(writer, CHARACTERS_FOLDER, vault.allNotes.bind(vault)), { today: TODAY, online });
 }
 
 function updateDialog(path: string, kept: string | null = null): DialogDriver {
-  const writer = new ImportWriter(vault.notes.store, CHARACTERS_FOLDER, CAMPAIGN_FOLDER);
+  const writer = new ImportWriter(vault.notes.store, CHARACTERS_FOLDER, CAMPAIGN_FOLDER, STUB_SYNTAX);
   return new DialogDriver(new UpdateFlow(writer, vault.fileAt(path), kept), { today: TODAY, online });
 }
 
@@ -91,7 +92,7 @@ describe("pressing the online button", () => {
     dialog.press("Import");
     await dialog.modal.allSettled();
     expect(vault.created).toEqual([NEW_NOTE]);
-    expect(vault.textAt(NEW_NOTE)).toBe(importedNoteText({ current: "", sheet: onlineSheet(), stamp: stampedOn(TODAY) }));
+    expect(vault.textAt(NEW_NOTE)).toBe(importedNoteText({ current: "", sheet: onlineSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX));
   });
 
   it("writes nothing when the review is left with Choose another file, and offers the online way again", async () => {

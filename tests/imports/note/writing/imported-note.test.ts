@@ -17,6 +17,7 @@ import {
   textOf,
 } from "../../builders/line-helpers";
 import { monkSheet, sheetOf, sheetWithCharacter, TODAY , stampedOn } from "../../builders/made-up-import";
+import { STUB_SYNTAX } from "../../../host/stub-syntax";
 
 const NUMBERS = "## Numbers";
 const INVENTORY = "## Inventory";
@@ -26,7 +27,7 @@ const PURSE = "## Purse";
 const ALL_HEADINGS = [NUMBERS, INVENTORY, PURSE, SPELLS, FEATURES];
 
 describe("importedNoteText for a note with nothing in it", () => {
-  const written = importedNoteText({ current: "", sheet: monkSheet(), stamp: stampedOn(TODAY) });
+  const written = importedNoteText({ current: "", sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX);
 
   it("starts with a properties block holding the import's marks and values", () => {
     expect(firstLines(linesOf(written), 18)).toEqual([
@@ -63,7 +64,7 @@ describe("importedNoteText for a note with nothing in it", () => {
 
 describe("importedNoteText for a note that already has words of his own", () => {
   const current = textOf("---", 'carried from: "[[Other Campaign/Characters/Primary Monk]]"', "carried: [abilities, values]", "---", "His own words.", "AC: 10", "");
-  const written = importedNoteText({ current: current, sheet: monkSheet(), stamp: stampedOn(TODAY) });
+  const written = importedNoteText({ current: current, sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX);
 
   it("keeps his properties exactly, in place, and puts the import's after them inside the same block", () => {
     expect(firstLines(linesOf(written), 5)).toEqual(["---", 'carried from: "[[Other Campaign/Characters/Primary Monk]]"', "carried: [abilities, values]", "imported: 2026-11-13", "imported-from: pdf"]);
@@ -81,8 +82,8 @@ describe("importedNoteText for a note that already has words of his own", () => 
 });
 
 describe("importedNoteText for a note that was imported before", () => {
-  const earlier = importedNoteText({ current: "His own words.\n", sheet: monkSheet(), stamp: stampedOn("2026-01-02") });
-  const written = importedNoteText({ current: earlier, sheet: sheetOf(MadeUpSheet.monk().with("AC", "13")), stamp: stampedOn(TODAY) });
+  const earlier = importedNoteText({ current: "His own words.\n", sheet: monkSheet(), stamp: stampedOn("2026-01-02") }, STUB_SYNTAX);
+  const written = importedNoteText({ current: earlier, sheet: sheetOf(MadeUpSheet.monk().with("AC", "13")), stamp: stampedOn(TODAY) }, STUB_SYNTAX);
 
   it("replaces each of the import's properties once", () => {
     expect([countOf(written, "AC: 13"), countOf(written, "AC: 18"), countOf(written, "imported: 2026-11-13"), countOf(written, "imported: 2026-01-02")]).toEqual([1, 0, 1, 0]);
@@ -101,7 +102,7 @@ describe("importedNoteText for a note that was imported before", () => {
 
 describe("importedNoteText for a note written with the older headings", () => {
   const stamp = stampedOn(TODAY);
-  const plain = importedNoteText({ current: "His own words.\n", sheet: monkSheet(), stamp });
+  const plain = importedNoteText({ current: "His own words.\n", sheet: monkSheet(), stamp }, STUB_SYNTAX);
   const older = ALL_HEADINGS.reduce((text, heading) => text.replace(`${heading}\n`, `${heading} (from D&D Beyond)\n`), plain);
 
   it("starts from a note that really has the older headings", () => {
@@ -109,7 +110,7 @@ describe("importedNoteText for a note written with the older headings", () => {
   });
 
   it("gives each section the plain heading, once, and keeps the rest", () => {
-    const written = importedNoteText({ current: older, sheet: monkSheet(), stamp });
+    const written = importedNoteText({ current: older, sheet: monkSheet(), stamp }, STUB_SYNTAX);
     expect(headingsOf(written)).toEqual(ALL_HEADINGS);
     expect(written).toBe(plain);
   });
@@ -117,9 +118,9 @@ describe("importedNoteText for a note written with the older headings", () => {
 
 describe("importedNoteText for a note with words of his after every section", () => {
   it("keeps his last line as the last line, with nothing added after it", () => {
-    const earlier = importedNoteText({ current: "", sheet: monkSheet(), stamp: stampedOn("2026-01-02") });
+    const earlier = importedNoteText({ current: "", sheet: monkSheet(), stamp: stampedOn("2026-01-02") }, STUB_SYNTAX);
     const current = `${earlier}## His heading\nTail.\n`;
-    const written = importedNoteText({ current: current, sheet: sheetOf(MadeUpSheet.monk().with("AC", "13")), stamp: stampedOn(TODAY) });
+    const written = importedNoteText({ current: current, sheet: sheetOf(MadeUpSheet.monk().with("AC", "13")), stamp: stampedOn(TODAY) }, STUB_SYNTAX);
     expect(written.endsWith("## His heading\nTail.\n")).toBe(true);
     expect(headingsOf(written)).toEqual([...ALL_HEADINGS, "## His heading"]);
   });
@@ -145,7 +146,7 @@ describe("importedNoteText replacing a section in the middle of a note", () => {
     "## His own heading",
     "After.",
   );
-  const written = importedNoteText({ current: current, sheet: monkSheet(), stamp: stampedOn(TODAY) });
+  const written = importedNoteText({ current: current, sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX);
 
   it("removes the old values of the import's properties, quoted or not, and a list under one", () => {
     expect(linesStartingWith(written, "AC:")).toEqual(["AC: 18"]);
@@ -181,15 +182,15 @@ describe("importedNoteText with a property whose name differs only by capitals f
     ["Class: rogue", "Class", "class"],
   ])("refuses %j, naming it, so nothing of his is overwritten", (line, key, name) => {
     const current = textOf("---", line, "---", "words");
-    expect(() => importedNoteText({ current: current, sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow(`The note has "${key}", which differs from "${name}" only by capitals.`);
+    expect(() => importedNoteText({ current: current, sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX)).toThrow(`The note has "${key}", which differs from "${name}" only by capitals.`);
   });
 
   it("refuses it even when the exact name is there as well", () => {
-    expect(() => importedNoteText({ current: textOf("---", "AC: 1", "ac: 2", "---"), sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow(Refusal);
+    expect(() => importedNoteText({ current: textOf("---", "AC: 1", "ac: 2", "---"), sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX)).toThrow(Refusal);
   });
 
   it("does not refuse a property that only starts like one of the import's", () => {
-    const written = importedNoteText({ current: textOf("---", "AC modifier: 2", "speedy: 1", "---"), sheet: monkSheet(), stamp: stampedOn(TODAY) });
+    const written = importedNoteText({ current: textOf("---", "AC modifier: 2", "speedy: 1", "---"), sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX);
     expect(linesOf(written)).toContain("AC modifier: 2");
     expect(linesOf(written)).toContain("speedy: 1");
   });
@@ -197,7 +198,7 @@ describe("importedNoteText with a property whose name differs only by capitals f
 
 describe("importedNoteText with a type or subtitle property of his", () => {
   it.each([["type: character"], ["Type: character"], ["TYPE: character"], ["Subtitle: hero"]])("replaces %j with the import's own line, whatever the capitals", (line) => {
-    const written = linesOf(importedNoteText({ current: textOf("---", line, "mood: calm", "---", "words"), sheet: monkSheet(), stamp: stampedOn(TODAY) }));
+    const written = linesOf(importedNoteText({ current: textOf("---", line, "mood: calm", "---", "words"), sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX));
     expect(written).not.toContain(line);
     expect(written).toContain("mood: calm");
     expect(written).toContain('type: "Medium (human), neutral"');
@@ -209,38 +210,38 @@ describe("importedNoteText with a heading written inside a code block or a comme
   const fenced = textOf("```", INVENTORY, "- his example", "```", "End.");
 
   it("does not take the heading in the code block for a section, and adds its own after it", () => {
-    const written = importedNoteText({ current: fenced, sheet: monkSheet(), stamp: stampedOn(TODAY) });
+    const written = importedNoteText({ current: fenced, sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX);
     expect(written).toContain(fenced);
     expect(countOf(written, INVENTORY)).toBe(2);
   });
 
   it("does not take the heading in an HTML comment for a section", () => {
     const current = textOf("<!--", INVENTORY, "- his example", "-->", "End.");
-    const written = importedNoteText({ current: current, sheet: monkSheet(), stamp: stampedOn(TODAY) });
+    const written = importedNoteText({ current: current, sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX);
     expect(written).toContain(current);
     expect(countOf(written, INVENTORY)).toBe(2);
   });
 
   it("does not take the heading between percent signs for a section", () => {
     const current = textOf("%%", INVENTORY, "- his example", "%%", "End.");
-    const written = importedNoteText({ current: current, sheet: monkSheet(), stamp: stampedOn(TODAY) });
+    const written = importedNoteText({ current: current, sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX);
     expect(written).toContain(current);
     expect(countOf(written, INVENTORY)).toBe(2);
   });
 
   it("refuses a note whose code block is never closed, rather than hide a section in it", () => {
-    expect(() => importedNoteText({ current: textOf("```", "x", "## Notes"), sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow("never closes");
+    expect(() => importedNoteText({ current: textOf("```", "x", "## Notes"), sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX)).toThrow("never closes");
   });
 
   it("refuses a note whose comment is never closed", () => {
-    expect(() => importedNoteText({ current: textOf("words", "<!-- x"), sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow("never closes");
-    expect(() => importedNoteText({ current: textOf("words", "%% x"), sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow("never closes");
+    expect(() => importedNoteText({ current: textOf("words", "<!-- x"), sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX)).toThrow("never closes");
+    expect(() => importedNoteText({ current: textOf("words", "%% x"), sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX)).toThrow("never closes");
   });
 });
 
 describe("importedNoteText with a note that does not end in a line break", () => {
   it("adds the sections on the next line and does not add a final line break", () => {
-    const written = importedNoteText({ current: "His words.", sheet: monkSheet(), stamp: stampedOn(TODAY) });
+    const written = importedNoteText({ current: "His words.", sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX);
     expect(written).toContain(textOf("His words.", NUMBERS));
     expect(written.endsWith("\n")).toBe(false);
   });
@@ -248,13 +249,13 @@ describe("importedNoteText with a note that does not end in a line break", () =>
 
 describe("importedNoteText with a note that is only a properties block", () => {
   it("adds the sections after the block and does not add a final line break the note did not have", () => {
-    const written = importedNoteText({ current: textOf("---", "mood: calm", "---"), sheet: monkSheet(), stamp: stampedOn(TODAY) });
+    const written = importedNoteText({ current: textOf("---", "mood: calm", "---"), sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX);
     expect(written).toContain(textOf("---", NUMBERS));
     expect(written.endsWith("\n")).toBe(false);
   });
 
   it("adds the sections after the block and keeps the final line break the note had", () => {
-    const written = importedNoteText({ current: textOf("---", "mood: calm", "---", ""), sheet: monkSheet(), stamp: stampedOn(TODAY) });
+    const written = importedNoteText({ current: textOf("---", "mood: calm", "---", ""), sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX);
     expect(written.endsWith("\n")).toBe(true);
     expect(written.endsWith("\n\n")).toBe(false);
   });
@@ -262,7 +263,7 @@ describe("importedNoteText with a note that is only a properties block", () => {
 
 describe("importedNoteText with a note that uses Windows line breaks", () => {
   const current = ["---", "carried: [abilities]", "---", "His words.", INVENTORY, "- Old rope × 9", "", "## End", "Tail.", ""].join("\r\n");
-  const written = importedNoteText({ current: current, sheet: monkSheet(), stamp: stampedOn(TODAY) });
+  const written = importedNoteText({ current: current, sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX);
 
   it("writes every new line with a Windows line break too", () => {
     expect(written.replace(/\r\n/g, "").includes("\n")).toBe(false);
@@ -275,7 +276,7 @@ describe("importedNoteText with a note that uses Windows line breaks", () => {
   });
 
   it("opens a new properties block with Windows line breaks when the note had none", () => {
-    const bare = importedNoteText({ current: "His words.\r\n", sheet: monkSheet(), stamp: stampedOn(TODAY) });
+    const bare = importedNoteText({ current: "His words.\r\n", sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX);
     expect(bare.startsWith("---\r\nimported: 2026-11-13\r\n")).toBe(true);
     expect(bare.replace(/\r\n/g, "").includes("\n")).toBe(false);
   });
@@ -285,17 +286,17 @@ describe("importedNoteText when the import has nothing for a section", () => {
   const bare = sheetWithCharacter(monkSheet(), { spells: [], features: [] });
 
   it("writes no heading for a section with no lines", () => {
-    const written = importedNoteText({ current: "", sheet: bare, stamp: stampedOn(TODAY) });
+    const written = importedNoteText({ current: "", sheet: bare, stamp: stampedOn(TODAY) }, STUB_SYNTAX);
     expect([written.includes(SPELLS), written.includes(FEATURES)]).toEqual([false, false]);
   });
 
   it("removes a section the earlier import wrote and this one has nothing for", () => {
-    const earlier = importedNoteText({ current: "", sheet: monkSheet(), stamp: stampedOn("2026-01-02") });
-    expect(importedNoteText({ current: earlier, sheet: sheetWithCharacter(monkSheet(), { spells: [] }), stamp: stampedOn(TODAY) })).not.toContain(SPELLS);
+    const earlier = importedNoteText({ current: "", sheet: monkSheet(), stamp: stampedOn("2026-01-02") }, STUB_SYNTAX);
+    expect(importedNoteText({ current: earlier, sheet: sheetWithCharacter(monkSheet(), { spells: [] }), stamp: stampedOn(TODAY) }, STUB_SYNTAX)).not.toContain(SPELLS);
   });
 
   it("writes no class property when the character has no class", () => {
-    const written = importedNoteText({ current: "", sheet: sheetWithCharacter(monkSheet(), { classes: [] }), stamp: stampedOn(TODAY) });
+    const written = importedNoteText({ current: "", sheet: sheetWithCharacter(monkSheet(), { classes: [] }), stamp: stampedOn(TODAY) }, STUB_SYNTAX);
     expect(linesStartingWith(written, "class:")).toEqual([]);
   });
 });
@@ -304,35 +305,35 @@ describe("importedNoteText refusing", () => {
   const twice = textOf(INVENTORY, "- a", INVENTORY, "- b");
 
   it("a note with the same plugin heading twice, naming the heading", () => {
-    expect(() => importedNoteText({ current: twice, sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow(Refusal);
-    expect(() => importedNoteText({ current: twice, sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow(INVENTORY);
+    expect(() => importedNoteText({ current: twice, sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX)).toThrow(Refusal);
+    expect(() => importedNoteText({ current: twice, sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX)).toThrow(INVENTORY);
   });
 
   it.each(["2026-1-3", "13 November", "", "2026-11-13T10:00", "2026-11-13\n"])("a date that is not year-month-day: %j", (today) => {
-    expect(() => importedNoteText({ current: "", sheet: monkSheet(), stamp: stampedOn(today) })).toThrow(Refusal);
+    expect(() => importedNoteText({ current: "", sheet: monkSheet(), stamp: stampedOn(today) }, STUB_SYNTAX)).toThrow(Refusal);
   });
 
   it("a property line longer than the most it reads", () => {
     const current = textOf("---", `mood: ${" ".repeat(MOST_PROPERTY_LINE)}`, "---");
-    expect(() => importedNoteText({ current: current, sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow(`over ${MOST_PROPERTY_LINE} characters`);
+    expect(() => importedNoteText({ current: current, sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX)).toThrow(`over ${MOST_PROPERTY_LINE} characters`);
   });
 });
 
 describe("importedNoteText on a big note", () => {
   it("writes into a note of exactly the most lines without running out of stack", () => {
     const current = `${manyLines(MOST_NOTE_LINES - 1)}\n`;
-    const written = importedNoteText({ current: current, sheet: monkSheet(), stamp: stampedOn(TODAY) });
+    const written = importedNoteText({ current: current, sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX);
     expect(headingsOf(written)).toEqual(ALL_HEADINGS);
     expect(written).toContain("Line 99998");
   });
 
   it("refuses a note of a hundred and fifty thousand lines with a Refusal, stating the most", () => {
-    expect(() => importedNoteText({ current: manyLines(150_000), sheet: monkSheet(), stamp: stampedOn(TODAY) })).toThrow(`over ${MOST_NOTE_LINES} lines`);
+    expect(() => importedNoteText({ current: manyLines(150_000), sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX)).toThrow(`over ${MOST_NOTE_LINES} lines`);
   });
 
   it("replaces a section in a note that is nearly the most lines", () => {
-    const earlier = importedNoteText({ current: `${manyLines(MOST_NOTE_LINES - 300)}\n`, sheet: monkSheet(), stamp: stampedOn("2026-01-02") });
-    expect(headingsOf(importedNoteText({ current: earlier, sheet: monkSheet(), stamp: stampedOn(TODAY) }))).toEqual(ALL_HEADINGS);
+    const earlier = importedNoteText({ current: `${manyLines(MOST_NOTE_LINES - 300)}\n`, sheet: monkSheet(), stamp: stampedOn("2026-01-02") }, STUB_SYNTAX);
+    expect(headingsOf(importedNoteText({ current: earlier, sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX))).toEqual(ALL_HEADINGS);
   });
 });
 
@@ -340,11 +341,11 @@ describe("importedNoteText for a feature whose text holds a comment opener", () 
   const sheet = sheetWithCharacter(monkSheet(), { features: [CleanLine.of("Open Hand <!-- and %% both")] });
 
   it("writes the opener escaped, so the note it writes reads as closed", () => {
-    expect(importedNoteText({ current: "", sheet: sheet, stamp: stampedOn(TODAY) })).toContain("Open Hand \\<!-- and \\%\\% both");
+    expect(importedNoteText({ current: "", sheet: sheet, stamp: stampedOn(TODAY) }, STUB_SYNTAX)).toContain("Open Hand \\<!-- and \\%\\% both");
   });
 
   it("updates the note it wrote, so such a PDF can be brought in again", () => {
-    const earlier = importedNoteText({ current: "", sheet: sheet, stamp: stampedOn("2026-01-02") });
-    expect(linesStartingWith(importedNoteText({ current: earlier, sheet: sheet, stamp: stampedOn(TODAY) }), "imported:")).toEqual(["imported: 2026-11-13"]);
+    const earlier = importedNoteText({ current: "", sheet: sheet, stamp: stampedOn("2026-01-02") }, STUB_SYNTAX);
+    expect(linesStartingWith(importedNoteText({ current: earlier, sheet: sheet, stamp: stampedOn(TODAY) }, STUB_SYNTAX), "imported:")).toEqual(["imported: 2026-11-13"]);
   });
 });

@@ -4,6 +4,7 @@ import { DashboardPage, type DashboardActions } from "../../dashboard/dashboard-
 import type { News } from "../../whats-new/news-item";
 import { NewsLine } from "../../whats-new/news-line";
 import type { MakePage, ShowPage } from "../view/campaign-pages";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export interface HomeNeeds {
   store: CampaignStore;
@@ -12,7 +13,7 @@ export interface HomeNeeds {
   actionsFor(show: ShowPage): DashboardActions;
 }
 
-export function homeSection(needs: HomeNeeds): MakePage {
+export function homeSection(needs: HomeNeeds, syntax: PropertiesSyntax): MakePage {
   return (contentEl, show) =>
-    new DashboardPage(contentEl, needs.store, needs.characterNotes, needs.actionsFor(show), (lineEl) => new NewsLine(lineEl, needs.news, show));
+    new DashboardPage(contentEl, needs.store, needs.characterNotes, needs.actionsFor(show), (lineEl) => new NewsLine(lineEl, needs.news, show), syntax);
 }

@@ -9,6 +9,7 @@ import { SessionRemoval, type RemovalTools } from "../removal/session-removal";
 import { WritingPanel, type WritingNeeds } from "../writing/writing-panel";
 import type { LineOpeners } from "../lines/line-opener-of";
 import type { WrittenLine } from "../lines/written-lines";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export interface SessionWritingNeeds extends WritingNeeds {
   actions: LinkActions;
@@ -37,6 +38,7 @@ export class SessionWriting {
     private readonly path: string,
     private readonly needs: SessionWritingNeeds,
     moves: SessionMoves,
+    syntax: PropertiesSyntax,
   ) {
     this.writing = new WritingPanel(root, path, needs);
     this.lines = new LinesList(root, { actions: needs.actions, openers: needs.lineOpeners });
@@ -52,7 +54,7 @@ export class SessionWriting {
       say: (message) => this.buttons.say(message),
       changed: () => this.removalChanged(),
       deleted: (latest) => moves.deleted(latest),
-    });
+    }, syntax);
     this.stops = [
       needs.wholeText.drafts.subscribe((changed) => this.wholeTextKept(changed)),
       needs.drafts.subscribe((changed) => this.linesKept(changed)),

@@ -6,18 +6,19 @@ import { OpenedSession } from "../../campaign/paths/session-gone";
 import { itemSave } from "./item-save";
 import { initialItemEdit, type ItemEdit } from "./item-plan";
 import type { ItemSource } from "./item-source";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export interface OpenedItem {
   edit: ItemEdit;
   save(edit: ItemEdit): Promise<boolean>;
 }
 
-export function openedItem(files: EditorFiles, store: ItemSource, item: ItemRecord, sessionPath: string): OpenedItem {
-  const writer = new SessionChangeWriter(files);
+export function openedItem(files: EditorFiles, store: ItemSource, item: ItemRecord, sessionPath: string, syntax: PropertiesSyntax): OpenedItem {
+  const writer = new SessionChangeWriter(files, syntax);
   const session = new OpenedSession(files, sessionPath);
   const asOpened = { files, store, sessions: store.sessionNotes, coins: store.current.coins };
   return {
     edit: initialItemEdit(item, asOpened.sessions),
-    save: async (edit) => writeInSession(session, () => itemSave(asOpened, item, edit, sessionPath), writer),
+    save: async (edit) => writeInSession(session, () => itemSave(asOpened, item, edit, sessionPath, syntax), writer),
   };
 }

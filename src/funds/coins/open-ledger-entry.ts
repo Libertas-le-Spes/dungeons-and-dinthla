@@ -5,6 +5,7 @@ import { openSource } from "../../views/opening/open-view";
 import type { CoinOutcome } from "./coin-modal";
 import { openCoinEntry } from "./open-add-coin";
 import type { Gate } from "../../fence/gate/gatekeeper";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export type OpenLedgerEntry = (source: Source, onClosed: (outcome: CoinOutcome) => void) => void;
 
@@ -31,9 +32,9 @@ export function routeLedgerEntry(items: ItemRecord[], source: Source, openers: L
   openers.item(sold.name, source, (changed) => onClosed(outcomeOf(changed)));
 }
 
-export function ledgerEntryOpener(app: App, gate: Gate, store: CampaignStore, openItem: LedgerOpeners["item"]): OpenLedgerEntry {
+export function ledgerEntryOpener(app: App, gate: Gate, store: CampaignStore, openItem: LedgerOpeners["item"], syntax: PropertiesSyntax): OpenLedgerEntry {
   const openers: LedgerOpeners = {
-    coinEntry: (source, onClosed) => openCoinEntry(app, gate, store, source, () => void openSource(app, gate, source), onClosed),
+    coinEntry: (source, onClosed) => openCoinEntry(app, gate, store, source, () => void openSource(app, gate, source), onClosed, syntax),
     item: openItem,
   };
   return (source, onClosed) => routeLedgerEntry(store.current.items, source, openers, onClosed);

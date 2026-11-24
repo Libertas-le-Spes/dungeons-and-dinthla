@@ -20,6 +20,7 @@ import { textOfNote } from "./read-note";
 import type { LeavingActions, LeavingFiles, SwitchPlan } from "./switch-plan";
 import { marked, markedWithSnapshot, markFailed, movedToFallen, moveToFallenFailed, NOTE_UNREAD } from "./switch-words";
 import type { NoteRef } from "../../../host/notes/note-ref";
+import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
 
 interface MarkedNote {
   before: string;
@@ -36,19 +37,20 @@ export class OldMainSteps implements LeavingSteps {
     private readonly plan: SwitchPlan,
     private readonly old: NoteRef,
     private readonly typedLastDoing: string,
+    private readonly syntax: PropertiesSyntax,
   ) {}
 
   async intoFallen(standing: string, how: string): Promise<PlannedWrite[]> {
     const before = await textOfNote(this.files, this.old, NOTE_UNREAD);
-    const markedText = textWithProperty(before, STANDING_PROPERTY, propertyLine(STANDING_PROPERTY, standing));
+    const markedText = textWithProperty(before, STANDING_PROPERTY, propertyLine(STANDING_PROPERTY, standing), this.syntax);
     return this.movedWith({ before, markedText, standing, how });
   }
 
   async departedIntoFallen(typedWords: string): Promise<PlannedWrite[]> {
     const words = departureWordsOf(typedWords);
     const before = await textOfNote(this.files, this.old, NOTE_UNREAD);
-    const standingText = textWithProperty(before, STANDING_PROPERTY, propertyLine(STANDING_PROPERTY, DEPARTED_STANDING));
-    const markedText = textWithProperty(standingText, DEPARTURE_PROPERTY, departureLine(words.written));
+    const standingText = textWithProperty(before, STANDING_PROPERTY, propertyLine(STANDING_PROPERTY, DEPARTED_STANDING), this.syntax);
+    const markedText = textWithProperty(standingText, DEPARTURE_PROPERTY, departureLine(words.written), this.syntax);
     return this.movedWith({ before, markedText, standing: DEPARTED_STANDING, how: words.snapshot });
   }
 
@@ -67,14 +69,14 @@ export class OldMainSteps implements LeavingSteps {
 
   async markedOnly(standing: string): Promise<PlannedWrite[]> {
     const before = await textOfNote(this.files, this.old, NOTE_UNREAD);
-    const after = textWithProperty(before, STANDING_PROPERTY, propertyLine(STANDING_PROPERTY, standing));
+    const after = textWithProperty(before, STANDING_PROPERTY, propertyLine(STANDING_PROPERTY, standing), this.syntax);
     if (after === before) return [];
     return [new TextWrite(this.files, this.old, before, after, marked(this.old.basename, standing), markFailed(this.old.basename))];
   }
 
   async finishing(): Promise<PlannedWrite[]> {
     if (!isInCharacters(this.old, this.plan.campaignFolder)) return [];
-    if (!hasLeftPlay(standingOf(await textOfNote(this.files, this.old, NOTE_UNREAD)))) return [];
+    if (!hasLeftPlay(standingOf(await textOfNote(this.files, this.old, NOTE_UNREAD), this.syntax))) return [];
     return [this.moveTo(this.fallenPath())];
   }
 

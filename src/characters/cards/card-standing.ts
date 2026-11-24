@@ -1,4 +1,4 @@
-import { firstLineAfterProperties } from "../../campaign/paths/session-file";
+import { firstLineAfterProperties, type PropertiesSyntax } from "../../campaign/paths/session-file";
 import { IMPORTED_FROM_PROPERTY } from "../../imports/layout/import-properties";
 import { DEPARTURE_PROPERTY, departureOf } from "../../imports/layout/departure";
 import { BACKUP_STANDING, DEPARTED_STANDING, DEPARTED_WORDS, LEFT_PLAY_MARKS, standingIn } from "../../imports/layout/standing";
@@ -18,9 +18,9 @@ function valueOf(entries: readonly PropertyEntry[], key: string): string | null 
   return null;
 }
 
-export function cardStandingOf(text: string): CardStanding {
+export function cardStandingOf(text: string, syntax: PropertiesSyntax): CardStanding {
   const lines = noteLinesOf(text);
-  const bodyStart = firstLineAfterProperties(text);
+  const bodyStart = firstLineAfterProperties(text, syntax);
   const entries = propertyEntriesOf(lines, bodyStart);
   return {
     standing: standingIn(lines, bodyStart),

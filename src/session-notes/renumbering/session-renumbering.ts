@@ -7,6 +7,7 @@ import type { LinkFiles } from "./link-writer";
 import { planRenumbering, type NoRenumbering, type RenumberingPlan } from "./renumbering-plan";
 import { NOT_IN_A_CAMPAIGN, SESSIONS_CHANGED_SINCE_ASKED, type RenumberingReport } from "./renumbering-words";
 import { SessionRenamer, type RenameFiles } from "./session-renamer";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export type RenumberingFiles = RenameFiles & LinkFiles & DecisionFiles & Pick<NoteStore, "notes">;
 
@@ -28,10 +29,11 @@ export class SessionRenumbering {
   constructor(
     private readonly files: RenumberingFiles,
     private readonly campaignFolders: CampaignFolders,
+    syntax: PropertiesSyntax,
   ) {
     this.renamer = new SessionRenamer(files);
-    this.decider = new LinkDecider(files);
-    this.updates = new LinkUpdates(files);
+    this.decider = new LinkDecider(files, syntax);
+    this.updates = new LinkUpdates(files, syntax);
   }
 
   planFor(deletedPath: string): RenumberingPlan | NoRenumbering {

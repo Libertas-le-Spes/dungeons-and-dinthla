@@ -10,6 +10,7 @@ import { modifierOf } from "../reading/sheet-values";
 import { addMakeMainButton, type MakeMainAction } from "../cards/make-main-button";
 import { couldNotRead, shownTextOf } from "./character-sheet-page";
 import { addLeftPlaySection } from "./left-play-section";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 type WatchedStore = SheetStore & { subscribe(listener: () => void): () => void };
 
@@ -52,6 +53,7 @@ export class FallenSheetPage extends Component {
     private readonly contentEl: HTMLElement,
     private readonly file: NoteRef,
     private readonly needs: FallenNeeds,
+    private readonly syntax: PropertiesSyntax,
   ) {
     super();
     this.shownPath = file.path;
@@ -86,7 +88,7 @@ export class FallenSheetPage extends Component {
   }
 
   private async readFallen(): Promise<FallenRead> {
-    const read = await readCharacterSheet(this.file, this.needs.store, this.needs.notes);
+    const read = await readCharacterSheet(this.file, this.needs.store, this.needs.notes, this.syntax);
     const text = await this.needs.notes.textOf(this.file);
     return { read, lines: leftPlayLinesOf(text) };
   }

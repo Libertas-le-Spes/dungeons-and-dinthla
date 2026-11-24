@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Refusal } from "../../../src/beyond/shape/refusal";
 import { refuseUnlessOnlyThePropertyChanged } from "../../../src/imports/leaving/properties/property-read-back";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const read = vi.hoisted(() => ({ results: [] as unknown[] }));
 
@@ -24,7 +25,7 @@ function refusalOf(work: () => unknown): string {
 }
 
 function check(): void {
-  refuseUnlessOnlyThePropertyChanged(BEFORE, AFTER, "standing", "standing: backup");
+  refuseUnlessOnlyThePropertyChanged(BEFORE, AFTER, "standing", "standing: backup", STUB_SYNTAX);
 }
 
 beforeEach(() => {

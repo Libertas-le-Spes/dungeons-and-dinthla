@@ -2,7 +2,7 @@ import { addedLinesHidden } from "../../notes/reading/hidden-lines";
 import { appendLines, dropLine, removeLines, rewriteLine, type LineToRemove } from "../../notes/writing/note-lines";
 import { messageOf } from "../../views/dialogs/message-of";
 import type { SessionNote, Source } from "../record/campaign";
-import { keepsProperties } from "../paths/session-file";
+import { keepsProperties, type PropertiesSyntax } from "../paths/session-file";
 import type { NoteRef } from "../../host/notes/note-ref";
 import type { NoteStore } from "../../host/notes/note-store";
 
@@ -24,9 +24,9 @@ interface Refusal {
   refusal: string;
 }
 
-function appendedShown(text: string, added: string[]): string | Refusal {
+function appendedShown(text: string, added: string[], syntax: PropertiesSyntax): string | Refusal {
   const changed = appendLines(text, added);
-  if (addedLinesHidden(changed, added.length)) return { refusal: WOULD_BE_HIDDEN };
+  if (addedLinesHidden(changed, added.length, syntax)) return { refusal: WOULD_BE_HIDDEN };
   return changed;
 }
 
@@ -49,14 +49,14 @@ export function removalAsRead(sessions: SessionNote[], source: Source): Removal 
 
 export type LiveRefusal = (liveText: string) => string | null;
 
-function checkedAppend(text: string, added: string[], refusalFor: LiveRefusal): string | Refusal {
+function checkedAppend(text: string, added: string[], refusalFor: LiveRefusal, syntax: PropertiesSyntax): string | Refusal {
   const refusal = refusalFor(text);
   if (refusal !== null) return { refusal };
-  return appendedShown(text, added);
+  return appendedShown(text, added, syntax);
 }
 
 export class NoteEditor {
-  constructor(private readonly files: EditorFiles) {}
+  constructor(private readonly files: EditorFiles, private readonly syntax: PropertiesSyntax) {}
 
   async append(targetPath: string, added: string[]): Promise<boolean> {
     if (added.length === 0) return false;
@@ -66,13 +66,13 @@ export class NoteEditor {
 
   async appendShown(targetPath: string, added: string[]): Promise<boolean> {
     if (added.length === 0) return false;
-    await this.changeOrRefuse(this.fileAt(targetPath), WOULD_BE_HIDDEN, (text) => appendedShown(text, added));
+    await this.changeOrRefuse(this.fileAt(targetPath), WOULD_BE_HIDDEN, (text) => appendedShown(text, added, this.syntax));
     return true;
   }
 
   async appendShownChecked(targetPath: string, added: string[], refusalFor: LiveRefusal): Promise<boolean> {
     if (added.length === 0) return false;
-    await this.changeOrRefuse(this.fileAt(targetPath), WOULD_BE_HIDDEN, (text) => checkedAppend(text, added, refusalFor));
+    await this.changeOrRefuse(this.fileAt(targetPath), WOULD_BE_HIDDEN, (text) => checkedAppend(text, added, refusalFor, this.syntax));
     return true;
   }
 
@@ -82,7 +82,7 @@ export class NoteEditor {
       await this.changeOrRefuse(target, CHANGED_IN_NOTE, (text) => {
         const removal = removeLines(text, [old]);
         if (removal.removed === 0) return null;
-        return appendedShown(removal.text, added);
+        return appendedShown(removal.text, added, this.syntax);
       });
       return true;
     }
@@ -92,7 +92,7 @@ export class NoteEditor {
       await this.removeOrRefuse(oldNote, [old], CHANGED_IN_NOTE);
       return true;
     }
-    await this.changeOrRefuse(target, CHANGED_IN_NOTE, (text) => appendedShown(text, added));
+    await this.changeOrRefuse(target, CHANGED_IN_NOTE, (text) => appendedShown(text, added, this.syntax));
     try {
       await this.removeOrRefuse(oldNote, [old], OLD_LINE_LEFT);
     } catch (error) {
@@ -169,7 +169,7 @@ export class NoteEditor {
   private async checkRemoval(file: NoteRef, removals: Removal[]): Promise<number> {
     const text = await this.files.read(file);
     const removal = removeLines(text, removals);
-    if (!keepsProperties(text, removal.text)) throw new Error(PROPERTIES_WOULD_CHANGE);
+    if (!keepsProperties(text, removal.text, this.syntax)) throw new Error(PROPERTIES_WOULD_CHANGE);
     return removal.removed;
   }
 
@@ -193,7 +193,7 @@ export class NoteEditor {
         refusal = changed.refusal;
         return text;
       }
-      if (!keepsProperties(text, changed)) {
+      if (!keepsProperties(text, changed, this.syntax)) {
         refusal = PROPERTIES_WOULD_CHANGE;
         return text;
       }

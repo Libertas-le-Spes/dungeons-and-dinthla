@@ -7,6 +7,7 @@ import { planItemSave, refusalForItemPlan, type ItemEdit, type ItemPlan } from "
 import { itemSessionChange } from "./item-session-change";
 import type { ItemSource } from "./item-source";
 import { readsAsOpened } from "./reads-as-opened";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export interface ItemAsOpened {
   files: EditorFiles;
@@ -19,14 +20,14 @@ function writesNothing(plan: ItemPlan): boolean {
   return plan.added.length === 0 && plan.removal === null && plan.rewrite === null;
 }
 
-export function itemSave(asOpened: ItemAsOpened, item: ItemRecord, edit: ItemEdit, sessionPath: string): RecordChange<ItemPlan> {
+export function itemSave(asOpened: ItemAsOpened, item: ItemRecord, edit: ItemEdit, sessionPath: string, syntax: PropertiesSyntax): RecordChange<ItemPlan> {
   return {
-    plan: () => planItemSave(item, edit, asOpened.sessions, asOpened.coins, sessionPath),
+    plan: () => planItemSave(item, edit, asOpened.sessions, asOpened.coins, sessionPath, syntax),
     checks: [
       (plan) => writeNothingWhen(writesNothing(plan)),
-      async () => refusedWhen(!(await readsAsOpened(asOpened.files, asOpened.store, asOpened.sessions, item)), CHANGED_IN_NOTE),
-      (plan) => verdictOf(refusalForItemPlan(asOpened.sessions, item, plan)),
-      notHidden(() => asOpened.sessions, itemSessionChange),
+      async () => refusedWhen(!(await readsAsOpened(asOpened.files, asOpened.store, asOpened.sessions, item, syntax)), CHANGED_IN_NOTE),
+      (plan) => verdictOf(refusalForItemPlan(asOpened.sessions, item, plan, syntax)),
+      notHidden(() => asOpened.sessions, itemSessionChange, syntax),
     ],
     sessionChangeOf: itemSessionChange,
   };

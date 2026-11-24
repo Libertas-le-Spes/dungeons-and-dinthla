@@ -65,7 +65,7 @@
  {
   "id": "rank: cards take imported",
   "file": "src/characters/cards/read-character-card.ts",
-  "find": "sheetValuesOf(learned, importedFactsOf(ownNote, file.path),",
+  "find": "sheetValuesOf(learned, importedFactsOf(ownNote, file.path, syntax),",
   "replace": "sheetValuesOf(learned, [],",
   "group": "rank"
  },

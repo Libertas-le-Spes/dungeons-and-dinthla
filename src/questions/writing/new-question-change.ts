@@ -5,12 +5,13 @@ import { linesAddedTo } from "../../campaign/changes/session-change";
 import { verdictOf } from "../../campaign/changes/verdict";
 import { refusalForNewQuestion } from "./current-question";
 import { planNewQuestion, type NewQuestion, type NewQuestionPlan } from "./new-question";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
-export function newQuestion(store: Pick<CampaignStore, "current" | "sessionNotes">, entry: NewQuestion, sessionPath: string): RecordChange<NewQuestionPlan> {
+export function newQuestion(store: Pick<CampaignStore, "current" | "sessionNotes">, entry: NewQuestion, sessionPath: string, syntax: PropertiesSyntax): RecordChange<NewQuestionPlan> {
   const addedLines = (plan: NewQuestionPlan) => linesAddedTo(sessionPath, plan.lines);
   return {
     plan: () => planNewQuestion(entry),
-    checks: [(plan) => verdictOf(refusalForNewQuestion(store.current.questions, plan.text, plan.answer)), notHidden(() => store.sessionNotes, addedLines)],
+    checks: [(plan) => verdictOf(refusalForNewQuestion(store.current.questions, plan.text, plan.answer)), notHidden(() => store.sessionNotes, addedLines, syntax)],
     sessionChangeOf: addedLines,
   };
 }

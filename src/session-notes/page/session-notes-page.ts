@@ -15,6 +15,7 @@ import { SessionPicker, type PickerMoves } from "./session-picker";
 import type { RemovalTools } from "../removal/session-removal";
 import { SessionWriting } from "./session-writing";
 import { writtenLinesOf } from "../lines/written-lines";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 const PAGE_TITLE = "Session notes";
 const NO_SESSION = "No sessions yet.";
@@ -58,6 +59,7 @@ export class SessionNotesPage extends Component {
     asked: string | null,
     private readonly needs: SessionNotesNeeds,
     private readonly moves: NotesMoves,
+    private readonly syntax: PropertiesSyntax,
   ) {
     super();
     this.chosen = asked;
@@ -118,6 +120,7 @@ export class SessionNotesPage extends Component {
       path,
       { ...this.needs, campaign: () => this.needs.store.current },
       { heading: () => this.headingOf(path), deleted: (latest) => this.sessionDeleted(latest) },
+      this.syntax,
     );
     this.drawn = { path, picker, gone, kept, session };
     this.update(this.drawn);

@@ -5,6 +5,7 @@ import { FallenSheetPage, type FallenNeeds } from "../../../src/characters/pages
 import { NO_LEFT_PLAY } from "../../../src/characters/pages/left-play-section";
 import type { SheetNotes } from "../../../src/characters/reading/sheet-notes";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const BRANN = { path: "Pale Moon/Fallen/Brann.md", basename: "Brann" } as TFile;
 const ONE = "Pale Moon/Sessions/Session 1.md";
@@ -81,7 +82,7 @@ function openFallen({ text = SNAPSHOT, session = "", textOf }: Setup = {}) {
   };
   const root = obsidianDocument().createElement("div");
   root.ownerDocument.body.append(root);
-  const page = new FallenSheetPage(root, BRANN, needs);
+  const page = new FallenSheetPage(root, BRANN, needs, STUB_SYNTAX);
   return { page, root, needs, watchers, reads };
 }
 

@@ -7,11 +7,12 @@ import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
 import { CHANGES_OTHER_MONEY, refusalForEntryChange } from "../../../src/funds/coins/coin-change";
 import { CANNOT_SHOW, coinEntryEdit, entryToEdit, type CoinEntryEdit } from "../../../src/funds/coins/coin-entry";
 import { readCoinDraft, type CoinDraft, type CoinLine } from "../../../src/notes/writing/coin-lines";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const ONE = "S/Sessions/Session 1.md";
 
 function sessionsOf(text: string): SessionNote[] {
-  return [sessionNoteOf(ONE, 1, text)];
+  return [sessionNoteOf(ONE, 1, text, STUB_SYNTAX)];
 }
 
 function coinLineOf(draft: CoinDraft): CoinLine {
@@ -45,7 +46,7 @@ class FakeNotes {
   }
 
   get sessionNotes(): SessionNote[] {
-    return [...this.texts].map(([path, text]) => sessionNoteOf(path, 1, text));
+    return [...this.texts].map(([path, text]) => sessionNoteOf(path, 1, text, STUB_SYNTAX));
   }
 
   get text(): string {
@@ -62,7 +63,7 @@ class FakeNotes {
 
   editAt(line: number): CoinEntryEdit {
     const record = this.coins().find((coin) => coin.source.line === line)!;
-    return coinEntryEdit(this.vault, this, record);
+    return coinEntryEdit(this.vault, this, record, STUB_SYNTAX);
   }
 }
 
@@ -90,23 +91,23 @@ describe("refusalForEntryChange", () => {
   it("lets a change through when the purse moves by the difference", () => {
     const sessions = sessionsOf("$ 5 gp found\n");
     const record = buildCampaign(sessions).coins[0]!;
-    expect(refusalForEntryChange(sessions, record, removalAsRead(sessions, record.source), found)).toBeNull();
-    expect(refusalForEntryChange(sessions, record, removalAsRead(sessions, record.source), null)).toBeNull();
+    expect(refusalForEntryChange(sessions, record, removalAsRead(sessions, record.source), found, STUB_SYNTAX)).toBeNull();
+    expect(refusalForEntryChange(sessions, record, removalAsRead(sessions, record.source), null, STUB_SYNTAX)).toBeNull();
   });
 
   it("refuses a change that would move the purse by anything else", () => {
     const sessions = sessionsOf("$ 5 gp found\n");
     const record = buildCampaign(sessions).coins[0]!;
-    expect(refusalForEntryChange(sessions, record, removalAsRead(sessions, record.source), { ...found, copper: 900 })).toBe(CHANGES_OTHER_MONEY);
+    expect(refusalForEntryChange(sessions, record, removalAsRead(sessions, record.source), { ...found, copper: 900 }, STUB_SYNTAX)).toBe(CHANGES_OTHER_MONEY);
   });
 
   it("refuses as changed in its note when the entry's line was changed by hand", () => {
     const read = sessionsOf("$ 5 gp found\n");
     const record = buildCampaign(read).coins[0]!;
     const removal = removalAsRead(read, record.source);
-    expect(refusalForEntryChange(sessionsOf("$ 6 gp found\n"), record, removal, found)).toBe(CHANGED_IN_NOTE);
-    expect(refusalForEntryChange(sessionsOf("$ 6 gp found\n"), record, removal, null)).toBe(CHANGED_IN_NOTE);
-    expect(refusalForEntryChange([], record, removal, null)).toBe(CHANGED_IN_NOTE);
+    expect(refusalForEntryChange(sessionsOf("$ 6 gp found\n"), record, removal, found, STUB_SYNTAX)).toBe(CHANGED_IN_NOTE);
+    expect(refusalForEntryChange(sessionsOf("$ 6 gp found\n"), record, removal, null, STUB_SYNTAX)).toBe(CHANGED_IN_NOTE);
+    expect(refusalForEntryChange([], record, removal, null, STUB_SYNTAX)).toBe(CHANGED_IN_NOTE);
   });
 });
 
@@ -192,7 +193,7 @@ describe("coinEntryEdit", () => {
     const notes = new FakeNotes("$ 5 gp found\n");
     const record = notes.coins()[0]!;
     const readBefore = { sessionNotes: notes.sessionNotes };
-    const edit = coinEntryEdit(notes.vault, readBefore, record);
+    const edit = coinEntryEdit(notes.vault, readBefore, record, STUB_SYNTAX);
     notes.texts.set(ONE, "$ 6 gp found\n");
     await expect(edit.save(coinLineOf({ ...edit.draft, amount: "8 gp" }))).rejects.toThrow(CHANGED_IN_NOTE);
     await expect(edit.delete()).rejects.toThrow(CHANGED_IN_NOTE);
@@ -214,7 +215,7 @@ describe("coinEntryEdit", () => {
       const record = notes.coins()[0]!;
       let store: { readonly sessionNotes: SessionNote[] } = { sessionNotes: notes.sessionNotes };
       if (readAgain) store = notes;
-      const edit = coinEntryEdit(notes.vault, store, record);
+      const edit = coinEntryEdit(notes.vault, store, record, STUB_SYNTAX);
       notes.texts.set(ONE, "## Day 2\n  - $ 5 gp found\n## Day 3\n");
       await expect(edit.save(coinLineOf({ ...edit.draft, amount: "500 gp" })), String(readAgain)).rejects.toThrow(CHANGED_IN_NOTE);
       await expect(edit.delete(), String(readAgain)).rejects.toThrow(CHANGED_IN_NOTE);

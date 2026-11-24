@@ -8,6 +8,7 @@ import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
 import { writeRecordChange } from "../../../src/campaign/changes/write-record-change";
 import { SAME_TITLE_AS_EXISTING, WOULD_READ_DIFFERENTLY } from "../../../src/quests/writing/new-quest";
 import { newQuest } from "../../../src/quests/writing/new-quest-change";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
@@ -46,7 +47,7 @@ class FakeNotes {
   }
 
   get sessionNotes(): SessionNote[] {
-    return [...this.read].map(([path, text]) => sessionNoteOf(path, numberOf(path), text));
+    return [...this.read].map(([path, text]) => sessionNoteOf(path, numberOf(path), text, STUB_SYNTAX));
   }
 
   get current(): Campaign {
@@ -62,7 +63,7 @@ class FakeNotes {
 }
 
 function add(notes: FakeNotes, title: string, givenBy: string, reward: string): Promise<boolean> {
-  return writeRecordChange(newQuest(notes, { title, givenBy, reward }, [], TWO), new SessionChangeWriter(notes.vault));
+  return writeRecordChange(newQuest(notes, { title, givenBy, reward }, [], TWO, STUB_SYNTAX), new SessionChangeWriter(notes.vault, STUB_SYNTAX));
 }
 
 describe("adding a quest", () => {

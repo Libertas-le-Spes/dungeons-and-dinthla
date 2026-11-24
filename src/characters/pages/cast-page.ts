@@ -6,6 +6,7 @@ import type { LinkActions } from "../../views/lists/linked-text";
 import { CharacterGallery } from "./character-gallery";
 import type { CharacterCreators } from "./character-creators";
 import type { CastNotes } from "../reading/character-notes";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export type WatchFiles = (changed: (path: string) => void) => () => void;
 
@@ -19,6 +20,7 @@ export class CastPage extends Component {
     private readonly actions: LinkActions,
     private readonly creators: CharacterCreators,
     private readonly watchFiles: WatchFiles,
+    private readonly syntax: PropertiesSyntax,
   ) {
     super();
   }
@@ -26,7 +28,7 @@ export class CastPage extends Component {
   override onload(): void {
     this.contentEl.empty();
     this.contentEl.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-characters");
-    this.gallery = new CharacterGallery(this.contentEl, this.store, this.notes, this.actions, this.creators);
+    this.gallery = new CharacterGallery(this.contentEl, this.store, this.notes, this.actions, this.creators, this.syntax);
     this.register(this.store.subscribe(() => this.render()));
     this.register(this.notes.onNoteChanged((path) => this.renderIfShown(path)));
     this.register(this.watchFiles((path) => this.renderIfShown(path)));

@@ -1,5 +1,5 @@
 import type { NoteTexts } from "../../campaign/reading/note-texts";
-import { sessionNoteOf } from "../../campaign/paths/session-file";
+import { sessionNoteOf, type PropertiesSyntax } from "../../campaign/paths/session-file";
 import type { ConfirmText, OpenConfirm } from "../../views/dialogs/confirm-modal";
 import { messageOf } from "../../views/dialogs/message-of";
 import type { KeptDrafts } from "../kept/kept-drafts";
@@ -41,8 +41,8 @@ type Work<T> = () => Promise<T>;
 
 type Read<T> = () => Promise<T | null>;
 
-function countOf(path: string, text: string): number {
-  return writtenLinesOf(sessionNoteOf(path, 0, text)).length;
+function countOf(path: string, text: string, syntax: PropertiesSyntax): number {
+  return writtenLinesOf(sessionNoteOf(path, 0, text, syntax)).length;
 }
 
 function notReadMessage(error: unknown): string {
@@ -58,6 +58,7 @@ export class SessionRemoval {
     private readonly path: string,
     private readonly needs: RemovalNeeds,
     private readonly moves: RemovalMoves,
+    private readonly syntax: PropertiesSyntax,
   ) {}
 
   get isRunning(): boolean {
@@ -79,7 +80,7 @@ export class SessionRemoval {
   private async askToClear(): Promise<void> {
     const text = await this.readToAsk(() => this.needs.texts.read(this.path));
     if (text === null) return;
-    const confirmText = clearTextOf(this.moves.heading(), countOf(this.path, text));
+    const confirmText = clearTextOf(this.moves.heading(), countOf(this.path, text, this.syntax));
     this.ask(confirmText, () => this.work.add(this.clear(text)));
   }
 
@@ -93,7 +94,7 @@ export class SessionRemoval {
       return;
     }
     const permanently = this.needs.trash.deletesPermanently();
-    const confirmText = deleteTextOf(this.moves.heading(), countOf(this.path, asked.text), movesWords(plan.renames), permanently);
+    const confirmText = deleteTextOf(this.moves.heading(), countOf(this.path, asked.text, this.syntax), movesWords(plan.renames), permanently);
     this.ask(confirmText, () => this.work.add(this.remove(asked, plan)));
   }
 

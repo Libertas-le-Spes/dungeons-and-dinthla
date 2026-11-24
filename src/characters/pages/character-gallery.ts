@@ -13,6 +13,7 @@ import { readCharacterCard } from "../cards/read-character-card";
 import { PendingWork } from "../../views/pending/pending-work";
 import type { CharacterCreators } from "./character-creators";
 import { addImportButton } from "../imported/drawing/import-button";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 const NO_CHARACTERS = "No characters yet. Add one with New character.";
 interface DrawnCard {
@@ -36,6 +37,7 @@ export class CharacterGallery {
     private readonly notes: CharacterNotes,
     private readonly actions: LinkActions,
     private readonly creators: CharacterCreators,
+    private readonly syntax: PropertiesSyntax,
   ) {}
 
   readsCampaignNote(path: string): boolean {
@@ -143,6 +145,6 @@ export class CharacterGallery {
   }
 
   private async cardOf(file: NoteRef, learnedFacts: Promise<LearnedFacts>): Promise<CharacterCard> {
-    return readCharacterCard(file, await learnedFacts, this.notes);
+    return readCharacterCard(file, await learnedFacts, this.notes, this.syntax);
   }
 }

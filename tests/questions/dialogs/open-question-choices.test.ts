@@ -6,6 +6,7 @@ import { ANSWER_GOES_ELSEWHERE } from "../../../src/questions/writing/current-qu
 import { openQuestion } from "../../../src/questions/dialogs/open-question";
 import { CHANGES_MORE_THAN_ASKED, type QuestionEdit } from "../../../src/questions/writing/question-plan";
 import { DialogCampaign, lastDialog, SESSION_TWO_LOST } from "../../campaign/dialog-campaign";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
@@ -19,7 +20,7 @@ interface QuestionChoices {
 const app = {} as App;
 
 function questionChoices(campaign: DialogCampaign, source: Source, activePath: string = ONE): QuestionChoices {
-  openQuestion(app, campaign.gate, campaign.store, source, () => undefined, () => undefined, activePath);
+  openQuestion(app, campaign.gate, campaign.store, source, () => undefined, () => undefined, activePath, STUB_SYNTAX);
   return lastDialog<{ choices: QuestionChoices }>().choices;
 }
 

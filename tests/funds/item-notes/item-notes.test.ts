@@ -75,7 +75,7 @@ describe("ItemNotes", () => {
   it("writes the newer holder that came while its write was still going", async () => {
     const lines = ["$$ Silvered lantern :changed to [[Mira]]"];
     const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
-    const store = new CampaignStore(sessions.vault);
+    const store = new CampaignStore(sessions.vault, STUB_SYNTAX);
     const itemNotes = new FakeItemNotes([{ path: LANTERN, properties: {} }]);
     const release = itemNotes.holdWrites();
     new ItemNotes(itemNotes.needsFor(store)).start();
@@ -93,7 +93,7 @@ describe("ItemNotes", () => {
 
   it("writes at once when started after the campaign is open", async () => {
     const sessions = new FakeVault([{ path: SESSION, text: "$$ Silvered lantern :changed to [[Mira]]" }]);
-    const store = new CampaignStore(sessions.vault);
+    const store = new CampaignStore(sessions.vault, STUB_SYNTAX);
     await store.open(CAMPAIGN);
     const itemNotes = new FakeItemNotes([{ path: LANTERN, properties: {} }]);
     new ItemNotes(itemNotes.needsFor(store)).start();
@@ -104,7 +104,7 @@ describe("ItemNotes", () => {
   it("writes nothing more when its own write makes the campaign be read again", async () => {
     const lines = ["$$ Silvered lantern :changed to [[Mira]]"];
     const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
-    const store = new CampaignStore(sessions.vault);
+    const store = new CampaignStore(sessions.vault, STUB_SYNTAX);
     const itemNotes = new FakeItemNotes([{ path: LANTERN, properties: {} }]);
     let rereads = 0;
     itemNotes.afterWrite = () => {
@@ -128,7 +128,7 @@ describe("ItemNotes", () => {
       { path: SESSION, text: "$$ Silvered lantern :changed to [[Mira]]" },
       { path: later, text: "$$ Silvered lantern :changed to Old Tom" },
     ]);
-    const store = new CampaignStore(sessions.vault);
+    const store = new CampaignStore(sessions.vault, STUB_SYNTAX);
     const itemNotes = new FakeItemNotes([{ path: LANTERN, properties: { holder: "Old Tom" } }]);
     new ItemNotes(itemNotes.needsFor(store)).start();
     const release = sessions.holdReadsOf(later);
@@ -144,7 +144,7 @@ describe("ItemNotes", () => {
   it("writes a note once while its write is still going when the campaign is read again", async () => {
     const lines = ["$$ Silvered lantern :changed to [[Mira]]"];
     const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
-    const store = new CampaignStore(sessions.vault);
+    const store = new CampaignStore(sessions.vault, STUB_SYNTAX);
     const itemNotes = new FakeItemNotes([{ path: LANTERN, properties: {} }]);
     const release = itemNotes.holdWrites();
     new ItemNotes(itemNotes.needsFor(store)).start();
@@ -212,7 +212,7 @@ describe("ItemNotes", () => {
   it("says when a holder couldn't be written and goes on with the other notes", async () => {
     const lines = ["$$ Silvered lantern :changed to [[Mira]]", "$$ Rope :changed to Old Tom"];
     const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
-    const store = new CampaignStore(sessions.vault);
+    const store = new CampaignStore(sessions.vault, STUB_SYNTAX);
     const itemNotes = new FakeItemNotes([
       { path: LANTERN, properties: {} },
       { path: ROPE, properties: {} },
@@ -234,7 +234,7 @@ describe("ItemNotes", () => {
   it("writes a holder again once a later write to that note succeeded", async () => {
     const lines = ["$$ Silvered lantern :changed to [[Mira]]"];
     const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
-    const store = new CampaignStore(sessions.vault);
+    const store = new CampaignStore(sessions.vault, STUB_SYNTAX);
     const itemNotes = new FakeItemNotes([{ path: LANTERN, properties: {} }]);
     const needs = itemNotes.needsFor(store);
     const write = needs.notes.changeProperties.bind(needs.notes);
@@ -262,7 +262,7 @@ describe("ItemNotes", () => {
   it("says once that a holder couldn't be written however often the campaign is read again", async () => {
     const lines = ["$$ Silvered lantern :changed to [[Mira]]"];
     const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
-    const store = new CampaignStore(sessions.vault);
+    const store = new CampaignStore(sessions.vault, STUB_SYNTAX);
     const itemNotes = new FakeItemNotes([{ path: LANTERN, properties: {} }]);
     const needs = itemNotes.needsFor(store);
     needs.notes.changeProperties = async () => {
@@ -286,8 +286,8 @@ describe("ItemNotes from the saved session notes", () => {
     const metadataEvents = new FakeEvents();
     const files = { on: fileEvents.on.bind(fileEvents), offref: fileEvents.offref.bind(fileEvents) };
     const metadata = { on: metadataEvents.on.bind(metadataEvents), offref: metadataEvents.offref.bind(metadataEvents) };
-    const shown = new CampaignStore(sessions.vault);
-    const saved = new SavedCampaign({ shown, notes: { store: sessions.vault, changes: notesOverFakes({ files, metadata }) }, failed: () => {} });
+    const shown = new CampaignStore(sessions.vault, STUB_SYNTAX);
+    const saved = new SavedCampaign({ shown, notes: { store: sessions.vault, changes: notesOverFakes({ files, metadata }) }, failed: () => {} }, STUB_SYNTAX);
     const itemNotes = new FakeItemNotes([{ path: LANTERN, properties: { holder: "[[Mira]]" } }]);
     new ItemNotes(itemNotes.needsFor(saved)).start();
     saved.start();
@@ -321,7 +321,7 @@ describe("ItemNotes through the gate", () => {
     const rawFileManager = { processFrontMatter } as unknown as RawFileManager;
     const rawMetadata = { getFileCache: () => cacheOf({}) } as unknown as RawMetadata;
     const sessions = new FakeVault([{ path: `${campaign}/Sessions/Session 1.md`, text: "$$ Silvered lantern :changed to [[Mira]]" }]);
-    const store = new CampaignStore(sessions.vault);
+    const store = new CampaignStore(sessions.vault, STUB_SYNTAX);
     const failures: unknown[] = [];
     const needs = {
       store,

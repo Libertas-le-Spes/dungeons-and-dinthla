@@ -4,6 +4,7 @@ import type { Campaign, SessionNote } from "../../src/campaign/record/campaign";
 import { sessionNoteOf, sessionNumberOf } from "../../src/campaign/paths/session-file";
 import type { WatchedCampaign } from "../../src/kind-notes/watching/kind-note-watcher";
 import { CAMPAIGN } from "./keeper-setup";
+import { STUB_SYNTAX } from "../host/stub-syntax";
 
 export class FakeCampaign implements WatchedCampaign {
   campaignFolder: string | null = CAMPAIGN;
@@ -21,7 +22,7 @@ export class FakeCampaign implements WatchedCampaign {
   hold(path: string, text: string): void {
     const number = sessionNumberOf(path, CAMPAIGN);
     if (number === null) throw new Error(`${path} isn't a session`);
-    this.sessions.set(path, sessionNoteOf(path, number, text));
+    this.sessions.set(path, sessionNoteOf(path, number, text, STUB_SYNTAX));
     this.current = buildCampaign(this.sessionNotes);
   }
 
