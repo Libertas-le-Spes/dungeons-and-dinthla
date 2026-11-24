@@ -493,15 +493,13 @@ export default class DungeonsAndDinthla extends Plugin {
     const references = new ReferenceNotes({ store: saved, notes, syntax, say, askNewNames: newNamesDialogIn(this.app) });
     const dmQuestions = new DmNameQuestions({
       store: saved,
-      files: gate.files,
-      metadata: gate.metadata,
       notes,
       syntax,
       campaignFolders: () => this.campaignFolders(),
       say,
       askNewNames: newNamesDialogIn(this.app),
     });
-    const routed = new RoleRoutedNotes({ store: saved, metadata: gate.metadata, forDm: dmQuestions, forOthers: references });
+    const routed = new RoleRoutedNotes({ store: saved, notes, forDm: dmQuestions, forOthers: references });
     this.register(items.start());
     this.register(references.start());
     this.register(dmQuestions.start());

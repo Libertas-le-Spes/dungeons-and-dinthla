@@ -1,12 +1,17 @@
 import { campaignFolderOf, isInFallenFolder, isInReferenceFolder } from "../../campaign/paths/campaign-folders";
-import type { FencedFiles } from "../../fence/gate/fenced-files";
-import type { FencedMetadata } from "../../fence/gate/fenced-metadata";
+import type { NoteFacts } from "../../host/notes/note-facts";
+import type { NoteRef } from "../../host/notes/note-ref";
+import type { NoteStore } from "../../host/notes/note-store";
 import { aliasesIn } from "../../funds/item-notes/item-note-change";
 import { characterReferenceKind } from "../../kinds/character-reference-kind";
 
+export interface TakenNamesNotes {
+  readonly store: Pick<NoteStore, "notesUnder" | "notes">;
+  readonly facts: Pick<NoteFacts, "propertiesOf">;
+}
+
 export interface TakenNamesNeeds {
-  files: Pick<FencedFiles, "markdownFilesUnder" | "getMarkdownFiles">;
-  metadata: Pick<FencedMetadata, "getFileCache">;
+  notes: TakenNamesNotes;
   campaignFolders(): string[];
 }
 
@@ -16,17 +21,15 @@ function isCharacterNote(path: string, campaignFolders: string[]): boolean {
   return isInReferenceFolder(characterReferenceKind, folder, path) || isInFallenFolder(folder, path);
 }
 
-type NoteFile = ReturnType<FencedFiles["getMarkdownFiles"]>[number];
-
-function aliasesOf(metadata: TakenNamesNeeds["metadata"], file: NoteFile): string[] {
-  const cache = metadata.getFileCache(file);
-  if (cache === null || cache.frontmatter === undefined) return [];
-  return aliasesIn(cache.frontmatter).filter((alias): alias is string => typeof alias === "string");
+function aliasesOf(facts: TakenNamesNotes["facts"], note: NoteRef): string[] {
+  const properties = facts.propertiesOf(note);
+  if (properties === null) return [];
+  return aliasesIn(properties).filter((alias): alias is string => typeof alias === "string");
 }
 
 export function takenNamesOf({ needs, campaignFolder }: { needs: TakenNamesNeeds; campaignFolder: string }): string[] {
-  const { files, metadata } = needs;
-  const characters = files.getMarkdownFiles().filter((file) => isCharacterNote(file.path, needs.campaignFolders()));
-  const notes = new Set([...files.markdownFilesUnder(campaignFolder), ...characters]);
-  return [...notes].flatMap((file) => [file.basename, ...aliasesOf(metadata, file)]);
+  const { store, facts } = needs.notes;
+  const characters = store.notes().filter((note) => isCharacterNote(note.path, needs.campaignFolders()));
+  const notes = new Set([...store.notesUnder(campaignFolder), ...characters]);
+  return [...notes].flatMap((note) => [note.basename, ...aliasesOf(facts, note)]);
 }
