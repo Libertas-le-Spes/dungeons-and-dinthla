@@ -1,3 +1,4 @@
+import { STUB_SPELLING } from "../../host/stub-spelling";
 import { describe, expect, it } from "vitest";
 import { isSafeNewPath, isSafePath } from "../../../src/fence/paths/safe-path";
 
@@ -45,20 +46,20 @@ describe("isSafePath", () => {
 
 describe("isSafeNewPath", () => {
   it("takes a plain path as Obsidian writes it", () => {
-    expect(isSafeNewPath("Games/Pale Moon/Sessions/Session 2.md")).toBe(true);
+    expect(isSafeNewPath("Games/Pale Moon/Sessions/Session 2.md", STUB_SPELLING)).toBe(true);
   });
 
   it("refuses a path Obsidian would write another way", () => {
-    for (const path of ["Games/Zoe\u0308.md", "Games/Pale\u00a0Moon.md"]) expect(isSafeNewPath(path)).toBe(false);
+    for (const path of ["Games/Zoe\u0308.md", "Games/Pale\u00a0Moon.md"]) expect(isSafeNewPath(path, STUB_SPELLING)).toBe(false);
   });
 
   it("refuses a part a file or folder can't be named", () => {
-    for (const path of ["Games/Session #1.md", "Games/CON/Pale Moon.md", "Games/..Pale Moon.md", "Games/Pale:Moon.md"]) expect(isSafeNewPath(path)).toBe(false);
+    for (const path of ["Games/Session #1.md", "Games/CON/Pale Moon.md", "Games/..Pale Moon.md", "Games/Pale:Moon.md"]) expect(isSafeNewPath(path, STUB_SPELLING)).toBe(false);
   });
 
   it("refuses every path that isn't safe to hold", () => {
     for (const path of [null, "", "/Games/Pale Moon.md", "C:/Games.md", "Games\\Pale Moon.md", "Games/Pale\0Moon.md", "Games/../Private.md", "Games//Pale Moon.md"]) {
-      expect(isSafeNewPath(path)).toBe(false);
+      expect(isSafeNewPath(path, STUB_SPELLING)).toBe(false);
     }
   });
 });

@@ -1,3 +1,4 @@
+import { STUB_SPELLING } from "../../host/stub-spelling";
 import { describe, expect, it, vi } from "vitest";
 import { Fence, NOT_WRITTEN_AS_OBSIDIAN_WRITES, OUTSIDE_FENCE } from "../../../src/fence/paths/fence";
 import { FencedFileActions, type RawFileManager } from "../../../src/fence/gate/fenced-file-actions";
@@ -18,7 +19,7 @@ function actionsWith() {
     renameFile: vi.fn(async () => {}),
     trashFile: vi.fn(async () => {}),
   };
-  const held = new HeldFiles(vault, new Fence(() => "D&D", CONFIG_DIR));
+  const held = new HeldFiles(vault, new Fence(() => "D&D", CONFIG_DIR, STUB_SPELLING));
   const reporter = new NoteReporter();
   const heard = reportListenerSpy();
   reporter.notes.listen(heard);

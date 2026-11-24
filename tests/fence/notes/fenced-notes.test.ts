@@ -1,3 +1,4 @@
+import { STUB_SPELLING } from "../../host/stub-spelling";
 import { describe, expect, it, vi } from "vitest";
 import { FencedNotes } from "../../../src/fence/notes/fenced-notes";
 import type { WriteReport } from "../../../src/fence/notes/write-report";
@@ -16,7 +17,7 @@ function reportStub(): WriteReport {
 
 function fencedOver(raw: InMemoryNotes, campaignsFolder: string | null = "D&D") {
   const report = reportStub();
-  const notes = new FencedNotes(raw, new Fence(() => campaignsFolder, CONFIG), report);
+  const notes = new FencedNotes(raw, new Fence(() => campaignsFolder, CONFIG, STUB_SPELLING), report);
   return { notes, report };
 }
 
@@ -59,7 +60,7 @@ describe("the plugin's own fence over a notes program", () => {
     const raw = new InMemoryNotes();
     raw.put(SESSION, "? Who");
     let folder: string | null = "D&D";
-    const notes = new FencedNotes(raw, new Fence(() => folder, CONFIG), reportStub());
+    const notes = new FencedNotes(raw, new Fence(() => folder, CONFIG, STUB_SPELLING), reportStub());
     const note = notesNote(notes, SESSION);
     folder = "Other";
     await expect(async () => notes.store.read(note)).rejects.toThrow(OUTSIDE_FENCE);

@@ -1,4 +1,4 @@
-import { normalizePath } from "obsidian";
+import type { PathSpelling } from "../../host/rules/path-spelling";
 import { isTrimmedByWindows, refusalForFileName } from "../../names/file-name";
 
 const DRIVE_LETTER = /^[A-Za-z]:/;
@@ -37,9 +37,6 @@ function hasOnlyPartsWindowsKeeps(path: string): boolean {
   return path.split("/").every(keepsItsNameOnWindows);
 }
 
-function isAsObsidianWritesIt(path: string): boolean {
-  return normalizePath(path) === path;
-}
 
 export function refusalForPathParts(path: string): string | null {
   for (const part of path.split("/")) {
@@ -55,14 +52,14 @@ function hasOnlyNameableParts(path: string): boolean {
 
 const PATH_RULES: PathRule[] = [isWritten, startsInsideTheVault, usesOnlyForwardSlashes, holdsNoNullCharacter, hasOnlyPlainParts, hasOnlyPartsWindowsKeeps];
 
-const NEW_PATH_RULES: PathRule[] = [isAsObsidianWritesIt, hasOnlyNameableParts];
 
 export function isSafePath(path: unknown): path is string {
   if (typeof path !== "string") return false;
   return PATH_RULES.every((rule) => rule(path));
 }
 
-export function isSafeNewPath(path: unknown): path is string {
+export function isSafeNewPath(path: unknown, spelling: PathSpelling): path is string {
   if (!isSafePath(path)) return false;
-  return NEW_PATH_RULES.every((rule) => rule(path));
+  if (spelling.storedSpellingOf(path) !== path) return false;
+  return hasOnlyNameableParts(path);
 }

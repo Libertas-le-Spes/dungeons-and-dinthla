@@ -1,3 +1,4 @@
+import { STUB_SPELLING } from "../../host/stub-spelling";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App, TFile, TFolder } from "obsidian";
 import { Fence } from "../../../src/fence/paths/fence";
@@ -17,7 +18,7 @@ const PRIVATE = fileAt("Private/Primary.md");
 function placeWith(linkLeadsTo: TFile | null, files: TFile[] = [SESSION, MIRA, PRIVATE], folders: TFolder[] = []) {
   const { vault, calls } = rawVaultWith(files, folders);
   const raw = { getFirstLinkpathDest: vi.fn(() => linkLeadsTo) };
-  const held = new HeldFiles(vault, new Fence(() => "D&D", ".obsidian"));
+  const held = new HeldFiles(vault, new Fence(() => "D&D", ".obsidian", STUB_SPELLING));
   const gate = { files: new FencedFiles(vault, held, new NoteReporter()), metadata: new FencedMetadata(raw as unknown as RawMetadata, held) };
   const leaf = { openFile: vi.fn(async () => {}) };
   const openLinkText = vi.fn(async () => {});

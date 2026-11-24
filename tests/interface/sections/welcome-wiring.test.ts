@@ -1,3 +1,4 @@
+import { STUB_SPELLING } from "../../host/stub-spelling";
 import { describe, expect, it, vi } from "vitest";
 import type { TFile, TFolder } from "obsidian";
 import { welcomeWiring } from "../../../src/interface/sections/welcome-wiring";
@@ -34,6 +35,7 @@ function wiredWith(foldersThere: string[]) {
     pickFolder: vi.fn(),
     agreement: new AnsweredAgreement(),
     startSession: vi.fn(),
+    spelling: STUB_SPELLING,
   };
   return { wiring: welcomeWiring(needs), needs, files };
 }

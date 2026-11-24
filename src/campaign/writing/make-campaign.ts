@@ -1,3 +1,4 @@
+import type { PathSpelling } from "../../host/rules/path-spelling";
 import { NO_CAMPAIGNS_FOLDER } from "../../fence/paths/campaigns-folder-path";
 import type { FencedFiles } from "../../fence/gate/fenced-files";
 import { mainNotePathOf } from "../paths/campaign-folders";
@@ -50,9 +51,9 @@ async function addMainNote(files: NewCampaignFiles, folder: string): Promise<voi
   }
 }
 
-export async function makeCampaign(files: NewCampaignFiles, campaignsFolder: string | null, typed: string): Promise<string> {
+export async function makeCampaign(files: NewCampaignFiles, campaignsFolder: string | null, typed: string, spelling: PathSpelling): Promise<string> {
   if (campaignsFolder === null) throw new Error(NO_CAMPAIGNS_FOLDER);
-  const name = typedPathOf(typed, NO_CAMPAIGN_NAME);
+  const name = typedPathOf(typed, NO_CAMPAIGN_NAME, spelling);
   const refusal = refusalForCampaign(files, campaignsFolder, name);
   if (refusal !== null) throw new Error(refusal);
   const folder = `${campaignsFolder}/${name}`;

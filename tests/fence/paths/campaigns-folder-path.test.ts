@@ -1,3 +1,4 @@
+import { STUB_SPELLING } from "../../host/stub-spelling";
 import { describe, expect, it } from "vitest";
 import { BAD_NAME } from "../../../src/names/file-name";
 import {
@@ -33,27 +34,27 @@ describe("refusalForCampaignsFolder", () => {
 
 describe("newCampaignsFolderPathOf", () => {
   it("gives the typed path as Obsidian writes it", () => {
-    expect(newCampaignsFolderPathOf("  Games/D&D/ ")).toBe("Games/D&D");
+    expect(newCampaignsFolderPathOf("  Games/D&D/ ", STUB_SPELLING)).toBe("Games/D&D");
   });
 
   it("asks for a name when none is typed", () => {
-    expect(() => newCampaignsFolderPathOf("   ")).toThrow(NO_FOLDER_NAME);
+    expect(() => newCampaignsFolderPathOf("   ", STUB_SPELLING)).toThrow(NO_FOLDER_NAME);
   });
 
   it("refuses the whole vault", () => {
-    expect(() => newCampaignsFolderPathOf("/")).toThrow(NOT_THE_WHOLE_VAULT);
+    expect(() => newCampaignsFolderPathOf("/", STUB_SPELLING)).toThrow(NOT_THE_WHOLE_VAULT);
   });
 
   it("refuses a path that steps out with ..", () => {
-    expect(() => newCampaignsFolderPathOf("Games/../D&D")).toThrow(NOT_A_PLAIN_PATH);
+    expect(() => newCampaignsFolderPathOf("Games/../D&D", STUB_SPELLING)).toThrow(NOT_A_PLAIN_PATH);
   });
 
   it("refuses a hidden folder typed", () => {
-    expect(() => newCampaignsFolderPathOf(".obsidian")).toThrow(NOT_A_HIDDEN_FOLDER);
+    expect(() => newCampaignsFolderPathOf(".obsidian", STUB_SPELLING)).toThrow(NOT_A_HIDDEN_FOLDER);
   });
 
   it("refuses a part a folder can't be named", () => {
-    expect(() => newCampaignsFolderPathOf("Games/D&D?")).toThrow(BAD_NAME);
+    expect(() => newCampaignsFolderPathOf("Games/D&D?", STUB_SPELLING)).toThrow(BAD_NAME);
   });
 });
 

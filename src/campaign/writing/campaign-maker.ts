@@ -1,5 +1,6 @@
 import { Notice } from "obsidian";
 import type { ReadCampaignsFolder } from "../../fence/paths/fence";
+import type { PathSpelling } from "../../host/rules/path-spelling";
 import { messageOf } from "../../views/dialogs/message-of";
 import { makeCampaign, type NewCampaignFiles } from "./make-campaign";
 
@@ -10,6 +11,7 @@ export class CampaignMaker {
     private readonly files: NewCampaignFiles,
     private readonly readCampaignsFolder: ReadCampaignsFolder,
     private readonly choose: ChooseCampaign,
+    private readonly spelling: PathSpelling,
   ) {}
 
   async make(name: string): Promise<boolean> {
@@ -21,7 +23,7 @@ export class CampaignMaker {
 
   private async madeFolder(name: string): Promise<string | null> {
     try {
-      return await makeCampaign(this.files, this.readCampaignsFolder(), name);
+      return await makeCampaign(this.files, this.readCampaignsFolder(), name, this.spelling);
     } catch (error) {
       new Notice(`Couldn't make the campaign: ${messageOf(error)}`);
       return null;

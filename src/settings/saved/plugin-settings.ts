@@ -1,5 +1,5 @@
 import { isInConfigFolder, refusalForCampaignsFolder } from "../../fence/paths/campaigns-folder-path";
-import { Fence } from "../../fence/paths/fence";
+import { isInsideCampaignsFolder } from "../../fence/paths/fence";
 
 export interface PluginSettings {
   campaignsFolder: string | null;
@@ -16,7 +16,7 @@ function isCampaignsFolder(saved: unknown, configDir: string): saved is string {
 }
 
 function isInside(campaignsFolder: string | null, configDir: string, saved: unknown): saved is string {
-  return new Fence(() => campaignsFolder, configDir).holds(saved);
+  return isInsideCampaignsFolder(campaignsFolder, configDir, saved);
 }
 
 function foldersInside(campaignsFolder: string | null, configDir: string, saved: unknown): string[] {

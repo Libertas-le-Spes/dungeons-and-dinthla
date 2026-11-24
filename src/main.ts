@@ -18,6 +18,7 @@ import { characterNotesOf } from "./characters/reading/character-notes";
 import { addEditCharacterItem, editActiveCharacter, editCharacter, openNewCharacter } from "./characters/editing/open-character";
 import { chooseSheetValue } from "./characters/editing/open-character-sheet";
 import { OldCharactersBases } from "./characters/retiring/old-characters-bases";
+import { OBSIDIAN_SPELLING } from "./obsidian/notes/obsidian-spelling";
 import { sheetNotesOf } from "./characters/reading/sheet-notes";
 import { mentionNotesOf } from "./characters/reading/mention-notes";
 import { editorTextOf } from "./campaign/reading/editor-text";
@@ -143,6 +144,7 @@ export default class DungeonsAndDinthla extends Plugin {
       openWelcome: welcomeOpenerOf(this.app),
       pickFolder: (folders: string[], chosen: (folder: string) => void) => new FolderSuggestModal(this.app, folders, chosen).open(),
       agreement: new CampaignAgreement(this.keptAgreement),
+      spelling: OBSIDIAN_SPELLING,
       startSession: newSession,
     });
     const startNewCampaign = () =>

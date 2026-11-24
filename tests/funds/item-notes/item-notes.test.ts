@@ -1,3 +1,4 @@
+import { STUB_SPELLING } from "../../host/stub-spelling";
 import { describe, expect, it, vi } from "vitest";
 import type { TFile } from "obsidian";
 import { CampaignStore } from "../../../src/campaign/reading/campaign-store";
@@ -311,7 +312,7 @@ describe("ItemNotes through the gate", () => {
   async function keepHoldersThroughGate(campaign: string, itemPath: string) {
     const file = fileAt(itemPath);
     const raw = rawVaultWith([file]);
-    const fence = new Fence(() => "D&D", ".obsidian");
+    const fence = new Fence(() => "D&D", ".obsidian", STUB_SPELLING);
     const held = new HeldFiles(raw.vault, fence);
     const processFrontMatter = vi.fn(async (_file: TFile, change: ChangeProperties) => change({}));
     const reporter = new NoteReporter();
