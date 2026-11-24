@@ -1,5 +1,5 @@
 import type { Section, Div, Span, Paragraph, Button, List, OrderedList, ListItem, Heading1, Heading2, Heading3, Bold, Strong, Details, Summary, Label, Anchor, Mark, Pre, Nav, Form, DescriptionList, Term, Description, Select, NameLink, FieldRow } from "./kinds/containers";
-import type { DateInput, Option, Switch, TextArea, TextInput } from "./kinds/fields";
+import type { DateInput, FileInput, Option, Switch, TextArea, TextInput } from "./kinds/fields";
 
 export interface MountPlace {
   readonly mountPlace: true;
@@ -38,5 +38,6 @@ export interface Mounter {
   nameLink(element: NameLink, into: MountPlace): MountPlace;
   fieldRow(element: FieldRow, into: MountPlace): MountPlace;
   toggleSwitch(element: Switch, into: MountPlace): MountPlace;
+  fileInput(element: FileInput, into: MountPlace): MountPlace;
 }
 

@@ -1,16 +1,18 @@
-import { ButtonComponent } from "obsidian";
 import { CHOOSE_ANOTHER, CLOSE_BUTTON } from "../import-words";
 import { problemLinesOf, summaryLinesOf } from "../review/sheet-summary";
 import type { Review, ReviewActions } from "./review";
+import { PlainButton } from "../../../views/components/dialogs/dialog-buttons";
+import { PressBinding } from "../../../views/elements/bindings/bindings";
+import { RunAction } from "../../../views/elements/bindings/run-action";
+import { Button, Div, Heading3, List, ListItem, Paragraph } from "../../../views/elements/kinds/containers";
+import type { ViewElement } from "../../../views/elements/view-element";
 
-function drawSummary(parent: HTMLElement, review: Review): void {
-  const summary = parent.createDiv({ cls: "dd-import-summary" });
-  summary.createEl("h3", { text: review.sheet.character.name.text });
-  for (const line of summaryLinesOf(review.sheet)) summary.createEl("p", { text: line });
+function summaryTree(review: Review): ViewElement {
+  const inside: ViewElement[] = [new Heading3({ text: review.sheet.character.name.text })];
+  for (const line of summaryLinesOf(review.sheet)) inside.push(new Paragraph({ text: line }));
   const problems = problemLinesOf(review.sheet);
-  if (problems.length === 0) return;
-  const list = summary.createEl("ul", { cls: "dd-import-problems" });
-  for (const problem of problems) list.createEl("li", { text: problem });
+  if (problems.length > 0) inside.push(new List({ cls: ["dd-import-problems"] }, problems.map((problem) => new ListItem({ text: problem }))));
+  return new Div({ cls: ["dd-import-summary"] }, inside);
 }
 
 function canWrite(review: Review): boolean {
@@ -18,34 +20,23 @@ function canWrite(review: Review): boolean {
   return review.target.hasWork(review.changes);
 }
 
-function drawFailure(parent: HTMLElement, review: Review): void {
-  if (review.failure === null) return;
-  parent.createEl("p", { cls: "dd-import-refusal dd-import-failure", text: review.failure, attr: { role: "alert" } });
+function failureTrees(review: Review): ViewElement[] {
+  if (review.failure === null) return [];
+  return [new Paragraph({ cls: ["dd-import-refusal", "dd-import-failure"], text: review.failure, role: "alert" })];
 }
 
-function drawWhatChanges(parent: HTMLElement, review: Review): void {
-  if (review.refusal !== null) {
-    parent.createEl("p", { cls: "dd-import-refusal", text: review.refusal, attr: { role: "alert" } });
-    return;
-  }
-  review.target.drawPlan(parent, review.changes);
+function whatChangesTrees(review: Review): ViewElement[] {
+  if (review.refusal !== null) return [new Paragraph({ cls: ["dd-import-refusal"], text: review.refusal, role: "alert" })];
+  return review.target.planOf(review.changes);
 }
 
-function drawButtons(parent: HTMLElement, review: Review, actions: ReviewActions): void {
-  const row = parent.createDiv({ cls: ["modal-button-container", "dd-import-footer"] });
-  if (canWrite(review)) {
-    const write = new ButtonComponent(row).setButtonText(review.target.buttonWords).setCta().onClick(actions.writeChosen.bind(actions));
-    write.buttonEl.addClass("dd-import-write");
-  } else {
-    new ButtonComponent(row).setButtonText(CLOSE_BUTTON).onClick(actions.closeChosen.bind(actions));
-  }
-  new ButtonComponent(row).setButtonText(CHOOSE_ANOTHER).onClick(actions.chooseAnother.bind(actions));
+function firstButton(review: Review, actions: ReviewActions): ViewElement {
+  if (!canWrite(review)) return new PlainButton(CLOSE_BUTTON, new RunAction(actions.closeChosen.bind(actions))).build();
+  return new Button({ cls: ["mod-cta", "dd-import-write"], text: review.target.buttonWords, bindings: [new PressBinding(new RunAction(actions.writeChosen.bind(actions)))] });
 }
 
-export function drawReview(parent: HTMLElement, review: Review, actions: ReviewActions): void {
-  const body = parent.createDiv({ cls: "dd-import-body" });
-  drawSummary(body, review);
-  drawFailure(body, review);
-  drawWhatChanges(body, review);
-  drawButtons(parent, review, actions);
+export function reviewTrees(review: Review, actions: ReviewActions): ViewElement[] {
+  const body = [summaryTree(review), ...failureTrees(review), ...whatChangesTrees(review)];
+  const buttons = [firstButton(review, actions), new PlainButton(CHOOSE_ANOTHER, new RunAction(actions.chooseAnother.bind(actions))).build()];
+  return [new Div({ cls: ["dd-import-body"] }, body), new Div({ cls: ["modal-button-container", "dd-import-footer"] }, buttons)];
 }

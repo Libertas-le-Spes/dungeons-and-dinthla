@@ -1,4 +1,3 @@
-import type { App } from "obsidian";
 import { MainOffers } from "../../leaving/dialog/main-offers";
 import type { OfferWiring } from "../../leaving/questions/offer-wiring";
 import type { CampaignCast } from "../../leaving/cast/campaign-cast";
@@ -14,7 +13,6 @@ import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
 import type { DialogShowing } from "../../../views/dialogs/dialog-view";
 
 export interface BeyondWiring {
-  readonly app: App;
   readonly showing: DialogShowing;
   readonly files: LeavingFiles;
   readonly actions: LeavingActions;
@@ -29,7 +27,7 @@ export interface BeyondWiring {
 }
 
 class CampaignPlace implements ImportPlace {
-  readonly app: App;
+  readonly showing: DialogShowing;
   readonly files: LeavingFiles;
   readonly charactersFolder: string;
   readonly online: OnlineSource;
@@ -39,7 +37,7 @@ class CampaignPlace implements ImportPlace {
     readonly campaignFolder: string,
     private readonly syntax: PropertiesSyntax,
   ) {
-    this.app = wiring.app;
+    this.showing = wiring.showing;
     this.files = wiring.files;
     this.charactersFolder = wiring.charactersFolderOf(campaignFolder);
     this.online = wiring.online;

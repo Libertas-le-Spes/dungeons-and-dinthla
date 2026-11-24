@@ -202,7 +202,7 @@ export default class DungeonsAndDinthla extends Plugin {
     const characterNotes = new HostCharacterNotes(characterParts);
     const editing = { showing: this.showing, notes: this.notes, characters: characterNotes, spelling: OBSIDIAN_SPELLING, syntax: OBSIDIAN_SYNTAX };
     const sheetNotes = new HostSheetNotes(characterParts);
-    const beyond = new BeyondOpeners(new PluginBeyondWiring({ app: this.app, showing: this.showing, files: gate.notes.store, actions: gate.notes.keeping, metadata: gate.notes.links, online: this.onlineImport, store: this.store, characterNotes, campaignFolders }), OBSIDIAN_SYNTAX);
+    const beyond = new BeyondOpeners(new PluginBeyondWiring({ showSheet: (path: string) => void openCampaignPage(this.app, "cast", path), showing: this.showing, files: gate.notes.store, actions: gate.notes.keeping, metadata: gate.notes.links, online: this.onlineImport, store: this.store, characterNotes, campaignFolders }), OBSIDIAN_SYNTAX);
     const sheetActions = {
       ...actions,
       editCharacter: (file: NoteRef) => editCharacter(editing, file),
@@ -575,7 +575,7 @@ export default class DungeonsAndDinthla extends Plugin {
 }
 
 interface BeyondWiringParts {
-  readonly app: BeyondWiring["app"];
+  readonly showSheet: (path: string) => void;
   readonly showing: BeyondWiring["showing"];
   readonly files: BeyondWiring["files"];
   readonly actions: BeyondWiring["actions"];
@@ -587,7 +587,6 @@ interface BeyondWiringParts {
 }
 
 class PluginBeyondWiring implements BeyondWiring {
-  readonly app: BeyondWiring["app"];
   readonly showing: BeyondWiring["showing"];
   readonly files: BeyondWiring["files"];
   readonly actions: BeyondWiring["actions"];
@@ -595,7 +594,6 @@ class PluginBeyondWiring implements BeyondWiring {
   readonly online: BeyondWiring["online"];
 
   constructor(private readonly parts: BeyondWiringParts) {
-    this.app = parts.app;
     this.showing = parts.showing;
     this.files = parts.files;
     this.actions = parts.actions;
@@ -620,7 +618,7 @@ class PluginBeyondWiring implements BeyondWiring {
   }
 
   showSheet(path: string): void {
-    void openCampaignPage(this.app, "cast", path);
+    this.parts.showSheet(path);
   }
 
   tell(words: string): void {

@@ -1,4 +1,3 @@
-import { Setting } from "obsidian";
 import type { PrintedSheet } from "../../../beyond/sheet/printed-sheet";
 import { ONLINE_WENT_WRONG, wordsOf } from "../failure-words";
 import { ASKING, BRING_IN_BUTTON, LINK_LABEL } from "../import-words";
@@ -6,6 +5,15 @@ import type { DialogShown } from "../stages/dialog-shown";
 import type { PendingWork } from "../../../views/pending/pending-work";
 import type { OnlineBlock } from "./online-block";
 import type { OnlineSource } from "./online-source";
+import type { StageScreen } from "../stages/stage-screen";
+import { MainButton } from "../../../views/components/dialogs/dialog-buttons";
+import type { TextChange } from "../../../views/elements/bindings/binding-wiring";
+import { ChangeBinding, HandleRequest } from "../../../views/elements/bindings/bindings";
+import { KeptHandle } from "../../../views/elements/bindings/kept-handle";
+import { RunAction } from "../../../views/elements/bindings/run-action";
+import { FieldRow, Paragraph } from "../../../views/elements/kinds/containers";
+import { TextInput } from "../../../views/elements/kinds/fields";
+import type { ViewElement } from "../../../views/elements/view-element";
 
 export interface OnlineArrival {
   sheetRead(sheet: PrintedSheet): void;
@@ -19,25 +27,26 @@ export interface OnlineParts {
   readonly work: PendingWork;
 }
 
-export class OnlineStage implements OnlineBlock {
+export class OnlineStage implements OnlineBlock, TextChange {
   private typed = "";
+  private readonly link = new KeptHandle();
 
   constructor(
-    private readonly contentEl: HTMLElement,
+    private readonly screen: StageScreen,
     private readonly parts: OnlineParts,
   ) {}
 
-  draw(parent: HTMLElement): void {
-    new Setting(parent)
-      .setName(LINK_LABEL)
-      .addText((text) => {
-        text.setValue(this.typed).onChange(this.typedChanged.bind(this));
-        text.inputEl.focus();
-      })
-      .addButton((button) => button.setButtonText(BRING_IN_BUTTON).setCta().onClick(this.pressed.bind(this)));
+  tree(): ViewElement {
+    const input = new TextInput({ value: this.typed, label: LINK_LABEL, bindings: [new ChangeBinding(this), new HandleRequest(this.link)] });
+    const bringIn = new MainButton(BRING_IN_BUTTON, new RunAction(this.pressed.bind(this))).build();
+    return new FieldRow(LINK_LABEL, null, [input, bringIn]);
   }
 
-  typedChanged(value: string): void {
+  focus(): void {
+    this.link.focus();
+  }
+
+  changed(value: string): void {
     this.typed = value;
   }
 
@@ -47,8 +56,7 @@ export class OnlineStage implements OnlineBlock {
   }
 
   pressed(): void {
-    this.contentEl.empty();
-    this.contentEl.createEl("p", { cls: "dd-import-reading", text: ASKING, attr: { "aria-live": "polite" } });
+    this.screen.show([new Paragraph({ cls: ["dd-import-reading"], text: ASKING, live: "polite" })]);
     this.parts.work.add(this.bringIn());
   }
 

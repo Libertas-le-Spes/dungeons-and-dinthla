@@ -6,6 +6,8 @@ import { PdfStage, type SheetArrival, type SheetReader } from "../../../src/impo
 import { NO_ONLINE_BLOCK } from "../builders/made-up-online";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { PendingWork } from "../../../src/views/pending/pending-work";
+import { StageScreen } from "../../../src/imports/dialog/stages/stage-screen";
+import { MountedView } from "../../host/showing/mounted-view";
 
 class WaitingReader implements SheetReader {
   reads = 0;
@@ -34,9 +36,12 @@ afterEach(() => {
 
 describe("PdfStage while the first file is still being read", () => {
   it("says it is still reading the first file, and does not read the second", () => {
-    const root = obsidianDocument().createElement("div");
+    const view = new MountedView();
+    const screen = new StageScreen();
+    screen.attach(view);
+    const root = view.into;
     const reader = new WaitingReader();
-    const stage = new PdfStage(root, { shown: new DialogShown(), arrival: new NoArrival(), reader, work: new PendingWork(), online: NO_ONLINE_BLOCK });
+    const stage = new PdfStage(screen, { shown: new DialogShown(), arrival: new NoArrival(), reader, work: new PendingWork(), online: NO_ONLINE_BLOCK });
     stage.pdfPicked(new Uint8Array([1]));
     stage.pdfPicked(new Uint8Array([2]));
     expect(textsIn(root, ".dd-still-reading")).toEqual([STILL_READING]);

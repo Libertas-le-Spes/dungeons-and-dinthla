@@ -1,7 +1,7 @@
 export const PLAIN_GLOBALS = ["undefined", "Array", "Date", "Error", "JSON", "Map", "Math", "Number", "Object", "Promise", "RegExp", "Set", "String", "TextEncoder", "WeakMap", "WeakSet"];
 
 export const PAGE_GLOBALS: Record<string, string[]> = {
-  "imports/dialog/picking/pdf-picker.ts": ["Uint8Array"],
+  "obsidian/views/mount/file-pick.ts": ["Uint8Array"],
   "main.ts": ["document", "window"],
   "obsidian/views/mount/name-suggest.ts": ["Event"],
   "online/time-limit.ts": ["clearTimeout", "setTimeout"],
