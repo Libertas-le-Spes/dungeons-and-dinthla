@@ -1,5 +1,5 @@
 import { HandleRequest, KeyBinding, PressBinding } from "../../elements/bindings/bindings";
-import type { HandleWanted } from "../../elements/bindings/binding-wiring";
+import { KeptHandle } from "../../elements/bindings/kept-handle";
 import type { OpenPlace } from "../../elements/bindings/open-place";
 import type { PageAction } from "../../elements/bindings/page-action";
 import type { ElementHandle } from "../../elements/element-handle";
@@ -11,14 +11,6 @@ let tabListsMade = 0;
 interface TabIds {
   readonly tab: string;
   readonly panel: string;
-}
-
-class KeptHandle implements HandleWanted {
-  handle: ElementHandle | null = null;
-
-  received(handle: ElementHandle): void {
-    this.handle = handle;
-  }
 }
 
 class Choose implements PageAction {

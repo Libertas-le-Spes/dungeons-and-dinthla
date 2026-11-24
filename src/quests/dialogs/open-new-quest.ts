@@ -12,6 +12,7 @@ import { NewQuestModal } from "./new-quest-modal";
 import type { NewQuest } from "../writing/new-quest";
 import { newQuest } from "../writing/new-quest-change";
 import type { Gate } from "../../fence/gate/gatekeeper";
+import { OBSIDIAN_TELLING } from "../../obsidian/views/frames/obsidian-telling";
 
 const NO_SESSION = "Start a session first: quests are written into a session note.";
 
@@ -21,7 +22,7 @@ export function openNewQuest(app: App, gate: Gate, store: CampaignStore, onClose
     new Notice(NO_CAMPAIGN);
     return;
   }
-  const sessionPath = sessionForDialog(gate.files, folder, latestSessionWanted(NO_SESSION));
+  const sessionPath = sessionForDialog(gate.notes.store, OBSIDIAN_TELLING, folder, latestSessionWanted(NO_SESSION));
   if (sessionPath === null) return;
   const characters = charactersIn(gate, folder, sessionPath);
   const writer = new SessionChangeWriter(gate.notes.store, syntax);

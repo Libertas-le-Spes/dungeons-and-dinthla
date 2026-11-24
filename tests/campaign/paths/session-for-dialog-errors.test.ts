@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { sessionForDialog } from "../../../src/campaign/paths/session-for-dialog";
 import { latestSessionWanted } from "../../../src/campaign/paths/session-to-write";
-import { Notice } from "../../stubs/obsidian";
+import { RecordedTelling } from "../../host/showing/recorded-telling";
 
 const BROKEN = new Error("The campaign couldn't be read.");
 
@@ -14,20 +14,17 @@ vi.mock("../../../src/campaign/paths/session-to-write", async (importOriginal) =
   return { ...original, sessionToWrite: throwBroken };
 });
 
-beforeEach(() => {
-  Notice.shown = [];
-});
-
 describe("sessionForDialog, when choosing fails for a reason that isn't a refusal", () => {
   it("lets the error through and says nothing", () => {
-    const files = { getFiles: () => [] };
+    const files = { files: () => [] };
+    const telling = new RecordedTelling();
     let thrown: unknown = null;
     try {
-      sessionForDialog(files, "Pale Moon", latestSessionWanted("Start a session first."));
+      sessionForDialog(files, telling, "Pale Moon", latestSessionWanted("Start a session first."));
     } catch (error) {
       thrown = error;
     }
     expect(thrown).toBe(BROKEN);
-    expect(Notice.shown).toEqual([]);
+    expect(telling.said).toEqual([]);
   });
 });

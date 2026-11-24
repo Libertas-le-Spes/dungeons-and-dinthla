@@ -15,14 +15,14 @@
  },
  {
   "id": "page escapes: Obsidian's getAttr reads an attribute",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"getAttr\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: Obsidian's constructorWin reaches the window",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"constructorWin\",\n",
   "replace": "",
   "group": "page fence"
@@ -155,91 +155,91 @@
  },
  {
   "id": "page escapes: onWindowMigrated reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"onWindowMigrated\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: targetNode reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"targetNode\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: activeDocument reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"activeDocument\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: activeWindow reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"activeWindow\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: _EVENTS reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"_EVENTS\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: document reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"document\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: target reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"target\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: currentTarget reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"currentTarget\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: relatedTarget reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"relatedTarget\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: view reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"view\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: activeElement reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"activeElement\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: offsetParent reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"offsetParent\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: ownerElement reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"ownerElement\",\n",
   "replace": "",
   "group": "page fence"

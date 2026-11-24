@@ -12,6 +12,7 @@ export interface HandleWanted {
 export interface BindingWiring {
   press(action: PageAction): void;
   keys(keys: readonly string[], action: PageAction): void;
+  enter(needsModifier: boolean, action: PageAction): void;
   change(field: TextChange): void;
   handle(wanted: HandleWanted): void;
   follow(action: PageAction): void;

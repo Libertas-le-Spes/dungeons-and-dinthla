@@ -10,6 +10,7 @@ import { itemNamedAt } from "./item-named";
 import { holderOptionOf, holderOptions, latestSessionOfItem, type ItemEdit, type ItemStatus } from "./item-plan";
 import { openedItem } from "./item-writer";
 import type { Gate } from "../../fence/gate/gatekeeper";
+import { OBSIDIAN_TELLING } from "../../obsidian/views/frames/obsidian-telling";
 
 const NO_SESSION = "Start a session first: item changes are written into a session note.";
 
@@ -56,7 +57,7 @@ export function openItemDialogAs(
     return;
   }
   const wanted = { activePath, earliestSession: latestSessionOfItem(item, folder), noSession: NO_SESSION };
-  const sessionPath = sessionForDialog(gate.files, folder, wanted);
+  const sessionPath = sessionForDialog(gate.notes.store, OBSIDIAN_TELLING, folder, wanted);
   if (sessionPath === null) return;
   const holders = holderOptions(
     store.current.items.map(holderOptionOf),

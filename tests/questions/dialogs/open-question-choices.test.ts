@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { App } from "obsidian";
 import type { Source } from "../../../src/campaign/record/campaign";
 import { CHANGED_IN_NOTE } from "../../../src/campaign/writing/note-editor";
 import { ANSWER_GOES_ELSEWHERE } from "../../../src/questions/writing/current-question";
@@ -7,6 +6,7 @@ import { openQuestion } from "../../../src/questions/dialogs/open-question";
 import { CHANGES_MORE_THAN_ASKED, type QuestionEdit } from "../../../src/questions/writing/question-plan";
 import { DialogCampaign, lastDialog, SESSION_TWO_LOST } from "../../campaign/dialog-campaign";
 import { STUB_SYNTAX } from "../../host/stub-syntax";
+import { OBSIDIAN_SHOWING } from "../../host/showing/obsidian-showing";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
@@ -17,10 +17,8 @@ interface QuestionChoices {
   delete(): Promise<boolean>;
 }
 
-const app = {} as App;
-
 function questionChoices(campaign: DialogCampaign, source: Source, activePath: string = ONE): QuestionChoices {
-  openQuestion(app, campaign.gate, campaign.store, source, () => undefined, () => undefined, activePath, STUB_SYNTAX);
+  openQuestion(OBSIDIAN_SHOWING, campaign.gate.notes.store, campaign.store, source, () => undefined, () => undefined, activePath, STUB_SYNTAX);
   return lastDialog<{ choices: QuestionChoices }>().choices;
 }
 

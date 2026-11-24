@@ -19,7 +19,7 @@ export class TextInput implements ViewElement {
 export class TextArea implements ViewElement {
   constructor(
     readonly parts: Field,
-    readonly rows: number,
+    readonly rows: number | null = null,
   ) {}
 
   mountOn(mounter: Mounter, into: MountPlace): void {

@@ -118,7 +118,8 @@ export class ObsidianMounter implements Mounter {
   }
 
   textArea(element: TextArea, into: MountPlace): MountPlace {
-    const area = elementOf(into).createEl("textarea", { attr: { rows: element.rows } });
+    const area = elementOf(into).createEl("textarea");
+    if (element.rows !== null) area.setAttr("rows", String(element.rows));
     if (element.parts.value !== undefined) area.value = element.parts.value;
     if (element.parts.placeholder !== undefined) area.placeholder = element.parts.placeholder;
     if (element.parts.spellcheck !== undefined) area.spellcheck = element.parts.spellcheck;

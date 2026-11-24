@@ -16,8 +16,8 @@
  {
   "id": "fence: imports may reach the shared dialogs",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "\"campaign\", \"views/dialogs\", \"views/pending\"] },",
-  "replace": "\"campaign\", \"views/pending\"] },",
+  "find": "\"campaign\", \"host\", \"views/dialogs\", \"views/pending\"] },",
+  "replace": "\"campaign\", \"host\", \"views/pending\"] },",
   "group": "folders"
  },
  {
@@ -86,22 +86,22 @@
  {
   "id": "fence: imports' Obsidian names",
   "file": "tests/fence/allowed/obsidian-imports.ts",
-  "find": "  \"imports/\": [\"App\", \"ButtonComponent\", \"Setting\", \"TFile\", \"parseYaml\"],\n",
+  "find": "  \"imports/\": [\"App\", \"ButtonComponent\", \"Setting\"],\n",
   "replace": "",
   "group": "allow"
  },
  {
   "id": "fence: imports' Obsidian names exact",
   "file": "tests/fence/allowed/obsidian-imports.ts",
-  "find": "[\"App\", \"ButtonComponent\", \"Setting\", \"TFile\", \"parseYaml\"]",
-  "replace": "[\"App\", \"ButtonComponent\", \"Modal\", \"Setting\", \"TFile\", \"parseYaml\"]",
+  "find": "\"imports/\": [\"App\", \"ButtonComponent\", \"Setting\"]",
+  "replace": "\"imports/\": [\"App\", \"ButtonComponent\", \"Modal\", \"Setting\"]",
   "group": "allow"
  },
  {
   "id": "fence: imports reach no other part of views",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "\"campaign\", \"views/dialogs\", \"views/pending\"] },",
-  "replace": "\"campaign\", \"views/dialogs\", \"views/pending\", \"views\"] },",
+  "find": "\"campaign\", \"host\", \"views/dialogs\", \"views/pending\"] },",
+  "replace": "\"campaign\", \"host\", \"views/dialogs\", \"views/pending\", \"views\"] },",
   "group": "folders"
  },
  {
