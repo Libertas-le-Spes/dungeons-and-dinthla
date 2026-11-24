@@ -42,9 +42,31 @@ function itemEventsWrittenIn(path: string, campaign: Campaign, ledgerLines: Writ
   return alone.map((itemEvent) => ({ source: itemEvent.event.source, addTo: (rows) => rows.addItemEvent(itemEvent) }));
 }
 
-export function linesWrittenIn(path: string, campaign: Campaign, ledger: LedgerLine[]): WrittenLine[] {
-  const threads = SHOWN_THREAD_KINDS.flatMap((shown) => threadsWrittenIn(path, campaign, shown));
+const SHOWN_OF_EACH_KIND = 3;
+
+function latestFirst(lines: WrittenLine[]): WrittenLine[] {
+  return [...lines].sort((first, second) => second.source.line - first.source.line);
+}
+
+function latestOfKind(lines: WrittenLine[]): WrittenLine[] {
+  return latestFirst(lines).slice(0, SHOWN_OF_EACH_KIND);
+}
+
+export function kindsWrittenIn(path: string, campaign: Campaign, ledger: LedgerLine[]): WrittenLine[][] {
+  const threads = SHOWN_THREAD_KINDS.map((shown) => threadsWrittenIn(path, campaign, shown));
   const ledgerLines = ledgerLinesWrittenIn(path, ledger);
-  const lines = [...threads, ...ledgerLines, ...itemEventsWrittenIn(path, campaign, ledgerLines)];
-  return lines.sort((first, second) => second.source.line - first.source.line);
+  const coinsAndItems = [...ledgerLines, ...itemEventsWrittenIn(path, campaign, ledgerLines)];
+  return [...threads, coinsAndItems];
+}
+
+export function everyLineOf(kinds: WrittenLine[][]): WrittenLine[] {
+  return latestFirst(kinds.flat());
+}
+
+export function latestOfEachKind(kinds: WrittenLine[][]): WrittenLine[] {
+  return latestFirst(kinds.flatMap(latestOfKind));
+}
+
+export function linesWrittenIn(path: string, campaign: Campaign, ledger: LedgerLine[]): WrittenLine[] {
+  return everyLineOf(kindsWrittenIn(path, campaign, ledger));
 }

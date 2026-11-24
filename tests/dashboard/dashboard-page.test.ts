@@ -189,7 +189,7 @@ describe("DashboardPage", () => {
     expect(titles).toEqual(["Session 1 · The ferry at dusk", "Open questions", "Active quests", "Purse", "Characters"]);
   });
 
-  it("heads the latest session panel with its title and lists every line written in it, the last written first", async () => {
+  it("heads the latest session panel with its title and lists its lines, the last written first", async () => {
     const earlier = sessionOf(1, ["? Who sent the letter"]);
     const latest = sessionOf(2, ["? Why does the wheel turn", "! Find the caravan", "$ 5 gp found", "notes", "?= Who sent the letter: Vess", "? Who is she", "! Escort Mira"]);
     const { root } = await openDashboard([latest, earlier]);
@@ -199,13 +199,14 @@ describe("DashboardPage", () => {
     expect(textsOf(session, ".dd-text, .dd-what")).toEqual(["Escort Mira", "Who is she", "5 gp found", "Find the caravan", "Why does the wheel turn"]);
   });
 
-  it("scrolls the session panel's lines, with the most recent quest, question and item or coin all in them", async () => {
+  it("scrolls the session panel's lines, with the three latest quests, questions and items or coin in them, and counts every line", async () => {
     const lines = ["? Who is she", "$ 5 gp found", "$ [[Mira]] Silvered lantern", "! Escort Mira", "! Guard the mill", "! Burn the mill", "! Bury the mill"];
     const { root } = await openDashboard([sessionOf(1, lines)]);
     const list = elementIn(panel(root, SESSION), ".dd-scroll-list");
     expect(list.getAttribute("tabindex")).toBe("0");
     expect(list.getAttribute("aria-label")).toBe("Lines written in this session");
-    expect(textsOf(list, ".dd-text, .dd-what")).toEqual(["Bury the mill", "Burn the mill", "Guard the mill", "Escort Mira", "Silvered lantern", "5 gp found", "Who is she"]);
+    expect(textsOf(list, ".dd-text, .dd-what")).toEqual(["Bury the mill", "Burn the mill", "Guard the mill", "Silvered lantern", "5 gp found", "Who is she"]);
+    expect(textsOf(panel(root, SESSION), ".dd-big")).toEqual(["7lines"]);
   });
 
   it("opens an item written in the latest session from its row, and puts focus back on it", async () => {
