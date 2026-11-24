@@ -205,36 +205,36 @@
  {
   "id": "allowance: another file may call",
   "file": "tests/fence/source-checks/source-allowances.test.ts",
-  "find": "const NETWORK_CALLERS = [\"online/beyond-call.ts\"];",
-  "replace": "const NETWORK_CALLERS = [\"online/beyond-call.ts\", \"online/call-rules.ts\"];",
+  "find": "const NETWORK_CALLERS = [\"obsidian/online/obsidian-beyond-call.ts\"];",
+  "replace": "const NETWORK_CALLERS = [\"obsidian/online/obsidian-beyond-call.ts\", \"online/call-rules.ts\"];",
   "group": "allowance"
  },
  {
   "id": "allowance: the call's file is not allowed the network",
   "file": "tests/fence/source-checks/source-allowances.test.ts",
-  "find": "const NETWORK_CALLERS = [\"online/beyond-call.ts\"];",
+  "find": "const NETWORK_CALLERS = [\"obsidian/online/obsidian-beyond-call.ts\"];",
   "replace": "const NETWORK_CALLERS: string[] = [];",
   "group": "allowance"
  },
  {
   "id": "allowance: the call's file may import more",
   "file": "tests/fence/allowed/obsidian-imports.ts",
-  "find": "\"online/beyond-call.ts\": [\"requestUrl\"]",
-  "replace": "\"online/beyond-call.ts\": [\"requestUrl\", \"request\"]",
+  "find": "\"obsidian/online/obsidian-beyond-call.ts\": [\"requestUrl\"]",
+  "replace": "\"obsidian/online/obsidian-beyond-call.ts\": [\"requestUrl\", \"request\"]",
   "group": "allowance"
  },
  {
   "id": "allowance: the call's file may not import requestUrl",
   "file": "tests/fence/allowed/obsidian-imports.ts",
-  "find": "  \"online/beyond-call.ts\": [\"requestUrl\"],\n",
+  "find": "  \"obsidian/online/obsidian-beyond-call.ts\": [\"requestUrl\"],\n",
   "replace": "",
   "group": "allowance"
  },
  {
   "id": "allowance: the whole online folder may import requestUrl",
   "file": "tests/fence/allowed/obsidian-imports.ts",
-  "find": "\"online/beyond-call.ts\": [\"requestUrl\"]",
-  "replace": "\"online/\": [\"requestUrl\"]",
+  "find": "\"obsidian/online/obsidian-beyond-call.ts\": [\"requestUrl\"]",
+  "replace": "\"obsidian/online/\": [\"requestUrl\"]",
   "group": "allowance"
  },
  {
@@ -254,8 +254,8 @@
  {
   "id": "allowance: another folder may import online",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "const ONLINE_IMPORTERS: string[] = [\"imports\"];",
-  "replace": "const ONLINE_IMPORTERS: string[] = [\"imports\", \"views\"];",
+  "find": "const ONLINE_IMPORTERS: string[] = [\"imports\", \"host\", \"obsidian\"];",
+  "replace": "const ONLINE_IMPORTERS: string[] = [\"imports\", \"host\", \"obsidian\", \"views\"];",
   "group": "allowance"
  },
  {
@@ -380,15 +380,22 @@
  {
   "id": "calling: BeyondCalls may be named anywhere",
   "file": "tests/fence/scan/reading/names.ts",
-  "find": "BEYOND_CALLING_NAMES = [\"callBeyond\", \"BeyondCalls\"]",
-  "replace": "BEYOND_CALLING_NAMES = [\"callBeyond\"]",
+  "find": "BEYOND_CALLING_NAMES = [\"callBeyond\", \"BeyondCalls\", \"OBSIDIAN_BEYOND_CALL\"]",
+  "replace": "BEYOND_CALLING_NAMES = [\"callBeyond\", \"OBSIDIAN_BEYOND_CALL\"]",
   "group": "calling"
  },
  {
   "id": "calling: callBeyond may be named anywhere",
   "file": "tests/fence/scan/reading/names.ts",
-  "find": "BEYOND_CALLING_NAMES = [\"callBeyond\", \"BeyondCalls\"]",
-  "replace": "BEYOND_CALLING_NAMES = [\"BeyondCalls\"]",
+  "find": "BEYOND_CALLING_NAMES = [\"callBeyond\", \"BeyondCalls\", \"OBSIDIAN_BEYOND_CALL\"]",
+  "replace": "BEYOND_CALLING_NAMES = [\"BeyondCalls\", \"OBSIDIAN_BEYOND_CALL\"]",
+  "group": "calling"
+ },
+ {
+  "id": "calling: the Obsidian call may be named anywhere",
+  "file": "tests/fence/scan/reading/names.ts",
+  "find": "BEYOND_CALLING_NAMES = [\"callBeyond\", \"BeyondCalls\", \"OBSIDIAN_BEYOND_CALL\"]",
+  "replace": "BEYOND_CALLING_NAMES = [\"callBeyond\", \"BeyondCalls\"]",
   "group": "calling"
  },
  {

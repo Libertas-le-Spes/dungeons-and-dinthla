@@ -274,35 +274,35 @@
  },
  {
   "id": "call: method is POST",
-  "file": "src/online/beyond-call.ts",
+  "file": "src/obsidian/online/obsidian-beyond-call.ts",
   "find": "method: \"GET\"",
   "replace": "method: \"POST\"",
   "group": "call"
  },
  {
   "id": "call: errors are thrown",
-  "file": "src/online/beyond-call.ts",
+  "file": "src/obsidian/online/obsidian-beyond-call.ts",
   "find": "throw: false",
   "replace": "throw: true",
   "group": "call"
  },
  {
   "id": "call: a header is sent",
-  "file": "src/online/beyond-call.ts",
+  "file": "src/obsidian/online/obsidian-beyond-call.ts",
   "find": "throw: false })",
   "replace": "throw: false, headers: {} })",
   "group": "call"
  },
  {
   "id": "call: a body is sent",
-  "file": "src/online/beyond-call.ts",
+  "file": "src/obsidian/online/obsidian-beyond-call.ts",
   "find": "throw: false })",
   "replace": "throw: false, body: \"\" })",
   "group": "call"
  },
  {
   "id": "call: the address is not the builder's",
-  "file": "src/online/beyond-call.ts",
+  "file": "src/obsidian/online/obsidian-beyond-call.ts",
   "find": "url: beyondAddressOf(id)",
   "replace": "url: String(id)",
   "group": "call"

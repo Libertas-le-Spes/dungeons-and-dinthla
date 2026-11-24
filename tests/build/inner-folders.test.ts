@@ -30,7 +30,7 @@ const INNER_FOLDERS: InnerFolder[] = [
   { folder: "fence/paths", reaches: ["fence/paths", "names", "host"] },
   { folder: "fence/gate", reaches: ["fence/gate", "fence/notes", "fence/paths", "names", "host", "obsidian"] },
   { folder: "fence/notes", reaches: ["fence/notes", "fence/paths", "host", "names"] },
-  { folder: "host", reaches: ["host"] },
+  { folder: "host", reaches: ["host", "online"] },
   { folder: "beyond", reaches: ["beyond", "names", "pdf", "imports/layout"] },
   { folder: "pdf", reaches: ["pdf"] },
   { folder: "online", reaches: ["online", "beyond"] },
@@ -43,7 +43,7 @@ const INNER_FOLDERS: InnerFolder[] = [
 ];
 
 const BEYOND_IMPORTERS: string[] = ["imports", "online"];
-const ONLINE_IMPORTERS: string[] = ["imports"];
+const ONLINE_IMPORTERS: string[] = ["imports", "host", "obsidian"];
 const IMPORTS_IMPORTERS: string[] = ["main.ts"];
 const LAYOUT_IMPORTERS: string[] = ["imports", "characters", "beyond"];
 const PDF_IMPORTERS: string[] = ["beyond"];
@@ -195,9 +195,9 @@ describe("the inner folders", () => {
 });
 
 describe("the folder that holds the network code", () => {
-  it("reaches only itself and the shape and reply code, and only src/imports may import it", () => {
+  it("reaches only itself and the shape and reply code, and only src/imports, the host's port and the Obsidian side may import it", () => {
     expect(innerFolderNamed("online").reaches).toEqual(["online", "beyond"]);
-    expect(ONLINE_IMPORTERS).toEqual(["imports"]);
+    expect(ONLINE_IMPORTERS).toEqual(["imports", "host", "obsidian"]);
   });
 });
 

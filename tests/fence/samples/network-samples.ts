@@ -78,7 +78,7 @@ export const NETWORK_DEFECT_SAMPLES: NetworkDefect[] = [
 ];
 
 export const BEYOND_CALLING_SAMPLES = [
-  'import { callBeyond } from "../../../../src/online/beyond-call";\nexport const ask = callBeyond;',
+  'import { OBSIDIAN_BEYOND_CALL } from "../../../../src/obsidian/online/obsidian-beyond-call";\nexport const ask = OBSIDIAN_BEYOND_CALL;',
   'import { BeyondCalls } from "../../../../src/online/call-rules";\nexport const calls = new BeyondCalls(async () => ({ status: 200, contentType: "", text: "" }), () => 0);',
   'import type { BeyondCalls } from "../../../../src/online/call-rules";\nexport const held = (calls: BeyondCalls) => calls;',
   'declare const page: { callBeyond: () => void };\nexport const ask = () => page["callBeyond"]();',

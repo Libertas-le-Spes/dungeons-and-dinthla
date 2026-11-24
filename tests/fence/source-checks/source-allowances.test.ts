@@ -34,8 +34,8 @@ const LEAF_VIEW_READERS = ["main.ts", "interface/tabs/one-campaign-tab.ts", "int
 const VIEW_FILE_READERS = ["main.ts", "campaign/reading/editor-text.ts", "editor/marker-decorations.ts", "interface/takeover/campaign-takeover.ts"];
 const NOTE_EVENT_LISTENERS = ["main.ts"];
 const GATE_BUILDERS = ["main.ts"];
-const NETWORK_CALLERS = ["online/beyond-call.ts"];
-const BEYOND_CALLERS = ["online/beyond-call.ts", "online/call-rules.ts", "imports/dialog/online/online-wiring.ts", "imports/dialog/online/online-import.ts"];
+const NETWORK_CALLERS = ["obsidian/online/obsidian-beyond-call.ts"];
+const BEYOND_CALLERS = ["main.ts", "obsidian/online/obsidian-beyond-call.ts", "online/call-rules.ts", "imports/dialog/online/online-wiring.ts", "imports/dialog/online/online-import.ts"];
 const POST_PROCESSING = ["main.ts"];
 const PAGE_TEXT_READERS = ["reading/colour-markers.ts", "reading/plain-dollars.ts"];
 const NOTE_HANDLERS = ["obsidian/notes/obsidian-notes.ts"];
@@ -240,7 +240,7 @@ const STILL_NEEDED: StillNeeded[] = [
   ...neededBy("viewFile", VIEW_FILE_READERS, "reads the file of a view"),
   ...neededBy("noteEvents", NOTE_EVENT_LISTENERS, "workspace event, which hands over any note"),
   ...neededBy("gateBuilding", GATE_BUILDERS, "builds the gate's Gatekeeper"),
-  ...neededBy("beyondCalling", BEYOND_CALLERS, /names (callBeyond|BeyondCalls), which only the files that call D&D Beyond may/),
+  ...neededBy("beyondCalling", BEYOND_CALLERS, /names (callBeyond|BeyondCalls|OBSIDIAN_BEYOND_CALL), which only the files that call D&D Beyond may/),
   ...neededBy("network", NETWORK_CALLERS, /names requestUrl, which only the file allowed the network may/),
   ...neededBy("postProcessing", POST_PROCESSING, "registers a post-processor"),
   ...neededBy("computedKeys", COMPUTED_KEY_READERS, "reads a key that isn't written in place"),
