@@ -1,17 +1,17 @@
-import type { TFile } from "obsidian";
 import type { LeavingFiles } from "./switch-plan";
+import type { NoteRef } from "../../../host/notes/note-ref";
 
 export class AskedNote {
   private constructor(
-    readonly file: TFile,
+    readonly file: NoteRef,
     readonly path: string,
   ) {}
 
-  static of(file: TFile): AskedNote {
+  static of(file: NoteRef): AskedNote {
     return new AskedNote(file, file.path);
   }
 
   isStillThere(files: LeavingFiles): boolean {
-    return files.getFileByPath(this.path) === this.file;
+    return files.note(this.path) === this.file;
   }
 }

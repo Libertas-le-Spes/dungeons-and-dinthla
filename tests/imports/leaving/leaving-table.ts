@@ -96,22 +96,22 @@ export class LeavingTable {
       chosenIsNamed,
       today: TODAY,
     };
-    return new MainSwitch(this.vault.gate, this.vault.actions, this.cast, plan);
+    return new MainSwitch(this.vault.notes.store, this.vault.notes.keeping, this.cast, plan);
   }
 
   leaveAs(reason: LeavingReason, chosen: string = SECOND): LeaveAsChoice {
     const old = AskedNote.of(this.vault.fileAt(MONK));
-    return new LeaveAsChoice(this.vault.gate, this.vault.actions, this.cast, this.switchTo(chosen), old, reason);
+    return new LeaveAsChoice(this.vault.notes.store, this.vault.notes.keeping, this.cast, this.switchTo(chosen), old, reason);
   }
 
   depart(path: string, chosenIsNamed: boolean, reason: LeavingReason = new Died()): DepartChoice {
-    const parts = { files: this.vault.gate, actions: this.vault.actions, cast: this.cast, mainSwitch: this.switchTo(path, chosenIsNamed) };
+    const parts = { files: this.vault.notes.store, actions: this.vault.notes.keeping, cast: this.cast, mainSwitch: this.switchTo(path, chosenIsNamed) };
     return new DepartChoice(parts, AskedNote.of(this.vault.fileAt(path)), reason);
   }
 
   makeMain(path: string, old: string | null = null, chosenIsNamed = false): MakeMainChoice {
     const oldNote = this.askedAt(old);
-    return new MakeMainChoice(this.vault.gate, this.vault.actions, this.cast, this.switchTo(path, chosenIsNamed), oldNote);
+    return new MakeMainChoice(this.vault.notes.store, this.vault.notes.keeping, this.cast, this.switchTo(path, chosenIsNamed), oldNote);
   }
 
   private askedAt(path: string | null): AskedNote | null {

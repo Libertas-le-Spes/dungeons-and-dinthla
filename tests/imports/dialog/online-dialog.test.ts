@@ -41,12 +41,12 @@ function onlineSheet(): PrintedSheet {
 }
 
 function importDialog(): DialogDriver {
-  const writer = new ImportWriter(vault.gate, CHARACTERS_FOLDER, CAMPAIGN_FOLDER);
+  const writer = new ImportWriter(vault.notes.store, CHARACTERS_FOLDER, CAMPAIGN_FOLDER);
   return new DialogDriver(new NewImportFlow(writer, CHARACTERS_FOLDER, vault.allNotes.bind(vault)), { today: TODAY, online });
 }
 
 function updateDialog(path: string, kept: string | null = null): DialogDriver {
-  const writer = new ImportWriter(vault.gate, CHARACTERS_FOLDER, CAMPAIGN_FOLDER);
+  const writer = new ImportWriter(vault.notes.store, CHARACTERS_FOLDER, CAMPAIGN_FOLDER);
   return new DialogDriver(new UpdateFlow(writer, vault.fileAt(path), kept), { today: TODAY, online });
 }
 

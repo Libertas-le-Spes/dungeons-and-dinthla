@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { KEPT_HERE_ONLY } from "../../../../src/obsidian/notes/obsidian-notes";
 import { Refusal } from "../../../../src/beyond/shape/refusal";
 import { CleanLine } from "../../../../src/beyond/text/clean-line";
 import { OUTSIDE_FENCE } from "../../../../src/fence/paths/fence";
@@ -20,7 +21,7 @@ let writer: ImportWriter;
 beforeEach(() => {
   vault = new FakeNoteVault();
   vault.folder(CHARACTERS_FOLDER);
-  writer = new ImportWriter(vault.gate, CHARACTERS_FOLDER, CAMPAIGN_FOLDER);
+  writer = new ImportWriter(vault.notes.store, CHARACTERS_FOLDER, CAMPAIGN_FOLDER);
 });
 
 afterEach(() => {
@@ -103,17 +104,17 @@ describe("ImportWriter.update", () => {
     expect(vault.textAt(NOTE)).toBe("His words.\n");
   });
 
-  it("is refused by the gate for a note outside the Campaigns folder, and writes nothing", async () => {
-    const outside = new ImportWriter(vault.gate, "Private/Characters", "Private");
+  it("is refused for a note outside the Campaigns folder, which the gate never hands out, and writes nothing", async () => {
+    const outside = new ImportWriter(vault.notes.store, "Private/Characters", "Private");
     const file = vault.note("Private/Characters/Primary Monk.md", "x\n");
-    await expect(outside.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow(OUTSIDE_FENCE);
+    await expect(outside.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow(KEPT_HERE_ONLY);
     expect(vault.processed).toEqual([]);
     expect(vault.textAt("Private/Characters/Primary Monk.md")).toBe("x\n");
   });
 
   it("refuses, and leaves the note as it was, when the note changed between the read and the write", async () => {
     const file = vault.note(NOTE, "Newer words.\n");
-    vi.spyOn(vault.gate, "read").mockResolvedValue("Older words.\n");
+    vi.spyOn(vault.notes.store, "read").mockResolvedValue("Older words.\n");
     await expect(writer.update(file, monkSheet(), TODAY, NONE)).rejects.toThrow("changed since it was read");
     expect(vault.textAt(NOTE)).toBe("Newer words.\n");
   });
@@ -267,7 +268,7 @@ describe("ImportWriter.create", () => {
 
   it("makes the Characters folder first when it is not there", async () => {
     const bare = new FakeNoteVault();
-    await new ImportWriter(bare.gate, CHARACTERS_FOLDER, CAMPAIGN_FOLDER).create(monkSheet(), TODAY);
+    await new ImportWriter(bare.notes.store, CHARACTERS_FOLDER, CAMPAIGN_FOLDER).create(monkSheet(), TODAY);
     expect(bare.createdFolders).toEqual([CHARACTERS_FOLDER]);
   });
 
@@ -310,7 +311,7 @@ describe("ImportWriter.create", () => {
   });
 
   it("makes nothing when the gate refuses the folder", async () => {
-    const outside = new ImportWriter(vault.gate, "Private/Characters", "Private");
+    const outside = new ImportWriter(vault.notes.store, "Private/Characters", "Private");
     await expect(outside.create(monkSheet(), TODAY)).rejects.toThrow(OUTSIDE_FENCE);
     expect(vault.created).toEqual([]);
   });

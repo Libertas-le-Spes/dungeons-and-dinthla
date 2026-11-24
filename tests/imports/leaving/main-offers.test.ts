@@ -33,8 +33,8 @@ class OfferTable implements OfferWiring {
     readonly table: LeavingTable,
     readonly cast: CampaignCast = table.cast,
   ) {
-    this.files = table.vault.gate;
-    this.actions = table.vault.actions;
+    this.files = table.vault.notes.store;
+    this.actions = table.vault.notes.keeping;
   }
 
   campaignFolderOf(path: string): string | null {

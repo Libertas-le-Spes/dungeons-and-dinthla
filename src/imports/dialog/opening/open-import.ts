@@ -1,4 +1,4 @@
-import type { App, TFile } from "obsidian";
+import type { App } from "obsidian";
 import { ImportWriter } from "../../note/writing/import-writer";
 import type { NoteFiles } from "../../note/writing/note-files";
 import { NewImportFlow } from "../flows/new-import-flow";
@@ -7,6 +7,7 @@ import { ImportModal, type ImportClosed } from "../import-modal";
 import type { OnlineSource } from "../online/online-source";
 import { dayOf } from "../today";
 import { keptBeyondNumberOf } from "../../note/reading/kept-beyond-number";
+import type { NoteRef } from "../../../host/notes/note-ref";
 
 export interface ImportPlace {
   readonly app: App;
@@ -14,7 +15,7 @@ export interface ImportPlace {
   readonly charactersFolder: string;
   readonly campaignFolder: string;
   readonly online: OnlineSource;
-  notes(): readonly TFile[];
+  notes(): readonly NoteRef[];
 }
 
 export function openImport(place: ImportPlace, closed: ImportClosed): void {
@@ -22,7 +23,7 @@ export function openImport(place: ImportPlace, closed: ImportClosed): void {
   new ImportModal(place.app, { flow: new NewImportFlow(writer, place.charactersFolder, place.notes.bind(place)), today: dayOf(new Date()), online: place.online, onClosed: closed }).open();
 }
 
-async function keptNumberOf(place: ImportPlace, file: TFile): Promise<string | null> {
+async function keptNumberOf(place: ImportPlace, file: NoteRef): Promise<string | null> {
   try {
     return keptBeyondNumberOf(await place.files.read(file));
   } catch {
@@ -30,7 +31,7 @@ async function keptNumberOf(place: ImportPlace, file: TFile): Promise<string | n
   }
 }
 
-export async function openUpdate(place: ImportPlace, file: TFile, closed: ImportClosed): Promise<void> {
+export async function openUpdate(place: ImportPlace, file: NoteRef, closed: ImportClosed): Promise<void> {
   const kept = await keptNumberOf(place, file);
   const writer = new ImportWriter(place.files, place.charactersFolder, place.campaignFolder);
   new ImportModal(place.app, { flow: new UpdateFlow(writer, file, kept), today: dayOf(new Date()), online: place.online, onClosed: closed }).open();

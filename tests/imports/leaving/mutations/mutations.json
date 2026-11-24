@@ -79,14 +79,14 @@
  {
   "id": "the Fallen folder is made only when it is missing",
   "file": "src/imports/leaving/writes/move-write.ts",
-  "find": "if (this.files.getFolderByPath(folder) === null) await this.files.createFolder(folder);",
-  "replace": "await this.files.createFolder(folder);",
+  "find": "if (!this.files.hasFolder(folder)) await this.files.makeFolder(folder);",
+  "replace": "await this.files.makeFolder(folder);",
   "group": "writes"
  },
  {
   "id": "the move goes through the file manager",
   "file": "src/imports/leaving/writes/move-write.ts",
-  "find": "await this.actions.renameFile(this.file, this.newPath);",
+  "find": "await this.actions.moveWithLinks(this.file, this.newPath);",
   "replace": "",
   "group": "writes"
  },
@@ -519,58 +519,58 @@
  },
  {
   "id": "the main is read as a whole link",
-  "file": "src/imports/leaving/cast/gate-cast.ts",
+  "file": "src/imports/leaving/cast/notes-cast.ts",
   "find": "const WHOLE_LINK = /^\\[\\[([^[\\]|#]+)(?:[|#][^[\\]]*)?\\]\\]$/;",
   "replace": "const WHOLE_LINK = /\\[\\[([^[\\]|#]+)(?:[|#][^[\\]]*)?\\]\\]/;",
   "group": "cast"
  },
  {
   "id": "a property on several lines is refused",
-  "file": "src/imports/leaving/cast/gate-cast.ts",
+  "file": "src/imports/leaving/cast/notes-cast.ts",
   "find": "    if (values.length !== 1) throw new Refusal(MAIN_UNCLEAR);\n",
   "replace": "",
   "group": "cast"
  },
  {
   "id": "a quoted link is read without its quotes",
-  "file": "src/imports/leaving/cast/gate-cast.ts",
+  "file": "src/imports/leaving/cast/notes-cast.ts",
   "find": "  if (value.length < 2 || !QUOTES.includes(quote) || value.charAt(value.length - 1) !== quote) return value;\n",
   "replace": "  return value;\n",
   "group": "cast"
  },
  {
   "id": "an empty or null character is nobody",
-  "file": "src/imports/leaving/cast/gate-cast.ts",
+  "file": "src/imports/leaving/cast/notes-cast.ts",
   "find": "const NO_VALUES: readonly string[] = [\"\", \"null\"];",
   "replace": "const NO_VALUES: readonly string[] = [];",
   "group": "cast"
  },
  {
   "id": "a missing character property is nobody",
-  "file": "src/imports/leaving/cast/gate-cast.ts",
+  "file": "src/imports/leaving/cast/notes-cast.ts",
   "find": "    if (values === null) return null;\n",
   "replace": "    if (values === null) throw new Refusal(MAIN_UNCLEAR);\n",
   "group": "cast"
  },
  {
   "id": "a link to a deleted note is nobody",
-  "file": "src/imports/leaving/cast/gate-cast.ts",
-  "find": "    return this.metadata.getFirstLinkpathDest(linkpathOf(written), campaignNote.path);\n",
-  "replace": "    const file = this.metadata.getFirstLinkpathDest(linkpathOf(written), campaignNote.path);\n    if (file === null) throw new Refusal(MAIN_UNCLEAR);\n    return file;\n",
+  "file": "src/imports/leaving/cast/notes-cast.ts",
+  "find": "    return this.metadata.target(linkpathOf(written), campaignNote.path);\n",
+  "replace": "    const file = this.metadata.target(linkpathOf(written), campaignNote.path);\n    if (file === null) throw new Refusal(MAIN_UNCLEAR);\n    return file;\n",
   "group": "cast"
  },
  {
   "id": "the link is resolved from the campaign note",
-  "file": "src/imports/leaving/cast/gate-cast.ts",
-  "find": "this.metadata.getFirstLinkpathDest(linkpathOf(written), campaignNote.path)",
-  "replace": "this.metadata.getFirstLinkpathDest(linkpathOf(written), \"\")",
+  "file": "src/imports/leaving/cast/notes-cast.ts",
+  "find": "this.metadata.target(linkpathOf(written), campaignNote.path)",
+  "replace": "this.metadata.target(linkpathOf(written), \"\")",
   "group": "cast"
  },
  {
   "id": "the newest session is the latest",
-  "file": "src/imports/leaving/cast/gate-cast.ts",
-  "find": "const path = latestSession(campaignFolder, this.files.getFiles().map((file) => file.path));",
-  "replace": "const path = this.files.getFiles().map((file) => file.path).at(0)!;",
+  "file": "src/imports/leaving/cast/notes-cast.ts",
+  "find": "const path = latestSession(campaignFolder, this.files.files().map((file) => file.path));",
+  "replace": "const path = this.files.files().map((file) => file.path).at(0)!;",
   "group": "cast"
  },
  {
@@ -604,8 +604,8 @@
  {
   "id": "a note is looked up by the path it had",
   "file": "src/imports/leaving/switching/asked-note.ts",
-  "find": "files.getFileByPath(this.path) === this.file",
-  "replace": "files.getFileByPath(this.file.path) === this.file",
+  "find": "files.note(this.path) === this.file",
+  "replace": "files.note(this.file.path) === this.file",
   "group": "still"
  },
  {
@@ -982,8 +982,8 @@
  {
   "id": "fence: imports may read Obsidian's yaml",
   "file": "tests/fence/allowed/obsidian-imports.ts",
-  "find": "\"imports/\": [\"App\", \"ButtonComponent\", \"Setting\", \"TFile\", \"parseYaml\"],",
-  "replace": "\"imports/\": [\"App\", \"ButtonComponent\", \"Setting\", \"TFile\"],",
+  "find": "\"imports/\": [\"App\", \"ButtonComponent\", \"Setting\", \"parseYaml\"],",
+  "replace": "\"imports/\": [\"App\", \"ButtonComponent\", \"Setting\"],",
   "group": "allow"
  },
  {
@@ -1045,8 +1045,8 @@
  {
   "id": "fence: imports may use Setting",
   "file": "tests/fence/allowed/obsidian-imports.ts",
-  "find": "\"ButtonComponent\", \"Setting\", \"TFile\", \"parseYaml\"]",
-  "replace": "\"ButtonComponent\", \"TFile\", \"parseYaml\"]",
+  "find": "\"ButtonComponent\", \"Setting\", \"parseYaml\"]",
+  "replace": "\"ButtonComponent\", \"parseYaml\"]",
   "group": "allow"
  },
  {

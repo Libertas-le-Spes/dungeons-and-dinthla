@@ -33,7 +33,7 @@ export class ChosenSteps {
   private moveBack(): PlannedWrite {
     const chosen = this.plan.chosen.file;
     const destination = charactersNotePathOf(this.plan.campaignFolder, chosen.basename);
-    const taken = noteAtPathOf(this.files.getFiles(), destination);
+    const taken = noteAtPathOf(this.files.files(), destination);
     if (taken !== null) throw charactersNoteExists(taken.basename);
     return new MoveWrite(this.files, this.actions, chosen, destination, movedToCharacters(chosen.basename), moveToCharactersFailed(chosen.basename));
   }
