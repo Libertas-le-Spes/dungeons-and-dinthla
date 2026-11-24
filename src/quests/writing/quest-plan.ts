@@ -137,10 +137,18 @@ function expectedSignature(record: QuestRecord, expected: ExpectedQuest): string
   return JSON.stringify([record.source.path, record.quest.title, expected.progress, outcome]);
 }
 
+function lastFollowUpIndex(quests: readonly QuestRecord[], plan: QuestPlan): number {
+  let found = -1;
+  for (const [index, candidate] of quests.entries()) {
+    if (candidate.source.path === plan.targetPath && candidate.quest.title === plan.followUpTitle) found = index;
+  }
+  return found;
+}
+
 function questsBesidesFollowUp(campaign: Campaign, plan: QuestPlan): QuestRecord[] {
   const quests = [...campaign.quests];
   if (plan.followUpTitle === null) return quests;
-  const index = quests.findLastIndex((candidate) => candidate.source.path === plan.targetPath && candidate.quest.title === plan.followUpTitle);
+  const index = lastFollowUpIndex(quests, plan);
   if (index !== -1) quests.splice(index, 1);
   return quests;
 }

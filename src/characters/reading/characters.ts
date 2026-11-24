@@ -1,18 +1,35 @@
 import { characterReferenceKind } from "../../kinds/character-reference-kind";
 import { isInReferenceFolder } from "../../campaign/paths/campaign-folders";
-import type { Gate } from "../../fence/gate/gatekeeper";
+import type { LinkLookup } from "../../host/notes/link-lookup";
+import type { NoteStore } from "../../host/notes/note-store";
 
 export interface Character {
   name: string;
   linktext: string;
 }
 
-export function charactersIn(gate: Gate, campaignFolder: string, sessionPath: string): Character[] {
-  const characters: Character[] = [];
-  for (const file of gate.files.getMarkdownFiles()) {
-    if (!isInReferenceFolder(characterReferenceKind, campaignFolder, file.path)) continue;
-    if (characters.some((character) => character.name === file.basename)) continue;
-    characters.push({ name: file.basename, linktext: gate.metadata.fileToLinktext(file, sessionPath, true) });
+export interface CharacterLinks {
+  readonly store: Pick<NoteStore, "notes">;
+  readonly links: Pick<LinkLookup, "linkTextTo">;
+}
+
+function isListed(characters: readonly Character[], name: string): boolean {
+  for (const character of characters) {
+    if (character.name === name) return true;
   }
-  return characters.sort((first, second) => first.name.localeCompare(second.name));
+  return false;
+}
+
+function byName(first: Character, second: Character): number {
+  return first.name.localeCompare(second.name);
+}
+
+export function charactersIn(notes: CharacterLinks, campaignFolder: string, sessionPath: string): Character[] {
+  const characters: Character[] = [];
+  for (const note of notes.store.notes()) {
+    if (!isInReferenceFolder(characterReferenceKind, campaignFolder, note.path)) continue;
+    if (isListed(characters, note.basename)) continue;
+    characters.push({ name: note.basename, linktext: notes.links.linkTextTo(note, sessionPath, true) });
+  }
+  return characters.sort(byName);
 }

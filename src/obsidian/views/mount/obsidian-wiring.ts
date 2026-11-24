@@ -3,6 +3,8 @@ import type { BindingWiring, HandleWanted, TextChange } from "../../../views/ele
 import { HERE, NEW_TAB, type OpenPlace } from "../../../views/elements/bindings/open-place";
 import type { PageAction } from "../../../views/elements/bindings/page-action";
 import { isSubmit } from "../../../views/dialogs/keys";
+import { isField, isInput } from "./field-element";
+import type { MountKit } from "./mount-kit";
 import { ObsidianHandle } from "./obsidian-handle";
 
 function placeOf(event: MouseEvent | KeyboardEvent): OpenPlace {
@@ -38,7 +40,7 @@ class Enter {
   ) {}
 
   pressed(event: KeyboardEvent): void {
-    if (!isSubmit(event, this.needsModifier)) return;
+    if (event.defaultPrevented || !isSubmit(event, this.needsModifier)) return;
     event.preventDefault();
     this.action.run(HERE);
   }
@@ -54,8 +56,6 @@ class Change {
     this.field.changed(this.el.value);
   }
 }
-
-const FIELD_TAGS = ["INPUT", "TEXTAREA", "SELECT"];
 
 const MIDDLE_BUTTON = 1;
 const FOLLOWING_KEYS = ["Enter", " "];
@@ -86,12 +86,11 @@ class Follow {
   }
 }
 
-function isField(el: HTMLElement): el is HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement {
-  return FIELD_TAGS.includes(el.tagName);
-}
-
 export class ObsidianWiring implements BindingWiring {
-  constructor(private readonly el: HTMLElement) {}
+  constructor(
+    private readonly el: HTMLElement,
+    private readonly kit: MountKit,
+  ) {}
 
   press(action: PageAction): void {
     const press = new Press(action);
@@ -123,7 +122,11 @@ export class ObsidianWiring implements BindingWiring {
     this.el.addEventListener("dragstart", follow.dragged.bind(follow));
   }
 
+  suggest(names: readonly string[]): void {
+    if (isInput(this.el)) this.kit.suggestNames(this.el, names);
+  }
+
   handle(wanted: HandleWanted): void {
-    wanted.received(new ObsidianHandle(this.el));
+    wanted.received(new ObsidianHandle(this.el, this.kit));
   }
 }

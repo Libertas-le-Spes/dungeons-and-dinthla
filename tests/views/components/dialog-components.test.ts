@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ButtonRow } from "../../../src/views/components/dialogs/button-row";
+import { ChoiceField } from "../../../src/views/components/dialogs/choice-field";
+import { SuggestField } from "../../../src/views/components/dialogs/suggest-field";
+import { SwitchField } from "../../../src/views/components/dialogs/switch-field";
 import { DeleteButton } from "../../../src/views/components/dialogs/delete-button";
 import { MainButton, PlainButton } from "../../../src/views/components/dialogs/dialog-buttons";
 import { TextAreaField } from "../../../src/views/components/dialogs/text-area-field";
@@ -138,5 +141,58 @@ describe("a delete button", () => {
     expect(button.textContent).toBe("Delete question");
     button.click();
     expect(confirmed.run).not.toHaveBeenCalled();
+  });
+});
+
+describe("a choice field", () => {
+  it("draws a settings row holding Obsidian's dropdown, opened on the value given", () => {
+    const built = mounted(new ChoiceField("Status", [{ value: "active", text: "Active" }, { value: "failed", text: "Abandoned" }], { changed: vi.fn() }).build("failed", null));
+    expect(built.querySelector(".setting-item-name")!.textContent).toBe("Status");
+    const select = built.querySelector(".setting-item-control select.dropdown") as HTMLSelectElement;
+    expect(Array.from(select.options).map((option) => [option.value, option.textContent])).toEqual([["active", "Active"], ["failed", "Abandoned"]]);
+    expect(select.value).toBe("failed");
+  });
+
+  it("hands on the value chosen, and gives its handle", () => {
+    const field = { changed: vi.fn() };
+    const handle = new KeptHandle();
+    const select = mounted(new ChoiceField("Status", [{ value: "active", text: "Active" }, { value: "failed", text: "Abandoned" }], field).build("active", handle)).querySelector("select")!;
+    select.value = "failed";
+    select.dispatchEvent(new (select.ownerDocument.defaultView!).Event("change"));
+    handle.focus();
+    expect(field.changed).toHaveBeenCalledWith("failed");
+    expect(select.ownerDocument.activeElement).toBe(select);
+  });
+});
+
+describe("a switch field", () => {
+  it.each([true, false])("draws a settings row holding Obsidian's toggle, set to %s, and hands on each flip", (on) => {
+    const field = { flipped: vi.fn() };
+    const row = new KeptHandle();
+    const built = mounted(new SwitchField("Reward collected", field).build(on, row));
+    const toggle = built.querySelector(".setting-item-control .checkbox-container") as HTMLElement;
+    expect(built.querySelector(".setting-item-name")!.textContent).toBe("Reward collected");
+    expect(toggle.classList.contains("is-enabled")).toBe(on);
+    toggle.click();
+    expect(field.flipped.mock.calls).toEqual([[!on]]);
+    row.handle!.setHidden(true);
+    expect((built.querySelector(".setting-item") as HTMLElement).style.display).toBe("none");
+  });
+});
+
+describe("a suggest field", () => {
+  it("draws a labelled input that hands on what is typed and asks for the names to be suggested on it", () => {
+    const field = { changed: vi.fn() };
+    const suggested: [HTMLInputElement, readonly string[]][] = [];
+    const kit = { suggestNames: (input: HTMLInputElement, names: readonly string[]) => suggested.push([input, names]) };
+    const el = obsidianDocument().createElement("div");
+    mountTree(new SuggestField({ name: "Given by", label: "Given by", placeholder: "Lady Vess" }, field, ["Mira"]).build(), el, kit);
+    const input = el.querySelector("input")!;
+    typed(input, "Mi");
+    keyDown(input, { key: "Enter" });
+    expect(input.getAttribute("aria-label")).toBe("Given by");
+    expect(input.placeholder).toBe("Lady Vess");
+    expect(field.changed).toHaveBeenCalledWith("Mi");
+    expect(suggested).toEqual([[input, ["Mira"]]]);
   });
 });

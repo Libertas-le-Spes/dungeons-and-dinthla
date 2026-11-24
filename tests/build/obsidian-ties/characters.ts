@@ -21,5 +21,4 @@ export const TIES: readonly string[] = [
   "characters/pages/fallen-sheet-page.ts",
   "characters/pages/left-play-section.ts",
   "characters/pages/mentions-panel.ts",
-  "characters/reading/characters.ts",
 ];

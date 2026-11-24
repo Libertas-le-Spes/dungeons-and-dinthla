@@ -1,4 +1,5 @@
 import type { ElementParts } from "../../../views/elements/element-parts";
+import type { MountKit } from "./mount-kit";
 import { ObsidianWiring } from "./obsidian-wiring";
 
 function setTextParts(el: HTMLElement, parts: ElementParts): void {
@@ -32,12 +33,12 @@ function setPlainParts(el: HTMLElement, parts: ElementParts): void {
   if (parts.undraggable === true) el.setAttr("draggable", "false");
 }
 
-export function partsOn(el: HTMLElement, parts: ElementParts): HTMLElement {
+export function partsOn(el: HTMLElement, parts: ElementParts, kit: MountKit): HTMLElement {
   setTextParts(el, parts);
   setReaderParts(el, parts);
   setPlainParts(el, parts);
   if (parts.bindings === undefined) return el;
-  const wiring = new ObsidianWiring(el);
+  const wiring = new ObsidianWiring(el, kit);
   for (const binding of parts.bindings) binding.wireOn(wiring);
   return el;
 }

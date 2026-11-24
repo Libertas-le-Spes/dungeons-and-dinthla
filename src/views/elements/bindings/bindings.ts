@@ -48,6 +48,14 @@ export class FollowBinding implements ElementBinding {
   }
 }
 
+export class SuggestBinding implements ElementBinding {
+  constructor(private readonly names: readonly string[]) {}
+
+  wireOn(wiring: BindingWiring): void {
+    wiring.suggest(this.names);
+  }
+}
+
 export class HandleRequest implements ElementBinding {
   constructor(private readonly wanted: HandleWanted) {}
 

@@ -61,7 +61,7 @@ export function openItemDialogAs(
   if (sessionPath === null) return;
   const holders = holderOptions(
     store.current.items.map(holderOptionOf),
-    charactersIn(gate, folder, sessionPath).map((character) => ({ text: `[[${character.linktext}]]`, label: character.name })),
+    charactersIn(gate.notes, folder, sessionPath).map((character) => ({ text: `[[${character.linktext}]]`, label: character.name })),
   );
   const opened = openedItem(gate.notes.store, store, item, sessionPath, syntax);
   const openNoteAt = (source: Source) => void openSource(app, gate, source);

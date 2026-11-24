@@ -16,4 +16,5 @@ export interface BindingWiring {
   change(field: TextChange): void;
   handle(wanted: HandleWanted): void;
   follow(action: PageAction): void;
+  suggest(names: readonly string[]): void;
 }

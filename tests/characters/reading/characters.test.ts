@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { charactersIn } from "../../../src/characters/reading/characters";
-import type { Gate } from "../../../src/fence/gate/gatekeeper";
+import type { CharacterLinks } from "../../../src/characters/reading/characters";
 
 const PALE_MOON = "Games/D&D/Pale Moon";
 const SESSION = `${PALE_MOON}/Sessions/Session 1.md`;
@@ -9,9 +9,9 @@ function linktextOf(file: { path: string }, sourcePath: string, omitMdExtension:
   return `${file.path} from ${sourcePath}, without .md: ${String(omitMdExtension)}`;
 }
 
-function gateHolding(paths: string[]): Gate {
-  const files = paths.map((path) => ({ path, basename: path.slice(path.lastIndexOf("/") + 1).replace(/\.md$/, "") }));
-  return { files: { getMarkdownFiles: () => files }, metadata: { fileToLinktext: linktextOf } } as unknown as Gate;
+function gateHolding(paths: string[]): CharacterLinks {
+  const notes = paths.map((path) => ({ path, basename: path.slice(path.lastIndexOf("/") + 1).replace(/\.md$/, "") }));
+  return { store: { notes: () => notes }, links: { linkTextTo: linktextOf } };
 }
 
 function linkTo(path: string): string {

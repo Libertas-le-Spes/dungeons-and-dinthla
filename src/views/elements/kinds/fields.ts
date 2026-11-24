@@ -31,9 +31,26 @@ export class Option implements ViewElement {
   constructor(
     readonly parts: ElementParts,
     readonly value: string,
+    readonly chosen: boolean = false,
   ) {}
 
   mountOn(mounter: Mounter, into: MountPlace): void {
     mounter.option(this, into);
+  }
+}
+
+export interface SwitchChange {
+  flipped(on: boolean): void;
+}
+
+export class Switch implements ViewElement {
+  constructor(
+    readonly parts: ElementParts,
+    readonly on: boolean,
+    readonly field: SwitchChange,
+  ) {}
+
+  mountOn(mounter: Mounter, into: MountPlace): void {
+    mounter.toggleSwitch(this, into);
   }
 }
