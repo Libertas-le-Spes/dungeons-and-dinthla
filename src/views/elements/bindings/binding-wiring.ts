@@ -14,4 +14,5 @@ export interface BindingWiring {
   keys(keys: readonly string[], action: PageAction): void;
   change(field: TextChange): void;
   handle(wanted: HandleWanted): void;
+  follow(action: PageAction): void;
 }

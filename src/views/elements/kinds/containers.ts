@@ -276,3 +276,26 @@ export class Select implements ViewElement {
     mountAll(this.children, mounter, mounter.select(this, into));
   }
 }
+export class NameLink implements ViewElement {
+  constructor(
+    readonly parts: ElementParts,
+    readonly children: readonly ViewElement[] = [],
+  ) {}
+
+  mountOn(mounter: Mounter, into: MountPlace): void {
+    mountAll(this.children, mounter, mounter.nameLink(this, into));
+  }
+}
+
+export class FieldRow implements ViewElement {
+  constructor(
+    readonly name: string,
+    readonly description: string | null,
+    readonly controls: readonly ViewElement[],
+    readonly parts: ElementParts = {},
+  ) {}
+
+  mountOn(mounter: Mounter, into: MountPlace): void {
+    mountAll(this.controls, mounter, mounter.fieldRow(this, into));
+  }
+}

@@ -23,5 +23,6 @@ export interface ElementParts {
   readonly dataItem?: string;
   readonly dataState?: string;
   readonly hidden?: boolean;
+  readonly undraggable?: boolean;
   readonly bindings?: readonly ElementBinding[];
 }

@@ -1,4 +1,4 @@
-import type { Anchor, Bold, Button, Description, DescriptionList, Details, Div, Form, Heading1, Heading2, Heading3, Label, List, ListItem, Mark, Nav, OrderedList, Paragraph, Pre, Section, Select, Span, Strong, Summary, Term } from "../../../views/elements/kinds/containers";
+import type { Anchor, Bold, Button, Description, DescriptionList, Details, Div, Form, Heading1, Heading2, Heading3, Label, List, ListItem, Mark, Nav, OrderedList, Paragraph, Pre, Section, Select, Span, Strong, Summary, Term, NameLink, FieldRow } from "../../../views/elements/kinds/containers";
 import type { Option, TextArea, TextInput } from "../../../views/elements/kinds/fields";
 import type { Mounter, MountPlace } from "../../../views/elements/mounter";
 import { partsOn } from "./element-parts-on";
@@ -123,6 +123,19 @@ export class ObsidianMounter implements Mounter {
     if (element.parts.placeholder !== undefined) area.placeholder = element.parts.placeholder;
     if (element.parts.spellcheck !== undefined) area.spellcheck = element.parts.spellcheck;
     return placed(partsOn(area, element.parts));
+  }
+
+  nameLink(element: NameLink, into: MountPlace): MountPlace {
+    return placed(partsOn(elementOf(into).createEl("a"), element.parts));
+  }
+
+  fieldRow(element: FieldRow, into: MountPlace): MountPlace {
+    const row = partsOn(elementOf(into).createDiv({ cls: "setting-item" }), element.parts);
+    const info = row.createDiv({ cls: "setting-item-info" });
+    info.createDiv({ cls: "setting-item-name", text: element.name });
+    const description = info.createDiv({ cls: "setting-item-description" });
+    if (element.description !== null) description.setText(element.description);
+    return placed(row.createDiv({ cls: "setting-item-control" }));
   }
 
   option(element: Option, into: MountPlace): MountPlace {

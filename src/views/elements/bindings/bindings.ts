@@ -29,6 +29,14 @@ export class ChangeBinding implements ElementBinding {
   }
 }
 
+export class FollowBinding implements ElementBinding {
+  constructor(private readonly action: PageAction) {}
+
+  wireOn(wiring: BindingWiring): void {
+    wiring.follow(this.action);
+  }
+}
+
 export class HandleRequest implements ElementBinding {
   constructor(private readonly wanted: HandleWanted) {}
 
