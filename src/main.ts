@@ -11,7 +11,7 @@ import {
   isSessionNote,
   startingCampaignFolder,
 } from "./campaign/paths/campaign-folders";
-import { NewCampaignModal } from "./campaign/writing/new-campaign-modal";
+import { NewCampaignDialog } from "./campaign/writing/new-campaign-dialog";
 import { CampaignStore } from "./campaign/reading/campaign-store";
 import { SavedCampaign } from "./campaign/reading/saved-campaign";
 import { HostCharacterNotes } from "./characters/reading/character-notes";
@@ -156,10 +156,11 @@ export default class DungeonsAndDinthla extends Plugin {
       pickFolder: (folders: string[], chosen: (folder: string) => void) => new FolderSuggestModal(this.app, folders, chosen).open(),
       agreement: new CampaignAgreement(this.keptAgreement),
       spelling: OBSIDIAN_SPELLING,
+      telling: this.showing.telling,
       startSession: newSession,
     });
     const startNewCampaign = () =>
-      new NewCampaignModal(this.app, { make: (name: string) => maker.make(name), made: () => void openCampaignPage(this.app, "home", null) }).open();
+      this.showing.dialogs.open(new NewCampaignDialog(this.showing.telling, { make: (name: string) => maker.make(name), made: () => void openCampaignPage(this.app, "home", null) }));
     const campaignChoice = {
       startNewCampaign,
       folders: () => this.campaignFolders(),

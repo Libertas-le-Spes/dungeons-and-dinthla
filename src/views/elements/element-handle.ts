@@ -9,6 +9,7 @@ export interface ElementHandle {
   setClassOn(name: string, on: boolean): void;
   setValue(value: string): void;
   setTabIndex(index: number): void;
+  setDisabled(disabled: boolean): void;
   replaceWith(tree: ViewElement): void;
   isShown(): boolean;
 }

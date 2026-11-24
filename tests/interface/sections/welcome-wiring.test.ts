@@ -7,6 +7,7 @@ import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { AnsweredAgreement } from "../../welcome/page/answered-agreement";
 import type { NoteRef } from "../../../src/host/notes/note-ref";
 import { fileAt } from "../../stubs/note-files";
+import { OBSIDIAN_TELLING } from "../../../src/obsidian/views/frames/obsidian-telling";
 
 
 function wiredWith(foldersThere: string[]) {
@@ -33,6 +34,7 @@ function wiredWith(foldersThere: string[]) {
     agreement: new AnsweredAgreement(),
     startSession: vi.fn(),
     spelling: STUB_SPELLING,
+    telling: OBSIDIAN_TELLING,
   };
   return { wiring: welcomeWiring(needs), needs, files };
 }
