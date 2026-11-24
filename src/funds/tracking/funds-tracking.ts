@@ -1,4 +1,5 @@
-import { Notice, type App, type TFile } from "obsidian";
+import { Notice, type App } from "obsidian";
+import type { NoteRef } from "../../host/notes/note-ref";
 import { isInReferenceFolder } from "../../campaign/paths/campaign-folders";
 import { sessionLabelOf } from "../../campaign/paths/session-file";
 import { sessionForDialog } from "../../campaign/paths/session-for-dialog";
@@ -42,7 +43,7 @@ class GateHolderPaths implements HolderPaths {
   constructor(private readonly gate: Gate) {}
 
   pathOf(linkpath: string, sourcePath: string): string | null {
-    const file = this.gate.metadata.getFirstLinkpathDest(linkpath, sourcePath);
+    const file = this.gate.notes.links.target(linkpath, sourcePath);
     if (file === null) return null;
     return file.path;
   }
@@ -56,17 +57,17 @@ export class FundsTracking implements ItemTracking {
     private readonly campaignFolders: () => string[],
   ) {}
 
-  lookAt(file: TFile, written: readonly string[]): FundsLook | null {
+  lookAt(file: NoteRef, written: readonly string[]): FundsLook | null {
     if (this.shownFolderOf(file) === null) return null;
     return new ItemsLook(this.store.current.items, file, written, new GateHolderPaths(this.gate));
   }
 
-  whyNotTracked(file: TFile): string {
+  whyNotTracked(file: NoteRef): string {
     if (this.isInSomeCampaign(file)) return NOT_THE_SHOWN_CAMPAIGN;
     return NOT_IN_A_CAMPAIGN;
   }
 
-  track(file: TFile, item: SheetItem, returnFocus: () => void): void {
+  track(file: NoteRef, item: SheetItem, returnFocus: () => void): void {
     const written = item.written;
     const folder = this.shownFolderOf(file);
     if (folder === null) {
@@ -79,7 +80,7 @@ export class FundsTracking implements ItemTracking {
     }
     const sessionPath = sessionForDialog(this.gate.files, folder, { activePath: null, earliestSession: 0, noSession: NO_SESSION });
     if (sessionPath === null) return;
-    const holder = `[[${this.gate.metadata.fileToLinktext(file, sessionPath, true)}]]`;
+    const holder = `[[${this.gate.notes.links.linkTextTo(file, sessionPath, true)}]]`;
     const text = textToTrack(this.store.current.items, written);
     if (text === null) {
       new Notice(NOT_INERT_ON_PAGE);
@@ -91,7 +92,7 @@ export class FundsTracking implements ItemTracking {
     new TrackItemModal(this.app, shown, saving, returnFocus).open();
   }
 
-  settle(file: TFile, name: string, status: SettledStatus, returnFocus: () => void): void {
+  settle(file: NoteRef, name: string, status: SettledStatus, returnFocus: () => void): void {
     if (this.shownFolderOf(file) === null) {
       new Notice(this.whyNotTracked(file));
       return;
@@ -105,14 +106,14 @@ export class FundsTracking implements ItemTracking {
     openItemDialogAs(this.app, this.gate, this.store, { name, status, source: null }, note.show.bind(note), returnFocus, null);
   }
 
-  private isInSomeCampaign(file: TFile): boolean {
+  private isInSomeCampaign(file: NoteRef): boolean {
     for (const folder of this.campaignFolders()) {
       if (isInReferenceFolder(characterReferenceKind, folder, file.path)) return true;
     }
     return false;
   }
 
-  private shownFolderOf(file: TFile): string | null {
+  private shownFolderOf(file: NoteRef): string | null {
     const folder = this.store.campaignFolder;
     if (folder === null) return null;
     if (isInReferenceFolder(characterReferenceKind, folder, file.path) === false) return null;

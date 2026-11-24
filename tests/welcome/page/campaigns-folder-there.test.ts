@@ -1,13 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import type { TFolder } from "obsidian";
 import { campaignsFolderThere } from "../../../src/welcome/page/campaigns-folder-there";
 
 function filesHolding(paths: string[]) {
   return {
-    getFolderByPath: vi.fn((path: string) => {
-      if (!paths.includes(path)) return null;
-      return { path } as TFolder;
-    }),
+    hasFolder: vi.fn((path: string) => paths.includes(path)),
   };
 }
 
@@ -23,12 +19,12 @@ describe("campaignsFolderThere", () => {
   it("looks the saved folder up by its exact path", () => {
     const files = filesHolding(["Games/D&D"]);
     campaignsFolderThere("Games/D&D", files);
-    expect(files.getFolderByPath).toHaveBeenCalledExactlyOnceWith("Games/D&D");
+    expect(files.hasFolder).toHaveBeenCalledExactlyOnceWith("Games/D&D");
   });
 
   it("gives no folder and looks nothing up while none is saved", () => {
     const files = filesHolding([]);
     expect(campaignsFolderThere(null, files)).toBeNull();
-    expect(files.getFolderByPath).not.toHaveBeenCalled();
+    expect(files.hasFolder).not.toHaveBeenCalled();
   });
 });

@@ -9,6 +9,5 @@ export const TIES: readonly string[] = [
   "welcome/endings/welcome-endings.ts",
   "welcome/opening/help.ts",
   "welcome/opening/welcome-opener.ts",
-  "welcome/page/campaigns-folder-there.ts",
   "welcome/page/welcome-page.ts",
 ];

@@ -80,7 +80,7 @@ function pageWith(
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
     actions: { openRow: vi.fn(), openLink: vi.fn() },
     lineOpeners: stubLineOpeners(),
-    wholeText: { texts: notes.texts, drafts: new NoteDrafts(drafts), saver: new NoteSaver(notes.vault) },
+    wholeText: { texts: notes.texts, drafts: new NoteDrafts(drafts), saver: new NoteSaver(notes.store) },
     removal: { clearer: new SessionClearer(notes.store, STUB_SYNTAX), trash: new SessionTrash(notes.store, { throwAway: trashFile }, () => false), renumbering: stubRenumbering({ latest: latestAfterDelete }), confirm, report: vi.fn() },
     wantedLines,
   };

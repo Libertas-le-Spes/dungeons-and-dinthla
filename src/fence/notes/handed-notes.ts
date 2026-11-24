@@ -39,4 +39,8 @@ export class HandedNotes {
   holds(path: string): boolean {
     return this.fence.holds(path);
   }
+
+  holdsFolder(path: string): boolean {
+    return this.fence.holds(path) || this.fence.isTheFolder(path);
+  }
 }

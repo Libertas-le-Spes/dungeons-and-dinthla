@@ -10,6 +10,5 @@ export const TIES: readonly string[] = [
   "funds/page/ledger-row.ts",
   "funds/page/purse-box.ts",
   "funds/tracking/funds-tracking.ts",
-  "funds/tracking/items-look.ts",
   "funds/tracking/track-item-modal.ts",
 ];

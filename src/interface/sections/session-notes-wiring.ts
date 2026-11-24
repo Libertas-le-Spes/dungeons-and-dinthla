@@ -43,7 +43,7 @@ export interface SessionNotesWiring {
 
 export function sessionNotesWiring(needs: SessionNotesWiringNeeds): SessionNotesWiring {
   const gate = needs.gate;
-  const wholeText = { texts: new HostNoteTexts(gate.notes), drafts: needs.keeping.noteDrafts, saver: new NoteSaver(gate.files) };
+  const wholeText = { texts: new HostNoteTexts(gate.notes), drafts: needs.keeping.noteDrafts, saver: new NoteSaver(gate.notes.store) };
   const notes = {
     store: needs.store,
     drafts: needs.drafts,

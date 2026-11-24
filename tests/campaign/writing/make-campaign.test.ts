@@ -1,6 +1,5 @@
 import { STUB_SPELLING } from "../../host/stub-spelling";
 import { describe, expect, it } from "vitest";
-import type { TFolder } from "obsidian";
 import { BAD_NAME } from "../../../src/names/file-name";
 import { makeCampaign, NO_CAMPAIGN_NAME, type NewCampaignFiles } from "../../../src/campaign/writing/make-campaign";
 import { NO_CAMPAIGNS_FOLDER } from "../../../src/fence/paths/campaigns-folder-path";
@@ -29,11 +28,10 @@ function filesWith({ inCampaigns = [], atTheTop = [], noteFails = false, removeF
       if (folder === undefined) return [];
       return folder.names;
     },
-    createFolder: async (path) => {
+    makeFolder: async (path) => {
       made.push(`folder ${path}`);
-      return { path, children: [] } as unknown as TFolder;
     },
-    create: async (path, text) => {
+    make: async (path, text) => {
       if (noteFails) throw new Error("The disk is full.");
       made.push(`note ${path} "${text}"`);
       return { path } as never;

@@ -15,7 +15,7 @@ function vaultHolding(text: string | null) {
     if (text === null || path !== OLD_MILL) return null;
     return FILE;
   });
-  const vault = { getFileByPath, process } as unknown as SaverFiles;
+  const vault: SaverFiles = { note: getFileByPath, change: process };
   return { vault, process, written };
 }
 
