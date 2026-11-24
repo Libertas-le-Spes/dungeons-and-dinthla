@@ -7,10 +7,15 @@ export interface Stoppable {
   stop(): void;
 }
 
+export interface FailureHeard {
+  failedWith(error: unknown): void;
+}
+
 export class RecordChanging implements ChangeEnds {
   private changed = false;
   private view: DialogView | null = null;
   private readonly stoppables: Stoppable[] = [];
+  private readonly failures: FailureHeard[] = [];
   private readonly work: ChangeWork;
 
   constructor(
@@ -30,6 +35,10 @@ export class RecordChanging implements ChangeEnds {
 
   settled(): Promise<void> {
     return this.work.settled();
+  }
+
+  hearFailures(heard: FailureHeard): void {
+    this.failures.push(heard);
   }
 
   stopOnClose(stoppable: Stoppable): void {
@@ -55,6 +64,7 @@ export class RecordChanging implements ChangeEnds {
   }
 
   failed(error: unknown): void {
+    for (const heard of this.failures) heard.failedWith(error);
     if (!(error instanceof PartlyWritten)) return;
     this.changed = true;
     this.close();

@@ -186,10 +186,12 @@ export default class DungeonsAndDinthla extends Plugin {
       open: (returnFocus: () => void) => openNewQuest(this.showing, this.notes, this.store, returnFocus, OBSIDIAN_SYNTAX),
     };
     const noteExists = (name: string, sourcePath: string) => gate.metadata.getFirstLinkpathDest(name, sourcePath) !== null;
-    const addCoin = (returnFocus: () => void) => openAddCoin(this.app, gate, this.store, returnFocus, pathYouAreIn(this.app), OBSIDIAN_SYNTAX);
+    const addCoin = (returnFocus: () => void) => openAddCoin(this.showing, this.notes.store, this.store, returnFocus, pathYouAreIn(this.app), OBSIDIAN_SYNTAX);
+    const openNoteAt = (source: Source) => void openSource(this.app, gate, source);
+    const itemOpening = { showing: this.showing, notes: this.notes, openNoteAt };
     const openItem = (name: string, source: Source, onClosed: (changed: boolean) => void) =>
-      openItemDialog(this.app, gate, this.store, name, () => void openSource(this.app, gate, source), onClosed, pathYouAreIn(this.app), source, OBSIDIAN_SYNTAX);
-    const openLedgerEntry = ledgerEntryOpener(this.app, gate, this.store, openItem, OBSIDIAN_SYNTAX);
+      openItemDialog(itemOpening, this.store, name, () => openNoteAt(source), onClosed, pathYouAreIn(this.app), source, OBSIDIAN_SYNTAX);
+    const openLedgerEntry = ledgerEntryOpener(this.showing, this.notes.store, this.store, openItem, openNoteAt, OBSIDIAN_SYNTAX);
     const campaignFolders = () => this.campaignFolders();
     const sessionsOf = (campaignFolder: string) => readSessions(gate.notes.store, campaignFolder, OBSIDIAN_SYNTAX);
     const characterParts = { notes: this.notes, campaignFolders, sessionsOf };
@@ -203,7 +205,7 @@ export default class DungeonsAndDinthla extends Plugin {
         void chooseSheetValue(this.app, gate, this.store, sheetNotes, file, value, actions.openRow, onClosed, OBSIDIAN_SYNTAX),
       updateFromBeyond: beyond.updateFromBeyond.bind(beyond),
       depart: beyond.depart.bind(beyond),
-      tracking: new FundsTracking(this.app, gate, this.store, () => this.campaignFolders(), OBSIDIAN_SYNTAX),
+      tracking: new FundsTracking(itemOpening, this.store, () => this.campaignFolders(), OBSIDIAN_SYNTAX),
     };
     const mentionNotes = new HostMentionNotes({ ...characterParts, syntax: OBSIDIAN_SYNTAX });
     const newCharacter = (returnFocus: () => void) => openNewCharacter(this.app, gate, this.store.campaignFolder, returnFocus);

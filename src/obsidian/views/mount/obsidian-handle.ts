@@ -35,6 +35,10 @@ export class ObsidianHandle implements ElementHandle {
     this.el.setText(text);
   }
 
+  setClassOn(name: string, on: boolean): void {
+    this.el.toggleClass(name, on);
+  }
+
   setValue(value: string): void {
     if (isField(this.el)) this.el.value = value;
   }

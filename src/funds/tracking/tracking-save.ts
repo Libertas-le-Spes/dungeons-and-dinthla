@@ -4,7 +4,7 @@ import { sessionNoteOf, type PropertiesSyntax } from "../../campaign/paths/sessi
 import type { SessionNote } from "../../campaign/record/campaign";
 import { NoteEditor, type EditorFiles } from "../../campaign/writing/note-editor";
 import type { RecordChange } from "../../campaign/changes/record-change";
-import type { TrackSaving } from "./track-item-modal";
+import type { TrackSaving } from "./track-item-dialog";
 import type { TrackedItem } from "./tracked-item";
 import { trackingChange, type TrackingSessions } from "./tracking-change";
 import { refusalForTracking } from "./tracking-refusal";

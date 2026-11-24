@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import type { App, TFile } from "obsidian";
+import type { TFile } from "obsidian";
 import { ImportedLists } from "../../../src/characters/imported/lists/imported-lists";
 import { shownItemName } from "../../../src/characters/imported/lists/shown-item-name";
 import { addImportedPanels } from "../../../src/characters/imported/panels/imported-panels";
@@ -14,12 +14,12 @@ import { textOf } from "../../imports/builders/line-helpers";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { Notice, openedModals } from "../../stubs/obsidian";
 import { STUB_SYNTAX } from "../../host/stub-syntax";
+import { OBSIDIAN_SHOWING } from "../../host/showing/obsidian-showing";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const PRIMARY_PATH = "Pale Moon/Characters/Primary Monk.md";
 const GUARDED_NAMES = ["Potion: Healing", "Spell Scroll: Fireball", "(Ammo) Arrows", '"Lucky" Charm', "+1 Dagger", "1. Arrows", "~Cloak"];
 
-const app = {} as App;
 
 interface TrackSaving {
   saving: { save(): Promise<boolean> };
@@ -44,7 +44,7 @@ class TrackedSheet {
 
   constructor(private readonly name: string) {
     this.primary = this.campaign.addCharacterNote(PRIMARY_PATH);
-    this.tracking = new FundsTracking(app, this.campaign.gate, this.campaign.store, campaignFolders, STUB_SYNTAX);
+    this.tracking = new FundsTracking({ showing: OBSIDIAN_SHOWING, notes: this.campaign.gate.notes, openNoteAt: () => undefined }, this.campaign.store, campaignFolders, STUB_SYNTAX);
   }
 
   drawn(): HTMLElement {

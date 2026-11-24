@@ -10,7 +10,7 @@ import type { CharacterNotes } from "../characters/reading/character-notes";
 import { ownCharacterFirst } from "../characters/cards/own-character-first";
 import { learnedFactsOf } from "../characters/reading/learned-facts";
 import { readCharacterCard } from "../characters/cards/read-character-card";
-import type { CoinOutcome } from "../funds/coins/coin-modal";
+import type { CoinOutcome } from "../funds/coins/coin-dialog";
 import { summariseFunds, type FundsSummary } from "../funds/page/funds-summary";
 import { makeScrollList } from "../views/lists/scroll-list";
 import { summariseItems } from "../funds/items/item-groups";

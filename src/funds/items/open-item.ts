@@ -1,22 +1,29 @@
-import type { App } from "obsidian";
 import type { Source } from "../../campaign/record/campaign";
-import { charactersIn } from "../../characters/reading/characters";
+import { charactersIn, type CharacterLinks } from "../../characters/reading/characters";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { sessionLabelOf, type PropertiesSyntax } from "../../campaign/paths/session-file";
 import { sessionForDialog } from "../../campaign/paths/session-for-dialog";
-import { openSource } from "../../views/opening/open-view";
-import { ItemModal } from "./item-modal";
+import { ItemDialog } from "./item-dialog";
 import { itemNamedAt } from "./item-named";
 import { holderOptionOf, holderOptions, latestSessionOfItem, type ItemEdit, type ItemStatus } from "./item-plan";
 import { openedItem } from "./item-writer";
-import type { Gate } from "../../fence/gate/gatekeeper";
-import { OBSIDIAN_TELLING } from "../../obsidian/views/frames/obsidian-telling";
+import type { NoteStore } from "../../host/notes/note-store";
+import type { DialogShowing } from "../../views/dialogs/dialog-view";
+
+export interface ItemNotes extends CharacterLinks {
+  readonly store: Pick<NoteStore, "notes" | "files" | "note" | "read" | "change">;
+}
+
+export interface ItemOpening {
+  readonly showing: DialogShowing;
+  readonly notes: ItemNotes;
+  readonly openNoteAt: (source: Source) => void;
+}
 
 const NO_SESSION = "Start a session first: item changes are written into a session note.";
 
 export function openItemDialog(
-  app: App,
-  gate: Gate,
+  opening: ItemOpening,
   store: CampaignStore,
   name: string,
   openNote: () => void,
@@ -25,7 +32,7 @@ export function openItemDialog(
   source: Source | null,
   syntax: PropertiesSyntax,
 ): void {
-  openItemDialogAs(app, gate, store, { name, status: null, source }, openNote, onClosed, activePath, syntax);
+  openItemDialogAs(opening, store, { name, status: null, source }, openNote, onClosed, activePath, syntax);
 }
 
 export interface ItemAsked {
@@ -40,8 +47,7 @@ function editAsked(opened: ItemEdit, asked: ItemAsked): ItemEdit {
 }
 
 export function openItemDialogAs(
-  app: App,
-  gate: Gate,
+  opening: ItemOpening,
   store: CampaignStore,
   asked: ItemAsked,
   openNote: () => void,
@@ -57,13 +63,13 @@ export function openItemDialogAs(
     return;
   }
   const wanted = { activePath, earliestSession: latestSessionOfItem(item, folder), noSession: NO_SESSION };
-  const sessionPath = sessionForDialog(gate.notes.store, OBSIDIAN_TELLING, folder, wanted);
+  const sessionPath = sessionForDialog(opening.notes.store, opening.showing.telling, folder, wanted);
   if (sessionPath === null) return;
   const holders = holderOptions(
     store.current.items.map(holderOptionOf),
-    charactersIn(gate.notes, folder, sessionPath).map((character) => ({ text: `[[${character.linktext}]]`, label: character.name })),
+    charactersIn(opening.notes, folder, sessionPath).map((character) => ({ text: `[[${character.linktext}]]`, label: character.name })),
   );
-  const opened = openedItem(gate.notes.store, store, item, sessionPath, syntax);
-  const openNoteAt = (source: Source) => void openSource(app, gate, source);
-  new ItemModal(app, item, editAsked(opened.edit, asked), holders, sessionLabelOf(sessionPath), opened.save, openNoteAt, onClosed).open();
+  const opened = openedItem(opening.notes.store, store, item, sessionPath, syntax);
+  const dialog = new ItemDialog(opening.showing.telling, item, editAsked(opened.edit, asked), holders, sessionLabelOf(sessionPath), opened.save, opening.openNoteAt, onClosed);
+  opening.showing.dialogs.open(dialog);
 }

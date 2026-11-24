@@ -1,6 +1,6 @@
 import type { Campaign, Source, SourcedText } from "../../campaign/record/campaign";
 import type { ThreadRecord } from "../../campaign/threads/thread-kind";
-import type { CoinOutcome } from "../../funds/coins/coin-modal";
+import type { CoinOutcome } from "../../funds/coins/coin-dialog";
 import type { FollowUpName } from "../../kinds/follow-up-name";
 import type { ShownThreadKind } from "../../views/threads/shown-thread-kind";
 import { SHOWN_THREAD_KINDS } from "../../views/threads/shown-thread-kinds";

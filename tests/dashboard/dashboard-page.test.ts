@@ -5,7 +5,7 @@ import type { SessionNote, Source } from "../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../src/campaign/reading/campaign-store";
 import type { CharacterNotes } from "../../src/characters/reading/character-notes";
 import { DashboardPage, type DashboardActions } from "../../src/dashboard/dashboard-page";
-import type { CoinOutcome } from "../../src/funds/coins/coin-modal";
+import type { CoinOutcome } from "../../src/funds/coins/coin-dialog";
 import { NO_COIN_ENTRIES } from "../../src/funds/page/ledger-row";
 import { SESSIONS_SHARE_A_NUMBER } from "../../src/campaign/paths/session-to-write";
 import { isShown, obsidianDocument } from "../stubs/obsidian-dom";

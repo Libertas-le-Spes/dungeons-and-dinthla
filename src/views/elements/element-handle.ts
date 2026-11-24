@@ -6,6 +6,7 @@ export interface ElementHandle {
   setOpen(open: boolean): void;
   setSelected(selected: boolean): void;
   setText(text: string): void;
+  setClassOn(name: string, on: boolean): void;
   setValue(value: string): void;
   setTabIndex(index: number): void;
   replaceWith(tree: ViewElement): void;

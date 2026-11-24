@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App } from "obsidian";
-import type { Gate } from "../../../src/fence/gate/gatekeeper";
 import { NO_CAMPAIGN } from "../../../src/campaign/paths/campaign-folders";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { openAddCoin } from "../../../src/funds/coins/open-add-coin";
@@ -10,6 +9,7 @@ import { Notice, openedModals } from "../../stubs/obsidian";
 import { STUB_SYNTAX } from "../../host/stub-syntax";
 import { OBSIDIAN_SHOWING } from "../../host/showing/obsidian-showing";
 import type { NoteStore } from "../../../src/host/notes/note-store";
+import type { CoinNotes } from "../../../src/funds/coins/open-add-coin";
 
 const noCampaign = { campaignFolder: null } as CampaignStore;
 
@@ -19,7 +19,7 @@ beforeEach(() => {
 
 describe("a dialog that writes into a session, without a campaign", () => {
   it.each([
-    ["Add coin", (app: App) => openAddCoin(app, {} as Gate, noCampaign, vi.fn(), null, STUB_SYNTAX)],
+    ["Add coin", (app: App) => openAddCoin(OBSIDIAN_SHOWING, {} as CoinNotes, noCampaign, vi.fn(), null, STUB_SYNTAX)],
     ["New question", (app: App) => openNewQuestion(OBSIDIAN_SHOWING, {} as NoteStore, noCampaign, vi.fn(), STUB_SYNTAX)],
     ["New quest", (app: App) => openNewQuest(OBSIDIAN_SHOWING, {} as NewQuestNotes, noCampaign, vi.fn(), STUB_SYNTAX)],
   ])("%s says to make a campaign first and opens nothing", (_name, open) => {

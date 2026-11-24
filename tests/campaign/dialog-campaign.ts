@@ -138,6 +138,12 @@ export class DialogCampaign {
   }
 }
 
+export function lastFrame(): ModalFrame {
+  const modal = openedModals[openedModals.length - 1];
+  if (!(modal instanceof ModalFrame)) throw new Error("The last dialog isn't in a modal frame.");
+  return modal;
+}
+
 export function lastDialog<T>(): T {
   const modal = openedModals[openedModals.length - 1];
   if (modal instanceof ModalFrame) return modal.dialog as unknown as T;

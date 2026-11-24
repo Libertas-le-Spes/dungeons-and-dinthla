@@ -3,7 +3,7 @@ import { Component } from "obsidian";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { Campaign, Source } from "../../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
-import type { CoinOutcome } from "../../../src/funds/coins/coin-modal";
+import type { CoinOutcome } from "../../../src/funds/coins/coin-dialog";
 import { FundsPage, type ShownItem } from "../../../src/funds/page/funds-page";
 import type { OwnSheet } from "../../../src/funds/purses/own-characters";
 import { HeldCalls } from "../../stubs/held-calls";
