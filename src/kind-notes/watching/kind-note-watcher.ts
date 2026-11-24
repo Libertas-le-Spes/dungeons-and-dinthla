@@ -1,4 +1,4 @@
-import type { WrittenNotes } from "../../fence/gate/written-notes";
+import type { HeardWrites } from "../../fence/notes/heard-writes";
 import type { DifferingNotes } from "./differing-notes";
 import type { ReferenceNotesPart } from "../../references/making/reference-notes-part";
 import type { ItemNotesPart } from "./item-notes-part";
@@ -14,7 +14,7 @@ export interface WatchedCampaign extends WantedStore {
 export interface KindNoteWatcherNeeds {
   store: Pick<WatchedCampaign, "onNoteRead">;
   wants: SessionWants;
-  written: Pick<WrittenNotes, "listen">;
+  written: HeardWrites;
   keeper: Pick<KindNoteKeeper, "keep" | "noteRead">;
   differing: Pick<DifferingNotes, "check" | "checkAll" | "forget">;
   saves: SavesHere;

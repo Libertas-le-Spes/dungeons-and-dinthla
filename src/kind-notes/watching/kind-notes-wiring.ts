@@ -1,24 +1,27 @@
-import type { SavedCampaign } from "../../campaign/reading/saved-campaign";
 import type { HostNotes } from "../../host/host";
 import type { NoteSyntax } from "../../host/rules/note-syntax";
-import type { WrittenNotes } from "../../fence/gate/written-notes";
+import type { HeardWrites } from "../../fence/notes/heard-writes";
 import type { ReferenceNotesPart } from "../../references/making/reference-notes-part";
 import { messageOf } from "../../views/dialogs/message-of";
 import type { NotesMade } from "../../settings/saved/notes-made";
 import { SessionWants } from "../wanting/session-wants";
 import { DifferingNotes, type AskAboutDifference } from "./differing-notes";
 import type { ItemNotesPart } from "./item-notes-part";
-import { KindNoteBackfill } from "./kind-note-backfill";
+import { KindNoteBackfill, type BackfilledCampaign } from "./kind-note-backfill";
 import { KindNoteMover } from "../keeping/kind-note-mover";
 import { KindNoteKeeper } from "../keeping/kind-note-keeper";
-import { KindNoteWatcher } from "./kind-note-watcher";
+import { KindNoteWatcher, type WatchedCampaign } from "./kind-note-watcher";
 import { SavesHere } from "./saves-here";
+
+export interface KindNotesCampaign extends WatchedCampaign, BackfilledCampaign {
+  onOpened(listener: (folder: string) => void): () => void;
+}
 
 export interface KindNotesNeeds {
   notes: HostNotes;
   syntax: NoteSyntax;
-  written: WrittenNotes;
-  saved: SavedCampaign;
+  written: HeardWrites;
+  saved: KindNotesCampaign;
   made: NotesMade;
   items: ItemNotesPart;
   references: ReferenceNotesPart;
