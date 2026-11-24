@@ -20,6 +20,8 @@ import { Tabs } from "../../views/tabs/tabs";
 import { whoseItems } from "../items/whose-items";
 import { RowFocus } from "../../views/lists/row-focus";
 import { shownItemName } from "../../characters/imported/lists/shown-item-name";
+import { MineSide, PARTY_SIDE, type CoinSide } from "../coins/coin-sides";
+import type { NoteRef } from "../../host/notes/note-ref";
 
 const MINE_PURSE_TITLE = "Purse";
 const PARTY_PURSE_TITLE = "Purse";
@@ -73,10 +75,30 @@ export interface ShownItem {
   panel(panelEl: HTMLElement): Component;
 }
 
+export type AddCoinOn = (side: CoinSide, returnFocus: () => void) => void;
+
+class SideAddCoin {
+  constructor(
+    private readonly addCoin: AddCoinOn,
+    private readonly side: CoinSide,
+  ) {}
+
+  open(returnFocus: () => void): void {
+    this.addCoin(this.side, returnFocus);
+  }
+}
+
+function addCoinOn(addCoin: AddCoinOn | null, side: CoinSide): ((returnFocus: () => void) => void) | null {
+  if (addCoin === null) return null;
+  const adding = new SideAddCoin(addCoin, side);
+  return adding.open.bind(adding);
+}
+
 export type FundsStore = Pick<CampaignStore, "current" | "subscribe">;
 
 export interface OwnCharactersBeside {
   names(): string[];
+  inPlay(): NoteRef | null;
   sheets(): Promise<OwnSheet[]>;
   subscribe(changed: () => void): () => void;
 }
@@ -86,7 +108,7 @@ export interface FundsPageParts {
   store: FundsStore;
   actions: LinkActions;
   noteExists: (name: string, sourcePath: string) => boolean;
-  addCoin: ((returnFocus: () => void) => void) | null;
+  addCoin: AddCoinOn | null;
   openLedgerEntry: OpenLedgerEntry | null;
   openItem: ((name: string, source: Source, onClosed: (changed: boolean) => void) => void) | null;
   shownItem: ShownItem | null;
@@ -131,8 +153,8 @@ export class FundsPage extends Component {
     this.mineItems = this.tabs.firstPanel.createEl("section", { cls: "dd-panel dd-items-panel" });
     this.partyPurse = new PurseBox({ panel: this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-purse-panel" }), title: PARTY_PURSE_TITLE });
     this.partyItems = this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-items-panel" });
-    this.mineLedger = this.ledgerBoxOf({ panel: this.tabs.firstPanel.createEl("section", { cls: "dd-panel dd-ledger-panel" }), addCoin: null, label: "Your ledger entries" });
-    this.partyLedger = this.ledgerBoxOf({ panel: this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-ledger-panel" }), addCoin: parts.addCoin, label: "Party ledger entries" });
+    this.mineLedger = this.ledgerBoxOf({ panel: this.tabs.firstPanel.createEl("section", { cls: "dd-panel dd-ledger-panel" }), addCoin: addCoinOn(parts.addCoin, new MineSide(parts.ownCharacters.inPlay.bind(parts.ownCharacters))), label: "Your ledger entries" });
+    this.partyLedger = this.ledgerBoxOf({ panel: this.tabs.secondPanel.createEl("section", { cls: "dd-panel dd-ledger-panel" }), addCoin: addCoinOn(parts.addCoin, PARTY_SIDE), label: "Party ledger entries" });
   }
 
   override onload(): void {

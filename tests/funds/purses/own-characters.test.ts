@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { OwnCharacters } from "../../../src/funds/purses/own-characters";
 import { FakeOwnCharacterNotes } from "./fake-own-character-notes";
 import { STUB_SYNTAX } from "../../host/stub-syntax";
+import type { NoteRef } from "../../../src/host/notes/note-ref";
 
 const MIRA = "Pale Moon/Characters/Mira.md";
 const ZED = "Pale Moon/Characters/Zed.md";
@@ -9,6 +10,11 @@ const TEXTS = new Map([
   [MIRA, ""],
   [ZED, ""],
 ]);
+
+function nameOf(file: NoteRef | null): string | null {
+  if (file === null) return null;
+  return file.basename;
+}
 
 describe("OwnCharacters", () => {
   it("names the characters of the campaign that are his", () => {
@@ -101,5 +107,26 @@ describe("OwnCharacters", () => {
     const own = new OwnCharacters({ store: { campaignFolder: "Pale Moon" }, notes }, STUB_SYNTAX);
     own.subscribe(vi.fn())();
     expect(notes.listenerCount()).toBe(0);
+  });
+
+  it.each([
+    { name: "his character in Characters", own: [MIRA], inPlay: "Mira" },
+    { name: "the first of two of his", own: [ZED, MIRA], inPlay: "Mira" },
+    { name: "no one, when none is his", own: [], inPlay: null },
+  ])("finds $name as the one in play", ({ own, inPlay }) => {
+    const notes = new FakeOwnCharacterNotes(TEXTS, own);
+    expect(nameOf(new OwnCharacters({ store: { campaignFolder: "Pale Moon" }, notes }, STUB_SYNTAX).inPlay())).toBe(inPlay);
+  });
+
+  it("finds no one in play when his only character has fallen", () => {
+    const fallen = "Pale Moon/Fallen/Mira.md";
+    const notes = new FakeOwnCharacterNotes(new Map([[fallen, ""]]), [fallen]);
+    expect(new OwnCharacters({ store: { campaignFolder: "Pale Moon" }, notes }, STUB_SYNTAX).inPlay()).toBeNull();
+  });
+
+  it("finds no one in play when no campaign is open, and asks no notes", () => {
+    const notes = new FakeOwnCharacterNotes(TEXTS, [MIRA]);
+    expect(new OwnCharacters({ store: { campaignFolder: null }, notes }, STUB_SYNTAX).inPlay()).toBeNull();
+    expect(notes.foldersAsked).toEqual([]);
   });
 });

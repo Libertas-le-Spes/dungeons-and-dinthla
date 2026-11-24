@@ -5,6 +5,7 @@ import type { NoteTexts } from "../../campaign/reading/note-texts";
 import { FundsPage, type ShownItem } from "../../funds/page/funds-page";
 import { OwnCharacters, type OwnCharacterNotes } from "../../funds/purses/own-characters";
 import { ItemPanel, type OpenItem } from "../../funds/item-notes/item-panel";
+import type { CoinSide } from "../../funds/coins/coin-sides";
 import type { OpenLedgerEntry } from "../../funds/coins/open-ledger-entry";
 import type { LinkActions } from "../../views/lists/linked-text";
 import type { MakePage, ShowPage } from "../view/campaign-pages";
@@ -15,7 +16,7 @@ export interface FundsNeeds {
   texts: NoteTexts;
   actions: LinkActions;
   noteExists(name: string, sourcePath: string): boolean;
-  addCoin(returnFocus: () => void): void;
+  addCoin(side: CoinSide, returnFocus: () => void): void;
   openLedgerEntry: OpenLedgerEntry;
   openItem: OpenItem;
   campaignFolders(): string[];
@@ -45,7 +46,7 @@ export function fundsSection(needs: FundsNeeds, syntax: PropertiesSyntax): MakeP
       store: needs.store,
       actions: needs.actions,
       noteExists: (name, sourcePath) => needs.noteExists(name, sourcePath),
-      addCoin: (returnFocus) => needs.addCoin(returnFocus),
+      addCoin: (side, returnFocus) => needs.addCoin(side, returnFocus),
       openLedgerEntry: needs.openLedgerEntry,
       openItem: needs.openItem,
       shownItem: shownItemOf(path, needs, show),

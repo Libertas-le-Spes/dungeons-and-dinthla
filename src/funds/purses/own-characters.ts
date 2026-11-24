@@ -32,6 +32,14 @@ export class OwnCharacters {
     return this.files().map((file) => file.basename);
   }
 
+  inPlay(): NoteRef | null {
+    const folder = this.parts.store.campaignFolder;
+    if (folder === null) return null;
+    const { notes } = this.parts;
+    const [character = null] = notes.filesIn(folder).filter((file) => notes.isOwnCharacter(file));
+    return character;
+  }
+
   async sheets(): Promise<OwnSheet[]> {
     const sheets: OwnSheet[] = [];
     for (const file of this.files()) {

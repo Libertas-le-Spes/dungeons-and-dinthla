@@ -38,6 +38,7 @@ import { openNewQuest } from "./quests/dialogs/open-new-quest";
 import { openQuest } from "./quests/dialogs/open-quest";
 import { questsKind } from "./quests/list/quests-kind";
 import { openAddCoin } from "./funds/coins/open-add-coin";
+import type { CoinSide } from "./funds/coins/coin-sides";
 import { openItemDialog } from "./funds/items/open-item";
 import { ItemNotes } from "./funds/item-notes/item-notes";
 import { newNamesDialogIn } from "./references/new-names/new-names-dialog";
@@ -188,7 +189,8 @@ export default class DungeonsAndDinthla extends Plugin {
       open: (returnFocus: () => void) => openNewQuest(this.showing, this.notes, this.store, returnFocus, OBSIDIAN_SYNTAX),
     };
     const noteExists = (name: string, sourcePath: string) => gate.metadata.getFirstLinkpathDest(name, sourcePath) !== null;
-    const addCoin = (returnFocus: () => void) => openAddCoin(this.showing, this.notes.store, this.store, returnFocus, pathYouAreIn(this.app), OBSIDIAN_SYNTAX);
+    const addingCoin = { showing: this.showing, notes: this.notes.store, links: this.notes.links, store: this.store, syntax: OBSIDIAN_SYNTAX };
+    const addCoin = (side: CoinSide, returnFocus: () => void) => openAddCoin(addingCoin, side, returnFocus, pathYouAreIn(this.app));
     const openNoteAt = (source: Source) => void openSource(this.app, gate, source);
     const itemOpening = { showing: this.showing, notes: this.notes, openNoteAt };
     const openItem = (name: string, source: Source, onClosed: (changed: boolean) => void) =>
