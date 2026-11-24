@@ -1,4 +1,5 @@
-import { debounce, type Debouncer, type TFile } from "obsidian";
+import { debounce, type Debouncer } from "obsidian";
+import type { NoteRef } from "../../host/notes/note-ref";
 import { addLinkedText, addRowButton, type LinkActions } from "../../views/lists/linked-text";
 import { messageOf } from "../../views/dialogs/message-of";
 import type { MentionNotes } from "../reading/mention-notes";
@@ -9,11 +10,11 @@ export const IN_THE_NOTES = "In the notes";
 
 const SETTLE_MS = 200;
 
-export function noMentions(file: TFile): string {
+export function noMentions(file: NoteRef): string {
   return `No session mentions [[${file.basename}]] yet.`;
 }
 
-export function couldNotReadMentions(file: TFile, error: unknown): string {
+export function couldNotReadMentions(file: NoteRef, error: unknown): string {
   return `Couldn't read the sessions that mention ${file.basename}: ${messageOf(error)}`;
 }
 
@@ -23,7 +24,7 @@ function countText(count: number): string {
 }
 
 interface Shown {
-  file: TFile;
+  file: NoteRef;
   parent: HTMLElement;
   mentions: Mention[] | null;
   reading: boolean;
@@ -63,7 +64,7 @@ export class MentionsPanel {
     this.readSoon.cancel();
   }
 
-  draw(parent: HTMLElement, file: TFile): void {
+  draw(parent: HTMLElement, file: NoteRef): void {
     const shown = this.shown;
     if (shown === null || shown.file.path !== file.path) {
       const next = { file, parent, mentions: null, reading: false };

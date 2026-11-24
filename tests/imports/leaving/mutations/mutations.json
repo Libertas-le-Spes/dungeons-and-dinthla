@@ -966,10 +966,10 @@
   "group": "gallery"
  },
  {
-  "id": "the Characters view shows the Fallen list",
-  "file": "src/characters/pages/characters-view.ts",
-  "find": "      this.fallenFiles(),\n",
-  "replace": "      [],\n",
+  "id": "the cast page shows the Fallen list",
+  "file": "src/characters/pages/cast-page.ts",
+  "find": "this.gallery.show(this.notes.filesIn(folder), this.notes.fallenFilesIn(folder));",
+  "replace": "this.gallery.show(this.notes.filesIn(folder), []);",
   "group": "gallery"
  },
  {

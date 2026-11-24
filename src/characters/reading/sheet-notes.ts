@@ -1,7 +1,9 @@
-import type { TFile } from "obsidian";
+import type { NoteChanges, Stop } from "../../host/notes/note-changes";
+import type { NoteFacts } from "../../host/notes/note-facts";
+import type { NoteRef } from "../../host/notes/note-ref";
 import type { CarriedGroup } from "./character-sheet";
-import { characterNotesOf, type CampaignFolders, type CharacterNotes } from "./character-notes";
-import type { Gate } from "../../fence/gate/gatekeeper";
+import { HostCharacterNotes, type CharacterHost, type CharacterNotes, type CharacterNotesParts } from "./character-notes";
+import { HeardPath } from "./heard-path";
 
 export interface CarriedFrom {
   path: string;
@@ -9,9 +11,18 @@ export interface CarriedFrom {
 }
 
 export interface SheetNotes extends CharacterNotes {
-  fileAt(path: string): TFile | null;
-  carriedFromOf(file: TFile): CarriedFrom | null;
-  onNoteMoved(moved: (path: string) => void): () => void;
+  fileAt(path: string): NoteRef | null;
+  carriedFromOf(file: NoteRef): CarriedFrom | null;
+  onNoteMoved(moved: (path: string) => void): Stop;
+}
+
+export interface SheetHost extends CharacterHost {
+  readonly facts: Pick<NoteFacts, "propertyLinksIn" | "propertiesOf">;
+  readonly changes: Pick<NoteChanges, "onRead" | "onGone" | "onMoved">;
+}
+
+export interface SheetNotesParts extends CharacterNotesParts {
+  readonly notes: SheetHost;
 }
 
 const CARRIED_FROM = "carried from";
@@ -24,38 +35,50 @@ export function carriedGroupsOf(listed: unknown): CarriedGroup[] {
   return CARRIED_GROUPS.filter((group) => names.some((name) => typeof name === "string" && name.trim().toLowerCase() === group));
 }
 
-function carriedFromOf(gate: Gate, notes: CharacterNotes, file: TFile): CarriedFrom | null {
-  const cache = gate.metadata.getFileCache(file);
-  if (cache === null) return null;
-  const links = cache.frontmatterLinks;
-  if (links === undefined) return null;
-  const link = links.find((candidate) => candidate.key === CARRIED_FROM);
-  if (link === undefined) return null;
-  const path = notes.pathOfLink(link.link, file.path);
-  if (path === null || path === file.path) return null;
-  let listed: unknown = undefined;
-  if (cache.frontmatter !== undefined) listed = cache.frontmatter.carried;
-  return { path, groups: carriedGroupsOf(listed) };
+class BothStops {
+  constructor(
+    private readonly first: Stop,
+    private readonly second: Stop,
+  ) {}
+
+  stop(): void {
+    this.first();
+    this.second();
+  }
 }
 
-function onNoteMoved(gate: Gate, moved: (path: string) => void): () => void {
-  const deleted = gate.files.on("delete", (file) => moved(file.path));
-  const renamed = gate.files.on("rename", (file, oldPath) => {
-    moved(oldPath);
-    moved(file.path);
-  });
-  return () => {
-    gate.files.offref(deleted);
-    gate.files.offref(renamed);
-  };
-}
+export class HostSheetNotes extends HostCharacterNotes implements SheetNotes {
+  constructor(protected readonly sheetParts: SheetNotesParts) {
+    super(sheetParts);
+  }
 
-export function sheetNotesOf(gate: Gate, campaignFolders: CampaignFolders): SheetNotes {
-  const notes = characterNotesOf(gate, campaignFolders);
-  return {
-    ...notes,
-    fileAt: (path) => gate.files.getFileByPath(path),
-    carriedFromOf: (file) => carriedFromOf(gate, notes, file),
-    onNoteMoved: (moved) => onNoteMoved(gate, moved),
-  };
+  fileAt(path: string): NoteRef | null {
+    return this.sheetParts.notes.store.note(path);
+  }
+
+  carriedFromOf(file: NoteRef): CarriedFrom | null {
+    const held = this.heldOf(file);
+    const { facts } = this.sheetParts.notes;
+    const properties = facts.propertiesOf(held);
+    if (properties === null) return null;
+    const linkText = this.carriedFromLinkOf(held);
+    if (linkText === null) return null;
+    const path = this.pathOfLink(linkText, held.path);
+    if (path === null || path === held.path) return null;
+    return { path, groups: carriedGroupsOf(properties.carried) };
+  }
+
+  onNoteMoved(moved: (path: string) => void): Stop {
+    const heard = new HeardPath(moved);
+    const { changes } = this.sheetParts.notes;
+    const both = new BothStops(changes.onGone(moved), changes.onMoved(heard.moved.bind(heard)));
+    return both.stop.bind(both);
+  }
+
+  private carriedFromLinkOf(file: NoteRef): string | null {
+    for (const link of this.sheetParts.notes.facts.propertyLinksIn(file)) {
+      if (link.key === CARRIED_FROM) return link.linkText;
+    }
+    return null;
+  }
 }

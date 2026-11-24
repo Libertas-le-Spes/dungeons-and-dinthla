@@ -1,4 +1,4 @@
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../host/notes/note-ref";
 import type { SessionNote } from "../../campaign/record/campaign";
 import { campaignFolderOf } from "../../campaign/paths/campaign-folders";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
@@ -35,7 +35,7 @@ interface Facts {
   lists: ImportedLists | null;
 }
 
-async function factsAbout(file: TFile, store: SheetStore, notes: SheetNotes): Promise<Facts> {
+async function factsAbout(file: NoteRef, store: SheetStore, notes: SheetNotes): Promise<Facts> {
   const campaignFolder = campaignFolderOf(file.path, notes.campaignFolders());
   const sessions = await sessionsIn(campaignFolder, store, notes);
   let learned = learnedFactsOf(sessions, notes).get(file.path);
@@ -50,7 +50,7 @@ interface Carried {
   values: CarriedValues;
 }
 
-async function carriedTo(file: TFile, store: SheetStore, notes: SheetNotes): Promise<Carried | null> {
+async function carriedTo(file: NoteRef, store: SheetStore, notes: SheetNotes): Promise<Carried | null> {
   const carriedFrom = notes.carriedFromOf(file);
   if (carriedFrom === null) return null;
   const carriedFile = notes.fileAt(carriedFrom.path);
@@ -62,7 +62,7 @@ async function carriedTo(file: TFile, store: SheetStore, notes: SheetNotes): Pro
   return { path: carriedFrom.path, campaignFolder: facts.campaignFolder, values };
 }
 
-export async function readCharacterSheet(file: TFile, store: SheetStore, notes: SheetNotes): Promise<ReadSheet> {
+export async function readCharacterSheet(file: NoteRef, store: SheetStore, notes: SheetNotes): Promise<ReadSheet> {
   const facts = await factsAbout(file, store, notes);
   const carried = await carriedTo(file, store, notes);
   let carriedValues: CarriedValues | null = null;

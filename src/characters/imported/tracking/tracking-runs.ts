@@ -1,11 +1,11 @@
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../../host/notes/note-ref";
 import type { ButtonAction } from "../drawing/action-button";
 import type { ItemTracking, SheetItem } from "./item-tracking";
 import type { SettleChoice } from "./settle-choices";
 
 export class TrackRun implements ButtonAction {
   constructor(
-    private readonly file: TFile,
+    private readonly file: NoteRef,
     private readonly item: SheetItem,
     private readonly tracking: ItemTracking,
   ) {}
@@ -17,7 +17,7 @@ export class TrackRun implements ButtonAction {
 
 export class SettleRun implements ButtonAction {
   constructor(
-    private readonly file: TFile,
+    private readonly file: NoteRef,
     private readonly name: string,
     private readonly choice: SettleChoice,
     private readonly tracking: ItemTracking,

@@ -1,5 +1,6 @@
 import { VALUE_BUTTONS } from "../../views/lists/row-keys";
-import { Component, type TFile } from "obsidian";
+import { Component } from "obsidian";
+import type { NoteRef } from "../../host/notes/note-ref";
 import type { Source } from "../../campaign/record/campaign";
 import { campaignFolderOf, charactersFolderOf } from "../../campaign/paths/campaign-folders";
 import { sessionLabelOf } from "../../campaign/paths/session-file";
@@ -32,10 +33,10 @@ export const STATE_WORDS: Record<ValueState, string> = {
 };
 
 export interface SheetActions extends LinkActions {
-  editCharacter(file: TFile): void;
-  updateFromBeyond(file: TFile, returnFocus: () => void): void;
+  editCharacter(file: NoteRef): void;
+  updateFromBeyond(file: NoteRef, returnFocus: () => void): void;
   depart(path: string, returnFocus: () => void): void;
-  chooseValue(file: TFile, value: SheetValue, onClosed: () => void): void;
+  chooseValue(file: NoteRef, value: SheetValue, onClosed: () => void): void;
   readonly tracking: ItemTracking;
 }
 
@@ -59,7 +60,7 @@ function captionOf(value: SheetValue): Caption | null {
   return null;
 }
 
-export function couldNotRead(file: TFile, error: unknown): string {
+export function couldNotRead(file: NoteRef, error: unknown): string {
   return `Couldn't read ${file.basename}'s sheet: ${messageOf(error)}`;
 }
 
@@ -78,7 +79,7 @@ export class CharacterSheetPage extends Component {
 
   constructor(
     private readonly contentEl: HTMLElement,
-    private readonly file: TFile,
+    private readonly file: NoteRef,
     private readonly store: WatchedStore,
     private readonly notes: SheetNotes,
     private readonly actions: SheetActions,
@@ -118,7 +119,7 @@ export class CharacterSheetPage extends Component {
     return this.watched.some((watched) => path === watched || path.startsWith(`${watched}/`));
   }
 
-  private async render(file: TFile): Promise<void> {
+  private async render(file: NoteRef): Promise<void> {
     const render = ++this.renders;
     let read: ReadSheet;
     try {
@@ -138,7 +139,7 @@ export class CharacterSheetPage extends Component {
     this.draw(file, read);
   }
 
-  private characterPaths(file: TFile): string[] {
+  private characterPaths(file: NoteRef): string[] {
     const paths = [file.path];
     const campaignFolder = campaignFolderOf(file.path, this.notes.campaignFolders());
     if (campaignFolder !== null) paths.push(campaignFolder);
@@ -149,7 +150,7 @@ export class CharacterSheetPage extends Component {
     return [...this.watched, ...paths.filter((path) => !this.watched.includes(path))];
   }
 
-  private drawError(file: TFile, error: unknown): void {
+  private drawError(file: NoteRef, error: unknown): void {
     this.mentions.clear();
     const root = this.contentEl;
     root.empty();
@@ -158,7 +159,7 @@ export class CharacterSheetPage extends Component {
     root.createEl("p", { cls: "dd-empty", text: couldNotRead(file, error) });
   }
 
-  private draw(file: TFile, read: ReadSheet): void {
+  private draw(file: NoteRef, read: ReadSheet): void {
     const sheet = read.sheet;
     const root = this.contentEl;
     root.empty();
@@ -196,18 +197,18 @@ export class CharacterSheetPage extends Component {
     this.focusPending();
   }
 
-  private isUpdatable(file: TFile, campaignFolder: string | null): boolean {
+  private isUpdatable(file: NoteRef, campaignFolder: string | null): boolean {
     if (campaignFolder === null) return false;
     return isCharacterNotePath(file.path, charactersFolderOf(campaignFolder));
   }
 
-  private drawStatBlock(root: HTMLElement, file: TFile, sheet: CharacterSheet): void {
+  private drawStatBlock(root: HTMLElement, file: NoteRef, sheet: CharacterSheet): void {
     const section = root.createEl("section", { cls: "dd-sheet-stat-block" });
     section.createEl("h2", { cls: "dd-title", text: "Stat block" });
     fillStatBlock(section.createDiv(), file.basename, shownValuesOf(sheet));
   }
 
-  private addValue(parent: HTMLElement, file: TFile, value: SheetValue, isAbility: boolean): void {
+  private addValue(parent: HTMLElement, file: NoteRef, value: SheetValue, isAbility: boolean): void {
     const line = parent.createDiv({ cls: "dd-value-line" });
     const shownText = shownTextOf(value);
     const button = line.createEl("button", {
@@ -243,7 +244,7 @@ export class CharacterSheetPage extends Component {
     });
   }
 
-  private choose(file: TFile, value: SheetValue): void {
+  private choose(file: NoteRef, value: SheetValue): void {
     this.actions.chooseValue(file, value, () => {
       this.pendingFocus = { name: value.name, until: Date.now() + PENDING_FOCUS_MS };
       this.focusPending();

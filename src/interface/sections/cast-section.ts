@@ -1,4 +1,4 @@
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../host/notes/note-ref";
 import type { Source } from "../../campaign/record/campaign";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { CastPage, type WatchFiles } from "../../characters/pages/cast-page";
@@ -30,15 +30,15 @@ function galleryOf(contentEl: HTMLElement, needs: CastNeeds, show: ShowPage): Ca
   return new CastPage(contentEl, needs.store, needs.characterNotes, actions, needs.creators, needs.watchFiles);
 }
 
-function characterPageOf(contentEl: HTMLElement, file: TFile, needs: CastNeeds, show: ShowPage): CharacterPage {
-  const sheet = (sheetEl: HTMLElement, sheetFile: TFile) =>
+function characterPageOf(contentEl: HTMLElement, file: NoteRef, needs: CastNeeds, show: ShowPage): CharacterPage {
+  const sheet = (sheetEl: HTMLElement, sheetFile: NoteRef) =>
     new CharacterSheetPage(sheetEl, sheetFile, needs.store, needs.sheetNotes, needs.sheetActions, needs.mentionNotes);
   return new CharacterPage(contentEl, file, sheet, () => show({ page: "cast", path: null }));
 }
 
-function fallenPageOf(contentEl: HTMLElement, file: TFile, needs: CastNeeds, show: ShowPage): CharacterPage {
+function fallenPageOf(contentEl: HTMLElement, file: NoteRef, needs: CastNeeds, show: ShowPage): CharacterPage {
   const leave = () => show({ page: "cast", path: file.path });
-  const sheet = (sheetEl: HTMLElement, sheetFile: TFile) =>
+  const sheet = (sheetEl: HTMLElement, sheetFile: NoteRef) =>
     new FallenSheetPage(sheetEl, sheetFile, { store: needs.store, notes: needs.sheetNotes, links: needs.sheetActions, makeMain: needs.creators, leave });
   return new CharacterPage(contentEl, file, sheet, () => show({ page: "cast", path: null }));
 }

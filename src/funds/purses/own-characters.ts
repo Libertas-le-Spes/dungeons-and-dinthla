@@ -1,4 +1,4 @@
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../host/notes/note-ref";
 import { importedSessionOf } from "../../characters/imported/reading/imported-session";
 import type { PurseCoin } from "../../characters/imported/lists/purse-coin";
 import { importedPurseOf } from "../../characters/imported/purse/note-purse";
@@ -6,10 +6,10 @@ import { mainNotePathOf } from "../../campaign/paths/campaign-folders";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 
 export interface OwnCharacterNotes {
-  filesIn(campaignFolder: string): TFile[];
-  fallenFilesIn(campaignFolder: string): TFile[];
-  isOwnCharacter(file: TFile): boolean;
-  textOf(file: TFile): Promise<string>;
+  filesIn(campaignFolder: string): NoteRef[];
+  fallenFilesIn(campaignFolder: string): NoteRef[];
+  isOwnCharacter(file: NoteRef): boolean;
+  textOf(file: NoteRef): Promise<string>;
   onNoteChanged(changed: (path: string) => void): () => void;
 }
 
@@ -49,7 +49,7 @@ export class OwnCharacters {
     });
   }
 
-  private files(): TFile[] {
+  private files(): NoteRef[] {
     const folder = this.parts.store.campaignFolder;
     if (folder === null) return [];
     const { notes } = this.parts;

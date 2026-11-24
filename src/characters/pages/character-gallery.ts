@@ -1,4 +1,4 @@
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../host/notes/note-ref";
 import type { SessionNote } from "../../campaign/record/campaign";
 import { campaignFolderOf, campaignNotePathOf } from "../../campaign/paths/campaign-folders";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
@@ -42,7 +42,7 @@ export class CharacterGallery {
     return this.campaignNotes.has(path);
   }
 
-  show(files: TFile[], fallen: TFile[]): void {
+  show(files: NoteRef[], fallen: NoteRef[]): void {
     this.drawing.add(this.drawFiles(files, fallen));
   }
 
@@ -50,7 +50,7 @@ export class CharacterGallery {
     return this.drawing.settled();
   }
 
-  private async drawFiles(files: TFile[], fallen: TFile[]): Promise<void> {
+  private async drawFiles(files: NoteRef[], fallen: NoteRef[]): Promise<void> {
     const render = ++this.renders;
     const folders = this.notes.campaignFolders();
     const learnedByFolder = new Map<string | null, Promise<LearnedFacts>>();
@@ -62,7 +62,7 @@ export class CharacterGallery {
       }
       return learned;
     };
-    const cardsOf = (shown: TFile[]) => Promise.all(shown.map((file) => this.cardOf(file, learnedIn(campaignFolderOf(file.path, folders)))));
+    const cardsOf = (shown: NoteRef[]) => Promise.all(shown.map((file) => this.cardOf(file, learnedIn(campaignFolderOf(file.path, folders)))));
     const [cards, fallenCards] = await Promise.all([cardsOf(files), cardsOf(fallen)]);
     if (render !== this.renders) return;
     this.campaignNotes = new Set([...files, ...fallen].map((file) => campaignNotePathOf(file.path, folders)));
@@ -142,7 +142,7 @@ export class CharacterGallery {
     return learnedFactsOf(sessions, this.notes);
   }
 
-  private async cardOf(file: TFile, learnedFacts: Promise<LearnedFacts>): Promise<CharacterCard> {
+  private async cardOf(file: NoteRef, learnedFacts: Promise<LearnedFacts>): Promise<CharacterCard> {
     return readCharacterCard(file, await learnedFacts, this.notes);
   }
 }

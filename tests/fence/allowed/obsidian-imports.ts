@@ -2,7 +2,7 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "campaign/writing/new-campaign-modal.ts": ["App", "Modal", "Setting"],
   "interface/view/campaign-switcher.ts": ["Component", "Menu", "Notice", "setIcon"],
   "campaign/": ["CachedMetadata", "MarkdownFileInfo", "Notice", "Platform", "TFile", "getFrontMatterInfo"],
-  "characters/": ["App", "ButtonComponent", "CachedMetadata", "Component", "Debouncer", "Menu", "Notice", "ReferenceCache", "Setting", "TAbstractFile", "TFile", "debounce", "getLinkpath", "normalizePath"],
+  "characters/": ["App", "ButtonComponent", "Component", "Debouncer", "Menu", "Notice", "Setting", "TAbstractFile", "TFile", "debounce", "normalizePath"],
   "dashboard/": ["Component"],
   "editor/": ["editorInfoField"],
   "fence/": ["App", "CachedMetadata", "Component", "EventRef", "Events", "FileManager", "MetadataCache", "TAbstractFile", "TFile", "TFolder", "Vault"],
