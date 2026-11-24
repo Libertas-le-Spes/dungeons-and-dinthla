@@ -1,4 +1,4 @@
-export const PLAIN_GLOBALS = ["undefined", "Array", "Date", "Error", "JSON", "Map", "Math", "Number", "Object", "Promise", "RegExp", "Set", "String", "TextEncoder", "WeakMap"];
+export const PLAIN_GLOBALS = ["undefined", "Array", "Date", "Error", "JSON", "Map", "Math", "Number", "Object", "Promise", "RegExp", "Set", "String", "TextEncoder", "WeakMap", "WeakSet"];
 
 export const PAGE_GLOBALS: Record<string, string[]> = {
   "imports/dialog/picking/pdf-picker.ts": ["Uint8Array"],

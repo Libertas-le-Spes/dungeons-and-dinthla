@@ -59,7 +59,7 @@ function vaultBreaches(scan: FileScan): string[] {
   }
   for (const node of found.reflections) breaches.push(`${where(node)} reaches values through ${REFLECTION}`);
   for (const node of found.objectTaken) breaches.push(`${where(node)} takes ${OBJECT} other than to call one of its functions`);
-  for (const node of types.hidingPlacements(project, found.placed)) breaches.push(`${where(node)} puts a value that could reach the vault, an editor or a view where a type that hides it goes`);
+  for (const node of types.hidingPlacements(project, found.placed, allowances.noteHandles(path))) breaches.push(`${where(node)} puts a value that could reach the vault, an editor or a view where a type that hides it goes`);
   for (const node of types.reachingKeys(project, found)) breaches.push(`${where(node)} reads a computed key that could reach the vault, an editor or a view`);
   if (allowances.keyReading(path)) return breaches;
   for (const node of types.reachingWholes(project, found)) breaches.push(`${where(node)} reads every key of a value that could reach the vault, an editor or a view`);

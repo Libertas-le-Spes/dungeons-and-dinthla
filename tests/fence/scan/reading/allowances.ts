@@ -32,4 +32,5 @@ export interface Allowances {
   elementOptions: AllowedName;
   globals: AllowedName;
   hostNeutral: Allowed;
+  noteHandles: Allowed;
 }

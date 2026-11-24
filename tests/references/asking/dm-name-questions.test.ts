@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import { notesOverFakes } from "../../host/notes-over-fakes";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 import type { CachedMetadata, TFile } from "obsidian";
 import { DmNameQuestions } from "../../../src/references/asking/dm-name-questions";
 import { FakeCampaign } from "../../kind-notes/fake-campaign";
@@ -79,7 +81,8 @@ function startWith(world: World) {
     store: world.campaign,
     files,
     metadata,
-    actions: world.notes.actions,
+    notes: notesOverFakes({ files, metadata, actions: world.notes.actions }),
+    syntax: STUB_SYNTAX,
     campaignFolders: () => [CAMPAIGN, OTHER_CAMPAIGN],
     say: (message) => world.notes.said.push(message),
     askNewNames,

@@ -2,6 +2,8 @@ import { vi } from "vitest";
 import type { CachedMetadata, TFile } from "obsidian";
 import { HALF_MADE_AFTER_MS } from "../../src/kind-notes/keeping/half-made-note";
 import { wordsOf } from "../../src/note-keeping/note-words";
+import { notesOverFakes } from "../host/notes-over-fakes";
+import { STUB_SYNTAX } from "../host/stub-syntax";
 import { fileAt, nameOf, type Properties } from "../stubs/note-files";
 import { getFrontMatterInfo } from "../stubs/obsidian";
 
@@ -105,7 +107,7 @@ export class FakeNotes {
       const text = change(textOf(this.noteOf(file)));
       const note = this.noteOf(file);
       note.properties = propertiesIn(text);
-      note.words = wordsOf(text);
+      note.words = wordsOf(text, STUB_SYNTAX);
       return text;
     }),
   };
@@ -154,8 +156,17 @@ export class FakeNotes {
     }),
   };
 
+  host() {
+    return notesOverFakes({ files: this.files, metadata: this.metadata, actions: this.actions });
+  }
+
+  makerParts() {
+    const notes = this.host();
+    return { store: notes.store, keeping: notes.keeping, syntax: STUB_SYNTAX };
+  }
+
   needs() {
-    return { files: this.files, metadata: this.metadata, actions: this.actions, now: () => this.clock, say: (message: string) => this.said.push(message) };
+    return { notes: this.host(), syntax: STUB_SYNTAX, now: () => this.clock, say: (message: string) => this.said.push(message) };
   }
 
   private renamed(file: TFile, newPath: string): void {

@@ -1,4 +1,3 @@
-import { STUB_SPELLING } from "../../host/stub-spelling";
 import { describe, expect, it, vi } from "vitest";
 import type { TFile } from "obsidian";
 import { CampaignStore } from "../../../src/campaign/reading/campaign-store";
@@ -12,6 +11,9 @@ import { NoteReporter } from "../../../src/fence/gate/written-notes";
 import { ItemNotes } from "../../../src/funds/item-notes/item-notes";
 import { FakeVault } from "../../campaign/fake-vault";
 import { FakeEvents, rawVaultWith } from "../../fence/gate/fake-raw-vault";
+import { notesOverFakes } from "../../host/notes-over-fakes";
+import { STUB_SPELLING } from "../../host/stub-spelling";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 import { cacheOf, CAMPAIGN, FakeItemNotes, fileAt, keepHolders, LANTERN, ROPE, SESSION, settle } from "./fake-item-notes";
 
 describe("ItemNotes", () => {
@@ -217,10 +219,10 @@ describe("ItemNotes", () => {
     ]);
     const needs = itemNotes.needsFor(store);
     const refused = new Error("refused");
-    const write = needs.actions.processFrontMatter;
-    needs.actions.processFrontMatter = async (file, change) => {
-      if (file.path === LANTERN) throw refused;
-      await write(file, change);
+    const write = needs.notes.changeProperties.bind(needs.notes);
+    needs.notes.changeProperties = async (note, change) => {
+      if (note.path === LANTERN) throw refused;
+      await write(note, change);
     };
     new ItemNotes(needs).start();
     await store.open(CAMPAIGN);
@@ -235,14 +237,14 @@ describe("ItemNotes", () => {
     const store = new CampaignStore(sessions.vault);
     const itemNotes = new FakeItemNotes([{ path: LANTERN, properties: {} }]);
     const needs = itemNotes.needsFor(store);
-    const write = needs.actions.processFrontMatter;
+    const write = needs.notes.changeProperties.bind(needs.notes);
     let refused = false;
-    needs.actions.processFrontMatter = async (file, change) => {
+    needs.notes.changeProperties = async (note, change) => {
       if (!refused) {
         refused = true;
         throw new Error("refused");
       }
-      await write(file, change);
+      await write(note, change);
     };
     new ItemNotes(needs).start();
     await store.open(CAMPAIGN);
@@ -263,7 +265,7 @@ describe("ItemNotes", () => {
     const store = new CampaignStore(sessions.vault);
     const itemNotes = new FakeItemNotes([{ path: LANTERN, properties: {} }]);
     const needs = itemNotes.needsFor(store);
-    needs.actions.processFrontMatter = async () => {
+    needs.notes.changeProperties = async () => {
       throw new Error("refused");
     };
     new ItemNotes(needs).start();
@@ -323,9 +325,12 @@ describe("ItemNotes through the gate", () => {
     const failures: unknown[] = [];
     const needs = {
       store,
-      files: new FencedFiles(raw.vault, held, reporter),
-      metadata: new FencedMetadata(rawMetadata, held),
-      actions: new FencedFileActions(rawFileManager, held, reporter),
+      notes: notesOverFakes({
+        files: new FencedFiles(raw.vault, held, reporter),
+        metadata: new FencedMetadata(rawMetadata, held),
+        actions: new FencedFileActions(rawFileManager, held, reporter),
+      }),
+      syntax: STUB_SYNTAX,
       failed: (error: unknown) => failures.push(error),
       say: () => {},
     };

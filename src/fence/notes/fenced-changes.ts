@@ -72,7 +72,8 @@ export class FencedChanges implements NoteChanges {
     return this.raw.onRead(pass.note.bind(pass));
   }
 
-  onLinksSettled(heard: () => void): Stop {
-    return this.raw.onLinksSettled(heard);
+  onLinksSettled(heard: HeardNote): Stop {
+    const pass = new PassInside(this.handed, heard);
+    return this.raw.onLinksSettled(pass.note.bind(pass));
   }
 }

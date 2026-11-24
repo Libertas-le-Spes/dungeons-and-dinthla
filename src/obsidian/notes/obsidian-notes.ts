@@ -60,12 +60,12 @@ class HeardMove {
 
 class Stopper {
   constructor(
-    private readonly events: { offref(ref: EventRef): void },
+    private readonly offref: (ref: EventRef) => void,
     private readonly ref: EventRef,
   ) {}
 
   stop(): void {
-    this.events.offref(this.ref);
+    this.offref(this.ref);
   }
 }
 
@@ -175,14 +175,16 @@ export class ObsidianNotes implements HostNotes, NoteStore, NoteKeeping, NoteCha
     return this.metadataStopperOf(this.gate.metadata.on("changed", listener.read.bind(listener)));
   }
 
-  onLinksSettled(heard: () => void): Stop {
-    return this.metadataStopperOf(this.gate.metadata.on("resolve", heard));
+  onLinksSettled(heard: (note: NoteRef) => void): Stop {
+    const listener = new HeardNote(heard);
+    return this.metadataStopperOf(this.gate.metadata.on("resolve", listener.read.bind(listener)));
   }
 
   propertiesOf(note: NoteRef): Properties | null {
-    const frontmatter = this.cacheOf(note)?.frontmatter;
-    if (frontmatter === undefined) return null;
-    return frontmatter;
+    const cache = this.cacheOf(note);
+    if (cache === null) return null;
+    if (cache.frontmatter === undefined) return {};
+    return cache.frontmatter;
   }
 
   linksIn(note: NoteRef): LinkFact[] {
@@ -228,12 +230,12 @@ export class ObsidianNotes implements HostNotes, NoteStore, NoteKeeping, NoteCha
   }
 
   private stopperOf(ref: EventRef): Stop {
-    const stopper = new Stopper(this.gate.files, ref);
+    const stopper = new Stopper(this.gate.files.offref.bind(this.gate.files), ref);
     return stopper.stop.bind(stopper);
   }
 
   private metadataStopperOf(ref: EventRef): Stop {
-    const stopper = new Stopper(this.gate.metadata, ref);
+    const stopper = new Stopper(this.gate.metadata.offref.bind(this.gate.metadata), ref);
     return stopper.stop.bind(stopper);
   }
 }

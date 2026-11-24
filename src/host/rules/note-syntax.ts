@@ -3,6 +3,7 @@ export interface PropertiesSpan {
   readonly from: number;
   readonly to: number;
   readonly contentStart: number;
+  readonly text: string;
 }
 
 export interface NoteSyntax {

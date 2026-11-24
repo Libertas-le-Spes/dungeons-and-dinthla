@@ -16,9 +16,11 @@ import {
   WIDENING_SAMPLES,
   KEY_SAMPLES,
   ALLOWED_KEY_SAMPLES,
+  HANDLE_SAMPLES,
+  HANDLE_LOOK_ALIKE_SAMPLES,
 } from "../samples/vault-access-samples";
 
-const SAMPLES = [...REACHING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...FOLDER_WALK_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...ANY_TYPE_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...WIDENING_SAMPLES, ...KEY_SAMPLES, ...ALLOWED_KEY_SAMPLES, ...HARMLESS_SAMPLES];
+const SAMPLES = [...REACHING_SAMPLES, ...FORBIDDEN_SAMPLES, ...FILE_TREE_SAMPLES, ...FOLDER_WALK_SAMPLES, ...CAST_SAMPLES, ...LOOSE_CAST_SAMPLES, ...ANY_TYPE_SAMPLES, ...OTHER_PLUGIN_SAMPLES, ...GLOBAL_APP_SAMPLES, ...CONSTRUCTOR_SAMPLES, ...WIDENING_SAMPLES, ...KEY_SAMPLES, ...ALLOWED_KEY_SAMPLES, ...HANDLE_SAMPLES, ...HANDLE_LOOK_ALIKE_SAMPLES, ...HARMLESS_SAMPLES];
 
 let scan: SampleScan;
 
@@ -77,6 +79,22 @@ describe("the source scan's vault access rules", () => {
 
   it.each(WIDENING_SAMPLES)("would catch reaching the vault through a value widened to hide it with %s, even in a file allowed to cast", (sample) => {
     expect(scan.breaches(sample, LOOSE_CASTS_ALLOWED)).not.toEqual([]);
+  });
+
+  it.each(WIDENING_SAMPLES)("would catch reaching the vault through a value widened to hide it with %s, even in a file allowed to hand out note handles", (sample) => {
+    expect(scan.breaches(sample, { ...LOOSE_CASTS_ALLOWED, noteHandles: isAlwaysAllowed })).not.toEqual([]);
+  });
+
+  it.each(HANDLE_SAMPLES)("would catch handing a note out as the plugin's note handle with %s", (sample) => {
+    expect(scan.breaches(sample, NOTHING_ALLOWED)).not.toEqual([]);
+  });
+
+  it.each(HANDLE_SAMPLES)("lets %s pass in a file allowed to hand out note handles", (sample) => {
+    expect(scan.breaches(sample, { ...NOTHING_ALLOWED, noteHandles: isAlwaysAllowed })).toEqual([]);
+  });
+
+  it.each(HANDLE_LOOK_ALIKE_SAMPLES)("would catch %s even in a file allowed to hand out note handles, since its type isn't only the plugin's note handle", (sample) => {
+    expect(scan.breaches(sample, { ...NOTHING_ALLOWED, noteHandles: isAlwaysAllowed })).not.toEqual([]);
   });
 
   it.each(KEY_SAMPLES)("would catch a key that could name constructor, __proto__ or prototype, or a Function maker, with %s, even in a file allowed computed keys and casts", (sample) => {

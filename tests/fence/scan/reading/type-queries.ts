@@ -5,6 +5,7 @@ import type { Found, Named } from "./found";
 import { isInCodeMirrorFolder, isInObsidianFolder } from "./library-paths";
 import { DOCUMENT, EDITOR_OWNERS, EDITOR_READS, EDITOR_WRITES, FILE_OWNERS, FORBIDDEN_NAMES, OBJECT, REACHING_HOLDERS, UNTYPED, VAULT_NAMES, VIEW_OWNERS } from "./names";
 import { isCast, layersOf, unwrapped, type Cast } from "./syntax";
+import { isNoteHandle } from "./note-handles";
 import { anyMemberCould, flattened, isLibraryFile, isLibraryType, isNamedGlobal, isNamedOneOf, isObsidianOwnedByOneOf, isOwnedByOneOf } from "./type-shapes";
 
 const PROTOTYPE = "prototype";
@@ -161,13 +162,14 @@ export class TypeQueries {
     return anyMemberCould(type, (member) => this.memberCouldReach(project, member));
   }
 
-  hidingPlacements(project: Project, placed: Expression[]): Expression[] {
+  hidingPlacements(project: Project, placed: Expression[], handlesAllowed: boolean): Expression[] {
     const shown = placed.filter((node) => !isBindingPatternInitializer(node));
     if (shown.length === 0) return [];
     const values = project.checker.getTypeAtLocation(shown);
     return shown.filter((node, index) => {
       const context = project.checker.getContextualType(node);
       if (context === undefined) return false;
+      if (handlesAllowed && isNoteHandle(context)) return false;
       return this.holdsReach(project, values[index]) && !this.couldReach(project, context);
     });
   }

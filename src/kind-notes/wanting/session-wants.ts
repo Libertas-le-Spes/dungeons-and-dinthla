@@ -1,6 +1,6 @@
 import type { Campaign, SessionNote } from "../../campaign/record/campaign";
 import { sessionNumberOf } from "../../campaign/paths/session-file";
-import type { FencedFiles } from "../../fence/gate/fenced-files";
+import type { NoteStore } from "../../host/notes/note-store";
 import type { WantedNote } from "./wanted-note";
 import { wantedNotesFor } from "./wanted-notes";
 
@@ -19,7 +19,7 @@ function heldNote(note: SessionNote | undefined): SessionNote | null {
 export class SessionWants {
   constructor(
     private readonly store: WantedStore,
-    private readonly files: Pick<FencedFiles, "getFileByPath">,
+    private readonly files: Pick<NoteStore, "note">,
   ) {}
 
   get campaignFolder(): string | null {
@@ -44,7 +44,7 @@ export class SessionWants {
     const folder = this.store.campaignFolder;
     if (folder === null || this.store.opening) return [];
     const note = this.store.sessionNotes.find((session) => session.path === path);
-    return wantedNotesFor(folder, this.store.current, { path, file: this.files.getFileByPath(path), note: heldNote(note) });
+    return wantedNotesFor(folder, this.store.current, { path, file: this.files.note(path), note: heldNote(note) });
   }
 
   notesOfGoneSession(path: string): WantedNote[] {

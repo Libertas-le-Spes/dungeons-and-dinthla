@@ -1,5 +1,5 @@
-import type { CachedMetadata } from "obsidian";
-import type { ChangeProperties } from "../../fence/gate/fenced-file-actions";
+import type { Properties } from "../../host/notes/note-facts";
+import type { ChangeProperties } from "../../host/notes/note-keeping";
 import { linesIn, sameLines } from "../../note-keeping/note-properties";
 
 export interface WantedProperties {
@@ -8,7 +8,7 @@ export interface WantedProperties {
   alias: string | null;
 }
 
-export function aliasesIn(properties: Record<string, unknown>): unknown[] {
+export function aliasesIn(properties: Properties): unknown[] {
   const aliases = properties.aliases;
   if (typeof aliases === "string") return [aliases];
   if (!Array.isArray(aliases)) return [];
@@ -21,19 +21,14 @@ export function aliasesWith(properties: Record<string, unknown>, alias: string):
   return [...aliases, alias];
 }
 
-function propertiesOf(cache: CachedMetadata): Record<string, unknown> {
-  if (cache.frontmatter === undefined) return {};
-  return cache.frontmatter;
+function holdsAlias(properties: Properties, alias: string): boolean {
+  return aliasesIn(properties).includes(alias);
 }
 
-function holdsAlias(cache: CachedMetadata, alias: string): boolean {
-  return aliasesIn(propertiesOf(cache)).includes(alias);
-}
-
-function differs(cache: CachedMetadata, wanted: WantedProperties): boolean {
-  if (propertiesOf(cache).holder !== wanted.holder) return true;
-  if (wanted.lines !== null && !sameLines(linesIn(cache), wanted.lines)) return true;
-  return wanted.alias !== null && !holdsAlias(cache, wanted.alias);
+function differs(properties: Properties, wanted: WantedProperties): boolean {
+  if (properties.holder !== wanted.holder) return true;
+  if (wanted.lines !== null && !sameLines(linesIn(properties), wanted.lines)) return true;
+  return wanted.alias !== null && !holdsAlias(properties, wanted.alias);
 }
 
 export function changeFor(wanted: WantedProperties): ChangeProperties {
@@ -44,7 +39,7 @@ export function changeFor(wanted: WantedProperties): ChangeProperties {
   };
 }
 
-export function itemNoteChange(cache: CachedMetadata, wanted: WantedProperties): ChangeProperties | null {
-  if (!differs(cache, wanted)) return null;
+export function itemNoteChange(properties: Properties, wanted: WantedProperties): ChangeProperties | null {
+  if (!differs(properties, wanted)) return null;
   return changeFor(wanted);
 }

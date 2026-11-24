@@ -5,7 +5,7 @@ import { fileAt } from "../fake-notes";
 import { CAMPAIGN, SESSION } from "../keeper-setup";
 
 function wantsFor(campaign: FakeCampaign) {
-  return new SessionWants(campaign, { getFileByPath: (path: string) => fileAt(path) });
+  return new SessionWants(campaign, { note: (path: string) => fileAt(path) });
 }
 
 describe("SessionWants", () => {

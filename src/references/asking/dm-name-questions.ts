@@ -19,9 +19,9 @@ export interface DmNameQuestionsStore {
   readonly sessionNotes: SessionNote[];
 }
 
-export interface DmNameQuestionsNeeds extends Omit<ReferenceNoteMakerNeeds, "failed" | "files"> {
+export interface DmNameQuestionsNeeds extends Omit<ReferenceNoteMakerNeeds, "failed"> {
   store: DmNameQuestionsStore;
-  files: ReferenceNoteMakerNeeds["files"] & TakenNamesNeeds["files"] & Pick<FencedFiles, "getFileByPath">;
+  files: TakenNamesNeeds["files"] & Pick<FencedFiles, "getFileByPath">;
   metadata: TakenNamesNeeds["metadata"] & Pick<FencedMetadata, "on" | "offref" | "getFirstLinkpathDest">;
   campaignFolders(): string[];
   say(message: string): void;

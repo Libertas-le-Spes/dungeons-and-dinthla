@@ -187,6 +187,19 @@ export const WIDENING_SAMPLES = [
   'import type { FencedFiles } from "../../../../src/fence/gate/fenced-files";\nexport const parts = (files: Pick<FencedFiles, "getFileByPath">) => Object.values(files);',
 ];
 
+const NOTE_REF = 'import type { NoteRef } from "../../../../src/host/notes/note-ref";\n';
+
+export const HANDLE_SAMPLES = [
+  `import type { TFile } from "obsidian";\n${NOTE_REF}export const handle = (file: TFile): NoteRef => file;`,
+  `import type { TFile } from "obsidian";\n${NOTE_REF}export const handle = (file: TFile | null): NoteRef | null => file;`,
+  `import type { TFile } from "obsidian";\n${NOTE_REF}export const hand = (file: TFile, heard: (note: NoteRef) => void) => heard(file);`,
+];
+
+export const HANDLE_LOOK_ALIKE_SAMPLES = [
+  'import type { TFile } from "obsidian";\ninterface NoteRef {\n  readonly path: string;\n}\nexport const handle = (file: TFile): NoteRef => file;',
+  `import type { App } from "obsidian";\n${NOTE_REF}export const handle = (app: App): NoteRef & { readonly scope: unknown } => app;`,
+];
+
 export const KEY_SAMPLES = [
   "export function make(name: string, code: string): unknown {\n  const arrow = () => 0;\n  const key = name as keyof typeof arrow;\n  const maker = arrow[key] as FunctionConstructor;\n  return maker(code)();\n}",
   'export function make(first: string, second: string, code: string): unknown {\n  const text = "";\n  const outer = text[first as "constructor"];\n  const maker = outer[second as "constructor"] as FunctionConstructor;\n  return maker(code)();\n}',

@@ -47,7 +47,7 @@ export class InMemoryNotes implements HostNotes, NoteStore, NoteKeeping, NoteCha
   private readonly gone = new Listeners<[string]>();
   private readonly moved = new Listeners<[NoteRef, string]>();
   private readonly read_ = new Listeners<[NoteRef]>();
-  private readonly settled = new Listeners<[]>();
+  private readonly settled = new Listeners<[NoteRef]>();
   forGood = false;
 
   put(path: string, text: string): NoteRef {
@@ -177,13 +177,14 @@ export class InMemoryNotes implements HostNotes, NoteStore, NoteKeeping, NoteCha
     return this.read_.add(heard);
   }
 
-  onLinksSettled(heard: Heard<[]>): Stop {
+  onLinksSettled(heard: Heard<[NoteRef]>): Stop {
     return this.settled.add(heard);
   }
 
   propertiesOf(note: NoteRef): Properties | null {
+    if (!this.texts.has(note.path)) return null;
     const properties = this.properties.get(note.path);
-    if (properties === undefined) return null;
+    if (properties === undefined) return {};
     return properties;
   }
 

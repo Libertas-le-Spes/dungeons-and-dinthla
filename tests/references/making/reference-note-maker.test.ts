@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 import { ReferenceNoteMaker } from "../../../src/references/making/reference-note-maker";
 import type { PlannedReferenceNote } from "../../../src/references/making/reference-note-plan";
 import { FakeNotes } from "../../kind-notes/fake-notes";
@@ -16,7 +17,7 @@ const PLANNED: PlannedReferenceNote = {
 
 function makerWith(notes: FakeNotes) {
   const failed = vi.fn();
-  const maker = new ReferenceNoteMaker({ files: notes.files, actions: notes.actions, failed });
+  const maker = new ReferenceNoteMaker({ notes: notes.host(), syntax: STUB_SYNTAX, failed });
   return { maker, failed };
 }
 

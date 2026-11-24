@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import type { SavedCampaign } from "../../../src/campaign/reading/saved-campaign";
-import type { Gate } from "../../../src/fence/gate/gatekeeper";
 import { NoteReporter } from "../../../src/fence/gate/written-notes";
 import { startKindNotes } from "../../../src/kind-notes/watching/kind-notes-wiring";
 import type { NotesMade } from "../../../src/settings/saved/notes-made";
+import { notesOverFakes } from "../../host/notes-over-fakes";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 import { firstOf } from "../../stubs/lists";
 import { FakeCampaign } from "../fake-campaign";
 import { FakeNotes } from "../fake-notes";
@@ -20,9 +21,9 @@ function startWith(notes: FakeNotes, campaign: FakeCampaign, alreadyMade: string
   const made = { hasMadeFor: (folder: string) => alreadyMade.includes(folder), markMadeFor: vi.fn(async (folder: string) => void marked.push(folder)) };
   const items = { sessionSaved: vi.fn(), makeMissing: vi.fn(async () => ({ made: 0, failed: 0 })) };
   const references = { sessionSaved: vi.fn(), sessionGone: vi.fn() };
-  const gate = { files: notes.files, metadata: notes.metadata, fileActions: notes.actions } as unknown as Gate;
   const stop = startKindNotes({
-    gate,
+    notes: notesOverFakes({ files: notes.files, metadata: notes.metadata, actions: notes.actions }),
+    syntax: STUB_SYNTAX,
     written: written.notes,
     saved: campaign as unknown as SavedCampaign,
     made: made as unknown as NotesMade,
