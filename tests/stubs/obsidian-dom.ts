@@ -131,5 +131,8 @@ export function obsidianDocument(): Document {
     if (show) this.show();
     else this.hide();
   };
+  prototype.isShown = function (this: HTMLElement) {
+    return isShown(this);
+  };
   return window.document as unknown as Document;
 }
