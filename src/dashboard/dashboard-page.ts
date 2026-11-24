@@ -25,7 +25,7 @@ import { SHOWN_THREAD_KINDS } from "../views/threads/shown-thread-kinds";
 import { listThreads } from "../views/threads/thread-list";
 import type { ThreadOpeners } from "../views/threads/thread-openers";
 import { addThreadRow } from "../views/threads/thread-row";
-import { linesWrittenIn, type WrittenLineRows } from "./latest-session";
+import { everyLineOf, kindsWrittenIn, latestOfEachKind, type WrittenLineRows } from "./latest-session";
 import { addItemEventRow } from "./item-event-row";
 import { addShortCharacterCard } from "./short-character-card";
 import { PendingWork } from "../views/pending/pending-work";
@@ -252,9 +252,10 @@ export class DashboardPage extends Component {
       return;
     }
     this.session.title.setText(this.actions.sessionHeadingOf(latest));
-    const lines = linesWrittenIn(latest, campaign, funds.ledger);
+    const kinds = kindsWrittenIn(latest, campaign, funds.ledger);
+    const lines = everyLineOf(kinds);
     this.showCount(this.sessionCount, lines.length, countWord(lines.length, "line", "lines"), "Nothing written yet");
-    for (const line of lines) line.addTo(this.sessionRows);
+    for (const line of latestOfEachKind(kinds)) line.addTo(this.sessionRows);
   }
 
   private writeInLatest(): void {
