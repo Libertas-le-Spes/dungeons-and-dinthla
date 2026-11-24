@@ -18,7 +18,7 @@ function openEntryAt(line: number) {
   const openNote = vi.fn();
   const onClosed = vi.fn();
   const before = openedModals.length;
-  openCoinEntry({} as App, { files: {} } as unknown as Gate, store, { path: ONE, line }, openNote, onClosed);
+  openCoinEntry({} as App, { files: {}, notes: { store: {} } } as unknown as Gate, store, { path: ONE, line }, openNote, onClosed);
   const opened = openedModals.slice(before);
   const buttons = opened.flatMap((dialog) => Array.from(dialog.contentEl.querySelectorAll("button")));
   const button = (text: string) => buttons.find((candidate) => candidate.textContent === text)!;

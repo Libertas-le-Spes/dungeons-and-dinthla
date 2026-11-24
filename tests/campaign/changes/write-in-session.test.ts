@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { TFile } from "obsidian";
+import { fileAt } from "../../stubs/note-files";
 import type { RecordChange } from "../../../src/campaign/changes/record-change";
 import { OpenedSession } from "../../../src/campaign/paths/session-gone";
 import { writeInSession } from "../../../src/campaign/changes/write-in-session";
@@ -11,9 +11,9 @@ function change(): RecordChange<string> {
 }
 
 function setUp(sessionHeld: boolean) {
-  const held = { path: SEVEN } as TFile;
+  const held = fileAt(SEVEN);
   const files = {
-    getFileByPath: (path: string) => {
+    note: (path: string) => {
       if (sessionHeld) return held;
       return null;
     },

@@ -41,7 +41,7 @@ describe("SessionRenamer", () => {
   it("renames nothing and succeeds when there is nothing to rename", async () => {
     const files = filesWith([1, 2]);
     expect(await new SessionRenamer(files).rename([])).toEqual({ renamed: [], notRenamed: [], failure: null });
-    expect(files.rename).not.toHaveBeenCalled();
+    expect(files.move).not.toHaveBeenCalled();
   });
 
   it("stops at a rename that fails, saying which were renamed and which weren't", async () => {
@@ -55,7 +55,7 @@ describe("SessionRenamer", () => {
   it("stops at a session whose note is gone, without renaming the ones after it", async () => {
     const files = filesWith([1, 5, 6]);
     const outcome = await new SessionRenamer(files).rename([rename(4, 2), rename(5, 3), rename(6, 4)]);
-    expect(files.rename).not.toHaveBeenCalled();
+    expect(files.move).not.toHaveBeenCalled();
     expect(outcome).toEqual({ renamed: [], notRenamed: [rename(4, 2), rename(5, 3), rename(6, 4)], failure: renameSourceGoneWords(session(4)) });
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { TFile } from "obsidian";
+import { fileAt } from "../../stubs/note-files";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { Campaign, QuestRecord, SessionNote } from "../../../src/campaign/record/campaign";
 import { WOULD_BE_HIDDEN, type EditorFiles } from "../../../src/campaign/writing/note-editor";
@@ -35,11 +35,11 @@ class FakeNotes {
 
   get vault(): EditorFiles {
     return {
-      getFileByPath: (path) => {
+      note: (path) => {
         if (!this.texts.has(path)) return null;
-        return { path } as TFile;
+        return fileAt(path);
       },
-      process: async (file, change) => {
+      change: async (file, change) => {
         if (file.path === this.failOn) throw new Error("disk full");
         this.writes += 1;
         const next = change(this.textOf(file.path));

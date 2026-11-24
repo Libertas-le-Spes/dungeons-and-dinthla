@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { TFile, TFolder } from "obsidian";
+import type { NoteRef } from "../../../src/host/notes/note-ref";
+import { STUB_SPELLING } from "../../host/stub-spelling";
 import { CHANGED_IN_NOTE, PartlyWritten } from "../../../src/campaign/writing/note-editor";
 import { readsBackDifferently, type CharacterEntry } from "../../../src/characters/editing/character-entry";
 import { BAD_NAME, LONG_NAME, RESERVED_NAME } from "../../../src/names/file-name";
@@ -15,9 +16,9 @@ import {
 
 const FOLDER = "Pale Moon/Characters";
 
-function fileAt(path: string): TFile {
+function fileAt(path: string): NoteRef {
   const name = path.slice(path.lastIndexOf("/") + 1).replace(/\.md$/, "");
-  return { path, basename: name } as TFile;
+  return { path, basename: name };
 }
 
 interface VaultSetup {
@@ -33,36 +34,33 @@ function vaultWith({ notes = {}, folders = [FOLDER], renameFails = false }: Vaul
   const renamed: { from: string; to: string }[] = [];
   const trashed: string[] = [];
   const processed: string[] = [];
-  const vault: CharacterFiles = {
-    getFiles: () => [...texts.keys()].map(fileAt),
-    getFolderByPath: (path) => {
-      if (!folderPaths.has(path)) return null;
-      return { path } as TFolder;
-    },
-    createFolder: async (path) => {
+  const store: CharacterFiles["store"] = {
+    files: () => [...texts.keys()].map(fileAt),
+    hasFolder: (path) => folderPaths.has(path),
+    makeFolder: async (path) => {
       if (folderPaths.has(path)) throw new Error("Folder already exists.");
       folderPaths.add(path);
-      return { path } as TFolder;
     },
-    create: async (path, text) => {
+    make: async (path, text) => {
       if (texts.has(path)) throw new Error("File already exists.");
       texts.set(path, text);
       created.push({ path, text });
       return fileAt(path);
     },
-    process: async (file, change) => {
+    change: async (file, change) => {
       processed.push(file.path);
       const text = change(texts.get(file.path)!);
       texts.set(file.path, text);
       return text;
     },
   };
+  const vault: CharacterFiles = { store, spelling: STUB_SPELLING };
   const fileManager: CharacterFileActions = {
-    renameFile: async (file, to) => {
+    moveWithLinks: async (file, to) => {
       if (renameFails) throw new Error("the disk is full");
       renamed.push({ from: file.path, to });
     },
-    trashFile: async (file) => {
+    throwAway: async (file) => {
       trashed.push(file.path);
     },
   };

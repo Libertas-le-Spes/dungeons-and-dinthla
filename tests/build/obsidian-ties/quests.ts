@@ -7,5 +7,4 @@ export const TIES: readonly string[] = [
   "quests/writing/new-quest-change.ts",
   "quests/writing/quest-change.ts",
   "quests/writing/quest-plan.ts",
-  "quests/writing/quest-writer.ts",
 ];

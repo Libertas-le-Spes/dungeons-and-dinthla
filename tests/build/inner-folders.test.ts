@@ -28,7 +28,7 @@ interface InnerFolder {
 const INNER_FOLDERS: InnerFolder[] = [
   { folder: "names", reaches: ["names", "host"] },
   { folder: "fence/paths", reaches: ["fence/paths", "names", "host"] },
-  { folder: "fence/gate", reaches: ["fence/gate", "fence/paths", "names", "host", "obsidian"] },
+  { folder: "fence/gate", reaches: ["fence/gate", "fence/notes", "fence/paths", "names", "host", "obsidian"] },
   { folder: "fence/notes", reaches: ["fence/notes", "fence/paths", "host", "names"] },
   { folder: "host", reaches: ["host"] },
   { folder: "beyond", reaches: ["beyond", "names", "pdf", "imports/layout"] },

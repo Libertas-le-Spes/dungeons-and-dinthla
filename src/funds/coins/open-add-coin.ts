@@ -24,8 +24,8 @@ export function openAddCoin(app: App, gate: Gate, store: CampaignStore, onClosed
   const wanted = { activePath, earliestSession: 0, noSession: NO_SESSION };
   const sessionPath = sessionForDialog(gate.files, folder, wanted);
   if (sessionPath === null) return;
-  const writer = new SessionChangeWriter(gate.files);
-  const opened = new OpenedSession(gate.files, sessionPath);
+  const writer = new SessionChangeWriter(gate.notes.store);
+  const opened = new OpenedSession(gate.notes.store, sessionPath);
   const add = (written: CoinLine) => writeInSession(opened, () => newCoin(store, written, sessionPath), writer);
   new CoinModal(app, sessionLabelOf(sessionPath), add, null, null, onClosed).open();
 }
@@ -36,6 +36,6 @@ export function openCoinEntry(app: App, gate: Gate, store: CampaignStore, source
     openNote();
     return;
   }
-  const edit = coinEntryEdit(gate.files, store, record);
+  const edit = coinEntryEdit(gate.notes.store, store, record);
   new CoinModal(app, sessionLabelOf(record.source.path), edit.save, edit, openNote, onClosed).open();
 }

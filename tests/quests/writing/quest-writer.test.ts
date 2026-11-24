@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { TFile } from "obsidian";
+import { fileAt } from "../../stubs/note-files";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import { CHANGED_IN_NOTE, LINES_LEFT, WOULD_BE_HIDDEN, type EditorFiles } from "../../../src/campaign/writing/note-editor";
 import { linesAddedTo } from "../../../src/campaign/changes/session-change";
@@ -19,11 +19,11 @@ class FakeNotes {
 
   get vault(): EditorFiles {
     return {
-      getFileByPath: (path) => {
+      note: (path) => {
         if (!this.texts.has(path)) return null;
-        return { path } as TFile;
+        return fileAt(path);
       },
-      process: async (file, change) => {
+      change: async (file, change) => {
         this.writes += 1;
         const next = change(this.texts.get(file.path)!);
         this.texts.set(file.path, next);

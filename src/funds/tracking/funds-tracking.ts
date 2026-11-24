@@ -86,7 +86,7 @@ export class FundsTracking implements ItemTracking {
       return;
     }
     const tracked = trackedItemOf({ holderText: holder, written: text, holderName: file.basename, count: trackedCountOf(item.count) });
-    const saving = new TrackingSave(this.gate.files, this.store, tracked, sessionPath);
+    const saving = new TrackingSave(this.gate.notes.store, this.store, tracked, sessionPath);
     const shown = { name: withoutEscapes(text), holder: file.basename, writesTo: sessionLabelOf(sessionPath), line: tracked.line };
     new TrackItemModal(this.app, shown, saving, returnFocus).open();
   }

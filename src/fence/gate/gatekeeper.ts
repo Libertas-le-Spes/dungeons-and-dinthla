@@ -1,4 +1,7 @@
+import { ObsidianNotes } from "../../obsidian/notes/obsidian-notes";
 import { OBSIDIAN_SPELLING } from "../../obsidian/notes/obsidian-spelling";
+import { GATE_REPORTS_WRITES } from "../../obsidian/notes/quiet-report";
+import { FencedNotes } from "../notes/fenced-notes";
 import type { App } from "obsidian";
 import { Fence, type ReadCampaignsFolder } from "../paths/fence";
 import { FencedFileActions } from "./fenced-file-actions";
@@ -18,6 +21,7 @@ export class Gatekeeper {
   readonly folders: FolderChoices;
   readonly written: WrittenNotes;
   readonly configDir: string;
+  readonly notes: FencedNotes;
 
   constructor(app: App, readCampaignsFolder: ReadCampaignsFolder) {
     this.configDir = app.vault.configDir;
@@ -30,7 +34,8 @@ export class Gatekeeper {
     this.metadata = new FencedMetadata(app.metadataCache, held);
     this.vaultSettings = new VaultSettings(configReaderOf(app));
     this.folders = new FolderChoices(app.vault);
+    this.notes = new FencedNotes(new ObsidianNotes(this), this.fence, GATE_REPORTS_WRITES);
   }
 }
 
-export type Gate = Pick<Gatekeeper, "files" | "fileActions" | "metadata">;
+export type Gate = Pick<Gatekeeper, "files" | "fileActions" | "metadata" | "notes">;

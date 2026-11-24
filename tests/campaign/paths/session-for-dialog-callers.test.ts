@@ -36,7 +36,8 @@ function gateWith(paths: string[]): Gate {
     if (found === undefined) return null;
     return found;
   };
-  return { files: { getFiles: () => files, getMarkdownFiles: () => files, getFileByPath: fileAt } } as unknown as Gate;
+  const store = { files: () => files, notes: () => files, note: fileAt };
+  return { files: { getFiles: () => files, getMarkdownFiles: () => files, getFileByPath: fileAt }, notes: { store } } as unknown as Gate;
 }
 
 type Open = (gate: Gate, store: CampaignStore, openNote: () => void, activePath: string | null) => void;

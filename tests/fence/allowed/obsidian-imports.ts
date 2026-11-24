@@ -2,7 +2,7 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "campaign/writing/new-campaign-modal.ts": ["App", "Modal", "Setting"],
   "interface/view/campaign-switcher.ts": ["Component", "Menu", "Notice", "setIcon"],
   "campaign/": ["CachedMetadata", "MarkdownFileInfo", "Notice", "Platform", "TFile", "getFrontMatterInfo"],
-  "characters/": ["App", "ButtonComponent", "Component", "Debouncer", "Menu", "Notice", "Setting", "TAbstractFile", "TFile", "debounce", "normalizePath"],
+  "characters/": ["App", "ButtonComponent", "Component", "Debouncer", "Menu", "Notice", "Setting", "TAbstractFile", "debounce"],
   "dashboard/": ["Component"],
   "editor/": ["editorInfoField"],
   "fence/": ["App", "CachedMetadata", "Component", "EventRef", "Events", "FileManager", "MetadataCache", "TAbstractFile", "TFile", "TFolder", "Vault"],
@@ -22,7 +22,7 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "session-notes/": ["Component", "EventRef", "TFile", "getFrontMatterInfo"],
   "sessions/": ["App", "Modal", "Notice", "Setting", "TFile"],
   "settings/": ["App", "ButtonComponent", "DropdownComponent", "FuzzySuggestModal", "Notice", "Plugin", "PluginSettingTab", "Setting", "TFile"],
-  "views/": ["App", "ButtonComponent", "Component", "Keymap", "Modal", "Notice", "PaneType", "TFile", "parseLinktext"],
+  "views/": ["App", "ButtonComponent", "Component", "Keymap", "Modal", "Notice", "PaneType", "parseLinktext"],
   "welcome/": ["App", "Component", "Notice", "PluginManifest"],
   "whats-new/": ["Component", "Notice"],
 };

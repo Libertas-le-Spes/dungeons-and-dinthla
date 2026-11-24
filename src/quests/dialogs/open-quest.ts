@@ -39,9 +39,9 @@ export function openQuest(
   const wanted = { activePath, earliestSession: latestSessionOfQuest(record, folder), noSession: NO_SESSION };
   const sessionPath = sessionForDialog(gate.files, folder, wanted);
   if (sessionPath === null) return;
-  const questWriter = new QuestWriter(gate.files);
-  const writer = new SessionChangeWriter(gate.files);
-  const opened = new OpenedSession(gate.files, sessionPath);
+  const questWriter = new QuestWriter(gate.notes.store);
+  const writer = new SessionChangeWriter(gate.notes.store);
+  const opened = new OpenedSession(gate.notes.store, sessionPath);
   const latest = () => currentQuest(store.current.quests, record);
   const choices = {
     save: async (edit: QuestEdit) => writeInSession(opened, () => questSave(store, latest(), edit, sessionPath), writer),

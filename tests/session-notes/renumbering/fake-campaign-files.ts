@@ -1,11 +1,17 @@
 import { vi } from "vitest";
-import type { TFile } from "obsidian";
+import { noteNameOf } from "../../../src/campaign/paths/note-name";
+import type { NoteRef } from "../../../src/host/notes/note-ref";
+
+interface MovableNote {
+  path: string;
+  basename: string;
+}
 
 export class FakeCampaignFiles {
   readonly texts = new Map<string, string>();
   readonly renames: [string, string][] = [];
   readonly written: string[] = [];
-  private readonly filesByPath = new Map<string, TFile>();
+  private readonly filesByPath = new Map<string, MovableNote>();
   private readonly renameFailures = new Map<string, string>();
   private readonly changeFailures = new Map<string, string>();
   private readonly readFailures = new Map<string, string>();
@@ -14,23 +20,23 @@ export class FakeCampaignFiles {
     for (const [path, text] of Object.entries(notes)) this.add(path, text);
   }
 
-  readonly getFiles = vi.fn((): TFile[] => [...this.filesByPath.values()]);
+  readonly files = vi.fn((): NoteRef[] => [...this.filesByPath.values()]);
 
-  readonly getMarkdownFiles = vi.fn((): TFile[] => this.getFiles().filter((file) => file.path.endsWith(".md")));
+  readonly notes = vi.fn((): NoteRef[] => this.files().filter((file) => file.path.endsWith(".md")));
 
-  readonly getFileByPath = vi.fn((path: string): TFile | null => {
+  readonly note = vi.fn((path: string): NoteRef | null => {
     const file = this.filesByPath.get(path);
     if (file === undefined) return null;
     return file;
   });
 
-  readonly read = vi.fn(async (file: TFile): Promise<string> => {
+  readonly read = vi.fn(async (file: NoteRef): Promise<string> => {
     const failure = this.readFailures.get(file.path);
     if (failure !== undefined) throw new Error(failure);
     return this.textOf(file.path);
   });
 
-  readonly process = vi.fn(async (file: TFile, change: (text: string) => string): Promise<string> => {
+  readonly change = vi.fn(async (file: NoteRef, change: (text: string) => string): Promise<string> => {
     const failure = this.changeFailures.get(file.path);
     if (failure !== undefined) throw new Error(failure);
     const next = change(this.textOf(file.path));
@@ -39,14 +45,17 @@ export class FakeCampaignFiles {
     return next;
   });
 
-  readonly rename = vi.fn(async (file: TFile, newPath: string): Promise<void> => {
-    const failure = this.renameFailures.get(file.path);
+  readonly move = vi.fn(async (note: NoteRef, newPath: string): Promise<void> => {
+    const failure = this.renameFailures.get(note.path);
     if (failure !== undefined) throw new Error(failure);
+    const file = this.filesByPath.get(note.path);
+    if (file === undefined) throw new Error(`${note.path} is gone`);
     const text = this.textOf(file.path);
     this.filesByPath.delete(file.path);
     this.texts.delete(file.path);
     this.renames.push([file.path, newPath]);
     file.path = newPath;
+    file.basename = noteNameOf(newPath);
     this.filesByPath.set(newPath, file);
     this.texts.set(newPath, text);
   });
@@ -77,7 +86,7 @@ export class FakeCampaignFiles {
   }
 
   private add(path: string, text: string): void {
-    this.filesByPath.set(path, { path } as TFile);
+    this.filesByPath.set(path, { path, basename: noteNameOf(path) });
     this.texts.set(path, text);
   }
 

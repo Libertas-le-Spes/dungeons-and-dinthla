@@ -1,4 +1,4 @@
-import { Notice, type App, type TFile } from "obsidian";
+import { Notice, type App } from "obsidian";
 import type { Source } from "../../campaign/record/campaign";
 import { CHANGED_IN_NOTE } from "../../campaign/writing/note-editor";
 import { OpenedSession } from "../../campaign/paths/session-gone";
@@ -37,17 +37,11 @@ function sessionPathIn(read: ReadSheet): string {
 
 export type SheetSession = OpenedSession | NoSessionNamed;
 
-export const NOT_HELD = "the note isn't one the plugin may use.";
 
-function vaultFileOf(gate: Gate, note: NoteRef): TFile {
-  const file = gate.files.getFileByPath(note.path);
-  if (file === null || file !== note) throw new Error(`Couldn't use ${note.path}: ${NOT_HELD}`);
-  return file;
-}
 
 function openedSessionIn(gate: Gate, read: ReadSheet): SheetSession {
   try {
-    return new OpenedSession(gate.files, sessionPathIn(read));
+    return new OpenedSession(gate.notes.store, sessionPathIn(read));
   } catch (error) {
     if (!(error instanceof NoSessionToWrite)) throw error;
     return new NoSessionNamed(error.message);
@@ -69,16 +63,15 @@ export async function saveSheetValue(
   choice: ValueChoice,
   openedSession: SheetSession,
 ): Promise<boolean> {
-  const vaultFile = vaultFileOf(gate, file);
   const read = await readCharacterSheet(file, store, notes);
   const current = valueIn(read, opened.name);
   if (current === undefined || !sameSheetValue(current, opened)) throw new Error(CHANGED_IN_NOTE);
   return writeSheetValue(
     {
-      files: gate.files,
-      file: vaultFile,
+      files: gate.notes.store,
+      file,
       sessionPath: () => sessionPathToSave(openedSession),
-      linktextFrom: (sessionPath) => gate.metadata.fileToLinktext(vaultFile, sessionPath, true),
+      linktextFrom: (sessionPath) => gate.notes.links.linkTextTo(file, sessionPath, true),
       pathOfLink: (linktext, sourcePath) => notes.pathOfLink(linktext, sourcePath),
     },
     sheetWriteOf(current, choice),

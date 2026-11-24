@@ -8,13 +8,14 @@ import { carriedValuesOf, characterSheetOf, type SheetValue } from "../../../src
 import { noteNameOf } from "../../../src/campaign/paths/note-name";
 import { NoSessionNamed } from "../../../src/characters/editing/no-session-named";
 import { OpenedSession } from "../../../src/campaign/paths/session-gone";
-import { chooseSheetValue, NO_SESSION, NOT_HELD, sameSheetValue, saveSheetValue } from "../../../src/characters/editing/open-character-sheet";
+import { chooseSheetValue, NO_SESSION, sameSheetValue, saveSheetValue } from "../../../src/characters/editing/open-character-sheet";
 import { readCharacterSheet } from "../../../src/characters/reading/read-character-sheet";
 import type { SheetNotes } from "../../../src/characters/reading/sheet-notes";
 import type { SheetValueDialog } from "../../../src/characters/editing/sheet-value-modal";
 import type { SourcedFact } from "../../../src/characters/reading/sheet-values";
 import { Notice, openedModals } from "../../stubs/obsidian";
 import type { Gate } from "../../../src/fence/gate/gatekeeper";
+import type { NoteRef } from "../../../src/host/notes/note-ref";
 
 const NONE_NAMED = new NoSessionNamed(NO_SESSION);
 const MIRA = { path: "Pale Moon/Characters/Mira.md", basename: "Mira" } as TFile;
@@ -35,24 +36,26 @@ function setUp(texts: Record<string, string>, { readFails = false, folders = ["P
     },
   } as unknown as App;
   const gate = {
-    files: {
-      getFileByPath: (path: string) => {
-        if (!notesText.has(path)) return null;
-        const known = madeFiles.get(path);
-        if (known !== undefined) return known;
-        const made = { path, basename: noteNameOf(path) } as TFile;
-        madeFiles.set(path, made);
-        return made;
+    notes: {
+      store: {
+        note: (path: string) => {
+          if (!notesText.has(path)) return null;
+          const known = madeFiles.get(path);
+          if (known !== undefined) return known;
+          const made = { path, basename: noteNameOf(path) } as TFile;
+          madeFiles.set(path, made);
+          return made;
+        },
+        read: async (file: NoteRef) => notesText.get(file.path)!,
+        change: async (file: NoteRef, change: (text: string) => string) => {
+          const text = change(notesText.get(file.path)!);
+          notesText.set(file.path, text);
+          return text;
+        },
       },
-      read: async (file: TFile) => notesText.get(file.path)!,
-      process: async (file: TFile, change: (text: string) => string) => {
-        const text = change(notesText.get(file.path)!);
-        notesText.set(file.path, text);
-        return text;
+      links: {
+        linkTextTo: () => "Mira",
       },
-    },
-    metadata: {
-      fileToLinktext: () => "Mira",
     },
   } as unknown as Gate;
   const sessionNotes = (): SessionNote[] =>
@@ -123,14 +126,14 @@ describe("sameSheetValue", () => {
 describe("saveSheetValue", () => {
   it("adds a learned value to the session named, linked to the character", async () => {
     const { app, gate, store, notes, notesText } = setUp({ [MIRA.path]: "", [ONE]: "[[Mira]] AC: 15", [TWO]: "Notes\n" });
-    expect(await saveSheetValue(app, gate, store, notes, MIRA, acOf([LEARNED_15]), { state: "learned", value: "16" }, new OpenedSession(gate.files, TWO))).toBe(true);
+    expect(await saveSheetValue(app, gate, store, notes, MIRA, acOf([LEARNED_15]), { state: "learned", value: "16" }, new OpenedSession(gate.notes.store, TWO))).toBe(true);
     expect(notesText.get(TWO)).toBe("Notes\n[[Mira]] AC: 16\n");
   });
 
   it("marks a value not known in the session named, so a value learned later still shows", async () => {
     const { app, gate, store, notes, notesText } = setUp({ [MIRA.path]: "AC: 16", [ONE]: "[[Mira]] AC: 15", [TWO]: "" });
     const opened = acOf([LEARNED_15], [{ name: "AC", value: "16", source: { path: MIRA.path, line: 0 } }]);
-    expect(await saveSheetValue(app, gate, store, notes, MIRA, opened, { state: "unknown", value: "" }, new OpenedSession(gate.files, TWO))).toBe(true);
+    expect(await saveSheetValue(app, gate, store, notes, MIRA, opened, { state: "unknown", value: "" }, new OpenedSession(gate.notes.store, TWO))).toBe(true);
     expect(notesText.get(TWO)).toBe("[[Mira]] AC: ?\n");
     expect(notesText.get(MIRA.path)).toBe("");
     let read = await readCharacterSheet(MIRA, store, notes);
@@ -145,13 +148,6 @@ describe("saveSheetValue", () => {
     const { app, gate, store, notes, notesText } = setUp({ [MIRA.path]: "AC: 18", [ONE]: "[[Mira]] AC: 15" });
     await expect(saveSheetValue(app, gate, store, notes, MIRA, acOf([LEARNED_15]), { state: "override", value: "16" }, NONE_NAMED)).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notesText.get(MIRA.path)).toBe("AC: 18");
-  });
-
-  it("writes nothing for a stand-in for the character's note, though it shares the note's path", async () => {
-    const { app, gate, store, notes, notesText } = setUp({ [MIRA.path]: "AC: 15", [ONE]: "" });
-    const standIn = { path: MIRA.path, basename: MIRA.basename } as TFile;
-    await expect(saveSheetValue(app, gate, store, notes, standIn, acOf([]), { state: "override", value: "16" }, NONE_NAMED)).rejects.toThrow(NOT_HELD);
-    expect(notesText.get(MIRA.path)).toBe("AC: 15");
   });
 
   it("refuses a learned value for a character outside any campaign", async () => {
@@ -189,7 +185,7 @@ describe("saveSheetValue", () => {
 describe("saveSheetValue, with the session the dialog named", () => {
   it("writes in the session the dialog named, not the latest", async () => {
     const { app, gate, store, notes, notesText } = setUp({ [MIRA.path]: "", [ONE]: "Notes\n", [TWO]: "Later\n" });
-    expect(await saveSheetValue(app, gate, store, notes, MIRA, acOf([]), { state: "learned", value: "16" }, new OpenedSession(gate.files, ONE))).toBe(true);
+    expect(await saveSheetValue(app, gate, store, notes, MIRA, acOf([]), { state: "learned", value: "16" }, new OpenedSession(gate.notes.store, ONE))).toBe(true);
     expect(notesText.get(ONE)).toBe("Notes\n[[Mira]] AC: 16\n");
     expect(notesText.get(TWO)).toBe("Later\n");
   });
@@ -200,7 +196,7 @@ describe("saveSheetValue, with the session the dialog named", () => {
   ] as const)("refuses %s with the session gone words when the session's note is gone, writing nothing and not using another session", async (_name, choice) => {
     const { app, gate, store, notes, notesText } = setUp({ [MIRA.path]: "AC: 16", [ONE]: "[[Mira]] AC: 15\n", [TWO]: "Later\n" });
     const opened = acOf([LEARNED_15], [{ name: "AC", value: "16", source: { path: MIRA.path, line: 0 } }]);
-    const named = new OpenedSession(gate.files, TWO);
+    const named = new OpenedSession(gate.notes.store, TWO);
     notesText.delete(TWO);
     await expect(saveSheetValue(app, gate, store, notes, MIRA, opened, choice, named)).rejects.toThrow("Session 2 was moved or deleted, so nothing was written.");
     expect([notesText.get(MIRA.path), notesText.get(ONE)]).toEqual(["AC: 16", "[[Mira]] AC: 15\n"]);
@@ -214,7 +210,7 @@ describe("saveSheetValue, when another note has taken the named session's path",
   ] as const)("refuses %s, writing into neither note, when the session was renumbered or made again", async (_name, choice) => {
     const { app, gate, store, notes, notesText, remake } = setUp({ [MIRA.path]: "AC: 16", [ONE]: "[[Mira]] AC: 15\n", [TWO]: "Two\n" });
     const opened = acOf([LEARNED_15], [{ name: "AC", value: "16", source: { path: MIRA.path, line: 0 } }]);
-    const named = new OpenedSession(gate.files, TWO);
+    const named = new OpenedSession(gate.notes.store, TWO);
     remake(TWO, "Another\n");
     await expect(saveSheetValue(app, gate, store, notes, MIRA, opened, choice, named)).rejects.toThrow("Session 2 was moved or deleted, so nothing was written.");
     expect([notesText.get(MIRA.path), notesText.get(ONE), notesText.get(TWO)]).toEqual(["AC: 16", "[[Mira]] AC: 15\n", "Another\n"]);

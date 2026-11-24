@@ -1,17 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../../src/host/notes/note-ref";
+import { fileAt as noteAt } from "../../stubs/note-files";
 import { OpenedSession, sessionGoneWords } from "../../../src/campaign/paths/session-gone";
 
 const SEVEN = "Pale Moon/Sessions/Session 7.md";
 
-function fileAt(path: string): TFile {
-  return { path } as TFile;
+function fileAt(path: string): NoteRef {
+  return noteAt(path);
 }
 
-function filesHolding(held: TFile[]) {
+function filesHolding(held: NoteRef[]) {
   return {
     held,
-    getFileByPath: vi.fn((path: string) => {
+    note: vi.fn((path: string) => {
       const found = held.find((file) => file.path === path);
       if (found === undefined) return null;
       return found;
