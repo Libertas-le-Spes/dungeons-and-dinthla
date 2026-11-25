@@ -1,4 +1,4 @@
-import { normalizePath } from "obsidian";
+import { normalizePath } from "../stubs/obsidian-text";
 import type { PathSpelling } from "../../src/host/rules/path-spelling";
 
 class StubSpelling implements PathSpelling {

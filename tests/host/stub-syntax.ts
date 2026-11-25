@@ -1,4 +1,5 @@
-import { getFrontMatterInfo, getLinkpath, parseYaml } from "obsidian";
+import { getFrontMatterInfo, getLinkpath } from "../stubs/obsidian-text";
+import { parseYaml } from "../stubs/parse-yaml";
 import type { NoteSyntax, PropertiesSpan } from "../../src/host/rules/note-syntax";
 
 class StubSyntax implements NoteSyntax {
