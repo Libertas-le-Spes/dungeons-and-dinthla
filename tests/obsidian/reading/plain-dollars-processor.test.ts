@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { MarkdownPostProcessorContext } from "obsidian";
-import { BEFORE_OBSIDIANS_MATHS, plainDollarsProcessor } from "../../src/reading/plain-dollars-processor";
-import { obsidianDocument } from "../stubs/obsidian-dom";
+import { BEFORE_OBSIDIANS_MATHS, plainDollarsProcessor } from "../../../src/obsidian/reading/plain-dollars-processor";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 const SESSION = "D&D/Pale Moon/Sessions/Session 1.md";
 const OUTSIDE = "Maths/Proofs.md";

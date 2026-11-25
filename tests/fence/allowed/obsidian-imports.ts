@@ -1,6 +1,5 @@
 export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "interface/view/campaign-switcher.ts": ["Component", "Menu", "Notice", "setIcon"],
-  "editor/": ["editorInfoField"],
   "fence/": ["App", "CachedMetadata", "Component", "EventRef", "Events", "FileManager", "MetadataCache", "TAbstractFile", "TFile", "TFolder", "Vault"],
   "interface/": ["App", "Component", "EventRef", "ItemView", "PluginManifest", "TAbstractFile", "TFile", "ViewState", "ViewStateResult", "Workspace", "WorkspaceLeaf"],
   "main.ts": ["MarkdownFileInfo", "MarkdownView", "Notice", "PaneType", "Plugin", "TFile", "ViewState", "WorkspaceLeaf", "debounce"],
@@ -15,6 +14,10 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "obsidian/notes/obsidian-syntax.ts": ["getFrontMatterInfo", "getLinkpath", "parseYaml"],
   "obsidian/online/obsidian-beyond-call.ts": ["requestUrl"],
   "obsidian/welcome/welcome-opener.ts": ["App"],
+  "obsidian/editor/marker-decorations.ts": ["editorInfoField"],
+  "obsidian/reading/note-background.ts": ["Debouncer", "debounce"],
+  "obsidian/reading/plain-dollars-processor.ts": ["MarkdownPostProcessorContext"],
+  "obsidian/reading/section-lines.ts": ["MarkdownPostProcessorContext", "MarkdownSectionInformation"],
   "obsidian/settings/folder-suggest-modal.ts": ["App", "FuzzySuggestModal"],
   "obsidian/settings/obsidian-campaign-looks.ts": ["TFile"],
   "obsidian/settings/picture-suggest-modal.ts": ["App", "FuzzySuggestModal"],
@@ -28,5 +31,4 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "obsidian/views/mount/name-suggest.ts": ["AbstractInputSuggest", "App"],
   "obsidian/views/mount/obsidian-mounter.ts": ["ToggleComponent"],
   "obsidian/views/mount/obsidian-wiring.ts": ["Keymap"],
-  "reading/": ["Debouncer", "MarkdownPostProcessorContext", "MarkdownSectionInformation", "debounce"],
 };

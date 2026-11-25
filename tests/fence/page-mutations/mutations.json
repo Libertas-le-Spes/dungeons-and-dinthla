@@ -268,7 +268,7 @@
  {
   "id": "page text: the dollar lines read the page's text only by allowance",
   "file": "tests/fence/source-checks/source-allowances.test.ts",
-  "find": "const PAGE_TEXT_READERS = [\"reading/colour-markers.ts\", \"reading/plain-dollars.ts\"];",
+  "find": "const PAGE_TEXT_READERS = [\"reading/colour-markers.ts\", \"obsidian/reading/plain-dollars.ts\"];",
   "replace": "const PAGE_TEXT_READERS = [\"reading/colour-markers.ts\"];",
   "group": "page fence"
  }

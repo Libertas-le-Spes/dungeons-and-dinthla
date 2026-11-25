@@ -23,8 +23,8 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "pdf/streams/inflate/platform-inflating.ts": ["getReader", "pipeThrough", "stream"],
   "pdf/work/clock.ts": ["now"],
   "reading/colour-markers.ts": ["ELEMENT_NODE", "TEXT_NODE", "append", "childNodes", "classList", "className", "closest", "contains", "createElement", "data", "matches", "nodeName", "nodeType", "ownerDocument", "parentElement", "querySelectorAll", "replaceWith", "splitText", "tagName", "textContent"],
-  "reading/note-background.ts": ["addClass", "className", "createDiv", "remove", "removeClass", "setCssProps"],
-  "reading/plain-dollars.ts": ["className", "createEl", "empty", "getText", "querySelectorAll", "setText"],
+  "obsidian/reading/note-background.ts": ["addClass", "className", "createDiv", "remove", "removeClass", "setCssProps"],
+  "obsidian/reading/plain-dollars.ts": ["className", "createEl", "empty", "getText", "querySelectorAll", "setText"],
   "views/dialogs/keys.ts": ["ctrlKey", "isComposing", "key", "metaKey"],
   "views/lists/row-focus.ts": ["closest", "focus", "open", "querySelectorAll"],
 };

@@ -1,5 +1,5 @@
 import type { MarkdownPostProcessorContext } from "obsidian";
-import { NoteLines } from "./note-lines";
+import { NoteLines } from "../../reading/note-lines";
 import { showDollarsPlain } from "./plain-dollars";
 
 export const BEFORE_OBSIDIANS_MATHS = -100;

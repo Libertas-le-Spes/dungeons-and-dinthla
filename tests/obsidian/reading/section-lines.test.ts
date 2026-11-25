@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { NoteLines } from "../../src/reading/note-lines";
-import { sectionTextOf, type SectionSource } from "../../src/reading/section-lines";
-import { obsidianDocument } from "../stubs/obsidian-dom";
+import { NoteLines } from "../../../src/reading/note-lines";
+import { sectionTextOf, type SectionSource } from "../../../src/obsidian/reading/section-lines";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 const NOTE = ["$ 5 gp rooms at the inn", "$$ Potion of healing :used", "We rested.", "? Who sent the letter", ""].join("\n");
 
