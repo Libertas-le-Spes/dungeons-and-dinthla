@@ -2,6 +2,8 @@ import { FollowBinding } from "../../elements/bindings/bindings";
 import type { OpenPlace } from "../../elements/bindings/open-place";
 import type { PageAction } from "../../elements/bindings/page-action";
 import { NameLink } from "../../elements/kinds/containers";
+import type { ElementParts } from "../../elements/element-parts";
+import type { ViewElement } from "../../elements/view-element";
 
 export interface LinkOpener {
   openLink(linktext: string, sourcePath: string, newTab: boolean): void;
@@ -27,7 +29,15 @@ export class LinkName {
   ) {}
 
   build(text: string): NameLink {
+    return new NameLink({ ...this.parts(), text });
+  }
+
+  around(inside: readonly ViewElement[]): NameLink {
+    return new NameLink({ ...this.parts(), text: "" }, inside);
+  }
+
+  private parts(): ElementParts {
     const open = new OpenLink(this.opener, this.linktext, this.sourcePath);
-    return new NameLink({ cls: ["dd-link-name"], text, role: "link", tabIndex: 0, undraggable: true, bindings: [new FollowBinding(open)] });
+    return { cls: ["dd-link-name"], role: "link", tabIndex: 0, undraggable: true, bindings: [new FollowBinding(open)] };
   }
 }

@@ -1,5 +1,6 @@
 import type { ElementHandle } from "../element-handle";
 import type { HandleWanted } from "./binding-wiring";
+import type { ViewElement } from "../view-element";
 
 export class KeptHandle implements HandleWanted {
   handle: ElementHandle | null = null;
@@ -22,5 +23,17 @@ export class KeptHandle implements HandleWanted {
 
   setClassOn(name: string, on: boolean): void {
     if (this.handle !== null) this.handle.setClassOn(name, on);
+  }
+
+  setOpen(open: boolean): void {
+    if (this.handle !== null) this.handle.setOpen(open);
+  }
+
+  setHidden(hidden: boolean): void {
+    if (this.handle !== null) this.handle.setHidden(hidden);
+  }
+
+  showInside(trees: readonly ViewElement[]): void {
+    if (this.handle !== null) this.handle.showInside(trees);
   }
 }

@@ -108,7 +108,7 @@ describe("Obsidian's mount step", () => {
     expect(typed).toEqual(["Torch", "sold"]);
   });
 
-  it("hands over a handle for the few live changes: focus, hide, open, select, words and a new tree", () => {
+  it("hands over a handle for the few live changes: focus, hide, open, select, words and new trees inside", () => {
     const into = root();
     let handle: ElementHandle | null = null;
     const wanted = { received: (given: ElementHandle) => void (handle = given) };
@@ -117,8 +117,8 @@ describe("Obsidian's mount step", () => {
     handle!.setOpen(true);
     handle!.setSelected(true);
     expect([details.open, details.getAttribute("aria-selected")]).toEqual([true, "true"]);
-    handle!.replaceWith(new Paragraph({ text: "Nothing gone." }));
-    expect(details.innerHTML).toBe("<p>Nothing gone.</p>");
+    handle!.showInside([new Paragraph({ text: "Nothing gone." }), new Paragraph({ text: "Nothing used." })]);
+    expect(details.innerHTML).toBe("<p>Nothing gone.</p><p>Nothing used.</p>");
     handle!.setHidden(true);
     expect(handle!.isShown()).toBe(false);
     handle!.setText("Gone 2");

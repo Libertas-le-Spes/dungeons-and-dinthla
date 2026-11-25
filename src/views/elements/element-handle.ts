@@ -10,6 +10,6 @@ export interface ElementHandle {
   setValue(value: string): void;
   setTabIndex(index: number): void;
   setDisabled(disabled: boolean): void;
-  replaceWith(tree: ViewElement): void;
+  showInside(trees: readonly ViewElement[]): void;
   isShown(): boolean;
 }

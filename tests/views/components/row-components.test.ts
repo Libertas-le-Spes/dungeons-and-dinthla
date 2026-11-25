@@ -1,0 +1,106 @@
+import { describe, expect, it, vi } from "vitest";
+import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
+import { summariseFunds } from "../../../src/funds/page/funds-summary";
+import { addLedgerRow } from "../../../src/funds/page/ledger-row";
+import { LedgerRow } from "../../../src/funds/page/rows/ledger-row";
+import { mountTree } from "../../../src/obsidian/views/mount/mount-tree";
+import { questionShownKind } from "../../../src/questions/list/question-shown-kind";
+import { questShownKind } from "../../../src/quests/list/quest-shown-kind";
+import { LinkedText } from "../../../src/views/components/rows/linked-text";
+import { HERE } from "../../../src/views/elements/bindings/open-place";
+import type { ViewElement } from "../../../src/views/elements/view-element";
+import { addLinkedText } from "../../../src/views/lists/linked-text";
+import { ThreadRow } from "../../../src/views/threads/rows/thread-row";
+import { addThreadRow } from "../../../src/views/threads/thread-row";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { shapeOf } from "./same-page";
+
+const SESSION = "Pale Moon/Sessions/Session 1.md";
+
+function root(): HTMLElement {
+  const el = obsidianDocument().createElement("div");
+  el.ownerDocument.body.append(el);
+  return el;
+}
+
+function mounted(...trees: ViewElement[]): HTMLElement {
+  const el = root();
+  for (const tree of trees) mountTree(tree, el);
+  return el;
+}
+
+function campaignOf(lines: string[]) {
+  return buildCampaign([{ path: SESSION, number: 1, firstLine: 0, text: lines.join("\n") }]);
+}
+
+function actions() {
+  return { openRow: vi.fn(), openLink: vi.fn() };
+}
+
+const NO_OPEN = { run: vi.fn() };
+
+describe("linked text, against today's drawing", () => {
+  it.each([
+    { what: "plain words", text: "Who rang the bell", keywords: [] },
+    { what: "a link", text: "Ask [[Old Tom]] about the bell", keywords: [] },
+    { what: "marked words and a link with a marked word inside", text: "The bell of [[Bell Tower]] rang", keywords: ["bell"] },
+  ])("draws $what just as today", ({ text, keywords }) => {
+    const today = root();
+    addLinkedText(today, text, keywords, SESSION, actions());
+    expect(shapeOf(mounted(...new LinkedText(keywords, SESSION, { openLink: vi.fn() }).build(text)))).toEqual(shapeOf(today));
+  });
+
+  it("opens a link from the note the text came from", () => {
+    const opener = { openLink: vi.fn() };
+    const built = mounted(...new LinkedText([], SESSION, opener).build("Ask [[Old Tom]]"));
+    (built.querySelector("a") as HTMLElement).click();
+    expect(opener.openLink).toHaveBeenCalledExactlyOnceWith("Old Tom", SESSION, false);
+  });
+});
+
+describe("thread rows, against today's drawing", () => {
+  it.each([
+    { what: "an open question", lines: ["? Who rang the bell"], keywords: [] },
+    { what: "an answered question with a link", lines: ["? Who rang the bell", "?= Who rang the bell: [[Old Tom]]"], keywords: [] },
+    { what: "a question with a marked word", lines: ["? Who rang the bell"], keywords: ["bell"] },
+  ])("draws $what just as today", ({ lines, keywords }) => {
+    const [question] = questionShownKind.threadsOf(campaignOf(lines));
+    const today = root().appendChild(obsidianDocument().createElement("ul"));
+    addThreadRow(questionShownKind, today, question!, keywords, actions());
+    const built = mounted(new ThreadRow(questionShownKind, keywords, { openLink: vi.fn() }).build(question!, NO_OPEN));
+    expect(shapeOf(built).children).toEqual(shapeOf(today).children);
+  });
+
+  it.each([
+    { what: "an open quest with its giver and reward", lines: ["! Find the caravan, from: [[Mira]], reward: 50 gp"] },
+    { what: "a completed quest", lines: ["! Find the caravan", "!= Find the caravan: found it under the mill"] },
+    { what: "an abandoned quest", lines: ["! Find the caravan", "!x Find the caravan: the wagons burned"] },
+  ])("draws $what just as today", ({ lines }) => {
+    const [quest] = questShownKind.threadsOf(campaignOf(lines));
+    const today = root().appendChild(obsidianDocument().createElement("ul"));
+    addThreadRow(questShownKind, today, quest!, [], actions());
+    const built = mounted(new ThreadRow(questShownKind, [], { openLink: vi.fn() }).build(quest!, NO_OPEN));
+    expect(shapeOf(built).children).toEqual(shapeOf(today).children);
+  });
+
+  it("opens the thread when its row is pressed", () => {
+    const [question] = questionShownKind.threadsOf(campaignOf(["? Who rang the bell"]));
+    const open = { run: vi.fn() };
+    const built = mounted(new ThreadRow(questionShownKind, [], { openLink: vi.fn() }).build(question!, open));
+    (built.querySelector(".dd-row") as HTMLElement).click();
+    expect(open.run.mock.calls).toEqual([[HERE]]);
+  });
+});
+
+describe("ledger rows, against today's drawing", () => {
+  it.each([
+    { what: "money in", line: "$ 5 gp found" },
+    { what: "money out with a link", line: "$ -5 gp paid [[Old Tom]] for rooms" },
+  ])("draws $what just as today", ({ line }) => {
+    const [ledgerLine] = summariseFunds(campaignOf([line])).ledger;
+    const today = root().appendChild(obsidianDocument().createElement("ul"));
+    addLedgerRow(today, ledgerLine!, actions(), actions());
+    const built = mounted(new LedgerRow({ openLink: vi.fn() }).build(ledgerLine!, NO_OPEN));
+    expect(shapeOf(built).children).toEqual(shapeOf(today).children);
+  });
+});

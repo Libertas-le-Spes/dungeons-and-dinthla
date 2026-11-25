@@ -189,6 +189,14 @@ export class Anchor implements ViewElement {
   }
 }
 
+export class PlainText implements ViewElement {
+  constructor(readonly text: string) {}
+
+  mountOn(mounter: Mounter, into: MountPlace): void {
+    mounter.plainText(this, into);
+  }
+}
+
 export class Mark implements ViewElement {
   constructor(
     readonly parts: ElementParts,

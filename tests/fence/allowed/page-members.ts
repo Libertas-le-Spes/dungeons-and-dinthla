@@ -47,7 +47,7 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "obsidian/views/mount/name-suggest.ts": ["dispatchEvent", "setText"],
   "obsidian/views/mount/obsidian-handle.ts": ["disabled", "empty", "focus", "isShown", "open", "setAttr", "setText", "tagName", "toggle", "toggleClass", "value"],
   "obsidian/views/mount/file-pick.ts": ["addEventListener", "arrayBuffer", "files", "item", "size"],
-  "obsidian/views/mount/obsidian-mounter.ts": ["createDiv", "createEl", "createSpan", "placeholder", "selected", "setAttr", "setText", "spellcheck", "value"],
+  "obsidian/views/mount/obsidian-mounter.ts": ["appendText", "createDiv", "createEl", "createSpan", "placeholder", "selected", "setAttr", "setText", "spellcheck", "value"],
   "obsidian/views/mount/obsidian-wiring.ts": ["AT_TARGET", "addEventListener", "button", "defaultPrevented", "eventPhase", "key", "preventDefault", "stopPropagation", "value"],
   "pdf/streams/inflate/platform-inflating.ts": ["getReader", "pipeThrough", "stream"],
   "pdf/work/clock.ts": ["now"],
