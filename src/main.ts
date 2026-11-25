@@ -149,6 +149,7 @@ export default class DungeonsAndDinthla extends Plugin {
     const newSession = () => startSession(this.showing, this.notes, this.store.campaignFolder, openNotes);
     const { maker, help, campaignsFolderSetup, welcome } = welcomeWiring({
       gate,
+      notes: this.notes,
       store: this.store,
       saver: this.settingsSaver,
       manifest: this.manifest,
@@ -180,7 +181,7 @@ export default class DungeonsAndDinthla extends Plugin {
       showWelcome: () => help.showWelcome(),
     });
     this.addSettingTab(new SettingsFrame(this.app, this, settings));
-    const linkPlace = { gate, campaignFolders: () => this.campaignFolders() };
+    const linkPlace = { gate, notes: this.notes, campaignFolders: () => this.campaignFolders() };
     const actions = {
       openRow: (source: Source) => void openSource(this.app, gate, source),
       openLink: (linktext: string, sourcePath: string, newLeaf: PaneType | boolean) =>
@@ -207,12 +208,12 @@ export default class DungeonsAndDinthla extends Plugin {
       openItemDialog(itemOpening, this.store, name, () => openNoteAt(source), onClosed, pathYouAreIn(this.app), source, OBSIDIAN_SYNTAX);
     const openLedgerEntry = ledgerEntryOpener(this.showing, this.notes.store, this.store, openItem, openNoteAt, OBSIDIAN_SYNTAX);
     const campaignFolders = () => this.campaignFolders();
-    const sessionsOf = (campaignFolder: string) => readSessions(gate.notes.store, campaignFolder, OBSIDIAN_SYNTAX);
+    const sessionsOf = (campaignFolder: string) => readSessions(this.notes.store, campaignFolder, OBSIDIAN_SYNTAX);
     const characterParts = { notes: this.notes, campaignFolders, sessionsOf };
     const characterNotes = new HostCharacterNotes(characterParts);
     const editing = { showing: this.showing, notes: this.notes, characters: characterNotes, spelling: OBSIDIAN_SPELLING, syntax: OBSIDIAN_SYNTAX };
     const sheetNotes = new HostSheetNotes(characterParts);
-    const beyond = new BeyondOpeners(new PluginBeyondWiring({ showSheet: (path: string) => void openCampaignPage(this.app, "cast", path), showing: this.showing, files: gate.notes.store, actions: gate.notes.keeping, metadata: gate.notes.links, online: this.onlineImport, store: this.store, characterNotes, campaignFolders }), OBSIDIAN_SYNTAX);
+    const beyond = new BeyondOpeners(new PluginBeyondWiring({ showSheet: (path: string) => void openCampaignPage(this.app, "cast", path), showing: this.showing, files: this.notes.store, actions: this.notes.keeping, metadata: this.notes.links, online: this.onlineImport, store: this.store, characterNotes, campaignFolders }), OBSIDIAN_SYNTAX);
     const sheetActions = {
       ...actions,
       editCharacter: (file: NoteRef) => editCharacter(editing, file),
@@ -242,7 +243,7 @@ export default class DungeonsAndDinthla extends Plugin {
       openCharacterSheet: (path: string) => show({ page: "cast", path }),
       startSession: newSession,
       writeNotes: (path: string) => show({ page: "notes", path }),
-      sessionHeadingOf: (path: string) => sessionHeadingOf(path, gate.notes),
+      sessionHeadingOf: (path: string) => sessionHeadingOf(path, this.notes),
     });
     const watchFiles = (changed: (path: string) => void) => this.watchFiles(changed);
     const castNeeds = { store: this.store, characterNotes, sheetNotes, mentionNotes, actions, sheetActions, creators, watchFiles, pauses: OBSIDIAN_PAUSES };
@@ -250,7 +251,7 @@ export default class DungeonsAndDinthla extends Plugin {
     const { drafts, keeping } = this.keepDrafts();
     const wantedLines = new WantedLines();
     const sessionNotes = sessionNotesWiring({
-      gate,
+      notes: this.notes,
       store: this.store,
       drafts,
       keeping,

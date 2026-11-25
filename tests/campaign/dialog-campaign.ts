@@ -4,7 +4,7 @@ import type { Campaign, SessionNote } from "../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../src/campaign/reading/campaign-store";
 import { noteNameOf } from "../../src/campaign/paths/note-name";
 import { sessionNoteOf } from "../../src/campaign/paths/session-file";
-import type { Gate } from "../../src/fence/gate/gatekeeper";
+import type { GateWithNotes } from "../host/gate-with-notes";
 import { notesOverFakes } from "../host/notes-over-fakes";
 import { openedModals } from "../stubs/obsidian";
 import { STUB_SYNTAX } from "../host/stub-syntax";
@@ -30,7 +30,7 @@ export class DialogCampaign {
     this.read = new Map(this.texts);
   }
 
-  get gate(): Gate {
+  get gate(): GateWithNotes {
     const fileOf = (path: string) => this.fileAt(path);
     const files = {
       getFiles: () => [...this.texts.keys()].map(fileOf),
@@ -54,7 +54,7 @@ export class DialogCampaign {
         return this.linkDestination(linkpath);
       },
     };
-    return { files, metadata, notes: notesOverFakes({ files, metadata }) } as unknown as Gate;
+    return { files, metadata, notes: notesOverFakes({ files, metadata }) } as unknown as GateWithNotes;
   }
 
   get store(): CampaignStore {

@@ -22,7 +22,8 @@ function wiredWith(foldersThere: string[]) {
   const folders = { folderPaths: vi.fn(() => ["D&D", "Games"]), make: vi.fn(async (typed: string) => typed) };
   const setting = { path: "D&D", choose: vi.fn(async () => {}) };
   const needs = {
-    gate: { notes: { store: files }, folders },
+    gate: { folders },
+    notes: { store: files },
     store: { campaignFolder: null, sessionNotes: [], subscribe: () => () => {} },
     saver: new SettingsSaver(settingsOf(null, ".obsidian"), async () => {}),
     manifest: { version: "1.0.0" },

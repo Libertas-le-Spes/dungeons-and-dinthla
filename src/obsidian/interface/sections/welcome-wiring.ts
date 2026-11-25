@@ -17,12 +17,16 @@ import type { Telling } from "../../../host/showing/telling";
 import { ObsidianCampaignsFolderPlace } from "../../host/obsidian-campaigns-folder-place";
 
 export interface WelcomeGate {
-  notes: { readonly store: Pick<NoteStore, "files" | "hasFolder" | "namesIn" | "makeFolder" | "make" | "removeEmptyFolder"> };
   folders: Pick<FolderChoices, "folderPaths" | "make">;
+}
+
+export interface WelcomeNotes {
+  readonly store: Pick<NoteStore, "files" | "hasFolder" | "namesIn" | "makeFolder" | "make" | "removeEmptyFolder">;
 }
 
 export interface WelcomeWiringNeeds {
   gate: WelcomeGate;
+  notes: WelcomeNotes;
   store: WelcomeStore;
   saver: SettingsSaver;
   manifest: Pick<PluginManifest, "version">;
@@ -45,7 +49,7 @@ export interface WelcomeWiring {
 }
 
 export function welcomeWiring(needs: WelcomeWiringNeeds): WelcomeWiring {
-  const files = needs.gate.notes.store;
+  const files = needs.notes.store;
   const helpFiles = {
     campaignFolders: () => needs.campaignFolders(),
     filePaths: () => files.files().map((file) => file.path),

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TFile } from "obsidian";
-import type { Gate } from "../../../src/fence/gate/gatekeeper";
+import type { GateWithNotes } from "../../host/gate-with-notes";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { SESSIONS_SHARE_A_NUMBER } from "../../../src/campaign/paths/session-to-write";
 import { openAddCoin } from "../../../src/funds/coins/open-add-coin";
@@ -32,7 +32,7 @@ function storeRaisedIn(path: string): CampaignStore {
   } as unknown as CampaignStore;
 }
 
-function gateWith(paths: string[]): Gate {
+function gateWith(paths: string[]): GateWithNotes {
   const files = paths.map((path) => ({ path }) as TFile);
   const fileAt = (path: string) => {
     const found = files.find((file) => file.path === path);
@@ -40,10 +40,10 @@ function gateWith(paths: string[]): Gate {
     return found;
   };
   const store = { files: () => files, notes: () => files, note: fileAt };
-  return { files: { getFiles: () => files, getMarkdownFiles: () => files, getFileByPath: fileAt }, notes: { store } } as unknown as Gate;
+  return { files: { getFiles: () => files, getMarkdownFiles: () => files, getFileByPath: fileAt }, notes: { store } } as unknown as GateWithNotes;
 }
 
-type Open = (gate: Gate, store: CampaignStore, openNote: () => void, activePath: string | null) => void;
+type Open = (gate: GateWithNotes, store: CampaignStore, openNote: () => void, activePath: string | null) => void;
 
 function raisedSource(store: CampaignStore): { path: string; line: number } {
   return store.current.questions[0]!.source;

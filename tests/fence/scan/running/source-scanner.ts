@@ -25,10 +25,11 @@ import { isLibraryFile } from "../reading/type-shapes";
 import { vaultAccessBreaches } from "../vault-rules/vault-access-rules";
 import { workspaceEventBreaches } from "../vault-rules/workspace-event-rules";
 import { writtenReportBreaches } from "../vault-rules/written-report-rules";
+import { fencedNotesBreaches } from "../vault-rules/fenced-notes-rules";
 
 export type { Allowances } from "../reading/allowances";
 
-const RULES: Rules[] = [vaultAccessBreaches, editorViewBreaches, openingBreaches, workspaceEventBreaches, writtenReportBreaches, gateForgingBreaches, importBreaches, networkBreaches, beyondCallingBreaches, characterIdForgingBreaches, globalBreaches, codeTextBreaches, pageElementBreaches, pageTextBreaches, computedKeyBreaches, pageMemberBreaches, hostNeutralBreaches];
+const RULES: Rules[] = [vaultAccessBreaches, editorViewBreaches, openingBreaches, workspaceEventBreaches, writtenReportBreaches, gateForgingBreaches, fencedNotesBreaches, importBreaches, networkBreaches, beyondCallingBreaches, characterIdForgingBreaches, globalBreaches, codeTextBreaches, pageElementBreaches, pageTextBreaches, computedKeyBreaches, pageMemberBreaches, hostNeutralBreaches];
 
 interface OpenedProject {
   project: Project;

@@ -19,6 +19,7 @@ export interface Allowances {
   viewFile: Allowed;
   noteEvents: Allowed;
   gateBuilding: Allowed;
+  fencedNotesBuilding: Allowed;
   network: Allowed;
   beyondCalling: Allowed;
   obsidianImports: AllowedName;
