@@ -10,14 +10,13 @@ import {
   isSessionNote,
 } from "./campaign/paths/campaign-folders";
 import { NewCampaignDialog } from "./campaign/writing/new-campaign-dialog";
-import { CampaignStore } from "./campaign/reading/campaign-store";
+import type { CampaignStore } from "./campaign/reading/campaign-store";
 import { HostCharacterNotes } from "./characters/reading/character-notes";
 import { editCharacter, openNewCharacter } from "./characters/editing/open-character";
 import { addEditCharacterItem, editActiveCharacter, openMadeNote } from "./obsidian/characters/character-editing-hooks";
 import { chooseSheetValue } from "./characters/editing/open-character-sheet";
 import { OldCharactersBases } from "./characters/retiring/old-characters-bases";
 import { OBSIDIAN_SPELLING } from "./obsidian/notes/obsidian-spelling";
-import { FencedNotes } from "./fence/notes/fenced-notes";
 import type { NoteRef } from "./host/notes/note-ref";
 import { readSessions } from "./campaign/reading/read-campaign";
 import { ObsidianNotes } from "./obsidian/notes/obsidian-notes";
@@ -75,7 +74,7 @@ import type { Closing } from "./settings/drafts/flush-when-closing";
 import type { CampaignsFolderSetting } from "./settings/saved/campaigns-folder-setting";
 import type { ChosenCampaign } from "./settings/saved/chosen-campaign";
 import type { SettingsSaver } from "./settings/saved/settings-saver";
-import { SavedSettings } from "./plugin/saved-settings";
+import { startPlugin } from "./plugin/start-plugin";
 import { ObsidianPluginData } from "./obsidian/host/obsidian-plugin-data";
 import { ObsidianDeviceStorage } from "./obsidian/host/obsidian-device-storage";
 import type { Help } from "./welcome/opening/help";
@@ -88,13 +87,10 @@ import { campaignsFolderFirst } from "./obsidian/interface/view/campaigns-folder
 import { sessionHeadingOf } from "./sessions/session-heading";
 import { startSession } from "./sessions/start-session";
 import { PluginDrafts } from "./plugin/plugin-drafts";
-import { NoteKeeping } from "./plugin/note-keeping";
-import { CampaignFollowing } from "./plugin/campaign-following";
 import { NOTICE_STAYS_UNTIL_DISMISSED } from "./views/dialogs/notice-stays";
 import { ConfirmDialog, type ConfirmText } from "./views/dialogs/confirm-dialog";
 import { BeyondOpeners, type BeyondWiring } from "./imports/dialog/opening/beyond-openers";
 import { CampaignAgreement } from "./imports/agreement/campaign-agreement";
-import { KeptAgreement } from "./imports/agreement/kept-agreement";
 import { onlineImportFor } from "./imports/dialog/online/online-wiring";
 import { OBSIDIAN_BEYOND_CALL } from "./obsidian/online/obsidian-beyond-call";
 import { OBSIDIAN_TELLING } from "./obsidian/views/frames/obsidian-telling";
@@ -113,36 +109,40 @@ const PAGE_OPENERS: { page: PageId; id: string; name: string; icon: string }[] =
 
 export default class DungeonsAndDinthla extends Plugin {
   private readonly gate = new Gatekeeper(this.app, () => this.campaignsFolderSetting.path);
-  private readonly notes = this.gate.notes;
-  private readonly store = new CampaignStore(this.gate.notes.store, OBSIDIAN_SYNTAX);
   private readonly localStorage = new ObsidianDeviceStorage((key: string) => this.app.loadLocalStorage(key), (key: string, value: unknown) => this.app.saveLocalStorage(key, value));
-  private readonly saved = new SavedSettings(
-    { data: new ObsidianPluginData(() => this.loadData(), (data: unknown) => this.saveData(data)), device: this.localStorage, settingsFolder: this.gate.configDir, telling: OBSIDIAN_TELLING },
-    this.store,
-    () => this.lookAgain(),
-  );
-  private readonly following = new CampaignFollowing({
-    notes: this.notes,
-    store: this.store,
-    saved: this.saved,
-    telling: OBSIDIAN_TELLING,
-    activePath: () => activePathOf(this.app),
-    showBackgrounds: () => this.showBackgrounds(),
-    showCampaignTabsAgain: () => this.showCampaignTabsAgain(),
-  });
-  private readonly keptAgreement = new KeptAgreement({
-    settings: {
-      agreed: () => this.settingsSaver.settings.beyondAgreed,
-      keepAgreed: () => this.settingsSaver.save({ beyondAgreed: true }),
-    },
-    device: this.localStorage,
-    notKept: (error: unknown) => new Notice(`Couldn't remember your answer about D&D Beyond: ${messageOf(error)}`),
-  });
   private readonly showing = { dialogs: obsidianDialogsOf(this.app), telling: OBSIDIAN_TELLING };
+  private readonly plugin = startPlugin(
+    {
+      notes: new ObsidianNotes(this.gate),
+      written: this.gate.written,
+      report: GATE_REPORTS_WRITES,
+      spelling: OBSIDIAN_SPELLING,
+      syntax: OBSIDIAN_SYNTAX,
+      settingsFolder: this.gate.configDir,
+      data: new ObsidianPluginData(() => this.loadData(), (data: unknown) => this.saveData(data)),
+      device: this.localStorage,
+      clock: { now: () => Date.now() },
+      timer: { start: (run: () => void, ms: number) => window.setTimeout(run, ms), stop: (id: number) => window.clearTimeout(id) },
+      closing: this.closing(),
+      telling: OBSIDIAN_TELLING,
+      dialogs: this.showing.dialogs,
+    },
+    {
+      activePath: () => activePathOf(this.app),
+      showBackgrounds: () => this.showBackgrounds(),
+      showCampaignTabsAgain: () => this.showCampaignTabsAgain(),
+    },
+  );
+  private readonly notes = this.plugin.notes;
+  private readonly store = this.plugin.store;
+  private readonly saved = this.plugin.saved;
+  private readonly following = this.plugin.following;
+  private readonly keptAgreement = this.plugin.agreement;
   private readonly onlineImport = onlineImportFor(this.showing.dialogs, this.keptAgreement, OBSIDIAN_BEYOND_CALL);
 
   override async onload(): Promise<void> {
-    await this.saved.load();
+    await this.plugin.load();
+    this.register(this.plugin.stop.bind(this.plugin));
     const gate = this.gate;
     this.addChild(gate.files);
     const openNotes = (path: string) => openCampaignPage(this.app, "notes", path);
@@ -334,20 +334,9 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private keepDrafts(): PluginDrafts {
-    const plugin = new PluginDrafts({
-      device: this.localStorage,
-      timer: { start: (run: () => void, ms: number) => window.setTimeout(run, ms), stop: (id: number) => window.clearTimeout(id) },
-      closing: this.closing(),
-      clock: { now: () => Date.now() },
-      telling: OBSIDIAN_TELLING,
-      changes: this.notes.changes,
-      store: this.notes.store,
-      fence: this.gate.fence,
-    }, this.saved);
-    plugin.start();
-    this.register(plugin.stop.bind(plugin));
-    this.app.workspace.onLayoutReady(() => plugin.setAsideGoneNotes());
-    return plugin;
+    const drafts = this.plugin.keepDrafts();
+    this.app.workspace.onLayoutReady(() => drafts.setAsideGoneNotes());
+    return drafts;
   }
 
   private addPageOpeners(newSession: () => void): void {
@@ -394,10 +383,6 @@ export default class DungeonsAndDinthla extends Plugin {
     };
   }
 
-  private lookAgain(): Promise<void> {
-    return this.following.lookAgain();
-  }
-
   private showCampaignTabsAgain(): void {
     for (const leaf of this.app.workspace.getLeavesOfType(CAMPAIGN_VIEW)) {
       if (leaf.view instanceof CampaignView) leaf.view.showAgain();
@@ -435,9 +420,7 @@ export default class DungeonsAndDinthla extends Plugin {
 
   private async startCampaign(help: Help): Promise<void> {
     this.watchEditors();
-    this.keepNotes();
-    await this.following.start();
-    this.register(this.following.stop.bind(this.following));
+    await this.plugin.startCampaign();
     await help.start();
   }
 
@@ -450,21 +433,6 @@ export default class DungeonsAndDinthla extends Plugin {
     this.registerEvent(this.app.workspace.on("file-open", (file) => {
       if (file !== null) void this.followCampaignOf(file.path);
     }));
-  }
-
-  private keepNotes(): void {
-    const keeping = new NoteKeeping({
-      notes: this.notes,
-      syntax: OBSIDIAN_SYNTAX,
-      written: this.gate.written,
-      shown: this.store,
-      saver: this.settingsSaver,
-      telling: OBSIDIAN_TELLING,
-      dialogs: this.showing.dialogs,
-      campaignFolders: () => this.campaignFolders(),
-    });
-    keeping.start();
-    this.register(keeping.stop.bind(keeping));
   }
 
   private readEditor(info: MarkdownFileInfo, file: TFile): void {

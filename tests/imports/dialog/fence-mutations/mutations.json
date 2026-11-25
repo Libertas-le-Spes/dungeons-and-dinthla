@@ -2,8 +2,8 @@
  {
   "id": "fence: main.ts may import imports",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "const IMPORTS_IMPORTERS: string[] = [\"main.ts\"];",
-  "replace": "const IMPORTS_IMPORTERS: string[] = [];",
+  "find": "const IMPORTS_IMPORTERS: string[] = [\"main.ts\", \"plugin/start-plugin.ts\"];",
+  "replace": "const IMPORTS_IMPORTERS: string[] = [\"plugin/start-plugin.ts\"];",
   "group": "folders"
  },
  {

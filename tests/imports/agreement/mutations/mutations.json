@@ -197,23 +197,23 @@
  },
  {
   "id": "in the vault: main keeps it in data.json",
-  "file": "src/main.ts",
-  "find": "keepAgreed: () => this.settingsSaver.save({ beyondAgreed: true }),",
-  "replace": "keepAgreed: () => Promise.resolve(),",
+  "file": "src/plugin/start-plugin.ts",
+  "find": "    return this.saved.saver.save({ beyondAgreed: true });",
+  "replace": "    return Promise.resolve();",
   "group": "in the vault"
  },
  {
   "id": "in the vault: main reads it from data.json",
-  "file": "src/main.ts",
-  "find": "agreed: () => this.settingsSaver.settings.beyondAgreed,",
-  "replace": "agreed: () => false,",
+  "file": "src/plugin/start-plugin.ts",
+  "find": "    return this.saved.saver.settings.beyondAgreed;",
+  "replace": "    return false;",
   "group": "in the vault"
  },
  {
   "id": "in the vault: main reads the old device answer",
-  "file": "src/main.ts",
-  "find": "    device: this.localStorage,\n    notKept:",
-  "replace": "    device: { load: () => undefined },\n    notKept:",
+  "file": "src/plugin/start-plugin.ts",
+  "find": "      device: host.device,\n      notKept:",
+  "replace": "      device: { load: () => undefined },\n      notKept:",
   "group": "in the vault"
  },
  {
