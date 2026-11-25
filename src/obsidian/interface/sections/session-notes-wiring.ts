@@ -2,8 +2,7 @@ import type { WantedLines } from "../../../views/opening/wanted-lines";
 import type { CampaignStore } from "../../../campaign/reading/campaign-store";
 import { HostNoteTexts } from "../../../campaign/reading/note-texts";
 import { OBSIDIAN_SYNTAX } from "../../notes/obsidian-syntax";
-import type { Gate } from "../../../fence/gate/gatekeeper";
-import type { VaultSettings } from "../../../fence/gate/vault-settings";
+import type { HostNotes } from "../../../host/host";
 import type { LookupOpeners } from "../../../kinds/lookup-openers";
 import type { LineOpeners } from "../../../session-notes/lines/line-opener-of";
 import type { NoteEditingNeeds } from "../../../note-editing/note-editing";
@@ -20,10 +19,8 @@ import type { LinkActions } from "../../../interface/sections/link-actions";
 import type { NotesNeeds } from "./notes-section";
 import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
 
-export type SessionNotesGate = Gate & { vaultSettings: Pick<VaultSettings, "trashOption"> };
-
 export interface SessionNotesWiringNeeds {
-  gate: SessionNotesGate;
+  notes: HostNotes;
   store: CampaignStore;
   drafts: Drafts;
   keeping: Pick<DraftKeeping, "keptDrafts" | "noteDrafts">;
@@ -43,22 +40,22 @@ export interface SessionNotesWiring {
 }
 
 export function sessionNotesWiring(needs: SessionNotesWiringNeeds, syntax: PropertiesSyntax): SessionNotesWiring {
-  const gate = needs.gate;
-  const wholeText = { texts: new HostNoteTexts(gate.notes), drafts: needs.keeping.noteDrafts, saver: new NoteSaver(gate.notes.store) };
+  const host = needs.notes;
+  const wholeText = { texts: new HostNoteTexts(host), drafts: needs.keeping.noteDrafts, saver: new NoteSaver(host.store) };
   const notes = {
     store: needs.store,
     drafts: needs.drafts,
     keptDrafts: needs.keeping.keptDrafts,
-    writer: new AppendWriter(gate.notes.store, syntax),
-    propertiesOf: (path: string) => sessionPropertiesOf(path, gate.notes),
+    writer: new AppendWriter(host.store, syntax),
+    propertiesOf: (path: string) => sessionPropertiesOf(path, host),
     openers: needs.openers,
     actions: needs.actions,
     lineOpeners: needs.lineOpeners,
     wholeText,
     removal: {
-      clearer: new SessionClearer(gate.notes.store, OBSIDIAN_SYNTAX),
-      trash: new SessionTrash(gate.notes.store, gate.notes.keeping, gate.notes.keeping.throwsAwayForGood.bind(gate.notes.keeping)),
-      renumbering: new SessionRenumbering(gate.notes.store, () => needs.campaignFolders(), syntax),
+      clearer: new SessionClearer(host.store, OBSIDIAN_SYNTAX),
+      trash: new SessionTrash(host.store, host.keeping, host.keeping.throwsAwayForGood.bind(host.keeping)),
+      renumbering: new SessionRenumbering(host.store, () => needs.campaignFolders(), syntax),
       confirm: needs.confirm,
       report: (message: string) => needs.report(message),
     },

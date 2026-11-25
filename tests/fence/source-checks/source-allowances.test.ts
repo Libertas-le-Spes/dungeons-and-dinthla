@@ -31,6 +31,7 @@ const LEAF_VIEW_READERS = ["main.ts", "obsidian/interface/tabs/one-campaign-tab.
 const VIEW_FILE_READERS = ["main.ts", "obsidian/campaign/editor-text.ts", "obsidian/editor/marker-decorations.ts", "obsidian/interface/takeover/campaign-takeover.ts"];
 const NOTE_EVENT_LISTENERS = ["main.ts"];
 const GATE_BUILDERS = ["main.ts"];
+const FENCED_NOTES_BUILDERS = ["plugin/start-plugin.ts"];
 const NETWORK_CALLERS = ["obsidian/online/obsidian-beyond-call.ts"];
 const BEYOND_CALLERS = ["main.ts", "obsidian/online/obsidian-beyond-call.ts", "online/call-rules.ts", "imports/dialog/online/online-wiring.ts", "imports/dialog/online/online-import.ts"];
 const POST_PROCESSING = ["main.ts"];
@@ -83,6 +84,7 @@ const SOURCE_ALLOWANCES: Allowances = {
   viewFile: isOneOf(VIEW_FILE_READERS),
   noteEvents: isOneOf(NOTE_EVENT_LISTENERS),
   gateBuilding: isOneOf(GATE_BUILDERS),
+  fencedNotesBuilding: isOneOf(FENCED_NOTES_BUILDERS),
   network: isOneOf(NETWORK_CALLERS),
   beyondCalling: isOneOf(BEYOND_CALLERS),
   obsidianImports: isImportAllowed,
@@ -236,6 +238,7 @@ const STILL_NEEDED: StillNeeded[] = [
   ...neededBy("viewFile", VIEW_FILE_READERS, "reads the file of a view"),
   ...neededBy("noteEvents", NOTE_EVENT_LISTENERS, "workspace event, which hands over any note"),
   ...neededBy("gateBuilding", GATE_BUILDERS, "builds the gate's Gatekeeper"),
+  ...neededBy("fencedNotesBuilding", FENCED_NOTES_BUILDERS, "builds the fenced notes outside the plugin's start"),
   ...neededBy("beyondCalling", BEYOND_CALLERS, /names (callBeyond|BeyondCalls|OBSIDIAN_BEYOND_CALL), which only the files that call D&D Beyond may/),
   ...neededBy("network", NETWORK_CALLERS, /names requestUrl, which only the file allowed the network may/),
   ...neededBy("postProcessing", POST_PROCESSING, "registers a post-processor"),

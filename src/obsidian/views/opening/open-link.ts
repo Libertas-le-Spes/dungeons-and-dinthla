@@ -1,10 +1,12 @@
 import { Notice, parseLinktext, type App, type PaneType } from "obsidian";
 import { campaignFolderOf } from "../../../campaign/paths/campaign-folders";
 import type { Gate } from "../../../fence/gate/gatekeeper";
+import type { HostNotes } from "../../../host/host";
 import { noteInCampaignFor } from "../../../views/opening/note-in-campaign";
 
 export interface LinkPlace {
-  gate: Pick<Gate, "files" | "metadata" | "notes">;
+  gate: Pick<Gate, "files" | "metadata">;
+  notes: Pick<HostNotes, "store">;
   campaignFolders: () => string[];
 }
 
@@ -33,7 +35,7 @@ export async function openLink(app: App, place: LinkPlace, linktext: string, sou
   }
   const campaignFolder = campaignFolderOf(sourcePath, place.campaignFolders());
   if (campaignFolder !== null) {
-    const inCampaign = noteInCampaignFor(place.gate.notes.store, campaignFolder, linkpath, sourcePath);
+    const inCampaign = noteInCampaignFor(place.notes.store, campaignFolder, linkpath, sourcePath);
     if (inCampaign !== null) {
       await openNote(app, place, inCampaign.path, subpath, newLeaf);
       return;

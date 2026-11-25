@@ -14,7 +14,7 @@ import type { SheetNotes } from "../../../src/characters/reading/sheet-notes";
 import type { SheetValueDialog } from "../../../src/characters/editing/sheet-value-dialog";
 import type { SourcedFact } from "../../../src/characters/reading/sheet-values";
 import { Notice, openedModals } from "../../stubs/obsidian";
-import type { Gate } from "../../../src/fence/gate/gatekeeper";
+import type { GateWithNotes } from "../../host/gate-with-notes";
 import type { NoteRef } from "../../../src/host/notes/note-ref";
 import { STUB_SYNTAX } from "../../host/stub-syntax";
 import { OBSIDIAN_SHOWING } from "../../host/showing/obsidian-showing";
@@ -54,7 +54,7 @@ function setUp(texts: Record<string, string>, { readFails = false, folders = ["P
         linkTextTo: () => "Mira",
       },
     },
-  } as unknown as Gate;
+  } as unknown as GateWithNotes;
   const sessionNotes = (): SessionNote[] =>
     sessions.filter((path) => notesText.has(path)).map((path, index) => ({ path, number: index + 1, firstLine: 0, text: notesText.get(path)! }));
   const store = {

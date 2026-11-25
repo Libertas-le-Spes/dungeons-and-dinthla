@@ -42,12 +42,12 @@ function wiredWith(trashOption: string) {
     metadata: new FencedMetadata(rawMetadata as unknown as RawMetadata, held),
     vaultSettings: { trashOption: () => trashOption },
   };
-  const fullGate = { ...gate, notes: notesOverFakes({ files: gate.files, metadata: gate.metadata, actions: gate.fileActions, vaultSettings: gate.vaultSettings }) };
+  const notes = notesOverFakes({ files: gate.files, metadata: gate.metadata, actions: gate.fileActions, vaultSettings: gate.vaultSettings });
   const drafts = new Drafts({}, () => {});
   const keeping = { keptDrafts: new KeptDrafts(drafts, () => 1_000), noteDrafts: new NoteDrafts(drafts) };
   const needs = {
-    gate: fullGate,
-    store: new CampaignStore(fullGate.notes.store, STUB_SYNTAX),
+    notes,
+    store: new CampaignStore(notes.store, STUB_SYNTAX),
     drafts,
     keeping,
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },

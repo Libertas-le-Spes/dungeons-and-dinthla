@@ -22,11 +22,12 @@ function placeWith(linkLeadsTo: TFile | null, files: TFile[] = [SESSION, MIRA, P
   const held = new HeldFiles(vault, new Fence(() => "D&D", ".obsidian", STUB_SPELLING));
   const fenced = new FencedFiles(vault, held, new NoteReporter());
   const metadata = new FencedMetadata(raw as unknown as RawMetadata, held);
-  const gate = { files: fenced, metadata, notes: notesOverFakes({ files: fenced, metadata }) };
+  const gate = { files: fenced, metadata };
+  const notes = notesOverFakes({ files: fenced, metadata });
   const leaf = { openFile: vi.fn(async () => {}) };
   const openLinkText = vi.fn(async () => {});
   const app = { workspace: { getLeaf: vi.fn(() => leaf), openLinkText } } as unknown as App;
-  return { app, place: { gate, campaignFolders: () => [CAMPAIGN] }, calls, raw, leaf, openLinkText, getLeaf: app.workspace.getLeaf };
+  return { app, place: { gate, notes, campaignFolders: () => [CAMPAIGN] }, calls, raw, leaf, openLinkText, getLeaf: app.workspace.getLeaf };
 }
 
 function openedPaths(leaf: { openFile: ReturnType<typeof vi.fn> }): string[] {
