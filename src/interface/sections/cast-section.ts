@@ -15,6 +15,7 @@ import type { MakePage, ShowPage } from "../view/campaign-pages";
 import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 import { PageFrame } from "../../obsidian/views/frames/page-frame";
 import { PLAIN_KIT } from "../../obsidian/views/mount/mount-kit";
+import type { ShownPage } from "../../views/pages/page-view";
 
 export interface CastNeeds {
   store: CampaignStore;
@@ -28,31 +29,31 @@ export interface CastNeeds {
   pauses: Pauses;
 }
 
-function galleryOf(contentEl: HTMLElement, needs: CastNeeds, show: ShowPage, syntax: PropertiesSyntax): PageFrame {
+function galleryOf(needs: CastNeeds, show: ShowPage, syntax: PropertiesSyntax): ShownPage {
   const showSheet = (path: string) => show({ page: "cast", path });
-  return new PageFrame(contentEl, new CastPage(needs.store, needs.characterNotes, showSheet, needs.creators, needs.watchFiles, syntax), PLAIN_KIT);
+  return new CastPage(needs.store, needs.characterNotes, showSheet, needs.creators, needs.watchFiles, syntax);
 }
 
-function characterPageOf(contentEl: HTMLElement, file: NoteRef, needs: CastNeeds, show: ShowPage, syntax: PropertiesSyntax): PageFrame {
+function characterPageOf(file: NoteRef, needs: CastNeeds, show: ShowPage, syntax: PropertiesSyntax): ShownPage {
   const sheet = new CharacterSheetPage({ file, store: needs.store, notes: needs.sheetNotes, actions: needs.sheetActions, mentionNotes: needs.mentionNotes, pauses: needs.pauses }, syntax);
-  return new PageFrame(contentEl, new CharacterPage(sheet, () => show({ page: "cast", path: null })), PLAIN_KIT);
+  return new CharacterPage(sheet, () => show({ page: "cast", path: null }));
 }
 
-function fallenPageOf(contentEl: HTMLElement, file: NoteRef, needs: CastNeeds, show: ShowPage, syntax: PropertiesSyntax): PageFrame {
+function fallenPageOf(file: NoteRef, needs: CastNeeds, show: ShowPage, syntax: PropertiesSyntax): ShownPage {
   const leave = () => show({ page: "cast", path: file.path });
   const sheet = new FallenSheetPage(file, { store: needs.store, notes: needs.sheetNotes, links: needs.sheetActions, makeMain: needs.creators, leave }, syntax);
-  return new PageFrame(contentEl, new CharacterPage(sheet, () => show({ page: "cast", path: null })), PLAIN_KIT);
+  return new CharacterPage(sheet, () => show({ page: "cast", path: null }));
 }
 
-function castPagesOf(needs: CastNeeds, show: ShowPage, syntax: PropertiesSyntax): CastPages {
+function castPagesOf(needs: CastNeeds, show: ShowPage, syntax: PropertiesSyntax): CastPages<ShownPage> {
   return {
     notes: needs.sheetNotes,
-    gallery: (contentEl) => galleryOf(contentEl, needs, show, syntax),
-    character: (contentEl, file) => characterPageOf(contentEl, file, needs, show, syntax),
-    fallen: (contentEl, file) => fallenPageOf(contentEl, file, needs, show, syntax),
+    gallery: () => galleryOf(needs, show, syntax),
+    character: (file) => characterPageOf(file, needs, show, syntax),
+    fallen: (file) => fallenPageOf(file, needs, show, syntax),
   };
 }
 
 export function castSection(needs: CastNeeds, syntax: PropertiesSyntax): MakePage {
-  return (contentEl, show, path) => castPageFor(contentEl, path, castPagesOf(needs, show, syntax));
+  return (contentEl, show, path) => new PageFrame(contentEl, castPageFor(path, castPagesOf(needs, show, syntax)), PLAIN_KIT);
 }

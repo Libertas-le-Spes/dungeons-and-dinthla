@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { App, TFile } from "obsidian";
-import { activePathOf } from "../../../src/views/opening/open-view";
+import { activePathOf } from "../../../../src/obsidian/views/opening/open-view";
 
 describe("activePathOf", () => {
   const appShowing = (file: TFile | null) => ({ workspace: { getActiveFile: () => file } }) as unknown as App;
