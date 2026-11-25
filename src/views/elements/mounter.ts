@@ -1,4 +1,4 @@
-import type { Section, Div, Span, Paragraph, Button, List, OrderedList, ListItem, Heading1, Heading2, Heading3, Bold, Strong, Details, Summary, Label, Anchor, Mark, PlainText, Pre, Nav, Form, DescriptionList, Term, Description, Select, NameLink, FieldRow } from "./kinds/containers";
+import type { Section, Div, Span, Paragraph, Button, List, OrderedList, ListItem, Heading1, Heading2, Heading3, Bold, Strong, Details, Summary, Label, Anchor, Mark, PlainText, Pre, Nav, DescriptionList, Term, Description, Select, NameLink, FieldRow } from "./kinds/containers";
 import type { DateInput, FileInput, Option, SearchInput, Switch, TextArea, TextInput } from "./kinds/fields";
 
 export interface MountPlace {
@@ -27,7 +27,6 @@ export interface Mounter {
   plainText(element: PlainText, into: MountPlace): void;
   pre(element: Pre, into: MountPlace): MountPlace;
   nav(element: Nav, into: MountPlace): MountPlace;
-  form(element: Form, into: MountPlace): MountPlace;
   descriptionList(element: DescriptionList, into: MountPlace): MountPlace;
   term(element: Term, into: MountPlace): MountPlace;
   description(element: Description, into: MountPlace): MountPlace;

@@ -230,17 +230,6 @@ export class Nav implements ViewElement {
   }
 }
 
-export class Form implements ViewElement {
-  constructor(
-    readonly parts: ElementParts,
-    readonly children: readonly ViewElement[] = [],
-  ) {}
-
-  mountOn(mounter: Mounter, into: MountPlace): void {
-    mountAll(this.children, mounter, mounter.form(this, into));
-  }
-}
-
 export class DescriptionList implements ViewElement {
   constructor(
     readonly parts: ElementParts,

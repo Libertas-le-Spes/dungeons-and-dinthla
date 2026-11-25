@@ -27,13 +27,6 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "settings/choosing/campaign-setting-tab.ts": ["createEl", "empty"],
   "views/dialogs/keys.ts": ["ctrlKey", "isComposing", "key", "metaKey"],
   "views/lists/row-focus.ts": ["closest", "focus", "open", "querySelectorAll"],
-  "welcome/endings/agreement-ending.ts": ["createEl"],
-  "welcome/endings/campaign-ending.ts": ["createEl"],
-  "welcome/endings/campaigns-folder-ending.ts": ["createEl"],
-  "welcome/endings/first-session-ending.ts": ["createEl"],
-  "welcome/endings/name-form.ts": ["createEl", "disabled", "preventDefault", "value"],
-  "welcome/endings/new-campaign-ending.ts": ["createEl"],
-  "welcome/page/welcome-page.ts": ["addClass", "createDiv", "createEl", "empty"],
 };
 
 export const PAGE_ESCAPE_READERS: Record<string, string[]> = {

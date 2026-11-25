@@ -4,6 +4,9 @@ import type { WelcomeAgreement } from "../../welcome/endings/welcome-ending";
 import { campaignsFolderThere, type FolderLookup } from "../../welcome/page/campaigns-folder-there";
 import { WelcomePage, type WelcomeStore } from "../../welcome/page/welcome-page";
 import type { MakePage } from "../view/campaign-pages";
+import type { Telling } from "../../host/showing/telling";
+import { PageFrame } from "../../obsidian/views/frames/page-frame";
+import { PLAIN_KIT } from "../../obsidian/views/mount/mount-kit";
 
 export interface WelcomeNeeds {
   store: WelcomeStore;
@@ -11,6 +14,7 @@ export interface WelcomeNeeds {
   maker: Pick<CampaignMaker, "make">;
   files: FolderLookup;
   agreement: WelcomeAgreement;
+  telling: Pick<Telling, "say">;
   startSession(): void;
 }
 
@@ -18,8 +22,7 @@ function nothingMore(): void {}
 
 export function welcomeSection(needs: WelcomeNeeds): MakePage {
   return (contentEl, show) =>
-    new WelcomePage(
-      contentEl,
+    new PageFrame(contentEl, new WelcomePage(
       needs.store,
       () => campaignsFolderThere(needs.campaignsFolderSetup.path, needs.files),
       {
@@ -32,5 +35,6 @@ export function welcomeSection(needs: WelcomeNeeds): MakePage {
         makeCampaignsFolder: (name: string) => needs.campaignsFolderSetup.make(name),
       },
       needs.agreement,
-    );
+      needs.telling,
+    ), PLAIN_KIT);
 }

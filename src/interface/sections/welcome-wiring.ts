@@ -58,6 +58,7 @@ export function welcomeWiring(needs: WelcomeWiringNeeds): WelcomeWiring {
     maker,
     files,
     agreement: needs.agreement,
+    telling: needs.telling,
     startSession: () => needs.startSession(),
   });
   return { maker, help, campaignsFolderSetup, welcome };
