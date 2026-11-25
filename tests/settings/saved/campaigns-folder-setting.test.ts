@@ -7,6 +7,7 @@ import { Notice } from "../../stubs/obsidian";
 import { HeldCalls } from "../../stubs/held-calls";
 import { SettleWatch } from "../../stubs/settle-watch";
 import { queuedWorkRan } from "../../stubs/queued-work";
+import { OBSIDIAN_TELLING } from "../../../src/obsidian/views/frames/obsidian-telling";
 
 function settingFrom(campaignsFolder: string | null, configDir = ".obsidian") {
   const settings: PluginSettings = { campaignsFolder, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null, notesMadeFor: [], beyondAgreed: false, charactersBasesSwept: false };
@@ -22,7 +23,7 @@ function settingFrom(campaignsFolder: string | null, configDir = ".obsidian") {
     await queuedWorkRan();
     order.push("looked again");
   });
-  return { setting: new CampaignsFolderSetting(saver, changed, configDir), settings, save, changed, order, lookedIn };
+  return { setting: new CampaignsFolderSetting(saver, changed, configDir, OBSIDIAN_TELLING), settings, save, changed, order, lookedIn };
 }
 
 describe("CampaignsFolderSetting", () => {

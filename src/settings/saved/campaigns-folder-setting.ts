@@ -1,4 +1,4 @@
-import { Notice } from "obsidian";
+import type { Telling } from "../../host/showing/telling";
 import { isInConfigFolder, NOT_THE_CONFIG_FOLDER, refusalForCampaignsFolder } from "../../fence/paths/campaigns-folder-path";
 import { messageOf } from "../../views/dialogs/message-of";
 import type { PluginSettings } from "./plugin-settings";
@@ -19,6 +19,7 @@ export class CampaignsFolderSetting {
     private readonly saver: SettingsSaver,
     private readonly changed: CampaignsFolderChanged,
     private readonly configDir: string,
+    private readonly telling: Pick<Telling, "say">,
   ) {}
 
   get path(): string | null {
@@ -54,7 +55,7 @@ export class CampaignsFolderSetting {
     try {
       await this.changed();
     } catch (error) {
-      new Notice(`Set the Campaigns folder to ${path}, but couldn't open a campaign in it: ${messageOf(error)}`);
+      this.telling.say(`Set the Campaigns folder to ${path}, but couldn't open a campaign in it: ${messageOf(error)}`);
     }
   }
 }

@@ -1,4 +1,4 @@
-import { Notice } from "obsidian";
+import type { Telling } from "../../host/showing/telling";
 import type { FolderChoices } from "../../fence/gate/folder-choices";
 import { messageOf } from "../../views/dialogs/message-of";
 import type { CampaignsFolderSetting } from "../saved/campaigns-folder-setting";
@@ -12,6 +12,7 @@ export class CampaignsFolderSetup {
     private readonly setting: Pick<CampaignsFolderSetting, "path" | "choose">,
     private readonly folders: Pick<FolderChoices, "folderPaths" | "make">,
     private readonly pickFolder: PickFolder,
+    private readonly telling: Pick<Telling, "say">,
   ) {}
 
   get path(): string | null {
@@ -31,6 +32,6 @@ export class CampaignsFolderSetup {
     this.setting
       .choose(path)
       .then(chosen)
-      .catch((error: unknown) => new Notice(`Couldn't set the Campaigns folder: ${messageOf(error)}`));
+      .catch((error: unknown) => this.telling.say(`Couldn't set the Campaigns folder: ${messageOf(error)}`));
   }
 }

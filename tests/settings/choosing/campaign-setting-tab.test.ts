@@ -9,6 +9,7 @@ import { NO_CAMPAIGN } from "../../../src/campaign/paths/campaign-folders";
 import { NO_CAMPAIGNS_FOLDER } from "../../../src/fence/paths/campaigns-folder-path";
 import { Notice, openedSuggestModals } from "../../stubs/obsidian";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { OBSIDIAN_TELLING } from "../../../src/obsidian/views/frames/obsidian-telling";
 
 const PALE_MOON = "D&D/Pale Moon/Pale Moon.md";
 const ASHEN_ROAD = "D&D/Ashen Road/Ashen Road.md";
@@ -140,7 +141,7 @@ function tabFor(
   campaignsFolderSetting = new FakeCampaignsFolderSetting("D&D"),
 ): CampaignSettingTab {
   const pickFolder = (folders: string[], chosen: (folder: string) => void) => new FolderSuggestModal(fake.app, folders, chosen).open();
-  const setup = new CampaignsFolderSetup(campaignsFolderSetting, campaignsFolderSetting, pickFolder);
+  const setup = new CampaignsFolderSetup(campaignsFolderSetting, campaignsFolderSetting, pickFolder, OBSIDIAN_TELLING);
   const tab = new CampaignSettingTab(fake.app, fake.plugin, fake.gate, setup, campaigns, showWelcome);
   tab.containerEl = obsidianDocument().body.createDiv();
   tab.display();
