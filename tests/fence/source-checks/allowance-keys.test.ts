@@ -122,3 +122,25 @@ describe("the check on those keys, over made-up places", () => {
     expect(keysNotMeaningOneFile(places, ["views/"])).toEqual(["views/"]);
   });
 });
+
+const OBSIDIAN_SIDE_KEYS = ["obsidian/", "fence/gate/"];
+const STARTING_FILE = "main.ts";
+
+function isObsidianSideKey(key: string): boolean {
+  if (key === STARTING_FILE) return true;
+  for (const side of OBSIDIAN_SIDE_KEYS) {
+    if (key.startsWith(side)) return true;
+  }
+  return false;
+}
+
+describe("the Obsidian imports allowed", () => {
+  it.each(Object.keys(OBSIDIAN_IMPORTS))("are allowed to %s only on the Obsidian side, in the gate or in main.ts", (key) => {
+    expect(isObsidianSideKey(key)).toBe(true);
+  });
+
+  it.each(["campaign/", "views/lists/list-page.ts", "plugin/start-plugin.ts"])("would refuse a key for %s, which is the plugin's own code", (key) => {
+    expect(isObsidianSideKey(key)).toBe(false);
+  });
+});
+
