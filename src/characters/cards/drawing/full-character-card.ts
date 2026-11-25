@@ -3,7 +3,7 @@ import type { PageAction } from "../../../views/elements/bindings/page-action";
 import type { Div } from "../../../views/elements/kinds/containers";
 import { cardClasses, cardLabels } from "./card-parts";
 import type { CharacterCard } from "../character-card";
-import { STAT_BLOCK_CLASS, StatBlock } from "./stat-block-view";
+import { STAT_BLOCK_CLASS, StatBlock } from "./stat-block";
 
 export class FullCharacterCard {
   build(card: CharacterCard, open: PageAction): Div {

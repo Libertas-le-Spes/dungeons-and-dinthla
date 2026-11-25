@@ -6,6 +6,7 @@ import { NO_LEFT_PLAY } from "../../../src/characters/pages/left-play-section";
 import type { SheetNotes } from "../../../src/characters/reading/sheet-notes";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { STUB_SYNTAX } from "../../host/stub-syntax";
+import { mountTree } from "../../../src/obsidian/views/mount/mount-tree";
 
 const BRANN = { path: "Pale Moon/Fallen/Brann.md", basename: "Brann" } as TFile;
 const ONE = "Pale Moon/Sessions/Session 1.md";
@@ -76,19 +77,23 @@ function openFallen({ text = SNAPSHOT, session = "", textOf }: Setup = {}) {
   const needs: FallenNeeds = {
     store,
     notes,
-    links: { openRow: vi.fn(), openLink: vi.fn() },
+    links: { openLink: vi.fn() },
     makeMain: { makeMain: vi.fn() },
     leave: vi.fn(),
   };
   const root = obsidianDocument().createElement("div");
   root.ownerDocument.body.append(root);
-  const page = new FallenSheetPage(root, BRANN, needs, STUB_SYNTAX);
-  return { page, root, needs, watchers, reads };
+  const page = new FallenSheetPage(BRANN, needs, STUB_SYNTAX);
+  const start = () => {
+    mountTree(page.tree(), root);
+    page.started();
+  };
+  return { page, root, needs, watchers, reads, start };
 }
 
 async function loaded(setup: Setup = {}) {
   const fallen = openFallen(setup);
-  fallen.page.load();
+  fallen.start();
   await fallen.page.rendered();
   return fallen;
 }
@@ -190,7 +195,7 @@ describe("a fallen character's page as their note changes", () => {
 
   it("empties the page when it closes", async () => {
     const { page, root } = await loaded();
-    page.unload();
-    expect(root.childElementCount).toBe(0);
+    page.stopped();
+    expect(root.firstElementChild!.childElementCount).toBe(0);
   });
 });

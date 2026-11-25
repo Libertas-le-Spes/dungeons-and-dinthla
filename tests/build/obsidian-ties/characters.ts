@@ -1,17 +1,3 @@
 export const TIES: readonly string[] = [
-  "characters/cards/drawing/stat-block.ts",
-  "characters/imported/drawing/action-button.ts",
-  "characters/imported/panels/held-not-imported.ts",
-  "characters/imported/panels/imported-panels.ts",
-  "characters/imported/panels/inventory-panel.ts",
-  "characters/imported/panels/line-panel.ts",
-  "characters/imported/panels/panel-parts.ts",
-  "characters/imported/panels/purse-panel.ts",
-  "characters/imported/purse/coin-chips.ts",
   "characters/pages/cast-page-for.ts",
-  "characters/pages/character-page.ts",
-  "characters/pages/character-sheet-page.ts",
-  "characters/pages/fallen-sheet-page.ts",
-  "characters/pages/left-play-section.ts",
-  "characters/pages/mentions-panel.ts",
 ];

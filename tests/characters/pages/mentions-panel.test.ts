@@ -2,29 +2,19 @@ import { describe, expect, it, vi } from "vitest";
 import type { TFile } from "obsidian";
 import type { MentionNotes } from "../../../src/characters/reading/mention-notes";
 import { couldNotReadMentions, IN_THE_NOTES, MentionsPanel, noMentions } from "../../../src/characters/pages/mentions-panel";
-import type { LinkActions } from "../../../src/views/lists/linked-text";
+import type { MentionActions } from "../../../src/characters/pages/mentions-panel";
+import { HeldPauses } from "../../host/made-up-pauses";
+import { mountTree } from "../../../src/obsidian/views/mount/mount-tree";
+import { HandleRequest } from "../../../src/views/elements/bindings/bindings";
+import { KeptHandle } from "../../../src/views/elements/bindings/kept-handle";
+import { Section } from "../../../src/views/elements/kinds/containers";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { HeldCalls } from "../../stubs/held-calls";
 
-const waiting = vi.hoisted(() => ({ calls: [] as (() => void)[] }));
-
-vi.mock("obsidian", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("obsidian")>()),
-  debounce: <T extends unknown[]>(callback: (...args: T) => void) => {
-    const debouncer = (...args: T) => {
-      waiting.calls = [() => callback(...args)];
-    };
-    debouncer.cancel = () => {
-      waiting.calls = [];
-    };
-    return debouncer;
-  },
-}));
+let pauses = new HeldPauses();
 
 function settle(): void {
-  const calls = waiting.calls;
-  waiting.calls = [];
-  for (const call of calls) call();
+  pauses.settle();
 }
 
 function fileAt(path: string): TFile {
@@ -44,7 +34,7 @@ interface Setup {
 }
 
 function openPanel({ links = {}, texts = {}, textOf }: Setup = {}) {
-  waiting.calls = [];
+  pauses = new HeldPauses();
   let linksResolved: (path: string) => void = () => {};
   let noteMoved: (path: string) => void = () => {};
   const stopped: string[] = [];
@@ -82,13 +72,17 @@ function openPanel({ links = {}, texts = {}, textOf }: Setup = {}) {
       return () => stopped.push("resolved");
     },
   };
-  const actions: LinkActions = { openRow: vi.fn(), openLink: vi.fn() };
-  const panel = new MentionsPanel(notes, actions);
+  const actions: MentionActions = { openRow: vi.fn(), openLink: vi.fn() };
+  const panel = new MentionsPanel(notes, actions, pauses);
   const stop = panel.watch();
-  const parent = obsidianDocument().createElement("section");
+  const parent = obsidianDocument().createElement("div");
+  parent.ownerDocument.body.append(parent);
+  const place = new KeptHandle();
+  mountTree(new Section({ bindings: [new HandleRequest(place)] }), parent);
   return {
     panel,
     parent,
+    place,
     actions,
     reads,
     stopped,
@@ -97,6 +91,14 @@ function openPanel({ links = {}, texts = {}, textOf }: Setup = {}) {
     linksResolved: (path: string) => linksResolved(path),
     noteMoved: (path: string) => noteMoved(path),
   };
+}
+
+function newPlace(): { el: HTMLElement; place: KeptHandle } {
+  const el = obsidianDocument().createElement("div");
+  el.ownerDocument.body.append(el);
+  const place = new KeptHandle();
+  mountTree(new Section({ bindings: [new HandleRequest(place)] }), el);
+  return { el, place };
 }
 
 function textsOf(root: Element, selector: string): string[] {
@@ -113,7 +115,7 @@ describe("MentionsPanel", () => {
       links: { [MIRA.path]: { [ONE]: [0], [TWO]: [1] } },
       texts: { [ONE]: "Met [[Mira]] at the ford", [TWO]: "Rain.\n- [[Mira]] AC: 15" },
     });
-    shown.panel.draw(shown.parent, MIRA);
+    shown.panel.draw(shown.place, MIRA);
     await shown.panel.readSettled();
     expect(textsOf(shown.parent, ".dd-title")).toEqual([`${IN_THE_NOTES}2 lines`]);
     expect(textsOf(shown.parent, ".dd-count")).toEqual(["2 lines"]);
@@ -123,14 +125,14 @@ describe("MentionsPanel", () => {
 
   it("says one line for a single line", async () => {
     const shown = openPanel({ links: { [MIRA.path]: { [ONE]: [0] } }, texts: { [ONE]: "[[Mira]]" } });
-    shown.panel.draw(shown.parent, MIRA);
+    shown.panel.draw(shown.place, MIRA);
     await shown.panel.readSettled();
     expect(textsOf(shown.parent, ".dd-count")).toEqual(["1 line"]);
   });
 
   it("opens a line's session at that line, and a link in it at its note", async () => {
     const shown = openPanel({ links: { [MIRA.path]: { [TWO]: [1] } }, texts: { [TWO]: "Rain.\n[[Mira]] meets [[Vess]]" } });
-    shown.panel.draw(shown.parent, MIRA);
+    shown.panel.draw(shown.place, MIRA);
     await shown.panel.readSettled();
     shown.parent.querySelector<HTMLElement>(".dd-row")!.click();
     expect(shown.actions.openRow).toHaveBeenCalledWith({ path: TWO, line: 1 });
@@ -141,7 +143,7 @@ describe("MentionsPanel", () => {
 
   it("says so when no session mentions the character, without a count", async () => {
     const shown = openPanel();
-    shown.panel.draw(shown.parent, MIRA);
+    shown.panel.draw(shown.place, MIRA);
     await shown.panel.readSettled();
     expect(textsOf(shown.parent, ".dd-empty")).toEqual([noMentions(MIRA)]);
     expect(textsOf(shown.parent, ".dd-empty")).toEqual(["No session mentions [[Mira]] yet."]);
@@ -153,7 +155,7 @@ describe("MentionsPanel", () => {
     const shown = openPanel({ links: { [MIRA.path]: { [ONE]: [0] } }, textOf: async () => {
       throw new Error("the disk is gone");
     } });
-    shown.panel.draw(shown.parent, MIRA);
+    shown.panel.draw(shown.place, MIRA);
     await shown.panel.readSettled();
     expect(textsOf(shown.parent, ".dd-title")).toEqual([IN_THE_NOTES]);
     expect(textsOf(shown.parent, ".dd-empty")).toEqual([couldNotReadMentions(MIRA, new Error("the disk is gone"))]);
@@ -162,24 +164,24 @@ describe("MentionsPanel", () => {
 
   it("draws the lines it has into a new place without reading them again", async () => {
     const shown = openPanel({ links: { [MIRA.path]: { [ONE]: [0] } }, texts: { [ONE]: "[[Mira]]" } });
-    shown.panel.draw(shown.parent, MIRA);
+    shown.panel.draw(shown.place, MIRA);
     await shown.panel.readSettled();
-    const next = obsidianDocument().createElement("section");
-    shown.panel.draw(next, MIRA);
-    expect(textsOf(next, ".dd-text")).toEqual(["[[Mira]]"]);
+    const next = newPlace();
+    shown.panel.draw(next.place, MIRA);
+    expect(textsOf(next.el, ".dd-text")).toEqual(["[[Mira]]"]);
     expect(shown.reads.count).toBe(1);
   });
 
   it("draws a reading still on its way into the newest place, without starting another", async () => {
     const pending: ((text: string) => void)[] = [];
     const shown = openPanel({ links: { [MIRA.path]: { [ONE]: [0] } }, textOf: () => new Promise((resolve) => pending.push(resolve)) });
-    shown.panel.draw(shown.parent, MIRA);
-    const next = obsidianDocument().createElement("section");
-    shown.panel.draw(next, MIRA);
+    shown.panel.draw(shown.place, MIRA);
+    const next = newPlace();
+    shown.panel.draw(next.place, MIRA);
     expect(pending).toHaveLength(1);
     pending[0]!("[[Mira]]");
     await shown.panel.readSettled();
-    expect(textsOf(next, ".dd-text")).toEqual(["[[Mira]]"]);
+    expect(textsOf(next.el, ".dd-text")).toEqual(["[[Mira]]"]);
     expect(shown.reads.count).toBe(1);
   });
 
@@ -189,13 +191,13 @@ describe("MentionsPanel", () => {
       if (reading.fails) throw new Error("the disk is gone");
       return "[[Mira]]";
     } });
-    shown.panel.draw(shown.parent, MIRA);
+    shown.panel.draw(shown.place, MIRA);
     await shown.panel.readSettled();
     reading.fails = false;
-    const next = obsidianDocument().createElement("section");
-    shown.panel.draw(next, MIRA);
+    const next = newPlace();
+    shown.panel.draw(next.place, MIRA);
     await shown.panel.readSettled();
-    expect(textsOf(next, ".dd-text")).toEqual(["[[Mira]]"]);
+    expect(textsOf(next.el, ".dd-text")).toEqual(["[[Mira]]"]);
   });
 
   it("reads again when drawn into a new place after a later reading failed, instead of drawing the old lines", async () => {
@@ -204,25 +206,25 @@ describe("MentionsPanel", () => {
       if (reading.fails) throw new Error("the disk is gone");
       return "[[Mira]]";
     } });
-    shown.panel.draw(shown.parent, MIRA);
+    shown.panel.draw(shown.place, MIRA);
     await shown.panel.readSettled();
     reading.fails = true;
     shown.linksResolved(ONE);
     settle();
     await shown.panel.readSettled();
     expect(textsOf(shown.parent, ".dd-empty")).toHaveLength(1);
-    const next = obsidianDocument().createElement("section");
-    shown.panel.draw(next, MIRA);
+    const next = newPlace();
+    shown.panel.draw(next.place, MIRA);
     await shown.panel.readSettled();
-    expect(textsOf(next, ".dd-empty")).toHaveLength(1);
-    expect(next.querySelector(".dd-text")).toBeNull();
+    expect(textsOf(next.el, ".dd-empty")).toHaveLength(1);
+    expect(next.el.querySelector(".dd-text")).toBeNull();
     expect(shown.reads.count).toBe(3);
   });
 
   it("listens before the first reading has finished", async () => {
     const pending: ((text: string) => void)[] = [];
     const shown = openPanel({ links: { [MIRA.path]: { [ONE]: [0] } }, textOf: () => new Promise((resolve) => pending.push(resolve)) });
-    shown.panel.draw(shown.parent, MIRA);
+    shown.panel.draw(shown.place, MIRA);
     expect(() => shown.linksResolved(THREE)).not.toThrow();
     expect(() => shown.noteMoved(THREE)).not.toThrow();
   });
@@ -232,9 +234,9 @@ describe("MentionsPanel", () => {
       links: { [MIRA.path]: { [ONE]: [0] }, [MIRABEL.path]: { [ONE]: [0], [TWO]: [0] } },
       texts: { [ONE]: "[[Mirabel]]", [TWO]: "[[Mirabel]] AC: 15" },
     });
-    shown.panel.draw(shown.parent, MIRA);
+    shown.panel.draw(shown.place, MIRA);
     await shown.panel.readSettled();
-    shown.panel.draw(shown.parent, MIRABEL);
+    shown.panel.draw(shown.place, MIRABEL);
     await shown.panel.readSettled();
     expect(textsOf(shown.parent, ".dd-text")).toEqual(["[[Mirabel]] AC: 15", "[[Mirabel]]"]);
   });
@@ -242,8 +244,8 @@ describe("MentionsPanel", () => {
   it("draws only the latest reading when readings finish out of order", async () => {
     const reads = new HeldCalls<string>();
     const shown = openPanel({ links: { [MIRA.path]: { [ONE]: [0] }, [MIRABEL.path]: { [ONE]: [0] } }, textOf: reads.hold.bind(reads) });
-    shown.panel.draw(shown.parent, MIRA);
-    shown.panel.draw(shown.parent, MIRABEL);
+    shown.panel.draw(shown.place, MIRA);
+    shown.panel.draw(shown.place, MIRABEL);
     await reads.made(2);
     reads.resolve(1, "[[Mirabel]]");
     await finished();
@@ -256,8 +258,8 @@ describe("MentionsPanel", () => {
   it("keeps the latest list when an earlier reading fails late", async () => {
     const reads = new HeldCalls<string>();
     const shown = openPanel({ links: { [MIRA.path]: { [ONE]: [0] }, [MIRABEL.path]: { [ONE]: [0] } }, textOf: reads.hold.bind(reads) });
-    shown.panel.draw(shown.parent, MIRA);
-    shown.panel.draw(shown.parent, MIRABEL);
+    shown.panel.draw(shown.place, MIRA);
+    shown.panel.draw(shown.place, MIRABEL);
     await reads.made(2);
     reads.resolve(1, "[[Mirabel]]");
     await finished();
@@ -270,7 +272,7 @@ describe("MentionsPanel", () => {
 
   it("reads again once settled when a listed session or one that now links to the character is resolved, and not otherwise", async () => {
     const shown = openPanel({ links: { [MIRA.path]: { [ONE]: [0] } }, texts: { [ONE]: "[[Mira]]", [TWO]: "[[Mira]] again" } });
-    shown.panel.draw(shown.parent, MIRA);
+    shown.panel.draw(shown.place, MIRA);
     await shown.panel.readSettled();
     shown.linksResolved(TWO);
     shown.linksResolved(THREE);
@@ -292,7 +294,7 @@ describe("MentionsPanel", () => {
 
   it("reads again when a listed session is deleted or renamed, and not for other notes", async () => {
     const shown = openPanel({ links: { [MIRA.path]: { [ONE]: [0] } }, texts: { [ONE]: "[[Mira]]" } });
-    shown.panel.draw(shown.parent, MIRA);
+    shown.panel.draw(shown.place, MIRA);
     await shown.panel.readSettled();
     shown.links[MIRA.path]![TWO] = [0];
     shown.noteMoved(TWO);
@@ -312,17 +314,17 @@ describe("MentionsPanel", () => {
       links: { [MIRA.path]: { [ONE]: [0] } },
       textOf: () => new Promise((resolve) => pending.push(resolve)),
     });
-    shown.panel.draw(shown.parent, MIRA);
+    shown.panel.draw(shown.place, MIRA);
     expect(pending).toHaveLength(1);
     shown.panel.clear();
     pending[0]!("[[Mira]]");
     await shown.panel.readSettled();
-    expect(shown.parent.childElementCount).toBe(0);
+    expect(shown.parent.firstElementChild!.childElementCount).toBe(0);
   });
 
   it("reads nothing for later changes once cleared, nor for one waiting to settle", async () => {
     const shown = openPanel({ links: { [MIRA.path]: { [ONE]: [0] } }, texts: { [ONE]: "[[Mira]]" } });
-    shown.panel.draw(shown.parent, MIRA);
+    shown.panel.draw(shown.place, MIRA);
     await shown.panel.readSettled();
     shown.linksResolved(ONE);
     shown.panel.clear();
@@ -334,7 +336,7 @@ describe("MentionsPanel", () => {
 
   it("stops listening when the watch is stopped, dropping a change waiting to settle", async () => {
     const shown = openPanel({ links: { [MIRA.path]: { [ONE]: [0] } }, texts: { [ONE]: "[[Mira]]" } });
-    shown.panel.draw(shown.parent, MIRA);
+    shown.panel.draw(shown.place, MIRA);
     await shown.panel.readSettled();
     shown.linksResolved(ONE);
     shown.stop();

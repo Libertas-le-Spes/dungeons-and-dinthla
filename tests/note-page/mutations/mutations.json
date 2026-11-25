@@ -51,7 +51,7 @@
  {
   "id": "draw the list on the page",
   "file": "src/note-page/note-page.ts",
-  "find": "    mentions.draw(root.createEl(\"section\", { cls: \"dd-note-mentions\" }), file);",
+  "find": "    mentions.draw(place, file);",
   "replace": "",
   "group": "note page"
  },

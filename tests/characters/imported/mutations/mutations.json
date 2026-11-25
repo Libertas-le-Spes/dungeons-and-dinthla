@@ -121,49 +121,49 @@
  {
   "id": "panels: none without an import",
   "file": "src/characters/imported/panels/imported-panels.ts",
-  "find": "  if (lists === null) return;\n",
+  "find": "  if (lists === null) return [];\n",
   "replace": "  if (lists === null) throw new Error(\"x\");\n",
   "group": "panels"
  },
  {
   "id": "panels: count shown",
   "file": "src/characters/imported/panels/panel-parts.ts",
-  "find": "  heading.createSpan({ cls: \"dd-count\", text: String(count) });\n",
-  "replace": "",
+  "find": "[new Span({ cls: [\"dd-count\"], text: String(count) })]",
+  "replace": "[]",
   "group": "panels"
  },
  {
   "id": "panels: nothing came in only when empty",
   "file": "src/characters/imported/panels/panel-parts.ts",
-  "find": "  if (listed.entries.length > 0) return;\n",
+  "find": "  if (listed.entries.length > 0) return [];\n",
   "replace": "",
   "group": "panels"
  },
  {
   "id": "panels: left out shown",
   "file": "src/characters/imported/panels/panel-parts.ts",
-  "find": "  panel.createEl(\"p\", { cls: \"dd-note dd-left-out\", text: words });\n",
-  "replace": "",
+  "find": "  return [new Paragraph({ cls: [\"dd-note\", \"dd-left-out\"], text: words })];",
+  "replace": "  return [];",
   "group": "panels"
  },
  {
   "id": "panels: line text unescaped",
   "file": "src/characters/imported/panels/line-panel.ts",
-  "find": "addPanelLine(list, withoutEscapes(entry))",
-  "replace": "addPanelLine(list, entry)",
+  "find": "panelLine(withoutEscapes(entry), [])",
+  "replace": "panelLine(entry, [])",
   "group": "panels"
  },
  {
   "id": "inventory: count shown",
   "file": "src/characters/imported/panels/inventory-panel.ts",
-  "find": "    if (entry.count !== null) line.createSpan",
-  "replace": "    if (entry.count === \"x\") line.createSpan",
+  "find": "    if (entry.count !== null) after.push",
+  "replace": "    if (entry.count === \"x\") after.push",
   "group": "panels"
  },
  {
   "id": "inventory: standing shown",
   "file": "src/characters/imported/panels/inventory-panel.ts",
-  "find": "    if (standing !== null) line.createSpan({ cls: \"dd-meta dd-panel-standing\", text: standing });\n",
+  "find": "    if (standing !== null) after.push(new Span({ cls: [\"dd-meta\", \"dd-panel-standing\"], text: standing }));\n",
   "replace": "",
   "group": "panels"
  },
@@ -177,14 +177,14 @@
  {
   "id": "inventory: no buttons for another campaign",
   "file": "src/characters/imported/panels/inventory-panel.ts",
-  "find": "    if (look === null) return;\n    const standing",
-  "replace": "    if (look === null) {\n      addActionButton(line, TRACK_ON_FUNDS, PANEL_ACTION_CLASSES, new TrackRun(this.file, entry.written, this.tracking));\n      return;\n    }\n    const standing",
+  "find": "    if (look === null) return panelLine(entry.name, after);\n",
+  "replace": "    if (look === null) return panelLine(entry.name, [...after, new ActionButton(TRACK_ON_FUNDS, PANEL_ACTION_CLASSES, new TrackRun(this.file, entry, this.tracking)).build()]);\n",
   "group": "panels"
  },
  {
   "id": "inventory: no advice for an empty list",
   "file": "src/characters/imported/panels/inventory-panel.ts",
-  "find": "    if (entries.length === 0) return;\n",
+  "find": "    if (entries.length === 0) return [];\n",
   "replace": "",
   "group": "panels"
  },
@@ -198,14 +198,14 @@
  {
   "id": "held: marks shown",
   "file": "src/characters/imported/panels/inventory-panel.ts",
-  "find": "    addHeldButNotImported(panel, this.file, look.heldButNotImported(), listed.leftOut, this.tracking);\n",
-  "replace": "",
+  "find": "    return heldButNotImported(this.file, look.heldButNotImported(), listed.leftOut, this.tracking);",
+  "replace": "    return [];",
   "group": "panels"
  },
  {
   "id": "held: none drawn when all are imported",
   "file": "src/characters/imported/panels/held-not-imported.ts",
-  "find": "  if (held.length === 0) return;\n",
+  "find": "  if (held.length === 0) return [];\n",
   "replace": "",
   "group": "panels"
  },
@@ -443,15 +443,15 @@
  {
   "id": "inventory: marks without a section",
   "file": "src/characters/imported/panels/inventory-panel.ts",
-  "find": "    if (!listed.present) return;\n",
+  "find": "    if (!listed.present) return [];\n",
   "replace": "",
   "group": "panels"
  },
  {
   "id": "held: left-out line always",
   "file": "src/characters/imported/panels/held-not-imported.ts",
-  "find": "  if (leftOut === null || !hasLeftOut(leftOut)) return;",
-  "replace": "  if (leftOut === null) return;",
+  "find": "  if (leftOut === null || !hasLeftOut(leftOut)) return [];",
+  "replace": "  if (leftOut === null) return [];",
   "group": "panels"
  },
  {

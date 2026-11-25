@@ -1,3 +1,5 @@
+import { Div, Span } from "../../../views/elements/kinds/containers";
+import type { ViewElement } from "../../../views/elements/view-element";
 import type { PurseCoin } from "../lists/purse-coin";
 
 export const NO_COIN = "No coin.";
@@ -12,9 +14,10 @@ function isShown(coin: PurseCoin): boolean {
   return coin.count !== 0;
 }
 
-export function addCoinChips(parent: HTMLElement, coins: readonly PurseCoin[]): void {
+export function coinChips(coins: readonly PurseCoin[]): ViewElement {
   const shown = coins.filter(isShown);
-  const chips = parent.createDiv({ cls: "dd-coins" });
-  if (shown.length === 0) chips.createSpan({ cls: "dd-empty", text: NO_COIN });
-  for (const coin of shown) chips.createSpan({ cls: "dd-coin", text: chipText(coin) });
+  const chips: ViewElement[] = [];
+  if (shown.length === 0) chips.push(new Span({ cls: ["dd-empty"], text: NO_COIN }));
+  for (const coin of shown) chips.push(new Span({ cls: ["dd-coin"], text: chipText(coin) }));
+  return new Div({ cls: ["dd-coins"] }, chips);
 }

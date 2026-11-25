@@ -8,6 +8,10 @@ function pieceOf(piece: MarkedPiece): ViewElement {
   return new PlainText(piece.text);
 }
 
+export function bracketed(name: ViewElement): ViewElement {
+  return new Span({ cls: ["dd-link"] }, [new Span({ cls: ["dd-link-bracket"], text: "[[" }), name, new Span({ cls: ["dd-link-bracket"], text: "]]" })]);
+}
+
 export class LinkedText {
   constructor(
     private readonly keywords: string[],
@@ -26,7 +30,6 @@ export class LinkedText {
   }
 
   private linkOf(linktext: string, pieces: readonly ViewElement[]): ViewElement {
-    const name = new LinkName(linktext, this.sourcePath, this.opener).around(pieces);
-    return new Span({ cls: ["dd-link"] }, [new Span({ cls: ["dd-link-bracket"], text: "[[" }), name, new Span({ cls: ["dd-link-bracket"], text: "]]" })]);
+    return bracketed(new LinkName(linktext, this.sourcePath, this.opener).around(pieces));
   }
 }

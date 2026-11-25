@@ -2,7 +2,8 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { ImportedLists } from "../../../src/characters/imported/lists/imported-lists";
 import { shownItemName } from "../../../src/characters/imported/lists/shown-item-name";
-import { addImportedPanels } from "../../../src/characters/imported/panels/imported-panels";
+import { importedPanels } from "../../../src/characters/imported/panels/imported-panels";
+import { mountTree } from "../../../src/obsidian/views/mount/mount-tree";
 import { TRACK_ON_FUNDS } from "../../../src/characters/imported/panels/inventory-panel";
 import { FundsTracking } from "../../../src/funds/tracking/funds-tracking";
 import { ON_THE_FUNDS_PAGE } from "../../../src/funds/tracking/items-look";
@@ -50,7 +51,7 @@ class TrackedSheet {
   drawn(): HTMLElement {
     const root = obsidianDocument().createElement("div");
     obsidianDocument().body.append(root);
-    addImportedPanels(root, this.primary, importedNoteWith(this.name), this.tracking);
+    for (const tree of importedPanels(this.primary, importedNoteWith(this.name), this.tracking)) mountTree(tree, root);
     return root;
   }
 }

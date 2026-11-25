@@ -1185,15 +1185,15 @@
  {
   "id": "Depart only on a note in Characters",
   "file": "src/characters/pages/character-sheet-page.ts",
-  "find": "    if (this.isUpdatable(file, read.campaignFolder)) {\n      addDepartButton",
-  "replace": "    if (file.path !== \"\") {\n      addDepartButton",
+  "find": "    if (updatable) trees.push(new Div({ cls: [\"dd-sheet-depart\"] }",
+  "replace": "    if (file.path !== \"\") trees.push(new Div({ cls: [\"dd-sheet-depart\"] }",
   "group": "depart"
  },
  {
   "id": "Depart is at the page's bottom",
   "file": "src/characters/pages/character-sheet-page.ts",
-  "find": "    this.mentions.draw(root.createEl(\"section\", { cls: \"dd-sheet-mentions\" }), file);\n    if (this.isUpdatable(file, read.campaignFolder)) {\n      addDepartButton({ parent: root.createDiv({ cls: \"dd-sheet-depart\" }), path: file.path, action: this.actions, focus: this.focusEdit });\n    }\n",
-  "replace": "    if (this.isUpdatable(file, read.campaignFolder)) {\n      addDepartButton({ parent: root.createDiv({ cls: \"dd-sheet-depart\" }), path: file.path, action: this.actions, focus: this.focusEdit });\n    }\n    this.mentions.draw(root.createEl(\"section\", { cls: \"dd-sheet-mentions\" }), file);\n",
+  "find": "    trees.push(new Section({ cls: [\"dd-sheet-mentions\"], bindings: [new HandleRequest(mentionsPlace)] }));\n    if (updatable) trees.push(new Div({ cls: [\"dd-sheet-depart\"] }, [departButton(file.path, this.actions, this.focusEdit)]));\n",
+  "replace": "    if (updatable) trees.push(new Div({ cls: [\"dd-sheet-depart\"] }, [departButton(file.path, this.actions, this.focusEdit)]));\n    trees.push(new Section({ cls: [\"dd-sheet-mentions\"], bindings: [new HandleRequest(mentionsPlace)] }));\n",
   "group": "depart"
  }
 ]

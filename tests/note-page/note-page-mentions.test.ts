@@ -6,6 +6,7 @@ import { Drafts } from "../../src/session-notes/drafts/drafts";
 import { IN_THE_NOTES } from "../../src/characters/pages/mentions-panel";
 import { obsidianDocument } from "../stubs/obsidian-dom";
 import { FakeNotes } from "../note-editing/fake-notes";
+import { AT_ONCE_PAUSES } from "../host/made-up-pauses";
 import { fakeMentionNotes, NO_MENTIONS, type FakeMentionSetup } from "./fake-mention-notes";
 
 const OLD_MILL = "Pale Moon/Places/Old Mill.md";
@@ -40,7 +41,7 @@ async function open({ path, mentions }: Opened) {
     drafts: new NoteDrafts(new Drafts({}, () => {})),
     saver: new NoteSaver(notes.store),
     actions,
-    mentionNotes: mentioned.notes,
+    mentionNotes: mentioned.notes, pauses: AT_ONCE_PAUSES,
     isCampaignNote: () => true,
     openInEditor: vi.fn(),
   };

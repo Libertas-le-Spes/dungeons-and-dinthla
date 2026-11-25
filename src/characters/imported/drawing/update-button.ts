@@ -1,6 +1,7 @@
 import type { NoteRef } from "../../../host/notes/note-ref";
 import type { ButtonAction } from "../../../views/components/buttons/action-button";
-import { addBeyondButton } from "./beyond-button";
+import { beyondButton } from "./beyond-button";
+import type { ViewElement } from "../../../views/elements/view-element";
 
 export const UPDATE_FROM_BEYOND = "Update from D&D Beyond";
 
@@ -19,6 +20,6 @@ class UpdateRun implements ButtonAction {
   }
 }
 
-export function addUpdateButton(head: HTMLElement, file: NoteRef, action: UpdateAction): void {
-  addBeyondButton(head, UPDATE_FROM_BEYOND, new UpdateRun(file, action));
+export function updateButton(file: NoteRef, action: UpdateAction): ViewElement {
+  return beyondButton(UPDATE_FROM_BEYOND, new UpdateRun(file, action));
 }

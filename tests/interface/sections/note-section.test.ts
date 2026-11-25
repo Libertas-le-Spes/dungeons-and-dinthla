@@ -6,11 +6,12 @@ import { NotePage } from "../../../src/note-page/note-page";
 import type { NoteSaver } from "../../../src/note-editing/note-saver";
 import { Drafts } from "../../../src/session-notes/drafts/drafts";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { AT_ONCE_PAUSES } from "../../host/made-up-pauses";
 import { fakeMentionNotes, NO_MENTIONS } from "../../note-page/fake-mention-notes";
 
 function made(path: string | null) {
   const texts = { read: vi.fn(async () => "The wheel turns."), onChanged: () => () => {}, onGone: () => () => {} };
-  const needs = { texts, drafts: new NoteDrafts(new Drafts({}, () => {})), saver: {} as NoteSaver, actions: { openRow: vi.fn(), openLink: vi.fn() }, mentionNotes: fakeMentionNotes(NO_MENTIONS).notes, isCampaignNote: () => true, openInEditor: vi.fn() };
+  const needs = { texts, drafts: new NoteDrafts(new Drafts({}, () => {})), saver: {} as NoteSaver, actions: { openRow: vi.fn(), openLink: vi.fn() }, mentionNotes: fakeMentionNotes(NO_MENTIONS).notes, pauses: AT_ONCE_PAUSES, isCampaignNote: () => true, openInEditor: vi.fn() };
   const root = obsidianDocument().createElement("div");
   const page = noteSection(needs)(root, vi.fn(), path, vi.fn());
   page.load();

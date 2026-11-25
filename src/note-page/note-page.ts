@@ -8,10 +8,16 @@ import { LeftCampaign } from "./left-campaign";
 import { NoteEditing, type NoteEditingNeeds } from "../note-editing/note-editing";
 import { NoteLinks } from "./note-links";
 import { noteTitleOf } from "./note-title";
+import type { Pauses } from "../host/keeping/pauses";
+import { HandleRequest } from "../views/elements/bindings/bindings";
+import { KeptHandle } from "../views/elements/bindings/kept-handle";
+import { Section } from "../views/elements/kinds/containers";
+import { mountTree } from "../obsidian/views/mount/mount-tree";
 
 export interface NotePageNeeds extends NoteEditingNeeds {
   actions: LinkActions;
   mentionNotes: MentionNotes;
+  pauses: Pauses;
   isCampaignNote(path: string): boolean;
   openInEditor(path: string): void;
 }
@@ -63,11 +69,13 @@ export class NotePage extends Component {
     if (campaignOfReference(placeReferenceKind, this.path, notes.campaignFolders()) === null) return;
     const file = notes.fileAt(this.path);
     if (file === null) return;
-    const mentions = new MentionsPanel(notes, this.needs.actions);
+    const mentions = new MentionsPanel(notes, this.needs.actions, this.needs.pauses);
     this.mentions = mentions;
     this.register(mentions.watch());
     this.register(() => mentions.clear());
-    mentions.draw(root.createEl("section", { cls: "dd-note-mentions" }), file);
+    const place = new KeptHandle();
+    mountTree(new Section({ cls: ["dd-note-mentions"], bindings: [new HandleRequest(place)] }), root);
+    mentions.draw(place, file);
   }
 
   private sayIfLeftCampaign(root: HTMLElement): void {

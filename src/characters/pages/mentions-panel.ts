@@ -1,6 +1,13 @@
-import { debounce, type Debouncer } from "obsidian";
 import type { NoteRef } from "../../host/notes/note-ref";
-import { addLinkedText, addRowButton, type LinkActions } from "../../views/lists/linked-text";
+import type { Pause, Pauses } from "../../host/keeping/pauses";
+import type { Source } from "../../campaign/record/campaign";
+import type { LinkOpener } from "../../views/components/rows/link-name";
+import { LinkedText } from "../../views/components/rows/linked-text";
+import { SourceRow } from "../../views/components/rows/source-row";
+import type { KeptHandle } from "../../views/elements/bindings/kept-handle";
+import { RunAction } from "../../views/elements/bindings/run-action";
+import { Div, Heading2, List, ListItem, Paragraph, Span } from "../../views/elements/kinds/containers";
+import type { ViewElement } from "../../views/elements/view-element";
 import { messageOf } from "../../views/dialogs/message-of";
 import type { MentionNotes } from "../reading/mention-notes";
 import { readMentions, type Mention } from "../reading/mentions";
@@ -9,6 +16,10 @@ import { PendingWork } from "../../views/pending/pending-work";
 export const IN_THE_NOTES = "In the notes";
 
 const SETTLE_MS = 200;
+
+export interface MentionActions extends LinkOpener {
+  openRow(source: Source): void;
+}
 
 export function noMentions(file: NoteRef): string {
   return `No session mentions [[${file.basename}]] yet.`;
@@ -25,7 +36,7 @@ function countText(count: number): string {
 
 interface Shown {
   file: NoteRef;
-  parent: HTMLElement;
+  place: KeptHandle;
   mentions: Mention[] | null;
   reading: boolean;
 }
@@ -35,22 +46,27 @@ function listedPaths(shown: Shown): string[] {
   return shown.mentions.map((mention) => mention.source.path);
 }
 
+function headOf(count: readonly ViewElement[]): ViewElement {
+  return new Div({ cls: ["dd-head"] }, [new Heading2({ cls: ["dd-title"], text: IN_THE_NOTES }, count)]);
+}
+
 export class MentionsPanel {
   private renders = 0;
   private shown: Shown | null = null;
   private readonly reading = new PendingWork();
-  private readonly readSoon: Debouncer<[Shown], void>;
+  private readonly readSoon: Pause<[Shown]>;
 
   constructor(
     private readonly notes: MentionNotes,
-    private readonly actions: LinkActions,
+    private readonly actions: MentionActions,
+    pauses: Pauses,
   ) {
-    this.readSoon = debounce((shown: Shown) => this.startReading(shown), SETTLE_MS, true);
+    this.readSoon = pauses.pauseOf(this.startReading.bind(this), SETTLE_MS);
   }
 
   watch(): () => void {
-    const stopResolved = this.notes.onLinksResolved((path) => this.readIfShown(path, true));
-    const stopMoved = this.notes.onNoteMoved((path) => this.readIfShown(path, false));
+    const stopResolved = this.notes.onLinksResolved(this.readIfShown.bind(this, true));
+    const stopMoved = this.notes.onNoteMoved(this.readIfShown.bind(this, false));
     return () => {
       stopResolved();
       stopMoved();
@@ -64,16 +80,16 @@ export class MentionsPanel {
     this.readSoon.cancel();
   }
 
-  draw(parent: HTMLElement, file: NoteRef): void {
+  draw(place: KeptHandle, file: NoteRef): void {
     const shown = this.shown;
     if (shown === null || shown.file.path !== file.path) {
-      const next = { file, parent, mentions: null, reading: false };
+      const next = { file, place, mentions: null, reading: false };
       this.shown = next;
       this.startReading(next);
       return;
     }
     shown.file = file;
-    shown.parent = parent;
+    shown.place = place;
     if (shown.mentions !== null) this.drawMentions(shown, shown.mentions);
     else if (!shown.reading) this.startReading(shown);
   }
@@ -86,11 +102,11 @@ export class MentionsPanel {
     this.reading.add(this.read(shown));
   }
 
-  private readIfShown(path: string, orNowLinking: boolean): void {
+  private readIfShown(orNowLinking: boolean, path: string): void {
     const shown = this.shown;
     if (shown === null) return;
     const listed = listedPaths(shown).includes(path);
-    if (listed || (orNowLinking && this.notes.linkedLines(path, shown.file.path).length > 0)) this.readSoon(shown);
+    if (listed || (orNowLinking && this.notes.linkedLines(path, shown.file.path).length > 0)) this.readSoon.call(shown);
   }
 
   private async read(shown: Shown): Promise<void> {
@@ -106,31 +122,28 @@ export class MentionsPanel {
       if (render !== this.renders) return;
       shown.reading = false;
       shown.mentions = null;
-      shown.parent.empty();
-      this.addTitle(shown.parent);
-      shown.parent.createEl("p", { cls: "dd-empty", text: couldNotReadMentions(shown.file, error) });
+      shown.place.showInside([headOf([]), new Paragraph({ cls: ["dd-empty"], text: couldNotReadMentions(shown.file, error) })]);
     }
-  }
-
-  private addTitle(parent: HTMLElement): HTMLElement {
-    return parent.createDiv({ cls: "dd-head" }).createEl("h2", { cls: "dd-title", text: IN_THE_NOTES });
   }
 
   private drawMentions(shown: Shown, mentions: Mention[]): void {
-    const parent = shown.parent;
-    parent.empty();
-    const title = this.addTitle(parent);
     if (mentions.length === 0) {
-      parent.createEl("p", { cls: "dd-empty", text: noMentions(shown.file) });
+      shown.place.showInside([headOf([]), new Paragraph({ cls: ["dd-empty"], text: noMentions(shown.file) })]);
       return;
     }
-    title.createSpan({ cls: "dd-count", text: countText(mentions.length) });
-    const list = parent.createEl("ul", { cls: "dd-list" });
-    for (const mention of mentions) {
-      const row = addRowButton(list, mention.source, this.actions);
-      const body = row.createSpan({ cls: "dd-body" });
-      addLinkedText(body.createSpan({ cls: "dd-text" }), mention.text, [], mention.source.path, this.actions);
-      body.createSpan({ cls: "dd-meta", text: mention.where });
-    }
+    const rows: ViewElement[] = [];
+    for (const mention of mentions) rows.push(this.rowOf(mention));
+    shown.place.showInside([headOf([new Span({ cls: ["dd-count"], text: countText(mentions.length) })]), new List({ cls: ["dd-list"] }, rows)]);
+  }
+
+  private rowOf(mention: Mention): ViewElement {
+    const linked = new LinkedText([], mention.source.path, this.actions).build(mention.text);
+    const body = new Span({ cls: ["dd-body"] }, [new Span({ cls: ["dd-text"] }, linked), new Span({ cls: ["dd-meta"], text: mention.where })]);
+    const open = new RunAction(this.openRow.bind(this, mention.source));
+    return new ListItem({}, [new SourceRow(mention.source, open).build([body])]);
+  }
+
+  private openRow(source: Source): void {
+    this.actions.openRow(source);
   }
 }
