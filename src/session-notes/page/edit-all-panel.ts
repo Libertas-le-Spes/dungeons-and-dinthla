@@ -1,4 +1,5 @@
 import { NoteEditing, type NoteEditingNeeds } from "../../note-editing/note-editing";
+import { mountTree } from "../../obsidian/views/mount/mount-tree";
 
 const TITLE = "Notes · Edit all";
 const DONE = "Done";
@@ -38,9 +39,12 @@ export class EditAllPanel {
 
   open(): void {
     if (this.editing !== null) return;
-    this.editing = new NoteEditing(this.body, this.path, this.needs, this);
+    const editing = new NoteEditing(this.path, this.needs, this);
+    this.editing = editing;
+    for (const tree of editing.trees()) mountTree(tree, this.body);
+    editing.start();
     this.panel.toggle(true);
-    this.editing.focus();
+    editing.focus();
   }
 
   async settled(): Promise<void> {

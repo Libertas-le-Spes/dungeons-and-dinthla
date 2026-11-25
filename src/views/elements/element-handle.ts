@@ -10,6 +10,7 @@ export interface ElementHandle {
   setValue(value: string): void;
   setTabIndex(index: number): void;
   setDisabled(disabled: boolean): void;
+  setReadOnly(readOnly: boolean): void;
   showInside(trees: readonly ViewElement[]): void;
   isShown(): boolean;
 }

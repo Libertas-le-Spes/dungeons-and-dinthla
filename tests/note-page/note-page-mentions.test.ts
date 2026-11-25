@@ -7,6 +7,8 @@ import { IN_THE_NOTES } from "../../src/characters/pages/mentions-panel";
 import { obsidianDocument } from "../stubs/obsidian-dom";
 import { FakeNotes } from "../note-editing/fake-notes";
 import { AT_ONCE_PAUSES } from "../host/made-up-pauses";
+import { PageFrame } from "../../src/obsidian/views/frames/page-frame";
+import { PLAIN_KIT } from "../../src/obsidian/views/mount/mount-kit";
 import { fakeMentionNotes, NO_MENTIONS, type FakeMentionSetup } from "./fake-mention-notes";
 
 const OLD_MILL = "Pale Moon/Places/Old Mill.md";
@@ -45,8 +47,8 @@ async function open({ path, mentions }: Opened) {
     isCampaignNote: () => true,
     openInEditor: vi.fn(),
   };
-  const page = new NotePage(root, path, needs);
-  page.load();
+  const page = new NotePage(path, needs);
+  new PageFrame(root, page, PLAIN_KIT).load();
   await page.editingSettled();
   return { root, page, actions, stopped: mentioned.stopped };
 }
@@ -142,7 +144,7 @@ describe("NotePage, In the notes", () => {
       release = resolve;
     });
     const { root, page } = await open({ path: OLD_MILL, mentions: { ...MILL_IN_TWO_SESSIONS, readyToRead } });
-    page.unload();
+    page.closed();
     release();
     await page.mentionsSettled();
     expect(root.querySelector(".dd-note-mentions .dd-title")).toBeNull();
@@ -151,7 +153,7 @@ describe("NotePage, In the notes", () => {
   it("stops watching the links when the page is closed", async () => {
     const { page, stopped } = await opened({ path: OLD_MILL, mentions: MILL_IN_TWO_SESSIONS });
     expect(stopped).toEqual([]);
-    page.unload();
+    page.closed();
     expect(stopped.sort()).toEqual(["moved", "resolved"]);
   });
 });

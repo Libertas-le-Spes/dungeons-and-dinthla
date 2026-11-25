@@ -6,6 +6,7 @@ import { NotePage } from "../../../src/note-page/note-page";
 import type { NoteSaver } from "../../../src/note-editing/note-saver";
 import { Drafts } from "../../../src/session-notes/drafts/drafts";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import type { PageFrame } from "../../../src/obsidian/views/frames/page-frame";
 import { AT_ONCE_PAUSES } from "../../host/made-up-pauses";
 import { fakeMentionNotes, NO_MENTIONS } from "../../note-page/fake-mention-notes";
 
@@ -21,14 +22,14 @@ function made(path: string | null) {
 describe("noteSection", () => {
   it("makes the note page for the note the tab shows", async () => {
     const { page, root, texts } = made("Pale Moon/Places/Old Mill.md");
-    expect(page).toBeInstanceOf(NotePage);
+    expect((page as PageFrame).page).toBeInstanceOf(NotePage);
     expect(root.querySelector("h2")!.textContent).toBe("Old Mill");
     expect(texts.read).toHaveBeenCalledExactlyOnceWith("Pale Moon/Places/Old Mill.md");
   });
 
   it("says to open a note when the tab shows none", () => {
     const { page, root, texts } = made(null);
-    expect(page).toBeInstanceOf(NoNotePage);
+    expect((page as PageFrame).page).toBeInstanceOf(NoNotePage);
     expect(root.querySelector(".dd-empty")?.textContent).toBe("No note open.");
     expect(texts.read).not.toHaveBeenCalled();
   });
