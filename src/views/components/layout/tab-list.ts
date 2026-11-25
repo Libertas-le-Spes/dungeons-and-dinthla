@@ -38,22 +38,16 @@ export class TabList {
     this.prefix = `dd-tabs-${tabListsMade}`;
   }
 
-  build(): ViewElement[] {
+  build(contents: readonly (readonly ViewElement[])[]): ViewElement[] {
     const buttons: Button[] = [];
     for (const [index, name] of this.names.entries()) buttons.push(this.button(index, name));
     const built: ViewElement[] = [new Div({ cls: ["dd-tabs"], role: "tablist", label: this.label }, buttons)];
-    for (const index of this.names.keys()) built.push(this.panel(index));
+    for (const [index, children] of contents.entries()) built.push(this.panel(index, children));
     return built;
   }
 
   select(name: string): void {
     this.selectAt(this.names.indexOf(name), false);
-  }
-
-  panelAt(index: number): ElementHandle | null {
-    const kept = this.panels[index];
-    if (kept === undefined) return null;
-    return kept.handle;
   }
 
   selectAt(selected: number, focus: boolean): void {
@@ -93,10 +87,10 @@ export class TabList {
     return new Button({ cls: ["dd-tab"], text: name, role: "tab", id: ids.tab, controls: ids.panel, bindings });
   }
 
-  private panel(index: number): Div {
+  private panel(index: number, children: readonly ViewElement[]): Div {
     const ids = this.idsOf(index);
     const kept = new KeptHandle();
     this.panels.push(kept);
-    return new Div({ cls: ["dd-tab-panel"], role: "tabpanel", id: ids.panel, labelledBy: ids.tab, bindings: [new HandleRequest(kept)] });
+    return new Div({ cls: ["dd-tab-panel"], role: "tabpanel", id: ids.panel, labelledBy: ids.tab, bindings: [new HandleRequest(kept)] }, children);
   }
 }

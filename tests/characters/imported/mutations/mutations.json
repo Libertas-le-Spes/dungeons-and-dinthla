@@ -540,7 +540,7 @@
  },
  {
   "id": "funds page: names keep escapes",
-  "file": "src/funds/page/funds-page.ts",
+  "file": "src/funds/page/rows/item-row.ts",
   "find": "text: shownItemName(item.name) });",
   "replace": "text: item.name });",
   "group": "panels"
@@ -1114,8 +1114,8 @@
  },
  {
   "id": "funds row: how many are left",
-  "file": "src/funds/page/funds-page.ts",
-  "find": "    if (goneWord === null && item.held > 1) meta.appendText(`× ${item.held} · `);\n",
+  "file": "src/funds/page/rows/item-row.ts",
+  "find": "    if (goneWord === null && item.held > 1) meta.push(new PlainText(`× ${item.held} · `));\n",
   "replace": "",
   "group": "holdings"
  },

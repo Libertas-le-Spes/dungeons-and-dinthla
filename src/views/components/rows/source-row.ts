@@ -10,6 +10,7 @@ const OPENING_KEYS = ["Enter", " "];
 export interface RowExtras {
   readonly cls: readonly string[];
   readonly dataItem?: string;
+  readonly current?: string;
   readonly bindings: readonly ElementBinding[];
 }
 
@@ -23,6 +24,6 @@ export class SourceRow {
 
   build(children: readonly ViewElement[], extra: RowExtras = NO_EXTRAS): Div {
     const bindings = [new PressBinding(this.open), new KeyBinding(OPENING_KEYS, this.open), ...extra.bindings];
-    return new Div({ cls: ["dd-row", ...extra.cls], role: "button", tabIndex: 0, dataPath: this.source.path, dataLine: this.source.line, dataItem: extra.dataItem, bindings }, children);
+    return new Div({ cls: ["dd-row", ...extra.cls], role: "button", tabIndex: 0, dataPath: this.source.path, dataLine: this.source.line, dataItem: extra.dataItem, current: extra.current, bindings }, children);
   }
 }
