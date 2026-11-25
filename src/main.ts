@@ -6,10 +6,8 @@ import {
   campaignFolderOf,
   charactersFolderOf,
   chosenCampaignFolder,
-  findCampaignFolders,
   isCampaignNote,
   isSessionNote,
-  startingCampaignFolder,
 } from "./campaign/paths/campaign-folders";
 import { NewCampaignDialog } from "./campaign/writing/new-campaign-dialog";
 import { CampaignStore } from "./campaign/reading/campaign-store";
@@ -62,7 +60,6 @@ import { pathYouAreIn, shownCampaignPathOf } from "./obsidian/interface/view/sho
 import { takeOpenLeaves } from "./obsidian/interface/takeover/take-open-leaves";
 import { patchSetViewState, type ChangeViewState } from "./obsidian/interface/takeover/view-state-patch";
 import { CAMPAIGN_VIEW, CampaignView } from "./obsidian/interface/view/campaign-view";
-import { lookAgain } from "./interface/view/look-again";
 import { openCampaignPage } from "./obsidian/interface/tabs/open-campaign";
 import { TabBackground } from "./obsidian/interface/view/tab-background";
 import { closeRetiredViews } from "./obsidian/interface/takeover/retired-views";
@@ -92,6 +89,7 @@ import { sessionHeadingOf } from "./sessions/session-heading";
 import { startSession } from "./sessions/start-session";
 import { PluginDrafts } from "./plugin/plugin-drafts";
 import { NoteKeeping } from "./plugin/note-keeping";
+import { CampaignFollowing } from "./plugin/campaign-following";
 import { NOTICE_STAYS_UNTIL_DISMISSED } from "./views/dialogs/notice-stays";
 import { ConfirmDialog, type ConfirmText } from "./views/dialogs/confirm-dialog";
 import { BeyondOpeners, type BeyondWiring } from "./imports/dialog/opening/beyond-openers";
@@ -123,6 +121,15 @@ export default class DungeonsAndDinthla extends Plugin {
     this.store,
     () => this.lookAgain(),
   );
+  private readonly following = new CampaignFollowing({
+    notes: this.notes,
+    store: this.store,
+    saved: this.saved,
+    telling: OBSIDIAN_TELLING,
+    activePath: () => activePathOf(this.app),
+    showBackgrounds: () => this.showBackgrounds(),
+    showCampaignTabsAgain: () => this.showCampaignTabsAgain(),
+  });
   private readonly keptAgreement = new KeptAgreement({
     settings: {
       agreed: () => this.settingsSaver.settings.beyondAgreed,
@@ -387,14 +394,8 @@ export default class DungeonsAndDinthla extends Plugin {
     };
   }
 
-  private async lookAgain(): Promise<void> {
-    await lookAgain({
-      startingCampaignFolder: () => this.startingCampaignFolder(),
-      closeCampaign: () => this.store.close(),
-      chooseCampaign: (folder) => this.chosen.choose(folder),
-      showBackgrounds: () => this.showBackgrounds(),
-      showCampaignTabsAgain: () => this.showCampaignTabsAgain(),
-    });
+  private lookAgain(): Promise<void> {
+    return this.following.lookAgain();
   }
 
   private showCampaignTabsAgain(): void {
@@ -433,28 +434,18 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private async startCampaign(help: Help): Promise<void> {
-    await this.watchCampaign();
+    this.watchEditors();
+    this.keepNotes();
+    await this.following.start();
+    this.register(this.following.stop.bind(this.following));
     await help.start();
   }
 
-  private async watchCampaign(): Promise<void> {
-    this.watchNotes();
-    this.keepNotes();
-    const folder = this.startingCampaignFolder();
-    if (folder !== null) await this.chosen.choose(folder);
-  }
-
-  private watchNotes(): void {
+  private watchEditors(): void {
     const editorChanged = debounce((info: MarkdownFileInfo, file: TFile) => this.readEditor(info, file), TYPING_PAUSE_MS, true);
     this.register(() => editorChanged.cancel());
     this.registerEvent(this.app.workspace.on("editor-change", (_editor, info) => {
       if (info.file !== null) editorChanged(info, info.file);
-    }));
-    this.registerEvent(this.gate.metadata.on("changed", (file, text) => this.store.noteChanged(file.path, text)));
-    this.registerEvent(this.gate.files.on("delete", (file) => this.store.noteDeleted(file.path)));
-    this.registerEvent(this.gate.files.on("rename", (file, oldPath) => void this.store.noteRenamed(file.path, oldPath)));
-    this.registerEvent(this.gate.files.on("rename", (file, oldPath) => {
-      this.chosen.renamed(file.path, oldPath).catch((error: unknown) => new Notice(`Couldn't keep the chosen campaign: ${messageOf(error)}`));
     }));
     this.registerEvent(this.app.workspace.on("file-open", (file) => {
       if (file !== null) void this.followCampaignOf(file.path);
@@ -496,11 +487,7 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private campaignFolders(): string[] {
-    return findCampaignFolders(this.gate.files.getFiles().map((file) => file.path), this.campaignsFolderSetting.path);
-  }
-
-  private startingCampaignFolder(): string | null {
-    return startingCampaignFolder(activePathOf(this.app), this.chosen.folder, this.campaignFolders());
+    return this.following.campaignFolders();
   }
 
   private keepDollarsPlain(): void {
@@ -520,10 +507,8 @@ export default class DungeonsAndDinthla extends Plugin {
     return this.gate.files.getFileByPath(path) !== null;
   }
 
-  private async followCampaignOf(path: string): Promise<void> {
-    const folder = campaignFolderOf(path, this.campaignFolders());
-    if (folder === null || folder === this.store.campaignFolder) return;
-    await this.chosen.choose(folder);
+  private followCampaignOf(path: string): Promise<void> {
+    return this.following.followCampaignOf(path);
   }
 }
 
