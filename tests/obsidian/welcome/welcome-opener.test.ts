@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { App, WorkspaceLeaf } from "obsidian";
 import { CAMPAIGN_VIEW } from "../../../src/interface/view/campaign-view";
-import { welcomeOpenerOf } from "../../../src/welcome/opening/welcome-opener";
+import { welcomeOpenerOf } from "../../../src/obsidian/welcome/welcome-opener";
 
 function appWith() {
   const newLeaf = { setViewState: vi.fn() } as unknown as WorkspaceLeaf;

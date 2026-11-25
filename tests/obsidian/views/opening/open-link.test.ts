@@ -1,15 +1,15 @@
-import { notesOverFakes } from "../../host/notes-over-fakes";
-import { STUB_SPELLING } from "../../host/stub-spelling";
+import { notesOverFakes } from "../../../host/notes-over-fakes";
+import { STUB_SPELLING } from "../../../host/stub-spelling";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { App, TFile, TFolder } from "obsidian";
-import { Fence } from "../../../src/fence/paths/fence";
-import { FencedFiles } from "../../../src/fence/gate/fenced-files";
-import { FencedMetadata, type RawMetadata } from "../../../src/fence/gate/fenced-metadata";
-import { HeldFiles } from "../../../src/fence/gate/held-files";
-import { NoteReporter } from "../../../src/fence/gate/written-notes";
-import { notInCampaign, openLink } from "../../../src/views/opening/open-link";
-import { fileAt, folderAt, rawVaultWith } from "../../fence/gate/fake-raw-vault";
-import { Notice } from "../../stubs/obsidian";
+import { Fence } from "../../../../src/fence/paths/fence";
+import { FencedFiles } from "../../../../src/fence/gate/fenced-files";
+import { FencedMetadata, type RawMetadata } from "../../../../src/fence/gate/fenced-metadata";
+import { HeldFiles } from "../../../../src/fence/gate/held-files";
+import { NoteReporter } from "../../../../src/fence/gate/written-notes";
+import { notInCampaign, openLink } from "../../../../src/obsidian/views/opening/open-link";
+import { fileAt, folderAt, rawVaultWith } from "../../../fence/gate/fake-raw-vault";
+import { Notice } from "../../../stubs/obsidian";
 
 const CAMPAIGN = "D&D/Pale Moon";
 const SESSION = fileAt("D&D/Pale Moon/Sessions/Session 1.md");

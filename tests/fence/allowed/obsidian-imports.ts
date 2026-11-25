@@ -1,7 +1,6 @@
 export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "interface/view/campaign-switcher.ts": ["Component", "Menu", "Notice", "setIcon"],
   "campaign/": ["CachedMetadata", "MarkdownFileInfo", "Platform", "TFile"],
-  "characters/": ["Component"],
   "editor/": ["editorInfoField"],
   "fence/": ["App", "CachedMetadata", "Component", "EventRef", "Events", "FileManager", "MetadataCache", "TAbstractFile", "TFile", "TFolder", "Vault"],
   "interface/": ["App", "Component", "EventRef", "ItemView", "PluginManifest", "TAbstractFile", "TFile", "ViewState", "ViewStateResult", "Workspace", "WorkspaceLeaf"],
@@ -12,6 +11,9 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "obsidian/notes/obsidian-spelling.ts": ["normalizePath"],
   "obsidian/notes/obsidian-syntax.ts": ["getFrontMatterInfo", "getLinkpath", "parseYaml"],
   "obsidian/online/obsidian-beyond-call.ts": ["requestUrl"],
+  "obsidian/welcome/welcome-opener.ts": ["App"],
+  "obsidian/views/opening/open-link.ts": ["App", "Notice", "PaneType", "parseLinktext"],
+  "obsidian/views/opening/open-view.ts": ["App"],
   "obsidian/views/frames/obsidian-telling.ts": ["ButtonComponent", "Notice"],
   "obsidian/views/frames/page-frame.ts": ["Component"],
   "obsidian/views/frames/modal-frame.ts": ["App", "Modal"],
@@ -20,8 +22,5 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "obsidian/views/mount/obsidian-mounter.ts": ["ToggleComponent"],
   "obsidian/views/mount/obsidian-wiring.ts": ["Keymap"],
   "reading/": ["Debouncer", "MarkdownPostProcessorContext", "MarkdownSectionInformation", "debounce"],
-  "session-notes/": ["Component", "EventRef"],
   "settings/": ["App", "ButtonComponent", "DropdownComponent", "FuzzySuggestModal", "Notice", "Plugin", "PluginSettingTab", "Setting", "TFile"],
-  "views/": ["App", "Notice", "PaneType", "parseLinktext"],
-  "welcome/": ["App"],
 };
