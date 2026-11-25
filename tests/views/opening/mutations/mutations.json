@@ -50,14 +50,14 @@
  },
  {
   "id": "the tab passes the line on",
-  "file": "src/interface/view/campaign-view.ts",
+  "file": "src/obsidian/interface/view/campaign-view.ts",
   "find": "    this.needs.wantedLines.want(path, line);\n",
   "replace": "",
   "group": "go to the line"
  },
  {
   "id": "the tab passes a line on only with one",
-  "file": "src/interface/view/campaign-view.ts",
+  "file": "src/obsidian/interface/view/campaign-view.ts",
   "find": "    if (line === null || path === null) return;",
   "replace": "    if (path === null) return;",
   "group": "go to the line"

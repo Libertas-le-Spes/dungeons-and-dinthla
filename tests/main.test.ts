@@ -8,13 +8,13 @@ import { MadeUpDevice } from "./imports/agreement/made-up-device";
 import { pressOn } from "./imports/agreement/shown-parts";
 import { obsidianDocument } from "./stubs/obsidian-dom";
 import type { WelcomeAgreement } from "../src/welcome/endings/welcome-ending";
-import type { WelcomeWiringNeeds } from "../src/interface/sections/welcome-wiring";
+import type { WelcomeWiringNeeds } from "../src/obsidian/interface/sections/welcome-wiring";
 import { mountedIn } from "./imports/agreement/shown-parts";
 
 const wired = vi.hoisted(() => ({ agreement: null as unknown }));
 
-vi.mock("../src/interface/sections/welcome-wiring", async (importOriginal) => {
-  const original = await importOriginal<typeof import("../src/interface/sections/welcome-wiring")>();
+vi.mock("../src/obsidian/interface/sections/welcome-wiring", async (importOriginal) => {
+  const original = await importOriginal<typeof import("../src/obsidian/interface/sections/welcome-wiring")>();
   return {
     ...original,
     welcomeWiring: (needs: WelcomeWiringNeeds) => {

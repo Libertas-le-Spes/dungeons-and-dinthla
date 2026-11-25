@@ -1,7 +1,7 @@
 export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
-  "interface/view/campaign-switcher.ts": ["Component", "Menu", "Notice", "setIcon"],
+  "obsidian/interface/view/campaign-switcher.ts": ["Component", "Menu", "Notice", "setIcon"],
   "fence/": ["App", "CachedMetadata", "Component", "EventRef", "Events", "FileManager", "MetadataCache", "TAbstractFile", "TFile", "TFolder", "Vault"],
-  "interface/": ["App", "Component", "EventRef", "ItemView", "PluginManifest", "TAbstractFile", "TFile", "ViewState", "ViewStateResult", "Workspace", "WorkspaceLeaf"],
+  "obsidian/interface/": ["App", "Component", "EventRef", "ItemView", "PluginManifest", "TAbstractFile", "TFile", "ViewState", "ViewStateResult", "Workspace", "WorkspaceLeaf"],
   "main.ts": ["MarkdownFileInfo", "MarkdownView", "Notice", "PaneType", "Plugin", "TFile", "ViewState", "WorkspaceLeaf", "debounce"],
   "obsidian/campaign/background/campaign-background.ts": ["CachedMetadata", "TFile"],
   "obsidian/campaign/background/picture-css.ts": ["Platform"],
