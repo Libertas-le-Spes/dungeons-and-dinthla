@@ -1,20 +1,21 @@
-import { ButtonComponent, Notice } from "obsidian";
-import { NOTICE_STAYS_UNTIL_DISMISSED } from "./notice-stays";
+import type { Telling } from "../../host/showing/telling";
 import type { AskAboutDifference } from "../../kind-notes/watching/differing-notes";
 
 export const FIX = "Fix";
 export const KEEP = "Keep";
 
-function addChoice(notice: Notice, text: string, choose: () => void): void {
-  new ButtonComponent(notice.messageEl).setButtonText(text).onClick(() => {
-    choose();
-    notice.hide();
-  });
+class DifferenceAsking {
+  constructor(private readonly telling: Pick<Telling, "ask">) {}
+
+  ask(message: string, fix: () => void, keepAsItIs: () => void): void {
+    this.telling.ask(message, [
+      { words: FIX, chosen: fix },
+      { words: KEEP, chosen: keepAsItIs },
+    ]);
+  }
 }
 
-export const askInNotice: AskAboutDifference = (message, fix, keepAsItIs) => {
-  const notice = new Notice("", NOTICE_STAYS_UNTIL_DISMISSED);
-  notice.messageEl.createSpan({ text: `${message} ` });
-  addChoice(notice, FIX, fix);
-  addChoice(notice, KEEP, keepAsItIs);
-};
+export function askInNoticeOf(telling: Pick<Telling, "ask">): AskAboutDifference {
+  const asking = new DifferenceAsking(telling);
+  return asking.ask.bind(asking);
+}

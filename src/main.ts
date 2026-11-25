@@ -46,7 +46,7 @@ import { ReferenceNotes } from "./references/making/reference-notes";
 import { DmNameQuestions } from "./references/asking/dm-name-questions";
 import { RoleRoutedNotes } from "./references/asking/role-routed-notes";
 import { FundsTracking } from "./funds/tracking/funds-tracking";
-import { askInNotice } from "./views/dialogs/differing-notice";
+import { askInNoticeOf } from "./views/dialogs/differing-notice";
 import { startKindNotes } from "./kind-notes/watching/kind-notes-wiring";
 import { NotesMade } from "./settings/saved/notes-made";
 import { ledgerEntryOpener } from "./funds/coins/open-ledger-entry";
@@ -97,7 +97,7 @@ import { Drafts } from "./session-notes/drafts/drafts";
 import type { KeptDrafts } from "./session-notes/kept/kept-drafts";
 import { DraftKeeping } from "./session-notes/kept/draft-keeping";
 import { NOTICE_STAYS_UNTIL_DISMISSED } from "./views/dialogs/notice-stays";
-import { ConfirmModal, type ConfirmText } from "./views/dialogs/confirm-modal";
+import { ConfirmDialog, type ConfirmText } from "./views/dialogs/confirm-dialog";
 import { BeyondOpeners, type BeyondWiring } from "./imports/dialog/opening/beyond-openers";
 import { CampaignAgreement } from "./imports/agreement/campaign-agreement";
 import { KeptAgreement } from "./imports/agreement/kept-agreement";
@@ -253,7 +253,7 @@ export default class DungeonsAndDinthla extends Plugin {
         openLedgerEntry,
       },
       wantedLines,
-      confirm: (text: ConfirmText, confirmed: () => void, closed: () => void) => new ConfirmModal(this.app, text, confirmed, closed).open(),
+      confirm: (text: ConfirmText, confirmed: () => void, closed: () => void) => this.showing.dialogs.open(new ConfirmDialog(text, confirmed, closed)),
       campaignFolders: () => this.campaignFolders(),
       report: (message: string) => new Notice(message, NOTICE_STAYS_UNTIL_DISMISSED),
       startSession: newSession,
@@ -519,7 +519,7 @@ export default class DungeonsAndDinthla extends Plugin {
     this.register(items.start());
     this.register(references.start());
     this.register(dmQuestions.start());
-    this.register(startKindNotes({ notes, syntax, written: gate.written, saved, made, items, references: routed, say, ask: askInNotice }));
+    this.register(startKindNotes({ notes, syntax, written: gate.written, saved, made, items, references: routed, say, ask: askInNoticeOf(OBSIDIAN_TELLING) }));
     this.register(saved.start());
   }
 

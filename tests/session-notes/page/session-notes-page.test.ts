@@ -11,7 +11,7 @@ import { NoteSaver } from "../../../src/note-editing/note-saver";
 import { FakeNotes } from "../../note-editing/fake-notes";
 import { SessionClearer } from "../../../src/session-notes/removal/session-clearer";
 import { SessionTrash } from "../../../src/session-notes/removal/session-trash";
-import type { ConfirmText } from "../../../src/views/dialogs/confirm-modal";
+import type { ConfirmText } from "../../../src/views/dialogs/confirm-dialog";
 import type { SessionProperties } from "../../../src/sessions/session-properties";
 import { isShown, obsidianDocument } from "../../stubs/obsidian-dom";
 import { stubLineOpeners } from "../lines/stub-line-openers";

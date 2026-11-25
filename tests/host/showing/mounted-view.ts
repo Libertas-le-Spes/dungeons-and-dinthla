@@ -1,5 +1,5 @@
 import { mountTree } from "../../../src/obsidian/views/mount/mount-tree";
-import type { DialogView } from "../../../src/views/dialogs/dialog-view";
+import type { DialogView, Focusable } from "../../../src/views/dialogs/dialog-view";
 import type { ViewElement } from "../../../src/views/elements/view-element";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
@@ -15,6 +15,10 @@ export class MountedView implements DialogView {
   show(trees: readonly ViewElement[]): void {
     this.into.replaceChildren();
     for (const tree of trees) mountTree(tree, this.into);
+  }
+
+  focusOnceOpen(target: Focusable): void {
+    target.focus();
   }
 
   close(): void {

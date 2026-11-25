@@ -14,7 +14,7 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "obsidian/notes/obsidian-spelling.ts": ["normalizePath"],
   "obsidian/notes/obsidian-syntax.ts": ["getFrontMatterInfo", "getLinkpath", "parseYaml"],
   "obsidian/online/obsidian-beyond-call.ts": ["requestUrl"],
-  "obsidian/views/frames/obsidian-telling.ts": ["Notice"],
+  "obsidian/views/frames/obsidian-telling.ts": ["ButtonComponent", "Notice"],
   "obsidian/views/frames/modal-frame.ts": ["App", "Modal"],
   "obsidian/views/mount/mount-kit.ts": ["App"],
   "obsidian/views/mount/name-suggest.ts": ["AbstractInputSuggest", "App"],
@@ -23,7 +23,7 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "reading/": ["Debouncer", "MarkdownPostProcessorContext", "MarkdownSectionInformation", "debounce"],
   "session-notes/": ["Component", "EventRef"],
   "settings/": ["App", "ButtonComponent", "DropdownComponent", "FuzzySuggestModal", "Notice", "Plugin", "PluginSettingTab", "Setting", "TFile"],
-  "views/": ["App", "ButtonComponent", "Component", "Keymap", "Modal", "Notice", "PaneType", "parseLinktext"],
+  "views/": ["App", "ButtonComponent", "Component", "Keymap", "Notice", "PaneType", "parseLinktext"],
   "welcome/": ["App", "Component", "Notice", "PluginManifest"],
   "whats-new/": ["Component", "Notice"],
 };

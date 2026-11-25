@@ -1,4 +1,4 @@
-import type { ConfirmText } from "../../views/dialogs/confirm-modal";
+import type { ConfirmText } from "../../views/dialogs/confirm-dialog";
 
 const OTHERS_STAY = "Other sessions, and values learned on character sheets, stay.";
 const DELETED_PERMANENTLY = "Obsidian is set to delete files permanently, so the note can't be taken back from a trash.";

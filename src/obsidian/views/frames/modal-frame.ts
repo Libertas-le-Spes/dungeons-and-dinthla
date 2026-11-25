@@ -1,5 +1,5 @@
 import { Modal, type App } from "obsidian";
-import type { DialogView, Dialogs, ShownDialog } from "../../../views/dialogs/dialog-view";
+import type { DialogView, Dialogs, Focusable, ShownDialog } from "../../../views/dialogs/dialog-view";
 import type { ViewElement } from "../../../views/elements/view-element";
 import { AppKit, type MountKit } from "../mount/mount-kit";
 import { mountTree } from "../mount/mount-tree";
@@ -7,6 +7,8 @@ import { mountTree } from "../mount/mount-tree";
 const TOKENS_CLASS = "dd-tokens";
 
 class FrameView implements DialogView {
+  private pendingFocus: Focusable | null = null;
+
   constructor(
     private readonly contentEl: HTMLElement,
     private readonly kit: MountKit,
@@ -18,12 +20,23 @@ class FrameView implements DialogView {
     for (const tree of trees) mountTree(tree, this.contentEl, this.kit);
   }
 
+  focusOnceOpen(target: Focusable): void {
+    this.pendingFocus = target;
+  }
+
+  opened(): void {
+    if (this.pendingFocus !== null) this.pendingFocus.focus();
+    this.pendingFocus = null;
+  }
+
   close(): void {
     this.closes();
   }
 }
 
 export class ModalFrame extends Modal {
+  private view: FrameView | null = null;
+
   constructor(
     app: App,
     readonly dialog: ShownDialog,
@@ -34,7 +47,14 @@ export class ModalFrame extends Modal {
   override onOpen(): void {
     this.setTitle(this.dialog.title);
     this.contentEl.addClass(TOKENS_CLASS, ...this.dialog.cls);
-    this.dialog.opened(new FrameView(this.contentEl, new AppKit(this.app), this.close.bind(this)));
+    const view = new FrameView(this.contentEl, new AppKit(this.app), this.close.bind(this));
+    this.view = view;
+    this.dialog.opened(view);
+  }
+
+  override open(): void {
+    super.open();
+    if (this.view !== null) this.view.opened();
   }
 
   override close(): void {
@@ -43,6 +63,7 @@ export class ModalFrame extends Modal {
   }
 
   override onClose(): void {
+    this.view = null;
     this.contentEl.empty();
     this.dialog.closed();
   }
