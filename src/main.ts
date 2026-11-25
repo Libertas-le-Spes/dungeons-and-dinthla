@@ -84,12 +84,13 @@ import { ObsidianCampaignLooks } from "./obsidian/settings/obsidian-campaign-loo
 import { PictureSuggestModal } from "./obsidian/settings/picture-suggest-modal";
 import { FolderSuggestModal } from "./obsidian/settings/folder-suggest-modal";
 import { flushWhenClosing, type Closing } from "./settings/drafts/flush-when-closing";
-import { LocalDrafts, type LocalStorage } from "./settings/drafts/local-drafts";
-import { OldDrafts } from "./settings/drafts/old-drafts";
-import { CampaignsFolderSetting } from "./settings/saved/campaigns-folder-setting";
-import { ChosenCampaign } from "./settings/saved/chosen-campaign";
-import { settingsOf, type PluginSettings } from "./settings/saved/plugin-settings";
-import { SettingsSaver } from "./settings/saved/settings-saver";
+import { LocalDrafts } from "./settings/drafts/local-drafts";
+import type { CampaignsFolderSetting } from "./settings/saved/campaigns-folder-setting";
+import type { ChosenCampaign } from "./settings/saved/chosen-campaign";
+import type { SettingsSaver } from "./settings/saved/settings-saver";
+import { SavedSettings } from "./plugin/saved-settings";
+import { ObsidianPluginData } from "./obsidian/host/obsidian-plugin-data";
+import { ObsidianDeviceStorage } from "./obsidian/host/obsidian-device-storage";
 import type { Help } from "./welcome/opening/help";
 import { welcomeOpenerOf } from "./obsidian/welcome/welcome-opener";
 import { Gatekeeper } from "./fence/gate/gatekeeper";
@@ -100,7 +101,6 @@ import { campaignsFolderFirst } from "./obsidian/interface/view/campaigns-folder
 import { sessionHeadingOf } from "./sessions/session-heading";
 import { startSession } from "./sessions/start-session";
 import { Drafts } from "./session-notes/drafts/drafts";
-import type { KeptDrafts } from "./session-notes/kept/kept-drafts";
 import { DraftKeeping } from "./session-notes/kept/draft-keeping";
 import { NOTICE_STAYS_UNTIL_DISMISSED } from "./views/dialogs/notice-stays";
 import { ConfirmDialog, type ConfirmText } from "./views/dialogs/confirm-dialog";
@@ -126,14 +126,13 @@ const PAGE_OPENERS: { page: PageId; id: string; name: string; icon: string }[] =
 export default class DungeonsAndDinthla extends Plugin {
   private readonly gate = new Gatekeeper(this.app, () => this.campaignsFolderSetting.path);
   private readonly notes = this.gate.notes;
-  private settingsSaver = this.settingsSaverOf(settingsOf(null, this.gate.configDir));
-  private campaignsFolderSetting = this.campaignsFolderSettingFrom(this.settingsSaver);
   private readonly store = new CampaignStore(this.gate.notes.store, OBSIDIAN_SYNTAX);
-  private readonly localStorage: LocalStorage = {
-    load: (key) => this.app.loadLocalStorage(key),
-    save: (key, value) => this.app.saveLocalStorage(key, value),
-  };
-  private oldDrafts = new OldDrafts(null, this.localStorage);
+  private readonly localStorage = new ObsidianDeviceStorage((key: string) => this.app.loadLocalStorage(key), (key: string, value: unknown) => this.app.saveLocalStorage(key, value));
+  private readonly saved = new SavedSettings(
+    { data: new ObsidianPluginData(() => this.loadData(), (data: unknown) => this.saveData(data)), device: this.localStorage, settingsFolder: this.gate.configDir, telling: OBSIDIAN_TELLING },
+    this.store,
+    () => this.lookAgain(),
+  );
   private readonly keptAgreement = new KeptAgreement({
     settings: {
       agreed: () => this.settingsSaver.settings.beyondAgreed,
@@ -142,12 +141,11 @@ export default class DungeonsAndDinthla extends Plugin {
     device: this.localStorage,
     notKept: (error: unknown) => new Notice(`Couldn't remember your answer about D&D Beyond: ${messageOf(error)}`),
   });
-  private chosen = this.chosenCampaignFrom(this.settingsSaver);
   private readonly showing = { dialogs: obsidianDialogsOf(this.app), telling: OBSIDIAN_TELLING };
   private readonly onlineImport = onlineImportFor(this.showing.dialogs, this.keptAgreement, OBSIDIAN_BEYOND_CALL);
 
   override async onload(): Promise<void> {
-    await this.loadSettings();
+    await this.saved.load();
     const gate = this.gate;
     this.addChild(gate.files);
     const openNotes = (path: string) => openCampaignPage(this.app, "notes", path);
@@ -326,13 +324,16 @@ export default class DungeonsAndDinthla extends Plugin {
     bases.sweep().catch((error: unknown) => new Notice(`Couldn't remember that the old Characters.base files were dealt with: ${messageOf(error)}`));
   }
 
-  private async loadSettings(): Promise<void> {
-    const saved: unknown = await this.loadData();
-    const settings = settingsOf(saved, this.gate.configDir);
-    this.oldDrafts = new OldDrafts(saved, this.localStorage);
-    this.settingsSaver = this.settingsSaverOf(settings);
-    this.chosen = this.chosenCampaignFrom(this.settingsSaver);
-    this.campaignsFolderSetting = this.campaignsFolderSettingFrom(this.settingsSaver);
+  private get settingsSaver(): SettingsSaver {
+    return this.saved.saver;
+  }
+
+  private get chosen(): ChosenCampaign {
+    return this.saved.chosen;
+  }
+
+  private get campaignsFolderSetting(): CampaignsFolderSetting {
+    return this.saved.campaignsFolder;
   }
 
   private keepDrafts(): { drafts: Drafts; keeping: DraftKeeping } {
@@ -343,7 +344,7 @@ export default class DungeonsAndDinthla extends Plugin {
     const keeping = new DraftKeeping(drafts, needs);
     keeping.start();
     this.register(keeping.stop.bind(keeping));
-    this.moveOldDrafts(keeping.keptDrafts, local);
+    this.saved.moveOldDrafts(keeping.keptDrafts, local);
     this.app.workspace.onLayoutReady(() => keeping.setAsideGoneNotes());
     return { drafts, keeping };
   }
@@ -388,7 +389,7 @@ export default class DungeonsAndDinthla extends Plugin {
       stop: (id: number) => window.clearTimeout(id),
     };
     return new LocalDrafts(this.localStorage, timer, {
-      written: () => this.oldDraftsKept(),
+      written: () => this.saved.oldDraftsKept(),
       failed: (error) => new Notice(`Couldn't keep the text typed in the campaign tab: ${messageOf(error)}`),
     });
   }
@@ -401,43 +402,6 @@ export default class DungeonsAndDinthla extends Plugin {
       onPageHide: (run) => this.registerDomEvent(window, "pagehide", run),
       pageHidden: () => document.visibilityState === "hidden",
     };
-  }
-
-  private moveOldDrafts(keptDrafts: KeptDrafts, local: LocalDrafts): void {
-    if (this.oldDrafts.waiting) {
-      keptDrafts.keepMoved(this.oldDrafts.texts);
-      local.flush();
-    }
-    this.dropOldDrafts();
-  }
-
-  private oldDraftsKept(): void {
-    this.oldDrafts.keptOnDevice();
-    this.dropOldDrafts();
-  }
-
-  private dropOldDrafts(): void {
-    if (!this.oldDrafts.leftInFile) return;
-    this.settingsSaver
-      .save({})
-      .then(() => this.oldDrafts.fileRewritten())
-      .catch((error: unknown) => new Notice(`Couldn't tidy the plugin's settings file: ${messageOf(error)}`));
-  }
-
-  private async writeSettings(settings: PluginSettings): Promise<void> {
-    await this.saveData(this.oldDrafts.dataOf(settings));
-  }
-
-  private settingsSaverOf(settings: PluginSettings): SettingsSaver {
-    return new SettingsSaver(settings, (written) => this.writeSettings(written));
-  }
-
-  private chosenCampaignFrom(saver: SettingsSaver): ChosenCampaign {
-    return new ChosenCampaign(saver, this.store);
-  }
-
-  private campaignsFolderSettingFrom(saver: SettingsSaver): CampaignsFolderSetting {
-    return new CampaignsFolderSetting(saver, () => this.lookAgain(), this.gate.configDir, OBSIDIAN_TELLING);
   }
 
   private async lookAgain(): Promise<void> {
