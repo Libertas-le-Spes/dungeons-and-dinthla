@@ -1,5 +1,5 @@
 import type { NoteRef } from "../../../host/notes/note-ref";
-import type { ButtonAction } from "../drawing/action-button";
+import type { ButtonAction } from "../../../views/components/buttons/action-button";
 import type { ItemTracking, SheetItem } from "./item-tracking";
 import type { SettleChoice } from "./settle-choices";
 

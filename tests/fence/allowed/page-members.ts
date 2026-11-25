@@ -3,8 +3,7 @@ import { PAGE_ESCAPES } from "../scan/reading/names";
 export const PAGE_MEMBERS: Record<string, string[]> = {
   "beyond/shape/byte-count.ts": ["encode"],
   "campaign/background/picture-css.ts": ["encode"],
-  "characters/cards/character-card.ts": ["addClass", "createDiv"],
-  "characters/cards/stat-block.ts": ["addClass", "appendText", "createDiv", "createEl", "createSpan"],
+  "characters/cards/drawing/stat-block.ts": ["addClass", "appendText", "createDiv", "createEl", "createSpan"],
   "characters/imported/drawing/action-button.ts": ["addClass", "focus"],
   "characters/imported/panels/held-not-imported.ts": ["createDiv", "createEl"],
   "characters/imported/panels/imported-panels.ts": ["createDiv"],
@@ -13,8 +12,6 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "characters/imported/panels/panel-parts.ts": ["createDiv", "createEl", "createSpan"],
   "characters/imported/panels/purse-panel.ts": ["createDiv", "createEl"],
   "characters/imported/purse/coin-chips.ts": ["createDiv", "createSpan"],
-  "characters/pages/cast-page.ts": ["addClass", "empty"],
-  "characters/pages/character-gallery.ts": ["addEventListener", "createDiv", "createEl", "createSpan", "empty", "focus"],
   "characters/pages/character-page.ts": ["addClass", "createDiv", "createEl", "empty"],
   "characters/pages/character-sheet-page.ts": ["addClass", "addEventListener", "createDiv", "createEl", "createSpan", "empty", "focus", "preventDefault", "querySelectorAll"],
   "characters/pages/fallen-sheet-page.ts": ["addClass", "createDiv", "createEl", "createSpan", "empty"],

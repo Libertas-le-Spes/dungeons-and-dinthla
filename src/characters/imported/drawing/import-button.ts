@@ -1,5 +1,6 @@
-import type { ButtonAction } from "./action-button";
-import { addBeyondButton } from "./beyond-button";
+import type { ButtonAction } from "../../../views/components/buttons/action-button";
+import type { ViewElement } from "../../../views/elements/view-element";
+import { beyondButton } from "./beyond-button";
 
 export const IMPORT_FROM_BEYOND = "Import from D&D Beyond";
 
@@ -15,6 +16,6 @@ class ImportRun implements ButtonAction {
   }
 }
 
-export function addImportButton(head: HTMLElement, creators: ImportAction): void {
-  addBeyondButton(head, IMPORT_FROM_BEYOND, new ImportRun(creators));
+export function importButton(creators: ImportAction): ViewElement {
+  return beyondButton(IMPORT_FROM_BEYOND, new ImportRun(creators));
 }

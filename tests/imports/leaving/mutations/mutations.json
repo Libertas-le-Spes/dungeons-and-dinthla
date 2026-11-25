@@ -912,50 +912,50 @@
  {
   "id": "the gallery draws the Fallen list",
   "file": "src/characters/pages/character-gallery.ts",
-  "find": "    this.drawFallen(fallenCards);\n",
+  "find": "    trees.push(...this.fallenTrees(fallenCards));\n",
   "replace": "",
   "group": "gallery"
  },
  {
   "id": "the Fallen list is empty when nobody fell",
   "file": "src/characters/pages/character-gallery.ts",
-  "find": "    if (cards.length === 0) return;\n    const section = this.root.createEl(\"section\", { cls: \"dd-fallen\" });",
-  "replace": "    const section = this.root.createEl(\"section\", { cls: \"dd-fallen\" });",
+  "find": "    if (cards.length === 0) return [];\n    const title = new Heading3({ cls: [\"dd-title\"], text: FALLEN }",
+  "replace": "    const title = new Heading3({ cls: [\"dd-title\"], text: FALLEN }",
   "group": "gallery"
  },
  {
   "id": "a Fallen card has Make main",
   "file": "src/characters/pages/character-gallery.ts",
-  "find": "    addMakeMainButton(item, card.path, this.creators);\n",
-  "replace": "",
+  "find": "[this.cardOfShown(card), makeMainButton(card.path, this.creators)]",
+  "replace": "[this.cardOfShown(card)]",
   "group": "gallery"
  },
  {
   "id": "a note left with a mark gets Make main",
   "file": "src/characters/pages/character-gallery.ts",
-  "find": "    if (leftPlayMarkOf(card.standing) === null) {",
-  "replace": "    if (true) {",
+  "find": "    if (leftPlayMarkOf(card.standing) === null) return",
+  "replace": "    if (true) return",
   "group": "gallery"
  },
  {
   "id": "the Characters list is drawn when there are characters",
   "file": "src/characters/pages/character-gallery.ts",
-  "find": "    if (cards.length > 0) this.drawPlayed(title, cards);\n",
+  "find": "    if (cards.length > 0) trees.push(...this.playedTrees(cards));\n",
   "replace": "",
   "group": "gallery"
  },
  {
   "id": "the empty Characters page says so",
   "file": "src/characters/pages/character-gallery.ts",
-  "find": "    if (cards.length === 0) this.root.createEl(\"p\", { cls: \"dd-empty\", text: NO_CHARACTERS });\n",
+  "find": "    if (cards.length === 0) trees.push(new Paragraph({ cls: [\"dd-empty\"], text: NO_CHARACTERS }));\n",
   "replace": "",
   "group": "gallery"
  },
  {
   "id": "the cast page shows the Fallen list",
   "file": "src/characters/pages/cast-page.ts",
-  "find": "this.gallery.show(this.notes.filesIn(folder), this.notes.fallenFilesIn(folder));",
-  "replace": "this.gallery.show(this.notes.filesIn(folder), []);",
+  "find": "gallery.show(this.notes.filesIn(folder), this.notes.fallenFilesIn(folder));",
+  "replace": "gallery.show(this.notes.filesIn(folder), []);",
   "group": "gallery"
  },
  {
@@ -963,13 +963,6 @@
   "file": "src/characters/pages/cast-page.ts",
   "find": "    if (isInFallenFolder(folder, path)) return true;\n",
   "replace": "",
-  "group": "gallery"
- },
- {
-  "id": "the cast page shows the Fallen list",
-  "file": "src/characters/pages/cast-page.ts",
-  "find": "this.gallery.show(this.notes.filesIn(folder), this.notes.fallenFilesIn(folder));",
-  "replace": "this.gallery.show(this.notes.filesIn(folder), []);",
   "group": "gallery"
  },
  {

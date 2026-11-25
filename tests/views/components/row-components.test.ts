@@ -13,6 +13,9 @@ import { ShortCharacterCard } from "../../../src/dashboard/rows/short-character-
 import { DIED_STANDING } from "../../../src/imports/layout/standing";
 import type { CharacterCard } from "../../../src/characters/cards/character-card";
 import { shapeOf } from "./same-page";
+import { fillStatBlock } from "../../../src/characters/cards/drawing/stat-block";
+import { StatBlock } from "../../../src/characters/cards/drawing/stat-block-view";
+import { Div } from "../../../src/views/elements/kinds/containers";
 
 const SESSION = "Pale Moon/Sessions/Session 1.md";
 
@@ -106,5 +109,17 @@ describe("short character cards", () => {
   it("marks each value not known", () => {
     const unknown = cardRow(cardOf(false, null, [["class", "Bard 3"]])).querySelectorAll(".dd-unknown");
     expect(Array.from(unknown).map((value) => value.textContent)).toEqual(["?", "?"]);
+  });
+});
+
+describe("stat blocks, against today's drawing", () => {
+  it.each([
+    { what: "every value known, with a type and subtitle", values: [["type", "Medium humanoid"], ["subtitle", "Human Bard"], ["class", "Bard 3"], ["AC", "14"], ["HP", "21"], ["speed", "30 ft."], ["STR", "10"], ["DEX", "14"], ["CON", "12"], ["INT", "13"], ["WIS", "8"], ["CHA", "16"]] },
+    { what: "values not known and abilities with no score", values: [["class", "Bard 3"], ["AC", "?"], ["STR", "?"]] },
+  ])("draws $what just as today", ({ values }) => {
+    const today = root().appendChild(obsidianDocument().createElement("div"));
+    fillStatBlock(today, "Mira", new Map(values as [string, string][]));
+    const built = mounted(new Div({ cls: ["dd-stat-block"] }, new StatBlock().build("Mira", new Map(values as [string, string][]))));
+    expect(shapeOf(built).children).toEqual([shapeOf(today)]);
   });
 });

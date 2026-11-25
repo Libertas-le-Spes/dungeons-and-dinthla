@@ -1,5 +1,7 @@
-import { MAKE_MAIN_WORDS } from "../../imports/layout/standing";
-import { addActionButton, type ButtonAction } from "../imported/drawing/action-button";
+import { MAKE_MAIN_WORDS } from "../../../imports/layout/standing";
+import { addActionButton } from "../../imported/drawing/action-button";
+import { ActionButton, type ButtonAction } from "../../../views/components/buttons/action-button";
+import type { ViewElement } from "../../../views/elements/view-element";
 
 const MAKE_MAIN_CLASSES = ["dd-create", "dd-make-main"];
 
@@ -20,4 +22,8 @@ class MakeMainRun implements ButtonAction {
 
 export function addMakeMainButton(parent: HTMLElement, path: string, action: MakeMainAction): void {
   addActionButton(parent, MAKE_MAIN_WORDS, MAKE_MAIN_CLASSES, new MakeMainRun(path, action));
+}
+
+export function makeMainButton(path: string, action: MakeMainAction): ViewElement {
+  return new ActionButton(MAKE_MAIN_WORDS, MAKE_MAIN_CLASSES, new MakeMainRun(path, action)).build();
 }

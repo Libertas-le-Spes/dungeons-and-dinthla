@@ -7,7 +7,7 @@ import { readCharacterSheet, type ReadSheet, type SheetStore } from "../reading/
 import type { SheetNotes } from "../reading/sheet-notes";
 import { leftPlayLinesOf } from "../reading/left-play-lines";
 import { modifierOf } from "../reading/sheet-values";
-import { addMakeMainButton, type MakeMainAction } from "../cards/make-main-button";
+import { addMakeMainButton, type MakeMainAction } from "../cards/drawing/make-main-button";
 import { couldNotRead } from "./character-sheet-page";
 import { shownTextOf } from "../reading/sheet-value-words";
 import { addLeftPlaySection } from "./left-play-section";

@@ -1,5 +1,4 @@
 import type { NoteRef } from "../../host/notes/note-ref";
-import type { Source } from "../../campaign/record/campaign";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { CastPage, type WatchFiles } from "../../characters/pages/cast-page";
 import { castPageFor, type CastPages } from "../../characters/pages/cast-page-for";
@@ -13,6 +12,8 @@ import type { CharacterCreators } from "../../characters/pages/character-creator
 import type { LinkActions } from "../../views/lists/linked-text";
 import type { MakePage, ShowPage } from "../view/campaign-pages";
 import type { PropertiesSyntax } from "../../campaign/paths/session-file";
+import { PageFrame } from "../../obsidian/views/frames/page-frame";
+import { PLAIN_KIT } from "../../obsidian/views/mount/mount-kit";
 
 export interface CastNeeds {
   store: CampaignStore;
@@ -25,10 +26,9 @@ export interface CastNeeds {
   watchFiles: WatchFiles;
 }
 
-function galleryOf(contentEl: HTMLElement, needs: CastNeeds, show: ShowPage, syntax: PropertiesSyntax): CastPage {
-  const showSheet = (source: Source) => show({ page: "cast", path: source.path });
-  const actions = { ...needs.actions, openRow: showSheet };
-  return new CastPage(contentEl, needs.store, needs.characterNotes, actions, needs.creators, needs.watchFiles, syntax);
+function galleryOf(contentEl: HTMLElement, needs: CastNeeds, show: ShowPage, syntax: PropertiesSyntax): PageFrame {
+  const showSheet = (path: string) => show({ page: "cast", path });
+  return new PageFrame(contentEl, new CastPage(needs.store, needs.characterNotes, showSheet, needs.creators, needs.watchFiles, syntax), PLAIN_KIT);
 }
 
 function characterPageOf(contentEl: HTMLElement, file: NoteRef, needs: CastNeeds, show: ShowPage, syntax: PropertiesSyntax): CharacterPage {

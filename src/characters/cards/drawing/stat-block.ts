@@ -1,5 +1,5 @@
-import { NOT_KNOWN } from "../reading/character-sheet";
-import { ABILITIES, modifierOf, type SheetValues } from "../reading/sheet-values";
+import { NOT_KNOWN } from "../../reading/character-sheet";
+import { ABILITIES, modifierOf, type SheetValues } from "../../reading/sheet-values";
 
 const STAT_BLOCK_LINES = [
   { label: "Class", name: "class" },
@@ -14,7 +14,7 @@ function knownValueOf(values: SheetValues, name: string): string | undefined {
   return value;
 }
 
-export function addStatValue(parent: HTMLElement, values: SheetValues, name: string): void {
+function addStatValue(parent: HTMLElement, values: SheetValues, name: string): void {
   const value = knownValueOf(values, name);
   if (value === undefined) parent.createSpan({ cls: "dd-unknown", text: NOT_KNOWN });
   else parent.appendText(value);
@@ -37,12 +37,12 @@ function addAbilities(block: HTMLElement, values: SheetValues): void {
   }
 }
 
-export function startStatBlock(block: HTMLElement, characterName: string): void {
+function startStatBlock(block: HTMLElement, characterName: string): void {
   block.addClass("dd-stat-block");
   block.createDiv({ cls: "dd-stat-block-name", text: characterName });
 }
 
-export function addStatBlockLine(block: HTMLElement): HTMLElement {
+function addStatBlockLine(block: HTMLElement): HTMLElement {
   return block.createDiv({ cls: "dd-stat-block-line" });
 }
 

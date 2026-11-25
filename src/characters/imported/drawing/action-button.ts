@@ -1,8 +1,5 @@
 import { ButtonComponent } from "obsidian";
-
-export interface ButtonAction {
-  run(returnFocus: () => void): void;
-}
+import type { ButtonAction } from "../../../views/components/buttons/action-button";
 
 class ButtonPress {
   constructor(
