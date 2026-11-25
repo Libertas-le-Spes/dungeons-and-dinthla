@@ -79,9 +79,11 @@ describe("welcomeWiring", () => {
   it("makes a typed campaign inside the saved Campaigns folder through the fenced files and moves into it", async () => {
     const { wiring, needs, files } = wiredWith(["D&D"]);
     const root = shownWelcome(wiring);
-    root.querySelector("input")!.value = "Silver Road";
-    const form = root.querySelector("form")!;
-    form.dispatchEvent(new form.ownerDocument.defaultView!.Event("submit", { cancelable: true }));
+    const input = root.querySelector("input")!;
+    const view = input.ownerDocument.defaultView!;
+    input.value = "Silver Road";
+    input.dispatchEvent(new view.Event("input"));
+    input.dispatchEvent(new view.KeyboardEvent("keydown", { key: "Enter", cancelable: true }));
     await settled();
     expect(files.makeFolder).toHaveBeenCalledExactlyOnceWith("D&D/Silver Road");
     expect(needs.chooseCampaign).toHaveBeenCalledExactlyOnceWith("D&D/Silver Road");

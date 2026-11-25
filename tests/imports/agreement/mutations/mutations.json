@@ -135,8 +135,8 @@
  {
   "id": "welcome: the page moves on after an answer",
   "file": "src/welcome/page/welcome-page.ts",
-  "find": "  private agreementAnswered(): void {\n    this.showEnding();\n  }",
-  "replace": "  private agreementAnswered(): void {}",
+  "find": "  answered(): void {\n    this.showEnding();\n  }",
+  "replace": "  answered(): void {}",
   "group": "welcome"
  },
  {

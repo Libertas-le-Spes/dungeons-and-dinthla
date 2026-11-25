@@ -3,6 +3,7 @@ import { welcomeSection } from "../../../src/interface/sections/welcome-section"
 import type { SessionNote } from "../../../src/campaign/record/campaign";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { AnsweredAgreement } from "../../welcome/page/answered-agreement";
+import { RecordedTelling } from "../../host/showing/recorded-telling";
 
 function made(campaignFolder: string | null, sessionNotes: SessionNote[], campaignsFolder: string | null = "D&D", foldersThere: string[] = ["D&D"]) {
   const store = { campaignFolder, sessionNotes, subscribe: () => () => {} };
@@ -12,7 +13,7 @@ function made(campaignFolder: string | null, sessionNotes: SessionNote[], campai
   const root = obsidianDocument().body.createDiv();
   const show = vi.fn();
   const files = { hasFolder: vi.fn((path: string) => foldersThere.includes(path)) };
-  const page = welcomeSection({ store, campaignsFolderSetup, maker, files, agreement: new AnsweredAgreement(), startSession })(root, show, null, vi.fn());
+  const page = welcomeSection({ store, campaignsFolderSetup, maker, files, agreement: new AnsweredAgreement(), telling: new RecordedTelling(), startSession })(root, show, null, vi.fn());
   page.load();
   const button = (text: string) => Array.from(root.querySelectorAll("button")).find((candidate) => candidate.textContent === text)!;
   return { root, show, maker, campaignsFolderSetup, startSession, button };
@@ -20,9 +21,11 @@ function made(campaignFolder: string | null, sessionNotes: SessionNote[], campai
 
 
 function send(root: HTMLElement, typed: string): void {
-  root.querySelector("input")!.value = typed;
-  const form = root.querySelector("form")!;
-  form.dispatchEvent(new form.ownerDocument.defaultView!.Event("submit", { cancelable: true }));
+  const input = root.querySelector("input")!;
+  const view = input.ownerDocument.defaultView!;
+  input.value = typed;
+  input.dispatchEvent(new view.Event("input"));
+  input.dispatchEvent(new view.KeyboardEvent("keydown", { key: "Enter", cancelable: true }));
 }
 
 const SESSION: SessionNote = { path: "D&D/Silver Road/Sessions/Session 1.md", number: 1, firstLine: 0, text: "" };

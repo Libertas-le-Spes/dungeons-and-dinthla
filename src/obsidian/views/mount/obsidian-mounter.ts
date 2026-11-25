@@ -1,5 +1,5 @@
 import { ToggleComponent } from "obsidian";
-import type { Anchor, Bold, Button, Description, DescriptionList, Details, Div, Form, Heading1, Heading2, Heading3, Label, List, ListItem, Mark, PlainText, Nav, OrderedList, Paragraph, Pre, Section, Select, Span, Strong, Summary, Term, NameLink, FieldRow } from "../../../views/elements/kinds/containers";
+import type { Anchor, Bold, Button, Description, DescriptionList, Details, Div, Heading1, Heading2, Heading3, Label, List, ListItem, Mark, PlainText, Nav, OrderedList, Paragraph, Pre, Section, Select, Span, Strong, Summary, Term, NameLink, FieldRow } from "../../../views/elements/kinds/containers";
 import type { DateInput, FileInput, Option, SearchInput, Switch, TextArea, TextInput } from "../../../views/elements/kinds/fields";
 import { FilePick } from "./file-pick";
 import type { Mounter, MountPlace } from "../../../views/elements/mounter";
@@ -96,10 +96,6 @@ export class ObsidianMounter implements Mounter {
 
   nav(element: Nav, into: MountPlace): MountPlace {
     return placed(partsOn(elementOf(into).createEl("nav"), element.parts, this.kit));
-  }
-
-  form(element: Form, into: MountPlace): MountPlace {
-    return placed(partsOn(elementOf(into).createEl("form"), element.parts, this.kit));
   }
 
   descriptionList(element: DescriptionList, into: MountPlace): MountPlace {

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { SessionNote } from "../../../src/campaign/record/campaign";
 import type { CampaignListener } from "../../../src/campaign/reading/campaign-store";
@@ -10,7 +10,9 @@ import { textsIn } from "../../imports/agreement/shown-parts";
 import { AnsweredAgreement } from "./answered-agreement";
 import { HOW_TO_CHOOSE_THE_CAMPAIGNS_FOLDER } from "../../../src/welcome/endings/campaigns-folder-ending";
 import { WelcomePage, type WelcomeStore } from "../../../src/welcome/page/welcome-page";
-import { Notice } from "../../stubs/obsidian";
+import { RecordedTelling } from "../../host/showing/recorded-telling";
+import { PageFrame } from "../../../src/obsidian/views/frames/page-frame";
+import { PLAIN_KIT } from "../../../src/obsidian/views/mount/mount-kit";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 const CAMPAIGN = "D&D/Silver Road";
@@ -53,8 +55,10 @@ function welcomeWith(campaignFolder: string | null, sessionNotes: SessionNote[],
     ),
   } satisfies WelcomeActions;
   const root = obsidianDocument().body.createDiv();
-  const page = new WelcomePage(root, store, () => folder.path, actions, agreement);
-  page.load();
+  const telling = new RecordedTelling();
+  const page = new WelcomePage(store, () => folder.path, actions, agreement, telling);
+  const frame = new PageFrame(root, page, PLAIN_KIT);
+  frame.load();
   const change = (campaign: string | null, notes: SessionNote[]) => {
     Object.assign(store, { campaignFolder: campaign, sessionNotes: notes });
     listener(buildCampaign(notes));
@@ -63,7 +67,7 @@ function welcomeWith(campaignFolder: string | null, sessionNotes: SessionNote[],
     folder.path = path;
     listener(buildCampaign(store.sessionNotes));
   };
-  return { root, page, actions, change, setCampaignsFolder, unsubscribe, finishMaking: () => finishMaking(), failMaking: (error: Error) => failMaking(error) };
+  return { root, page, frame, telling, actions, change, setCampaignsFolder, unsubscribe, finishMaking: () => finishMaking(), failMaking: (error: Error) => failMaking(error) };
 }
 
 function welcomeFor(campaignFolder: string | null, sessionNotes: SessionNote[], campaignsFolder: string | null = "D&D") {
@@ -81,10 +85,12 @@ function buttonNamed(root: HTMLElement, text: string): HTMLButtonElement {
 }
 
 function submit(root: HTMLElement, name: string): Event {
-  root.querySelector("input")!.value = name;
-  const form = root.querySelector("form")!;
-  const event = new form.ownerDocument.defaultView!.Event("submit", { cancelable: true });
-  form.dispatchEvent(event);
+  const input = root.querySelector("input")!;
+  const view = input.ownerDocument.defaultView!;
+  input.value = name;
+  input.dispatchEvent(new view.Event("input"));
+  const event = new view.KeyboardEvent("keydown", { key: "Enter", cancelable: true });
+  input.dispatchEvent(event);
   return event;
 }
 
@@ -93,10 +99,6 @@ function settled(): Promise<void> {
 }
 
 describe("WelcomePage", () => {
-  beforeEach(() => {
-    Notice.shown = [];
-  });
-
   it("shows the three first steps under a welcome heading", () => {
     const { root } = welcomeFor(CAMPAIGN, []);
     expect(root.querySelector("h2")!.textContent).toBe("Welcome to Dungeons & Dinthla");
@@ -138,26 +140,33 @@ describe("WelcomePage", () => {
     expect(buttonNamed(root, "Make a campaign").disabled).toBe(false);
   });
 
-  it("keeps Obsidian's window from reloading when the name is sent", () => {
-    const { root } = welcomeFor(null, []);
+  it("takes Enter in the name box as sending the name, and nothing more", () => {
+    const { root, actions } = welcomeFor(null, []);
     expect(submit(root, "Silver Road").defaultPrevented).toBe(true);
+    expect(actions.makeCampaign).toHaveBeenCalledExactlyOnceWith("Silver Road");
+  });
+
+  it("makes the campaign once when the name is sent again while it is being made", () => {
+    const { root, actions } = welcomeFor(null, []);
+    submit(root, "Silver Road");
+    submit(root, "Silver Road");
+    expect(actions.makeCampaign).toHaveBeenCalledOnce();
   });
 
   it("gives the button back and says why when the campaign can't be made", async () => {
-    const { root, failMaking } = welcomeFor(null, []);
+    const { root, failMaking, telling } = welcomeFor(null, []);
     submit(root, "Silver Road");
     failMaking(new Error("The disk is full."));
     await settled();
     expect(buttonNamed(root, "Make a campaign").disabled).toBe(false);
-    expect(Notice.shown).toEqual(["Couldn't make the campaign: The disk is full."]);
+    expect(telling.said).toEqual(["Couldn't make the campaign: The disk is full."]);
   });
 
-  it("stops listening to the buttons it no longer shows", () => {
-    const { root, actions, change } = welcomeFor(CAMPAIGN, []);
+  it("takes away the buttons it no longer shows", () => {
+    const { root, change } = welcomeFor(CAMPAIGN, []);
     const firstSession = buttonNamed(root, "Start my first session");
     change(CAMPAIGN, [sessionNote()]);
-    firstSession.click();
-    expect(actions.startSession).not.toHaveBeenCalled();
+    expect(firstSession.isConnected).toBe(false);
   });
 
   it("moves on to the first session once the campaign is made", () => {
@@ -199,12 +208,12 @@ describe("WelcomePage", () => {
   });
 
   it("gives the button back and says why when the Campaigns folder can't be made", async () => {
-    const { root, failMaking } = welcomeFor(null, [], null);
+    const { root, failMaking, telling } = welcomeFor(null, [], null);
     submit(root, "D&D");
     failMaking(new Error("A file already has that name."));
     await settled();
     expect(buttonNamed(root, "Make the folder").disabled).toBe(false);
-    expect(Notice.shown).toEqual(["Couldn't make the Campaigns folder: A file already has that name."]);
+    expect(telling.said).toEqual(["Couldn't make the Campaigns folder: A file already has that name."]);
   });
 
   it("moves on to making a campaign once the Campaigns folder is set", () => {
@@ -214,8 +223,8 @@ describe("WelcomePage", () => {
   });
 
   it("stops following the campaign when it is closed", () => {
-    const { page, unsubscribe } = welcomeFor(CAMPAIGN, []);
-    page.unload();
+    const { frame, unsubscribe } = welcomeFor(CAMPAIGN, []);
+    frame.unload();
     expect(unsubscribe).toHaveBeenCalledOnce();
   });
 
