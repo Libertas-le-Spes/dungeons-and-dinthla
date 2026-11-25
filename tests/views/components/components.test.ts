@@ -12,8 +12,6 @@ import { HERE } from "../../../src/views/elements/bindings/open-place";
 import type { ViewElement } from "../../../src/views/elements/view-element";
 import { mountTree } from "../../../src/obsidian/views/mount/mount-tree";
 import { addNameLink, addRowButtonIn } from "../../../src/views/lists/linked-text";
-import { makeScrollList } from "../../../src/views/lists/scroll-list";
-import { Tabs } from "../../../src/views/tabs/tabs";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { shapeOf } from "./same-page";
 import { Paragraph } from "../../../src/views/elements/kinds/containers";
@@ -74,10 +72,9 @@ describe("the plugin's own components, against today's drawing", () => {
     expect(drag.defaultPrevented).toBe(true);
   });
 
-  it("makes a list a scroll list just as today", () => {
-    const today = root();
-    makeScrollList({ element: today.createEl("ul", { cls: "dd-ledger" }), label: "Ledger" });
-    expect(shapeOf(mounted(new List(scrollListParts({ cls: ["dd-ledger"] }, "Ledger"))))).toEqual(shapeOf(today));
+  it("makes a list a scroll list the keyboard can reach, named for readers", () => {
+    const built = mounted(new List(scrollListParts({ cls: ["dd-ledger"] }, "Ledger")));
+    expect(built.innerHTML).toBe('<ul class="dd-ledger dd-scroll-list" aria-label="Ledger" tabindex="0"></ul>');
   });
 
   it("draws a fold as details with its title in the summary first", () => {
@@ -87,13 +84,17 @@ describe("the plugin's own components, against today's drawing", () => {
     expect(Array.from(fold.children).map((child) => `${child.tagName} ${child.textContent}`)).toEqual(["SUMMARY Properties (3)", "P AC: 15 → 16"]);
   });
 
-  it("draws two tabs just as today's, with the first chosen, and moves between them with the arrow keys", () => {
-    const today = root();
-    new Tabs({ parent: today, label: "Funds", first: "Mine", second: "Party" });
+  it("draws two tabs with the first chosen, each tied to its panel, and moves between them with the arrow keys", () => {
     const tabs = new TabList("Funds", ["Mine", "Party"]);
-    const built = mounted(...tabs.build());
+    const built = mounted(...tabs.build([[new Span({ text: "mine" })], [new Span({ text: "party" })]]));
     tabs.selectAt(0, false);
-    expect(shapeOf(built)).toEqual(shapeOf(today));
+    const buttons = Array.from(built.querySelectorAll("button"));
+    const panels = Array.from(built.querySelectorAll("[role=tabpanel]"));
+    expect(built.querySelector("[role=tablist]")!.getAttribute("aria-label")).toBe("Funds");
+    expect(buttons.map((button) => [button.textContent, button.getAttribute("aria-selected"), button.getAttribute("tabindex")])).toEqual([["Mine", "true", "0"], ["Party", "false", "-1"]]);
+    expect(buttons.map((button) => button.getAttribute("aria-controls"))).toEqual(panels.map((panel) => panel.id));
+    expect(panels.map((panel) => panel.getAttribute("aria-labelledby"))).toEqual(buttons.map((button) => button.id));
+    expect(panels.map((panel) => panel.textContent)).toEqual(["mine", "party"]);
     const [mine] = Array.from(built.querySelectorAll("button"));
     const view = mine!.ownerDocument.defaultView!;
     mine!.dispatchEvent(new view.KeyboardEvent("keydown", { key: "ArrowRight", cancelable: true }));
@@ -106,7 +107,7 @@ describe("the plugin's own components, against today's drawing", () => {
   it("gives each tab list its own ids, so two never share one", () => {
     const first = new TabList("A", ["One", "Two"]);
     const second = new TabList("B", ["One", "Two"]);
-    const ids = [mounted(...first.build()), mounted(...second.build())].map((el) => el.querySelector("button")!.id);
+    const ids = [mounted(...first.build([[], []])), mounted(...second.build([[], []]))].map((el) => el.querySelector("button")!.id);
     expect(ids[0]).not.toBe(ids[1]);
   });
 

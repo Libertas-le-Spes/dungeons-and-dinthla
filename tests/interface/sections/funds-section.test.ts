@@ -5,6 +5,7 @@ import { FundsPage } from "../../../src/funds/page/funds-page";
 import { CLOSE_ITEM, EDIT_NOTE } from "../../../src/funds/item-notes/item-panel";
 import { fundsSection } from "../../../src/interface/sections/funds-section";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import type { PageFrame } from "../../../src/obsidian/views/frames/page-frame";
 import { FakeOwnCharacterNotes } from "../../funds/purses/fake-own-character-notes";
 import { STUB_SYNTAX } from "../../host/stub-syntax";
 
@@ -36,7 +37,7 @@ function made(path: string | null) {
 describe("fundsSection", () => {
   it("makes Party funds with no item open when the tab shows no note", () => {
     const { page, root } = made(null);
-    expect(page).toBeInstanceOf(FundsPage);
+    expect((page as PageFrame).page).toBeInstanceOf(FundsPage);
     expect(root.querySelector(".dd-shown-item")).toBeNull();
     expect(root.querySelectorAll(".dd-purse-panel")).toHaveLength(2);
   });

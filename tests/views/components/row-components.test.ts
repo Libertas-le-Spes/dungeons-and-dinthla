@@ -1,8 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
-import { summariseFunds } from "../../../src/funds/page/funds-summary";
-import { addLedgerRow } from "../../../src/funds/page/ledger-row";
-import { LedgerRow } from "../../../src/funds/page/rows/ledger-row";
 import { mountTree } from "../../../src/obsidian/views/mount/mount-tree";
 import { questionShownKind } from "../../../src/questions/list/question-shown-kind";
 import { LinkedText } from "../../../src/views/components/rows/linked-text";
@@ -67,19 +64,6 @@ describe("thread rows", () => {
     const built = mounted(new ThreadRow(questionShownKind, [], { openLink: vi.fn() }).build(question!, open));
     (built.querySelector(".dd-row") as HTMLElement).click();
     expect(open.run.mock.calls).toEqual([[HERE]]);
-  });
-});
-
-describe("ledger rows, against today's drawing", () => {
-  it.each([
-    { what: "money in", line: "$ 5 gp found" },
-    { what: "money out with a link", line: "$ -5 gp paid [[Old Tom]] for rooms" },
-  ])("draws $what just as today", ({ line }) => {
-    const [ledgerLine] = summariseFunds(campaignOf([line])).ledger;
-    const today = root().appendChild(obsidianDocument().createElement("ul"));
-    addLedgerRow(today, ledgerLine!, actions(), actions());
-    const built = mounted(new LedgerRow({ openLink: vi.fn() }).build(ledgerLine!, NO_OPEN));
-    expect(shapeOf(built).children).toEqual(shapeOf(today).children);
   });
 });
 

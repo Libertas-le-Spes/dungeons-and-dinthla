@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from "vitest";
-import { Component } from "obsidian";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { Campaign, Source } from "../../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
@@ -8,6 +7,9 @@ import { FundsPage, type AddCoinOn, type ShownItem } from "../../../src/funds/pa
 import type { OwnSheet } from "../../../src/funds/purses/own-characters";
 import { HeldCalls } from "../../stubs/held-calls";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { PageFrame } from "../../../src/obsidian/views/frames/page-frame";
+import { PLAIN_KIT } from "../../../src/obsidian/views/mount/mount-kit";
+import { Div } from "../../../src/views/elements/kinds/containers";
 import { PARTY_SIDE } from "../../../src/funds/coins/coin-sides";
 import type { NoteRef } from "../../../src/host/notes/note-ref";
 
@@ -81,27 +83,38 @@ async function openPage({ campaign, noteNames, addCoin, openLedgerEntry, openIte
   const actions = { openRow: vi.fn(), openLink: vi.fn() };
   const noteExists = (name: string) => noteNames.includes(name);
   const root = obsidianDocument().createElement("div");
+  root.ownerDocument.body.append(root);
   const owners = new MadeUpOwnCharacters(() => ownNames);
   if (sheets !== undefined) owners.known = sheets;
+  const entryOpener = vi.fn<OpenLedgerEntry>();
+  let opensEntry: OpenLedgerEntry = entryOpener;
+  if (openLedgerEntry !== null) opensEntry = openLedgerEntry;
+  const itemOpener = vi.fn<OpenItem>();
+  let opensItem: OpenItem = itemOpener;
+  if (openItem !== null) opensItem = openItem;
   const view = new FundsPage({
-    contentEl: root,
     store: store as unknown as CampaignStore,
-    actions,
+    opener: actions,
     noteExists,
     addCoin,
-    openLedgerEntry,
-    openItem,
+    openLedgerEntry: opensEntry,
+    openItem: opensItem,
     shownItem,
     ownCharacters: owners,
   });
-  view.load();
+  const frame = new PageFrame(root, view, PLAIN_KIT);
+  frame.load();
   await view.rendered();
   const change = (next: Campaign) => {
     store.current = next;
     listener(next);
   };
-  const close = () => view.unload();
-  return { root, actions, change, close, unsubscribe, owners, view };
+  const close = () => frame.unload();
+  return { root, actions, change, close, unsubscribe, owners, view, entryOpener, itemOpener };
+}
+
+function madeUpPanel() {
+  return { tree: () => new Div({ cls: ["dd-made-up-panel"] }), started: vi.fn(), stopped: vi.fn() };
 }
 
 function elementIn(root: HTMLElement, selector: string): HTMLElement {
@@ -168,10 +181,17 @@ describe("FundsPage", () => {
     expect(unsubscribe).toHaveBeenCalled();
   });
 
-  it("opens the session at a ledger line when it is tapped", async () => {
-    const { root, actions } = await openPage({ campaign: campaignOf(["We rode on.", "$ 5 gp"]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
+  it("opens the entry at a ledger line when it is tapped", async () => {
+    const { root, entryOpener } = await openPage({ campaign: campaignOf(["We rode on.", "$ 5 gp"]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
     (root.querySelector(`${PARTY_PANEL} .dd-ledger-row`) as HTMLElement).click();
-    expect(actions.openRow).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 1 });
+    expect(entryOpener.mock.calls.map(([source]) => source)).toEqual([{ path: "Pale Moon/Sessions/Session 1.md", line: 1 }]);
+  });
+
+  it("opens a name linked in a ledger line from the line's own note, not the entry", async () => {
+    const { root, actions, entryOpener } = await openPage({ campaign: campaignOf(["We rode on.", "$ -5 gp paid [[Old Tom]] for rooms"]), noteNames: [], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
+    elementIn(root, `${PARTY_PANEL} .dd-ledger-row a.dd-link-name`).click();
+    expect(actions.openLink).toHaveBeenCalledExactlyOnceWith("Old Tom", "Pale Moon/Sessions/Session 1.md", false);
+    expect(entryOpener).not.toHaveBeenCalled();
   });
 
   it("writes an entry that comes to nothing without a sign", async () => {
@@ -220,11 +240,13 @@ describe("FundsPage", () => {
   });
 
   it("opens a held item where it was written, and a gone one where it went", async () => {
-    const { root, actions } = await openPage({ campaign: campaignOf(["$ Potion of healing", "$ Rope"], ["We rode on.", "$$ Rope :used"]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
+    const { root, itemOpener } = await openPage({ campaign: campaignOf(["$ Potion of healing", "$ Rope"], ["We rode on.", "$$ Rope :used"]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: null, ownNames: [] });
     elementIn(root, `${PARTY_PANEL} .dd-scroll-list > .dd-list .dd-row`).click();
-    expect(actions.openRow).toHaveBeenLastCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 0 });
     elementIn(root, `${PARTY_PANEL} .dd-folded .dd-row`).click();
-    expect(actions.openRow).toHaveBeenLastCalledWith({ path: "Pale Moon/Sessions/Session 2.md", line: 1 });
+    expect(itemOpener.mock.calls.map(([name, source]) => [name, source])).toEqual([
+      ["Potion of healing", { path: "Pale Moon/Sessions/Session 1.md", line: 0 }],
+      ["Rope", { path: "Pale Moon/Sessions/Session 2.md", line: 1 }],
+    ]);
   });
 
   it("says no items yet, and that nothing is gone, when there are none", async () => {
@@ -429,23 +451,20 @@ describe("FundsPage", () => {
   });
 
   it("shows the item it was opened on above everything else, and marks its row", async () => {
-    const panels: HTMLElement[] = [];
-    const makePanel = (panelEl: HTMLElement) => {
-      panels.push(panelEl);
-      return new Component();
-    };
-    const shown = { name: "silvered lantern", panel: makePanel };
-    const { root } = await openPage({ campaign: campaignOf(["$ [[Mira]] [[Silvered lantern]]", "$ Potion of healing"]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: shown, ownNames: [] });
-    expect(panels).toHaveLength(1);
-    expect(root.firstElementChild).toBe(panels[0]);
-    expect(panels[0]!.classList.contains("dd-shown-item")).toBe(true);
+    const panel = madeUpPanel();
+    const shown = { name: "silvered lantern", panel };
+    const { root, close } = await openPage({ campaign: campaignOf(["$ [[Mira]] [[Silvered lantern]]", "$ Potion of healing"]), noteNames: ["Mira"], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: shown, ownNames: [] });
+    expect(root.firstElementChild!.className).toBe("dd-made-up-panel");
+    expect(panel.started).toHaveBeenCalledOnce();
+    close();
+    expect(panel.stopped).toHaveBeenCalledOnce();
     const marked = Array.from(root.querySelectorAll<HTMLElement>(".dd-row-shown"));
     expect(marked.map((row) => row.dataset.item)).toEqual(["Silvered lantern"]);
     expect(marked[0]!.getAttribute("aria-current")).toBe("true");
   });
 
   it("unfolds the gone items when the item it was opened on is gone", async () => {
-    const shown = { name: "Potion of healing", panel: () => new Component() };
+    const shown = { name: "Potion of healing", panel: madeUpPanel() };
     const { root } = await openPage({ campaign: campaignOf(["$ Potion of healing"], ["$$ Potion of healing :used"]), noteNames: [], addCoin: null, openLedgerEntry: null, openItem: null, shownItem: shown, ownNames: [] });
     const folded = root.querySelector<HTMLDetailsElement>(`${PARTY_PANEL} .dd-folded`);
     expect(folded?.open).toBe(true);
@@ -677,17 +696,16 @@ describe("FundsPage with one purse of his character in Mine", () => {
     const held = new HeldCalls<OwnSheet[]>();
     owners.sheets = () => held.hold();
     const view = new FundsPage({
-      contentEl: root,
       store: { current: campaignOf(["$ 5 gp from [[Mira]]"]), subscribe: () => () => {} },
-      actions: { openRow: vi.fn(), openLink: vi.fn() },
+      opener: { openLink: vi.fn() },
       noteExists: () => true,
       addCoin: null,
-      openLedgerEntry: null,
-      openItem: null,
+      openLedgerEntry: vi.fn(),
+      openItem: vi.fn(),
       shownItem: null,
       ownCharacters: owners,
     });
-    view.load();
+    new PageFrame(root, view, PLAIN_KIT).load();
     expect(root.querySelector(`${MINE_PURSE} .dd-purse`)).toBeNull();
     expect(root.querySelector(`${PARTY_PANEL} .dd-purse`)).not.toBeNull();
     held.resolve(0, [SHEET]);
@@ -718,11 +736,11 @@ describe("FundsPage with one purse of his character in Mine", () => {
   });
 
   it("draws nothing more once closed", async () => {
-    const { root, owners, view } = await pageFor([], [SHEET]);
+    const { root, owners, view, close } = await pageFor([], [SHEET]);
     const held = new HeldCalls<OwnSheet[]>();
     owners.sheets = () => held.hold();
     owners.listener();
-    view.unload();
+    close();
     held.resolve(0, [{ ...SHEET, purse: [{ coin: "gp", count: 7 }] }]);
     await view.rendered();
     expect(textsOf(root, `${MINE_PURSE} .dd-purse`)).toEqual(["29 gp"]);

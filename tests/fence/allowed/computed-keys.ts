@@ -11,7 +11,7 @@ export const COMPUTED_KEY_READERS = [
   "characters/reading/sheet-values.ts",
   "dashboard/rows/item-event-row.ts",
   "funds/item-notes/item-panel.ts",
-  "funds/page/funds-page.ts",
+  "funds/page/rows/item-row.ts",
   "kinds/follow-ups.ts",
   "kinds/looked-up-kinds.ts",
   "kinds/tracked-markers.ts",

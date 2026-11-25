@@ -10,6 +10,8 @@ import type { OpenLedgerEntry } from "../../funds/coins/open-ledger-entry";
 import type { LinkActions } from "../../views/lists/linked-text";
 import type { MakePage, ShowPage } from "../view/campaign-pages";
 import type { PropertiesSyntax } from "../../campaign/paths/session-file";
+import { PageFrame } from "../../obsidian/views/frames/page-frame";
+import { PLAIN_KIT } from "../../obsidian/views/mount/mount-kit";
 
 export interface FundsNeeds {
   store: CampaignStore;
@@ -23,33 +25,33 @@ export interface FundsNeeds {
   ownCharacterNotes: OwnCharacterNotes;
 }
 
-function itemPanelOf(panelEl: HTMLElement, path: string, needs: FundsNeeds, show: ShowPage): ItemPanel {
-  return new ItemPanel(panelEl, path, {
+function itemPanelOf(path: string, needs: FundsNeeds, show: ShowPage, syntax: PropertiesSyntax): ItemPanel {
+  return new ItemPanel(path, {
     store: needs.store,
     texts: needs.texts,
-    actions: needs.actions,
+    opener: needs.actions,
     openItem: needs.openItem,
+    syntax,
     editNote: (notePath) => show({ page: "note", path: notePath }),
     close: () => show({ page: "funds", path: null }),
   });
 }
 
-function shownItemOf(path: string | null, needs: FundsNeeds, show: ShowPage): ShownItem | null {
+function shownItemOf(path: string | null, needs: FundsNeeds, show: ShowPage, syntax: PropertiesSyntax): ShownItem | null {
   if (path === null || campaignOfItem(path, needs.campaignFolders()) === null) return null;
-  return { name: noteNameOf(path), panel: (panelEl) => itemPanelOf(panelEl, path, needs, show) };
+  return { name: noteNameOf(path), panel: itemPanelOf(path, needs, show, syntax) };
 }
 
 export function fundsSection(needs: FundsNeeds, syntax: PropertiesSyntax): MakePage {
   return (contentEl, show, path) =>
-    new FundsPage({
-      contentEl,
+    new PageFrame(contentEl, new FundsPage({
       store: needs.store,
-      actions: needs.actions,
+      opener: needs.actions,
       noteExists: (name, sourcePath) => needs.noteExists(name, sourcePath),
       addCoin: (side, returnFocus) => needs.addCoin(side, returnFocus),
       openLedgerEntry: needs.openLedgerEntry,
       openItem: needs.openItem,
-      shownItem: shownItemOf(path, needs, show),
+      shownItem: shownItemOf(path, needs, show, syntax),
       ownCharacters: new OwnCharacters({ store: needs.store, notes: needs.ownCharacterNotes }, syntax),
-    });
+    }), PLAIN_KIT);
 }
