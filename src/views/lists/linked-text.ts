@@ -1,7 +1,7 @@
 import { SOURCE_ROWS, sourceKeyOf } from "./row-keys";
 import { Keymap, type PaneType } from "obsidian";
 import type { Source } from "../../campaign/record/campaign";
-import { textRunsOf, type MarkedPiece } from "./text-parts";
+import { textRunsOf, type MarkedPiece } from "../components/rows/text-parts";
 
 const MIDDLE_BUTTON = 1;
 

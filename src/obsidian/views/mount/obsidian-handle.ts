@@ -51,9 +51,10 @@ export class ObsidianHandle implements ElementHandle {
     this.el.setAttr("tabindex", String(index));
   }
 
-  replaceWith(tree: ViewElement): void {
+  showInside(trees: readonly ViewElement[]): void {
     this.el.empty();
-    tree.mountOn(new ObsidianMounter(this.kit), new ElementPlace(this.el));
+    const mounter = new ObsidianMounter(this.kit);
+    for (const tree of trees) tree.mountOn(mounter, new ElementPlace(this.el));
   }
 
   isShown(): boolean {

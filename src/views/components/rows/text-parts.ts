@@ -1,4 +1,4 @@
-import { splitLinks } from "../../notes/parts/link";
+import { splitLinks } from "../../../notes/parts/link";
 
 export interface MarkedPiece {
   text: string;

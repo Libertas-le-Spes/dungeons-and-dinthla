@@ -12,8 +12,8 @@ export class SourceRow {
     private readonly open: PageAction,
   ) {}
 
-  build(children: readonly ViewElement[]): Div {
+  build(children: readonly ViewElement[], extraClasses: readonly string[] = []): Div {
     const bindings = [new PressBinding(this.open), new KeyBinding(OPENING_KEYS, this.open)];
-    return new Div({ cls: ["dd-row"], role: "button", tabIndex: 0, dataPath: this.source.path, dataLine: this.source.line, bindings }, children);
+    return new Div({ cls: ["dd-row", ...extraClasses], role: "button", tabIndex: 0, dataPath: this.source.path, dataLine: this.source.line, bindings }, children);
   }
 }

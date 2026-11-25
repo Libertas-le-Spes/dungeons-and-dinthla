@@ -1,5 +1,5 @@
 import { addLink, type LinkActions } from "../../views/lists/linked-text";
-import { textRunsOf, type MarkedPiece } from "../../views/lists/text-parts";
+import { textRunsOf, type MarkedPiece } from "../../views/components/rows/text-parts";
 import { withoutEscapes } from "../imported/reading/shown-text";
 
 export const NO_LEFT_PLAY = "Nothing is written in their note yet about how they left play.";

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { textRunsOf } from "../../../src/views/lists/text-parts";
+import { textRunsOf } from "../../../src/views/components/rows/text-parts";
 
 describe("textRunsOf", () => {
   it("keeps plain text whole when there are no keywords", () => {
