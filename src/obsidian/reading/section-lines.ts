@@ -1,5 +1,5 @@
 import type { MarkdownPostProcessorContext, MarkdownSectionInformation } from "obsidian";
-import type { NoteLines } from "./note-lines";
+import type { NoteLines } from "../../reading/note-lines";
 
 const LINE_BREAK = "\n";
 

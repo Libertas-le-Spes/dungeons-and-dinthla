@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import type { MarkdownSectionInformation } from "obsidian";
-import { NoteLines } from "../../src/reading/note-lines";
-import { showDollarsPlain } from "../../src/reading/plain-dollars";
-import type { SectionSource } from "../../src/reading/section-lines";
-import { obsidianDocument } from "../stubs/obsidian-dom";
+import { NoteLines } from "../../../src/reading/note-lines";
+import { showDollarsPlain } from "../../../src/obsidian/reading/plain-dollars";
+import type { SectionSource } from "../../../src/obsidian/reading/section-lines";
+import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 const NOTE = ["---", "played: 2026-03-14", "---", "$ 5 gp rooms at the inn", "$$ Potion of healing :used", "We rested by the [[Old Mill]].", "$$ Rope :lost", "? Who sent the letter", ""].join("\n");
 const AFTER_THE_POTION = '<div class="math math-block">Potion of healing :used\nWe rested by the [[Old Mill]].\n$$ Rope :lost\n? Who sent the letter\n</div>';

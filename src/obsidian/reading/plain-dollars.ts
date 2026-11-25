@@ -1,6 +1,6 @@
-import type { NoteLines } from "./note-lines";
+import type { NoteLines } from "../../reading/note-lines";
 import { sectionTextOf, type SectionSource } from "./section-lines";
-import { withoutComments } from "./without-comments";
+import { withoutComments } from "../../reading/without-comments";
 
 const MATHS = ".math";
 const PLAIN_LINES = "dd-plain-lines";

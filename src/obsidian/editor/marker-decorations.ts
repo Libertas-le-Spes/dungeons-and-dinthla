@@ -1,11 +1,11 @@
 import { RangeSetBuilder, type EditorState } from "@codemirror/state";
 import { Decoration, ViewPlugin, type DecorationSet, type EditorView, type ViewUpdate } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
-import { firstLineAfterProperties, type PropertiesSyntax } from "../campaign/paths/session-file";
-import type { MarkerName } from "../kinds/marker-name";
-import type { TrackedMarker } from "../kinds/tracked-marker";
-import { ALL_MARKERS } from "../kinds/tracked-markers";
-import { markerSpanOf } from "../notes/reading/marker";
+import { firstLineAfterProperties, type PropertiesSyntax } from "../../campaign/paths/session-file";
+import type { MarkerName } from "../../kinds/marker-name";
+import type { TrackedMarker } from "../../kinds/tracked-marker";
+import { ALL_MARKERS } from "../../kinds/tracked-markers";
+import { markerSpanOf } from "../../notes/reading/marker";
 
 const PROPERTIES_SEARCH_LINES = 500;
 

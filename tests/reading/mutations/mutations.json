@@ -1,56 +1,56 @@
 [
  {
   "id": "only sections holding maths",
-  "file": "src/reading/plain-dollars.ts",
+  "file": "src/obsidian/reading/plain-dollars.ts",
   "find": "  if (maths.length === 0) return;\n",
   "replace": "",
   "group": "reading"
  },
  {
   "id": "inline maths too",
-  "file": "src/reading/plain-dollars.ts",
+  "file": "src/obsidian/reading/plain-dollars.ts",
   "find": "const MATHS = \".math\";",
   "replace": "const MATHS = \".math-block\";",
   "group": "reading"
  },
  {
   "id": "each piece of maths as its own text",
-  "file": "src/reading/plain-dollars.ts",
+  "file": "src/obsidian/reading/plain-dollars.ts",
   "find": "    for (const one of maths) showItsOwnText(one);\n",
   "replace": "",
   "group": "reading"
  },
  {
   "id": "no lines without the section",
-  "file": "src/reading/plain-dollars.ts",
+  "file": "src/obsidian/reading/plain-dollars.ts",
   "find": "    return;\n  }\n  root.empty();",
   "replace": "  }\n  root.empty();",
   "group": "reading"
  },
  {
   "id": "the maths drawn are taken away",
-  "file": "src/reading/plain-dollars.ts",
+  "file": "src/obsidian/reading/plain-dollars.ts",
   "find": "  root.empty();\n",
   "replace": "",
   "group": "reading"
  },
  {
   "id": "no lines before the section",
-  "file": "src/reading/section-lines.ts",
+  "file": "src/obsidian/reading/section-lines.ts",
   "find": "number >= section.lineStart && ",
   "replace": "",
   "group": "reading"
  },
  {
   "id": "no lines after the section",
-  "file": "src/reading/section-lines.ts",
+  "file": "src/obsidian/reading/section-lines.ts",
   "find": " && number <= section.lineEnd",
   "replace": "",
   "group": "reading"
  },
  {
   "id": "nothing when Obsidian gives no section",
-  "file": "src/reading/section-lines.ts",
+  "file": "src/obsidian/reading/section-lines.ts",
   "find": "  if (section === null) return null;\n",
   "replace": "",
   "group": "reading"
@@ -71,49 +71,49 @@
  },
  {
   "id": "R1 the processor runs before Obsidian's maths",
-  "file": "src/reading/plain-dollars-processor.ts",
+  "file": "src/obsidian/reading/plain-dollars-processor.ts",
   "find": "export const BEFORE_OBSIDIANS_MATHS = -100;",
   "replace": "export const BEFORE_OBSIDIANS_MATHS = 100;",
   "group": "reading"
  },
  {
   "id": "R2 the processor shows plain only campaign notes",
-  "file": "src/reading/plain-dollars-processor.ts",
+  "file": "src/obsidian/reading/plain-dollars-processor.ts",
   "find": "    if (!this.isCampaignNote(context.sourcePath)) return;\n",
   "replace": "",
   "group": "reading"
  },
  {
   "id": "the processor asks about the note it draws",
-  "file": "src/reading/plain-dollars-processor.ts",
+  "file": "src/obsidian/reading/plain-dollars-processor.ts",
   "find": "this.isCampaignNote(context.sourcePath)",
   "replace": "this.isCampaignNote(\"\")",
   "group": "reading"
  },
  {
   "id": "the processor shows the lines plain",
-  "file": "src/reading/plain-dollars-processor.ts",
+  "file": "src/obsidian/reading/plain-dollars-processor.ts",
   "find": "    showDollarsPlain(element, context, this.noteLines);\n",
   "replace": "",
   "group": "reading"
  },
  {
   "id": "comments are left out of a piece of maths shown as its own text",
-  "file": "src/reading/plain-dollars.ts",
+  "file": "src/obsidian/reading/plain-dollars.ts",
   "find": "  const text = withoutComments(maths.getText());",
   "replace": "  const text = maths.getText();",
   "group": "reading"
  },
  {
   "id": "a piece of maths shown as its own text gets that text",
-  "file": "src/reading/plain-dollars.ts",
+  "file": "src/obsidian/reading/plain-dollars.ts",
   "find": "  maths.setText(text);\n",
   "replace": "",
   "group": "reading"
  },
  {
   "id": "a piece of maths shown as its own text stops being maths",
-  "file": "src/reading/plain-dollars.ts",
+  "file": "src/obsidian/reading/plain-dollars.ts",
   "find": "  maths.className = PLAIN_LINES;\n",
   "replace": "",
   "group": "reading"
