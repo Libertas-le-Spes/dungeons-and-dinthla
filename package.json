@@ -24,5 +24,8 @@
   },
   "overrides": {
     "moment": "2.31.0"
+  },
+  "dependencies": {
+    "monkey-around": "3.0.0"
   }
 }
