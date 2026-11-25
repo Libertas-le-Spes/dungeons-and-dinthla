@@ -6,6 +6,7 @@ import type { LinkOpener } from "../../components/rows/link-name";
 import { LinkedText } from "../../components/rows/linked-text";
 import { SourceRow } from "../../components/rows/source-row";
 import type { PageAction } from "../../elements/bindings/page-action";
+import type { ElementBinding } from "../../elements/bindings/element-binding";
 import { Bold, ListItem, PlainText, Span } from "../../elements/kinds/containers";
 import type { ViewElement } from "../../elements/view-element";
 import type { ShownThreadKind } from "../shown-thread-kind";
@@ -36,7 +37,7 @@ export class ThreadRow<Thread extends ThreadRecord, Ending extends SourcedText, 
     private readonly opener: LinkOpener,
   ) {}
 
-  build(thread: Thread, open: PageAction): ListItem {
+  build(thread: Thread, open: PageAction, bindings: readonly ElementBinding[] = []): ListItem {
     const look = this.lookOf(thread);
     const sourcePath = thread.source.path;
     const linked = new LinkedText(this.keywords, sourcePath, this.opener);
@@ -45,7 +46,7 @@ export class ThreadRow<Thread extends ThreadRecord, Ending extends SourcedText, 
     const ending = this.shown.threadKind.endingOf(thread);
     if (ending !== null) body.push(new Span({ cls: ["dd-answer"] }, new LinkedText(this.keywords, ending.source.path, this.opener).build(ending.text)));
     body.push(metaOf(look.status, sourcePath));
-    return new ListItem({}, [new SourceRow(thread.source, open).build([markOf(look), new Span({ cls: ["dd-body"] }, body)])]);
+    return new ListItem({}, [new SourceRow(thread.source, open).build([markOf(look), new Span({ cls: ["dd-body"] }, body)], { cls: [], bindings })]);
   }
 
   private lookOf(thread: Thread): ThreadLook {

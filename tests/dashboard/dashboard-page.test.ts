@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { Component, type TFile } from "obsidian";
+import type { TFile } from "obsidian";
 import { buildCampaign } from "../../src/campaign/reading/build-campaign";
 import type { SessionNote, Source } from "../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../src/campaign/reading/campaign-store";
@@ -10,6 +10,12 @@ import { NO_COIN_ENTRIES } from "../../src/funds/page/ledger-row";
 import { SESSIONS_SHARE_A_NUMBER } from "../../src/campaign/paths/session-to-write";
 import { isShown, obsidianDocument } from "../stubs/obsidian-dom";
 import { STUB_SYNTAX } from "../host/stub-syntax";
+import { NewsLine } from "../../src/whats-new/news-line";
+import type { NewsItem } from "../../src/whats-new/news-item";
+import { PageFrame } from "../../src/obsidian/views/frames/page-frame";
+import { PLAIN_KIT } from "../../src/obsidian/views/mount/mount-kit";
+import { RecordedTelling } from "../host/showing/recorded-telling";
+import { HeldCalls } from "../stubs/held-calls";
 
 const CAMPAIGN = "Pale Moon";
 const NO_CHARACTERS = "No characters yet.";
@@ -29,9 +35,10 @@ interface Setup {
   characters?: string[];
   own?: string;
   textOf?: CharacterNotes["textOf"];
+  latestNews?: NewsItem | null;
 }
 
-async function openDashboard(sessions: SessionNote[], { folder = CAMPAIGN, characters = [], own = "", textOf = async () => "" }: Setup = {}) {
+async function openDashboard(sessions: SessionNote[], { folder = CAMPAIGN, characters = [], own = "", textOf = async () => "", latestNews = null }: Setup = {}) {
   let listener = () => {};
   let noteChanged: (path: string) => void = () => {};
   const unsubscribe = vi.fn();
@@ -65,7 +72,6 @@ async function openDashboard(sessions: SessionNote[], { folder = CAMPAIGN, chara
   };
   const closers: { question: Closer[]; quest: Closer[]; coin: ((outcome: CoinOutcome) => void)[]; item: Closer[] } = { question: [], quest: [], coin: [], item: [] };
   const actions = {
-    openRow: vi.fn(),
     openLink: vi.fn(),
     openQuestion: vi.fn((_source: Source, onClosed: Closer) => void closers.question.push(onClosed)),
     openQuest: vi.fn((_source: Source, onClosed: Closer) => void closers.quest.push(onClosed)),
@@ -82,21 +88,17 @@ async function openDashboard(sessions: SessionNote[], { folder = CAMPAIGN, chara
   } satisfies DashboardActions;
   const root = obsidianDocument().createElement("div");
   root.ownerDocument.body.append(root);
-  const newsLines: HTMLElement[] = [];
-  const newsLine = new Component();
-  const newsLineFor = (lineEl: HTMLElement) => {
-    newsLines.push(lineEl);
-    return newsLine;
-  };
-  const view = new DashboardPage(root, store as unknown as CampaignStore, notes, actions, newsLineFor, STUB_SYNTAX);
-  view.load();
+  const news = new NewsLine({ latest: () => latestNews, seen: async () => {} }, vi.fn(), new RecordedTelling());
+  const view = new DashboardPage(store as unknown as CampaignStore, notes, actions, news, STUB_SYNTAX);
+  const frame = new PageFrame(root, view, PLAIN_KIT);
+  frame.load();
   const change = (next: SessionNote[]) => {
     store.current = buildCampaign(next);
     store.sessionNotes = next;
     listener();
   };
-  const close = () => view.unload();
-  return { view, root, newsLines, newsLine, actions, closers, reads, owner, change, close, unsubscribe, stopWatching, noteChanged: (path: string) => noteChanged(path) };
+  const close = () => frame.unload();
+  return { view, root, actions, closers, reads, owner, change, close, unsubscribe, stopWatching, noteChanged: (path: string) => noteChanged(path) };
 }
 
 function panel(root: HTMLElement, index: number): HTMLElement {
@@ -128,13 +130,11 @@ const PURSE = 3;
 const CHARACTERS = 4;
 
 describe("DashboardPage", () => {
-  it("puts the line about what's new above the panels, and closes it with the dashboard", async () => {
-    const { root, newsLines, newsLine, close } = await openDashboard([]);
-    const unloaded = vi.spyOn(newsLine, "onunload");
-    expect(newsLines).toEqual([root.firstElementChild]);
+  it("puts the line about what's new above the panels", async () => {
+    const { root } = await openDashboard([], { latestNews: { sentence: "Quests can be followed up.", page: "quests" } });
     expect(root.firstElementChild!.className).toBe("dd-news");
-    close();
-    expect(unloaded).toHaveBeenCalledOnce();
+    expect(textsOf(root.firstElementChild as HTMLElement, ".dd-news-text")).toEqual(["Quests can be followed up."]);
+    expect(root.children[1]!.className).toBe("dd-dashboard-grid");
   });
 
   it("counts the open questions and shows the newest three, as the Questions view does", async () => {
@@ -251,7 +251,6 @@ describe("DashboardPage", () => {
     expect(isShown(write)).toBe(true);
     write.click();
     expect(actions.writeNotes).toHaveBeenCalledExactlyOnceWith(`${CAMPAIGN}/Sessions/Session 4.md`);
-    expect(actions.openRow).not.toHaveBeenCalled();
     change([]);
     write.click();
     expect(actions.writeNotes).toHaveBeenCalledOnce();
@@ -369,7 +368,16 @@ describe("DashboardPage", () => {
     expect(characters.querySelector(".dd-empty")).toBeNull();
     characters.querySelector<HTMLElement>(".dd-card")!.click();
     expect(actions.openCharacterSheet).toHaveBeenCalledWith(`${CAMPAIGN}/Characters/Mira.md`);
-    expect(actions.openRow).not.toHaveBeenCalled();
+  });
+
+  it("draws no cards read after the dashboard closed", async () => {
+    const reads = new HeldCalls<string>();
+    const { view, root, close } = await openDashboard([sessionOf(1, [])], { characters: ["Mira"], textOf: () => reads.hold() });
+    await reads.made(1);
+    close();
+    reads.resolve(0, "");
+    await view.charactersDrawn();
+    expect(panel(root, CHARACTERS).querySelector(".dd-card")).toBeNull();
   });
 
   it("puts the player's own character first, and the others in the order the Characters folder lists them", async () => {
