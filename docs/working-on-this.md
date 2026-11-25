@@ -39,7 +39,7 @@ What the plugin's own code needs from a notes program is written as ports in `sr
 
 The look follows the same split. `styles/plugin/` holds every rule, written only with the plugin's own variables (`--dd-…`) and classes (`dd-…`); `styles/plugin/defaults.css` gives the non-colour variables plain values for a program with no theme. `styles/obsidian/theme.css` maps each `--dd-` variable that stands for one of Obsidian's to it, one per line, on `.dd-tokens`, the same root the plugin's own colours already resolve on. `tests/styles/plugin-styles.test.ts` keeps it so, with a frozen list of the few Obsidian pieces the plugin's styles still name.
 
-Files that break either today are listed by area in `tests/build/obsidian-ties/`. A file may leave a list, never join one, and a listed file that no longer breaks either rule fails a test until it is taken off. When a commit fixes a file, delete its line.
+No file of the plugin's own code breaks either rule, and a test fails for any file that does. A new piece of Obsidian wiring goes in `src/obsidian/`, in the folder of the area it serves.
 
 ## Moving files
 
