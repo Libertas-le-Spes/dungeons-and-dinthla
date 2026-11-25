@@ -1,6 +1,6 @@
 import { ToggleComponent } from "obsidian";
 import type { Anchor, Bold, Button, Description, DescriptionList, Details, Div, Form, Heading1, Heading2, Heading3, Label, List, ListItem, Mark, PlainText, Nav, OrderedList, Paragraph, Pre, Section, Select, Span, Strong, Summary, Term, NameLink, FieldRow } from "../../../views/elements/kinds/containers";
-import type { DateInput, FileInput, Option, Switch, TextArea, TextInput } from "../../../views/elements/kinds/fields";
+import type { DateInput, FileInput, Option, SearchInput, Switch, TextArea, TextInput } from "../../../views/elements/kinds/fields";
 import { FilePick } from "./file-pick";
 import type { Mounter, MountPlace } from "../../../views/elements/mounter";
 import { partsOn } from "./element-parts-on";
@@ -123,6 +123,12 @@ export class ObsidianMounter implements Mounter {
     if (element.parts.value !== undefined) input.value = element.parts.value;
     if (element.parts.placeholder !== undefined) input.placeholder = element.parts.placeholder;
     if (element.parts.spellcheck !== undefined) input.spellcheck = element.parts.spellcheck;
+    return placed(partsOn(input, element.parts, this.kit));
+  }
+
+  searchInput(element: SearchInput, into: MountPlace): MountPlace {
+    const input = elementOf(into).createEl("input", { type: "search" });
+    if (element.parts.placeholder !== undefined) input.placeholder = element.parts.placeholder;
     return placed(partsOn(input, element.parts, this.kit));
   }
 

@@ -16,6 +16,14 @@ export class TextInput implements ViewElement {
   }
 }
 
+export class SearchInput implements ViewElement {
+  constructor(readonly parts: Field) {}
+
+  mountOn(mounter: Mounter, into: MountPlace): void {
+    mounter.searchInput(this, into);
+  }
+}
+
 export class DateInput implements ViewElement {
   constructor(readonly parts: Field) {}
 

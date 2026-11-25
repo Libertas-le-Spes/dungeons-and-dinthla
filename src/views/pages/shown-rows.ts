@@ -15,6 +15,10 @@ export class ShownRows {
     return handle;
   }
 
+  holds(source: Source): boolean {
+    return this.rows.has(sourceKeyOf(source));
+  }
+
   focus(source: Source): boolean {
     const handle = this.rows.get(sourceKeyOf(source));
     if (handle === undefined) return false;
