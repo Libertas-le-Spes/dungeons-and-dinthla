@@ -1,17 +1,19 @@
 import { describe, expect, it } from "vitest";
 import type { LookupMatch } from "../../src/lookups/lookup";
-import { addLookupMatch } from "../../src/lookups/lookup-match-row";
+import { lookupMatchParts } from "../../src/lookups/lookup-match-row";
+import { mountTree } from "../../src/obsidian/views/mount/mount-tree";
+import { Div } from "../../src/views/elements/kinds/containers";
 import { obsidianDocument } from "../stubs/obsidian-dom";
 
 const SOURCE = { path: "Pale Moon/Sessions/Session 1.md", line: 0 };
 
 function rowOf(match: LookupMatch, keywords: string[]): HTMLElement {
   const el = obsidianDocument().createElement("div");
-  addLookupMatch(el, match, keywords);
+  mountTree(new Div({}, lookupMatchParts(match, keywords)), el);
   return el;
 }
 
-describe("addLookupMatch", () => {
+describe("lookupMatchParts", () => {
   it("shows an item with its marker, the typed words marked, and its holder", () => {
     const row = rowOf({ kind: "item", text: "Silvered lantern", holder: "Mira", source: SOURCE }, ["lan"]);
     expect(row.querySelector(".dd-marker-ledger")?.textContent).toBe("$");
@@ -25,10 +27,8 @@ describe("addLookupMatch", () => {
     expect(row.querySelector(".dd-lookup-holder")?.textContent).toBe("The party");
   });
 
-  it("shows a question or quest without a holder", () => {
-    for (const kind of ["question", "quest"] as const) {
-      const row = rowOf({ kind, text: "Who sent it", holder: "", source: SOURCE }, ["who"]);
-      expect(row.querySelector(".dd-lookup-holder"), kind).toBeNull();
-    }
+  it.each(["question", "quest"] as const)("shows a %s without a holder", (kind) => {
+    const row = rowOf({ kind, text: "Who sent it", holder: "", source: SOURCE }, ["who"]);
+    expect(row.querySelector(".dd-lookup-holder")).toBeNull();
   });
 });

@@ -18,6 +18,7 @@ import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { WantedLines } from "../../../src/views/opening/wanted-lines";
 import { stubRenumbering } from "../../session-notes/renumbering/stub-renumbering";
 import { STUB_SYNTAX } from "../../host/stub-syntax";
+import { PageFrame } from "../../../src/obsidian/views/frames/page-frame";
 
 const ELEVEN = "Pale Moon/Sessions/Session 11.md";
 const TWELVE = "Pale Moon/Sessions/Session 12.md";
@@ -27,7 +28,9 @@ const BOTH = [
   { path: TWELVE, number: 12, firstLine: 0, text: "" },
 ];
 
-function notesPageOf(page: Component): SessionNotesPage {
+function notesPageOf(made: Component): SessionNotesPage {
+  if (!(made instanceof PageFrame)) throw new Error("The Notes section made no page frame.");
+  const page = made.page;
   if (!(page instanceof SessionNotesPage)) throw new Error("The Notes section made another page.");
   return page;
 }
@@ -72,7 +75,7 @@ function made(path: string | null, sessions = BOTH, latestAfterDelete: string | 
 describe("notesSection", () => {
   it("makes the Notes page for the session the tab shows", () => {
     const { page, root } = made(ELEVEN);
-    expect(page).toBeInstanceOf(SessionNotesPage);
+    expect(notesPageOf(page)).toBeInstanceOf(SessionNotesPage);
     expect(root.querySelector("select")?.value).toBe(ELEVEN);
   });
 

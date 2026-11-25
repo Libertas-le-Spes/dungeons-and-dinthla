@@ -5,14 +5,12 @@ import { questionShownKind } from "../../../src/questions/list/question-shown-ki
 import { LinkedText } from "../../../src/views/components/rows/linked-text";
 import { HERE } from "../../../src/views/elements/bindings/open-place";
 import type { ViewElement } from "../../../src/views/elements/view-element";
-import { addLinkedText } from "../../../src/views/lists/linked-text";
 import { ThreadRow } from "../../../src/views/threads/rows/thread-row";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { ItemEventRow } from "../../../src/dashboard/rows/item-event-row";
 import { ShortCharacterCard } from "../../../src/dashboard/rows/short-character-card";
 import { DIED_STANDING } from "../../../src/imports/layout/standing";
 import type { CharacterCard } from "../../../src/characters/cards/character-card";
-import { shapeOf } from "./same-page";
 import { StatBlock } from "../../../src/characters/cards/drawing/stat-block";
 import { Div } from "../../../src/views/elements/kinds/containers";
 
@@ -34,21 +32,16 @@ function campaignOf(lines: string[]) {
   return buildCampaign([{ path: SESSION, number: 1, firstLine: 0, text: lines.join("\n") }]);
 }
 
-function actions() {
-  return { openRow: vi.fn(), openLink: vi.fn() };
-}
-
 const NO_OPEN = { run: vi.fn() };
 
-describe("linked text, against today's drawing", () => {
+describe("linked text", () => {
+  const LINK = '<a class="dd-link-name" role="link" tabindex="0" draggable="false">';
   it.each([
-    { what: "plain words", text: "Who rang the bell", keywords: [] },
-    { what: "a link", text: "Ask [[Old Tom]] about the bell", keywords: [] },
-    { what: "marked words and a link with a marked word inside", text: "The bell of [[Bell Tower]] rang", keywords: ["bell"] },
-  ])("draws $what just as today", ({ text, keywords }) => {
-    const today = root();
-    addLinkedText(today, text, keywords, SESSION, actions());
-    expect(shapeOf(mounted(...new LinkedText(keywords, SESSION, { openLink: vi.fn() }).build(text)))).toEqual(shapeOf(today));
+    { what: "plain words", text: "Who rang the bell", keywords: [], drawn: "Who rang the bell" },
+    { what: "a link in its brackets", text: "Ask [[Old Tom]] about the bell", keywords: [], drawn: `Ask <span class="dd-link"><span class="dd-link-bracket">[[</span>${LINK}Old Tom</a><span class="dd-link-bracket">]]</span></span> about the bell` },
+    { what: "marked words and a link with a marked word inside", text: "The bell of [[Bell Tower]] rang", keywords: ["bell"], drawn: `The <mark>bell</mark> of <span class="dd-link"><span class="dd-link-bracket">[[</span>${LINK}<mark>Bell</mark> Tower</a><span class="dd-link-bracket">]]</span></span> rang` },
+  ])("draws $what", ({ text, keywords, drawn }) => {
+    expect(mounted(...new LinkedText(keywords, SESSION, { openLink: vi.fn() }).build(text)).innerHTML).toBe(drawn);
   });
 
   it("opens a link from the note the text came from", () => {

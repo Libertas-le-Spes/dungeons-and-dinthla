@@ -22,6 +22,6 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "reading/": ["Debouncer", "MarkdownPostProcessorContext", "MarkdownSectionInformation", "debounce"],
   "session-notes/": ["Component", "EventRef"],
   "settings/": ["App", "ButtonComponent", "DropdownComponent", "FuzzySuggestModal", "Notice", "Plugin", "PluginSettingTab", "Setting", "TFile"],
-  "views/": ["App", "Keymap", "Notice", "PaneType", "parseLinktext"],
+  "views/": ["App", "Notice", "PaneType", "parseLinktext"],
   "welcome/": ["App", "Component", "Notice", "PluginManifest"],
 };

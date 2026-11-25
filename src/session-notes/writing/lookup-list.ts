@@ -1,23 +1,27 @@
 import type { LookupMatch } from "../../lookups/lookup";
-import { addLookupMatch } from "../../lookups/lookup-match-row";
+import { LOOKUP_CLASSES, lookupMatchParts } from "../../lookups/lookup-match-row";
+import { HandleRequest, HoldFocusBinding, PressBinding } from "../../views/elements/bindings/bindings";
+import { KeptHandle } from "../../views/elements/bindings/kept-handle";
+import { RunAction } from "../../views/elements/bindings/run-action";
+import { Div, List, ListItem } from "../../views/elements/kinds/containers";
+import type { ViewElement } from "../../views/elements/view-element";
 
 export class LookupList {
-  private readonly element: HTMLElement;
-  private readonly heading: HTMLElement;
-  private readonly list: HTMLElement;
+  private readonly element = new KeptHandle();
+  private readonly heading = new KeptHandle();
+  private readonly list = new KeptHandle();
   private matches: LookupMatch[] = [];
-  private rows: HTMLElement[] = [];
+  private rows: KeptHandle[] = [];
   private selected = 0;
   private open = false;
 
-  constructor(
-    parent: HTMLElement,
-    private readonly pick: (match: LookupMatch) => void,
-  ) {
-    this.element = parent.createDiv({ cls: "dd-box-lookups" });
-    this.heading = this.element.createDiv({ cls: "dd-box-lookups-heading" });
-    this.list = this.element.createEl("ul", { attr: { role: "listbox" } });
-    this.element.toggle(false);
+  constructor(private readonly pick: (match: LookupMatch) => void) {}
+
+  tree(): ViewElement {
+    return new Div({ cls: ["dd-box-lookups"], hidden: true, bindings: [new HandleRequest(this.element)] }, [
+      new Div({ cls: ["dd-box-lookups-heading"], bindings: [new HandleRequest(this.heading)] }),
+      new List({ role: "listbox", bindings: [new HandleRequest(this.list)] }),
+    ]);
   }
 
   get isOpen(): boolean {
@@ -26,17 +30,19 @@ export class LookupList {
 
   show(heading: string, matches: LookupMatch[], keywords: string[]): void {
     this.heading.setText(heading);
-    this.list.setAttribute("aria-label", heading);
     this.matches = matches;
-    this.list.empty();
-    this.rows = matches.map((match) => this.addRow(match, keywords));
+    this.rows = [];
+    const rows: ViewElement[] = [];
+    for (const match of matches) rows.push(this.rowOf(match, keywords));
+    this.list.showInside(rows);
+    this.list.setLabel(heading);
     this.select(0);
-    this.element.toggle(true);
+    this.element.setHidden(false);
     this.open = true;
   }
 
   close(): void {
-    this.element.toggle(false);
+    this.element.setHidden(true);
     this.open = false;
     this.matches = [];
     this.rows = [];
@@ -54,16 +60,19 @@ export class LookupList {
     this.pick(match);
   }
 
-  private addRow(match: LookupMatch, keywords: string[]): HTMLElement {
-    const row = this.list.createEl("li", { cls: "dd-box-lookup", attr: { role: "option" } });
-    addLookupMatch(row, match, keywords);
-    row.addEventListener("mousedown", (event) => event.preventDefault());
-    row.addEventListener("click", () => this.pick(match));
-    return row;
+  private rowOf(match: LookupMatch, keywords: string[]): ViewElement {
+    const kept = new KeptHandle();
+    this.rows.push(kept);
+    const bindings = [new HoldFocusBinding(), new PressBinding(new RunAction(this.picked.bind(this, match))), new HandleRequest(kept)];
+    return new ListItem({ cls: ["dd-box-lookup", ...LOOKUP_CLASSES], role: "option", bindings }, lookupMatchParts(match, keywords));
+  }
+
+  private picked(match: LookupMatch): void {
+    this.pick(match);
   }
 
   private select(index: number): void {
     this.selected = index;
-    for (const [rowIndex, row] of this.rows.entries()) row.setAttribute("aria-selected", String(rowIndex === index));
+    for (const [rowIndex, row] of this.rows.entries()) row.setSelected(rowIndex === index);
   }
 }

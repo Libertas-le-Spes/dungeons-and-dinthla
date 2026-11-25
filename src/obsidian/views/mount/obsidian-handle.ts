@@ -31,6 +31,10 @@ export class ObsidianHandle implements ElementHandle {
     this.el.setAttr("aria-selected", String(selected));
   }
 
+  setLabel(label: string): void {
+    this.el.setAttr("aria-label", label);
+  }
+
   setText(text: string): void {
     this.el.setText(text);
   }
@@ -49,6 +53,14 @@ export class ObsidianHandle implements ElementHandle {
 
   setReadOnly(readOnly: boolean): void {
     if (isTyped(this.el)) this.el.readOnly = readOnly;
+  }
+
+  placeCaret(at: number): void {
+    if (isTyped(this.el)) this.el.setSelectionRange(at, at);
+  }
+
+  bringIntoView(): void {
+    this.el.scrollIntoView({ block: "center" });
   }
 
   setTabIndex(index: number): void {
