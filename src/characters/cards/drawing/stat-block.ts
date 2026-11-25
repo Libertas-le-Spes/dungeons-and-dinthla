@@ -1,5 +1,8 @@
+import { Bold, Div, PlainText, Strong } from "../../../views/elements/kinds/containers";
+import type { ViewElement } from "../../../views/elements/view-element";
 import { NOT_KNOWN } from "../../reading/character-sheet";
 import { ABILITIES, modifierOf, type SheetValues } from "../../reading/sheet-values";
+import { statValueOf } from "./card-parts";
 
 const STAT_BLOCK_LINES = [
   { label: "Class", name: "class" },
@@ -8,55 +11,39 @@ const STAT_BLOCK_LINES = [
   { label: "Speed", name: "speed" },
 ];
 
-function knownValueOf(values: SheetValues, name: string): string | undefined {
-  const value = values.get(name);
-  if (value === NOT_KNOWN) return undefined;
-  return value;
+export const STAT_BLOCK_CLASS = "dd-stat-block";
+
+function rule(): ViewElement {
+  return new Div({ cls: ["dd-stat-block-rule"] });
 }
 
-function addStatValue(parent: HTMLElement, values: SheetValues, name: string): void {
-  const value = knownValueOf(values, name);
-  if (value === undefined) parent.createSpan({ cls: "dd-unknown", text: NOT_KNOWN });
-  else parent.appendText(value);
-}
+export class StatBlock {
+  build(characterName: string, values: SheetValues): ViewElement[] {
+    const block: ViewElement[] = [new Div({ cls: ["dd-stat-block-name"], text: characterName })];
+    block.push(...this.knownLine("dd-stat-block-type", values, "type"), ...this.knownLine("dd-stat-block-subtitle", values, "subtitle"), rule());
+    for (const { label, name } of STAT_BLOCK_LINES) block.push(new Div({ cls: ["dd-stat-block-line"] }, [new Strong({ text: label }), new PlainText(" "), statValueOf(values, name)]));
+    block.push(rule(), this.abilitiesOf(values));
+    return block;
+  }
 
-function addKnownLine(block: HTMLElement, cls: string, value: string | undefined): void {
-  if (value !== undefined) block.createDiv({ cls, text: value });
-}
+  private knownLine(cls: string, values: SheetValues, name: string): ViewElement[] {
+    const value = values.get(name);
+    if (value === undefined || value === NOT_KNOWN) return [];
+    return [new Div({ cls: [cls], text: value })];
+  }
 
-function addAbilities(block: HTMLElement, values: SheetValues): void {
-  const abilities = block.createDiv({ cls: "dd-stat-block-abilities" });
-  for (const ability of ABILITIES) {
-    const cell = abilities.createDiv();
-    cell.createEl("b", { text: ability });
-    addStatValue(cell, values, ability);
+  private abilitiesOf(values: SheetValues): ViewElement {
+    const cells: ViewElement[] = [];
+    for (const ability of ABILITIES) cells.push(new Div({}, this.abilityCell(values, ability)));
+    return new Div({ cls: ["dd-stat-block-abilities"] }, cells);
+  }
+
+  private abilityCell(values: SheetValues, ability: string): ViewElement[] {
+    const cell: ViewElement[] = [new Bold({ text: ability }), statValueOf(values, ability)];
     const score = values.get(ability);
-    if (score === undefined) continue;
+    if (score === undefined) return cell;
     const modifier = modifierOf(score);
-    if (modifier !== "") cell.appendText(` (${modifier})`);
+    if (modifier !== "") cell.push(new PlainText(` (${modifier})`));
+    return cell;
   }
-}
-
-function startStatBlock(block: HTMLElement, characterName: string): void {
-  block.addClass("dd-stat-block");
-  block.createDiv({ cls: "dd-stat-block-name", text: characterName });
-}
-
-function addStatBlockLine(block: HTMLElement): HTMLElement {
-  return block.createDiv({ cls: "dd-stat-block-line" });
-}
-
-export function fillStatBlock(block: HTMLElement, characterName: string, values: SheetValues): void {
-  startStatBlock(block, characterName);
-  addKnownLine(block, "dd-stat-block-type", knownValueOf(values, "type"));
-  addKnownLine(block, "dd-stat-block-subtitle", knownValueOf(values, "subtitle"));
-  block.createDiv({ cls: "dd-stat-block-rule" });
-  for (const { label, name } of STAT_BLOCK_LINES) {
-    const line = addStatBlockLine(block);
-    line.createEl("strong", { text: label });
-    line.appendText(" ");
-    addStatValue(line, values, name);
-  }
-  block.createDiv({ cls: "dd-stat-block-rule" });
-  addAbilities(block, values);
 }

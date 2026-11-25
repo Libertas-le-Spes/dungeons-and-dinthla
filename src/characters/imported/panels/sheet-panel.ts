@@ -1,5 +1,6 @@
+import type { ViewElement } from "../../../views/elements/view-element";
 import type { ImportedLists } from "../lists/imported-lists";
 
 export interface SheetPanel {
-  addTo(root: HTMLElement, lists: ImportedLists): void;
+  treeOf(lists: ImportedLists): ViewElement;
 }

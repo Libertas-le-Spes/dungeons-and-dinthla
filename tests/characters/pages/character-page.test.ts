@@ -1,53 +1,32 @@
 import { describe, expect, it, vi } from "vitest";
-import { Component } from "obsidian";
-import type { NoteRef } from "../../../src/host/notes/note-ref";
-import { fileAt } from "../../stubs/note-files";
 import { ALL_CHARACTERS, CharacterPage } from "../../../src/characters/pages/character-page";
+import { Div } from "../../../src/views/elements/kinds/containers";
+import { PageFrame } from "../../../src/obsidian/views/frames/page-frame";
+import { PLAIN_KIT } from "../../../src/obsidian/views/mount/mount-kit";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
-const MIRA = fileAt("Pale Moon/Characters/Mira.md");
-
-class FakeSheet extends Component {
-  loaded = false;
-
-  constructor(
-    readonly contentEl: HTMLElement,
-    readonly file: NoteRef,
-  ) {
-    super();
-  }
-
-  override onload(): void {
-    this.loaded = true;
-    this.contentEl.setText(`sheet of ${this.file.basename}`);
-  }
-
-  override onunload(): void {
-    this.loaded = false;
-  }
+function madeUpSheet() {
+  return { tree: () => new Div({ text: "sheet of Mira" }), started: vi.fn(), stopped: vi.fn() };
 }
 
 function openPage() {
   const root = obsidianDocument().createElement("div");
+  root.ownerDocument.body.append(root);
   root.createDiv({ text: "left from the page before" });
-  const sheets: FakeSheet[] = [];
-  const makeSheet = (contentEl: HTMLElement, file: NoteRef) => {
-    const sheet = new FakeSheet(contentEl, file);
-    sheets.push(sheet);
-    return sheet;
-  };
+  const sheet = madeUpSheet();
   const showGallery = vi.fn();
-  const page = new CharacterPage(root, MIRA, makeSheet, showGallery);
-  page.load();
-  return { root, page, sheets, showGallery };
+  const frame = new PageFrame(root, new CharacterPage(sheet, showGallery), PLAIN_KIT);
+  frame.load();
+  return { root, frame, sheet, showGallery };
 }
 
 describe("CharacterPage", () => {
-  it("shows a way back to all characters above the character's sheet", () => {
-    const { root, sheets } = openPage();
+  it("shows a way back to all characters above the character's sheet, and starts the sheet once it is drawn", () => {
+    const { root, sheet } = openPage();
     expect([...root.children].map((child) => child.textContent)).toEqual([ALL_CHARACTERS, "sheet of Mira"]);
     expect(ALL_CHARACTERS).toBe("← All characters");
-    expect(sheets.map((sheet) => [sheet.file, sheet.loaded])).toEqual([[MIRA, true]]);
+    expect(sheet.started).toHaveBeenCalledOnce();
+    expect(sheet.stopped).not.toHaveBeenCalled();
   });
 
   it("shows the gallery when the way back is pressed", () => {
@@ -56,9 +35,9 @@ describe("CharacterPage", () => {
     expect(showGallery).toHaveBeenCalledOnce();
   });
 
-  it("closes the sheet when it is closed", () => {
-    const { page, sheets } = openPage();
-    page.unload();
-    expect(sheets[0]!.loaded).toBe(false);
+  it("stops the sheet when it is closed", () => {
+    const { frame, sheet } = openPage();
+    frame.unload();
+    expect(sheet.stopped).toHaveBeenCalledOnce();
   });
 });

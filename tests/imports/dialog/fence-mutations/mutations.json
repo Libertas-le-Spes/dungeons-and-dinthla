@@ -35,13 +35,6 @@
   "group": "allow"
  },
  {
-  "id": "fence: button focus",
-  "file": "tests/fence/allowed/page-members.ts",
-  "find": "  \"characters/imported/drawing/action-button.ts\": [\"addClass\", \"focus\"],\n",
-  "replace": "",
-  "group": "allow"
- },
- {
   "id": "fence: inflating members",
   "file": "tests/fence/allowed/page-members.ts",
   "find": "  \"pdf/streams/inflate/platform-inflating.ts\": [\"getReader\", \"pipeThrough\", \"stream\"],\n",

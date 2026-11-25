@@ -1,10 +1,7 @@
-import { VALUE_BUTTONS } from "../../views/lists/row-keys";
-import { Component } from "obsidian";
 import type { NoteRef } from "../../host/notes/note-ref";
 import type { Source } from "../../campaign/record/campaign";
 import { campaignFolderOf, charactersFolderOf } from "../../campaign/paths/campaign-folders";
 import { sessionLabelOf, type PropertiesSyntax } from "../../campaign/paths/session-file";
-import type { LinkActions } from "../../views/lists/linked-text";
 import { FocusAfter } from "../../views/lists/focus-after";
 import { PENDING_FOCUS_MS } from "../../views/lists/row-focus";
 import { shownValuesOf, type CharacterSheet, type SheetValue } from "../reading/character-sheet";
@@ -12,20 +9,27 @@ import { shownTextOf, STATE_WORDS } from "../reading/sheet-value-words";
 import { messageOf } from "../../views/dialogs/message-of";
 import { readCharacterSheet, type ReadSheet, type SheetStore } from "../reading/read-character-sheet";
 import type { MentionNotes } from "../reading/mention-notes";
-import { MentionsPanel } from "./mentions-panel";
+import { MentionsPanel, type MentionActions } from "./mentions-panel";
 import type { SheetNotes } from "../reading/sheet-notes";
 import { modifierOf } from "../reading/sheet-values";
-import { fillStatBlock } from "../cards/drawing/stat-block";
+import { STAT_BLOCK_CLASS, StatBlock } from "../cards/drawing/stat-block";
 import { PendingWork } from "../../views/pending/pending-work";
 import { isCharacterNotePath } from "../../campaign/paths/character-note-path";
-import { addDepartButton } from "../cards/drawing/depart-button";
-import { addUpdateButton } from "../imported/drawing/update-button";
-import { addImportedPanels } from "../imported/panels/imported-panels";
+import { departButton } from "../cards/drawing/depart-button";
+import { updateButton } from "../imported/drawing/update-button";
+import { importedPanels } from "../imported/panels/imported-panels";
 import type { ItemTracking } from "../imported/tracking/item-tracking";
+import type { Pauses } from "../../host/keeping/pauses";
+import { HandleRequest, PressBinding } from "../../views/elements/bindings/bindings";
+import { KeptHandle } from "../../views/elements/bindings/kept-handle";
+import { RunAction } from "../../views/elements/bindings/run-action";
+import { Anchor, Bold, Button, Div, Heading1, Heading2, List, ListItem, Paragraph, Section, Span } from "../../views/elements/kinds/containers";
+import type { ViewElement } from "../../views/elements/view-element";
+import type { PagePart } from "../../views/pages/page-part";
 
 export const TAP_A_VALUE = "Tap a value to change it or its state.";
 
-export interface SheetActions extends LinkActions {
+export interface SheetActions extends MentionActions {
   editCharacter(file: NoteRef): void;
   updateFromBeyond(file: NoteRef, returnFocus: () => void): void;
   depart(path: string, returnFocus: () => void): void;
@@ -57,47 +61,75 @@ function earlierText(count: number): string {
   return `${count} earlier values`;
 }
 
-export class CharacterSheetPage extends Component {
+const SHEET_CLASSES = ["dd-tokens", "dd-root", "dd-list-view", "dd-sheet"];
+
+export interface SheetParts {
+  readonly file: NoteRef;
+  readonly store: WatchedStore;
+  readonly notes: SheetNotes;
+  readonly actions: SheetActions;
+  readonly mentionNotes: MentionNotes;
+  readonly pauses: Pauses;
+}
+
+function valueClasses(value: SheetValue, first: string): string[] {
+  return [first, `dd-state-${value.state}`];
+}
+
+export class CharacterSheetPage implements PagePart {
   private renders = 0;
   private watched: string[] = [];
   private pendingFocus: { name: string; until: number } | null = null;
   private readonly focusEdit = new FocusAfter();
   private readonly drawing = new PendingWork();
   private readonly mentions: MentionsPanel;
+  private readonly place = new KeptHandle();
+  private readonly editButton = new KeptHandle();
+  private readonly valueButtons = new Map<string, KeptHandle>();
+  private readonly stops: (() => void)[] = [];
+  private readonly file: NoteRef;
+  private readonly store: WatchedStore;
+  private readonly notes: SheetNotes;
+  private readonly actions: SheetActions;
 
   constructor(
-    private readonly contentEl: HTMLElement,
-    private readonly file: NoteRef,
-    private readonly store: WatchedStore,
-    private readonly notes: SheetNotes,
-    private readonly actions: SheetActions,
-    mentionNotes: MentionNotes,
+    parts: SheetParts,
     private readonly syntax: PropertiesSyntax,
   ) {
-    super();
-    this.mentions = new MentionsPanel(mentionNotes, actions);
+    this.file = parts.file;
+    this.store = parts.store;
+    this.notes = parts.notes;
+    this.actions = parts.actions;
+    this.mentions = new MentionsPanel(parts.mentionNotes, parts.actions, parts.pauses);
   }
 
-  override onload(): void {
-    this.register(this.store.subscribe(() => this.refresh()));
-    const refreshIfWatched = (path: string) => {
-      if (this.watches(path)) this.refresh();
-    };
-    this.register(this.notes.onNoteChanged(refreshIfWatched));
-    this.register(this.notes.onNoteMoved(refreshIfWatched));
-    this.register(this.mentions.watch());
+  tree(): ViewElement {
+    return new Div({ cls: SHEET_CLASSES, bindings: [new HandleRequest(this.place)] });
+  }
+
+  started(): void {
+    this.stops.push(this.store.subscribe(this.refresh.bind(this)));
+    this.stops.push(this.notes.onNoteChanged(this.refreshIfWatched.bind(this)));
+    this.stops.push(this.notes.onNoteMoved(this.refreshIfWatched.bind(this)));
+    this.stops.push(this.mentions.watch());
     this.refresh();
   }
 
-  override onunload(): void {
+  stopped(): void {
     this.renders += 1;
     this.mentions.clear();
-    this.contentEl.empty();
+    for (const stop of this.stops) stop();
+    this.stops.length = 0;
+    this.place.showInside([]);
   }
 
   async rendered(): Promise<void> {
     await this.drawing.settled();
     await this.mentions.readSettled();
+  }
+
+  private refreshIfWatched(path: string): void {
+    if (this.watches(path)) this.refresh();
   }
 
   private refresh(): void {
@@ -141,49 +173,42 @@ export class CharacterSheetPage extends Component {
 
   private drawError(file: NoteRef, error: unknown): void {
     this.mentions.clear();
-    const root = this.contentEl;
-    root.empty();
-    root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-sheet");
-    root.createEl("h1", { cls: "dd-sheet-name", text: file.basename });
-    root.createEl("p", { cls: "dd-empty", text: couldNotRead(file, error) });
+    this.valueButtons.clear();
+    this.place.showInside([new Heading1({ cls: ["dd-sheet-name"], text: file.basename }), new Paragraph({ cls: ["dd-empty"], text: couldNotRead(file, error) })]);
   }
 
   private draw(file: NoteRef, read: ReadSheet): void {
     const sheet = read.sheet;
-    const root = this.contentEl;
-    root.empty();
-    root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-sheet");
-    const head = root.createDiv({ cls: "dd-head" });
-    head.createEl("h1", { cls: "dd-sheet-name", text: file.basename });
-    const actions = head.createDiv({ cls: "dd-head-actions" });
-    const edit = actions.createEl("button", { cls: "dd-create", text: "Edit character" });
-    edit.addEventListener("click", () => this.actions.editCharacter(file));
-    if (this.focusEdit.isArmed()) edit.focus();
-    if (this.isUpdatable(file, read.campaignFolder)) {
-      addUpdateButton(actions, file, this.actions);
-    }
+    const updatable = this.isUpdatable(file, read.campaignFolder);
+    this.valueButtons.clear();
+    const trees: ViewElement[] = [this.headOf(file, updatable)];
     const subtitle = sheet.values.find((value) => value.name === "subtitle");
-    if (subtitle !== undefined && subtitle.state !== "unknown") root.createEl("p", { cls: "dd-sheet-subtitle", text: shownTextOf(subtitle) });
-    const abilities = root.createDiv({ cls: "dd-sheet-abilities" });
-    for (const value of sheet.abilities) {
-      const cell = abilities.createDiv({ cls: "dd-sheet-ability" });
-      cell.createEl("b", { text: value.label });
-      this.addValue(cell, file, value, true);
-    }
-    const rows = root.createEl("ul", { cls: "dd-sheet-rows" });
-    for (const value of sheet.values) {
-      const row = rows.createEl("li", { cls: "dd-sheet-row" });
-      row.createSpan({ cls: "dd-sheet-label", text: value.label });
-      this.addValue(row.createDiv({ cls: "dd-sheet-value" }), file, value, false);
-    }
-    root.createEl("p", { cls: "dd-sheet-hint", text: TAP_A_VALUE });
-    addImportedPanels(root, file, read.lists, this.actions.tracking);
-    this.drawStatBlock(root, file, sheet);
-    this.mentions.draw(root.createEl("section", { cls: "dd-sheet-mentions" }), file);
-    if (this.isUpdatable(file, read.campaignFolder)) {
-      addDepartButton({ parent: root.createDiv({ cls: "dd-sheet-depart" }), path: file.path, action: this.actions, focus: this.focusEdit });
-    }
+    if (subtitle !== undefined && subtitle.state !== "unknown") trees.push(new Paragraph({ cls: ["dd-sheet-subtitle"], text: shownTextOf(subtitle) }));
+    const abilities: ViewElement[] = [];
+    for (const value of sheet.abilities) abilities.push(new Div({ cls: ["dd-sheet-ability"] }, [new Bold({ text: value.label }), ...this.valueOf(file, value, true)]));
+    trees.push(new Div({ cls: ["dd-sheet-abilities"] }, abilities));
+    const rows: ViewElement[] = [];
+    for (const value of sheet.values) rows.push(new ListItem({ cls: ["dd-sheet-row"] }, [new Span({ cls: ["dd-sheet-label"], text: value.label }), new Div({ cls: ["dd-sheet-value"] }, this.valueOf(file, value, false))]));
+    trees.push(new List({ cls: ["dd-sheet-rows"] }, rows), new Paragraph({ cls: ["dd-sheet-hint"], text: TAP_A_VALUE }));
+    trees.push(...importedPanels(file, read.lists, this.actions.tracking), this.statBlockOf(file, sheet));
+    const mentionsPlace = new KeptHandle();
+    trees.push(new Section({ cls: ["dd-sheet-mentions"], bindings: [new HandleRequest(mentionsPlace)] }));
+    if (updatable) trees.push(new Div({ cls: ["dd-sheet-depart"] }, [departButton(file.path, this.actions, this.focusEdit)]));
+    this.place.showInside(trees);
+    if (this.focusEdit.isArmed()) this.editButton.focus();
+    this.mentions.draw(mentionsPlace, file);
     this.focusPending();
+  }
+
+  private headOf(file: NoteRef, updatable: boolean): ViewElement {
+    const edit = new Button({ cls: ["dd-create"], text: "Edit character", bindings: [new PressBinding(new RunAction(this.editCharacter.bind(this, file))), new HandleRequest(this.editButton)] });
+    const actions: ViewElement[] = [edit];
+    if (updatable) actions.push(updateButton(file, this.actions));
+    return new Div({ cls: ["dd-head"] }, [new Heading1({ cls: ["dd-sheet-name"], text: file.basename }), new Div({ cls: ["dd-head-actions"] }, actions)]);
+  }
+
+  private editCharacter(file: NoteRef): void {
+    this.actions.editCharacter(file);
   }
 
   private isUpdatable(file: NoteRef, campaignFolder: string | null): boolean {
@@ -191,53 +216,53 @@ export class CharacterSheetPage extends Component {
     return isCharacterNotePath(file.path, charactersFolderOf(campaignFolder));
   }
 
-  private drawStatBlock(root: HTMLElement, file: NoteRef, sheet: CharacterSheet): void {
-    const section = root.createEl("section", { cls: "dd-sheet-stat-block" });
-    section.createEl("h2", { cls: "dd-title", text: "Stat block" });
-    fillStatBlock(section.createDiv(), file.basename, shownValuesOf(sheet));
+  private statBlockOf(file: NoteRef, sheet: CharacterSheet): ViewElement {
+    const block = new Div({ cls: [STAT_BLOCK_CLASS] }, new StatBlock().build(file.basename, shownValuesOf(sheet)));
+    return new Section({ cls: ["dd-sheet-stat-block"] }, [new Heading2({ cls: ["dd-title"], text: "Stat block" }), block]);
   }
 
-  private addValue(parent: HTMLElement, file: NoteRef, value: SheetValue, isAbility: boolean): void {
-    const line = parent.createDiv({ cls: "dd-value-line" });
+  private valueOf(file: NoteRef, value: SheetValue, isAbility: boolean): ViewElement[] {
     const shownText = shownTextOf(value);
-    const button = line.createEl("button", {
-      cls: ["dd-value", `dd-state-${value.state}`],
+    const kept = new KeptHandle();
+    this.valueButtons.set(value.name, kept);
+    const pressed = new RunAction(this.choose.bind(this, file, value));
+    const button = new Button({
+      cls: valueClasses(value, "dd-value"),
       text: shownText,
-      attr: { "data-name": value.name, "aria-label": `${value.label}: ${shownText}, ${STATE_WORDS[value.state]}` },
+      dataName: value.name,
+      label: `${value.label}: ${shownText}, ${STATE_WORDS[value.state]}`,
+      bindings: [new PressBinding(pressed), new HandleRequest(kept)],
     });
-    VALUE_BUTTONS.mark(button, value.name);
-    button.addEventListener("click", () => this.choose(file, value));
+    const line: ViewElement[] = [button];
     if (isAbility) {
       const modifier = modifierOf(shownText);
-      if (modifier !== "") line.createSpan({ cls: "dd-modifier", text: `(${modifier})` });
+      if (modifier !== "") line.push(new Span({ cls: ["dd-modifier"], text: `(${modifier})` }));
     }
     if (value.earlier.length > 0) {
       const count = value.earlier.length;
-      line.createSpan({ cls: "dd-earlier", text: `↺ ${count}`, attr: { "aria-label": earlierText(count), title: earlierText(count) } });
+      line.push(new Span({ cls: ["dd-earlier"], text: `↺ ${count}`, label: earlierText(count), title: earlierText(count) }));
     }
-    this.addSource(parent, value);
+    return [new Div({ cls: ["dd-value-line"] }, line), ...this.sourceOf(value)];
   }
 
-  private addSource(parent: HTMLElement, value: SheetValue): void {
+  private sourceOf(value: SheetValue): ViewElement[] {
     const caption = captionOf(value);
-    if (caption === null) return;
-    const where = parent.createDiv({ cls: ["dd-value-source", `dd-state-${value.state}`] });
-    this.addSourceLink(where, caption.text, caption.source);
+    if (caption === null) return [];
+    const link = new Anchor({ cls: ["dd-source-link"], text: caption.text, bindings: [new PressBinding(new RunAction(this.openSource.bind(this, caption.source)))] });
+    return [new Div({ cls: valueClasses(value, "dd-value-source") }, [link])];
   }
 
-  private addSourceLink(parent: HTMLElement, text: string, source: Source): void {
-    const link = parent.createEl("a", { cls: "dd-source-link", text, href: "#" });
-    link.addEventListener("click", (event) => {
-      event.preventDefault();
-      this.actions.openRow(source);
-    });
+  private openSource(source: Source): void {
+    this.actions.openRow(source);
   }
 
   private choose(file: NoteRef, value: SheetValue): void {
-    this.actions.chooseValue(file, value, () => {
-      this.pendingFocus = { name: value.name, until: Date.now() + PENDING_FOCUS_MS };
-      this.focusPending();
-    });
+    this.actions.chooseValue(file, value, this.valueClosed.bind(this, value.name));
+  }
+
+  private valueClosed(name: string): void {
+    this.pendingFocus = { name, until: Date.now() + PENDING_FOCUS_MS };
+    this.focusPending();
   }
 
   private focusPending(): void {
@@ -247,9 +272,7 @@ export class CharacterSheetPage extends Component {
       this.pendingFocus = null;
       return;
     }
-    const button = Array.from(this.contentEl.querySelectorAll<HTMLElement>(".dd-value")).find(
-      (candidate) => VALUE_BUTTONS.keyOf(candidate) === pending.name,
-    );
+    const button = this.valueButtons.get(pending.name);
     if (button !== undefined) button.focus();
   }
 }

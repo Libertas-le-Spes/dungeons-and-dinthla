@@ -1,7 +1,7 @@
 import { DEPART_WORDS } from "../../../imports/layout/standing";
 import type { FocusAfter } from "../../../views/lists/focus-after";
-import { addActionButton } from "../../imported/drawing/action-button";
-import type { ButtonAction } from "../../../views/components/buttons/action-button";
+import { ActionButton, type ButtonAction } from "../../../views/components/buttons/action-button";
+import type { ViewElement } from "../../../views/elements/view-element";
 
 const DEPART_CLASSES = ["dd-depart", "mod-warning"];
 
@@ -9,25 +9,31 @@ export interface DepartAction {
   depart(path: string, returnFocus: () => void): void;
 }
 
-export interface DepartButton {
-  readonly parent: HTMLElement;
-  readonly path: string;
-  readonly action: DepartAction;
-  readonly focus: FocusAfter;
-}
+class DepartClosed {
+  constructor(
+    private readonly returnFocus: () => void,
+    private readonly focus: FocusAfter,
+  ) {}
 
-class DepartRun implements ButtonAction {
-  constructor(private readonly button: DepartButton) {}
-
-  run(returnFocus: () => void): void {
-    const { action, path, focus } = this.button;
-    action.depart(path, () => {
-      returnFocus();
-      focus.arm();
-    });
+  closed(): void {
+    this.returnFocus();
+    this.focus.arm();
   }
 }
 
-export function addDepartButton(button: DepartButton): void {
-  addActionButton(button.parent, DEPART_WORDS, DEPART_CLASSES, new DepartRun(button));
+class DepartRun implements ButtonAction {
+  constructor(
+    private readonly path: string,
+    private readonly action: DepartAction,
+    private readonly focus: FocusAfter,
+  ) {}
+
+  run(returnFocus: () => void): void {
+    const closing = new DepartClosed(returnFocus, this.focus);
+    this.action.depart(this.path, closing.closed.bind(closing));
+  }
+}
+
+export function departButton(path: string, action: DepartAction, focus: FocusAfter): ViewElement {
+  return new ActionButton(DEPART_WORDS, DEPART_CLASSES, new DepartRun(path, action, focus)).build();
 }

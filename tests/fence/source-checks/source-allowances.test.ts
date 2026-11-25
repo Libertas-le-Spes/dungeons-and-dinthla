@@ -39,7 +39,7 @@ const BEYOND_CALLERS = ["main.ts", "obsidian/online/obsidian-beyond-call.ts", "o
 const POST_PROCESSING = ["main.ts"];
 const PAGE_TEXT_READERS = ["reading/colour-markers.ts", "reading/plain-dollars.ts"];
 const NOTE_HANDLERS = ["obsidian/notes/obsidian-notes.ts"];
-const ELEMENT_QUERIERS = ["reading/colour-markers.ts", "reading/plain-dollars.ts", "characters/pages/character-sheet-page.ts", "views/lists/row-focus.ts"];
+const ELEMENT_QUERIERS = ["reading/colour-markers.ts", "reading/plain-dollars.ts", "views/lists/row-focus.ts"];
 
 function isOneOf(files: string[]): (path: string) => boolean {
   return (path) => files.some((file) => path === sourcePath(file));

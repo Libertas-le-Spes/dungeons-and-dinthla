@@ -53,6 +53,7 @@ import { ledgerEntryOpener } from "./funds/coins/open-ledger-entry";
 import { ListPage } from "./views/lists/list-page";
 import { PageFrame } from "./obsidian/views/frames/page-frame";
 import { PLAIN_KIT } from "./obsidian/views/mount/mount-kit";
+import { OBSIDIAN_PAUSES } from "./obsidian/host/obsidian-pauses";
 import { activePathOf, openSource } from "./views/opening/open-view";
 import { WantedLines } from "./views/opening/wanted-lines";
 import { openLink } from "./views/opening/open-link";
@@ -237,7 +238,7 @@ export default class DungeonsAndDinthla extends Plugin {
       sessionHeadingOf: (path: string) => sessionHeadingOf(path, gate.notes),
     });
     const watchFiles = (changed: (path: string) => void) => this.watchFiles(changed);
-    const castNeeds = { store: this.store, characterNotes, sheetNotes, mentionNotes, actions, sheetActions, creators, watchFiles };
+    const castNeeds = { store: this.store, characterNotes, sheetNotes, mentionNotes, actions, sheetActions, creators, watchFiles, pauses: OBSIDIAN_PAUSES };
     const openers: LookupOpeners = { question: openQuestionAt, quest: openQuestAt, item: openItem };
     const { drafts, keeping } = this.keepDrafts();
     const wantedLines = new WantedLines();
@@ -281,6 +282,7 @@ export default class DungeonsAndDinthla extends Plugin {
         ...sessionNotes.wholeText,
         actions,
         mentionNotes,
+        pauses: OBSIDIAN_PAUSES,
         isCampaignNote: this.isCampaignNote.bind(this),
         openInEditor: (path: string) => void openInEditor(this.app, gate, path),
       }),

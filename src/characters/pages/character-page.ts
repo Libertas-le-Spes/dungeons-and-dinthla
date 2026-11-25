@@ -1,26 +1,32 @@
-import { Component } from "obsidian";
-import type { NoteRef } from "../../host/notes/note-ref";
+import { PressBinding } from "../../views/elements/bindings/bindings";
+import { RunAction } from "../../views/elements/bindings/run-action";
+import { Button } from "../../views/elements/kinds/containers";
+import type { PagePart } from "../../views/pages/page-part";
+import type { PageView, ShownPage } from "../../views/pages/page-view";
 
 export const ALL_CHARACTERS = "← All characters";
 
-export type MakeSheet = (contentEl: HTMLElement, file: NoteRef) => Component;
+const PAGE_CLASSES = ["dd-root", "dd-character-page"];
 
-export class CharacterPage extends Component {
+export class CharacterPage implements ShownPage {
+  readonly cls = PAGE_CLASSES;
+
   constructor(
-    private readonly contentEl: HTMLElement,
-    private readonly file: NoteRef,
-    private readonly makeSheet: MakeSheet,
+    readonly sheet: PagePart,
     private readonly showGallery: () => void,
-  ) {
-    super();
+  ) {}
+
+  opened(view: PageView): void {
+    const back = new Button({ cls: ["dd-back"], text: ALL_CHARACTERS, bindings: [new PressBinding(new RunAction(this.back.bind(this)))] });
+    view.show([back, this.sheet.tree()]);
+    this.sheet.started();
   }
 
-  override onload(): void {
-    const root = this.contentEl;
-    root.empty();
-    root.addClass("dd-tokens", "dd-root", "dd-character-page");
-    const back = root.createEl("button", { cls: "dd-back", text: ALL_CHARACTERS });
-    this.registerDomEvent(back, "click", () => this.showGallery());
-    this.addChild(this.makeSheet(root.createDiv(), this.file));
+  closed(): void {
+    this.sheet.stopped();
+  }
+
+  private back(): void {
+    this.showGallery();
   }
 }

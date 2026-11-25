@@ -1,7 +1,9 @@
 import type { PluginSection } from "../../../imports/layout/plugin-section";
+import { List } from "../../../views/elements/kinds/containers";
+import type { ViewElement } from "../../../views/elements/view-element";
 import type { ImportedLists } from "../lists/imported-lists";
 import { withoutEscapes } from "../reading/shown-text";
-import { addLeftOut, addNothingCameIn, addPanelLine, addPanelSection } from "./panel-parts";
+import { leftOut, nothingCameIn, panelLine, panelSection } from "./panel-parts";
 import type { SheetPanel } from "./sheet-panel";
 
 export class LinePanel implements SheetPanel {
@@ -10,12 +12,10 @@ export class LinePanel implements SheetPanel {
     private readonly section: PluginSection,
   ) {}
 
-  addTo(root: HTMLElement, lists: ImportedLists): void {
+  treeOf(lists: ImportedLists): ViewElement {
     const listed = lists.of(this.section);
-    const panel = addPanelSection(root, this.title, listed.entries.length);
-    const list = panel.createEl("ul", { cls: "dd-list" });
-    for (const entry of listed.entries) addPanelLine(list, withoutEscapes(entry));
-    addNothingCameIn(panel, listed);
-    addLeftOut(panel, listed);
+    const lines: ViewElement[] = [];
+    for (const entry of listed.entries) lines.push(panelLine(withoutEscapes(entry), []));
+    return panelSection(this.title, listed.entries.length, [new List({ cls: ["dd-list"] }, lines), ...nothingCameIn(listed), ...leftOut(listed)]);
   }
 }

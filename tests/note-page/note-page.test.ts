@@ -7,6 +7,7 @@ import { NoteSaver } from "../../src/note-editing/note-saver";
 import { Drafts } from "../../src/session-notes/drafts/drafts";
 import { isShown, obsidianDocument } from "../stubs/obsidian-dom";
 import { BOM, FakeNotes } from "../note-editing/fake-notes";
+import { AT_ONCE_PAUSES } from "../host/made-up-pauses";
 import { fakeMentionNotes, NO_MENTIONS } from "./fake-mention-notes";
 
 const OLD_MILL = "Pale Moon/Places/Old Mill.md";
@@ -31,7 +32,7 @@ async function openNote({ text = LOADED, drafts = new Drafts({}, () => {}), note
   const noteDrafts = new NoteDrafts(drafts);
   const isCampaignNote = vi.fn(() => inCampaign);
   const openInEditor = vi.fn();
-  const needs = { texts: notes.texts, drafts: noteDrafts, saver: new NoteSaver(notes.store), actions, mentionNotes: fakeMentionNotes(NO_MENTIONS).notes, isCampaignNote, openInEditor };
+  const needs = { texts: notes.texts, drafts: noteDrafts, saver: new NoteSaver(notes.store), actions, mentionNotes: fakeMentionNotes(NO_MENTIONS).notes, pauses: AT_ONCE_PAUSES, isCampaignNote, openInEditor };
   const page = new NotePage(root, OLD_MILL, needs);
   page.load();
   if (!readHeld) await page.editingSettled();
@@ -68,7 +69,7 @@ describe("NotePage", () => {
     const root = document.createElement("div");
     document.body.append(root);
     const notes = new FakeNotes(path, LOADED);
-    const needs = { texts: notes.texts, drafts: new NoteDrafts(new Drafts({}, () => {})), saver: new NoteSaver(notes.store), actions: { openRow: vi.fn(), openLink: vi.fn() }, mentionNotes: fakeMentionNotes(NO_MENTIONS).notes, isCampaignNote: () => true, openInEditor: vi.fn() };
+    const needs = { texts: notes.texts, drafts: new NoteDrafts(new Drafts({}, () => {})), saver: new NoteSaver(notes.store), actions: { openRow: vi.fn(), openLink: vi.fn() }, mentionNotes: fakeMentionNotes(NO_MENTIONS).notes, pauses: AT_ONCE_PAUSES, isCampaignNote: () => true, openInEditor: vi.fn() };
     const page = new NotePage(root, path, needs);
     page.load();
     await page.editingSettled();
