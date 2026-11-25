@@ -212,8 +212,8 @@
  {
   "id": "in the vault: main reads the old device answer",
   "file": "src/main.ts",
-  "find": "    device: this.localStorage,\n",
-  "replace": "    device: { load: () => undefined },\n",
+  "find": "    device: this.localStorage,\n    notKept:",
+  "replace": "    device: { load: () => undefined },\n    notKept:",
   "group": "in the vault"
  },
  {
