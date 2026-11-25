@@ -1,4 +1,5 @@
 export const IMPORT_SAMPLES = [
+  'import { around } from "monkey-around";\nexport const wrap = (owner: object) => around(owner as never, {});',
   'import { FileSystemAdapter } from "obsidian";\nexport const read = (path: string) => FileSystemAdapter.readLocalFile(path);',
   'import type { FileSystemAdapter } from "obsidian";\nexport const make = (adapter: FileSystemAdapter, path: string) => adapter.mkdir(path);',
   'import { FileSystemAdapter, type TFile } from "obsidian";\nimport type { Gate } from "../../../../src/fence/gate/gatekeeper";\nexport async function steal(gate: Gate, picture: TFile) {\n  const base = gate.files.getResourcePath(picture);\n  return FileSystemAdapter.readLocalFile(`${base}/../Private/Primary.md`);\n}',

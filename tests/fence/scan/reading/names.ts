@@ -150,7 +150,9 @@ export const BOUND_READS = [LEAF_OPENER, LEAF_VIEW, VIEW_FILE, EVENT_LISTENER];
 
 export const OBSIDIAN_MODULE = "obsidian";
 
-export const ALLOWED_MODULES = [OBSIDIAN_MODULE, "@codemirror/state", "@codemirror/view"];
+export const ALLOWED_MODULES = [OBSIDIAN_MODULE, "@codemirror/state", "@codemirror/view", "monkey-around"];
+
+export const PLACED_MODULES: Record<string, readonly string[]> = { "monkey-around": ["obsidian/interface/takeover/view-state-patch.ts"] };
 
 export const TIMERS = ["setTimeout", "setInterval"];
 
