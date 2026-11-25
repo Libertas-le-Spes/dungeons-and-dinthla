@@ -2,7 +2,7 @@ export const PLAIN_GLOBALS = ["undefined", "Array", "Date", "Error", "JSON", "Ma
 
 export const PAGE_GLOBALS: Record<string, string[]> = {
   "obsidian/views/mount/file-pick.ts": ["Uint8Array"],
-  "main.ts": ["document", "window"],
+  "obsidian/plugin/obsidian-features.ts": ["document", "window"],
   "obsidian/views/mount/name-suggest.ts": ["Event"],
   "online/time-limit.ts": ["clearTimeout", "setTimeout"],
   "pdf/bytes/byte-sink.ts": ["Uint8Array"],

@@ -7,7 +7,7 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "obsidian/interface/view/campaign-view.ts": ["addClass", "createDiv", "createEl", "createSpan", "empty", "removeAttribute", "setAttribute", "setText", "toggleClass"],
   "obsidian/interface/view/campaign-switcher.ts": ["bottom", "createEl", "focus", "getBoundingClientRect", "left"],
   "obsidian/interface/view/tab-picture.ts": ["addClass", "removeClass", "removeProperty", "setCssProps", "style"],
-  "main.ts": ["clearTimeout", "setTimeout", "visibilityState"],
+  "obsidian/plugin/obsidian-features.ts": ["clearTimeout", "setTimeout", "visibilityState"],
   "names/file-name.ts": ["encode"],
   "obsidian/views/frames/modal-frame.ts": ["addClass", "empty"],
   "obsidian/views/frames/obsidian-telling.ts": ["createSpan"],
