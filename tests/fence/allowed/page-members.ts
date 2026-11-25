@@ -2,7 +2,7 @@ import { PAGE_ESCAPES } from "../scan/reading/names";
 
 export const PAGE_MEMBERS: Record<string, string[]> = {
   "beyond/shape/byte-count.ts": ["encode"],
-  "campaign/background/picture-css.ts": ["encode"],
+  "obsidian/campaign/background/picture-css.ts": ["encode"],
   "interface/tabs/seen-tab.ts": ["isShown"],
   "interface/view/campaign-view.ts": ["addClass", "createDiv", "createEl", "createSpan", "empty", "removeAttribute", "setAttribute", "setText", "toggleClass"],
   "interface/view/campaign-switcher.ts": ["bottom", "createEl", "focus", "getBoundingClientRect", "left"],
@@ -11,6 +11,7 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "names/file-name.ts": ["encode"],
   "obsidian/views/frames/modal-frame.ts": ["addClass", "empty"],
   "obsidian/views/frames/obsidian-telling.ts": ["createSpan"],
+  "obsidian/settings/settings-frame.ts": ["empty"],
   "obsidian/views/frames/page-frame.ts": ["addClass", "empty"],
   "obsidian/views/mount/element-parts-on.ts": ["addClass", "setAttr", "setText", "toggle"],
   "obsidian/views/mount/field-element.ts": ["tagName"],
@@ -24,7 +25,6 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "reading/colour-markers.ts": ["ELEMENT_NODE", "TEXT_NODE", "append", "childNodes", "classList", "className", "closest", "contains", "createElement", "data", "matches", "nodeName", "nodeType", "ownerDocument", "parentElement", "querySelectorAll", "replaceWith", "splitText", "tagName", "textContent"],
   "reading/note-background.ts": ["addClass", "className", "createDiv", "remove", "removeClass", "setCssProps"],
   "reading/plain-dollars.ts": ["className", "createEl", "empty", "getText", "querySelectorAll", "setText"],
-  "settings/choosing/campaign-setting-tab.ts": ["createEl", "empty"],
   "views/dialogs/keys.ts": ["ctrlKey", "isComposing", "key", "metaKey"],
   "views/lists/row-focus.ts": ["closest", "focus", "open", "querySelectorAll"],
 };

@@ -1,15 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { App, CachedMetadata, EventRef, Plugin, TFile } from "obsidian";
+import type { App, CachedMetadata, Plugin, TFile } from "obsidian";
 import type { Gate } from "../../../src/fence/gate/gatekeeper";
-import { CampaignSettingTab, type CampaignChoice } from "../../../src/settings/choosing/campaign-setting-tab";
+import type { CampaignChoice } from "../../../src/settings/saved/campaign-choice";
+import { SettingsPage } from "../../../src/settings/page/settings-page";
+import { SettingsFrame } from "../../../src/obsidian/settings/settings-frame";
+import { ObsidianCampaignLooks } from "../../../src/obsidian/settings/obsidian-campaign-looks";
+import { PictureSuggestModal } from "../../../src/obsidian/settings/picture-suggest-modal";
+import type { NoteRef } from "../../../src/host/notes/note-ref";
+import { RecordedTelling } from "../../host/showing/recorded-telling";
 import { CampaignsFolderSetup } from "../../../src/settings/choosing/campaigns-folder-setup";
-import { FolderSuggestModal } from "../../../src/settings/choosing/folder-suggest-modal";
-import type { PictureSuggestModal } from "../../../src/settings/choosing/picture-suggest-modal";
+import { FolderSuggestModal } from "../../../src/obsidian/settings/folder-suggest-modal";
 import { NO_CAMPAIGN } from "../../../src/campaign/paths/campaign-folders";
 import { NO_CAMPAIGNS_FOLDER } from "../../../src/fence/paths/campaigns-folder-path";
-import { Notice, openedSuggestModals } from "../../stubs/obsidian";
+import { openedSuggestModals } from "../../stubs/obsidian";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
-import { OBSIDIAN_TELLING } from "../../../src/obsidian/views/frames/obsidian-telling";
 
 const PALE_MOON = "D&D/Pale Moon/Pale Moon.md";
 const ASHEN_ROAD = "D&D/Ashen Road/Ashen Road.md";
@@ -27,8 +31,8 @@ class FakeApp {
   ]);
   failWrites = false;
   readonly written: string[] = [];
-  readonly registered: EventRef[] = [];
-  private readonly listeners: ((file: TFile) => void)[] = [];
+  readonly telling = new RecordedTelling();
+  private readonly listeners = new Set<(note: NoteRef, text: string) => void>();
 
   get app(): App {
     return {} as App;
@@ -51,10 +55,6 @@ class FakeApp {
           return fileAt(path);
         },
         fileToLinktext: (file: TFile) => file.name,
-        on: (_name: string, callback: (file: TFile) => void) => {
-          this.listeners.push(callback);
-          return {} as EventRef;
-        },
       },
       fileActions: {
         processFrontMatter: async (file: TFile, change: (properties: Record<string, unknown>) => void) => {
@@ -67,7 +67,16 @@ class FakeApp {
   }
 
   get plugin(): Plugin {
-    return { registerEvent: (ref: EventRef) => this.registered.push(ref) } as unknown as Plugin;
+    return {} as Plugin;
+  }
+
+  get listening(): number {
+    return this.listeners.size;
+  }
+
+  onRead(heard: (note: NoteRef, text: string) => void): () => void {
+    this.listeners.add(heard);
+    return this.listeners.delete.bind(this.listeners, heard) as () => void;
   }
 
   propertiesOf(path: string): Record<string, unknown> {
@@ -77,7 +86,7 @@ class FakeApp {
   }
 
   noteChanged(path: string): void {
-    for (const listener of this.listeners) listener(fileAt(path));
+    for (const listener of this.listeners) listener(fileAt(path), "");
   }
 
   private cacheOf(path: string): CachedMetadata | null {
@@ -139,10 +148,12 @@ function tabFor(
   campaigns: CampaignChoice,
   showWelcome: () => Promise<void> = async () => {},
   campaignsFolderSetting = new FakeCampaignsFolderSetting("D&D"),
-): CampaignSettingTab {
+): SettingsFrame {
   const pickFolder = (folders: string[], chosen: (folder: string) => void) => new FolderSuggestModal(fake.app, folders, chosen).open();
-  const setup = new CampaignsFolderSetup(campaignsFolderSetting, campaignsFolderSetting, pickFolder, OBSIDIAN_TELLING);
-  const tab = new CampaignSettingTab(fake.app, fake.plugin, fake.gate, setup, campaigns, showWelcome);
+  const pickPicture = (pictures: string[], chosen: (picture: string) => void) => new PictureSuggestModal(fake.app, pictures, chosen).open();
+  const setup = new CampaignsFolderSetup(campaignsFolderSetting, campaignsFolderSetting, pickFolder, fake.telling);
+  const page = new SettingsPage({ campaignsFolder: setup, campaigns, looks: new ObsidianCampaignLooks(fake.gate), pickPicture, changes: fake, telling: fake.telling, showWelcome });
+  const tab = new SettingsFrame(fake.app, fake.plugin, page);
   tab.containerEl = obsidianDocument().body.createDiv();
   tab.display();
   return tab;
@@ -152,11 +163,11 @@ function settled(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-function rows(tab: CampaignSettingTab): string[] {
+function rows(tab: SettingsFrame): string[] {
   return [...tab.containerEl.querySelectorAll(".setting-item-name")].map((name) => name.textContent);
 }
 
-function rowNamed(tab: CampaignSettingTab, name: string): HTMLElement {
+function rowNamed(tab: SettingsFrame, name: string): HTMLElement {
   const row = [...tab.containerEl.querySelectorAll<HTMLElement>(".setting-item")].find(
     (item) => item.querySelector(".setting-item-name")!.textContent === name,
   );
@@ -164,11 +175,11 @@ function rowNamed(tab: CampaignSettingTab, name: string): HTMLElement {
   return row;
 }
 
-function descriptionOf(tab: CampaignSettingTab, name: string): string {
+function descriptionOf(tab: SettingsFrame, name: string): string {
   return rowNamed(tab, name).querySelector(".setting-item-description")!.textContent;
 }
 
-function pictureText(tab: CampaignSettingTab): string {
+function pictureText(tab: SettingsFrame): string {
   return descriptionOf(tab, "Background picture");
 }
 
@@ -178,7 +189,7 @@ function buttonIn(row: HTMLElement, text: string): HTMLButtonElement {
   return button;
 }
 
-function selectIn(tab: CampaignSettingTab, name: string): HTMLSelectElement {
+function selectIn(tab: SettingsFrame, name: string): HTMLSelectElement {
   return rowNamed(tab, name).querySelector("select")!;
 }
 
@@ -187,13 +198,12 @@ function pick(select: HTMLSelectElement, value: string): void {
   select.dispatchEvent(new select.ownerDocument.defaultView!.Event("change"));
 }
 
-describe("CampaignSettingTab", () => {
+describe("SettingsFrame", () => {
   let fake: FakeApp;
 
   beforeEach(() => {
     fake = new FakeApp();
     openedSuggestModals.length = 0;
-    Notice.shown = [];
   });
 
   it("asks for a campaign first when the vault has none, and still offers the welcome page", () => {
@@ -215,7 +225,7 @@ describe("CampaignSettingTab", () => {
     });
     buttonIn(rowNamed(tab, "Welcome page"), "Show this again").click();
     await settled();
-    expect(Notice.shown).toEqual(["Couldn't open the welcome page: The workspace is closing."]);
+    expect(fake.telling.said).toEqual(["Couldn't open the welcome page: The workspace is closing."]);
   });
 
   it("shows the chosen campaign, its background picture and how much of it shows", () => {
@@ -255,8 +265,8 @@ describe("CampaignSettingTab", () => {
     const tab = tabFor(fake, new FakeCampaigns("D&D/Pale Moon"));
     buttonIn(rowNamed(tab, "Background picture"), "Choose a picture").click();
     const modal = openedSuggestModals[0] as PictureSuggestModal;
-    expect(modal.getItems().map((picture) => picture.path)).toEqual(["D&D/Art/pale-moon.jpg", "D&D/Art/map.png"]);
-    modal.onChooseItem(fileAt("D&D/Art/map.png"));
+    expect(modal.getItems()).toEqual(["D&D/Art/pale-moon.jpg", "D&D/Art/map.png"]);
+    modal.onChooseItem("D&D/Art/map.png");
     await settled();
     expect(fake.propertiesOf(PALE_MOON)).toEqual({ background: "[[map.png]]" });
     expect(fake.written).toEqual([PALE_MOON]);
@@ -291,7 +301,7 @@ describe("CampaignSettingTab", () => {
     const tab = tabFor(fake, new FakeCampaigns("D&D/Pale Moon"));
     pick(selectIn(tab, "How much of the picture shows"), "strong");
     await settled();
-    expect(Notice.shown).toEqual(["Couldn't save the campaign: The note is locked."]);
+    expect(fake.telling.said).toEqual(["Couldn't save the campaign: The note is locked."]);
   });
 
   it("says so, and writes nothing, when the main note has gone", async () => {
@@ -299,7 +309,7 @@ describe("CampaignSettingTab", () => {
     fake.files.splice(fake.files.indexOf(PALE_MOON), 1);
     pick(selectIn(tab, "How much of the picture shows"), "strong");
     await settled();
-    expect(Notice.shown).toEqual(["Couldn't save the campaign: D&D/Pale Moon/Pale Moon.md is missing."]);
+    expect(fake.telling.said).toEqual(["Couldn't save the campaign: D&D/Pale Moon/Pale Moon.md is missing."]);
     expect(fake.written).toEqual([]);
   });
 
@@ -354,11 +364,14 @@ describe("CampaignSettingTab", () => {
     buttonIn(rowNamed(tab, "Campaigns folder"), "Choose folder").click();
     (openedSuggestModals[0] as FolderSuggestModal).onChooseItem("Games");
     await settled();
-    expect(Notice.shown).toEqual(["Couldn't set the Campaigns folder: data.json is read-only."]);
+    expect(fake.telling.said).toEqual(["Couldn't set the Campaigns folder: data.json is read-only."]);
   });
 
-  it("listens to Obsidian through the plugin, so it stops when the plugin unloads", () => {
-    tabFor(fake, new FakeCampaigns("D&D/Pale Moon"));
-    expect(fake.registered).toHaveLength(1);
+  it("listens for the main note only while the settings are open, once however often they are drawn", () => {
+    const tab = tabFor(fake, new FakeCampaigns("D&D/Pale Moon"));
+    tab.display();
+    expect(fake.listening).toBe(1);
+    tab.hide();
+    expect(fake.listening).toBe(0);
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { PictureCss, type ResourcePlatform } from "../../../src/campaign/background/picture-css";
-import { ANDROID, DESKTOP, IPHONE } from "../shown-picture";
+import { PictureCss, type ResourcePlatform } from "../../../../src/obsidian/campaign/background/picture-css";
+import { ANDROID, DESKTOP, IPHONE } from "../../../campaign/shown-picture";
 
 const DESKTOP_ROOT = "app://f3a9c1/home/player/Vault/Art/";
 

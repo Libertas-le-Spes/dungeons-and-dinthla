@@ -5,10 +5,9 @@ import {
   choosePicture,
   chooseWash,
   removePicture,
-  washOf,
   type BackgroundFileActions,
   type BackgroundMetadata,
-} from "../../../src/campaign/background/campaign-background";
+} from "../../../../src/obsidian/campaign/background/campaign-background";
 
 const MAIN_NOTE = "Pale Moon/Pale Moon.md";
 
@@ -78,16 +77,6 @@ describe("backgroundOf", () => {
 
   it("shows a balanced amount when the main note has no properties", () => {
     expect(backgroundOf("Pale Moon", metadataWith({}, [])).wash).toBe("balanced");
-  });
-});
-
-describe("washOf", () => {
-  it("keeps each wash it knows", () => {
-    for (const wash of ["subtle", "balanced", "strong"]) expect(washOf(wash)).toBe(wash);
-  });
-
-  it("falls back to balanced for anything else", () => {
-    for (const value of ["Strong", "bold", 3, null, undefined]) expect(washOf(value)).toBe("balanced");
   });
 });
 

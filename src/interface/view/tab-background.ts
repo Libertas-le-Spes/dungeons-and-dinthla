@@ -1,6 +1,6 @@
 import { Component, type EventRef, type TFile } from "obsidian";
 import { mainNotePathOf } from "../../campaign/paths/campaign-folders";
-import { shownBackgroundIn, type ShownBackground } from "../../campaign/background/shown-background";
+import { shownBackgroundIn, type ShownBackground } from "../../obsidian/campaign/background/shown-background";
 import { paintTabPicture } from "./tab-picture";
 import type { FencedMetadata } from "../../fence/gate/fenced-metadata";
 import type { FencedFiles } from "../../fence/gate/fenced-files";

@@ -1,5 +1,5 @@
 export const COMPUTED_KEY_READERS = [
-  "campaign/background/picture-css.ts",
+  "obsidian/campaign/background/picture-css.ts",
   "campaign/record/session-lines.ts",
   "campaign/writing/note-editor.ts",
   "characters/editing/character-entry.ts",
