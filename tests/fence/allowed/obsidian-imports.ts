@@ -6,7 +6,6 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "fence/": ["App", "CachedMetadata", "Component", "EventRef", "Events", "FileManager", "MetadataCache", "TAbstractFile", "TFile", "TFolder", "Vault"],
   "interface/": ["App", "Component", "EventRef", "ItemView", "PluginManifest", "TAbstractFile", "TFile", "ViewState", "ViewStateResult", "Workspace", "WorkspaceLeaf"],
   "main.ts": ["MarkdownFileInfo", "MarkdownView", "Notice", "PaneType", "Plugin", "TFile", "ViewState", "WorkspaceLeaf", "debounce"],
-  "note-page/": ["Component"],
   "obsidian/characters/character-editing-hooks.ts": ["App", "Menu", "TAbstractFile"],
   "obsidian/host/obsidian-pauses.ts": ["Debouncer", "debounce"],
   "obsidian/notes/obsidian-notes.ts": ["CachedMetadata", "EventRef", "TAbstractFile", "TFile"],
@@ -23,6 +22,6 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "reading/": ["Debouncer", "MarkdownPostProcessorContext", "MarkdownSectionInformation", "debounce"],
   "session-notes/": ["Component", "EventRef"],
   "settings/": ["App", "ButtonComponent", "DropdownComponent", "FuzzySuggestModal", "Notice", "Plugin", "PluginSettingTab", "Setting", "TFile"],
-  "views/": ["App", "ButtonComponent", "Keymap", "Notice", "PaneType", "parseLinktext"],
+  "views/": ["App", "Keymap", "Notice", "PaneType", "parseLinktext"],
   "welcome/": ["App", "Component", "Notice", "PluginManifest"],
 };

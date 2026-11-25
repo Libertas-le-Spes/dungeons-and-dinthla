@@ -1,7 +1,7 @@
 import type { ElementHandle } from "../../../views/elements/element-handle";
 import type { ViewElement } from "../../../views/elements/view-element";
 import { ElementPlace } from "./element-place";
-import { isButton, isField } from "./field-element";
+import { isButton, isField, isTyped } from "./field-element";
 import type { MountKit } from "./mount-kit";
 import { ObsidianMounter } from "./obsidian-mounter";
 
@@ -45,6 +45,10 @@ export class ObsidianHandle implements ElementHandle {
 
   setDisabled(disabled: boolean): void {
     if (isButton(this.el)) this.el.disabled = disabled;
+  }
+
+  setReadOnly(readOnly: boolean): void {
+    if (isTyped(this.el)) this.el.readOnly = readOnly;
   }
 
   setTabIndex(index: number): void {

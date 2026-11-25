@@ -8,6 +8,8 @@ import { Drafts } from "../../src/session-notes/drafts/drafts";
 import { isShown, obsidianDocument } from "../stubs/obsidian-dom";
 import { BOM, FakeNotes } from "../note-editing/fake-notes";
 import { AT_ONCE_PAUSES } from "../host/made-up-pauses";
+import { PageFrame } from "../../src/obsidian/views/frames/page-frame";
+import { PLAIN_KIT } from "../../src/obsidian/views/mount/mount-kit";
 import { fakeMentionNotes, NO_MENTIONS } from "./fake-mention-notes";
 
 const OLD_MILL = "Pale Moon/Places/Old Mill.md";
@@ -33,8 +35,8 @@ async function openNote({ text = LOADED, drafts = new Drafts({}, () => {}), note
   const isCampaignNote = vi.fn(() => inCampaign);
   const openInEditor = vi.fn();
   const needs = { texts: notes.texts, drafts: noteDrafts, saver: new NoteSaver(notes.store), actions, mentionNotes: fakeMentionNotes(NO_MENTIONS).notes, pauses: AT_ONCE_PAUSES, isCampaignNote, openInEditor };
-  const page = new NotePage(root, OLD_MILL, needs);
-  page.load();
+  const page = new NotePage(OLD_MILL, needs);
+  new PageFrame(root, page, PLAIN_KIT).load();
   if (!readHeld) await page.editingSettled();
   const box = root.querySelector("textarea")!;
   const window = document.defaultView!;
@@ -70,8 +72,8 @@ describe("NotePage", () => {
     document.body.append(root);
     const notes = new FakeNotes(path, LOADED);
     const needs = { texts: notes.texts, drafts: new NoteDrafts(new Drafts({}, () => {})), saver: new NoteSaver(notes.store), actions: { openRow: vi.fn(), openLink: vi.fn() }, mentionNotes: fakeMentionNotes(NO_MENTIONS).notes, pauses: AT_ONCE_PAUSES, isCampaignNote: () => true, openInEditor: vi.fn() };
-    const page = new NotePage(root, path, needs);
-    page.load();
+    const page = new NotePage(path, needs);
+    new PageFrame(root, page, PLAIN_KIT).load();
     await page.editingSettled();
     expect(root.querySelector("h2")?.textContent).toBe("Questions - Session 1");
   });
@@ -194,7 +196,7 @@ describe("NotePage", () => {
     const drafts = new Drafts({}, () => {});
     const first = await openNote({ drafts });
     first.type(TYPED);
-    first.page.unload();
+    first.page.closed();
     const again = await openNote({ drafts });
     expect(again.box.value).toBe(TYPED);
     expect(again.saveButton.disabled).toBe(false);
@@ -276,7 +278,7 @@ describe("NotePage", () => {
     const { page, notes } = await openNote({ drafts });
     expect(notes.changedListeners.size).toBe(1);
     expect(notes.goneListeners.size).toBe(1);
-    page.unload();
+    page.closed();
     expect(notes.changedListeners.size).toBe(0);
     expect(notes.goneListeners.size).toBe(0);
     expect(stopHearingSaves).toHaveBeenCalledOnce();
@@ -319,7 +321,7 @@ describe("NotePage", () => {
     const notes = new FakeNotes(OLD_MILL, LOADED);
     const release = notes.holdRead();
     const { page, box, saveButton } = await openNote({ notes, readHeld: true });
-    page.unload();
+    page.closed();
     release();
     await page.editingSettled();
     expect(notes.read).toHaveBeenCalledOnce();
