@@ -34,6 +34,8 @@ function percentEncoded(character: string): string {
 }
 
 export class PictureCss {
+  static readonly NONE = new PictureCss("");
+
   private constructor(readonly value: string) {}
 
   static of(url: string, platform: ResourcePlatform): PictureCss | null {

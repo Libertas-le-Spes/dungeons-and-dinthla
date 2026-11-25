@@ -1,4 +1,4 @@
-import type { FileManager, TFile } from "obsidian";
+import type { FileManager, TFile, TFolder } from "obsidian";
 import type { HeldFiles } from "./held-files";
 import type { NoteReporter } from "./written-notes";
 
@@ -28,5 +28,9 @@ export class FencedFileActions {
     const path = file.path;
     await this.fileManager.trashFile(this.held.file(file));
     this.written.trashed(path);
+  }
+
+  async trashFolder(folder: TFolder): Promise<void> {
+    await this.fileManager.trashFile(this.held.file(folder));
   }
 }

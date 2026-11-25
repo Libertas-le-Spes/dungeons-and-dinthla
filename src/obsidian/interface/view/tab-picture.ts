@@ -1,5 +1,6 @@
 import { WASHES, type Wash } from "../../../campaign/background/wash";
 import type { ShownBackground } from "../../campaign/background/shown-background";
+import { PictureCss } from "../../campaign/background/picture-css";
 
 const PICTURE_CLASS = "dd-tab-picture";
 const PICTURE_PROPERTY = "--dd-campaign-picture";
@@ -11,7 +12,7 @@ function washClassOf(wash: Wash): string {
 function clearPicture(frameEl: HTMLElement): void {
   for (const wash of WASHES) frameEl.removeClass(washClassOf(wash));
   frameEl.removeClass(PICTURE_CLASS);
-  frameEl.style.removeProperty(PICTURE_PROPERTY);
+  frameEl.setCssProps({ [PICTURE_PROPERTY]: PictureCss.NONE.value });
 }
 
 export function paintTabPicture(frameEl: HTMLElement, shown: ShownBackground | null): void {

@@ -64,7 +64,6 @@ export function rawVaultWith(files: TFile[], folders: TFolder[] = []) {
     }),
     createFolder: vi.fn(async (path: string) => folderAt(path, [])),
     rename: vi.fn(async () => {}),
-    delete: vi.fn(async () => {}),
     getResourcePath: vi.fn((file: TFile) => `app://${file.path}`),
     on: (name: string, callback: (...data: unknown[]) => unknown) => events.on(name, callback),
     offref: (ref: EventRef) => events.offref(ref),
