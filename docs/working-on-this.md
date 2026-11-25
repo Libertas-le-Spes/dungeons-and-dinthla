@@ -30,7 +30,7 @@ Four pull requests in the folder-move series stated a count that was short or a 
 
 ## Obsidian kept apart (#230, in progress)
 
-The plugin's own code is meant to work with any notes program, with Obsidian as one adapter. Code that talks to Obsidian lives in `src/obsidian/` (one folder per area), in the gate (`src/fence/gate/`) or in `src/main.ts`; everything else is the plugin's own. Two checks keep it that way, and both are being tightened as the series moves files:
+The plugin's own code is meant to work with any notes program, with Obsidian as one adapter. Code that talks to Obsidian lives in `src/obsidian/` (one folder per area), in the gate (`src/fence/gate/`) or in `src/main.ts`, which only builds the gate and hands it to `src/obsidian/plugin/obsidian-features.ts`; the plugin's own parts are built from a host by `src/plugin/start-plugin.ts`, and everything else is the plugin's own. Two checks keep it that way, and both are being tightened as the series moves files:
 
 - `tests/build/obsidian-side.test.ts`: a core file loads no `obsidian` or `@codemirror/*`, in any import form, and imports nothing from the Obsidian side.
 - The fence scan's rule in `tests/fence/scan/code-rules/host-neutral-rules.ts`: a core file uses nothing Obsidian or CodeMirror declares (page helpers like `createEl` included, which need no import), and holds no value whose type reaches such a type, through a list, a property, a function's parameters or return, an index, or a `Pick`, `Partial` or other alias's arguments.

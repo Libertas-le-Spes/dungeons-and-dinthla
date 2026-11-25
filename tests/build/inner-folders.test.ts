@@ -46,7 +46,7 @@ const INNER_FOLDERS: InnerFolder[] = [
 
 const BEYOND_IMPORTERS: string[] = ["imports", "online"];
 const ONLINE_IMPORTERS: string[] = ["imports", "host", "obsidian"];
-const IMPORTS_IMPORTERS: string[] = ["main.ts", "plugin/start-plugin.ts"];
+const IMPORTS_IMPORTERS: string[] = ["obsidian/plugin/obsidian-features.ts", "plugin/start-plugin.ts"];
 const LAYOUT_IMPORTERS: string[] = ["imports", "characters", "beyond"];
 const PDF_IMPORTERS: string[] = ["beyond"];
 
@@ -391,12 +391,17 @@ describe("the rules for src/imports and its layout, over made-up files", () => {
     expect(importersOfImportsIn(IMPORTS_IMPORTERS, file, 'import { a } from "../../imports/note/reading/note-layout";')).toEqual(["characters/imported/made-up.ts imports from imports"]);
   });
 
-  it("allows main.ts to import from imports", () => {
-    const file = join(SOURCE_FOLDER, "main.ts");
-    expect(importersOfImportsIn(IMPORTS_IMPORTERS, file, 'import { a } from "./imports/dialog/opening/beyond-openers";')).toEqual([]);
+  it("allows the Obsidian features to import from imports", () => {
+    const file = join(SOURCE_FOLDER, "obsidian", "plugin", "obsidian-features.ts");
+    expect(importersOfImportsIn(IMPORTS_IMPORTERS, file, 'import { a } from "../../imports/dialog/opening/beyond-openers";')).toEqual([]);
   });
 
-  it("refuses a folder other than main.ts that imports from imports", () => {
+  it("refuses main.ts, which only starts the plugin, importing from imports", () => {
+    const file = join(SOURCE_FOLDER, "main.ts");
+    expect(importersOfImportsIn(IMPORTS_IMPORTERS, file, 'import { a } from "./imports/dialog/opening/beyond-openers";')).toEqual(["main.ts imports from imports"]);
+  });
+
+  it("refuses a folder other than the Obsidian features that imports from imports", () => {
     const file = join(SOURCE_FOLDER, "interface", "sections", "made-up.ts");
     expect(importersOfImportsIn(IMPORTS_IMPORTERS, file, 'import { a } from "../../imports/dialog/opening/beyond-openers";')).toEqual(["interface/sections/made-up.ts imports from imports"]);
   });

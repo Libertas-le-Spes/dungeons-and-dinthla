@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { Plugin, type App, type PluginManifest } from "obsidian";
 import { NOT_THE_CONFIG_FOLDER } from "../src/fence/paths/campaigns-folder-path";
 import DungeonsAndDinthla from "../src/main";
-import type { CampaignsFolderSetting } from "../src/settings/saved/campaigns-folder-setting";
 import { AGREEMENT_KEY } from "../src/imports/agreement/kept-agreement";
 import { MadeUpDevice } from "./imports/agreement/made-up-device";
 import { pressOn } from "./imports/agreement/shown-parts";
@@ -52,7 +51,8 @@ function pluginSaved(saved: unknown, device: MadeUpDevice) {
   for (const part of pluginParts) Object.assign(plugin, { [part]: () => inertWith() });
   const saveData = vi.fn(nothingSaved);
   Object.assign(plugin, { loadData: async () => saved, saveData });
-  return { plugin, saveData, campaignsFolder: () => (plugin as unknown as { campaignsFolderSetting: CampaignsFolderSetting }).campaignsFolderSetting };
+  const features = () => plugin["features"];
+  return { plugin, saveData, campaignsFolder: () => features()["campaignsFolderSetting"], features };
 }
 
 afterEach(() => {
@@ -78,33 +78,33 @@ describe("DungeonsAndDinthla", () => {
   });
 
   it("keeps the D&D Beyond agreement in the plugin's data.json, so the vault carries it to every device", async () => {
-    const { plugin, saveData } = pluginSaved({}, new MadeUpDevice());
+    const { plugin, saveData, features } = pluginSaved({}, new MadeUpDevice());
     await plugin.onload();
     const stepEl = obsidianDocument().createElement("div");
     mountedIn(stepEl, (wired.agreement as WelcomeAgreement).trees(nothingToDo));
     pressOn(stepEl, "Agree");
-    await plugin["settingsSaver"].whenSaved();
+    await features()["settingsSaver"].whenSaved();
     expect(saveData).toHaveBeenCalledOnce();
     expect(saveData).toHaveBeenCalledWith(expect.objectContaining({ beyondAgreed: true }));
   });
 
   it("takes the D&D Beyond agreement the plugin's data.json holds", async () => {
     const device = new MadeUpDevice();
-    const { plugin } = pluginSaved({ beyondAgreed: true }, device);
+    const { plugin, features } = pluginSaved({ beyondAgreed: true }, device);
     await plugin.onload();
-    expect(plugin["keptAgreement"].given()).toBe(true);
+    expect(features()["keptAgreement"].given()).toBe(true);
     expect(device.loadLocalStorage).not.toHaveBeenCalledWith(AGREEMENT_KEY);
   });
 
   it.each([["true"], [1], [{}]])("takes no D&D Beyond agreement from %j in data.json", async (saved) => {
-    const { plugin } = pluginSaved({ beyondAgreed: saved }, new MadeUpDevice());
+    const { plugin, features } = pluginSaved({ beyondAgreed: saved }, new MadeUpDevice());
     await plugin.onload();
-    expect(plugin["keptAgreement"].given()).toBe(false);
+    expect(features()["keptAgreement"].given()).toBe(false);
   });
 
   it("takes the D&D Beyond agreement this device gave before it was kept in the vault", async () => {
-    const { plugin } = pluginSaved({}, MadeUpDevice.agreedOnThisDeviceBefore());
+    const { plugin, features } = pluginSaved({}, MadeUpDevice.agreedOnThisDeviceBefore());
     await plugin.onload();
-    expect(plugin["keptAgreement"].given()).toBe(true);
+    expect(features()["keptAgreement"].given()).toBe(true);
   });
 });
