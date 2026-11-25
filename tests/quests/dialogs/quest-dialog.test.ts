@@ -133,7 +133,9 @@ class QuestAt {
   }
 
   texts(selector: string): string[] {
-    return Array.from(this.modal.contentEl.querySelectorAll(selector)).map((el) => el.textContent ?? "");
+    const texts: string[] = [];
+    for (const el of this.modal.contentEl.querySelectorAll(selector)) texts.push(String(el.textContent));
+    return texts;
   }
 
   rewardRow(): HTMLElement {
