@@ -5,10 +5,17 @@ import { FakeEvents } from "../../fence/gate/fake-raw-vault";
 
 const SESSION = { path: "D&D/Pale Moon/Sessions/Session 1.md", basename: "Session 1", stat: { mtime: 42 } } as unknown as TFile;
 
+function fileIn(files: TFile[], path: string): TFile | null {
+  for (const file of files) {
+    if (file.path === path) return file;
+  }
+  return null;
+}
+
 function gateWith(files: TFile[] = [SESSION]) {
   const fileEvents = new FakeEvents();
   const metadataEvents = new FakeEvents();
-  const byPath = (path: string) => files.find((file) => file.path === path) ?? null;
+  const byPath = fileIn.bind(null, files);
   const gate = {
     files: {
       getFileByPath: vi.fn(byPath),

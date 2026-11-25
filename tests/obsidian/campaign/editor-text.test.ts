@@ -9,8 +9,15 @@ function editorShowing(file: TFile | null, text: string): MarkdownFileInfo {
   return { file, editor: { getValue: () => text } as Editor } as MarkdownFileInfo;
 }
 
+function fileIn(files: TFile[], path: string): TFile | null {
+  for (const file of files) {
+    if (file.path === path) return file;
+  }
+  return null;
+}
+
 function vaultHolding(...files: TFile[]) {
-  return { getFileByPath: (path: string) => files.find((file) => file.path === path) ?? null };
+  return { getFileByPath: fileIn.bind(null, files) };
 }
 
 describe("editorTextOf", () => {
