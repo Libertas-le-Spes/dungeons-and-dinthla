@@ -46,7 +46,7 @@ const INNER_FOLDERS: InnerFolder[] = [
 
 const BEYOND_IMPORTERS: string[] = ["imports", "online"];
 const ONLINE_IMPORTERS: string[] = ["imports", "host", "obsidian"];
-const IMPORTS_IMPORTERS: string[] = ["main.ts"];
+const IMPORTS_IMPORTERS: string[] = ["main.ts", "plugin/start-plugin.ts"];
 const LAYOUT_IMPORTERS: string[] = ["imports", "characters", "beyond"];
 const PDF_IMPORTERS: string[] = ["beyond"];
 
