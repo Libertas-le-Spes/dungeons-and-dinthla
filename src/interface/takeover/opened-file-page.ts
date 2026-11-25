@@ -3,7 +3,7 @@ import { sessionNumberOf } from "../../campaign/paths/session-file";
 import { isFallenNotePath } from "../../campaign/paths/character-note-path";
 import type { ReferenceKind } from "../../kinds/reference-kind";
 import { REFERENCE_KIND_LIST } from "../../kinds/reference-kinds";
-import type { PageId } from "../view/campaign-pages";
+import type { PageId } from "../view/page-target";
 
 interface OpenedFile {
   path: string;

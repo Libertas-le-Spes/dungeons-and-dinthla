@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { App, WorkspaceLeaf } from "obsidian";
-import { CAMPAIGN_VIEW } from "../../../src/interface/view/campaign-view";
+import { CAMPAIGN_VIEW } from "../../../src/obsidian/interface/view/campaign-view";
 import { welcomeOpenerOf } from "../../../src/obsidian/welcome/welcome-opener";
 
 function appWith() {
