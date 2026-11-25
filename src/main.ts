@@ -83,8 +83,7 @@ import { SettingsFrame } from "./obsidian/settings/settings-frame";
 import { ObsidianCampaignLooks } from "./obsidian/settings/obsidian-campaign-looks";
 import { PictureSuggestModal } from "./obsidian/settings/picture-suggest-modal";
 import { FolderSuggestModal } from "./obsidian/settings/folder-suggest-modal";
-import { flushWhenClosing, type Closing } from "./settings/drafts/flush-when-closing";
-import { LocalDrafts } from "./settings/drafts/local-drafts";
+import type { Closing } from "./settings/drafts/flush-when-closing";
 import type { CampaignsFolderSetting } from "./settings/saved/campaigns-folder-setting";
 import type { ChosenCampaign } from "./settings/saved/chosen-campaign";
 import type { SettingsSaver } from "./settings/saved/settings-saver";
@@ -100,8 +99,7 @@ import { sessionNotesWiring } from "./obsidian/interface/sections/session-notes-
 import { campaignsFolderFirst } from "./obsidian/interface/view/campaigns-folder-first";
 import { sessionHeadingOf } from "./sessions/session-heading";
 import { startSession } from "./sessions/start-session";
-import { Drafts } from "./session-notes/drafts/drafts";
-import { DraftKeeping } from "./session-notes/kept/draft-keeping";
+import { PluginDrafts } from "./plugin/plugin-drafts";
 import { NOTICE_STAYS_UNTIL_DISMISSED } from "./views/dialogs/notice-stays";
 import { ConfirmDialog, type ConfirmText } from "./views/dialogs/confirm-dialog";
 import { BeyondOpeners, type BeyondWiring } from "./imports/dialog/opening/beyond-openers";
@@ -336,17 +334,21 @@ export default class DungeonsAndDinthla extends Plugin {
     return this.saved.campaignsFolder;
   }
 
-  private keepDrafts(): { drafts: Drafts; keeping: DraftKeeping } {
-    const local = this.localDrafts();
-    const drafts = new Drafts(local.read(), () => local.changed(drafts.all()));
-    flushWhenClosing(local, this.closing());
-    const needs = { changes: this.notes.changes, store: this.notes.store, fence: this.gate.fence, campaignsFolder: () => this.campaignsFolderSetting.path, now: () => Date.now() };
-    const keeping = new DraftKeeping(drafts, needs);
-    keeping.start();
-    this.register(keeping.stop.bind(keeping));
-    this.saved.moveOldDrafts(keeping.keptDrafts, local);
-    this.app.workspace.onLayoutReady(() => keeping.setAsideGoneNotes());
-    return { drafts, keeping };
+  private keepDrafts(): PluginDrafts {
+    const plugin = new PluginDrafts({
+      device: this.localStorage,
+      timer: { start: (run: () => void, ms: number) => window.setTimeout(run, ms), stop: (id: number) => window.clearTimeout(id) },
+      closing: this.closing(),
+      clock: { now: () => Date.now() },
+      telling: OBSIDIAN_TELLING,
+      changes: this.notes.changes,
+      store: this.notes.store,
+      fence: this.gate.fence,
+    }, this.saved);
+    plugin.start();
+    this.register(plugin.stop.bind(plugin));
+    this.app.workspace.onLayoutReady(() => plugin.setAsideGoneNotes());
+    return plugin;
   }
 
   private addPageOpeners(newSession: () => void): void {
@@ -381,17 +383,6 @@ export default class DungeonsAndDinthla extends Plugin {
   private async openCampaignFiles(change: ChangeViewState): Promise<void> {
     await takeOpenLeaves(this.app.workspace, change);
     closeRetiredViews(this.app.workspace);
-  }
-
-  private localDrafts(): LocalDrafts {
-    const timer = {
-      start: (run: () => void, ms: number) => window.setTimeout(run, ms),
-      stop: (id: number) => window.clearTimeout(id),
-    };
-    return new LocalDrafts(this.localStorage, timer, {
-      written: () => this.saved.oldDraftsKept(),
-      failed: (error) => new Notice(`Couldn't keep the text typed in the campaign tab: ${messageOf(error)}`),
-    });
   }
 
   private closing(): Closing {
