@@ -13,7 +13,6 @@ import {
 } from "./campaign/paths/campaign-folders";
 import { NewCampaignDialog } from "./campaign/writing/new-campaign-dialog";
 import { CampaignStore } from "./campaign/reading/campaign-store";
-import { SavedCampaign } from "./campaign/reading/saved-campaign";
 import { HostCharacterNotes } from "./characters/reading/character-notes";
 import { editCharacter, openNewCharacter } from "./characters/editing/open-character";
 import { addEditCharacterItem, editActiveCharacter, openMadeNote } from "./obsidian/characters/character-editing-hooks";
@@ -40,15 +39,7 @@ import { questsKind } from "./quests/list/quests-kind";
 import { openAddCoin } from "./funds/coins/open-add-coin";
 import type { CoinSide } from "./funds/coins/coin-sides";
 import { openItemDialog } from "./funds/items/open-item";
-import { ItemNotes } from "./funds/item-notes/item-notes";
-import { newNamesDialogIn } from "./references/new-names/new-names-dialog";
-import { ReferenceNotes } from "./references/making/reference-notes";
-import { DmNameQuestions } from "./references/asking/dm-name-questions";
-import { RoleRoutedNotes } from "./references/asking/role-routed-notes";
 import { FundsTracking } from "./funds/tracking/funds-tracking";
-import { askInNoticeOf } from "./views/dialogs/differing-notice";
-import { startKindNotes } from "./kind-notes/watching/kind-notes-wiring";
-import { NotesMade } from "./settings/saved/notes-made";
 import { ledgerEntryOpener } from "./funds/coins/open-ledger-entry";
 import { ListPage } from "./views/lists/list-page";
 import { PageFrame } from "./obsidian/views/frames/page-frame";
@@ -100,6 +91,7 @@ import { campaignsFolderFirst } from "./obsidian/interface/view/campaigns-folder
 import { sessionHeadingOf } from "./sessions/session-heading";
 import { startSession } from "./sessions/start-session";
 import { PluginDrafts } from "./plugin/plugin-drafts";
+import { NoteKeeping } from "./plugin/note-keeping";
 import { NOTICE_STAYS_UNTIL_DISMISSED } from "./views/dialogs/notice-stays";
 import { ConfirmDialog, type ConfirmText } from "./views/dialogs/confirm-dialog";
 import { BeyondOpeners, type BeyondWiring } from "./imports/dialog/opening/beyond-openers";
@@ -470,30 +462,18 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private keepNotes(): void {
-    const gate = this.gate;
-    const notRead = (error: unknown) => new Notice(`Couldn't read the saved session notes: ${messageOf(error)}`);
-    const saved = new SavedCampaign({ shown: this.store, notes: gate.notes, failed: notRead }, OBSIDIAN_SYNTAX);
-    const say = (message: string) => new Notice(message, NOTICE_STAYS_UNTIL_DISMISSED);
-    const failed = (error: unknown) => new Notice(`Couldn't write an item's note: ${messageOf(error)}`);
-    const notes = this.notes;
-    const syntax = OBSIDIAN_SYNTAX;
-    const items = new ItemNotes({ store: saved, notes, syntax, failed, say });
-    const made = new NotesMade(this.settingsSaver);
-    const references = new ReferenceNotes({ store: saved, notes, syntax, say, askNewNames: newNamesDialogIn(this.showing.dialogs) });
-    const dmQuestions = new DmNameQuestions({
-      store: saved,
-      notes,
-      syntax,
+    const keeping = new NoteKeeping({
+      notes: this.notes,
+      syntax: OBSIDIAN_SYNTAX,
+      written: this.gate.written,
+      shown: this.store,
+      saver: this.settingsSaver,
+      telling: OBSIDIAN_TELLING,
+      dialogs: this.showing.dialogs,
       campaignFolders: () => this.campaignFolders(),
-      say,
-      askNewNames: newNamesDialogIn(this.showing.dialogs),
     });
-    const routed = new RoleRoutedNotes({ store: saved, notes, forDm: dmQuestions, forOthers: references });
-    this.register(items.start());
-    this.register(references.start());
-    this.register(dmQuestions.start());
-    this.register(startKindNotes({ notes, syntax, written: gate.written, saved, made, items, references: routed, say, ask: askInNoticeOf(OBSIDIAN_TELLING) }));
-    this.register(saved.start());
+    keeping.start();
+    this.register(keeping.stop.bind(keeping));
   }
 
   private readEditor(info: MarkdownFileInfo, file: TFile): void {
