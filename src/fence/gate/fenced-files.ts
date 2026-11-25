@@ -15,7 +15,6 @@ export type RawVault = Pick<
   | "create"
   | "createFolder"
   | "rename"
-  | "delete"
   | "getResourcePath"
 > &
   Pick<Events, "on" | "offref">;
@@ -104,10 +103,10 @@ export class FencedFiles extends Component {
     return this.vault.createFolder(this.held.newPath(path));
   }
 
-  async removeEmptyFolder(path: string): Promise<void> {
+  emptyFolderAt(path: string): TFolder | null {
     const folder = this.vault.getFolderByPath(this.held.path(path));
-    if (folder === null || folder.children.length > 0) return;
-    await this.vault.delete(this.held.file(folder));
+    if (folder === null || folder.children.length > 0) return null;
+    return this.held.file(folder);
   }
 
   getResourcePath(file: TFile): string {

@@ -33,6 +33,7 @@ export const ALLOWED_IN_PLACE: AllowedCode[] = [
   { code: '.requestUrl)({ url: beyondAddressOf(id), method: "GET", throw: false })', count: 1 },
   { code: '"https://character-service.dndbeyond.com/character/v5/character/"', count: 1 },
   { code: "frameEl.setCssProps({ [PICTURE_PROPERTY]: shown.picture.value })", count: 1 },
+  { code: "frameEl.setCssProps({ [PICTURE_PROPERTY]: PictureCss.NONE.value })", count: 1 },
   { code: 'layer.setCssProps({ "--dd-campaign-picture": shown.picture.value })', count: 1 },
 ];
 

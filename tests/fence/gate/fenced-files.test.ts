@@ -178,18 +178,15 @@ describe("FencedFiles reads and writes", () => {
     expect(calls.rename).not.toHaveBeenCalled();
   });
 
-  it("removes an empty folder inside, and leaves one that holds something", async () => {
-    const { files, calls } = filesWith();
-    await files.removeEmptyFolder("D&D/Pale Moon/Items");
-    await files.removeEmptyFolder("D&D/Pale Moon/Sessions");
-    expect(calls.delete).toHaveBeenCalledOnce();
-    expect(calls.delete.mock.calls[0]).toEqual([expect.objectContaining({ path: "D&D/Pale Moon/Items" })]);
+  it("finds an empty folder inside, and none where the folder holds something", () => {
+    const { files } = filesWith();
+    expect(files.emptyFolderAt("D&D/Pale Moon/Items")).toEqual(expect.objectContaining({ path: "D&D/Pale Moon/Items" }));
+    expect(files.emptyFolderAt("D&D/Pale Moon/Sessions")).toBeNull();
   });
 
-  it("refuses to remove a folder outside", async () => {
-    const { files, calls } = filesWith();
-    await expect(files.removeEmptyFolder("Private")).rejects.toThrow(OUTSIDE_FENCE);
-    expect(calls.delete).not.toHaveBeenCalled();
+  it("refuses to look for an empty folder outside", () => {
+    const { files } = filesWith();
+    expect(() => files.emptyFolderAt("Private")).toThrow(OUTSIDE_FENCE);
   });
 
   it("gives the picture address of a file inside, and refuses one outside", () => {
