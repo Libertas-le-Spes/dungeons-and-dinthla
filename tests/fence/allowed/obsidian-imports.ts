@@ -2,7 +2,6 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "interface/view/campaign-switcher.ts": ["Component", "Menu", "Notice", "setIcon"],
   "campaign/": ["CachedMetadata", "MarkdownFileInfo", "Platform", "TFile"],
   "characters/": ["ButtonComponent", "Component", "Debouncer", "debounce"],
-  "dashboard/": ["Component"],
   "editor/": ["editorInfoField"],
   "fence/": ["App", "CachedMetadata", "Component", "EventRef", "Events", "FileManager", "MetadataCache", "TAbstractFile", "TFile", "TFolder", "Vault"],
   "funds/": ["Component", "getFrontMatterInfo"],
@@ -15,6 +14,7 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "obsidian/notes/obsidian-syntax.ts": ["getFrontMatterInfo", "getLinkpath", "parseYaml"],
   "obsidian/online/obsidian-beyond-call.ts": ["requestUrl"],
   "obsidian/views/frames/obsidian-telling.ts": ["ButtonComponent", "Notice"],
+  "obsidian/views/frames/page-frame.ts": ["Component"],
   "obsidian/views/frames/modal-frame.ts": ["App", "Modal"],
   "obsidian/views/mount/mount-kit.ts": ["App"],
   "obsidian/views/mount/name-suggest.ts": ["AbstractInputSuggest", "App"],
@@ -25,5 +25,4 @@ export const OBSIDIAN_IMPORTS: Record<string, string[]> = {
   "settings/": ["App", "ButtonComponent", "DropdownComponent", "FuzzySuggestModal", "Notice", "Plugin", "PluginSettingTab", "Setting", "TFile"],
   "views/": ["App", "ButtonComponent", "Component", "Keymap", "Notice", "PaneType", "parseLinktext"],
   "welcome/": ["App", "Component", "Notice", "PluginManifest"],
-  "whats-new/": ["Component", "Notice"],
 };

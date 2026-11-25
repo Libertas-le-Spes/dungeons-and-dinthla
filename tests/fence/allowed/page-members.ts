@@ -20,9 +20,6 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "characters/pages/fallen-sheet-page.ts": ["addClass", "createDiv", "createEl", "createSpan", "empty"],
   "characters/pages/left-play-section.ts": ["appendText", "createEl"],
   "characters/pages/mentions-panel.ts": ["createDiv", "createEl", "createSpan", "empty"],
-  "dashboard/dashboard-page.ts": ["addClass", "appendText", "createDiv", "createEl", "createSpan", "empty", "focus", "setText", "toggle"],
-  "dashboard/item-event-row.ts": ["createSpan", "setAttr"],
-  "dashboard/short-character-card.ts": ["appendText", "createEl"],
   "funds/item-notes/item-panel.ts": ["addEventListener", "createDiv", "createEl", "empty", "focus"],
   "funds/page/funds-page.ts": ["addClass", "appendText", "closest", "createDiv", "createEl", "createSpan", "empty", "focus", "open", "querySelectorAll", "setAttr", "setAttribute", "setText"],
   "funds/page/ledger-box.ts": ["createDiv", "createEl", "createSpan", "empty", "focus", "setText"],
@@ -42,6 +39,7 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "note-page/note-page.ts": ["addClass", "createEl", "empty"],
   "obsidian/views/frames/modal-frame.ts": ["addClass", "empty"],
   "obsidian/views/frames/obsidian-telling.ts": ["createSpan"],
+  "obsidian/views/frames/page-frame.ts": ["addClass", "empty"],
   "obsidian/views/mount/element-parts-on.ts": ["addClass", "setAttr", "setText", "toggle"],
   "obsidian/views/mount/field-element.ts": ["tagName"],
   "obsidian/views/mount/name-suggest.ts": ["dispatchEvent", "setText"],
@@ -81,7 +79,6 @@ export const PAGE_MEMBERS: Record<string, string[]> = {
   "welcome/endings/name-form.ts": ["createEl", "disabled", "preventDefault", "value"],
   "welcome/endings/new-campaign-ending.ts": ["createEl"],
   "welcome/page/welcome-page.ts": ["addClass", "createDiv", "createEl", "empty"],
-  "whats-new/news-line.ts": ["createEl", "createSpan", "empty", "toggle"],
 };
 
 export const PAGE_ESCAPE_READERS: Record<string, string[]> = {

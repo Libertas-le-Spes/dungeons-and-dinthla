@@ -4,6 +4,7 @@ import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { keywordsOf } from "./keywords";
 import { focusRowAt, RowFocus } from "./row-focus";
 import type { LinkActions } from "./linked-text";
+import type { OpenRow } from "../threads/thread-openers";
 
 export interface ListContents<T> {
   open: T[];
@@ -12,7 +13,6 @@ export interface ListContents<T> {
   foldedCount: number;
 }
 
-export type OpenRow = (source: Source, onClosed: (changed: boolean) => void) => void;
 
 export interface ListCreate {
   label: string;

@@ -24,6 +24,7 @@ const ALLOWED_ANYWHERE = [...ALLOWED_MODULES, ...ALLOWED_ADDRESSES];
 export const ALLOWED_IN_PLACE: AllowedCode[] = [
   { code: "new _PictureCss(`url(\"${safe}\")`)", count: 1 },
   { code: 'attr: { role: "link", tabindex: "0", draggable: "false" }', count: 1 },
+  { code: 'role: "link", tabIndex: 0, undraggable: true', count: 1 },
   { code: 'parentEl.createEl("form", { cls: "dd-welcome-make" })', count: 1 },
   { code: 'elementOf(into).createEl("form")', count: 1 },
   { code: '!("base" in read)', count: 1 },
@@ -32,7 +33,7 @@ export const ALLOWED_IN_PLACE: AllowedCode[] = [
   { code: 'formEl.createEl("button", { cls: form.buttonCls, type: "submit", text: form.buttonText })', count: 1 },
   { code: 'owner.registerDomEvent(formEl, "submit", ', count: 1 },
   { code: 'addEventListener("click", ', count: 24 },
-  { code: ', "click", ', count: 14 },
+  { code: ', "click", ', count: 11 },
   { code: 'this.input.dispatchEvent(new Event("input"))', count: 1 },
   { code: '.requestUrl)({ url: beyondAddressOf(id), method: "GET", throw: false })', count: 1 },
   { code: '"https://character-service.dndbeyond.com/character/v5/character/"', count: 1 },

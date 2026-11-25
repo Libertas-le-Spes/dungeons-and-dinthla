@@ -1,20 +1,12 @@
 import type { Component } from "obsidian";
+export type { PageId, PageTarget, ShowPage, StayOn } from "./page-target";
 import type { Campaign } from "../../campaign/record/campaign";
 import { coinTrackedKind } from "../../kinds/coin-tracked-kind";
 import { questTrackedKind } from "../../kinds/quest-tracked-kind";
 import { questionTrackedKind } from "../../kinds/question-tracked-kind";
-import type { ReferencePageId } from "../../kinds/reference-page-id";
-import type { TrackedPageId } from "../../kinds/tracked-page-id";
+import type { PageId, ShowPage, StayOn } from "./page-target";
 import { questionsKind } from "../../questions/list/questions-kind";
 import { questsKind } from "../../quests/list/quests-kind";
-
-export type PageId = "home" | ReferencePageId | "notes" | TrackedPageId | "welcome";
-
-export type PageTarget = { page: PageId; path: string | null };
-
-export type ShowPage = (target: PageTarget) => void;
-
-export type StayOn = (path: string) => void;
 
 export type MakePage = (contentEl: HTMLElement, show: ShowPage, path: string | null, stayOn: StayOn) => Component;
 

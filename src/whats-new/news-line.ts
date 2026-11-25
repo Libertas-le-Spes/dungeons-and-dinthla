@@ -1,40 +1,45 @@
-import { Component, Notice } from "obsidian";
+import type { Telling } from "../host/showing/telling";
 import { messageOf } from "../views/dialogs/message-of";
-import type { ShowPage } from "../interface/view/campaign-pages";
+import type { ShowPage } from "../interface/view/page-target";
+import { HandleRequest, PressBinding } from "../views/elements/bindings/bindings";
+import { KeptHandle } from "../views/elements/bindings/kept-handle";
+import { RunAction } from "../views/elements/bindings/run-action";
+import { Button, Div, Span } from "../views/elements/kinds/containers";
+import type { ViewElement } from "../views/elements/view-element";
 import type { News, NewsItem } from "./news-item";
 
 export const SHOW_ME = "Show me";
 export const DISMISS = "Dismiss";
 
-export class NewsLine extends Component {
+function separator(): ViewElement {
+  return new Span({ cls: ["dd-news-separator"], text: "·", hiddenFromReaders: true });
+}
+
+export class NewsLine {
+  private readonly line = new KeptHandle();
+
   constructor(
-    private readonly lineEl: HTMLElement,
     private readonly news: News,
     private readonly show: ShowPage,
-  ) {
-    super();
-  }
+    private readonly telling: Pick<Telling, "say">,
+  ) {}
 
-  override onload(): void {
+  tree(): ViewElement {
     const item = this.news.latest();
-    this.lineEl.empty();
-    this.lineEl.toggle(item !== null);
-    if (item === null) return;
-    this.lineEl.createSpan({ cls: "dd-news-label", text: "New:" });
-    this.lineEl.createSpan({ cls: "dd-news-text", text: item.sentence });
-    this.addSeparator();
-    this.addButton(SHOW_ME, () => this.showMe(item));
-    this.addSeparator();
-    this.addButton(DISMISS, () => this.close());
+    const handle = new HandleRequest(this.line);
+    if (item === null) return new Div({ cls: ["dd-news"], hidden: true, bindings: [handle] });
+    return new Div({ cls: ["dd-news"], bindings: [handle] }, [
+      new Span({ cls: ["dd-news-label"], text: "New:" }),
+      new Span({ cls: ["dd-news-text"], text: item.sentence }),
+      separator(),
+      this.button(SHOW_ME, this.showMe.bind(this, item)),
+      separator(),
+      this.button(DISMISS, this.close.bind(this)),
+    ]);
   }
 
-  private addSeparator(): void {
-    this.lineEl.createSpan({ cls: "dd-news-separator", text: "·", attr: { "aria-hidden": "true" } });
-  }
-
-  private addButton(text: string, pressed: () => void): void {
-    const button = this.lineEl.createEl("button", { cls: "dd-news-button", text });
-    this.registerDomEvent(button, "click", pressed);
+  private button(text: string, pressed: () => void): ViewElement {
+    return new Button({ cls: ["dd-news-button"], text, bindings: [new PressBinding(new RunAction(pressed))] });
   }
 
   private showMe(item: NewsItem): void {
@@ -43,7 +48,11 @@ export class NewsLine extends Component {
   }
 
   private close(): void {
-    this.lineEl.toggle(false);
-    this.news.seen().catch((error: unknown) => new Notice(`Couldn't keep that the news was seen: ${messageOf(error)}`));
+    this.line.setHidden(true);
+    this.news.seen().catch(this.seenFailed.bind(this));
+  }
+
+  private seenFailed(error: unknown): void {
+    this.telling.say(`Couldn't keep that the news was seen: ${messageOf(error)}`);
   }
 }

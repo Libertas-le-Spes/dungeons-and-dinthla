@@ -259,7 +259,7 @@ export default class DungeonsAndDinthla extends Plugin {
       startSession: newSession,
     }, OBSIDIAN_SYNTAX);
     const pages = campaignSections({
-      home: homeSection({ store: this.store, characterNotes, news: help.whatsNew, actionsFor: dashboardActionsFor }, OBSIDIAN_SYNTAX),
+      home: homeSection({ store: this.store, characterNotes, news: help.whatsNew, telling: OBSIDIAN_TELLING, actionsFor: dashboardActionsFor }, OBSIDIAN_SYNTAX),
       cast: castSection(castNeeds, OBSIDIAN_SYNTAX),
       notes: notesSection(sessionNotes.notes, OBSIDIAN_SYNTAX),
       questions: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestionAt, questionsKind, createQuestion),

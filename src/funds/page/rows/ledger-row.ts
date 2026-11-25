@@ -3,6 +3,7 @@ import type { LinkOpener } from "../../../views/components/rows/link-name";
 import { LinkedText } from "../../../views/components/rows/linked-text";
 import { SourceRow } from "../../../views/components/rows/source-row";
 import type { PageAction } from "../../../views/elements/bindings/page-action";
+import type { ElementBinding } from "../../../views/elements/bindings/element-binding";
 import { ListItem, Span } from "../../../views/elements/kinds/containers";
 import type { LedgerLine } from "../funds-summary";
 
@@ -19,14 +20,14 @@ function directionOf(moneyOut: boolean): string {
 export class LedgerRow {
   constructor(private readonly opener: LinkOpener) {}
 
-  build({ record, balance }: LedgerLine, open: PageAction): ListItem {
+  build({ record, balance }: LedgerLine, open: PageAction, bindings: readonly ElementBinding[] = []): ListItem {
     const linked = new LinkedText([], record.source.path, this.opener);
     const row = new SourceRow(record.source, open).build([
       new Span({ cls: ["dd-direction"], text: directionOf(record.entry.moneyOut) }),
       new Span({ cls: ["dd-what"] }, linked.build(record.text)),
       new Span({ cls: ["dd-amount"], text: signedMoney(record.entry.copper) }),
       new Span({ cls: ["dd-balance"], text: formatMoney(balance) }),
-    ], ["dd-ledger-row"]);
+    ], { cls: ["dd-ledger-row"], bindings });
     return new ListItem({}, [row]);
   }
 }
