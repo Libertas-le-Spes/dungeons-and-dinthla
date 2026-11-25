@@ -6,7 +6,7 @@ import { mountTree } from "../mount/mount-tree";
 
 const TOKENS_CLASS = "dd-tokens";
 
-class FramePage implements PageView {
+export class FramePage implements PageView {
   constructor(
     private readonly contentEl: HTMLElement,
     private readonly kit: MountKit,

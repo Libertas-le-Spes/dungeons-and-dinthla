@@ -28,7 +28,7 @@ import { OBSIDIAN_SYNTAX } from "./obsidian/notes/obsidian-syntax";
 import { GATE_REPORTS_WRITES } from "./obsidian/notes/quiet-report";
 import { HostSheetNotes } from "./characters/reading/sheet-notes";
 import { HostMentionNotes } from "./characters/reading/mention-notes";
-import { editorTextOf } from "./campaign/reading/editor-text";
+import { editorTextOf } from "./obsidian/campaign/editor-text";
 import { markerColouring } from "./editor/marker-decorations";
 import type { LookupOpeners } from "./kinds/lookup-openers";
 import { openNewQuestion } from "./questions/dialogs/open-new-question";
@@ -78,8 +78,11 @@ import { closeRetiredViews } from "./interface/takeover/retired-views";
 import { colourMarkers } from "./reading/colour-markers";
 import { BEFORE_OBSIDIANS_MATHS, plainDollarsProcessor } from "./reading/plain-dollars-processor";
 import { BackgroundRefresh, showBackground, shownBackgroundOf } from "./reading/note-background";
-import { CampaignSettingTab } from "./settings/choosing/campaign-setting-tab";
-import { FolderSuggestModal } from "./settings/choosing/folder-suggest-modal";
+import { SettingsPage } from "./settings/page/settings-page";
+import { SettingsFrame } from "./obsidian/settings/settings-frame";
+import { ObsidianCampaignLooks } from "./obsidian/settings/obsidian-campaign-looks";
+import { PictureSuggestModal } from "./obsidian/settings/picture-suggest-modal";
+import { FolderSuggestModal } from "./obsidian/settings/folder-suggest-modal";
 import { flushWhenClosing, type Closing } from "./settings/drafts/flush-when-closing";
 import { LocalDrafts, type LocalStorage } from "./settings/drafts/local-drafts";
 import { OldDrafts } from "./settings/drafts/old-drafts";
@@ -172,7 +175,16 @@ export default class DungeonsAndDinthla extends Plugin {
       chosen: () => chosenCampaignFolder(this.chosen.folder, this.campaignFolders()),
       choose: (folder: string) => this.chosen.choose(folder),
     };
-    this.addSettingTab(new CampaignSettingTab(this.app, this, gate, campaignsFolderSetup, campaignChoice, () => help.showWelcome()));
+    const settings = new SettingsPage({
+      campaignsFolder: campaignsFolderSetup,
+      campaigns: campaignChoice,
+      looks: new ObsidianCampaignLooks(gate),
+      pickPicture: (pictures: string[], chosen: (picture: string) => void) => new PictureSuggestModal(this.app, pictures, chosen).open(),
+      changes: this.notes.changes,
+      telling: this.showing.telling,
+      showWelcome: () => help.showWelcome(),
+    });
+    this.addSettingTab(new SettingsFrame(this.app, this, settings));
     const linkPlace = { gate, campaignFolders: () => this.campaignFolders() };
     const actions = {
       openRow: (source: Source) => void openSource(this.app, gate, source),

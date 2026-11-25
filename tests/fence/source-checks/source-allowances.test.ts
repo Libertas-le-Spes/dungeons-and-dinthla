@@ -21,7 +21,7 @@ import { PAGE_ESCAPES } from "../scan/reading/names";
 const GATEKEEPER_FOLDER = "fence/gate/";
 const PARSED_DATA = ["settings/drafts/draft-record.ts", "beyond/reply/json/json-reader.ts"];
 const ALLOWED = ["fence/gate/gatekeeper.ts", "fence/gate/fenced-files.ts", "fence/gate/fenced-file-actions.ts", "fence/gate/folder-choices.ts", "fence/gate/vault-settings.ts"];
-const EDITOR_TEXT_READERS = ["campaign/reading/editor-text.ts"];
+const EDITOR_TEXT_READERS = ["obsidian/campaign/editor-text.ts"];
 const NOTE_READERS = ["reading/section-lines.ts"];
 const CODE_MIRROR_READERS = ["editor/marker-decorations.ts"];
 const LOOSE_CASTERS = ["fence/gate/fenced-metadata.ts", "interface/view/campaign-view-registered.ts", "interface/tabs/one-campaign-tab.ts", "interface/tabs/seen-tab.ts"];
@@ -31,7 +31,7 @@ const ACTIVE_FILE_READERS = ["obsidian/characters/character-editing-hooks.ts", "
 const ACTIVE_VIEW_READERS = ["interface/view/open-in-editor.ts", "interface/view/shown-campaign-path.ts"];
 const EVENT_TRIGGERS = ["fence/gate/fenced-files.ts"];
 const LEAF_VIEW_READERS = ["main.ts", "interface/tabs/one-campaign-tab.ts", "interface/tabs/seen-tab.ts", "interface/takeover/view-state-patch.ts"];
-const VIEW_FILE_READERS = ["main.ts", "campaign/reading/editor-text.ts", "editor/marker-decorations.ts", "interface/takeover/campaign-takeover.ts"];
+const VIEW_FILE_READERS = ["main.ts", "obsidian/campaign/editor-text.ts", "editor/marker-decorations.ts", "interface/takeover/campaign-takeover.ts"];
 const NOTE_EVENT_LISTENERS = ["main.ts"];
 const GATE_BUILDERS = ["main.ts"];
 const NETWORK_CALLERS = ["obsidian/online/obsidian-beyond-call.ts"];

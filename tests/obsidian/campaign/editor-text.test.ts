@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Editor, MarkdownFileInfo, TFile } from "obsidian";
-import { editorTextOf } from "../../../src/campaign/reading/editor-text";
+import { editorTextOf } from "../../../src/obsidian/campaign/editor-text";
 
 const session = { path: "Pale Moon/Sessions/Session 3.md" } as TFile;
 const other = { path: "Pale Moon/Characters/Mira.md" } as TFile;

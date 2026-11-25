@@ -1,5 +1,6 @@
 import { Platform, type TFile } from "obsidian";
-import { backgroundOf, type BackgroundMetadata, type Wash } from "./campaign-background";
+import { backgroundOf, type BackgroundMetadata } from "./campaign-background";
+import type { Wash } from "../../../campaign/background/wash";
 import { PictureCss } from "./picture-css";
 
 export interface ShownBackground {

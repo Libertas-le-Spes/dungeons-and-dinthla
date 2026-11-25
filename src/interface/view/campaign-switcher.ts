@@ -1,6 +1,6 @@
 import { Component, Menu, Notice, setIcon } from "obsidian";
 import { campaignNameOf } from "../../campaign/paths/campaign-folders";
-import type { CampaignChoice } from "../../settings/choosing/campaign-setting-tab";
+import type { CampaignChoice } from "../../settings/saved/campaign-choice";
 import { messageOf } from "../../views/dialogs/message-of";
 
 export const SWITCH_LABEL = "Switch campaign";

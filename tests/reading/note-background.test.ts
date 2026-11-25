@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CachedMetadata, TFile } from "obsidian";
-import type { BackgroundMetadata } from "../../src/campaign/background/campaign-background";
+import type { BackgroundMetadata } from "../../src/obsidian/campaign/background/campaign-background";
 import { BackgroundRefresh, showBackground, shownBackgroundOf } from "../../src/reading/note-background";
 import { pictureOf, shownPicture } from "../campaign/shown-picture";
 import { obsidianDocument } from "../stubs/obsidian-dom";

@@ -1,11 +1,9 @@
 import type { CachedMetadata, TFile } from "obsidian";
-import { mainNotePathOf } from "../paths/campaign-folders";
-import type { FencedMetadata } from "../../fence/gate/fenced-metadata";
-import type { FencedFileActions } from "../../fence/gate/fenced-file-actions";
+import { mainNotePathOf } from "../../../campaign/paths/campaign-folders";
+import { DEFAULT_WASH, washOf, type Wash } from "../../../campaign/background/wash";
+import type { FencedMetadata } from "../../../fence/gate/fenced-metadata";
+import type { FencedFileActions } from "../../../fence/gate/fenced-file-actions";
 
-export const WASHES = ["subtle", "balanced", "strong"] as const;
-export type Wash = (typeof WASHES)[number];
-export const DEFAULT_WASH: Wash = "balanced";
 
 const PICTURE_EXTENSIONS = new Set(["avif", "bmp", "gif", "jpeg", "jpg", "png", "svg", "webp"]);
 
@@ -19,13 +17,6 @@ export type BackgroundFileActions = Pick<FencedFileActions, "processFrontMatter"
 
 export function isPicture(file: TFile): boolean {
   return PICTURE_EXTENSIONS.has(file.extension.toLowerCase());
-}
-
-export function washOf(value: unknown): Wash {
-  for (const wash of WASHES) {
-    if (value === wash) return wash;
-  }
-  return DEFAULT_WASH;
 }
 
 function pictureOf(cache: CachedMetadata, mainNote: string, metadata: BackgroundMetadata): TFile | null {
