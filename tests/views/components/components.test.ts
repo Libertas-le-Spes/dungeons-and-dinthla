@@ -11,9 +11,7 @@ import { FieldRow, List, ListItem, Span } from "../../../src/views/elements/kind
 import { HERE } from "../../../src/views/elements/bindings/open-place";
 import type { ViewElement } from "../../../src/views/elements/view-element";
 import { mountTree } from "../../../src/obsidian/views/mount/mount-tree";
-import { addNameLink, addRowButtonIn } from "../../../src/views/lists/linked-text";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
-import { shapeOf } from "./same-page";
 import { Paragraph } from "../../../src/views/elements/kinds/containers";
 
 const SOURCE = { path: "D&D/Pale Moon/Sessions/Session 1.md", line: 3 };
@@ -30,17 +28,11 @@ function mounted(...trees: ViewElement[]): HTMLElement {
   return el;
 }
 
-function linkActions() {
-  return { openRow: vi.fn(), openLink: vi.fn() };
-}
-
-describe("the plugin's own components, against today's drawing", () => {
-  it("draws a row just as today's row button, opening on a press or Enter", () => {
-    const today = root();
-    addRowButtonIn(today.createEl("li"), SOURCE, linkActions());
+describe("the plugin's own components", () => {
+  it("draws a row as a button the keyboard reaches, keyed to its line, opening on a press or Enter", () => {
     const open = { run: vi.fn() };
     const built = mounted(new ListItem({}, [new SourceRow(SOURCE, open).build([])]));
-    expect(shapeOf(built)).toEqual(shapeOf(today));
+    expect(built.innerHTML).toBe('<li><div class="dd-row" role="button" tabindex="0" data-path="D&amp;D/Pale Moon/Sessions/Session 1.md" data-line="3"></div></li>');
     const row = built.querySelector(".dd-row") as HTMLElement;
     const view = row.ownerDocument.defaultView!;
     row.dispatchEvent(new view.MouseEvent("click"));
@@ -48,12 +40,10 @@ describe("the plugin's own components, against today's drawing", () => {
     expect(open.run.mock.calls).toEqual([[HERE], [HERE]]);
   });
 
-  it("draws a link name just as today's, following it here or in a new tab, never into the row, never dragged", () => {
-    const today = root();
-    addNameLink(today, "Mira", "Mira", SOURCE.path, linkActions());
+  it("draws a link name as a link the keyboard reaches, following it here or in a new tab, never into the row, never dragged", () => {
     const opener = { openLink: vi.fn() };
     const built = mounted(new LinkName("Mira", SOURCE.path, opener).build("Mira"));
-    expect(shapeOf(built)).toEqual(shapeOf(today));
+    expect(built.innerHTML).toBe('<a class="dd-link-name" role="link" tabindex="0" draggable="false">Mira</a>');
     const link = built.querySelector("a")!;
     const view = link.ownerDocument.defaultView!;
     const rowClicked = vi.fn();

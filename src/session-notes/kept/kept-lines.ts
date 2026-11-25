@@ -5,6 +5,11 @@ import type { KeptDraft, KeptDrafts } from "./kept-drafts";
 import type { KeptKind } from "./kinds/kept-kind";
 import { KEPT_KINDS } from "./kinds/kept-kinds";
 import { shownKeptTime } from "./kept-time";
+import { HandleRequest, PressBinding } from "../../views/elements/bindings/bindings";
+import { KeptHandle } from "../../views/elements/bindings/kept-handle";
+import { RunAction } from "../../views/elements/bindings/run-action";
+import { Button, Div, Heading3, Paragraph, Pre, Section } from "../../views/elements/kinds/containers";
+import type { ViewElement } from "../../views/elements/view-element";
 
 const COPY = "Copy into this session's box";
 const DISCARD = "Discard";
@@ -26,34 +31,48 @@ function ofKind(drafts: KeptDraft[], kind: KeptKind): KeptDraft[] {
 
 interface KeptRow {
   key: string;
-  copy: HTMLButtonElement;
+  copy: KeptHandle;
   discard: SecondPress;
 }
 
+class DiscardLabel {
+  constructor(private readonly button: KeptHandle) {}
+
+  showArmed(armed: boolean): void {
+    if (armed) this.button.setText(DISCARD_ARMED);
+    else this.button.setText(DISCARD);
+  }
+}
+
 export class KeptLines {
-  private readonly root: HTMLElement;
-  private readonly stopListening: () => void;
+  private readonly root = new KeptHandle();
+  private stopListening: (() => void) | null = null;
   private rows: KeptRow[] = [];
 
   constructor(
-    parent: HTMLElement,
-    drafts: Drafts,
+    private readonly drafts: Drafts,
     private readonly keptDrafts: KeptDrafts,
     private readonly target: CopyTarget,
-  ) {
-    this.root = parent.createEl("section", { cls: "dd-notes-panel dd-kept-lines" });
-    this.stopListening = drafts.subscribe((key) => this.draftChanged(key));
+  ) {}
+
+  tree(): ViewElement {
+    return new Section({ cls: ["dd-notes-panel", "dd-kept-lines"], bindings: [new HandleRequest(this.root)] });
+  }
+
+  start(): void {
+    this.stopListening = this.drafts.subscribe(this.draftChanged.bind(this));
     this.draw();
   }
 
   close(): void {
-    this.stopListening();
+    if (this.stopListening !== null) this.stopListening();
+    this.stopListening = null;
     this.stopPresses();
   }
 
   refresh(): void {
     const path = this.target();
-    for (const row of this.rows) row.copy.disabled = this.cannotCopy(row.key, path);
+    for (const row of this.rows) row.copy.setDisabled(this.cannotCopy(row.key, path));
   }
 
   private draftChanged(key: string): void {
@@ -63,31 +82,37 @@ export class KeptLines {
 
   private draw(): void {
     this.stopPresses();
-    this.root.empty();
     this.rows = [];
     const kept = this.keptDrafts.kept();
-    this.root.toggle(kept.length > 0);
-    for (const kind of KEPT_KINDS) this.drawKind(kind, ofKind(kept, kind));
+    const shown: ViewElement[] = [];
+    for (const kind of KEPT_KINDS) shown.push(...this.kindOf(kind, ofKind(kept, kind)));
+    this.root.showInside(shown);
+    this.root.setHidden(kept.length === 0);
     this.refresh();
   }
 
-  private drawKind(kind: KeptKind, drafts: KeptDraft[]): void {
-    if (drafts.length === 0) return;
-    this.root.createEl("h3", { cls: "dd-kept-heading", text: kind.heading });
-    for (const draft of drafts) this.rows.push(this.drawDraft(draft));
+  private kindOf(kind: KeptKind, drafts: KeptDraft[]): ViewElement[] {
+    if (drafts.length === 0) return [];
+    const shown: ViewElement[] = [new Heading3({ cls: ["dd-kept-heading"], text: kind.heading })];
+    for (const draft of drafts) shown.push(this.draftOf(draft));
+    return shown;
   }
 
-  private drawDraft(draft: KeptDraft): KeptRow {
-    const item = this.root.createDiv({ cls: "dd-kept" });
-    item.createEl("p", { cls: "dd-kept-message", text: keptMessage(draft) });
-    item.createEl("pre", { cls: "dd-kept-text", text: draft.text });
-    const row = item.createDiv({ cls: "dd-save-row" });
-    const copy = row.createEl("button", { cls: "dd-create dd-kept-copy", text: COPY });
-    const discardButton = row.createEl("button", { cls: "dd-create dd-kept-discard", text: DISCARD });
-    const discard = new SecondPress((armed) => this.showArmed(discardButton, armed), () => this.keptDrafts.discard(draft.key));
-    copy.addEventListener("click", () => this.copy(draft.key));
-    discardButton.addEventListener("click", () => discard.press());
-    return { key: draft.key, copy, discard };
+  private draftOf(draft: KeptDraft): ViewElement {
+    const copy = new KeptHandle();
+    const discardButton = new KeptHandle();
+    const label = new DiscardLabel(discardButton);
+    const discard = new SecondPress(label.showArmed.bind(label), this.discard.bind(this, draft.key));
+    this.rows.push({ key: draft.key, copy, discard });
+    const row = new Div({ cls: ["dd-save-row"] }, [
+      new Button({ cls: ["dd-create", "dd-kept-copy"], text: COPY, bindings: [new PressBinding(new RunAction(this.copy.bind(this, draft.key))), new HandleRequest(copy)] }),
+      new Button({ cls: ["dd-create", "dd-kept-discard"], text: DISCARD, bindings: [new PressBinding(new RunAction(discard.press.bind(discard))), new HandleRequest(discardButton)] }),
+    ]);
+    return new Div({ cls: ["dd-kept"] }, [new Paragraph({ cls: ["dd-kept-message"], text: keptMessage(draft) }), new Pre({ cls: ["dd-kept-text"], text: draft.text }), row]);
+  }
+
+  private discard(key: string): void {
+    this.keptDrafts.discard(key);
   }
 
   private copy(key: string): void {
@@ -99,11 +124,6 @@ export class KeptLines {
   private cannotCopy(key: string, path: string | null): boolean {
     if (path === null) return true;
     return !this.keptDrafts.canCopy(key, path);
-  }
-
-  private showArmed(button: HTMLButtonElement, armed: boolean): void {
-    if (armed) button.setText(DISCARD_ARMED);
-    else button.setText(DISCARD);
   }
 
   private stopPresses(): void {

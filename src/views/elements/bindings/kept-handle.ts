@@ -25,6 +25,22 @@ export class KeptHandle implements HandleWanted {
     if (this.handle !== null) this.handle.setReadOnly(readOnly);
   }
 
+  placeCaret(at: number): void {
+    if (this.handle !== null) this.handle.placeCaret(at);
+  }
+
+  bringIntoView(): void {
+    if (this.handle !== null) this.handle.bringIntoView();
+  }
+
+  setSelected(selected: boolean): void {
+    if (this.handle !== null) this.handle.setSelected(selected);
+  }
+
+  setLabel(label: string): void {
+    if (this.handle !== null) this.handle.setLabel(label);
+  }
+
   setValue(value: string): void {
     if (this.handle !== null) this.handle.setValue(value);
   }

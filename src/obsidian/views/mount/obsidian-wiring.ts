@@ -1,9 +1,9 @@
 import { Keymap } from "obsidian";
-import type { BindingWiring, HandleWanted, TextChange } from "../../../views/elements/bindings/binding-wiring";
+import type { BindingWiring, CaretWatcher, HandleWanted, PressedKey, TextChange } from "../../../views/elements/bindings/binding-wiring";
 import { HERE, NEW_TAB, type OpenPlace } from "../../../views/elements/bindings/open-place";
 import type { PageAction } from "../../../views/elements/bindings/page-action";
 import { isSubmit } from "../../../views/dialogs/keys";
-import { isField, isInput } from "./field-element";
+import { isField, isInput, isTyped } from "./field-element";
 import type { MountKit } from "./mount-kit";
 import { ObsidianHandle } from "./obsidian-handle";
 
@@ -87,6 +87,58 @@ class Follow {
   }
 }
 
+class KeyDown implements PressedKey {
+  readonly key: string;
+  readonly modified: boolean;
+
+  constructor(private readonly event: KeyboardEvent) {
+    this.key = event.key;
+    this.modified = event.ctrlKey || event.metaKey || event.altKey || event.shiftKey;
+  }
+
+  handled(): void {
+    this.event.preventDefault();
+  }
+
+  keptHere(): void {
+    this.event.preventDefault();
+    this.event.stopPropagation();
+  }
+}
+
+class Caret {
+  constructor(
+    private readonly el: HTMLInputElement | HTMLTextAreaElement,
+    private readonly watcher: CaretWatcher,
+  ) {}
+
+  keyDown(event: KeyboardEvent): void {
+    this.watcher.keyDown(new KeyDown(event));
+  }
+
+  typed(): void {
+    this.watcher.typed(this.el.value, this.caret());
+  }
+
+  moved(): void {
+    this.watcher.caretMoved(this.caret());
+  }
+
+  left(): void {
+    this.watcher.left();
+  }
+
+  private caret(): number {
+    const at = this.el.selectionStart;
+    if (at === null) return this.el.value.length;
+    return at;
+  }
+}
+
+function holdFocus(event: MouseEvent): void {
+  event.preventDefault();
+}
+
 export class ObsidianWiring implements BindingWiring {
   constructor(
     private readonly el: HTMLElement,
@@ -125,6 +177,21 @@ export class ObsidianWiring implements BindingWiring {
 
   suggest(names: readonly string[]): void {
     if (isInput(this.el)) this.kit.suggestNames(this.el, names);
+  }
+
+  caret(watcher: CaretWatcher): void {
+    const box = this.el;
+    if (!isTyped(box)) return;
+    const caret = new Caret(box, watcher);
+    this.el.addEventListener("keydown", caret.keyDown.bind(caret));
+    this.el.addEventListener("input", caret.typed.bind(caret));
+    this.el.addEventListener("click", caret.moved.bind(caret));
+    this.el.addEventListener("keyup", caret.moved.bind(caret));
+    this.el.addEventListener("blur", caret.left.bind(caret));
+  }
+
+  holdFocus(): void {
+    this.el.addEventListener("mousedown", holdFocus);
   }
 
   handle(wanted: HandleWanted): void {

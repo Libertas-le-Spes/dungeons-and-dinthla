@@ -5,6 +5,7 @@ import type { AppendWriter } from "../../../src/session-notes/drafts/append-writ
 import { Drafts } from "../../../src/session-notes/drafts/drafts";
 import { WritingPanel } from "../../../src/session-notes/writing/writing-panel";
 import { isShown, obsidianDocument } from "../../stubs/obsidian-dom";
+import { mountTree } from "../../../src/obsidian/views/mount/mount-tree";
 
 const PATH = "Pale Moon/Sessions/Session 12.md";
 const EARLIER = "Pale Moon/Sessions/Session 11.md";
@@ -49,7 +50,9 @@ function panelWith({ draft = "", campaign = CAMPAIGN, save = async () => "", dra
   if (draft !== "") drafts.keep(path, draft);
   const writer = { save: vi.fn(save) };
   const openers = { question: vi.fn(), quest: vi.fn(), item: vi.fn() };
-  const panel = new WritingPanel(root, path, { drafts, writer: writer as unknown as AppendWriter, openers, campaign: () => campaign });
+  const panel = new WritingPanel(path, { drafts, writer: writer as unknown as AppendWriter, openers, campaign: () => campaign });
+  mountTree(panel.tree(), root);
+  panel.start();
   const box = root.querySelector("textarea")!;
   const window = document.defaultView!;
   const type = (text: string) => {
@@ -75,7 +78,7 @@ describe("WritingPanel", () => {
     const { root, box } = panelWith();
     expect(root.querySelector(".dd-box-label")?.firstChild?.textContent).toBe("Type a line starting with ? ! or $, and link names with [[ ]]");
     expect(box.getAttribute("placeholder")).toBe("! Find the caravan, from: [[Lady Vess]], reward: 200 gp");
-    expect(box.getAttribute("spellcheck")).toBe("false");
+    expect(box.spellcheck).toBe(false);
     expect(root.querySelector(".dd-box-help")?.textContent).toBe(
       "Start with ??, !! or $$ to find an earlier line.",
     );
@@ -205,6 +208,14 @@ describe("WritingPanel", () => {
     expect(isShown(lookups)).toBe(false);
     box.setSelectionRange(3, 3);
     box.dispatchEvent(new box.ownerDocument.defaultView!.MouseEvent("click"));
+    expect(isShown(lookups)).toBe(true);
+  });
+
+  it("follows the caret when a key moves it onto a lookup line", () => {
+    const { type, box, lookups } = panelWith();
+    type("?? mill\nTracks lead north");
+    box.setSelectionRange(3, 3);
+    box.dispatchEvent(new box.ownerDocument.defaultView!.KeyboardEvent("keyup", { key: "ArrowUp" }));
     expect(isShown(lookups)).toBe(true);
   });
 

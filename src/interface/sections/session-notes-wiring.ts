@@ -16,7 +16,7 @@ import { SessionTrash } from "../../session-notes/removal/session-trash";
 import { SessionRenumbering } from "../../session-notes/renumbering/session-renumbering";
 import { sessionPropertiesOf } from "../../sessions/session-properties";
 import type { OpenConfirm } from "../../views/dialogs/confirm-dialog";
-import type { LinkActions } from "../../views/lists/linked-text";
+import type { LinkActions } from "./link-actions";
 import type { NotesNeeds } from "./notes-section";
 import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 

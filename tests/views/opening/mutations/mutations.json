@@ -65,22 +65,22 @@
  {
   "id": "the wanted row is marked",
   "file": "src/session-notes/lines/lines-list.ts",
-  "find": "    item.addClass(WANTED_CLASS);\n",
+  "find": "    item.setClassOn(WANTED_CLASS, true);\n",
   "replace": "",
   "group": "go to the line"
  },
  {
   "id": "the wanted row is scrolled to",
   "file": "src/session-notes/lines/lines-list.ts",
-  "find": "    item.scrollIntoView({ block: \"center\" });\n",
+  "find": "    item.bringIntoView();\n",
   "replace": "",
   "group": "go to the line"
  },
  {
   "id": "the page listens for wanted lines",
   "file": "src/session-notes/page/session-notes-page.ts",
-  "find": "    this.register(this.needs.wantedLines.subscribe(this.lineWanted.bind(this)));\n",
-  "replace": "",
+  "find": "this.stops.push(this.needs.store.subscribe(this.campaignChanged.bind(this)), this.needs.wantedLines.subscribe(this.lineWanted.bind(this)));",
+  "replace": "this.stops.push(this.needs.store.subscribe(this.campaignChanged.bind(this)));",
   "group": "go to the line"
  },
  {

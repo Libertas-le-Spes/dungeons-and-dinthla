@@ -9,7 +9,7 @@ import type { CastNotes } from "../../characters/reading/character-notes";
 import type { MentionNotes } from "../../characters/reading/mention-notes";
 import type { SheetNotes } from "../../characters/reading/sheet-notes";
 import type { CharacterCreators } from "../../characters/pages/character-creators";
-import type { LinkActions } from "../../views/lists/linked-text";
+import type { LinkActions } from "./link-actions";
 import type { Pauses } from "../../host/keeping/pauses";
 import type { MakePage, ShowPage } from "../view/campaign-pages";
 import type { PropertiesSyntax } from "../../campaign/paths/session-file";

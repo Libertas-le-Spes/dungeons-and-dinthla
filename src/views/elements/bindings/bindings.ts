@@ -1,4 +1,4 @@
-import type { BindingWiring, HandleWanted, TextChange } from "./binding-wiring";
+import type { BindingWiring, CaretWatcher, HandleWanted, TextChange } from "./binding-wiring";
 import type { ElementBinding } from "./element-binding";
 import type { PageAction } from "./page-action";
 
@@ -61,5 +61,19 @@ export class HandleRequest implements ElementBinding {
 
   wireOn(wiring: BindingWiring): void {
     wiring.handle(this.wanted);
+  }
+}
+
+export class CaretBinding implements ElementBinding {
+  constructor(private readonly watcher: CaretWatcher) {}
+
+  wireOn(wiring: BindingWiring): void {
+    wiring.caret(this.watcher);
+  }
+}
+
+export class HoldFocusBinding implements ElementBinding {
+  wireOn(wiring: BindingWiring): void {
+    wiring.holdFocus();
   }
 }

@@ -7,7 +7,7 @@ import { OwnCharacters, type OwnCharacterNotes } from "../../funds/purses/own-ch
 import { ItemPanel, type OpenItem } from "../../funds/item-notes/item-panel";
 import type { CoinSide } from "../../funds/coins/coin-sides";
 import type { OpenLedgerEntry } from "../../funds/coins/open-ledger-entry";
-import type { LinkActions } from "../../views/lists/linked-text";
+import type { LinkActions } from "./link-actions";
 import type { MakePage, ShowPage } from "../view/campaign-pages";
 import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 import { PageFrame } from "../../obsidian/views/frames/page-frame";
