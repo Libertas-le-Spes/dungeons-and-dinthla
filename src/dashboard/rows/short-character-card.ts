@@ -1,4 +1,4 @@
-import { cardClasses, cardLabels, statValueOf } from "../../characters/cards/card-parts";
+import { cardClasses, cardLabels, statValueOf } from "../../characters/cards/drawing/card-parts";
 import type { CharacterCard } from "../../characters/cards/character-card";
 import { SourceRow } from "../../views/components/rows/source-row";
 import type { PageAction } from "../../views/elements/bindings/page-action";

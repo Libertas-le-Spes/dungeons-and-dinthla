@@ -1,5 +1,5 @@
 import type { NoteRef } from "../../../host/notes/note-ref";
-import type { ButtonAction } from "./action-button";
+import type { ButtonAction } from "../../../views/components/buttons/action-button";
 import { addBeyondButton } from "./beyond-button";
 
 export const UPDATE_FROM_BEYOND = "Update from D&D Beyond";

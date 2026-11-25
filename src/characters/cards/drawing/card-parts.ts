@@ -1,9 +1,9 @@
-import { Div, PlainText, Span } from "../../views/elements/kinds/containers";
-import type { ViewElement } from "../../views/elements/view-element";
-import { NOT_KNOWN } from "../reading/character-sheet";
-import type { SheetValues } from "../reading/sheet-values";
-import { leftPlayMarkOf } from "./card-standing";
-import type { CharacterCard } from "./character-card";
+import { Div, PlainText, Span } from "../../../views/elements/kinds/containers";
+import type { ViewElement } from "../../../views/elements/view-element";
+import { NOT_KNOWN } from "../../reading/character-sheet";
+import type { SheetValues } from "../../reading/sheet-values";
+import { leftPlayMarkOf } from "../card-standing";
+import type { CharacterCard } from "../character-card";
 
 export function cardClasses(card: CharacterCard): string[] {
   const classes = ["dd-card"];

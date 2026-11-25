@@ -1,6 +1,7 @@
-import { DEPART_WORDS } from "../../imports/layout/standing";
-import type { FocusAfter } from "../../views/lists/focus-after";
-import { addActionButton, type ButtonAction } from "../imported/drawing/action-button";
+import { DEPART_WORDS } from "../../../imports/layout/standing";
+import type { FocusAfter } from "../../../views/lists/focus-after";
+import { addActionButton } from "../../imported/drawing/action-button";
+import type { ButtonAction } from "../../../views/components/buttons/action-button";
 
 const DEPART_CLASSES = ["dd-depart", "mod-warning"];
 
