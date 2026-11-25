@@ -14,6 +14,7 @@ import { NEWS_BY_VERSION } from "../../../whats-new/news-by-version";
 import type { MakePage } from "../view/campaign-pages";
 import { welcomeSection } from "./welcome-section";
 import type { Telling } from "../../../host/showing/telling";
+import { ObsidianCampaignsFolderPlace } from "../../host/obsidian-campaigns-folder-place";
 
 export interface WelcomeGate {
   notes: { readonly store: Pick<NoteStore, "files" | "hasFolder" | "namesIn" | "makeFolder" | "make" | "removeEmptyFolder"> };
@@ -50,7 +51,7 @@ export function welcomeWiring(needs: WelcomeWiringNeeds): WelcomeWiring {
     filePaths: () => files.files().map((file) => file.path),
   };
   const help = new Help(needs.saver, needs.manifest, NEWS_BY_VERSION, helpFiles, needs.openWelcome);
-  const campaignsFolderSetup = new CampaignsFolderSetup(needs.setting, needs.gate.folders, needs.pickFolder, needs.telling);
+  const campaignsFolderSetup = new CampaignsFolderSetup(needs.setting, new ObsidianCampaignsFolderPlace(needs.gate.folders), needs.pickFolder, needs.telling);
   const maker = new CampaignMaker(files, () => needs.setting.path, needs.chooseCampaign, needs.spelling, needs.telling);
   const welcome = welcomeSection({
     store: needs.store,

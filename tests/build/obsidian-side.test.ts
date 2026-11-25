@@ -1,10 +1,9 @@
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { IMPORT_FORMS } from "./import-forms";
 import { ImportedPaths } from "./imported-paths";
-import { ADAPTER_ONLY_AREAS, coreBreachesOf, isAdapterSide, SOURCE } from "./obsidian-side";
-import { allTies, tiedPaths } from "./obsidian-ties";
+import { ADAPTER_ONLY_AREAS, coreBreachesOf, SOURCE } from "./obsidian-side";
 
 const ADAPTER = join(SOURCE, "obsidian");
 
@@ -40,8 +39,6 @@ function foldersUnder(path: string): string[] {
 
 const SOURCE_PATHS = filesUnder(SOURCE).map((file) => relative(SOURCE, file));
 
-const TIED = tiedPaths(await allTies());
-
 function breaches(path: string): string[] {
   const file = join(SOURCE, path);
   return coreBreachesOf(reader, file, readFileSync(file, "utf8"));
@@ -60,19 +57,8 @@ function coreAreas(): string[] {
 }
 
 describe("the plugin's own code, kept apart from Obsidian", () => {
-  it.each(SOURCE_PATHS.filter((path) => !TIED.includes(path)))("lets %s load nothing of Obsidian and reach nothing on the Obsidian side, as it isn't listed", (path) => {
+  it.each(SOURCE_PATHS)("lets %s load nothing of Obsidian and reach nothing on the Obsidian side", (path) => {
     expect(breaches(path)).toEqual([]);
-  });
-
-  it("lists only existing core files, each under its own area, never the Obsidian side or a folder", async () => {
-    for (const area of await allTies()) {
-      for (const path of area.paths) {
-        expect(path.startsWith(`${area.area}/`)).toBe(true);
-        expect(path.endsWith(".ts")).toBe(true);
-        expect(statSync(join(SOURCE, path)).isFile()).toBe(true);
-        expect(isAdapterSide(path)).toBe(false);
-      }
-    }
   });
 
   it("keeps the Obsidian side in src/obsidian, one folder per area, and no obsidian folder anywhere else", () => {

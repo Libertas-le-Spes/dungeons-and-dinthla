@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync } from "node:fs";
 import { relative } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import type { Allowances } from "../scan/reading/allowances";
@@ -9,9 +9,6 @@ import { BUNDLED_PROJECT, bundledProjectFiles } from "../scan/running/bundled-pr
 import { ROOT, SOURCE_FOLDER, sourcePath, VIRTUAL_FOLDER } from "../scan/reading/scan-paths";
 import { virtualFileSystem } from "../scan/running/virtual-files";
 import { SourceScanner } from "../scan/running/source-scanner";
-import { allTies, tiedPaths } from "../../build/obsidian-ties";
-import { ImportedPaths } from "../../build/imported-paths";
-import { coreBreachesOf } from "../../build/obsidian-side";
 import { PAGE_GLOBALS, PLAIN_GLOBALS } from "../allowed/globals";
 import { OBSIDIAN_IMPORTS } from "../allowed/obsidian-imports";
 import { COMPUTED_KEY_READERS } from "../allowed/computed-keys";
@@ -64,7 +61,6 @@ function isGlobalAllowed(path: string, name: string): boolean {
   return PLAIN_GLOBALS.includes(name) || namesFor(path, PAGE_GLOBALS).includes(name);
 }
 
-const TIED = tiedPaths(await allTies());
 
 const isGatekeeper = isOneOf(ALLOWED);
 
@@ -99,7 +95,7 @@ const SOURCE_ALLOWANCES: Allowances = {
   tags: isPageTag,
   attributes: isPageAttribute,
   elementOptions: isPageOption,
-  hostNeutral: isOneOf(TIED),
+  hostNeutral: isNeverAllowed,
   noteHandles: isOneOf(NOTE_HANDLERS),
 };
 
@@ -275,30 +271,6 @@ describe("the files allowed past the fence", () => {
     const breaches = breachesOf(file, allowances);
     expect(breaches).not.toEqual([]);
     for (const found of breaches) expect(found).toMatch(breach);
-  });
-});
-
-const imports = new ImportedPaths();
-
-afterAll(() => {
-  imports.close();
-});
-
-function breaksImportRules(file: string): boolean {
-  return coreBreachesOf(imports, sourcePath(file), readFileSync(sourcePath(file), "utf8")).length > 0;
-}
-
-function hostBreachesOf(file: string): string[] {
-  const found: string[] = [];
-  for (const breach of breachesOf(file, { ...SOURCE_ALLOWANCES, hostNeutral: isNeverAllowed })) {
-    if (breach.includes("Obsidian or CodeMirror")) found.push(breach);
-  }
-  return found;
-}
-
-describe("the files still tied to Obsidian", () => {
-  it.each(TIED)("list %s only while it still loads Obsidian, reaches the Obsidian side or uses what Obsidian declares", (file) => {
-    expect(breaksImportRules(file) || hostBreachesOf(file).length > 0).toBe(true);
   });
 });
 
