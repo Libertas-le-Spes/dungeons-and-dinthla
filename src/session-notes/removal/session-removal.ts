@@ -1,6 +1,6 @@
 import type { NoteTexts } from "../../campaign/reading/note-texts";
 import { sessionNoteOf, type PropertiesSyntax } from "../../campaign/paths/session-file";
-import type { ConfirmText, OpenConfirm } from "../../views/dialogs/confirm-modal";
+import type { ConfirmText, OpenConfirm } from "../../views/dialogs/confirm-dialog";
 import { messageOf } from "../../views/dialogs/message-of";
 import type { KeptDrafts } from "../kept/kept-drafts";
 import type { RenumberingPlan } from "../renumbering/renumbering-plan";

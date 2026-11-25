@@ -11,7 +11,7 @@ import { SessionClearer } from "../../src/session-notes/removal/session-clearer"
 import { SessionTrash } from "../../src/session-notes/removal/session-trash";
 import { SessionWriting } from "../../src/session-notes/page/session-writing";
 import { writtenLinesOf } from "../../src/session-notes/lines/written-lines";
-import type { ConfirmText } from "../../src/views/dialogs/confirm-modal";
+import type { ConfirmText } from "../../src/views/dialogs/confirm-dialog";
 import { FakeNotes } from "../note-editing/fake-notes";
 import { stubRenumbering } from "./renumbering/stub-renumbering";
 import { stubLineOpeners } from "./lines/stub-line-openers";

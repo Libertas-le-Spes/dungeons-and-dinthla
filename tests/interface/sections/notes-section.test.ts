@@ -12,7 +12,7 @@ import { NoteDrafts } from "../../../src/note-editing/note-drafts";
 import type { NoteSaver } from "../../../src/note-editing/note-saver";
 import type { SessionClearer } from "../../../src/session-notes/removal/session-clearer";
 import type { SessionTrash } from "../../../src/session-notes/removal/session-trash";
-import type { ConfirmText } from "../../../src/views/dialogs/confirm-modal";
+import type { ConfirmText } from "../../../src/views/dialogs/confirm-dialog";
 import { stubLineOpeners } from "../../session-notes/lines/stub-line-openers";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { WantedLines } from "../../../src/views/opening/wanted-lines";

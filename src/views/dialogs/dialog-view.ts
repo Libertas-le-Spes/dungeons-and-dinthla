@@ -1,8 +1,13 @@
 import type { Telling } from "../../host/showing/telling";
 import type { ViewElement } from "../elements/view-element";
 
+export interface Focusable {
+  focus(): void;
+}
+
 export interface DialogView {
   show(trees: readonly ViewElement[]): void;
+  focusOnceOpen(target: Focusable): void;
   close(): void;
 }
 

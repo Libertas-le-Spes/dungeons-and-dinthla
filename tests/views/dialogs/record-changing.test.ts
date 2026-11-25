@@ -6,7 +6,7 @@ import { RecordedTelling } from "../../host/showing/recorded-telling";
 
 function changing() {
   const onClosed = vi.fn();
-  const view: DialogView = { show: vi.fn(), close: vi.fn() };
+  const view: DialogView = { show: vi.fn(), focusOnceOpen: vi.fn(), close: vi.fn() };
   const record = new RecordChanging(new RecordedTelling(), onClosed);
   record.opened(view);
   return { record, view, onClosed };

@@ -1,81 +1,28 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { askInNoticeOf, FIX, KEEP } from "../../../src/views/dialogs/differing-notice";
+import { RecordedTelling } from "../../host/showing/recorded-telling";
 
-const made = vi.hoisted(() => ({
-  notices: [] as { message: string; timeout: number; spans: string[]; hide: () => void }[],
-  buttons: [] as { text: string; click: () => void }[],
-}));
+function asked() {
+  const telling = new RecordedTelling();
+  const fix = vi.fn();
+  const keep = vi.fn();
+  askInNoticeOf(telling)("Questions for Session 2 differ from the session.", fix, keep);
+  return { telling, fix, keep };
+}
 
-vi.mock("obsidian", () => {
-  class Notice {
-    readonly messageEl = {
-      createSpan: (options: { text: string }) => {
-        this.record.spans.push(options.text);
-      },
-    };
-    readonly hide = vi.fn();
-    private readonly record: { message: string; timeout: number; spans: string[]; hide: () => void };
-
-    constructor(message: string, timeout: number) {
-      this.record = { message, timeout, spans: [], hide: this.hide };
-      made.notices.push(this.record);
-    }
-  }
-  class ButtonComponent {
-    private text = "";
-
-    constructor(readonly containerEl: unknown) {}
-
-    setButtonText(text: string): this {
-      this.text = text;
-      return this;
-    }
-
-    onClick(click: () => void): this {
-      made.buttons.push({ text: this.text, click });
-      return this;
-    }
-  }
-  return { Notice, ButtonComponent };
-});
-
-import { firstOf, secondOf } from "../../stubs/lists";
-import { askInNotice } from "../../../src/views/dialogs/differing-notice";
-
-beforeEach(() => {
-  made.notices.length = 0;
-  made.buttons.length = 0;
-});
-
-describe("askInNotice", () => {
-  it("shows one notice that stays until it is dismissed, holding the message", () => {
-    askInNotice("Questions for Session 2 differ from the session.", vi.fn(), vi.fn());
-    expect(made.notices).toHaveLength(1);
-    expect(firstOf(made.notices).timeout).toBe(0);
-    expect(firstOf(made.notices).spans).toEqual(["Questions for Session 2 differ from the session. "]);
+describe("asking about a differing note", () => {
+  it("asks once with the message, offering Fix then Keep", () => {
+    const { telling } = asked();
+    expect(telling.asked.map((ask) => [ask.words, ask.choices.map((choice) => choice.words)])).toEqual([["Questions for Session 2 differ from the session.", [FIX, KEEP]]]);
   });
 
-  it("offers Fix and Keep, in that order", () => {
-    askInNotice("message", vi.fn(), vi.fn());
-    expect(made.buttons.map((button) => button.text)).toEqual(["Fix", "Keep"]);
-  });
-
-  it("calls fix once, and not keep, when Fix is pressed, and hides the notice", () => {
-    const fix = vi.fn();
-    const keep = vi.fn();
-    askInNotice("message", fix, keep);
-    firstOf(made.buttons).click();
-    expect(fix).toHaveBeenCalledOnce();
-    expect(keep).not.toHaveBeenCalled();
-    expect(firstOf(made.notices).hide).toHaveBeenCalledOnce();
-  });
-
-  it("calls keep once, and not fix, when Keep is pressed, and hides the notice", () => {
-    const fix = vi.fn();
-    const keep = vi.fn();
-    askInNotice("message", fix, keep);
-    secondOf(made.buttons).click();
-    expect(keep).toHaveBeenCalledOnce();
-    expect(fix).not.toHaveBeenCalled();
-    expect(firstOf(made.notices).hide).toHaveBeenCalledOnce();
+  it.each([
+    { pressed: 0, fixes: 1, keeps: 0 },
+    { pressed: 1, fixes: 0, keeps: 1 },
+  ])("runs only what choice $pressed stands for", ({ pressed, fixes, keeps }) => {
+    const { telling, fix, keep } = asked();
+    telling.asked[0]!.choices[pressed]!.chosen();
+    expect(fix).toHaveBeenCalledTimes(fixes);
+    expect(keep).toHaveBeenCalledTimes(keeps);
   });
 });

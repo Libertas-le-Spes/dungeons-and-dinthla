@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { App } from "obsidian";
-import { ConfirmModal } from "../../../src/views/dialogs/confirm-modal";
+import { ConfirmDialog } from "../../../src/views/dialogs/confirm-dialog";
+import { ModalFrame } from "../../../src/obsidian/views/frames/modal-frame";
 import type { Modal as StubModal } from "../../stubs/obsidian";
 
 const TEXT = { title: "Delete Session 12 · The Old Mill?", body: "Its 2 notes go with it.", confirm: "Delete session", keep: "Keep session" };
@@ -8,7 +9,7 @@ const TEXT = { title: "Delete Session 12 · The Old Mill?", body: "Its 2 notes g
 function opened() {
   const confirmed = vi.fn();
   const closed = vi.fn();
-  const modal = new ConfirmModal({} as App, TEXT, confirmed, closed);
+  const modal = new ModalFrame({} as App, new ConfirmDialog(TEXT, confirmed, closed));
   modal.contentEl.ownerDocument.body.append(modal.contentEl);
   const close = vi.spyOn(modal, "close");
   modal.open();
@@ -16,7 +17,7 @@ function opened() {
   return { modal, confirmed, closed, close, buttons };
 }
 
-describe("ConfirmModal", () => {
+describe("ConfirmDialog", () => {
   it("asks with its title and words, the danger button first and the keep button focused after Obsidian focuses the first button", () => {
     const { modal, buttons } = opened();
     expect((modal as unknown as StubModal).title).toBe(TEXT.title);
