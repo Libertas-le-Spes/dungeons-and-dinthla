@@ -1,5 +1,5 @@
 import type { Section, Div, Span, Paragraph, Button, List, OrderedList, ListItem, Heading1, Heading2, Heading3, Bold, Strong, Details, Summary, Label, Anchor, Mark, PlainText, Pre, Nav, Form, DescriptionList, Term, Description, Select, NameLink, FieldRow } from "./kinds/containers";
-import type { DateInput, FileInput, Option, Switch, TextArea, TextInput } from "./kinds/fields";
+import type { DateInput, FileInput, Option, SearchInput, Switch, TextArea, TextInput } from "./kinds/fields";
 
 export interface MountPlace {
   readonly mountPlace: true;
@@ -33,6 +33,7 @@ export interface Mounter {
   description(element: Description, into: MountPlace): MountPlace;
   select(element: Select, into: MountPlace): MountPlace;
   textInput(element: TextInput, into: MountPlace): MountPlace;
+  searchInput(element: SearchInput, into: MountPlace): MountPlace;
   dateInput(element: DateInput, into: MountPlace): MountPlace;
   textArea(element: TextArea, into: MountPlace): MountPlace;
   option(element: Option, into: MountPlace): MountPlace;

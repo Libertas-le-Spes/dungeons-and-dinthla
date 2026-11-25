@@ -33,7 +33,7 @@ export const ALLOWED_IN_PLACE: AllowedCode[] = [
   { code: 'formEl.createEl("button", { cls: form.buttonCls, type: "submit", text: form.buttonText })', count: 1 },
   { code: 'owner.registerDomEvent(formEl, "submit", ', count: 1 },
   { code: 'addEventListener("click", ', count: 24 },
-  { code: ', "click", ', count: 11 },
+  { code: ', "click", ', count: 10 },
   { code: 'this.input.dispatchEvent(new Event("input"))', count: 1 },
   { code: '.requestUrl)({ url: beyondAddressOf(id), method: "GET", throw: false })', count: 1 },
   { code: '"https://character-service.dndbeyond.com/character/v5/character/"', count: 1 },

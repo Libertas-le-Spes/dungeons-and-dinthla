@@ -51,6 +51,8 @@ import { startKindNotes } from "./kind-notes/watching/kind-notes-wiring";
 import { NotesMade } from "./settings/saved/notes-made";
 import { ledgerEntryOpener } from "./funds/coins/open-ledger-entry";
 import { ListPage } from "./views/lists/list-page";
+import { PageFrame } from "./obsidian/views/frames/page-frame";
+import { PLAIN_KIT } from "./obsidian/views/mount/mount-kit";
 import { activePathOf, openSource } from "./views/opening/open-view";
 import { WantedLines } from "./views/opening/wanted-lines";
 import { openLink } from "./views/opening/open-link";
@@ -262,8 +264,8 @@ export default class DungeonsAndDinthla extends Plugin {
       home: homeSection({ store: this.store, characterNotes, news: help.whatsNew, telling: OBSIDIAN_TELLING, actionsFor: dashboardActionsFor }, OBSIDIAN_SYNTAX),
       cast: castSection(castNeeds, OBSIDIAN_SYNTAX),
       notes: notesSection(sessionNotes.notes, OBSIDIAN_SYNTAX),
-      questions: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestionAt, questionsKind, createQuestion),
-      quests: (contentEl) => new ListPage(contentEl, this.store, actions.openLink, openQuestAt, questsKind, createQuest),
+      questions: (contentEl) => new PageFrame(contentEl, new ListPage(this.store, actions, openQuestionAt, questionsKind, createQuestion), PLAIN_KIT),
+      quests: (contentEl) => new PageFrame(contentEl, new ListPage(this.store, actions, openQuestAt, questsKind, createQuest), PLAIN_KIT),
       funds: fundsSection({
         store: this.store,
         texts: sessionNotes.wholeText.texts,

@@ -3,13 +3,15 @@ import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { questionsKind } from "../../../src/questions/list/questions-kind";
 import { ListPage } from "../../../src/views/lists/list-page";
+import { PageFrame } from "../../../src/obsidian/views/frames/page-frame";
+import { PLAIN_KIT } from "../../../src/obsidian/views/mount/mount-kit";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 function openQuestions(lines: string[]): HTMLElement {
   const campaign = buildCampaign([{ path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: lines.join("\n") }]);
   const store = { current: campaign, subscribe: () => () => {} };
   const root = obsidianDocument().createElement("div");
-  new ListPage(root, store as unknown as CampaignStore, vi.fn(), vi.fn(), questionsKind, null).load();
+  new PageFrame(root, new ListPage(store as unknown as CampaignStore, { openLink: vi.fn() }, vi.fn(), questionsKind, null), PLAIN_KIT).load();
   return root;
 }
 
