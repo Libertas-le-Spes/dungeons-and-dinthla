@@ -4,7 +4,7 @@ This page is for whoever picks the work up on another machine, person or session
 
 ## Where things are
 
-- **Work to do:** the [board](https://github.com/orgs/Libertas-le-Spes/projects/1), ordered top to bottom. [project-board.md](project-board.md) explains it.
+- **Work to do:** the repository's open issues.
 - **Work in flight:** open pull requests. Each one's latest handover comment says what is left, what was decided and what waits on the owner. Read it before touching the branch.
 
 ## How the owner wants it built

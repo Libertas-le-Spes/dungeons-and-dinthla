@@ -113,4 +113,4 @@ The plugin reads and writes only inside your Campaigns folder, and it sends noth
 
 ## Planning
 
-Work is planned as epics, stories and tasks on the [Dungeons & Dinthla Backlog](https://github.com/orgs/Libertas-le-Spes/projects/1) board. [docs/project-board.md](docs/project-board.md) says how the board works and why.
+Work is planned as epics, stories and tasks in the repository's issues.
