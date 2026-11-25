@@ -419,7 +419,7 @@ export default class DungeonsAndDinthla extends Plugin {
   }
 
   private campaignsFolderSettingFrom(saver: SettingsSaver): CampaignsFolderSetting {
-    return new CampaignsFolderSetting(saver, () => this.lookAgain(), this.gate.configDir);
+    return new CampaignsFolderSetting(saver, () => this.lookAgain(), this.gate.configDir, OBSIDIAN_TELLING);
   }
 
   private async lookAgain(): Promise<void> {
