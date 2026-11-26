@@ -5,7 +5,7 @@ This page is for whoever picks the work up on another machine, person or session
 ## Where things are
 
 - **Work to do:** the repository's open issues.
-- **Work in flight:** open pull requests. Each one's latest handover comment says what is left, what was decided and what waits on the owner. Read it before touching the branch.
+- **Work in flight:** open pull requests. Each one's description says what it changes and why.
 
 ## How the owner wants it built
 
