@@ -27,6 +27,7 @@ export class TypeQueries {
   private readonly reachingTypes = new Map<number, boolean>();
   private readonly namedReach = new Map<number, boolean>();
   private readonly comparing = new Set<string>();
+  private readonly placementAnswers = new Map<string, boolean>();
 
   ownedReads(project: Project, found: Found, name: string, owners: string[]): Named[] {
     const read = this.ownedBy(project, found.members.filter((member) => member.name === name), (symbol) => isObsidianOwnedByOneOf(symbol, owners));
@@ -174,8 +175,18 @@ export class TypeQueries {
     return shown.filter((node, index) => {
       const context = project.checker.getContextualType(node);
       if (context === undefined) return false;
-      return this.hides(project, values[index], context, handlesAllowed);
+      return this.placementHides(project, values[index], context, handlesAllowed);
     });
+  }
+
+  private placementHides(project: Project, value: Type | undefined, context: Type, handlesAllowed: boolean): boolean {
+    if (value === undefined) return this.hides(project, value, context, handlesAllowed);
+    const key = `${value.id}:${context.id}:${handlesAllowed}`;
+    const known = this.placementAnswers.get(key);
+    if (known !== undefined) return known;
+    const answer = this.hides(project, value, context, handlesAllowed);
+    this.placementAnswers.set(key, answer);
+    return answer;
   }
 
   private hides(project: Project, value: Type | undefined, context: Type, handlesAllowed: boolean): boolean {

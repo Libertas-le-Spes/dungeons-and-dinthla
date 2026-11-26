@@ -126,6 +126,14 @@ function breachesOf(file: string, allowances: Allowances): string[] {
   return scanner.breaches(BUNDLED_PROJECT, [sourcePath(file)], allowances);
 }
 
+function sourceBreachesOf(paths: string[]): Map<string, string[]> {
+  const breaches = new Map<string, string[]>();
+  for (const path of paths) breaches.set(shownPath(path), breachesOf(shownPath(path), SOURCE_ALLOWANCES));
+  return breaches;
+}
+
+const SOURCE_BREACHES = sourceBreachesOf(SCANNED);
+
 function placeOf(path: string, allowed: Record<string, string[]>): string | null {
   const place = Object.keys(allowed).find((candidate) => path.startsWith(sourcePath(candidate)));
   if (place === undefined) return null;
@@ -259,7 +267,7 @@ describe("the plugin's own source", () => {
   });
 
   it.each(SCANNED.map(shownPath))("passes every rule of the fence in %s, with only the allowances it is given", (file) => {
-    expect(breachesOf(file, SOURCE_ALLOWANCES)).toEqual([]);
+    expect(SOURCE_BREACHES.get(file)).toEqual([]);
   });
 });
 
