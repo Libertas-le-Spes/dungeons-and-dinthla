@@ -6,6 +6,7 @@ import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { ItemRecord } from "../../campaign/record/campaign";
 import { isImporterWritten } from "../../characters/imported/lists/importer-written";
 import { withoutEscapes } from "../../characters/imported/reading/shown-text";
+import { unlink } from "../../notes/parts/link";
 import type { FundsLook, ItemTracking, SettledStatus, SheetItem } from "../../characters/imported/tracking/item-tracking";
 import type { LinkLookup } from "../../host/notes/link-lookup";
 import { characterReferenceKind } from "../../kinds/character-reference-kind";
@@ -93,7 +94,7 @@ export class FundsTracking implements ItemTracking {
     }
     const tracked = trackedItemOf({ holderText: holder, written: text, holderName: file.basename, count: trackedCountOf(item.count) });
     const saving = new TrackingSave(this.opening.notes.store, this.store, tracked, sessionPath, this.syntax);
-    const shown = { name: withoutEscapes(text), holder: file.basename, writesTo: sessionLabelOf(sessionPath), line: tracked.line };
+    const shown = { name: withoutEscapes(unlink(text)), holder: file.basename, writesTo: sessionLabelOf(sessionPath), line: tracked.line };
     this.opening.showing.dialogs.open(new TrackItemDialog(this.opening.showing.telling, shown, saving, returnFocus));
   }
 

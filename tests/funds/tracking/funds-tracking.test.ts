@@ -158,6 +158,14 @@ describe("Track on the funds page", () => {
     expect(campaign.writes).toBe(0);
   });
 
+  it("says an item the page still holds with tagged text is already held, not that its text isn't inert", async () => {
+    const campaign = new DialogCampaign({ [ONE]: "$ [[Secondary]] Rope #loot\n" });
+    trackingIn(campaign).track(PRIMARY, { written: "Rope \\#loot", count: null }, noFocus);
+    expect(Notice.shown).toEqual([]);
+    await expect(lastDialog<TrackShownDialog>().saving.save()).rejects.toThrow(ALREADY_ON_FUNDS_PAGE);
+    expect(campaign.writes).toBe(0);
+  });
+
   it("checks the note as it is when it writes, so an item added since it was read isn't added twice", async () => {
     const campaign = new DialogCampaign({ [ONE]: "We camped.\n" });
     trackingIn(campaign).track(PRIMARY, { written: "Rope", count: null }, noFocus);
@@ -196,6 +204,12 @@ describe("Track on the funds page", () => {
     expect(await lastDialog<TrackShownDialog>().saving.save()).toBe(true);
     campaign.readAgain();
     expect(campaign.current.items).toHaveLength(1);
+  });
+
+  it("names a sold item the table linked by its name alone in the dialog, without the link's brackets", () => {
+    const campaign = new DialogCampaign({ [ONE]: "$ [[Secondary]] [[Rope]]\n$$ Rope :sold\n" });
+    trackingIn(campaign).track(PRIMARY, { written: "Rope", count: null }, noFocus);
+    expect(lastDialog<TrackShownDialog>().shown.name).toBe("Rope");
   });
 
   it("tracks again a sold item the table linked under its link, so the funds page keeps one item", async () => {

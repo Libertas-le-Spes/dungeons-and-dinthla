@@ -4,8 +4,15 @@ import { guardedLineOf } from "../../../src/imports/layout/guarded-line";
 import { textToTrack } from "../../../src/funds/tracking/text-to-track";
 import { unlink } from "../../../src/notes/parts/link";
 
+const SESSION_ONE = { path: "Pale Moon/Sessions/Session 1.md", line: 0 };
+const SOLD = { kind: "sold" as const, count: 1, holder: "Secondary", links: ["Secondary"], source: { path: "Pale Moon/Sessions/Session 1.md", line: 1 } };
+
 function pageItem(name: string, written: string): ItemRecord {
-  return { name, written, holder: "Secondary", holderLinked: true, links: ["Secondary"], source: { path: "Pale Moon/Sessions/Session 1.md", line: 0 }, history: [], gone: null, held: 1 };
+  return { name, written, holder: "Secondary", holderLinked: true, links: ["Secondary"], source: SESSION_ONE, history: [], gone: SOLD, held: 0 };
+}
+
+function heldItem(name: string, written: string): ItemRecord {
+  return { ...pageItem(name, written), gone: null, held: 1 };
 }
 
 const ACTIVE_ON_THE_PAGE = [
@@ -42,6 +49,10 @@ describe("the text written when an item is tracked", () => {
 
   it.each(ACTIVE_ON_THE_PAGE)("refuses %s written at the table, matched by the line the import escaped", (written) => {
     expect(textToTrack([pageItem(written, written)], guardedLineOf(unlink(written)))).toBeNull();
+  });
+
+  it.each(ACTIVE_ON_THE_PAGE)("leaves %s alone while the page still holds it, so saving says it's already held", (written) => {
+    expect(textToTrack([heldItem("Rope", written)], "Rope")).toBe("Rope");
   });
 
   it("takes the import's own line when the page has no item of that name", () => {
