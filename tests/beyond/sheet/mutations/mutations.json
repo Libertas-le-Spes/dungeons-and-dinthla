@@ -1417,231 +1417,231 @@
   "id": "text kind of STRmod",
   "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
   "find": "\"STRmod\", ABILITY_MODIFIER, SIGNED",
-  "replace": "\"STRmod\", ABILITY_MODIFIER, WHOLE",
+  "replace": "\"STRmod\", ABILITY_MODIFIER, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of DEXmod ",
   "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
   "find": "\"DEXmod \", ABILITY_MODIFIER, SIGNED",
-  "replace": "\"DEXmod \", ABILITY_MODIFIER, WHOLE",
+  "replace": "\"DEXmod \", ABILITY_MODIFIER, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of CONmod",
   "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
   "find": "\"CONmod\", ABILITY_MODIFIER, SIGNED",
-  "replace": "\"CONmod\", ABILITY_MODIFIER, WHOLE",
+  "replace": "\"CONmod\", ABILITY_MODIFIER, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of INTmod",
   "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
   "find": "\"INTmod\", ABILITY_MODIFIER, SIGNED",
-  "replace": "\"INTmod\", ABILITY_MODIFIER, WHOLE",
+  "replace": "\"INTmod\", ABILITY_MODIFIER, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of WISmod",
   "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
   "find": "\"WISmod\", ABILITY_MODIFIER, SIGNED",
-  "replace": "\"WISmod\", ABILITY_MODIFIER, WHOLE",
+  "replace": "\"WISmod\", ABILITY_MODIFIER, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of CHamod",
   "file": "src/beyond/sheet/table/numbers/modifier-rows.ts",
   "find": "\"CHamod\", ABILITY_MODIFIER, SIGNED",
-  "replace": "\"CHamod\", ABILITY_MODIFIER, WHOLE",
+  "replace": "\"CHamod\", ABILITY_MODIFIER, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of ST Strength",
   "file": "src/beyond/sheet/table/numbers/save-rows.ts",
   "find": "\"ST Strength\", SAVING_THROW, SIGNED",
-  "replace": "\"ST Strength\", SAVING_THROW, WHOLE",
+  "replace": "\"ST Strength\", SAVING_THROW, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of ST Dexterity",
   "file": "src/beyond/sheet/table/numbers/save-rows.ts",
   "find": "\"ST Dexterity\", SAVING_THROW, SIGNED",
-  "replace": "\"ST Dexterity\", SAVING_THROW, WHOLE",
+  "replace": "\"ST Dexterity\", SAVING_THROW, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of ST Constitution",
   "file": "src/beyond/sheet/table/numbers/save-rows.ts",
   "find": "\"ST Constitution\", SAVING_THROW, SIGNED",
-  "replace": "\"ST Constitution\", SAVING_THROW, WHOLE",
+  "replace": "\"ST Constitution\", SAVING_THROW, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of ST Intelligence",
   "file": "src/beyond/sheet/table/numbers/save-rows.ts",
   "find": "\"ST Intelligence\", SAVING_THROW, SIGNED",
-  "replace": "\"ST Intelligence\", SAVING_THROW, WHOLE",
+  "replace": "\"ST Intelligence\", SAVING_THROW, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of ST Wisdom",
   "file": "src/beyond/sheet/table/numbers/save-rows.ts",
   "find": "\"ST Wisdom\", SAVING_THROW, SIGNED",
-  "replace": "\"ST Wisdom\", SAVING_THROW, WHOLE",
+  "replace": "\"ST Wisdom\", SAVING_THROW, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of ST Charisma",
   "file": "src/beyond/sheet/table/numbers/save-rows.ts",
   "find": "\"ST Charisma\", SAVING_THROW, SIGNED",
-  "replace": "\"ST Charisma\", SAVING_THROW, WHOLE",
+  "replace": "\"ST Charisma\", SAVING_THROW, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of Acrobatics",
   "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
   "find": "\"Acrobatics\", SKILL_BONUS, SIGNED",
-  "replace": "\"Acrobatics\", SKILL_BONUS, WHOLE",
+  "replace": "\"Acrobatics\", SKILL_BONUS, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of Animal",
   "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
   "find": "\"Animal\", SKILL_BONUS, SIGNED",
-  "replace": "\"Animal\", SKILL_BONUS, WHOLE",
+  "replace": "\"Animal\", SKILL_BONUS, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of Arcana",
   "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
   "find": "\"Arcana\", SKILL_BONUS, SIGNED",
-  "replace": "\"Arcana\", SKILL_BONUS, WHOLE",
+  "replace": "\"Arcana\", SKILL_BONUS, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of Athletics",
   "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
   "find": "\"Athletics\", SKILL_BONUS, SIGNED",
-  "replace": "\"Athletics\", SKILL_BONUS, WHOLE",
+  "replace": "\"Athletics\", SKILL_BONUS, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of Deception",
   "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
   "find": "\"Deception\", SKILL_BONUS, SIGNED",
-  "replace": "\"Deception\", SKILL_BONUS, WHOLE",
+  "replace": "\"Deception\", SKILL_BONUS, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of History",
   "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
   "find": "\"History\", SKILL_BONUS, SIGNED",
-  "replace": "\"History\", SKILL_BONUS, WHOLE",
+  "replace": "\"History\", SKILL_BONUS, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of Insight",
   "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
   "find": "\"Insight\", SKILL_BONUS, SIGNED",
-  "replace": "\"Insight\", SKILL_BONUS, WHOLE",
+  "replace": "\"Insight\", SKILL_BONUS, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of Intimidation",
   "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
   "find": "\"Intimidation\", SKILL_BONUS, SIGNED",
-  "replace": "\"Intimidation\", SKILL_BONUS, WHOLE",
+  "replace": "\"Intimidation\", SKILL_BONUS, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of Investigation",
   "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
   "find": "\"Investigation\", SKILL_BONUS, SIGNED",
-  "replace": "\"Investigation\", SKILL_BONUS, WHOLE",
+  "replace": "\"Investigation\", SKILL_BONUS, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of Medicine",
   "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
   "find": "\"Medicine\", SKILL_BONUS, SIGNED",
-  "replace": "\"Medicine\", SKILL_BONUS, WHOLE",
+  "replace": "\"Medicine\", SKILL_BONUS, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of Nature",
   "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
   "find": "\"Nature\", SKILL_BONUS, SIGNED",
-  "replace": "\"Nature\", SKILL_BONUS, WHOLE",
+  "replace": "\"Nature\", SKILL_BONUS, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of Perception",
   "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
   "find": "\"Perception\", SKILL_BONUS, SIGNED",
-  "replace": "\"Perception\", SKILL_BONUS, WHOLE",
+  "replace": "\"Perception\", SKILL_BONUS, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of Performance",
   "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
   "find": "\"Performance\", SKILL_BONUS, SIGNED",
-  "replace": "\"Performance\", SKILL_BONUS, WHOLE",
+  "replace": "\"Performance\", SKILL_BONUS, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of Persuasion",
   "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
   "find": "\"Persuasion\", SKILL_BONUS, SIGNED",
-  "replace": "\"Persuasion\", SKILL_BONUS, WHOLE",
+  "replace": "\"Persuasion\", SKILL_BONUS, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of Religion",
   "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
   "find": "\"Religion\", SKILL_BONUS, SIGNED",
-  "replace": "\"Religion\", SKILL_BONUS, WHOLE",
+  "replace": "\"Religion\", SKILL_BONUS, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of SleightofHand",
   "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
   "find": "\"SleightofHand\", SKILL_BONUS, SIGNED",
-  "replace": "\"SleightofHand\", SKILL_BONUS, WHOLE",
+  "replace": "\"SleightofHand\", SKILL_BONUS, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of Stealth ",
   "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
   "find": "\"Stealth \", SKILL_BONUS, SIGNED",
-  "replace": "\"Stealth \", SKILL_BONUS, WHOLE",
+  "replace": "\"Stealth \", SKILL_BONUS, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of Survival",
   "file": "src/beyond/sheet/table/numbers/skill-rows.ts",
   "find": "\"Survival\", SKILL_BONUS, SIGNED",
-  "replace": "\"Survival\", SKILL_BONUS, WHOLE",
+  "replace": "\"Survival\", SKILL_BONUS, (await import(\"../../numbers/number-texts\")).WHOLE",
   "group": "text kind"
  },
  {
   "id": "text kind of Passive1",
   "file": "src/beyond/sheet/table/numbers/passive-rows.ts",
   "find": "\"Passive1\", PASSIVE_SCORE, WHOLE",
-  "replace": "\"Passive1\", PASSIVE_SCORE, SIGNED",
+  "replace": "\"Passive1\", PASSIVE_SCORE, (await import(\"../../numbers/number-texts\")).SIGNED",
   "group": "text kind"
  },
  {
   "id": "text kind of Passive2",
   "file": "src/beyond/sheet/table/numbers/passive-rows.ts",
   "find": "\"Passive2\", PASSIVE_SCORE, WHOLE",
-  "replace": "\"Passive2\", PASSIVE_SCORE, SIGNED",
+  "replace": "\"Passive2\", PASSIVE_SCORE, (await import(\"../../numbers/number-texts\")).SIGNED",
   "group": "text kind"
  },
  {
   "id": "text kind of Passive3",
   "file": "src/beyond/sheet/table/numbers/passive-rows.ts",
   "find": "\"Passive3\", PASSIVE_SCORE, WHOLE",
-  "replace": "\"Passive3\", PASSIVE_SCORE, SIGNED",
+  "replace": "\"Passive3\", PASSIVE_SCORE, (await import(\"../../numbers/number-texts\")).SIGNED",
   "group": "text kind"
  },
  {
