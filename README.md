@@ -15,7 +15,7 @@ This README describes a project that grows in small steps: parts of it may still
 
 ## Install
 
-The plugin isn't in Obsidian's list of community plugins yet, and this repository is private, so it is installed by hand, by someone with read access to it. Each tagged version is published as a [release](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/releases) with three files: `main.js`, `manifest.json` and `styles.css`.
+The plugin isn't in Obsidian's list of community plugins yet, so it is installed by hand. Each tagged version is published as a [release](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/releases) with three files: `main.js`, `manifest.json` and `styles.css`.
 
 1. Download the three files from the latest release, with `gh release download <version> --repo Libertas-le-Spes/dungeons-and-dinthla` or from the release's page, or build them yourself (below).
 2. If you downloaded them, check them against the release. With the [GitHub CLI](https://cli.github.com) logged in, `gh release view <version> --repo Libertas-le-Spes/dungeons-and-dinthla --json assets --jq '.assets[] | .digest + "  " + .name'` prints each file's digest, where `<version>` is the bare tag, such as `0.3.0`. In the download folder, `sha256sum main.js manifest.json styles.css` (on macOS `shasum -a 256`, on Windows `Get-FileHash`) must print the same hashes as the part after `sha256:`, ignoring upper and lower case.
