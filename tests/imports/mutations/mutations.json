@@ -1414,10 +1414,10 @@
   "group": "blocks"
  },
  {
-  "id": "blocks: block-states.ts: if (at === -1) continue;",
+  "id": "blocks: block-states.ts: a comment kind not on the line doesn't stop the others",
   "file": "src/imports/layout/blocks/block-states.ts",
   "find": "if (at === -1) continue;",
-  "replace": "",
+  "replace": "if (at === -1) return found;",
   "group": "blocks"
  },
  {
