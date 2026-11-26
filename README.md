@@ -15,7 +15,11 @@ This README describes a project that grows in small steps: parts of it may still
 
 ## Install
 
-The plugin isn't in Obsidian's list of community plugins yet, so it is installed by hand. Each tagged version is published as a [release](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/releases) with three files: `main.js`, `manifest.json` and `styles.css`.
+The plugin isn't in Obsidian's list of community plugins yet, so it is installed by hand. Each tagged version is published as a [release](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/releases) with three files, `main.js`, `manifest.json` and `styles.css`, and from 0.4.0 on a starter vault.
+
+**To try it first,** download `dungeons-and-dinthla-starter-vault-<version>.zip` from the latest release and unzip it. In Obsidian, choose *Open folder as vault* and pick the unzipped folder. Obsidian asks whether you trust the vault's author: choose *Trust author and enable plugins*. The plugin's welcome page opens, with a sample campaign, *Curse of the Pale Moon*, ready to look around.
+
+**To add it to your own vault:**
 
 1. Download the three files from the latest release, with `gh release download <version> --repo Libertas-le-Spes/dungeons-and-dinthla` or from the release's page, or build them yourself (below).
 2. If you downloaded them, check them against the release. With the [GitHub CLI](https://cli.github.com) logged in, `gh release view <version> --repo Libertas-le-Spes/dungeons-and-dinthla --json assets --jq '.assets[] | .digest + "  " + .name'` prints each file's digest, where `<version>` is the bare tag, such as `0.3.0`. In the download folder, `sha256sum main.js manifest.json styles.css` (on macOS `shasum -a 256`, on Windows `Get-FileHash`) must print the same hashes as the part after `sha256:`, ignoring upper and lower case.
