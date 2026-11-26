@@ -6,6 +6,9 @@ import { chooseSheetValue } from "../../../src/characters/editing/open-character
 import type { SheetNotes } from "../../../src/characters/reading/sheet-notes";
 import type { Gate } from "../../../src/fence/gate/gatekeeper";
 import { Notice, openedModals } from "../../stubs/obsidian";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
+import { OBSIDIAN_SHOWING } from "../../host/showing/obsidian-showing";
+import type { SheetValueNotes } from "../../../src/characters/editing/open-character-sheet";
 
 const MIRA = { path: "Pale Moon/Characters/Mira.md", basename: "Mira" } as TFile;
 const BROKEN = new Error("The campaign couldn't be read.");
@@ -36,7 +39,7 @@ describe("chooseSheetValue, when choosing the session fails for a reason that is
     } as unknown as SheetNotes;
     const value = sheetValueNamed(characterSheetOf({ learned: [], imported: [], overrides: [], carried: null }), "AC");
     const before = openedModals.length;
-    await chooseSheetValue({} as App, {} as Gate, store, notes, MIRA, value, vi.fn(), vi.fn());
+    await chooseSheetValue(OBSIDIAN_SHOWING, { store: {} } as unknown as SheetValueNotes, store, notes, MIRA, value, vi.fn(), vi.fn(), STUB_SYNTAX);
     expect(Notice.shown).toEqual(["Couldn't read Mira: The campaign couldn't be read."]);
     expect(openedModals.length).toBe(before);
   });

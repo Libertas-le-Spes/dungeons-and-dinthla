@@ -5,9 +5,10 @@ import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
 import { applySessionChange } from "../../../src/campaign/changes/apply-session-change";
 import { CHANGES_MORE_THAN_ASKED, FOLLOW_UP_ALREADY_ASKED, planQuestionSave, planReopen, refusalForQuestionPlan } from "../../../src/questions/writing/question-plan";
 import { questionSessionChange } from "../../../src/questions/writing/question-session-change";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 function sessionsOf(notes: Record<number, string>): SessionNote[] {
-  return Object.entries(notes).map(([number, text]) => sessionNoteOf(`Pale Moon/Sessions/Session ${number}.md`, Number(number), text));
+  return Object.entries(notes).map(([number, text]) => sessionNoteOf(`Pale Moon/Sessions/Session ${number}.md`, Number(number), text, STUB_SYNTAX));
 }
 
 function path(number: number): string {
@@ -17,14 +18,14 @@ function path(number: number): string {
 function refusalFor(notes: Record<number, string>, index: number, answer: string, followUp: string, sessionNumber: number): string | null {
   const sessions = sessionsOf(notes);
   const question = buildCampaign(sessions).questions[index]!;
-  return refusalForQuestionPlan(sessions, question, planQuestionSave(question, { answer, followUp }, path(sessionNumber)));
+  return refusalForQuestionPlan(sessions, question, planQuestionSave(question, { answer, followUp }, path(sessionNumber)), STUB_SYNTAX);
 }
 
 describe("refusalForQuestionPlan", () => {
   it("refuses to reopen a question with two answer lines, since the other would still answer it", () => {
     const sessions = sessionsOf({ 1: "? Where\n", 2: "?= Where: mill\n?= Where: mill\n" });
     const question = buildCampaign(sessions).questions[0]!;
-    expect(refusalForQuestionPlan(sessions, question, planReopen(question, path(2)))).toBe(CHANGES_MORE_THAN_ASKED);
+    expect(refusalForQuestionPlan(sessions, question, planReopen(question, path(2)), STUB_SYNTAX)).toBe(CHANGES_MORE_THAN_ASKED);
   });
 
   it("lets an ordinary answer, change, clearing and follow-up through", () => {
@@ -37,7 +38,7 @@ describe("refusalForQuestionPlan", () => {
   it("refuses reopening a question that would take a later same-text question's clue", () => {
     const sessions = sessionsOf({ 1: "? Who\n", 2: "?= Who: Mira\n", 3: "? Who\n", 4: "?+ Who: lantern oil\n" });
     const question = buildCampaign(sessions).questions[0]!;
-    expect(refusalForQuestionPlan(sessions, question, planReopen(question, path(4)))).toBe(CHANGES_MORE_THAN_ASKED);
+    expect(refusalForQuestionPlan(sessions, question, planReopen(question, path(4)), STUB_SYNTAX)).toBe(CHANGES_MORE_THAN_ASKED);
   });
 
   it("refuses an answer written into an earlier session that a same-text question would take", () => {
@@ -52,8 +53,8 @@ describe("refusalForQuestionPlan", () => {
     const sessions = sessionsOf({ 1: "? Who sent it\n", 2: "?= Who sent it: Mira\n", 3: "" });
     const question = buildCampaign(sessions).questions[0]!;
     const plan = planQuestionSave(question, { answer: "Lady Vess", followUp: "Why her" }, path(3));
-    expect(refusalForQuestionPlan(sessions, question, plan)).toBeNull();
-    const after = applySessionChange(sessions, questionSessionChange(plan)).sessions.map((session) => session.text);
+    expect(refusalForQuestionPlan(sessions, question, plan, STUB_SYNTAX)).toBeNull();
+    const after = applySessionChange(sessions, questionSessionChange(plan), STUB_SYNTAX).sessions.map((session) => session.text);
     expect(after).toEqual(["? Who sent it\n", "?= Who sent it: Lady Vess\n", "? Why her, after: Who sent it\n"]);
   });
 

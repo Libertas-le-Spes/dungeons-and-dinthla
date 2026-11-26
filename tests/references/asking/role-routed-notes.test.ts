@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
-import type { CachedMetadata } from "obsidian";
 import { RoleRoutedNotes } from "../../../src/references/asking/role-routed-notes";
+import { fileAt } from "../../stubs/note-files";
 
 const PATH = "D&D/Pale Moon/Sessions/Session 2.md";
 
 function routing({ folder, role }: { folder: string | null; role: string }) {
   const forDm = { sessionSaved: vi.fn(), sessionGone: vi.fn() };
   const forOthers = { sessionSaved: vi.fn(), sessionGone: vi.fn() };
-  const metadata = { getCache: vi.fn(() => ({ frontmatter: { role } }) as CachedMetadata) };
-  const routed = new RoleRoutedNotes({ store: { campaignFolder: folder }, metadata, forDm, forOthers });
+  const notes = { store: { note: (path: string) => fileAt(path) }, facts: { propertiesOf: () => ({ role }) } };
+  const routed = new RoleRoutedNotes({ store: { campaignFolder: folder }, notes, forDm, forOthers });
   return { routed, forDm, forOthers };
 }
 

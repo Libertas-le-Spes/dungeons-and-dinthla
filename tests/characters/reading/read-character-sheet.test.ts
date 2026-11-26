@@ -4,6 +4,7 @@ import type { SessionNote } from "../../../src/campaign/record/campaign";
 import type { SheetValue } from "../../../src/characters/reading/character-sheet";
 import { readCharacterSheet, type ReadSheet } from "../../../src/characters/reading/read-character-sheet";
 import type { CarriedFrom, SheetNotes } from "../../../src/characters/reading/sheet-notes";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 function fileAt(path: string): TFile {
   return { path, basename: path.slice(path.lastIndexOf("/") + 1, -3) } as TFile;
@@ -61,7 +62,7 @@ describe("readCharacterSheet", () => {
   it("reads the open campaign's sessions from the store, with the character's own overrides", async () => {
     const { notes, sessionsAskedFor } = notesWith({ texts: { [MIRA.path]: "HP: 40" } });
     const sessions = [sessionOf("Pale Moon", 1, ["[[Mira]] AC: 15, HP: 38"])];
-    const read = await readCharacterSheet(MIRA, { campaignFolder: "Pale Moon", sessionNotes: sessions }, notes);
+    const read = await readCharacterSheet(MIRA, { campaignFolder: "Pale Moon", sessionNotes: sessions }, notes, STUB_SYNTAX);
     expect(sessionsAskedFor).toEqual([]);
     expect(read.campaignFolder).toBe("Pale Moon");
     expect(read.sessions).toBe(sessions);
@@ -71,14 +72,14 @@ describe("readCharacterSheet", () => {
 
   it("reads another campaign's sessions from the vault", async () => {
     const { notes, sessionsAskedFor } = notesWith({ sessions: { "Pale Moon": [sessionOf("Pale Moon", 1, ["[[Mira]] AC: 15"])] } });
-    const read = await readCharacterSheet(MIRA, { campaignFolder: "Ashen Road", sessionNotes: [] }, notes);
+    const read = await readCharacterSheet(MIRA, { campaignFolder: "Ashen Road", sessionNotes: [] }, notes, STUB_SYNTAX);
     expect(sessionsAskedFor).toEqual(["Pale Moon"]);
     expect(valueNamed(read, "AC").shown!.value).toBe("15");
   });
 
   it("reads no sessions for a note outside any campaign", async () => {
     const { notes, sessionsAskedFor } = notesWith({ texts: { "Loose/Mira.md": "AC: 9" } });
-    const read = await readCharacterSheet(fileAt("Loose/Mira.md"), { campaignFolder: "Pale Moon", sessionNotes: [] }, notes);
+    const read = await readCharacterSheet(fileAt("Loose/Mira.md"), { campaignFolder: "Pale Moon", sessionNotes: [] }, notes, STUB_SYNTAX);
     expect(sessionsAskedFor).toEqual([]);
     expect(read.campaignFolder).toBeNull();
     expect(read.sessions).toEqual([]);
@@ -91,7 +92,7 @@ describe("readCharacterSheet", () => {
       texts: { [OLD_MIRA]: "class: Cleric" },
       carriedFrom: { path: OLD_MIRA, groups: ["abilities"] },
     });
-    const read = await readCharacterSheet(MIRA, { campaignFolder: "Pale Moon", sessionNotes: [] }, notes);
+    const read = await readCharacterSheet(MIRA, { campaignFolder: "Pale Moon", sessionNotes: [] }, notes, STUB_SYNTAX);
     expect(read.carriedPath).toBe(OLD_MIRA);
     expect(read.carriedCampaignFolder).toBe("Ashen Road");
     expect(valueNamed(read, "INT")).toMatchObject({ state: "carried", carriedCampaign: "Ashen Road" });
@@ -101,7 +102,7 @@ describe("readCharacterSheet", () => {
 
   it("carries nothing when the carried from note is gone", async () => {
     const { notes } = notesWith({ carriedFrom: { path: "Ashen Road/Characters/Gone.md", groups: ["values"] } });
-    const read = await readCharacterSheet(MIRA, { campaignFolder: "Pale Moon", sessionNotes: [] }, notes);
+    const read = await readCharacterSheet(MIRA, { campaignFolder: "Pale Moon", sessionNotes: [] }, notes, STUB_SYNTAX);
     expect(read.carriedPath).toBeNull();
   });
 });

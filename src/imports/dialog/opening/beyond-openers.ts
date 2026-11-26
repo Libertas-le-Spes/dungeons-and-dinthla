@@ -1,17 +1,19 @@
-import type { App, TFile } from "obsidian";
 import { MainOffers } from "../../leaving/dialog/main-offers";
 import type { OfferWiring } from "../../leaving/questions/offer-wiring";
 import type { CampaignCast } from "../../leaving/cast/campaign-cast";
-import { GateCast, type CastMetadata } from "../../leaving/cast/gate-cast";
+import { NotesCast, type CastMetadata } from "../../leaving/cast/notes-cast";
 import type { LeavingActions, LeavingFiles } from "../../leaving/switching/switch-plan";
 import { dayOf } from "../today";
 import { NO_CAMPAIGN, NOT_IN_A_CAMPAIGN } from "../import-words";
 import type { OnlineSource } from "../online/online-source";
 import { AfterNewImport, AfterUpdate } from "./after-import";
 import { openImport, openUpdate, type ImportPlace } from "./open-import";
+import type { NoteRef } from "../../../host/notes/note-ref";
+import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
+import type { DialogShowing } from "../../../views/dialogs/dialog-view";
 
 export interface BeyondWiring {
-  readonly app: App;
+  readonly showing: DialogShowing;
   readonly files: LeavingFiles;
   readonly actions: LeavingActions;
   readonly metadata: CastMetadata;
@@ -19,13 +21,13 @@ export interface BeyondWiring {
   shownCampaignFolder(): string | null;
   campaignFolderOf(path: string): string | null;
   charactersFolderOf(campaignFolder: string): string;
-  notesIn(campaignFolder: string): readonly TFile[];
+  notesIn(campaignFolder: string): readonly NoteRef[];
   showSheet(path: string): void;
   tell(words: string): void;
 }
 
 class CampaignPlace implements ImportPlace {
-  readonly app: App;
+  readonly showing: DialogShowing;
   readonly files: LeavingFiles;
   readonly charactersFolder: string;
   readonly online: OnlineSource;
@@ -33,29 +35,30 @@ class CampaignPlace implements ImportPlace {
   constructor(
     private readonly wiring: BeyondWiring,
     readonly campaignFolder: string,
+    private readonly syntax: PropertiesSyntax,
   ) {
-    this.app = wiring.app;
+    this.showing = wiring.showing;
     this.files = wiring.files;
     this.charactersFolder = wiring.charactersFolderOf(campaignFolder);
     this.online = wiring.online;
   }
 
-  notes(): readonly TFile[] {
+  notes(): readonly NoteRef[] {
     return this.wiring.notesIn(this.campaignFolder);
   }
 }
 
 class WiredOffers implements OfferWiring {
-  readonly app: App;
+  readonly showing: DialogShowing;
   readonly files: LeavingFiles;
   readonly actions: LeavingActions;
   readonly cast: CampaignCast;
 
-  constructor(private readonly wiring: BeyondWiring) {
-    this.app = wiring.app;
+  constructor(private readonly wiring: BeyondWiring, syntax: PropertiesSyntax) {
+    this.showing = wiring.showing;
     this.files = wiring.files;
     this.actions = wiring.actions;
-    this.cast = new GateCast(wiring.metadata, wiring.files);
+    this.cast = new NotesCast(wiring.metadata, wiring.files, syntax);
   }
 
   campaignFolderOf(path: string): string | null {
@@ -74,8 +77,11 @@ class WiredOffers implements OfferWiring {
 export class BeyondOpeners {
   private readonly offers: MainOffers;
 
-  constructor(private readonly wiring: BeyondWiring) {
-    this.offers = new MainOffers(new WiredOffers(wiring));
+  constructor(
+    private readonly wiring: BeyondWiring,
+    private readonly syntax: PropertiesSyntax,
+  ) {
+    this.offers = new MainOffers(new WiredOffers(wiring, syntax), this.syntax);
   }
 
   makeMain(path: string, returnFocus: () => void): void {
@@ -92,15 +98,15 @@ export class BeyondOpeners {
       this.wiring.tell(NO_CAMPAIGN);
       return;
     }
-    openImport(new CampaignPlace(this.wiring, folder), new AfterNewImport(returnFocus, this.wiring.showSheet.bind(this.wiring), this.offers));
+    openImport(new CampaignPlace(this.wiring, folder, this.syntax), new AfterNewImport(returnFocus, this.wiring.showSheet.bind(this.wiring), this.offers), this.syntax);
   }
 
-  async updateFromBeyond(file: TFile, returnFocus: () => void): Promise<void> {
+  async updateFromBeyond(file: NoteRef, returnFocus: () => void): Promise<void> {
     const folder = this.wiring.campaignFolderOf(file.path);
     if (folder === null) {
       this.wiring.tell(NOT_IN_A_CAMPAIGN);
       return;
     }
-    await openUpdate(new CampaignPlace(this.wiring, folder), file, new AfterUpdate(returnFocus, this.offers));
+    await openUpdate(new CampaignPlace(this.wiring, folder, this.syntax), file, new AfterUpdate(returnFocus, this.offers), this.syntax);
   }
 }

@@ -4,6 +4,8 @@ import type { Campaign } from "../../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { questsKind } from "../../../src/quests/list/quests-kind";
 import { ListPage, type ListCreate } from "../../../src/views/lists/list-page";
+import { PageFrame } from "../../../src/obsidian/views/frames/page-frame";
+import { PLAIN_KIT } from "../../../src/obsidian/views/mount/mount-kit";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 function campaignOf(lines: string[]): Campaign {
@@ -24,7 +26,7 @@ async function openPage(campaign: Campaign, create: ListCreate | null = null) {
   const root = document.createElement("div");
   document.body.append(root);
   const openRow = vi.fn();
-  const view = new ListPage(root, store as unknown as CampaignStore, vi.fn(), openRow, questsKind, create);
+  const view = new PageFrame(root, new ListPage(store as unknown as CampaignStore, { openLink: vi.fn() }, openRow, questsKind, create), PLAIN_KIT);
   view.load();
   const typeFilter = (text: string) => {
     const filter = root.querySelector(".dd-filter") as HTMLInputElement;
@@ -86,6 +88,12 @@ describe("ListPage", () => {
     const { close, unsubscribe } = await openPage(campaignOf([]));
     close();
     expect(unsubscribe).toHaveBeenCalled();
+  });
+
+  it("opens the row's own line when the row is pressed", async () => {
+    const { root, openRow } = await openPage(campaignOf(["! Find it", "! Guard it"]));
+    root.querySelector<HTMLElement>('[data-line="1"]')!.click();
+    expect(openRow.mock.calls.map(([source]) => source)).toEqual([{ path: "Pale Moon/Sessions/Session 1.md", line: 1 }]);
   });
 
   it("puts focus straight back on a row when nothing changed", async () => {

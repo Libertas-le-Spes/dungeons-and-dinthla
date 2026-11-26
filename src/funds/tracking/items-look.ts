@@ -1,4 +1,4 @@
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../host/notes/note-ref";
 import type { ItemRecord } from "../../campaign/record/campaign";
 import { itemKeyOf, storedItemKeyOf } from "../../characters/imported/lists/item-key";
 import { shownItemName } from "../../characters/imported/lists/shown-item-name";
@@ -43,7 +43,7 @@ export class ItemsLook implements FundsLook {
 
   constructor(
     private readonly items: readonly ItemRecord[],
-    private readonly file: TFile,
+    private readonly file: NoteRef,
     written: readonly string[],
     private readonly holders: HolderPaths,
   ) {

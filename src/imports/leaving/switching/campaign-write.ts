@@ -6,6 +6,7 @@ import type { PlannedWrite } from "../writes/planned-write";
 import type { CampaignCast } from "../cast/campaign-cast";
 import type { LeavingFiles, SwitchPlan } from "./switch-plan";
 import { campaignNoteFailed, campaignNoteNames } from "./switch-words";
+import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
 
 function mainLineOf(link: string): string {
   return propertyLine(MAIN_CHARACTER_PROPERTY, quotedYamlOf(`[[${link}]]`));
@@ -19,6 +20,7 @@ export class CampaignWrite implements PlannedWrite {
     private readonly files: LeavingFiles,
     private readonly cast: CampaignCast,
     private readonly plan: SwitchPlan,
+    private readonly syntax: PropertiesSyntax,
   ) {
     const name = plan.chosen.file.basename;
     this.done = campaignNoteNames(name);
@@ -33,6 +35,6 @@ export class CampaignWrite implements PlannedWrite {
   }
 
   private checkedText(link: string): string {
-    return textWithProperty(this.plan.asked, MAIN_CHARACTER_PROPERTY, mainLineOf(link));
+    return textWithProperty(this.plan.asked, MAIN_CHARACTER_PROPERTY, mainLineOf(link), this.syntax);
   }
 }

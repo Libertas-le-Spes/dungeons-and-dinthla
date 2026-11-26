@@ -11,6 +11,13 @@ import { HeldCalls } from "../../stubs/held-calls";
 import { queuedWorkRan } from "../../stubs/queued-work";
 import { SettleWatch } from "../../stubs/settle-watch";
 import { RecordingTracking } from "../imported/builders/recording-tracking";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
+import { AT_ONCE_PAUSES } from "../../host/made-up-pauses";
+import { mountTree } from "../../../src/obsidian/views/mount/mount-tree";
+
+function sheetIn(root: HTMLElement): HTMLElement {
+  return root.firstElementChild as HTMLElement;
+}
 
 function fileAt(path: string): TFile {
   return { path, basename: path.slice(path.lastIndexOf("/") + 1, -3) } as TFile;
@@ -129,9 +136,11 @@ function openSheet({ sessions = [], texts = {}, carriedFrom = null, textOf, link
   root.ownerDocument.body.append(root);
   const pages: CharacterSheetPage[] = [];
   const start = (file = MIRA) => {
-    const page = new CharacterSheetPage(root, file, store, notes, actions, mentionNotes);
+    const page = new CharacterSheetPage({ file, store, notes, actions, mentionNotes, pauses: AT_ONCE_PAUSES }, STUB_SYNTAX);
     pages.push(page);
-    page.load();
+    root.replaceChildren();
+    mountTree(page.tree(), root);
+    page.started();
     return page;
   };
   async function rendered(): Promise<void> {
@@ -476,17 +485,17 @@ describe("CharacterSheetPage", () => {
     const sheet = openSheet({ textOf: miraReadFrom(reads) });
     const page = sheet.start();
     await reads.made(1);
-    page.unload();
+    page.stopped();
     reads.resolve(0, "AC: 16");
     await sheet.rendered();
-    expect(sheet.root.childElementCount).toBe(0);
+    expect(sheetIn(sheet.root).childElementCount).toBe(0);
   });
 
   it("empties the sheet when it is closed", async () => {
     const sheet = openSheet();
     const page = await sheet.load();
-    page.unload();
-    expect(sheet.root.childElementCount).toBe(0);
+    page.stopped();
+    expect(sheetIn(sheet.root).childElementCount).toBe(0);
   });
 
   it("lists the session lines that link to the character after the stat block, above Depart", async () => {
@@ -495,7 +504,7 @@ describe("CharacterSheetPage", () => {
     await sheet.rendered();
     expect(textsOf(sheet.root, ".dd-sheet-mentions .dd-text")).toEqual(["Met [[Mira]] at the ford"]);
     expect(textsOf(sheet.root, ".dd-sheet-mentions .dd-title")).toEqual([`${IN_THE_NOTES}1 line`]);
-    const depart = sheet.root.lastElementChild!;
+    const depart = sheetIn(sheet.root).lastElementChild!;
     const mentions = depart.previousElementSibling!;
     expect(depart.classList.contains("dd-sheet-depart")).toBe(true);
     expect(mentions.classList.contains("dd-sheet-mentions")).toBe(true);
@@ -542,7 +551,7 @@ describe("CharacterSheetPage", () => {
     const page = await sheet.load();
     await sheet.rendered();
     expect(sheet.mentionReads.count).toBe(1);
-    page.unload();
+    page.stopped();
     sheet.linksResolved(ONE);
     expect(sheet.mentionReads.count).toBe(1);
   });
@@ -715,7 +724,7 @@ describe("CharacterSheetPage for an imported character", () => {
   it("puts Depart alone at the very bottom of the page, below the mentions", async () => {
     const { load, root } = openSheet({ texts: { [MIRA.path]: IMPORTED } });
     await load();
-    const last = root.lastElementChild;
+    const last = sheetIn(root).lastElementChild;
     if (last === null) throw new Error("The page is empty.");
     expect(last.className).toBe("dd-sheet-depart");
     expect(buttonWords(last as HTMLElement)).toEqual(["Depart"]);
@@ -738,7 +747,7 @@ describe("CharacterSheetPage with an imported inventory", () => {
     const { load, root } = openSheet({ texts: { [MIRA.path]: text } });
     await load();
     const sections: string[] = [];
-    for (const element of root.children) sections.push(element.className);
+    for (const element of sheetIn(root).children) sections.push(element.className);
     const panels = sections.indexOf("dd-sheet-imported");
     expect(panels).toBeGreaterThan(sections.indexOf("dd-sheet-hint"));
     expect(panels).toBeLessThan(sections.indexOf("dd-sheet-stat-block"));

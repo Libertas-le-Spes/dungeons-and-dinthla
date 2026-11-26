@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { fileAt } from "../../stubs/note-files";
 import type { TFile } from "obsidian";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { Campaign, ItemRecord, SessionNote } from "../../../src/campaign/record/campaign";
@@ -6,6 +7,7 @@ import { CHANGED_IN_NOTE, WOULD_BE_HIDDEN, type EditorFiles } from "../../../src
 import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
 import type { ItemSource } from "../../../src/funds/items/item-source";
 import { openedItem } from "../../../src/funds/items/item-writer";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
@@ -28,15 +30,15 @@ class FakeNotes {
 
   get vault(): EditorFiles {
     return {
-      getFileByPath: (path) => {
+      note: (path) => {
         if (!this.texts.has(path)) return null;
         const known = this.files.get(path);
         if (known !== undefined) return known;
-        const made = { path } as TFile;
+        const made = fileAt(path);
         this.files.set(path, made);
         return made;
       },
-      process: async (file, change) => {
+      change: async (file, change) => {
         this.writes += 1;
         const next = change(this.textOf(file.path));
         this.texts.set(file.path, next);
@@ -47,7 +49,7 @@ class FakeNotes {
   }
 
   readNow(): ItemSource {
-    const sessionNotes: SessionNote[] = [...this.texts].map(([path, text]) => sessionNoteOf(path, numberOf(path), text));
+    const sessionNotes: SessionNote[] = [...this.texts].map(([path, text]) => sessionNoteOf(path, numberOf(path), text, STUB_SYNTAX));
     const current: Campaign = buildCampaign(sessionNotes);
     return { current, sessionNotes };
   }
@@ -69,7 +71,7 @@ describe("saving an item through its change", () => {
   it("says the notes changed, before any other refusal, when they changed since the dialog opened", async () => {
     const notes = new FakeNotes({ [ONE]: "$ Rope\n", [NINE]: "" });
     const store = notes.readNow();
-    const opened = openedItem(notes.vault, store, notes.item(store, "Rope"), NINE);
+    const opened = openedItem(notes.vault, store, notes.item(store, "Rope"), NINE, STUB_SYNTAX);
     notes.texts.set(ONE, "$ Rope\n$$ Rope :lost\n");
     await expect(opened.save({ ...opened.edit, status: "used" })).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notes.texts.get(NINE)).toBe("");
@@ -78,7 +80,7 @@ describe("saving an item through its change", () => {
   it("refuses, writing nothing, when another session note it read is gone", async () => {
     const notes = new FakeNotes({ [ONE]: "$ Rope\n", [TWO]: "We rode on.\n" });
     const store = notes.readNow();
-    const opened = openedItem(notes.vault, store, notes.item(store, "Rope"), ONE);
+    const opened = openedItem(notes.vault, store, notes.item(store, "Rope"), ONE, STUB_SYNTAX);
     notes.texts.delete(TWO);
     await expect(opened.save({ ...opened.edit, status: "lost" })).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notes.texts.get(ONE)).toBe("$ Rope\n");
@@ -88,7 +90,7 @@ describe("saving an item through its change", () => {
   it("refuses a change whose line would land below a comment that never closes, writing nothing", async () => {
     const notes = new FakeNotes({ [ONE]: "$ Rope\n", [TWO]: "%% a note to self\n" });
     const store = notes.readNow();
-    const opened = openedItem(notes.vault, store, notes.item(store, "Rope"), TWO);
+    const opened = openedItem(notes.vault, store, notes.item(store, "Rope"), TWO, STUB_SYNTAX);
     await expect(opened.save({ ...opened.edit, status: "lost" })).rejects.toThrow(WOULD_BE_HIDDEN);
     expect(notes.writes).toBe(0);
   });
@@ -96,7 +98,7 @@ describe("saving an item through its change", () => {
   it("writes a change whose line lands below a comment that has closed", async () => {
     const notes = new FakeNotes({ [ONE]: "$ Rope\n", [TWO]: "%% a note to self %%\n" });
     const store = notes.readNow();
-    const opened = openedItem(notes.vault, store, notes.item(store, "Rope"), TWO);
+    const opened = openedItem(notes.vault, store, notes.item(store, "Rope"), TWO, STUB_SYNTAX);
     expect(await opened.save({ ...opened.edit, status: "lost" })).toBe(true);
     expect(notes.writes).toBe(1);
   });
@@ -104,7 +106,7 @@ describe("saving an item through its change", () => {
   it("writes a change below an item line, which opens no comment", async () => {
     const notes = new FakeNotes({ [ONE]: "$ Rope\n$ Torch\n", [TWO]: "$$ Torch :lost\n" });
     const store = notes.readNow();
-    const opened = openedItem(notes.vault, store, notes.item(store, "Rope"), TWO);
+    const opened = openedItem(notes.vault, store, notes.item(store, "Rope"), TWO, STUB_SYNTAX);
     expect(await opened.save({ ...opened.edit, status: "lost" })).toBe(true);
     expect(notes.texts.get(TWO)).toBe("$$ Torch :lost\n$$ Rope :lost\n");
   });

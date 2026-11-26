@@ -366,7 +366,7 @@
  {
   "id": "reading: const bodyStart = firstLineAfterProperti",
   "file": "src/imports/note/reading/note-layout.ts",
-  "find": "const bodyStart = firstLineAfterProperties(text);",
+  "find": "const bodyStart = firstLineAfterProperties(text, syntax);",
   "replace": "const bodyStart = 0;",
   "group": "reading"
  },
@@ -1045,7 +1045,7 @@
  {
   "id": "writing: if (!sameLines(outsideTheImport(before),",
   "file": "src/imports/note/writing/guarding/read-back.ts",
-  "find": "if (!sameLines(outsideTheImport(before), outsideTheImport(after))) throw wouldChangeMore();",
+  "find": "if (!sameLines(outsideTheImport(before, syntax), outsideTheImport(after, syntax))) throw wouldChangeMore();",
   "replace": "",
   "group": "writing"
  },
@@ -1087,7 +1087,7 @@
  {
   "id": "writing:   refuseUnlessOnlyTheImportChanged(befor",
   "file": "src/imports/note/writing/checked-note-text.ts",
-  "find": "  refuseUnlessOnlyTheImportChanged(before, after);\n",
+  "find": "  refuseUnlessOnlyTheImportChanged(before, after, syntax);\n",
   "replace": "",
   "group": "writing"
  },
@@ -1108,14 +1108,14 @@
  {
   "id": "writing: if (this.files.getFolderByPath(this.char",
   "file": "src/imports/note/writing/import-writer.ts",
-  "find": "if (this.files.getFolderByPath(this.charactersFolder) === null) await",
+  "find": "if (!this.files.hasFolder(this.charactersFolder)) await",
   "replace": "if (false) await",
   "group": "writing"
  },
  {
   "id": "writing: if (this.files.getFolderByPath(this.char #2",
   "file": "src/imports/note/writing/import-writer.ts",
-  "find": "if (this.files.getFolderByPath(this.charactersFolder) === null) await",
+  "find": "if (!this.files.hasFolder(this.charactersFolder)) await",
   "replace": "await",
   "group": "writing"
  },
@@ -1129,8 +1129,8 @@
  {
   "id": "writing: const text = checkedNewNoteText(sheet, t",
   "file": "src/imports/note/writing/import-writer.ts",
-  "find": "const text = checkedNewNoteText(sheet, this.stampOf(today));",
-  "replace": "const text = importedNoteText({ current: \"\", sheet, stamp: this.stampOf(today) });",
+  "find": "const text = checkedNewNoteText(sheet, this.stampOf(today), this.syntax);",
+  "replace": "const text = importedNoteText({ current: \"\", sheet, stamp: this.stampOf(today) }, this.syntax);",
   "group": "writing"
  },
  {
@@ -1332,7 +1332,7 @@
  {
   "id": "folders:   { folder: \"imports\", reaches: [\"import",
   "file": "tests/build/inner-folders.test.ts",
-  "find": "  { folder: \"imports\", reaches: [\"imports\", \"imports/layout\", \"beyond\", \"online\", \"names\", \"fence/gate\", \"campaign\", \"views/dialogs\", \"views/pending\"] },\n",
+  "find": "  { folder: \"imports\", reaches: [\"imports\", \"imports/layout\", \"beyond\", \"online\", \"names\", \"fence/gate\", \"campaign\", \"host\", \"views/components\", \"views/dialogs\", \"views/elements\", \"views/pending\"] },\n",
   "replace": "",
   "group": "folders"
  },
@@ -1990,7 +1990,7 @@
  {
   "id": "writing: checked-note-text.ts:   refuseUnlessOnlyTheImportChanged(before, after);",
   "file": "src/imports/note/writing/checked-note-text.ts",
-  "find": "  refuseUnlessOnlyTheImportChanged(before, after);\n",
+  "find": "  refuseUnlessOnlyTheImportChanged(before, after, syntax);\n",
   "replace": "",
   "group": "writing"
  },
@@ -2060,8 +2060,8 @@
  {
   "id": "writing: import-writer.ts: checkedTextOf(before, sheet, today, shown)",
   "file": "src/imports/note/writing/import-writer.ts",
-  "find": "checkedTextOf({ before, sheet, stamp: this.stampOf(today), shown })",
-  "replace": "checkedTextOf({ before, sheet, stamp: this.stampOf(today), shown: [] })",
+  "find": "checkedTextOf({ before, sheet, stamp: this.stampOf(today), shown }, this.syntax)",
+  "replace": "checkedTextOf({ before, sheet, stamp: this.stampOf(today), shown: [] }, this.syntax)",
   "group": "writing"
  },
  {
@@ -2347,7 +2347,7 @@
  {
   "id": "an update reads the kept number",
   "file": "src/imports/dialog/opening/open-import.ts",
-  "find": "  const kept = await keptNumberOf(place, file);",
+  "find": "  const kept = await keptNumberOf(place, file, syntax);",
   "replace": "  const kept = null;",
   "group": "beyond-number"
  },

@@ -1,0 +1,16 @@
+.dd-funds .dd-coins,
+.dd-sheet .dd-coins {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dd-size-4-2);
+}
+
+.dd-funds .dd-coin,
+.dd-sheet .dd-coin {
+  padding: var(--dd-size-2-1) var(--dd-size-4-3);
+  border-radius: var(--dd-radius-pill);
+  background: var(--dd-marker-ledger-soft);
+  font: var(--dd-type-note);
+  font-size: var(--dd-font-ui-small);
+  color: var(--dd-text-strong);
+}

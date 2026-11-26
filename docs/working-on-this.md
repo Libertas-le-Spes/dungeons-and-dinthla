@@ -11,7 +11,7 @@ This page is for whoever picks the work up on another machine, person or session
 
 - **Design before code.** No feature code until the owner has designed it and asked for a build. "Start X" means scaffold only.
 - **Note syntax must be typeable.** Every line a player writes is typed by hand on a tablet mid-session: a short marker and a word or two. No block ids, no `[[Note#^id|alias]]`.
-- **Safety first.** Rank every security choice by how safe it is, and nothing else. Layer the protections and fail closed. The plugin reads and writes only inside the Campaigns folder. Its only network use is one GET to `character-service.dndbeyond.com` for a public D&D Beyond character, made only when the user presses the online import or update button after agreeing on that device. Nothing runs in the background, and the plugin adds no login or cookies. The bundle holds only that one call, in `src/online/beyond-call.ts`, and nothing else that could go online.
+- **Safety first.** Rank every security choice by how safe it is, and nothing else. Layer the protections and fail closed. The plugin reads and writes only inside the Campaigns folder. Its only network use is one GET to `character-service.dndbeyond.com` for a public D&D Beyond character, made only when the user presses the online import or update button after agreeing on that device. Nothing runs in the background, and the plugin adds no login or cookies. The bundle holds only that one call, in `src/obsidian/online/obsidian-beyond-call.ts`, and nothing else that could go online.
 - **Code:** no comments in any file, one class per kind with no switching on kinds, one job per file, and no ternaries or `||`/`??` shortcuts.
 - **Tests** check this project's code, not Obsidian's, with made-up names only. Each test's setup is exactly the scenario its name claims. Prove a guard by taking it out once and watching a test fail.
 - **No attribution.** Nothing in commits, pull requests or docs credits a tool.
@@ -26,6 +26,19 @@ Every count a pull request states comes from a command, not from counting by han
 - Tests: the runner's own total.
 
 Four pull requests in the folder-move series stated a count that was short or a list that was wrong, and a reviewer had to put each right; a wrong number reads as a proof that wasn't run.
+
+## Obsidian kept apart (#230, in progress)
+
+The plugin's own code is meant to work with any notes program, with Obsidian as one adapter. Code that talks to Obsidian lives in `src/obsidian/` (one folder per area), in the gate (`src/fence/gate/`) or in `src/main.ts`, which only builds the gate and hands it to `src/obsidian/plugin/obsidian-features.ts`; the plugin's own parts are built from a host by `src/plugin/start-plugin.ts`, and everything else is the plugin's own. Two checks keep it that way, and both are being tightened as the series moves files:
+
+- `tests/build/obsidian-side.test.ts`: a core file loads no `obsidian` or `@codemirror/*`, in any import form, and imports nothing from the Obsidian side.
+- The fence scan's rule in `tests/fence/scan/code-rules/host-neutral-rules.ts`: a core file uses nothing Obsidian or CodeMirror declares (page helpers like `createEl` included, which need no import), and holds no value whose type reaches such a type, through a list, a property, a function's parameters or return, an index, or a `Pick`, `Partial` or other alias's arguments.
+
+What the plugin's own code needs from a notes program is written as ports in `src/host/` (notes, keeping, showing, rules, online), interfaces only. `src/fence/notes/` is the plugin's own fence over the notes ports: every path and handle passes the same `Fence` rules, it refuses any handle it didn't hand out, and it tells a `WriteReport` of each write it lets through. Obsidian's answers are in `src/obsidian/notes/`, built over the gate, which stays behind as a second wall. `tests/host/` holds an in-memory notes program and the contract every notes program must keep. `tests/end-to-end/` starts the whole plugin on that in-memory host and plays a campaign through it, pressing buttons and typing into fields through a recording mounter instead of Obsidian. Vitest runs two projects: `core` (the end-to-end runs and `tests/plugin/`) has no stand-in for Obsidian, so a core file that loads Obsidian fails to run there; `obsidian` runs every other test with Obsidian's stand-in.
+
+The look follows the same split. `styles/plugin/` holds every rule, written only with the plugin's own variables (`--dd-…`) and classes (`dd-…`); `styles/plugin/defaults.css` gives the non-colour variables plain values for a program with no theme. `styles/obsidian/theme.css` maps each `--dd-` variable that stands for one of Obsidian's to it, one per line, on `.dd-tokens`, the same root the plugin's own colours already resolve on. `tests/styles/plugin-styles.test.ts` keeps it so, with a frozen list of the few Obsidian pieces the plugin's styles still name.
+
+No file of the plugin's own code breaks either rule, and a test fails for any file that does. A new piece of Obsidian wiring goes in `src/obsidian/`, in the folder of the area it serves.
 
 ## Moving files
 

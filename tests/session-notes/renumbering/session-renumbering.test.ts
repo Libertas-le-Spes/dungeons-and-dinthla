@@ -3,6 +3,7 @@ import type { RenumberingPlan } from "../../../src/session-notes/renumbering/ren
 import { nameTakenWords, NOT_IN_A_CAMPAIGN, SESSIONS_CHANGED_SINCE_ASKED } from "../../../src/session-notes/renumbering/renumbering-words";
 import { SessionRenumbering } from "../../../src/session-notes/renumbering/session-renumbering";
 import { FakeCampaignFiles } from "./fake-campaign-files";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const PALE = "D&D/Pale Moon";
 const ASHEN = "D&D/Ashen Road";
@@ -44,7 +45,7 @@ function planned(renumbering: SessionRenumbering, deleted: string): RenumberingP
 }
 
 async function renumberedAfterDeleting(files: FakeCampaignFiles, deleted: string) {
-  const renumbering = new SessionRenumbering(files, campaigns);
+  const renumbering = new SessionRenumbering(files, campaigns, STUB_SYNTAX);
   const plan = planned(renumbering, deleted);
   files.removeNote(deleted);
   const report = await renumbering.carryOut(plan);
@@ -53,7 +54,7 @@ async function renumberedAfterDeleting(files: FakeCampaignFiles, deleted: string
 
 describe("SessionRenumbering.planFor", () => {
   it("plans how the campaign's sessions are numbered again once the session is deleted", () => {
-    const plan = planned(new SessionRenumbering(campaignFiles(), campaigns), pale(2));
+    const plan = planned(new SessionRenumbering(campaignFiles(), campaigns, STUB_SYNTAX), pale(2));
     expect(plan.renames.map((rename) => [rename.from, rename.to])).toEqual([
       [pale(4), pale(2)],
       [pale(5), pale(3)],
@@ -63,7 +64,7 @@ describe("SessionRenumbering.planFor", () => {
   });
 
   it("looks only at the sessions of the campaign the session is in", () => {
-    const plan = planned(new SessionRenumbering(campaignFiles(), campaigns), ashen(1));
+    const plan = planned(new SessionRenumbering(campaignFiles(), campaigns, STUB_SYNTAX), ashen(1));
     expect(plan.renames.map((rename) => [rename.from, rename.to])).toEqual([
       [ashen(2), ashen(1)],
       [ashen(4), ashen(2)],
@@ -72,29 +73,29 @@ describe("SessionRenumbering.planFor", () => {
 
   it("refuses when two sessions share a number", () => {
     const files = campaignFiles({ [pale("04")]: "Again" });
-    expect(new SessionRenumbering(files, campaigns).planFor(pale(1))).toHaveProperty("error");
+    expect(new SessionRenumbering(files, campaigns, STUB_SYNTAX).planFor(pale(1))).toHaveProperty("error");
   });
 
   it("refuses, naming the file, when a new name is taken", () => {
     const files = campaignFiles({ [`${PALE}/Sessions/session 3.md`]: "Taken" });
-    expect(new SessionRenumbering(files, campaigns).planFor(pale(2))).toEqual({ error: nameTakenWords(pale(3)) });
+    expect(new SessionRenumbering(files, campaigns, STUB_SYNTAX).planFor(pale(2))).toEqual({ error: nameTakenWords(pale(3)) });
   });
 
   it("refuses when the session isn't in a campaign", () => {
-    expect(new SessionRenumbering(campaignFiles(), campaigns).planFor("D&D/Sessions/Session 1.md")).toEqual({ error: NOT_IN_A_CAMPAIGN });
+    expect(new SessionRenumbering(campaignFiles(), campaigns, STUB_SYNTAX).planFor("D&D/Sessions/Session 1.md")).toEqual({ error: NOT_IN_A_CAMPAIGN });
   });
 });
 
 describe("SessionRenumbering.confirmed", () => {
   it("gives the plan again when nothing changed since it was asked", () => {
-    const renumbering = new SessionRenumbering(campaignFiles(), campaigns);
+    const renumbering = new SessionRenumbering(campaignFiles(), campaigns, STUB_SYNTAX);
     const asked = planned(renumbering, pale(2));
     expect(renumbering.confirmed(pale(2), asked)).toEqual(asked);
   });
 
   it("refuses when the sessions changed since it was asked", () => {
     const files = campaignFiles();
-    const renumbering = new SessionRenumbering(files, campaigns);
+    const renumbering = new SessionRenumbering(files, campaigns, STUB_SYNTAX);
     const asked = planned(renumbering, pale(2));
     files.addNote(pale(9), "Nine");
     expect(() => renumbering.confirmed(pale(2), asked)).toThrow(SESSIONS_CHANGED_SINCE_ASKED);
@@ -102,7 +103,7 @@ describe("SessionRenumbering.confirmed", () => {
 
   it("refuses with the plan's words when the sessions can no longer be numbered again", () => {
     const files = campaignFiles();
-    const renumbering = new SessionRenumbering(files, campaigns);
+    const renumbering = new SessionRenumbering(files, campaigns, STUB_SYNTAX);
     const asked = planned(renumbering, pale(2));
     files.addNote(`${PALE}/Sessions/session 3.md`, "Taken");
     expect(() => renumbering.confirmed(pale(2), asked)).toThrow(nameTakenWords(pale(3)));
@@ -221,7 +222,7 @@ describe("SessionRenumbering.carryOut", () => {
   it("renames nothing and writes nothing when no session moves", async () => {
     const files = new FakeCampaignFiles({ [`${PALE}/Pale Moon.md`]: "", [pale(1)]: "", [pale(2)]: "[[Session 1]]\n" });
     await renumberedAfterDeleting(files, pale(2));
-    expect(files.rename).not.toHaveBeenCalled();
-    expect(files.process).not.toHaveBeenCalled();
+    expect(files.move).not.toHaveBeenCalled();
+    expect(files.change).not.toHaveBeenCalled();
   });
 });

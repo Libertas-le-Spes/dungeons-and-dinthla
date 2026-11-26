@@ -1,9 +1,13 @@
-import { Component } from "obsidian";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { latestNumberIsShared, SESSIONS_SHARE_A_NUMBER } from "../../campaign/paths/session-to-write";
 import type { LookupOpeners } from "../../kinds/lookup-openers";
 import type { NoteEditingNeeds } from "../../note-editing/note-editing";
-import type { LinkActions } from "../../views/lists/linked-text";
+import type { LinkOpener } from "../../views/components/rows/link-name";
+import { HandleRequest } from "../../views/elements/bindings/bindings";
+import { KeptHandle } from "../../views/elements/bindings/kept-handle";
+import { Paragraph } from "../../views/elements/kinds/containers";
+import type { ViewElement } from "../../views/elements/view-element";
+import type { PageView, ShownPage } from "../../views/pages/page-view";
 import type { WantedLines } from "../../views/opening/wanted-lines";
 import type { LineOpeners } from "../lines/line-opener-of";
 import type { AppendWriter } from "../drafts/append-writer";
@@ -15,10 +19,12 @@ import { SessionPicker, type PickerMoves } from "./session-picker";
 import type { RemovalTools } from "../removal/session-removal";
 import { SessionWriting } from "./session-writing";
 import { writtenLinesOf } from "../lines/written-lines";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 const PAGE_TITLE = "Session notes";
 const NO_SESSION = "No sessions yet.";
 const NOTE_GONE = "This session's note was deleted. Unsaved lines are kept below.";
+const PAGE_CLASSES = ["dd-root", "dd-list-view", "dd-session-notes"];
 
 export interface SessionNotesNeeds {
   store: CampaignStore;
@@ -27,7 +33,7 @@ export interface SessionNotesNeeds {
   writer: AppendWriter;
   propertiesOf: PropertiesOf;
   openers: LookupOpeners;
-  actions: LinkActions;
+  actions: LinkOpener;
   lineOpeners: LineOpeners;
   wholeText: NoteEditingNeeds;
   removal: RemovalTools;
@@ -42,33 +48,40 @@ export interface NotesMoves extends PickerMoves {
 interface Drawn {
   path: string | null;
   picker: SessionPicker;
-  gone: HTMLElement;
+  gone: KeptHandle;
   kept: KeptLines;
   session: SessionWriting | null;
 }
 
-export class SessionNotesPage extends Component {
+export class SessionNotesPage implements ShownPage {
+  readonly cls = PAGE_CLASSES;
+  private view: PageView | null = null;
+  private readonly stops: (() => void)[] = [];
   private drawn: Drawn | null = null;
   private chosen: string | null;
   private seen = false;
   private copyTarget: string | null = null;
 
   constructor(
-    private readonly contentEl: HTMLElement,
     asked: string | null,
     private readonly needs: SessionNotesNeeds,
     private readonly moves: NotesMoves,
+    private readonly syntax: PropertiesSyntax,
   ) {
-    super();
     this.chosen = asked;
   }
 
-  override onload(): void {
-    this.contentEl.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-session-notes");
-    this.register(this.needs.store.subscribe(() => this.campaignChanged()));
-    this.register(this.needs.wantedLines.subscribe(this.lineWanted.bind(this)));
-    this.register(() => this.closeDrawn());
+  opened(view: PageView): void {
+    this.view = view;
+    this.stops.push(this.needs.store.subscribe(this.campaignChanged.bind(this)), this.needs.wantedLines.subscribe(this.lineWanted.bind(this)));
     this.draw();
+  }
+
+  closed(): void {
+    for (const stop of this.stops) stop();
+    this.stops.length = 0;
+    this.closeDrawn();
+    this.view = null;
   }
 
   async settled(): Promise<void> {
@@ -100,28 +113,38 @@ export class SessionNotesPage extends Component {
   }
 
   private draw(): void {
+    const view = this.view;
+    if (view === null) return;
     this.closeDrawn();
-    const root = this.contentEl;
-    root.empty();
     const path = this.sessionToShow();
-    const picker = new SessionPicker(root, this.moves);
-    const gone = root.createEl("p", { cls: "dd-note-gone", attr: { "aria-live": "polite" } });
-    const kept = new KeptLines(root, this.needs.drafts, this.needs.keptDrafts, () => this.copyTarget);
+    const picker = new SessionPicker(this.moves);
+    const gone = new KeptHandle();
+    const kept = new KeptLines(this.needs.drafts, this.needs.keptDrafts, this.copyTargetNow.bind(this));
+    const trees: ViewElement[] = [picker.tree(), new Paragraph({ cls: ["dd-note-gone"], live: "polite", bindings: [new HandleRequest(gone)] }), kept.tree()];
     if (path === null) {
-      root.createEl("p", { cls: "dd-empty", text: this.noSessionText() });
+      trees.push(new Paragraph({ cls: ["dd-empty"], text: this.noSessionText() }));
+      view.show(trees);
+      kept.start();
       this.drawn = { path, picker, gone, kept, session: null };
       this.update(this.drawn);
       return;
     }
     const session = new SessionWriting(
-      root,
       path,
       { ...this.needs, campaign: () => this.needs.store.current },
       { heading: () => this.headingOf(path), deleted: (latest) => this.sessionDeleted(latest) },
+      this.syntax,
     );
+    view.show([...trees, ...session.trees()]);
+    kept.start();
+    session.start();
     this.drawn = { path, picker, gone, kept, session };
     this.update(this.drawn);
     session.focus();
+  }
+
+  private copyTargetNow(): string | null {
+    return this.copyTarget;
   }
 
   private closeDrawn(): void {

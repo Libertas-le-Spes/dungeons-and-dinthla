@@ -6,6 +6,7 @@ import { textOfNote } from "./read-note";
 import type { LeavingActions, LeavingFiles, SwitchPlan } from "./switch-plan";
 import { CAMPAIGN_NOTE_CHANGED, CAMPAIGN_NOTE_UNREAD, NOTE_MOVED } from "./switch-words";
 import type { PlannedWrite } from "../writes/planned-write";
+import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
 
 export class MainSwitch {
   private readonly chosenSteps: ChosenSteps;
@@ -15,8 +16,9 @@ export class MainSwitch {
     actions: LeavingActions,
     cast: CampaignCast,
     readonly plan: SwitchPlan,
+    syntax: PropertiesSyntax,
   ) {
-    this.chosenSteps = new ChosenSteps(files, actions, cast, plan);
+    this.chosenSteps = new ChosenSteps(files, actions, cast, plan, syntax);
   }
 
   async checkStill(old: AskedNote | null): Promise<void> {

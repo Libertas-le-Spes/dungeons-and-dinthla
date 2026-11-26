@@ -1,12 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
-import type { App } from "obsidian";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { Campaign, Source } from "../../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
-import type { CoinOutcome } from "../../../src/funds/coins/coin-modal";
+import type { CoinOutcome } from "../../../src/funds/coins/coin-dialog";
 import { ledgerEntryOpener, routeLedgerEntry, type LedgerOpeners } from "../../../src/funds/coins/open-ledger-entry";
 import { openedModals } from "../../stubs/obsidian";
-import type { Gate } from "../../../src/fence/gate/gatekeeper";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
+import { OBSIDIAN_SHOWING } from "../../host/showing/obsidian-showing";
+import type { CoinNotes } from "../../../src/funds/coins/open-add-coin";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
@@ -65,8 +66,9 @@ describe("ledgerEntryOpener", () => {
   function opener(campaign: Campaign) {
     const store = { current: campaign, sessionNotes: [] };
     const openItem = vi.fn<LedgerOpeners["item"]>();
-    const open = ledgerEntryOpener({} as App, { files: {} } as unknown as Gate, store as unknown as CampaignStore, openItem);
-    return { store, openItem, open };
+    const openNote = vi.fn();
+    const open = ledgerEntryOpener(OBSIDIAN_SHOWING, {} as CoinNotes, store as unknown as CampaignStore, openItem, openNote, STUB_SYNTAX);
+    return { store, openItem, open, openNote };
   }
 
   it("opens a sale with the item opener it is given", () => {
@@ -83,6 +85,15 @@ describe("ledgerEntryOpener", () => {
     open({ path: ONE, line: 0 }, vi.fn());
     expect(openedModals.slice(before).map((dialog) => dialog.title)).toEqual(["Ledger entry"]);
     expect(openItem).not.toHaveBeenCalled();
+  });
+
+  it("opens the entry's own note when asked to from an entry it can't save", () => {
+    const { open, openNote } = opener(campaignOf(["$ Bought rope for 2 gp"]));
+    const before = openedModals.length;
+    open({ path: ONE, line: 0 }, vi.fn());
+    const [dialog] = openedModals.slice(before);
+    Array.from(dialog!.contentEl.querySelectorAll("button")).find((button) => button.textContent === "Open note")!.click();
+    expect(openNote.mock.calls).toEqual([[{ path: ONE, line: 0 }]]);
   });
 
   it("reads the items as they are when the entry is opened", () => {

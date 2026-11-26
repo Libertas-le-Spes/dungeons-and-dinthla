@@ -1,5 +1,5 @@
 import type { SessionNote, Source } from "../../campaign/record/campaign";
-import { firstLineAfterProperties } from "../../campaign/paths/session-file";
+import { firstLineAfterProperties, type PropertiesSyntax } from "../../campaign/paths/session-file";
 import { forEachSessionLine } from "../../campaign/record/session-lines";
 import { withoutBullet } from "../../notes/parts/bullet";
 import { factsOf, linkedFactsOf, type CharacterFact } from "../../notes/reading/character-facts";
@@ -46,10 +46,10 @@ export function factsByCharacter(
   return byCharacter;
 }
 
-export function overrideFacts(ownNote: string, path: string): SourcedFact[] {
+export function overrideFacts(ownNote: string, path: string, syntax: PropertiesSyntax): SourcedFact[] {
   const lines = ownNote.split("\n");
   const facts: SourcedFact[] = [];
-  const bodyStart = firstLineAfterProperties(ownNote);
+  const bodyStart = firstLineAfterProperties(ownNote, syntax);
   const skipped = pluginSectionLinesOf(lines, bodyStart);
   for (let line = bodyStart; line < lines.length; line++) {
     if (skipped.has(line)) continue;

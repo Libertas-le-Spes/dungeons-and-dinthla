@@ -1,44 +1,51 @@
-import { Component } from "obsidian";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import type { ReadCampaignsFolder } from "../../fence/paths/fence";
-import type { AgreementShower, WelcomeActions, WelcomeAgreement, WelcomeEnding, WelcomeState } from "../endings/welcome-ending";
+import type { Telling } from "../../host/showing/telling";
+import type { EndingNeeds, WelcomeActions, WelcomeAgreement, WelcomeEnding, WelcomeState } from "../endings/welcome-ending";
 import { endingFor } from "../endings/welcome-endings";
 import { WELCOME_STEPS, WELCOME_TITLE } from "./welcome-steps";
+import { HandleRequest } from "../../views/elements/bindings/bindings";
+import { KeptHandle } from "../../views/elements/bindings/kept-handle";
+import { Div, Heading2, ListItem, OrderedList } from "../../views/elements/kinds/containers";
+import type { ViewElement } from "../../views/elements/view-element";
+import type { PageView, ShownPage } from "../../views/pages/page-view";
 
 export type WelcomeStore = Pick<CampaignStore, "campaignFolder" | "sessionNotes" | "subscribe">;
 
-export class WelcomePage extends Component implements AgreementShower {
-  private endingEl!: HTMLElement;
+const PAGE_CLASSES = ["dd-root", "dd-list-view", "dd-welcome"];
+
+export class WelcomePage implements ShownPage, EndingNeeds {
+  readonly cls = PAGE_CLASSES;
+  private readonly ending = new KeptHandle();
   private shownEnding: WelcomeEnding | null = null;
-  private endingPart: Component | null = null;
+  private stop: (() => void) | null = null;
 
   constructor(
-    private readonly contentEl: HTMLElement,
     private readonly store: WelcomeStore,
     private readonly readCampaignsFolder: ReadCampaignsFolder,
-    private readonly actions: WelcomeActions,
-    private readonly agreement: WelcomeAgreement,
-  ) {
-    super();
-  }
+    readonly actions: WelcomeActions,
+    readonly agreement: WelcomeAgreement,
+    readonly telling: Pick<Telling, "say">,
+  ) {}
 
-  override onload(): void {
-    const root = this.contentEl;
-    root.empty();
-    root.addClass("dd-tokens", "dd-root", "dd-list-view", "dd-welcome");
-    root.createEl("h2", { cls: "dd-welcome-title", text: WELCOME_TITLE });
-    const steps = root.createEl("ol", { cls: "dd-welcome-steps" });
-    for (const step of WELCOME_STEPS) steps.createEl("li", { text: step });
-    this.endingEl = root.createDiv({ cls: "dd-welcome-ending" });
-    this.register(this.store.subscribe(() => this.showEnding()));
+  opened(view: PageView): void {
+    const steps: ViewElement[] = [];
+    for (const step of WELCOME_STEPS) steps.push(new ListItem({ text: step }));
+    view.show([
+      new Heading2({ cls: ["dd-welcome-title"], text: WELCOME_TITLE }),
+      new OrderedList({ cls: ["dd-welcome-steps"] }, steps),
+      new Div({ cls: ["dd-welcome-ending"], bindings: [new HandleRequest(this.ending)] }),
+    ]);
+    this.stop = this.store.subscribe(this.showEnding.bind(this));
     this.showEnding();
   }
 
-  showAgreement(parentEl: HTMLElement): void {
-    this.agreement.showIn(parentEl, () => this.agreementAnswered());
+  closed(): void {
+    if (this.stop !== null) this.stop();
+    this.stop = null;
   }
 
-  private agreementAnswered(): void {
+  answered(): void {
     this.showEnding();
   }
 
@@ -46,15 +53,7 @@ export class WelcomePage extends Component implements AgreementShower {
     const ending = endingFor(this.state());
     if (ending === this.shownEnding) return;
     this.shownEnding = ending;
-    this.closeEnding();
-    this.endingEl.empty();
-    this.endingPart = this.addChild(new ending(this.endingEl, this.actions, this));
-  }
-
-  private closeEnding(): void {
-    if (this.endingPart === null) return;
-    this.removeChild(this.endingPart);
-    this.endingPart = null;
+    this.ending.showInside(new ending(this).trees());
   }
 
   private state(): WelcomeState {

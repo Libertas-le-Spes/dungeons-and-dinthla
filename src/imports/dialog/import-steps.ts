@@ -7,6 +7,8 @@ import { PdfSheetReader } from "./stages/pdf-sheet-reader";
 import { PdfStage, type SheetArrival } from "./stages/pdf-stage";
 import { ReviewStage, type StagesHost } from "./stages/review-stage";
 import { PendingWork } from "../../views/pending/pending-work";
+import { StageScreen } from "./stages/stage-screen";
+import type { DialogView } from "../../views/dialogs/dialog-view";
 
 export interface StepsHost {
   runWrite(change: () => Promise<boolean>, failureWords: string): void;
@@ -23,17 +25,15 @@ export interface StepsParts {
 export class ImportSteps implements SheetArrival, OnlineArrival, StagesHost, FlowStart {
   private readonly shown = new DialogShown();
   private readonly work = new PendingWork();
+  private readonly screen = new StageScreen();
   private readonly online: OnlineStage;
   private readonly pdf: PdfStage;
   private readonly review: ReviewStage;
 
-  constructor(
-    contentEl: HTMLElement,
-    private readonly parts: StepsParts,
-  ) {
-    this.online = new OnlineStage(contentEl, { shown: this.shown, arrival: this, source: parts.online, work: this.work });
-    this.pdf = new PdfStage(contentEl, { shown: this.shown, arrival: this, reader: new PdfSheetReader(), work: this.work, online: this.online });
-    this.review = new ReviewStage(contentEl, this.shown, parts.today, this, this.work);
+  constructor(private readonly parts: StepsParts) {
+    this.online = new OnlineStage(this.screen, { shown: this.shown, arrival: this, source: parts.online, work: this.work });
+    this.pdf = new PdfStage(this.screen, { shown: this.shown, arrival: this, reader: new PdfSheetReader(), work: this.work, online: this.online });
+    this.review = new ReviewStage(this.screen, this.shown, parts.today, this, this.work);
   }
 
   written(): string | null {
@@ -44,7 +44,8 @@ export class ImportSteps implements SheetArrival, OnlineArrival, StagesHost, Flo
     return this.work.settled();
   }
 
-  start(): void {
+  start(view: DialogView): void {
+    this.screen.attach(view);
     this.parts.flow.start(this);
   }
 

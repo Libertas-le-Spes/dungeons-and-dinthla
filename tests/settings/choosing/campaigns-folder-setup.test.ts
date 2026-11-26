@@ -3,6 +3,7 @@ import { CampaignsFolderSetting } from "../../../src/settings/saved/campaigns-fo
 import { CampaignsFolderSetup } from "../../../src/settings/choosing/campaigns-folder-setup";
 import { SettingsSaver } from "../../../src/settings/saved/settings-saver";
 import { Notice } from "../../stubs/obsidian";
+import { OBSIDIAN_TELLING } from "../../../src/obsidian/views/frames/obsidian-telling";
 
 function setupWith({ chooseFails = false, makeFails = false } = {}) {
   const setting = {
@@ -23,7 +24,7 @@ function setupWith({ chooseFails = false, makeFails = false } = {}) {
   const pickFolder = vi.fn((_folders: string[], chosen: (folder: string) => void) => {
     picked = chosen;
   });
-  const setup = new CampaignsFolderSetup(setting, folders, pickFolder);
+  const setup = new CampaignsFolderSetup(setting, folders, pickFolder, OBSIDIAN_TELLING);
   return { setup, setting, folders, pickFolder, pick: (path: string) => picked(path) };
 }
 
@@ -76,11 +77,11 @@ describe("CampaignsFolderSetup", () => {
     const saver = new SettingsSaver({ campaignsFolder: null, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null, notesMadeFor: [], beyondAgreed: false, charactersBasesSwept: false }, async () => {});
     const setting = new CampaignsFolderSetting(saver, async () => {
       throw new Error("The note can't be read.");
-    }, ".obsidian");
+    }, ".obsidian", OBSIDIAN_TELLING);
     let picked: (folder: string) => void = () => {};
     const setup = new CampaignsFolderSetup(setting, { folderPaths: () => ["D&D"], make: async (typed: string) => typed }, (_folders, chosen) => {
       picked = chosen;
-    });
+    }, OBSIDIAN_TELLING);
     const chosen = vi.fn();
     setup.pick(chosen);
     picked("D&D");
@@ -94,8 +95,8 @@ describe("CampaignsFolderSetup", () => {
     const saver = new SettingsSaver({ campaignsFolder: null, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null, notesMadeFor: [], beyondAgreed: false, charactersBasesSwept: false }, async () => {});
     const setting = new CampaignsFolderSetting(saver, async () => {
       throw new Error("The note can't be read.");
-    }, ".obsidian");
-    const setup = new CampaignsFolderSetup(setting, { folderPaths: () => [], make: async (typed: string) => typed }, () => {});
+    }, ".obsidian", OBSIDIAN_TELLING);
+    const setup = new CampaignsFolderSetup(setting, { folderPaths: () => [], make: async (typed: string) => typed }, () => {}, OBSIDIAN_TELLING);
     await setup.make("D&D");
     expect(saver.settings.campaignsFolder).toBe("D&D");
     expect(Notice.shown).toEqual(["Set the Campaigns folder to D&D, but couldn't open a campaign in it: The note can't be read."]);

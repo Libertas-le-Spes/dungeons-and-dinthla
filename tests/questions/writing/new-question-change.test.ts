@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { TFile } from "obsidian";
+import { fileAt } from "../../stubs/note-files";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { Campaign, SessionNote } from "../../../src/campaign/record/campaign";
 import { WOULD_BE_HIDDEN, type EditorFiles } from "../../../src/campaign/writing/note-editor";
@@ -8,6 +8,7 @@ import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
 import { writeRecordChange } from "../../../src/campaign/changes/write-record-change";
 import { SAME_TEXT_AS_EXISTING } from "../../../src/questions/writing/current-question";
 import { newQuestion } from "../../../src/questions/writing/new-question-change";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
@@ -31,11 +32,11 @@ class FakeNotes {
 
   get vault(): EditorFiles {
     return {
-      getFileByPath: (path) => {
+      note: (path) => {
         if (!this.texts.has(path)) return null;
-        return { path } as TFile;
+        return fileAt(path);
       },
-      process: async (file, change) => {
+      change: async (file, change) => {
         this.writes += 1;
         const next = change(this.textOf(file.path));
         this.texts.set(file.path, next);
@@ -46,7 +47,7 @@ class FakeNotes {
   }
 
   get sessionNotes(): SessionNote[] {
-    return [...this.read].map(([path, text]) => sessionNoteOf(path, numberOf(path), text));
+    return [...this.read].map(([path, text]) => sessionNoteOf(path, numberOf(path), text, STUB_SYNTAX));
   }
 
   get current(): Campaign {
@@ -62,7 +63,7 @@ class FakeNotes {
 }
 
 function add(notes: FakeNotes, question: string, answer: string): Promise<boolean> {
-  return writeRecordChange(newQuestion(notes, { question, answer }, TWO), new SessionChangeWriter(notes.vault));
+  return writeRecordChange(newQuestion(notes, { question, answer }, TWO, STUB_SYNTAX), new SessionChangeWriter(notes.vault, STUB_SYNTAX));
 }
 
 describe("adding a question", () => {

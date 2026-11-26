@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { addedLinesHidden, hiddenLines } from "../../../src/notes/reading/hidden-lines";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 function hidden(lines: string[]): number[] {
-  return [...hiddenLines(lines.join("\n"))];
+  return [...hiddenLines(lines.join("\n"), STUB_SYNTAX)];
 }
 
 describe("hiddenLines", () => {
@@ -82,35 +83,35 @@ describe("hiddenLines", () => {
 
 describe("addedLinesHidden", () => {
   it("says no when the last lines sit in plain text", () => {
-    expect(addedLinesHidden("a\nb\n! Find it\n", 1)).toBe(false);
+    expect(addedLinesHidden("a\nb\n! Find it\n", 1, STUB_SYNTAX)).toBe(false);
   });
 
   it("says yes when the last line sits below a comment that never closes", () => {
-    expect(addedLinesHidden("a\n%% aside\n! Find it\n", 1)).toBe(true);
+    expect(addedLinesHidden("a\n%% aside\n! Find it\n", 1, STUB_SYNTAX)).toBe(true);
   });
 
   it("says yes when only the last of the added lines is hidden", () => {
-    expect(addedLinesHidden("a\n! Find it\n```\n", 2)).toBe(true);
+    expect(addedLinesHidden("a\n! Find it\n```\n", 2, STUB_SYNTAX)).toBe(true);
   });
 
   it("says yes when only the first of the added lines is hidden", () => {
-    expect(addedLinesHidden("a\n%% aside %%\n! Find it\n", 2)).toBe(true);
+    expect(addedLinesHidden("a\n%% aside %%\n! Find it\n", 2, STUB_SYNTAX)).toBe(true);
   });
 
   it("looks only at the added lines, not at hidden lines above them", () => {
-    expect(addedLinesHidden("%% aside %%\n! Find it\n", 1)).toBe(false);
+    expect(addedLinesHidden("%% aside %%\n! Find it\n", 1, STUB_SYNTAX)).toBe(false);
   });
 
   it("says no when nothing was added", () => {
-    expect(addedLinesHidden("a\n%% aside\n", 0)).toBe(false);
+    expect(addedLinesHidden("a\n%% aside\n", 0, STUB_SYNTAX)).toBe(false);
   });
 
   it("counts a bare $$ line that never closes as hiding the lines after it", () => {
-    expect(addedLinesHidden("$$\n! Find it\n", 1)).toBe(true);
+    expect(addedLinesHidden("$$\n! Find it\n", 1, STUB_SYNTAX)).toBe(true);
   });
 
   it("doesn't count an item line starting with $$ as hiding the line after it", () => {
-    expect(addedLinesHidden("$$ Rope :lost\n! Find it\n", 1)).toBe(false);
+    expect(addedLinesHidden("$$ Rope :lost\n! Find it\n", 1, STUB_SYNTAX)).toBe(false);
   });
 });
 

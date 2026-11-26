@@ -1,0 +1,90 @@
+.dd-has-campaign-background {
+  position: relative;
+  isolation: isolate;
+}
+
+.dd-has-campaign-background > .markdown-source-view,
+.dd-has-campaign-background > .markdown-reading-view,
+.dd-has-campaign-background .markdown-preview-view,
+.dd-has-campaign-background .cm-scroller {
+  background-color: transparent;
+}
+
+.dd-campaign-background {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--dd-campaign-picture) center / cover no-repeat;
+}
+
+.dd-campaign-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--dd-surface-page);
+}
+
+.dd-wash-subtle::after {
+  opacity: var(--dd-campaign-wash-subtle);
+}
+
+.dd-wash-balanced::after {
+  opacity: var(--dd-campaign-wash-balanced);
+}
+
+.dd-wash-strong::after {
+  opacity: var(--dd-campaign-wash-strong);
+}
+
+.dd-campaign-frame.dd-tab-picture {
+  background:
+    linear-gradient(var(--dd-tab-wash), var(--dd-tab-wash)),
+    var(--dd-campaign-picture) center / cover no-repeat,
+    var(--dd-surface-page);
+}
+
+.dd-tab-wash-subtle {
+  --dd-tab-wash: color-mix(in srgb, var(--dd-surface-page) calc(var(--dd-campaign-wash-subtle) * 100%), transparent);
+}
+
+.dd-tab-wash-balanced {
+  --dd-tab-wash: color-mix(in srgb, var(--dd-surface-page) calc(var(--dd-campaign-wash-balanced) * 100%), transparent);
+}
+
+.dd-tab-wash-strong {
+  --dd-tab-wash: color-mix(in srgb, var(--dd-surface-page) calc(var(--dd-campaign-wash-strong) * 100%), transparent);
+}
+
+.dd-tab-picture .dd-box-frame {
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--dd-radius-m);
+  background: var(--dd-surface-sunken);
+}
+
+.dd-tab-picture .dd-box-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: var(--dd-campaign-picture) center / cover no-repeat;
+  opacity: var(--dd-campaign-picture-idle);
+  filter: contrast(0.6) brightness(1.1);
+  transition: opacity var(--dd-dur-med) var(--dd-ease-out);
+}
+
+
+.dd-tab-picture .dd-box-frame:focus-within::before {
+  opacity: 0;
+}
+
+.dd-tab-picture .dd-box-frame .dd-box {
+  background: transparent;
+}
+
+.dd-tab-picture .dd-box-frame:not(:focus-within) .dd-box::placeholder {
+  opacity: 0;
+}

@@ -1,33 +1,35 @@
 import { describe, expect, it } from "vitest";
-import type { App, TFile } from "obsidian";
+import type { TFile } from "obsidian";
+import { OBSIDIAN_SHOWING } from "../../host/showing/obsidian-showing";
 import { Refusal } from "../../../src/beyond/shape/refusal";
-import { GateCast } from "../../../src/imports/leaving/cast/gate-cast";
+import { NotesCast } from "../../../src/imports/leaving/cast/notes-cast";
 import { questionFor } from "../../../src/imports/leaving/questions/question-for";
 import { NoMainQuestion } from "../../../src/imports/leaving/questions/no-main-question";
 import type { OfferWiring } from "../../../src/imports/leaving/questions/offer-wiring";
 import { MAIN_UNCLEAR } from "../../../src/imports/leaving/switching/switch-words";
 import { CAMPAIGN, CAMPAIGN_NOTE, LeavingTable, SECOND, SECOND_AS_MAIN, SECOND_TEXT, TODAY } from "./leaving-table";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 class VaultMetadata {
   constructor(private readonly table: LeavingTable) {}
 
-  getFirstLinkpathDest(linkpath: string): TFile | null {
+  target(linkpath: string): TFile | null {
     const found = this.table.vault.allNotes().find((note) => note.basename === linkpath);
     if (found === undefined) return null;
     return found;
   }
 
-  fileToLinktext(file: TFile): string {
+  linkTextTo(file: TFile): string {
     return file.basename;
   }
 }
 
 function wiringFor(table: LeavingTable): OfferWiring {
   return {
-    app: {} as App,
-    files: table.vault.gate,
-    actions: table.vault.actions,
-    cast: new GateCast(new VaultMetadata(table), table.vault.gate),
+    showing: OBSIDIAN_SHOWING,
+    files: table.vault.notes.store,
+    actions: table.vault.notes.keeping,
+    cast: new NotesCast(new VaultMetadata(table), table.vault.notes.store, STUB_SYNTAX),
     campaignFolderOf: () => CAMPAIGN,
     today: () => TODAY,
     tell: () => {},
@@ -47,7 +49,7 @@ function tableWith(line: string): LeavingTable {
 
 async function refusalOf(table: LeavingTable): Promise<string> {
   try {
-    await questionFor(wiringFor(table), table.vault.fileAt(SECOND));
+    await questionFor(wiringFor(table), table.vault.fileAt(SECOND), STUB_SYNTAX);
   } catch (error) {
     if (error instanceof Refusal) return error.message;
     throw error;
@@ -58,7 +60,7 @@ async function refusalOf(table: LeavingTable): Promise<string> {
 describe("making a character main when the old main's note was deleted", () => {
   it("asks the no-main question and, once confirmed, names the chosen one and changes nothing else", async () => {
     const table = tableWith('character: "[[Gone]]"');
-    const question = await questionFor(wiringFor(table), table.vault.fileAt(SECOND));
+    const question = await questionFor(wiringFor(table), table.vault.fileAt(SECOND), STUB_SYNTAX);
     expect(question).toBeInstanceOf(NoMainQuestion);
     const choice = question?.choices[0];
     if (choice === undefined) throw new Error("No choice was offered.");

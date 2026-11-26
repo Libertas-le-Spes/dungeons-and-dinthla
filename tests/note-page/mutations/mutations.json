@@ -9,7 +9,7 @@
  {
   "id": "no list on a note that is not a place",
   "file": "src/note-page/note-page.ts",
-  "find": "    if (campaignOfReference(placeReferenceKind, this.path, notes.campaignFolders()) === null) return;\n",
+  "find": "    if (campaignOfReference(placeReferenceKind, this.path, notes.campaignFolders()) === null) return null;\n",
   "replace": "",
   "group": "note page"
  },
@@ -23,22 +23,22 @@
  {
   "id": "no list without a file",
   "file": "src/note-page/note-page.ts",
-  "find": "    if (file === null) return;\n    const mentions",
-  "replace": "    const mentions",
+  "find": "    if (file !== null) trees.push(new Section({ cls: [\"dd-note-mentions\"]",
+  "replace": "    trees.push(new Section({ cls: [\"dd-note-mentions\"]",
   "group": "note page"
  },
  {
   "id": "stop watching when closed",
   "file": "src/note-page/note-page.ts",
-  "find": "    this.register(mentions.watch());\n",
-  "replace": "",
+  "find": "this.stops.push(mentions.watch(), mentions.clear.bind(mentions));",
+  "replace": "this.stops.push(mentions.clear.bind(mentions));",
   "group": "note page"
  },
  {
   "id": "stop drawing when closed",
   "file": "src/note-page/note-page.ts",
-  "find": "    this.register(() => mentions.clear());\n",
-  "replace": "",
+  "find": "this.stops.push(mentions.watch(), mentions.clear.bind(mentions));",
+  "replace": "this.stops.push(mentions.watch());",
   "group": "note page"
  },
  {
@@ -51,7 +51,7 @@
  {
   "id": "draw the list on the page",
   "file": "src/note-page/note-page.ts",
-  "find": "    mentions.draw(root.createEl(\"section\", { cls: \"dd-note-mentions\" }), file);",
+  "find": "    mentions.draw(place, file);",
   "replace": "",
   "group": "note page"
  },

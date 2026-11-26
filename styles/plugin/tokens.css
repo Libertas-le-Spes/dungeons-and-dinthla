@@ -1,0 +1,31 @@
+.dd-tokens {
+  --dd-touch-min: 44px;
+  --dd-touch-comfy: 48px;
+  --dd-control-sm: 32px;
+  --dd-control-md: 44px;
+  --dd-control-lg: 52px;
+  --dd-bar-height: 60px;
+  --dd-sheet-column: 360px;
+  --dd-content-max: 760px;
+  --dd-radius-pill: 999px;
+  --dd-rule-width: 2px;
+  --dd-campaign-wash-subtle: 0.9;
+  --dd-campaign-wash-balanced: 0.8;
+  --dd-campaign-wash-strong: 0.65;
+  --dd-campaign-picture-idle: 0.2;
+  --dd-focus-ring: 0 0 0 2px var(--dd-surface-page), 0 0 0 4px var(--dd-border-focus);
+  --dd-ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dd-ease-in-out: cubic-bezier(0.45, 0, 0.25, 1);
+  --dd-dur-fast: 120ms;
+  --dd-dur-med: 200ms;
+  --dd-dur-slow: 320ms;
+  --dd-tracking-caps: 0.06em;
+  --dd-tracking-label: 0.04em;
+  --dd-type-page-title: var(--dd-font-bold) var(--dd-h1-size) / var(--dd-line-height-tight) var(--dd-font-text);
+  --dd-type-section: var(--dd-font-bold) var(--dd-h3-size) / var(--dd-line-height-tight) var(--dd-font-text);
+  --dd-type-panel-title: var(--dd-font-medium) var(--dd-font-ui-small) / var(--dd-line-height-tight) var(--dd-font-text);
+  --dd-type-body: var(--dd-font-normal) var(--dd-font-ui-medium) / var(--dd-line-height-normal) var(--dd-font-interface);
+  --dd-type-label: var(--dd-font-medium) var(--dd-font-ui-smaller) / var(--dd-line-height-tight) var(--dd-font-interface);
+  --dd-type-score: var(--dd-font-bold) var(--dd-h2-size) / 1 var(--dd-font-text);
+  --dd-type-note: var(--dd-font-normal) var(--dd-font-ui-small) / var(--dd-line-height-normal) var(--dd-font-monospace);
+}

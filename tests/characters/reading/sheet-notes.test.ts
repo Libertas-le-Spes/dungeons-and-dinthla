@@ -1,45 +1,67 @@
-import { describe, expect, it } from "vitest";
-import type { CachedMetadata, TFile } from "obsidian";
-import type { Gate } from "../../../src/fence/gate/gatekeeper";
-import { carriedGroupsOf, sheetNotesOf } from "../../../src/characters/reading/sheet-notes";
+import { describe, expect, it, vi } from "vitest";
+import { carriedGroupsOf, HostSheetNotes } from "../../../src/characters/reading/sheet-notes";
+import type { NoteRef } from "../../../src/host/notes/note-ref";
+import { fileAt } from "../../stubs/note-files";
 
-const MIRA = { path: "Pale Moon/Characters/Mira.md", basename: "Mira" } as TFile;
+const MIRA = fileAt("Pale Moon/Characters/Mira.md");
 const OLD_MIRA = "Ashen Road/Characters/Mira.md";
 
 const NO_CAMPAIGNS = () => [];
 
-const vaultEvents = new Map<string, (...args: unknown[]) => void>();
-const vaultEventsStopped: unknown[] = [];
-
-function gateWith(cache: CachedMetadata | null, notes: string[] = [OLD_MIRA, MIRA.path]) {
-  return {
-    files: {
-      on: (name: string, callback: (...args: unknown[]) => void) => {
-        vaultEvents.set(name, callback);
-        return { name };
-      },
-      offref: (event: unknown) => vaultEventsStopped.push(event),
-      getFileByPath: (path: string) => {
-        if (!notes.includes(path)) return null;
-        return { path } as TFile;
-      },
-    },
-    metadata: {
-      getFileCache: () => cache,
-      getFirstLinkpathDest: (linktext: string) => {
-        const path = notes.find((note) => note === `${linktext}.md`);
-        if (path === undefined) return null;
-        return { path } as TFile;
-      },
-    },
-  } as unknown as Gate;
+interface Held {
+  properties: Record<string, unknown> | null;
+  links: { key: string; linkText: string }[];
 }
 
-function carriedFrom(link: string, carried?: unknown): CachedMetadata {
-  return {
-    frontmatterLinks: [{ key: "carried from", link, original: `[[${link}]]`, displayText: link }],
-    frontmatter: { "carried from": `[[${link}]]`, carried },
+const NOTHING_HELD: Held = { properties: null, links: [] };
+
+function hostWith(held: Held, notes: string[] = [OLD_MIRA, MIRA.path]) {
+  const heardGone: ((path: string) => void)[] = [];
+  const heardMoved: ((note: NoteRef, oldPath: string) => void)[] = [];
+  const stopGone = vi.fn();
+  const stopMoved = vi.fn();
+  const host = {
+    store: {
+      note: (path: string) => {
+        if (path === MIRA.path) return MIRA;
+        if (!notes.includes(path)) return null;
+        return fileAt(path);
+      },
+      notes: () => [],
+      readKept: async () => "",
+    },
+    facts: {
+      propertiesOf: () => held.properties,
+      propertyLinksIn: () => held.links,
+    },
+    links: {
+      target: (linkText: string) => {
+        const path = notes.find((note) => note === `${linkText}.md`);
+        if (path === undefined) return null;
+        return fileAt(path);
+      },
+    },
+    changes: {
+      onRead: () => vi.fn(),
+      onGone: (heard: (path: string) => void) => {
+        heardGone.push(heard);
+        return stopGone;
+      },
+      onMoved: (heard: (note: NoteRef, oldPath: string) => void) => {
+        heardMoved.push(heard);
+        return stopMoved;
+      },
+    },
   };
+  return { host, heardGone, heardMoved, stopGone, stopMoved };
+}
+
+function notesOver(held: Held, notes?: string[]) {
+  return new HostSheetNotes({ notes: hostWith(held, notes).host, campaignFolders: NO_CAMPAIGNS, sessionsOf: async () => [] });
+}
+
+function carriedFrom(linkText: string, carried?: unknown): Held {
+  return { links: [{ key: "carried from", linkText }], properties: { "carried from": `[[${linkText}]]`, carried } };
 }
 
 describe("carriedGroupsOf", () => {
@@ -57,53 +79,63 @@ describe("carriedGroupsOf", () => {
   });
 });
 
-describe("sheetNotesOf", () => {
+describe("HostSheetNotes", () => {
   it("finds the note a character was carried from, with the groups listed", () => {
-    const notes = sheetNotesOf(gateWith(carriedFrom("Ashen Road/Characters/Mira", ["abilities"])), NO_CAMPAIGNS);
-    expect(notes.carriedFromOf(MIRA)).toEqual({ path: OLD_MIRA, groups: ["abilities"] });
+    expect(notesOver(carriedFrom("Ashen Road/Characters/Mira", ["abilities"])).carriedFromOf(MIRA)).toEqual({ path: OLD_MIRA, groups: ["abilities"] });
   });
 
   it("carries no group when the carried property is missing", () => {
-    const notes = sheetNotesOf(gateWith(carriedFrom("Ashen Road/Characters/Mira")), NO_CAMPAIGNS);
-    expect(notes.carriedFromOf(MIRA)).toEqual({ path: OLD_MIRA, groups: [] });
+    expect(notesOver(carriedFrom("Ashen Road/Characters/Mira")).carriedFromOf(MIRA)).toEqual({ path: OLD_MIRA, groups: [] });
+  });
+
+  it("finds nothing for a note not read yet, even with a carried from link", () => {
+    const links = carriedFrom("Ashen Road/Characters/Mira").links;
+    expect(notesOver({ properties: null, links }).carriedFromOf(MIRA)).toBeNull();
   });
 
   it("finds nothing without a carried from link", () => {
-    expect(sheetNotesOf(gateWith(null), NO_CAMPAIGNS).carriedFromOf(MIRA)).toBeNull();
-    expect(sheetNotesOf(gateWith({}), NO_CAMPAIGNS).carriedFromOf(MIRA)).toBeNull();
+    expect(notesOver({ properties: {}, links: [] }).carriedFromOf(MIRA)).toBeNull();
   });
 
   it("ignores links in other properties", () => {
-    const cache = { frontmatterLinks: [{ key: "patron", link: "Ashen Road/Characters/Mira", original: "", displayText: "" }] };
-    expect(sheetNotesOf(gateWith(cache), NO_CAMPAIGNS).carriedFromOf(MIRA)).toBeNull();
+    expect(notesOver({ properties: {}, links: [{ key: "patron", linkText: "Ashen Road/Characters/Mira" }] }).carriedFromOf(MIRA)).toBeNull();
   });
 
-  it("carries no group when the note's properties can't be read", () => {
-    const cache = { frontmatterLinks: carriedFrom("Ashen Road/Characters/Mira").frontmatterLinks };
-    expect(sheetNotesOf(gateWith(cache), NO_CAMPAIGNS).carriedFromOf(MIRA)).toEqual({ path: OLD_MIRA, groups: [] });
+  it("carries no group when the note holds no properties beyond the link", () => {
+    const links = carriedFrom("Ashen Road/Characters/Mira").links;
+    expect(notesOver({ properties: {}, links }).carriedFromOf(MIRA)).toEqual({ path: OLD_MIRA, groups: [] });
   });
 
   it("ignores a carried from link to no note", () => {
-    expect(sheetNotesOf(gateWith(carriedFrom("Nowhere/Mira")), NO_CAMPAIGNS).carriedFromOf(MIRA)).toBeNull();
+    expect(notesOver(carriedFrom("Nowhere/Mira")).carriedFromOf(MIRA)).toBeNull();
   });
 
   it("ignores a carried from link back to the character's own note", () => {
-    expect(sheetNotesOf(gateWith(carriedFrom("Pale Moon/Characters/Mira", ["values"])), NO_CAMPAIGNS).carriedFromOf(MIRA)).toBeNull();
+    expect(notesOver(carriedFrom("Pale Moon/Characters/Mira", ["values"])).carriedFromOf(MIRA)).toBeNull();
+  });
+
+  it("reads no stand-in for the character's note, though it shares the note's path", () => {
+    expect(() => notesOver(carriedFrom("Ashen Road/Characters/Mira")).carriedFromOf(fileAt(MIRA.path))).toThrow("Couldn't use Pale Moon/Characters/Mira.md");
   });
 
   it("finds a note by its path", () => {
-    expect(sheetNotesOf(gateWith(null), NO_CAMPAIGNS).fileAt(OLD_MIRA)).toEqual({ path: OLD_MIRA });
+    expect(notesOver(NOTHING_HELD).fileAt(OLD_MIRA)?.path).toBe(OLD_MIRA);
+    expect(notesOver(NOTHING_HELD).fileAt("Nowhere/Mira.md")).toBeNull();
   });
 });
 
 describe("onNoteMoved", () => {
-  it("tells of a deleted note, and of both paths of a renamed one, until stopped", () => {
+  it("tells of a gone note, and of both paths of a moved one, and stops both", () => {
+    const { host, heardGone, heardMoved, stopGone, stopMoved } = hostWith(NOTHING_HELD);
     const moved: string[] = [];
-    const stop = sheetNotesOf(gateWith(null), NO_CAMPAIGNS).onNoteMoved((path) => moved.push(path));
-    vaultEvents.get("delete")!({ path: "Pale Moon/Sessions/Session 2.md" });
-    vaultEvents.get("rename")!({ path: "Pale Moon/Sessions/Session 4.md" }, "Pale Moon/Sessions/Session 3.md");
+    const notes = new HostSheetNotes({ notes: host, campaignFolders: NO_CAMPAIGNS, sessionsOf: async () => [] });
+    const stop = notes.onNoteMoved((path) => moved.push(path));
+    heardGone[0]!("Pale Moon/Sessions/Session 2.md");
+    heardMoved[0]!(fileAt("Pale Moon/Sessions/Session 4.md"), "Pale Moon/Sessions/Session 3.md");
     expect(moved).toEqual(["Pale Moon/Sessions/Session 2.md", "Pale Moon/Sessions/Session 3.md", "Pale Moon/Sessions/Session 4.md"]);
+    expect(stopGone).not.toHaveBeenCalled();
     stop();
-    expect(vaultEventsStopped).toEqual([{ name: "delete" }, { name: "rename" }]);
+    expect(stopGone).toHaveBeenCalledOnce();
+    expect(stopMoved).toHaveBeenCalledOnce();
   });
 });

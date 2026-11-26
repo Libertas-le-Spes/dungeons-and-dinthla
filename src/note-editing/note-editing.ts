@@ -4,6 +4,7 @@ import { NoteBox } from "./note-box";
 import type { NoteDraft, NoteDrafts } from "./note-drafts";
 import { NoteChangedSince, type NoteSaver } from "./note-saver";
 import { PendingWork } from "../views/pending/pending-work";
+import type { ViewElement } from "../views/elements/view-element";
 
 export const NOTE_GONE_HERE = "This note was deleted, so nothing can be saved to it. What you typed is still in the box.";
 export const CHANGED_ELSEWHERE =
@@ -29,23 +30,30 @@ function notReadMessage(error: unknown): string {
 
 export class NoteEditing {
   private readonly box: NoteBox;
-  private readonly stops: (() => void)[];
+  private readonly stops: (() => void)[] = [];
   private readonly work = new PendingWork();
   private base: string | null = null;
   private open = true;
 
   constructor(
-    parent: HTMLElement,
     private readonly path: string,
     private readonly needs: NoteEditingNeeds,
     private readonly watcher: EditingWatcher,
   ) {
-    this.box = new NoteBox(parent, {
+    this.box = new NoteBox({
       save: () => this.work.add(this.save()),
       typed: () => this.typed(),
       reload: () => this.work.add(this.reload()),
     });
-    this.stops = this.watch();
+  }
+
+  trees(): ViewElement[] {
+    return this.box.trees();
+  }
+
+  start(): void {
+    this.box.shown();
+    this.stops.push(...this.watch());
     this.work.add(this.loadNote());
   }
 

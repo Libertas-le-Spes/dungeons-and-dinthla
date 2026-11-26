@@ -5,6 +5,7 @@ import { importedNoteText } from "../../../src/imports/note/writing/rewriting/im
 import { monkSheet, sheetWithCharacter, TODAY , stampedOn } from "../../imports/builders/made-up-import";
 import { CleanLine } from "../../../src/beyond/text/clean-line";
 import { textOf } from "../../imports/builders/line-helpers";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const PATH = "D&D/Primary Campaign/Characters/Primary Monk.md";
 
@@ -23,7 +24,7 @@ function namesOf(facts: readonly SourcedFact[]): string[] {
 
 describe("the values an import wrote into a note", () => {
   it("are read from the properties of a note the import wrote", () => {
-    const facts = importedFactsOf(importedNoteText({ current: "", sheet: monkSheet(), stamp: stampedOn(TODAY) }), PATH);
+    const facts = importedFactsOf(importedNoteText({ current: "", sheet: monkSheet(), stamp: stampedOn(TODAY) }, STUB_SYNTAX), PATH, STUB_SYNTAX);
     expect(namesOf(facts)).toContain("AC");
     expect(namesOf(facts)).toContain("STR");
     expect(factNamed(facts, "class")).toMatchObject({ value: "Monk 4" });
@@ -31,33 +32,33 @@ describe("the values an import wrote into a note", () => {
   });
 
   it("are none when the note has no imported-from property", () => {
-    expect(importedFactsOf(textOf("---", "AC: 15", "STR: 12", "---", "Notes."), PATH)).toEqual([]);
+    expect(importedFactsOf(textOf("---", "AC: 15", "STR: 12", "---", "Notes."), PATH, STUB_SYNTAX)).toEqual([]);
   });
 
   it("name the line each comes from", () => {
-    const facts = importedFactsOf(textOf("---", "imported-from: pdf", "AC: 15", "---", ""), PATH);
+    const facts = importedFactsOf(textOf("---", "imported-from: pdf", "AC: 15", "---", ""), PATH, STUB_SYNTAX);
     expect(factNamed(facts, "AC").source).toEqual({ path: PATH, line: 2 });
   });
 
   it("take only the import's exact property names, quoted or not", () => {
-    const facts = importedFactsOf(textOf("---", "imported-from: pdf", '"AC": 15', "ac: 9", "Speed: 40", "notes: kept", "---", ""), PATH);
+    const facts = importedFactsOf(textOf("---", "imported-from: pdf", '"AC": 15', "ac: 9", "Speed: 40", "notes: kept", "---", ""), PATH, STUB_SYNTAX);
     expect(namesOf(facts)).toEqual(["AC"]);
   });
 
   it("take the quotes and the escapes off a text value, giving back what the import was given", () => {
     const species = 'Sword_dancer [one] "Two" \\ back';
     const sheet = sheetWithCharacter(monkSheet(), { species: CleanLine.of(species) });
-    const written = importedNoteText({ current: "", sheet: sheet, stamp: stampedOn(TODAY) });
+    const written = importedNoteText({ current: "", sheet: sheet, stamp: stampedOn(TODAY) }, STUB_SYNTAX);
     expect(written).not.toContain(`species: "${species}"`);
-    expect(factNamed(importedFactsOf(written, PATH), "species").value).toBe(species);
+    expect(factNamed(importedFactsOf(written, PATH, STUB_SYNTAX), "species").value).toBe(species);
   });
 
   it("leave out a property with no value", () => {
-    expect(importedFactsOf(textOf("---", "imported-from: pdf", "AC:", "---", ""), PATH)).toEqual([]);
+    expect(importedFactsOf(textOf("---", "imported-from: pdf", "AC:", "---", ""), PATH, STUB_SYNTAX)).toEqual([]);
   });
 
   it("are read from a note whatever route the import took", () => {
-    expect(namesOf(importedFactsOf(textOf("---", "imported-from: online", "AC: 15", "---", ""), PATH))).toEqual(["AC"]);
-    expect(namesOf(importedFactsOf(textOf("---", "imported-from: elsewhere", "AC: 15", "---", ""), PATH))).toEqual(["AC"]);
+    expect(namesOf(importedFactsOf(textOf("---", "imported-from: online", "AC: 15", "---", ""), PATH, STUB_SYNTAX))).toEqual(["AC"]);
+    expect(namesOf(importedFactsOf(textOf("---", "imported-from: elsewhere", "AC: 15", "---", ""), PATH, STUB_SYNTAX))).toEqual(["AC"]);
   });
 });

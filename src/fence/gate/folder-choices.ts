@@ -1,3 +1,4 @@
+import { OBSIDIAN_SPELLING } from "../../obsidian/notes/obsidian-spelling";
 import type { TFolder, Vault } from "obsidian";
 import { isInConfigFolder, newCampaignsFolderPathOf, NOT_THE_CONFIG_FOLDER, refusalForCampaignsFolder } from "../paths/campaigns-folder-path";
 
@@ -18,7 +19,7 @@ export class FolderChoices {
   }
 
   async make(typed: string): Promise<string> {
-    const path = newCampaignsFolderPathOf(typed);
+    const path = newCampaignsFolderPathOf(typed, OBSIDIAN_SPELLING);
     if (this.isInConfigFolder(path)) throw new Error(NOT_THE_CONFIG_FOLDER);
     if (this.vault.getFolderByPath(path) !== null) return path;
     if (this.vault.getAbstractFileByPath(path) !== null) throw new Error(A_FILE_HAS_THAT_NAME);

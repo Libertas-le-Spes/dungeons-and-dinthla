@@ -32,7 +32,7 @@ function backfillWith(sessions: SessionNote[], alreadyMade: string[] = [], makes
   const made = { hasMadeFor: (folder: string) => alreadyMade.includes(folder), markMadeFor: vi.fn(async (folder: string) => void marked.push(folder)) };
   const say = vi.fn();
   const items = { makeMissing: vi.fn(async () => ({ made: itemsMade, failed: itemsFailed })) };
-  const files = { getFileByPath: (path: string) => fileAt(path) };
+  const files = { note: (path: string) => fileAt(path) };
   const backfill = new KindNoteBackfill({ store, files, keeper: { makeIfMissing }, items, made, say });
   return { backfill, calls, marked, say, made, makeIfMissing, items, store, hooks, mostInside: () => mostInside };
 }

@@ -4,8 +4,11 @@ import type { Campaign, SessionNote } from "../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../src/campaign/reading/campaign-store";
 import { noteNameOf } from "../../src/campaign/paths/note-name";
 import { sessionNoteOf } from "../../src/campaign/paths/session-file";
-import type { Gate } from "../../src/fence/gate/gatekeeper";
+import type { GateWithNotes } from "../host/gate-with-notes";
+import { notesOverFakes } from "../host/notes-over-fakes";
 import { openedModals } from "../stubs/obsidian";
+import { STUB_SYNTAX } from "../host/stub-syntax";
+import { ModalFrame } from "../../src/obsidian/views/frames/modal-frame";
 
 function numberOf(path: string): number {
   const found = /(\d+)\.md$/.exec(path);
@@ -16,6 +19,7 @@ function numberOf(path: string): number {
 export class DialogCampaign {
   readonly texts: Map<string, string>;
   writes = 0;
+  readonly linksAsked: { linkpath: string; sourcePath: string }[] = [];
   private files = new Map<string, TFile>();
   private readonly characterPaths: string[] = [];
   read: Map<string, string>;
@@ -26,13 +30,13 @@ export class DialogCampaign {
     this.read = new Map(this.texts);
   }
 
-  get gate(): Gate {
+  get gate(): GateWithNotes {
     const fileOf = (path: string) => this.fileAt(path);
     const files = {
       getFiles: () => [...this.texts.keys()].map(fileOf),
       getMarkdownFiles: () => [...this.texts.keys()].map(fileOf),
       getFileByPath: (path: string) => {
-        if (!this.texts.has(path)) return null;
+        if (!this.texts.has(path) && !this.characterPaths.includes(path)) return null;
         return this.fileAt(path);
       },
       process: async (file: TFile, change: (text: string) => string) => {
@@ -45,9 +49,12 @@ export class DialogCampaign {
     };
     const metadata = {
       fileToLinktext: (file: TFile) => file.basename,
-      getFirstLinkpathDest: (linkpath: string) => this.linkDestination(linkpath),
+      getFirstLinkpathDest: (linkpath: string, sourcePath: string) => {
+        this.linksAsked.push({ linkpath, sourcePath });
+        return this.linkDestination(linkpath);
+      },
     };
-    return { files, metadata } as unknown as Gate;
+    return { files, metadata, notes: notesOverFakes({ files, metadata }) } as unknown as GateWithNotes;
   }
 
   get store(): CampaignStore {
@@ -64,7 +71,7 @@ export class DialogCampaign {
   }
 
   get sessionNotes(): SessionNote[] {
-    return [...this.read].map(([path, text]) => sessionNoteOf(path, numberOf(path), text));
+    return [...this.read].map(([path, text]) => sessionNoteOf(path, numberOf(path), text, STUB_SYNTAX));
   }
 
   get current(): Campaign {
@@ -90,6 +97,11 @@ export class DialogCampaign {
     file.path = to;
     this.files.set(to, file);
     this.texts.set(to, text);
+  }
+
+  holdCharacterNote(file: TFile): void {
+    this.characterPaths.push(file.path);
+    this.files.set(file.path, file);
   }
 
   addCharacterNote(path: string): TFile {
@@ -126,8 +138,16 @@ export class DialogCampaign {
   }
 }
 
+export function lastFrame(): ModalFrame {
+  const modal = openedModals[openedModals.length - 1];
+  if (!(modal instanceof ModalFrame)) throw new Error("The last dialog isn't in a modal frame.");
+  return modal;
+}
+
 export function lastDialog<T>(): T {
-  return openedModals[openedModals.length - 1] as unknown as T;
+  const modal = openedModals[openedModals.length - 1];
+  if (modal instanceof ModalFrame) return modal.dialog as unknown as T;
+  return modal as unknown as T;
 }
 
 const SESSION_TWO = "Pale Moon/Sessions/Session 2.md";

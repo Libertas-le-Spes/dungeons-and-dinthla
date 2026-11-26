@@ -4,6 +4,7 @@ import type { SessionNote } from "../../../src/campaign/record/campaign";
 import { LinesList } from "../../../src/session-notes/lines/lines-list";
 import { writtenLinesOf } from "../../../src/session-notes/lines/written-lines";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { mountTree } from "../../../src/obsidian/views/mount/mount-tree";
 import { stubLineOpeners } from "./stub-line-openers";
 
 const PATH = "Pale Moon/Sessions/Session 12.md";
@@ -14,9 +15,11 @@ function sessionOf(lines: string[]): SessionNote {
 
 function drawn(lines: string[]) {
   const root = obsidianDocument().createElement("div");
+  root.ownerDocument.body.append(root);
   const actions = { openRow: vi.fn(), openLink: vi.fn() };
   const openers = stubLineOpeners();
-  const list = new LinesList(root, { actions, openers });
+  const list = new LinesList({ actions, openers });
+  mountTree(list.tree([]), root);
   const session = sessionOf(lines);
   list.show(writtenLinesOf(session), buildCampaign([session]));
   return { root, actions, openers, list };

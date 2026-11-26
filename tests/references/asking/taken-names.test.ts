@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { CachedMetadata } from "obsidian";
 import { takenNamesOf } from "../../../src/references/asking/taken-names";
 import { fileAt } from "../../stubs/note-files";
 
@@ -9,15 +8,17 @@ const OTHER = "D&D/Other Moon";
 function takenFrom({ paths, frontmatter }: { paths: string[]; frontmatter: Record<string, Record<string, unknown> | null> }): string[] {
   const all = paths.map((path) => fileAt(path));
   const needs = {
-    files: {
-      markdownFilesUnder: (folder: string) => all.filter((file) => file.path.startsWith(`${folder}/`)),
-      getMarkdownFiles: () => all,
-    },
-    metadata: {
-      getFileCache: (file: { path: string }): CachedMetadata | null => {
-        const found = frontmatter[file.path];
-        if (found === undefined || found === null) return null;
-        return { frontmatter: found } as CachedMetadata;
+    notes: {
+      store: {
+        notesUnder: (folder: string) => all.filter((file) => file.path.startsWith(`${folder}/`)),
+        notes: () => all,
+      },
+      facts: {
+        propertiesOf: (file: { path: string }) => {
+          const found = frontmatter[file.path];
+          if (found === undefined) return null;
+          return found;
+        },
       },
     },
     campaignFolders: () => [CAMPAIGN, OTHER],

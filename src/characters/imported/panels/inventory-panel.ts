@@ -1,14 +1,16 @@
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../../host/notes/note-ref";
 import { INVENTORY_SECTION } from "../../../imports/layout/plugin-sections";
-import { addActionButton } from "../drawing/action-button";
+import { ActionButton } from "../../../views/components/buttons/action-button";
+import { List, Paragraph, Span } from "../../../views/elements/kinds/containers";
+import type { ViewElement } from "../../../views/elements/view-element";
 import { isImporterWritten } from "../lists/importer-written";
 import type { ImportedLists } from "../lists/imported-lists";
 import { inventoryEntryOf, type InventoryEntry } from "../lists/inventory-entry";
 import type { SectionEntries } from "../lists/section-entries";
 import type { FundsLook, ItemTracking } from "../tracking/item-tracking";
 import { TrackRun } from "../tracking/tracking-runs";
-import { addHeldButNotImported } from "./held-not-imported";
-import { addLeftOut, addNothingCameIn, addPanelLine, addPanelSection } from "./panel-parts";
+import { heldButNotImported } from "./held-not-imported";
+import { leftOut, nothingCameIn, panelLine, panelSection } from "./panel-parts";
 import type { SheetPanel } from "./sheet-panel";
 
 export const TRACK_ON_FUNDS = "Track on the funds page";
@@ -22,42 +24,42 @@ function writtenOf(entries: readonly InventoryEntry[]): string[] {
 
 export class InventoryPanel implements SheetPanel {
   constructor(
-    private readonly file: TFile,
+    private readonly file: NoteRef,
     private readonly tracking: ItemTracking,
   ) {}
 
-  addTo(root: HTMLElement, lists: ImportedLists): void {
+  treeOf(lists: ImportedLists): ViewElement {
     const listed = lists.of(INVENTORY_SECTION);
     const entries: InventoryEntry[] = [];
     for (const text of listed.entries) entries.push(inventoryEntryOf(text));
     const look = this.tracking.lookAt(this.file, writtenOf(entries));
-    const panel = addPanelSection(root, "Inventory", entries.length);
-    const list = panel.createEl("ul", { cls: "dd-list" });
-    for (const entry of entries) this.addEntry(list, entry, look);
-    addNothingCameIn(panel, listed);
-    addLeftOut(panel, listed);
-    if (look === null) this.addWhyNotTracked(panel, entries);
-    else this.addHeldButNotImported(panel, listed, look);
+    const lines: ViewElement[] = [];
+    for (const entry of entries) lines.push(this.entryOf(entry, look));
+    const inside = [new List({ cls: ["dd-list"] }, lines), ...nothingCameIn(listed), ...leftOut(listed)];
+    if (look === null) inside.push(...this.whyNotTracked(entries));
+    else inside.push(...this.heldButNotImported(listed, look));
+    return panelSection("Inventory", entries.length, inside);
   }
 
-  private addWhyNotTracked(panel: HTMLElement, entries: readonly InventoryEntry[]): void {
-    if (entries.length === 0) return;
-    panel.createEl("p", { cls: "dd-note", text: this.tracking.whyNotTracked(this.file) });
+  private whyNotTracked(entries: readonly InventoryEntry[]): ViewElement[] {
+    if (entries.length === 0) return [];
+    return [new Paragraph({ cls: ["dd-note"], text: this.tracking.whyNotTracked(this.file) })];
   }
 
-  private addHeldButNotImported(panel: HTMLElement, listed: SectionEntries, look: FundsLook): void {
-    if (!listed.present) return;
-    addHeldButNotImported(panel, this.file, look.heldButNotImported(), listed.leftOut, this.tracking);
+  private heldButNotImported(listed: SectionEntries, look: FundsLook): ViewElement[] {
+    if (!listed.present) return [];
+    return heldButNotImported(this.file, look.heldButNotImported(), listed.leftOut, this.tracking);
   }
 
-  private addEntry(list: HTMLElement, entry: InventoryEntry, look: FundsLook | null): void {
-    const line = addPanelLine(list, entry.name);
-    if (entry.count !== null) line.createSpan({ cls: "dd-meta", text: `× ${entry.count}` });
-    if (look === null) return;
+  private entryOf(entry: InventoryEntry, look: FundsLook | null): ViewElement {
+    const after: ViewElement[] = [];
+    if (entry.count !== null) after.push(new Span({ cls: ["dd-meta"], text: `× ${entry.count}` }));
+    if (look === null) return panelLine(entry.name, after);
     const standing = look.standingOf(entry.written);
-    if (standing !== null) line.createSpan({ cls: "dd-meta dd-panel-standing", text: standing });
+    if (standing !== null) after.push(new Span({ cls: ["dd-meta", "dd-panel-standing"], text: standing }));
     if (look.canTrack(entry.written) && isImporterWritten(entry.written)) {
-      addActionButton(line, TRACK_ON_FUNDS, PANEL_ACTION_CLASSES, new TrackRun(this.file, entry, this.tracking));
+      after.push(new ActionButton(TRACK_ON_FUNDS, PANEL_ACTION_CLASSES, new TrackRun(this.file, entry, this.tracking)).build());
     }
+    return panelLine(entry.name, after);
   }
 }

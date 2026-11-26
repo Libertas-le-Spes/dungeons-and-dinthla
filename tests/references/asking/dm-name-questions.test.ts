@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import { notesOverFakes } from "../../host/notes-over-fakes";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 import type { CachedMetadata, TFile } from "obsidian";
 import { DmNameQuestions } from "../../../src/references/asking/dm-name-questions";
 import { FakeCampaign } from "../../kind-notes/fake-campaign";
@@ -42,7 +44,12 @@ function worldNamingMill(): World {
 }
 
 function madeNotes(world: World): TFile[] {
-  return world.notes.created.map((path) => fileAt(path));
+  const made: TFile[] = [];
+  for (const path of world.notes.created) {
+    const file = world.notes.files.getFileByPath(path);
+    if (file !== null) made.push(file);
+  }
+  return made;
 }
 
 function startWith(world: World) {
@@ -66,8 +73,14 @@ function startWith(world: World) {
     offref,
   };
   const everything = () => [...world.existing, ...madeNotes(world)];
+  const listedOrKnown = (path: string): TFile | null => {
+    const listed = everything().find((file) => file.path === path);
+    if (listed !== undefined) return listed;
+    return world.notes.files.getFileByPath(path);
+  };
   const files = {
     ...world.notes.files,
+    getFileByPath: vi.fn(listedOrKnown),
     markdownFilesUnder: vi.fn((folder: string) => everything().filter((file) => file.path.startsWith(`${folder}/`))),
     getMarkdownFiles: vi.fn(everything),
   };
@@ -77,9 +90,8 @@ function startWith(world: World) {
   };
   const questions = new DmNameQuestions({
     store: world.campaign,
-    files,
-    metadata,
-    actions: world.notes.actions,
+    notes: notesOverFakes({ files, metadata, actions: world.notes.actions }),
+    syntax: STUB_SYNTAX,
     campaignFolders: () => [CAMPAIGN, OTHER_CAMPAIGN],
     say: (message) => world.notes.said.push(message),
     askNewNames,

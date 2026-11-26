@@ -1,0 +1,309 @@
+.dd-sheet {
+  max-width: var(--dd-content-max);
+  margin: 0 auto;
+}
+
+.dd-sheet .dd-sheet-name {
+  margin: 0;
+  font: var(--dd-type-page-title);
+  color: var(--dd-text-strong);
+}
+
+.dd-sheet .dd-sheet-subtitle {
+  margin: 0 0 var(--dd-size-4-2);
+  font: var(--dd-font-medium) var(--dd-h4-size) / var(--dd-line-height-tight) var(--dd-font-text);
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-sheet .dd-sheet-abilities {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--dd-size-4-2);
+  margin-top: var(--dd-size-4-4);
+}
+
+.dd-sheet .dd-sheet-ability {
+  padding: var(--dd-size-4-2) var(--dd-size-4-1) var(--dd-size-4-3);
+  border-radius: var(--dd-radius-m);
+  background: var(--dd-surface-sunken);
+  box-shadow: var(--dd-input-shadow);
+  text-align: center;
+}
+
+.dd-sheet .dd-sheet-ability b {
+  display: block;
+  font: var(--dd-font-bold) var(--dd-font-ui-smaller) / var(--dd-line-height-tight) var(--dd-font-text);
+  letter-spacing: var(--dd-tracking-caps);
+  color: var(--dd-statblock-heading);
+}
+
+.dd-sheet .dd-sheet-rows {
+  margin: var(--dd-size-4-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dd-sheet .dd-sheet-row {
+  display: flex;
+  gap: var(--dd-size-4-3);
+  align-items: center;
+  min-height: var(--dd-touch-min);
+  padding: var(--dd-size-4-1) 0;
+  border-bottom: var(--dd-border-width) solid var(--dd-border-subtle);
+}
+
+.dd-sheet .dd-sheet-row:last-child {
+  border-bottom: 0;
+}
+
+.dd-sheet .dd-sheet-label {
+  flex: 1;
+  font: var(--dd-type-label);
+  font-size: var(--dd-font-ui-small);
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-sheet .dd-sheet-value {
+  min-width: 0;
+  text-align: right;
+}
+
+.dd-sheet .dd-value-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dd-size-4-1);
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.dd-sheet .dd-sheet-ability .dd-value-line {
+  justify-content: center;
+}
+
+.dd-sheet .dd-value {
+  min-width: var(--dd-touch-min);
+  min-height: var(--dd-touch-min);
+  height: auto;
+  padding: var(--dd-size-2-1) var(--dd-size-4-2);
+  border: 0;
+  border-radius: var(--dd-radius-s);
+  background: none;
+  box-shadow: none;
+  font: var(--dd-font-medium) var(--dd-font-ui-medium) / var(--dd-line-height-tight) var(--dd-font-text);
+  white-space: normal;
+  color: var(--dd-state-known);
+  cursor: pointer;
+  transition: background var(--dd-dur-fast) var(--dd-ease-out);
+}
+
+.dd-sheet .dd-sheet-ability .dd-value {
+  font: var(--dd-type-score);
+}
+
+.dd-sheet .dd-value.dd-state-learned {
+  text-decoration: underline dotted var(--dd-border-strong);
+  text-underline-offset: var(--dd-size-4-1);
+}
+
+.dd-sheet .dd-value.dd-state-unknown {
+  border: var(--dd-border-width) dashed var(--dd-border-strong);
+  background: var(--dd-state-unknown-soft);
+  color: var(--dd-state-unknown);
+}
+
+.dd-sheet .dd-value.dd-state-override {
+  background: var(--dd-state-override-soft);
+  color: var(--dd-state-override);
+}
+
+.dd-sheet .dd-value.dd-state-imported {
+  background: var(--dd-state-imported-soft);
+  color: var(--dd-state-imported);
+}
+
+.dd-sheet .dd-value.dd-state-carried {
+  background: var(--dd-state-carried-soft);
+  color: var(--dd-state-carried);
+}
+
+.dd-sheet .dd-value:hover {
+  background: var(--dd-surface-hover);
+}
+
+.dd-sheet .dd-value:focus-visible {
+  outline: none;
+  box-shadow: var(--dd-focus-ring);
+}
+
+.dd-sheet .dd-modifier {
+  font: var(--dd-font-medium) var(--dd-font-ui-small) / var(--dd-line-height-tight) var(--dd-font-text);
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-sheet .dd-earlier {
+  font: var(--dd-type-label);
+  color: var(--dd-state-history);
+}
+
+.dd-sheet .dd-value-source {
+  font: var(--dd-type-label);
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-sheet .dd-value-source.dd-state-carried {
+  color: var(--dd-state-carried);
+}
+
+.dd-sheet .dd-source-link,
+.dd-sheet-dialog .dd-source-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--dd-control-sm);
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: var(--dd-size-2-1);
+}
+
+.dd-sheet .dd-sheet-hint {
+  margin: var(--dd-size-4-3) 0 0;
+  font-size: var(--dd-font-ui-small);
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-sheet-dialog .dd-earlier-list {
+  margin: 0 0 var(--dd-size-4-3);
+  padding: 0;
+  list-style: none;
+  color: var(--dd-state-history);
+}
+
+.dd-sheet-dialog .dd-state-choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dd-size-4-1);
+}
+
+.dd-sheet-dialog .dd-state-choice {
+  display: flex;
+  gap: var(--dd-size-4-2);
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  padding: 0 var(--dd-size-4-3);
+  text-align: left;
+}
+
+.dd-sheet-dialog .dd-state-choice[aria-pressed="true"] {
+  background: var(--dd-surface-active);
+}
+
+.dd-sheet-dialog .dd-state-choice::before {
+  content: "";
+  flex: none;
+  width: var(--dd-size-4-2);
+  height: var(--dd-size-4-2);
+  border-radius: var(--dd-radius-pill);
+  background: var(--dd-state-known);
+}
+
+.dd-sheet-dialog .dd-state-choice[data-state="override"]::before {
+  background: var(--dd-state-override);
+}
+
+.dd-sheet-dialog .dd-state-choice[data-state="imported"]::before {
+  background: var(--dd-state-imported);
+}
+
+.dd-sheet-dialog .dd-state-choice[data-state="carried"]::before {
+  background: var(--dd-state-carried);
+}
+
+.dd-sheet-dialog .dd-state-choice[data-state="unknown"]::before {
+  background: var(--dd-state-unknown);
+}
+
+.dd-sheet .dd-sheet-stat-block,
+.dd-sheet .dd-sheet-mentions,
+.dd-sheet .dd-sheet-depart {
+  margin-top: var(--dd-size-4-5);
+}
+
+.dd-sheet .dd-sheet-depart {
+  display: flex;
+  padding-top: var(--dd-size-4-4);
+  border-top: var(--dd-border-width) solid var(--dd-border-subtle);
+}
+
+.dd-sheet .dd-sheet-depart .dd-depart {
+  min-height: var(--dd-touch-min);
+}
+
+.dd-sheet .dd-sheet-stat-block .dd-title {
+  margin-bottom: var(--dd-size-4-3);
+}
+
+.dd-character-page {
+  max-width: var(--dd-content-max);
+  margin: 0 auto;
+}
+
+.dd-character-page .dd-back {
+  min-height: var(--dd-touch-min);
+  margin-bottom: var(--dd-size-4-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  font: var(--dd-font-medium) var(--dd-font-ui-small) / 1 var(--dd-font-interface);
+  color: var(--dd-text-link);
+  cursor: pointer;
+}
+
+.dd-character-page .dd-back:hover {
+  background: none;
+  text-decoration: underline;
+}
+
+.dd-character-page .dd-back:focus-visible {
+  border-radius: var(--dd-radius-s);
+  box-shadow: var(--dd-focus-ring);
+  outline: none;
+}
+
+.dd-sheet .dd-value-read {
+  padding: var(--dd-size-2-1) var(--dd-size-4-2);
+  font: var(--dd-type-score);
+  color: var(--dd-state-known);
+}
+
+.dd-sheet .dd-left-play {
+  margin-top: var(--dd-size-4-6);
+  padding-top: var(--dd-size-4-4);
+  border-top: var(--dd-border-width) solid var(--dd-border-subtle);
+}
+
+.dd-sheet .dd-left-play-heading {
+  margin: var(--dd-size-4-4) 0 var(--dd-size-4-2);
+  font: var(--dd-type-label);
+  font-size: var(--dd-font-ui-medium);
+}
+
+.dd-sheet .dd-left-play-heading:first-child {
+  margin-top: 0;
+}
+
+.dd-sheet .dd-left-play-list {
+  margin: var(--dd-size-4-3) 0 var(--dd-size-4-1);
+  font: var(--dd-type-label);
+  font-size: var(--dd-font-ui-small);
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-sheet .dd-left-play-line,
+.dd-sheet .dd-left-play-entry {
+  margin: var(--dd-size-4-1) 0;
+}
+
+.dd-sheet .dd-left-play-entry {
+  padding-left: var(--dd-size-4-4);
+}

@@ -2,6 +2,8 @@ import type { PrintedSheet } from "../../../src/beyond/sheet/printed-sheet";
 import type { OnlineBlock } from "../../../src/imports/dialog/online/online-block";
 import type { OnlineSource } from "../../../src/imports/dialog/online/online-source";
 import { HeldCalls } from "../../stubs/held-calls";
+import { Paragraph } from "../../../src/views/elements/kinds/containers";
+import type { ViewElement } from "../../../src/views/elements/view-element";
 
 class UnusedOnline implements OnlineSource {
   sheetFor(): Promise<PrintedSheet> {
@@ -10,7 +12,11 @@ class UnusedOnline implements OnlineSource {
 }
 
 class NoOnlineBlock implements OnlineBlock {
-  draw(): void {}
+  tree(): ViewElement {
+    return new Paragraph({ text: "No online route" });
+  }
+
+  focus(): void {}
 }
 
 export const NO_ONLINE: OnlineSource = new UnusedOnline();

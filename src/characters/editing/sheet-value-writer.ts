@@ -1,12 +1,11 @@
-import type { TFile } from "obsidian";
 import { NoteEditor, PartlyWritten, type EditorFiles } from "../../campaign/writing/note-editor";
-import { sessionLabelOf } from "../../campaign/paths/session-file";
+import { sessionLabelOf, type PropertiesSyntax } from "../../campaign/paths/session-file";
 import { linkedFactsOf } from "../../notes/reading/character-facts";
 import { messageOf } from "../../views/dialogs/message-of";
 import { factLine, refusalForValue, withOverrides, type OverrideChange } from "./character-entry";
 import { writeOverrides } from "./character-files";
 import { NOT_KNOWN, type SheetValue, type StatedValue, type ValueState } from "../reading/character-sheet";
-import type { FencedFiles } from "../../fence/gate/fenced-files";
+import type { NoteRef } from "../../host/notes/note-ref";
 
 export interface ValueChoice {
   state: ValueState;
@@ -19,8 +18,8 @@ export interface SheetWrite {
 }
 
 export interface SheetTarget {
-  files: EditorFiles & Pick<FencedFiles, "process">;
-  file: TFile;
+  files: EditorFiles;
+  file: NoteRef;
   sessionPath(): string;
   linktextFrom(sessionPath: string): string;
   pathOfLink(linktext: string, sourcePath: string): string | null;
@@ -148,19 +147,19 @@ function sessionLineOf(target: SheetTarget, sessionPath: string, fact: string): 
   return line;
 }
 
-export async function writeSheetValue(target: SheetTarget, write: SheetWrite): Promise<boolean> {
+export async function writeSheetValue(target: SheetTarget, write: SheetWrite, syntax: PropertiesSyntax): Promise<boolean> {
   const { files, file } = target;
   const override = write.override;
   const fact = write.sessionFact;
   if (override === null && fact === null) return false;
-  if (override !== null) withOverrides(await files.read(file), file.path, [override]);
+  if (override !== null) withOverrides(await files.read(file), file.path, [override], syntax);
   if (fact !== null) {
     const sessionPath = target.sessionPath();
-    await new NoteEditor(files).appendShown(sessionPath, [sessionLineOf(target, sessionPath, fact)]);
+    await new NoteEditor(files, syntax).appendShown(sessionPath, [sessionLineOf(target, sessionPath, fact)]);
   }
   if (override === null) return true;
   try {
-    await writeOverrides(files, file, (text) => withOverrides(text, file.path, [override]));
+    await writeOverrides(files, file, (text) => withOverrides(text, file.path, [override], syntax));
   } catch (error) {
     if (fact === null) throw error;
     throw new PartlyWritten(`The line was added to the session, but ${file.basename}'s note was left: ${messageOf(error)}`);

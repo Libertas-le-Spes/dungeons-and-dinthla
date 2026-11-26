@@ -1,3 +1,9 @@
+import { HandleRequest, PressBinding } from "../../views/elements/bindings/bindings";
+import { KeptHandle } from "../../views/elements/bindings/kept-handle";
+import { RunAction } from "../../views/elements/bindings/run-action";
+import { Button, Div, Paragraph } from "../../views/elements/kinds/containers";
+import type { ViewElement } from "../../views/elements/view-element";
+
 const EDIT_ALL = "Edit all";
 const EDIT_ALL_NOT_SAVED = "Edit all (not saved)";
 
@@ -8,20 +14,20 @@ export interface NotesButtonMoves {
 }
 
 export class NotesButtons {
-  private readonly editAllButton: HTMLButtonElement;
-  private readonly clearButton: HTMLButtonElement;
-  private readonly deleteButton: HTMLButtonElement;
-  private readonly message: HTMLElement;
+  private readonly editAllButton = new KeptHandle();
+  private readonly clearButton = new KeptHandle();
+  private readonly deleteButton = new KeptHandle();
+  private readonly message = new KeptHandle();
 
-  constructor(head: HTMLElement, moves: NotesButtonMoves) {
-    const row = head.createDiv({ cls: "dd-notes-actions" });
-    this.editAllButton = row.createEl("button", { cls: "dd-create dd-edit-all", text: EDIT_ALL });
-    this.clearButton = row.createEl("button", { cls: "dd-create dd-clear-notes", text: "Clear notes" });
-    this.deleteButton = row.createEl("button", { cls: "mod-warning dd-delete-session", text: "Delete session" });
-    this.message = head.createEl("p", { cls: "dd-notes-message", attr: { "aria-live": "polite" } });
-    this.editAllButton.addEventListener("click", () => moves.editAll());
-    this.clearButton.addEventListener("click", () => moves.clearNotes());
-    this.deleteButton.addEventListener("click", () => moves.deleteSession());
+  constructor(private readonly moves: NotesButtonMoves) {}
+
+  trees(): ViewElement[] {
+    const row = new Div({ cls: ["dd-notes-actions"] }, [
+      this.buttonOf(["dd-create", "dd-edit-all"], EDIT_ALL, this.editAll.bind(this), this.editAllButton),
+      this.buttonOf(["dd-create", "dd-clear-notes"], "Clear notes", this.clearNotes.bind(this), this.clearButton),
+      this.buttonOf(["mod-warning", "dd-delete-session"], "Delete session", this.deleteSession.bind(this), this.deleteButton),
+    ]);
+    return [row, new Paragraph({ cls: ["dd-notes-message"], live: "polite", bindings: [new HandleRequest(this.message)] })];
   }
 
   setEditsNotSaved(notSaved: boolean): void {
@@ -30,11 +36,27 @@ export class NotesButtons {
   }
 
   setRemovable(lineCount: number, busy: boolean): void {
-    this.clearButton.disabled = busy || lineCount === 0;
-    this.deleteButton.disabled = busy;
+    this.clearButton.setDisabled(busy || lineCount === 0);
+    this.deleteButton.setDisabled(busy);
   }
 
   say(message: string): void {
     this.message.setText(message);
+  }
+
+  private buttonOf(cls: string[], text: string, pressed: () => void, kept: KeptHandle): ViewElement {
+    return new Button({ cls, text, bindings: [new PressBinding(new RunAction(pressed)), new HandleRequest(kept)] });
+  }
+
+  private editAll(): void {
+    this.moves.editAll();
+  }
+
+  private clearNotes(): void {
+    this.moves.clearNotes();
+  }
+
+  private deleteSession(): void {
+    this.moves.deleteSession();
   }
 }

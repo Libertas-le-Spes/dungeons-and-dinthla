@@ -1,10 +1,10 @@
+import { STUB_SPELLING } from "../../host/stub-spelling";
 import { describe, expect, it, vi } from "vitest";
-import type { TFile } from "obsidian";
 import { Fence } from "../../../src/fence/paths/fence";
 import { Drafts } from "../../../src/session-notes/drafts/drafts";
 import { DraftKeeping } from "../../../src/session-notes/kept/draft-keeping";
 import { DELETED, MISSING } from "../../../src/session-notes/kept/kinds/kept-kinds";
-import { FakeEvents, fileAt } from "../../fence/gate/fake-raw-vault";
+import { InMemoryNotes } from "../../host/in-memory-notes";
 
 const FOLDER = "D&D";
 const ONE = "D&D/Pale Moon/Sessions/Session 1.md";
@@ -13,21 +13,15 @@ const OUTSIDE = "Games/Pale Moon/Sessions/Session 1.md";
 const NOTE_KEY = "note:D&D/Pale Moon/Characters/Mira.md";
 const AT = 1_000;
 
-function keepingWith(kept: Record<string, string>, notes: string[]) {
-  const events = new FakeEvents();
-  const files = {
-    on: vi.fn((name: string, callback: (...data: never[]) => unknown) => events.on(name, callback as (...data: unknown[]) => unknown)),
-    offref: vi.fn(),
-    getFileByPath: vi.fn((path: string): TFile | null => {
-      if (!notes.includes(path)) return null;
-      return fileAt(path);
-    }),
-  };
-  const fence = new Fence(() => FOLDER, ".obsidian");
+function keepingWith(kept: Record<string, string>, paths: string[]) {
+  const notes = new InMemoryNotes();
+  for (const path of paths) notes.put(path, "");
+  const store = { note: vi.fn(notes.note.bind(notes)) };
+  const fence = new Fence(() => FOLDER, ".obsidian", STUB_SPELLING);
   const drafts = new Drafts(kept, () => {});
-  const keeping = new DraftKeeping(drafts, { files, fence, campaignsFolder: () => FOLDER, now: () => AT });
-  keeping.load();
-  return { keeping, drafts, events, files };
+  const keeping = new DraftKeeping(drafts, { changes: notes, store, fence, campaignsFolder: () => FOLDER, now: () => AT });
+  keeping.start();
+  return { keeping, drafts, notes, store };
 }
 
 function keptOf(keeping: DraftKeeping): unknown[][] {
@@ -50,42 +44,45 @@ describe("DraftKeeping", () => {
   });
 
   it("keeps the lines of a note outside the Campaigns folder live, so changing the folder sets nothing aside", () => {
-    const { keeping, drafts, files } = keepingWith({ [OUTSIDE]: "? Who" }, []);
+    const { keeping, drafts, store } = keepingWith({ [OUTSIDE]: "? Who" }, []);
     keeping.setAsideGoneNotes();
     expect(drafts.textOf(OUTSIDE)).toBe("? Who");
     expect(keptOf(keeping)).toEqual([]);
-    expect(files.getFileByPath).not.toHaveBeenCalled();
+    expect(store.note).not.toHaveBeenCalled();
   });
 
   it("keeps a whole-note draft live without looking its note up", () => {
-    const { keeping, drafts, files } = keepingWith({ [NOTE_KEY]: '{"base":"","text":"Mira"}' }, []);
+    const { keeping, drafts, store } = keepingWith({ [NOTE_KEY]: '{"base":"","text":"Mira"}' }, []);
     keeping.setAsideGoneNotes();
     expect(drafts.textOf(NOTE_KEY)).toBe('{"base":"","text":"Mira"}');
-    expect(files.getFileByPath).not.toHaveBeenCalled();
+    expect(store.note).not.toHaveBeenCalled();
   });
 
-  it("moves a session note's lines with the note when it is renamed", () => {
-    const { drafts, events } = keepingWith({ [ONE]: "? Who" }, [ONE]);
-    events.trigger("rename", fileAt(TWO), ONE);
+  it("moves a session note's lines with the note when it is renamed", async () => {
+    const { drafts, notes } = keepingWith({ [ONE]: "? Who" }, [ONE]);
+    await notes.move(notes.note(ONE)!, TWO);
     expect(drafts.textOf(TWO)).toBe("? Who");
     expect(drafts.textOf(ONE)).toBe("");
   });
 
-  it("moves a whole-note draft with its note when it is renamed", () => {
-    const { drafts, events } = keepingWith({ [NOTE_KEY]: '{"base":"","text":"Mira"}' }, []);
-    events.trigger("rename", fileAt("D&D/Pale Moon/Characters/Mira Vale.md"), "D&D/Pale Moon/Characters/Mira.md");
+  it("moves a whole-note draft with its note when it is renamed", async () => {
+    const { drafts, notes } = keepingWith({ [NOTE_KEY]: '{"base":"","text":"Mira"}' }, ["D&D/Pale Moon/Characters/Mira.md"]);
+    await notes.move(notes.note("D&D/Pale Moon/Characters/Mira.md")!, "D&D/Pale Moon/Characters/Mira Vale.md");
     expect(drafts.textOf("note:D&D/Pale Moon/Characters/Mira Vale.md")).toBe('{"base":"","text":"Mira"}');
   });
 
-  it("sets aside a session note's lines when the note is deleted", () => {
-    const { keeping, events } = keepingWith({ [ONE]: "? Who" }, [ONE]);
-    events.trigger("delete", { path: ONE });
+  it("sets aside a session note's lines when the note is deleted", async () => {
+    const { keeping, notes } = keepingWith({ [ONE]: "? Who" }, [ONE]);
+    await notes.throwAway(notes.note(ONE)!);
     expect(keptOf(keeping)).toEqual([[DELETED, ONE, "? Who"]]);
   });
 
-  it("stops listening to the fenced files once unloaded", () => {
-    const { keeping, files } = keepingWith({}, []);
-    keeping.unload();
-    expect(files.offref).toHaveBeenCalledTimes(3);
+  it("stops following moved and deleted notes once stopped", async () => {
+    const { keeping, drafts, notes } = keepingWith({ [ONE]: "? Who", [TWO]: "! Ride" }, [ONE, TWO]);
+    keeping.stop();
+    await notes.move(notes.note(ONE)!, "D&D/Pale Moon/Sessions/Session 3.md");
+    await notes.throwAway(notes.note(TWO)!);
+    expect([drafts.textOf(ONE), drafts.textOf(TWO)]).toEqual(["? Who", "! Ride"]);
+    expect(keptOf(keeping)).toEqual([]);
   });
 });

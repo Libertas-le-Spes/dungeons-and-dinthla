@@ -11,6 +11,7 @@ import { readMarker } from "../../notes/reading/marker";
 import { readQuest } from "../../notes/reading/quest";
 import { oneLine } from "../../notes/parts/one-line";
 import { questSessionChange } from "./quest-session-change";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export type QuestStatusChoice = "active" | QuestStatus;
 
@@ -136,10 +137,18 @@ function expectedSignature(record: QuestRecord, expected: ExpectedQuest): string
   return JSON.stringify([record.source.path, record.quest.title, expected.progress, outcome]);
 }
 
+function lastFollowUpIndex(quests: readonly QuestRecord[], plan: QuestPlan): number {
+  let found = -1;
+  for (const [index, candidate] of quests.entries()) {
+    if (candidate.source.path === plan.targetPath && candidate.quest.title === plan.followUpTitle) found = index;
+  }
+  return found;
+}
+
 function questsBesidesFollowUp(campaign: Campaign, plan: QuestPlan): QuestRecord[] {
   const quests = [...campaign.quests];
   if (plan.followUpTitle === null) return quests;
-  const index = quests.findLastIndex((candidate) => candidate.source.path === plan.targetPath && candidate.quest.title === plan.followUpTitle);
+  const index = lastFollowUpIndex(quests, plan);
   if (index !== -1) quests.splice(index, 1);
   return quests;
 }
@@ -150,14 +159,14 @@ function followUpTitleRefusal(before: Campaign, plan: QuestPlan): string | null 
   return null;
 }
 
-export function refusalForQuestPlan(sessions: SessionNote[], record: QuestRecord, plan: QuestPlan): string | null {
+export function refusalForQuestPlan(sessions: SessionNote[], record: QuestRecord, plan: QuestPlan, syntax: PropertiesSyntax): string | null {
   if (!sessions.some((session) => session.path === plan.targetPath)) return CHANGES_ANOTHER_QUEST;
   const before = buildCampaign(sessions);
-  const changed = applySessionChange(sessions, questSessionChange(plan)).sessions;
+  const changed = applySessionChange(sessions, questSessionChange(plan), syntax).sessions;
   const after = buildCampaign(changed);
   const titleRefused = followUpTitleRefusal(before, plan);
   if (titleRefused !== null) return titleRefused;
-  const hiddenRefused = hiddenRefusal(sessions, questSessionChange(plan));
+  const hiddenRefused = hiddenRefusal(sessions, questSessionChange(plan), syntax);
   if (hiddenRefused !== null) return hiddenRefused;
   const wanted = before.quests.map((quest) => {
     const isOpened = quest.source.path === record.source.path && quest.source.line === record.source.line;

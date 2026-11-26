@@ -1,0 +1,20 @@
+.dd-lookup {
+  display: flex;
+  align-items: baseline;
+  gap: var(--dd-size-4-2);
+}
+
+.dd-lookup .dd-marker {
+  flex: none;
+  width: 1ch;
+}
+
+.dd-lookup-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.dd-lookup-holder {
+  color: var(--dd-text-muted-ui);
+  font-size: var(--dd-font-ui-small);
+}

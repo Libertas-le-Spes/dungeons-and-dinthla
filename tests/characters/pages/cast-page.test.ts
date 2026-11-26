@@ -5,6 +5,9 @@ import type { CharacterCreators } from "../../../src/characters/pages/character-
 import { CastPage } from "../../../src/characters/pages/cast-page";
 import type { CastNotes } from "../../../src/characters/reading/character-notes";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
+import { PageFrame } from "../../../src/obsidian/views/frames/page-frame";
+import { PLAIN_KIT } from "../../../src/obsidian/views/mount/mount-kit";
 
 function fileOf(name: string): TFile {
   return { path: `Pale Moon/Characters/${name}.md`, basename: name } as TFile;
@@ -51,11 +54,17 @@ function openCast({ folder = "Pale Moon" as string | null, characters = ["Mira",
   };
   const root = obsidianDocument().createElement("div");
   const creators: CharacterCreators = { newCharacter: vi.fn(), importCharacter: vi.fn(), makeMain: vi.fn() };
-  const page = new CastPage(root, store as unknown as CampaignStore, notes, { openRow: vi.fn(), openLink: vi.fn() }, creators, watchFiles);
-  page.load();
+  root.ownerDocument.body.append(root);
+  const showSheet = vi.fn();
+  const page = new CastPage(store as unknown as CampaignStore, notes, showSheet, creators, watchFiles, STUB_SYNTAX);
+  const frame = new PageFrame(root, page, PLAIN_KIT);
+  frame.load();
   return {
     root,
     page,
+    frame,
+    creators,
+    showSheet,
     store,
     shown,
     filesIn,
@@ -136,9 +145,37 @@ describe("CastPage", () => {
     expect(filesIn).toHaveBeenCalledTimes(2);
   });
 
+  it("opens a character's sheet when its card is pressed", async () => {
+    const { page, root, showSheet } = openCast();
+    await page.rendered();
+    root.querySelector<HTMLElement>('.dd-card[data-path="Pale Moon/Characters/Thessaly.md"]')!.click();
+    expect(showSheet).toHaveBeenCalledExactlyOnceWith("Pale Moon/Characters/Thessaly.md");
+  });
+
+  it.each([
+    { what: "New character", button: ".dd-create:not(.dd-beyond)", called: "newCharacter" as const },
+    { what: "Import from D&D Beyond", button: ".dd-beyond", called: "importCharacter" as const },
+  ])("hands $what a way back to its button", async ({ button, called }) => {
+    const { page, root, creators } = openCast();
+    await page.rendered();
+    const pressed = root.querySelector<HTMLElement>(button)!;
+    pressed.click();
+    expect(creators[called]).toHaveBeenCalledOnce();
+    const [returnFocus] = vi.mocked(creators[called]).mock.calls[0]!;
+    returnFocus();
+    expect(root.ownerDocument.activeElement).toBe(pressed);
+  });
+
+  it("draws nothing it read after it closed", async () => {
+    const { page, root, frame } = openCast();
+    frame.unload();
+    await page.rendered();
+    expect(names(root)).toEqual([]);
+  });
+
   it("stops listening when it is closed", () => {
-    const { page, unsubscribe, stopWatchingNotes, stopWatchingFiles } = openCast();
-    page.unload();
+    const { frame, unsubscribe, stopWatchingNotes, stopWatchingFiles } = openCast();
+    frame.unload();
     expect(unsubscribe).toHaveBeenCalledOnce();
     expect(stopWatchingNotes).toHaveBeenCalledOnce();
     expect(stopWatchingFiles).toHaveBeenCalledOnce();

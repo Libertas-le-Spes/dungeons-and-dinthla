@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { TFile } from "obsidian";
+import { fileAt } from "../../stubs/note-files";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { CoinRecord, SessionNote } from "../../../src/campaign/record/campaign";
 import { WOULD_BE_HIDDEN, type EditorFiles } from "../../../src/campaign/writing/note-editor";
@@ -11,6 +11,7 @@ import { CHANGES_OTHER_MONEY } from "../../../src/funds/coins/coin-change";
 import { CANNOT_SHOW, coinEntryEdit } from "../../../src/funds/coins/coin-entry";
 import { newCoin } from "../../../src/funds/coins/new-coin-change";
 import { readCoinDraft, type CoinDraft, type CoinLine } from "../../../src/notes/writing/coin-lines";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const ONE = "S/Sessions/Session 1.md";
 const TWO = "S/Sessions/Session 2.md";
@@ -37,11 +38,11 @@ class FakeNotes {
 
   get vault(): EditorFiles {
     return {
-      getFileByPath: (path) => {
+      note: (path) => {
         if (!this.texts.has(path)) return null;
-        return { path } as TFile;
+        return fileAt(path);
       },
-      process: async (file, change) => {
+      change: async (file, change) => {
         this.writes += 1;
         const next = change(this.textOf(file.path));
         this.texts.set(file.path, next);
@@ -52,7 +53,7 @@ class FakeNotes {
   }
 
   get sessionNotes(): SessionNote[] {
-    return [...this.read].map(([path, text]) => sessionNoteOf(path, 1, text));
+    return [...this.read].map(([path, text]) => sessionNoteOf(path, 1, text, STUB_SYNTAX));
   }
 
   entryAt(line: number): CoinRecord {
@@ -71,7 +72,7 @@ class FakeNotes {
 describe("changing a coin entry", () => {
   it("refuses a line whose money isn't what it says, writing nothing", async () => {
     const notes = new FakeNotes({ [ONE]: "$ 5 gp found\n" });
-    const edit = coinEntryEdit(notes.vault, notes, notes.entryAt(0));
+    const edit = coinEntryEdit(notes.vault, notes, notes.entryAt(0), STUB_SYNTAX);
     const typed = coinLineOf({ ...edit.draft, amount: "6 gp" });
     await expect(edit.save({ ...typed, copper: typed.copper + 100 })).rejects.toThrow(CHANGES_OTHER_MONEY);
     expect(notes.texts.get(ONE)).toBe("$ 5 gp found\n");
@@ -80,14 +81,14 @@ describe("changing a coin entry", () => {
 
   it("refuses an entry it can't show even when it is saved as it opened", async () => {
     const notes = new FakeNotes({ [ONE]: "$ Bought rope for 2 gp\n" });
-    const edit = coinEntryEdit(notes.vault, notes, notes.entryAt(0));
+    const edit = coinEntryEdit(notes.vault, notes, notes.entryAt(0), STUB_SYNTAX);
     await expect(edit.save(coinLineOf(edit.draft))).rejects.toThrow(CANNOT_SHOW);
     expect(notes.writes).toBe(0);
   });
 
   it("checks the purse against the notes as read when it saves, not as they were when it opened", async () => {
     const notes = new FakeNotes({ [ONE]: "We rode on.\n$ 5 gp found\n---\n" });
-    const edit = coinEntryEdit(notes.vault, notes, notes.entryAt(1));
+    const edit = coinEntryEdit(notes.vault, notes, notes.entryAt(1), STUB_SYNTAX);
     notes.texts.set(ONE, "---\n$ 5 gp found\n---\n");
     notes.readAgain();
     await expect(edit.save(coinLineOf({ ...edit.draft, amount: "6 gp" }))).rejects.toThrow(CHANGES_OTHER_MONEY);
@@ -96,7 +97,7 @@ describe("changing a coin entry", () => {
 
   it("writes nothing for an entry saved as it opened, even when its line has moved since", async () => {
     const notes = new FakeNotes({ [ONE]: "$ 5 gp found\n" });
-    const edit = coinEntryEdit(notes.vault, notes, notes.entryAt(0));
+    const edit = coinEntryEdit(notes.vault, notes, notes.entryAt(0), STUB_SYNTAX);
     notes.texts.set(ONE, "We waited.\n$ 5 gp found\n");
     notes.readAgain();
     expect(await edit.save(coinLineOf(edit.draft))).toBe(false);
@@ -108,7 +109,7 @@ describe("adding coin", () => {
   it("writes the line into the session it was given", async () => {
     const notes = new FakeNotes({ [ONE]: "We rode on.\n", [TWO]: "" });
     const written = coinLineOf({ direction: "in", amount: "5 gp", what: "found" });
-    expect(await writeRecordChange(newCoin(notes, written, TWO), new SessionChangeWriter(notes.vault))).toBe(true);
+    expect(await writeRecordChange(newCoin(notes, written, TWO, STUB_SYNTAX), new SessionChangeWriter(notes.vault, STUB_SYNTAX))).toBe(true);
     expect(notes.texts.get(TWO)).toBe(`${written.line}\n`);
     expect(notes.texts.get(ONE)).toBe("We rode on.\n");
   });
@@ -116,7 +117,7 @@ describe("adding coin", () => {
   it("refuses a line that would land below a comment that never closes, writing nothing", async () => {
     const notes = new FakeNotes({ [ONE]: "We rode on.\n", [TWO]: "%% a note to self\n" });
     const written = coinLineOf({ direction: "in", amount: "5 gp", what: "found" });
-    await expect(writeRecordChange(newCoin(notes, written, TWO), new SessionChangeWriter(notes.vault))).rejects.toThrow(WOULD_BE_HIDDEN);
+    await expect(writeRecordChange(newCoin(notes, written, TWO, STUB_SYNTAX), new SessionChangeWriter(notes.vault, STUB_SYNTAX))).rejects.toThrow(WOULD_BE_HIDDEN);
     expect(notes.writes).toBe(0);
   });
 
@@ -124,21 +125,21 @@ describe("adding coin", () => {
     const notes = new FakeNotes({ [ONE]: "", [TWO]: "" });
     notes.texts.set(TWO, "%% added by a sync\n");
     const written = coinLineOf({ direction: "in", amount: "5 gp", what: "found" });
-    await expect(writeRecordChange(newCoin(notes, written, TWO), new SessionChangeWriter(notes.vault))).rejects.toThrow(WOULD_BE_HIDDEN);
+    await expect(writeRecordChange(newCoin(notes, written, TWO, STUB_SYNTAX), new SessionChangeWriter(notes.vault, STUB_SYNTAX))).rejects.toThrow(WOULD_BE_HIDDEN);
     expect(notes.texts.get(TWO)).toBe("%% added by a sync\n");
   });
 
   it("writes a line below an item line, which opens no comment", async () => {
     const notes = new FakeNotes({ [ONE]: "", [TWO]: "$$ Rope :lost\n" });
     const written = coinLineOf({ direction: "in", amount: "5 gp", what: "found" });
-    expect(await writeRecordChange(newCoin(notes, written, TWO), new SessionChangeWriter(notes.vault))).toBe(true);
+    expect(await writeRecordChange(newCoin(notes, written, TWO, STUB_SYNTAX), new SessionChangeWriter(notes.vault, STUB_SYNTAX))).toBe(true);
     expect(notes.texts.get(TWO)).toBe(`$$ Rope :lost\n${written.line}\n`);
   });
 
   it("writes a line below a comment that has closed", async () => {
     const notes = new FakeNotes({ [ONE]: "", [TWO]: "%% a note to self %%\n" });
     const written = coinLineOf({ direction: "in", amount: "5 gp", what: "found" });
-    expect(await writeRecordChange(newCoin(notes, written, TWO), new SessionChangeWriter(notes.vault))).toBe(true);
+    expect(await writeRecordChange(newCoin(notes, written, TWO, STUB_SYNTAX), new SessionChangeWriter(notes.vault, STUB_SYNTAX))).toBe(true);
     expect(notes.texts.get(TWO)).toBe(`%% a note to self %%\n${written.line}\n`);
   });
 });

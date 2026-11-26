@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TFile } from "obsidian";
 import { CampaignStore } from "../../../src/campaign/reading/campaign-store";
-import { SavedCampaign, type SavedCampaignNeeds } from "../../../src/campaign/reading/saved-campaign";
+import { SavedCampaign } from "../../../src/campaign/reading/saved-campaign";
 import { Fence } from "../../../src/fence/paths/fence";
 import { FencedFileActions, type ChangeProperties, type RawFileManager } from "../../../src/fence/gate/fenced-file-actions";
 import { FencedFiles } from "../../../src/fence/gate/fenced-files";
@@ -11,6 +11,9 @@ import { NoteReporter } from "../../../src/fence/gate/written-notes";
 import { ItemNotes } from "../../../src/funds/item-notes/item-notes";
 import { FakeVault } from "../../campaign/fake-vault";
 import { FakeEvents, rawVaultWith } from "../../fence/gate/fake-raw-vault";
+import { notesOverFakes } from "../../host/notes-over-fakes";
+import { STUB_SPELLING } from "../../host/stub-spelling";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 import { cacheOf, CAMPAIGN, FakeItemNotes, fileAt, keepHolders, LANTERN, ROPE, SESSION, settle } from "./fake-item-notes";
 
 describe("ItemNotes", () => {
@@ -72,7 +75,7 @@ describe("ItemNotes", () => {
   it("writes the newer holder that came while its write was still going", async () => {
     const lines = ["$$ Silvered lantern :changed to [[Mira]]"];
     const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
-    const store = new CampaignStore(sessions.vault);
+    const store = new CampaignStore(sessions.vault, STUB_SYNTAX);
     const itemNotes = new FakeItemNotes([{ path: LANTERN, properties: {} }]);
     const release = itemNotes.holdWrites();
     new ItemNotes(itemNotes.needsFor(store)).start();
@@ -90,7 +93,7 @@ describe("ItemNotes", () => {
 
   it("writes at once when started after the campaign is open", async () => {
     const sessions = new FakeVault([{ path: SESSION, text: "$$ Silvered lantern :changed to [[Mira]]" }]);
-    const store = new CampaignStore(sessions.vault);
+    const store = new CampaignStore(sessions.vault, STUB_SYNTAX);
     await store.open(CAMPAIGN);
     const itemNotes = new FakeItemNotes([{ path: LANTERN, properties: {} }]);
     new ItemNotes(itemNotes.needsFor(store)).start();
@@ -101,7 +104,7 @@ describe("ItemNotes", () => {
   it("writes nothing more when its own write makes the campaign be read again", async () => {
     const lines = ["$$ Silvered lantern :changed to [[Mira]]"];
     const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
-    const store = new CampaignStore(sessions.vault);
+    const store = new CampaignStore(sessions.vault, STUB_SYNTAX);
     const itemNotes = new FakeItemNotes([{ path: LANTERN, properties: {} }]);
     let rereads = 0;
     itemNotes.afterWrite = () => {
@@ -125,7 +128,7 @@ describe("ItemNotes", () => {
       { path: SESSION, text: "$$ Silvered lantern :changed to [[Mira]]" },
       { path: later, text: "$$ Silvered lantern :changed to Old Tom" },
     ]);
-    const store = new CampaignStore(sessions.vault);
+    const store = new CampaignStore(sessions.vault, STUB_SYNTAX);
     const itemNotes = new FakeItemNotes([{ path: LANTERN, properties: { holder: "Old Tom" } }]);
     new ItemNotes(itemNotes.needsFor(store)).start();
     const release = sessions.holdReadsOf(later);
@@ -141,7 +144,7 @@ describe("ItemNotes", () => {
   it("writes a note once while its write is still going when the campaign is read again", async () => {
     const lines = ["$$ Silvered lantern :changed to [[Mira]]"];
     const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
-    const store = new CampaignStore(sessions.vault);
+    const store = new CampaignStore(sessions.vault, STUB_SYNTAX);
     const itemNotes = new FakeItemNotes([{ path: LANTERN, properties: {} }]);
     const release = itemNotes.holdWrites();
     new ItemNotes(itemNotes.needsFor(store)).start();
@@ -209,17 +212,17 @@ describe("ItemNotes", () => {
   it("says when a holder couldn't be written and goes on with the other notes", async () => {
     const lines = ["$$ Silvered lantern :changed to [[Mira]]", "$$ Rope :changed to Old Tom"];
     const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
-    const store = new CampaignStore(sessions.vault);
+    const store = new CampaignStore(sessions.vault, STUB_SYNTAX);
     const itemNotes = new FakeItemNotes([
       { path: LANTERN, properties: {} },
       { path: ROPE, properties: {} },
     ]);
     const needs = itemNotes.needsFor(store);
     const refused = new Error("refused");
-    const write = needs.actions.processFrontMatter;
-    needs.actions.processFrontMatter = async (file, change) => {
-      if (file.path === LANTERN) throw refused;
-      await write(file, change);
+    const write = needs.notes.changeProperties.bind(needs.notes);
+    needs.notes.changeProperties = async (note, change) => {
+      if (note.path === LANTERN) throw refused;
+      await write(note, change);
     };
     new ItemNotes(needs).start();
     await store.open(CAMPAIGN);
@@ -231,17 +234,17 @@ describe("ItemNotes", () => {
   it("writes a holder again once a later write to that note succeeded", async () => {
     const lines = ["$$ Silvered lantern :changed to [[Mira]]"];
     const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
-    const store = new CampaignStore(sessions.vault);
+    const store = new CampaignStore(sessions.vault, STUB_SYNTAX);
     const itemNotes = new FakeItemNotes([{ path: LANTERN, properties: {} }]);
     const needs = itemNotes.needsFor(store);
-    const write = needs.actions.processFrontMatter;
+    const write = needs.notes.changeProperties.bind(needs.notes);
     let refused = false;
-    needs.actions.processFrontMatter = async (file, change) => {
+    needs.notes.changeProperties = async (note, change) => {
       if (!refused) {
         refused = true;
         throw new Error("refused");
       }
-      await write(file, change);
+      await write(note, change);
     };
     new ItemNotes(needs).start();
     await store.open(CAMPAIGN);
@@ -259,10 +262,10 @@ describe("ItemNotes", () => {
   it("says once that a holder couldn't be written however often the campaign is read again", async () => {
     const lines = ["$$ Silvered lantern :changed to [[Mira]]"];
     const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
-    const store = new CampaignStore(sessions.vault);
+    const store = new CampaignStore(sessions.vault, STUB_SYNTAX);
     const itemNotes = new FakeItemNotes([{ path: LANTERN, properties: {} }]);
     const needs = itemNotes.needsFor(store);
-    needs.actions.processFrontMatter = async () => {
+    needs.notes.changeProperties = async () => {
       throw new Error("refused");
     };
     new ItemNotes(needs).start();
@@ -281,10 +284,10 @@ describe("ItemNotes from the saved session notes", () => {
     const sessions = new FakeVault([{ path: SESSION, text: lines.join("\n") }]);
     const fileEvents = new FakeEvents();
     const metadataEvents = new FakeEvents();
-    const files = { ...sessions.vault, on: fileEvents.on.bind(fileEvents), offref: fileEvents.offref.bind(fileEvents) } as unknown as SavedCampaignNeeds["files"];
-    const metadata = { on: metadataEvents.on.bind(metadataEvents), offref: metadataEvents.offref.bind(metadataEvents) } as unknown as SavedCampaignNeeds["metadata"];
-    const shown = new CampaignStore(sessions.vault);
-    const saved = new SavedCampaign({ shown, files, metadata, failed: () => {} });
+    const files = { on: fileEvents.on.bind(fileEvents), offref: fileEvents.offref.bind(fileEvents) };
+    const metadata = { on: metadataEvents.on.bind(metadataEvents), offref: metadataEvents.offref.bind(metadataEvents) };
+    const shown = new CampaignStore(sessions.vault, STUB_SYNTAX);
+    const saved = new SavedCampaign({ shown, notes: { store: sessions.vault, changes: notesOverFakes({ files, metadata }) }, failed: () => {} }, STUB_SYNTAX);
     const itemNotes = new FakeItemNotes([{ path: LANTERN, properties: { holder: "[[Mira]]" } }]);
     new ItemNotes(itemNotes.needsFor(saved)).start();
     saved.start();
@@ -311,20 +314,23 @@ describe("ItemNotes through the gate", () => {
   async function keepHoldersThroughGate(campaign: string, itemPath: string) {
     const file = fileAt(itemPath);
     const raw = rawVaultWith([file]);
-    const fence = new Fence(() => "D&D", ".obsidian");
+    const fence = new Fence(() => "D&D", ".obsidian", STUB_SPELLING);
     const held = new HeldFiles(raw.vault, fence);
     const processFrontMatter = vi.fn(async (_file: TFile, change: ChangeProperties) => change({}));
     const reporter = new NoteReporter();
     const rawFileManager = { processFrontMatter } as unknown as RawFileManager;
     const rawMetadata = { getFileCache: () => cacheOf({}) } as unknown as RawMetadata;
     const sessions = new FakeVault([{ path: `${campaign}/Sessions/Session 1.md`, text: "$$ Silvered lantern :changed to [[Mira]]" }]);
-    const store = new CampaignStore(sessions.vault);
+    const store = new CampaignStore(sessions.vault, STUB_SYNTAX);
     const failures: unknown[] = [];
     const needs = {
       store,
-      files: new FencedFiles(raw.vault, held, reporter),
-      metadata: new FencedMetadata(rawMetadata, held),
-      actions: new FencedFileActions(rawFileManager, held, reporter),
+      notes: notesOverFakes({
+        files: new FencedFiles(raw.vault, held, reporter),
+        metadata: new FencedMetadata(rawMetadata, held),
+        actions: new FencedFileActions(rawFileManager, held, reporter),
+      }),
+      syntax: STUB_SYNTAX,
       failed: (error: unknown) => failures.push(error),
       say: () => {},
     };

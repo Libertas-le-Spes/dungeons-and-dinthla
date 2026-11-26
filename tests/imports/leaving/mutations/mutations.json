@@ -9,15 +9,15 @@
  {
   "id": "campaign note before the new one's mark comes off",
   "file": "src/imports/leaving/switching/chosen-steps.ts",
-  "find": "    if (!this.plan.chosenIsNamed) writes.push(new CampaignWrite(this.files, this.cast, this.plan));\n    if (after !== before) writes.push(new TextWrite(this.files, chosen, before, after, markTakenOff(chosen.basename), markTakeOffFailed(chosen.basename)));\n",
+  "find": "    if (!this.plan.chosenIsNamed) writes.push(new CampaignWrite(this.files, this.cast, this.plan, this.syntax));\n    if (after !== before) writes.push(new TextWrite(this.files, chosen, before, after, markTakenOff(chosen.basename), markTakeOffFailed(chosen.basename)));\n",
   "replace": "    if (after !== before) writes.push(new TextWrite(this.files, chosen, before, after, markTakenOff(chosen.basename), markTakeOffFailed(chosen.basename)));\n    if (!this.plan.chosenIsNamed) writes.push(new CampaignWrite(this.files, this.cast, this.plan));\n",
   "group": "order"
  },
  {
   "id": "the new one moves back before the campaign note names them",
   "file": "src/imports/leaving/switching/chosen-steps.ts",
-  "find": "    if (isInFallen(chosen, this.plan.campaignFolder)) writes.push(this.moveBack());\n    if (!this.plan.chosenIsNamed) writes.push(new CampaignWrite(this.files, this.cast, this.plan));\n",
-  "replace": "    if (!this.plan.chosenIsNamed) writes.push(new CampaignWrite(this.files, this.cast, this.plan));\n    if (isInFallen(chosen, this.plan.campaignFolder)) writes.push(this.moveBack());\n",
+  "find": "    if (isInFallen(chosen, this.plan.campaignFolder)) writes.push(this.moveBack());\n    if (!this.plan.chosenIsNamed) writes.push(new CampaignWrite(this.files, this.cast, this.plan, this.syntax));\n",
+  "replace": "    if (!this.plan.chosenIsNamed) writes.push(new CampaignWrite(this.files, this.cast, this.plan, this.syntax));\n    if (isInFallen(chosen, this.plan.campaignFolder)) writes.push(this.moveBack());\n",
   "group": "order"
  },
  {
@@ -79,14 +79,14 @@
  {
   "id": "the Fallen folder is made only when it is missing",
   "file": "src/imports/leaving/writes/move-write.ts",
-  "find": "if (this.files.getFolderByPath(folder) === null) await this.files.createFolder(folder);",
-  "replace": "await this.files.createFolder(folder);",
+  "find": "if (!this.files.hasFolder(folder)) await this.files.makeFolder(folder);",
+  "replace": "await this.files.makeFolder(folder);",
   "group": "writes"
  },
  {
   "id": "the move goes through the file manager",
   "file": "src/imports/leaving/writes/move-write.ts",
-  "find": "await this.actions.renameFile(this.file, this.newPath);",
+  "find": "await this.actions.moveWithLinks(this.file, this.newPath);",
   "replace": "",
   "group": "writes"
  },
@@ -156,21 +156,21 @@
  {
   "id": "the old note is marked as asked",
   "file": "src/imports/leaving/switching/old-main-steps.ts",
-  "find": "const markedText = textWithProperty(before, STANDING_PROPERTY, propertyLine(STANDING_PROPERTY, standing));",
+  "find": "const markedText = textWithProperty(before, STANDING_PROPERTY, propertyLine(STANDING_PROPERTY, standing), this.syntax);",
   "replace": "const markedText = before;",
   "group": "reasons"
  },
  {
   "id": "the new one's mark is taken off",
   "file": "src/imports/leaving/switching/chosen-steps.ts",
-  "find": "const after = textWithProperty(before, STANDING_PROPERTY, null);",
+  "find": "const after = textWithProperty(before, STANDING_PROPERTY, null, this.syntax);",
   "replace": "const after = before;",
   "group": "reasons"
  },
  {
   "id": "a character left in Characters with a left mark moves to Fallen when finished",
   "file": "src/imports/leaving/switching/old-main-steps.ts",
-  "find": "    if (!hasLeftPlay(standingOf(await textOfNote(this.files, this.old, NOTE_UNREAD)))) return [];\n",
+  "find": "    if (!hasLeftPlay(standingOf(await textOfNote(this.files, this.old, NOTE_UNREAD), this.syntax))) return [];\n",
   "replace": "",
   "group": "reasons"
  },
@@ -464,14 +464,14 @@
  {
   "id": "nothing but the property may change",
   "file": "src/imports/leaving/properties/property-read-back.ts",
-  "find": "  if (outsideTheProperty(before, key) !== outsideTheProperty(after, key)) throw propertyChangedMore(key);\n",
+  "find": "  if (outsideTheProperty(before, key, syntax) !== outsideTheProperty(after, key, syntax)) throw propertyChangedMore(key);\n",
   "replace": "",
   "group": "properties"
  },
  {
   "id": "the property must read as wanted",
   "file": "src/imports/leaving/properties/property-read-back.ts",
-  "find": "  if (propertyLinesOf(after, key) !== wantedLinesOf(wanted)) throw propertyChangedMore(key);\n",
+  "find": "  if (propertyLinesOf(after, key, syntax) !== wantedLinesOf(wanted)) throw propertyChangedMore(key);\n",
   "replace": "",
   "group": "properties"
  },
@@ -485,15 +485,15 @@
  {
   "id": "the property must read as wanted by Obsidian",
   "file": "src/imports/leaving/properties/property-read-back.ts",
-  "find": "  if (valueIn(readAfter, key) !== wantedValueOf(wanted, key)) throw propertyReadsDifferently(key);\n",
+  "find": "  if (valueIn(readAfter, key) !== wantedValueOf(wanted, key, syntax)) throw propertyReadsDifferently(key);\n",
   "replace": "",
   "group": "properties"
  },
  {
   "id": "properties that can't be read are refused",
   "file": "src/imports/leaving/properties/property-yaml.ts",
-  "find": "  try {\n    parsed = parseYaml(yaml);\n  } catch {\n    throw propertiesUnreadable(key);\n  }",
-  "replace": "  parsed = parseYaml(yaml);",
+  "find": "  try {\n    parsed = syntax.readProperties(yaml);\n  } catch {\n    throw propertiesUnreadable(key);\n  }",
+  "replace": "  parsed = syntax.readProperties(yaml);",
   "group": "properties"
  },
  {
@@ -519,58 +519,58 @@
  },
  {
   "id": "the main is read as a whole link",
-  "file": "src/imports/leaving/cast/gate-cast.ts",
+  "file": "src/imports/leaving/cast/notes-cast.ts",
   "find": "const WHOLE_LINK = /^\\[\\[([^[\\]|#]+)(?:[|#][^[\\]]*)?\\]\\]$/;",
   "replace": "const WHOLE_LINK = /\\[\\[([^[\\]|#]+)(?:[|#][^[\\]]*)?\\]\\]/;",
   "group": "cast"
  },
  {
   "id": "a property on several lines is refused",
-  "file": "src/imports/leaving/cast/gate-cast.ts",
+  "file": "src/imports/leaving/cast/notes-cast.ts",
   "find": "    if (values.length !== 1) throw new Refusal(MAIN_UNCLEAR);\n",
   "replace": "",
   "group": "cast"
  },
  {
   "id": "a quoted link is read without its quotes",
-  "file": "src/imports/leaving/cast/gate-cast.ts",
+  "file": "src/imports/leaving/cast/notes-cast.ts",
   "find": "  if (value.length < 2 || !QUOTES.includes(quote) || value.charAt(value.length - 1) !== quote) return value;\n",
   "replace": "  return value;\n",
   "group": "cast"
  },
  {
   "id": "an empty or null character is nobody",
-  "file": "src/imports/leaving/cast/gate-cast.ts",
+  "file": "src/imports/leaving/cast/notes-cast.ts",
   "find": "const NO_VALUES: readonly string[] = [\"\", \"null\"];",
   "replace": "const NO_VALUES: readonly string[] = [];",
   "group": "cast"
  },
  {
   "id": "a missing character property is nobody",
-  "file": "src/imports/leaving/cast/gate-cast.ts",
+  "file": "src/imports/leaving/cast/notes-cast.ts",
   "find": "    if (values === null) return null;\n",
   "replace": "    if (values === null) throw new Refusal(MAIN_UNCLEAR);\n",
   "group": "cast"
  },
  {
   "id": "a link to a deleted note is nobody",
-  "file": "src/imports/leaving/cast/gate-cast.ts",
-  "find": "    return this.metadata.getFirstLinkpathDest(linkpathOf(written), campaignNote.path);\n",
-  "replace": "    const file = this.metadata.getFirstLinkpathDest(linkpathOf(written), campaignNote.path);\n    if (file === null) throw new Refusal(MAIN_UNCLEAR);\n    return file;\n",
+  "file": "src/imports/leaving/cast/notes-cast.ts",
+  "find": "    return this.metadata.target(linkpathOf(written), campaignNote.path);\n",
+  "replace": "    const file = this.metadata.target(linkpathOf(written), campaignNote.path);\n    if (file === null) throw new Refusal(MAIN_UNCLEAR);\n    return file;\n",
   "group": "cast"
  },
  {
   "id": "the link is resolved from the campaign note",
-  "file": "src/imports/leaving/cast/gate-cast.ts",
-  "find": "this.metadata.getFirstLinkpathDest(linkpathOf(written), campaignNote.path)",
-  "replace": "this.metadata.getFirstLinkpathDest(linkpathOf(written), \"\")",
+  "file": "src/imports/leaving/cast/notes-cast.ts",
+  "find": "this.metadata.target(linkpathOf(written), campaignNote.path)",
+  "replace": "this.metadata.target(linkpathOf(written), \"\")",
   "group": "cast"
  },
  {
   "id": "the newest session is the latest",
-  "file": "src/imports/leaving/cast/gate-cast.ts",
-  "find": "const path = latestSession(campaignFolder, this.files.getFiles().map((file) => file.path));",
-  "replace": "const path = this.files.getFiles().map((file) => file.path).at(0)!;",
+  "file": "src/imports/leaving/cast/notes-cast.ts",
+  "find": "const path = latestSession(campaignFolder, this.files.files().map((file) => file.path));",
+  "replace": "const path = this.files.files().map((file) => file.path).at(0)!;",
   "group": "cast"
  },
  {
@@ -604,8 +604,8 @@
  {
   "id": "a note is looked up by the path it had",
   "file": "src/imports/leaving/switching/asked-note.ts",
-  "find": "files.getFileByPath(this.path) === this.file",
-  "replace": "files.getFileByPath(this.file.path) === this.file",
+  "find": "files.note(this.path) === this.file",
+  "replace": "files.note(this.file.path) === this.file",
   "group": "still"
  },
  {
@@ -618,14 +618,14 @@
  {
   "id": "an update asks only about a character who left play",
   "file": "src/imports/leaving/dialog/main-offers.ts",
-  "find": "await this.ask(file, stayPut, new AskWhenLeftPlay());",
+  "find": "await this.ask(file, stayPut, new AskWhenLeftPlay(this.syntax));",
   "replace": "await this.ask(file, stayPut, new AskAlways());",
   "group": "offers"
  },
  {
   "id": "a note that left play is told by its standing",
   "file": "src/imports/leaving/dialog/ask-when.ts",
-  "find": "return hasLeftPlay(standingOf(await textOfNote(files, file, NOTE_UNREAD)));",
+  "find": "return hasLeftPlay(standingOf(await textOfNote(files, file, NOTE_UNREAD), this.syntax));",
   "replace": "return true;",
   "group": "offers"
  },
@@ -688,7 +688,7 @@
  {
   "id": "no main yet asks only Make main",
   "file": "src/imports/leaving/questions/question-for.ts",
-  "find": "  if (old === null) return new NoMainQuestion(parts);\n",
+  "find": "  if (old === null) return new NoMainQuestion(parts, syntax);\n",
   "replace": "",
   "group": "offers"
  },
@@ -702,14 +702,14 @@
  {
   "id": "a main marked as left is only finished",
   "file": "src/imports/leaving/questions/question-for.ts",
-  "find": "  return hasLeftPlay(standingOf(await textOfNote(files, note, NOTE_UNREAD)));",
+  "find": "  return hasLeftPlay(standingOf(await textOfNote(files, note, NOTE_UNREAD), syntax));",
   "replace": "  return false;",
   "group": "offers"
  },
  {
   "id": "a new one already named with nothing to finish asks nothing",
   "file": "src/imports/leaving/questions/question-for.ts",
-  "find": "    if (!(await needsFinishing({ files: wiring.files, note: chosen, folder }))) return null;\n",
+  "find": "    if (!(await needsFinishing({ files: wiring.files, note: chosen, folder }, syntax))) return null;\n",
   "replace": "",
   "group": "offers"
  },
@@ -723,7 +723,7 @@
  {
   "id": "a new one with a mark needs finishing",
   "file": "src/imports/leaving/questions/question-for.ts",
-  "find": "  return standingOf(await textOfNote(files, note, NOTE_UNREAD)) !== null;",
+  "find": "  return standingOf(await textOfNote(files, note, NOTE_UNREAD), syntax) !== null;",
   "replace": "  return false;",
   "group": "offers"
  },
@@ -750,16 +750,16 @@
  },
  {
   "id": "a modal passes what was typed",
-  "file": "src/imports/leaving/dialog/main-modal.ts",
-  "find": "this.runChange(choice.run.bind(choice, this.lastDoing), SWITCH_FAILED);",
-  "replace": "this.runChange(choice.run.bind(choice, \"\"), SWITCH_FAILED);",
+  "file": "src/imports/leaving/dialog/main-question-dialog.ts",
+  "find": "this.changing.run(choice.run.bind(choice, this.lastDoing), SWITCH_FAILED);",
+  "replace": "this.changing.run(choice.run.bind(choice, \"\"), SWITCH_FAILED);",
   "group": "offers"
  },
  {
   "id": "Not now writes nothing",
-  "file": "src/imports/leaving/dialog/main-modal.ts",
-  "find": ".setButtonText(NOT_NOW).onClick(this.close.bind(this));",
-  "replace": ".setButtonText(NOT_NOW).onClick(this.keepLastDoing.bind(this, \"\"));",
+  "file": "src/imports/leaving/dialog/main-question-dialog.ts",
+  "find": "new PlainButton(NOT_NOW, new RunAction(this.changing.close.bind(this.changing)))",
+  "replace": "new PlainButton(NOT_NOW, new RunAction(this.keepLastDoing.bind(this, \"\")))",
   "group": "offers"
  },
  {
@@ -891,71 +891,71 @@
  {
   "id": "the Characters list leaves out Fallen",
   "file": "src/characters/reading/character-notes.ts",
-  "find": "isInReferenceFolder(characterReferenceKind, campaignFolder, file.path)",
+  "find": "isInReferenceFolder(characterReferenceKind, campaignFolder, note.path)",
   "replace": "true",
   "group": "gallery"
  },
  {
   "id": "the Fallen list is the campaign's Fallen folder",
   "file": "src/characters/reading/character-notes.ts",
-  "find": "isInFallenFolder(campaignFolder, file.path)",
+  "find": "isInFallenFolder(campaignFolder, note.path)",
   "replace": "true",
   "group": "gallery"
  },
  {
   "id": "the Fallen list is by name",
   "file": "src/characters/reading/character-notes.ts",
-  "find": "function fallenFilesIn(gate: Gate, campaignFolder: string): TFile[] {\n  const files = gate.files.getMarkdownFiles().filter((file) => isInFallenFolder(campaignFolder, file.path));\n  return files.sort((first, second) => first.basename.localeCompare(second.basename));",
-  "replace": "function fallenFilesIn(gate: Gate, campaignFolder: string): TFile[] {\n  return gate.files.getMarkdownFiles().filter((file) => isInFallenFolder(campaignFolder, file.path));",
+  "find": "    return files.sort(byName);\n  }\n\n  sessionsOf",
+  "replace": "    return files;\n  }\n\n  sessionsOf",
   "group": "gallery"
  },
  {
   "id": "the gallery draws the Fallen list",
   "file": "src/characters/pages/character-gallery.ts",
-  "find": "    this.drawFallen(fallenCards);\n",
+  "find": "    trees.push(...this.fallenTrees(fallenCards));\n",
   "replace": "",
   "group": "gallery"
  },
  {
   "id": "the Fallen list is empty when nobody fell",
   "file": "src/characters/pages/character-gallery.ts",
-  "find": "    if (cards.length === 0) return;\n    const section = this.root.createEl(\"section\", { cls: \"dd-fallen\" });",
-  "replace": "    const section = this.root.createEl(\"section\", { cls: \"dd-fallen\" });",
+  "find": "    if (cards.length === 0) return [];\n    const title = new Heading3({ cls: [\"dd-title\"], text: FALLEN }",
+  "replace": "    const title = new Heading3({ cls: [\"dd-title\"], text: FALLEN }",
   "group": "gallery"
  },
  {
   "id": "a Fallen card has Make main",
   "file": "src/characters/pages/character-gallery.ts",
-  "find": "    addMakeMainButton(item, card.path, this.creators);\n",
-  "replace": "",
+  "find": "[this.cardOfShown(card), makeMainButton(card.path, this.creators)]",
+  "replace": "[this.cardOfShown(card)]",
   "group": "gallery"
  },
  {
   "id": "a note left with a mark gets Make main",
   "file": "src/characters/pages/character-gallery.ts",
-  "find": "    if (leftPlayMarkOf(card.standing) === null) {",
-  "replace": "    if (true) {",
+  "find": "    if (leftPlayMarkOf(card.standing) === null) return",
+  "replace": "    if (true) return",
   "group": "gallery"
  },
  {
   "id": "the Characters list is drawn when there are characters",
   "file": "src/characters/pages/character-gallery.ts",
-  "find": "    if (cards.length > 0) this.drawPlayed(title, cards);\n",
+  "find": "    if (cards.length > 0) trees.push(...this.playedTrees(cards));\n",
   "replace": "",
   "group": "gallery"
  },
  {
   "id": "the empty Characters page says so",
   "file": "src/characters/pages/character-gallery.ts",
-  "find": "    if (cards.length === 0) this.root.createEl(\"p\", { cls: \"dd-empty\", text: NO_CHARACTERS });\n",
+  "find": "    if (cards.length === 0) trees.push(new Paragraph({ cls: [\"dd-empty\"], text: NO_CHARACTERS }));\n",
   "replace": "",
   "group": "gallery"
  },
  {
   "id": "the cast page shows the Fallen list",
   "file": "src/characters/pages/cast-page.ts",
-  "find": "this.gallery.show(this.notes.filesIn(folder), this.notes.fallenFilesIn(folder));",
-  "replace": "this.gallery.show(this.notes.filesIn(folder), []);",
+  "find": "gallery.show(this.notes.filesIn(folder), this.notes.fallenFilesIn(folder));",
+  "replace": "gallery.show(this.notes.filesIn(folder), []);",
   "group": "gallery"
  },
  {
@@ -966,25 +966,11 @@
   "group": "gallery"
  },
  {
-  "id": "the Characters view shows the Fallen list",
-  "file": "src/characters/pages/characters-view.ts",
-  "find": "      this.fallenFiles(),\n",
-  "replace": "      [],\n",
-  "group": "gallery"
- },
- {
   "id": "the player's character is one property",
   "file": "src/characters/reading/character-notes.ts",
   "find": "link.key === MAIN_CHARACTER_PROPERTY",
   "replace": "link.key === \"character \"",
   "group": "gallery"
- },
- {
-  "id": "fence: imports may read Obsidian's yaml",
-  "file": "tests/fence/allowed/obsidian-imports.ts",
-  "find": "\"imports/\": [\"App\", \"ButtonComponent\", \"Setting\", \"TFile\", \"parseYaml\"],",
-  "replace": "\"imports/\": [\"App\", \"ButtonComponent\", \"Setting\", \"TFile\"],",
-  "group": "allow"
  },
  {
   "id": "folders: the writes reach only themselves",
@@ -1043,13 +1029,6 @@
   "group": "folders"
  },
  {
-  "id": "fence: imports may use Setting",
-  "file": "tests/fence/allowed/obsidian-imports.ts",
-  "find": "\"ButtonComponent\", \"Setting\", \"TFile\", \"parseYaml\"]",
-  "replace": "\"ButtonComponent\", \"TFile\", \"parseYaml\"]",
-  "group": "allow"
- },
- {
   "id": "the cast refusal words are the shared plain words",
   "file": "src/imports/leaving/dialog/main-offers.ts",
   "find": "plainWordsOf(error, COULD_NOT_ASK)",
@@ -1080,14 +1059,14 @@
  {
   "id": "something else is marked departed",
   "file": "src/imports/leaving/switching/old-main-steps.ts",
-  "find": "propertyLine(STANDING_PROPERTY, DEPARTED_STANDING));\n    const markedText",
-  "replace": "propertyLine(STANDING_PROPERTY, \"died\"));\n    const markedText",
+  "find": "propertyLine(STANDING_PROPERTY, DEPARTED_STANDING), this.syntax);\n    const markedText",
+  "replace": "propertyLine(STANDING_PROPERTY, \"died\"), this.syntax);\n    const markedText",
   "group": "depart"
  },
  {
   "id": "something else keeps its words in the note",
   "file": "src/imports/leaving/switching/old-main-steps.ts",
-  "find": "    const markedText = textWithProperty(standingText, DEPARTURE_PROPERTY, departureLine(words.written));",
+  "find": "    const markedText = textWithProperty(standingText, DEPARTURE_PROPERTY, departureLine(words.written), this.syntax);",
   "replace": "    const markedText = standingText;",
   "group": "depart"
  },
@@ -1108,8 +1087,8 @@
  {
   "id": "the note keeps the words as typed",
   "file": "src/imports/leaving/switching/old-main-steps.ts",
-  "find": "departureLine(words.written));",
-  "replace": "departureLine(words.snapshot));",
+  "find": "departureLine(words.written), this.syntax);",
+  "replace": "departureLine(words.snapshot), this.syntax);",
   "group": "depart"
  },
  {
@@ -1191,30 +1170,30 @@
  },
  {
   "id": "the dialog asks for their own words",
-  "file": "src/imports/leaving/dialog/main-modal.ts",
-  "find": "    if (ownWords !== null) new Setting(contentEl)",
-  "replace": "    if (ownWords === undefined) new Setting(contentEl)",
+  "file": "src/imports/leaving/dialog/main-question-dialog.ts",
+  "find": "    if (ownWords !== null) trees.push(",
+  "replace": "    if (ownWords === undefined) trees.push(",
   "group": "depart"
  },
  {
   "id": "the dialog keeps their own words",
-  "file": "src/imports/leaving/dialog/main-modal.ts",
-  "find": "    field.onChange(ownWords.keep.bind(ownWords));\n",
+  "file": "src/imports/leaving/dialog/main-question-dialog.ts",
+  "find": "    this.ownWords.keep(value);\n",
   "replace": "",
   "group": "depart"
  },
  {
   "id": "Depart only on a note in Characters",
   "file": "src/characters/pages/character-sheet-page.ts",
-  "find": "    if (this.isUpdatable(file, read.campaignFolder)) {\n      addDepartButton",
-  "replace": "    if (file.path !== \"\") {\n      addDepartButton",
+  "find": "    if (updatable) trees.push(new Div({ cls: [\"dd-sheet-depart\"] }",
+  "replace": "    if (file.path !== \"\") trees.push(new Div({ cls: [\"dd-sheet-depart\"] }",
   "group": "depart"
  },
  {
   "id": "Depart is at the page's bottom",
   "file": "src/characters/pages/character-sheet-page.ts",
-  "find": "    this.mentions.draw(root.createEl(\"section\", { cls: \"dd-sheet-mentions\" }), file);\n    if (this.isUpdatable(file, read.campaignFolder)) {\n      addDepartButton({ parent: root.createDiv({ cls: \"dd-sheet-depart\" }), path: file.path, action: this.actions, focus: this.focusEdit });\n    }\n",
-  "replace": "    if (this.isUpdatable(file, read.campaignFolder)) {\n      addDepartButton({ parent: root.createDiv({ cls: \"dd-sheet-depart\" }), path: file.path, action: this.actions, focus: this.focusEdit });\n    }\n    this.mentions.draw(root.createEl(\"section\", { cls: \"dd-sheet-mentions\" }), file);\n",
+  "find": "    trees.push(new Section({ cls: [\"dd-sheet-mentions\"], bindings: [new HandleRequest(mentionsPlace)] }));\n    if (updatable) trees.push(new Div({ cls: [\"dd-sheet-depart\"] }, [departButton(file.path, this.actions, this.focusEdit)]));\n",
+  "replace": "    if (updatable) trees.push(new Div({ cls: [\"dd-sheet-depart\"] }, [departButton(file.path, this.actions, this.focusEdit)]));\n    trees.push(new Section({ cls: [\"dd-sheet-mentions\"], bindings: [new HandleRequest(mentionsPlace)] }));\n",
   "group": "depart"
  }
 ]

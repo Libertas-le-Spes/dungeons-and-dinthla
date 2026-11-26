@@ -11,11 +11,13 @@ import { SessionClearer } from "../../src/session-notes/removal/session-clearer"
 import { SessionTrash } from "../../src/session-notes/removal/session-trash";
 import { SessionWriting } from "../../src/session-notes/page/session-writing";
 import { writtenLinesOf } from "../../src/session-notes/lines/written-lines";
-import type { ConfirmText } from "../../src/views/dialogs/confirm-modal";
+import type { ConfirmText } from "../../src/views/dialogs/confirm-dialog";
 import { FakeNotes } from "../note-editing/fake-notes";
 import { stubRenumbering } from "./renumbering/stub-renumbering";
 import { stubLineOpeners } from "./lines/stub-line-openers";
 import { isShown, obsidianDocument } from "../stubs/obsidian-dom";
+import { STUB_SYNTAX } from "../host/stub-syntax";
+import { mountTree } from "../../src/obsidian/views/mount/mount-tree";
 
 export const PATH = "Pale Moon/Sessions/Session 12.md";
 export const NOTE = "---\nplayed: 2026-11-09\n---\nTracks lead to the [[Old Mill]].\n? Who sent the leter";
@@ -53,7 +55,6 @@ export function writingOn(text: string | null, drafts = new Drafts({}, () => {})
   const report = vi.fn();
   const moves = { heading: vi.fn(() => HEADING), deleted: vi.fn() };
   const session = new SessionWriting(
-    root,
     PATH,
     {
       drafts,
@@ -61,14 +62,17 @@ export function writingOn(text: string | null, drafts = new Drafts({}, () => {})
       writer: writer as unknown as AppendWriter,
       openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
       campaign: () => buildCampaign([]),
-      actions: { openRow: vi.fn(), openLink: vi.fn() },
+      actions: { openLink: vi.fn() },
       lineOpeners: stubLineOpeners(),
-      wholeText: { texts: notes.texts, drafts: noteDrafts, saver: new NoteSaver(notes.vault) },
-      removal: { clearer: new SessionClearer(notes.vault), trash: new SessionTrash(notes.vault, { trashFile }, permanently), renumbering, confirm, report },
+      wholeText: { texts: notes.texts, drafts: noteDrafts, saver: new NoteSaver(notes.store) },
+      removal: { clearer: new SessionClearer(notes.store, STUB_SYNTAX), trash: new SessionTrash(notes.store, { throwAway: trashFile }, permanently), renumbering, confirm, report },
     },
     moves,
+    STUB_SYNTAX,
   );
-  const showNote = () => session.show(writtenLinesOf(sessionNoteOf(PATH, 12, String(notes.text))), buildCampaign([]));
+  for (const tree of session.trees()) mountTree(tree, root);
+  session.start();
+  const showNote = () => session.show(writtenLinesOf(sessionNoteOf(PATH, 12, String(notes.text), STUB_SYNTAX)), buildCampaign([]));
   const window = document.defaultView!;
   const find = <T extends HTMLElement>(selector: string) => root.querySelector<T>(selector)!;
   const button = (selector: string) => find<HTMLButtonElement>(selector);

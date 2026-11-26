@@ -1,10 +1,15 @@
-import type { TFile } from "obsidian";
 import { sessionNumberOf } from "../campaign/paths/session-file";
-import type { FencedFileActions } from "../fence/gate/fenced-file-actions";
-import type { FencedFiles } from "../fence/gate/fenced-files";
+import type { NoteKeeping } from "../host/notes/note-keeping";
+import type { NoteRef } from "../host/notes/note-ref";
+import type { NoteStore } from "../host/notes/note-store";
 
-export type SessionFiles = Pick<FencedFiles, "getFiles" | "getFolderByPath" | "createFolder" | "create">;
-export type SessionFileActions = Pick<FencedFileActions, "processFrontMatter">;
+export type SessionFiles = Pick<NoteStore, "files" | "hasFolder" | "makeFolder" | "make">;
+export type SessionFileActions = Pick<NoteKeeping, "changeProperties">;
+
+export interface SessionMaking {
+  readonly store: SessionFiles;
+  readonly keeping: SessionFileActions;
+}
 
 export interface NewSession {
   title: string;
@@ -25,13 +30,13 @@ export async function createSession(
   actions: SessionFileActions,
   campaignFolder: string,
   session: NewSession,
-): Promise<TFile> {
+): Promise<NoteRef> {
   const sessionsFolder = `${campaignFolder}/Sessions`;
-  if (files.getFolderByPath(sessionsFolder) === null) await files.createFolder(sessionsFolder);
-  const number = nextSessionNumber(files.getFiles().map((file) => file.path), campaignFolder);
-  const note = await files.create(`${sessionsFolder}/Session ${number}.md`, "");
+  if (!files.hasFolder(sessionsFolder)) await files.makeFolder(sessionsFolder);
+  const number = nextSessionNumber(files.files().map((file) => file.path), campaignFolder);
+  const note = await files.make(`${sessionsFolder}/Session ${number}.md`, "");
   const title = session.title.trim();
-  await actions.processFrontMatter(note, (properties: Record<string, unknown>) => {
+  await actions.changeProperties(note, (properties: Record<string, unknown>) => {
     properties.played = session.played;
     if (title !== "") properties.title = title;
   });

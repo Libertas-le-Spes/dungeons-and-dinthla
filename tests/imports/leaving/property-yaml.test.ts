@@ -1,13 +1,26 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { Refusal } from "../../../src/beyond/shape/refusal";
 import { refuseUnlessOnlyThePropertyChanged } from "../../../src/imports/leaving/properties/property-read-back";
+import type { NoteSyntax } from "../../../src/host/rules/note-syntax";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
-const read = vi.hoisted(() => ({ results: [] as unknown[] }));
+const read = { results: [] as unknown[] };
 
-vi.mock("obsidian", async (original) => {
-  const stubs = await original<Record<string, unknown>>();
-  return { ...stubs, parseYaml: () => read.results.shift() };
-});
+class HeldReadings implements NoteSyntax {
+  propertiesIn(text: string) {
+    return STUB_SYNTAX.propertiesIn(text);
+  }
+
+  readProperties(): unknown {
+    return read.results.shift();
+  }
+
+  linkPathOf(linkText: string): string {
+    return STUB_SYNTAX.linkPathOf(linkText);
+  }
+}
+
+const HELD_READINGS = new HeldReadings();
 
 const BEFORE = "---\nclass: Monk\nstanding: died\n---\n";
 const AFTER = "---\nclass: Monk\nstanding: backup\n---\n";
@@ -24,7 +37,7 @@ function refusalOf(work: () => unknown): string {
 }
 
 function check(): void {
-  refuseUnlessOnlyThePropertyChanged(BEFORE, AFTER, "standing", "standing: backup");
+  refuseUnlessOnlyThePropertyChanged(BEFORE, AFTER, "standing", "standing: backup", HELD_READINGS);
 }
 
 beforeEach(() => {

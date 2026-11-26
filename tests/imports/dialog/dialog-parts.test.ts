@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import type { App, TFile } from "obsidian";
+import type { TFile } from "obsidian";
 import { dayOf } from "../../../src/imports/dialog/today";
 import { problemLinesOf, summaryLinesOf } from "../../../src/imports/dialog/review/sheet-summary";
-import { drawChanges } from "../../../src/imports/dialog/review/change-list";
+import { changeTrees } from "../../../src/imports/dialog/review/change-list";
+import type { ImportChanges } from "../../../src/imports/note/changes/import-changes";
+import { mountTree } from "../../../src/obsidian/views/mount/mount-tree";
 import { AfterNewImport, AfterUpdate } from "../../../src/imports/dialog/opening/after-import";
-import type { ImportClosed } from "../../../src/imports/dialog/import-modal";
+import type { ImportClosed } from "../../../src/imports/dialog/import-dialog";
 import { readReply } from "../../../src/beyond/reply/read-reply";
 import { onlineSheetOf } from "../../../src/imports/dialog/online/online-sheet";
 import { MadeUpReply } from "../../beyond/builders/made-up-reply";
@@ -16,6 +18,8 @@ import { printedOf } from "../../beyond/builders/sheet-reading";
 import { openedModals } from "../../stubs/obsidian";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { CHARACTERS_FOLDER, FakeNoteVault } from "../builders/fake-note-vault";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
+import { OBSIDIAN_SHOWING } from "../../host/showing/obsidian-showing";
 
 class NoMetadata {
   getCache(): null {
@@ -26,11 +30,11 @@ class NoMetadata {
     return null;
   }
 
-  getFirstLinkpathDest(): null {
+  target(): null {
     return null;
   }
 
-  fileToLinktext(file: TFile): string {
+  linkTextTo(file: TFile): string {
     return file.basename;
   }
 }
@@ -50,9 +54,9 @@ class NoOffers {
 
 function wiringWith(shownFolder: string | null, folderOfNote: string | null, vault = new FakeNoteVault(), online: OnlineSource = NO_ONLINE): BeyondWiring {
   return {
-    app: {} as App,
-    files: vault.gate,
-    actions: vault.actions,
+    showing: OBSIDIAN_SHOWING,
+    files: vault.notes.store,
+    actions: vault.notes.keeping,
     metadata: new NoMetadata(),
     online,
     shownCampaignFolder: vi.fn().mockReturnValue(shownFolder),
@@ -92,8 +96,7 @@ describe("the summary of what an import brings in", () => {
 
 describe("the list of changes", () => {
   it("names what changes in one line and folds each property and section away", () => {
-    const parent = obsidianDocument().createElement("div");
-    drawChanges(parent, {
+    const parent = mountedChanges({
       properties: [{ name: "AC", before: "15", after: "16" }, { name: "speed", before: null, after: "40" }],
       sections: [{ title: "Purse", removed: ["- gp · 2"], added: ["- gp · 3"] }],
       typed: [],
@@ -107,8 +110,7 @@ describe("the list of changes", () => {
   });
 
   it("does not show the import's own marks", () => {
-    const parent = obsidianDocument().createElement("div");
-    drawChanges(parent, {
+    const parent = mountedChanges({
       properties: [{ name: "imported-from", before: null, after: "pdf" }, { name: "imported-session", before: null, after: "3" }, { name: "AC", before: "15", after: "16" }],
       sections: [],
       typed: [],
@@ -118,15 +120,13 @@ describe("the list of changes", () => {
   });
 
   it("says the import marks change when only they do, and still shows no fold", () => {
-    const parent = obsidianDocument().createElement("div");
-    drawChanges(parent, { properties: [{ name: "imported-from", before: "pdf", after: "online" }], sections: [], typed: [] });
+    const parent = mountedChanges({ properties: [{ name: "imported-from", before: "pdf", after: "online" }], sections: [], typed: [] });
     expect(textsIn(parent, ".dd-import-changes-line")).toEqual(["Changes: import marks."]);
     expect(parent.querySelector(".dd-import-fold")).toBeNull();
   });
 
   it("names the sections alone when only the import marks change beside them", () => {
-    const parent = obsidianDocument().createElement("div");
-    drawChanges(parent, {
+    const parent = mountedChanges({
       properties: [{ name: "imported-from", before: "pdf", after: "online" }, { name: "imported-session", before: "1", after: "2" }],
       sections: [{ title: "Numbers", removed: [], added: ["- AC · 1"] }],
       typed: [],
@@ -135,8 +135,7 @@ describe("the list of changes", () => {
   });
 
   it("puts the warning about typed text first, naming the sections and showing the lines", () => {
-    const parent = obsidianDocument().createElement("div");
-    drawChanges(parent, { properties: [{ name: "AC", before: "15", after: "16" }], sections: [], typed: [{ title: "Spells", lines: ["Range: 60 feet"] }] });
+    const parent = mountedChanges({ properties: [{ name: "AC", before: "15", after: "16" }], sections: [], typed: [{ title: "Spells", lines: ["Range: 60 feet"] }] });
     const first = parent.firstElementChild;
     if (first === null) throw new Error("Nothing was drawn.");
     expect(first.className).toBe("dd-import-warning");
@@ -147,12 +146,17 @@ describe("the list of changes", () => {
   });
 
   it("says nothing changes when nothing does", () => {
-    const parent = obsidianDocument().createElement("div");
-    drawChanges(parent, { properties: [], sections: [], typed: [] });
+    const parent = mountedChanges({ properties: [], sections: [], typed: [] });
     expect(textsIn(parent, ".dd-import-nothing")).toEqual(["Nothing changes."]);
   });
 });
 
+
+function mountedChanges(changes: ImportChanges): HTMLElement {
+  const parent = obsidianDocument().createElement("div");
+  for (const tree of changeTrees(changes)) mountTree(tree, parent);
+  return parent;
+}
 
 function textsIn(parent: ParentNode, selector: string): string[] {
   const found: string[] = [];
@@ -192,7 +196,7 @@ describe("opening the dialog", () => {
   it("says to open a campaign first when none is shown, and opens nothing", () => {
     const wiring = wiringWith(null, null);
     const before = openedModals.length;
-    new BeyondOpeners(wiring).importCharacter(vi.fn());
+    new BeyondOpeners(wiring, STUB_SYNTAX).importCharacter(vi.fn());
     expect(wiring.tell).toHaveBeenCalledWith("Open a campaign first, then import its character.");
     expect(openedModals.length).toBe(before);
   });
@@ -200,7 +204,7 @@ describe("opening the dialog", () => {
   it("opens the import for the shown campaign's Characters folder", () => {
     const wiring = wiringWith("D&D/Primary Campaign", null);
     const before = openedModals.length;
-    new BeyondOpeners(wiring).importCharacter(vi.fn());
+    new BeyondOpeners(wiring, STUB_SYNTAX).importCharacter(vi.fn());
     expect(wiring.charactersFolderOf).toHaveBeenCalledWith("D&D/Primary Campaign");
     expect(openedModals.length).toBe(before + 1);
     expect(wiring.tell).not.toHaveBeenCalled();
@@ -214,7 +218,7 @@ describe("opening the dialog", () => {
     const vault = new FakeNoteVault();
     const note = vault.note(`${CHARACTERS_FOLDER}/Primary.md`, text);
     const online = new HeldOnline();
-    await new BeyondOpeners(wiringWith(null, "D&D/Primary Campaign", vault, online)).updateFromBeyond(note, vi.fn());
+    await new BeyondOpeners(wiringWith(null, "D&D/Primary Campaign", vault, online), STUB_SYNTAX).updateFromBeyond(note, vi.fn());
     expect(online.links).toEqual(asked);
   });
 
@@ -224,7 +228,7 @@ describe("opening the dialog", () => {
     vault.failReadsWith(new Error("Locked."));
     const online = new HeldOnline();
     const before = openedModals.length;
-    await new BeyondOpeners(wiringWith(null, "D&D/Primary Campaign", vault, online)).updateFromBeyond(note, vi.fn());
+    await new BeyondOpeners(wiringWith(null, "D&D/Primary Campaign", vault, online), STUB_SYNTAX).updateFromBeyond(note, vi.fn());
     expect(openedModals.length).toBe(before + 1);
     expect(online.links).toEqual([]);
   });
@@ -233,11 +237,11 @@ describe("opening the dialog", () => {
     const note = { path: `${CHARACTERS_FOLDER}/Primary.md`, basename: "Primary" } as TFile;
     const inCampaign = wiringWith(null, "D&D/Primary Campaign");
     const before = openedModals.length;
-    await new BeyondOpeners(inCampaign).updateFromBeyond(note, vi.fn());
+    await new BeyondOpeners(inCampaign, STUB_SYNTAX).updateFromBeyond(note, vi.fn());
     expect(inCampaign.campaignFolderOf).toHaveBeenCalledWith(note.path);
     expect(openedModals.length).toBe(before + 1);
     const outside = wiringWith(null, null);
-    await new BeyondOpeners(outside).updateFromBeyond(note, vi.fn());
+    await new BeyondOpeners(outside, STUB_SYNTAX).updateFromBeyond(note, vi.fn());
     expect(outside.tell).toHaveBeenCalledExactlyOnceWith("This note isn't in a campaign.");
     expect(openedModals.length).toBe(before + 1);
   });
@@ -245,7 +249,7 @@ describe("opening the dialog", () => {
   it("asks about Make main for a note that is gone, telling the user and returning focus", () => {
     const wiring = wiringWith("D&D/Primary Campaign", "D&D/Primary Campaign");
     const returnFocus = vi.fn();
-    new BeyondOpeners(wiring).makeMain(`${CHARACTERS_FOLDER}/Gone.md`, returnFocus);
+    new BeyondOpeners(wiring, STUB_SYNTAX).makeMain(`${CHARACTERS_FOLDER}/Gone.md`, returnFocus);
     expect(wiring.tell).toHaveBeenCalledExactlyOnceWith("A character's note was moved or deleted since you were asked, so nothing was switched.");
     expect(returnFocus).toHaveBeenCalledOnce();
   });

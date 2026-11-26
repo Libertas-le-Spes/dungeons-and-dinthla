@@ -4,7 +4,7 @@ import { ROOT, SOURCE_FOLDER } from "./scan-paths";
 const OBSIDIAN_FOLDER = "obsidian/";
 const CODE_MIRROR_FOLDER = "@codemirror/";
 const NESTED_LIBRARY_FOLDER = "/node_modules/";
-const PICTURE_CSS_SOURCE = `${SOURCE_FOLDER}campaign/background/picture-css.ts`;
+const PICTURE_CSS_SOURCE = `${SOURCE_FOLDER}obsidian/campaign/background/picture-css.ts`;
 
 export interface Disk {
   exists(path: string): boolean;

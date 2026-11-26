@@ -1,5 +1,9 @@
 import { splitLinks, type LinkedText } from "../notes/parts/link";
-import { addNameLink, type LinkActions } from "../views/lists/linked-text";
+import { LinkName, type LinkOpener } from "../views/components/rows/link-name";
+import { HandleRequest } from "../views/elements/bindings/bindings";
+import { KeptHandle } from "../views/elements/bindings/kept-handle";
+import { Heading3, List, ListItem, Section } from "../views/elements/kinds/containers";
+import type { ViewElement } from "../views/elements/view-element";
 
 const HEADING = "Links in this note";
 
@@ -21,27 +25,26 @@ function linksIn(text: string): ShownLink[] {
 }
 
 export class NoteLinks {
-  private readonly section: HTMLElement;
-  private readonly list: HTMLElement;
+  private readonly section = new KeptHandle();
+  private readonly list = new KeptHandle();
 
   constructor(
-    parent: HTMLElement,
     private readonly sourcePath: string,
-    private readonly actions: LinkActions,
-  ) {
-    this.section = parent.createEl("section", { cls: "dd-note-links" });
-    this.section.createEl("h3", { cls: "dd-note-links-title", text: HEADING });
-    this.list = this.section.createEl("ul", { cls: "dd-note-links-list" });
+    private readonly opener: LinkOpener,
+  ) {}
+
+  tree(): ViewElement {
+    return new Section({ cls: ["dd-note-links"], bindings: [new HandleRequest(this.section)] }, [
+      new Heading3({ cls: ["dd-note-links-title"], text: HEADING }),
+      new List({ cls: ["dd-note-links-list"], bindings: [new HandleRequest(this.list)] }),
+    ]);
   }
 
   show(text: string): void {
     const links = linksIn(text);
-    this.list.empty();
-    this.section.toggle(links.length > 0);
-    for (const link of links) this.addLink(link);
-  }
-
-  private addLink(link: ShownLink): void {
-    addNameLink(this.list.createEl("li"), link.text, link.linktext, this.sourcePath, this.actions);
+    const items: ViewElement[] = [];
+    for (const link of links) items.push(new ListItem({}, [new LinkName(link.linktext, this.sourcePath, this.opener).build(link.text)]));
+    this.list.showInside(items);
+    this.section.setHidden(links.length === 0);
   }
 }

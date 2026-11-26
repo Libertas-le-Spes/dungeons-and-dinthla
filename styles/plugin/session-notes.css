@@ -1,0 +1,273 @@
+.dd-session-notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dd-size-4-4);
+}
+
+.dd-session-notes .dd-notes-head {
+  margin-bottom: 0;
+}
+
+.dd-session-notes .dd-notes-title {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.dd-session-notes .dd-notes-select {
+  max-width: 100%;
+  min-height: var(--dd-control-md);
+}
+
+.dd-session-notes .dd-notes-panel {
+  min-width: 0;
+  padding: var(--dd-size-4-4);
+  border: var(--dd-border-width) solid var(--dd-border-subtle);
+  border-radius: var(--dd-radius-l);
+  background: var(--dd-surface-card);
+  box-shadow: var(--dd-shadow-s);
+}
+
+.dd-session-notes .dd-box-label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dd-size-4-2);
+  font: var(--dd-type-label);
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-session-notes .dd-box-frame {
+  display: block;
+}
+
+.dd-session-notes .dd-box {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 180px;
+  padding: var(--dd-size-4-3);
+  border: var(--dd-border-width) solid var(--dd-border-strong);
+  border-radius: var(--dd-radius-m);
+  background: var(--dd-surface-sunken);
+  font: var(--dd-type-note);
+  font-variant-ligatures: none;
+  color: var(--dd-text-body);
+  resize: vertical;
+}
+
+.dd-session-notes .dd-box:focus,
+.dd-session-notes .dd-box:focus-visible {
+  border-color: var(--dd-border-focus);
+  box-shadow: var(--dd-focus-ring);
+  outline: none;
+}
+
+.dd-session-notes .dd-box::placeholder {
+  color: var(--dd-text-faint-ui);
+  opacity: 1;
+}
+
+.dd-session-notes .dd-box-help {
+  margin: var(--dd-size-4-2) 0 0;
+  font-size: var(--dd-font-ui-small);
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-session-notes .dd-box-lookups {
+  margin-top: var(--dd-size-4-2);
+  padding: var(--dd-size-4-2);
+  border: var(--dd-border-width) solid var(--dd-border-subtle);
+  border-radius: var(--dd-radius-m);
+  background: var(--dd-surface-raised);
+  box-shadow: var(--dd-shadow-l);
+}
+
+.dd-session-notes .dd-box-lookups[hidden] {
+  display: none;
+}
+
+.dd-session-notes .dd-box-lookups-heading {
+  padding: var(--dd-size-4-1) var(--dd-size-4-2);
+  font: var(--dd-type-label);
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-session-notes .dd-box-lookups ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dd-session-notes .dd-box-lookup {
+  min-height: var(--dd-touch-min);
+  padding: var(--dd-size-4-2);
+  border-radius: var(--dd-radius-s);
+  font: var(--dd-type-note);
+  cursor: pointer;
+}
+
+.dd-session-notes .dd-box-lookup:hover,
+.dd-session-notes .dd-box-lookup[aria-selected="true"] {
+  background: var(--dd-surface-hover);
+}
+
+.dd-session-notes .dd-save-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--dd-size-4-3);
+  margin-top: var(--dd-size-4-3);
+}
+
+.dd-session-notes .dd-save {
+  min-height: var(--dd-control-md);
+}
+
+.dd-session-notes .dd-save-hint {
+  font-size: var(--dd-font-ui-smaller);
+  color: var(--dd-text-faint-ui);
+}
+
+.dd-session-notes .dd-save-message,
+.dd-session-notes .dd-note-gone {
+  margin: var(--dd-size-4-2) 0 0;
+  font-size: var(--dd-font-ui-small);
+  color: var(--dd-state-danger);
+}
+
+.dd-session-notes .dd-save-message:empty,
+.dd-session-notes .dd-note-gone:empty {
+  display: none;
+}
+.dd-session-notes .dd-kept-heading {
+  margin: 0 0 var(--dd-size-4-2);
+  font: var(--dd-type-label);
+  color: var(--dd-text-muted-ui);
+}
+.dd-session-notes .dd-kept + .dd-kept {
+  margin-top: var(--dd-size-4-4);
+}
+.dd-session-notes .dd-kept-message {
+  margin: 0;
+  font-size: var(--dd-font-ui-small);
+}
+.dd-session-notes .dd-kept-text {
+  margin: var(--dd-size-4-2) 0 0;
+  padding: var(--dd-size-4-2);
+  border: var(--dd-border-width) solid var(--dd-border-subtle);
+  border-radius: var(--dd-radius-s);
+  font: var(--dd-type-note);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.dd-session-notes .dd-written-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dd-session-notes .dd-written-line {
+  display: flex;
+  gap: var(--dd-size-4-2);
+  padding: var(--dd-size-4-1) 0;
+  font: var(--dd-type-note);
+  font-variant-ligatures: none;
+  color: var(--dd-text-body);
+}
+
+.dd-session-notes .dd-written-line-open {
+  padding: 0;
+}
+
+.dd-session-notes .dd-written-line-open .dd-row {
+  flex: 1;
+  min-width: 0;
+  gap: var(--dd-size-4-2);
+  padding: var(--dd-size-4-1) var(--dd-size-4-2);
+}
+
+.dd-session-notes .dd-line-glyph {
+  flex: none;
+  width: 2ch;
+}
+
+.dd-session-notes .dd-line-text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.dd-session-notes .dd-line-state {
+  flex: none;
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-session-notes .dd-line-struck {
+  text-decoration: line-through;
+  text-decoration-color: var(--dd-text-muted-ui);
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-session-notes .dd-notes-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dd-size-4-2);
+}
+
+.dd-session-notes .dd-edit-all-leaving {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--dd-size-4-2) var(--dd-size-4-3);
+  margin-bottom: var(--dd-size-4-3);
+  padding: var(--dd-size-4-3);
+  border: var(--dd-border-width) solid var(--dd-border-strong);
+  border-radius: var(--dd-radius-m);
+  background: var(--dd-surface-sunken);
+}
+
+.dd-session-notes .dd-edit-all-leaving-message {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--dd-font-ui-small);
+  color: var(--dd-text-body);
+}
+
+.dd-session-notes .dd-edit-all-panel .dd-note-box {
+  min-height: 50vh;
+}
+
+.dd-session-notes .dd-notes-actions .mod-warning {
+  min-height: var(--dd-control-sm);
+  padding: 0 var(--dd-size-4-3);
+  border-radius: var(--dd-radius-m);
+  font: var(--dd-font-medium) var(--dd-font-ui-small) / 1 var(--dd-font-interface);
+  cursor: pointer;
+}
+
+.dd-session-notes .dd-notes-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dd-session-notes .dd-notes-message {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--dd-font-ui-small);
+  color: var(--dd-state-danger);
+}
+
+.dd-session-notes .dd-notes-message:empty {
+  display: none;
+}
+
+.dd-session-notes .dd-edit-all-reminder {
+  margin: 0 0 var(--dd-size-4-2);
+  font-size: var(--dd-font-ui-small);
+  color: var(--dd-text-body);
+}
+
+.dd-session-notes .dd-written-line.dd-line-wanted {
+  background-color: var(--dd-accent-soft);
+}

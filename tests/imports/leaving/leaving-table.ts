@@ -11,6 +11,7 @@ import { LeaveAsChoice } from "../../../src/imports/leaving/choices/leave-as-cho
 import { MainSwitch } from "../../../src/imports/leaving/switching/main-switch";
 import { MakeMainChoice } from "../../../src/imports/leaving/choices/make-main-choice";
 import { FakeNoteVault } from "../builders/fake-note-vault";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 export const CAMPAIGN = "D&D/Primary Campaign";
 export const CAMPAIGN_NOTE = `${CAMPAIGN}/Primary Campaign.md`;
@@ -50,7 +51,7 @@ const SESSION_LINES = [
 ];
 
 export function madeUpCampaign(): Campaign {
-  return buildCampaign([sessionNoteOf(`${CAMPAIGN}/Sessions/Session 7.md`, 7, SESSION_LINES.join("\n"))]);
+  return buildCampaign([sessionNoteOf(`${CAMPAIGN}/Sessions/Session 7.md`, 7, SESSION_LINES.join("\n"), STUB_SYNTAX)]);
 }
 
 export class TableCast implements CampaignCast {
@@ -96,22 +97,22 @@ export class LeavingTable {
       chosenIsNamed,
       today: TODAY,
     };
-    return new MainSwitch(this.vault.gate, this.vault.actions, this.cast, plan);
+    return new MainSwitch(this.vault.notes.store, this.vault.notes.keeping, this.cast, plan, STUB_SYNTAX);
   }
 
   leaveAs(reason: LeavingReason, chosen: string = SECOND): LeaveAsChoice {
     const old = AskedNote.of(this.vault.fileAt(MONK));
-    return new LeaveAsChoice(this.vault.gate, this.vault.actions, this.cast, this.switchTo(chosen), old, reason);
+    return new LeaveAsChoice(this.vault.notes.store, this.vault.notes.keeping, this.cast, this.switchTo(chosen), old, reason, STUB_SYNTAX);
   }
 
   depart(path: string, chosenIsNamed: boolean, reason: LeavingReason = new Died()): DepartChoice {
-    const parts = { files: this.vault.gate, actions: this.vault.actions, cast: this.cast, mainSwitch: this.switchTo(path, chosenIsNamed) };
-    return new DepartChoice(parts, AskedNote.of(this.vault.fileAt(path)), reason);
+    const parts = { files: this.vault.notes.store, actions: this.vault.notes.keeping, cast: this.cast, mainSwitch: this.switchTo(path, chosenIsNamed) };
+    return new DepartChoice(parts, AskedNote.of(this.vault.fileAt(path)), reason, STUB_SYNTAX);
   }
 
   makeMain(path: string, old: string | null = null, chosenIsNamed = false): MakeMainChoice {
     const oldNote = this.askedAt(old);
-    return new MakeMainChoice(this.vault.gate, this.vault.actions, this.cast, this.switchTo(path, chosenIsNamed), oldNote);
+    return new MakeMainChoice(this.vault.notes.store, this.vault.notes.keeping, this.cast, this.switchTo(path, chosenIsNamed), oldNote, STUB_SYNTAX);
   }
 
   private askedAt(path: string | null): AskedNote | null {

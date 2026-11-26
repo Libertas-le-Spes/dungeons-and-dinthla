@@ -158,6 +158,7 @@ export class BasesView {
 }
 
 export { parseYaml } from "./parse-yaml";
+export { getFrontMatterInfo, getLinkpath, normalizePath } from "./obsidian-text";
 
 export function stringifyYaml(value: unknown): string {
   return `${JSON.stringify(value, null, 2)}\n`;
@@ -239,26 +240,6 @@ export function setIcon(parent: HTMLElement, icon: string): void {
   parent.setAttribute("data-icon", icon);
 }
 
-const PROPERTIES_OPEN = /^---\r?\n/;
-
-export function getFrontMatterInfo(content: string): FrontMatterInfo {
-  const none = { exists: false, frontmatter: "", from: 0, to: 0, contentStart: 0 };
-  const opening = PROPERTIES_OPEN.exec(content);
-  if (opening === null) return none;
-  const from = opening[0].length;
-  const closing = /---(?:\r?\n|$)/g;
-  closing.lastIndex = from;
-  let close = closing.exec(content);
-  while (close !== null && content.charAt(close.index - 1) !== "\n") close = closing.exec(content);
-  if (close === null) return none;
-  return {
-    exists: true,
-    frontmatter: content.slice(from, close.index),
-    from,
-    to: close.index,
-    contentStart: close.index + close[0].length,
-  };
-}
 
 export const editorInfoField = StateField.define<MarkdownFileInfo>({
   create: () => ({ file: null }) as unknown as MarkdownFileInfo,
@@ -359,11 +340,26 @@ class TextAreaComponent extends AbstractTextComponent<HTMLTextAreaElement> {
 
 export class MarkdownView {}
 
+export const openedInputSuggests: AbstractInputSuggest[] = [];
+
 export class AbstractInputSuggest {
   app: RealInputSuggest<unknown>["app"];
+  closedTimes = 0;
 
-  constructor(...[app]: ConstructorParameters<typeof RealInputSuggest>) {
+  constructor(...[app, textInputEl]: ConstructorParameters<typeof RealInputSuggest>) {
     this.app = app;
+    this.textInputEl = textInputEl;
+    openedInputSuggests.push(this);
+  }
+
+  readonly textInputEl: HTMLInputElement | HTMLDivElement;
+
+  setValue(value: string): void {
+    if (this.textInputEl instanceof this.textInputEl.ownerDocument.defaultView!.HTMLInputElement) this.textInputEl.value = value;
+  }
+
+  close(): void {
+    this.closedTimes += 1;
   }
 }
 
@@ -422,6 +418,38 @@ export class DropdownComponent {
   onChange(callback: (value: string) => unknown): this {
     this.selectEl.addEventListener("change", () => callback(this.selectEl.value));
     return this;
+  }
+}
+
+export class ToggleComponent {
+  readonly toggleEl: HTMLElement;
+  private on = false;
+  private changed: ((on: boolean) => unknown) | null = null;
+
+  constructor(containerEl: HTMLElement) {
+    this.toggleEl = containerEl.createDiv({ cls: "checkbox-container" });
+    this.toggleEl.createEl("input", { type: "checkbox" });
+    this.toggleEl.addEventListener("click", () => this.flip());
+  }
+
+  getValue(): boolean {
+    return this.on;
+  }
+
+  setValue(on: boolean): this {
+    this.on = on;
+    this.toggleEl.toggleClass("is-enabled", on);
+    return this;
+  }
+
+  onChange(callback: (on: boolean) => unknown): this {
+    this.changed = callback;
+    return this;
+  }
+
+  private flip(): void {
+    this.setValue(!this.on);
+    if (this.changed !== null) this.changed(this.on);
   }
 }
 
@@ -501,16 +529,6 @@ export class Setting {
     return this;
   }
 
-}
-
-export function normalizePath(path: string): string {
-  let normalized = path.replace(/[\\/]+/g, "/").replace(/^\/+|\/+$/g, "");
-  if (normalized === "") normalized = "/";
-  return normalized.replace(/ | /g, " ").normalize("NFC");
-}
-
-export function getLinkpath(linktext: string): string {
-  return linktext.replace(/#.*$/, "");
 }
 
 export function parseLinktext(linktext: string): { path: string; subpath: string } {

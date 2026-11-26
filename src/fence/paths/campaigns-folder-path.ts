@@ -1,3 +1,4 @@
+import type { PathSpelling } from "../../host/rules/path-spelling";
 import { nameKeyOf } from "../../names/name-key";
 import { typedPathOf } from "../../names/typed-path";
 import { isSafePath, refusalForPathParts } from "./safe-path";
@@ -27,8 +28,8 @@ export function isInConfigFolder(path: string, configDir: string): boolean {
   return pathKey === configKey || pathKey.startsWith(`${configKey}/`);
 }
 
-export function newCampaignsFolderPathOf(typed: string): string {
-  const path = typedPathOf(typed, NO_FOLDER_NAME);
+export function newCampaignsFolderPathOf(typed: string, spelling: PathSpelling): string {
+  const path = typedPathOf(typed, NO_FOLDER_NAME, spelling);
   const refusal = refusalForCampaignsFolder(path);
   if (refusal !== null) throw new Error(refusal);
   const partRefusal = refusalForPathParts(path);

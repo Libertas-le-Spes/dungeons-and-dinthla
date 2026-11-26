@@ -1,16 +1,18 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import type { App, TFile } from "obsidian";
+import type { TFile } from "obsidian";
 import { FundsTracking, ITEM_GONE, NO_SESSION, NOT_AS_IMPORTED, NOT_IN_A_CAMPAIGN, NOT_INERT_ON_PAGE, NOT_THE_SHOWN_CAMPAIGN } from "../../../src/funds/tracking/funds-tracking";
 import { heldByNamesakeWords, heldByWords } from "../../../src/funds/tracking/items-look";
 import { SESSIONS_SHARE_A_NUMBER } from "../../../src/campaign/paths/session-to-write";
 import { sessionGoneWords } from "../../../src/campaign/paths/session-gone";
 import type { CampaignStore } from "../../../src/campaign/reading/campaign-store";
 import { ALREADY_ON_FUNDS_PAGE, NOT_READ_AS_THE_ITEM } from "../../../src/funds/tracking/tracking-refusal";
-import { TrackItemModal, TRACK_TITLE } from "../../../src/funds/tracking/track-item-modal";
-import { ItemModal } from "../../../src/funds/items/item-modal";
+import { TrackItemDialog, TRACK_TITLE } from "../../../src/funds/tracking/track-item-dialog";
+import { ItemDialog as ShownItemDialog } from "../../../src/funds/items/item-dialog";
 import type { ItemEdit } from "../../../src/funds/items/item-plan";
-import { DialogCampaign, lastDialog } from "../../campaign/dialog-campaign";
-import { Modal, Notice, openedModals } from "../../stubs/obsidian";
+import { DialogCampaign, lastDialog, lastFrame } from "../../campaign/dialog-campaign";
+import { OBSIDIAN_SHOWING } from "../../host/showing/obsidian-showing";
+import { Notice, openedModals, type Modal as StubModal } from "../../stubs/obsidian";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
@@ -18,8 +20,6 @@ const PRIMARY = { path: "Pale Moon/Characters/Primary Monk.md", basename: "Prima
 const ELSEWHERE = { path: "Ashen Road/Characters/Primary Monk.md", basename: "Primary Monk" } as TFile;
 const LOOSE = { path: "Loose notes/Primary Monk.md", basename: "Primary Monk" } as TFile;
 const PEOPLE_PRIMARY = "People/Primary Monk.md";
-
-const app = {} as App;
 
 interface TrackShownDialog {
   shown: { name: string; holder: string; writesTo: string; line: string };
@@ -30,14 +30,17 @@ interface ItemDialog {
   edit: ItemEdit;
 }
 
+const openedNotes: { path: string; line: number }[] = [];
+
 function campaignFolders(): string[] {
   return ["Pale Moon", "Ashen Road"];
 }
 
 function trackingIn(campaign: DialogCampaign, store: CampaignStore = campaign.store): FundsTracking {
-  campaign.addCharacterNote(PRIMARY.path);
+  campaign.holdCharacterNote(PRIMARY);
   campaign.addCharacterNote("Pale Moon/Characters/Secondary.md");
-  return new FundsTracking(app, campaign.gate, store, campaignFolders);
+  const opening = { showing: OBSIDIAN_SHOWING, notes: campaign.gate.notes, openNoteAt: openedNotes.push.bind(openedNotes) };
+  return new FundsTracking(opening, store, campaignFolders, STUB_SYNTAX);
 }
 
 function lookOf(campaign: DialogCampaign, written: string[]) {
@@ -65,6 +68,7 @@ function itemsHeldBy(campaign: DialogCampaign, holder: string): string[] {
 beforeEach(() => {
   Notice.shown = [];
   openedModals.length = 0;
+  openedNotes.length = 0;
 });
 
 describe("Track on the funds page", () => {
@@ -72,7 +76,7 @@ describe("Track on the funds page", () => {
     const campaign = new DialogCampaign({ [ONE]: "We met.\n", [TWO]: "We camped.\n" });
     trackingIn(campaign).track(PRIMARY, { written: "Rope", count: null }, noFocus);
     const dialog = lastDialog<TrackShownDialog>();
-    expect(dialog).toBeInstanceOf(TrackItemModal);
+    expect(dialog).toBeInstanceOf(TrackItemDialog);
     expect(dialog.shown).toEqual({ name: "Rope", holder: "Primary Monk", writesTo: "Session 2", line: "$ [[Primary Monk]] Rope" });
   });
 
@@ -242,7 +246,7 @@ describe("Track on the funds page", () => {
     trackingIn(campaign).track(PRIMARY, { written: "Rope", count: null }, function focusBack(): void {
       returned.push("focus");
     });
-    lastDialog<TrackItemModal>().close();
+    lastFrame().close();
     expect(returned).toEqual(["focus"]);
   });
 });
@@ -270,6 +274,14 @@ describe("what the funds page says about an imported list", () => {
     expect(look.standingOf("Rope")).toBe(heldByWords("Secondary"));
     expect(heldByWords("Secondary")).toBe("Held by Secondary, on the funds page");
     expect(look.canTrack("Rope")).toBe(false);
+  });
+
+  it("follows a holder's link from the session that last wrote the item", () => {
+    const campaign = new DialogCampaign({ [ONE]: "$ Rope\n", [TWO]: "$$ Rope :changed to [[Secondary]]\n" });
+    const look = lookOf(campaign, ["Rope"]);
+    look.standingOf("Rope");
+    expect(campaign.linksAsked).toContainEqual({ linkpath: "Secondary", sourcePath: TWO });
+    expect(campaign.linksAsked).not.toContainEqual({ linkpath: "Secondary", sourcePath: ONE });
   });
 
   it("says an item is held by another note of the character's name, not by him, and offers no tracking for it", () => {
@@ -323,7 +335,7 @@ describe("a choice for an item held but not imported", () => {
     const campaign = new DialogCampaign({ [ONE]: "$ [[Primary Monk]] Dagger\n" });
     trackingIn(campaign).settle(PRIMARY, "Dagger", "sold", noFocus);
     const dialog = lastDialog<ItemDialog>();
-    expect(dialog).toBeInstanceOf(ItemModal);
+    expect(dialog).toBeInstanceOf(ShownItemDialog);
     expect(dialog.edit.status).toBe("sold");
     expect(campaign.writes).toBe(0);
   });
@@ -353,18 +365,13 @@ describe("the track dialog", () => {
   it("is titled, names the item, its holder and where it writes", () => {
     const campaign = new DialogCampaign({ [ONE]: "We camped.\n" });
     trackingIn(campaign).track(PRIMARY, { written: "Rope", count: null }, noFocus);
-    const dialog = lastDialog<TrackItemModal>();
-    expect(titleOf(dialog)).toBe(TRACK_TITLE);
+    const frame = lastFrame();
+    expect((frame as unknown as StubModal).title).toBe(TRACK_TITLE);
     const texts: (string | null)[] = [];
-    for (const line of dialog.contentEl.querySelectorAll("p")) texts.push(line.textContent);
+    for (const line of frame.contentEl.querySelectorAll("p")) texts.push(line.textContent);
     expect(texts).toEqual(["Rope", "Held by Primary Monk", "Adds this line to Session 1:", "$ [[Primary Monk]] Rope"]);
   });
 });
-
-function titleOf(dialog: TrackItemModal): string {
-  if (!(dialog instanceof Modal)) throw new Error("The dialog isn't a modal.");
-  return dialog.title;
-}
 
 function buttonSaying(root: HTMLElement, words: string): HTMLButtonElement {
   for (const button of root.querySelectorAll<HTMLButtonElement>("button")) {
@@ -380,9 +387,8 @@ describe("the track dialog's buttons", () => {
     trackingIn(campaign).track(PRIMARY, { written: "Rope", count: null }, function focusBack(): void {
       closed.push("closed");
     });
-    const dialog = lastDialog<TrackItemModal>();
-    buttonSaying(dialog.contentEl, "Save").click();
-    await dialog.changeSettled();
+    buttonSaying(lastFrame().contentEl, "Save").click();
+    await lastDialog<TrackItemDialog>().settled();
     expect(closed).toEqual(["closed"]);
     expect(campaign.texts.get(ONE)).toBe("We camped.\n$ [[Primary Monk]] Rope\n");
   });
@@ -393,7 +399,7 @@ describe("the track dialog's buttons", () => {
     trackingIn(campaign).track(PRIMARY, { written: "Rope", count: null }, function focusBack(): void {
       closed.push("closed");
     });
-    buttonSaying(lastDialog<TrackItemModal>().contentEl, "Cancel").click();
+    buttonSaying(lastFrame().contentEl, "Cancel").click();
     expect(closed).toEqual(["closed"]);
     expect(campaign.writes).toBe(0);
   });
@@ -404,9 +410,8 @@ describe("the track dialog's buttons", () => {
     trackingIn(campaign).track(PRIMARY, { written: "Rope", count: null }, function focusBack(): void {
       closed.push("closed");
     });
-    const dialog = lastDialog<TrackItemModal>();
-    buttonSaying(dialog.contentEl, "Save").click();
-    await dialog.changeSettled();
+    buttonSaying(lastFrame().contentEl, "Save").click();
+    await lastDialog<TrackItemDialog>().settled();
     expect(Notice.shown).toEqual([`Couldn't track the item: ${ALREADY_ON_FUNDS_PAGE}`]);
     expect(closed).toEqual([]);
   });

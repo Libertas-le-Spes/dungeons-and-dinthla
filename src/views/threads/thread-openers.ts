@@ -1,4 +1,6 @@
-import type { OpenRow } from "../lists/list-page";
+import type { Source } from "../../campaign/record/campaign";
+
+export type OpenRow = (source: Source, onClosed: (changed: boolean) => void) => void;
 
 export interface ThreadRowOpeners {
   openQuestion: OpenRow;

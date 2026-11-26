@@ -1,15 +1,21 @@
 import { THE_PARTY_LABEL } from "../funds/items/item-groups";
-import { textRunsOf } from "../views/lists/text-parts";
+import { textRunsOf } from "../views/components/rows/text-parts";
+import { Mark, PlainText, Span } from "../views/elements/kinds/containers";
+import type { ViewElement } from "../views/elements/view-element";
 import { lookedUpKindNamed } from "../kinds/looked-up-kinds";
 import type { LookupMatch } from "./lookup";
 
-function addMarkedText(parent: HTMLElement, text: string, keywords: string[]): void {
+export const LOOKUP_CLASSES = ["dd-tokens", "dd-lookup"];
+
+function markedText(text: string, keywords: string[]): ViewElement[] {
+  const shown: ViewElement[] = [];
   for (const run of textRunsOf(text, keywords)) {
     for (const piece of run.pieces) {
-      if (piece.marked) parent.createEl("mark", { text: piece.text });
-      else parent.appendText(piece.text);
+      if (piece.marked) shown.push(new Mark({ text: piece.text }));
+      else shown.push(new PlainText(piece.text));
     }
   }
+  return shown;
 }
 
 function holderShownFor(match: LookupMatch): string {
@@ -17,10 +23,12 @@ function holderShownFor(match: LookupMatch): string {
   return match.holder;
 }
 
-export function addLookupMatch(el: HTMLElement, match: LookupMatch, keywords: string[]): void {
-  el.addClass("dd-tokens", "dd-lookup");
+export function lookupMatchParts(match: LookupMatch, keywords: string[]): ViewElement[] {
   const kind = lookedUpKindNamed(match.kind);
-  el.createSpan({ cls: `dd-marker ${kind.marker.colourClass}`, text: kind.marker.symbol });
-  addMarkedText(el.createSpan({ cls: "dd-lookup-text" }), match.text, keywords);
-  if (kind.lookup.showsHolder) el.createSpan({ cls: "dd-lookup-holder", text: holderShownFor(match) });
+  const parts: ViewElement[] = [
+    new Span({ cls: ["dd-marker", kind.marker.colourClass], text: kind.marker.symbol }),
+    new Span({ cls: ["dd-lookup-text"] }, markedText(match.text, keywords)),
+  ];
+  if (kind.lookup.showsHolder) parts.push(new Span({ cls: ["dd-lookup-holder"], text: holderShownFor(match) }));
+  return parts;
 }

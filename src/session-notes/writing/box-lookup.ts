@@ -3,6 +3,12 @@ import { lookupMatches, readLookup, type Lookup } from "../../lookups/lookup";
 import { lookupHeadingOf } from "../../lookups/lookup-heading";
 import { lineAt, type BoxLine } from "./box-text";
 import type { LookupList } from "./lookup-list";
+import type { PressedKey } from "../../views/elements/bindings/binding-wiring";
+
+export interface BoxState {
+  readonly text: string;
+  readonly caret: number;
+}
 
 type KeyAction = (list: LookupList) => void;
 
@@ -24,10 +30,6 @@ const KEY_ACTIONS = new Map<string, KeyAction>([
   ["Enter", pickSelected],
 ]);
 
-function hasModifier(event: KeyboardEvent): boolean {
-  return event.ctrlKey || event.metaKey || event.altKey || event.shiftKey;
-}
-
 function isSameLine(first: BoxLine | null, second: BoxLine): boolean {
   if (first === null) return false;
   return first.index === second.index && first.text === second.text;
@@ -38,13 +40,13 @@ export class BoxLookup {
   private shownLine: BoxLine | null = null;
 
   constructor(
-    private readonly textarea: HTMLTextAreaElement,
+    private readonly box: BoxState,
     private readonly list: LookupList,
     private readonly campaign: () => Campaign,
   ) {}
 
   currentLine(): BoxLine {
-    return lineAt(this.textarea.value, this.textarea.selectionStart);
+    return lineAt(this.box.text, this.box.caret);
   }
 
   refresh(): void {
@@ -59,15 +61,15 @@ export class BoxLookup {
     this.showMatches(lookup);
   }
 
-  keyDown(event: KeyboardEvent): void {
-    if (!this.list.isOpen || hasModifier(event)) return;
-    if (event.key === "Escape") {
-      this.dismiss(event);
+  keyDown(pressed: PressedKey): void {
+    if (!this.list.isOpen || pressed.modified) return;
+    if (pressed.key === "Escape") {
+      this.dismiss(pressed);
       return;
     }
-    const action = KEY_ACTIONS.get(event.key);
+    const action = KEY_ACTIONS.get(pressed.key);
     if (action === undefined) return;
-    event.preventDefault();
+    pressed.handled();
     action(this.list);
   }
 
@@ -83,9 +85,8 @@ export class BoxLookup {
     this.list.show(lookupHeadingOf(lookup, { matching: matches.length, open }), matches, lookup.keywords);
   }
 
-  private dismiss(event: KeyboardEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
+  private dismiss(pressed: PressedKey): void {
+    pressed.keptHere();
     this.dismissedLine = this.currentLine();
     this.close();
   }

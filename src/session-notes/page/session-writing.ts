@@ -1,6 +1,7 @@
 import type { Campaign } from "../../campaign/record/campaign";
 import type { NoteEditingNeeds } from "../../note-editing/note-editing";
-import type { LinkActions } from "../../views/lists/linked-text";
+import type { LinkOpener } from "../../views/components/rows/link-name";
+import type { ViewElement } from "../../views/elements/view-element";
 import { EditAllPanel } from "./edit-all-panel";
 import type { KeptDrafts } from "../kept/kept-drafts";
 import { LinesList } from "../lines/lines-list";
@@ -9,9 +10,10 @@ import { SessionRemoval, type RemovalTools } from "../removal/session-removal";
 import { WritingPanel, type WritingNeeds } from "../writing/writing-panel";
 import type { LineOpeners } from "../lines/line-opener-of";
 import type { WrittenLine } from "../lines/written-lines";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export interface SessionWritingNeeds extends WritingNeeds {
-  actions: LinkActions;
+  actions: LinkOpener;
   lineOpeners: LineOpeners;
   wholeText: NoteEditingNeeds;
   keptDrafts: KeptDrafts;
@@ -29,35 +31,40 @@ export class SessionWriting {
   private readonly buttons: NotesButtons;
   private readonly editAll: EditAllPanel;
   private readonly removal: SessionRemoval;
-  private readonly stops: (() => void)[];
+  private readonly stops: (() => void)[] = [];
   private lineCount = 0;
 
   constructor(
-    root: HTMLElement,
     private readonly path: string,
     private readonly needs: SessionWritingNeeds,
     moves: SessionMoves,
+    syntax: PropertiesSyntax,
   ) {
-    this.writing = new WritingPanel(root, path, needs);
-    this.lines = new LinesList(root, { actions: needs.actions, openers: needs.lineOpeners });
-    this.buttons = new NotesButtons(this.lines.head, {
+    this.writing = new WritingPanel(path, needs);
+    this.lines = new LinesList({ actions: needs.actions, openers: needs.lineOpeners });
+    this.buttons = new NotesButtons({
       editAll: () => this.openEditAll(),
       clearNotes: () => this.removal.clearNotes(),
       deleteSession: () => this.removal.deleteSession(),
     });
-    this.editAll = new EditAllPanel(root, path, needs.wholeText, () => this.editAllLeft());
+    this.editAll = new EditAllPanel(path, needs.wholeText, () => this.editAllLeft());
     this.removal = new SessionRemoval(path, { ...needs.removal, texts: needs.wholeText.texts, keptDrafts: needs.keptDrafts }, {
       heading: () => moves.heading(),
       busy: () => this.isSaving(),
       say: (message) => this.buttons.say(message),
       changed: () => this.removalChanged(),
       deleted: (latest) => moves.deleted(latest),
-    });
-    this.stops = [
-      needs.wholeText.drafts.subscribe((changed) => this.wholeTextKept(changed)),
-      needs.drafts.subscribe((changed) => this.linesKept(changed)),
-    ];
-    this.wholeTextKept(path);
+    }, syntax);
+  }
+
+  trees(): ViewElement[] {
+    return [this.writing.tree(), this.lines.tree(this.buttons.trees()), this.editAll.tree()];
+  }
+
+  start(): void {
+    this.writing.start();
+    this.stops.push(this.needs.wholeText.drafts.subscribe(this.wholeTextKept.bind(this)), this.needs.drafts.subscribe(this.linesKept.bind(this)));
+    this.wholeTextKept(this.path);
     this.refreshButtons();
   }
 

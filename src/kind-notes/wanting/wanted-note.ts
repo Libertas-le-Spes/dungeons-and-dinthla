@@ -1,15 +1,15 @@
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../host/notes/note-ref";
 
 export interface WantedNote {
   path: string;
   folder: string;
   sessionPath: string;
-  sessionFile: TFile | null;
+  sessionFile: NoteRef | null;
   lines: string[];
 }
 
 export interface MakeableNote extends WantedNote {
-  sessionFile: TFile;
+  sessionFile: NoteRef;
 }
 
 export function wantedKeyOf(wanted: WantedNote): string {

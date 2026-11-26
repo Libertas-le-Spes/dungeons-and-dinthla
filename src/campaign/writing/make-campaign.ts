@@ -1,12 +1,13 @@
+import type { PathSpelling } from "../../host/rules/path-spelling";
 import { NO_CAMPAIGNS_FOLDER } from "../../fence/paths/campaigns-folder-path";
-import type { FencedFiles } from "../../fence/gate/fenced-files";
+import type { NoteStore } from "../../host/notes/note-store";
 import { mainNotePathOf } from "../paths/campaign-folders";
 import { messageOf } from "../../views/dialogs/message-of";
 import { refusalForFileName } from "../../names/file-name";
 import { nameKeyOf } from "../../names/name-key";
 import { typedPathOf } from "../../names/typed-path";
 
-export type NewCampaignFiles = Pick<FencedFiles, "namesIn" | "createFolder" | "create" | "removeEmptyFolder">;
+export type NewCampaignFiles = Pick<NoteStore, "namesIn" | "makeFolder" | "make" | "removeEmptyFolder">;
 
 export const NO_CAMPAIGN_NAME = "Type a name for the campaign first.";
 
@@ -44,19 +45,19 @@ async function cleanUpAfter(files: NewCampaignFiles, folderPath: string, error: 
 
 async function addMainNote(files: NewCampaignFiles, folder: string): Promise<void> {
   try {
-    await files.create(mainNotePathOf(folder), "");
+    await files.make(mainNotePathOf(folder), "");
   } catch (error) {
     await cleanUpAfter(files, folder, error);
   }
 }
 
-export async function makeCampaign(files: NewCampaignFiles, campaignsFolder: string | null, typed: string): Promise<string> {
+export async function makeCampaign(files: NewCampaignFiles, campaignsFolder: string | null, typed: string, spelling: PathSpelling): Promise<string> {
   if (campaignsFolder === null) throw new Error(NO_CAMPAIGNS_FOLDER);
-  const name = typedPathOf(typed, NO_CAMPAIGN_NAME);
+  const name = typedPathOf(typed, NO_CAMPAIGN_NAME, spelling);
   const refusal = refusalForCampaign(files, campaignsFolder, name);
   if (refusal !== null) throw new Error(refusal);
   const folder = `${campaignsFolder}/${name}`;
-  await files.createFolder(folder);
+  await files.makeFolder(folder);
   await addMainNote(files, folder);
   return folder;
 }

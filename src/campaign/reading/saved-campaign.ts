@@ -1,15 +1,20 @@
 import type { Campaign, SessionNote } from "../record/campaign";
 import { CampaignStore, type CampaignListener } from "./campaign-store";
 import type { CampaignFiles } from "./read-campaign";
-import type { FencedFiles } from "../../fence/gate/fenced-files";
-import type { FencedMetadata } from "../../fence/gate/fenced-metadata";
+import type { NoteChanges, Stop } from "../../host/notes/note-changes";
+import type { NoteRef } from "../../host/notes/note-ref";
+import type { PropertiesSyntax } from "../paths/session-file";
 
 export type ShownCampaign = Pick<CampaignStore, "campaignFolder" | "subscribe">;
 
+export interface SavedCampaignNotes {
+  readonly store: CampaignFiles;
+  readonly changes: Pick<NoteChanges, "onRead" | "onGone" | "onMoved" | "onFolderMoved">;
+}
+
 export interface SavedCampaignNeeds {
   shown: ShownCampaign;
-  files: CampaignFiles & Pick<FencedFiles, "on" | "offref">;
-  metadata: Pick<FencedMetadata, "on" | "offref">;
+  notes: SavedCampaignNotes;
   failed(error: unknown): void;
 }
 
@@ -22,8 +27,8 @@ export class SavedCampaign {
   private readonly readListeners = new Set<NoteRead>();
   private readonly openedListeners = new Set<CampaignOpened>();
 
-  constructor(private readonly needs: SavedCampaignNeeds) {
-    this.saved = new CampaignStore(needs.files);
+  constructor(private readonly needs: SavedCampaignNeeds, syntax: PropertiesSyntax) {
+    this.saved = new CampaignStore(needs.notes.store, syntax);
   }
 
   get current(): Campaign {
@@ -57,21 +62,29 @@ export class SavedCampaign {
   }
 
   start(): () => void {
-    const { files, metadata, shown } = this.needs;
-    const changed = metadata.on("changed", (file, text) => this.noteRead(file.path, text));
-    const deleted = files.on("delete", (file) => this.saved.noteDeleted(file.path));
-    const renamed = files.on("rename", (file, oldPath) => {
-      this.saved.noteRenamed(file.path, oldPath).catch((error: unknown) => this.needs.failed(error));
-    });
-    const stopFollowing = shown.subscribe(() => this.followShown());
+    const { changes } = this.needs.notes;
+    const stops: Stop[] = [
+      changes.onRead(this.noteRead.bind(this)),
+      changes.onGone(this.saved.noteDeleted.bind(this.saved)),
+      changes.onMoved(this.noteMoved.bind(this)),
+      changes.onFolderMoved(this.moved.bind(this)),
+      this.needs.shown.subscribe(this.followShown.bind(this)),
+    ];
     this.followShown();
-    return () => {
-      stopFollowing();
-      metadata.offref(changed);
-      files.offref(deleted);
-      files.offref(renamed);
-      this.saved.close();
-    };
+    return this.stopAll.bind(this, stops);
+  }
+
+  private stopAll(stops: Stop[]): void {
+    for (const stop of stops) stop();
+    this.saved.close();
+  }
+
+  private noteMoved(note: NoteRef, oldPath: string): void {
+    this.moved(note.path, oldPath);
+  }
+
+  private moved(path: string, oldPath: string): void {
+    this.saved.noteRenamed(path, oldPath).catch((error: unknown) => this.needs.failed(error));
   }
 
   private followShown(): void {
@@ -87,9 +100,9 @@ export class SavedCampaign {
       .catch((error: unknown) => this.needs.failed(error));
   }
 
-  private noteRead(path: string, text: string): void {
-    this.saved.noteChanged(path, text);
-    for (const listener of this.readListeners) listener(path, text);
+  private noteRead(note: NoteRef, text: string): void {
+    this.saved.noteChanged(note.path, text);
+    for (const listener of this.readListeners) listener(note.path, text);
   }
 
   private opened(folder: string): void {

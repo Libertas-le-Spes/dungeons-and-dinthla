@@ -14,10 +14,6 @@ export class RowKeys {
 
 export const SOURCE_ROWS = new RowKeys();
 
-export const ITEM_ROWS = new RowKeys();
-
-export const VALUE_BUTTONS = new RowKeys();
-
 export function sourceKeyOf(source: Source): string {
   return `${source.path}\n${source.line}`;
 }

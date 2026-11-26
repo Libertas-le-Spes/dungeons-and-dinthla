@@ -1,5 +1,6 @@
 import { NoteLayout } from "../../reading/note-layout";
 import { foreignPropertyLinesOf } from "../rewriting/foreign-property-lines";
+import type { PropertiesSyntax } from "../../../../campaign/paths/session-file";
 
 function propertiesOutside(layout: NoteLayout): string[] {
   const block = layout.properties();
@@ -17,7 +18,7 @@ function bodyOutsideSections(layout: NoteLayout): string[] {
   return outside.concat(layout.lines.slice(cursor));
 }
 
-export function outsideTheImport(text: string): string[] {
-  const layout = NoteLayout.of(text);
+export function outsideTheImport(text: string, syntax: PropertiesSyntax): string[] {
+  const layout = NoteLayout.of(text, syntax);
   return propertiesOutside(layout).concat(bodyOutsideSections(layout));
 }

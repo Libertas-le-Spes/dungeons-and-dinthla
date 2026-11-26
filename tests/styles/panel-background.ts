@@ -29,12 +29,19 @@ function flatGradientToken(layer: string): string | null {
   return gradient[1]!;
 }
 
+const PLUGIN_TOKEN = "dd-";
+
+function withoutPluginPrefix(name: string): string {
+  if (name.startsWith(PLUGIN_TOKEN)) return name.slice(PLUGIN_TOKEN.length);
+  return name;
+}
+
 function tokenOfLayer(layer: string): string {
   const plain = PLAIN.exec(layer);
-  if (plain !== null) return plain[1]!;
+  if (plain !== null) return withoutPluginPrefix(plain[1]!);
   const gradient = flatGradientToken(layer);
   if (gradient === null) throw new Error(`The contrast test can't read the background layer ${layer}`);
-  return gradient;
+  return withoutPluginPrefix(gradient);
 }
 
 export function panelOver(token: (name: string) => Colour, file: string, selector: string, picture: Colour): Colour {

@@ -2,7 +2,7 @@ import { over, type Colour } from "./css-colour";
 import { panelOver } from "./panel-background";
 import { declarationOf, readStyles } from "./style-files";
 
-const FILE = "campaign-background.css";
+const FILE = "plugin/campaign-background.css";
 const FRAME = ".dd-tab-picture .dd-box-frame";
 const PICTURE_LAYER = ".dd-tab-picture .dd-box-frame::before";
 const TOKEN = /^var\(--([\w-]+)\)$/;
@@ -27,7 +27,7 @@ function declared(selector: string, property: string): string {
 }
 
 function numberToken(name: string): number {
-  const found = new RegExp(`--${name}:\\s*([\\d.]+);`).exec(readStyles("tokens.css"));
+  const found = new RegExp(`--${name}:\\s*([\\d.]+);`).exec(readStyles("plugin/tokens.css"));
   if (found === null) throw new Error(`tokens.css sets no --${name}`);
   return Number(found[1]);
 }
@@ -69,8 +69,8 @@ function filtered(picture: Colour, filter: string): Colour {
 }
 
 export function noteBoxOver(token: (name: string) => Colour, picture: Colour): Colour {
-  const page = panelOver(token, "campaign.css", ".dd-campaign .dd-page-body", picture);
-  const panel = panelOver(token, "session-notes.css", ".dd-session-notes .dd-notes-panel", page);
+  const page = panelOver(token, "plugin/campaign.css", ".dd-campaign .dd-page-body", picture);
+  const panel = panelOver(token, "plugin/session-notes.css", ".dd-session-notes .dd-notes-panel", page);
   const frame = panelOver(token, FILE, FRAME, panel);
   const shown = filtered(picture, declared(PICTURE_LAYER, "filter"));
   return over({ ...shown, alpha: idleOpacity() }, frame);

@@ -1,4 +1,4 @@
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../../host/notes/note-ref";
 
 export type SettledStatus = "held" | "sold" | "used" | "lost";
 
@@ -19,8 +19,8 @@ export interface FundsLook {
 }
 
 export interface ItemTracking {
-  lookAt(file: TFile, written: readonly string[]): FundsLook | null;
-  whyNotTracked(file: TFile): string;
-  track(file: TFile, item: SheetItem, returnFocus: () => void): void;
-  settle(file: TFile, name: string, status: SettledStatus, returnFocus: () => void): void;
+  lookAt(file: NoteRef, written: readonly string[]): FundsLook | null;
+  whyNotTracked(file: NoteRef): string;
+  track(file: NoteRef, item: SheetItem, returnFocus: () => void): void;
+  settle(file: NoteRef, name: string, status: SettledStatus, returnFocus: () => void): void;
 }

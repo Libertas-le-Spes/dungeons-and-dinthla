@@ -1,0 +1,64 @@
+.dd-characters .dd-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: var(--dd-size-4-5);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dd-characters .dd-card {
+  min-height: var(--dd-touch-min);
+  cursor: pointer;
+  transition: box-shadow var(--dd-dur-fast) var(--dd-ease-out), transform var(--dd-dur-fast) var(--dd-ease-out);
+}
+
+.dd-characters .dd-card:hover {
+  background: var(--dd-surface-statblock);
+  box-shadow: var(--dd-shadow-l);
+}
+
+.dd-characters .dd-card:active {
+  transform: translateY(1px);
+  box-shadow: var(--dd-shadow-s);
+}
+
+.dd-characters .dd-card:focus-visible {
+  outline: none;
+  box-shadow: var(--dd-focus-ring);
+}
+
+.dd-characters .dd-card-own {
+  border-left: var(--dd-rule-width) solid var(--dd-accent);
+}
+
+.dd-characters .dd-card-own-label {
+  font: var(--dd-type-label);
+  color: var(--dd-statblock-subtitle);
+}
+
+.dd-characters .dd-card-standing {
+  font: var(--dd-type-label);
+  color: var(--dd-state-history);
+}
+
+.dd-characters .dd-backups,
+.dd-characters .dd-fallen {
+  margin-top: var(--dd-size-4-8);
+}
+
+.dd-characters .dd-played,
+.dd-characters .dd-backup,
+.dd-characters .dd-fallen-card,
+.dd-characters .dd-left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dd-size-4-2);
+}
+
+.dd-characters .dd-backup .dd-make-main,
+.dd-characters .dd-fallen-card .dd-make-main,
+.dd-characters .dd-left .dd-make-main {
+  align-self: flex-start;
+  min-height: var(--dd-touch-min);
+}

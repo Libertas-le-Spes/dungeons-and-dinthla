@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { TFile, TFolder } from "obsidian";
+import { fileAt } from "../stubs/note-files";
 import { createSession, nextSessionNumber, type SessionFileActions, type SessionFiles } from "../../src/sessions/create-session";
 
 class FakeSessionVault {
@@ -14,27 +14,23 @@ class FakeSessionVault {
 
   get vault(): SessionFiles {
     return {
-      getFiles: () => [...this.files.keys()].map((path) => ({ path }) as TFile),
-      getFolderByPath: (path) => {
-        if (!this.folders.has(path)) return null;
-        return { path } as TFolder;
-      },
-      createFolder: async (path) => {
+      files: () => [...this.files.keys()].map((path) => fileAt(path)),
+      hasFolder: (path) => this.folders.has(path),
+      makeFolder: async (path) => {
         if (this.folders.has(path)) throw new Error("Folder already exists.");
         this.folders.add(path);
-        return { path } as TFolder;
       },
-      create: async (path, data) => {
+      make: async (path, data) => {
         if (this.files.has(path)) throw new Error("File already exists.");
         this.files.set(path, data);
-        return { path } as TFile;
+        return fileAt(path);
       },
     };
   }
 
   get fileManager(): SessionFileActions {
     return {
-      processFrontMatter: async (file, change) => {
+      changeProperties: async (file, change) => {
         const properties: Record<string, unknown> = {};
         change(properties);
         this.properties.set(file.path, properties);

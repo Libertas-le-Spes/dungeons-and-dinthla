@@ -26,23 +26,27 @@ interface InnerFolder {
 }
 
 const INNER_FOLDERS: InnerFolder[] = [
-  { folder: "names", reaches: ["names"] },
-  { folder: "fence/paths", reaches: ["fence/paths", "names"] },
-  { folder: "fence/gate", reaches: ["fence/gate", "fence/paths", "names"] },
+  { folder: "names", reaches: ["names", "host"] },
+  { folder: "fence/paths", reaches: ["fence/paths", "names", "host"] },
+  { folder: "fence/gate", reaches: ["fence/gate", "fence/notes", "fence/paths", "names", "host", "obsidian"] },
+  { folder: "fence/notes", reaches: ["fence/notes", "fence/paths", "host", "names"] },
+  { folder: "host", reaches: ["host", "online"] },
   { folder: "beyond", reaches: ["beyond", "names", "pdf", "imports/layout"] },
   { folder: "pdf", reaches: ["pdf"] },
   { folder: "online", reaches: ["online", "beyond"] },
   { folder: "imports/layout", reaches: ["imports/layout"] },
   { folder: "characters/facts", reaches: ["characters/facts", "campaign", "notes"] },
-  { folder: "characters/imported", reaches: ["characters/imported", "characters/facts", "imports/layout", "campaign", "kinds", "notes"] },
+  { folder: "characters/imported", reaches: ["characters/imported", "characters/facts", "imports/layout", "campaign", "host", "kinds", "notes", "views/components", "views/elements"] },
   { folder: "views/pending", reaches: ["views/pending"] },
-  { folder: "views/dialogs", reaches: ["views/dialogs", "campaign", "kind-notes"] },
-  { folder: "imports", reaches: ["imports", "imports/layout", "beyond", "online", "names", "fence/gate", "campaign", "views/dialogs", "views/pending"] },
+  { folder: "views/elements", reaches: ["views/elements"] },
+  { folder: "views/components", reaches: ["views/components", "views/elements", "views/dialogs", "campaign", "notes"] },
+  { folder: "views/dialogs", reaches: ["views/dialogs", "views/elements", "campaign", "kind-notes", "host"] },
+  { folder: "imports", reaches: ["imports", "imports/layout", "beyond", "online", "names", "fence/gate", "campaign", "host", "views/components", "views/dialogs", "views/elements", "views/pending"] },
 ];
 
 const BEYOND_IMPORTERS: string[] = ["imports", "online"];
-const ONLINE_IMPORTERS: string[] = ["imports"];
-const IMPORTS_IMPORTERS: string[] = ["main.ts"];
+const ONLINE_IMPORTERS: string[] = ["imports", "host", "obsidian"];
+const IMPORTS_IMPORTERS: string[] = ["obsidian/plugin/obsidian-features.ts", "plugin/start-plugin.ts"];
 const LAYOUT_IMPORTERS: string[] = ["imports", "characters", "beyond"];
 const PDF_IMPORTERS: string[] = ["beyond"];
 
@@ -193,9 +197,9 @@ describe("the inner folders", () => {
 });
 
 describe("the folder that holds the network code", () => {
-  it("reaches only itself and the shape and reply code, and only src/imports may import it", () => {
+  it("reaches only itself and the shape and reply code, and only src/imports, the host's port and the Obsidian side may import it", () => {
     expect(innerFolderNamed("online").reaches).toEqual(["online", "beyond"]);
-    expect(ONLINE_IMPORTERS).toEqual(["imports"]);
+    expect(ONLINE_IMPORTERS).toEqual(["imports", "host", "obsidian"]);
   });
 });
 
@@ -387,12 +391,17 @@ describe("the rules for src/imports and its layout, over made-up files", () => {
     expect(importersOfImportsIn(IMPORTS_IMPORTERS, file, 'import { a } from "../../imports/note/reading/note-layout";')).toEqual(["characters/imported/made-up.ts imports from imports"]);
   });
 
-  it("allows main.ts to import from imports", () => {
-    const file = join(SOURCE_FOLDER, "main.ts");
-    expect(importersOfImportsIn(IMPORTS_IMPORTERS, file, 'import { a } from "./imports/dialog/opening/beyond-openers";')).toEqual([]);
+  it("allows the Obsidian features to import from imports", () => {
+    const file = join(SOURCE_FOLDER, "obsidian", "plugin", "obsidian-features.ts");
+    expect(importersOfImportsIn(IMPORTS_IMPORTERS, file, 'import { a } from "../../imports/dialog/opening/beyond-openers";')).toEqual([]);
   });
 
-  it("refuses a folder other than main.ts that imports from imports", () => {
+  it("refuses main.ts, which only starts the plugin, importing from imports", () => {
+    const file = join(SOURCE_FOLDER, "main.ts");
+    expect(importersOfImportsIn(IMPORTS_IMPORTERS, file, 'import { a } from "./imports/dialog/opening/beyond-openers";')).toEqual(["main.ts imports from imports"]);
+  });
+
+  it("refuses a folder other than the Obsidian features that imports from imports", () => {
     const file = join(SOURCE_FOLDER, "interface", "sections", "made-up.ts");
     expect(importersOfImportsIn(IMPORTS_IMPORTERS, file, 'import { a } from "../../imports/dialog/opening/beyond-openers";')).toEqual(["interface/sections/made-up.ts imports from imports"]);
   });
@@ -437,6 +446,10 @@ describe("the inner folders of src/characters, over made-up files", () => {
 describe("what src/imports may take from src/views, over made-up files", () => {
   it("lets the import dialog build on the shared dialogs", () => {
     expect(breachesOfMadeUpFileInside("imports", "dialog", 'import { a } from "../../views/dialogs/change-dialog";')).toEqual([]);
+  });
+
+  it("lets a dialog of the import build on the shared components", () => {
+    expect(breachesOfMadeUpFileInside("imports", "dialog", 'import { a } from "../../views/components/dialogs/text-field";')).toEqual([]);
   });
 
   it("refuses any other part of src/views", () => {

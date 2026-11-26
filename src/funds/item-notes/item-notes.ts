@@ -1,10 +1,10 @@
 import type { Campaign, SessionNote } from "../../campaign/record/campaign";
 import { itemsFolderOf } from "../../campaign/paths/campaign-folders";
-import type { FencedFileActions } from "../../fence/gate/fenced-file-actions";
-import type { FencedFiles } from "../../fence/gate/fenced-files";
-import type { FencedMetadata } from "../../fence/gate/fenced-metadata";
+import type { NoteStore } from "../../host/notes/note-store";
+import type { NoteSyntax } from "../../host/rules/note-syntax";
 import type { MakeTally } from "../../note-keeping/make-result";
-import type { MakerFiles } from "../../note-keeping/new-note-maker";
+import type { MakerKeeping, MakerStore } from "../../note-keeping/new-note-maker";
+import type { KeeperNotes } from "./item-holder-keeper";
 import { SaidOnce } from "../../note-keeping/said-once";
 import { ItemHolderKeeper } from "./item-holder-keeper";
 import { ItemNoteBusy } from "./item-note-busy";
@@ -19,11 +19,15 @@ export interface ItemNotesStore {
   subscribe(listener: (campaign: Campaign) => void): () => void;
 }
 
+export interface ItemNotesNotes extends KeeperNotes {
+  readonly store: Pick<NoteStore, "notesUnder"> & MakerStore;
+  readonly keeping: MakerKeeping;
+}
+
 export interface ItemNotesNeeds {
   store: ItemNotesStore;
-  files: Pick<FencedFiles, "markdownFilesUnder"> & MakerFiles;
-  metadata: Pick<FencedMetadata, "getFileCache">;
-  actions: Pick<FencedFileActions, "processFrontMatter" | "trashFile">;
+  notes: ItemNotesNotes;
+  syntax: NoteSyntax;
   failed(error: unknown): void;
   say(message: string): void;
 }
@@ -37,7 +41,7 @@ export class ItemNotes {
     const busy = new ItemNoteBusy();
     this.said = new SaidOnce(needs.say);
     this.keeper = new ItemHolderKeeper({ ...needs, campaignFolder: () => needs.store.campaignFolder, busy });
-    this.maker = new ItemNoteMaker({ files: needs.files, actions: needs.actions, busy, failed: needs.failed });
+    this.maker = new ItemNoteMaker({ parts: { store: needs.notes.store, keeping: needs.notes.keeping, syntax: needs.syntax }, busy, failed: needs.failed });
   }
 
   start(): () => void {
@@ -73,10 +77,10 @@ export class ItemNotes {
   }
 
   private plan(): ItemNotePlan | null {
-    const { store, files } = this.needs;
+    const { store, notes } = this.needs;
     const folder = store.campaignFolder;
     if (folder === null || store.opening) return null;
     const itemsFolder = itemsFolderOf(folder);
-    return planItemNotes(store.current, store.sessionNotes, itemsFolder, files.markdownFilesUnder(itemsFolder));
+    return planItemNotes(store.current, store.sessionNotes, itemsFolder, notes.store.notesUnder(itemsFolder));
   }
 }

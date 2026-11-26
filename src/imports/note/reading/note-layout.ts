@@ -1,4 +1,4 @@
-import { firstLineAfterProperties } from "../../../campaign/paths/session-file";
+import { firstLineAfterProperties, type PropertiesSyntax } from "../../../campaign/paths/session-file";
 import type { PluginSection } from "../../layout/plugin-section";
 import { boundariesIn } from "./section-boundaries";
 import type { SectionSpan } from "./section-span";
@@ -50,10 +50,10 @@ export class NoteLayout {
     readonly ending: LineEnding,
   ) {}
 
-  static of(text: string): NoteLayout {
+  static of(text: string, syntax: PropertiesSyntax): NoteLayout {
     const lines = text.split(LINE_BREAK);
     if (lines.length > MOST_NOTE_LINES) throw tooManyLines();
-    const bodyStart = firstLineAfterProperties(text);
+    const bodyStart = firstLineAfterProperties(text, syntax);
     return new NoteLayout(lines, bodyStart, spansOf(lines, bodyStart), LineEnding.of(text));
   }
 

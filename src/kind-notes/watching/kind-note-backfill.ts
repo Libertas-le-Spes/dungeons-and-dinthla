@@ -1,6 +1,6 @@
 import { bySessionNumber } from "../../campaign/record/session-lines";
 import type { Campaign, SessionNote } from "../../campaign/record/campaign";
-import type { FencedFiles } from "../../fence/gate/fenced-files";
+import type { NoteStore } from "../../host/notes/note-store";
 import type { NotesMade } from "../../settings/saved/notes-made";
 import type { MakeTally } from "../../note-keeping/make-result";
 import type { ItemNotesPart } from "./item-notes-part";
@@ -16,7 +16,7 @@ export interface BackfilledCampaign {
 
 export interface KindNoteBackfillNeeds {
   store: BackfilledCampaign;
-  files: Pick<FencedFiles, "getFileByPath">;
+  files: Pick<NoteStore, "note">;
   keeper: Pick<KindNoteKeeper, "makeIfMissing">;
   items: Pick<ItemNotesPart, "makeMissing">;
   made: Pick<NotesMade, "hasMadeFor" | "markMadeFor">;
@@ -71,7 +71,7 @@ export class KindNoteBackfill {
   }
 
   private async makeFor(campaignFolder: string, campaign: Campaign, session: SessionNote): Promise<MakeTally> {
-    const file = this.needs.files.getFileByPath(session.path);
+    const file = this.needs.files.note(session.path);
     const wanted = wantedNotesFor(campaignFolder, campaign, { path: session.path, file, note: session });
     const tally: MakeTally = { made: 0, failed: 0 };
     for (const note of wanted) {

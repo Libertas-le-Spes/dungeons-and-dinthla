@@ -1,49 +1,53 @@
-import type { TFile } from "obsidian";
 import { parentFolderOf } from "../campaign/paths/note-name";
-import type { ChangeProperties, FencedFileActions } from "../fence/gate/fenced-file-actions";
-import type { FencedFiles } from "../fence/gate/fenced-files";
+import type { ChangeProperties, NoteKeeping } from "../host/notes/note-keeping";
+import type { NoteRef } from "../host/notes/note-ref";
+import type { NoteStore } from "../host/notes/note-store";
+import type { NoteSyntax } from "../host/rules/note-syntax";
 import { hasNoWords, holdsOnlyPluginPropertiesIn } from "./note-words";
 import { PropertyWriter } from "./property-writer";
 
-export type MakerFiles = Pick<FencedFiles, "getFolderByPath" | "createFolder" | "create" | "read" | "process">;
-export type MakerActions = Pick<FencedFileActions, "processFrontMatter" | "trashFile">;
+export type MakerStore = Pick<NoteStore, "hasFolder" | "makeFolder" | "make" | "read">;
+export type MakerKeeping = Pick<NoteKeeping, "changeProperties" | "throwAway">;
+
+export interface MakerParts {
+  readonly store: MakerStore;
+  readonly keeping: MakerKeeping;
+  readonly syntax: NoteSyntax;
+}
 
 export class NewNoteMaker {
   private readonly properties: PropertyWriter;
 
-  constructor(
-    private readonly files: MakerFiles,
-    private readonly actions: MakerActions,
-  ) {
-    this.properties = new PropertyWriter(files, actions);
+  constructor(private readonly parts: MakerParts) {
+    this.properties = new PropertyWriter(parts.store, parts.keeping, parts.syntax);
   }
 
   async make(path: string, change: ChangeProperties): Promise<void> {
     const folder = parentFolderOf(path);
-    if (this.files.getFolderByPath(folder) === null) await this.files.createFolder(folder);
-    const file = await this.files.create(path, "");
-    await this.fill(file, change);
+    if (!this.parts.store.hasFolder(folder)) await this.parts.store.makeFolder(folder);
+    const note = await this.parts.store.make(path, "");
+    await this.fill(note, change);
   }
 
-  async fill(file: TFile, change: ChangeProperties): Promise<void> {
+  async fill(note: NoteRef, change: ChangeProperties): Promise<void> {
     try {
-      await this.properties.set(file, change);
+      await this.properties.set(note, change);
     } catch (error) {
-      await this.discard(file);
+      await this.discard(note);
       throw error;
     }
   }
 
-  async trashIfNothingOfHis(file: TFile): Promise<boolean> {
-    const text = await this.files.read(file);
-    if (!hasNoWords(text) || !holdsOnlyPluginPropertiesIn(text)) return false;
-    await this.actions.trashFile(file);
+  async trashIfNothingOfHis(note: NoteRef): Promise<boolean> {
+    const text = await this.parts.store.read(note);
+    if (!hasNoWords(text, this.parts.syntax) || !holdsOnlyPluginPropertiesIn(text, this.parts.syntax)) return false;
+    await this.parts.keeping.throwAway(note);
     return true;
   }
 
-  private async discard(file: TFile): Promise<void> {
+  private async discard(note: NoteRef): Promise<void> {
     try {
-      await this.trashIfNothingOfHis(file);
+      await this.trashIfNothingOfHis(note);
     } catch {
       return;
     }

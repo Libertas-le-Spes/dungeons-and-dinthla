@@ -1,17 +1,20 @@
 import { describe, expect, it, vi } from "vitest";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
-import { addQuestionRow } from "../../../src/questions/list/question-row";
+import { questionRowOf } from "../../../src/questions/list/question-row";
+import { mountTree } from "../../../src/obsidian/views/mount/mount-tree";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 function setUp(lines: string[], keywords: string[] = []) {
   const campaign = buildCampaign([{ path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: lines.join("\n") }]);
   const list = obsidianDocument().createElement("ul");
+  list.ownerDocument.body.append(list);
   const actions = { openRow: vi.fn(), openLink: vi.fn() };
-  for (const question of campaign.questions) addQuestionRow(list, question, keywords, actions);
+  const open = { run: actions.openRow };
+  for (const question of campaign.questions) mountTree(questionRowOf(question, keywords, actions, open, []), list);
   return { row: list.querySelector(".dd-row") as HTMLElement, actions };
 }
 
-describe("addQuestionRow", () => {
+describe("questionRowOf", () => {
   it("shows an open question's mark, text and session", () => {
     const { row } = setUp(["? Who sent the letter"]);
     expect(row.querySelector(".dd-mark-question")?.textContent).toBe("?");
@@ -38,10 +41,10 @@ describe("addQuestionRow", () => {
     expect(setUp(["? Who"]).row.querySelector(".dd-mark")?.hasAttribute("aria-label")).toBe(false);
   });
 
-  it("opens the session at the question's line when tapped", () => {
+  it("opens the question when tapped", () => {
     const { row, actions } = setUp(["We rode on.", "? Who"]);
     row.click();
-    expect(actions.openRow).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 1 });
+    expect(actions.openRow).toHaveBeenCalledTimes(1);
   });
 
   it("opens a linked name's note, not the session, when the name is tapped", () => {
@@ -56,9 +59,9 @@ describe("addQuestionRow", () => {
     expect(row.querySelector("mark")?.textContent).toBe("letter");
   });
 
-  it("opens the session when Enter is pressed on the focused row", () => {
+  it("opens the question when Enter is pressed on the focused row", () => {
     const { row, actions } = setUp(["? Who"]);
     row.dispatchEvent(new row.ownerDocument.defaultView!.KeyboardEvent("keydown", { key: "Enter" }));
-    expect(actions.openRow).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 1.md", line: 0 });
+    expect(actions.openRow).toHaveBeenCalledTimes(1);
   });
 });

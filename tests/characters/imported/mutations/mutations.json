@@ -121,49 +121,49 @@
  {
   "id": "panels: none without an import",
   "file": "src/characters/imported/panels/imported-panels.ts",
-  "find": "  if (lists === null) return;\n",
+  "find": "  if (lists === null) return [];\n",
   "replace": "  if (lists === null) throw new Error(\"x\");\n",
   "group": "panels"
  },
  {
   "id": "panels: count shown",
   "file": "src/characters/imported/panels/panel-parts.ts",
-  "find": "  heading.createSpan({ cls: \"dd-count\", text: String(count) });\n",
-  "replace": "",
+  "find": "[new Span({ cls: [\"dd-count\"], text: String(count) })]",
+  "replace": "[]",
   "group": "panels"
  },
  {
   "id": "panels: nothing came in only when empty",
   "file": "src/characters/imported/panels/panel-parts.ts",
-  "find": "  if (listed.entries.length > 0) return;\n",
+  "find": "  if (listed.entries.length > 0) return [];\n",
   "replace": "",
   "group": "panels"
  },
  {
   "id": "panels: left out shown",
   "file": "src/characters/imported/panels/panel-parts.ts",
-  "find": "  panel.createEl(\"p\", { cls: \"dd-note dd-left-out\", text: words });\n",
-  "replace": "",
+  "find": "  return [new Paragraph({ cls: [\"dd-note\", \"dd-left-out\"], text: words })];",
+  "replace": "  return [];",
   "group": "panels"
  },
  {
   "id": "panels: line text unescaped",
   "file": "src/characters/imported/panels/line-panel.ts",
-  "find": "addPanelLine(list, withoutEscapes(entry))",
-  "replace": "addPanelLine(list, entry)",
+  "find": "panelLine(withoutEscapes(entry), [])",
+  "replace": "panelLine(entry, [])",
   "group": "panels"
  },
  {
   "id": "inventory: count shown",
   "file": "src/characters/imported/panels/inventory-panel.ts",
-  "find": "    if (entry.count !== null) line.createSpan",
-  "replace": "    if (entry.count === \"x\") line.createSpan",
+  "find": "    if (entry.count !== null) after.push",
+  "replace": "    if (entry.count === \"x\") after.push",
   "group": "panels"
  },
  {
   "id": "inventory: standing shown",
   "file": "src/characters/imported/panels/inventory-panel.ts",
-  "find": "    if (standing !== null) line.createSpan({ cls: \"dd-meta dd-panel-standing\", text: standing });\n",
+  "find": "    if (standing !== null) after.push(new Span({ cls: [\"dd-meta\", \"dd-panel-standing\"], text: standing }));\n",
   "replace": "",
   "group": "panels"
  },
@@ -177,14 +177,14 @@
  {
   "id": "inventory: no buttons for another campaign",
   "file": "src/characters/imported/panels/inventory-panel.ts",
-  "find": "    if (look === null) return;\n    const standing",
-  "replace": "    if (look === null) {\n      addActionButton(line, TRACK_ON_FUNDS, PANEL_ACTION_CLASSES, new TrackRun(this.file, entry.written, this.tracking));\n      return;\n    }\n    const standing",
+  "find": "    if (look === null) return panelLine(entry.name, after);\n",
+  "replace": "    if (look === null) return panelLine(entry.name, [...after, new ActionButton(TRACK_ON_FUNDS, PANEL_ACTION_CLASSES, new TrackRun(this.file, entry, this.tracking)).build()]);\n",
   "group": "panels"
  },
  {
   "id": "inventory: no advice for an empty list",
   "file": "src/characters/imported/panels/inventory-panel.ts",
-  "find": "    if (entries.length === 0) return;\n",
+  "find": "    if (entries.length === 0) return [];\n",
   "replace": "",
   "group": "panels"
  },
@@ -198,14 +198,14 @@
  {
   "id": "held: marks shown",
   "file": "src/characters/imported/panels/inventory-panel.ts",
-  "find": "    addHeldButNotImported(panel, this.file, look.heldButNotImported(), listed.leftOut, this.tracking);\n",
-  "replace": "",
+  "find": "    return heldButNotImported(this.file, look.heldButNotImported(), listed.leftOut, this.tracking);",
+  "replace": "    return [];",
   "group": "panels"
  },
  {
   "id": "held: none drawn when all are imported",
   "file": "src/characters/imported/panels/held-not-imported.ts",
-  "find": "  if (held.length === 0) return;\n",
+  "find": "  if (held.length === 0) return [];\n",
   "replace": "",
   "group": "panels"
  },
@@ -296,21 +296,21 @@
  {
   "id": "tracking: other campaign refused in words",
   "file": "src/funds/tracking/funds-tracking.ts",
-  "find": "    if (folder === null) {\n      new Notice(this.whyNotTracked(file));\n      return;",
+  "find": "    if (folder === null) {\n      this.opening.showing.telling.say(this.whyNotTracked(file));\n      return;",
   "replace": "    if (folder === null) {\n      return;",
   "group": "tracking"
  },
  {
   "id": "tracking: holder linked",
   "file": "src/funds/tracking/funds-tracking.ts",
-  "find": "const holder = `[[${this.gate.metadata.fileToLinktext(file, sessionPath, true)}]]`;",
-  "replace": "const holder = this.gate.metadata.fileToLinktext(file, sessionPath, true);",
+  "find": "const holder = `[[${this.opening.notes.links.linkTextTo(file, sessionPath, true)}]]`;",
+  "replace": "const holder = this.opening.notes.links.linkTextTo(file, sessionPath, true);",
   "group": "tracking"
  },
  {
   "id": "tracking: gone item said",
   "file": "src/funds/tracking/funds-tracking.ts",
-  "find": "      new Notice(ITEM_GONE);\n",
+  "find": "      this.opening.showing.telling.say(ITEM_GONE);\n",
   "replace": "",
   "group": "tracking"
  },
@@ -324,8 +324,8 @@
  {
   "id": "tracking: focus handed back",
   "file": "src/funds/tracking/funds-tracking.ts",
-  "find": "new TrackItemModal(this.app, shown, saving, returnFocus).open();",
-  "replace": "new TrackItemModal(this.app, shown, saving, () => {}).open();",
+  "find": "new TrackItemDialog(this.opening.showing.telling, shown, saving, returnFocus)",
+  "replace": "new TrackItemDialog(this.opening.showing.telling, shown, saving, () => {})",
   "group": "tracking"
  },
  {
@@ -358,9 +358,9 @@
  },
  {
   "id": "modal: Save saves",
-  "file": "src/funds/tracking/track-item-modal.ts",
-  "find": "this.runChange(this.saving.save.bind(this.saving), COULD_NOT_TRACK);",
-  "replace": "this.close();",
+  "file": "src/funds/tracking/track-item-dialog.ts",
+  "find": "this.changing.run(this.saving.save.bind(this.saving), COULD_NOT_TRACK);",
+  "replace": "this.changing.close();",
   "group": "tracking"
  },
  {
@@ -415,8 +415,8 @@
  {
   "id": "settle: other campaign let through",
   "file": "src/funds/tracking/funds-tracking.ts",
-  "find": "  settle(file: TFile, name: string, status: SettledStatus, returnFocus: () => void): void {\n    if (this.shownFolderOf(file) === null) {\n      new Notice(this.whyNotTracked(file));\n      return;\n    }\n",
-  "replace": "  settle(file: TFile, name: string, status: SettledStatus, returnFocus: () => void): void {\n",
+  "find": "  settle(file: NoteRef, name: string, status: SettledStatus, returnFocus: () => void): void {\n    if (this.shownFolderOf(file) === null) {\n      this.opening.showing.telling.say(this.whyNotTracked(file));\n      return;\n    }\n",
+  "replace": "  settle(file: NoteRef, name: string, status: SettledStatus, returnFocus: () => void): void {\n",
   "group": "tracking"
  },
  {
@@ -443,15 +443,15 @@
  {
   "id": "inventory: marks without a section",
   "file": "src/characters/imported/panels/inventory-panel.ts",
-  "find": "    if (!listed.present) return;\n",
+  "find": "    if (!listed.present) return [];\n",
   "replace": "",
   "group": "panels"
  },
  {
   "id": "held: left-out line always",
   "file": "src/characters/imported/panels/held-not-imported.ts",
-  "find": "  if (leftOut === null || !hasLeftOut(leftOut)) return;",
-  "replace": "  if (leftOut === null) return;",
+  "find": "  if (leftOut === null || !hasLeftOut(leftOut)) return [];",
+  "replace": "  if (leftOut === null) return [];",
   "group": "panels"
  },
  {
@@ -540,7 +540,7 @@
  },
  {
   "id": "funds page: names keep escapes",
-  "file": "src/funds/page/funds-page.ts",
+  "file": "src/funds/page/rows/item-row.ts",
   "find": "text: shownItemName(item.name) });",
   "replace": "text: item.name });",
   "group": "panels"
@@ -1114,8 +1114,8 @@
  },
  {
   "id": "funds row: how many are left",
-  "file": "src/funds/page/funds-page.ts",
-  "find": "    if (goneWord === null && item.held > 1) meta.appendText(`× ${item.held} · `);\n",
+  "file": "src/funds/page/rows/item-row.ts",
+  "find": "    if (goneWord === null && item.held > 1) meta.push(new PlainText(`× ${item.held} · `));\n",
   "replace": "",
   "group": "holdings"
  },

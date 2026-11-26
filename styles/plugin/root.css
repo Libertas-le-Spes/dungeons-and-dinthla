@@ -1,0 +1,4 @@
+.dd-root {
+  background: var(--dd-surface-page);
+  color: var(--dd-text-body);
+}

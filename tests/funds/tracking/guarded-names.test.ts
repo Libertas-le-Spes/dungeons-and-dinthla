@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import type { App, TFile } from "obsidian";
+import type { TFile } from "obsidian";
 import { ImportedLists } from "../../../src/characters/imported/lists/imported-lists";
 import { shownItemName } from "../../../src/characters/imported/lists/shown-item-name";
-import { addImportedPanels } from "../../../src/characters/imported/panels/imported-panels";
+import { importedPanels } from "../../../src/characters/imported/panels/imported-panels";
+import { mountTree } from "../../../src/obsidian/views/mount/mount-tree";
 import { TRACK_ON_FUNDS } from "../../../src/characters/imported/panels/inventory-panel";
 import { FundsTracking } from "../../../src/funds/tracking/funds-tracking";
 import { ON_THE_FUNDS_PAGE } from "../../../src/funds/tracking/items-look";
@@ -13,12 +14,13 @@ import { DialogCampaign, lastDialog } from "../../campaign/dialog-campaign";
 import { textOf } from "../../imports/builders/line-helpers";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 import { Notice, openedModals } from "../../stubs/obsidian";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
+import { OBSIDIAN_SHOWING } from "../../host/showing/obsidian-showing";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const PRIMARY_PATH = "Pale Moon/Characters/Primary Monk.md";
 const GUARDED_NAMES = ["Potion: Healing", "Spell Scroll: Fireball", "(Ammo) Arrows", '"Lucky" Charm', "+1 Dagger", "1. Arrows", "~Cloak"];
 
-const app = {} as App;
 
 interface TrackSaving {
   saving: { save(): Promise<boolean> };
@@ -31,7 +33,7 @@ function campaignFolders(): string[] {
 function noFocus(): void {}
 
 function importedNoteWith(name: string): ImportedLists {
-  const lists = ImportedLists.of(textOf("---", "imported-from: pdf", "---", "## Inventory", pluginLineOf([neutralPartOf(name), "1"], COUNT_SEPARATOR), ""));
+  const lists = ImportedLists.of(textOf("---", "imported-from: pdf", "---", "## Inventory", pluginLineOf([neutralPartOf(name), "1"], COUNT_SEPARATOR), ""), STUB_SYNTAX);
   if (lists === null) throw new Error("The note reads as not imported.");
   return lists;
 }
@@ -43,13 +45,13 @@ class TrackedSheet {
 
   constructor(private readonly name: string) {
     this.primary = this.campaign.addCharacterNote(PRIMARY_PATH);
-    this.tracking = new FundsTracking(app, this.campaign.gate, this.campaign.store, campaignFolders);
+    this.tracking = new FundsTracking({ showing: OBSIDIAN_SHOWING, notes: this.campaign.gate.notes, openNoteAt: () => undefined }, this.campaign.store, campaignFolders, STUB_SYNTAX);
   }
 
   drawn(): HTMLElement {
     const root = obsidianDocument().createElement("div");
     obsidianDocument().body.append(root);
-    addImportedPanels(root, this.primary, importedNoteWith(this.name), this.tracking);
+    for (const tree of importedPanels(this.primary, importedNoteWith(this.name), this.tracking)) mountTree(tree, root);
     return root;
   }
 }

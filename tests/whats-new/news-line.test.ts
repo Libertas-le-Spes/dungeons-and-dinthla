@@ -1,18 +1,21 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { News, NewsItem } from "../../src/whats-new/news-item";
 import { NewsLine } from "../../src/whats-new/news-line";
-import { Notice } from "../stubs/obsidian";
 import { isShown, obsidianDocument } from "../stubs/obsidian-dom";
+import { mountTree } from "../../src/obsidian/views/mount/mount-tree";
+import { RecordedTelling } from "../host/showing/recorded-telling";
 
 const LANTERNS: NewsItem = { sentence: "Lanterns now light the party funds.", page: "funds" };
 
 function lineWith(latest: NewsItem | null, seen: () => Promise<void> = async () => {}) {
-  const news: News = { latest: () => latest, seen: vi.fn(seen) };
+  const seenMock = vi.fn(seen);
+  const news: News = { latest: () => latest, seen: seenMock };
   const show = vi.fn();
-  const lineEl = obsidianDocument().body.createDiv();
-  const line = new NewsLine(lineEl, news, show);
-  line.load();
-  return { lineEl, news, show, line };
+  const telling = new RecordedTelling();
+  const parent = obsidianDocument().body.createDiv();
+  mountTree(new NewsLine(news, show, telling).tree(), parent);
+  const lineEl = parent.firstElementChild as HTMLElement;
+  return { lineEl, news, show, telling, seenMock };
 }
 
 function buttonNamed(lineEl: HTMLElement, text: string): HTMLButtonElement {
@@ -22,17 +25,13 @@ function buttonNamed(lineEl: HTMLElement, text: string): HTMLButtonElement {
 }
 
 describe("NewsLine", () => {
-  beforeEach(() => {
-    Notice.shown = [];
-  });
-
   it("says so when it can't keep that the news was seen", async () => {
-    const { lineEl } = lineWith(LANTERNS, async () => {
+    const { lineEl, telling, seenMock } = lineWith(LANTERNS, async () => {
       throw new Error("data.json is read-only.");
     });
     buttonNamed(lineEl, "Dismiss").click();
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(Notice.shown).toEqual(["Couldn't keep that the news was seen: data.json is read-only."]);
+    await expect(seenMock.mock.results[0]!.value).rejects.toThrow("data.json is read-only.");
+    expect(telling.said).toEqual(["Couldn't keep that the news was seen: data.json is read-only."]);
   });
 
   it("says what is new, with Show me and Dismiss", () => {

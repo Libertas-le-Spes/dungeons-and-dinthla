@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import type { TFile } from "obsidian";
+import { fileAt } from "../../stubs/note-files";
 import { CHANGED_IN_NOTE, PartlyWritten, WOULD_BE_HIDDEN, type EditorFiles, type Removal } from "../../../src/campaign/writing/note-editor";
 import type { SessionChange } from "../../../src/campaign/changes/session-change";
 import { LATER_NOTE_HIDDEN, SessionChangeWriter } from "../../../src/campaign/changes/session-change-writer";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
@@ -19,12 +20,12 @@ class FakeNotes {
 
   get vault(): EditorFiles {
     return {
-      getFileByPath: (path) => {
+      note: (path) => {
         this.looked.push(path);
         if (!this.texts.has(path)) return null;
-        return { path } as TFile;
+        return fileAt(path);
       },
-      process: async (file, change) => {
+      change: async (file, change) => {
         if (file.path === this.failOn) throw new Error("disk full");
         this.written.push(file.path);
         const next = change(this.textOf(file.path));
@@ -50,7 +51,7 @@ const NOTHING: SessionChange = { removal: null, added: null };
 const WORDS = "The first lines were written, but not the rest:";
 
 function apply(notes: FakeNotes, change: SessionChange): Promise<boolean> {
-  return new SessionChangeWriter(notes.vault).apply(change);
+  return new SessionChangeWriter(notes.vault, STUB_SYNTAX).apply(change);
 }
 
 describe("SessionChangeWriter", () => {

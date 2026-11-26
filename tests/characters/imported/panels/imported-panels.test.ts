@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import { ImportedLists } from "../../../../src/characters/imported/lists/imported-lists";
-import { addImportedPanels } from "../../../../src/characters/imported/panels/imported-panels";
+import { importedPanels } from "../../../../src/characters/imported/panels/imported-panels";
+import { mountTree } from "../../../../src/obsidian/views/mount/mount-tree";
 import { HELD_NOT_IMPORTED, MAY_BE_LEFT_OUT, PICK_WHAT_HAPPENED } from "../../../../src/characters/imported/panels/held-not-imported";
 import { TRACK_ON_FUNDS } from "../../../../src/characters/imported/panels/inventory-panel";
 import { NOTHING_CAME_IN } from "../../../../src/characters/imported/panels/panel-parts";
@@ -10,6 +11,7 @@ import { obsidianDocument } from "../../../stubs/obsidian-dom";
 import { textOf } from "../../../imports/builders/line-helpers";
 import { MADE_UP_ADVICE, MadeUpLook, RecordingTracking } from "../builders/recording-tracking";
 import { madeUpFile } from "../builders/made-up-file";
+import { STUB_SYNTAX } from "../../../host/stub-syntax";
 
 const PRIMARY = madeUpFile("D&D/Primary Campaign/Characters/Primary Monk.md");
 
@@ -35,7 +37,7 @@ function noteText(route: string): string {
 }
 
 function listsOf(text: string): ImportedLists {
-  const lists = ImportedLists.of(text);
+  const lists = ImportedLists.of(text, STUB_SYNTAX);
   if (lists === null) throw new Error("The note reads as not imported.");
   return lists;
 }
@@ -43,7 +45,7 @@ function listsOf(text: string): ImportedLists {
 function drawn(text: string, tracking: RecordingTracking, file: TFile = PRIMARY): HTMLElement {
   const root = obsidianDocument().createElement("div");
   obsidianDocument().body.append(root);
-  addImportedPanels(root, file, listsOf(text), tracking);
+  for (const tree of importedPanels(file, listsOf(text), tracking)) mountTree(tree, root);
   return root;
 }
 
@@ -80,7 +82,7 @@ afterEach(() => {
 describe("the imported panels on a sheet", () => {
   it("draw nothing for a note nothing was imported into", () => {
     const root = obsidianDocument().createElement("div");
-    addImportedPanels(root, PRIMARY, null, new RecordingTracking(null));
+    for (const tree of importedPanels(PRIMARY, null, new RecordingTracking(null))) mountTree(tree, root);
     expect(root.children).toHaveLength(0);
   });
 

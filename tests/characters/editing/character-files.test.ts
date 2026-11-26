@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { TFile, TFolder } from "obsidian";
+import type { NoteRef } from "../../../src/host/notes/note-ref";
+import { STUB_SPELLING } from "../../host/stub-spelling";
 import { CHANGED_IN_NOTE, PartlyWritten } from "../../../src/campaign/writing/note-editor";
 import { readsBackDifferently, type CharacterEntry } from "../../../src/characters/editing/character-entry";
 import { BAD_NAME, LONG_NAME, RESERVED_NAME } from "../../../src/names/file-name";
@@ -12,12 +13,13 @@ import {
   type CharacterFileActions,
   type CharacterFiles,
 } from "../../../src/characters/editing/character-files";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const FOLDER = "Pale Moon/Characters";
 
-function fileAt(path: string): TFile {
+function fileAt(path: string): NoteRef {
   const name = path.slice(path.lastIndexOf("/") + 1).replace(/\.md$/, "");
-  return { path, basename: name } as TFile;
+  return { path, basename: name };
 }
 
 interface VaultSetup {
@@ -33,36 +35,33 @@ function vaultWith({ notes = {}, folders = [FOLDER], renameFails = false }: Vaul
   const renamed: { from: string; to: string }[] = [];
   const trashed: string[] = [];
   const processed: string[] = [];
-  const vault: CharacterFiles = {
-    getFiles: () => [...texts.keys()].map(fileAt),
-    getFolderByPath: (path) => {
-      if (!folderPaths.has(path)) return null;
-      return { path } as TFolder;
-    },
-    createFolder: async (path) => {
+  const store: CharacterFiles["store"] = {
+    files: () => [...texts.keys()].map(fileAt),
+    hasFolder: (path) => folderPaths.has(path),
+    makeFolder: async (path) => {
       if (folderPaths.has(path)) throw new Error("Folder already exists.");
       folderPaths.add(path);
-      return { path } as TFolder;
     },
-    create: async (path, text) => {
+    make: async (path, text) => {
       if (texts.has(path)) throw new Error("File already exists.");
       texts.set(path, text);
       created.push({ path, text });
       return fileAt(path);
     },
-    process: async (file, change) => {
+    change: async (file, change) => {
       processed.push(file.path);
       const text = change(texts.get(file.path)!);
       texts.set(file.path, text);
       return text;
     },
   };
+  const vault: CharacterFiles = { store, spelling: STUB_SPELLING };
   const fileManager: CharacterFileActions = {
-    renameFile: async (file, to) => {
+    moveWithLinks: async (file, to) => {
       if (renameFails) throw new Error("the disk is full");
       renamed.push({ from: file.path, to });
     },
-    trashFile: async (file) => {
+    throwAway: async (file) => {
       trashed.push(file.path);
     },
   };
@@ -206,7 +205,7 @@ describe("saveCharacter", () => {
 
   it("renames the note through the file manager, so every link follows", async () => {
     const { vault, fileManager, renamed, processed } = vaultWith({ notes: { [MIRA]: "" } });
-    expect(await saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, entry(), entry({ name: "Mirabel" }))).toBe(true);
+    expect(await saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, entry(), entry({ name: "Mirabel" }), STUB_SYNTAX)).toBe(true);
     expect(renamed).toEqual([{ from: MIRA, to: `${FOLDER}/Mirabel.md` }]);
     expect(processed).toEqual([]);
   });
@@ -214,20 +213,20 @@ describe("saveCharacter", () => {
   it("keeps a renamed note in its own folder", async () => {
     const path = `${FOLDER}/Villains/Mira.md`;
     const { vault, fileManager, renamed } = vaultWith({ notes: { [path]: "" } });
-    await saveCharacter(vault, fileManager, "Pale Moon", fileAt(path), path, entry(), entry({ name: "Mirabel" }));
+    await saveCharacter(vault, fileManager, "Pale Moon", fileAt(path), path, entry(), entry({ name: "Mirabel" }), STUB_SYNTAX);
     expect(renamed).toEqual([{ from: path, to: `${FOLDER}/Villains/Mirabel.md` }]);
   });
 
   it("lets a name change only its capitals", async () => {
     const { vault, fileManager, renamed } = vaultWith({ notes: { [MIRA]: "" } });
-    await saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, entry(), entry({ name: "MIRA" }));
+    await saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, entry(), entry({ name: "MIRA" }), STUB_SYNTAX);
     expect(renamed).toEqual([{ from: MIRA, to: `${FOLDER}/MIRA.md` }]);
   });
 
   it("refuses a rename when the note was moved or renamed since the dialog opened", async () => {
     const moved = `${FOLDER}/Mirabel.md`;
     const { vault, fileManager, renamed, processed } = vaultWith({ notes: { [moved]: "" } });
-    await expect(saveCharacter(vault, fileManager, "Pale Moon", fileAt(moved), MIRA, entry(), entry({ name: "Mira the Bold", speed: "30 ft." }))).rejects.toThrow(
+    await expect(saveCharacter(vault, fileManager, "Pale Moon", fileAt(moved), MIRA, entry(), entry({ name: "Mira the Bold", speed: "30 ft." }), STUB_SYNTAX)).rejects.toThrow(
       NOTE_MOVED,
     );
     expect([...renamed, ...processed]).toEqual([]);
@@ -236,13 +235,13 @@ describe("saveCharacter", () => {
   it("still writes values to a note moved since the dialog opened", async () => {
     const moved = `${FOLDER}/Mirabel.md`;
     const { vault, fileManager, texts } = vaultWith({ notes: { [moved]: "" } });
-    await saveCharacter(vault, fileManager, "Pale Moon", fileAt(moved), MIRA, entry(), entry({ speed: "30 ft." }));
+    await saveCharacter(vault, fileManager, "Pale Moon", fileAt(moved), MIRA, entry(), entry({ speed: "30 ft." }), STUB_SYNTAX);
     expect(texts.get(moved)).toBe("speed: 30 ft.\n");
   });
 
   it("refuses a new name another note in the folder has", async () => {
     const { vault, fileManager, renamed, processed } = vaultWith({ notes: { [MIRA]: "", [`${FOLDER}/Vess.md`]: "" } });
-    await expect(saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, entry(), entry({ name: "vess", speed: "30 ft." }))).rejects.toThrow(
+    await expect(saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, entry(), entry({ name: "vess", speed: "30 ft." }), STUB_SYNTAX)).rejects.toThrow(
       `There is already a note called Vess in ${FOLDER}.`,
     );
     expect([...renamed, ...processed]).toEqual([]);
@@ -250,26 +249,26 @@ describe("saveCharacter", () => {
 
   it("refuses a rename to a name that is in this campaign's Fallen folder, and writes nothing", async () => {
     const { vault, fileManager, renamed, processed } = vaultWith({ notes: { [MIRA]: "", "Pale Moon/Fallen/Vess.md": "" } });
-    await expect(saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, entry(), entry({ name: "vess", speed: "30 ft." }))).rejects.toThrow(leftPlayWords("vess"));
+    await expect(saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, entry(), entry({ name: "vess", speed: "30 ft." }), STUB_SYNTAX)).rejects.toThrow(leftPlayWords("vess"));
     expect([...renamed, ...processed]).toEqual([]);
   });
 
   it("renames to a name that is in another campaign's Fallen folder", async () => {
     const { vault, fileManager, renamed } = vaultWith({ notes: { [MIRA]: "", "Ashen Road/Fallen/Vess.md": "" } });
-    await saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, entry(), entry({ name: "Vess" }));
+    await saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, entry(), entry({ name: "Vess" }), STUB_SYNTAX);
     expect(renamed).toEqual([{ from: MIRA, to: `${FOLDER}/Vess.md` }]);
   });
 
   it("refuses a new name that can't be a note's name", async () => {
     const { vault, fileManager, renamed, processed } = vaultWith({ notes: { [MIRA]: "" } });
-    await expect(saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, entry(), entry({ name: "Mira/Vess", speed: "30 ft." }))).rejects.toThrow(BAD_NAME);
+    await expect(saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, entry(), entry({ name: "Mira/Vess", speed: "30 ft." }), STUB_SYNTAX)).rejects.toThrow(BAD_NAME);
     expect([...renamed, ...processed]).toEqual([]);
   });
 
   it("keeps an old name that a new note couldn't have", async () => {
     const path = `${FOLDER}/Mira #2.md`;
     const { vault, fileManager, texts, renamed } = vaultWith({ notes: { [path]: "" } });
-    await saveCharacter(vault, fileManager, "Pale Moon", fileAt(path), path, entry({ name: "Mira #2" }), entry({ name: "Mira #2", speed: "30 ft." }));
+    await saveCharacter(vault, fileManager, "Pale Moon", fileAt(path), path, entry({ name: "Mira #2" }), entry({ name: "Mira #2", speed: "30 ft." }), STUB_SYNTAX);
     expect(texts.get(path)).toBe("speed: 30 ft.\n");
     expect(renamed).toEqual([]);
   });
@@ -277,7 +276,7 @@ describe("saveCharacter", () => {
   it("writes changed values on the character's own note", async () => {
     const { vault, fileManager, texts, renamed } = vaultWith({ notes: { [MIRA]: "speed: 30 ft.\n" } });
     const before = entry({ speed: "30 ft." });
-    await saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, before, entry({ speed: "40 ft.", type: "elf" }));
+    await saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, before, entry({ speed: "40 ft.", type: "elf" }), STUB_SYNTAX);
     expect(texts.get(MIRA)).toBe("speed: 40 ft.\ntype: elf\n");
     expect(renamed).toEqual([]);
   });
@@ -285,19 +284,19 @@ describe("saveCharacter", () => {
   it("writes nothing when nothing changed", async () => {
     const { vault, fileManager, renamed, processed } = vaultWith({ notes: { [MIRA]: "speed: 30 ft.\n" } });
     const before = entry({ speed: "30 ft." });
-    expect(await saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, before, entry({ speed: "30 ft." }))).toBe(true);
+    expect(await saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, before, entry({ speed: "30 ft." }), STUB_SYNTAX)).toBe(true);
     expect([...renamed, ...processed]).toEqual([]);
   });
 
   it("writes nothing without a name", async () => {
     const { vault, fileManager, renamed, processed } = vaultWith({ notes: { [MIRA]: "" } });
-    expect(await saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, entry(), entry({ name: "", speed: "30 ft." }))).toBe(false);
+    expect(await saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, entry(), entry({ name: "", speed: "30 ft." }), STUB_SYNTAX)).toBe(false);
     expect([...renamed, ...processed]).toEqual([]);
   });
 
   it("refuses a value that would read back differently before writing anything", async () => {
     const { vault, fileManager, renamed, processed } = vaultWith({ notes: { [MIRA]: "" } });
-    await expect(saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, entry(), entry({ name: "Mirabel", type: "elf, HP: 3" }))).rejects.toThrow(
+    await expect(saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, entry(), entry({ name: "Mirabel", type: "elf, HP: 3" }), STUB_SYNTAX)).rejects.toThrow(
       readsBackDifferently("Type line"),
     );
     expect([...renamed, ...processed]).toEqual([]);
@@ -306,14 +305,14 @@ describe("saveCharacter", () => {
   it("leaves the note and its name alone when the note changed since the dialog read it", async () => {
     const { vault, fileManager, texts, renamed } = vaultWith({ notes: { [MIRA]: "speed: 25 ft.\n" } });
     const before = entry({ speed: "30 ft." });
-    await expect(saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, before, entry({ name: "Mirabel", speed: "40 ft." }))).rejects.toThrow(CHANGED_IN_NOTE);
+    await expect(saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, before, entry({ name: "Mirabel", speed: "40 ft." }), STUB_SYNTAX)).rejects.toThrow(CHANGED_IN_NOTE);
     expect(texts.get(MIRA)).toBe("speed: 25 ft.\n");
     expect(renamed).toEqual([]);
   });
 
   it("says the values were saved when only the rename failed", async () => {
     const { vault, fileManager, texts } = vaultWith({ notes: { [MIRA]: "" }, renameFails: true });
-    const saving = saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, entry(), entry({ name: "Mirabel", speed: "30 ft." }));
+    const saving = saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, entry(), entry({ name: "Mirabel", speed: "30 ft." }), STUB_SYNTAX);
     await expect(saving).rejects.toThrow(new PartlyWritten("The values were saved, but the note couldn't be renamed: the disk is full"));
     await expect(saving).rejects.toBeInstanceOf(PartlyWritten);
     expect(texts.get(MIRA)).toBe("speed: 30 ft.\n");
@@ -321,7 +320,7 @@ describe("saveCharacter", () => {
 
   it("passes on a failed rename as it is when nothing was written", async () => {
     const { vault, fileManager } = vaultWith({ notes: { [MIRA]: "" }, renameFails: true });
-    const saving = saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, entry(), entry({ name: "Mirabel" }));
+    const saving = saveCharacter(vault, fileManager, "Pale Moon", fileAt(MIRA), MIRA, entry(), entry({ name: "Mirabel" }), STUB_SYNTAX);
     await expect(saving).rejects.toThrow("the disk is full");
     await expect(saving).rejects.not.toBeInstanceOf(PartlyWritten);
   });

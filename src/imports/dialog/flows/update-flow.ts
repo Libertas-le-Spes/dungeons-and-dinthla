@@ -1,4 +1,3 @@
-import type { TFile } from "obsidian";
 import type { PrintedSheet } from "../../../beyond/sheet/printed-sheet";
 import { notesLikeName } from "../../note/matching/note-match";
 import type { ImportWriter } from "../../note/writing/import-writer";
@@ -6,13 +5,14 @@ import { notThisCharacter, UPDATE_TITLE } from "../import-words";
 import { ExistingNoteTarget } from "../targets/existing-note-target";
 import type { ImportTarget } from "../targets/import-target";
 import type { FlowStart, ImportFlow } from "./import-flow";
+import type { NoteRef } from "../../../host/notes/note-ref";
 
 export class UpdateFlow implements ImportFlow {
   readonly title = UPDATE_TITLE;
 
   constructor(
     private readonly writer: ImportWriter,
-    private readonly file: TFile,
+    private readonly file: NoteRef,
     private readonly kept: string | null,
   ) {}
 

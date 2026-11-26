@@ -12,6 +12,11 @@ import type { Drafts } from "../drafts/drafts";
 import { EditAllReminder } from "./edit-all-reminder";
 import { LookupList } from "./lookup-list";
 import { PendingWork } from "../../views/pending/pending-work";
+import type { CaretWatcher, PressedKey } from "../../views/elements/bindings/binding-wiring";
+import { HandleRequest } from "../../views/elements/bindings/bindings";
+import { KeptHandle } from "../../views/elements/bindings/kept-handle";
+import { Section } from "../../views/elements/kinds/containers";
+import type { ViewElement } from "../../views/elements/view-element";
 
 export interface WritingNeeds {
   drafts: Drafts;
@@ -24,35 +29,51 @@ function notSavedMessage(error: unknown): string {
   return `Couldn't save: ${messageOf(error)}. Your lines are still in the box.`;
 }
 
-export class WritingPanel {
-  private readonly panel: HTMLElement;
+export class WritingPanel implements CaretWatcher {
+  private readonly panel = new KeptHandle();
   private readonly box: DraftBox;
+  private readonly list: LookupList;
   private readonly lookup: BoxLookup;
-  private readonly reminder: EditAllReminder;
-  private readonly stopListening: () => void;
+  private readonly reminder = new EditAllReminder();
   private readonly saving = new PendingWork();
+  private stopListening: (() => void) | null = null;
 
   constructor(
-    parent: HTMLElement,
     private readonly sessionPath: string,
     private readonly needs: WritingNeeds,
   ) {
-    this.panel = parent.createEl("section", { cls: "dd-notes-panel dd-writing-panel" });
-    this.reminder = new EditAllReminder(this.panel);
-    this.box = new DraftBox(this.panel, needs.drafts.textOf(sessionPath), () => this.saving.add(this.save()));
-    const list = new LookupList(this.box.lookups, (match) => this.pick(match));
-    this.lookup = new BoxLookup(this.box.textarea, list, needs.campaign);
-    this.box.textarea.addEventListener("keydown", (event) => this.lookup.keyDown(event));
-    this.box.textarea.addEventListener("input", () => this.typed());
-    this.box.textarea.addEventListener("click", () => this.refreshLookup());
-    this.box.textarea.addEventListener("keyup", () => this.refreshLookup());
-    this.box.textarea.addEventListener("blur", () => this.lookup.close());
-    this.stopListening = needs.drafts.subscribe((path) => this.draftChanged(path));
-    this.box.setSaving(needs.drafts.isSaving(sessionPath));
+    this.box = new DraftBox(needs.drafts.textOf(sessionPath), this.startSaving.bind(this));
+    this.list = new LookupList(this.pick.bind(this));
+    this.lookup = new BoxLookup(this.box, this.list, needs.campaign);
   }
 
-  get textarea(): HTMLTextAreaElement {
-    return this.box.textarea;
+  tree(): ViewElement {
+    return new Section({ cls: ["dd-notes-panel", "dd-writing-panel"], bindings: [new HandleRequest(this.panel)] }, [this.reminder.tree(), ...this.box.trees(this, this.list.tree())]);
+  }
+
+  start(): void {
+    this.stopListening = this.needs.drafts.subscribe(this.draftChanged.bind(this));
+    this.box.setSaving(this.needs.drafts.isSaving(this.sessionPath));
+  }
+
+  keyDown(pressed: PressedKey): void {
+    this.lookup.keyDown(pressed);
+  }
+
+  typed(text: string, caret: number): void {
+    this.box.took(text, caret);
+    this.needs.drafts.keep(this.sessionPath, this.box.text);
+    this.box.refresh();
+    this.refreshLookup();
+  }
+
+  caretMoved(caret: number): void {
+    this.box.caretAt(caret);
+    this.refreshLookup();
+  }
+
+  left(): void {
+    this.lookup.close();
   }
 
   focus(): void {
@@ -64,11 +85,12 @@ export class WritingPanel {
   }
 
   close(): void {
-    this.stopListening();
+    if (this.stopListening !== null) this.stopListening();
+    this.stopListening = null;
   }
 
   setShown(shown: boolean): void {
-    this.panel.toggle(shown);
+    this.panel.setHidden(!shown);
     if (!shown) this.lookup.close();
   }
 
@@ -98,6 +120,10 @@ export class WritingPanel {
     this.box.focus();
   }
 
+  private startSaving(): void {
+    this.saving.add(this.save());
+  }
+
   private canSave(): boolean {
     if (this.box.isGone || this.box.isRemoving) return false;
     if (this.needs.drafts.isSaving(this.sessionPath)) return false;
@@ -125,19 +151,13 @@ export class WritingPanel {
     this.lookup.refresh();
   }
 
-  private typed(): void {
-    this.needs.drafts.keep(this.sessionPath, this.box.text);
-    this.box.refresh();
-    this.refreshLookup();
-  }
-
   private pick(match: LookupMatch): void {
     const line = this.lookup.currentLine();
     const text = withoutLine(this.box.text, line.index);
     this.box.text = text;
     this.needs.drafts.keep(this.sessionPath, text);
     const caret = startOfLine(text, line.index);
-    this.box.textarea.setSelectionRange(caret, caret);
+    this.box.placeCaret(caret);
     this.lookup.close();
     openMatch(this.needs.openers, match, match.source, () => this.box.focus());
   }

@@ -1,7 +1,7 @@
-import type { TFile } from "obsidian";
+import type { NoteChanges, Stop } from "../../host/notes/note-changes";
+import type { NoteRef } from "../../host/notes/note-ref";
+import type { NoteStore } from "../../host/notes/note-store";
 import { boxTextOf } from "../writing/disk-text";
-import type { GoneFile } from "../../fence/gate/fenced-files";
-import type { Gate } from "../../fence/gate/gatekeeper";
 
 export type NoteChanged = (path: string, text: string) => void;
 
@@ -9,31 +9,38 @@ export type NoteGone = (path: string) => void;
 
 export interface NoteTexts {
   read(path: string): Promise<string | null>;
-  onChanged(changed: NoteChanged): () => void;
-  onGone(gone: NoteGone): () => void;
+  onChanged(changed: NoteChanged): Stop;
+  onGone(gone: NoteGone): Stop;
 }
 
-async function readNote(gate: Gate, path: string): Promise<string | null> {
-  const file = gate.files.getFileByPath(path);
-  if (file === null) return null;
-  const disk = await gate.files.read(file);
-  return boxTextOf(disk);
+export interface NoteTextsNotes {
+  readonly store: Pick<NoteStore, "note" | "read">;
+  readonly changes: Pick<NoteChanges, "onRead" | "onGone">;
 }
 
-function onChanged(gate: Gate, changed: NoteChanged): () => void {
-  const event = gate.metadata.on("changed", (file: TFile, text: string) => changed(file.path, boxTextOf(text)));
-  return () => gate.metadata.offref(event);
+class BoxedText {
+  constructor(private readonly changed: NoteChanged) {}
+
+  read(note: NoteRef, text: string): void {
+    this.changed(note.path, boxTextOf(text));
+  }
 }
 
-function onGone(gate: Gate, gone: NoteGone): () => void {
-  const event = gate.files.on("delete", (file: GoneFile) => gone(file.path));
-  return () => gate.files.offref(event);
-}
+export class HostNoteTexts implements NoteTexts {
+  constructor(private readonly notes: NoteTextsNotes) {}
 
-export function noteTextsOf(gate: Gate): NoteTexts {
-  return {
-    read: (path) => readNote(gate, path),
-    onChanged: (changed) => onChanged(gate, changed),
-    onGone: (gone) => onGone(gate, gone),
-  };
+  async read(path: string): Promise<string | null> {
+    const note = this.notes.store.note(path);
+    if (note === null) return null;
+    return boxTextOf(await this.notes.store.read(note));
+  }
+
+  onChanged(changed: NoteChanged): Stop {
+    const boxed = new BoxedText(changed);
+    return this.notes.changes.onRead(boxed.read.bind(boxed));
+  }
+
+  onGone(gone: NoteGone): Stop {
+    return this.notes.changes.onGone(gone);
+  }
 }

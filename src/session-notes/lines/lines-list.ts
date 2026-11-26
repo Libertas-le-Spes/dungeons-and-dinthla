@@ -1,7 +1,15 @@
 import type { Campaign, Source } from "../../campaign/record/campaign";
 import { markerNamed } from "../../kinds/tracked-markers";
-import { addLinkedText, addRowButtonIn, type LinkActions } from "../../views/lists/linked-text";
-import { focusRowAt, NO_ROW, RowFocus } from "../../views/lists/row-focus";
+import type { LinkOpener } from "../../views/components/rows/link-name";
+import { LinkedText } from "../../views/components/rows/linked-text";
+import { SourceRow } from "../../views/components/rows/source-row";
+import { HandleRequest } from "../../views/elements/bindings/bindings";
+import { KeptHandle } from "../../views/elements/bindings/kept-handle";
+import { RunAction } from "../../views/elements/bindings/run-action";
+import { Div, Heading2, List, ListItem, Section, Span } from "../../views/elements/kinds/containers";
+import type { ViewElement } from "../../views/elements/view-element";
+import { ShownRows } from "../../views/pages/shown-rows";
+import { NO_ROW, RowFocus, type FocusRow } from "../../views/lists/row-focus";
 import type { LineState } from "../../views/threads/line-state";
 import { lineOpenerOf, type LineClosed, type LineOpeners, type OpenLine } from "./line-opener-of";
 import { lineStateOf } from "./line-state-of";
@@ -21,82 +29,90 @@ function glyphClassOf(line: WrittenLine): string {
   return `dd-line-glyph dd-marker ${markerNamed(line.marker).colourClass}`;
 }
 
-function addState(row: HTMLElement, text: HTMLElement, state: LineState | null): void {
-  if (state === null) return;
-  row.createSpan({ cls: "dd-line-state", text: state.sign, attr: { "aria-label": state.label, title: state.label } });
-  if (state.struck) text.addClass("dd-line-struck");
-}
-
 function newestFirst(lines: WrittenLine[]): WrittenLine[] {
   const shown = Array.from(lines);
   return shown.reverse();
 }
 
 export interface LinesListNeeds {
-  actions: LinkActions;
+  actions: LinkOpener;
   openers: LineOpeners;
 }
 
-export class LinesList {
-  readonly head: HTMLElement;
-  private readonly panel: HTMLElement;
-  private readonly count: HTMLElement;
-  private readonly list: HTMLElement;
-  private readonly rowFocus = new RowFocus();
-  private readonly rows = new Map<number, HTMLElement>();
+function classesOf(spaced: string): string[] {
+  return spaced.split(" ");
+}
 
-  constructor(
-    parent: HTMLElement,
-    private readonly needs: LinesListNeeds,
-  ) {
-    this.panel = parent.createEl("section", { cls: "dd-notes-panel dd-lines-panel" });
-    this.head = this.panel.createDiv({ cls: "dd-head" });
-    const title = this.head.createEl("h2", { cls: "dd-title", text: "Notes" });
-    this.count = title.createSpan({ cls: "dd-count" });
-    this.list = this.panel.createEl("ul", { cls: "dd-written-lines", attr: { "aria-live": "polite", tabindex: "-1" } });
+export class LinesList {
+  private readonly panel = new KeptHandle();
+  private readonly count = new KeptHandle();
+  private readonly list = new KeptHandle();
+  private readonly rowFocus = new RowFocus();
+  private readonly items = new Map<number, KeptHandle>();
+  private readonly rows = new ShownRows();
+
+  constructor(private readonly needs: LinesListNeeds) {}
+
+  tree(headExtras: readonly ViewElement[]): ViewElement {
+    const title = new Heading2({ cls: ["dd-title"], text: "Notes" }, [new Span({ cls: ["dd-count"], bindings: [new HandleRequest(this.count)] })]);
+    return new Section({ cls: ["dd-notes-panel", "dd-lines-panel"], bindings: [new HandleRequest(this.panel)] }, [
+      new Div({ cls: ["dd-head"] }, [title, ...headExtras]),
+      new List({ cls: ["dd-written-lines"], live: "polite", tabIndex: -1, bindings: [new HandleRequest(this.list)] }),
+    ]);
   }
 
   reveal(line: number): void {
-    const item = this.rows.get(line);
+    const item = this.items.get(line);
     if (item === undefined) return;
-    item.addClass(WANTED_CLASS);
-    item.scrollIntoView({ block: "center" });
+    item.setClassOn(WANTED_CLASS, true);
+    item.bringIntoView();
   }
 
   setShown(shown: boolean): void {
-    this.panel.toggle(shown);
+    this.panel.setHidden(!shown);
   }
 
   show(lines: WrittenLine[], campaign: Campaign): void {
     this.count.setText(countText(lines.length));
-    this.list.empty();
+    this.items.clear();
     this.rows.clear();
-    if (lines.length === 0) this.list.createEl("li", { cls: "dd-empty", text: NO_LINES });
-    for (const line of newestFirst(lines)) this.addLine(line, campaign);
+    const shown: ViewElement[] = [];
+    if (lines.length === 0) shown.push(new ListItem({ cls: ["dd-empty"], text: NO_LINES }));
+    for (const line of newestFirst(lines)) shown.push(this.lineOf(line, campaign));
+    this.list.showInside(shown);
     this.rowFocus.afterRender();
   }
 
-  private addLine(line: WrittenLine, campaign: Campaign): void {
-    const item = this.list.createEl("li", { cls: "dd-written-line", attr: { "data-line": String(line.source.line) } });
-    this.rows.set(line.source.line, item);
+  private lineOf(line: WrittenLine, campaign: Campaign): ViewElement {
+    const item = new KeptHandle();
+    this.items.set(line.source.line, item);
+    const state = lineStateOf(campaign, line.source);
+    const parts = [new Span({ cls: classesOf(glyphClassOf(line)), text: line.glyph, hiddenFromReaders: true }), this.textOf(line, state), ...this.stateOf(state)];
     const opener = lineOpenerOf({ campaign, source: line.source, openers: this.needs.openers });
-    const row = this.rowOf(item, { source: line.source, opener });
-    row.createSpan({ cls: glyphClassOf(line), text: line.glyph, attr: { "aria-hidden": "true" } });
-    const text = row.createSpan({ cls: "dd-line-text" });
-    addLinkedText(text, line.text, [], line.source.path, this.needs.actions);
-    addState(row, text, lineStateOf(campaign, line.source));
+    if (opener === null) return new ListItem({ cls: ["dd-written-line"], dataLine: line.source.line, bindings: [new HandleRequest(item)] }, parts);
+    const open = new RunAction(this.open.bind(this, line.source, opener));
+    const row = new SourceRow(line.source, open).build(parts, { cls: [], bindings: [new HandleRequest(this.rows.handleFor(line.source))] });
+    return new ListItem({ cls: ["dd-written-line", "dd-written-line-open"], dataLine: line.source.line, bindings: [new HandleRequest(item)] }, [row]);
   }
 
-  private rowOf(item: HTMLElement, { source, opener }: { source: Source; opener: OpenLine | null }): HTMLElement {
-    if (opener === null) return item;
-    item.addClass("dd-written-line-open");
-    const actions = { ...this.needs.actions, openRow: () => opener((closed) => this.closed({ source, closed })) };
-    return addRowButtonIn(item, source, actions);
+  private textOf(line: WrittenLine, state: LineState | null): ViewElement {
+    const cls = ["dd-line-text"];
+    if (state !== null && state.struck) cls.push("dd-line-struck");
+    return new Span({ cls }, new LinkedText([], line.source.path, this.needs.actions).build(line.text));
   }
 
-  private closed({ source, closed }: { source: Source; closed: LineClosed }): void {
-    let focusRow = () => focusRowAt(this.list, source);
+  private stateOf(state: LineState | null): ViewElement[] {
+    if (state === null) return [];
+    return [new Span({ cls: ["dd-line-state"], text: state.sign, label: state.label, title: state.label })];
+  }
+
+  private open(source: Source, opener: OpenLine): void {
+    opener(this.closed.bind(this, source));
+  }
+
+  private closed(source: Source, closed: LineClosed): void {
+    let focusRow: FocusRow = this.rows.focus.bind(this.rows, source);
     if (closed.gone) focusRow = NO_ROW;
-    this.rowFocus.afterClose(focusRow, closed.changed, () => this.list.focus());
+    this.rowFocus.afterClose(focusRow, closed.changed, this.list.focus.bind(this.list));
   }
 }

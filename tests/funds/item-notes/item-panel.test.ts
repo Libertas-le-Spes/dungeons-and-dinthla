@@ -4,6 +4,8 @@ import type { Campaign } from "../../../src/campaign/record/campaign";
 import type { NoteChanged, NoteTexts } from "../../../src/campaign/reading/note-texts";
 import { CHANGE_ITEM, CLOSE_ITEM, EDIT_NOTE, EMPTY_STORY, ItemPanel, NOTE_MISSING, noLineText } from "../../../src/funds/item-notes/item-panel";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
+import { mountTree } from "../../../src/obsidian/views/mount/mount-tree";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 import { HeldCalls } from "../../stubs/held-calls";
 import { queuedWorkRan } from "../../stubs/queued-work";
 import { SettleWatch } from "../../stubs/settle-watch";
@@ -36,12 +38,13 @@ async function openPanel(campaign: Campaign, story: string | null = STORY, path 
     },
     onGone: () => () => {},
   };
-  const needs = { store, texts, actions: { openRow: vi.fn(), openLink: vi.fn() }, openItem: vi.fn(), editNote: vi.fn(), close: vi.fn() };
+  const needs = { store, texts, opener: { openLink: vi.fn() }, openItem: vi.fn(), syntax: STUB_SYNTAX, editNote: vi.fn(), close: vi.fn() };
   const document = obsidianDocument();
-  const root = document.createElement("section");
+  const root = document.createElement("div");
   document.body.append(root);
-  const panel = new ItemPanel(root, path, needs);
-  panel.load();
+  const panel = new ItemPanel(path, needs);
+  mountTree(panel.tree(), root);
+  panel.started();
   await panel.storyRead();
   expect(read).toHaveBeenCalledExactlyOnceWith(path);
   const change = (next: Campaign) => {
@@ -108,7 +111,7 @@ describe("ItemPanel", () => {
     const { story, root, needs } = await openPanel(campaignOf([]), `---\nrarity: rare\n---\n${STORY}`);
     expect(story()).toEqual(["Mira found it in the cellar of the [[Gilded Stag]].", "Its light shows things the moon hides."]);
     (root.querySelector(".dd-item-story a") as HTMLElement).click();
-    expect(needs.actions.openLink).toHaveBeenCalledExactlyOnceWith("Gilded Stag", LANTERN, false);
+    expect(needs.opener.openLink).toHaveBeenCalledExactlyOnceWith("Gilded Stag", LANTERN, false);
   });
 
   it("says when its note has no story yet, or isn't there", async () => {
@@ -147,7 +150,7 @@ describe("ItemPanel", () => {
 
   it("stops listening to the campaign and the note when it is closed", async () => {
     const { panel, changedListeners, stopHearingCampaign } = await openPanel(campaignOf([]));
-    panel.unload();
+    panel.stopped();
     expect(changedListeners.size).toBe(0);
     expect(stopHearingCampaign).toHaveBeenCalledOnce();
   });

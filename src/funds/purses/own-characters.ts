@@ -1,15 +1,16 @@
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../host/notes/note-ref";
 import { importedSessionOf } from "../../characters/imported/reading/imported-session";
 import type { PurseCoin } from "../../characters/imported/lists/purse-coin";
 import { importedPurseOf } from "../../characters/imported/purse/note-purse";
 import { mainNotePathOf } from "../../campaign/paths/campaign-folders";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export interface OwnCharacterNotes {
-  filesIn(campaignFolder: string): TFile[];
-  fallenFilesIn(campaignFolder: string): TFile[];
-  isOwnCharacter(file: TFile): boolean;
-  textOf(file: TFile): Promise<string>;
+  filesIn(campaignFolder: string): NoteRef[];
+  fallenFilesIn(campaignFolder: string): NoteRef[];
+  isOwnCharacter(file: NoteRef): boolean;
+  textOf(file: NoteRef): Promise<string>;
   onNoteChanged(changed: (path: string) => void): () => void;
 }
 
@@ -25,17 +26,25 @@ export interface OwnCharactersParts {
 }
 
 export class OwnCharacters {
-  constructor(private readonly parts: OwnCharactersParts) {}
+  constructor(private readonly parts: OwnCharactersParts, private readonly syntax: PropertiesSyntax) {}
 
   names(): string[] {
     return this.files().map((file) => file.basename);
+  }
+
+  inPlay(): NoteRef | null {
+    const folder = this.parts.store.campaignFolder;
+    if (folder === null) return null;
+    const { notes } = this.parts;
+    const [character = null] = notes.filesIn(folder).filter((file) => notes.isOwnCharacter(file));
+    return character;
   }
 
   async sheets(): Promise<OwnSheet[]> {
     const sheets: OwnSheet[] = [];
     for (const file of this.files()) {
       const text = await this.parts.notes.textOf(file);
-      sheets.push({ name: file.basename, purse: importedPurseOf(text), importedSession: importedSessionOf(text) });
+      sheets.push({ name: file.basename, purse: importedPurseOf(text, this.syntax), importedSession: importedSessionOf(text, this.syntax) });
     }
     return sheets;
   }
@@ -49,7 +58,7 @@ export class OwnCharacters {
     });
   }
 
-  private files(): TFile[] {
+  private files(): NoteRef[] {
     const folder = this.parts.store.campaignFolder;
     if (folder === null) return [];
     const { notes } = this.parts;

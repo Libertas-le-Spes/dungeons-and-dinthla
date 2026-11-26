@@ -18,24 +18,26 @@ import { PAGE_ESCAPES } from "../scan/reading/names";
 const GATEKEEPER_FOLDER = "fence/gate/";
 const PARSED_DATA = ["settings/drafts/draft-record.ts", "beyond/reply/json/json-reader.ts"];
 const ALLOWED = ["fence/gate/gatekeeper.ts", "fence/gate/fenced-files.ts", "fence/gate/fenced-file-actions.ts", "fence/gate/folder-choices.ts", "fence/gate/vault-settings.ts"];
-const EDITOR_TEXT_READERS = ["campaign/reading/editor-text.ts"];
-const NOTE_READERS = ["reading/section-lines.ts"];
-const CODE_MIRROR_READERS = ["editor/marker-decorations.ts"];
-const LOOSE_CASTERS = ["fence/gate/fenced-metadata.ts", "interface/view/campaign-view-registered.ts", "interface/tabs/one-campaign-tab.ts", "interface/tabs/seen-tab.ts"];
-const FILE_OPENERS = ["characters/editing/open-character.ts", "interface/view/open-in-editor.ts", "views/opening/open-link.ts", "views/opening/open-view.ts"];
-const VIEW_STATE_SETTERS = ["interface/view/campaign-view.ts", "interface/tabs/one-campaign-tab.ts", "interface/tabs/open-campaign.ts", "interface/takeover/take-open-leaves.ts", "interface/takeover/view-state-patch.ts"];
-const ACTIVE_FILE_READERS = ["characters/editing/open-character.ts", "views/opening/open-view.ts"];
-const ACTIVE_VIEW_READERS = ["interface/view/open-in-editor.ts", "interface/view/shown-campaign-path.ts"];
+const EDITOR_TEXT_READERS = ["obsidian/campaign/editor-text.ts"];
+const NOTE_READERS = ["obsidian/reading/section-lines.ts"];
+const CODE_MIRROR_READERS = ["obsidian/editor/marker-decorations.ts"];
+const LOOSE_CASTERS = ["fence/gate/fenced-metadata.ts", "obsidian/interface/view/campaign-view-registered.ts", "obsidian/interface/tabs/one-campaign-tab.ts", "obsidian/interface/tabs/seen-tab.ts"];
+const FILE_OPENERS = ["obsidian/characters/character-editing-hooks.ts", "obsidian/interface/view/open-in-editor.ts", "obsidian/views/opening/open-link.ts", "obsidian/views/opening/open-view.ts"];
+const VIEW_STATE_SETTERS = ["obsidian/interface/view/campaign-view.ts", "obsidian/interface/tabs/one-campaign-tab.ts", "obsidian/interface/tabs/open-campaign.ts", "obsidian/interface/takeover/take-open-leaves.ts", "obsidian/interface/takeover/view-state-patch.ts"];
+const ACTIVE_FILE_READERS = ["obsidian/characters/character-editing-hooks.ts", "obsidian/views/opening/open-view.ts"];
+const ACTIVE_VIEW_READERS = ["obsidian/interface/view/open-in-editor.ts", "obsidian/interface/view/shown-campaign-path.ts"];
 const EVENT_TRIGGERS = ["fence/gate/fenced-files.ts"];
-const LEAF_VIEW_READERS = ["main.ts", "interface/tabs/one-campaign-tab.ts", "interface/tabs/seen-tab.ts", "interface/takeover/view-state-patch.ts"];
-const VIEW_FILE_READERS = ["main.ts", "campaign/reading/editor-text.ts", "editor/marker-decorations.ts", "interface/takeover/campaign-takeover.ts"];
-const NOTE_EVENT_LISTENERS = ["main.ts"];
+const LEAF_VIEW_READERS = ["obsidian/plugin/obsidian-features.ts", "obsidian/interface/tabs/one-campaign-tab.ts", "obsidian/interface/tabs/seen-tab.ts", "obsidian/interface/takeover/view-state-patch.ts"];
+const VIEW_FILE_READERS = ["obsidian/plugin/obsidian-features.ts", "obsidian/campaign/editor-text.ts", "obsidian/editor/marker-decorations.ts", "obsidian/interface/takeover/campaign-takeover.ts"];
+const NOTE_EVENT_LISTENERS = ["obsidian/plugin/obsidian-features.ts"];
 const GATE_BUILDERS = ["main.ts"];
-const NETWORK_CALLERS = ["online/beyond-call.ts"];
-const BEYOND_CALLERS = ["online/beyond-call.ts", "online/call-rules.ts", "imports/dialog/online/online-wiring.ts", "imports/dialog/online/online-import.ts"];
-const POST_PROCESSING = ["main.ts"];
-const PAGE_TEXT_READERS = ["reading/colour-markers.ts", "reading/plain-dollars.ts"];
-const ELEMENT_QUERIERS = ["reading/colour-markers.ts", "reading/plain-dollars.ts", "characters/pages/character-sheet-page.ts", "funds/page/funds-page.ts", "views/lists/row-focus.ts"];
+const FENCED_NOTES_BUILDERS = ["plugin/start-plugin.ts"];
+const NETWORK_CALLERS = ["obsidian/online/obsidian-beyond-call.ts"];
+const BEYOND_CALLERS = ["obsidian/plugin/obsidian-features.ts", "obsidian/online/obsidian-beyond-call.ts", "online/call-rules.ts", "imports/dialog/online/online-wiring.ts", "imports/dialog/online/online-import.ts"];
+const POST_PROCESSING = ["obsidian/plugin/obsidian-features.ts"];
+const PAGE_TEXT_READERS = ["reading/colour-markers.ts", "obsidian/reading/plain-dollars.ts"];
+const NOTE_HANDLERS = ["obsidian/notes/obsidian-notes.ts"];
+const ELEMENT_QUERIERS = ["reading/colour-markers.ts", "obsidian/reading/plain-dollars.ts", "views/lists/row-focus.ts"];
 
 function isOneOf(files: string[]): (path: string) => boolean {
   return (path) => files.some((file) => path === sourcePath(file));
@@ -60,6 +62,7 @@ function isGlobalAllowed(path: string, name: string): boolean {
   return PLAIN_GLOBALS.includes(name) || namesFor(path, PAGE_GLOBALS).includes(name);
 }
 
+
 const isGatekeeper = isOneOf(ALLOWED);
 
 const readsKeysOfAnything = isOneOf([...ALLOWED, ...PARSED_DATA]);
@@ -81,6 +84,7 @@ const SOURCE_ALLOWANCES: Allowances = {
   viewFile: isOneOf(VIEW_FILE_READERS),
   noteEvents: isOneOf(NOTE_EVENT_LISTENERS),
   gateBuilding: isOneOf(GATE_BUILDERS),
+  fencedNotesBuilding: isOneOf(FENCED_NOTES_BUILDERS),
   network: isOneOf(NETWORK_CALLERS),
   beyondCalling: isOneOf(BEYOND_CALLERS),
   obsidianImports: isImportAllowed,
@@ -93,6 +97,8 @@ const SOURCE_ALLOWANCES: Allowances = {
   tags: isPageTag,
   attributes: isPageAttribute,
   elementOptions: isPageOption,
+  hostNeutral: isNeverAllowed,
+  noteHandles: isOneOf(NOTE_HANDLERS),
 };
 
 const scanner = new SourceScanner(ROOT, virtualFileSystem(VIRTUAL_FOLDER, bundledProjectFiles()));
@@ -119,6 +125,14 @@ function isOutsideSource(path: string): boolean {
 function breachesOf(file: string, allowances: Allowances): string[] {
   return scanner.breaches(BUNDLED_PROJECT, [sourcePath(file)], allowances);
 }
+
+function sourceBreachesOf(paths: string[]): Map<string, string[]> {
+  const breaches = new Map<string, string[]>();
+  for (const path of paths) breaches.set(shownPath(path), breachesOf(shownPath(path), SOURCE_ALLOWANCES));
+  return breaches;
+}
+
+const SOURCE_BREACHES = sourceBreachesOf(SCANNED);
 
 function placeOf(path: string, allowed: Record<string, string[]>): string | null {
   const place = Object.keys(allowed).find((candidate) => path.startsWith(sourcePath(candidate)));
@@ -232,12 +246,14 @@ const STILL_NEEDED: StillNeeded[] = [
   ...neededBy("viewFile", VIEW_FILE_READERS, "reads the file of a view"),
   ...neededBy("noteEvents", NOTE_EVENT_LISTENERS, "workspace event, which hands over any note"),
   ...neededBy("gateBuilding", GATE_BUILDERS, "builds the gate's Gatekeeper"),
-  ...neededBy("beyondCalling", BEYOND_CALLERS, /names (callBeyond|BeyondCalls), which only the files that call D&D Beyond may/),
+  ...neededBy("fencedNotesBuilding", FENCED_NOTES_BUILDERS, "builds the fenced notes outside the plugin's start"),
+  ...neededBy("beyondCalling", BEYOND_CALLERS, /names (callBeyond|BeyondCalls|OBSIDIAN_BEYOND_CALL), which only the files that call D&D Beyond may/),
   ...neededBy("network", NETWORK_CALLERS, /names requestUrl, which only the file allowed the network may/),
   ...neededBy("postProcessing", POST_PROCESSING, "registers a post-processor"),
   ...neededBy("computedKeys", COMPUTED_KEY_READERS, "reads a key that isn't written in place"),
   ...neededBy("pageText", PAGE_TEXT_READERS, "reads the page's text"),
   ...neededBy("elementQueries", ELEMENT_QUERIERS, "looks elements up"),
+  ...neededBy("noteHandles", NOTE_HANDLERS, "where a type that hides it goes"),
 ];
 
 describe("the plugin's own source", () => {
@@ -251,7 +267,7 @@ describe("the plugin's own source", () => {
   });
 
   it.each(SCANNED.map(shownPath))("passes every rule of the fence in %s, with only the allowances it is given", (file) => {
-    expect(breachesOf(file, SOURCE_ALLOWANCES)).toEqual([]);
+    expect(SOURCE_BREACHES.get(file)).toEqual([]);
   });
 });
 

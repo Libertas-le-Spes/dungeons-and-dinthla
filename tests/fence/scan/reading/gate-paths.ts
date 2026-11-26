@@ -21,8 +21,13 @@ export function isGateTypeSource(path: string): boolean {
   return GATE_TYPE_SOURCES.includes(path);
 }
 
-const REPORT_SOURCE = `${GATE_FOLDER}written-notes.ts`;
+const CORE_FENCE_FOLDER = `${SOURCE_FOLDER}fence/notes/`;
+const REPORT_SOURCES = [`${GATE_FOLDER}written-notes.ts`, `${CORE_FENCE_FOLDER}write-report.ts`];
 
 export function isReportSource(path: string): boolean {
-  return path === REPORT_SOURCE;
+  return REPORT_SOURCES.includes(path);
+}
+
+export function isInCoreFenceFolder(path: string): boolean {
+  return path.startsWith(CORE_FENCE_FOLDER);
 }

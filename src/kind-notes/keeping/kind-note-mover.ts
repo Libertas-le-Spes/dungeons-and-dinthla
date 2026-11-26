@@ -1,21 +1,29 @@
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../host/notes/note-ref";
 import { messageOf } from "../../views/dialogs/message-of";
-import type { FencedFiles } from "../../fence/gate/fenced-files";
-import type { FencedMetadata } from "../../fence/gate/fenced-metadata";
+import type { LinkLookup } from "../../host/notes/link-lookup";
+import type { NoteFacts } from "../../host/notes/note-facts";
+import type { NoteStore } from "../../host/notes/note-store";
+import type { NoteSyntax } from "../../host/rules/note-syntax";
 import type { KindNoteKeeper } from "./kind-note-keeper";
 import { kindNotePathOf, kindNoteTitleOf } from "../wanting/kind-note-path";
 import { sessionPropertyIn } from "../../note-keeping/note-properties";
 import { nothing } from "../../note-keeping/nothing";
-import { PropertyWriter, type PropertyActions } from "../../note-keeping/property-writer";
+import { PropertyWriter, type PropertyKeeping } from "../../note-keeping/property-writer";
 import { SaidOnce } from "../../note-keeping/said-once";
 import { linksToSession, sessionLinkFor, type LinkMetadata } from "./session-link";
 import type { SessionWants } from "../wanting/session-wants";
 import { kindNoteFolders } from "../wanting/sources/kind-note-sources";
 
+export interface MoverNotes {
+  readonly store: Pick<NoteStore, "note" | "move" | "read">;
+  readonly keeping: PropertyKeeping;
+  readonly facts: Pick<NoteFacts, "propertiesOf">;
+  readonly links: Pick<LinkLookup, "target">;
+}
+
 export interface KindNoteMoverNeeds {
-  files: Pick<FencedFiles, "getFileByPath" | "rename" | "read" | "process">;
-  metadata: LinkMetadata & Pick<FencedMetadata, "getFileCache">;
-  actions: PropertyActions;
+  notes: MoverNotes;
+  syntax: NoteSyntax;
   keeper: Pick<KindNoteKeeper, "idle">;
   wants: Pick<SessionWants, "isSession" | "campaignFolder">;
   say(message: string): void;
@@ -51,7 +59,7 @@ export class KindNoteMover {
 
   constructor(private readonly needs: KindNoteMoverNeeds) {
     this.said = new SaidOnce(needs.say);
-    this.properties = new PropertyWriter(needs.files, needs.actions);
+    this.properties = new PropertyWriter(needs.notes.store, needs.notes.keeping, needs.syntax);
   }
 
   sessionRenamed(from: string, to: string): void {
@@ -78,20 +86,20 @@ export class KindNoteMover {
   }
 
   private async move(oldPath: string, newPath: string, from: string, to: string): Promise<void> {
-    const { files, metadata } = this.needs;
-    const file = files.getFileByPath(oldPath);
-    const sessionFile = files.getFileByPath(to);
+    const { store, facts, links } = this.needs.notes;
+    const file = store.note(oldPath);
+    const sessionFile = store.note(to);
     if (file === null || sessionFile === null) return;
-    if (files.getFileByPath(newPath) !== null) {
+    if (store.note(newPath) !== null) {
       this.said.say(`taken:${oldPath}`, targetTakenMessage(oldPath, newPath));
       return;
     }
-    const cache = metadata.getFileCache(file);
-    if (cache === null || !linksToEither({ metadata, property: sessionPropertyIn(cache), oldPath, sessions: [from, to] })) {
+    const properties = facts.propertiesOf(file);
+    if (properties === null || !linksToEither({ metadata: links, property: sessionPropertyIn(properties), oldPath, sessions: [from, to] })) {
       this.said.say(`link:${oldPath}`, notMovedMessage(oldPath));
       return;
     }
-    await files.rename(file, newPath);
+    await store.move(file, newPath);
     const link = sessionLinkFor(sessionFile);
     try {
       await this.properties.set(file, (properties) => {
@@ -102,11 +110,11 @@ export class KindNoteMover {
     }
   }
 
-  private async undoMove(file: TFile, oldPath: string, newPath: string, error: unknown): Promise<void> {
-    const { files } = this.needs;
-    if (files.getFileByPath(oldPath) === null) {
+  private async undoMove(file: NoteRef, oldPath: string, newPath: string, error: unknown): Promise<void> {
+    const { store } = this.needs.notes;
+    if (store.note(oldPath) === null) {
       try {
-        await files.rename(file, oldPath);
+        await store.move(file, oldPath);
         this.said.say(`move:${oldPath}`, `${oldPath} wasn't moved with its session: its session link couldn't be updated (${messageOf(error)}), so it was put back.`);
         return;
       } catch {

@@ -1,5 +1,7 @@
 import type { AgreementAnswer } from "./agreement-answer";
-import { drawAgreement, type AnswerChosen } from "./agreement-text";
+import { agreementTrees, type AnswerChosen } from "./agreement-text";
+import { Paragraph, Strong } from "../../views/elements/kinds/containers";
+import type { ViewElement } from "../../views/elements/view-element";
 import { AGREEMENT_TITLE } from "./agreement-words";
 import { STEP_BUTTONS } from "./answer-buttons";
 import type { KeptAgreement } from "./kept-agreement";
@@ -26,9 +28,9 @@ export class CampaignAgreement {
     return this.kept.given() === false;
   }
 
-  showIn(parentEl: HTMLElement, answered: () => void): void {
-    parentEl.createEl("p", { cls: "dd-agreement-title" }).createEl("strong", { text: AGREEMENT_TITLE });
-    drawAgreement(parentEl, STEP_BUTTONS, new StepChoice(this, answered));
+  trees(answered: () => void): ViewElement[] {
+    const title = new Paragraph({ cls: ["dd-agreement-title"] }, [new Strong({ text: AGREEMENT_TITLE })]);
+    return [title, ...agreementTrees(STEP_BUTTONS, new StepChoice(this, answered))];
   }
 
   take(answer: AgreementAnswer): void {

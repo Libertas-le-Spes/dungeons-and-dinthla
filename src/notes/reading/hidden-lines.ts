@@ -1,4 +1,4 @@
-import { firstLineAfterProperties } from "../../campaign/paths/session-file";
+import { firstLineAfterProperties, type PropertiesSyntax } from "../../campaign/paths/session-file";
 import { BLOCK_MARKERS, type BlockMarker } from "./hidden-markers";
 
 const FENCE_OPEN = /^ {0,3}(`{3,}|~{3,})/;
@@ -56,14 +56,14 @@ function closesFence(line: string, fence: string): boolean {
   return closingFence.startsWith(fence);
 }
 
-export function hiddenLines(text: string): Set<number> {
+export function hiddenLines(text: string, syntax: PropertiesSyntax): Set<number> {
   const hidden = new Set<number>();
   const lines = text.split("\n");
   let fence: string | null = null;
   let closer: string | null = null;
   let afterBlank = true;
   let inIndented = false;
-  for (let index = firstLineAfterProperties(text); index < lines.length; index++) {
+  for (let index = firstLineAfterProperties(text, syntax); index < lines.length; index++) {
     const raw = lines[index];
     if (raw === undefined) continue;
     const line = raw.replace(/\r$/, "");
@@ -98,9 +98,9 @@ export function hiddenLines(text: string): Set<number> {
   return hidden;
 }
 
-export function addedLinesHidden(textWithAddedLinesLast: string, addedCount: number): boolean {
+export function addedLinesHidden(textWithAddedLinesLast: string, addedCount: number, syntax: PropertiesSyntax): boolean {
   const lineCount = textWithAddedLinesLast.split("\n").length - 1;
-  const hidden = hiddenLines(textWithAddedLinesLast);
+  const hidden = hiddenLines(textWithAddedLinesLast, syntax);
   for (let line = lineCount - addedCount; line < lineCount; line++) {
     if (hidden.has(line)) return true;
   }

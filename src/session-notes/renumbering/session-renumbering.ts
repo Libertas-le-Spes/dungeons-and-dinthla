@@ -1,17 +1,19 @@
 import { campaignFolderOf } from "../../campaign/paths/campaign-folders";
-import type { FencedFiles } from "../../fence/gate/fenced-files";
+import type { NoteRef } from "../../host/notes/note-ref";
+import type { NoteStore } from "../../host/notes/note-store";
 import { LinkDecider, type DecisionFiles } from "./link-decisions";
 import { LinkUpdates } from "./link-updates";
 import type { LinkFiles } from "./link-writer";
 import { planRenumbering, type NoRenumbering, type RenumberingPlan } from "./renumbering-plan";
 import { NOT_IN_A_CAMPAIGN, SESSIONS_CHANGED_SINCE_ASKED, type RenumberingReport } from "./renumbering-words";
 import { SessionRenamer, type RenameFiles } from "./session-renamer";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
-export type RenumberingFiles = RenameFiles & LinkFiles & DecisionFiles & Pick<FencedFiles, "getMarkdownFiles">;
+export type RenumberingFiles = RenameFiles & LinkFiles & DecisionFiles & Pick<NoteStore, "notes">;
 
 export type CampaignFolders = () => string[];
 
-function namesOf(files: { path: string }[]): string[] {
+function namesOf(files: NoteRef[]): string[] {
   return files.map((file) => file.path);
 }
 
@@ -27,16 +29,17 @@ export class SessionRenumbering {
   constructor(
     private readonly files: RenumberingFiles,
     private readonly campaignFolders: CampaignFolders,
+    syntax: PropertiesSyntax,
   ) {
     this.renamer = new SessionRenamer(files);
-    this.decider = new LinkDecider(files);
-    this.updates = new LinkUpdates(files);
+    this.decider = new LinkDecider(files, syntax);
+    this.updates = new LinkUpdates(files, syntax);
   }
 
   planFor(deletedPath: string): RenumberingPlan | NoRenumbering {
     const campaignFolder = campaignFolderOf(deletedPath, this.campaignFolders());
     if (campaignFolder === null) return { error: NOT_IN_A_CAMPAIGN };
-    return planRenumbering(campaignFolder, namesOf(this.files.getFiles()), deletedPath);
+    return planRenumbering(campaignFolder, namesOf(this.files.files()), deletedPath);
   }
 
   confirmed(deletedPath: string, asked: RenumberingPlan): RenumberingPlan {
@@ -50,7 +53,7 @@ export class SessionRenumbering {
     const decisions = await this.decider.decide({
       campaignFolder: plan.campaignFolder,
       campaignFolders: this.campaignFolders(),
-      notes: namesOf(this.files.getMarkdownFiles()),
+      notes: namesOf(this.files.notes()),
       renames: plan.renames,
     });
     const outcome = await this.renamer.rename(plan.renames);

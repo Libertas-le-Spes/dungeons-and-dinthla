@@ -46,6 +46,7 @@ export const NOTHING_ALLOWED: Allowances = {
   viewFile: isNeverAllowed,
   noteEvents: isNeverAllowed,
   gateBuilding: isNeverAllowed,
+  fencedNotesBuilding: isNeverAllowed,
   network: isNeverAllowed,
   beyondCalling: isNeverAllowed,
   obsidianImports: isAnyNameAllowed,
@@ -58,6 +59,8 @@ export const NOTHING_ALLOWED: Allowances = {
   tags: isPageTag,
   attributes: isPageAttribute,
   elementOptions: isPageOption,
+  hostNeutral: isAlwaysAllowed,
+  noteHandles: isNeverAllowed,
 };
 
 export const ALL_ALLOWED: Allowances = {
@@ -77,6 +80,7 @@ export const ALL_ALLOWED: Allowances = {
   viewFile: isAlwaysAllowed,
   noteEvents: isAlwaysAllowed,
   gateBuilding: isAlwaysAllowed,
+  fencedNotesBuilding: isAlwaysAllowed,
   network: isAlwaysAllowed,
   beyondCalling: isAlwaysAllowed,
   obsidianImports: isAnyNameAllowed,
@@ -89,6 +93,8 @@ export const ALL_ALLOWED: Allowances = {
   tags: isPageTag,
   attributes: isPageAttribute,
   elementOptions: isPageOption,
+  hostNeutral: isAlwaysAllowed,
+  noteHandles: isAlwaysAllowed,
 };
 
 export const LOOSE_CASTS_ALLOWED: Allowances = { ...NOTHING_ALLOWED, looseCasts: isAlwaysAllowed };

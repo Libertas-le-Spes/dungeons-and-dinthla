@@ -4,12 +4,13 @@ import { INVENTORY_SECTION, NUMBERS_SECTION, SPELLS_SECTION } from "../../../../
 import { MOST_NOTE_LINES } from "../../../../src/imports/note/reading/note-limits";
 import { NoteLayout } from "../../../../src/imports/note/reading/note-layout";
 import { manyLines, textOf } from "../../builders/line-helpers";
+import { STUB_SYNTAX } from "../../../host/stub-syntax";
 
 const INVENTORY = INVENTORY_SECTION.heading;
 const SPELLS = SPELLS_SECTION.heading;
 
 function spanOf(text: string, section = INVENTORY_SECTION): { start: number; end: number } | null {
-  const span = NoteLayout.of(text).spanOf(section);
+  const span = NoteLayout.of(text, STUB_SYNTAX).spanOf(section);
   if (span === null) return null;
   return { start: span.start, end: span.end };
 }
@@ -63,7 +64,7 @@ describe("NoteLayout's sections", () => {
   });
 
   it("refuses a note with a section under its heading and again under its older heading", () => {
-    expect(() => NoteLayout.of(textOf(INVENTORY, "- a", INVENTORY_SECTION.formerHeading, "- b"))).toThrow(Refusal);
+    expect(() => NoteLayout.of(textOf(INVENTORY, "- a", INVENTORY_SECTION.formerHeading, "- b"), STUB_SYNTAX)).toThrow(Refusal);
   });
 
   it("takes a heading with up to three spaces before it as a heading, so it ends a section", () => {
@@ -83,20 +84,20 @@ describe("NoteLayout's sections", () => {
   });
 
   it("finds each section on its own", () => {
-    const layout = NoteLayout.of(textOf(INVENTORY, "- a", SPELLS, "- b"));
+    const layout = NoteLayout.of(textOf(INVENTORY, "- a", SPELLS, "- b"), STUB_SYNTAX);
     expect([startOf(layout, INVENTORY_SECTION), startOf(layout, SPELLS_SECTION), startOf(layout, NUMBERS_SECTION)]).toEqual([0, 2, null]);
   });
 
   it("refuses the same section twice, naming it", () => {
-    expect(() => NoteLayout.of(textOf(INVENTORY, "- a", INVENTORY))).toThrow(`two "${INVENTORY}" sections`);
+    expect(() => NoteLayout.of(textOf(INVENTORY, "- a", INVENTORY), STUB_SYNTAX)).toThrow(`two "${INVENTORY}" sections`);
   });
 
   it("lists a section's lines without its heading and without its end blank lines", () => {
-    expect(NoteLayout.of(textOf("Top", INVENTORY, "- a", "- b", "", "## Mine")).sectionLines(INVENTORY_SECTION)).toEqual(["- a", "- b"]);
+    expect(NoteLayout.of(textOf("Top", INVENTORY, "- a", "- b", "", "## Mine"), STUB_SYNTAX).sectionLines(INVENTORY_SECTION)).toEqual(["- a", "- b"]);
   });
 
   it("lists no lines for a section the note has not got", () => {
-    expect(NoteLayout.of("Top").sectionLines(INVENTORY_SECTION)).toEqual([]);
+    expect(NoteLayout.of("Top", STUB_SYNTAX).sectionLines(INVENTORY_SECTION)).toEqual([]);
   });
 });
 
@@ -142,7 +143,7 @@ describe("NoteLayout's code blocks", () => {
   });
 
   it("refuses a note that ends inside a block that is never closed, in words of its own", () => {
-    expect(() => NoteLayout.of(textOf("```", "x", "## Notes"))).toThrow("code block or comment that never closes");
+    expect(() => NoteLayout.of(textOf("```", "x", "## Notes"), STUB_SYNTAX)).toThrow("code block or comment that never closes");
   });
 });
 
@@ -180,32 +181,32 @@ describe("NoteLayout's comments", () => {
   });
 
   it("refuses a note that ends inside an HTML comment that is never closed", () => {
-    expect(() => NoteLayout.of(textOf("<!--", "x"))).toThrow("never closes");
+    expect(() => NoteLayout.of(textOf("<!--", "x"), STUB_SYNTAX)).toThrow("never closes");
   });
 
   it("refuses a note that ends inside a percent comment that is never closed", () => {
-    expect(() => NoteLayout.of(textOf("a", "%% x"))).toThrow("never closes");
+    expect(() => NoteLayout.of(textOf("a", "%% x"), STUB_SYNTAX)).toThrow("never closes");
   });
 
   it("refuses a note whose comment opens again on the line where one closed", () => {
-    expect(() => NoteLayout.of(textOf("<!-- a --> <!-- b"))).toThrow("never closes");
+    expect(() => NoteLayout.of(textOf("<!-- a --> <!-- b"), STUB_SYNTAX)).toThrow("never closes");
   });
 });
 
 describe("NoteLayout's properties", () => {
   it("starts the body after the properties block", () => {
-    const layout = NoteLayout.of(textOf("---", "a: 1", "---", INVENTORY, "- a"));
+    const layout = NoteLayout.of(textOf("---", "a: 1", "---", INVENTORY, "- a"), STUB_SYNTAX);
     expect([layout.bodyStart, layout.propertyLines(), layout.bodyLines()]).toEqual([3, ["---", "a: 1", "---"], [INVENTORY, "- a"]]);
   });
 
   it("splits the block into its fences and what is inside", () => {
-    const block = NoteLayout.of(textOf("---", "a: 1", "b: 2", "---", "body")).properties();
+    const block = NoteLayout.of(textOf("---", "a: 1", "b: 2", "---", "body"), STUB_SYNTAX).properties();
     if (block === null) throw new Error("The note has a properties block, so one should have been read.");
     expect([block.opening, block.inside, block.closing]).toEqual(["---", ["a: 1", "b: 2"], "---"]);
   });
 
   it("has no block when the note has no properties", () => {
-    expect(NoteLayout.of("body").properties()).toBeNull();
+    expect(NoteLayout.of("body", STUB_SYNTAX).properties()).toBeNull();
   });
 
   it("does not look for sections among the properties", () => {
@@ -213,7 +214,7 @@ describe("NoteLayout's properties", () => {
   });
 
   it("has no property lines when there is no block", () => {
-    expect(NoteLayout.of("body").propertyLines()).toEqual([]);
+    expect(NoteLayout.of("body", STUB_SYNTAX).propertyLines()).toEqual([]);
   });
 });
 
@@ -224,10 +225,10 @@ describe("NoteLayout's size", () => {
   });
 
   it("refuses a note of one line more", () => {
-    expect(() => NoteLayout.of(manyLines(MOST_NOTE_LINES + 1))).toThrow(`over ${MOST_NOTE_LINES} lines`);
+    expect(() => NoteLayout.of(manyLines(MOST_NOTE_LINES + 1), STUB_SYNTAX)).toThrow(`over ${MOST_NOTE_LINES} lines`);
   });
 
   it("refuses a note of a hundred and fifty thousand lines with a Refusal", () => {
-    expect(() => NoteLayout.of(manyLines(150_000))).toThrow(Refusal);
+    expect(() => NoteLayout.of(manyLines(150_000), STUB_SYNTAX)).toThrow(Refusal);
   });
 });

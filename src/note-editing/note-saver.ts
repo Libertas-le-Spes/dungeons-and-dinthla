@@ -1,8 +1,8 @@
 import { boxTextOf, diskTextFor } from "../campaign/writing/disk-text";
 import type { NoteDraft } from "./note-drafts";
-import type { FencedFiles } from "../fence/gate/fenced-files";
+import type { NoteStore } from "../host/notes/note-store";
 
-export type SaverFiles = Pick<FencedFiles, "getFileByPath" | "process">;
+export type SaverFiles = Pick<NoteStore, "note" | "change">;
 
 export const NOTE_GONE = "The note is gone.";
 
@@ -14,10 +14,10 @@ export class NoteSaver {
   constructor(private readonly files: SaverFiles) {}
 
   async save(path: string, draft: NoteDraft): Promise<void> {
-    const file = this.files.getFileByPath(path);
+    const file = this.files.note(path);
     if (file === null) throw new Error(NOTE_GONE);
     let changedSince = false;
-    await this.files.process(file, (disk) => {
+    await this.files.change(file, (disk) => {
       if (boxTextOf(disk) === draft.base) return diskTextFor(draft.text, disk);
       changedSince = true;
       return disk;

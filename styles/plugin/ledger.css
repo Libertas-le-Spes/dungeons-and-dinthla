@@ -1,0 +1,81 @@
+.dd-list-view .dd-in-out {
+  display: flex;
+  gap: var(--dd-size-4-5);
+  margin-top: var(--dd-size-4-3);
+  font-size: var(--dd-font-ui-small);
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-list-view .dd-in-out b {
+  font-weight: var(--dd-font-medium);
+  color: var(--dd-text-body);
+}
+
+.dd-list-view .dd-ledger {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: var(--dd-font-ui-small);
+}
+
+.dd-list-view .dd-ledger li + li {
+  border-top: var(--dd-border-width) solid var(--dd-border-subtle);
+}
+
+.dd-list-view .dd-ledger-row {
+  display: grid;
+  grid-template-columns: 3em minmax(0, 1fr);
+  gap: var(--dd-size-4-1) var(--dd-size-4-3);
+  align-items: baseline;
+  min-height: var(--dd-touch-min);
+  padding: var(--dd-size-4-2);
+  border-radius: var(--dd-radius-s);
+  cursor: pointer;
+  transition: background var(--dd-dur-fast) var(--dd-ease-out);
+}
+
+.dd-list-view .dd-ledger-row:hover {
+  background: var(--dd-surface-hover);
+}
+
+.dd-list-view .dd-ledger-row:focus-visible {
+  outline: none;
+  box-shadow: var(--dd-focus-ring);
+}
+
+.dd-list-view .dd-what {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  font: var(--dd-type-note);
+  font-variant-ligatures: none;
+  color: var(--dd-text-body);
+}
+
+.dd-list-view .dd-direction {
+  grid-column: 1;
+  grid-row: 2;
+  font: var(--dd-type-label);
+  color: var(--dd-text-muted-ui);
+  white-space: nowrap;
+}
+
+.dd-list-view .dd-amount {
+  grid-column: 2;
+  grid-row: 2;
+  font: var(--dd-type-note);
+  color: var(--dd-text-strong);
+  white-space: nowrap;
+}
+
+.dd-list-view .dd-balance {
+  grid-column: 2;
+  grid-row: 3;
+  font: var(--dd-type-note);
+  font-size: var(--dd-font-ui-smaller);
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-list-view .dd-balance::before {
+  content: "balance ";
+  font: var(--dd-type-label);
+}

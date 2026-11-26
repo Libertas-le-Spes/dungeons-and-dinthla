@@ -1,10 +1,17 @@
-import { isSubmit } from "../views/dialogs/keys";
 import { SecondPress } from "../views/dialogs/second-press";
+import { ChangeBinding, EnterBinding, HandleRequest, PressBinding } from "../views/elements/bindings/bindings";
+import type { TextChange } from "../views/elements/bindings/binding-wiring";
+import { KeptHandle } from "../views/elements/bindings/kept-handle";
+import { RunAction } from "../views/elements/bindings/run-action";
+import { Button, Div, Label, Paragraph, Span } from "../views/elements/kinds/containers";
+import { TextArea } from "../views/elements/kinds/fields";
+import type { ViewElement } from "../views/elements/view-element";
 
 const LABEL = "The note's text";
 const SAVE_HINT = "Ctrl + Enter saves";
 const RELOAD = "Load the note again";
 const RELOAD_ARMED = "Press again to drop what you typed";
+const BOX_ROWS = 16;
 
 export interface BoxMoves {
   save(): void;
@@ -12,42 +19,50 @@ export interface BoxMoves {
   reload(): void;
 }
 
-export class NoteBox {
-  readonly textarea: HTMLTextAreaElement;
-  private readonly saveButton: HTMLButtonElement;
-  private readonly reloadButton: HTMLButtonElement;
+export class NoteBox implements TextChange {
+  private readonly area = new KeptHandle();
+  private readonly saveButton = new KeptHandle();
+  private readonly reloadButton = new KeptHandle();
+  private readonly message = new KeptHandle();
   private readonly reloadPress: SecondPress;
-  private readonly message: HTMLElement;
+  private value = "";
   private saving = false;
   private ready = false;
   private unsaved = false;
 
-  constructor(
-    parent: HTMLElement,
-    private readonly moves: BoxMoves,
-  ) {
-    const label = parent.createEl("label", { cls: "dd-box-label", text: LABEL });
-    this.textarea = label.createEl("textarea", { cls: "dd-box dd-note-box", attr: { spellcheck: "false", rows: "16" } });
-    const row = parent.createDiv({ cls: "dd-save-row" });
-    this.saveButton = row.createEl("button", { cls: "mod-cta dd-save", text: "Save" });
-    row.createSpan({ cls: "dd-save-hint", text: SAVE_HINT });
-    this.reloadButton = row.createEl("button", { cls: "dd-create dd-reload", text: RELOAD });
-    this.message = parent.createEl("p", { cls: "dd-save-message", attr: { "aria-live": "polite" } });
-    this.reloadPress = new SecondPress((armed) => this.showReloadArmed(armed), () => moves.reload());
-    this.saveButton.addEventListener("click", () => moves.save());
-    this.reloadButton.addEventListener("click", () => this.reloadPress.press());
-    this.textarea.addEventListener("keydown", (event) => this.keyDown(event));
-    this.textarea.addEventListener("input", () => moves.typed());
+  constructor(private readonly moves: BoxMoves) {
+    this.reloadPress = new SecondPress(this.showReloadArmed.bind(this), moves.reload.bind(moves));
+  }
+
+  trees(): ViewElement[] {
+    const save = new RunAction(this.save.bind(this));
+    const area = new TextArea({ cls: ["dd-box", "dd-note-box"], spellcheck: false, bindings: [new ChangeBinding(this), new EnterBinding(true, save), new HandleRequest(this.area)] }, BOX_ROWS);
+    const row = new Div({ cls: ["dd-save-row"] }, [
+      new Button({ cls: ["mod-cta", "dd-save"], text: "Save", bindings: [new PressBinding(save), new HandleRequest(this.saveButton)] }),
+      new Span({ cls: ["dd-save-hint"], text: SAVE_HINT }),
+      new Button({ cls: ["dd-create", "dd-reload"], text: RELOAD, bindings: [new PressBinding(new RunAction(this.pressReload.bind(this))), new HandleRequest(this.reloadButton)] }),
+    ]);
+    return [new Label({ cls: ["dd-box-label"], text: LABEL }, [area]), row, new Paragraph({ cls: ["dd-save-message"], live: "polite", bindings: [new HandleRequest(this.message)] })];
+  }
+
+  shown(): void {
     this.offerReload(false);
     this.refresh();
   }
 
   get text(): string {
-    return this.textarea.value;
+    return this.value;
   }
 
   set text(text: string) {
-    this.textarea.value = text;
+    this.value = text;
+    this.area.setValue(text);
+  }
+
+  changed(value: string): void {
+    if (value === this.value) return;
+    this.value = value;
+    this.moves.typed();
   }
 
   setReady(ready: boolean): void {
@@ -71,30 +86,32 @@ export class NoteBox {
 
   offerReload(offered: boolean): void {
     this.reloadPress.stop();
-    this.reloadButton.toggle(offered);
+    this.reloadButton.setHidden(!offered);
   }
 
   focus(): void {
-    this.textarea.focus();
+    this.area.focus();
   }
 
   close(): void {
     this.reloadPress.stop();
   }
 
+  private save(): void {
+    this.moves.save();
+  }
+
+  private pressReload(): void {
+    this.reloadPress.press();
+  }
+
   private refresh(): void {
-    this.textarea.readOnly = this.saving || !this.ready;
-    this.saveButton.disabled = this.saving || !this.ready || !this.unsaved;
+    this.area.setReadOnly(this.saving || !this.ready);
+    this.saveButton.setDisabled(this.saving || !this.ready || !this.unsaved);
   }
 
   private showReloadArmed(armed: boolean): void {
     if (armed) this.reloadButton.setText(RELOAD_ARMED);
     else this.reloadButton.setText(RELOAD);
-  }
-
-  private keyDown(event: KeyboardEvent): void {
-    if (!isSubmit(event, true)) return;
-    event.preventDefault();
-    this.moves.save();
   }
 }

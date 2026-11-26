@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { TFile } from "obsidian";
+import { fileAt } from "../../stubs/note-files";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { QuestionRecord } from "../../../src/campaign/record/campaign";
 import { linesAddedTo } from "../../../src/campaign/changes/session-change";
@@ -10,6 +10,7 @@ import { planQuestionSave, planReopen, type QuestionEdit } from "../../../src/qu
 import { planNewQuestion } from "../../../src/questions/writing/new-question";
 import { questionSessionChange } from "../../../src/questions/writing/question-session-change";
 import { QuestionWriter } from "../../../src/questions/writing/question-writer";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 class FakeNotes {
   readonly texts: Map<string, string>;
@@ -22,11 +23,11 @@ class FakeNotes {
 
   get vault(): EditorFiles {
     return {
-      getFileByPath: (path) => {
+      note: (path) => {
         if (!this.texts.has(path)) return null;
-        return { path } as TFile;
+        return fileAt(path);
       },
-      process: async (file, change) => {
+      change: async (file, change) => {
         if (file.path === this.failOn) throw new Error("disk full");
         this.writes += 1;
         const next = change(this.texts.get(file.path)!);
@@ -38,21 +39,21 @@ class FakeNotes {
   }
 
   questions(): QuestionRecord[] {
-    const sessions = [...this.texts].map(([path, text]) => sessionNoteOf(path, Number(/(\d+)\.md$/.exec(path)![1]), text));
+    const sessions = [...this.texts].map(([path, text]) => sessionNoteOf(path, Number(/(\d+)\.md$/.exec(path)![1]), text, STUB_SYNTAX));
     return buildCampaign(sessions).questions;
   }
 }
 
 function save(notes: FakeNotes, question: QuestionRecord, edit: QuestionEdit, sessionPath: string): Promise<boolean> {
-  return new SessionChangeWriter(notes.vault).apply(questionSessionChange(planQuestionSave(question, edit, sessionPath)));
+  return new SessionChangeWriter(notes.vault, STUB_SYNTAX).apply(questionSessionChange(planQuestionSave(question, edit, sessionPath)));
 }
 
 function reopen(notes: FakeNotes, question: QuestionRecord): Promise<boolean> {
-  return new SessionChangeWriter(notes.vault).apply(questionSessionChange(planReopen(question, "Pale Moon/Sessions/Session 1.md")));
+  return new SessionChangeWriter(notes.vault, STUB_SYNTAX).apply(questionSessionChange(planReopen(question, "Pale Moon/Sessions/Session 1.md")));
 }
 
 function add(notes: FakeNotes, question: string, answer: string): Promise<boolean> {
-  return new SessionChangeWriter(notes.vault).apply(linesAddedTo(ONE, planNewQuestion({ question, answer }).lines));
+  return new SessionChangeWriter(notes.vault, STUB_SYNTAX).apply(linesAddedTo(ONE, planNewQuestion({ question, answer }).lines));
 }
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
@@ -105,7 +106,7 @@ describe("QuestionWriter", () => {
 
   it("deletes a question with its clues and answer, wherever they were written", async () => {
     const notes = new FakeNotes({ [ONE]: "? Who\n?+ Who: lantern oil\n? Why\n", [TWO]: "We rode on.\n?= Who: Mira\n" });
-    await new QuestionWriter(notes.vault).delete(notes.questions()[0]!);
+    await new QuestionWriter(notes.vault, STUB_SYNTAX).delete(notes.questions()[0]!);
     expect(notes.texts.get(ONE)).toBe("? Why\n");
     expect(notes.texts.get(TWO)).toBe("We rode on.\n");
   });
@@ -146,7 +147,7 @@ describe("QuestionWriter", () => {
 
   it("deletes a question with the clue and answer written below it in its own note", async () => {
     const notes = new FakeNotes({ [ONE]: "? Who\n?+ Who: the seal\nWe rode on.\n?= Who: Mira\n" });
-    await new QuestionWriter(notes.vault).delete(notes.questions()[0]!);
+    await new QuestionWriter(notes.vault, STUB_SYNTAX).delete(notes.questions()[0]!);
     expect(notes.texts.get(ONE)).toBe("We rode on.\n");
   });
 
@@ -155,7 +156,7 @@ describe("QuestionWriter", () => {
     const [question] = notes.questions();
     const handEdited = "? Who exactly\nmid\n? Who\n";
     notes.texts.set(ONE, handEdited);
-    await expect(new QuestionWriter(notes.vault).delete(question!)).rejects.toThrow(CHANGED_IN_NOTE);
+    await expect(new QuestionWriter(notes.vault, STUB_SYNTAX).delete(question!)).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notes.texts.get(ONE)).toBe(handEdited);
   });
 
@@ -176,7 +177,7 @@ describe("QuestionWriter", () => {
     const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n" });
     const [question] = notes.questions();
     notes.texts.set(ONE, "? Who exactly\n?= Who: Mira\n");
-    await expect(new QuestionWriter(notes.vault).delete(question!)).rejects.toThrow(CHANGED_IN_NOTE);
+    await expect(new QuestionWriter(notes.vault, STUB_SYNTAX).delete(question!)).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notes.texts.get(ONE)).toBe("? Who exactly\n?= Who: Mira\n");
   });
 
@@ -189,7 +190,7 @@ describe("QuestionWriter", () => {
 
   it("says whether it wrote anything", async () => {
     const notes = new FakeNotes({ [ONE]: "? Who\n" });
-    const writer = new QuestionWriter(notes.vault);
+    const writer = new QuestionWriter(notes.vault, STUB_SYNTAX);
     expect(await save(notes, notes.questions()[0]!, { answer: "", followUp: "" }, ONE)).toBe(false);
     expect(await save(notes, notes.questions()[0]!, { answer: "Mira", followUp: "" }, ONE)).toBe(true);
   });
@@ -198,7 +199,7 @@ describe("QuestionWriter", () => {
     const notes = new FakeNotes({ [ONE]: "? Who\n", [TWO]: "?= Who: Mira\n" });
     const [question] = notes.questions();
     notes.texts.set(ONE, "? Who exactly\n");
-    await expect(new QuestionWriter(notes.vault).delete(question!)).rejects.toThrow(CHANGED_IN_NOTE);
+    await expect(new QuestionWriter(notes.vault, STUB_SYNTAX).delete(question!)).rejects.toThrow(CHANGED_IN_NOTE);
     expect(notes.texts.get(TWO)).toBe("?= Who: Mira\n");
   });
 
@@ -206,7 +207,7 @@ describe("QuestionWriter", () => {
     const notes = new FakeNotes({ [ONE]: "? Who\n?+ Who: oil\n?= Who: Mira\n" });
     const [question] = notes.questions();
     notes.texts.set(ONE, "? Who\nWe rode on.\n?+ Who: oil\n?= Who: Mira\n");
-    const deleting = new QuestionWriter(notes.vault).delete(question!);
+    const deleting = new QuestionWriter(notes.vault, STUB_SYNTAX).delete(question!);
     await expect(deleting).rejects.toBeInstanceOf(PartlyWritten);
     await expect(deleting).rejects.toThrow(`${LINES_LEFT} ${ONE}.`);
     expect(notes.texts.get(ONE)).toBe("We rode on.\n?+ Who: oil\n?= Who: Mira\n");
@@ -216,7 +217,7 @@ describe("QuestionWriter", () => {
     const notes = new FakeNotes({ [ONE]: "? Who\n", [TWO]: "?+ Who: oil\n?= Who: Mira\n" });
     const [question] = notes.questions();
     notes.texts.set(TWO, "Later.\n?+ Who: oil\n?= Who: Mira\n");
-    await expect(new QuestionWriter(notes.vault).delete(question!)).rejects.toThrow(`${LINES_LEFT} ${TWO}.`);
+    await expect(new QuestionWriter(notes.vault, STUB_SYNTAX).delete(question!)).rejects.toThrow(`${LINES_LEFT} ${TWO}.`);
     expect(notes.texts.get(ONE)).toBe("");
     expect(notes.texts.get(TWO)).toBe("Later.\n?+ Who: oil\n?= Who: Mira\n");
   });
@@ -225,7 +226,7 @@ describe("QuestionWriter", () => {
     const notes = new FakeNotes({ [ONE]: "? Who\n", [TWO]: "?+ Who: oil\n" });
     const [question] = notes.questions();
     notes.failOn = TWO;
-    const deleting = new QuestionWriter(notes.vault).delete(question!);
+    const deleting = new QuestionWriter(notes.vault, STUB_SYNTAX).delete(question!);
     await expect(deleting).rejects.toBeInstanceOf(PartlyWritten);
     await expect(deleting).rejects.toThrow("its lines in Pale Moon/Sessions/Session 2.md were left");
     expect(notes.texts.get(ONE)).toBe("");
@@ -233,10 +234,10 @@ describe("QuestionWriter", () => {
 
   it("refuses a delete that would turn a note's lines into its properties, writing nothing", async () => {
     const own = new FakeNotes({ [ONE]: "? Who\n---\n? Where\n---\n" });
-    await expect(new QuestionWriter(own.vault).delete(own.questions()[0]!)).rejects.toThrow(PROPERTIES_WOULD_CHANGE);
+    await expect(new QuestionWriter(own.vault, STUB_SYNTAX).delete(own.questions()[0]!)).rejects.toThrow(PROPERTIES_WOULD_CHANGE);
     expect(own.texts.get(ONE)).toBe("? Who\n---\n? Where\n---\n");
     const other = new FakeNotes({ [ONE]: "? Who\n", [TWO]: "?= Who: Mira\n---\n? Where\n---\n" });
-    await expect(new QuestionWriter(other.vault).delete(other.questions()[0]!)).rejects.toThrow(PROPERTIES_WOULD_CHANGE);
+    await expect(new QuestionWriter(other.vault, STUB_SYNTAX).delete(other.questions()[0]!)).rejects.toThrow(PROPERTIES_WOULD_CHANGE);
     expect(other.texts.get(ONE)).toBe("? Who\n");
     expect(other.texts.get(TWO)).toBe("?= Who: Mira\n---\n? Where\n---\n");
   });
@@ -249,13 +250,13 @@ describe("QuestionWriter", () => {
 
   it("deletes only the opened question when another line reads the same", async () => {
     const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n? Who\n" });
-    await new QuestionWriter(notes.vault).delete(notes.questions()[1]!);
+    await new QuestionWriter(notes.vault, STUB_SYNTAX).delete(notes.questions()[1]!);
     expect(notes.texts.get(ONE)).toBe("? Who\n?= Who: Mira\n");
   });
 
   it("says it wrote when it reopens or deletes, and not when there was no answer to reopen", async () => {
     const notes = new FakeNotes({ [ONE]: "? Who\n?= Who: Mira\n? Why\n" });
-    const writer = new QuestionWriter(notes.vault);
+    const writer = new QuestionWriter(notes.vault, STUB_SYNTAX);
     expect(await reopen(notes, notes.questions()[1]!)).toBe(false);
     expect(await reopen(notes, notes.questions()[0]!)).toBe(true);
     expect(await writer.delete(notes.questions()[1]!)).toBe(true);

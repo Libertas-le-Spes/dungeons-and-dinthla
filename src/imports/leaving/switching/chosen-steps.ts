@@ -10,6 +10,7 @@ import { charactersNotePathOf, isInFallen } from "../../../campaign/paths/charac
 import { textOfNote } from "./read-note";
 import type { LeavingActions, LeavingFiles, SwitchPlan } from "./switch-plan";
 import { charactersNoteExists, markTakenOff, NOTE_UNREAD, markTakeOffFailed, movedToCharacters, moveToCharactersFailed } from "./switch-words";
+import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
 
 export class ChosenSteps {
   constructor(
@@ -17,15 +18,16 @@ export class ChosenSteps {
     private readonly actions: LeavingActions,
     private readonly cast: CampaignCast,
     private readonly plan: SwitchPlan,
+    private readonly syntax: PropertiesSyntax,
   ) {}
 
   async writes(): Promise<PlannedWrite[]> {
     const chosen = this.plan.chosen.file;
     const before = await textOfNote(this.files, chosen, NOTE_UNREAD);
-    const after = textWithProperty(before, STANDING_PROPERTY, null);
+    const after = textWithProperty(before, STANDING_PROPERTY, null, this.syntax);
     const writes: PlannedWrite[] = [];
     if (isInFallen(chosen, this.plan.campaignFolder)) writes.push(this.moveBack());
-    if (!this.plan.chosenIsNamed) writes.push(new CampaignWrite(this.files, this.cast, this.plan));
+    if (!this.plan.chosenIsNamed) writes.push(new CampaignWrite(this.files, this.cast, this.plan, this.syntax));
     if (after !== before) writes.push(new TextWrite(this.files, chosen, before, after, markTakenOff(chosen.basename), markTakeOffFailed(chosen.basename)));
     return writes;
   }
@@ -33,7 +35,7 @@ export class ChosenSteps {
   private moveBack(): PlannedWrite {
     const chosen = this.plan.chosen.file;
     const destination = charactersNotePathOf(this.plan.campaignFolder, chosen.basename);
-    const taken = noteAtPathOf(this.files.getFiles(), destination);
+    const taken = noteAtPathOf(this.files.files(), destination);
     if (taken !== null) throw charactersNoteExists(taken.basename);
     return new MoveWrite(this.files, this.actions, chosen, destination, movedToCharacters(chosen.basename), moveToCharactersFailed(chosen.basename));
   }

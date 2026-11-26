@@ -1,0 +1,49 @@
+.dd-dialog .dd-subject {
+  margin: 0 0 var(--dd-size-4-3);
+  font: var(--dd-type-note);
+  font-size: var(--dd-font-ui-medium);
+  font-variant-ligatures: none;
+  color: var(--dd-text-strong);
+}
+
+.dd-dialog .dd-detail {
+  margin: 0 0 var(--dd-size-4-3);
+  font: var(--dd-type-label);
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-dialog .setting-item-control:has(.dd-delete) {
+  flex-wrap: wrap;
+}
+
+.dd-dialog .dd-delete {
+  margin-left: auto;
+}
+
+.dd-dialog textarea {
+  width: 100%;
+  min-height: 72px;
+}
+
+.dd-dialog input,
+.dd-dialog select,
+.dd-dialog button {
+  min-height: var(--dd-touch-min);
+}
+
+.dd-dialog .dd-where {
+  margin: var(--dd-size-4-3) 0 0;
+  font-size: var(--dd-font-ui-small);
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-dialog .dd-reading {
+  min-height: calc(var(--dd-line-height-normal) * 1em);
+  margin: var(--dd-size-4-2) 0 0;
+  font-size: var(--dd-font-ui-small);
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-dialog .dd-reading.dd-error {
+  color: var(--dd-state-danger);
+}

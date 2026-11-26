@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { keptBeyondNumberOf } from "../../../../src/imports/note/reading/kept-beyond-number";
+import { STUB_SYNTAX } from "../../../host/stub-syntax";
 
 describe("the D&D Beyond number a note keeps", () => {
   it.each([
@@ -7,7 +8,7 @@ describe("the D&D Beyond number a note keeps", () => {
     ["the longest number D&D Beyond could give", "---\nbeyond: 999999999999\n---\n", "999999999999"],
     ["Windows line endings", "---\r\nbeyond: 12345678\r\n---\r\n", "12345678"],
   ])("is read from %s", (_case, text, kept) => {
-    expect(keptBeyondNumberOf(text)).toBe(kept);
+    expect(keptBeyondNumberOf(text, STUB_SYNTAX)).toBe(kept);
   });
 
   it.each([
@@ -22,6 +23,6 @@ describe("the D&D Beyond number a note keeps", () => {
     ["a properties block that never closes", "---\nbeyond: 12345678\n"],
     ["a note the import refuses, with its Numbers section twice", "---\nbeyond: 12345678\n---\n## Numbers\n## Numbers\n"],
   ])("is none for %s", (_case, text) => {
-    expect(keptBeyondNumberOf(text)).toBeNull();
+    expect(keptBeyondNumberOf(text, STUB_SYNTAX)).toBeNull();
   });
 });

@@ -65,7 +65,7 @@
  {
   "id": "rank: cards take imported",
   "file": "src/characters/cards/read-character-card.ts",
-  "find": "sheetValuesOf(learned, importedFactsOf(ownNote, file.path),",
+  "find": "sheetValuesOf(learned, importedFactsOf(ownNote, file.path, syntax),",
   "replace": "sheetValuesOf(learned, [],",
   "group": "rank"
  },
@@ -169,21 +169,21 @@
  },
  {
   "id": "draw: focus returns",
-  "file": "src/characters/imported/drawing/action-button.ts",
-  "find": "    this.button.buttonEl.focus();\n",
-  "replace": "",
+  "file": "src/views/components/buttons/action-button.ts",
+  "find": "this.action.run(this.kept.focus.bind(this.kept));",
+  "replace": "this.action.run(this.kept.setOpen.bind(this.kept, false));",
   "group": "draw"
  },
  {
   "id": "modal: hint on imported values",
-  "file": "src/characters/editing/sheet-value-modal.ts",
-  "find": "if (value.imported !== null) contentEl",
-  "replace": "if (value.label !== \"\") contentEl",
+  "file": "src/characters/editing/sheet-value-dialog.ts",
+  "find": "if (value.imported !== null) trees.push(",
+  "replace": "if (value.label !== \"\") trees.push(",
   "group": "modal"
  },
  {
   "id": "modal: Enter overrides an import",
-  "file": "src/characters/editing/sheet-value-modal.ts",
+  "file": "src/characters/editing/sheet-value-dialog.ts",
   "find": "  [\"imported\", \"override\"],\n]);",
   "replace": "]);",
   "group": "modal"
@@ -218,7 +218,7 @@
  },
  {
   "id": "dialog: no file, nothing read",
-  "file": "src/imports/dialog/picking/pdf-picker.ts",
+  "file": "src/obsidian/views/mount/file-pick.ts",
   "find": "    if (file === null) return;\n",
   "replace": "",
   "group": "dialog"
@@ -296,22 +296,22 @@
  {
   "id": "dialog: typed warning drawn",
   "file": "src/imports/dialog/review/change-list.ts",
-  "find": "  drawTyped(parent, changes.typed);\n",
+  "find": "    ...typedTree(changes.typed),\n",
   "replace": "",
   "group": "dialog"
  },
  {
   "id": "dialog: typed warning first",
   "file": "src/imports/dialog/review/change-list.ts",
-  "find": "  drawTyped(parent, changes.typed);\n  parent.createEl(\"p\", { cls: \"dd-import-changes-line\", text: changeWords(properties, changes.sections) });\n  drawProperties(parent, properties);\n",
-  "replace": "  parent.createEl(\"p\", { cls: \"dd-import-changes-line\", text: changeWords(properties, changes.sections) });\n  drawProperties(parent, properties);\n  drawTyped(parent, changes.typed);\n",
+  "find": "    ...typedTree(changes.typed),\n    new Paragraph({ cls: [\"dd-import-changes-line\"], text: changeWords(properties, changes.sections) }),\n    ...propertiesTree(properties),\n",
+  "replace": "    new Paragraph({ cls: [\"dd-import-changes-line\"], text: changeWords(properties, changes.sections) }),\n    ...propertiesTree(properties),\n    ...typedTree(changes.typed),\n",
   "group": "dialog"
  },
  {
   "id": "dialog: nothing-changes words",
   "file": "src/imports/dialog/review/change-list.ts",
-  "find": "  if (changesNothing(changes)) {",
-  "replace": "  if (changes.typed.length > 99) {",
+  "find": "  if (changesNothing(changes))",
+  "replace": "  if (changes.typed.length > 99)",
   "group": "dialog"
  },
  {
@@ -379,30 +379,30 @@
  },
  {
   "id": "modal: Enter learns a value not known",
-  "file": "src/characters/editing/sheet-value-modal.ts",
+  "file": "src/characters/editing/sheet-value-dialog.ts",
   "find": "  [\"unknown\", \"learned\"],\n",
   "replace": "",
   "group": "modal"
  },
  {
   "id": "modal: only Override on an imported value",
-  "file": "src/characters/editing/sheet-value-modal.ts",
+  "file": "src/characters/editing/sheet-value-dialog.ts",
   "find": "new Map([[\"imported\", IMPORTED_CHOICES]])",
   "replace": "new Map()",
   "group": "modal"
  },
  {
   "id": "modal: imported shown as the current choice",
-  "file": "src/characters/editing/sheet-value-modal.ts",
+  "file": "src/characters/editing/sheet-value-dialog.ts",
   "find": "const IMPORTED_CHOICES: ValueState[] = [\"imported\", \"override\"];",
   "replace": "const IMPORTED_CHOICES: ValueState[] = [\"override\"];",
   "group": "modal"
  },
  {
   "id": "modal: imported choice can't be pressed",
-  "file": "src/characters/editing/sheet-value-modal.ts",
-  "find": "setButtonText(STATE_WORDS[state]).setDisabled(true);",
-  "replace": "setButtonText(STATE_WORDS[state]);",
+  "file": "src/characters/editing/sheet-value-dialog.ts",
+  "find": "bindings: [new HandleRequest(new Disabled())]",
+  "replace": "bindings: []",
   "group": "modal"
  },
  {
@@ -471,22 +471,22 @@
  {
   "id": "dialog: failure shown above the changes",
   "file": "src/imports/dialog/steps/review-step.ts",
-  "find": "  drawFailure(body, review);\n",
-  "replace": "",
+  "find": "[summaryTree(review), ...failureTrees(review), ...whatChangesTrees(review)]",
+  "replace": "[summaryTree(review), ...whatChangesTrees(review)]",
   "group": "dialog"
  },
  {
   "id": "dialog: still reading said",
   "file": "src/imports/dialog/stages/pdf-stage.ts",
-  "find": "      this.contentEl.createEl(\"p\", { cls: \"dd-import-reading dd-still-reading\", text: STILL_READING });\n",
-  "replace": "",
+  "find": ", new Paragraph({ cls: [\"dd-import-reading\", \"dd-still-reading\"], text: STILL_READING })]);",
+  "replace": "]);",
   "group": "dialog"
  },
  {
   "id": "dialog: second file not read",
   "file": "src/imports/dialog/stages/pdf-stage.ts",
-  "find": "text: STILL_READING });\n      return;",
-  "replace": "text: STILL_READING });",
+  "find": "text: STILL_READING })]);\n      return;",
+  "replace": "text: STILL_READING })]);",
   "group": "dialog"
  },
  {
@@ -555,8 +555,8 @@
  {
   "id": "picker: reading not awaited",
   "file": "src/imports/dialog/picking/pdf-picker.ts",
-  "find": "    this.work.add(this.readSafely());",
-  "replace": "    void this.readSafely();",
+  "find": "    this.work.add(this.readSafely(file));",
+  "replace": "    void this.readSafely(file);",
   "group": "waiting"
  },
  {
@@ -575,8 +575,8 @@
  },
  {
   "id": "dialog: write not awaited",
-  "file": "src/imports/dialog/import-modal.ts",
-  "find": "    await this.changeSettled();\n",
+  "file": "src/imports/dialog/import-dialog.ts",
+  "find": "    await this.work.settled();\n",
   "replace": "",
   "group": "waiting"
  }

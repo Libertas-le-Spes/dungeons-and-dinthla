@@ -4,6 +4,8 @@ export const REPORT_TELLING_SAMPLES = [
   `${IMPORT}export const tell = (reporter: NoteReporter) => reporter.textSaved("D&D/Pale Moon/Sessions/Session 1.md", "text");`,
   `${IMPORT}export const tell = (reporter: NoteReporter) => reporter.renamed("D&D/Pale Moon/Funds/Session 1.md", "D&D/Pale Moon/Funds/Session 2.md");`,
   `${IMPORT}export const tell = (reporter: NoteReporter) => reporter.trashed("D&D/Pale Moon/Funds/Session 1.md");`,
+  'import type { WriteReport } from "../../../../src/fence/notes/write-report";\nexport const tell = (report: WriteReport) => report.textSaved("D&D/Pale Moon/Sessions/Session 1.md", "text");',
+  'import type { WriteReport } from "../../../../src/fence/notes/write-report";\nexport const tell = (report: WriteReport) => report.trashed("D&D/Pale Moon/Funds/Session 1.md");',
   `${IMPORT}export function tell(reporter: Pick<NoteReporter, "renamed">) {\n  reporter.renamed("D&D/Pale Moon/Funds/Session 1.md", "D&D/Pale Moon/Funds/Session 2.md");\n}`,
 ];
 

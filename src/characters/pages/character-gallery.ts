@@ -1,25 +1,27 @@
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../host/notes/note-ref";
 import type { SessionNote } from "../../campaign/record/campaign";
 import { campaignFolderOf, campaignNotePathOf } from "../../campaign/paths/campaign-folders";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
-import type { LinkActions } from "../../views/lists/linked-text";
-import { addCharacterCardIn, type CharacterCard } from "../cards/character-card";
+import type { CharacterCard } from "../cards/character-card";
+import { FullCharacterCard } from "../cards/drawing/full-character-card";
 import { backupCards, playedCards } from "../cards/card-groups";
 import { leftPlayMarkOf } from "../cards/card-standing";
-import { addMakeMainButton } from "../cards/make-main-button";
+import { makeMainButton } from "../cards/drawing/make-main-button";
 import type { CharacterNotes } from "../reading/character-notes";
 import { learnedFactsOf, type LearnedFacts } from "../reading/learned-facts";
 import { readCharacterCard } from "../cards/read-character-card";
 import { PendingWork } from "../../views/pending/pending-work";
 import type { CharacterCreators } from "./character-creators";
-import { addImportButton } from "../imported/drawing/import-button";
+import { importButton } from "../imported/drawing/import-button";
+import { HandleRequest, PressBinding } from "../../views/elements/bindings/bindings";
+import { KeptHandle } from "../../views/elements/bindings/kept-handle";
+import { RunAction } from "../../views/elements/bindings/run-action";
+import { Button, Div, Heading2, Heading3, List, ListItem, Paragraph, Section, Span } from "../../views/elements/kinds/containers";
+import type { ViewElement } from "../../views/elements/view-element";
+import type { PageView } from "../../views/pages/page-view";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 const NO_CHARACTERS = "No characters yet. Add one with New character.";
-interface DrawnCard {
-  list: HTMLElement;
-  card: CharacterCard;
-  cls: string;
-}
 
 export const BACKUPS = "Backups";
 export const FALLEN = "Fallen";
@@ -27,22 +29,23 @@ export const FALLEN = "Fallen";
 export class CharacterGallery {
   private renders = 0;
   private campaignNotes = new Set<string | null>();
-  private createButton: HTMLButtonElement | null = null;
+  private readonly createButton = new KeptHandle();
   private readonly drawing = new PendingWork();
 
   constructor(
-    private readonly root: HTMLElement,
+    private readonly view: PageView,
     private readonly store: CampaignStore,
     private readonly notes: CharacterNotes,
-    private readonly actions: LinkActions,
+    private readonly showSheet: (path: string) => void,
     private readonly creators: CharacterCreators,
+    private readonly syntax: PropertiesSyntax,
   ) {}
 
   readsCampaignNote(path: string): boolean {
     return this.campaignNotes.has(path);
   }
 
-  show(files: TFile[], fallen: TFile[]): void {
+  show(files: NoteRef[], fallen: NoteRef[]): void {
     this.drawing.add(this.drawFiles(files, fallen));
   }
 
@@ -50,7 +53,11 @@ export class CharacterGallery {
     return this.drawing.settled();
   }
 
-  private async drawFiles(files: TFile[], fallen: TFile[]): Promise<void> {
+  stop(): void {
+    this.renders += 1;
+  }
+
+  private async drawFiles(files: NoteRef[], fallen: NoteRef[]): Promise<void> {
     const render = ++this.renders;
     const folders = this.notes.campaignFolders();
     const learnedByFolder = new Map<string | null, Promise<LearnedFacts>>();
@@ -62,7 +69,7 @@ export class CharacterGallery {
       }
       return learned;
     };
-    const cardsOf = (shown: TFile[]) => Promise.all(shown.map((file) => this.cardOf(file, learnedIn(campaignFolderOf(file.path, folders)))));
+    const cardsOf = (shown: NoteRef[]) => Promise.all(shown.map((file) => this.cardOf(file, learnedIn(campaignFolderOf(file.path, folders)))));
     const [cards, fallenCards] = await Promise.all([cardsOf(files), cardsOf(fallen)]);
     if (render !== this.renders) return;
     this.campaignNotes = new Set([...files, ...fallen].map((file) => campaignNotePathOf(file.path, folders)));
@@ -70,65 +77,55 @@ export class CharacterGallery {
   }
 
   private draw(cards: CharacterCard[], fallenCards: CharacterCard[]): void {
-    this.root.empty();
-    const head = this.root.createDiv({ cls: "dd-head" });
-    const title = head.createEl("h2", { cls: "dd-title", text: "Characters" });
-    const actions = head.createDiv({ cls: "dd-head-actions" });
-    this.addCreateButton(actions);
-    addImportButton(actions, this.creators);
-    if (cards.length === 0) this.root.createEl("p", { cls: "dd-empty", text: NO_CHARACTERS });
-    if (cards.length > 0) this.drawPlayed(title, cards);
-    this.drawFallen(fallenCards);
+    const title: ViewElement[] = [];
+    if (cards.length > 0) title.push(new Span({ cls: ["dd-count"], text: String(cards.length) }));
+    const actions = new Div({ cls: ["dd-head-actions"] }, [this.createTree(), importButton(this.creators)]);
+    const trees: ViewElement[] = [new Div({ cls: ["dd-head"] }, [new Heading2({ cls: ["dd-title"], text: "Characters" }, title), actions])];
+    if (cards.length === 0) trees.push(new Paragraph({ cls: ["dd-empty"], text: NO_CHARACTERS }));
+    if (cards.length > 0) trees.push(...this.playedTrees(cards));
+    trees.push(...this.fallenTrees(fallenCards));
+    this.view.show(trees);
   }
 
-  private drawPlayed(title: HTMLElement, cards: CharacterCard[]): void {
-    title.createSpan({ cls: "dd-count", text: String(cards.length) });
-    const gallery = this.root.createEl("ul", { cls: "dd-gallery" });
-    for (const card of playedCards(cards)) this.drawPlayedCard(gallery, card);
-    this.drawBackups(backupCards(cards));
+  private playedTrees(cards: CharacterCard[]): ViewElement[] {
+    const played = new List({ cls: ["dd-gallery"] }, playedCards(cards).map(this.playedCardOf.bind(this)));
+    const backups = backupCards(cards);
+    if (backups.length === 0) return [played];
+    const list = new List({ cls: ["dd-gallery"] }, backups.map(this.withMakeMain.bind(this, "dd-backup")));
+    return [played, new Section({ cls: ["dd-backups"] }, [new Heading3({ cls: ["dd-title"], text: BACKUPS }), list])];
   }
 
-  private drawPlayedCard(gallery: HTMLElement, card: CharacterCard): void {
-    if (leftPlayMarkOf(card.standing) === null) {
-      const item = gallery.createEl("li", { cls: "dd-played" });
-      addCharacterCardIn(item, card, this.actions);
-      return;
-    }
-    this.drawWithMakeMain({ list: gallery, card, cls: "dd-left" });
+  private playedCardOf(card: CharacterCard): ViewElement {
+    if (leftPlayMarkOf(card.standing) === null) return new ListItem({ cls: ["dd-played"] }, [this.cardOfShown(card)]);
+    return this.withMakeMain("dd-left", card);
   }
 
-  private drawFallen(cards: readonly CharacterCard[]): void {
-    if (cards.length === 0) return;
-    const section = this.root.createEl("section", { cls: "dd-fallen" });
-    const title = section.createEl("h3", { cls: "dd-title", text: FALLEN });
-    title.createSpan({ cls: "dd-count", text: String(cards.length) });
-    const list = section.createEl("ul", { cls: "dd-gallery" });
-    for (const card of cards) this.drawWithMakeMain({ list, card, cls: "dd-fallen-card" });
+  private fallenTrees(cards: readonly CharacterCard[]): ViewElement[] {
+    if (cards.length === 0) return [];
+    const title = new Heading3({ cls: ["dd-title"], text: FALLEN }, [new Span({ cls: ["dd-count"], text: String(cards.length) })]);
+    const list = new List({ cls: ["dd-gallery"] }, cards.map(this.withMakeMain.bind(this, "dd-fallen-card")));
+    return [new Section({ cls: ["dd-fallen"] }, [title, list])];
   }
 
-  private drawWithMakeMain({ list, card, cls }: DrawnCard): HTMLElement {
-    const item = list.createEl("li", { cls });
-    addCharacterCardIn(item, card, this.actions);
-    addMakeMainButton(item, card.path, this.creators);
-    return item;
+  private withMakeMain(cls: string, card: CharacterCard): ViewElement {
+    return new ListItem({ cls: [cls] }, [this.cardOfShown(card), makeMainButton(card.path, this.creators)]);
   }
 
-  private drawBackups(backups: readonly CharacterCard[]): void {
-    if (backups.length === 0) return;
-    const section = this.root.createEl("section", { cls: "dd-backups" });
-    section.createEl("h3", { cls: "dd-title", text: BACKUPS });
-    const list = section.createEl("ul", { cls: "dd-gallery" });
-    for (const card of backups) this.drawWithMakeMain({ list, card, cls: "dd-backup" });
+  private cardOfShown(card: CharacterCard): ViewElement {
+    return new FullCharacterCard().build(card, new RunAction(this.openSheet.bind(this, card.path)));
   }
 
-  private addCreateButton(head: HTMLElement): void {
-    const button = head.createEl("button", { cls: "dd-create", text: "New character" });
-    button.addEventListener("click", () => this.creators.newCharacter(() => this.focusCreateButton()));
-    this.createButton = button;
+  private openSheet(path: string): void {
+    this.showSheet(path);
   }
 
-  private focusCreateButton(): void {
-    if (this.createButton !== null) this.createButton.focus();
+  private createTree(): ViewElement {
+    const pressed = new RunAction(this.newCharacter.bind(this));
+    return new Button({ cls: ["dd-create"], text: "New character", bindings: [new PressBinding(pressed), new HandleRequest(this.createButton)] });
+  }
+
+  private newCharacter(): void {
+    this.creators.newCharacter(this.createButton.focus.bind(this.createButton));
   }
 
   private async sessionsIn(folder: string | null): Promise<SessionNote[]> {
@@ -142,7 +139,7 @@ export class CharacterGallery {
     return learnedFactsOf(sessions, this.notes);
   }
 
-  private async cardOf(file: TFile, learnedFacts: Promise<LearnedFacts>): Promise<CharacterCard> {
-    return readCharacterCard(file, await learnedFacts, this.notes);
+  private async cardOf(file: NoteRef, learnedFacts: Promise<LearnedFacts>): Promise<CharacterCard> {
+    return readCharacterCard(file, await learnedFacts, this.notes, this.syntax);
   }
 }

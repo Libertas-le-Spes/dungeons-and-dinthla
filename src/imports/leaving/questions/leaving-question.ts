@@ -4,6 +4,7 @@ import { LeaveAsChoice } from "../choices/leave-as-choice";
 import type { SwitchChoice } from "../choices/switch-choice";
 import { questionAbout, titleFor, type MainQuestion } from "./main-question";
 import type { QuestionParts } from "./question-parts";
+import type { PropertiesSyntax } from "../../../campaign/paths/session-file";
 
 export class LeavingQuestion implements MainQuestion {
   readonly title: string;
@@ -12,9 +13,9 @@ export class LeavingQuestion implements MainQuestion {
   readonly ownWords = null;
   readonly choices: readonly SwitchChoice[];
 
-  constructor(parts: QuestionParts, old: AskedNote) {
+  constructor(parts: QuestionParts, old: AskedNote, syntax: PropertiesSyntax) {
     this.title = titleFor(parts.mainSwitch.plan.chosen.file.basename);
     this.question = questionAbout(old.file.basename);
-    this.choices = LEAVING_REASONS.map((reason) => new LeaveAsChoice(parts.files, parts.actions, parts.cast, parts.mainSwitch, old, reason));
+    this.choices = LEAVING_REASONS.map((reason) => new LeaveAsChoice(parts.files, parts.actions, parts.cast, parts.mainSwitch, old, reason, syntax));
   }
 }

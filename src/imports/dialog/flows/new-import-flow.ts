@@ -1,4 +1,3 @@
-import type { TFile } from "obsidian";
 import type { PrintedSheet } from "../../../beyond/sheet/printed-sheet";
 import { notesLikeName } from "../../note/matching/note-match";
 import type { ImportWriter } from "../../note/writing/import-writer";
@@ -7,6 +6,7 @@ import { ExistingNoteTarget } from "../targets/existing-note-target";
 import type { ImportTarget } from "../targets/import-target";
 import type { FlowStart, ImportFlow } from "./import-flow";
 import { NewNoteTarget } from "../targets/new-note-target";
+import type { NoteRef } from "../../../host/notes/note-ref";
 
 export class NewImportFlow implements ImportFlow {
   readonly title = IMPORT_TITLE;
@@ -14,7 +14,7 @@ export class NewImportFlow implements ImportFlow {
   constructor(
     private readonly writer: ImportWriter,
     private readonly charactersFolder: string,
-    private readonly notes: () => readonly TFile[],
+    private readonly notes: () => readonly NoteRef[],
   ) {}
 
   start(steps: FlowStart): void {
@@ -33,8 +33,8 @@ export class NewImportFlow implements ImportFlow {
     return targets;
   }
 
-  private notesDirectlyInFolder(): TFile[] {
-    const direct: TFile[] = [];
+  private notesDirectlyInFolder(): NoteRef[] {
+    const direct: NoteRef[] = [];
     for (const file of this.notes()) {
       if (file.path === `${this.charactersFolder}/${file.basename}.md`) direct.push(file);
     }

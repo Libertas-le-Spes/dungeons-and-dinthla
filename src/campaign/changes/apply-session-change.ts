@@ -1,21 +1,21 @@
 import { appendLines, removeLines, rewriteLine } from "../../notes/writing/note-lines";
 import type { SessionNote } from "../record/campaign";
 import type { LinesChange, Rewrite, SessionChange } from "./session-change";
-import { sessionNoteOf } from "../paths/session-file";
+import { sessionNoteOf, type PropertiesSyntax } from "../paths/session-file";
 
 export interface ChangedSessions {
   sessions: SessionNote[];
   linesAsRead: boolean;
 }
 
-function rewriteApplied(sessions: SessionNote[], rewrite: Rewrite): ChangedSessions {
+function rewriteApplied(sessions: SessionNote[], rewrite: Rewrite, syntax: PropertiesSyntax): ChangedSessions {
   let found = false;
   const changed = sessions.map((session) => {
     if (rewrite.old.path !== session.path) return session;
     const rewritten = rewriteLine(session.text, rewrite.old, rewrite.line);
     if (rewritten === null) return session;
     found = true;
-    return sessionNoteOf(session.path, session.number, rewritten);
+    return sessionNoteOf(session.path, session.number, rewritten, syntax);
   });
   return { sessions: changed, linesAsRead: found };
 }
@@ -27,7 +27,7 @@ function laterLinesFor(change: LinesChange, path: string): string[] | null {
   return later.lines;
 }
 
-function linesApplied(sessions: SessionNote[], change: LinesChange): ChangedSessions {
+function linesApplied(sessions: SessionNote[], change: LinesChange, syntax: PropertiesSyntax): ChangedSessions {
   let found = change.removal === null;
   const changed = sessions.map((session) => {
     let text = session.text;
@@ -39,12 +39,12 @@ function linesApplied(sessions: SessionNote[], change: LinesChange): ChangedSess
     if (change.added !== null && change.added.path === session.path) text = appendLines(text, change.added.lines);
     const later = laterLinesFor(change, session.path);
     if (later !== null) text = appendLines(text, later);
-    return sessionNoteOf(session.path, session.number, text);
+    return sessionNoteOf(session.path, session.number, text, syntax);
   });
   return { sessions: changed, linesAsRead: found };
 }
 
-export function applySessionChange(sessions: SessionNote[], change: SessionChange): ChangedSessions {
-  if ("rewrite" in change) return rewriteApplied(sessions, change.rewrite);
-  return linesApplied(sessions, change);
+export function applySessionChange(sessions: SessionNote[], change: SessionChange, syntax: PropertiesSyntax): ChangedSessions {
+  if ("rewrite" in change) return rewriteApplied(sessions, change.rewrite, syntax);
+  return linesApplied(sessions, change, syntax);
 }

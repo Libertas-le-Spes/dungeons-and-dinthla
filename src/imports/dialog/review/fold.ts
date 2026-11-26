@@ -1,5 +1,6 @@
-export function drawFold(parent: HTMLElement, title: string): HTMLElement {
-  const fold = parent.createEl("details", { cls: "dd-import-fold" });
-  fold.createEl("summary", { text: title });
-  return fold;
+import { Folded } from "../../../views/components/layout/folded";
+import type { ViewElement } from "../../../views/elements/view-element";
+
+export function foldOf(title: string, inside: ViewElement): ViewElement {
+  return new Folded(["dd-import-fold"], title).build([inside]);
 }

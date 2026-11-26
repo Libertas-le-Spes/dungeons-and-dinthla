@@ -1,0 +1,114 @@
+.dd-funds .dd-panel + .dd-panel {
+  margin-top: var(--dd-size-4-5);
+}
+
+.dd-funds .dd-title {
+  margin: 0 0 var(--dd-size-4-3);
+  font: var(--dd-type-panel-title);
+  font-size: var(--dd-font-ui-medium);
+  letter-spacing: var(--dd-tracking-caps);
+  color: var(--dd-statblock-heading);
+}
+
+.dd-funds .dd-purse {
+  margin: var(--dd-size-4-1) 0 var(--dd-size-4-2);
+  font: var(--dd-type-score);
+  font-size: var(--dd-h1-size);
+  color: var(--dd-text-strong);
+}
+
+.dd-funds .dd-coins-label {
+  align-self: center;
+  color: var(--dd-text-faint-ui);
+}
+
+.dd-funds .dd-empty,
+.dd-funds .dd-note {
+  padding: 0;
+  font-size: var(--dd-font-ui-small);
+  color: var(--dd-text-faint-ui);
+}
+
+.dd-funds .dd-folded .dd-empty {
+  padding: var(--dd-size-4-3) 0;
+}
+
+.dd-funds .dd-holder a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.dd-funds .dd-holder a:hover {
+  text-decoration: underline;
+}
+
+.dd-funds .dd-note {
+  margin: var(--dd-size-4-3) 0 0;
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-funds .dd-holder {
+  margin: var(--dd-size-4-4) 0 var(--dd-size-4-1);
+  font: var(--dd-type-panel-title);
+  font-size: var(--dd-font-ui-small);
+  letter-spacing: var(--dd-tracking-caps);
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-funds .dd-holder:first-of-type {
+  margin-top: 0;
+}
+
+.dd-funds .dd-head .dd-title {
+  margin: 0;
+}
+
+.dd-funds .dd-shown-item {
+  padding: var(--dd-size-4-4);
+  border: var(--dd-border-width) solid var(--dd-border-subtle);
+  border-radius: var(--dd-radius-l);
+  background: var(--dd-surface-card);
+  box-shadow: var(--dd-shadow-s);
+}
+
+.dd-funds .dd-shown-item .dd-item-name {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.dd-funds .dd-item-fact-list {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--dd-size-4-1) var(--dd-size-4-4);
+  margin: 0 0 var(--dd-size-4-3);
+}
+
+.dd-funds .dd-item-fact-list dt {
+  font: var(--dd-type-label);
+  color: var(--dd-text-muted-ui);
+}
+
+.dd-funds .dd-item-fact-list dd {
+  margin: 0;
+  font: var(--dd-type-note);
+  color: var(--dd-text-strong);
+}
+
+.dd-funds .dd-item-change {
+  min-height: var(--dd-control-md);
+}
+
+.dd-funds .dd-item-story {
+  margin: var(--dd-size-4-4) 0 var(--dd-size-4-3);
+  font: var(--dd-type-note);
+  color: var(--dd-text-body);
+}
+
+.dd-funds .dd-item-story p {
+  margin: 0 0 var(--dd-size-4-2);
+}
+
+.dd-funds .dd-row-shown {
+  background: var(--dd-marker-ledger-soft);
+  box-shadow: inset 3px 0 0 var(--dd-marker-ledger);
+}

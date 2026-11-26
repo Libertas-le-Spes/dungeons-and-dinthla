@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
-import { addQuestRow } from "../../../src/quests/list/quest-row";
+import { questRowOf } from "../../../src/quests/list/quest-row";
+import { mountTree } from "../../../src/obsidian/views/mount/mount-tree";
 import { obsidianDocument } from "../../stubs/obsidian-dom";
 
 function setUpSessions(sessions: string[][], keywords: string[]) {
@@ -8,8 +9,10 @@ function setUpSessions(sessions: string[][], keywords: string[]) {
     sessions.map((lines, index) => ({ path: `Pale Moon/Sessions/Session ${index + 2}.md`, number: index + 2, firstLine: 0, text: lines.join("\n") })),
   );
   const list = obsidianDocument().createElement("ul");
+  list.ownerDocument.body.append(list);
   const actions = { openRow: vi.fn(), openLink: vi.fn() };
-  for (const record of campaign.quests) addQuestRow(list, record, keywords, actions);
+  const open = { run: actions.openRow };
+  for (const record of campaign.quests) mountTree(questRowOf(record, keywords, actions, open, []), list);
   return { row: list.querySelector(".dd-row") as HTMLElement, actions };
 }
 
@@ -21,7 +24,7 @@ function textOf(row: HTMLElement, selector: string): string | null | undefined {
   return row.querySelector(selector)?.textContent;
 }
 
-describe("addQuestRow", () => {
+describe("questRowOf", () => {
   it("shows an active quest's mark, title, giver, reward and session", () => {
     const { row } = setUp(["! Find the missing caravan, from: [[Lady Vess]], reward: 200 gp"]);
     expect(textOf(row, ".dd-mark-quest")).toBe("!");
@@ -81,9 +84,9 @@ describe("addQuestRow", () => {
     expect(actions.openRow).not.toHaveBeenCalled();
   });
 
-  it("opens the session at the quest's line when tapped", () => {
+  it("opens the quest when tapped", () => {
     const { row, actions } = setUp(["We rode on.", "! Find it"]);
     row.click();
-    expect(actions.openRow).toHaveBeenCalledWith({ path: "Pale Moon/Sessions/Session 2.md", line: 1 });
+    expect(actions.openRow).toHaveBeenCalledTimes(1);
   });
 });

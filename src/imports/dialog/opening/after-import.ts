@@ -1,4 +1,4 @@
-import type { ImportClosed } from "../import-modal";
+import type { ImportClosed } from "../import-dialog";
 
 export interface MainOffering {
   afterImport(path: string): Promise<void>;

@@ -1,4 +1,3 @@
-import { Notice, type App, type TFile } from "obsidian";
 import type { Source } from "../../campaign/record/campaign";
 import { CHANGED_IN_NOTE } from "../../campaign/writing/note-editor";
 import { OpenedSession } from "../../campaign/paths/session-gone";
@@ -9,9 +8,13 @@ import { sameName } from "../reading/sheet-values";
 import type { SheetValue, StatedValue } from "../reading/character-sheet";
 import { readCharacterSheet, type ReadSheet, type SheetStore } from "../reading/read-character-sheet";
 import type { SheetNotes } from "../reading/sheet-notes";
-import { SheetValueModal } from "./sheet-value-modal";
+import { SheetValueEditDialog } from "./sheet-value-dialog";
 import { sheetWriteOf, writeSheetValue, type ValueChoice } from "./sheet-value-writer";
-import type { Gate } from "../../fence/gate/gatekeeper";
+import type { LinkLookup } from "../../host/notes/link-lookup";
+import type { NoteStore } from "../../host/notes/note-store";
+import type { DialogShowing } from "../../views/dialogs/dialog-view";
+import type { NoteRef } from "../../host/notes/note-ref";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export const NO_SESSION = "There's no session to write in yet. Start one first.";
 
@@ -36,9 +39,14 @@ function sessionPathIn(read: ReadSheet): string {
 
 export type SheetSession = OpenedSession | NoSessionNamed;
 
-function openedSessionIn(gate: Gate, read: ReadSheet): SheetSession {
+export interface SheetValueNotes {
+  readonly store: Pick<NoteStore, "note" | "read" | "change">;
+  readonly links: Pick<LinkLookup, "linkTextTo">;
+}
+
+function openedSessionIn(notes: SheetValueNotes, read: ReadSheet): SheetSession {
   try {
-    return new OpenedSession(gate.files, sessionPathIn(read));
+    return new OpenedSession(notes.store, sessionPathIn(read));
   } catch (error) {
     if (!(error instanceof NoSessionToWrite)) throw error;
     return new NoSessionNamed(error.message);
@@ -51,45 +59,47 @@ function sessionPathToSave(openedSession: SheetSession): string {
 }
 
 export async function saveSheetValue(
-  app: App,
-  gate: Gate,
+  hostNotes: SheetValueNotes,
   store: SheetStore,
   notes: SheetNotes,
-  file: TFile,
+  file: NoteRef,
   opened: SheetValue,
   choice: ValueChoice,
   openedSession: SheetSession,
+  syntax: PropertiesSyntax,
 ): Promise<boolean> {
-  const read = await readCharacterSheet(file, store, notes);
+  const read = await readCharacterSheet(file, store, notes, syntax);
   const current = valueIn(read, opened.name);
   if (current === undefined || !sameSheetValue(current, opened)) throw new Error(CHANGED_IN_NOTE);
   return writeSheetValue(
     {
-      files: gate.files,
+      files: hostNotes.store,
       file,
       sessionPath: () => sessionPathToSave(openedSession),
-      linktextFrom: (sessionPath) => gate.metadata.fileToLinktext(file, sessionPath, true),
+      linktextFrom: (sessionPath) => hostNotes.links.linkTextTo(file, sessionPath, true),
       pathOfLink: (linktext, sourcePath) => notes.pathOfLink(linktext, sourcePath),
     },
     sheetWriteOf(current, choice),
+    syntax,
   );
 }
 
 export async function chooseSheetValue(
-  app: App,
-  gate: Gate,
+  showing: DialogShowing,
+  hostNotes: SheetValueNotes,
   store: SheetStore,
   notes: SheetNotes,
-  file: TFile,
+  file: NoteRef,
   value: SheetValue,
   openSource: (source: Source) => void,
   onClosed: () => void,
+  syntax: PropertiesSyntax,
 ): Promise<void> {
   let openedSession: SheetSession;
   try {
-    openedSession = openedSessionIn(gate, await readCharacterSheet(file, store, notes));
+    openedSession = openedSessionIn(hostNotes, await readCharacterSheet(file, store, notes, syntax));
   } catch (error) {
-    new Notice(`Couldn't read ${file.basename}: ${messageOf(error)}`);
+    showing.telling.say(`Couldn't read ${file.basename}: ${messageOf(error)}`);
     return;
   }
   const dialog = {
@@ -97,8 +107,8 @@ export async function chooseSheetValue(
     notePath: file.path,
     value,
     sessionLabel: openedSession.label,
-    save: (choice: ValueChoice) => saveSheetValue(app, gate, store, notes, file, value, choice, openedSession),
+    save: (choice: ValueChoice) => saveSheetValue(hostNotes, store, notes, file, value, choice, openedSession, syntax),
     openSource,
   };
-  new SheetValueModal(app, dialog, onClosed).open();
+  showing.dialogs.open(new SheetValueEditDialog(showing.telling, dialog, onClosed));
 }

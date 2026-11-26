@@ -1,4 +1,5 @@
-import type { Component } from "obsidian";
+import type { Telling } from "../../host/showing/telling";
+import type { ViewElement } from "../../views/elements/view-element";
 
 export interface WelcomeState {
   campaignsFolder: string | null;
@@ -17,14 +18,21 @@ export interface WelcomeActions {
 
 export interface WelcomeAgreement {
   wanted(): boolean;
-  showIn(parentEl: HTMLElement, answered: () => void): void;
+  trees(answered: () => void): ViewElement[];
 }
 
-export interface AgreementShower {
-  showAgreement(parentEl: HTMLElement): void;
+export interface EndingNeeds {
+  readonly actions: WelcomeActions;
+  readonly agreement: WelcomeAgreement;
+  readonly telling: Pick<Telling, "say">;
+  answered(): void;
+}
+
+export interface EndingPart {
+  trees(): ViewElement[];
 }
 
 export interface WelcomeEnding {
   fits(state: WelcomeState): boolean;
-  new (endingEl: HTMLElement, actions: WelcomeActions, agreement: AgreementShower): Component;
+  new (needs: EndingNeeds): EndingPart;
 }

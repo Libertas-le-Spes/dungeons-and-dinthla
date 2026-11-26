@@ -1,9 +1,9 @@
-import type { TFile } from "obsidian";
 import type { Campaign } from "../../../campaign/record/campaign";
+import type { NoteRef } from "../../../host/notes/note-ref";
 
 export interface CampaignCast {
-  mainFrom(campaignNote: TFile, asked: string): TFile | null;
+  mainFrom(campaignNote: NoteRef, asked: string): NoteRef | null;
   campaignOf(campaignFolder: string): Promise<Campaign>;
   latestSessionLink(campaignFolder: string, fromPath: string): string | null;
-  linkTo(file: TFile, fromPath: string): string;
+  linkTo(file: NoteRef, fromPath: string): string;
 }

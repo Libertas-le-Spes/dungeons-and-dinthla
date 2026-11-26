@@ -233,15 +233,15 @@
  {
   "id": "never over a note that is there",
   "file": "src/references/making/reference-note-maker.ts",
-  "find": "sessionFile === null || files.getFileByPath(note.path) !== null",
+  "find": "sessionFile === null || store.note(note.path) !== null",
   "replace": "sessionFile === null",
   "group": "making maker"
  },
  {
   "id": "no note without its session",
   "file": "src/references/making/reference-note-maker.ts",
-  "find": "sessionFile === null || files",
-  "replace": "files",
+  "find": "sessionFile === null || store.note",
+  "replace": "store.note",
   "group": "making maker"
  },
  {
@@ -296,8 +296,8 @@
  {
   "id": "listening stops",
   "file": "src/references/making/reference-notes.ts",
-  "find": "return () => metadata.offref(resolved);",
-  "replace": "return () => undefined;",
+  "find": "return this.needs.notes.changes.onLinksSettled((note) => this.resolved(note.path));",
+  "replace": "this.needs.notes.changes.onLinksSettled((note) => this.resolved(note.path));\n    return () => undefined;",
   "group": "making notes"
  },
  {
@@ -471,14 +471,14 @@
  {
   "id": "an answered row says what was chosen",
   "file": "src/references/new-names/new-names-dialog.ts",
-  "find": "row.say(chosenWords(kind.label));",
+  "find": "this.words.setText(chosenWords(kind.label));",
   "replace": "",
   "group": "new names"
  },
  {
   "id": "the list closes when every name is answered",
   "file": "src/references/new-names/new-names-dialog.ts",
-  "find": "if (this.unanswered === 0) dialog.close();",
+  "find": "if (this.unanswered === 0 && this.view !== null) this.view.close();",
   "replace": "",
   "group": "new names"
  },
@@ -499,15 +499,15 @@
  {
   "id": "each name offers every kind",
   "file": "src/references/new-names/new-names-dialog.ts",
-  "find": "for (const kind of REFERENCE_KIND_LIST) row.addButton",
-  "replace": "for (const kind of REFERENCE_KIND_LIST.slice(0, 1)) row.addButton",
+  "find": "for (const kind of REFERENCE_KIND_LIST) buttons.push",
+  "replace": "for (const kind of REFERENCE_KIND_LIST.slice(0, 1)) buttons.push",
   "group": "new names"
  },
  {
   "id": "a row says when no note was made",
   "file": "src/references/new-names/new-names-dialog.ts",
-  "find": "if (result !== \"made\") {",
-  "replace": "if (result === \"never\") {",
+  "find": "return result === \"made\";",
+  "replace": "return result !== \"never\";",
   "group": "new names"
  },
  {

@@ -1,18 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { Component } from "obsidian";
 import { buildCampaign } from "../../src/campaign/reading/build-campaign";
 import type { Campaign, SessionNote } from "../../src/campaign/record/campaign";
 import type { CampaignStore } from "../../src/campaign/reading/campaign-store";
 import type { CharacterNotes } from "../../src/characters/reading/character-notes";
 import { DashboardPage, type DashboardActions } from "../../src/dashboard/dashboard-page";
 import { obsidianDocument } from "../stubs/obsidian-dom";
+import { STUB_SYNTAX } from "../host/stub-syntax";
+import { NewsLine } from "../../src/whats-new/news-line";
+import { PageFrame } from "../../src/obsidian/views/frames/page-frame";
+import { PLAIN_KIT } from "../../src/obsidian/views/mount/mount-kit";
+import { RecordedTelling } from "../host/showing/recorded-telling";
 
 const SESSION: SessionNote = { path: "Pale Moon/Sessions/Session 1.md", number: 1, firstLine: 0, text: "? Who sent the letter\n! Find the caravan" };
 
 function nothing(): void {}
 
 const actions: DashboardActions = {
-  openRow: nothing,
   openLink: nothing,
   openQuestion: nothing,
   openQuest: nothing,
@@ -62,10 +65,11 @@ function readsOnRedraw(loads: number): number {
     },
   };
   const root = obsidianDocument().createElement("div");
-  const page = new DashboardPage(root, store as unknown as CampaignStore, notes, actions, () => new Component());
+  const news = new NewsLine({ latest: () => null, seen: async () => {} }, nothing, new RecordedTelling());
+  const frame = new PageFrame(root, new DashboardPage(store as unknown as CampaignStore, notes, actions, news, STUB_SYNTAX), PLAIN_KIT);
   for (let load = 0; load < loads; load++) {
-    page.unload();
-    page.load();
+    frame.unload();
+    frame.load();
   }
   reads.count = 0;
   redraw();

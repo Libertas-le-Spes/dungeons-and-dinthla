@@ -1,4 +1,4 @@
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../host/notes/note-ref";
 import { charactersBasePathOf } from "../../campaign/paths/campaign-folders";
 import { messageOf } from "../../views/dialogs/message-of";
 
@@ -19,8 +19,8 @@ export interface BasesNeeds {
   readonly mark: SweptMark;
   campaignsFolderChosen(): boolean;
   campaignFolders(): string[];
-  fileAt(path: string): TFile | null;
-  trash(file: TFile): Promise<void>;
+  fileAt(path: string): NoteRef | null;
+  trash(file: NoteRef): Promise<void>;
   tell(words: string): void;
 }
 

@@ -11,12 +11,15 @@ import { NoteSaver } from "../../../src/note-editing/note-saver";
 import { FakeNotes } from "../../note-editing/fake-notes";
 import { SessionClearer } from "../../../src/session-notes/removal/session-clearer";
 import { SessionTrash } from "../../../src/session-notes/removal/session-trash";
-import type { ConfirmText } from "../../../src/views/dialogs/confirm-modal";
+import type { ConfirmText } from "../../../src/views/dialogs/confirm-dialog";
 import type { SessionProperties } from "../../../src/sessions/session-properties";
 import { isShown, obsidianDocument } from "../../stubs/obsidian-dom";
 import { stubLineOpeners } from "../lines/stub-line-openers";
 import { WantedLines } from "../../../src/views/opening/wanted-lines";
 import { stubRenumbering } from "../renumbering/stub-renumbering";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
+import { PageFrame } from "../../../src/obsidian/views/frames/page-frame";
+import { PLAIN_KIT } from "../../../src/obsidian/views/mount/mount-kit";
 
 const FOLDER = "Pale Moon";
 const DELETED_AT = new Date(2026, 10, 2, 21, 5).getTime();
@@ -79,12 +82,12 @@ function pageWith(
     openers: { question: vi.fn(), quest: vi.fn(), item: vi.fn() },
     actions: { openRow: vi.fn(), openLink: vi.fn() },
     lineOpeners: stubLineOpeners(),
-    wholeText: { texts: notes.texts, drafts: new NoteDrafts(drafts), saver: new NoteSaver(notes.vault) },
-    removal: { clearer: new SessionClearer(notes.vault), trash: new SessionTrash(notes.vault, { trashFile }, () => false), renumbering: stubRenumbering({ latest: latestAfterDelete }), confirm, report: vi.fn() },
+    wholeText: { texts: notes.texts, drafts: new NoteDrafts(drafts), saver: new NoteSaver(notes.store) },
+    removal: { clearer: new SessionClearer(notes.store, STUB_SYNTAX), trash: new SessionTrash(notes.store, { throwAway: trashFile }, () => false), renumbering: stubRenumbering({ latest: latestAfterDelete }), confirm, report: vi.fn() },
     wantedLines,
   };
-  const page = new SessionNotesPage(root, asked, needs, moves);
-  page.load();
+  const page = new SessionNotesPage(asked, needs, moves, STUB_SYNTAX);
+  new PageFrame(root, page, PLAIN_KIT).load();
   const select = () => root.querySelector("select")!;
   const lineOpeners = needs.lineOpeners;
   const lineTexts = () => Array.from(root.querySelectorAll(".dd-written-line .dd-line-text")).map((line) => line.textContent);
@@ -213,7 +216,7 @@ describe("SessionNotesPage", () => {
 
   it("stops listening to the campaign when closed", () => {
     const { page, unsubscribe } = pageWith(SESSIONS, null);
-    page.unload();
+    page.closed();
     expect(unsubscribe).toHaveBeenCalledOnce();
   });
 
@@ -366,7 +369,7 @@ describe("SessionNotesPage", () => {
     const box = root.querySelector<HTMLTextAreaElement>(".dd-edit-all-panel textarea")!;
     box.value = "Tracks lead to the [[Old Mill]].\n! Find the caravan";
     box.dispatchEvent(new box.ownerDocument.defaultView!.Event("input"));
-    page.unload();
+    page.closed();
     expect(notes.changedListeners.size).toBe(0);
     expect(new NoteDrafts(drafts).draftOf(twelve)).toEqual({ base: "Tracks lead to the [[Old Mill]].\n! Find the carvan", text: "Tracks lead to the [[Old Mill]].\n! Find the caravan" });
   });
@@ -399,7 +402,7 @@ describe("SessionNotesPage", () => {
     drafts.keep(path, "? Who");
     const { page, root } = pageWith(SESSIONS, path, { drafts });
     const box = root.querySelector("textarea")!;
-    page.unload();
+    page.closed();
     let finish = (_left: string) => {};
     const saving = drafts.save(path, () => new Promise<string>((resolve) => (finish = resolve)));
     expect(box.readOnly).toBe(false);

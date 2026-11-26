@@ -56,7 +56,7 @@ describe("the source scan's rule on naming what calls D&D Beyond", () => {
   it.each(BEYOND_CALLING_SAMPLES)("would catch %s in a file not allowed to call D&D Beyond", (sample) => {
     const breaches = scan.breaches(sample, NOTHING_ALLOWED);
     expect(breaches).not.toEqual([]);
-    for (const breach of breaches) expect(breach).toMatch(/names (callBeyond|BeyondCalls), which only the files that call D&D Beyond may/);
+    for (const breach of breaches) expect(breach).toMatch(/names (callBeyond|BeyondCalls|OBSIDIAN_BEYOND_CALL), which only the files that call D&D Beyond may/);
   });
 
   it.each(BEYOND_CALLING_SAMPLES)("lets %s pass in a file allowed to call D&D Beyond", (sample) => {

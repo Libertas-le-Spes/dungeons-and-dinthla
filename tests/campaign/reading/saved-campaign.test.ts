@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
-import type { TFile } from "obsidian";
 import { CampaignStore } from "../../../src/campaign/reading/campaign-store";
-import { SavedCampaign, type SavedCampaignNeeds } from "../../../src/campaign/reading/saved-campaign";
+import type { CampaignFiles } from "../../../src/campaign/reading/read-campaign";
+import { SavedCampaign } from "../../../src/campaign/reading/saved-campaign";
+import type { NoteRef } from "../../../src/host/notes/note-ref";
 import { holderPropertyOf } from "../../../src/funds/item-notes/holder-property";
 import { FakeEvents } from "../../fence/gate/fake-raw-vault";
+import { notesOverFakes } from "../../host/notes-over-fakes";
+import { noteNameOf } from "../../../src/campaign/paths/note-name";
 import { FakeVault } from "../fake-vault";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const CAMPAIGN = "D&D/Pale Moon";
 const SESSION = `${CAMPAIGN}/Sessions/Session 1.md`;
@@ -19,27 +23,32 @@ function savedCampaignOf(text: string) {
     refused = error;
   };
   const shownVault = sessions.vault;
-  const vault = {
+  const store: CampaignFiles = {
     ...shownVault,
-    cachedRead: async (file: TFile) => {
+    readKept: async (file: NoteRef) => {
       reads.push(file.path);
       if (refused !== null) throw refused;
-      return shownVault.cachedRead(file);
+      return shownVault.readKept(file);
     },
   };
   const fileEvents = new FakeEvents();
   const metadataEvents = new FakeEvents();
-  const files = { ...vault, on: fileEvents.on.bind(fileEvents), offref: fileEvents.offref.bind(fileEvents) } as unknown as SavedCampaignNeeds["files"];
-  const metadata = { on: metadataEvents.on.bind(metadataEvents), offref: metadataEvents.offref.bind(metadataEvents) } as unknown as SavedCampaignNeeds["metadata"];
-  const shown = new CampaignStore(shownVault);
+  const files = { on: fileEvents.on.bind(fileEvents), offref: fileEvents.offref.bind(fileEvents) };
+  const metadata = { on: metadataEvents.on.bind(metadataEvents), offref: metadataEvents.offref.bind(metadataEvents) };
+  const changes = notesOverFakes({ files, metadata });
+  const shown = new CampaignStore(shownVault, STUB_SYNTAX);
   const failures: unknown[] = [];
-  const saved = new SavedCampaign({ shown, files, metadata, failed: (error) => failures.push(error) });
+  const saved = new SavedCampaign({ shown, notes: { store, changes }, failed: (error) => failures.push(error) }, STUB_SYNTAX);
   const saveSession = (saved: string) => metadataEvents.trigger("changed", { path: SESSION }, saved, {});
   const renameSession = (oldPath: string, path: string) => {
     sessions.rename(oldPath, path);
-    fileEvents.trigger("rename", { path }, oldPath);
+    fileEvents.trigger("rename", { path, basename: noteNameOf(path), stat: {} }, oldPath);
   };
-  return { saved, shown, reads, fileEvents, metadataEvents, saveSession, renameSession, refuseReads, failures };
+  const renameCampaign = (path: string) => {
+    sessions.rename(SESSION, `${path}/Sessions/Session 1.md`);
+    fileEvents.trigger("rename", { path, children: [] }, CAMPAIGN);
+  };
+  return { saved, shown, reads, fileEvents, metadataEvents, saveSession, renameSession, renameCampaign, refuseReads, failures };
 }
 
 function holdersOf(saved: SavedCampaign): string[] {
@@ -132,6 +141,17 @@ describe("SavedCampaign", () => {
     expect(failures).toEqual([refused]);
   });
 
+  it("follows the campaign folder when it is renamed", async () => {
+    const { saved, shown, renameCampaign } = savedCampaignOf(SAVED);
+    saved.start();
+    await shown.open(CAMPAIGN);
+    await settle();
+    renameCampaign("D&D/Waning Moon");
+    await settle();
+    expect(saved.campaignFolder).toBe("D&D/Waning Moon");
+    expect(saved.current.items.map((item) => item.source.path)).toEqual(["D&D/Waning Moon/Sessions/Session 1.md"]);
+  });
+
   it("says when the saved notes couldn't be read", async () => {
     const refused = new Error("refused");
     const { saved, shown, failures, refuseReads } = savedCampaignOf(SAVED);
@@ -151,7 +171,7 @@ describe("SavedCampaign", () => {
     await shown.open(CAMPAIGN);
     await settle();
     expect(saved.campaignFolder).toBeNull();
-    expect(fileEvents.stopped).toHaveLength(2);
+    expect(fileEvents.stopped).toHaveLength(3);
     expect(metadataEvents.stopped).toHaveLength(1);
   });
 

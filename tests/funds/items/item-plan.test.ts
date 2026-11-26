@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { fileAt } from "../../stubs/note-files";
 import type { TFile } from "obsidian";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import type { Campaign, SessionNote } from "../../../src/campaign/record/campaign";
@@ -23,6 +24,7 @@ import {
 } from "../../../src/funds/items/item-plan";
 import type { ItemSource } from "../../../src/funds/items/item-source";
 import { openedItem } from "../../../src/funds/items/item-writer";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
@@ -38,15 +40,15 @@ class FakeNotes {
 
   get vault(): EditorFiles {
     return {
-      getFileByPath: (path) => {
+      note: (path) => {
         if (!this.texts.has(path)) return null;
         const known = this.files.get(path);
         if (known !== undefined) return known;
-        const made = { path } as TFile;
+        const made = fileAt(path);
         this.files.set(path, made);
         return made;
       },
-      process: async (file, change) => {
+      change: async (file, change) => {
         this.writes += 1;
         const next = change(this.texts.get(file.path)!);
         this.texts.set(file.path, next);
@@ -57,7 +59,7 @@ class FakeNotes {
   }
 
   get sessionNotes(): SessionNote[] {
-    return [...this.texts].map(([path, text]) => sessionNoteOf(path, Number(/(\d+)\.md$/.exec(path)![1]), text));
+    return [...this.texts].map(([path, text]) => sessionNoteOf(path, Number(/(\d+)\.md$/.exec(path)![1]), text, STUB_SYNTAX));
   }
 
   get current(): Campaign {
@@ -69,7 +71,7 @@ class FakeNotes {
   }
 
   open(name: string, sessionPath = TWO, store: ItemSource = this) {
-    return openedItem(this.vault, store, store.current.items.find((item) => item.name === name)!, sessionPath);
+    return openedItem(this.vault, store, store.current.items.find((item) => item.name === name)!, sessionPath, STUB_SYNTAX);
   }
 
   save(name: string, changes: Partial<ItemEdit>, sessionPath = TWO): Promise<boolean> {
@@ -82,7 +84,7 @@ class FakeNotes {
   }
 
   saveHolding(name: string, holder: string, changes: Partial<ItemEdit>, sessionPath = TWO): Promise<boolean> {
-    const opened = openedItem(this.vault, this, this.holding(name, holder), sessionPath);
+    const opened = openedItem(this.vault, this, this.holding(name, holder), sessionPath, STUB_SYNTAX);
     return opened.save({ ...opened.edit, ...changes });
   }
 
@@ -128,7 +130,7 @@ describe("using, selling or losing some of an item held several times", () => {
 
   it.each(["0", "6", "2.5", "-1", "", "two", " 2x"])("refuses %j and writes nothing", async (howMany) => {
     const notes = new FakeNotes({ [ONE]: "$ Dagger x5\n", [TWO]: "" });
-    const plan = planItemSave(notes.item("Dagger"), { ...notes.open("Dagger").edit, status: "used", howMany }, notes.sessionNotes, notes.current.coins, TWO);
+    const plan = planItemSave(notes.item("Dagger"), { ...notes.open("Dagger").edit, status: "used", howMany }, notes.sessionNotes, notes.current.coins, TWO, STUB_SYNTAX);
     expect(plan).toEqual({ error: howManyWords(5) });
   });
 
@@ -148,10 +150,10 @@ describe("using, selling or losing some of an item held several times", () => {
   it("refuses a change whose count would read back as another count", () => {
     const notes = new FakeNotes({ [ONE]: "$ Dagger x5\n", [TWO]: "" });
     const item = notes.item("Dagger");
-    const plan = planItemSave(item, { ...notes.open("Dagger").edit, status: "used", howMany: "2" }, notes.sessionNotes, notes.current.coins, TWO);
+    const plan = planItemSave(item, { ...notes.open("Dagger").edit, status: "used", howMany: "2" }, notes.sessionNotes, notes.current.coins, TWO, STUB_SYNTAX);
     if ("error" in plan) throw new Error(plan.error);
-    expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, expected: [{ ...plan.expected[0]!, held: 4 }] })).toBe(CHANGES_ANOTHER_ITEM);
-    expect(refusalForItemPlan(notes.sessionNotes, item, plan)).toBeNull();
+    expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, expected: [{ ...plan.expected[0]!, held: 4 }] }, STUB_SYNTAX)).toBe(CHANGES_ANOTHER_ITEM);
+    expect(refusalForItemPlan(notes.sessionNotes, item, plan, STUB_SYNTAX)).toBeNull();
   });
 });
 
@@ -202,7 +204,7 @@ describe("an item held by more than one, from its dialog", () => {
   it("refuses, writing nothing, when the holder it would have to name isn't linked", async () => {
     const notes = new FakeNotes({ [ONE]: "$ [[Primary Monk]] Arrow x15\n$$ Arrow x5 :changed to Old Tom\n", [TWO]: "" });
     const holding = notes.holding("Arrow", "Old Tom");
-    const plan = planItemSave(holding, { ...initialItemEdit(holding, notes.sessionNotes), status: "used", howMany: "1" }, notes.sessionNotes, notes.current.coins, TWO);
+    const plan = planItemSave(holding, { ...initialItemEdit(holding, notes.sessionNotes), status: "used", howMany: "1" }, notes.sessionNotes, notes.current.coins, TWO, STUB_SYNTAX);
     expect(plan).toEqual({ error: CANT_SAY_WHOSE });
   });
 });
@@ -531,13 +533,13 @@ describe("saving an item", () => {
   it("refuses a price correction that would move the purse by anything but the difference, or miss its line", () => {
     const notes = new FakeNotes({ [ONE]: "$ Rope\n$$ Rope :sold 30 gp\n", [TWO]: "" });
     const item = notes.item("Rope");
-    const plan = planItemSave(item, { ...initialItemEdit(item, notes.sessionNotes), price: "35 gp" }, notes.sessionNotes, notes.current.coins, TWO);
+    const plan = planItemSave(item, { ...initialItemEdit(item, notes.sessionNotes), price: "35 gp" }, notes.sessionNotes, notes.current.coins, TWO, STUB_SYNTAX);
     if ("error" in plan) throw new Error(plan.error);
     expect(plan.purseCopper).toBe(500);
-    expect(refusalForItemPlan(notes.sessionNotes, item, plan)).toBeNull();
-    expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, purseCopper: 3500 })).toBe(CHANGES_ANOTHER_ITEM);
+    expect(refusalForItemPlan(notes.sessionNotes, item, plan, STUB_SYNTAX)).toBeNull();
+    expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, purseCopper: 3500 }, STUB_SYNTAX)).toBe(CHANGES_ANOTHER_ITEM);
     const missed = { ...plan, rewrite: { ...plan.rewrite!, old: { ...plan.rewrite!.old, matches: () => false } } };
-    expect(refusalForItemPlan(notes.sessionNotes, item, missed)).toBe(CHANGES_ANOTHER_ITEM);
+    expect(refusalForItemPlan(notes.sessionNotes, item, missed, STUB_SYNTAX)).toBe(CHANGES_ANOTHER_ITEM);
   });
 
   it("refuses to set an item held when the line that took it was changed by hand", async () => {
@@ -570,27 +572,27 @@ describe("saving an item", () => {
   it("refuses a plan that would move the purse by anything but the sale", () => {
     const notes = new FakeNotes({ [ONE]: "$ Rope\n", [TWO]: "" });
     const item = notes.item("Rope");
-    const plan = planItemSave(item, { ...initialItemEdit(item, notes.sessionNotes), status: "sold", price: "1 gp" }, notes.sessionNotes, [], TWO);
+    const plan = planItemSave(item, { ...initialItemEdit(item, notes.sessionNotes), status: "sold", price: "1 gp" }, notes.sessionNotes, [], TWO, STUB_SYNTAX);
     if ("error" in plan) throw new Error(plan.error);
-    expect(refusalForItemPlan(notes.sessionNotes, item, plan)).toBeNull();
-    expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, purseCopper: 200 })).toBe(CHANGES_ANOTHER_ITEM);
+    expect(refusalForItemPlan(notes.sessionNotes, item, plan, STUB_SYNTAX)).toBeNull();
+    expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, purseCopper: 200 }, STUB_SYNTAX)).toBe(CHANGES_ANOTHER_ITEM);
   });
 
   it("refuses a plan that would lose how an item is written", () => {
     const notes = new FakeNotes({ [ONE]: "$ Lantern\n$$ [[Lantern]] :lost\n", [TWO]: "" });
     const item = notes.item("Lantern");
-    const plan = planItemSave(item, { ...initialItemEdit(item, notes.sessionNotes), status: "held" }, notes.sessionNotes, [], TWO);
+    const plan = planItemSave(item, { ...initialItemEdit(item, notes.sessionNotes), status: "held" }, notes.sessionNotes, [], TWO, STUB_SYNTAX);
     if ("error" in plan) throw new Error(plan.error);
-    expect(refusalForItemPlan(notes.sessionNotes, item, plan)).toBeNull();
-    expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, added: [] })).toBe(CHANGES_ANOTHER_ITEM);
+    expect(refusalForItemPlan(notes.sessionNotes, item, plan, STUB_SYNTAX)).toBeNull();
+    expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, added: [] }, STUB_SYNTAX)).toBe(CHANGES_ANOTHER_ITEM);
   });
 
   it("refuses a plan that would change another item", () => {
     const notes = new FakeNotes({ [ONE]: "$ Rope\n$ Torch\n", [TWO]: "" });
     const item = notes.item("Rope");
-    const plan = planItemSave(item, { ...initialItemEdit(item, notes.sessionNotes), status: "lost" }, notes.sessionNotes, [], TWO);
+    const plan = planItemSave(item, { ...initialItemEdit(item, notes.sessionNotes), status: "lost" }, notes.sessionNotes, [], TWO, STUB_SYNTAX);
     if ("error" in plan) throw new Error(plan.error);
-    expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, added: [...plan.added, "$$ Torch :lost"] })).toBe(CHANGES_ANOTHER_ITEM);
+    expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, added: [...plan.added, "$$ Torch :lost"] }, STUB_SYNTAX)).toBe(CHANGES_ANOTHER_ITEM);
   });
 });
 
@@ -629,9 +631,9 @@ describe("holder options", () => {
   it("refuses a plan that would write a plain holder as a link", () => {
     const notes = new FakeNotes({ [ONE]: "$ Rope\n", [TWO]: "" });
     const item = notes.item("Rope");
-    const plan = planItemSave(item, { ...initialItemEdit(item, notes.sessionNotes), holder: "Old Tom" }, notes.sessionNotes, [], TWO);
+    const plan = planItemSave(item, { ...initialItemEdit(item, notes.sessionNotes), holder: "Old Tom" }, notes.sessionNotes, [], TWO, STUB_SYNTAX);
     if ("error" in plan) throw new Error(plan.error);
-    expect(refusalForItemPlan(notes.sessionNotes, item, plan)).toBeNull();
-    expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, added: ["$$ Rope :changed to [[Old Tom]]"] })).toBe(CHANGES_ANOTHER_ITEM);
+    expect(refusalForItemPlan(notes.sessionNotes, item, plan, STUB_SYNTAX)).toBeNull();
+    expect(refusalForItemPlan(notes.sessionNotes, item, { ...plan, added: ["$$ Rope :changed to [[Old Tom]]"] }, STUB_SYNTAX)).toBe(CHANGES_ANOTHER_ITEM);
   });
 });

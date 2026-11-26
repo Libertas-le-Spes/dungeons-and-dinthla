@@ -7,6 +7,7 @@ import { holderNameOf } from "../items/item-groups";
 import { statusOf } from "../items/item-plan";
 import type { TrackedItem } from "./tracked-item";
 import { leftAsTheyWere, withoutOne } from "./left-as-they-were";
+import type { PropertiesSyntax } from "../../campaign/paths/session-file";
 
 export const ALREADY_ON_FUNDS_PAGE = "That item is already held on the funds page, so nothing was written.";
 export const NOT_READ_AS_THE_ITEM = "That line wouldn't be read as this one item, held by this character, so nothing was written.";
@@ -53,10 +54,10 @@ function addsOnlyTheItem(before: KeySplit, after: KeySplit, tracked: TrackedItem
   return leftAsTheyWere(left, before.same);
 }
 
-export function refusalForTracking(sessions: SessionNote[], tracked: TrackedItem, sessionPath: string): string | null {
+export function refusalForTracking(sessions: SessionNote[], tracked: TrackedItem, sessionPath: string, syntax: PropertiesSyntax): string | null {
   const before = buildCampaign(sessions);
   if (isHeldOnThePage(before, tracked.key)) return ALREADY_ON_FUNDS_PAGE;
-  const after = buildCampaign(applySessionChange(sessions, linesAddedTo(sessionPath, [tracked.line])).sessions);
+  const after = buildCampaign(applySessionChange(sessions, linesAddedTo(sessionPath, [tracked.line]), syntax).sessions);
   if (!addsOnlyTheItem(splitByKey(before, tracked.key), splitByKey(after, tracked.key), tracked)) return NOT_READ_AS_THE_ITEM;
   return null;
 }

@@ -5,7 +5,7 @@ import { ROOT, sourcePath } from "../scan/reading/scan-paths";
 const OBSIDIAN_TYPES = `${ROOT}/node_modules/obsidian/obsidian.d.ts`;
 const CODE_MIRROR_TYPES = `${ROOT}/node_modules/@codemirror/view/dist/index.d.ts`;
 const OTHER_LIBRARY_TYPES = `${ROOT}/node_modules/typescript/lib/lib.dom.d.ts`;
-const PICTURE_CSS = sourcePath("campaign/background/picture-css.ts");
+const PICTURE_CSS = sourcePath("obsidian/campaign/background/picture-css.ts");
 
 interface Sample {
   name: string;
@@ -80,16 +80,16 @@ describe("CodeMirror's folder, as the source scan decides it", () => {
 });
 
 const NOT_THE_PICTURE_CSS = [
-  `${ROOT}/elsewhere/src/campaign/background/picture-css.ts`,
-  sourcePath("copy/src/campaign/background/picture-css.ts"),
-  `${ROOT}-copy/src/campaign/background/picture-css.ts`,
+  `${ROOT}/elsewhere/src/obsidian/campaign/background/picture-css.ts`,
+  sourcePath("copy/src/obsidian/campaign/background/picture-css.ts"),
+  `${ROOT}-copy/src/obsidian/campaign/background/picture-css.ts`,
   `${ROOT}/tests/fence/scanned/lookalike${PICTURE_CSS}`,
   sourcePath("campaign/background/other-picture-css.ts"),
-  sourcePath("campaign/background/campaign-background.ts"),
+  sourcePath("obsidian/campaign/background/campaign-background.ts"),
   `${PICTURE_CSS}.map`,
   `${PICTURE_CSS}x`,
-  "/src/campaign/background/picture-css.ts",
-  "src/campaign/background/picture-css.ts",
+  "/src/obsidian/campaign/background/picture-css.ts",
+  "src/obsidian/campaign/background/picture-css.ts",
 ].map(sampleOf);
 
 describe("the picture CSS file, as the source scan decides it", () => {

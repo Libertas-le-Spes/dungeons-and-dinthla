@@ -4,12 +4,13 @@ import type { SessionNote } from "../../../src/campaign/record/campaign";
 import type { Removal } from "../../../src/campaign/writing/note-editor";
 import type { SessionChange } from "../../../src/campaign/changes/session-change";
 import { sessionNoteOf } from "../../../src/campaign/paths/session-file";
+import { STUB_SYNTAX } from "../../host/stub-syntax";
 
 const ONE = "Pale Moon/Sessions/Session 1.md";
 const TWO = "Pale Moon/Sessions/Session 2.md";
 
 function sessions(one: string, two: string): SessionNote[] {
-  return [sessionNoteOf(ONE, 1, one), sessionNoteOf(TWO, 2, two)];
+  return [sessionNoteOf(ONE, 1, one, STUB_SYNTAX), sessionNoteOf(TWO, 2, two, STUB_SYNTAX)];
 }
 
 function lineAt(path: string, line: number, text: string): Removal {
@@ -19,7 +20,7 @@ function lineAt(path: string, line: number, text: string): Removal {
 const NOTHING: SessionChange = { removal: null, added: null };
 
 function textsAfter(notes: SessionNote[], change: SessionChange): string[] {
-  return applySessionChange(notes, change).sessions.map((session) => session.text);
+  return applySessionChange(notes, change, STUB_SYNTAX).sessions.map((session) => session.text);
 }
 
 function rewriteOf(old: Removal, line: string): SessionChange {
@@ -56,42 +57,42 @@ describe("applySessionChange", () => {
 
   it("takes out a line before it adds, so an added line is never the one taken out", () => {
     const change = { removal: lineAt(ONE, 1, "$ Rope"), added: { path: ONE, lines: ["$ Rope"], later: null } };
-    const after = applySessionChange(sessions("$ Torch\n", ""), change);
+    const after = applySessionChange(sessions("$ Torch\n", ""), change, STUB_SYNTAX);
     expect(after.sessions.map((session) => session.text)).toEqual(["$ Torch\n$ Rope\n", ""]);
     expect(after.linesAsRead).toBe(false);
   });
 
   it("says the lines are as read when the line to take out was found, or there was none", () => {
-    expect(applySessionChange(sessions("$ Rope\n", ""), { removal: lineAt(ONE, 0, "$ Rope"), added: null }).linesAsRead).toBe(true);
-    expect(applySessionChange(sessions("", ""), NOTHING).linesAsRead).toBe(true);
+    expect(applySessionChange(sessions("$ Rope\n", ""), { removal: lineAt(ONE, 0, "$ Rope"), added: null }, STUB_SYNTAX).linesAsRead).toBe(true);
+    expect(applySessionChange(sessions("", ""), NOTHING, STUB_SYNTAX).linesAsRead).toBe(true);
   });
 
   it("says the line to rewrite is as read when it was found", () => {
-    expect(applySessionChange(sessions("$ Torch\n", ""), rewriteOf(lineAt(ONE, 0, "$ Torch"), "$ Lantern")).linesAsRead).toBe(true);
+    expect(applySessionChange(sessions("$ Torch\n", ""), rewriteOf(lineAt(ONE, 0, "$ Torch"), "$ Lantern"), STUB_SYNTAX).linesAsRead).toBe(true);
   });
 
   it("says a line to take out wasn't as read, and leaves its note as it is", () => {
-    const after = applySessionChange(sessions("We waited.\n$ Rope\n", ""), { removal: lineAt(ONE, 0, "$ Rope"), added: null });
+    const after = applySessionChange(sessions("We waited.\n$ Rope\n", ""), { removal: lineAt(ONE, 0, "$ Rope"), added: null }, STUB_SYNTAX);
     expect(after.linesAsRead).toBe(false);
     expect(after.sessions.map((session) => session.text)).toEqual(["We waited.\n$ Rope\n", ""]);
   });
 
   it("says a line to rewrite wasn't as read, and leaves its note as it is", () => {
-    const after = applySessionChange(sessions("$ +5 gp found later\n", ""), rewriteOf(lineAt(ONE, 0, "$ +5 gp found"), "$ +6 gp found"));
+    const after = applySessionChange(sessions("$ +5 gp found later\n", ""), rewriteOf(lineAt(ONE, 0, "$ +5 gp found"), "$ +6 gp found"), STUB_SYNTAX);
     expect(after.linesAsRead).toBe(false);
     expect(after.sessions.map((session) => session.text)).toEqual(["$ +5 gp found later\n", ""]);
   });
 
   it("says a line wasn't as read when its note isn't among the sessions", () => {
     const gone = lineAt("Pale Moon/Sessions/Session 9.md", 0, "$ Rope");
-    expect(applySessionChange(sessions("$ Rope\n", ""), { removal: gone, added: null }).linesAsRead).toBe(false);
-    expect(applySessionChange(sessions("$ Rope\n", ""), rewriteOf(gone, "$ Torch")).linesAsRead).toBe(false);
+    expect(applySessionChange(sessions("$ Rope\n", ""), { removal: gone, added: null }, STUB_SYNTAX).linesAsRead).toBe(false);
+    expect(applySessionChange(sessions("$ Rope\n", ""), rewriteOf(gone, "$ Torch"), STUB_SYNTAX).linesAsRead).toBe(false);
   });
 
   it("keeps each session's path and number, and reads its properties again", () => {
-    const [taken] = applySessionChange([sessionNoteOf(ONE, 4, "? Who\n---\na: 1\n---\n")], { removal: lineAt(ONE, 0, "? Who"), added: null }).sessions;
-    expect(taken).toEqual(sessionNoteOf(ONE, 4, "---\na: 1\n---\n"));
-    const [rewritten] = applySessionChange([sessionNoteOf(ONE, 4, "$ Rope\n---\na: 1\n---\n")], rewriteOf(lineAt(ONE, 0, "$ Rope"), "---")).sessions;
-    expect(rewritten).toEqual(sessionNoteOf(ONE, 4, "---\n---\na: 1\n---\n"));
+    const [taken] = applySessionChange([sessionNoteOf(ONE, 4, "? Who\n---\na: 1\n---\n", STUB_SYNTAX)], { removal: lineAt(ONE, 0, "? Who"), added: null }, STUB_SYNTAX).sessions;
+    expect(taken).toEqual(sessionNoteOf(ONE, 4, "---\na: 1\n---\n", STUB_SYNTAX));
+    const [rewritten] = applySessionChange([sessionNoteOf(ONE, 4, "$ Rope\n---\na: 1\n---\n", STUB_SYNTAX)], rewriteOf(lineAt(ONE, 0, "$ Rope"), "---"), STUB_SYNTAX).sessions;
+    expect(rewritten).toEqual(sessionNoteOf(ONE, 4, "---\n---\na: 1\n---\n", STUB_SYNTAX));
   });
 });

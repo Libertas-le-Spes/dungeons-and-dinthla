@@ -15,14 +15,14 @@
  },
  {
   "id": "page escapes: Obsidian's getAttr reads an attribute",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"getAttr\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: Obsidian's constructorWin reaches the window",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"constructorWin\",\n",
   "replace": "",
   "group": "page fence"
@@ -155,105 +155,105 @@
  },
  {
   "id": "page escapes: onWindowMigrated reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"onWindowMigrated\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: targetNode reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"targetNode\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: activeDocument reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"activeDocument\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: activeWindow reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"activeWindow\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: _EVENTS reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"_EVENTS\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: document reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"document\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: target reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"target\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: currentTarget reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"currentTarget\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: relatedTarget reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"relatedTarget\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: view reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"view\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: activeElement reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"activeElement\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: offsetParent reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"offsetParent\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "page escapes: ownerElement reaches past the file's own elements",
-  "file": "tests/fence/allowed/page-members.ts",
+  "file": "tests/fence/scan/reading/names.ts",
   "find": "  \"ownerElement\",\n",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "rows: Enter inside a row is left to what it was pressed on",
-  "file": "src/views/lists/linked-text.ts",
-  "find": "    if (event.eventPhase !== event.AT_TARGET) return;\n",
+  "file": "src/obsidian/views/mount/obsidian-wiring.ts",
+  "find": "event.eventPhase !== event.AT_TARGET || ",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "rows: Enter on the row itself opens it",
-  "file": "src/views/lists/linked-text.ts",
+  "file": "src/obsidian/views/mount/obsidian-wiring.ts",
   "find": "event.eventPhase !== event.AT_TARGET",
   "replace": "event.eventPhase !== event.BUBBLING_PHASE",
   "group": "page fence"
@@ -268,7 +268,7 @@
  {
   "id": "page text: the dollar lines read the page's text only by allowance",
   "file": "tests/fence/source-checks/source-allowances.test.ts",
-  "find": "const PAGE_TEXT_READERS = [\"reading/colour-markers.ts\", \"reading/plain-dollars.ts\"];",
+  "find": "const PAGE_TEXT_READERS = [\"reading/colour-markers.ts\", \"obsidian/reading/plain-dollars.ts\"];",
   "replace": "const PAGE_TEXT_READERS = [\"reading/colour-markers.ts\"];",
   "group": "page fence"
  }

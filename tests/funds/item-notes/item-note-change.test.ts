@@ -1,15 +1,10 @@
 import { describe, expect, it } from "vitest";
-import type { CachedMetadata } from "obsidian";
 import { aliasesWith, itemNoteChange } from "../../../src/funds/item-notes/item-note-change";
 
-function cacheOf(properties: Record<string, unknown>): CachedMetadata {
-  return { frontmatter: properties } as CachedMetadata;
-}
-
-function applied(cache: CachedMetadata, wanted: Parameters<typeof itemNoteChange>[1]): Record<string, unknown> | null {
-  const change = itemNoteChange(cache, wanted);
+function applied(held: Record<string, unknown>, wanted: Parameters<typeof itemNoteChange>[1]): Record<string, unknown> | null {
+  const change = itemNoteChange(held, wanted);
   if (change === null) return null;
-  const properties = { ...cache.frontmatter };
+  const properties = { ...held };
   change(properties);
   return properties;
 }
@@ -39,27 +34,27 @@ describe("aliasesWith", () => {
 
 describe("itemNoteChange", () => {
   it("is no change when the holder is as wanted and no lines or alias are wanted", () => {
-    expect(itemNoteChange(cacheOf({ holder: "The party" }), { holder: "The party", lines: null, alias: null })).toBeNull();
+    expect(itemNoteChange({ holder: "The party" }, { holder: "The party", lines: null, alias: null })).toBeNull();
   });
 
   it("is no change when the holder, the lines and the alias are all as wanted", () => {
-    const cache = cacheOf({ holder: "The party", lines: ["$ Rope"], aliases: ["Ring: +1"] });
-    expect(itemNoteChange(cache, { holder: "The party", lines: ["$ Rope"], alias: "Ring: +1" })).toBeNull();
+    const properties = { holder: "The party", lines: ["$ Rope"], aliases: ["Ring: +1"] };
+    expect(itemNoteChange(properties, { holder: "The party", lines: ["$ Rope"], alias: "Ring: +1" })).toBeNull();
   });
 
   it("sets only the holder when no lines are wanted, and keeps the lines already there", () => {
-    const cache = cacheOf({ holder: "Old Tom", lines: ["$ Old"] });
-    expect(applied(cache, { holder: "The party", lines: null, alias: null })).toEqual({ holder: "The party", lines: ["$ Old"] });
+    const properties = { holder: "Old Tom", lines: ["$ Old"] };
+    expect(applied(properties, { holder: "The party", lines: null, alias: null })).toEqual({ holder: "The party", lines: ["$ Old"] });
   });
 
   it("sets the lines when they differ, with the holder, and keeps his other properties", () => {
-    const cache = cacheOf({ holder: "The party", tags: ["pale"], lines: ["$ Old"] });
-    expect(applied(cache, { holder: "The party", lines: ["$ Rope"], alias: null })).toEqual({ holder: "The party", tags: ["pale"], lines: ["$ Rope"] });
+    const properties = { holder: "The party", tags: ["pale"], lines: ["$ Old"] };
+    expect(applied(properties, { holder: "The party", lines: ["$ Rope"], alias: null })).toEqual({ holder: "The party", tags: ["pale"], lines: ["$ Rope"] });
   });
 
   it("is a change when only the alias is missing", () => {
-    const cache = cacheOf({ holder: "The party", lines: ["$ Rope"] });
-    expect(applied(cache, { holder: "The party", lines: ["$ Rope"], alias: "Ring: +1" })).toEqual({ holder: "The party", lines: ["$ Rope"], aliases: ["Ring: +1"] });
+    const properties = { holder: "The party", lines: ["$ Rope"] };
+    expect(applied(properties, { holder: "The party", lines: ["$ Rope"], alias: "Ring: +1" })).toEqual({ holder: "The party", lines: ["$ Rope"], aliases: ["Ring: +1"] });
   });
 
   it("is a change for a note with no properties at all", () => {

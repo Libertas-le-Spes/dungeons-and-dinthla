@@ -1,4 +1,4 @@
-import type { TFile } from "obsidian";
+import type { NoteRef } from "../../src/host/notes/note-ref";
 import type { CampaignFiles } from "../../src/campaign/reading/read-campaign";
 
 export interface FakeNote {
@@ -6,10 +6,10 @@ export interface FakeNote {
   text: string;
 }
 
-function fileFor(path: string): TFile {
+function fileFor(path: string): NoteRef {
   const name = path.slice(path.lastIndexOf("/") + 1);
   const basename = name.slice(0, name.lastIndexOf("."));
-  return { path, basename } as TFile;
+  return { path, basename };
 }
 
 export class FakeVault {
@@ -22,13 +22,13 @@ export class FakeVault {
 
   get vault(): CampaignFiles {
     return {
-      getFiles: () => this.notes.map((note) => fileFor(note.path)),
-      cachedRead: async (file) => {
+      files: () => this.notes.map((note) => fileFor(note.path)),
+      readKept: async (file) => {
         const text = this.noteAt(file.path).text;
         await this.held.get(file.path);
         return text;
       },
-      getFileByPath: (path) => {
+      note: (path) => {
         if (!this.notes.some((note) => note.path === path)) return null;
         return fileFor(path);
       },
