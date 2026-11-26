@@ -1195,5 +1195,26 @@
   "find": "  if (\"charactersBasesSwept\" in saved && saved.charactersBasesSwept === true) settings.charactersBasesSwept = true;\n",
   "replace": "",
   "group": "bases"
+ },
+ {
+  "id": "retrack: an item still held is left to the save's check",
+  "file": "src/funds/tracking/text-to-track.ts",
+  "find": "    if (item.gone === null) continue;\n",
+  "replace": "",
+  "group": "retrack"
+ },
+ {
+  "id": "tracking: a linked item is named without its brackets",
+  "file": "src/funds/tracking/funds-tracking.ts",
+  "find": "withoutEscapes(unlink(text))",
+  "replace": "withoutEscapes(text)",
+  "group": "tracking"
+ },
+ {
+  "id": "escapes: a pair of tildes is escaped",
+  "file": "src/imports/layout/character-escapes.ts",
+  "find": "\"==\", \"~~\", \"::\"",
+  "replace": "\"==\", \"::\"",
+  "group": "escapes"
  }
 ]

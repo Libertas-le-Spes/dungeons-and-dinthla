@@ -1,4 +1,4 @@
-const ESCAPED_TEXTS = ["\\", "[", "]", "`", "<", ">", "|", "#", "*", "_", "$", "^", "%%", "==", "::"];
+const ESCAPED_TEXTS = ["\\", "[", "]", "`", "<", ">", "|", "#", "*", "_", "$", "^", "%%", "==", "~~", "::"];
 
 function withBackslash(character: string): string {
   return `\\${character}`;

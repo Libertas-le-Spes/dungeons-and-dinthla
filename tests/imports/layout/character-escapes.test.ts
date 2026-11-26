@@ -16,6 +16,7 @@ const ESCAPES = [
   { name: "a caret", written: "a^b", escaped: "a\\^b" },
   { name: "a pair of percent signs", written: "a%%b", escaped: "a\\%\\%b" },
   { name: "a pair of equals signs", written: "a==b", escaped: "a\\=\\=b" },
+  { name: "a pair of tildes", written: "a~~b", escaped: "a\\~\\~b" },
   { name: "a pair of colons", written: "a::b", escaped: "a\\:\\:b" },
 ];
 

@@ -46,7 +46,7 @@ describe("NeutralText.ofLines", () => {
   });
 
   it("makes a tilde fence no fence", () => {
-    expect(neutralTextOf("~~~")).toBe("\\~~~");
+    expect(neutralTextOf("~~~")).toBe("\\~\\~~");
   });
 
   it("makes a list bullet no bullet", () => {

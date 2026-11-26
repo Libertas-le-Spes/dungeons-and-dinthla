@@ -6,6 +6,7 @@ export function textToTrack(items: readonly ItemRecord[], written: string): stri
   const key = itemKeyOf(written);
   for (const item of items) {
     if (storedItemKeyOf(item.name) !== key) continue;
+    if (item.gone === null) continue;
     if (isInertWritten(item.written)) return item.written;
     return null;
   }
