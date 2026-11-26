@@ -138,8 +138,9 @@ export class ObsidianNotes implements HostNotes, NoteStore, NoteKeeping, NoteCha
     await this.gate.files.createFolder(path);
   }
 
-  removeEmptyFolder(path: string): Promise<void> {
-    return this.gate.files.removeEmptyFolder(path);
+  async removeEmptyFolder(path: string): Promise<void> {
+    const folder = this.gate.files.emptyFolderAt(path);
+    if (folder !== null) await this.gate.fileActions.trashFolder(folder);
   }
 
   move(note: NoteRef, newPath: string): Promise<void> {

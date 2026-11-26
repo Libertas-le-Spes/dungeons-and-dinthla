@@ -5,15 +5,17 @@ import { FencedFileActions, type RawFileManager } from "../../../src/fence/gate/
 import { HeldFiles } from "../../../src/fence/gate/held-files";
 import { NoteReporter } from "../../../src/fence/gate/written-notes";
 import { reportListenerSpy } from "./report-listener";
-import { fileAt, rawVaultWith } from "./fake-raw-vault";
+import { fileAt, folderAt, rawVaultWith } from "./fake-raw-vault";
 
 const CONFIG_DIR = ".obsidian";
 
 const CHARACTER = fileAt("D&D/Pale Moon/Characters/Mira.md");
 const PRIVATE = fileAt("Private/Primary.md");
+const ITEMS = folderAt("D&D/Pale Moon/Items", []);
+const PRIVATE_FOLDER = folderAt("Private/Empty", []);
 
 function actionsWith() {
-  const { vault } = rawVaultWith([CHARACTER, PRIVATE]);
+  const { vault } = rawVaultWith([CHARACTER, PRIVATE], [ITEMS, PRIVATE_FOLDER]);
   const fileManager = {
     processFrontMatter: vi.fn(async () => {}),
     renameFile: vi.fn(async () => {}),
@@ -65,6 +67,19 @@ describe("FencedFileActions", () => {
     await actions.trashFile(CHARACTER);
     await expect(actions.trashFile(PRIVATE)).rejects.toThrow(OUTSIDE_FENCE);
     expect(fileManager.trashFile).toHaveBeenCalledExactlyOnceWith(CHARACTER);
+  });
+
+  it("trashes a folder inside, and refuses one outside", async () => {
+    const { actions, fileManager } = actionsWith();
+    await actions.trashFolder(ITEMS);
+    await expect(actions.trashFolder(PRIVATE_FOLDER)).rejects.toThrow(OUTSIDE_FENCE);
+    expect(fileManager.trashFile).toHaveBeenCalledExactlyOnceWith(ITEMS);
+  });
+
+  it("reports no note written when it trashes a folder", async () => {
+    const { actions, heard } = actionsWith();
+    await actions.trashFolder(ITEMS);
+    expect(heard.trashed).not.toHaveBeenCalled();
   });
 
   it("reports a note it trashed", async () => {

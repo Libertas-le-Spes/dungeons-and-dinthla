@@ -15,6 +15,10 @@ function desktopCss(url: string): string | null {
 }
 
 describe("PictureCss", () => {
+  it("holds nothing at all for a tab with no picture, so it loads nothing", () => {
+    expect(PictureCss.NONE.value).toBe("");
+  });
+
   it("wraps a plain desktop picture as it is", () => {
     expect(desktopCss(`${DESKTOP_ROOT}harbour.jpg?1700000000`)).toBe(`url("${DESKTOP_ROOT}harbour.jpg?1700000000")`);
   });

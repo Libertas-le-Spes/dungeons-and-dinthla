@@ -12,6 +12,8 @@ function fileIn(files: TFile[], path: string): TFile | null {
   return null;
 }
 
+const EMPTY_FOLDER = { path: "D&D/Pale Moon/Items", children: [] };
+
 function gateWith(files: TFile[] = [SESSION]) {
   const fileEvents = new FakeEvents();
   const metadataEvents = new FakeEvents();
@@ -29,12 +31,12 @@ function gateWith(files: TFile[] = [SESSION]) {
       process: vi.fn(async (_file: TFile, edit: (text: string) => string) => edit("? Who")),
       create: vi.fn(async (path: string) => ({ path, basename: "Rope" })),
       createFolder: vi.fn(async () => ({})),
-      removeEmptyFolder: vi.fn(async () => {}),
+      emptyFolderAt: vi.fn((path: string) => (path === EMPTY_FOLDER.path ? EMPTY_FOLDER : null)),
       rename: vi.fn(async () => {}),
       on: fileEvents.on.bind(fileEvents),
       offref: fileEvents.offref.bind(fileEvents),
     },
-    fileActions: { renameFile: vi.fn(async () => {}), trashFile: vi.fn(async () => {}), processFrontMatter: vi.fn(async () => {}) },
+    fileActions: { renameFile: vi.fn(async () => {}), trashFile: vi.fn(async () => {}), trashFolder: vi.fn(async () => {}), processFrontMatter: vi.fn(async () => {}) },
     metadata: {
       getFileCache: vi.fn(() => ({
         frontmatter: { character: "[[Mira]]" },
@@ -101,6 +103,13 @@ describe("Obsidian's answers to the plugin's notes ports", () => {
     const { notes, gate } = gateWith();
     gate.vaultSettings.trashOption.mockReturnValue(option);
     expect(notes.throwsAwayForGood()).toBe(forGood);
+  });
+
+  it("sends an empty folder to the trash through the gate's file actions, and leaves a folder that isn't empty", async () => {
+    const { notes, gate } = gateWith();
+    await notes.removeEmptyFolder("D&D/Pale Moon/Items");
+    await notes.removeEmptyFolder("D&D/Pale Moon/Sessions");
+    expect(gate.fileActions.trashFolder).toHaveBeenCalledExactlyOnceWith(EMPTY_FOLDER);
   });
 
   it("gives what Obsidian knows of a note's text in the plugin's own shapes", () => {
