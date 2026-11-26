@@ -124,7 +124,7 @@ Still stuck? [Open an issue](https://github.com/Libertas-le-Spes/dungeons-and-di
 
 ### Build it yourself
 
-Check out the release's tag (`git checkout 0.4.0`) and, with Node `^22.18.0 || ^24.0.0 || >=26.0.0`, run the following. It leaves the three files in the repository's root, byte for byte the same as the release's.
+Check out the release's tag (`git checkout 0.4.1`) and, with Node `^22.18.0 || ^24.0.0 || >=26.0.0`, run the following. It leaves the three files in the repository's root, byte for byte the same as the release's.
 
 ```
 npm ci
