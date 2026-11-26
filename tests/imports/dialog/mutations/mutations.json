@@ -169,9 +169,9 @@
  },
  {
   "id": "draw: focus returns",
-  "file": "src/characters/imported/drawing/action-button.ts",
-  "find": "    this.button.buttonEl.focus();\n",
-  "replace": "",
+  "file": "src/views/components/buttons/action-button.ts",
+  "find": "this.action.run(this.kept.focus.bind(this.kept));",
+  "replace": "this.action.run(this.kept.setOpen.bind(this.kept, false));",
   "group": "draw"
  },
  {
