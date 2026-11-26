@@ -246,14 +246,14 @@
  },
  {
   "id": "rows: Enter inside a row is left to what it was pressed on",
-  "file": "src/views/lists/linked-text.ts",
-  "find": "    if (event.eventPhase !== event.AT_TARGET) return;\n",
+  "file": "src/obsidian/views/mount/obsidian-wiring.ts",
+  "find": "event.eventPhase !== event.AT_TARGET || ",
   "replace": "",
   "group": "page fence"
  },
  {
   "id": "rows: Enter on the row itself opens it",
-  "file": "src/views/lists/linked-text.ts",
+  "file": "src/obsidian/views/mount/obsidian-wiring.ts",
   "find": "event.eventPhase !== event.AT_TARGET",
   "replace": "event.eventPhase !== event.BUBBLING_PHASE",
   "group": "page fence"

@@ -40,6 +40,14 @@ describe("the plugin's own components", () => {
     expect(open.run.mock.calls).toEqual([[HERE], [HERE]]);
   });
 
+  it.each(["Enter", " "])("leaves the key %j pressed on something inside a row to that thing, not the row", (key) => {
+    const open = { run: vi.fn() };
+    const built = mounted(new ListItem({}, [new SourceRow(SOURCE, open).build([new Span({ cls: ["dd-inside"], text: "Mira" })])]));
+    const inside = built.querySelector(".dd-inside") as HTMLElement;
+    inside.dispatchEvent(new inside.ownerDocument.defaultView!.KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }));
+    expect(open.run).not.toHaveBeenCalled();
+  });
+
   it("draws a link name as a link the keyboard reaches, following it here or in a new tab, never into the row, never dragged", () => {
     const opener = { openLink: vi.fn() };
     const built = mounted(new LinkName("Mira", SOURCE.path, opener).build("Mira"));
