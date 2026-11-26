@@ -3,7 +3,7 @@ import { isMethodSignatureDeclaration, isPropertyDeclaration, SyntaxKind, type N
 import { getSynthesizedDeepClone } from "typescript/unstable/ast/clone";
 import { createBlock, createClassDeclaration, createFunctionDeclaration, createIdentifier, createInterfaceDeclaration, createMethodSignatureDeclaration, createModuleBlock, createModuleDeclaration, createPropertyDeclaration, createSourceFile, createToken } from "typescript/unstable/ast/factory";
 import { SymbolFlags } from "typescript/unstable/sync";
-import { isAddedToThePage, isDeclaredAsAPageAddition, type NameResolver } from "./page-additions";
+import { isDeclaredAsAPageAddition, type NameResolver } from "./page-additions";
 
 function lookupFindingNothing() {
   return { resolveName: vi.fn<NameResolver["resolveName"]>() };
@@ -43,14 +43,6 @@ function memberIn(root: Node): Node {
 function declaredAt(member: Node | undefined) {
   return { declarations: [{ resolve: () => member }] };
 }
-
-describe("isAddedToThePage", () => {
-  it("counts a member of a global block's type as the page's when that type can't be found", () => {
-    const lookup = lookupFindingNothing();
-    expect(isAddedToThePage(lookup, { name: "Element", getParent: () => ({ name: "__global" }) })).toBe(true);
-    expect(lookup.resolveName).toHaveBeenCalledExactlyOnceWith("Element", SymbolFlags.Type);
-  });
-});
 
 describe("isDeclaredAsAPageAddition", () => {
   it("counts a member as the page's when its declaration can't be found", () => {

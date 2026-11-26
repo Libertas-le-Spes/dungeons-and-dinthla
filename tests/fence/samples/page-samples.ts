@@ -116,6 +116,11 @@ export const PAGE_READ_SAMPLES = [
   'import type { App } from "obsidian"; interface Mine { doc: Document; getAttr(name: string): string; ownerDocument: Document; } export const read = (_app: App, el: (HTMLElement & Mine) | Mine) => el.ownerDocument;',
 ];
 
+export const ADDED_MEMBER_SAMPLES = [
+  "interface HTMLElement { ownerTitle: string }\nconst read = (el: HTMLElement) => el.ownerTitle;\nread;",
+  "declare global { interface HTMLElement { ownerTitle: string } }\nexport const read = (el: HTMLElement) => el.ownerTitle;",
+];
+
 export const OWN_ELEMENT_SAMPLES = [
   'export const label = (el: HTMLElement) => el.createDiv({ cls: "dd-frame" }).addClass("dd-shown");',
   'import type { App } from "obsidian"; export const label = (_app: App, el: HTMLElement) => el.createDiv({ cls: "dd-frame" }).addClass("dd-shown");',

@@ -2,7 +2,7 @@ import { isBindingElement, isObjectBindingPattern, type Node } from "typescript/
 import type { Symbol as TypeSymbol } from "typescript/unstable/sync";
 import type { FileScan } from "../reading/file-scan";
 import type { Named } from "../reading/found";
-import { isAddedToThePage, isDeclaredAsAPageAddition, isPageDeclared } from "./page-additions";
+import { isDeclaredAsAPageAddition, isPageDeclared } from "./page-additions";
 import { PAGE_ESCAPES } from "../reading/names";
 
 function isDeclaredOnThePage(scan: FileScan, symbol: TypeSymbol): boolean {
@@ -12,11 +12,7 @@ function isDeclaredOnThePage(scan: FileScan, symbol: TypeSymbol): boolean {
 
 function isPageMember(scan: FileScan, symbol: TypeSymbol | undefined): boolean {
   if (symbol === undefined) return false;
-  if (isDeclaredOnThePage(scan, symbol)) return true;
-  const owner = symbol.getParent();
-  if (owner === undefined) return false;
-  if (isPageDeclared(owner)) return true;
-  return isAddedToThePage(scan.project.checker, owner);
+  return isDeclaredOnThePage(scan, symbol);
 }
 
 function memberUses(scan: FileScan): Named[] {

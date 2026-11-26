@@ -28,38 +28,10 @@
   "group": "page fence"
  },
  {
-  "id": "page members: Obsidian's additions to the page's elements count",
-  "file": "tests/fence/scan/page-rules/page-member-rules.ts",
-  "find": "  return isAddedToThePage(scan.project.checker, owner);",
-  "replace": "  return false;",
-  "group": "page fence"
- },
- {
-  "id": "page members: only additions made in a global block count",
-  "file": "tests/fence/scan/page-rules/page-additions.ts",
-  "find": "  if (block.name !== GLOBAL_ADDITIONS) return false;\n",
-  "replace": "",
-  "group": "page fence"
- },
- {
-  "id": "page members: a member of a type with no owner is no addition",
-  "file": "tests/fence/scan/page-rules/page-additions.ts",
-  "find": "  if (block === undefined) return false;\n",
-  "replace": "",
-  "group": "page fence"
- },
- {
   "id": "page members: only additions to the page's own types count",
   "file": "tests/fence/scan/page-rules/page-additions.ts",
   "find": "  return isPageDeclared(merged);",
   "replace": "  return true;",
-  "group": "page fence"
- },
- {
-  "id": "page members: the page's own members still count",
-  "file": "tests/fence/scan/page-rules/page-member-rules.ts",
-  "find": "  if (isPageDeclared(owner)) return true;\n",
-  "replace": "",
   "group": "page fence"
  },
  {
@@ -259,10 +231,10 @@
   "group": "page fence"
  },
  {
-  "id": "page members: a member declared on the page counts whatever its parent",
+  "id": "page members: a member declared on the page counts",
   "file": "tests/fence/scan/page-rules/page-member-rules.ts",
-  "find": "  if (isDeclaredOnThePage(scan, symbol)) return true;\n",
-  "replace": "",
+  "find": "  return isDeclaredOnThePage(scan, symbol);",
+  "replace": "  return false;",
   "group": "page fence"
  },
  {

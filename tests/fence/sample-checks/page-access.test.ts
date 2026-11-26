@@ -1,11 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { isAnyNameAllowed, isNoNameAllowed, NOTHING_ALLOWED } from "../scan/running/allowance-sets";
 import { numberedFileNames, SampleScan } from "../scan/running/sample-scan";
-import { ALLOWED_PAGE_SAMPLES, CODE_TEXT_SAMPLES, ESCAPE_SAMPLES, NOT_PAGE_SAMPLES, OWN_ELEMENT_SAMPLES, PAGE_ELEMENT_SAMPLES, PAGE_READ_SAMPLES, PAGE_TEXT_SAMPLES } from "../samples/page-samples";
+import { ADDED_MEMBER_SAMPLES, ALLOWED_PAGE_SAMPLES, CODE_TEXT_SAMPLES, ESCAPE_SAMPLES, NOT_PAGE_SAMPLES, OWN_ELEMENT_SAMPLES, PAGE_ELEMENT_SAMPLES, PAGE_READ_SAMPLES, PAGE_TEXT_SAMPLES } from "../samples/page-samples";
 import type { Allowances } from "../scan/reading/allowances";
 import { PAGE_ESCAPES } from "../scan/reading/names";
 
-const SAMPLES = [...CODE_TEXT_SAMPLES, ...PAGE_ELEMENT_SAMPLES, ...PAGE_TEXT_SAMPLES, ...ALLOWED_PAGE_SAMPLES, ...PAGE_READ_SAMPLES, ...OWN_ELEMENT_SAMPLES, ...NOT_PAGE_SAMPLES, ...ESCAPE_SAMPLES];
+const SAMPLES = [...ADDED_MEMBER_SAMPLES, ...CODE_TEXT_SAMPLES, ...PAGE_ELEMENT_SAMPLES, ...PAGE_TEXT_SAMPLES, ...ALLOWED_PAGE_SAMPLES, ...PAGE_READ_SAMPLES, ...OWN_ELEMENT_SAMPLES, ...NOT_PAGE_SAMPLES, ...ESCAPE_SAMPLES];
 
 let scan: SampleScan;
 
@@ -45,6 +45,10 @@ const OWN_ELEMENTS_ONLY: Allowances = { ...NOTHING_ALLOWED, pageMembers: isOwnEl
 
 describe("the source scan's page member allow-list", () => {
   it.each(PAGE_READ_SAMPLES)("would catch reaching past the file's own elements to read the page with %s", (sample) => {
+    expect(scan.breaches(sample, OWN_ELEMENTS_ONLY)).not.toEqual([]);
+  });
+
+  it.each(ADDED_MEMBER_SAMPLES)("would catch a member the file adds to the page's elements itself with %s", (sample) => {
     expect(scan.breaches(sample, OWN_ELEMENTS_ONLY)).not.toEqual([]);
   });
 
