@@ -1,73 +1,106 @@
 # Installing Dungeons & Dinthla
 
-Dungeons & Dinthla is a plugin for [Obsidian](https://obsidian.md), the note-taking app. You write what happens at the table in your session notes, and the plugin keeps track of the open questions, quests and money, and fills in sheets for the people and places you meet.
+Dungeons & Dinthla is a plugin for [Obsidian](https://obsidian.md), the free note-taking app. You write what happens at the table in your session notes, and the plugin keeps track of the open questions, quests and money, and fills in sheets for the people and places you meet.
 
-It isn't in Obsidian's own list of community plugins, so you install it from this repository's [releases](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/releases). Each release has four files:
+The plugin isn't in Obsidian's built-in plugin list, so you install it from this page's downloads. It takes about five minutes.
 
-| File | What it is |
+## What you need
+
+- **Obsidian 1.10.3 or newer**, on a computer, phone or tablet. To see your version, open *Settings → About* in Obsidian. Get Obsidian from [obsidian.md](https://obsidian.md/download).
+- **The files from the latest release.** Open the [latest release](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/releases/latest) and scroll to *Assets*. There are four files:
+
+| File | What it's for |
 |---|---|
-| `dungeons-and-dinthla-starter-vault-<version>.zip` | A ready vault to try the plugin in, with a sample campaign |
-| `main.js`, `manifest.json`, `styles.css` | The plugin itself, for adding to your own vault |
+| `dungeons-and-dinthla-starter-vault-<version>.zip` | Trying the plugin with a sample campaign, without touching your own notes |
+| `main.js`, `manifest.json`, `styles.css` | Adding the plugin to your own vault |
 
-This page may lag behind the plugin as it changes; whoever changes what it describes updates it in the same change.
+A *vault* is Obsidian's word for a folder of notes.
 
-## Try it in the starter vault
+## Option 1: try it in the starter vault
 
-The quickest way to see what the plugin does, without touching your own notes.
+1. Download `dungeons-and-dinthla-starter-vault-<version>.zip` from the latest release.
+2. Unzip it. You get a folder called **Dungeons & Dinthla starter vault**. Move it somewhere you'll find it again, such as your Documents folder.
+3. Open Obsidian.
+   - If it shows its start screen, choose **Open folder as vault**.
+   - If a vault is already open, click the vault's name at the bottom left, choose **Manage vaults…**, then **Open folder as vault**.
+4. Pick the **Dungeons & Dinthla starter vault** folder and press **Open**.
+5. Obsidian asks *Do you trust the author of this vault?* Choose **Trust author and enable plugins**.
 
-1. Open the [latest release](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/releases/latest) and download `dungeons-and-dinthla-starter-vault-<version>.zip`.
-2. Unzip it. You get a folder called *Dungeons & Dinthla starter vault*.
-3. In Obsidian, open the vault switcher (the vault's name at the bottom left, or *Open another vault* in the menu) and choose *Open folder as vault*. Pick the unzipped folder.
-4. Obsidian asks whether you trust the author of the vault. Choose *Trust author and enable plugins*.
+The plugin's welcome page opens. The sample campaign, *Curse of the Pale Moon*, has three sessions, four characters and an item to look around.
 
-The plugin's welcome page opens. The sample campaign, *Curse of the Pale Moon*, has three sessions, a few characters and an item to look around.
+**On a phone or tablet:**
 
-On a phone or tablet, put the unzipped folder where Obsidian keeps its vaults first. On Android, any folder works: choose *Open folder as vault* and pick it. On an iPhone or iPad, move it into the *Obsidian* folder in the Files app (*On My iPhone* or *iCloud Drive*), and it shows up in Obsidian's list of vaults.
+- **Android:** unzip the file, open Obsidian, choose **Open folder as vault** and pick the unzipped folder. Then do step 5.
+- **iPhone or iPad:** unzip the file in the Files app, then move the unzipped folder into the **Obsidian** folder (under *On My iPhone*, *On My iPad* or *iCloud Drive*). Open Obsidian, and the vault is in its list. Then do step 5.
 
-## Add it to your own vault
+## Option 2: add it to your own vault
 
-1. Open the [latest release](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/releases/latest) and download `main.js`, `manifest.json` and `styles.css`.
-2. In your vault's folder, open the hidden `.obsidian` folder, then `plugins` (make it if it isn't there), and make a folder called `dungeons-and-dinthla` inside it. Put the three files there:
+### On a computer
+
+1. Download `main.js`, `manifest.json` and `styles.css` from the latest release.
+2. In Obsidian, open your vault, then **Settings → Community plugins**.
+3. If you see **Turn on community plugins**, press it. (Obsidian calls this leaving *Restricted mode*. It's off until you turn on your first plugin from outside its list.)
+4. Next to **Installed plugins**, click the **folder icon**. This opens your vault's plugins folder.
+5. In that folder, make a new folder named exactly `dungeons-and-dinthla`, and put the three files in it. It should look like this:
    ```
-   <your vault>/.obsidian/plugins/dungeons-and-dinthla/main.js
-   <your vault>/.obsidian/plugins/dungeons-and-dinthla/manifest.json
-   <your vault>/.obsidian/plugins/dungeons-and-dinthla/styles.css
+   plugins
+   └── dungeons-and-dinthla
+       ├── main.js
+       ├── manifest.json
+       └── styles.css
    ```
-   Folders starting with a dot are hidden on most computers: on Windows, tick *Hidden items* under *View* in File Explorer; on a Mac, press Cmd + Shift + . in Finder.
-3. In Obsidian, open *Settings → Community plugins*. If it says Restricted mode is on, press *Turn on community plugins*.
-4. Restart Obsidian, or press the circular arrows beside *Installed plugins*, so it finds the new plugin.
-5. Turn on **Dungeons & Dinthla** in that list.
+6. Back in Obsidian, click the **circular arrows** next to *Installed plugins* to reload the list.
+7. Find **Dungeons & Dinthla** in the list and turn it on.
 
-The plugin's welcome page opens and asks for your **Campaigns folder**: the one folder of your vault where your campaigns live, such as `D&D`. The plugin reads and writes only inside that folder and does nothing until you choose it, so the rest of your vault stays out of its reach. Then make your first campaign on the same page.
+The plugin's welcome page opens and asks for your **Campaigns folder**: the one folder of your vault where your campaigns will live, such as `D&D`. The plugin only reads and writes inside that folder and does nothing until you choose it, so the rest of your notes stay out of its reach. Then make your first campaign on the same page.
+
+If there's no folder icon, find the plugins folder yourself: it's at `<your vault>/.obsidian/plugins`. Folders whose names start with a dot are hidden. On Windows, tick **Hidden items** under **View** in File Explorer. On a Mac, press **Cmd + Shift + .** in Finder. On Linux, press **Ctrl + H** in most file managers. If there's no `plugins` folder inside `.obsidian`, make one.
 
 ### On a phone or tablet
 
-If your vault syncs between devices (with Obsidian Sync, iCloud or a Git repository), add the three files on a computer as above and let them sync; then do steps 3 to 5 on the phone or tablet. Otherwise, copy the `dungeons-and-dinthla` folder into the vault's `.obsidian/plugins` folder on the device with its file manager, and do steps 3 to 5 there.
+The easiest way is through a computer:
+
+- **If your vault syncs** (Obsidian Sync, iCloud, Syncthing or Git): add the plugin on a computer as above and let the vault sync. Then, on the phone or tablet, open **Settings → Community plugins**, turn on community plugins if asked, and turn on **Dungeons & Dinthla**. With Obsidian Sync, also make sure *Installed community plugins* is ticked in its settings.
+- **If it doesn't sync:** use a file manager on the device to make the `dungeons-and-dinthla` folder inside the vault's `.obsidian/plugins` folder and put the three files in it, as in step 5. Then do steps 2, 3, 6 and 7 in Obsidian.
 
 ## Check the files (optional)
 
-Each file on the release page has its SHA-256 checksum written beside it, as `sha256:…`. To be sure your download is the one published, compare it with the file's own checksum:
+You can check that the files you downloaded are exactly the ones published. On the release page, each file has its checksum beside it, starting `sha256:`. Work out the same number for your copy and compare.
 
-| System | Command, run in the download folder |
+| System | Run this in the folder with the files |
 |---|---|
 | Windows (PowerShell) | `Get-FileHash main.js` |
-| macOS | `shasum -a 256 main.js` |
-| Linux | `sha256sum main.js` |
+| macOS (Terminal) | `shasum -a 256 main.js` |
+| Linux (terminal) | `sha256sum main.js` |
 
-The long number printed must match the one on the release page, ignoring capital letters.
+Do the same for `manifest.json`, `styles.css` or the zip. The long number must match the one on the release page (capital letters don't matter). If it doesn't, download the file again.
 
-## Update
+## Updating
 
-Download the new release's `main.js`, `manifest.json` and `styles.css` and put them over the old ones in the same folder. Obsidian uses the new version after it restarts, or after you turn the plugin off and on in *Settings → Community plugins*. After an update with something new, the dashboard shows one line saying what it is.
+1. Download the new `main.js`, `manifest.json` and `styles.css` from the latest release.
+2. Put them in the `dungeons-and-dinthla` folder, replacing the old ones.
+3. Restart Obsidian, or turn the plugin off and on again in **Settings → Community plugins**.
 
-## Remove
+When a version adds something new, the dashboard shows one line about it after the update.
 
-Turn the plugin off in *Settings → Community plugins*, then delete the `dungeons-and-dinthla` folder from `.obsidian/plugins`. Your campaign notes stay, as ordinary notes.
+## Removing it
+
+1. In **Settings → Community plugins**, turn **Dungeons & Dinthla** off.
+2. Delete the `dungeons-and-dinthla` folder from the plugins folder.
+
+Your campaign notes stay. They are ordinary notes you can keep reading and editing without the plugin.
+
+## If something doesn't work
+
+| What you see | What to do |
+|---|---|
+| Dungeons & Dinthla isn't in the *Installed plugins* list | Check the folder is named exactly `dungeons-and-dinthla` and holds the three files directly, not inside another folder. Then click the circular arrows, or restart Obsidian. |
+| Obsidian says the plugin needs a newer version | Update Obsidian, then try again. |
+| Opening the starter vault shows the notes but no plugin | You chose to browse in Restricted mode. Open **Settings → Community plugins**, press **Turn on community plugins**, then turn on Dungeons & Dinthla. |
+| A campaign doesn't show up | Make sure the campaign's folder is inside the Campaigns folder you chose, and holds a note with the same name as the folder, such as `D&D/Pale Moon/Pale Moon.md`. |
+
+Still stuck? [Open an issue](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/issues/new) and say what you did, what you expected and what happened instead.
 
 ## What it sends over the internet
 
-Nothing, unless you ask it to. The one exception is *Import from D&D Beyond* online: when you press the button, after agreeing once, the plugin asks D&D Beyond for that one character, which must be set to Public there. Bringing a character in from its PDF reads the file on your device and sends nothing anywhere. The README's [Network use](../README.md#network-use) section has the details.
-
-## Something wrong?
-
-Open an [issue](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/issues) and say what you did, what you expected and what happened instead.
+Nothing, unless you ask it to. The one exception is **Import from D&D Beyond** online: when you press it, and only after you've agreed to it, the plugin asks D&D Beyond for that one character, which has to be set to Public there. Bringing a character in from its PDF reads the file on your device and sends nothing. The [Network use](../README.md#network-use) section of the README has the details.
