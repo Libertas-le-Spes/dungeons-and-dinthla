@@ -4,7 +4,6 @@ This page is for whoever picks the work up on another machine, person or session
 
 ## Where things are
 
-- **Plan and designs:** the plan doc, https://claude.ai/artifact/4fxu6ozZmBYddhUxue4v8t. The *One interface* tab holds the interface design and the help design.
 - **Work to do:** the repository's open issues.
 - **Work in flight:** open pull requests. Each one's latest handover comment says what is left, what was decided and what waits on the owner. Read it before touching the branch.
 
@@ -56,7 +55,7 @@ A script that moves files and rewrites their imports (a mover) also rewrites any
 1. Fresh reviewers who know only the pull request go over it, split into security, architecture and readability, and tests and docs. Their findings are checked against the code, then fixed and proven.
 2. One more fresh review checks the result. Stop when what is left sits only in code that round changed and every failure ends safe.
 3. **The owner says yes.** Nothing merges without it.
-4. Merge locally with `git merge --no-ff origin/<branch> -m "Merge pull request #N from Libertas-le-Spes/<branch>"` and push `main`. The repo's hooks set commit times to midday.
+4. Merge locally with `git merge --no-ff origin/<branch> -m "Merge pull request #N from Libertas-le-Spes/<branch>"` and push `main`.
 
 ## Deleting branches
 
