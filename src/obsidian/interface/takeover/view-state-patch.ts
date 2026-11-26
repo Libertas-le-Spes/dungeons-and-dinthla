@@ -1,4 +1,5 @@
 import type { ViewState, WorkspaceLeaf } from "obsidian";
+import { around } from "monkey-around";
 
 type SetViewState = WorkspaceLeaf["setViewState"];
 
@@ -21,12 +22,7 @@ export interface ViewStateHooks {
   settled: ViewStateSettled;
 }
 
-interface PatchSwitch {
-  active: boolean;
-}
-
-function changedState(patch: PatchSwitch, change: ChangeViewState, viewState: ViewState): ViewState {
-  if (!patch.active) return viewState;
+function changedState(change: ChangeViewState, viewState: ViewState): ViewState {
   try {
     return change(viewState);
   } catch {
@@ -42,8 +38,7 @@ function typeShownIn(leaf: WorkspaceLeaf): string {
   }
 }
 
-function tellSettled(patch: PatchSwitch, settled: ViewStateSettled, leaf: WorkspaceLeaf, step: SetStep): void {
-  if (!patch.active) return;
+function tellSettled(settled: ViewStateSettled, leaf: WorkspaceLeaf, step: SetStep): void {
   try {
     settled(leaf, step);
   } catch {
@@ -53,22 +48,17 @@ function tellSettled(patch: PatchSwitch, settled: ViewStateSettled, leaf: Worksp
 
 function ignoreFailure(): void {}
 
-function undoPatch(owner: ViewStateSetter, wrapper: SetViewState, original: SetViewState, patch: PatchSwitch): void {
-  patch.active = false;
-  if (owner.setViewState === wrapper) owner.setViewState = original;
+function wrapperOf(hooks: ViewStateHooks, original: SetViewState): SetViewState {
+  return function (this: WorkspaceLeaf, viewState: ViewState, eState?: unknown) {
+    const typeBefore = typeShownIn(this);
+    const sent = changedState(hooks.change, viewState);
+    const setting = original.call(this, sent, eState);
+    const step = { typeBefore, incoming: viewState, sent };
+    void Promise.resolve(setting).then(() => tellSettled(hooks.settled, this, step), ignoreFailure);
+    return setting;
+  };
 }
 
 export function patchSetViewState(owner: ViewStateSetter, hooks: ViewStateHooks): () => void {
-  const original = owner.setViewState;
-  const patch: PatchSwitch = { active: true };
-  const wrapper: SetViewState = function (this: WorkspaceLeaf, viewState: ViewState, eState?: unknown) {
-    const typeBefore = typeShownIn(this);
-    const sent = changedState(patch, hooks.change, viewState);
-    const setting = original.call(this, sent, eState);
-    const step = { typeBefore, incoming: viewState, sent };
-    void Promise.resolve(setting).then(() => tellSettled(patch, hooks.settled, this, step), ignoreFailure);
-    return setting;
-  };
-  owner.setViewState = wrapper;
-  return () => undoPatch(owner, wrapper, original, patch);
+  return around(owner, { setViewState: wrapperOf.bind(null, hooks) });
 }

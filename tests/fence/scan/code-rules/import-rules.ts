@@ -1,6 +1,7 @@
 import { isExportDeclaration, isImportDeclaration, isNamedExports, isNamedImports, isNamespaceImport, isStringLiteral, type ExportDeclaration, type ImportDeclaration, type Node } from "typescript/unstable/ast";
 import type { FileScan } from "../reading/file-scan";
-import { ALLOWED_MODULES, OBSIDIAN_MODULE } from "../reading/names";
+import { ALLOWED_MODULES, OBSIDIAN_MODULE, PLACED_MODULES } from "../reading/names";
+import { SOURCE_FOLDER } from "../reading/scan-paths";
 
 type ModuleDeclaration = ImportDeclaration | ExportDeclaration;
 
@@ -62,11 +63,21 @@ function obsidianBreaches(scan: FileScan, declaration: ModuleDeclaration): strin
   return names.filter((name) => !scan.allowances.obsidianImports(scan.path, name.name)).map((name) => `${scan.where(name.node)} imports ${name.name} from ${OBSIDIAN_MODULE}, which this file isn't allowed`);
 }
 
+function isOutsideItsPlace(path: string, module: string): boolean {
+  const places = PLACED_MODULES[module];
+  if (places === undefined) return false;
+  for (const place of places) {
+    if (path === `${SOURCE_FOLDER}${place}`) return false;
+  }
+  return true;
+}
+
 function declarationBreaches(scan: FileScan, declaration: ModuleDeclaration): string[] {
   const module = moduleOf(declaration);
   if (module === null) return [];
   if (isRelative(module)) return [];
   if (!ALLOWED_MODULES.includes(module)) return [`${scan.where(declaration)} loads ${module}, a module the plugin doesn't use`];
+  if (isOutsideItsPlace(scan.path, module)) return [`${scan.where(declaration)} loads ${module} outside the one file allowed to`];
   if (module === OBSIDIAN_MODULE) return obsidianBreaches(scan, declaration);
   return [];
 }
