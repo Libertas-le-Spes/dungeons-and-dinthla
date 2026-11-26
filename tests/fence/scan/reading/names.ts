@@ -256,7 +256,6 @@ export const PAGE_NAMES = [...TIMERS, ...ATTRIBUTE_SETTERS, ...ELEMENT_MAKERS, .
 
 export const PAGE_LIBRARY = "/lib.dom.d.ts";
 
-export const GLOBAL_ADDITIONS = "__global";
 
 export const GLOBAL_BLOCK = "global";
 

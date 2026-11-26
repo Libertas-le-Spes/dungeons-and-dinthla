@@ -1,15 +1,10 @@
 import { isInterfaceDeclaration, isModuleDeclaration, isSourceFile, type Node } from "typescript/unstable/ast";
 import { SymbolFlags, type Checker, type NodeHandle, type Symbol as TypeSymbol } from "typescript/unstable/sync";
-import { GLOBAL_ADDITIONS, GLOBAL_BLOCK, PAGE_LIBRARY } from "../reading/names";
+import { GLOBAL_BLOCK, PAGE_LIBRARY } from "../reading/names";
 
 export type NameResolver = Pick<Checker, "resolveName">;
 
 export type Declaration = Pick<NodeHandle, "resolve">;
-
-export interface AddedOwner {
-  name: string;
-  getParent(): Pick<TypeSymbol, "name"> | undefined;
-}
 
 export interface Declared {
   declarations: readonly Declaration[];
@@ -23,13 +18,6 @@ function isPageTypeNamed(checker: NameResolver, name: string): boolean {
   const merged = checker.resolveName(name, SymbolFlags.Type);
   if (merged === undefined) return true;
   return isPageDeclared(merged);
-}
-
-export function isAddedToThePage(checker: NameResolver, owner: AddedOwner): boolean {
-  const block = owner.getParent();
-  if (block === undefined) return false;
-  if (block.name !== GLOBAL_ADDITIONS) return false;
-  return isPageTypeNamed(checker, owner.name);
 }
 
 function isGlobalBlock(block: Node): boolean {
