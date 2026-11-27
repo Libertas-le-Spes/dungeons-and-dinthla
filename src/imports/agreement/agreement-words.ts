@@ -1,7 +1,9 @@
-export const AGREEMENT_TITLE = "Bring in your character from D&D Beyond?";
+export const AGREEMENT_TITLE = "Bring your character in from D&D Beyond?";
 
 export const AGREEMENT_PARAGRAPHS: readonly string[] = [
-  "The plugin asks D&D Beyond for your character by its number, and sends nothing else. The character must be set to Public there, so anyone with its link can see it. Its backstory and notes are never saved.",
+  "To do this, the plugin asks D&D Beyond for your character using only its number. Nothing else is sent.",
+  "D&D Beyond only shares characters that are set to Public, which anyone with the link can see. Your character's backstory and notes are not kept.",
+  "You only need to agree once for this vault.",
 ];
 
 export const CANCEL_WORDS = "Cancel";

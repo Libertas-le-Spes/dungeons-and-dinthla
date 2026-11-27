@@ -9,7 +9,6 @@ import {
   SIGN_SAYS_IN,
   SIGN_SAYS_OUT,
   WORDS_CHANGE_IT,
-  WORDS_SAY_OUT,
   type CoinDraft,
 } from "../../../src/notes/writing/coin-lines";
 
@@ -37,14 +36,10 @@ describe("readCoinDraft", () => {
     expect(purseAfter(lineOf(reading))).toBe(3540);
   });
 
-  it("writes money out as Paid, every amount counted out", () => {
+  it("writes money out with a minus, every amount counted out", () => {
     const reading = readCoinDraft(draft("out", "-2 gp 5 sp", "for rooms"));
-    expect(lineOf(reading)).toBe("$ Paid 2 gp 5 sp for rooms");
+    expect(lineOf(reading)).toBe("$ -2 gp 5 sp for rooms");
     expect(purseAfter(lineOf(reading))).toBe(-250);
-  });
-
-  it("keeps a leading money word as the verb of money out", () => {
-    expect(lineOf(readCoinDraft(draft("out", "5 gp", "Bought rope")))).toBe("$ Bought 5 gp rope");
   });
 
   it("reads grouped thousands, and refuses commas that would drop an amount", () => {
@@ -68,11 +63,10 @@ describe("readCoinDraft", () => {
     expect(readCoinDraft(draft("out", "+5 gp"))).toEqual({ error: SIGN_SAYS_IN });
   });
 
-  it("refuses words that say money out when In is chosen", () => {
-    for (const what of ["spent on rope", "paid to the ferryman", "lost at dice"]) {
-      expect(readCoinDraft(draft("in", "5 gp", what)), what).toEqual({ error: WORDS_SAY_OUT });
-    }
-    expect(lineOf(readCoinDraft(draft("in", "5 gp", "reward from [[Lost Hollow]]")))).toBe("$ 5 gp reward from [[Lost Hollow]]");
+  it("writes money in with words like gave as money in", () => {
+    const reading = readCoinDraft(draft("in", "50 gp", "[[Lady Vess]] gave us"));
+    expect(lineOf(reading)).toBe("$ 50 gp [[Lady Vess]] gave us");
+    expect(purseAfter(lineOf(reading))).toBe(5000);
   });
 
   it("refuses for:, which would mark a quest's reward collected", () => {
@@ -89,7 +83,7 @@ describe("readCoinDraft", () => {
 
 describe("draftOf", () => {
   it("fills the dialog back from an entry that it can show as written", () => {
-    for (const line of ["35 gp 4 sp from the bandits", "Paid 2 gp 5 sp for rooms", "Bought 5 gp rope", "1,200 gp found"]) {
+    for (const line of ["35 gp 4 sp from the bandits", "-2 gp 5 sp for rooms", "-5 gp rope", "1,200 gp found"]) {
       const entry = buildCampaign([{ path: "S/Sessions/Session 1.md", number: 1, firstLine: 0, text: `$ ${line}` }]).coins[0]!;
       const draft = draftOf(entry.text, entry.entry.copper, entry.entry.coins);
       expect(lineOf(readCoinDraft(draft)), line).toBe(`$ ${line}`);

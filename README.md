@@ -34,11 +34,11 @@ $ [[Mira]] Silvered lantern
 
 `?` is a question, `!` is a quest and `$` is coin or an item. A link followed by values fills in that character's sheet. Every other line is a plain note.
 
-Coin goes out when the amount has a minus sign, or follows *paid*, *spent*, *bought*, *gave* or *lost*. So write `+50 gp` for money the party is given, not `gave us 50 gp`.
+Coin goes out only when the amount has a minus sign or a dash before it, such as `-5 gp ferry`. Every other amount is money in.
 
 To answer a question or move a quest on, start a line in the session box with `??`, `!!` or `$$` and pick the earlier line. The welcome page shows the rest when you first open the plugin.
 
-A character can bring their values into another campaign; [carrying a character](docs/carrying-a-character.md) shows how.
+A character from an earlier campaign can keep their values in a new one. On their note in the new campaign, add `carried from` with a link to their old note, and `carried` with `abilities`, `values` or both. The plugin explains this once, when you make your second campaign.
 
 ## Working on this project
 

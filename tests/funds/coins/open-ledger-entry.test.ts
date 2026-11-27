@@ -88,7 +88,7 @@ describe("ledgerEntryOpener", () => {
   });
 
   it("opens the entry's own note when asked to from an entry it can't save", () => {
-    const { open, openNote } = opener(campaignOf(["$ Bought rope for 2 gp"]));
+    const { open, openNote } = opener(campaignOf(["$ rope for -2 gp"]));
     const before = openedModals.length;
     open({ path: ONE, line: 0 }, vi.fn());
     const [dialog] = openedModals.slice(before);

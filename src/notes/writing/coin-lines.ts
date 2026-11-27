@@ -21,27 +21,21 @@ export type CoinReading = CoinLine | { error: string };
 
 const ONE_AMOUNT = /(?:\d{1,3}(?:,\d{3})+|\d{1,9})\s*(?:pp|gp|ep|sp|cp)\b/gi;
 const AMOUNT_ONLY = /^(?:(?:\d{1,3}(?:,\d{3})+|\d{1,9})\s*(?:pp|gp|ep|sp|cp)\b\s*)+$/i;
-const LEADING_SIGN = /^([+\-−])\s*/;
-const MONEY_OUT_WORD = /\b(paid|spent|bought|gave|lost)\b/i;
-const LEADING_MONEY_OUT_WORD = /^(paid|spent|bought|gave|lost)\b\s*/i;
+const LEADING_SIGN = /^([+\-−–—])\s*/;
 
 export const NO_COIN = "Write the amount with its coin, like 35 gp or 4 sp, without commas between coins.";
 export const NO_AMOUNT = "The amount comes to nothing; write what changed hands.";
 export const SIGN_SAYS_OUT = "The amount has a minus sign, which says money out; choose Out.";
 export const SIGN_SAYS_IN = "The amount has a plus sign, which says money in; choose In.";
-export const WORDS_SAY_OUT = "The words say money out; choose Out, or reword what it was for.";
 export const NO_FOR = "Leave for: out of what it was for; a quest's reward is collected from the Quests view.";
 export const HOLDER_NOT_LINKABLE = "Your character's note name can't be written as a link, so coin can't be written for them. Rename the note without [ ] | # or ^.";
 export const HOLDER_CHANGES_IT = "Your character's note name would change how the line is read, so coin can't be written for them. Write the line in the session by hand.";
 export const WORDS_CHANGE_IT = "The words would change how the line is read; reword what it was for.";
 
 function bodyOf(direction: Direction, amount: string, what: string): string {
-  if (direction === "in") return [amount, what].filter((part) => part !== "").join(" ");
-  const verb = LEADING_MONEY_OUT_WORD.exec(what);
-  if (verb === null) return ["Paid", amount, what].filter((part) => part !== "").join(" ");
-  const word = verb[1]!;
-  const capitalised = word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-  return [capitalised, amount, what.slice(verb[0].length)].filter((part) => part !== "").join(" ");
+  let signed = amount;
+  if (direction === "out") signed = `-${amount}`;
+  return [signed, what].filter((part) => part !== "").join(" ");
 }
 
 function signRefusal(direction: Direction, typed: string): string | null {
@@ -91,7 +85,6 @@ function bodyReadingOf(draft: CoinDraft): BodyReading {
   const amount = worth.amount;
   const what = oneLine(draft.what);
   if (/\bfor:/i.test(blankLinks(what))) return { error: NO_FOR };
-  if (draft.direction === "in" && MONEY_OUT_WORD.test(blankLinks(what))) return { error: WORDS_SAY_OUT };
   let copper = worth.copper;
   if (draft.direction === "out") copper = -copper;
   const body = bodyOf(draft.direction, amount, what);

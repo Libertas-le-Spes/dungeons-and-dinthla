@@ -10,6 +10,7 @@ import {
   isSessionNote,
 } from "../../campaign/paths/campaign-folders";
 import { NewCampaignDialog } from "../../campaign/writing/new-campaign-dialog";
+import { CarryingNotice } from "../../characters/carrying/carrying-notice";
 import type { CampaignStore } from "../../campaign/reading/campaign-store";
 import { HostCharacterNotes } from "../../characters/reading/character-notes";
 import { editCharacter, openNewCharacter } from "../../characters/editing/open-character";
@@ -190,8 +191,18 @@ export class ObsidianFeatures {
       telling: this.showing.telling,
       startSession: newSession,
     });
-    const startNewCampaign = () =>
-      this.showing.dialogs.open(new NewCampaignDialog(this.showing.telling, { make: (name: string) => maker.make(name), made: () => void openCampaignPage(this.app, "home", null) }));
+    const carryingNotice = new CarryingNotice(
+      { shown: () => this.settingsSaver.settings.carryingNoticeShown, keepShown: () => this.settingsSaver.save({ carryingNoticeShown: true }) },
+      this.showing.dialogs,
+    );
+    const startNewCampaign = () => {
+      const hadCampaigns = this.campaignFolders().length > 0;
+      const made = async () => {
+        await openCampaignPage(this.app, "home", null);
+        await carryingNotice.campaignMade(hadCampaigns);
+      };
+      this.showing.dialogs.open(new NewCampaignDialog(this.showing.telling, { make: (name: string) => maker.make(name), made: () => void made() }));
+    };
     const campaignChoice = {
       startNewCampaign,
       folders: () => this.campaignFolders(),

@@ -10,7 +10,7 @@ import { queuedWorkRan } from "../../stubs/queued-work";
 import { OBSIDIAN_TELLING } from "../../../src/obsidian/views/frames/obsidian-telling";
 
 function settingFrom(campaignsFolder: string | null, configDir = ".obsidian") {
-  const settings: PluginSettings = { campaignsFolder, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null, notesMadeFor: [], beyondAgreed: false, charactersBasesSwept: false };
+  const settings: PluginSettings = { campaignsFolder, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null, notesMadeFor: [], beyondAgreed: false, charactersBasesSwept: false, carryingNoticeShown: false };
   const order: string[] = [];
   const save = vi.fn(async (written: PluginSettings) => {
     await queuedWorkRan();

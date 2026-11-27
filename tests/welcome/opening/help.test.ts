@@ -6,7 +6,7 @@ import type { NewsItem } from "../../../src/whats-new/news-item";
 
 const LANTERNS: NewsItem = { sentence: "Lanterns now light the party funds.", page: "funds" };
 const MADE_UP_NEWS = new Map<string, NewsItem>([["3.1.0", LANTERNS]]);
-const FRESH: PluginSettings = { campaignsFolder: null, campaignFolder: null, welcomeSeen: false, lastVersionSeen: null, notesMadeFor: [], beyondAgreed: false, charactersBasesSwept: false };
+const FRESH: PluginSettings = { campaignsFolder: null, campaignFolder: null, welcomeSeen: false, lastVersionSeen: null, notesMadeFor: [], beyondAgreed: false, charactersBasesSwept: false, carryingNoticeShown: false };
 
 function helpFor(settings: PluginSettings, paths: string[]) {
   const saved: PluginSettings[] = [];
@@ -24,19 +24,19 @@ describe("Help", () => {
     const { help, saved, openWelcome } = helpFor(FRESH, ["Silver Road/Silver Road.md"]);
     await help.start();
     expect(openWelcome).toHaveBeenCalledOnce();
-    expect(saved).toEqual([{ campaignsFolder: null, campaignFolder: null, welcomeSeen: true, lastVersionSeen: "3.1.0", notesMadeFor: [], beyondAgreed: false, charactersBasesSwept: false }]);
+    expect(saved).toEqual([{ campaignsFolder: null, campaignFolder: null, welcomeSeen: true, lastVersionSeen: "3.1.0", notesMadeFor: [], beyondAgreed: false, charactersBasesSwept: false, carryingNoticeShown: false }]);
   });
 
   it("takes a vault whose campaign already has a session note for an update: no welcome, and the news still to see", async () => {
     const { help, saved, openWelcome } = helpFor(FRESH, ["Silver Road/Silver Road.md", "Silver Road/Sessions/Session 1.md"]);
     await help.start();
     expect(openWelcome).not.toHaveBeenCalled();
-    expect(saved).toEqual([{ campaignsFolder: null, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null, notesMadeFor: [], beyondAgreed: false, charactersBasesSwept: false }]);
+    expect(saved).toEqual([{ campaignsFolder: null, campaignFolder: null, welcomeSeen: true, lastVersionSeen: null, notesMadeFor: [], beyondAgreed: false, charactersBasesSwept: false, carryingNoticeShown: false }]);
     expect(help.whatsNew.latest()).toEqual(LANTERNS);
   });
 
   it("reads the news of the plugin's own version", () => {
-    const { help } = helpFor({ ...FRESH, welcomeSeen: true, lastVersionSeen: "3.0.0", notesMadeFor: [], beyondAgreed: false, charactersBasesSwept: false }, []);
+    const { help } = helpFor({ ...FRESH, welcomeSeen: true, lastVersionSeen: "3.0.0", notesMadeFor: [], beyondAgreed: false, charactersBasesSwept: false, carryingNoticeShown: false }, []);
     expect(help.whatsNew.latest()).toEqual(LANTERNS);
   });
 

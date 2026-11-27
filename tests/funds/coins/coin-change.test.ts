@@ -80,7 +80,7 @@ describe("changing a coin entry", () => {
   });
 
   it("refuses an entry it can't show even when it is saved as it opened", async () => {
-    const notes = new FakeNotes({ [ONE]: "$ Bought rope for 2 gp\n" });
+    const notes = new FakeNotes({ [ONE]: "$ rope for -2 gp\n" });
     const edit = coinEntryEdit(notes.vault, notes, notes.entryAt(0), STUB_SYNTAX);
     await expect(edit.save(coinLineOf(edit.draft))).rejects.toThrow(CANNOT_SHOW);
     expect(notes.writes).toBe(0);

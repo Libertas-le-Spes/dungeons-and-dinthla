@@ -113,7 +113,7 @@ describe("refusalForEntryChange", () => {
 
 describe("coinEntryEdit", () => {
   it("writes nothing when an entry is saved as it opened, however it was worded", async () => {
-    for (const line of ["$ 1200 gp found", "$ paid  2 gp for rooms", "- $ 35 gp 4 sp from the bandits", "\t* $ Bought 5 gp rope"]) {
+    for (const line of ["$ 1200 gp found", "$ -2 gp for rooms", "- $ 35 gp 4 sp from the bandits", "\t* $ -5 gp rope"]) {
       const notes = new FakeNotes(`${line}\n`);
       const edit = notes.editAt(0);
       expect(edit.cannotSave, line).toBeNull();
@@ -126,17 +126,15 @@ describe("coinEntryEdit", () => {
   it("refuses to save an entry the dialog can't show as written, leaving delete", async () => {
     const lines = [
       "$ +50 gp reward, -5 gp ferry",
-      "$ paid 5 gp, got 3 gp back",
-      "$ Paid 10 gp for rooms, 3 gp back",
-      "$ Bought a pony for 30 gp, 5 gp change",
+      "$ -5 gp, got 3 gp back",
+      "$ -10 gp for rooms, 3 gp back",
+      "$ -30 gp for a pony, 5 gp change",
       "$ 10gp the -3 sp",
       "$ found in [[Vault 3 gp]] 5 gp",
-      "$ 5 gp from the Lost Mine",
-      "$ Bought rope for 2 gp",
+      "$ rope for -2 gp",
       "$ 5 gp, 3 sp from a chest",
-      "$ -5 gp toll",
       "$ 5 gp found (2 gp each)",
-      "$ Paid 5 gp; Mira paid 2 gp",
+      "$ -5 gp; Mira -2 gp",
       "$ Sold the wagon +120 gp",
     ];
     for (const line of lines) {

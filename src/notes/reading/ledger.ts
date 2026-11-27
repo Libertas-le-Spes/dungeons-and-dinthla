@@ -1,7 +1,7 @@
 import { choiceOf } from "../../views/dialogs/choice-of";
 import { withoutBlockId } from "../parts/block-id";
 import { partsBetweenCommas } from "../parts/comma";
-import { blankLinks, findLinks, removeFirstLink } from "../parts/link";
+import { findLinks, removeFirstLink } from "../parts/link";
 import { countedItemOf } from "../parts/item-count";
 
 export type CoinKind = "pp" | "gp" | "ep" | "sp" | "cp";
@@ -32,19 +32,8 @@ export interface ItemEntry {
 export type LedgerEntry = CoinEntry | ItemEntry;
 
 const COPPER_PER: Record<CoinKind, number> = { pp: 1000, gp: 100, ep: 50, sp: 10, cp: 1 };
-export const AMOUNT = /(?<![^\s(])(?:([+\-−])\s*)?(\d[\d,]*)\s*(pp|gp|ep|sp|cp)\b/gi;
-const MINUS_SIGNS = ["-", "−"];
-const MONEY_OUT_WORD = /\b(paid|spent|bought|gave|lost)\b/i;
-
-function moneyOutWordAt(part: string): number {
-  return blankLinks(part).search(MONEY_OUT_WORD);
-}
-
-function isMoneyOut(sign: string | undefined, position: number, wordAt: number): boolean {
-  if (sign !== undefined) return MINUS_SIGNS.includes(sign);
-  if (wordAt === -1) return false;
-  return position > wordAt;
-}
+export const AMOUNT = /(?<![^\s(])(?:([+\-−–—])\s*)?(\d[\d,]*)\s*(pp|gp|ep|sp|cp)\b/gi;
+const MINUS_SIGNS = ["-", "−", "–", "—"];
 
 function coinKindOf(written: string): CoinKind {
   const kind = choiceOf(COIN_KINDS, written.toLowerCase());
@@ -52,16 +41,20 @@ function coinKindOf(written: string): CoinKind {
   return kind;
 }
 
-function readAmount(match: RegExpMatchArray, wordAt: number): CoinAmount {
-  const [, sign, digits, kind] = match;
-  const count = Number.parseInt(digits!.replaceAll(",", ""), 10);
-  const moneyOut = isMoneyOut(sign, match.index!, wordAt);
-  return { count, kind: coinKindOf(kind!), moneyOut };
+class PartReading {
+  private moneyOut = false;
+
+  amountOf(match: RegExpMatchArray): CoinAmount {
+    const [, sign, digits, kind] = match;
+    if (sign !== undefined) this.moneyOut = MINUS_SIGNS.includes(sign);
+    const count = Number.parseInt(digits!.replaceAll(",", ""), 10);
+    return { count, kind: coinKindOf(kind!), moneyOut: this.moneyOut };
+  }
 }
 
 function readAmountsIn(part: string): CoinAmount[] {
-  const wordAt = moneyOutWordAt(part);
-  return [...part.matchAll(AMOUNT)].map((match) => readAmount(match, wordAt));
+  const reading = new PartReading();
+  return [...part.matchAll(AMOUNT)].map((match) => reading.amountOf(match));
 }
 
 export function copperOf({ count, kind, moneyOut }: CoinAmount): number {
