@@ -5,11 +5,23 @@
   </picture>
 </h1>
 
-An Obsidian plugin for tabletop campaign notes. You write what happens at the table in short lines. The plugin keeps track of the open questions, quests, money and items, and fills in a sheet for each character.
+An Obsidian plugin for tabletop campaign notes. You write what happens at the table in short lines, and the plugin keeps track of the open questions, quests, money and items, and fills in a sheet for each character. It is made for players first, and works the same on a phone or tablet.
 
-It is made for players first, and works the same on a phone or tablet.
+## Install
 
-## What you write
+Download `main.js`, `manifest.json` and `styles.css` from the [latest release](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/releases/latest).
+
+- **Computer:** in Obsidian, open **Settings → Community plugins** and click the folder icon next to *Installed plugins*. Make a folder named `dungeons-and-dinthla` there, put the three files in it, and turn the plugin on.
+- **Phone or tablet, with a synced vault:** install it on a computer and let the vault sync, then turn the plugin on under **Settings → Community plugins**.
+- **Phone or tablet, without sync:** use a file manager to put the three files in `.obsidian/plugins/dungeons-and-dinthla` inside the vault, then turn the plugin on.
+
+To try it first, download the starter vault zip from the same release, unzip it and open the folder as a vault.
+
+The [install guide](docs/install.md) has the steps in full, with updating, removing and what to do when something does not work.
+
+## Writing sessions
+
+A session is an ordinary note. The first character of a line says what it is:
 
 ```markdown
 Tracks lead to the [[Old Mill]].
@@ -17,29 +29,21 @@ Tracks lead to the [[Old Mill]].
 ! Find the missing caravan, from: [[Lady Vess]], reward: 200 gp
 $ 35 gp from the bandits at the ford
 $ [[Mira]] Silvered lantern
+[[Mira]] AC: 15, class: rogue
 ```
 
-A line starting with `?` is a question, `!` is a quest, and `$` is coin or an item. Every other line is an ordinary note.
+`?` is a question, `!` is a quest and `$` is coin or an item. A link followed by values fills in that character's sheet. Every other line is a plain note.
 
-## Install
+Coin goes out when the amount has a minus sign, or follows *paid*, *spent*, *bought*, *gave* or *lost*. So write `+50 gp` for money the party is given, not `gave us 50 gp`.
 
-1. Download `main.js`, `manifest.json` and `styles.css` from the [latest release](https://github.com/Libertas-le-Spes/dungeons-and-dinthla/releases/latest).
-2. Put them in a folder named `dungeons-and-dinthla` inside your vault's `.obsidian/plugins` folder.
-3. In Obsidian, turn on **Dungeons & Dinthla** under **Settings → Community plugins**.
+To answer a question or move a quest on, start a line in the session box with `??`, `!!` or `$$` and pick the earlier line. The welcome page shows the rest when you first open the plugin.
 
-To try it without touching your own notes, download the starter vault zip from the same release and open it as a vault.
+A character can bring their values into another campaign; [carrying a character](docs/carrying-a-character.md) shows how.
 
-The [install guide](docs/install.md) covers phones and tablets, updating and removing it, and checking the files.
+## Working on this project
 
-## Guides
+Building, testing and releasing are in [working on this project](docs/working-on-this.md). The work still to do is in the open issues.
 
-- [Writing sessions](docs/writing-sessions.md): the lines you type and what the plugin does with them.
-- [Characters](docs/characters.md): sheets, bringing a character in from D&D Beyond, and leaving play.
-- [Privacy](docs/privacy.md): what the plugin can read and write, and the one thing it sends.
-- [Working on this project](docs/working-on-this.md): building, testing and releasing.
+## Privacy
 
-## Your notes stay yours
-
-The plugin reads and writes only inside the one folder you choose for your campaigns. It sends nothing anywhere, unless you press the button that brings a character in from D&D Beyond. Your campaign is plain Markdown, and it still reads fine with the plugin turned off.
-
-[MIT License](LICENSE)
+The plugin reads and writes only inside the one folder you choose for your campaigns. It sends nothing anywhere, unless you press the button that brings a character in from D&D Beyond, and it asks before the first time. Your campaign stays plain Markdown and reads fine with the plugin turned off. [Privacy](docs/privacy.md) says exactly what is sent and what is kept.
