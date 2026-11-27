@@ -35,7 +35,7 @@ npm test
 
 - `npm run build` writes `main.js` and `styles.css` and copies the plugin into `demo-vault/`. Open `demo-vault` as a vault in Obsidian to try `main`, with `D&D` as the Campaigns folder. When the note format changes, the demo notes change in the same pull request.
 - `npm test` runs inside a 3 GB memory box when the machine can make one. Arguments after `npm test --` go to vitest. Tests must never open a real browser.
-- `node scripts/check-no-network.ts main.js styles.css` checks the built files for network code, as CI does. It flags every `.write(` and `submit` beyond the known ones in `scripts/network-code.ts`, so don't name a method `write` or `submit`. Rename the method; never loosen the check.
+- `node scripts/check-no-network.ts main.js styles.css` checks the built files for network code, as CI does. It flags every `.write(` and `submit` beyond the known ones in `scripts/network-code.ts`, so do not name a method `write` or `submit`. Rename the method; never loosen the check.
 - `demo-vault/` may hold the owner's own uncommitted notes. Never stage, move or commit them without asking.
 
 To keep the machine responsive, run heavy work at low priority:
