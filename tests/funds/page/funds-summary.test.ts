@@ -9,9 +9,9 @@ function summaryOf(lines: string[]) {
 describe("summariseFunds", () => {
   const summary = summaryOf([
     "$ +50 gp advance from Lady Vess",
-    "$ Paid 2 gp for rooms",
+    "$ -2 gp for rooms",
     "$ 35 gp 4 sp from the bandits",
-    "$ Bought rope for 2 gp, -5 gp ferry",
+    "$ -2 gp rope, -5 gp ferry",
     "$ Potion of healing",
   ]);
 
@@ -23,9 +23,9 @@ describe("summariseFunds", () => {
 
   it("lists the ledger newest first, each line with the balance after it", () => {
     expect(summary.ledger.map(({ record, balance }) => [record.text, balance])).toEqual([
-      ["Bought rope for 2 gp, -5 gp ferry", 7640],
+      ["-2 gp rope, -5 gp ferry", 7640],
       ["35 gp 4 sp from the bandits", 8340],
-      ["Paid 2 gp for rooms", 4800],
+      ["-2 gp for rooms", 4800],
       ["+50 gp advance from Lady Vess", 5000],
     ]);
   });
@@ -39,7 +39,7 @@ describe("summariseFunds", () => {
 
   it("counts each amount in or out on its own, as the note says", () => {
     expect(summaryOf(["$ +50 gp reward, -5 gp ferry"])).toMatchObject({ totalIn: 5000, totalOut: 500, purse: 4500 });
-    expect(summaryOf(["$ found 5 gp, paid 5 gp toll", "$ sold the cart for 10 gp, paid 2 gp toll"])).toMatchObject({
+    expect(summaryOf(["$ found 5 gp, -5 gp toll", "$ sold the cart for 10 gp, -2 gp toll"])).toMatchObject({
       totalIn: 1500,
       totalOut: 700,
       purse: 800,
@@ -51,7 +51,7 @@ describe("summariseFunds", () => {
   });
 
   it("leaves out a kind of coin that comes to nothing", () => {
-    expect(summaryOf(["$ 5 sp found", "$ paid 5 sp toll"]).coinCounts).toEqual([]);
+    expect(summaryOf(["$ 5 sp found", "$ -5 sp toll"]).coinCounts).toEqual([]);
   });
 
   it("summarises a campaign with no coin as empty", () => {

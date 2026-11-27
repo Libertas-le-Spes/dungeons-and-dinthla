@@ -20,7 +20,7 @@ import { HeldCoinReader, PARTY_COIN, type CoinReader } from "../../../src/funds/
 const ONE = "Pale Moon/Sessions/Session 1.md";
 
 function openEntryAt(line: number) {
-  const sessionNotes = [sessionNoteOf(ONE, 1, "$ Bought rope for 2 gp\n$ 2 gp tip\n$ Rope\n$$ Rope :sold 3 gp\n", STUB_SYNTAX)];
+  const sessionNotes = [sessionNoteOf(ONE, 1, "$ rope for -2 gp\n$ 2 gp tip\n$ Rope\n$$ Rope :sold 3 gp\n", STUB_SYNTAX)];
   const store = { current: buildCampaign(sessionNotes), sessionNotes } as unknown as CampaignStore;
   const openNote = vi.fn();
   const onClosed = vi.fn();

@@ -15,7 +15,7 @@ const sessionOne = session(
     "We meet at the [[Gilded Stag]].",
     "! Find the missing caravan, from: [[Lady Vess]], reward: 200 gp",
     "? Who sent the letter",
-    "$ Paid 2 gp for rooms",
+    "$ -2 gp for rooms",
     "$ Potion of healing",
     "- $ [[Mira]] [[Silvered lantern]]",
   ],
@@ -71,7 +71,7 @@ describe("buildCampaign", () => {
 
   it("keeps each coin entry's text, a sale's item change included", () => {
     expect(campaign.coins.map((coin) => coin.text)).toEqual([
-      "Paid 2 gp for rooms",
+      "-2 gp for rooms",
       "35 gp 4 sp from the bandits",
       "Silvered lantern :sold 30gp",
     ]);

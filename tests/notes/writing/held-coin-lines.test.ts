@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildCampaign } from "../../../src/campaign/reading/build-campaign";
 import { whoseFunds } from "../../../src/funds/page/whose-funds";
-import { HOLDER_CHANGES_IT, HOLDER_NOT_LINKABLE, readHeldCoinDraft, WORDS_SAY_OUT, type CoinDraft, type CoinHolder, type CoinReading } from "../../../src/notes/writing/coin-lines";
+import { HOLDER_CHANGES_IT, HOLDER_NOT_LINKABLE, NO_FOR, readHeldCoinDraft, type CoinDraft, type CoinHolder, type CoinReading } from "../../../src/notes/writing/coin-lines";
 
 const MIRA: CoinHolder = { linktext: "Mira", name: "Mira" };
 
@@ -23,7 +23,7 @@ function sidesOf(line: string, ownNames: string[]): { mine: number; party: numbe
 describe("readHeldCoinDraft", () => {
   it.each([
     { given: draft("in", "30 gp", "from the bandits"), line: "$ [[Mira]] 30 gp from the bandits", copper: 3000, reads: "Reads as In 30 gp for Mira: 30 gp from the bandits" },
-    { given: draft("out", "2 gp", "for rooms"), line: "$ [[Mira]] Paid 2 gp for rooms", copper: -200, reads: "Reads as Out 2 gp for Mira: Paid 2 gp for rooms" },
+    { given: draft("out", "2 gp", "for rooms"), line: "$ [[Mira]] -2 gp for rooms", copper: -200, reads: "Reads as Out 2 gp for Mira: -2 gp for rooms" },
   ])("writes $line with the character's link first, saying whose it is", ({ given, line, copper, reads }) => {
     expect(readHeldCoinDraft(given, MIRA)).toEqual({ line, copper, reads });
   });
@@ -41,11 +41,11 @@ describe("readHeldCoinDraft", () => {
     expect(readHeldCoinDraft(draft("in", "30 gp", "found"), { linktext, name: linktext })).toEqual({ error: HOLDER_NOT_LINKABLE });
   });
 
-  it.each(["Bard 5 gp", "Mira, paid 2 gp"])("refuses a note name that would change the amount, like %s", (linktext) => {
+  it.each(["Bard 5 gp", "Mira, -2 gp"])("refuses a note name that would change the amount, like %s", (linktext) => {
     expect(readHeldCoinDraft(draft("in", "30 gp", "found"), { linktext, name: linktext })).toEqual({ error: HOLDER_CHANGES_IT });
   });
 
   it("refuses what the party's coin refuses", () => {
-    expect(readHeldCoinDraft(draft("in", "5 gp", "paid the toll"), MIRA)).toEqual({ error: WORDS_SAY_OUT });
+    expect(readHeldCoinDraft(draft("in", "5 gp", "refund, for: Find the caravan"), MIRA)).toEqual({ error: NO_FOR });
   });
 });

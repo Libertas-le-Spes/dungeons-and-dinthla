@@ -9,6 +9,7 @@ export interface PluginSettings {
   notesMadeFor: string[];
   beyondAgreed: boolean;
   charactersBasesSwept: boolean;
+  carryingNoticeShown: boolean;
 }
 
 function isCampaignsFolder(saved: unknown, configDir: string): saved is string {
@@ -29,7 +30,7 @@ function foldersInside(campaignsFolder: string | null, configDir: string, saved:
 }
 
 export function settingsOf(saved: unknown, configDir: string): PluginSettings {
-  const settings: PluginSettings = { campaignsFolder: null, campaignFolder: null, welcomeSeen: false, lastVersionSeen: null, notesMadeFor: [], beyondAgreed: false, charactersBasesSwept: false };
+  const settings: PluginSettings = { campaignsFolder: null, campaignFolder: null, welcomeSeen: false, lastVersionSeen: null, notesMadeFor: [], beyondAgreed: false, charactersBasesSwept: false, carryingNoticeShown: false };
   if (typeof saved !== "object" || saved === null) return settings;
   if ("campaignsFolder" in saved && isCampaignsFolder(saved.campaignsFolder, configDir)) settings.campaignsFolder = saved.campaignsFolder;
   if ("campaignFolder" in saved && isInside(settings.campaignsFolder, configDir, saved.campaignFolder)) settings.campaignFolder = saved.campaignFolder;
@@ -37,6 +38,7 @@ export function settingsOf(saved: unknown, configDir: string): PluginSettings {
   if ("lastVersionSeen" in saved && typeof saved.lastVersionSeen === "string") settings.lastVersionSeen = saved.lastVersionSeen;
   if ("beyondAgreed" in saved && saved.beyondAgreed === true) settings.beyondAgreed = true;
   if ("charactersBasesSwept" in saved && saved.charactersBasesSwept === true) settings.charactersBasesSwept = true;
+  if ("carryingNoticeShown" in saved && saved.carryingNoticeShown === true) settings.carryingNoticeShown = true;
   if ("notesMadeFor" in saved) settings.notesMadeFor = foldersInside(settings.campaignsFolder, configDir, saved.notesMadeFor);
   return settings;
 }

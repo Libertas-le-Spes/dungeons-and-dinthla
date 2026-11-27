@@ -19,9 +19,11 @@ function shownStep(device: MadeUpDevice, page: MadeUpPage): { agreement: Campaig
 describe("the agreement step at campaign creation", () => {
   it("shows the agreement's own words with Agree and Not yet", () => {
     const { stepEl } = shownStep(new MadeUpDevice(), new MadeUpPage());
-    expect(textsIn(stepEl, ".dd-agreement-title")).toEqual(["Bring in your character from D&D Beyond?"]);
+    expect(textsIn(stepEl, ".dd-agreement-title")).toEqual(["Bring your character in from D&D Beyond?"]);
     expect(textsIn(stepEl, ".dd-agreement-words")).toEqual([
-      "The plugin asks D&D Beyond for your character by its number, and sends nothing else. The character must be set to Public there, so anyone with its link can see it. Its backstory and notes are never saved.",
+      "To do this, the plugin asks D&D Beyond for your character using only its number. Nothing else is sent.",
+      "D&D Beyond only shares characters that are set to Public, which anyone with the link can see. Your character's backstory and notes are not kept.",
+      "You only need to agree once for this vault.",
     ]);
     expect(textsIn(stepEl, "button")).toEqual(["Agree", "Not yet"]);
     expect(stepEl.querySelector("button.mod-cta")).toBeNull();

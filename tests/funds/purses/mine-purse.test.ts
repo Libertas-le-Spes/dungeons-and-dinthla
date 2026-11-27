@@ -32,7 +32,7 @@ describe("the purse of his character", () => {
   });
 
   it("adds the own lines of the sessions after the one the sheet was imported in", () => {
-    const campaign = campaignOf(["$ 100 gp from [[Mira]]"], ["$ 5 gp from [[Mira]]", "$ Paid 2 gp for rope, [[Mira]]"], ["$ 1 gp from [[Mira]]"]);
+    const campaign = campaignOf(["$ 100 gp from [[Mira]]"], ["$ 5 gp from [[Mira]]", "$ -2 gp for rope, [[Mira]]"], ["$ 1 gp from [[Mira]]"]);
     expect(purseOf(campaign, [sheetOf({ name: "Mira", gold: 19, importedSession: 1 })])).toBe("23 gp");
   });
 
@@ -57,7 +57,7 @@ describe("the purse of his character", () => {
   });
 
   it("adds up several own characters, each from its own session", () => {
-    const campaign = campaignOf(["$ 5 gp from [[Mira]]", "$ 3 gp from [[Bo]]"], ["$ 7 gp from [[Mira]]", "$ Paid 1 gp, [[Bo]]"]);
+    const campaign = campaignOf(["$ 5 gp from [[Mira]]", "$ 3 gp from [[Bo]]"], ["$ 7 gp from [[Mira]]", "$ -1 gp, [[Bo]]"]);
     expect(purseOf(campaign, [sheetOf({ name: "Mira", gold: 10, importedSession: 1 }), sheetOf({ name: "Bo", gold: 20, importedSession: 2 }), noSheetOf("Cy")])).toBe("37 gp");
   });
 
@@ -86,7 +86,7 @@ describe("the purse of his character", () => {
 
   it("adds the sheet's coins to the coins of the lines, and the sheet to money in", () => {
     const sheet: OwnSheet = { name: "Mira", purse: [{ coin: "pp", count: 1 }, { coin: "gp", count: 19 }, { coin: "sp", count: null }], importedSession: 1 };
-    const summary = minePurseOf({ campaign: campaignOf([], ["$ 5 gp from [[Mira]]", "$ Paid 2 sp, [[Mira]]"]), sheets: [sheet] });
+    const summary = minePurseOf({ campaign: campaignOf([], ["$ 5 gp from [[Mira]]", "$ -2 sp, [[Mira]]"]), sheets: [sheet] });
     expect(summary.coinCounts).toEqual([
       { kind: "pp", count: 1 },
       { kind: "gp", count: 24 },

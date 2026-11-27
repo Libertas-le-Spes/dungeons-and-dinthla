@@ -143,7 +143,7 @@ describe("saving a quest", () => {
 
 describe("a quest's reward", () => {
   it("isn't offered when it reads as money paid out", () => {
-    const notes = new FakeNotes({ [ONE]: "! Pay the toll, reward: paid 5 gp\n" });
+    const notes = new FakeNotes({ [ONE]: "! Pay the toll, reward: -5 gp\n" });
     expect(canCollectReward(notes.quest("Pay the toll"), notes.current.coins)).toBe(false);
   });
 });

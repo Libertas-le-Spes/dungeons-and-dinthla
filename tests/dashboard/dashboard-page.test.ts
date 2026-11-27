@@ -158,12 +158,12 @@ describe("DashboardPage", () => {
   });
 
   it("shows the purse, the items held, money in and out, and the three latest entries", async () => {
-    const lines = ["$ +50 gp advance", "$ Paid 2 gp for rooms", "$ 35 gp 4 sp from the bandits", "$ 1 gp found", "$ Potion of healing", "$ [[Mira]] Rope"];
+    const lines = ["$ +50 gp advance", "$ -2 gp for rooms", "$ 35 gp 4 sp from the bandits", "$ 1 gp found", "$ Potion of healing", "$ [[Mira]] Rope"];
     const { root } = await openDashboard([sessionOf(1, lines)]);
     const purse = panel(root, PURSE);
     expect(textsOf(purse, ".dd-big")).toEqual(["84 gp 4 sp+ 2 items"]);
     expect(textsOf(purse, ".dd-in-out > span")).toEqual(["In 86 gp 4 sp", "Out 2 gp"]);
-    expect(textsOf(purse, ".dd-ledger .dd-what")).toEqual(["1 gp found", "35 gp 4 sp from the bandits", "Paid 2 gp for rooms"]);
+    expect(textsOf(purse, ".dd-ledger .dd-what")).toEqual(["1 gp found", "35 gp 4 sp from the bandits", "-2 gp for rooms"]);
     expect(textsOf(purse, ".dd-ledger .dd-amount")).toEqual(["+1 gp", "+35 gp 4 sp", "−2 gp"]);
     expect(purse.querySelector(".dd-empty")).toBeNull();
   });

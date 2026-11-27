@@ -35,30 +35,33 @@ describe("readLedgerEntry", () => {
     expect(readLedgerEntry("+5 gp found")).toMatchObject({ copper: 500, moneyOut: false });
   });
 
-  it("counts paid, spent, bought, gave and lost as money out", () => {
-    for (const word of ["Paid", "spent", "bought", "gave", "lost"]) {
-      expect(readLedgerEntry(`${word} 5 gp`)).toMatchObject({ copper: -500, moneyOut: true });
-    }
+  it.each(["-", "−", "–", "—"])("counts an amount after a %s as money out", (sign) => {
+    expect(readLedgerEntry(`${sign}5 gp ferry`)).toMatchObject({ copper: -500, moneyOut: true });
+  });
+
+  it.each(["Paid", "spent", "bought", "gave", "lost"])("counts an amount after %s as money in, since only a minus says money out", (word) => {
+    expect(readLedgerEntry(`${word} 5 gp`)).toMatchObject({ copper: 500, moneyOut: false });
   });
 
   it("signs each amount on its own", () => {
     expect(readLedgerEntry("+50 gp reward, -5 gp ferry")).toMatchObject({ copper: 4500, moneyOut: false });
   });
 
-  it("counts a money-out word for every amount after it up to the next comma", () => {
-    expect(readLedgerEntry("paid 5 gp, got 3 gp back")).toMatchObject({ copper: -200, moneyOut: true });
-    expect(readLedgerEntry("Bought rope for 2 gp")).toMatchObject({ copper: -200 });
-    expect(readLedgerEntry("Paid the ferryman 5 gp 3 sp")).toMatchObject({ copper: -530 });
+  it("carries a minus on to the unsigned amounts after it, up to the next comma", () => {
+    expect(readLedgerEntry("-5 gp 3 sp ferry")).toMatchObject({ copper: -530 });
+    expect(readLedgerEntry("-5 gp, got 3 gp back")).toMatchObject({ copper: -200, moneyOut: true });
   });
 
-  it("doesn't count a money-out word for amounts before it", () => {
-    expect(readLedgerEntry("found 10 gp, paid 4 gp")).toMatchObject({ copper: 600, moneyOut: false });
-    expect(readLedgerEntry("10 gp found and lost")).toMatchObject({ copper: 1000 });
+  it("does not carry a minus back to the amounts before it", () => {
+    expect(readLedgerEntry("found 10 gp -4 gp")).toMatchObject({ copper: 600, moneyOut: false });
   });
 
-  it("lets a sign win over a money-out word", () => {
-    expect(readLedgerEntry("[[Lady Vess]] gave us 50 gp")).toMatchObject({ copper: -5000 });
-    expect(readLedgerEntry("[[Lady Vess]] gave us +50 gp")).toMatchObject({ copper: 5000, moneyOut: false });
+  it("lets a plus after a minus turn the amounts after it back to money in", () => {
+    expect(readLedgerEntry("-5 gp +3 sp")).toMatchObject({ copper: -470 });
+  });
+
+  it("reads money given to the party as money in", () => {
+    expect(readLedgerEntry("[[Lady Vess]] gave us 50 gp")).toMatchObject({ copper: 5000, moneyOut: false });
   });
 
   it("reads an amount written straight after a comma", () => {
@@ -66,19 +69,11 @@ describe("readLedgerEntry", () => {
   });
 
   it("reads money out and back in that cancel out as no money out", () => {
-    expect(readLedgerEntry("paid 5 gp, got 5 gp back")).toMatchObject({ copper: 0, moneyOut: false });
-  });
-
-  it("doesn't count a money-out word inside a linked name", () => {
-    expect(readLedgerEntry("reward from [[Lost Hollow]] 5 gp")).toMatchObject({ copper: 500, moneyOut: false });
+    expect(readLedgerEntry("-5 gp, got 5 gp back")).toMatchObject({ copper: 0, moneyOut: false });
   });
 
   it("keeps an amount written with a thousands comma whole when paid out", () => {
-    expect(readLedgerEntry("paid 1,200 gp")).toMatchObject({ copper: -120000 });
-  });
-
-  it("only counts those words as whole words", () => {
-    expect(readLedgerEntry("Paidcash 5 gp")).toMatchObject({ copper: 500, moneyOut: false });
+    expect(readLedgerEntry("-1,200 gp")).toMatchObject({ copper: -120000 });
   });
 
   it("reads thousands written with commas", () => {
